@@ -10,7 +10,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS 

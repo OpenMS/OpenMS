@@ -13,14 +13,15 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <fstream>
+#include <memory>
 
 #include <boost/dynamic_bitset.hpp>
-
-#include "svm.h"
 
 // #define FFM_DEBUG
 
@@ -270,6 +271,12 @@ namespace OpenMS
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
     defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
+    defaults_.setValue("isotope_rt_overlap_reference", "longer", "Reference trace the RT overlap is measured against when scoring two co-eluting mass traces (only used if 'enable_RT_filtering' is enabled): 'longer' measures the overlap against the longer trace (default, historic behavior); 'shorter' measures it against the shorter trace and additionally requires the apex of the longer trace to fall within the RT range of the shorter trace. Since low-intensity isotope traces are usually much shorter than the monoisotopic trace, 'shorter' better groups them (see issue #4483).", {"advanced"});
+    defaults_.setValidStrings("isotope_rt_overlap_reference", {"longer", "shorter"});
+    defaults_.setValue("min_isotope_rt_overlap", 0.7, "Minimum fraction of the reference trace (see 'isotope_rt_overlap_reference') in RT (within FWHM) that must overlap the other trace so the two are scored as isotopes. Only used if 'enable_RT_filtering' is enabled.", {"advanced"});
+    defaults_.setMinFloat("min_isotope_rt_overlap", 0.0);
+    defaults_.setMaxFloat("min_isotope_rt_overlap", 1.0);
+
     defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
     defaults_.setValidStrings("isotope_filtering_model", {"metabolites (2% RMS)","metabolites (5% RMS)","peptides","none"});
 
@@ -300,13 +307,9 @@ namespace OpenMS
     this->setLogType(CMD);
   }
 
-  FeatureFindingMetabo::~FeatureFindingMetabo()
-  {
-    if (isotope_filt_svm_ != nullptr)
-    {
-      svm_free_and_destroy_model(&isotope_filt_svm_);
-    }
-  }
+  // Defined here (not defaulted in the header) so the std::unique_ptr<SimpleSVM>
+  // member can be destroyed with SimpleSVM as a complete type.
+  FeatureFindingMetabo::~FeatureFindingMetabo() = default;
 
   void FeatureFindingMetabo::updateMembers_()
   {
@@ -320,6 +323,8 @@ namespace OpenMS
 
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
+    min_isotope_rt_overlap_ = (double)param_.getValue("min_isotope_rt_overlap");
+    isotope_rt_overlap_use_shorter_ = (param_.getValue("isotope_rt_overlap_reference") == "shorter");
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
@@ -403,8 +408,11 @@ namespace OpenMS
 
     double mono_int(all_ints[0]); // monoisotopic intensity
 
+    // Dense, scaled feature vector for the SVM: index 0 is the mass, indexes 1..3
+    // are the (scaled) intensity ratios of the first three isotopic traces to the
+    // monoisotopic trace. Absent traces contribute a scaled ratio of 0.
     const Size FEAT_NUM(4);
-    svm_node* nodes = new svm_node[FEAT_NUM + 1];
+    std::vector<double> features(FEAT_NUM);
 
     double act_mass(feat_hypo.getCentroidMZ() * feat_hypo.getCharge());
 
@@ -414,8 +422,7 @@ namespace OpenMS
       act_mass = 1000.0;
     }
 
-    nodes[0].index = 1;
-    nodes[0].value = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
+    features[0] = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
 
     // Iterate, start with first isotopic trace (skip monoisotopic)
     Size i = 2;
@@ -429,37 +436,22 @@ namespace OpenMS
 
     for (; i - 1 < feat_size; ++i)
     {
-      nodes[i - 1].index = static_cast<Int>(i);
-
       // compute ratio of trace to monoisotopic intensity
       double ratio((all_ints[i - 1] / mono_int));
 
-      double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
-      nodes[i - 1].value = tmp_val;
+      features[i - 1] = (ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
     }
 
     for (; i < FEAT_NUM + 1; ++i)
     {
-      nodes[i - 1].index = static_cast<Int>(i);
-      nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      features[i - 1] = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
     }
-
-    nodes[FEAT_NUM].index = -1;
-    nodes[FEAT_NUM].value = 0;
-
-    // debug output
-    //    std::cout << "isocheck for " << feat_hypo.getLabel() << " " << feat_hypo.getSize() << '\n';
-    //    for (Size i = 0; i < FEAT_NUM + 1; ++i)
-    //    {
-    //        std::cout << "idx: " << nodes[i].index << " val: " << nodes[i].value << '\n';
-    //    }
 
     // Use SVM model to predict the category in which the current trace group
     // belongs ...
-    double predict = svm_predict(isotope_filt_svm_, nodes);
+    double predict = isotope_filt_svm_->predict(features);
 
     // std::cout << "predict: " << predict << '\n';
-    delete[] nodes;
 
     return (predict == 2.0) ? 1 : 0;
   }
@@ -471,17 +463,11 @@ namespace OpenMS
     std::string model_filename = File::find(search_name + ".svm");
     std::string scale_filename = File::find(search_name + ".scale");
 
-    if (isotope_filt_svm_ != nullptr)
+    if (!isotope_filt_svm_)
     {
-      svm_free_and_destroy_model(&isotope_filt_svm_);
+      isotope_filt_svm_ = std::make_unique<SimpleSVM>();
     }
-    isotope_filt_svm_ = svm_load_model(model_filename.c_str());
-    if (isotope_filt_svm_ == nullptr)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Loading " + model_filename + " failed", model_filename);
-    }
-
+    isotope_filt_svm_->loadModel(model_filename); // throws on failure
 
     std::ifstream ifs(scale_filename.c_str());
 
@@ -638,7 +624,8 @@ namespace OpenMS
 
     double tr1_length(tr1.getFWHM());
     double tr2_length(tr2.getFWHM());
-    double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
+    double max_length = std::max(tr1_length, tr2_length);
+    double min_length = std::min(tr1_length, tr2_length);
 
     // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << '\n';
 
@@ -652,7 +639,7 @@ namespace OpenMS
       coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
     }
 
-    // Look at peaks at the same RT 
+    // Look at peaks at the same RT
     // TODO: this only works if both traces are sampled with equal rate at the same RT
     std::vector<double> x, y, overlap_rts;
     for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
@@ -665,17 +652,6 @@ namespace OpenMS
       }
     }
 
-    //    if (x.size() < std::floor(0.8*max_length))
-    //        {
-    //            return 0.0;
-    //        }
-    // double rt_range(0.0)
-    // if (coinciding_rts.size() > 0)
-    // {
-    //     rt_range = std::fabs(coinciding_rts.rbegin()->first - coinciding_rts.begin()->first);
-    // }
-
-
     double overlap(0.0);
     if (!overlap_rts.empty())
     {
@@ -683,11 +659,43 @@ namespace OpenMS
       overlap = std::fabs(end_rt - start_rt);
     }
 
-    double proportion(overlap / max_length);
-    if (proportion < 0.7)
+    if (!isotope_rt_overlap_use_shorter_)
+    {
+      // Historic behavior: the overlap must exceed the given fraction of the
+      // longer trace (default 0.7, i.e. 70 %, as described in Kenar et al.).
+      double proportion = (max_length > 0.0) ? (overlap / max_length) : 0.0;
+      if (proportion < min_isotope_rt_overlap_)
+      {
+        return 0.0;
+      }
+      return computeCosineSim_(x, y);
+    }
+
+    // 'shorter' reference: require the shorter mass trace to lie almost entirely
+    // within the longer one. Measuring the overlap against the shorter trace still
+    // groups low-intensity isotope traces that are much shorter than the
+    // monoisotopic trace (see issue #4483).
+    const MassTrace& longer_trace = (tr1_length >= tr2_length) ? tr1 : tr2;
+    const MassTrace& shorter_trace = (tr1_length >= tr2_length) ? tr2 : tr1;
+
+    double proportion = (min_length > 0.0) ? (overlap / min_length) : 0.0;
+    if (proportion < min_isotope_rt_overlap_)
     {
       return 0.0;
     }
+
+    // Additionally require the apex (most intense peak) of the longer trace to fall
+    // within the RT range of the shorter trace. If the dominant peak is not present
+    // where the shorter trace elutes, the two traces most likely do not belong together.
+    std::pair<Size, Size> shorter_fwhm_idx(shorter_trace.getFWHMborders());
+    double shorter_start_rt(shorter_trace[shorter_fwhm_idx.first].getRT());
+    double shorter_end_rt(shorter_trace[shorter_fwhm_idx.second].getRT());
+    double longer_apex_rt(longer_trace[longer_trace.findMaxByIntPeak(use_smoothed_intensities_)].getRT());
+    if (longer_apex_rt < shorter_start_rt || longer_apex_rt > shorter_end_rt)
+    {
+      return 0.0;
+    }
+
     return computeCosineSim_(x, y);
   }
 

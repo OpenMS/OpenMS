@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <fstream>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>

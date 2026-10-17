@@ -2147,6 +2147,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
 
   // transition group 1
   cgqcs.component_group_name = "component_group1";
+  cgqcs.retention_time_l = 2; // distinct group-level RT (l vs u) so the %RSD differs between _l and _u
+  cgqcs.retention_time_u = 3;
   cgqcs.n_heavy_l = 0;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 1;
@@ -2179,6 +2181,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   filter_values.push_back(qc_criteria1);
   // transition group 1;
   cgqcs.component_group_name = "component_group1";
+  cgqcs.retention_time_l = 1; // distinct group-level RT (l vs u) so the %RSD differs between _l and _u
+  cgqcs.retention_time_u = 2;
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 2;
@@ -2211,6 +2215,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   filter_values.push_back(qc_criteria2);
   // transition group 1;
   cgqcs.component_group_name = "component_group1";
+  cgqcs.retention_time_l = 1; // distinct group-level RT (l vs u) so the %RSD differs between _l and _u
+  cgqcs.retention_time_u = 4;
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 2;
   cgqcs.n_light_l = 1;
@@ -2246,6 +2252,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   MRMFeatureQC filter_zeros;
   mrmff.calculateFilterValuesMean(filter_zeros, filter_values, qc_criteria1);  // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_l, 1.333333333); // mean of {2,1,1}
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_u, 3); // mean of {3,2,4}
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 0.666666667);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 1.333333333);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 1.333333333);
@@ -2281,6 +2289,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   mrmff.calculateFilterValuesVar(filter_zeros, filter_values, filter_means, qc_criteria1);
   // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_l, 0.333333333); // var of {2,1,1}
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_u, 1); // var of {3,2,4}
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 1);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0.333333333);
@@ -2317,6 +2327,11 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
 
   // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  // group-level RT %RSD: _l and _u must read their OWN mean/var (regression: _u previously copied _l).
+  // RT_l = {2,1,1}: sqrt(0.333333333)/1.333333333*100 = 43.30127019
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_l, 43.30127019);
+  // RT_u = {3,2,4}: sqrt(1)/3*100 = 33.33333333 (before the fix this equalled the _l value, 43.30127019)
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_u, 33.33333333);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0);

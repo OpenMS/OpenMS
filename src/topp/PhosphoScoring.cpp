@@ -10,7 +10,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <string_view>
 
@@ -216,7 +217,7 @@ namespace OpenMS
   }
 
   std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(
-    vector<FASTAFile::FASTAEntry> fasta_db,
+    const vector<FASTAFile::FASTAEntry>& fasta_db,
     const EnzymaticDigestion& digestor,
     Size min_peptide_length,
     const StringList& cross_link_residue1,
@@ -393,9 +394,8 @@ namespace OpenMS
         peptide_second = &(peptide_masses[candidate.beta_index].peptide_seq);
         peptide_pos_second = peptide_masses[candidate.beta_index].position;
       }
-      std::string seq_first = candidate.alpha_seq;
-      std::string seq_second;
-      if (peptide_second) { seq_second = candidate.beta_seq; }
+      const std::string& seq_first = candidate.alpha_seq;
+      const std::string& seq_second = candidate.beta_seq; // empty for mono-/loop-links
 
       // mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
       // Find out which is the case. But it should not happen often enough to slow down the tool significantly.
@@ -1135,8 +1135,8 @@ namespace OpenMS
       }
     }
 
-    // Collect PeptideHits to the same spectrum under one PeptideIdentification
-    map<std::string, PeptideIdentification> new_peptide_ids;
+    // Collect PeptideHits to the same spectrum (of the same run) under one PeptideIdentification
+    map<pair<std::string, std::string>, PeptideIdentification> new_peptide_ids; // key: run identifier, spectrum
     for (PeptideIdentification& id : peptide_ids)
     {
       if (!id.getHits().empty())
@@ -1144,12 +1144,14 @@ namespace OpenMS
         PeptideHit& hit = id.getHits()[0];
         PeptideIdentification new_id;
         std::string current_spectrum = StringUtils::toStr(id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE));
-        if (new_peptide_ids.contains(current_spectrum))
+        const pair<std::string, std::string> key(id.getIdentifier(), current_spectrum);
+        if (new_peptide_ids.contains(key))
         {
-          new_id = (*new_peptide_ids.find(current_spectrum)).second;
+          new_id = (*new_peptide_ids.find(key)).second;
         }
         else
         {
+          new_id.setIdentifier(id.getIdentifier()); // the protein identification run (search run) of the spectrum
           new_id.setRT(id.getRT());
           new_id.setMZ(id.getMZ());
           new_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
@@ -1157,13 +1159,13 @@ namespace OpenMS
         }
         hit.removeMetaValue("xl_chain");
         new_id.insertHit(hit);
-        new_peptide_ids[current_spectrum] = new_id;
+        new_peptide_ids[key] = new_id;
 
       }
     }
     std::vector<PeptideIdentification> new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
-    for (pair<std::string, PeptideIdentification> mit : new_peptide_ids)
+    for (const auto& mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
     }

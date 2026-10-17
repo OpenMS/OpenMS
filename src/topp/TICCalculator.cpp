@@ -10,6 +10,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -130,8 +131,7 @@ class TOPPTICCalculator :
 public:
   TOPPTICCalculator() :
     TOPPBase("TICCalculator", 
-    "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).", 
-    true)
+    "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).")
   {
   }
 

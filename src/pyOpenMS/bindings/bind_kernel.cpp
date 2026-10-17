@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -35,9 +36,9 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -75,6 +76,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
+#include "index_value_iterator.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -85,6 +87,7 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include "peak_layout.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -109,17 +112,42 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
     return arr;
 }
 
-NB_MODULE(_pyopenms_kernel, m) {
-    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
-    static_assert(std::is_standard_layout_v<OpenMS::MobilityPeak1D>,
-                  "MobilityPeak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
-    static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
-                  "MobilityPeak1D must be 16 bytes for zero-copy structured array access");
-    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::CoordinateType, double>,
-                  "MobilityPeak1D::CoordinateType must be double (dtype assumes float64 for position)");
-    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::IntensityType, float>,
-                  "MobilityPeak1D::IntensityType must be float (dtype assumes float32 for intensity)");
+// ABI guards for zero-copy structured array access (peaks_struct dtype depends on these).
+// The static_assert is what instantiates PeakLayout, so the guards run even if the dtype below
+// is refactored away; it also restates the offsets peaks_struct publishes to Python.
+using MobilityPeak1DLayout = pyopenms::PeakLayout<OpenMS::MobilityPeak1D>;
+static_assert(MobilityPeak1DLayout::position_offset == 0 && MobilityPeak1DLayout::intensity_offset == 8,
+    "MobilityPeak1D's structured dtype is documented as mobility (float64) at 0, intensity (float32) at 8");
 
+
+// MRMTransitionGroup keeps three key -> index maps (transition_map_,
+// chromatogram_map_, precursor_chromatogram_map_) alongside its vectors, and the
+// keyed getters index through them. The class exposes no way to enumerate or
+// rebuild those maps, so a replacement can only stay consistent if it preserves
+// positions: element i keeps its key, and every key keeps pointing at a valid
+// index. That is exactly the read/edit/put-back case these setters exist for.
+// Growing or shrinking a keyed collection goes through addTransition() /
+// addChromatogram() / addPrecursorChromatogram(), which assign the key.
+template <class ElementT>
+void replaceKeyedMRMCollection_(std::vector<ElementT>& target,
+                                const std::vector<ElementT>& value,
+                                const char* what)
+{
+    if (target.size() != value.size())
+    {
+        throw nb::value_error(
+            (std::string("cannot change the number of ") + what +
+             " this way: the key lookup would go stale. Use the matching add*() method.").c_str());
+    }
+    target = value;
+}
+
+
+NB_MODULE(_pyopenms_kernel, m) {
+    // index-based value iterators (see index_value_iterator.h)
+    pyopenms_iter::bind_index_value_iterator<OpenMS::Mobilogram>(m, "_MobilogramIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::ConsensusMap>(m, "_ConsensusMapIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::FeatureMap>(m, "_FeatureMapIter");
     m.doc() = "pyOpenMS kernel bindings";
 
 
@@ -194,7 +222,7 @@ NB_MODULE(_pyopenms_kernel, m) {
         .def("getBinSize", [](const OpenMS::BinnedSpectrum& self) { return self.getBinSize(); }, "Returns the bin size")
         .def("getBinSpread", [](const OpenMS::BinnedSpectrum& self) { return self.getBinSpread(); }, "Returns the bin spread")
         .def("getOffset", [](const OpenMS::BinnedSpectrum& self) { return self.getOffset(); }, "Returns offset")
-        .def("getPrecursors", [](OpenMS::BinnedSpectrum& self) -> std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal)
+        .def("getPrecursors", [](OpenMS::BinnedSpectrum& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); })
         .def_static("isCompatible", [](const OpenMS::BinnedSpectrum& a, const OpenMS::BinnedSpectrum& b) { return OpenMS::BinnedSpectrum::isCompatible(a, b); }, "a"_a, "b"_a)
         ;
 
@@ -213,7 +241,7 @@ NB_MODULE(_pyopenms_kernel, m) {
         .def("setRT", [](OpenMS::ChromatogramPeak& self, double rt) { return self.setRT(rt); }, "rt"_a, "Sets retention time")
         .def("getPos", [](const OpenMS::ChromatogramPeak& self) { return self.getPos(); }, "Alias for getRT()")
         .def("setPos", [](OpenMS::ChromatogramPeak& self, double pos) { return self.setPos(pos); }, "pos"_a, "Alias for setRT()")
-        .def("getPosition", [](OpenMS::ChromatogramPeak& self) -> OpenMS::DPosition<1> & { return self.getPosition(); }, nb::rv_policy::reference_internal, "Returns the position (RT)")
+        .def("getPosition", [](const OpenMS::ChromatogramPeak& self) -> OpenMS::DPosition<1> { return self.getPosition(); }, "Returns the position (RT)")
         .def("setPosition", [](OpenMS::ChromatogramPeak& self, const OpenMS::DPosition<1>& position) { return self.setPosition(position); }, "position"_a, "Sets the position (RT)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -239,9 +267,12 @@ NB_MODULE(_pyopenms_kernel, m) {
     nb::class_<OpenMS::ChromatogramRangeManager>(m, "ChromatogramRangeManager", 
         R"doc(
 Range manager for chromatograms
+
 This class manages retention time, m/z, and intensity ranges for multiple chromatograms.
 It extends the basic RangeManager to provide specialized functionality for chromatogram data.
+
 The template parameters for the base RangeManager are ordered differently than in SpectrumRangeManager:
+
 - RangeRT (retention time) is the first parameter, as it's the primary dimension for chromatograms
 - RangeIntensity is the second parameter
 - RangeMZ is the third parameter
@@ -284,7 +315,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("setLoadedFilePath", [](OpenMS::DocumentIdentifier& self, const std::string& file_name) { return self.setLoadedFilePath(file_name); }, "file_name"_a, "Sets the file_name according to absolute path of the file loaded, preferably done whilst loading")
         .def("getLoadedFilePath", [](const OpenMS::DocumentIdentifier& self) { return self.getLoadedFilePath(); }, "Returns the file_name which is the absolute path to the file loaded")
         .def("setLoadedFileType", [](OpenMS::DocumentIdentifier& self, const std::string& file_name) { return self.setLoadedFileType(file_name); }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
-        .def("getLoadedFileType", [](const OpenMS::DocumentIdentifier& self) -> const OpenMS::FileTypes::Type & { return self.getLoadedFileType(); }, nb::rv_policy::reference_internal, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
+        .def("getLoadedFileType", [](const OpenMS::DocumentIdentifier& self) -> OpenMS::FileTypes::Type { return self.getLoadedFileType(); }, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
         ;
 
     // -----------------------------------------------------------------------
@@ -299,20 +330,36 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("getTransitionGroupID", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getTransitionGroupID(); })
         .def("setTransitionGroupID", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string tr_gr_id) { self.setTransitionGroupID(tr_gr_id); }, "tr_gr_id"_a)
         .def("getTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getTransitions(); })
-        .def("getTransitionsMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::ReactionMonitoringTransition>& { return self.getTransitionsMuteable(); }, nb::rv_policy::reference_internal)
+        .def("getTransitionsMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::ReactionMonitoringTransition> { return self.getTransitionsMuteable(); })
+        .def("setTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::ReactionMonitoringTransition>& value) { replaceKeyedMRMCollection_(self.getTransitionsMuteable(), value, "transitions"); }, "value"_a, "Replaces the whole transition list (write-back for getTransitionsMuteable)")
         .def("addTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::ReactionMonitoringTransition transition, std::string key) { self.addTransition(transition, key); }, "transition"_a, "key"_a)
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
-        .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram>& { return self.getChromatograms(); }, nb::rv_policy::reference_internal)
+        .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
+        .def("chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
+            if (i >= self.getChromatograms().size()) throw nb::index_error();
+            return self.getChromatograms()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the chromatogram at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the chromatogram list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getChromatograms()[i].")
+        .def("_chromatogram_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getChromatograms().size(); })
+        .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getChromatograms(), value, "chromatograms"); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
         .def("addChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getChromatogram(key); }, "key"_a)
         .def("hasChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasChromatogram(key); }, "key"_a)
-        .def("getPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram>& { return self.getPrecursorChromatograms(); }, nb::rv_policy::reference_internal)
+        .def("getPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getPrecursorChromatograms(); })
+        .def("setPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getPrecursorChromatograms(), value, "precursor chromatograms"); }, "value"_a, "Replaces the whole precursor chromatogram list (write-back for getPrecursorChromatograms)")
         .def("addPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addPrecursorChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.getPrecursorChromatogram(key); }, "key"_a)
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
         .def("getFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getFeatures(); })
-        .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MRMFeature>& { return self.getFeaturesMuteable(); }, nb::rv_policy::reference_internal)
+        .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) -> std::vector<OpenMS::MRMFeature> { return self.getFeaturesMuteable(); })
+        .def("feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, size_t i) -> OpenMS::MRMFeature& {
+            if (i >= self.getFeaturesMuteable().size()) throw nb::index_error();
+            return self.getFeaturesMuteable()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the feature list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFeaturesMuteable()[i].")
+        .def("_feature_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getFeatures().size(); })
+        .def("setFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, const std::vector<OpenMS::MRMFeature>& value) { self.getFeaturesMuteable() = value; }, "value"_a, "Replaces the whole feature list (write-back for getFeaturesMuteable)")
         .def("addFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, OpenMS::MRMFeature feature) { self.addFeature(feature); }, "feature"_a)
         .def("getBestFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.getBestFeature(); })
         .def("getLibraryIntensity", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self, std::vector<double> result) { self.getLibraryIntensity(result); }, "result"_a)
@@ -340,20 +387,36 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("getTransitionGroupID", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getTransitionGroupID(); })
         .def("setTransitionGroupID", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string tr_gr_id) { self.setTransitionGroupID(tr_gr_id); }, "tr_gr_id"_a)
         .def("getTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getTransitions(); })
-        .def("getTransitionsMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenSwath::LightTransition>& { return self.getTransitionsMuteable(); }, nb::rv_policy::reference_internal)
+        .def("getTransitionsMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenSwath::LightTransition> { return self.getTransitionsMuteable(); })
+        .def("setTransitions", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenSwath::LightTransition>& value) { replaceKeyedMRMCollection_(self.getTransitionsMuteable(), value, "transitions"); }, "value"_a, "Replaces the whole transition list (write-back for getTransitionsMuteable)")
         .def("addTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenSwath::LightTransition transition, std::string key) { self.addTransition(transition, key); }, "transition"_a, "key"_a)
         .def("getTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getTransition(key); }, "key"_a)
         .def("hasTransition", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasTransition(key); }, "key"_a)
-        .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram>& { return self.getChromatograms(); }, nb::rv_policy::reference_internal)
+        .def("getChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getChromatograms(); })
+        .def("chromatogram_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MSChromatogram& {
+            if (i >= self.getChromatograms().size()) throw nb::index_error();
+            return self.getChromatograms()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the chromatogram at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the chromatogram list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getChromatograms()[i].")
+        .def("_chromatogram_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getChromatograms().size(); })
+        .def("setChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getChromatograms(), value, "chromatograms"); }, "value"_a, "Replaces the whole chromatogram list (write-back for getChromatograms)")
         .def("addChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getChromatogram(key); }, "key"_a)
         .def("hasChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasChromatogram(key); }, "key"_a)
-        .def("getPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram>& { return self.getPrecursorChromatograms(); }, nb::rv_policy::reference_internal)
+        .def("getPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MSChromatogram> { return self.getPrecursorChromatograms(); })
+        .def("setPrecursorChromatograms", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MSChromatogram>& value) { replaceKeyedMRMCollection_(self.getPrecursorChromatograms(), value, "precursor chromatograms"); }, "value"_a, "Replaces the whole precursor chromatogram list (write-back for getPrecursorChromatograms)")
         .def("addPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MSChromatogram chromatogram, std::string key) { self.addPrecursorChromatogram(chromatogram, key); }, "chromatogram"_a, "key"_a)
         .def("getPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.getPrecursorChromatogram(key); }, "key"_a)
         .def("hasPrecursorChromatogram", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::string key) { return self.hasPrecursorChromatogram(key); }, "key"_a)
         .def("getFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getFeatures(); })
-        .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MRMFeature>& { return self.getFeaturesMuteable(); }, nb::rv_policy::reference_internal)
+        .def("getFeaturesMuteable", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) -> std::vector<OpenMS::MRMFeature> { return self.getFeaturesMuteable(); })
+        .def("feature_view", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, size_t i) -> OpenMS::MRMFeature& {
+            if (i >= self.getFeaturesMuteable().size()) throw nb::index_error();
+            return self.getFeaturesMuteable()[i];
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the feature list is resized or reordered. The parent object is kept alive automatically. For an owned copy use getFeaturesMuteable()[i].")
+        .def("_feature_count", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getFeatures().size(); })
+        .def("setFeatures", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, const std::vector<OpenMS::MRMFeature>& value) { self.getFeaturesMuteable() = value; }, "value"_a, "Replaces the whole feature list (write-back for getFeaturesMuteable)")
         .def("addFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, OpenMS::MRMFeature feature) { self.addFeature(feature); }, "feature"_a)
         .def("getBestFeature", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.getBestFeature(); })
         .def("getLibraryIntensity", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self, std::vector<double> result) { self.getLibraryIntensity(result); }, "result"_a)
@@ -372,9 +435,25 @@ The template parameters for the base RangeManager are ordered differently than i
         .def(nb::init<const OpenMS::MapConversion &>())
         .def("__copy__", [](const OpenMS::MapConversion& self) { return OpenMS::MapConversion(self); })
         .def("__deepcopy__", [](const OpenMS::MapConversion& self, nb::dict) { return OpenMS::MapConversion(self); }, "memo"_a)
-        .def_static("convert", [](size_t input_map_index, OpenMS::MSExperiment& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
         .def_static("convert", [](const OpenMS::ConsensusMap& input_map, bool keep_uids, OpenMS::FeatureMap& output_map) { return OpenMS::MapConversion::convert(input_map, keep_uids, output_map); }, "input_map"_a, "keep_uids"_a, "output_map"_a)
         .def_static("convert", [](size_t input_map_index, const OpenMS::FeatureMap& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureUniqueIds
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureUniqueIds>(m, "FeatureUniqueIds",
+        R"doc(
+Checks that every feature of a map has a valid unique id that no other feature of the map shares.
+
+Every Feature and ConsensusFeature in a map should have a valid (non-zero) unique id that is unique
+within the map, subordinates included. The checks raise an error for invalid or duplicate ids.
+Feature handles are not checked.
+)doc")
+        .def_static("check", [](const OpenMS::FeatureMap& map) { OpenMS::FeatureUniqueIds::check(map); }, "map"_a,
+            "Raises if a feature or subordinate has an invalid unique id, or if two of them share an id")
+        .def_static("check", [](const OpenMS::ConsensusMap& map) { OpenMS::FeatureUniqueIds::check(map); }, "map"_a,
+            "Raises if a consensus feature has an invalid unique id, or if two of them share an id")
         ;
 
     // -----------------------------------------------------------------------
@@ -382,7 +461,6 @@ The template parameters for the base RangeManager are ordered differently than i
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MassTrace>(m, "MassTrace", "OpenMS class MassTrace")
         .def(nb::init<>())
-        .def(nb::init<std::list<OpenMS::Peak2D>>())
         .def(nb::init<std::vector<OpenMS::Peak2D>>())
         .def(nb::init<const OpenMS::MassTrace &>())
         .def("__copy__", [](const OpenMS::MassTrace& self) { return OpenMS::MassTrace(self); })
@@ -444,15 +522,19 @@ The template parameters for the base RangeManager are ordered differently than i
         R"doc(
 Interface for classes that can store arbitrary meta information
 (Type-Name-Value tuples).
+
 MetaInfoInterface is a base class for all classes that use one MetaInfo
 object as member.  If you want to add meta information to a class, let it
 publicly inherit the MetaInfoInterface.  Meta information is an array of
 Type-Name-Value tuples.
+
 Usage:
+
 .. code-block:: python
-k = []
-exp.getKeys(k) # explore available key-value pairs
-exp.getMetaValue("someMetaName")
+
+  k = []
+  exp.getKeys(k) # explore available key-value pairs
+  exp.getMetaValue("someMetaName")
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MetaInfoInterface &>())
@@ -510,7 +592,6 @@ exp.getMetaValue("someMetaName")
         R"doc(
 Information about one raw data spectrum that was combined with
 several other raw data spectra
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Acquisition &>())
@@ -529,7 +610,6 @@ MetaInfoInterface
     auto acquisitioninfo_class = nb::class_<OpenMS::AcquisitionInfo>(m, "AcquisitionInfo", 
         R"doc(
 Description of the combination of raw data to a single spectrum
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::AcquisitionInfo &>())
@@ -553,10 +633,10 @@ MetaInfoInterface
             self.resize(n);
         }, "n"_a, "Resize the AcquisitionInfo")
 
-        .def("__getitem__", [](OpenMS::AcquisitionInfo& self, size_t i) -> OpenMS::Acquisition& {
+        .def("__getitem__", [](const OpenMS::AcquisitionInfo& self, size_t i) -> OpenMS::Acquisition {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, "i"_a, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the acquisition at index i")
 
         .def("__setitem__", [](OpenMS::AcquisitionInfo& self, size_t i, const OpenMS::Acquisition& acq) {
             if (i >= self.size()) throw nb::index_error();
@@ -576,7 +656,7 @@ MetaInfoInterface
         .def("replaceCVTerm", [](OpenMS::CVTermList& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
         .def("replaceCVTerms", [](OpenMS::CVTermList& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a)
         .def("consumeCVTerms", [](OpenMS::CVTermList& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::CVTermList& self) -> const std::map<std::string, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
+        .def("getCVTerms", [](const OpenMS::CVTermList& self) -> std::map<std::string, std::vector<OpenMS::CVTerm>> { return self.getCVTerms(); }, "Returns a copy of the CV terms, keyed by CV accession")
         .def("addCVTerm", [](OpenMS::CVTermList& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
         .def("setCVTerms", [](OpenMS::CVTermList& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self == nb::self)
@@ -594,7 +674,6 @@ MetaInfoInterface
     nb::class_<OpenMS::CVTermListInterface, OpenMS::MetaInfoInterface>(m, "CVTermListInterface", 
         R"doc(
 Interface to the controlled vocabulary term list
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::CVTermListInterface &>())
@@ -606,7 +685,7 @@ MetaInfoInterface
         .def("replaceCVTerm", [](OpenMS::CVTermListInterface& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a)
         .def("replaceCVTerms", [](OpenMS::CVTermListInterface& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a)
         .def("consumeCVTerms", [](OpenMS::CVTermListInterface& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::CVTermListInterface& self) -> const std::map<std::string, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal)
+        .def("getCVTerms", [](const OpenMS::CVTermListInterface& self) -> std::map<std::string, std::vector<OpenMS::CVTerm>> { return self.getCVTerms(); })
         .def("addCVTerm", [](OpenMS::CVTermListInterface& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
         .def("setCVTerms", [](OpenMS::CVTermListInterface& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def("hasCVTerm", [](const OpenMS::CVTermListInterface& self, const std::string& accession) { return self.hasCVTerm(accession); }, "accession"_a, "Checks whether the term has a value")
@@ -619,8 +698,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto chromatogramsettings_class = nb::class_<OpenMS::ChromatogramSettings>(m, "ChromatogramSettings", 
         R"doc(
-MetaInfoInterface
-
 Description of the chromatogram settings, provides meta-information
 about a single chromatogram.
 )doc")
@@ -634,20 +711,20 @@ about a single chromatogram.
         .def("setNativeID", [](OpenMS::ChromatogramSettings& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
         .def("getComment", [](const OpenMS::ChromatogramSettings& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::ChromatogramSettings& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](OpenMS::ChromatogramSettings& self) -> OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns the instrument settings of the current spectrum")
+        .def("getInstrumentSettings", [](OpenMS::ChromatogramSettings& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::ChromatogramSettings& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](OpenMS::ChromatogramSettings& self) -> OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns the acquisition info")
+        .def("getAcquisitionInfo", [](OpenMS::ChromatogramSettings& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::ChromatogramSettings& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](OpenMS::ChromatogramSettings& self) -> OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns the source file")
+        .def("getSourceFile", [](OpenMS::ChromatogramSettings& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns the source file")
         .def("setSourceFile", [](OpenMS::ChromatogramSettings& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursor", [](OpenMS::ChromatogramSettings& self) -> OpenMS::Precursor & { return self.getPrecursor(); }, nb::rv_policy::reference_internal, "Returns the precursors")
+        .def("getPrecursor", [](OpenMS::ChromatogramSettings& self) -> OpenMS::Precursor { return self.getPrecursor(); }, "Returns the precursors")
         .def("setPrecursor", [](OpenMS::ChromatogramSettings& self, const OpenMS::Precursor& precursor) { return self.setPrecursor(precursor); }, "precursor"_a, "Sets the precursors")
-        .def("getProduct", [](OpenMS::ChromatogramSettings& self) -> OpenMS::Product & { return self.getProduct(); }, nb::rv_policy::reference_internal, "Returns the product ion")
+        .def("getProduct", [](OpenMS::ChromatogramSettings& self) -> OpenMS::Product { return self.getProduct(); }, "Returns the product ion")
         .def("setProduct", [](OpenMS::ChromatogramSettings& self, const OpenMS::Product& product) { return self.setProduct(product); }, "product"_a, "Sets the product ion")
         .def("getChromatogramType", [](const OpenMS::ChromatogramSettings& self) { return self.getChromatogramType(); }, "Get the chromatogram type")
         .def("setChromatogramType", [](OpenMS::ChromatogramSettings& self, OpenMS::ChromatogramSettings::ChromatogramType type) { return self.setChromatogramType(type); }, "type"_a, "Sets the chromatogram type")
         .def("setDataProcessing", [](OpenMS::ChromatogramSettings& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getDataProcessing", [](OpenMS::ChromatogramSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns the description of the applied processing")
+        .def("getDataProcessing", [](OpenMS::ChromatogramSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); }, "Returns the description of the applied processing")
         
         .def("__hash__", [](const OpenMS::ChromatogramSettings& self) { return std::hash<OpenMS::ChromatogramSettings>{}(self); })
         ;
@@ -698,6 +775,9 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Contact, OpenMS::CVTermList>(m, "Contact", "OpenMS class Contact")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Contact &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Contact& self) { return OpenMS::TargetedExperimentHelper::Contact(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Contact& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Contact(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -710,7 +790,6 @@ about a single chromatogram.
     nb::class_<OpenMS::ContactPerson, OpenMS::MetaInfoInterface>(m, "ContactPerson", 
         R"doc(
 Contact person information
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ContactPerson &>())
@@ -748,7 +827,6 @@ Sets the URL associated with the contact person (e.g., the institute webpage "ht
     auto dataprocessing_class = nb::class_<OpenMS::DataProcessing, OpenMS::MetaInfoInterface>(m, "DataProcessing", 
         R"doc(
 Description of the applied preprocessing steps
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::DataProcessing &>())
@@ -759,11 +837,11 @@ MetaInfoInterface
         .def_static("toProcessingAction", [](const std::string& name) { return OpenMS::DataProcessing::toProcessingAction(name); }, "name"_a, "Convert a string to ProcessingAction enum. Throws Exception::InvalidValue if name is not found")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getSoftware", [](OpenMS::DataProcessing& self) -> OpenMS::Software & { return self.getSoftware(); }, nb::rv_policy::reference_internal)
+        .def("getSoftware", [](OpenMS::DataProcessing& self) -> OpenMS::Software { return self.getSoftware(); })
         .def("setSoftware", [](OpenMS::DataProcessing& self, const OpenMS::Software& software) { return self.setSoftware(software); }, "software"_a)
-        .def("getProcessingActions", [](OpenMS::DataProcessing& self) -> std::set<OpenMS::DataProcessing::ProcessingAction> & { return self.getProcessingActions(); }, nb::rv_policy::reference_internal)
+        .def("getProcessingActions", [](OpenMS::DataProcessing& self) -> std::set<OpenMS::DataProcessing::ProcessingAction> { return self.getProcessingActions(); })
         .def("setProcessingActions", [](OpenMS::DataProcessing& self, const std::set<OpenMS::DataProcessing::ProcessingAction>& actions) { return self.setProcessingActions(actions); }, "actions"_a)
-        .def("getCompletionTime", [](const OpenMS::DataProcessing& self) -> const OpenMS::DateTime & { return self.getCompletionTime(); }, nb::rv_policy::reference_internal)
+        .def("getCompletionTime", [](const OpenMS::DataProcessing& self) -> OpenMS::DateTime { return self.getCompletionTime(); })
         .def("setCompletionTime", [](OpenMS::DataProcessing& self, const OpenMS::DateTime& completion_time) { return self.setCompletionTime(completion_time); }, "completion_time"_a)
         
         ;
@@ -799,9 +877,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto experimentalsettings_class = nb::class_<OpenMS::ExperimentalSettings>(m, "ExperimentalSettings", 
         R"doc(
-DocumentIdentifier
-MetaInfoInterface
-
 Description of the experimental settings, provides meta-information
 about an LC-MS/MS injection.
 )doc")
@@ -811,17 +886,19 @@ about an LC-MS/MS injection.
         .def("__deepcopy__", [](const OpenMS::ExperimentalSettings& self, nb::dict) { return OpenMS::ExperimentalSettings(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getSample", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Sample & { return self.getSample(); }, nb::rv_policy::reference_internal, "Returns a reference to the sample description")
+        .def("getSample", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Sample { return self.getSample(); }, "Returns a copy of the sample description")
         .def("setSample", [](OpenMS::ExperimentalSettings& self, const OpenMS::Sample& sample) { return self.setSample(sample); }, "sample"_a, "Sets the sample description")
-        .def("getSourceFiles", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::SourceFile> & { return self.getSourceFiles(); }, nb::rv_policy::reference_internal, "Returns a reference to the source data file")
+        .def("getSourceFiles", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::SourceFile> { return self.getSourceFiles(); }, "Returns a copy of the source data file")
         .def("setSourceFiles", [](OpenMS::ExperimentalSettings& self, const std::vector<OpenMS::SourceFile>& source_files) { return self.setSourceFiles(source_files); }, "source_files"_a, "Sets the source data file")
-        .def("getContacts", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::ContactPerson> & { return self.getContacts(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of contact persons")
+        .def("getContacts", [](OpenMS::ExperimentalSettings& self) -> std::vector<OpenMS::ContactPerson> { return self.getContacts(); }, "Returns a copy of the list of contact persons")
         .def("setContacts", [](OpenMS::ExperimentalSettings& self, const std::vector<OpenMS::ContactPerson>& contacts) { return self.setContacts(contacts); }, "contacts"_a, "Sets the list of contact persons")
-        .def("getInstrument", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Instrument & { return self.getInstrument(); }, nb::rv_policy::reference_internal, "Returns a reference to the MS instrument description")
+        .def("getInstrument", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Instrument { return self.getInstrument(); }, "Returns a copy of the MS instrument description")
         .def("setInstrument", [](OpenMS::ExperimentalSettings& self, const OpenMS::Instrument& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "Sets the MS instrument description")
-        .def("getHPLC", [](OpenMS::ExperimentalSettings& self) -> OpenMS::HPLC & { return self.getHPLC(); }, nb::rv_policy::reference_internal, "Returns a reference to the description of the HPLC run")
+        .def("getInstrumentConfigurations", [](const OpenMS::ExperimentalSettings& self) { return self.getInstrumentConfigurations(); })
+        .def("setInstrumentConfigurations", &OpenMS::ExperimentalSettings::setInstrumentConfigurations, "configurations"_a)
+        .def("getHPLC", [](OpenMS::ExperimentalSettings& self) -> OpenMS::HPLC { return self.getHPLC(); }, "Returns a copy of the description of the HPLC run")
         .def("setHPLC", [](OpenMS::ExperimentalSettings& self, const OpenMS::HPLC& hplc) { return self.setHPLC(hplc); }, "hplc"_a, "Sets the description of the HPLC run")
-        .def("getDateTime", [](const OpenMS::ExperimentalSettings& self) -> const OpenMS::DateTime & { return self.getDateTime(); }, nb::rv_policy::reference_internal, "Returns the date the experiment was performed")
+        .def("getDateTime", [](const OpenMS::ExperimentalSettings& self) -> OpenMS::DateTime { return self.getDateTime(); }, "Returns the date the experiment was performed")
         .def("setDateTime", [](OpenMS::ExperimentalSettings& self, const OpenMS::DateTime& date) { return self.setDateTime(date); }, "date"_a, "Sets the date the experiment was performed")
         .def("getComment", [](const OpenMS::ExperimentalSettings& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::ExperimentalSettings& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
@@ -850,23 +927,23 @@ about an LC-MS/MS injection.
         .def("getPrecursorMZ", [](const OpenMS::IncludeExcludeTarget& self) { return self.getPrecursorMZ(); })
         .def("setPrecursorCVTermList", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTermList& list) { return self.setPrecursorCVTermList(list); }, "list"_a)
         .def("addPrecursorCVTerm", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTerm& cv_term) { return self.addPrecursorCVTerm(cv_term); }, "cv_term"_a)
-        .def("getPrecursorCVTermList", [](const OpenMS::IncludeExcludeTarget& self) -> const OpenMS::CVTermList & { return self.getPrecursorCVTermList(); }, nb::rv_policy::reference_internal)
+        .def("getPrecursorCVTermList", [](const OpenMS::IncludeExcludeTarget& self) -> OpenMS::CVTermList { return self.getPrecursorCVTermList(); })
         .def("setProductMZ", [](OpenMS::IncludeExcludeTarget& self, double mz) { return self.setProductMZ(mz); }, "mz"_a)
         .def("getProductMZ", [](const OpenMS::IncludeExcludeTarget& self) { return self.getProductMZ(); })
         .def("setProductCVTermList", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTermList& list) { return self.setProductCVTermList(list); }, "list"_a)
         .def("addProductCVTerm", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTerm& cv_term) { return self.addProductCVTerm(cv_term); }, "cv_term"_a)
-        .def("getProductCVTermList", [](const OpenMS::IncludeExcludeTarget& self) -> const OpenMS::CVTermList & { return self.getProductCVTermList(); }, nb::rv_policy::reference_internal)
+        .def("getProductCVTermList", [](const OpenMS::IncludeExcludeTarget& self) -> OpenMS::CVTermList { return self.getProductCVTermList(); })
         .def("setInterpretations", [](OpenMS::IncludeExcludeTarget& self, const std::vector<OpenMS::CVTermList>& interpretations) { return self.setInterpretations(interpretations); }, "interpretations"_a)
-        .def("getInterpretations", [](const OpenMS::IncludeExcludeTarget& self) -> const std::vector<OpenMS::CVTermList> & { return self.getInterpretations(); }, nb::rv_policy::reference_internal)
+        .def("getInterpretations", [](const OpenMS::IncludeExcludeTarget& self) -> std::vector<OpenMS::CVTermList> { return self.getInterpretations(); })
         .def("addInterpretation", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTermList& interpretation) { return self.addInterpretation(interpretation); }, "interpretation"_a)
         .def("setConfigurations", [](OpenMS::IncludeExcludeTarget& self, const std::vector<OpenMS::TargetedExperimentHelper::Configuration>& configuration) { return self.setConfigurations(configuration); }, "configuration"_a)
-        .def("getConfigurations", [](const OpenMS::IncludeExcludeTarget& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Configuration> & { return self.getConfigurations(); }, nb::rv_policy::reference_internal)
+        .def("getConfigurations", [](const OpenMS::IncludeExcludeTarget& self) -> std::vector<OpenMS::TargetedExperimentHelper::Configuration> { return self.getConfigurations(); })
         .def("addConfiguration", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::TargetedExperimentHelper::Configuration& configuration) { return self.addConfiguration(configuration); }, "configuration"_a)
         .def("setPrediction", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTermList& prediction) { return self.setPrediction(prediction); }, "prediction"_a)
         .def("addPredictionTerm", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTerm& prediction) { return self.addPredictionTerm(prediction); }, "prediction"_a)
-        .def("getPrediction", [](const OpenMS::IncludeExcludeTarget& self) -> const OpenMS::CVTermList & { return self.getPrediction(); }, nb::rv_policy::reference_internal)
+        .def("getPrediction", [](const OpenMS::IncludeExcludeTarget& self) -> OpenMS::CVTermList { return self.getPrediction(); })
         .def("setRetentionTime", [](OpenMS::IncludeExcludeTarget& self, OpenMS::TargetedExperimentHelper::RetentionTime rt) { return self.setRetentionTime(rt); }, "rt"_a)
-        .def("getRetentionTime", [](const OpenMS::IncludeExcludeTarget& self) -> const OpenMS::TargetedExperimentHelper::RetentionTime & { return self.getRetentionTime(); }, nb::rv_policy::reference_internal)
+        .def("getRetentionTime", [](const OpenMS::IncludeExcludeTarget& self) -> OpenMS::TargetedExperimentHelper::RetentionTime { return self.getRetentionTime(); })
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::IncludeExcludeTarget& self) { return std::hash<OpenMS::IncludeExcludeTarget>{}(self); })
@@ -878,13 +955,14 @@ about an LC-MS/MS injection.
     // --- TargetedExperiment_Instrument (TargetedExperimentHelper::Instrument) ---
     nb::class_<OpenMS::TargetedExperimentHelper::Instrument, OpenMS::CVTermList>(m, "TargetedExperiment_Instrument",
         R"doc(
-CVTermList
-
 Instrument description used in targeted experiments (TraML).
 This is a lightweight instrument reference with just an id field.
 For the full MS instrument description, use the Instrument class instead.
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Instrument &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Instrument& self) { return OpenMS::TargetedExperimentHelper::Instrument(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Instrument& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Instrument(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
 
@@ -894,8 +972,6 @@ For the full MS instrument description, use the Instrument class instead.
     // --- Instrument (OpenMS::Instrument from METADATA) ---
     auto instrument_class = nb::class_<OpenMS::Instrument, OpenMS::MetaInfoInterface>(m, "Instrument",
         R"doc(
-MetaInfoInterface
-
 Description of a MS instrument.
 Contains information about ion sources, mass analyzers, ion detectors,
 software, vendor, model, and ion optics configuration.
@@ -914,13 +990,13 @@ software, vendor, model, and ion optics configuration.
         .def("setModel", [](OpenMS::Instrument& self, const std::string& model) { return self.setModel(model); }, "model"_a, "Sets the instrument model")
         .def("getCustomizations", [](const OpenMS::Instrument& self) { return self.getCustomizations(); }, "Returns a description of customizations")
         .def("setCustomizations", [](OpenMS::Instrument& self, const std::string& customizations) { return self.setCustomizations(customizations); }, "customizations"_a, "Sets a description of customizations")
-        .def("getIonSources", [](const OpenMS::Instrument& self) -> const std::vector<OpenMS::IonSource>& { return self.getIonSources(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of ion sources")
+        .def("getIonSources", [](const OpenMS::Instrument& self) -> std::vector<OpenMS::IonSource> { return self.getIonSources(); }, "Returns a copy of the list of ion sources")
         .def("setIonSources", [](OpenMS::Instrument& self, const std::vector<OpenMS::IonSource>& ion_sources) { return self.setIonSources(ion_sources); }, "ion_sources"_a, "Sets the list of ion sources")
-        .def("getIonDetectors", [](const OpenMS::Instrument& self) -> const std::vector<OpenMS::IonDetector>& { return self.getIonDetectors(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of ion detectors")
+        .def("getIonDetectors", [](const OpenMS::Instrument& self) -> std::vector<OpenMS::IonDetector> { return self.getIonDetectors(); }, "Returns a copy of the list of ion detectors")
         .def("setIonDetectors", [](OpenMS::Instrument& self, const std::vector<OpenMS::IonDetector>& ion_detectors) { return self.setIonDetectors(ion_detectors); }, "ion_detectors"_a, "Sets the list of ion detectors")
-        .def("getMassAnalyzers", [](const OpenMS::Instrument& self) -> const std::vector<OpenMS::MassAnalyzer>& { return self.getMassAnalyzers(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of mass analyzers")
+        .def("getMassAnalyzers", [](const OpenMS::Instrument& self) -> std::vector<OpenMS::MassAnalyzer> { return self.getMassAnalyzers(); }, "Returns a copy of the list of mass analyzers")
         .def("setMassAnalyzers", [](OpenMS::Instrument& self, const std::vector<OpenMS::MassAnalyzer>& mass_analyzers) { return self.setMassAnalyzers(mass_analyzers); }, "mass_analyzers"_a, "Sets the list of mass analyzers")
-        .def("getSoftware", [](const OpenMS::Instrument& self) -> const OpenMS::Software& { return self.getSoftware(); }, nb::rv_policy::reference_internal, "Returns a reference to the instrument software")
+        .def("getSoftware", [](const OpenMS::Instrument& self) -> OpenMS::Software { return self.getSoftware(); }, "Returns a copy of the instrument software")
         .def("setSoftware", [](OpenMS::Instrument& self, const OpenMS::Software& software) { return self.setSoftware(software); }, "software"_a, "Sets the instrument software")
         .def("getIonOptics", [](const OpenMS::Instrument& self) { return self.getIonOptics(); }, "Returns the ion optics type")
         .def("setIonOptics", [](OpenMS::Instrument& self, OpenMS::Instrument::IonOpticsType ion_optics) { return self.setIonOptics(ion_optics); }, "ion_optics"_a, "Sets the ion optics type")
@@ -949,7 +1025,6 @@ software, vendor, model, and ion optics configuration.
     auto instrumentsettings_class = nb::class_<OpenMS::InstrumentSettings, OpenMS::MetaInfoInterface>(m, "InstrumentSettings", 
         R"doc(
 Description of the settings a MS Instrument was run with
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::InstrumentSettings &>())
@@ -966,7 +1041,7 @@ MetaInfoInterface
         .def("setZoomScan", [](OpenMS::InstrumentSettings& self, bool zoom_scan) { return self.setZoomScan(zoom_scan); }, "zoom_scan"_a, "Sets if this scan is a zoom (enhanced resolution) scan")
         .def("getPolarity", [](const OpenMS::InstrumentSettings& self) { return self.getPolarity(); }, "Returns the polarity")
         .def("setPolarity", [](OpenMS::InstrumentSettings& self, OpenMS::IonSource::Polarity polarity) { return self.setPolarity(polarity); }, "polarity"_a, "Sets the polarity")
-        .def("getScanWindows", [](const OpenMS::InstrumentSettings& self) -> const std::vector<OpenMS::ScanWindow>& { return self.getScanWindows(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of scan windows")
+        .def("getScanWindows", [](const OpenMS::InstrumentSettings& self) -> std::vector<OpenMS::ScanWindow> { return self.getScanWindows(); }, "Returns a copy of the list of scan windows")
         .def("setScanWindows", [](OpenMS::InstrumentSettings& self, std::vector<OpenMS::ScanWindow> scan_windows) { return self.setScanWindows(scan_windows); }, "scan_windows"_a, "Sets the scan windows")
 
         ;
@@ -996,7 +1071,6 @@ MetaInfoInterface
     auto iondetector_class = nb::class_<OpenMS::IonDetector, OpenMS::MetaInfoInterface>(m, "IonDetector", 
         R"doc(
 Description of a ion detector (part of a MS Instrument)
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IonDetector &>())
@@ -1065,7 +1139,6 @@ MetaInfoInterface
     auto ionsource_class = nb::class_<OpenMS::IonSource, OpenMS::MetaInfoInterface>(m, "IonSource", 
         R"doc(
 Description of an ion source (part of a MS Instrument)
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IonSource &>())
@@ -1088,7 +1161,17 @@ MetaInfoInterface
         .def("setIonizationMethod", [](OpenMS::IonSource& self, OpenMS::IonSource::IonizationMethod ionization_type) { return self.setIonizationMethod(ionization_type); }, "ionization_type"_a, "Sets the ionization method")
         .def("getPolarity", [](const OpenMS::IonSource& self) { return self.getPolarity(); }, "Returns the ionization mode")
         .def("setPolarity", [](OpenMS::IonSource& self, OpenMS::IonSource::Polarity polarity) { return self.setPolarity(polarity); }, "polarity"_a, "Sets the ionization mode")
-        .def("getOrder", [](const OpenMS::IonSource& self) { return self.getOrder(); })
+        .def("getOrder", [](const OpenMS::IonSource& self) { return self.getOrder(); }, 
+            R"doc(
+Returns the position of this part in the whole Instrument
+
+Order can be ignored, as long the instrument has this default setup:
+  - one ion source
+  - one or many mass analyzers
+  - one ion detector
+
+For more complex instruments, the order should be defined.
+)doc")
         .def("setOrder", [](OpenMS::IonSource& self, int order) { return self.setOrder(order); }, "order"_a, "Sets the order")
         
         .def("__hash__", [](const OpenMS::IonSource& self) { return std::hash<OpenMS::IonSource>{}(self); })
@@ -1187,7 +1270,6 @@ MetaInfoInterface
     auto massanalyzer_class = nb::class_<OpenMS::MassAnalyzer, OpenMS::MetaInfoInterface>(m, "MassAnalyzer", 
         R"doc(
 Description of a mass analyzer (part of a MS Instrument)
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MassAnalyzer &>())
@@ -1310,7 +1392,6 @@ MetaInfoInterface
     nb::class_<OpenMS::MetaInfoDescription, OpenMS::MetaInfoInterface>(m, "MetaInfoDescription", 
         R"doc(
 Description of the meta data arrays of MSSpectrum
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MetaInfoDescription &>())
@@ -1320,7 +1401,7 @@ MetaInfoInterface
         .def(nb::self != nb::self)
         .def("getName", [](const OpenMS::MetaInfoDescription& self) { return self.getName(); }, "Returns the name of the peak annotations")
         .def("setName", [](OpenMS::MetaInfoDescription& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the peak annotations")
-        .def("getDataProcessing", [](OpenMS::MetaInfoDescription& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns a reference to the description of the applied processing")
+        .def("getDataProcessing", [](OpenMS::MetaInfoDescription& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); }, "Returns a copy of the description of the applied processing")
         .def("setDataProcessing", [](OpenMS::MetaInfoDescription& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
         
         ;
@@ -1330,8 +1411,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto floatdataarray_class = nb::class_<OpenMS::DataArrays::FloatDataArray>(m, "FloatDataArray", 
         R"doc(
-MetaInfoDescription
-
 The representation of extra float data attached to a spectrum or chromatogram.
 Raw data access is provided by `get_peaks` and `set_peaks`, which yields numpy arrays.
 Commonly used for storing ion mobility values or other per-peak float annotations.
@@ -1346,10 +1425,10 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         
         .def("__len__", [](OpenMS::DataArrays::FloatDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.size(); }, "Returns the number of elements")
-        .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float& {
+        .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        })
         .def("__setitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i, float val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -1377,7 +1456,7 @@ Commonly used for storing ion mobility values or other per-peak float annotation
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_view", [](nb::object self_obj) {
+        .def("data_view", [](nb::object self_obj) {
             // Return a writable view (zero-copy), empty array if empty
             auto& self = nb::cast<OpenMS::DataArrays::FloatDataArray&>(self_obj);
             float* data_ptr = self.empty() ? nullptr : self.data();
@@ -1437,8 +1516,6 @@ Commonly used for storing ion mobility values or other per-peak float annotation
     // -----------------------------------------------------------------------
     auto integerdataarray_class = nb::class_<OpenMS::DataArrays::IntegerDataArray>(m, "IntegerDataArray", 
         R"doc(
-MetaInfoDescription
-
 The representation of extra integer data attached to a spectrum or chromatogram.
 Raw data access is provided by `get_peaks` and `set_peaks`, which yields numpy arrays.
 Used for storing per-peak integer annotations.
@@ -1455,10 +1532,10 @@ Used for storing per-peak integer annotations.
         
         .def("__len__", [](OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); }, "Returns the number of elements")
-        .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int& {
+        .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        })
         .def("__setitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i, int val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -1478,7 +1555,7 @@ Used for storing per-peak integer annotations.
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_view", [](nb::object self_obj) {
+        .def("data_view", [](nb::object self_obj) {
             // Return a writable view (zero-copy), empty array if empty
             auto& self = nb::cast<OpenMS::DataArrays::IntegerDataArray&>(self_obj);
             int32_t* data_ptr = self.empty() ? nullptr : self.data();
@@ -1578,17 +1655,18 @@ etc) is implicit
     nb::class_<OpenMS::Mobilogram>(m, "Mobilogram",
                                    
         R"doc(
-RangeManagerMobInt
-
 The representation of a 1D ion mobilogram.
-Raw data access is provided by `get_peaks`, `get_peaks_struct`, and `set_peaks`.
-Iterations yields access to underlying peak objects but is slower
+Raw data access is provided by `get_peaks`, `peaks_struct`, and `set_peaks`.
+Indexing and iteration yield copies of the peaks; write changes back with mob[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+
 Usage:
+
 .. code-block:: python
-rt = mobilogram.getRT()
-drift_time_unit = mobilogram.getDriftTimeUnit()
-mobility, intensities = mobilogram.get_peaks()
+
+  rt = mobilogram.getRT()
+  drift_time_unit = mobilogram.getDriftTimeUnit()
+  mobility, intensities = mobilogram.get_peaks()
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Mobilogram &>())
@@ -1603,20 +1681,27 @@ mobility, intensities = mobilogram.get_peaks()
         .def("getDriftTimeUnit", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnit(); }, "Returns the ion mobility drift time unit")
         .def("getDriftTimeUnitAsString", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnitAsString(); }, "Returns the ion mobility drift time unit as string")
         .def("setDriftTimeUnit", [](OpenMS::Mobilogram& self, OpenMS::DriftTimeUnit dt) { return self.setDriftTimeUnit(dt); }, "dt"_a, "Sets the ion mobility drift time unit")
-        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
-        .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); }, 
+        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
             R"doc(
 Lexicographically sorts the peaks by their intensity
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+Sorts the peaks according to ascending intensity (lowest to highest) when reverse is False.
+When reverse is True, sorts by descending intensity (highest to lowest).
+Meta data arrays will be sorted accordingly
+)doc")
+        .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); },
+            R"doc(
+Lexicographically sorts the peaks by their position (mobility)
+
+The mobilogram is sorted with respect to position (mobility). Meta data arrays will be sorted accordingly
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
-        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); })
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::Mobilogram>(self); })
         .def("__len__", [](OpenMS::Mobilogram& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D& {
+        .def("__getitem__", [](const OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the peak at index i")
         .def("__setitem__", [](OpenMS::Mobilogram& self, size_t i, const OpenMS::MobilityPeak1D& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -1624,9 +1709,9 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         .def("findNearest", [](const OpenMS::Mobilogram& self, double mb) { return self.findNearest(mb); }, "mb"_a, "Returns the index of the closest peak in mobility")
         .def("findNearest", [](const OpenMS::Mobilogram& self, double mb, double tolerance) { return self.findNearest(mb, tolerance); }, "mb"_a, "tolerance"_a, "Returns the index of the closest peak in the provided tolerance window (-1 if none match)")
         .def("findNearest", [](const OpenMS::Mobilogram& self, double mb, double tolerance_left, double tolerance_right) { return self.findNearest(mb, tolerance_left, tolerance_right); }, "mb"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the closest peak in the provided tolerance window (-1 if none match)")
-        .def("getStringDataArrays", [](OpenMS::Mobilogram& self) -> OpenMS::Mobilogram::StringDataArrays& { return self.getStringDataArrays(); }, nb::rv_policy::reference_internal, "Returns a reference to the string data arrays")
+        .def("getStringDataArrays", [](OpenMS::Mobilogram& self) -> OpenMS::Mobilogram::StringDataArrays { return self.getStringDataArrays(); }, "Returns a copy of the string data arrays")
         .def("setStringDataArrays", [](OpenMS::Mobilogram& self, const OpenMS::Mobilogram::StringDataArrays& sda) { return self.setStringDataArrays(sda); }, "sda"_a, "Sets the string data arrays")
-        .def("getIntegerDataArrays", [](OpenMS::Mobilogram& self) -> OpenMS::Mobilogram::IntegerDataArrays& { return self.getIntegerDataArrays(); }, nb::rv_policy::reference_internal, "Returns a reference to the integer data arrays")
+        .def("getIntegerDataArrays", [](OpenMS::Mobilogram& self) -> OpenMS::Mobilogram::IntegerDataArrays { return self.getIntegerDataArrays(); }, "Returns a copy of the integer data arrays")
         .def("setIntegerDataArrays", [](OpenMS::Mobilogram& self, const OpenMS::Mobilogram::IntegerDataArrays& ida) { return self.setIntegerDataArrays(ida); }, "ida"_a, "Sets the integer data arrays")
 
         .def("size", [](const OpenMS::Mobilogram& self) {
@@ -1639,7 +1724,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
 
         .def("clear", [](OpenMS::Mobilogram& self) {
             self.clear();
-        }, "Clear all peaks")
+        }, "Clears all data: deletes all peaks, associated data arrays (float, integer, string), and resets the mobility and intensity ranges")
 
         .def("get_peaks", [](const OpenMS::Mobilogram& self) {
             // Single allocation + single capsule to reduce overhead for small arrays
@@ -1673,19 +1758,17 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying MobilityPeak1D array (AoS layout).")
 
-        .def("get_peaks_struct",
+        .def("peaks_struct",
             [](nb::object self_obj) -> nb::object {
                 auto& self = nb::cast<OpenMS::Mobilogram&>(self_obj);
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
                 nb::dict dtype_dict;
-                // Derive dtype from C++ layout (validated by static_asserts at module init)
-                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
-                constexpr size_t int_offset = sizeof(OpenMS::MobilityPeak1D::PositionType);
+                // Offsets are read off the C++ layout, not reconstructed from it
                 dtype_dict["names"] = nb::make_tuple("mobility", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
-                dtype_dict["itemsize"] = sizeof(OpenMS::MobilityPeak1D);
+                dtype_dict["offsets"] = nb::make_tuple(MobilityPeak1DLayout::position_offset, MobilityPeak1DLayout::intensity_offset);
+                dtype_dict["itemsize"] = MobilityPeak1DLayout::itemsize;
                 auto py_dtype = np.attr("dtype")(dtype_dict);
                 if (n == 0) {
                     return np.attr("empty")(0, py_dtype);
@@ -1701,20 +1784,34 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             "Returns zero-copy structured array with fields 'mobility' (float64) and 'intensity' (float32)."
         )
 
-        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj, const std::string& metadata) {
+            // set_peaks(peaks, "clear") binds here rather than to the sequence overload below,
+            // because this one is registered first and a 2-tuple is a perfectly good nb::object.
+            // Without this it would fail deep inside as_numpy_array with an unrelated message.
+            if (nb::isinstance<nb::str>(int_obj) || nb::isinstance<nb::bytes>(int_obj)) {
+                throw std::invalid_argument("set_peaks() received a string as the intensity argument. "
+                                            "Did you mean set_peaks(peaks, metadata=...)?");
+            }
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             auto mob_arr = as_numpy_array<double>(mob_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
-            self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMobility(mob_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "mob"_a, "intensity"_a, "Set mobility and intensity from numpy arrays")
-        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq) {
+            writePeaksWithPolicy(self, n, policy, "mobilogram",
+                                 [mob_ptr, int_ptr](OpenMS::Mobilogram& mob, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         mob[i].setMobility(mob_ptr[i]);
+                                         mob[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
+        }, "mob"_a, "intensity"_a, "metadata"_a = "error",
+           "Set mobility and intensity from numpy arrays" PYOPENMS_SET_PEAKS_METADATA_DOC)
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq, const std::string& metadata) {
+            // parsed above the tuple/list branch so that a bad policy is reported at the same
+            // point as in the other five set_peaks overloads
+            const PeakMetadataPolicy policy = parsePeakMetadataPolicy(metadata);
             nb::object item0, item1;
             if (nb::isinstance<nb::tuple>(peaks_seq)) {
                 auto tup = nb::cast<nb::tuple>(peaks_seq);
@@ -1729,14 +1826,17 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = as_numpy_array<float>(item1);
             size_t n = mob_arr.shape(0);
             if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
-            self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMobility(mob_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from [mobility_array, intensity_array]")
+            writePeaksWithPolicy(self, n, policy, "mobilogram",
+                                 [mob_ptr, int_ptr](OpenMS::Mobilogram& mob, size_t count) {
+                                     for (size_t i = 0; i < count; ++i) {
+                                         mob[i].setMobility(mob_ptr[i]);
+                                         mob[i].setIntensity(int_ptr[i]);
+                                     }
+                                 });
+        }, "peaks"_a, nb::kw_only(), "metadata"_a = "error",
+           "Set peaks from [mobility_array, intensity_array]" PYOPENMS_SET_PEAKS_METADATA_DOC)
 
         .def("getFloatDataArrays", [](const OpenMS::Mobilogram& self) {
             return self.getFloatDataArrays();
@@ -1799,29 +1899,44 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         .def(nb::init<const OpenMS::OnDiscMSExperiment &>())
         .def("__copy__", [](const OpenMS::OnDiscMSExperiment& self) { return OpenMS::OnDiscMSExperiment(self); })
         .def("__deepcopy__", [](const OpenMS::OnDiscMSExperiment& self, nb::dict) { return OpenMS::OnDiscMSExperiment(self); }, "memo"_a)
-        .def("openFile", [](OpenMS::OnDiscMSExperiment& self, const std::string& filename, bool skipMetaData) { return self.openFile(filename, skipMetaData); }, "filename"_a, "skipMetaData"_a = false)
+        .def("openFile", [](OpenMS::OnDiscMSExperiment& self, const std::string& filename, bool skipMetaData) { return self.openFile(filename, skipMetaData); }, "filename"_a, "skipMetaData"_a = false, 
+            R"doc(
+Open a specific file on disk
+
+This tries to read the indexed mzML by parsing the index and then reading the meta information into memory
+
+returns: Whether the parsing of the file was successful (if false, the file most likely was not an indexed mzML file)
+)doc")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("getNrSpectra", [](const OpenMS::OnDiscMSExperiment& self) { return self.getNrSpectra(); }, "Returns the total number of spectra available")
         .def("getNrChromatograms", [](const OpenMS::OnDiscMSExperiment& self) { return self.getNrChromatograms(); }, "Returns the total number of chromatograms available")
-        .def("getSpectrum", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrum(id); }, "id"_a)
-        .def("getChromatogram", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getChromatogram(id); }, "id"_a, 
+        .def("getSpectrum", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrum(id); }, "id"_a, 
             R"doc(
 Returns a single spectrum
-:param id: The native identifier of the spectrum
+
+:param id: The index of the spectrum
+)doc")
+        .def("getChromatogram", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getChromatogram(id); }, "id"_a, 
+            R"doc(
+Returns a single chromatogram
+
+:param id: The index of the chromatogram
 )doc")
         .def("getChromatogramByNativeId", [](OpenMS::OnDiscMSExperiment& self, const std::string& id) { return self.getChromatogramByNativeId(id); }, "id"_a, 
             R"doc(
 Returns a single chromatogram
-:param id: The index of the chromatogram
+
+:param id: The native identifier of the chromatogram
 )doc")
         .def("getSpectrumByNativeId", [](OpenMS::OnDiscMSExperiment& self, const std::string& id) { return self.getSpectrumByNativeId(id); }, "id"_a, 
             R"doc(
 Returns a single spectrum
-:param id: The index of the spectrum
+
+:param id: The native identifier of the spectrum
 )doc")
         .def("setSkipXMLChecks", [](OpenMS::OnDiscMSExperiment& self, bool skip) { return self.setSkipXMLChecks(skip); }, "skip"_a, "Sets whether to skip some XML checks and be fast instead")
-        .def("getOptions", [](OpenMS::OnDiscMSExperiment& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
+        .def("getOptions", [](OpenMS::OnDiscMSExperiment& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::OnDiscMSExperiment& self, const OpenMS::PeakFileOptions& options) { return self.setOptions(options); }, "options"_a, "Sets the options for loading/storing")
         .def("getExperimentalSettings", [](const OpenMS::OnDiscMSExperiment& self) { return self.getExperimentalSettings(); },
             R"doc(Returns the meta information of this experiment (as shared pointer to ExperimentalSettings).
@@ -1837,17 +1952,27 @@ experimental settings) but no actual peak data.
         .def("size", [](const OpenMS::OnDiscMSExperiment& self) { return self.size(); }, "Returns the number of spectra available")
         .def("empty", [](const OpenMS::OnDiscMSExperiment& self) { return self.empty(); }, "Returns whether the experiment contains no spectra")
         .def("isSortedByRT", [](const OpenMS::OnDiscMSExperiment& self) { return self.isSortedByRT(); }, "Checks if all spectra are sorted with respect to ascending RT")
+        .def("getSpectrumMetadata", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumMetadata(id); }, "id"_a,
+             "Returns a single spectrum without peaks and data arrays (needs the meta data: raises if the file was opened with skipMetaData)")
+        .def("getSpectrumRT", [](const OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumRT(id); }, "id"_a,
+             "Retention time of a spectrum, from the meta data (raises if the file was opened with skipMetaData)")
+        .def("getSpectrumMSLevel", [](const OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumMSLevel(id); }, "id"_a,
+             "MS level of a spectrum, from the meta data (raises if the file was opened with skipMetaData)")
+        .def("findFirstRT", [](const OpenMS::OnDiscMSExperiment& self, double rt) { return self.findFirstRT(rt); }, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none); needs spectra sorted by RT")
         // Aliases for Cython API compatibility: getSpectrumById/getChromatogramById take a native ID string
         .def("getSpectrumById", [](OpenMS::OnDiscMSExperiment& self, const std::string& id) { return self.getSpectrumByNativeId(id); }, "id"_a,
             R"doc(
 Returns a single spectrum by its native ID string.
 This is an alias for getSpectrumByNativeId().
+
 :param id: The native identifier of the spectrum
 )doc")
         .def("getChromatogramById", [](OpenMS::OnDiscMSExperiment& self, const std::string& id) { return self.getChromatogramByNativeId(id); }, "id"_a,
             R"doc(
 Returns a single chromatogram by its native ID string.
 This is an alias for getChromatogramByNativeId().
+
 :param id: The native identifier of the chromatogram
 )doc")
         ;
@@ -1879,9 +2004,18 @@ This is an alias for getChromatogramByNativeId().
             return self.getImzMLMeta();
         }, "Return dataset-level ImzMLMeta parsed during open()")
         .def("getGeometry",
-            [](const OpenMS::OnDiscImzMLExperiment& self) -> const OpenMS::MSImagingGeometry& { return self.getGeometry(); },
-            nb::rv_policy::reference_internal,
+            [](const OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
             "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
+        .def("extractIonImage",
+            [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm) {
+                return self.extractIonImage(mz, tolerance_ppm);
+            }, "mz"_a, "tolerance_ppm"_a,
+            "Extract a single-mass ion image over the whole dataset by summing intensities in [mz - dm, mz + dm] (dm = mz * tolerance_ppm * 1e-6), decoding each pixel from the .ibd on demand")
+        .def("extractIonImage",
+            [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm, OpenMS::Size region_id) {
+                return self.extractIonImage(mz, tolerance_ppm, region_id);
+            }, "mz"_a, "tolerance_ppm"_a, "region_id"_a,
+            "Extract a single-mass ion image restricted to one region, decoding each pixel from the .ibd on demand")
         .def("gridWidth", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridWidth(); })
         .def("gridHeight", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridHeight(); })
         ;
@@ -1906,6 +2040,17 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
         .def("setMZ", [](OpenMS::Peak1D& self, double mz) { return self.setMZ(mz); }, "mz"_a, "Sets the m/z (mass-to-charge) value of the peak")
         .def("getPos", [](const OpenMS::Peak1D& self) { return self.getPos(); }, "Returns the position (alias for getMZ)")
         .def("setPos", [](OpenMS::Peak1D& self, double pos) { return self.setPos(pos); }, "pos"_a, "Sets the position (alias for setMZ)")
+        // Pythonic snake_case properties over the scalar getters/setters (issue #9760).
+        // Additive: the getX()/setX() methods above are unchanged. 'pos' is intentionally
+        // omitted because it is an alias of mz (avoid alias pairs; keep the property list reviewable).
+        .def_prop_rw("mz",
+            [](const OpenMS::Peak1D& self) { return self.getMZ(); },
+            [](OpenMS::Peak1D& self, double v) { self.setMZ(v); },
+            "The m/z (mass-to-charge) value of the peak")
+        .def_prop_rw("intensity",
+            [](const OpenMS::Peak1D& self) { return self.getIntensity(); },
+            [](OpenMS::Peak1D& self, float v) { self.setIntensity(v); },
+            "The intensity (height) of the peak")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::Peak1D& self) {
@@ -1932,6 +2077,7 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
     auto peak2d_class = nb::class_<OpenMS::Peak2D>(m, "Peak2D", 
         R"doc(
 A 2-dimensional raw data point or peak.
+
 This data structure is intended for continuous data or peak data.
 If you want to annotated single peaks with meta data, use RichPeak2D instead
 )doc")
@@ -1973,55 +2119,37 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         .export_values();
 
     // -----------------------------------------------------------------------
-    // PeakIndex
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIndex>(m, "PeakIndex", 
-        R"doc(
-Index of a peak or feature
-This struct can be used to store both peak or feature indices
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<size_t>())
-        .def(nb::init<size_t, size_t>())
-        .def("isValid", [](const OpenMS::PeakIndex& self) { return self.isValid(); }, "Returns if the current peak ref is valid")
-        .def("clear", [](OpenMS::PeakIndex& self) { return self.clear(); }, "Invalidates the current index")
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def_rw("peak", &OpenMS::PeakIndex::peak)
-        .def_rw("spectrum", &OpenMS::PeakIndex::spectrum)
-        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the feature in the given map")
-        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the peak in the given map")
-        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the spectrum in the given map")
-        ;
-
-    // -----------------------------------------------------------------------
     // PeptideHit
     // -----------------------------------------------------------------------
     auto peptidehit_class = nb::class_<OpenMS::PeptideHit>(m, "PeptideHit",
         R"doc(
-MetaInfoInterface
-
 Represents a single peptide identification hit from a database search
+
 A PeptideHit stores information about a candidate peptide sequence that was
 matched to a spectrum. Each hit contains:
+
 - The peptide sequence (as AASequence)
 - A score from the search engine
 - The rank among all candidates
 - The charge state
 - Protein mappings (PeptideEvidence objects)
+
 Multiple PeptideHit objects are typically stored in a PeptideIdentification,
 sorted by score to show the most likely candidates first.
+
 Example usage:
+
 .. code-block:: python
-hit = oms.PeptideHit()
-hit.setSequence(oms.AASequence.fromString("PEPTIDER"))
-hit.setScore(95.5)
-hit.setRank(1)
-hit.setCharge(2)
-# Access information
-print(f"Sequence: {hit.getSequence().toString()}")
-print(f"Score: {hit.getScore()}, Rank: {hit.getRank()}")
-print(f"Charge: {hit.getCharge()}")
+
+   hit = oms.PeptideHit()
+   hit.setSequence(oms.AASequence.fromString("PEPTIDER"))
+   hit.setScore(95.5)
+   hit.setRank(1)
+   hit.setCharge(2)
+   # Access information
+   print(f"Sequence: {hit.getSequence().toString()}")
+   print(f"Score: {hit.getScore()}, Rank: {hit.getRank()}")
+   print(f"Charge: {hit.getCharge()}")
 )doc")
         .def(nb::init<>())
         .def(nb::init<double, unsigned int, int, OpenMS::AASequence>())
@@ -2031,105 +2159,133 @@ print(f"Charge: {hit.getCharge()}")
         .def("__deepcopy__", [](const OpenMS::PeptideHit& self, nb::dict) { return OpenMS::PeptideHit(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getSequence", [](OpenMS::PeptideHit& self) -> OpenMS::AASequence & { return self.getSequence(); }, nb::rv_policy::reference_internal, 
+        .def("getSequence", [](OpenMS::PeptideHit& self) -> OpenMS::AASequence { return self.getSequence(); }, 
             R"doc(
-Returns the rank of this hit among all candidates
-:return: Rank (1 = best hit, 2 = second best, etc.)
+Returns the peptide sequence
+
+:return: The peptide amino acid sequence with modifications
 )doc")
         .def("setSequence", [](OpenMS::PeptideHit& self, const OpenMS::AASequence& sequence) { return self.setSequence(sequence); }, "sequence"_a, 
             R"doc(
-Sets the rank of this hit
-:param rank: Rank among all candidates (1 = best)
+Sets the peptide sequence
+
+:param sequence: The peptide amino acid sequence
 )doc")
         .def("setSequence", [](OpenMS::PeptideHit& self, OpenMS::AASequence& sequence) { return self.setSequence(sequence); }, "sequence"_a, 
             R"doc(
-Sets the rank of this hit
-:param rank: Rank among all candidates (1 = best)
+Sets the peptide sequence
+
+:param sequence: The peptide amino acid sequence
 )doc")
         .def("getCharge", [](const OpenMS::PeptideHit& self) { return self.getCharge(); }, 
             R"doc(
-Returns the peptide sequence
-:return: The peptide amino acid sequence with modifications
+Returns the charge state of the peptide
+
+:return: Charge state (e.g., 2 for doubly charged)
 )doc")
         .def("setCharge", [](OpenMS::PeptideHit& self, int charge) { return self.setCharge(charge); }, "charge"_a, 
             R"doc(
-Sets the peptide sequence
-:param sequence: The peptide amino acid sequence
+Sets the charge state
+
+:param charge: Charge state of the peptide ion
 )doc")
-        .def("getPeptideEvidences", [](const OpenMS::PeptideHit& self) -> const std::vector<OpenMS::PeptideEvidence> & { return self.getPeptideEvidences(); }, nb::rv_policy::reference_internal, 
+        .def("getPeptideEvidences", [](const OpenMS::PeptideHit& self) -> std::vector<OpenMS::PeptideEvidence> { return self.getPeptideEvidences(); }, 
             R"doc(
-Returns the charge state of the peptide
-:return: Charge state (e.g., 2 for doubly charged)
+Returns protein mapping information for this peptide
+
+:return: List of proteins where this peptide was found
+
+Each evidence contains protein accession, start/end positions, and if it's a decoy
 )doc")
         .def("setPeptideEvidences", [](OpenMS::PeptideHit& self, const std::vector<OpenMS::PeptideEvidence>& peptide_evidences) { return self.setPeptideEvidences(peptide_evidences); }, "peptide_evidences"_a, 
             R"doc(
-Returns protein mapping information for this peptide
-:return: List of proteins where this peptide was found
-Each evidence contains protein accession, start/end positions, and if it's a decoy
+Sets the protein mapping information
+
+:param peptide_evidences: Protein locations for this peptide
 )doc")
         .def("setPeptideEvidences", [](OpenMS::PeptideHit& self, std::vector<OpenMS::PeptideEvidence>& peptide_evidences) { return self.setPeptideEvidences(peptide_evidences); }, "peptide_evidences"_a, 
             R"doc(
-Returns protein mapping information for this peptide
-:return: List of proteins where this peptide was found
-Each evidence contains protein accession, start/end positions, and if it's a decoy
+Sets the protein mapping information
+
+:param peptide_evidences: Protein locations for this peptide
 )doc")
         .def("addPeptideEvidence", [](OpenMS::PeptideHit& self, const OpenMS::PeptideEvidence& peptide_evidence) { return self.addPeptideEvidence(peptide_evidence); }, "peptide_evidence"_a, 
             R"doc(
-Sets the protein mapping information
-:param evidences: Protein locations for this peptide
+Adds a single protein mapping
+
+:param peptide_evidence: Protein location information to add
 )doc")
-        .def("getScore", [](const OpenMS::PeptideHit& self) { return self.getScore(); })
+        .def("getScore", [](const OpenMS::PeptideHit& self) { return self.getScore(); }, 
+            R"doc(
+Returns the score of this peptide-spectrum match (PSM)
+
+:return: The search engine score
+
+Interpretation depends on the score type (check isHigherScoreBetter)
+)doc")
         .def("setScore", [](OpenMS::PeptideHit& self, double score) { return self.setScore(score); }, "score"_a, 
             R"doc(
-Returns fragment ion annotations
-:return: Annotated fragment peaks
+Sets the PSM score
+
+:param score: The search engine score to set
 )doc")
         .def("setAnalysisResults", [](OpenMS::PeptideHit& self, const std::vector<OpenMS::PeptideHit::PepXMLAnalysisResult>& aresults) { self.setAnalysisResults(aresults); }, "aresults"_a,
             R"doc(
 Set information on (search engine) sub scores associated with this PSM.
+
 :param aresults: List of PepXMLAnalysisResult objects
 )doc")
         .def("addAnalysisResults", [](OpenMS::PeptideHit& self, const OpenMS::PeptideHit::PepXMLAnalysisResult& aresult) { return self.addAnalysisResults(aresult); }, "aresult"_a,
             R"doc(
-Sets search engine sub-scores
-:param aresult: Sub-score information from search engine
+Adds a search engine sub-score
+
+:param aresult: Sub-score to add
 )doc")
         .def("getAnalysisResults", [](const OpenMS::PeptideHit& self) { return self.getAnalysisResults(); },
             R"doc(
-Adds a search engine sub-score
-:param aresult: Sub-score to add
+Returns all search engine sub-scores
+
+:return: Sub-score information
 )doc")
         .def("getRank", [](const OpenMS::PeptideHit& self) { return self.getRank(); }, 
             R"doc(
-Returns the score of this peptide-spectrum match (PSM)
-:return: The search engine score
-Interpretation depends on the score type (check isHigherScoreBetter)
+Returns the rank of this hit among all candidates
+
+:return: Rank (1 = best hit, 2 = second best, etc.)
 )doc")
         .def("setRank", [](OpenMS::PeptideHit& self, unsigned int newrank) { return self.setRank(newrank); }, "newrank"_a, 
             R"doc(
-Sets the PSM score
-:param score: The search engine score to set
+Sets the rank of this hit
+
+:param newrank: Rank among all candidates (1 = best)
 )doc")
-        .def("getPeakAnnotations", [](OpenMS::PeptideHit& self) -> std::vector<OpenMS::PeptideHit::PeakAnnotation> & { return self.getPeakAnnotations(); }, nb::rv_policy::reference_internal, 
+        .def("getPeakAnnotations", [](OpenMS::PeptideHit& self) -> std::vector<OpenMS::PeptideHit::PeakAnnotation> { return self.getPeakAnnotations(); }, 
             R"doc(
-Sets fragment ion annotations
-:param annotations: Fragment peak annotations
+Returns fragment ion annotations
+
+:return: Annotated fragment peaks
 )doc")
         .def("setPeakAnnotations", [](OpenMS::PeptideHit& self, std::vector<OpenMS::PeptideHit::PeakAnnotation> frag_annotations) { return self.setPeakAnnotations(frag_annotations); }, "frag_annotations"_a, 
             R"doc(
-Returns all search engine sub-scores
-:return: Sub-score information
+Sets fragment ion annotations
+
+:param frag_annotations: Fragment peak annotations
 )doc")
         .def("isDecoy", [](const OpenMS::PeptideHit& self) { return self.isDecoy(); }, 
             R"doc(
-Extracts all unique protein accessions
-:return: Set of unique protein accession strings
-Empty accessions are excluded from the result
+Checks if this hit maps only to decoy proteins
+
+:return: True if all protein mappings are decoys, False otherwise
+
+Returns False if no target/decoy information is available
 )doc")
         .def("extractProteinAccessionsSet", [](const OpenMS::PeptideHit& self) { return self.extractProteinAccessionsSet(); }, 
             R"doc(
-Adds a single protein mapping
-:param evidence: Protein location information to add
+Extracts all unique protein accessions
+
+:return: Set of unique protein accession strings
+
+Empty accessions are excluded from the result
 )doc")
         
         .def("__hash__", [](const OpenMS::PeptideHit& self) { return std::hash<OpenMS::PeptideHit>{}(self); })
@@ -2161,33 +2317,37 @@ Adds a single protein mapping
     // -----------------------------------------------------------------------
     auto peptideidentification_class = nb::class_<OpenMS::PeptideIdentification>(m, "PeptideIdentification",
         R"doc(
-MetaInfoInterface
-
 Represents peptide identification results for a single spectrum or feature
+
 PeptideIdentification stores the results of peptide identification from database
 search engines (e.g., Mascot, X!Tandem, MSGF+). Each PeptideIdentification contains:
+
 - A list of peptide hits (candidate sequences) ranked by score
 - The precursor m/z and retention time
 - Score type and significance threshold
 - Link to the ProteinIdentification (via identifier)
+
 Multiple PeptideIdentifications can belong to one ProteinIdentification, which
 stores the search parameters and protein-level results.
+
 Example usage:
+
 .. code-block:: python
-pep_id = oms.PeptideIdentification()
-pep_id.setRT(1234.5)  # Set retention time
-pep_id.setMZ(445.678)  # Set precursor m/z
-pep_id.setScoreType("XTandem")
-# Add a peptide hit
-hit = oms.PeptideHit()
-hit.setScore(50.5)
-hit.setRank(1)
-hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
-hit.setCharge(2)
-pep_id.insertHit(hit)
-# Access hits
-for hit in pep_id.getHits():
-print(f"Sequence: {hit.getSequence().toString()}, Score: {hit.getScore()}")
+
+   pep_id = oms.PeptideIdentification()
+   pep_id.setRT(1234.5)  # Set retention time
+   pep_id.setMZ(445.678)  # Set precursor m/z
+   pep_id.setScoreType("XTandem")
+   # Add a peptide hit
+   hit = oms.PeptideHit()
+   hit.setScore(50.5)
+   hit.setRank(1)
+   hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+   hit.setCharge(2)
+   pep_id.insertHit(hit)
+   # Access hits
+   for hit in pep_id.getHits():
+       print(f"Sequence: {hit.getSequence().toString()}, Score: {hit.getScore()}")
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PeptideIdentification &>())
@@ -2197,122 +2357,174 @@ print(f"Sequence: {hit.getSequence().toString()}, Score: {hit.getScore()}")
         .def(nb::self != nb::self)
         .def("getRT", [](const OpenMS::PeptideIdentification& self) { return self.getRT(); }, 
             R"doc(
-Checks if retention time is set
-:return: True if RT is available, False otherwise
+Returns the retention time of the precursor
+
+:return: Retention time in seconds
 )doc")
         .def("setRT", [](OpenMS::PeptideIdentification& self, double rt) { return self.setRT(rt); }, "rt"_a, 
             R"doc(
-Returns the retention time of the precursor
-:return: Retention time in seconds
+Sets the retention time of the precursor
+
+:param rt: Retention time in seconds
 )doc")
         .def("hasRT", [](const OpenMS::PeptideIdentification& self) { return self.hasRT(); }, 
             R"doc(
-Sets the precursor m/z value
-:param mz: Mass-to-charge ratio of the precursor
+Checks if retention time is set
+
+:return: True if RT is available, False otherwise
 )doc")
         .def("getMZ", [](const OpenMS::PeptideIdentification& self) { return self.getMZ(); }, 
             R"doc(
-Checks if m/z value is set
-:return: True if m/z is available, False otherwise
+Returns the precursor m/z value
+
+:return: Mass-to-charge ratio of the precursor ion
 )doc")
         .def("setMZ", [](OpenMS::PeptideIdentification& self, double mz) { return self.setMZ(mz); }, "mz"_a, 
             R"doc(
-Returns the precursor m/z value
-:return: Mass-to-charge ratio of the precursor ion
+Sets the precursor m/z value
+
+:param mz: Mass-to-charge ratio of the precursor
 )doc")
         .def("hasMZ", [](const OpenMS::PeptideIdentification& self) { return self.hasMZ(); }, 
             R"doc(
-Set the spectrum reference (native ID) for this identification.
-:param ref: Spectrum reference string (native ID)
+Checks if m/z value is set
+
+:return: True if m/z is available, False otherwise
 )doc")
-        .def("getHits", [](OpenMS::PeptideIdentification& self) -> std::vector<OpenMS::PeptideHit> & { return self.getHits(); }, nb::rv_policy::reference_internal)
-        .def("insertHit", [](OpenMS::PeptideIdentification& self, const OpenMS::PeptideHit& hit) { return self.insertHit(hit); }, "hit"_a, 
+        .def("getHits", [](OpenMS::PeptideIdentification& self) -> std::vector<OpenMS::PeptideHit> { return self.getHits(); }, 
             R"doc(
 Returns all peptide hits (candidate sequences)
+
 :return: List of peptide candidates ranked by score
+
 Hits are typically sorted by score, with the best hit at index 0
+)doc")
+        .def("insertHit", [](OpenMS::PeptideIdentification& self, const OpenMS::PeptideHit& hit) { return self.insertHit(hit); }, "hit"_a, 
+            R"doc(
+Appends a peptide hit to the list
+
+:param hit: The peptide hit to add
 )doc")
         .def("insertHit", [](OpenMS::PeptideIdentification& self, OpenMS::PeptideHit& hit) { return self.insertHit(hit); }, "hit"_a, 
             R"doc(
-Returns all peptide hits (candidate sequences)
-:return: List of peptide candidates ranked by score
-Hits are typically sorted by score, with the best hit at index 0
+Appends a peptide hit to the list
+
+:param hit: The peptide hit to add
 )doc")
         .def("setHits", [](OpenMS::PeptideIdentification& self, const std::vector<OpenMS::PeptideHit>& hits) { return self.setHits(hits); }, "hits"_a, 
             R"doc(
-Appends a peptide hit to the list
-:param hit: The peptide hit to add
+Sets all peptide hits at once
+
+:param hits: List of peptide hits to store
 )doc")
         .def("setHits", [](OpenMS::PeptideIdentification& self, std::vector<OpenMS::PeptideHit>& hits) { return self.setHits(hits); }, "hits"_a, 
             R"doc(
-Appends a peptide hit to the list
-:param hit: The peptide hit to add
+Sets all peptide hits at once
+
+:param hits: List of peptide hits to store
 )doc")
         .def("getSignificanceThreshold", [](const OpenMS::PeptideIdentification& self) { return self.getSignificanceThreshold(); }, 
             R"doc(
-Sets all peptide hits at once
-:param hits: List of peptide hits to store
+Returns the significance threshold value
+
+:return: The threshold value (interpretation depends on score type)
+
+Hits with scores below/above this threshold (depending on score direction) may be considered insignificant
 )doc")
         .def("setSignificanceThreshold", [](OpenMS::PeptideIdentification& self, double value) { return self.setSignificanceThreshold(value); }, "value"_a, 
             R"doc(
-Returns the significance threshold value
-:return: The threshold value (interpretation depends on score type)
-Hits with scores below/above this threshold (depending on score direction) may be considered insignificant
+Sets the significance threshold value
+
+:param value: The threshold value to set
 )doc")
         .def("getScoreType", [](const OpenMS::PeptideIdentification& self) { return self.getScoreType(); }, 
             R"doc(
-Sets the significance threshold value
-:param value: The threshold value to set
+Returns the type of score (e.g., "Mascot", "XTandem", "q-value")
+
+:return: Name of the score type
 )doc")
         .def("setScoreType", [](OpenMS::PeptideIdentification& self, const std::string& type) { return self.setScoreType(type); }, "type"_a, 
             R"doc(
-Returns the type of score (e.g., "Mascot", "XTandem", "q-value")
-:return: Name of the score type
+Sets the score type
+
+:param type: Name of the score type (e.g., "Mascot", "XTandem")
 )doc")
         .def("isHigherScoreBetter", [](const OpenMS::PeptideIdentification& self) { return self.isHigherScoreBetter(); }, 
             R"doc(
-Sets the score type
-:param score_type: Name of the score type (e.g., "Mascot", "XTandem")
+Returns whether higher scores are better
+
+:return: True if higher scores indicate better matches, False if lower is better
 )doc")
         .def("setHigherScoreBetter", [](OpenMS::PeptideIdentification& self, bool value) { return self.setHigherScoreBetter(value); }, "value"_a, 
             R"doc(
-Returns whether higher scores are better
-:return: True if higher scores indicate better matches, False if lower is better
+Sets whether higher scores are better
+
+:param value: True if higher scores are better, False otherwise
 )doc")
         .def("getIdentifier", [](const OpenMS::PeptideIdentification& self) { return self.getIdentifier(); }, 
             R"doc(
-Sets whether higher scores are better
-:param higher_better: True if higher scores are better, False otherwise
+Returns the identifier linking to the parent ProteinIdentification
+
+:return: Unique identifier string
+
+Use this to find the corresponding ProteinIdentification with search parameters
 )doc")
         .def("setIdentifier", [](OpenMS::PeptideIdentification& self, const std::string& id) { return self.setIdentifier(id); }, "id"_a, 
             R"doc(
-Returns the identifier linking to the parent ProteinIdentification
-:return: Unique identifier string
-Use this to find the corresponding ProteinIdentification with search parameters
+Sets the identifier linking to a ProteinIdentification
+
+:param id: Unique identifier string
 )doc")
-        .def("getBaseName", [](const OpenMS::PeptideIdentification& self) { return self.getBaseName(); }, 
-            R"doc(
-Sets the retention time of the precursor
-:param rt: Retention time in seconds
-)doc")
-        .def("setBaseName", [](OpenMS::PeptideIdentification& self, const std::string& base_name) { return self.setBaseName(base_name); }, "base_name"_a)
         .def("getExperimentLabel", [](const OpenMS::PeptideIdentification& self) { return self.getExperimentLabel(); })
         .def("setExperimentLabel", [](OpenMS::PeptideIdentification& self, const std::string& type) { return self.setExperimentLabel(type); }, "type"_a)
         .def("getSpectrumReference", [](const OpenMS::PeptideIdentification& self) { return self.getSpectrumReference(); }, 
             R"doc(
-Sets the identifier linking to a ProteinIdentification
-:param identifier: Unique identifier string
+Get the spectrum reference (native ID) for this identification.
+
+:return: Spectrum reference string (native ID)
 )doc")
         .def("setSpectrumReference", [](OpenMS::PeptideIdentification& self, const std::string& ref) { return self.setSpectrumReference(ref); }, "ref"_a, 
             R"doc(
-Get the spectrum reference (native ID) for this identification.
-:return: Spectrum reference string (native ID)
+Set the spectrum reference (native ID) for this identification.
+
+:param ref: Spectrum reference string (native ID)
 )doc")
         .def("sort", [](OpenMS::PeptideIdentification& self) { return self.sort(); })
         .def("empty", [](const OpenMS::PeptideIdentification& self) { return self.empty(); })
-        .def_static("getReferencingHits", [](const std::vector<OpenMS::PeptideHit>& p0, const std::set<std::string>& accession) { return OpenMS::PeptideIdentification::getReferencingHits(p0, accession); }, "Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)")
-        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const std::string& ms_run_name, const std::string& dataset_id, bool include_interpretation) { return self.buildUSI(ms_run_name, dataset_id, include_interpretation); }, "ms_run_name"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
-        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::IdentifierMSRunMapper& mapping, const std::string& dataset_id, bool include_interpretation) { return self.buildUSI(mapping, dataset_id, include_interpretation); }, "mapping"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
+        .def_static("getReferencingHits", [](const std::vector<OpenMS::PeptideHit>& p0, const std::set<std::string>& accession) { return OpenMS::PeptideIdentification::getReferencingHits(p0, accession); }, "hits"_a, "accession"_a, "Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)")
+        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const std::string& ms_run_name, const std::string& dataset_id, bool include_interpretation) { return self.buildUSI(ms_run_name, dataset_id, include_interpretation); }, "ms_run_name"_a, "dataset_id"_a = "local", "include_interpretation"_a = false, 
+            R"doc(
+Build a Universal Spectrum Identifier (USI) for this identification.
+
+The USI format follows PSI-MS MS:1003063:
+  mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+
+If include_interpretation is True, the first peptide hit is used
+as ProForma proteoform-ion interpretation (best hit after sort()).
+
+:param ms_run_name: MS run file name
+:param dataset_id: ProteomeXchange dataset id (default: "local")
+:param include_interpretation: Include ProForma interpretation from best hit
+:return: USI object (may be invalid if spectrum reference is missing)
+)doc")
+        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::IdentifierMSRunMapper& mapping, const std::string& dataset_id, bool include_interpretation) { return self.buildUSI(mapping, dataset_id, include_interpretation); }, "mapping"_a, "dataset_id"_a = "local", "include_interpretation"_a = false, 
+            R"doc(
+Build USI with automatic source file resolution for merged files.
+
+Uses id_merge_index metadata to select the correct file from the mapping.
+
+Example:
+
+.. code-block:: python
+
+   mapper = oms.IdentifierMSRunMapper(protein_ids)
+   usi = pep_id.buildUSI(mapper, "PXD000561", True)
+
+:param mapping: IdentifierMSRunMapper object built from ProteinIdentifications
+:param dataset_id: ProteomeXchange dataset id (default: "local")
+:param include_interpretation: Include ProForma interpretation from best hit
+:return: USI object (may be invalid if mapping is missing)
+)doc")
         
         .def("__hash__", [](const OpenMS::PeptideIdentification& self) { return std::hash<OpenMS::PeptideIdentification>{}(self); })
         .def("__repr__", [](const OpenMS::PeptideIdentification& self) {
@@ -2339,11 +2551,10 @@ Get the spectrum reference (native ID) for this identification.
     // -----------------------------------------------------------------------
     auto precursor_class = nb::class_<OpenMS::Precursor, OpenMS::CVTermList>(m, "Precursor", 
         R"doc(
-Peak1D
-CVTermList
-
 Precursor meta information
+
 This class contains precursor information:
+
 - isolation window
 - activation
 - selected ion (m/z, intensity, charge, possible charge states)
@@ -2366,7 +2577,7 @@ Returns the abbreviations (e.g., "CID") of ALL possible activation methods, not 
         .def_static("toActivationMethod", [](const std::string& name) { return OpenMS::Precursor::toActivationMethod(name); }, "name"_a, "Convert a string (full name or short name) to an ActivationMethod enum")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getActivationMethods", [](OpenMS::Precursor& self) -> std::set<OpenMS::Precursor::ActivationMethod> & { return self.getActivationMethods(); }, nb::rv_policy::reference_internal, "Returns the activation methods")
+        .def("getActivationMethods", [](OpenMS::Precursor& self) -> std::set<OpenMS::Precursor::ActivationMethod> { return self.getActivationMethods(); }, "Returns the activation methods")
         .def("getActivationMethodsAsString", [](const OpenMS::Precursor& self) { return self.getActivationMethodsAsString(); }, 
             R"doc(
 Returns the full names (e.g., "Collision-induced dissociation") of the activation methods set on this instance
@@ -2390,7 +2601,7 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
         .def("setDriftTimeWindowUpperOffset", [](OpenMS::Precursor& self, double drift_time) { return self.setDriftTimeWindowUpperOffset(drift_time); }, "drift_time"_a, "Sets the upper offset from the target ion mobility")
         .def("getCharge", [](const OpenMS::Precursor& self) { return self.getCharge(); }, "Returns the charge")
         .def("setCharge", [](OpenMS::Precursor& self, int charge) { return self.setCharge(charge); }, "charge"_a, "Sets the charge")
-        .def("getPossibleChargeStates", [](OpenMS::Precursor& self) -> std::vector<int> & { return self.getPossibleChargeStates(); }, nb::rv_policy::reference_internal, "Returns the possible charge states")
+        .def("getPossibleChargeStates", [](OpenMS::Precursor& self) -> std::vector<int> & { return self.getPossibleChargeStates(); }, "Returns the possible charge states")
         .def("setPossibleChargeStates", [](OpenMS::Precursor& self, const std::vector<int>& possible_charge_states) { return self.setPossibleChargeStates(possible_charge_states); }, "possible_charge_states"_a, "Sets the possible charge states")
         .def("getUnchargedMass", [](const OpenMS::Precursor& self) { return self.getUnchargedMass(); }, "Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged")
         
@@ -2437,6 +2648,9 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Prediction, OpenMS::CVTermList>(m, "Prediction", "OpenMS class Prediction")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Prediction &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Prediction& self) { return OpenMS::TargetedExperimentHelper::Prediction(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Prediction& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Prediction(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2468,6 +2682,9 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Protein, OpenMS::CVTermList>(m, "Protein", "OpenMS class Protein")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Protein &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Protein& self) { return OpenMS::TargetedExperimentHelper::Protein(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Protein& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Protein(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2480,29 +2697,33 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ProteinHit, OpenMS::MetaInfoInterface>(m, "ProteinHit", 
         R"doc(
-MetaInfoInterface
-
 Represents a single protein identification hit from a database search
+
 A ProteinHit stores information about a protein that was identified based on
 peptide evidence. Each hit contains:
+
 - Protein accession (database identifier)
 - Score from protein inference
 - Rank among protein candidates
 - Protein sequence (optional)
 - Sequence coverage percentage
+
 Multiple ProteinHit objects are stored in a ProteinIdentification, typically
 sorted by score to show the most confident identifications first.
+
 Example usage:
+
 .. code-block:: python
-protein_hit = oms.ProteinHit()
-protein_hit.setAccession("P12345")
-protein_hit.setScore(150.5)
-protein_hit.setRank(1)
-protein_hit.setCoverage(45.2)  # 45.2% coverage
-protein_hit.setDescription("Example protein")
-# Access information
-print(f"Accession: {protein_hit.getAccession()}")
-print(f"Score: {protein_hit.getScore()}, Coverage: {protein_hit.getCoverage()}%")
+
+   protein_hit = oms.ProteinHit()
+   protein_hit.setAccession("P12345")
+   protein_hit.setScore(150.5)
+   protein_hit.setRank(1)
+   protein_hit.setCoverage(45.2)  # 45.2% coverage
+   protein_hit.setDescription("Example protein")
+   # Access information
+   print(f"Accession: {protein_hit.getAccession()}")
+   print(f"Score: {protein_hit.getScore()}, Coverage: {protein_hit.getCoverage()}%")
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ProteinHit &>())
@@ -2511,72 +2732,91 @@ print(f"Score: {protein_hit.getScore()}, Coverage: {protein_hit.getCoverage()}%"
         .def("__deepcopy__", [](const OpenMS::ProteinHit& self, nb::dict) { return OpenMS::ProteinHit(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getScore", [](const OpenMS::ProteinHit& self) { return self.getScore(); })
-        .def("getRank", [](const OpenMS::ProteinHit& self) { return self.getRank(); }, 
+        .def("getScore", [](const OpenMS::ProteinHit& self) { return self.getScore(); }, 
             R"doc(
 Returns the protein inference score
+
 :return: Score from protein inference algorithm
+)doc")
+        .def("getRank", [](const OpenMS::ProteinHit& self) { return self.getRank(); }, 
+            R"doc(
+Returns the rank of this protein hit
+
+:return: Rank (1 = best hit, 2 = second best, etc.)
 )doc")
         .def("getSequence", [](const OpenMS::ProteinHit& self) { return self.getSequence(); }, 
             R"doc(
-Returns the rank of this protein hit
-:return: Rank (1 = best hit, 2 = second best, etc.)
+Returns the protein sequence
+
+:return: Full amino acid sequence of the protein (if available)
 )doc")
         .def("getAccession", [](const OpenMS::ProteinHit& self) { return self.getAccession(); }, 
             R"doc(
-Returns the protein sequence
-:return: Full amino acid sequence of the protein (if available)
+Returns the protein accession
+
+:return: Database accession/identifier (e.g., "P12345" for UniProt)
 )doc")
         .def("getDescription", [](const OpenMS::ProteinHit& self) { return self.getDescription(); }, 
             R"doc(
-Returns the protein accession
-:return: Database accession/identifier (e.g., "P12345" for UniProt)
+Returns the protein description
+
+:return: Human-readable protein name/description from database
 )doc")
         .def("getCoverage", [](const OpenMS::ProteinHit& self) { return self.getCoverage(); }, 
             R"doc(
-Returns the protein description
-:return: Human-readable protein name/description from database
+Returns the sequence coverage percentage
+
+:return: Percentage of protein sequence covered by identified peptides
+
+Value is in range 0-100 (e.g., 45.2 means 45.2% coverage)
 )doc")
         .def("setScore", [](OpenMS::ProteinHit& self, double score) { return self.setScore(score); }, "score"_a, 
             R"doc(
-Returns the sequence coverage percentage
-:return: Percentage of protein sequence covered by identified peptides
-Value is in range 0-100 (e.g., 45.2 means 45.2% coverage)
+Sets the protein inference score
+
+:param score: Score to set
 )doc")
         .def("setRank", [](OpenMS::ProteinHit& self, unsigned int newrank) { return self.setRank(newrank); }, "newrank"_a, 
             R"doc(
-Sets the protein inference score
-:param score: Score to set
+Sets the rank
+
+:param newrank: Rank among all protein candidates
 )doc")
         .def("setSequence", [](OpenMS::ProteinHit& self, const std::string& sequence) { return self.setSequence(sequence); }, "sequence"_a, 
             R"doc(
-Sets the rank
-:param rank: Rank among all protein candidates
+Sets the protein sequence
+
+:param sequence: Full amino acid sequence
 )doc")
         .def("setSequence", [](OpenMS::ProteinHit& self, std::string& sequence) { return self.setSequence(sequence); }, "sequence"_a, 
             R"doc(
-Sets the rank
-:param rank: Rank among all protein candidates
+Sets the protein sequence
+
+:param sequence: Full amino acid sequence
 )doc")
         .def("setAccession", [](OpenMS::ProteinHit& self, const std::string& accession) { return self.setAccession(accession); }, "accession"_a, 
             R"doc(
-Sets the protein sequence
-:param sequence: Full amino acid sequence
+Sets the protein accession
+
+:param accession: Database accession/identifier
 )doc")
         .def("setDescription", [](OpenMS::ProteinHit& self, const std::string& description) { return self.setDescription(description); }, "description"_a, 
             R"doc(
-Sets the protein accession
-:param accession: Database accession/identifier
+Sets the protein description
+
+:param description: Human-readable protein name/description
 )doc")
         .def("setCoverage", [](OpenMS::ProteinHit& self, double coverage) { return self.setCoverage(coverage); }, "coverage"_a, 
             R"doc(
-Sets the protein description
-:param description: Human-readable protein name/description
+Sets the sequence coverage percentage
+
+:param coverage: Percentage (0-100) of sequence covered by peptides
 )doc")
         .def("isDecoy", [](const OpenMS::ProteinHit& self) { return self.isDecoy(); }, 
             R"doc(
-Sets the sequence coverage percentage
-:param coverage: Percentage (0-100) of sequence covered by peptides
+Checks if this is a decoy protein hit
+
+:return: True if this is a decoy hit from target-decoy search
 )doc")
         
         .def("__hash__", [](const OpenMS::ProteinHit& self) { return std::hash<OpenMS::ProteinHit>{}(self); })
@@ -2598,7 +2838,6 @@ Sets the sequence coverage percentage
     auto proteinidentification_class = nb::class_<OpenMS::ProteinIdentification>(m, "ProteinIdentification",
         R"doc(
 Representation of a protein identification run
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ProteinIdentification &>())
@@ -2607,13 +2846,13 @@ MetaInfoInterface
         .def_static("getAllNamesOfPeakMassType", []() { return OpenMS::ProteinIdentification::getAllNamesOfPeakMassType(); }, "Returns all peak mass type names known to OpenMS")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getHits", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinHit> & { return self.getHits(); }, nb::rv_policy::reference_internal, "Returns the protein hits")
+        .def("getHits", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinHit> { return self.getHits(); }, "Returns the protein hits")
         .def("insertHit", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinHit& input) { return self.insertHit(input); }, "input"_a, "Appends a protein hit")
         .def("insertHit", [](OpenMS::ProteinIdentification& self, OpenMS::ProteinHit& input) { return self.insertHit(input); }, "input"_a, "Appends a protein hit")
         .def("setHits", [](OpenMS::ProteinIdentification& self, const std::vector<OpenMS::ProteinHit>& hits) { return self.setHits(hits); }, "hits"_a, "Sets the protein hits")
-        .def("getProteinGroups", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> & { return self.getProteinGroups(); }, nb::rv_policy::reference_internal, "Returns the protein groups")
+        .def("getProteinGroups", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> { return self.getProteinGroups(); }, "Returns the protein groups")
         .def("insertProteinGroup", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinIdentification::ProteinGroup& group) { return self.insertProteinGroup(group); }, "group"_a, "Appends a new protein group")
-        .def("getIndistinguishableProteins", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> & { return self.getIndistinguishableProteins(); }, nb::rv_policy::reference_internal, "Returns the indistinguishable proteins")
+        .def("getIndistinguishableProteins", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinIdentification::ProteinGroup> { return self.getIndistinguishableProteins(); }, "Returns the indistinguishable proteins")
         .def("insertIndistinguishableProteins", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinIdentification::ProteinGroup& group) { return self.insertIndistinguishableProteins(group); }, "group"_a, "Appends new indistinguishable proteins")
         .def("getSignificanceThreshold", [](const OpenMS::ProteinIdentification& self) { return self.getSignificanceThreshold(); }, "Returns the protein significance threshold value")
         .def("setSignificanceThreshold", [](OpenMS::ProteinIdentification& self, double value) { return self.setSignificanceThreshold(value); }, "value"_a, "Sets the protein significance threshold value")
@@ -2628,7 +2867,8 @@ MetaInfoInterface
 Does not return anything but stores the coverage inside the ProteinHit objects.
 
 :param pep_ids: List of PeptideIdentification objects
-:raises Exception.MissingInformation: if ProteinHits do not have sequence information
+:raises:
+  Exception: MissingInformation if ProteinHits do not have sequence information
 )doc")
         .def("computeCoverage", [](OpenMS::ProteinIdentification& self, const OpenMS::ConsensusMap& cmap, bool use_unassigned_ids) { self.computeCoverage(cmap, use_unassigned_ids); }, "cmap"_a, "use_unassigned_ids"_a,
             R"doc(Compute the coverage (in percent) of all ProteinHits given a ConsensusMap.
@@ -2641,6 +2881,8 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .def("setPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<std::string>& s, bool raw) { self.setPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false,
             R"doc(Set the file paths to the primary MS runs.
 
+An empty list names no files and is not stored: it removes the 'spectra_data' ('spectra_data_raw') meta value.
+
 :param s: The file paths
 :param raw: Store paths to the raw files (or equivalent) rather than mzMLs
 )doc")
@@ -2650,7 +2892,7 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
 :param s: The file paths
 :param e: MSExperiment to try to get the mzML path from
 )doc")
-        .def("getDateTime", [](const OpenMS::ProteinIdentification& self) -> const OpenMS::DateTime & { return self.getDateTime(); }, nb::rv_policy::reference_internal, "Returns the date of the protein identification run")
+        .def("getDateTime", [](const OpenMS::ProteinIdentification& self) -> OpenMS::DateTime { return self.getDateTime(); }, "Returns the date of the protein identification run")
         .def("setDateTime", [](OpenMS::ProteinIdentification& self, const OpenMS::DateTime& date) { return self.setDateTime(date); }, "date"_a, "Sets the date of the protein identification run")
         .def("setSearchEngine", [](OpenMS::ProteinIdentification& self, const std::string& search_engine) { return self.setSearchEngine(search_engine); }, "search_engine"_a, "Sets the search engine type")
         .def("getSearchEngine", [](const OpenMS::ProteinIdentification& self) { return self.getSearchEngine(); }, "Returns the type of search engine used")
@@ -2658,12 +2900,14 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .def("getSearchEngineVersion", [](const OpenMS::ProteinIdentification& self) { return self.getSearchEngineVersion(); }, "Returns the search engine version")
         .def("setSearchParameters", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinIdentification::SearchParameters& search_parameters) { return self.setSearchParameters(search_parameters); }, "search_parameters"_a, "Sets the search parameters")
         .def("setSearchParameters", [](OpenMS::ProteinIdentification& self, OpenMS::ProteinIdentification::SearchParameters& search_parameters) { return self.setSearchParameters(search_parameters); }, "search_parameters"_a, "Sets the search parameters")
-        .def("getSearchParameters", [](OpenMS::ProteinIdentification& self) -> OpenMS::ProteinIdentification::SearchParameters & { return self.getSearchParameters(); }, nb::rv_policy::reference_internal, "Returns the search parameters")
+        .def("getSearchParameters", [](OpenMS::ProteinIdentification& self) -> OpenMS::ProteinIdentification::SearchParameters { return self.getSearchParameters(); }, "Returns the search parameters")
         .def("getIdentifier", [](const OpenMS::ProteinIdentification& self) { return self.getIdentifier(); }, "Returns the identifier")
         .def("setIdentifier", [](OpenMS::ProteinIdentification& self, const std::string& id) { return self.setIdentifier(id); }, "id"_a, "Sets the identifier")
         .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::string& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
         .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<std::string>& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
         .def("getPrimaryMSRunPath", [](const OpenMS::ProteinIdentification& self, bool raw) { std::vector<std::string> output; self.getPrimaryMSRunPath(output, raw); return output; }, "raw"_a = false)
+        .def("removeEmptyPrimaryMSRunPaths", &OpenMS::ProteinIdentification::removeEmptyPrimaryMSRunPaths,
+            "Remove empty file lists ('spectra_data', 'spectra_data_raw'), which name no files and are not stored")
         
         .def("__hash__", [](const OpenMS::ProteinIdentification& self) { return std::hash<OpenMS::ProteinIdentification>{}(self); })
         ;
@@ -2680,6 +2924,9 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Publication, OpenMS::CVTermList>(m, "Publication", "CVTermList")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Publication &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Publication& self) { return OpenMS::TargetedExperimentHelper::Publication(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Publication& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Publication(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2803,11 +3050,11 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
     // -----------------------------------------------------------------------
     auto reactionmonitoringtransition_class = nb::class_<OpenMS::ReactionMonitoringTransition, OpenMS::CVTermList>(m, "ReactionMonitoringTransition", 
         R"doc(
-CVTermList
-
 This class stores a SRM/MRM transition
+
 This class is capable of representing a <Transition> tag in a TraML
 document completely and contains all associated information
+
 The default values for precursor m/z is 0.0 which indicates that it is
 uninitialized
 )doc")
@@ -2828,27 +3075,27 @@ uninitialized
         .def("hasPrecursorCVTerms", [](const OpenMS::ReactionMonitoringTransition& self) { return self.hasPrecursorCVTerms(); }, "Returns true if precursor CV Terms exist (means it is safe to call getPrecursorCVTermList)")
         .def("setPrecursorCVTermList", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::CVTermList& list) { return self.setPrecursorCVTermList(list); }, "list"_a, "Sets a list of precursor CV Terms")
         .def("addPrecursorCVTerm", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::CVTerm& cv_term) { return self.addPrecursorCVTerm(cv_term); }, "cv_term"_a, "Adds precursor CV Term")
-        .def("getPrecursorCVTermList", [](const OpenMS::ReactionMonitoringTransition& self) -> const OpenMS::CVTermList & { return self.getPrecursorCVTermList(); }, nb::rv_policy::reference_internal, "Obtains the list of CV Terms for the precursor")
+        .def("getPrecursorCVTermList", [](const OpenMS::ReactionMonitoringTransition& self) -> OpenMS::CVTermList { return self.getPrecursorCVTermList(); }, "Obtains the list of CV Terms for the precursor")
         .def("setProductMZ", [](OpenMS::ReactionMonitoringTransition& self, double mz) { return self.setProductMZ(mz); }, "mz"_a)
         .def("getProductMZ", [](const OpenMS::ReactionMonitoringTransition& self) { return self.getProductMZ(); })
         .def("setProduct", [](OpenMS::ReactionMonitoringTransition& self, OpenMS::ReactionMonitoringTransition::Product product) { self.setProduct(product); }, "product"_a, "Sets the product ion")
-        .def("getProduct", [](const OpenMS::ReactionMonitoringTransition& self) -> const OpenMS::ReactionMonitoringTransition::Product& { return self.getProduct(); }, nb::rv_policy::reference_internal, "Returns the product ion")
+        .def("getProduct", [](const OpenMS::ReactionMonitoringTransition& self) -> OpenMS::ReactionMonitoringTransition::Product { return self.getProduct(); }, "Returns the product ion")
         .def("getProductChargeState", [](const OpenMS::ReactionMonitoringTransition& self) { return self.getProductChargeState(); }, "Returns the charge state of the product")
         .def("isProductChargeStateSet", [](const OpenMS::ReactionMonitoringTransition& self) { return self.isProductChargeStateSet(); }, "Returns true if charge state of product is already set")
         .def("addProductCVTerm", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::CVTerm& cv_term) { return self.addProductCVTerm(cv_term); }, "cv_term"_a)
-        .def("getIntermediateProducts", [](const OpenMS::ReactionMonitoringTransition& self) -> const std::vector<OpenMS::TargetedExperimentHelper::TraMLProduct> & { return self.getIntermediateProducts(); }, nb::rv_policy::reference_internal)
+        .def("getIntermediateProducts", [](const OpenMS::ReactionMonitoringTransition& self) -> std::vector<OpenMS::TargetedExperimentHelper::TraMLProduct> { return self.getIntermediateProducts(); })
         .def("addIntermediateProduct", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::TargetedExperimentHelper::TraMLProduct& product) { return self.addIntermediateProduct(product); }, "product"_a)
         .def("setIntermediateProducts", [](OpenMS::ReactionMonitoringTransition& self, const std::vector<OpenMS::TargetedExperimentHelper::TraMLProduct>& products) { return self.setIntermediateProducts(products); }, "products"_a)
         .def("hasPrediction", [](const OpenMS::ReactionMonitoringTransition& self) { return self.hasPrediction(); }, "Returns true if a Prediction object exists (means it is safe to call getPrediction)")
         .def("setPrediction", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::ReactionMonitoringTransition::Prediction& prediction) { self.setPrediction(prediction); }, "prediction"_a, "Sets the Prediction object")
-        .def("getPrediction", [](const OpenMS::ReactionMonitoringTransition& self) -> const OpenMS::ReactionMonitoringTransition::Prediction& { return self.getPrediction(); }, nb::rv_policy::reference_internal, "Returns the Prediction object")
+        .def("getPrediction", [](const OpenMS::ReactionMonitoringTransition& self) -> OpenMS::ReactionMonitoringTransition::Prediction { return self.getPrediction(); }, "Returns the Prediction object")
         .def("addPredictionTerm", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::CVTerm& prediction) { return self.addPredictionTerm(prediction); }, "prediction"_a, "Adds prediction term")
         .def("getDecoyTransitionType", [](const OpenMS::ReactionMonitoringTransition& self) { return self.getDecoyTransitionType(); }, "Returns the type of transition (target or decoy)")
         .def("setDecoyTransitionType", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::ReactionMonitoringTransition::DecoyTransitionType& d) { return self.setDecoyTransitionType(d); }, "d"_a, "Sets the type of transition (target or decoy)")
         .def("getLibraryIntensity", [](const OpenMS::ReactionMonitoringTransition& self) { return self.getLibraryIntensity(); }, "Returns the library intensity (ion count or normalized ion count from a spectral library)")
         .def("setLibraryIntensity", [](OpenMS::ReactionMonitoringTransition& self, double intensity) { return self.setLibraryIntensity(intensity); }, "intensity"_a, "Sets the library intensity (ion count or normalized ion count from a spectral library)")
         .def("setRetentionTime", [](OpenMS::ReactionMonitoringTransition& self, OpenMS::TargetedExperimentHelper::RetentionTime rt) { return self.setRetentionTime(rt); }, "rt"_a)
-        .def("getRetentionTime", [](const OpenMS::ReactionMonitoringTransition& self) -> const OpenMS::TargetedExperimentHelper::RetentionTime & { return self.getRetentionTime(); }, nb::rv_policy::reference_internal)
+        .def("getRetentionTime", [](const OpenMS::ReactionMonitoringTransition& self) -> OpenMS::TargetedExperimentHelper::RetentionTime { return self.getRetentionTime(); })
         .def("isDetectingTransition", [](const OpenMS::ReactionMonitoringTransition& self) { return self.isDetectingTransition(); })
         .def("setDetectingTransition", [](OpenMS::ReactionMonitoringTransition& self, bool val) { return self.setDetectingTransition(val); }, "val"_a)
         .def("isIdentifyingTransition", [](const OpenMS::ReactionMonitoringTransition& self) { return self.isIdentifyingTransition(); })
@@ -2901,7 +3148,6 @@ uninitialized
     auto retentiontime_class = nb::class_<OpenMS::TargetedExperimentHelper::RetentionTime, OpenMS::CVTermListInterface>(m, "RetentionTime",
         R"doc(
 Represents a retention time entry for targeted experiment compounds and peptides
-CVTermList
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::TargetedExperimentHelper::RetentionTime &>())
@@ -2941,7 +3187,6 @@ CVTermList
     auto sample_class = nb::class_<OpenMS::Sample, OpenMS::MetaInfoInterface>(m, "Sample", 
         R"doc(
 Meta information about the sample
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Sample &>())
@@ -2970,7 +3215,7 @@ Returns the comment (default "")
         .def("setVolume", [](OpenMS::Sample& self, double volume) { return self.setVolume(volume); }, "volume"_a, "Sets the volume (in ml)")
         .def("getConcentration", [](const OpenMS::Sample& self) { return self.getConcentration(); }, "Returns the concentration (in g/l) (default 0.0)")
         .def("setConcentration", [](OpenMS::Sample& self, double concentration) { return self.setConcentration(concentration); }, "concentration"_a, "Sets the concentration (in g/l)")
-        .def("getSubsamples", [](OpenMS::Sample& self) -> std::vector<OpenMS::Sample> & { return self.getSubsamples(); }, nb::rv_policy::reference_internal, "Returns a reference to the vector of subsamples that were combined to create this sample")
+        .def("getSubsamples", [](OpenMS::Sample& self) -> std::vector<OpenMS::Sample> { return self.getSubsamples(); }, "Returns a copy of the vector of subsamples that were combined to create this sample")
         .def("setSubsamples", [](OpenMS::Sample& self, const std::vector<OpenMS::Sample>& subsamples) { return self.setSubsamples(subsamples); }, "subsamples"_a, "Sets the vector of subsamples that were combined to create this sample")
         .def(nb::self != nb::self)
         
@@ -3101,12 +3346,15 @@ Returned by ``SpectrumRangeManager.byMSLevel`` to provide per-MS-level range que
     nb::class_<OpenMS::SpectrumRangeManager>(m, "SpectrumRangeManager",
         R"doc(
 Advanced range manager for MS spectra with separate ranges for each MS level
+
 This class extends the basic RangeManager to provide separate range tracking for different MS levels
 (MS1, MS2, etc.). It manages four types of ranges:
+
 - m/z (mass-to-charge ratio)
 - intensity
 - retention time (RT)
 - ion mobility
+
 A global range is tracked for all MS levels, and additional ranges are maintained for each specific MS level.
 This allows for efficient querying of ranges for specific MS levels, which is useful for visualization,
 filtering, and processing operations that need to work with specific MS levels.
@@ -3146,7 +3394,6 @@ ranges for the specified MS level.
     auto spectrumsettings_class = nb::class_<OpenMS::SpectrumSettings, OpenMS::MetaInfoInterface>(m, "SpectrumSettings", 
         R"doc(
 Representation of 1D spectrum settings
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SpectrumSettings &>())
@@ -3164,18 +3411,18 @@ MetaInfoInterface
         .def("setNativeID", [](OpenMS::SpectrumSettings& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
         .def("getComment", [](const OpenMS::SpectrumSettings& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::SpectrumSettings& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](OpenMS::SpectrumSettings& self) -> OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
+        .def("getInstrumentSettings", [](OpenMS::SpectrumSettings& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns a copy of the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::SpectrumSettings& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](OpenMS::SpectrumSettings& self) -> OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
+        .def("getAcquisitionInfo", [](OpenMS::SpectrumSettings& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns a copy of the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::SpectrumSettings& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](OpenMS::SpectrumSettings& self) -> OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns a const reference to the source file")
+        .def("getSourceFile", [](OpenMS::SpectrumSettings& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns a copy of the source file")
         .def("setSourceFile", [](OpenMS::SpectrumSettings& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursors", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal, "Returns a const reference to the precursors")
+        .def("getPrecursors", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Precursor> { return self.getPrecursors(); }, "Returns a copy of the precursors")
         .def("setPrecursors", [](OpenMS::SpectrumSettings& self, const std::vector<OpenMS::Precursor>& precursors) { return self.setPrecursors(precursors); }, "precursors"_a, "Sets the precursors")
-        .def("getProducts", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Product> & { return self.getProducts(); }, nb::rv_policy::reference_internal, "Returns a const reference to the products")
+        .def("getProducts", [](OpenMS::SpectrumSettings& self) -> std::vector<OpenMS::Product> { return self.getProducts(); }, "Returns a copy of the products")
         .def("setProducts", [](OpenMS::SpectrumSettings& self, const std::vector<OpenMS::Product>& products) { return self.setProducts(products); }, "products"_a, "Sets the products")
         .def("setDataProcessing", [](OpenMS::SpectrumSettings& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
-        .def("getDataProcessing", [](OpenMS::SpectrumSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
+        .def("getDataProcessing", [](OpenMS::SpectrumSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> { return self.getDataProcessing(); })
         
         .def("__hash__", [](const OpenMS::SpectrumSettings& self) { return std::hash<OpenMS::SpectrumSettings>{}(self); })
         ;
@@ -3192,8 +3439,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto stringdataarray_class = nb::class_<OpenMS::DataArrays::StringDataArray>(m, "StringDataArray", 
         R"doc(
-MetaInfoDescription
-
 The representation of extra string data attached to a spectrum or chromatogram.
 Commonly used for storing ion annotation names or other per-peak string annotations.
 )doc")
@@ -3209,10 +3454,13 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         
         .def("__len__", [](OpenMS::DataArrays::StringDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::StringDataArray& self) { return self.size(); }, "Returns the number of elements")
-        .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> std::string& {
+        .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> std::string {
             if (i >= self.size()) throw nb::index_error();
+            // by value: costs one extra string copy vs. returning const&, accepted
+            // so the signature states the copy rule (the caster builds a new
+            // Python str either way)
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        })
         .def("__setitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i, const std::string& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -3264,6 +3512,9 @@ Stores information about the ion type, ordinal, and rank for MS product ions.
 CVTermListInterface
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Interpretation &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Interpretation& self) { return OpenMS::TargetedExperimentHelper::Interpretation(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Interpretation& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Interpretation(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def_rw("ordinal", &OpenMS::TargetedExperimentHelper::Interpretation::ordinal)
@@ -3276,15 +3527,18 @@ CVTermListInterface
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::TraMLProduct, OpenMS::CVTermListInterface>(m, "TraMLProduct", "OpenMS class TraMLProduct")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::TraMLProduct &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return OpenMS::TargetedExperimentHelper::TraMLProduct(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, nb::dict) { return OpenMS::TargetedExperimentHelper::TraMLProduct(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("setChargeState", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, int charge) { return self.setChargeState(charge); }, "charge"_a)
         .def("hasCharge", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.hasCharge(); })
         .def("getChargeState", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.getChargeState(); })
         .def("getMZ", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.getMZ(); })
         .def("setMZ", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, double mz) { return self.setMZ(mz); }, "mz"_a)
-        .def("getConfigurationList", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Configuration> & { return self.getConfigurationList(); }, nb::rv_policy::reference_internal)
+        .def("getConfigurationList", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) -> std::vector<OpenMS::TargetedExperimentHelper::Configuration> { return self.getConfigurationList(); })
         .def("addConfiguration", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::TargetedExperimentHelper::Configuration& configuration) { return self.addConfiguration(configuration); }, "configuration"_a)
-        .def("getInterpretationList", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Interpretation> & { return self.getInterpretationList(); }, nb::rv_policy::reference_internal)
+        .def("getInterpretationList", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) -> std::vector<OpenMS::TargetedExperimentHelper::Interpretation> { return self.getInterpretationList(); })
         .def("addInterpretation", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::TargetedExperimentHelper::Interpretation& interpretation) { return self.addInterpretation(interpretation); }, "interpretation"_a)
         .def("resetInterpretations", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.resetInterpretations(); })
         .def(nb::self != nb::self)
@@ -3318,20 +3572,18 @@ unique id
     // -----------------------------------------------------------------------
     auto consensusmap_class = nb::class_<OpenMS::ConsensusMap>(m, "ConsensusMap", 
         R"doc(
-UniqueIdInterface
-DocumentIdentifier
-RangeManagerRtMzInt
-MetaInfoInterface
-
 A container for consensus elements.
+
 A ConsensusMap is a container holding 2-dimensional consensus elements
 (ConsensusFeature) which in turn represent analytes that have been
 quantified across multiple LC-MS/MS experiments. Each analyte in a
 ConsensusFeature is linked to its original LC-MS/MS run, the links are
 maintained by the ConsensusMap class.
 The map is implemented as a vector of elements of type ConsensusFeature.
+
 To be consistent, all maps who are referenced by ConsensusFeature objects
 (through a unique id) need to be registered in this class.
+
 This class supports direct iteration in Python.
 )doc")
         .def(nb::init<>())
@@ -3362,12 +3614,12 @@ This class supports direct iteration in Python.
         .def("getMaxMZ", [](const OpenMS::ConsensusMap& self) { return self.getMaxMZ(); }, "Get the maximum m/z value")
         .def("getMinIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
         .def("getMaxIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
-        .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> & { return self.getProteinIdentifications(); }, nb::rv_policy::reference_internal, "Returns the protein identification runs stored in this map")
+        .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); }, "Returns the protein identification runs stored in this map")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
-        .def("getUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self) -> OpenMS::PeptideIdentificationList & { return self.getUnassignedPeptideIdentifications(); }, nb::rv_policy::reference_internal, "Returns peptide identifications that are not assigned to any consensus feature")
+        .def("getUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self) -> OpenMS::PeptideIdentificationList { return self.getUnassignedPeptideIdentifications(); }, "Returns peptide identifications that are not assigned to any consensus feature")
         .def("setUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self, const OpenMS::PeptideIdentificationList& unassigned_peptide_identifications) { return self.setUnassignedPeptideIdentifications(unassigned_peptide_identifications); }, "unassigned_peptide_identifications"_a, "Sets the unassigned PeptideIdentificationList")
-        .def("getDataProcessing", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::DataProcessing> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns a const reference to the description of the applied data processing")
+        .def("getDataProcessing", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::DataProcessing> { return self.getDataProcessing(); }, "Returns a copy of the description of the applied data processing")
         .def("setDataProcessing", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::DataProcessing>& processing_method) { return self.setDataProcessing(processing_method); }, "processing_method"_a, "Sets the description of the applied data processing")
         .def("setPrimaryMSRunPath", [](OpenMS::ConsensusMap& self, const std::vector<std::string>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file paths to the primary MS run (stored in ColumnHeaders)")
         .def("setPrimaryMSRunPath", [](OpenMS::ConsensusMap& self, const std::vector<std::string>& s, OpenMS::MSExperiment& e) { return self.setPrimaryMSRunPath(s, e); }, "s"_a, "e"_a)
@@ -3375,12 +3627,17 @@ This class supports direct iteration in Python.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
-        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::ConsensusMap>(self); })
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature & {
+        .def("__getitem__", [](const OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the consensus feature at index i")
+        .def("consensus_feature_view", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the consensus feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the consensus feature list is resized or reordered. The parent object is kept alive automatically. For an owned copy use cm[i].")
         .def("__setitem__", [](OpenMS::ConsensusMap& self, size_t i, const OpenMS::ConsensusFeature& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -3435,8 +3692,6 @@ This class supports direct iteration in Python.
     auto featurehandle_class = nb::class_<OpenMS::FeatureHandle>(m, "FeatureHandle", 
         R"doc(
 Representation of a Peak2D, RichPeak2D or Feature
-Peak2D
-UniqueIdInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<size_t, OpenMS::Peak2D, size_t>())
@@ -3473,38 +3728,39 @@ UniqueIdInterface
     // -----------------------------------------------------------------------
     auto featuremap_class = nb::class_<OpenMS::FeatureMap>(m, "FeatureMap", 
         R"doc(
-UniqueIdInterface
-DocumentIdentifier
-RangeManagerRtMzInt
-MetaInfoInterface
-
 A container for LC-MS features with metadata and identification information
+
 FeatureMap is one of the core data structures in OpenMS for storing detected features
 from LC-MS experiments. A feature represents a detected chemical entity (peptide, protein,
 metabolite, etc.) with its elution profile and mass information.
+
 Key capabilities:
+
 - Store and manage Feature objects (detected analytes)
 - Associate protein and peptide identifications with features
 - Sort features by various criteria (RT, m/z, intensity, quality)
 - Store experimental metadata and data processing information
 - Support direct iteration and indexing in Python
+
 Example usage:
+
 .. code-block:: python
-feature_map = oms.FeatureMap()
-# Add a feature
-feature = oms.Feature()
-feature.setRT(1234.5)
-feature.setMZ(445.678)
-feature.setIntensity(100000.0)
-feature_map.push_back(feature)
-# Access features
-print(f"Number of features: {feature_map.size()}")
-first_feature = feature_map[0]
-# Sort by RT
-feature_map.sortByRT()
-# Iterate over features
-for feat in feature_map:
-print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
+
+   feature_map = oms.FeatureMap()
+   # Add a feature
+   feature = oms.Feature()
+   feature.setRT(1234.5)
+   feature.setMZ(445.678)
+   feature.setIntensity(100000.0)
+   feature_map.push_back(feature)
+   # Access features
+   print(f"Number of features: {feature_map.size()}")
+   first_feature = feature_map[0]
+   # Sort by RT
+   feature_map.sortByRT()
+   # Iterate over features
+   for feat in feature_map:
+       print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FeatureMap &>())
@@ -3515,28 +3771,33 @@ print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
         .def(nb::self + nb::self)
         .def("sortByIntensity", [](OpenMS::FeatureMap& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, 
             R"doc(
-Sorts features by ascending intensity
-After sorting, features can be accessed in order from lowest to highest intensity
+Sorts features by intensity with optional reverse order
+
+:param reverse: If True, sorts in descending order (highest to lowest intensity)
 )doc")
         .def("sortByPosition", [](OpenMS::FeatureMap& self) { return self.sortByPosition(); }, 
             R"doc(
-Sorts features by intensity with optional reverse order
-:param reverse: If True, sorts in descending order (highest to lowest intensity)
+Sorts features by position using lexicographical comparison
+
+Compares RT first, then m/z for features with the same RT
 )doc")
         .def("sortByRT", [](OpenMS::FeatureMap& self) { return self.sortByRT(); }, 
             R"doc(
-Sorts features by position using lexicographical comparison
-Compares RT first, then m/z for features with the same RT
+Sorts features by retention time (RT) in ascending order
+
+This is useful for time-based analysis or visualization
 )doc")
         .def("sortByMZ", [](OpenMS::FeatureMap& self) { return self.sortByMZ(); }, 
             R"doc(
-Sorts features by retention time (RT) in ascending order
-This is useful for time-based analysis or visualization
+Sorts features by mass-to-charge ratio (m/z) in ascending order
+
+Useful for mass-based grouping or analysis
 )doc")
         .def("sortByOverallQuality", [](OpenMS::FeatureMap& self, bool reverse) { return self.sortByOverallQuality(reverse); }, "reverse"_a = false, 
             R"doc(
-Sorts features by mass-to-charge ratio (m/z) in ascending order
-Useful for mass-based grouping or analysis
+Sorts features by overall quality score in ascending order
+
+Higher quality scores indicate better feature detection confidence
 )doc")
         .def("updateRanges", [](OpenMS::FeatureMap& self) { return self.updateRanges(); }, "Updates the RT, m/z, and intensity ranges based on contained features")
         .def("clearRanges", [](OpenMS::FeatureMap& self) { return self.clearRanges(); }, "Clear all ranges")
@@ -3547,46 +3808,58 @@ Useful for mass-based grouping or analysis
         .def("getMinIntensity", [](const OpenMS::FeatureMap& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
         .def("getMaxIntensity", [](const OpenMS::FeatureMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
         .def("swapFeaturesOnly", [](OpenMS::FeatureMap& self, OpenMS::FeatureMap& from) { return self.swapFeaturesOnly(from); }, "from"_a, "Swaps the feature content (plus its range information) of this map")
-        .def("swap", [](OpenMS::FeatureMap& self, OpenMS::FeatureMap& from) { return self.swap(from); }, "from"_a, 
-            R"doc(
-Sorts features by overall quality score in ascending order
-Higher quality scores indicate better feature detection confidence
-)doc")
-        .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> & { return self.getProteinIdentifications(); }, nb::rv_policy::reference_internal)
-        .def("setProteinIdentifications", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, 
+        .def("swap", [](OpenMS::FeatureMap& self, OpenMS::FeatureMap& from) { return self.swap(from); }, "from"_a)
+        .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); }, 
             R"doc(
 Returns the protein identification runs stored in this map
+
 :return: Protein identification data from database searches
+
 Protein identifications contain metadata about search parameters and protein hits
 )doc")
-        .def("getUnassignedPeptideIdentifications", [](OpenMS::FeatureMap& self) -> OpenMS::PeptideIdentificationList & { return self.getUnassignedPeptideIdentifications(); }, nb::rv_policy::reference_internal, 
+        .def("setProteinIdentifications", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, 
             R"doc(
 Sets the protein identifications for this map
-:param protein_ids: Protein identification results to associate with this map
+
+:param protein_identifications: Protein identification results to associate with this map
+)doc")
+        .def("getUnassignedPeptideIdentifications", [](OpenMS::FeatureMap& self) -> OpenMS::PeptideIdentificationList { return self.getUnassignedPeptideIdentifications(); }, 
+            R"doc(
+Returns peptide identifications that are not assigned to any feature
+
+:return: Unassigned peptide identification results
+
+These are peptide IDs that could not be matched to features, possibly due to feature detection issues or filtering
 )doc")
         .def("setUnassignedPeptideIdentifications", [](OpenMS::FeatureMap& self, const OpenMS::PeptideIdentificationList& unassigned_peptide_identifications) { return self.setUnassignedPeptideIdentifications(unassigned_peptide_identifications); }, "unassigned_peptide_identifications"_a, 
             R"doc(
-Returns peptide identifications that are not assigned to any feature
-:return: Unassigned peptide identification results
-These are peptide IDs that could not be matched to features, possibly due to feature detection issues or filtering
+Sets the unassigned peptide identifications
+
+:param unassigned_peptide_identifications: Peptide IDs not assigned to features
 )doc")
-        .def("getDataProcessing", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::DataProcessing> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
+        .def("getDataProcessing", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::DataProcessing> { return self.getDataProcessing(); })
         .def("setDataProcessing", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::DataProcessing>& processing_method) { return self.setDataProcessing(processing_method); }, "processing_method"_a, "Sets the description of the applied data processing")
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<std::string>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)")
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<std::string>& s, OpenMS::MSExperiment& e) { return self.setPrimaryMSRunPath(s, e); }, "s"_a, "e"_a, "Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`")
         .def("getPrimaryMSRunPath", [](const OpenMS::FeatureMap& self) { std::vector<std::string> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "Returns the file path to the first MS run")
         .def("clear", [](OpenMS::FeatureMap& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a = true, 
             R"doc(
-Clears all feature data and metadata
-After calling this, the map will be empty (size() returns 0)
+Clears feature data and optionally metadata
+
+:param clear_meta_data: If True, also clears all metadata; if False, keeps metadata
 )doc")
         
-        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::FeatureMap>(self); })
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature & {
+        .def("__getitem__", [](const OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the feature at index i")
+        .def("feature_view", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)
+        }, nb::rv_policy::reference_internal, "i"_a,
+            "Returns a live view of the feature at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the feature list is resized or reordered (add/set/sort operations invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use fm[i].")
         .def("__setitem__", [](OpenMS::FeatureMap& self, size_t i, const OpenMS::Feature& val) {
             if (i >= self.size()) throw nb::index_error();
             self[i] = val;
@@ -3634,9 +3907,6 @@ After calling this, the map will be empty (size() returns 0)
     auto richpeak2d_class = nb::class_<OpenMS::RichPeak2D>(m, "RichPeak2D", 
         R"doc(
 A 2-dimensional raw data point or peak with meta information
-Peak2D
-UniqueIdInterface
-MetaInfoInterface
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RichPeak2D &>())
@@ -3669,8 +3939,6 @@ MetaInfoInterface
     auto basefeature_class = nb::class_<OpenMS::BaseFeature, OpenMS::RichPeak2D>(m, "BaseFeature", 
         R"doc(
 A basic LC-MS feature
-UniqueIdInterface
-RichPeak2D
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::BaseFeature &>())
@@ -3688,7 +3956,7 @@ RichPeak2D
         .def("setCharge", [](OpenMS::BaseFeature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, "Sets the charge state")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](OpenMS::BaseFeature& self) -> OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal, "Returns the PeptideIdentification vector")
+        .def("getPeptideIdentifications", [](OpenMS::BaseFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); }, "Returns the PeptideIdentification vector")
         .def("setPeptideIdentifications", [](OpenMS::BaseFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
         .def("getAnnotationState", [](const OpenMS::BaseFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
         
@@ -3706,16 +3974,15 @@ RichPeak2D
     // -----------------------------------------------------------------------
     // ConsensusFeature
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature", 
+    auto consensusfeature_class = nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature", 
         R"doc(
-UniqueIdInterface
-BaseFeature
-
 A consensus feature spanning multiple LC-MS/MS experiments.
+
 A ConsensusFeature represents analytes that have been
 quantified across multiple LC-MS/MS experiments. Each analyte in a
 ConsensusFeature is linked to its original LC-MS/MS run through a
 unique identifier.
+
 Get access to the underlying features through getFeatureList()
 )doc")
         .def(nb::init<>())
@@ -3738,7 +4005,7 @@ Get access to the underlying features through getFeatureList()
         .def("computeMonoisotopicConsensus", [](OpenMS::ConsensusFeature& self) { return self.computeMonoisotopicConsensus(); }, "Computes and updates the consensus position, intensity, and charge")
         .def("addRatio", [](OpenMS::ConsensusFeature& self, const OpenMS::ConsensusFeature::Ratio& r) { return self.addRatio(r); }, "r"_a, "Connects a ratio to the ConsensusFeature.")
         .def("setRatios", [](OpenMS::ConsensusFeature& self, std::vector<OpenMS::ConsensusFeature::Ratio>& rs) { return self.setRatios(rs); }, "rs"_a, "Connects the ratios to the ConsensusFeature.")
-        .def("getRatios", [](OpenMS::ConsensusFeature& self) -> std::vector<OpenMS::ConsensusFeature::Ratio> & { return self.getRatios(); }, nb::rv_policy::reference_internal, "Get the ratio vector.")
+        .def("getRatios", [](OpenMS::ConsensusFeature& self) -> std::vector<OpenMS::ConsensusFeature::Ratio> { return self.getRatios(); }, "Get the ratio vector.")
         .def("size", [](const OpenMS::ConsensusFeature& self) { return self.size(); }, "Returns the number of feature handles in this consensus feature")
         .def("clear", [](OpenMS::ConsensusFeature& self) { return self.clear(); }, "Clears all feature handles from this consensus feature")
         .def("empty", [](const OpenMS::ConsensusFeature& self) { return self.empty(); }, "Returns True if this consensus feature contains no feature handles")
@@ -3750,7 +4017,7 @@ Get access to the underlying features through getFeatureList()
         .def("setCharge", [](OpenMS::ConsensusFeature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, "Sets the charge state")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](const OpenMS::ConsensusFeature& self) -> const OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal, "Returns the PeptideIdentification vector")
+        .def("getPeptideIdentifications", [](const OpenMS::ConsensusFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); }, "Returns the PeptideIdentification vector")
         .def("setPeptideIdentifications", [](OpenMS::ConsensusFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
         .def("getAnnotationState", [](const OpenMS::ConsensusFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
         .def("computeDechargeConsensus", [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureMap& fm, bool intensity_weighted_averaging) { return self.computeDechargeConsensus(fm, intensity_weighted_averaging); }, "fm"_a, "intensity_weighted_averaging"_a = false, "Computes and updates the consensus position, intensity, and charge using decharge grouping")
@@ -3767,20 +4034,30 @@ Get access to the underlying features through getFeatureList()
             return nb::cast(self).attr("__repr__")();
         })
         ;
+    nb::class_<OpenMS::ConsensusFeature::Ratio>(consensusfeature_class, "Ratio", "A simple struct for storing ratio information between features")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ConsensusFeature::Ratio &>())
+        .def("__copy__", [](const OpenMS::ConsensusFeature::Ratio& self) { return OpenMS::ConsensusFeature::Ratio(self); })
+        .def("__deepcopy__", [](const OpenMS::ConsensusFeature::Ratio& self, nb::dict) { return OpenMS::ConsensusFeature::Ratio(self); }, "memo"_a)
+        .def_rw("ratio_value_", &OpenMS::ConsensusFeature::Ratio::ratio_value_)
+        .def_rw("denominator_ref_", &OpenMS::ConsensusFeature::Ratio::denominator_ref_)
+        .def_rw("numerator_ref_", &OpenMS::ConsensusFeature::Ratio::numerator_ref_)
+        .def_rw("description_", &OpenMS::ConsensusFeature::Ratio::description_)
+        ;
 
     // -----------------------------------------------------------------------
     // Feature
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Feature, OpenMS::BaseFeature>(m, "Feature", 
         R"doc(
-UniqueIdInterface
-RichPeak2D
-
 An LC-MS feature representing a detected analyte signal
+
 The Feature class represents a two-dimensional (RT and m/z) signal from an analyte
 in LC-MS data. It is one of the core data structures in OpenMS for representing
 detected peaks or compounds.
+
 A Feature stores:
+
 - Position: retention time (RT) and mass-to-charge ratio (m/z)
 - Intensity: the signal strength (typically total ion count)
 - Quality metrics: scores indicating detection confidence
@@ -3788,18 +4065,22 @@ A Feature stores:
 - Convex hulls: the 2D area occupied by the feature in RT-m/z space
 - Peptide identifications: for identified peptides (optional)
 - Subordinate features: for isotopic peaks or related signals
+
 By convention, the feature's position is at the maximum of the elution profile
 (RT dimension) and at the monoisotopic peak (m/z dimension).
+
 Example usage:
+
 .. code-block:: python
-feature = oms.Feature()
-feature.setRT(1234.5)  # Set retention time in seconds
-feature.setMZ(445.678)  # Set m/z value
-feature.setIntensity(100000.0)  # Set intensity
-feature.setCharge(2)  # Set charge state
-feature.setOverallQuality(0.95)  # Set quality score (0-1)
-# Access the values
-print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharge()}")
+
+   feature = oms.Feature()
+   feature.setRT(1234.5)  # Set retention time in seconds
+   feature.setMZ(445.678)  # Set m/z value
+   feature.setIntensity(100000.0)  # Set intensity
+   feature.setCharge(2)  # Set charge state
+   feature.setOverallQuality(0.95)  # Set quality score (0-1)
+   # Access the values
+   print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharge()}")
 )doc")
         .def(nb::init<>())
         .def(nb::init<OpenMS::BaseFeature>())
@@ -3809,99 +4090,123 @@ print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharg
         .def("getOverallQuality", [](const OpenMS::Feature& self) { return self.getOverallQuality(); },
             R"doc(
 Returns the overall quality score of the feature
+
 :return: Overall quality score (typically 0-1, where 1 is highest quality)
+
 This score represents the overall confidence in the feature detection
 )doc")
         .def("setOverallQuality", [](OpenMS::Feature& self, float q) { return self.setOverallQuality(q); }, "q"_a,
             R"doc(
 Sets the overall quality score of the feature
+
 :param q: Overall quality score (typically 0-1, where 1 is highest quality)
 )doc")
         .def("getQuality", [](const OpenMS::Feature& self, size_t index) { return self.getQuality(index); }, "index"_a,
             R"doc(
 Returns the quality score in a specific dimension
+
 :param index: The dimension index (0 for RT, 1 for m/z)
 :return: Quality score for the specified dimension (typically 0-1 range)
 )doc")
         .def("setQuality", [](OpenMS::Feature& self, size_t index, float q) { return self.setQuality(index, q); }, "index"_a, "q"_a,
             R"doc(
 Sets the quality score for a specific dimension
+
 :param index: The dimension index (0 for RT, 1 for m/z)
 :param q: Quality score to set (typically 0-1 range)
 )doc")
-        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> & { return self.getConvexHulls(); }, nb::rv_policy::reference_internal,
+        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> { return self.getConvexHulls(); },
             R"doc(
 Returns the convex hulls of individual mass traces
+
 :return: List of convex hulls, one for each isotopic mass trace
+
 Each isotopic peak typically has its own convex hull in RT-m/z space
 )doc")
         .def("setConvexHulls", [](OpenMS::Feature& self, const std::vector<OpenMS::ConvexHull2D>& hulls) { return self.setConvexHulls(hulls); }, "hulls"_a,
             R"doc(
 Sets the convex hulls of individual mass traces
+
 :param hulls: List of convex hulls to associate with this feature
 )doc")
-        .def("getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D & { return self.getConvexHull(); }, nb::rv_policy::reference_internal,
+        .def("getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D { return self.getConvexHull(); },
             R"doc(
 Returns the overall convex hull of the feature
+
 :return: The overall 2D convex hull encompassing all mass traces
+
 This is the union of all individual mass trace convex hulls
 )doc")
         .def("encloses", [](const OpenMS::Feature& self, double rt, double mz) { return self.encloses(rt, mz); }, "rt"_a, "mz"_a,
             R"doc(
 Checks if the feature's convex hulls enclose a given position
+
 :param rt: Retention time in seconds
 :param mz: Mass-to-charge ratio
 :return: True if the position (rt, mz) is within the feature's convex hulls, False otherwise
+
 This uses the feature's convex hull representation to determine spatial containment
 )doc")
         .def(nb::self == nb::self)
-        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> & { return self.getSubordinates(); }, nb::rv_policy::reference_internal,
+        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> { return self.getSubordinates(); },
             R"doc(
 Returns subordinate features (e.g., isotopic peaks)
+
 :return: List of subordinate features associated with this feature
+
 Subordinate features often represent individual isotopic peaks of the same compound
 )doc")
         .def("setSubordinates", [](OpenMS::Feature& self, const std::vector<OpenMS::Feature>& rhs) { return self.setSubordinates(rhs); }, "rhs"_a,
             R"doc(
 Sets the subordinate features
+
 :param rhs: List of subordinate features to associate with this feature
 )doc")
         .def("getWidth", [](const OpenMS::Feature& self) { return self.getWidth(); },
             R"doc(
 Returns the width (FWHM) of the feature in RT dimension
+
 :return: Full Width at Half Maximum (FWHM) in seconds
+
 Represents the elution peak width
 )doc")
         .def("setWidth", [](OpenMS::Feature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a,
             R"doc(
 Sets the width (FWHM) of the feature in RT dimension
+
 :param fwhm: Full Width at Half Maximum in seconds
 )doc")
         .def("getCharge", [](const OpenMS::Feature& self) { return self.getCharge(); },
             R"doc(
 Returns the charge state of the feature
+
 :return: Charge state (e.g., 2 for doubly charged ions, 0 if unknown)
 )doc")
         .def("setCharge", [](OpenMS::Feature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a,
             R"doc(
 Sets the charge state of the feature
+
 :param ch: Charge state (e.g., 2 for doubly charged ions)
 )doc")
         .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](const OpenMS::Feature& self) -> const OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal,
+        .def("getPeptideIdentifications", [](const OpenMS::Feature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
             R"doc(
 Returns the peptide identifications associated with this feature
+
 :return: List of peptide identifications from database search
+
 Only relevant for peptide features. Contains results from peptide identification tools
 )doc")
         .def("setPeptideIdentifications", [](OpenMS::Feature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a,
             R"doc(
 Sets the peptide identifications associated with this feature
+
 :param peptides: List of peptide identifications to associate with this feature
 )doc")
         .def("getAnnotationState", [](const OpenMS::Feature& self) { return self.getAnnotationState(); },
             R"doc(
 Returns the annotation state of the feature
+
 :return: Enum indicating the annotation status of this feature
 )doc")
         
@@ -3943,11 +4248,42 @@ Returns the annotation state of the feature
         .def(nb::init<const OpenMS::MRMFeature&>())
         .def("__copy__", [](const OpenMS::MRMFeature& self) { return OpenMS::MRMFeature(self); })
         .def("__deepcopy__", [](const OpenMS::MRMFeature& self, nb::dict) { return OpenMS::MRMFeature(self); }, "memo"_a)
-        .def("getScores", [](const OpenMS::MRMFeature& self) { return self.getScores(); })
-        .def("setScores", &OpenMS::MRMFeature::setScores, "s"_a)
-        .def("getFeature", [](const OpenMS::MRMFeature& self, const std::string& key) { return self.getFeature(key); }, "key"_a)
-        .def("addFeature", [](OpenMS::MRMFeature& self, const OpenMS::Feature& f, const std::string& key) { self.addFeature(f, key); }, "f"_a, "key"_a)
-        .def("getFeatures", [](const OpenMS::MRMFeature& self) { return self.getFeatures(); })
+        .def("getScores", [](const OpenMS::MRMFeature& self) { return self.getScores(); }, 
+            R"doc(
+Returns the peak group quality scores
+
+:return: An object containing various quality metrics for the peak group, such as library correlation, signal-to-noise ratio, and other OpenSWATH scoring metrics
+)doc")
+        .def("setScores", &OpenMS::MRMFeature::setScores, "s"_a, 
+            R"doc(
+Sets the peak group quality scores
+
+:param s: An OpenSwath_Scores object containing quality metrics for this peak group
+)doc")
+        .def("getFeature", [](const OpenMS::MRMFeature& self, const std::string& key) { return self.getFeature(key); }, "key"_a, 
+            R"doc(
+Retrieves a transition feature by its native ID
+
+:param key: The native ID of the transition (e.g., "transition_1" or a TRAML identifier)
+:return: The Feature object corresponding to this transition
+
+Raises an exception if the key is not found
+)doc")
+        .def("addFeature", [](OpenMS::MRMFeature& self, const OpenMS::Feature& f, const std::string& key) { self.addFeature(f, key); }, "f"_a, "key"_a, 
+            R"doc(
+Adds a transition feature to this MRM feature
+
+:param f: A Feature object representing the signal from a single transition chromatogram
+:param key: The native ID for this transition (should match the transition ID from your method)
+
+Each transition in an MRM experiment produces one chromatogram, which is represented as a Feature
+)doc")
+        .def("getFeatures", [](const OpenMS::MRMFeature& self) { return self.getFeatures(); }, 
+            R"doc(
+Returns all transition features in this MRM feature
+
+:return: A list of all transition features that have been added to this peak group
+)doc")
         .def("getFeatureIDs", [](OpenMS::MRMFeature& self, nb::list& output) {
             std::vector<std::string> result;
             self.getFeatureIDs(result);
@@ -3957,14 +4293,40 @@ Returns the annotation state of the feature
             std::vector<std::string> result;
             self.getFeatureIDs(result);
             return result;
-        })
-        .def("getPrecursorFeature", [](const OpenMS::MRMFeature& self, const std::string& key) { return self.getPrecursorFeature(key); }, "key"_a)
-        .def("addPrecursorFeature", [](OpenMS::MRMFeature& self, const OpenMS::Feature& f, const std::string& key) { self.addPrecursorFeature(f, key); }, "f"_a, "key"_a)
+        }, 
+            R"doc(
+Retrieves the native IDs of all transition features
+
+:return: The native IDs of all transitions
+)doc")
+        .def("getPrecursorFeature", [](const OpenMS::MRMFeature& self, const std::string& key) { return self.getPrecursorFeature(key); }, "key"_a, 
+            R"doc(
+Retrieves a precursor feature by its native ID
+
+:param key: The native ID of the precursor
+:return: The Feature object for the precursor (MS1 signal)
+
+Precursor features represent the MS1 signal for the peptide, if available
+)doc")
+        .def("addPrecursorFeature", [](OpenMS::MRMFeature& self, const OpenMS::Feature& f, const std::string& key) { self.addPrecursorFeature(f, key); }, "f"_a, "key"_a, 
+            R"doc(
+Adds a precursor feature to this MRM feature
+
+:param f: A Feature object representing the MS1 precursor signal
+:param key: The native ID for this precursor
+
+Precursor features are optional and represent MS1-level information
+)doc")
         .def("getPrecursorFeatureIDs", [](OpenMS::MRMFeature& self) {
             std::vector<std::string> result;
             self.getPrecursorFeatureIDs(result);
             return result;
-        })
+        }, 
+            R"doc(
+Retrieves the native IDs of all precursor features
+
+:return: The native IDs of all precursor features
+)doc")
         .def("__eq__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a == b; })
         .def("__ne__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a != b; })
         .def("__repr__", [](const OpenMS::MRMFeature& self) {

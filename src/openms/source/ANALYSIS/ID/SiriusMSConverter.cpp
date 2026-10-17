@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MathFunctions.h>

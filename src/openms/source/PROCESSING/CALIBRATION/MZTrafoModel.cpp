@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/ML/REGRESSION/QuadraticRegression.h>

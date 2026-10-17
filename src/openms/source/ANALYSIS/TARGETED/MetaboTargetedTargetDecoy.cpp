@@ -33,7 +33,7 @@ namespace OpenMS
       // only need to extract identifier from the targets, since targets and decoys have the same
       if (it.getMetaValue("decoy") == DataValue(0))
       {
-        identifier.emplace_back(it.getMetaValue("m_ids_id"));
+        identifier.emplace_back(it.getMetaValue("m_ids_id").toString());
       }
     }
 

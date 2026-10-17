@@ -21,6 +21,7 @@ using namespace OpenMS;
 // OpenMS base classes
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 //-------------------------------------------------------------
 // Doxygen docu

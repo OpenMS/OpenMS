@@ -16,7 +16,6 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> //SiriusMSFile
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h> //SiriusTargetDecoySpectra
 
-#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {

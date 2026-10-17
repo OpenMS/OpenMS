@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSFileLoad.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
@@ -357,6 +358,22 @@ namespace OpenMS::Internal
       ID::ProcessingStep step(processing_software_refs_[software_id]);
       std::string date_time = query.getColumn("date_time").getString();
       if (!date_time.empty()) step.date_time.set(date_time);
+      // Older schemas did not persist actions; leave their sets empty.
+      if (version_number_ >= 6)
+      {
+        const auto actions = ListUtils::create<std::string>(query.getColumn("processing_actions").getString());
+        for (const auto& action : actions)
+        {
+          try
+          {
+            step.actions.insert(DataProcessing::toProcessingAction(action));
+          }
+          catch (const Exception::InvalidValue&)
+          {
+            OPENMS_LOG_WARN << "Unknown identification processing action '" << action << "' - skipping\n";
+          }
+        }
+      }
       if (have_input_files)
       {
         subquery_file.bind(":id", id);

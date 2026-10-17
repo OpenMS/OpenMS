@@ -17,6 +17,8 @@ set(sources_list
 
 list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
 list(APPEND sources_list MobilogramParquetConsumer.cpp)
+list(APPEND sources_list ParquetReaderHelpers.cpp)
+list(APPEND sources_list XIPMParquetConsumer.cpp)
 
 if(WITH_S3)
   list(APPEND sources_list S3InputSource.cpp)

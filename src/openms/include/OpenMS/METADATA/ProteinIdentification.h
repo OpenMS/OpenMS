@@ -16,7 +16,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <functional>
@@ -146,76 +146,22 @@ public:
       void setIntegerDataArrays(const IntegerDataArrays& ida);
 
       /// Returns a mutable reference to the first integer meta data array with the given name
-      inline IntegerDataArray& getIntegerDataArrayByName(const std::string& name)
-      {
-        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
-          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-        if (it == integer_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IntegerDataArray: ") + name);
-        }
-        return *it;
-      }
+      IntegerDataArray& getIntegerDataArrayByName(const std::string& name);
 
       /// Returns a mutable reference to the first string meta data array with the given name
-      inline StringDataArray& getStringDataArrayByName(const std::string& name)
-      {
-        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
-          [&name](const StringDataArray& da) { return da.getName() == name; } );
-        if (it == string_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("StringDataArray: ") + name);
-        }
-        return *it;
-      }
+      StringDataArray& getStringDataArrayByName(const std::string& name);
 
       /// Returns a mutable reference to the first float meta data array with the given name
-      inline FloatDataArray& getFloatDataArrayByName(const std::string& name)
-      {
-        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
-          [&name](const FloatDataArray& da) { return da.getName() == name; } );
-        if (it == float_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("FloatDataArray: ") + name);
-        }
-        return *it;
-      }
+      FloatDataArray& getFloatDataArrayByName(const std::string& name);
 
       /// Returns a const reference to the first integer meta data array with the given name
-      inline const IntegerDataArray& getIntegerDataArrayByName(const std::string& name) const
-      {
-        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
-          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-        if (it == integer_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IntegerDataArray: ") + name);
-        }
-        return *it;
-      }
+      const IntegerDataArray& getIntegerDataArrayByName(const std::string& name) const;
 
       /// Returns a const reference to the first string meta data array with the given name
-      inline const StringDataArray& getStringDataArrayByName(const std::string& name) const
-      {
-        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
-          [&name](const StringDataArray& da) { return da.getName() == name; } );
-        if (it == string_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("StringDataArray: ") + name);
-        }
-        return *it;
-      }
+      const StringDataArray& getStringDataArrayByName(const std::string& name) const;
 
       /// Returns a const reference to the first float meta data array with the given name
-      inline const FloatDataArray& getFloatDataArrayByName(const std::string& name) const
-      {
-        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
-          [&name](const FloatDataArray& da) { return da.getName() == name; } );
-        if (it == float_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("FloatDataArray: ") + name);
-        }
-        return *it;
-      }
+      const FloatDataArray& getFloatDataArrayByName(const std::string& name) const;
 
     private:
       /// Float data arrays
@@ -430,6 +376,9 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
+       The paths are stored as the meta value 'spectra_data' ('spectra_data_raw' for @p raw). An empty list names no
+       files and is not stored: it removes the meta value, so a run without files has no 'spectra_data'.
+
        @param[in] s The file paths
        @param[in] raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
@@ -437,8 +386,18 @@ public:
 
     /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
     void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    /// Append file paths to the primary MS runs (an empty list changes nothing)
     void addPrimaryMSRunPath(const std::string& s, bool raw = false);
+    /// @copydoc addPrimaryMSRunPath(const std::string&, bool)
     void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+
+    /**
+       @brief Remove empty file lists ('spectra_data', 'spectra_data_raw')
+
+       An empty list names no files and means the same as no list, so it is not stored (see setPrimaryMSRunPath()).
+       File readers call this for files written before OpenMS 3.7, which may contain one.
+    */
+    void removeEmptyPrimaryMSRunPaths();
 
     /**
        Get the file paths to the primary MS runs

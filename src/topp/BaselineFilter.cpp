@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;

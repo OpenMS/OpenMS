@@ -8,6 +8,7 @@
 //
 
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>

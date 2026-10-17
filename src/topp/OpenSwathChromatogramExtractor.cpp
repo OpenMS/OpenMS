@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -16,6 +17,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -117,7 +119,7 @@ class TOPPOpenSwathChromatogramExtractor
 public:
 
   TOPPOpenSwathChromatogramExtractor() 
-    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.", true)
+    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.")
   {
   }
 
@@ -217,7 +219,7 @@ protected:
     // Do parallelization over the different input files
     // Only in OpenMP 3.0 are unsigned loop variables allowed
 #pragma omp parallel for
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(file_list.size()); ++i)
     {
       std::shared_ptr<PeakMap > exp(new PeakMap);
       // Find the transitions to extract and extract them

@@ -7,6 +7,7 @@
 		<ProteinIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="PROT3" score="100" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file://IDMapper_4_input.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" MZ="1025.95" RT="2521.44" spectrum_reference="controllerType=0 controllerNumber=1 scan=6089" >
 			<PeptideHit score="1.4" sequence="PEPTIDERRRRR" charge="1" protein_refs="PH_0" >

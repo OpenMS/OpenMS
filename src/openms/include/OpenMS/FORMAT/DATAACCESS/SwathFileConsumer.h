@@ -9,6 +9,7 @@
 #pragma once
 
 // Datastructures
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
@@ -27,6 +28,9 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <exception>
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -148,11 +152,41 @@ public:
           correct_window_counter_ << " correct (non-zero) window limits (expected " << swath_maps_.size() << " windows)." << std::endl;
       }
 
+      // Creating the access object of a map that was cached to disk means building the index of
+      // its data file and parsing its meta data file. The maps are independent of each other, so
+      // do that for all of them at once: one after the other it took 38 s for the 300 windows of
+      // an Orbitrap Astral run.
+      std::vector<OpenSwath::SpectrumAccessPtr> map_access(swath_maps_.size());
+      std::exception_ptr access_error;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize i = 0; i < static_cast<SignedSize>(swath_maps_.size()); i++)
+      {
+        try
+        {
+          map_access[i] = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
+        }
+        catch (...)
+        {
+#ifdef _OPENMP
+#pragma omp critical (FullSwathFileConsumer_retrieveSwathMaps)
+#endif
+          {
+            if (!access_error) access_error = std::current_exception();
+          }
+        }
+      }
+      if (access_error)
+      {
+        std::rethrow_exception(access_error);
+      }
+
       size_t nonempty_maps = 0;
       for (Size i = 0; i < swath_maps_.size(); i++)
       {
         OpenSwath::SwathMap map;
-        map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
+        map.sptr = map_access[i];
         map.lower = swath_map_boundaries_[i].lower;
         map.upper = swath_map_boundaries_[i].upper;
         map.center = swath_map_boundaries_[i].center;
@@ -203,7 +237,7 @@ public:
             "Swath scan does not provide a precursor.");
         }
 
-        const std::vector<Precursor> prec = s.getPrecursors();
+        const std::vector<Precursor>& prec = s.getPrecursors();
         double center = prec[0].getMZ();
         double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
         double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
@@ -508,7 +542,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_consumers_size); i++)
+      for (SignedSize i = 0; i < OpenMS::checkedCast<SignedSize>(swath_consumers_size); i++)
       {
         std::shared_ptr<PeakMap > exp(new PeakMap);
         std::string meta_file = cachedir_ + basename_ + "_" + StringUtils::toStr(i) +  ".mzML";

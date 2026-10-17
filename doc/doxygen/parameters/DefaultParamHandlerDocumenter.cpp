@@ -6,6 +6,8 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h> // for WITH_WNETALIGN
+
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
@@ -30,11 +32,15 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+// only part of libOpenMS when the WNet alignment is built
+#ifdef WITH_WNETALIGN
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#endif
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
@@ -123,6 +129,7 @@
 #include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
@@ -370,7 +377,10 @@ int main(int argc, char** argv)
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmKD);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
+#ifdef WITH_WNETALIGN
   DOCME(FeatureGroupingAlgorithmWNet);
+#endif
+  DOCME(PipEchoAlgorithm);
   DOCME(MapAlignmentAlgorithmIdentification);
   DOCME(MapAlignmentAlgorithmTreeGuided);
   DOCME(MassTraceDetection);
@@ -402,6 +412,7 @@ int main(int argc, char** argv)
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
   DOCME(MultiplexDeltaMassesGenerator);
+  DOCME(MultiplexResolverAlgorithm);
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
   DOCME(Normalizer);

@@ -18,6 +18,7 @@
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 

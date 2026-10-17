@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -53,7 +54,7 @@ class TOPPSiriusExport :
  public:
   TOPPSiriusExport() :
     TOPPBase("SiriusExport", 
-    "Metabolite identification using single and tandem mass spectrometry", true,
+    "Metabolite identification using single and tandem mass spectrometry",
       {
         {"Kai Duehrkop and Sebastian Boecker",
          "Fragmentation trees reloaded",

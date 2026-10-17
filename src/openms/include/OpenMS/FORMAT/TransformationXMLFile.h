@@ -59,7 +59,7 @@ public:
 
 protected:
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+    void onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes) override;
 
     /// @name Members for use during loading data
     //@{

@@ -165,7 +165,7 @@ namespace OpenMS
           //double rt_peak = peak.getRT();
           double mz_peak = peak.getMZ();
 
-          std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
+          const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites = peak.getSatellites();
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data around the peak i.e. from peak boundary to peak boundary.
           for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextPos(mz_profile))

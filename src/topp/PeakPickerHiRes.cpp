@@ -14,6 +14,7 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 

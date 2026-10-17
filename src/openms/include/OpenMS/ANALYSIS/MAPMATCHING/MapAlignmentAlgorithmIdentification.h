@@ -12,7 +12,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -40,7 +40,14 @@ namespace OpenMS
     Only the best PSM per spectrum is considered as the correct identification.
 
     Each map is aligned to a reference retention time scale.
-    This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    This time scale can come from a separate reference (setReference()) or from one of the input maps (@p reference_index in align()).
+    If neither is given, parameter @p auto_reference decides: by default ("best_run"), the input map that shares the most identified sequences with every other map becomes the reference,
+    i.e. the map whose smallest number of shared sequences with any other map is largest (on ties, the map with the most identified sequences), so that every map can be aligned to it.
+    With "consensus", the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    A consensus is also used if no map shares at least two sequences with every other map.
+    If the chosen map leaves other maps with fewer than @p auto_reference_min_points alignment points (after removing outliers, see @p max_rt_shift), and one of them shares at least that many sequences with other maps,
+    every map and a consensus are tried as the reference, and the choice that gives the most maps at least that many points is used (on ties, the first choice is kept, and a map is preferred over a consensus).
+    A consensus favors none of the maps, but every map contributes to the consensus it is aligned to, so larger shifts between maps are only partly corrected.
     The maps are then aligned to this scale as follows:\n
     The median retention time of each ID group in a map is mapped to the reference retention time of this group.
     Cubic spline smoothing is used to convert this mapping to a smooth function.
@@ -71,6 +78,8 @@ public:
       use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       score_cutoff_ = param_.getValue("score_cutoff").toBool();
       score_type_ = StringUtils::toStr(param_.getValue("score_type"));
+      min_score_ = param_.getValue("min_score");
+      use_adducts_ = param_.getValue("use_adducts").toBool();
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
 
@@ -85,7 +94,7 @@ public:
 
       @param[in] data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
       @param[in] transformations Vector of RT transformations that will be computed.
-      @param[in] reference_index Index in @p data of the reference to align to, if any
+      @param[in] reference_index Index in @p data of the reference to align to, if any. If -1 and no reference was set with setReference(), parameter @p auto_reference determines the reference.
 
       @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
@@ -130,7 +139,16 @@ public:
       }
       setProgress(1);
 
-      computeTransformations_(rt_data, transformations, all_sorted);
+      if (!use_internal_reference && reference_.empty())
+      {
+        alignToAutoReference_(rt_data, transformations, all_sorted);
+      }
+      else
+      {
+        computeTransformations_(rt_data, transformations, all_sorted);
+      }
+      // a reference taken from the input maps must not carry over into the next call:
+      if (reference_index_ >= 0) reference_.clear();
       setProgress(2);
 
       setProgress(3);
@@ -160,6 +178,12 @@ protected:
     /// Consider differently adducted IDs as different?
     bool use_adducts_{};
 
+    /// Without a given reference, align to a consensus of all maps (instead of the map that shares the most IDs with the others)?
+    bool consensus_reference_{};
+
+    /// Number of alignment points that the automatically chosen reference map should provide for every other map (else a consensus is tried)
+    Size auto_reference_min_points_{};
+
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
 
@@ -169,8 +193,16 @@ protected:
     /// Score type to use for filtering
     std::string score_type_;
 
-    /// Score better?
-    bool (*better_) (double, double) = [](double, double) {return true;};
+    /**
+      @brief Does @p hit of @p peptide pass the score cut-off ('score_cutoff', 'min_score')?
+
+      The score direction is that of @p peptide, so identifications with different score directions are each filtered correctly.
+    */
+    bool passesScoreCutoff_(const PeptideIdentification& peptide, const PeptideHit& hit) const
+    {
+      if (!score_cutoff_) return true;
+      return peptide.isHigherScoreBetter() ? hit.getScore() >= min_score_ : hit.getScore() <= min_score_;
+    }
 
     /**
       @brief Compute the median retention time for each peptide sequence
@@ -212,8 +244,8 @@ protected:
       The following global flags (mutually exclusive) influence the processing:\n
       Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
       Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
-      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
-      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
+      Depending on @p score_cutoff and min_score, only peptide IDs whose best hit reaches the minimum score are used (in the
+      score direction of each peptide ID).
 
       @param[in] features Input features for RT data
       @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
@@ -223,52 +255,37 @@ protected:
 
     bool getRetentionTimes_(const IsFCMap auto& features, SeqToList& rt_data)
     {
-      if (!score_cutoff_)
-      {
-        better_ = [](double, double)
-        {return true;};
-      }
-      else if (features[0].getPeptideIdentifications()[0].isHigherScoreBetter())
-      {
-        better_ = [](double a, double b)
-        { return a >= b; };
-      }
-      else
-      {
-        better_ = [](double a, double b)
-        { return a <= b; };
-      }
-
       for (auto feat_it = features.cbegin(); feat_it != features.cend(); ++feat_it)
       {
         if (use_feature_rt_)
         {
-          // find the peptide ID closest in RT to the feature centroid:
+          // find the peptide ID closest in RT to the feature centroid (among those that pass the score cut-off):
           std::string sequence;
           double rt_distance = std::numeric_limits<double>::max();
-          bool any_hit = false;
+          bool any_passing = false;
           for (PeptideIdentificationList::const_iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {
             if (!pep_it->getHits().empty())
             {
-              any_hit = true;
               double current_distance = fabs(pep_it->getRT() -
                                              feat_it->getRT());
               if (current_distance < rt_distance)
               {
                 const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
-                if (best_hit && better_(best_hit->getScore(), min_score_))
+                if (best_hit && passesScoreCutoff_(*pep_it, *best_hit))
                 {
                   sequence = best_hit->getSequence().toString();
                   rt_distance = current_distance;
+                  any_passing = true;
                 }
               }
             }
           }
 
-          if (any_hit) rt_data[sequence].push_back(feat_it->getRT());
+          // a feature without a passing identification has no sequence (and is no alignment point)
+          if (any_passing) rt_data[sequence].push_back(feat_it->getRT());
         }
         else
         {
@@ -302,10 +319,53 @@ protected:
       @param[in] rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
       @param[out] transforms Resulting transformations, per dataset (output)
       @param[in] sorted Are RT lists already sorted?
+      @param[in] verbose Log the number of alignment points per dataset?
     */
     void computeTransformations_(std::vector<SeqToList>& rt_data,
                                  std::vector<TransformationDescription>&
-                                 transforms, bool sorted = false);
+                                 transforms, bool sorted = false, bool verbose = true);
+
+    /**
+      @brief Choose the input map that shares the most identified sequences with every other map as the reference
+
+      Only sequences that occur in at least @p min_run_occur maps count. The reference is the map whose smallest number of shared sequences with any other map is largest;
+      on ties, the map with the most identified sequences (then the first of those) is used.
+
+      @param[in] rt_data Lists of RT values for diff. peptide sequences, per input map
+      @return Index of the reference map in @p rt_data, or -1 if no map shares at least two sequences with every other map (so that a consensus should be used)
+    */
+    Int selectReference_(const std::vector<SeqToList>& rt_data) const;
+
+    /**
+      @brief Compute RT transformations without a given reference, as parameter @p auto_reference asks
+
+      With "best_run", aligns to the map chosen by selectReference_() and sets #reference_index_ accordingly. If that leaves maps with fewer than @p auto_reference_min_points
+      alignment points, and one of them shares at least that many sequences with other maps, every map and a consensus of all maps are tried as the reference.
+      The choice that gives the most maps at least that many points (the reference counts) is used; on ties, the first choice is kept, then the map with
+      the largest smallest number of points among those maps is preferred, and a map is preferred over a consensus.
+
+      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, will be sorted)
+      @param[out] transforms Resulting transformations, per input map (output)
+      @param[in] sorted Are RT lists already sorted?
+    */
+    void alignToAutoReference_(std::vector<SeqToList>& rt_data,
+                               std::vector<TransformationDescription>& transforms,
+                               bool sorted);
+
+    /**
+      @brief Compute RT transformations with one of the input maps as the reference
+
+      Sets #reference_index_ to @p index. @p rt_data is unchanged afterwards, except that its RT lists are sorted.
+
+      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, will be sorted)
+      @param[in] index Index of the reference map in @p rt_data
+      @param[out] transforms Resulting transformations, per input map (output)
+      @param[in] sorted Are RT lists already sorted?
+      @param[in] verbose Log the number of alignment points per map?
+    */
+    void alignToInput_(std::vector<SeqToList>& rt_data, Size index,
+                       std::vector<TransformationDescription>& transforms,
+                       bool sorted, bool verbose);
 
     /**
       @brief Check that parameter values are valid

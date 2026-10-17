@@ -10,16 +10,15 @@
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <limits> // for "quiet_NaN"
 
 namespace OpenMS
 {
+  class MSExperiment;
 
   /**
     @brief Helper class for looking up spectrum meta data
@@ -237,10 +236,10 @@ namespace OpenMS
 
        Scan number and precursor RT, respectively, are only extracted if @p scan_regexp/@p precursor_rts are not empty.
     */
-    static void getSpectrumMetaData(
-      const MSSpectrum& spectrum, SpectrumMetaData& meta,
-      const boost::regex& scan_regexp = boost::regex(),
-      const std::map<Size, double>& precursor_rts = (std::map<Size, double>()));
+    static void getSpectrumMetaData(const MSSpectrum& spectrum,
+                                    SpectrumMetaData& meta,
+                                    const RegularExpression& scan_regexp = RegularExpression(),
+                                    const std::map<Size, double>& precursor_rts = (std::map<Size, double>()));
 
     /**
        @brief Extract meta data via a spectrum reference
@@ -307,18 +306,25 @@ namespace OpenMS
      * @param[in] stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
      * @param[in] override_spectra_data if given ProteinIdentifications should be updated with new "spectra_data" values from SpectrumMetaDataLookup
      * @param[in] override_spectra_references if given PeptideIdentifications with existing spectrum_reference should be updated from SpectrumMetaDataLookup
-     * @param[in,out] proteins Protein IDs corresponding to the Peptide IDs
+     * @param[in,out] proteins Protein IDs corresponding to the Peptide IDs; their "spectra_data" is replaced if @p override_spectra_data is set
      *
      * @return True if all peptide IDs could be annotated successfully (including if all already had "spectrum_reference" values), false otherwise.
      *
      * Look-up works by matching RT of a peptide identification with the given spectra. Matched spectra 'native ID' will be annotated to the identification. All spectrum_references are updated/added.
      */
-    static bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
+    static bool addMissingSpectrumReferences(PeptideIdentificationList& peptides,
       const std::string& filename,
-      bool stop_on_error = false, 
-      bool override_spectra_data = false, 
-      bool override_spectra_references = false, 
-      std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());
+      bool stop_on_error,
+      bool override_spectra_data,
+      bool override_spectra_references,
+      std::vector<ProteinIdentification>& proteins);
+
+    /// Same as above, without protein identifications to update (@p override_spectra_data has no effect).
+    static bool addMissingSpectrumReferences(PeptideIdentificationList& peptides,
+      const std::string& filename,
+      bool stop_on_error = false,
+      bool override_spectra_data = false,
+      bool override_spectra_references = false);
 
 
 
@@ -338,4 +344,3 @@ namespace OpenMS
   };
 
 } //namespace OpenMS
-

@@ -3,12 +3,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -22,6 +23,7 @@ namespace OpenMS
 {
 
   class MSImagingGeometry; // OpenMS/IMAGING/MSImagingGeometry.h — included in the .cpp
+  class IonImage;          // OpenMS/IMAGING/IonImage.h — included in the .cpp
 
   /**
     @brief Random-access, on-disc reader for imzML mass spectrometry imaging datasets.
@@ -50,6 +52,13 @@ namespace OpenMS
     the native @p imzml:: parser library.  The index is built by running
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
     are decoded until @p getSpectrum() is called.
+
+    @note @p getSpectrum() returns m/z, intensity, and any indexed auxiliary
+    external arrays (e.g. @c MS:1003006 ion mobility) as @c FloatDataArray
+    entries — the same contract as in-memory @p ImzMLFile::load — so viewers
+    can call @c containsIMData() / rasterize without a separate code path.
+    Auxiliary arrays whose length differs from the peak count, or which declare no
+    supported binary data type, are skipped with a warning in both loaders.
 
     @note This class is not thread-safe.  If concurrent reads are needed,
     construct one instance per thread.
@@ -80,18 +89,19 @@ namespace OpenMS
       The .ibd path is inferred from @p imzml_path unless @p ibd_path is
       provided explicitly.  No peak data is read — peak arrays are decoded lazily
       per getSpectrum() call. The 2D pixel geometry (see getGeometry()) is built
-      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so a
-      structurally broken coordinate grid is rejected at open() rather than later.
+      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so any
+      problem with the coordinate grid is reported at open() rather than on the first
+      pixel query.
 
       A UUID-header mismatch between the .ibd and the XML's IMS:1000080, an out-of-grid
-      pixel, or a <1 coordinate are reported as warnings (the dataset still loads); only
-      duplicate pixel coordinates are a hard error.
+      pixel, a <1 coordinate, or a duplicate pixel coordinate are reported as warnings
+      (the dataset still loads; of duplicates, only the first spectrum per pixel enters
+      the geometry).
 
       @param imzml_path  Path to the .imzML file.
       @param ibd_path    Optional override for the .ibd path.
       @throws Exception::FileNotFound if either file cannot be opened.
       @throws Exception::ParseError   on malformed XML.
-      @throws Exception::InvalidValue if the dataset has duplicate pixel coordinates.
     */
     void open(const std::string& imzml_path, const std::string& ibd_path = "");
 
@@ -139,6 +149,10 @@ namespace OpenMS
       @param i  0-based spectrum index.
       @throws Exception::IndexOverflow if @p i >= getNrSpectra().
       @throws Exception::FileNotFound  if the .ibd is not open.
+      @throws Exception::ParseError    if m/z, intensity, or auxiliary arrays are
+                                       compressed (@c MS:1000572 other than
+                                       @c MS:1000576), or if m/z and intensity
+                                       array lengths mismatch.
     */
     MSSpectrum getSpectrum(std::size_t i) const;
 
@@ -163,6 +177,50 @@ namespace OpenMS
     MSSpectrum getSpectrumAtCoord(uint32_t x, uint32_t y, uint32_t z = 1) const;
 
     // ------------------------------------------------------------------
+    // Ion image extraction — lazy decode, no full dataset in memory
+    // ------------------------------------------------------------------
+
+    /**
+      @brief Extract an ion image over the whole dataset by summing peak
+             intensities inside [mz - dm, mz + dm], with dm = mz * tolerance_ppm * 1e-6.
+
+      This is the on-disc counterpart of @p MSImagingExperiment::extractIonImage:
+      it walks the shared 2D geometry and decodes each pixel's peaks from the
+      .ibd on demand, so the full dataset never needs to be held in memory. This
+      makes it suitable for visualizing single-mass ion images of large datasets.
+      Only m/z and intensity are decoded — auxiliary arrays do not contribute to
+      the summed intensity, so a compressed auxiliary array is not reported here
+      (unlike getSpectrum()).
+
+      Pixels absent from the geometry stay invalid in the returned image. Pixels with
+      a spectrum but no peaks in the window are marked valid with intensity 0. The
+      returned image's m/z range is set to [mz - dm, mz + dm].
+
+      @param[in] mz             m/z center of the extraction window (>= 0).
+      @param[in] tolerance_ppm  Half-window width in ppm (>= 0).
+      @return Image with the same dimensions as the geometry.
+      @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is negative or non-finite.
+      @throws Exception::FileNotFound if the .ibd is not open.
+    */
+    IonImage extractIonImage(double mz, double tolerance_ppm) const;
+
+    /**
+      @brief Extract an ion image for a single region only.
+
+      Same summation and window semantics as the whole-dataset overload, but limited
+      to the acquired pixels belonging to @p region_id (decoded lazily from the .ibd).
+
+      @param[in] mz             m/z center of the extraction window (>= 0).
+      @param[in] tolerance_ppm  Half-window width in ppm (>= 0).
+      @param[in] region_id      Region of pixels to extract.
+      @return Image with the same dimensions as the geometry.
+      @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is negative or non-finite.
+      @throws Exception::FileNotFound if the .ibd is not open.
+      @throws Exception::ElementNotFound if @p region_id is unknown.
+    */
+    IonImage extractIonImage(double mz, double tolerance_ppm, Size region_id) const;
+
+    // ------------------------------------------------------------------
     // Dataset-level metadata
     // ------------------------------------------------------------------
 
@@ -177,10 +235,21 @@ namespace OpenMS
       access expose pixel coordinates the same way. Coordinates are @b 0-based;
       imzML's 1-based coordinates are normalized here, and only the z == 1 plane is
       represented. Built during open() from the parsed index (no IBD reads); this is
-      a const, O(1) accessor (any duplicate/invalid-coordinate error already surfaced
+      a const, O(1) accessor (any duplicate/invalid-coordinate warning already surfaced
       at open()).
     */
     const MSImagingGeometry& getGeometry() const;
+
+    /**
+      @brief Mutable access to the imaging geometry.
+
+      The geometry is built eagerly during open(). Use this accessor to annotate
+      the dataset with user-defined regions after loading, e.g.:
+      @code
+        exp.getGeometry().addRegion(MSImagingRegion::rectangle(1, "roi", 0, 0, 3, 3));
+      @endcode
+    */
+    MSImagingGeometry& getGeometry();
 
     /// Shorthand for getImzMLMeta().max_count_x.
     uint32_t gridWidth()  const noexcept;

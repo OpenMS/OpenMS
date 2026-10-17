@@ -456,6 +456,21 @@ START_SECTION(([EXTRA] std::hash<ReactionMonitoringTransition>))
 }
 END_SECTION
 
+START_SECTION((const Prediction& getPrediction() const))
+{
+  ReactionMonitoringTransition tr;
+  TEST_EQUAL(tr.hasPrediction(), false)
+  // no Prediction set: must throw instead of dereferencing a null pointer (regression)
+  TEST_EXCEPTION(Exception::MissingInformation, tr.getPrediction())
+
+  ReactionMonitoringTransition::Prediction p;
+  p.contact_ref = "dummy";
+  tr.setPrediction(p);
+  TEST_EQUAL(tr.hasPrediction(), true)
+  TEST_EQUAL(tr.getPrediction().contact_ref, "dummy")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

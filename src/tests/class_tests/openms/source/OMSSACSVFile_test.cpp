@@ -53,6 +53,17 @@ START_SECTION(void load(const std::string &filename, ProteinIdentification &prot
 	ptr->load(OPENMS_GET_TEST_DATA_PATH("OMSSACSVFile_test_1.csv"), protein_identification, peptide_identifications);
 	TEST_EQUAL(protein_identification.getHits().size(), 0)
 	TEST_EQUAL(peptide_identifications.size(), 1)
+
+  // regression: a data row whose Defline field contains a single unmatched
+  // double-quote used to make the quote-skipping loop advance past the end of
+  // the line (out-of-bounds read). The loop is now bounded and the malformed
+  // line is rejected cleanly by the 14-column check.
+  {
+    OMSSACSVFile file;
+    ProteinIdentification prot;
+    PeptideIdentificationList peps;
+    TEST_EXCEPTION(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("OMSSACSVFile_test_unbalanced_quote.csv"), prot, peps))
+  }
 END_SECTION
 
 delete ptr;

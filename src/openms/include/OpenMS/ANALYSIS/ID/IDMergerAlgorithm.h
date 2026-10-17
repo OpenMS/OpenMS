@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -75,8 +74,9 @@ namespace OpenMS
      * when the source data is no longer needed.
      * Note:
      * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
-     * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
-     *   are merged 
+     * - Runs from the same spectrum file share one file origin entry (paths are compared as exact
+     *   strings). PSMs that get an id_merge_index ("annotate_origin", or one present before) point to
+     *   that shared entry.
      * 
      * @param[in] prots Vector of protein identifications to be merged
      * @param[in] peps Vector of peptide identifications to be merged
@@ -91,8 +91,9 @@ namespace OpenMS
      * merged data structures. This version preserves the source data.
      * Note:
      * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
-     * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
-     *   are merged
+     * - Runs from the same spectrum file share one file origin entry (paths are compared as exact
+     *   strings). PSMs that get an id_merge_index ("annotate_origin", or one present before) point to
+     *   that shared entry.
      *
      * @param[in] prots Vector of protein identifications to be merged
      * @param[in] peps Vector of peptide identifications to be merged

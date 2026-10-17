@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 // we use the TextFile for writing out the content
 #include <OpenMS/FORMAT/TextFile.h>

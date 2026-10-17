@@ -187,19 +187,6 @@ public:
 private:
   MSExperiment experiment_;
   MSImagingGeometry geometry_;
-  /**
-   * @brief extracts the sum of intensities in [mz_lo:mz_hi] into image on a pixel level, indices control which pixels are summed
-   * @param image image values are saved in here
-   * @param mz_lo lower m/z bound
-   * @param mz_hi upper m/z bound
-   * @param pixels Geometry pixels from getPixels()
-   * @param pixel_indices indices which pixels are to be summed
-   */
-  void extractIntoImage_(IonImage& image,
-                         double mz_lo,
-                         double mz_hi,
-                         const std::vector<MSImagingGeometry::Pixel>& pixels,
-                         const std::vector<Size>& pixel_indices) const;
 };
 
 } // namespace OpenMS

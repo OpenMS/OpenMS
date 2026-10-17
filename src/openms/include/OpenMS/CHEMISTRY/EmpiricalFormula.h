@@ -62,8 +62,32 @@ namespace OpenMS
   {
 
 protected:
-	  /// Internal typedef for the used map type
-	  typedef std::map<const Element*, SignedSize> MapType_;
+    /**
+      @brief Orders the elements of a formula independently of where the Element objects are in memory
+
+      By atomic number, then by the length and the text of the symbol: an element ("C") comes before its isotopes, which
+      ElementDB names by their mass number ("(12)C", "(13)C"), and the isotopes come in the order of their mass numbers.
+      Iterating over a formula (e.g. to sum up its weight) therefore visits the elements in the same order in every run;
+      the addresses of the Element objects differ between runs (e.g. with the randomized heap of Windows), and a
+      different order of the additions changes the last bits of the weights. ElementDB keeps atomic number and symbol
+      when it updates an element. Only distinct elements with the same atomic number and symbol are ordered by address.
+    */
+    struct ElementLess_
+    {
+      bool operator()(const Element* a, const Element* b) const
+      {
+        if (a == nullptr || b == nullptr) return std::less<const Element*>()(a, b);
+        if (a->getAtomicNumber() != b->getAtomicNumber()) return a->getAtomicNumber() < b->getAtomicNumber();
+        const std::string& symbol_a = a->getSymbol();
+        const std::string& symbol_b = b->getSymbol();
+        if (symbol_a.size() != symbol_b.size()) return symbol_a.size() < symbol_b.size();
+        if (symbol_a != symbol_b) return symbol_a < symbol_b;
+        return std::less<const Element*>()(a, b);
+      }
+    };
+
+	  /// Internal typedef for the used map type (elements in the order of ElementLess_)
+	  typedef std::map<const Element*, SignedSize, ElementLess_> MapType_;
 
 public:
     /** @name Typedefs
@@ -212,6 +236,41 @@ public:
     /// sets the charge
     void setCharge(Int charge);
 
+    /**
+      @brief Makes ionization explicit: adds @p count copies of @p adduct (default: a hydrogen atom)
+             to the formula and resets the charge to zero.
+
+      This is the recommended, explicit replacement for relying on the implicit charge handling of the
+      isotope pattern generators (CoarseIsotopePatternGenerator / FineIsotopePatternGenerator), which
+      silently added 'charge'-many hydrogen atoms. After calling this, the formula is neutral but its
+      composition (and therefore its mass and isotope pattern) reflects the added adducts, so an isotope
+      pattern generated from the result is shifted exactly as the deprecated implicit behavior did.
+
+      Example (reproduces the old @c setCharge(q) pattern):
+      @code
+      EmpiricalFormula ef("C6H12O6");
+      ef.addChargeAdduct(2);              // add 2 H atoms, charge is now 0
+      gen.run(ef);                        // shifted pattern, no deprecation warning
+      @endcode
+
+      @note Whole hydrogen @b atoms (proton + electron) are added. For a physically exact protonated
+            @e m/z you additionally have to divide by the charge and account for the electron mass yourself.
+
+      @warning The charge is always reset to zero, regardless of @p count. When migrating a formula that
+               already carries a non-zero charge, pass that charge explicitly (e.g.
+               @c ef.addChargeAdduct(ef.getCharge()) ); passing a @p count that does not match the
+               existing charge yields a composition inconsistent with the original ion.
+      @note A negative @p count subtracts adduct atoms and may drive an element's count below zero
+            (e.g. removing an adduct the formula does not contain), mirroring EmpiricalFormula's general
+            support for negative element counts.
+
+      @param count Number of adducts to add (typically the intended charge); negative values remove adducts.
+      @param adduct The adduct added per charge, as an OpenMS formula string (default: "H").
+      @return reference to *this (for chaining)
+      @throw Exception::ParseError if @p adduct cannot be parsed as a valid formula string
+    */
+    EmpiricalFormula& addChargeAdduct(Int count = 1, const std::string& adduct = "H");
+
     /// returns the formula as a string (charges are not included)
     std::string toString() const;
 
@@ -267,7 +326,7 @@ public:
     /// returns true if the formulas differ in elements composition
     bool operator!=(const EmpiricalFormula& rhs) const;
 
-    /// less operator
+    /// less operator: by number of elements, then charge, then the elements and their counts (elements ordered by atomic number, see begin())
     bool operator<(const EmpiricalFormula& rhs) const;
 
     //@}
@@ -276,6 +335,9 @@ public:
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
     /** @name Iterators
+
+      The elements are visited in order of atomic number; an element comes before its isotopes ("C", "(12)C", "(13)C").
+      The order does not depend on the addresses of the Element objects.
     */
     //@{
     inline ConstIterator begin() const { return formula_.begin(); }
@@ -307,7 +369,7 @@ protected:
 
     Int charge_;
 
-    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const std::string& formula) const;
+    Int parseFormula_(MapType_& ef, const std::string& formula) const;
 
   };
 

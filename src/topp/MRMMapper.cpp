@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 
@@ -86,7 +87,7 @@ class TOPPMRMMapper
 public:
 
   TOPPMRMMapper() :
-    TOPPBase("MRMMapper", "MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)", true)
+    TOPPBase("MRMMapper", "MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)")
   {
   }
 

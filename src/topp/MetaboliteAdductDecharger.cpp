@@ -11,6 +11,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>

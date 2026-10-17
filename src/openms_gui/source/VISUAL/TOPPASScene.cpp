@@ -21,7 +21,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QApplication>
@@ -57,7 +59,7 @@ namespace OpenMS
     file_name_(),
     tmp_path_(tmp_path),
     gui_(gui),
-    out_dir_(toQString(File::getUserDirectory())),
+    out_dir_(toQString(SystemSettings::getUserDirectory())),
     changed_(false),
     running_(false),
     error_occured_(false),
@@ -81,6 +83,10 @@ namespace OpenMS
 
   TOPPASScene::~TOPPASScene()
   {
+    // Do not propagate scene changes while tearing down: setChanged() below would emit
+    // mainWindowNeedsUpdate(), whose receiver (the main window) may already be partially
+    // destroyed during application shutdown. This mirrors the per-item blockSignals() below.
+    blockSignals(true);
     // Delete all items in a controlled way:
     for (TOPPASVertex* vertex : vertices_)
     {
@@ -2196,13 +2202,13 @@ namespace OpenMS
 
   void TOPPASScene::connectVertexSignals(TOPPASVertex* tv)
   {
-    connect(tv, SIGNAL(clicked()), this, SLOT(itemClicked()));
-    connect(tv, SIGNAL(released()), this, SLOT(itemReleased()));
-    connect(tv, SIGNAL(hoveringEdgePosChanged(const QPointF &)), this, SLOT(updateHoveringEdgePos(const QPointF &)));
-    connect(tv, SIGNAL(newHoveringEdge(const QPointF &)), this, SLOT(addHoveringEdge(const QPointF &)));
-    connect(tv, SIGNAL(finishHoveringEdge()), this, SLOT(finishHoveringEdge()));
-    connect(tv, SIGNAL(itemDragged(qreal, qreal)), this, SLOT(moveSelectedItems(qreal, qreal)));
-    connect(tv, SIGNAL(parameterChanged(const bool)), this, SLOT(changedParameter(const bool)));
+    connect(tv, &TOPPASVertex::clicked, this, &TOPPASScene::itemClicked);
+    connect(tv, &TOPPASVertex::released, this, &TOPPASScene::itemReleased);
+    connect(tv, &TOPPASVertex::hoveringEdgePosChanged, this, &TOPPASScene::updateHoveringEdgePos);
+    connect(tv, &TOPPASVertex::newHoveringEdge, this, &TOPPASScene::addHoveringEdge);
+    connect(tv, &TOPPASVertex::finishHoveringEdge, this, &TOPPASScene::finishHoveringEdge);
+    connect(tv, &TOPPASVertex::itemDragged, this, &TOPPASScene::moveSelectedItems);
+    connect(tv, &TOPPASVertex::parameterChanged, this, &TOPPASScene::changedParameter);
   }
 
   void TOPPASScene::connectToolVertexSignals(TOPPASToolVertex* ttv)
@@ -2220,23 +2226,25 @@ namespace OpenMS
 
   void TOPPASScene::connectMergerVertexSignals(TOPPASMergerVertex* tmv)
   {
-    connect(tmv, SIGNAL(mergeFailed(QString)), this, SLOT(pipelineErrorSlot(QString)));
-    connect(tmv, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
+    // mergeFailed carries only a message; forward it to pipelineErrorSlot's 'msg' parameter
+    // (the old SLOT(pipelineErrorSlot(QString)) matched no slot, as the slot is pipelineErrorSlot(int, QString))
+    connect(tmv, &TOPPASMergerVertex::mergeFailed, this, [this](const QString& msg) { pipelineErrorSlot(-1, msg); });
+    connect(tmv, &TOPPASMergerVertex::somethingHasChanged, this, &TOPPASScene::abortPipeline);
   }
 
   void TOPPASScene::connectOutputVertexSignals(TOPPASOutputVertex* oflv)
   {
-    connect(oflv, SIGNAL(outputFileWritten(const std::string &)), this, SLOT(logOutputFileWritten(const std::string&)));
-    connect(oflv, SIGNAL(outputFolderNameChanged()), this, SLOT(changedOutputFolder()));
+    connect(oflv, &TOPPASOutputVertex::outputFileWritten, this, &TOPPASScene::logOutputFileWritten);
+    connect(oflv, &TOPPASOutputVertex::outputFolderNameChanged, this, &TOPPASScene::changedOutputFolder);
   }
 
   void TOPPASScene::connectEdgeSignals(TOPPASEdge* e)
   {
     TOPPASVertex* source = e->getSourceVertex();
     TOPPASVertex* target = e->getTargetVertex();
-    connect(e, SIGNAL(somethingHasChanged()), source, SLOT(outEdgeHasChanged()));
-    connect(e, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
-    connect(e, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
+    connect(e, &TOPPASEdge::somethingHasChanged, source, &TOPPASVertex::outEdgeHasChanged);
+    connect(e, &TOPPASEdge::somethingHasChanged, target, &TOPPASVertex::inEdgeHasChanged);
+    connect(e, &TOPPASEdge::somethingHasChanged, this, &TOPPASScene::abortPipeline);
   }
 
   void TOPPASScene::changedOutputFolder()

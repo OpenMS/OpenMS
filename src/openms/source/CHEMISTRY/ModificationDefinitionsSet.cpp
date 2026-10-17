@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

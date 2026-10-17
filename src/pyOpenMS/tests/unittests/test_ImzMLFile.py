@@ -51,6 +51,13 @@ class TestImzMLFile(unittest.TestCase):
         with self.assertRaises(Exception):
             pyopenms.FileHandler().loadExperiment(self.imzml_path, exp)
 
+    def test_file_handler_load_imaging(self):
+        img, ref = pyopenms.MSImagingExperiment(), pyopenms.MSImagingExperiment()
+        pyopenms.FileHandler().loadImagingExperiment(self.imzml_path, img)
+        pyopenms.ImzMLFile().load(self.imzml_path, ref)
+        self.assertGreater(img.getNumberOfPixels(), 0)
+        self.assertEqual(img.getNumberOfPixels(), ref.getNumberOfPixels())
+
     def test_file_types(self):
         t = pyopenms.FileHandler.getType(self.imzml_path)
         self.assertEqual(t, pyopenms.FileType.IMZML)
@@ -76,6 +83,41 @@ class TestImzMLFile(unittest.TestCase):
         self.assertGreater(imaging.getSpectrum(0, 0).size(), 0)
         self.assertTrue(imaging.hasPixel(2, 2))
         self.assertGreater(imaging.getSpectrum(2, 2).size(), 0)
+
+    def test_on_disc_extract_ion_image(self):
+        # On-disc extraction must match the in-memory MSImagingExperiment path:
+        # both share the geometry and peak-summation logic, the on-disc path just
+        # reads each pixel from the .ibd lazily.
+        imaging = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, imaging)
+
+        od = pyopenms.OnDiscImzMLExperiment()
+        try:
+            od.open(self.imzml_path)
+            first = od.getSpectrum(0)
+            self.assertGreater(first.size(), 0)
+            mz = first[0].getMZ()
+            tol_ppm = 1000.0
+
+            mem = imaging.extractIonImage(mz, tol_ppm)
+            disc = od.extractIonImage(mz, tol_ppm)
+
+            self.assertEqual(disc.getWidth(), mem.getWidth())
+            self.assertEqual(disc.getHeight(), mem.getHeight())
+            for y in range(mem.getHeight()):
+                for x in range(mem.getWidth()):
+                    self.assertEqual(disc.hasPixel(x, y), mem.hasPixel(x, y))
+                    if mem.hasPixel(x, y):
+                        self.assertAlmostEqual(
+                            disc.getIntensity(x, y),
+                            mem.getIntensity(x, y),
+                            places=3,
+                        )
+
+            with self.assertRaises(Exception):
+                od.extractIonImage(-1.0, tol_ppm)
+        finally:
+            od.close()
 
     def test_load_spectra_index(self):
         meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
@@ -276,7 +318,7 @@ class TestImzMLFile(unittest.TestCase):
             if os.path.isfile(out_path):
                 os.remove(out_path)
 
-    def test_store_rejects_duplicate_pixel_coordinates(self):
+    def test_store_tolerates_duplicate_pixel_coordinates_by_default(self):
         import tempfile
 
         exp = pyopenms.MSExperiment()
@@ -285,12 +327,74 @@ class TestImzMLFile(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp2:
+            out_path2 = tmp2.name
+        written = (out_path, out_path[: -len(".imzML")] + ".ibd",
+                   out_path2, out_path2[: -len(".imzML")] + ".ibd")
         try:
-            with self.assertRaises(Exception):
-                pyopenms.ImzMLFile().store(out_path, exp)
+            f = pyopenms.ImzMLFile()
+            f.store(out_path, exp)
+
+            # Both spectra are written; only the first claims the shared pixel on re-read.
+            img = pyopenms.MSImagingExperiment()
+            f.load(out_path, img)
+            self.assertEqual(img.getMSExperiment().getNrSpectra(), 2)
+            self.assertEqual(img.getGeometry().getNumberOfPixels(), 1)
+            self.assertEqual(img.getGeometry().getSpectrumIndex(0, 0), 0)
+
+            # The imaging overload must round-trip the same dataset: the duplicate spectrum
+            # is not in the geometry, but it is still written out with its coordinates.
+            f.store(out_path2, img)
+            img2 = pyopenms.MSImagingExperiment()
+            f.load(out_path2, img2)
+            self.assertEqual(img2.getMSExperiment().getNrSpectra(), 2)
+            self.assertEqual(img2.getGeometry().getNumberOfPixels(), 1)
+            for i in range(2):
+                s = img2.getMSExperiment().getSpectrum(i)
+                self.assertTrue(s.metaValueExists("imzml:x"))
+                self.assertTrue(s.metaValueExists("imzml:y"))
+                self.assertEqual(s.getMetaValue("imzml:x"), 1)
+                self.assertEqual(s.getMetaValue("imzml:y"), 1)
         finally:
-            if os.path.isfile(out_path):
-                os.remove(out_path)
+            for p in written:
+                if os.path.isfile(p):
+                    os.remove(p)
+
+    def test_load_tolerates_duplicate_pixel_coordinates_by_default(self):
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 100.0, 1000.0))
+        exp.addSpectrum(self._make_pixel_spectrum(1, 1, 101.0, 900.0))
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        ibd_path = out_path[: -len(".imzML")] + ".ibd"
+        try:
+            f = pyopenms.ImzMLFile()
+            f.store(out_path, exp)
+
+            # Both spectra are loaded and reachable by index, but the shared pixel (1,1)
+            # maps to the first of them only.
+            img = pyopenms.MSImagingExperiment()
+            f.load(out_path, img)
+            self.assertEqual(img.getMSExperiment().getNrSpectra(), 2)
+            self.assertEqual(img.getGeometry().getNumberOfPixels(), 1)
+            self.assertEqual(img.getGeometry().getSpectrumIndex(0, 0), 0)
+
+            # The on-disc path must agree with the in-memory one.
+            od = pyopenms.OnDiscImzMLExperiment()
+            try:
+                od.open(out_path)
+                self.assertEqual(od.getNrSpectra(), 2)
+                self.assertEqual(od.getGeometry().getNumberOfPixels(), 1)
+                self.assertEqual(od.getGeometry().getSpectrumIndex(0, 0), 0)
+            finally:
+                od.close()
+        finally:
+            for p in (out_path, ibd_path):
+                if os.path.isfile(p):
+                    os.remove(p)
 
     def test_store_rejects_incompatible_continuous_mode(self):
         import tempfile
@@ -309,13 +413,16 @@ class TestImzMLFile(unittest.TestCase):
             if os.path.isfile(out_path):
                 os.remove(out_path)
 
-    def test_build_imaging_geometry_rejects_duplicate_pixels(self):
+    def test_build_imaging_geometry_tolerates_duplicate_pixels_by_default(self):
         exp = pyopenms.MSExperiment()
         exp.addSpectrum(self._make_pixel_spectrum(1, 1, 100.0, 1000.0))
         exp.addSpectrum(self._make_pixel_spectrum(1, 1, 101.0, 900.0))
+        exp.addSpectrum(self._make_pixel_spectrum(2, 1, 102.0, 800.0))
         geom = pyopenms.MSImagingGeometry()
-        with self.assertRaises(Exception):
-            pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
+        pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
+        self.assertEqual(geom.getNumberOfPixels(), 2)
+        self.assertEqual(geom.getSpectrumIndex(0, 0), 0)  # first spectrum keeps the shared pixel
+        self.assertEqual(geom.getSpectrumIndex(1, 0), 2)
 
     def test_store_applies_mz_range_filter(self):
         import tempfile
@@ -389,6 +496,7 @@ class TestImzMLFile(unittest.TestCase):
             spec = exp.getSpectrum(0)
             spec.setRT(12.34)
             spec.setMSLevel(1)
+            exp[0] = spec
 
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
@@ -406,6 +514,83 @@ class TestImzMLFile(unittest.TestCase):
             if reloaded.getNrSpectra() > 0:
                 self.assertAlmostEqual(reloaded.getSpectrum(0).getRT(), 12.34, places=4)
                 self.assertEqual(reloaded.getSpectrum(0).getMSLevel(), 1)
+        finally:
+            os.remove(out_path)
+            ibd_path = out_path[:-6] + ".ibd" if out_path.lower().endswith(".imzml") else out_path + ".ibd"
+            if os.path.isfile(ibd_path):
+                os.remove(ibd_path)
+
+    def test_store_load_ion_mobility_float_data_array(self):
+        """Per-peak IM FloatDataArray (MS:1003006) round-trips for in-memory and OnDisc load."""
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        spec = self._make_pixel_spectrum(1, 1, 100.0, 10.0)
+        p2 = pyopenms.Peak1D()
+        p2.setMZ(200.0)
+        p2.setIntensity(20.0)
+        spec.push_back(p2)
+
+        im = pyopenms.FloatDataArray()
+        im.setName("mean inverse reduced ion mobility array")
+        im.push_back(0.85)
+        im.push_back(1.15)
+        custom = pyopenms.FloatDataArray()
+        custom.setName("my custom SNR")
+        custom.push_back(3.0)
+        custom.push_back(4.5)
+        spec.setFloatDataArrays([im, custom])
+        exp.addSpectrum(spec)
+        exp.setMetaValue("imzml:imaging_mode", "processed")
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        try:
+            pyopenms.ImzMLFile().store(out_path, exp)
+
+            img = pyopenms.MSImagingExperiment()
+            pyopenms.ImzMLFile().load(out_path, img)
+            loaded = img.getMSExperiment().getSpectrum(0)
+            self.assertTrue(loaded.containsIMData())
+            self.assertEqual(loaded.getIMPeakType(), pyopenms.IMPeakType.IM_PROFILE)
+            self.assertEqual(len(loaded.getFloatDataArrays()), 2)
+            loaded_by_name = {a.getName(): a for a in loaded.getFloatDataArrays()}
+            self.assertIn("mean inverse reduced ion mobility array", loaded_by_name)
+            self.assertIn("my custom SNR", loaded_by_name)
+            im_idx, unit = loaded.getIMData()
+            self.assertEqual(unit, pyopenms.DriftTimeUnit.VSSC)
+            self.assertEqual(len(loaded.getFloatDataArrays()[im_idx]), 2)
+            self.assertAlmostEqual(loaded.getFloatDataArrays()[im_idx][0], 0.85, places=5)
+            self.assertAlmostEqual(loaded.getFloatDataArrays()[im_idx][1], 1.15, places=5)
+            custom = loaded_by_name["my custom SNR"]
+            self.assertEqual(len(custom), 2)
+            self.assertAlmostEqual(custom[0], 3.0, places=5)
+            self.assertAlmostEqual(custom[1], 4.5, places=5)
+
+            od = pyopenms.OnDiscImzMLExperiment()
+            od.open(out_path)
+            try:
+                self.assertEqual(len(od.getIndex(0).aux), 2)
+                self.assertFalse(od.getIndex(0).mz_compressed)
+                self.assertFalse(od.getIndex(0).int_compressed)
+                od_spec = od.getSpectrum(0)
+                self.assertTrue(od_spec.containsIMData())
+                self.assertEqual(od_spec.getIMPeakType(), pyopenms.IMPeakType.IM_PROFILE)
+                self.assertEqual(len(od_spec.getFloatDataArrays()), 2)
+                od_by_name = {a.getName(): a for a in od_spec.getFloatDataArrays()}
+                self.assertIn("mean inverse reduced ion mobility array", od_by_name)
+                self.assertIn("my custom SNR", od_by_name)
+                od_im_idx, od_unit = od_spec.getIMData()
+                self.assertEqual(od_unit, pyopenms.DriftTimeUnit.VSSC)
+                self.assertEqual(len(od_spec.getFloatDataArrays()[od_im_idx]), 2)
+                self.assertAlmostEqual(od_spec.getFloatDataArrays()[od_im_idx][0], 0.85, places=5)
+                self.assertAlmostEqual(od_spec.getFloatDataArrays()[od_im_idx][1], 1.15, places=5)
+                od_custom = od_by_name["my custom SNR"]
+                self.assertEqual(len(od_custom), 2)
+                self.assertAlmostEqual(od_custom[0], 3.0, places=5)
+                self.assertAlmostEqual(od_custom[1], 4.5, places=5)
+            finally:
+                od.close()
         finally:
             os.remove(out_path)
             ibd_path = out_path[:-6] + ".ibd" if out_path.lower().endswith(".imzml") else out_path + ".ibd"

@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/openms_data_path.h> // OPENMS_DOC_PATH (location of bundled tutorial data)
 
 #include <algorithm>
@@ -181,7 +182,7 @@ int main(int argc, const char** argv)
   // Mode 6: export (store) and reload
   // ------------------------------------------------------------------
   std::cout << "\n=== Mode 6: ImzMLFile::store round-trip ===\n";
-  std::string tmp_imzml = File::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
+  std::string tmp_imzml = TempFiles::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
   loader.store(tmp_imzml, exp);
   MSImagingExperiment reloaded_img;
   loader.load(tmp_imzml, reloaded_img);

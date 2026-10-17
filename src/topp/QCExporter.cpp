@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -68,8 +69,7 @@ class TOPPQCExporter :
 {
 public:
   TOPPQCExporter() :
-    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", 
-    true, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
+    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
   {
   }
 

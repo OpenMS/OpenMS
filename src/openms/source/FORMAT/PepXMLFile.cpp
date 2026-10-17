@@ -6,24 +6,44 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
+#include <algorithm>
 #include <fstream>
+#include <initializer_list>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// "'a', 'b', ..." for error messages (only the first few names are listed)
+    std::string quotedList(const std::vector<std::string>& names)
+    {
+      if (names.empty()) return "none";
+      const Size max_listed = 10;
+      std::vector<std::string> listed(names.begin(), names.begin() + std::min(names.size(), max_listed));
+      std::string result = "'" + ListUtils::concatenate(listed, "', '") + "'";
+      if (names.size() > max_listed) result += ", ... (" + StringUtils::toStr(names.size()) + " in total)";
+      return result;
+    }
+  }
 
   std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
   {
@@ -310,7 +330,7 @@ namespace OpenMS
         // r will be nullptr if not found. The next line handles it.
         const Residue* r = ResidueDB::getInstance()->getResidue(aminoacid_[0]);
         //TODO check if it is better to create from mass or massdiff
-        registered_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(massdiff_),
+        registered_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(massdiff_),
                                                                                  massdiff_,
                                                                                  true,
                                                                                  term_spec_,
@@ -350,6 +370,9 @@ namespace OpenMS
 
   void PepXMLFile::store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file, const std::string& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
+    // every peptide identification needs its protein identification run: fail before the file is opened
+    ProteinRunReferences::check(protein_ids, peptide_ids);
+
     ofstream f(filename.c_str());
     if (!f)
     {
@@ -414,12 +437,17 @@ namespace OpenMS
 
     f << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
     f << R"(<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">)" << "\n";
-    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
+    // 'search_engine' belongs to 'search_summary' below; 'msms_run_summary' has no such attribute
+    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\">" << "\n";
     std::string enzyme_name = search_params.digestion_enzyme.getName();
     f << "\t<sample_enzyme name=\"";
     f << StringUtils::toLower(enzyme_name) << "\">" << "\n";
-    f << "\t\t<specificity cut=\"";
-    if (!search_params.digestion_enzyme.getRegEx().empty())
+    std::string cut, no_cut;
+    // 'unspecific cleavage' cuts after every residue (RegEx "(?<=[A-Z])"); the regex parsing
+    // below would read that as a single-residue rule cutting only after alanine ('A', the first
+    // of the two unrelated letters in the character class), which is schema-valid but wrong.
+    const bool unspecific_cleavage = (enzyme_name == "unspecific cleavage");
+    if (!unspecific_cleavage && !search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<std::string> sub_regex;
       StringUtils::split(search_params.digestion_enzyme.getRegEx(), ")", sub_regex);
@@ -427,14 +455,25 @@ namespace OpenMS
       static const boost::regex e("(.*?)([A-Z]+)(.*?)");
       if (boost::regex_match(sub_regex[0], results, e))
       {
-        f << results[2];
+        cut = results[2];
       }
-      if (StringUtils::hasSubstring(sub_regex[1], "!P"))
+      if (sub_regex.size() > 1 && StringUtils::hasSubstring(sub_regex[1], "!P"))
       {
-        f << "\" no_cut=\"P";
+        no_cut = "P";
       }
     }
-    f << R"(" sense="C"/>)" << "\n";
+    // an enzyme without cleavage rules (e.g. the default 'unknown_enzyme', or 'unspecific
+    // cleavage', which has no single cleavage residue to express as 'cut') has nothing to cut
+    // after; pepXML allows a 'sample_enzyme' without 'specificity', but not an empty 'cut'
+    if (!cut.empty())
+    {
+      f << "\t\t<specificity cut=\"" << cut << "\"";
+      if (!no_cut.empty())
+      {
+        f << " no_cut=\"" << no_cut << "\"";
+      }
+      f << R"( sense="C"/>)" << "\n";
+    }
     f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
@@ -538,6 +577,22 @@ namespace OpenMS
     {
       f << "\t<analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
     }
+
+    // Writes a "search_score" with the value of the first of 'keys' that is set (and not empty) as meta value of 'hit'.
+    // Writes nothing if there is none, as an empty "value" attribute cannot be read back (issue #10570).
+    auto writeScoreFromMetaValue = [&f](const PeptideHit& hit, const std::string& name, std::initializer_list<const char*> keys)
+    {
+      for (const char* key : keys)
+      {
+        const std::string value = hit.getMetaValue(key).toString(); // empty if 'key' is not set
+        if (!value.empty())
+        {
+          f << "\t\t\t<search_score" << " name=\"" << name << "\" value=\"" << value << "\"" << "/>\n";
+          return true;
+        }
+      }
+      return false;
+    };
 
     // Scan index and scan number will be reconstructed if no spectrum lookup is possible to retrieve the values.
     // The scan index is generally zero-based and the scan number generally one-based.
@@ -818,20 +873,24 @@ namespace OpenMS
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
             }
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            // "MS:1001330" is set when reading pepXML, "E-Value" when reading X! Tandem XML (e.g. via idXML)
+            if (!writeScoreFromMetaValue(h, "expect", {"MS:1001330", "E-Value"}) && pep.getScoreType() == "expect")
+            {
+              f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
+            }
           }
           else if (search_engine_name == "Comet")
           {
-            f << "\t\t\t<search_score" << R"( name="xcorr" value=")" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
-            f << "\t\t\t<search_score" << R"( name="deltacn" value=")" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
-            f << "\t\t\t<search_score" << R"( name="deltacnstar" value=")" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
-            f << "\t\t\t<search_score" << R"( name="spscore" value=")" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
-            f << "\t\t\t<search_score" << R"( name="sprank" value=")" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+            writeScoreFromMetaValue(h, "xcorr", {"MS:1002252"}); // name: Comet:xcorr
+            writeScoreFromMetaValue(h, "deltacn", {"MS:1002253"}); // name: Comet:deltacn
+            writeScoreFromMetaValue(h, "deltacnstar", {"MS:1002254"}); // name: Comet:deltacnstar
+            writeScoreFromMetaValue(h, "spscore", {"MS:1002255"}); // name: Comet:spscore
+            writeScoreFromMetaValue(h, "sprank", {"MS:1002256"}); // name: Comet:sprank
+            writeScoreFromMetaValue(h, "expect", {"MS:1002257"}); // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            writeScoreFromMetaValue(h, "expect", {"MS:1001172", "EValue"}); // name: Mascot:expectation value
             f << "\t\t\t<search_score" << R"( name="ionscore" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
@@ -921,7 +980,7 @@ namespace OpenMS
     f.close();
   }
 
-  void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
+  void PepXMLFile::readRTMZCharge_(const Internal::XMLAttributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
     charge_ = attributeAsInt_(attributes, "assumed_charge");
@@ -962,6 +1021,25 @@ namespace OpenMS
     }
   }
 
+  bool PepXMLFile::isExperimentOfInterest_(std::string base_name)
+  {
+    StringUtils::substitute(base_name, '\\', '/'); // same separators as in "exp_name_"
+    if (base_name.empty()) return false;
+    if (std::find(base_names_.begin(), base_names_.end(), base_name) == base_names_.end())
+    {
+      base_names_.push_back(base_name);
+    }
+    // only whole path components may match, otherwise e.g. "LN1" would select both "L_LN1" and "H_LN1":
+    if (!StringUtils::hasSuffix(base_name, exp_name_)) return false;
+    const Size start = base_name.size() - exp_name_.size();
+    if (start > 0 && base_name[start - 1] != '/') return false;
+    if (std::find(matched_base_names_.begin(), matched_base_names_.end(), base_name) == matched_base_names_.end())
+    {
+      matched_base_names_.push_back(base_name);
+    }
+    return true;
+  }
+
   void PepXMLFile::setParseUnknownScores(bool parse_unknown_scores)
   {
     this->parse_unknown_scores_ = parse_unknown_scores;
@@ -985,6 +1063,7 @@ namespace OpenMS
     exp_name_ = "";
     prot_id_ = "";
     charge_ = 0;
+    lookup_ = nullptr; // a previous call may have thrown before resetting it
     peptides.clear();
     peptides_ = &peptides;
     proteins.clear();
@@ -997,20 +1076,29 @@ namespace OpenMS
     if (!experiment_name.empty())
     {
       exp_name_ = FileHandler::stripExtension(experiment_name);
+      // TPP writes "base_name" with '/' even on Windows, while users give native paths with '\'
+      StringUtils::substitute(exp_name_, '\\', '/');
       lookup_ = &lookup;
     }
 
     analysis_summary_ = false;
     wrong_experiment_ = false;
-    // without experiment name, don't care about these two:
-    seen_experiment_ = exp_name_.empty();
+    base_names_.clear();
+    matched_base_names_.clear();
+    // without experiment name, don't care about this:
     checked_base_name_ = exp_name_.empty();
 
     parse_(filename, this);
 
-    if (!seen_experiment_)
+    if (!exp_name_.empty() && matched_base_names_.empty())
     {
-      fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
+      fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'. It has to match the end of a run's 'base_name', "
+                 "e.g. its file name (IDFileConverter: 'mz_name'). 'base_name's in this file: " + quotedList(base_names_));
+    }
+    if (matched_base_names_.size() > 1) // e.g. equally named spectra files in different folders
+    {
+      fatalError(LOAD, "Experiment name '" + experiment_name + "' matches runs with different 'base_name's: " + quotedList(matched_base_names_) +
+                 ". Give more of the path to select one of them (IDFileConverter: 'mz_name').");
     }
     // clean up duplicate ProteinHits in each ProteinIdentification separately:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
@@ -1082,10 +1170,7 @@ namespace OpenMS
     know that the last - and only - element should be the correct one.
   */
 
-  void PepXMLFile::startElement(const XMLCh* const /*uri*/,
-                                const XMLCh* const /*local_name*/,
-                                const XMLCh* const qname,
-                                const xercesc::Attributes& attributes)
+  void PepXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
     std::string element = sm_.convert(qname);
 
@@ -1093,14 +1178,15 @@ namespace OpenMS
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
-      std::string ms_run_path;
+      std::string base_name;
+      optionalAttributeAsString_(base_name, attributes, "base_name");
+      current_ms_run_path_.clear();
+
       if (!exp_name_.empty())
       {
-        std::string base_name = attributeAsString_(attributes, "base_name");
         if (!base_name.empty())
         {
-          wrong_experiment_ = !StringUtils::hasSuffix(base_name, exp_name_);
-          seen_experiment_ = seen_experiment_ || !wrong_experiment_;
+          wrong_experiment_ = !isExperimentOfInterest_(base_name);
           checked_base_name_ = true;
         }
         else // really shouldn't happen, but does for Mascot export to pepXML
@@ -1110,26 +1196,39 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
-        std::string raw_data = attributeAsString_(attributes, "raw_data");
-        if (!base_name.empty() && !raw_data.empty())
-        {
-          ms_run_path = base_name + "." + raw_data;
-        }
       }
       if (wrong_experiment_) return;
+
+      // Compose this run's primary MS run path (the actual spectra file) from the
+      // 'msms_run_summary' base_name and raw_data extension, e.g. base_name="run1" +
+      // raw_data=".mzML" -> "run1.mzML". raw_data already carries a leading dot in TPP/OpenMS
+      // exports, so only add one if missing. This is recorded on the ProteinIdentification in
+      // 'search_summary'; it is preferred over the search_summary base_name, which may point at
+      // the identification result file (e.g. a .pep.xml) rather than the spectra.
+      if (!base_name.empty())
+      {
+        std::string raw_data;
+        optionalAttributeAsString_(raw_data, attributes, "raw_data");
+        if (!raw_data.empty() && raw_data[0] != '.') { raw_data = "." + raw_data; }
+        current_ms_run_path_ = base_name + raw_data;
+      }
 
       // create a ProteinIdentification in case "search_summary" is missing:
       ProteinIdentification protein;
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
       enzyme_ = "unknown_enzyme";
+      params_.digestion_enzyme = DigestionEnzymeProtein();
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
-      proteins_->push_back(protein);
-      if (!ms_run_path.empty())
+      // Record the spectra file as the run's primary MS run path now, so pepXML files
+      // without a "search_summary" still keep run-level provenance. "search_summary" only
+      // fills this in when msms_run_summary had none (e.g. Mascot exports, from its base_name).
+      if (!current_ms_run_path_.empty())
       {
-        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
+        protein.setPrimaryMSRunPath(StringList(1, current_ms_run_path_));
       }
+      proteins_->push_back(protein);
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
@@ -1165,7 +1264,7 @@ namespace OpenMS
         {
           peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
-        else if (search_engine_ == "Mascot")
+        else if (search_engine_ == "Mascot" || search_engine_ == "MASCOT") // "MASCOT": written by TPP and by PepXMLFile::store
         {
           peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
         }
@@ -1197,7 +1296,6 @@ namespace OpenMS
         if (search_engine_ == "Comet")
         {
           peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
-          peptide_hit_.setMetaValue("COMET:xcorr", value); // name: COMET:xcorr
         }
         else
         {
@@ -1235,24 +1333,20 @@ namespace OpenMS
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
-          peptide_hit_.setMetaValue("COMET:spscore", value); // name: Comet:spscore
         }
         else if (name == "sprank")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
-          peptide_hit_.setMetaValue("COMET:sprank", value); // name: Comet:sprank
         }
         else if (name == "deltacnstar")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
-          peptide_hit_.setMetaValue("COMET:deltacnstar", value); // name: Comet:deltacnstar
         }
         else if (name == "lnrSp")
         {
           value = attributeAsDouble_(attributes, "value");
-          peptide_hit_.setMetaValue("Comet:lnrSp", value); // name: Comet:lnrSp
           peptide_hit_.setMetaValue("COMET:lnRankSP", value); // name: COMET:lnRankSP
         }              
         else if (name == "deltLCn")
@@ -1268,7 +1362,6 @@ namespace OpenMS
         else if (name == "IonFrac")
         {
           value = attributeAsDouble_(attributes, "value");
-          peptide_hit_.setMetaValue("Comet:IonFrac", value); // name: Comet:IonFrac
           peptide_hit_.setMetaValue("COMET:IonFrac", value); // matched_ions / total_ions
         }
         else if (name == "lnNumSP")
@@ -1379,7 +1472,8 @@ namespace OpenMS
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
       current_peptide_.setMZ(mz_);
-      current_peptide_.setBaseName(current_base_name_);
+      // Note: the source MS run is recorded on the ProteinIdentification of this run
+      // (see "search_summary"); PeptideIdentifications are linked to it via the identifier.
 
       search_id_ = 1; // default if attr. is missing (ref. to "search_summary")
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
@@ -1828,11 +1922,7 @@ namespace OpenMS
       optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        if (StringUtils::hasSuffix(current_base_name_, exp_name_))
-        {
-          seen_experiment_ = true;
-        }
-        else // wrong experiment after all - roll back changes that were made
+        if (!isExperimentOfInterest_(current_base_name_)) // wrong experiment after all - roll back changes that were made
         {
           proteins_->pop_back();
           current_proteins_.clear();
@@ -1843,8 +1933,16 @@ namespace OpenMS
 
       fixed_modifications_.clear();
       variable_modifications_.clear();
+      const auto digestion_enzyme = params_.digestion_enzyme;
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
+      {
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      }
+      else
+      {
+        params_.digestion_enzyme = digestion_enzyme;
+      }
       std::string mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1909,6 +2007,24 @@ namespace OpenMS
       }
       prot_it->setSearchEngine(search_engine_);
       prot_it->setIdentifier(prot_id_);
+
+      // Record the source MS run (spectra file) on the ProteinIdentification - the "new"
+      // mechanism that replaces the removed per-PeptideIdentification base_name. Prefer the
+      // spectra path composed in "msms_run_summary" (base_name + raw_data, i.e. the actual
+      // mzML/mzXML); fall back to this search_summary's base_name only when the run summary
+      // had none (e.g. Mascot exports), since that value can reference the identification
+      // result file rather than the spectra. PeptideIdentifications resolve it via their
+      // shared identifier (see IdentifierMSRunMapper).
+      const std::string& ms_run_path = !current_ms_run_path_.empty() ? current_ms_run_path_ : current_base_name_;
+      if (!ms_run_path.empty())
+      {
+        StringList existing_ms_run_paths;
+        prot_it->getPrimaryMSRunPath(existing_ms_run_paths);
+        if (existing_ms_run_paths.empty())
+        {
+          prot_it->setPrimaryMSRunPath(StringList(1, ms_run_path));
+        }
+      }
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
@@ -1916,34 +2032,51 @@ namespace OpenMS
 
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
-      if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      }
+      else
+      {
+        params_.digestion_enzyme = DigestionEnzymeProtein();
       }
     }
     else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
     { // special case: search parameter that occurs *before* "search_summary"!
       std::string cut_before = attributeAsString_(attributes, "cut");
-      std::string no_cut_after = attributeAsString_(attributes, "no_cut");
+      std::string no_cut_after;
+      optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
-      params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
-          "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
-          cut_before, no_cut_after, sense));
+      if (cut_before.empty())
+      {
+        // No cleavage information (OpenMS writes an empty cut for "unknown_enzyme"): keep "unknown_enzyme",
+        // which code checking for a missing enzyme expects, instead of a "user-defined" name that grows
+        // with every pepXML write/read pass.
+        params_.digestion_enzyme = DigestionEnzymeProtein();
+      }
+      else
+      {
+        const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
+        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
+            enzyme_name, cut_before, no_cut_after, sense));
+      }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
-      // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      // The search parameters describe the search, so a known enzyme of the search constraint takes precedence over
+      // "sample_enzyme" (e.g. Comet: sample_enzyme "nonspecific", search constraint "Formic_Acid"). An unknown name
+      // (e.g. "default" from MSFragger) keeps the enzyme of "sample_enzyme".
+      enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
+        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
         if (params_.digestion_enzyme.getName() != "unknown_enzyme" && enzyme_to_set != params_.digestion_enzyme)
         {
-          error(LOAD, "More than one enzyme found. This is currently not supported. Proceeding with last encountered only.");
+          error(LOAD, "Enzyme '" + enzyme_to_set.getName() + "' of 'enzymatic_search_constraint' differs from enzyme '"
+                      + params_.digestion_enzyme.getName() + "' (e.g. of 'sample_enzyme'). Using '" + enzyme_to_set.getName() + "'.");
         }
         params_.digestion_enzyme = enzyme_to_set;
       }
@@ -2008,9 +2141,7 @@ namespace OpenMS
     return found;
   }
 
-  void PepXMLFile::endElement(const XMLCh* const /*uri*/,
-                              const XMLCh* const /*local_name*/,
-                              const XMLCh* const qname)
+  void PepXMLFile::onEndElement(const char16_t* qname)
   {
     std::string element = sm_.convert(qname);
 

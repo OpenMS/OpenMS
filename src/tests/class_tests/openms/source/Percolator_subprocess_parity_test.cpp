@@ -25,6 +25,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cmath>
@@ -318,10 +319,10 @@ SubprocessOut runSubprocess(const std::string& bin,
                             const std::string& pin_path,
                             const std::string& extra_args = "")
 {
-  const std::string target_pout = File::getTemporaryFile();
-  const std::string decoy_pout  = File::getTemporaryFile();
-  const std::string stdout_log  = File::getTemporaryFile();
-  const std::string stderr_log  = File::getTemporaryFile();
+  const std::string target_pout = TempFiles::getTemporaryFile();
+  const std::string decoy_pout  = TempFiles::getTemporaryFile();
+  const std::string stdout_log  = TempFiles::getTemporaryFile();
+  const std::string stderr_log  = TempFiles::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << bin << "\""
@@ -479,7 +480,7 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
   const std::string enz = "no_enzyme";
 
   // (a) Write PIN via store(). This also internally stamps, then serializes.
-  const std::string pin_path = File::getTemporaryFile();
+  const std::string pin_path = TempFiles::getTemporaryFile();
   PercolatorInfile::store(pin_path, pids, feature_set, enz, min_charge, max_charge);
 
   // (b) Stamp an independent copy so we can read back the meta values
@@ -610,7 +611,7 @@ START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
     RescoreInput ri;
     generateSyntheticData(ri, rng);
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
@@ -688,7 +689,7 @@ START_SECTION([EXTRA] ranking parity at q &lt;= 0.01 / 0.05 / 0.10)
     RescoreInput ri;
     generateSyntheticData(ri, rng);
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
@@ -802,7 +803,7 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       std::mt19937 rng(2026);
       RescoreInput ri;
       generateSyntheticData(ri, rng);
-      const std::string pin_path = File::getTemporaryFile();
+      const std::string pin_path = TempFiles::getTemporaryFile();
       writePinFile(pin_path, ri);
 
       SubprocessOut sub = runSubprocess(bin, pin_path, tc.extra_args);
@@ -890,11 +891,11 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
     std::mt19937 rng(2026);
     RescoreInput ri;
     generateSyntheticData(ri, rng);
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     // Ask percolator to dump weights.
-    const std::string wfile = File::getTemporaryFile();
+    const std::string wfile = TempFiles::getTemporaryFile();
     SubprocessOut sub = runSubprocess(
       bin, pin_path, "-S 1 -w \"" + wfile + "\"");
     TEST_EQUAL(sub.exit_code, 0)
@@ -1017,7 +1018,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     const std::string enz = "trypsin";
 
     // Write .pin (also stamps meta values under the hood).
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     PercolatorInfile::store(pin_path, pids, feature_set, enz, min_charge, max_charge);
 
     // Parse .pin back to build RescoreInput that matches subprocess input
@@ -1162,7 +1163,7 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
     generateSyntheticData(ri, rng, /*size_mult=*/10.0);
     TEST_EQUAL(ri.features.size(), 20000)
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -N 5000");
@@ -1280,7 +1281,7 @@ START_SECTION([EXTRA] multi-file PIN parity)
       ri.spec_file_numbers[i] = (i < half) ? 0 : 1;
     }
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri, /*emit_filename=*/true);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");

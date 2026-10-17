@@ -8,6 +8,7 @@
 
 
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -62,6 +63,7 @@ namespace OpenMS
   void CalibrationData::clear()
   {
     data_.clear();
+    groups_.clear();
   }
 
   void CalibrationData::setUsePPM( bool usePPM )

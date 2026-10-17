@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/CONCEPT/Init.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -29,6 +30,7 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -352,6 +354,10 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
+    // Xerces has to be initialised; CONCEPT/Init.cpp does so on loading the library, but a
+    // static library (WebAssembly) links that object file only if something else calls into it
+    static const bool xerces_initialized = (Internal::xercesInitialize(), true);
+    (void)xerces_initialized;
     xercesc::MemBufInputSource myxml_buf(
         reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     xercesc::XercesDOMParser parser;
@@ -404,21 +410,15 @@ namespace OpenMS
       {
         std::vector<std::pair<std::string, std::streampos> > result;
 
-        xercesc::DOMNode* firstChild = currentNode->getFirstChild();
-        xercesc::DOMNode* lastChild = currentNode->getLastChild();
-        xercesc::DOMNode* iter = firstChild;
-
         // Iterate through children
         // NOTE: Using xercesc::DOMNodeList and "item" is a very bad idea since
         //       each "item" call has complexity of O(n), see the
         //       implementation in DOMNodeListImpl.cpp :
         //       https://svn.apache.org/repos/asf/xerces/c/trunk/src/xercesc/dom/impl/DOMNodeListImpl.cpp
         //
-        while (iter != lastChild)
+        for (xercesc::DOMNode* currentONode = currentNode->getFirstChild(); currentONode != nullptr;
+             currentONode = currentONode->getNextSibling())
         {
-          iter = iter->getNextSibling();
-          xercesc::DOMNode* currentONode = iter;
-
           if (currentONode->getNodeType() && // true is not NULL
               currentONode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
           {

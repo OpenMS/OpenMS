@@ -9,6 +9,12 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/CVTerm.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace OpenMS
 {

@@ -136,12 +136,7 @@ public:
     /// sets the identifier which links this PI to its corresponding ProteinIdentification
     void setIdentifier(const std::string& id);
 
-    /// returns the base name which links to underlying peak map
-    std::string getBaseName() const;
-    /// sets the base name which links to underlying peak map
-    void setBaseName(const std::string& base_name);
-
-    /// returns the experiment label for this identification 
+    /// returns the experiment label for this identification
     const std::string getExperimentLabel() const;
     /// sets the experiment label for this identification
     void setExperimentLabel(const std::string& type);
@@ -280,7 +275,6 @@ namespace std
    * - score_type_ (string)
    * - higher_score_better_ (bool)
    * - getExperimentLabel() (stored as meta value)
-   * - getBaseName() (stored as meta value)
    * - mz_ (double, with NaN handling)
    * - rt_ (double, with NaN handling)
    *

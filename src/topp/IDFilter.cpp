@@ -19,6 +19,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -584,7 +585,7 @@ protected:
       if (!score_type.empty())
       {
         IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type);
-        IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
+        IDFilter::filterHitsByScore(peptides.getData(), pep_score, score_type_enum);
       }
       else
       {

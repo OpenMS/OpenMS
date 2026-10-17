@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -205,6 +206,113 @@ START_SECTION((std::string getPrimaryMSRunPath(const PeptideIdentification& pepi
   PeptideIdentification pep_a;
   pep_a.setIdentifier("ID_A");
   TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pep_a), "/data/runA.mzML")
+}
+END_SECTION
+
+START_SECTION([EXTRA] getPrimaryMSRunPath legacy base_name fallback)
+{
+  IdentifierMSRunMapper m(makeProtIds());
+
+  // Backwards compatibility: a PeptideIdentification whose identifier is not in the mapping
+  // but which carries the (deprecated) "base_name" meta value resolves to that base name.
+  PeptideIdentification pep_legacy;
+  pep_legacy.setIdentifier("DOES_NOT_EXIST");
+  pep_legacy.setMetaValue(Constants::UserParam::BASE_NAME, "legacy_run.mzML");
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pep_legacy), "legacy_run.mzML")
+
+  // The primary MS run path from the mapping takes precedence over a legacy base_name.
+  PeptideIdentification pep_both;
+  pep_both.setIdentifier("ID_A");
+  pep_both.setMetaValue(Constants::UserParam::BASE_NAME, "legacy_run.mzML");
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pep_both), "/data/runA.mzML")
+}
+END_SECTION
+
+START_SECTION([EXTRA] create() leaves a complete forward map even when it throws on duplicate paths)
+{
+  // Runs A and D have distinct paths; B and C collide on the same path. The collision
+  // makes create() throw, but the forward map (identifier -> path) must still be fully
+  // populated for *all* runs - including D, which is listed *after* the duplicate - so
+  // that getPrimaryMSRunPath() does not silently drop run names in an order-dependent way
+  // for callers (e.g. TextExporter's USI export) that catch the exception and continue.
+  ProteinIdentification pA, pB, pC, pD;
+  pA.setIdentifier("ID_A");
+  pA.setPrimaryMSRunPath(StringList{"/data/runA.mzML"});
+  pB.setIdentifier("ID_B");
+  pB.setPrimaryMSRunPath(StringList{"/data/dup.mzML"});
+  pC.setIdentifier("ID_C");
+  pC.setPrimaryMSRunPath(StringList{"/data/dup.mzML"});
+  pD.setIdentifier("ID_D");
+  pD.setPrimaryMSRunPath(StringList{"/data/runD.mzML"});
+
+  IdentifierMSRunMapper m;
+  TEST_EXCEPTION(Exception::InvalidValue, m.create(std::vector<ProteinIdentification>{pA, pB, pC, pD}))
+
+  // Despite the throw, every identifier still resolves through the forward map.
+  PeptideIdentification pepA; pepA.setIdentifier("ID_A");
+  PeptideIdentification pepD; pepD.setIdentifier("ID_D");
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pepA), "/data/runA.mzML")
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pepD), "/data/runD.mzML") // run listed after the duplicate
+}
+END_SECTION
+
+START_SECTION((void validateMergeIndex(const PeptideIdentification& pep_id, size_t psm_index) const))
+{
+  // getPrimaryMSRunPath() falls back to the run's FIRST file when it cannot resolve an index,
+  // which silently mislabels every PSM of a merged run. Callers that key on the result must be
+  // able to refuse such input instead; this is that check.
+  ProteinIdentification merged;
+  merged.setIdentifier("MERGED");
+  merged.setPrimaryMSRunPath(StringList{"/data/runA.mzML", "/data/runB.mzML"});
+  ProteinIdentification single;
+  single.setIdentifier("SINGLE");
+  single.setPrimaryMSRunPath(StringList{"/data/only.mzML"});
+  ProteinIdentification none;
+  none.setIdentifier("NONE");
+
+  IdentifierMSRunMapper m;
+  m.create(std::vector<ProteinIdentification>{merged, single, none});
+
+  // Accepted: a usable index into the merged run.
+  PeptideIdentification ok;
+  ok.setIdentifier("MERGED");
+  ok.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
+  m.validateMergeIndex(ok, 0);
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(ok), "/data/runB.mzML")
+
+  // Exempt: unmerged runs have nothing to disambiguate, so a missing index is not an error.
+  // Resolution is unambiguous either way, which is what the exemption rests on.
+  PeptideIdentification one_path;
+  one_path.setIdentifier("SINGLE");
+  m.validateMergeIndex(one_path, 0);
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(one_path), "/data/only.mzML")
+
+  PeptideIdentification no_path;
+  no_path.setIdentifier("NONE");
+  m.validateMergeIndex(no_path, 0);
+  TEST_TRUE(m.getPrimaryMSRunPath(no_path).empty())
+
+  // Refused: missing, wrongly typed, negative, and out-of-range indices.
+  PeptideIdentification missing;
+  missing.setIdentifier("MERGED");
+  TEST_EXCEPTION(Exception::MissingInformation, m.validateMergeIndex(missing, 0))
+
+  PeptideIdentification wrong_type;
+  wrong_type.setIdentifier("MERGED");
+  wrong_type.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, "1");
+  TEST_EXCEPTION(Exception::MissingInformation, m.validateMergeIndex(wrong_type, 0))
+
+  // Negative must surface as MissingInformation, not as the ConversionError that an
+  // unsigned cast of the DataValue would raise.
+  PeptideIdentification negative;
+  negative.setIdentifier("MERGED");
+  negative.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, -1);
+  TEST_EXCEPTION(Exception::MissingInformation, m.validateMergeIndex(negative, 0))
+
+  PeptideIdentification too_big;
+  too_big.setIdentifier("MERGED");
+  too_big.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 2);
+  TEST_EXCEPTION(Exception::MissingInformation, m.validateMergeIndex(too_big, 0))
 }
 END_SECTION
 

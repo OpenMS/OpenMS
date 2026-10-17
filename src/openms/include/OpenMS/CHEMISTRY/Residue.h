@@ -170,6 +170,9 @@ public:
       YIonMinusNH3,   ///< MS:1001233 y ion without ammonia
       NonIdentified,  ///< MS:1001240 Non-identified ion
       Unannotated,    ///< no stored annotation
+      DIon,           ///< MS:1001236 a ion with partial side-chain loss
+      VIon,           ///< MS:1001237 y ion with complete side-chain loss
+      WIon,           ///< MS:1001238 z ion with partial side-chain loss
       SizeOfResidueType
     };
     //@}
@@ -194,7 +197,10 @@ public:
       "b-NH3-ion",
       "y-NH3-ion",
       "Non-identified ion",
-      "unannotated"
+      "unannotated",
+      "d-ion",
+      "v-ion",
+      "w-ion"
     };
 
     /// returns the ion name given as a residue type
@@ -311,18 +317,21 @@ public:
     void setFormula(const EmpiricalFormula& formula);
 
     /// returns the empirical formula of the residue
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
     EmpiricalFormula getFormula(ResidueType res_type = Full) const;
 
     /// sets average weight of the residue (must be full, with N and C-terminus)
     void setAverageWeight(double weight);
 
     /// returns average weight of the residue
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
     double getAverageWeight(ResidueType res_type = Full) const;
 
     /// sets monoisotopic weight of the residue (must be full, with N and C-terminus)
     void setMonoWeight(double weight);
 
     /// returns monoisotopic weight of the residue
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
     double getMonoWeight(ResidueType res_type = Full) const;
 
     /// returns a pointer to the modification, or a null pointer if none is set
@@ -331,7 +340,18 @@ public:
     /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const std::string& name);
 
-    /// sets the modification by existing ResMod (make sure it exists in ModificationsDB)
+    /**
+       @brief sets the modification by existing ResMod (make sure it exists in ModificationsDB)
+
+       The residue's formula and masses are updated from the modification: if it has a diff
+       formula, that is added to the residue's formula (which also sets the masses); otherwise
+       the modification's absolute masses are adopted if set (or its mass difference is added)
+       and its absolute formula, if any, replaces the residue's. A modification that defines
+       neither a mass nor a formula difference (e.g. a PSI-MOD term that merely describes the
+       residue) leaves the residue's masses and formula untouched -- its absolute values follow
+       the conventions of the source database and are not comparable to a Residue's
+       free-amino-acid mass.
+    */
     void setModification(const ResidueModification* mod);
 
     /// sets the modification by looking for an exact match in the DB first, otherwise creating a
@@ -426,6 +446,22 @@ public:
 
     /// true if the residue is contained in the set
     bool isInResidueSet(const std::string& residue_set);
+
+    /// true if the residue can produce a v-ion via complete side-chain loss
+    bool hasVLoss() const;
+
+    /// returns the neutral HR loss in v-ion formation (internal_formula - C2HNO)
+    /// @see https://goldbook.iupac.org/terms/view/12607
+    /// Returns an empty formula when hasVLoss() is false.
+    EmpiricalFormula getVLossFormula() const;
+
+    /// true if the residue has a beta-gamma satellite loss (for d/w ions)
+    /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
+    bool hasSatelliteLoss(char subtype = '\0') const;
+
+    /// returns the radical side-chain loss: d = a + H - loss; w = z+1 - loss
+    /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
+    EmpiricalFormula getSatelliteLossFormula(char subtype = '\0') const;
     //@}
 
     /// helper for mapping residue types to letters for Text annotations and labels
@@ -450,6 +486,9 @@ public:
     double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
  
 protected:
+    /// Reject satellite ions whose cleavage residue has no supported loss.
+    void validateSatelliteIon_(ResidueType type) const;
+
 
     /// the name of the residue
     std::string name_ = "unknown";

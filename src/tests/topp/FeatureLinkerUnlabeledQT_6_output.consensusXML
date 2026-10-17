@@ -40,17 +40,17 @@
 				<element map="1" id="0" rt="510.0" mz="500.012" it="600.0"/>
 				<element map="2" id="0" rt="420.0" mz="500.021000000000015" it="700.0"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_2" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="2"/>
@@ -63,17 +63,17 @@
 				<element map="1" id="0" rt="310.100000000000023" mz="500.009999999999991" it="600.0"/>
 				<element map="2" id="0" rt="520.0" mz="500.021999999999991" it="700.0"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_2" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="2"/>
@@ -86,17 +86,17 @@
 				<element map="1" id="0" rt="410.0" mz="500.011000000000024" it="600.0"/>
 				<element map="2" id="0" rt="320.0" mz="500.019999999999982" it="700.0"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_2" score_type="score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="2"/>

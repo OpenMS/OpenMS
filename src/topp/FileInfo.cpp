@@ -12,6 +12,11 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileInfo.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -128,6 +133,7 @@ protected:
     opt.check_corrupt = getFlag_("c");
     opt.validate      = getFlag_("v");
     opt.check_index   = getFlag_("i");
+    opt.log_type      = log_type_; // TOPPBase member: CMD by default, NONE under -no_progress
 
     FileInfo fi;
     FileInfo::Result r = fi.run(in, opt);

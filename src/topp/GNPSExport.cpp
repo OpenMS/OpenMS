@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
 #include <OpenMS/FORMAT/GNPSQuantificationFile.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -86,7 +87,6 @@ public:
   TOPPGNPSExport() : TOPPBase(
     "GNPSExport",
     "Export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
-    true,
     {
       {
         "Nothias L.F. et al.", // authors

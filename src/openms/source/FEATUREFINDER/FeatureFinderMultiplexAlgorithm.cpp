@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -30,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <unordered_map>
 #include <vector>
 #include <numeric>
 #include <fstream>
@@ -674,6 +676,9 @@ namespace OpenMS
             break;
           }
 
+          // A provisional id (the feature's position in the feature map, from 1), which the handle below
+          // carries as well; run() replaces both by the feature's final unique id.
+          feature.setUniqueId(feature_map_.size() + features.size() + 1);
           features.push_back(feature);
 
           if (peptide == 0)
@@ -693,7 +698,7 @@ namespace OpenMS
           feature_handle.setIntensity(peptide_intensities[peptide]);
           feature_handle.setCharge(patterns[pattern].getCharge());
           feature_handle.setMapIndex(peptide);
-          //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
+          feature_handle.setUniqueId(feature.getUniqueId());
           consensus.insert(feature_handle);
           consensus_map_.getColumnHeaders()[peptide].size++;
         }
@@ -833,6 +838,9 @@ namespace OpenMS
             break;
           }
 
+          // A provisional id (the feature's position in the feature map, from 1), which the handle below
+          // carries as well; run() replaces both by the feature's final unique id.
+          feature.setUniqueId(feature_map_.size() + features.size() + 1);
           features.push_back(feature);
 
           if (peptide == 0)
@@ -852,7 +860,7 @@ namespace OpenMS
           feature_handle.setIntensity(peptide_intensities[peptide]);
           feature_handle.setCharge(patterns[pattern].getCharge());
           feature_handle.setMapIndex(peptide);
-          //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
+          feature_handle.setUniqueId(feature.getUniqueId());
           consensus.insert(feature_handle);
           consensus_map_.getColumnHeaders()[peptide].size++;
         }
@@ -1027,6 +1035,7 @@ namespace OpenMS
       /**
        * construct feature and consensus maps i.e. the final results
        */
+      exp_blacklist_ = filtering.getBlacklist();
       filtering.getCentroidedExperiment().swap(exp_centroid_);
       generateMapsCentroided_(patterns, filter_results, cluster_results);
     }
@@ -1131,9 +1140,25 @@ namespace OpenMS
       }
     }
 
-    // finalize feature map
+    // finalize feature map: unique ids in position order, and every handle of the consensus map refers to the
+    // feature it was built from by it (instead of the provisional id set during construction)
     feature_map_.sortByPosition();
+    std::vector<UInt64> provisional;
+    provisional.reserve(feature_map_.size());
+    for (const Feature& feature : feature_map_) { provisional.push_back(feature.getUniqueId()); }
     feature_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    std::unordered_map<UInt64, UInt64> unique_id_of; // provisional id -> unique id
+    for (Size i = 0; i < feature_map_.size(); ++i) { unique_id_of.emplace(provisional[i], feature_map_[i].getUniqueId()); }
+    for (ConsensusFeature& consensus : consensus_map_)
+    {
+      ConsensusFeature::HandleSetType handles;
+      for (FeatureHandle handle : consensus.getFeatures())
+      {
+        handle.setUniqueId(unique_id_of.at(handle.getUniqueId()));
+        handles.insert(handle);
+      }
+      consensus.setFeatures(std::move(handles));
+    }
   }
 
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()
@@ -1149,5 +1174,10 @@ namespace OpenMS
   MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
   {
     return exp_blacklist_;
+  }
+
+  MSExperiment& FeatureFinderMultiplexAlgorithm::getCentroidedExperiment()
+  {
+    return exp_centroid_;
   }
 }

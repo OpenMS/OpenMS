@@ -12,7 +12,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <vector>
 #include <algorithm> //for std::max_element
 
@@ -175,31 +175,35 @@ protected:
                                         s);
         }
 
+        if (c.empty())
+        {
+          return;
+        }
+
         std::vector<int> histogram_auto(100, 0);
 
         // find maximum of current scan
-        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() > b.getIntensity();});
+        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() < b.getIntensity();});
         typename PeakType::IntensityType maxInt = maxIt->getIntensity();
 
-        double bin_size = maxInt / 100;
+        double bin_size = maxInt > 0 ? static_cast<double>(maxInt) / 100.0 : 1.0;
 
         // fill histogram
-        for(auto& run : c)
+        for (const auto& peak : c)
         {
-          ++histogram_auto[(int) (((run).getIntensity() - 1) / bin_size)];
+          const int bin = (int) std::max(0.0, std::min(peak.getIntensity() / bin_size, 99.0));
+          ++histogram_auto[bin];
         }
 
         // add up element counts in histogram until ?th percentile is reached
-        int elements_below_percentile = (int) (auto_max_percentile_ * c.size() / 100);
+        int elements_below_percentile = std::max(1, (int) (auto_max_percentile_ * c.size() / 100));
         int elements_seen = 0;
         int i = -1;
-        PeakIterator run = scan_first_;
 
-        while (run != scan_last_ && elements_seen < elements_below_percentile)
+        while (i < 99 && elements_seen < elements_below_percentile)
         {
           ++i;
           elements_seen += histogram_auto[i];
-          ++run;
         }
 
         max_intensity_ = (((double)i) + 0.5) * bin_size;

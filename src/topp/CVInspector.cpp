@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>

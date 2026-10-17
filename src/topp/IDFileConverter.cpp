@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -73,7 +74,8 @@ IDFileConverter can be used to convert identification results from external tool
 For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. CometAdapter) to avoid the extra conversion step.
 
 The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
-Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.
+Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits, in the order of the line:
+as the file has no scores, a hit's score is its rank (score type "rank", lower is better).
 Lines starting with "#" are ignored by the parser.
 
 Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be
@@ -99,7 +101,7 @@ Also supports generation of .mzML files with theoretical spectra from a .FASTA i
 Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers or spectrum IDs. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
 
 @p mz_name: @n
-pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
+pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML. It is matched against the end of the 'base_name' attribute of each run, in whole path components and treating '/' and '\\' alike (e.g. 'run1', 'data/run1' and 'C:\\data\\run1.mzML' all match 'C:/data/run1'). @p mz_file is matched by its file name only, as 'base_name' records where the spectra were located at search time, often on a different machine. If runs of equally named files in different folders match, give more of the path via @p mz_name.
 
 @p scan_regex: @n
 This advanced parameter defines a spectrum reference format via a Perl-style regular expression. The reference format connects search hits to the MS2 spectra that were searched, and may be needed to look up e.g. retention times in the raw data (@p mz_file). See the documentation of class @ref OpenMS::SpectrumLookup "SpectrumLookup" for details on how to specify spectrum reference formats. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.@n
@@ -223,7 +225,7 @@ protected:
     registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, mzid, Percolator only] Retention times and native spectrum ids (spectrum_references) will be looked up in this file", false);
     setValidFormats_("mz_file", ListUtils::create<std::string>("mzML,mzXML,mzData"));
     addEmptyLine_();
-    registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
+    registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename or end of its path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if the file name of 'mz_file' does not select the run.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
     setValidStrings_("score_type", vector<std::string>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + static_cast<int>(PercolatorOutfile::ScoreType::SIZE_OF_SCORETYPE)));
@@ -401,7 +403,9 @@ protected:
           PeakMap exp;
           fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
-          if (mz_name.empty()) mz_name = mz_file;
+          // "base_name" in the pepXML is where the spectra were at search time (often on another machine),
+          // so only the file name of 'mz_file' is reliable
+          if (mz_name.empty()) mz_name = File::basename(mz_file);
           std::string scan_regex = getStringOption_("scan_regex");
           // we may have to parse Mascot spectrum references in pepXML, too:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
@@ -571,6 +575,9 @@ protected:
           if (it->empty() || StringUtils::hasPrefix(*it, "#")) continue;
 
           PeptideIdentification pepid;
+          // The file has no scores; the hits of a line are given in rank order, so their score is their rank.
+          pepid.setScoreType("rank");
+          pepid.setHigherScoreBetter(false);
           StringList peps;
           StringUtils::split(*it, '\t', peps, false);
           std::vector<PeptideHit> hits;
@@ -578,6 +585,7 @@ protected:
           {
             PeptideHit hit;
             hit.setSequence(AASequence::fromString(*sit));
+            hit.setScore(static_cast<double>(hits.size() + 1));
             hits.push_back(hit);
           }
           pepid.setHits(hits);

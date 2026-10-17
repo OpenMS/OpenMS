@@ -7,8 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 using namespace OpenMS;

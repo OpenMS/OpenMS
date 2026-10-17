@@ -8,6 +8,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
@@ -450,7 +451,7 @@ namespace OpenMS
   //----------------------------------------------------------------------------
   DataValue::operator long double() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to long double");
@@ -464,7 +465,7 @@ namespace OpenMS
 
   DataValue::operator double() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to double");
@@ -478,7 +479,7 @@ namespace OpenMS
 
   DataValue::operator float() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to float");

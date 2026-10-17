@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -17,6 +18,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -38,6 +41,55 @@ END_SECTION
 
 START_SECTION(~PepXMLFile())
 delete ptr;
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - case-insensitive sample enzyme lookup)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_case_insensitive_enzyme.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "Trypsin");
+}
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - missing optional no_cut)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_missing_no_cut.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_FALSE(peptides.empty());
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme");
+  TEST_TRUE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+}
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - missing optional no_cut with nonempty cut)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_missing_no_cut_nonempty_cut.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_FALSE(peptides.empty());
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
+  TEST_STRING_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getRegEx(), "(?<=[KRX])"); // see #10569
+}
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - does not carry digestion enzyme into next run)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_run_enzyme_reset.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 2);
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
+  TEST_NOT_EQUAL(proteins[1].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
+}
 END_SECTION
 
 START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name, SpectrumMetaDataLookup& lookup))
@@ -157,14 +209,14 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   TEST_EQUAL(var_mods[2], "Oxidation (M)")
   TEST_EQUAL(var_mods[3], "Gln->pyro-Glu (N-term Q)")
 
-  TEST_EQUAL(var_mods[4], "M[1.0]")
-  TEST_EQUAL(var_mods[5], ".n[2.0]")
-  TEST_EQUAL(var_mods[6], ".c[2.0]")
-  TEST_EQUAL(var_mods[7], ".n[2.5]")
-  TEST_EQUAL(var_mods[8], ".n[2.5]")
+  TEST_EQUAL(var_mods[4], "M[+1.0]")
+  TEST_EQUAL(var_mods[5], ".n[+2.0]")
+  TEST_EQUAL(var_mods[6], ".c[+2.0]")
+  TEST_EQUAL(var_mods[7], ".n[+2.5]")
+  TEST_EQUAL(var_mods[8], ".n[+2.5]")
   TEST_EQUAL(var_mods[9], ".n[-2.5]")
-  TEST_EQUAL(var_mods[10], ".n[2.5]")
-  TEST_EQUAL(var_mods[11], ".c[3.4]")
+  TEST_EQUAL(var_mods[10], ".n[+2.5]")
+  TEST_EQUAL(var_mods[11], ".c[+3.4]")
 
   /* TODO Probably would be nicer to have the following as fullID for readability
    *  (with the other notation you can't see if it has AA restrictions or if it is protein term)
@@ -287,6 +339,65 @@ START_SECTION([EXTRA] void load(const std::string& filename, std::vector<Protein
 
   // throw an exception if the pepXML file does not exist:
   TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - matching of experiment names)
+{
+  // runs "c:/tpp/data/light/run1", "c:/tpp/data/heavy/run1" and "c:/tpp/data/light/prerun1" with one PSM each
+  // (the TPP writes '/' in "base_name" also on Windows, see issue #3502)
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_base_names.pepxml");
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  // sequence of the PSM loaded for 'experiment_name', empty unless exactly one run and PSM were loaded
+  auto loadedSequence = [&](const std::string& experiment_name)
+  {
+    PepXMLFile().load(filename, proteins, peptides, experiment_name);
+    if (proteins.size() != 1 || peptides.size() != 1) return std::string();
+    return peptides[0].getHits()[0].getSequence().toString();
+  };
+  // message of the Exception::ParseError that loading 'experiment_name' throws, empty if it loads
+  auto parseErrorMessage = [&](const std::string& experiment_name)
+  {
+    try
+    {
+      PepXMLFile().load(filename, proteins, peptides, experiment_name);
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return std::string(e.what());
+    }
+    return std::string();
+  };
+
+  // path separators do not matter, e.g. for a native Windows path of the spectra file:
+  TEST_EQUAL(loadedSequence("c:\\tpp\\data\\light\\run1.mzML"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("c:/tpp/data/light/run1"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("heavy\\run1.mzML"), "SAMPLEK")
+  TEST_EQUAL(loadedSequence("light/run1"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("prerun1.mzML"), "TESTK")
+
+  // only whole path components match: "un1" selects no run, and the error lists the runs:
+  std::string message = parseErrorMessage("un1");
+  TEST_EQUAL(StringUtils::hasSubstring(message, "Found no experiment with name 'un1'"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(message, "'c:/tpp/data/light/run1', 'c:/tpp/data/heavy/run1', 'c:/tpp/data/light/prerun1'"), true)
+  // an absolute path has to match the whole "base_name":
+  TEST_EQUAL(StringUtils::hasSubstring(parseErrorMessage("/data/light/run1"), "Found no experiment with name"), true)
+  // "run1" matches runs of two different spectra files (but not "prerun1"), which are not merged:
+  message = parseErrorMessage("run1.mzML");
+  TEST_EQUAL(StringUtils::hasSubstring(message, "matches runs with different 'base_name's: 'c:/tpp/data/light/run1', 'c:/tpp/data/heavy/run1'. "), true)
+
+  // no experiment name: all runs
+  PepXMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 3)
+  TEST_EQUAL(peptides.size(), 3)
+
+  // loading again after an error starts from scratch:
+  PepXMLFile reused;
+  TEST_EXCEPTION(Exception::ParseError, reused.load(filename, proteins, peptides, "run1"))
+  reused.load(filename, proteins, peptides, "heavy/run1");
+  TEST_EQUAL(peptides.size(), 1)
+  TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(), "SAMPLEK")
 }
 END_SECTION
 
@@ -496,6 +607,137 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
 
 END_SECTION
 
+START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expect scores, issue #10570))
+{
+  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML), three PSMs:
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_xtandem.pepxml");
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(proteins[0].getSearchEngine(), "X! Tandem")
+  // '<specificity cut="" .../>' carries no cleavage information:
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme")
+  ABORT_IF(peptides.size() != 3)
+  // the reader keeps the expect score as hit score and as "MS:1001330", but not as "E-Value":
+  TEST_EQUAL(peptides[0].getHits()[0].metaValueExists("E-Value"), false)
+  TEST_REAL_SIMILAR(static_cast<double>(peptides[0].getHits()[0].getMetaValue("MS:1001330")), 0.79432823472)
+
+  // the stored file can be read back (it used to contain '<search_score name="expect" value=""/>'):
+  std::string file_out;
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  vector<ProteinIdentification> proteins_new;
+  PeptideIdentificationList peptides_new;
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(proteins_new.size() != 1)
+  TEST_EQUAL(proteins_new[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme")
+  ABORT_IF(peptides_new.size() != peptides.size())
+  for (Size i = 0; i < peptides.size(); ++i)
+  {
+    TEST_EQUAL(peptides_new[i].getScoreType(), "expect")
+    TEST_EQUAL(peptides_new[i].isHigherScoreBetter(), false)
+    ABORT_IF(peptides_new[i].getHits().size() != 1)
+    const PeptideHit& hit = peptides[i].getHits()[0];
+    const PeptideHit& hit_new = peptides_new[i].getHits()[0];
+    TEST_EQUAL(hit_new.getSequence(), hit.getSequence())
+    TEST_REAL_SIMILAR(hit_new.getScore(), hit.getScore())
+    TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001330")), static_cast<double>(hit.getMetaValue("MS:1001330")))
+  }
+  TEST_REAL_SIMILAR(peptides_new[2].getHits()[0].getScore(), 0.30199517204)
+
+  // without any expect value (here: X! Tandem hyperscores only, "MS:1001330" empty), no (empty) expect score is written,
+  // and the file can still be read:
+  for (PeptideIdentification& pep : peptides)
+  {
+    pep.setScoreType("XTandem");
+    for (PeptideHit& hit : pep.getHits())
+    {
+      hit.setScore(static_cast<double>(hit.getMetaValue("hyperscore")));
+      hit.setMetaValue("MS:1001330", "");
+    }
+  }
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  std::ifstream written(file_out);
+  std::string content((std::istreambuf_iterator<char>(written)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"hyperscore\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"expect\""), false)
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  TEST_EQUAL(peptides_new.size(), 3)
+
+  // an empty "MS:1001330" does not hide the "E-Value" fallback:
+  for (PeptideIdentification& pep : peptides)
+  {
+    for (PeptideHit& hit : pep.getHits())
+    {
+      hit.setMetaValue("E-Value", 0.5);
+    }
+  }
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(peptides_new.size() != 3 || peptides_new[0].getHits().empty())
+  TEST_EQUAL(peptides_new[0].getScoreType(), "expect")
+  TEST_REAL_SIMILAR(peptides_new[0].getHits()[0].getScore(), 0.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load Mascot results - expect scores survive repeated round trips, issue #10570))
+{
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("Mascot_run");
+  proteins[0].setSearchEngine("Mascot");
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("Mascot_run");
+  peptides[0].setRT(100.0);
+  peptides[0].setMZ(464.2347);
+  peptides[0].setScoreType("Mascot");
+  peptides[0].setHigherScoreBetter(true);
+  PeptideHit hit(35.0, 0, 2, AASequence::fromString("PEPTIDEK"));
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("PROT1");
+  evidence.setAABefore('K');
+  evidence.setAAAfter('A');
+  hit.addPeptideEvidence(evidence);
+  hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
+  peptides[0].insertHit(hit);
+
+  // store writes the engine as "MASCOT"; the reader has to recognize that to keep "MS:1001172" for the next store:
+  for (Size pass = 1; pass <= 2; ++pass)
+  {
+    std::string file_out;
+    NEW_TMP_FILE(file_out);
+    PepXMLFile().store(file_out, proteins, peptides);
+    PepXMLFile().load(file_out, proteins, peptides);
+    TEST_EQUAL(proteins.size(), 1)
+    ABORT_IF(peptides.size() != 1 || peptides[0].getHits().size() != 1)
+    TEST_EQUAL(peptides[0].getScoreType(), "expect")
+    const PeptideHit& hit_new = peptides[0].getHits()[0];
+    TEST_EQUAL(hit_new.getSequence().toString(), "PEPTIDEK")
+    TEST_REAL_SIMILAR(hit_new.getScore(), 0.01)
+    TEST_EQUAL(hit_new.metaValueExists("MS:1001172"), true)
+    TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001172", 0.0)), 0.01)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - enzyme synonyms with uppercase letters)
+{
+  // "sample_enzyme" and "enzymatic_search_constraint" give the enzyme as "Glu-C", a synonym of "glutamyl endopeptidase" (#10571)
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_enzyme_synonym.pepxml"), proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(peptides.size(), 1)
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "glutamyl endopeptidase")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

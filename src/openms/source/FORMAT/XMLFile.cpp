@@ -8,9 +8,12 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 
+#include <OpenMS/CONCEPT/Init.h>
+
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
 #ifdef WITH_S3
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 #endif
@@ -18,6 +21,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -34,6 +38,7 @@
 #include <streambuf>
 
 #include <memory>
+#include <xercesc/util/XMLString.hpp>
 
 using namespace std;
 
@@ -84,8 +89,10 @@ private:
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
-      parser->setContentHandler(handler);
-      parser->setErrorHandler(handler);
+      // XMLHandler exposes only Xerces-free callbacks; bridge it to the SAX parser.
+      SAX2HandlerAdapter adapter(*handler);
+      parser->setContentHandler(&adapter);
+      parser->setErrorHandler(&adapter);
 
 
       // try to parse file
@@ -137,7 +144,7 @@ private:
       // initialize parser
       try
       {
-        xercesc::XMLPlatformUtils::Initialize();
+        Internal::xercesInitialize(); // serialised: Xerces requires it, and parseBuffer_() runs on several threads at once
       }
       catch (const xercesc::XMLException & toCatch)
       {
@@ -209,7 +216,7 @@ private:
       // initialize parser
       try
       {
-        xercesc::XMLPlatformUtils::Initialize();
+        Internal::xercesInitialize(); // serialised: Xerces requires it, and parseBuffer_() runs on several threads at once
       }
       catch (const xercesc::XMLException & toCatch)
       {
@@ -238,9 +245,10 @@ private:
 
     void XMLFile::save_(const std::string & filename, XMLHandler * handler) const
     {
-      // Detect compression from filename extension
-      const bool use_gzip = StringUtils::hasSuffix(filename, ".gz");
-      const bool use_bzip2 = StringUtils::hasSuffix(filename, ".bz2");
+      // Detect compression from filename extension, in any letter case like on input (and in TOPPBase's check)
+      const FileTypes::Type compression = FileNameUtils::compressionType(filename);
+      const bool use_gzip = compression == FileTypes::GZ;
+      const bool use_bzip2 = compression == FileTypes::BZ2;
 
       if (use_gzip)
       {

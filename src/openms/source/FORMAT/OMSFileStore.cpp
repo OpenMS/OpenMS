@@ -10,6 +10,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <SQLiteCpp/Database.h>
 #include <SQLiteCpp/Transaction.h>
@@ -22,7 +23,7 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
-  constexpr int version_number = 5; // increase this whenever the DB schema changes!
+  constexpr int version_number = 6; // increase this whenever the DB schema changes!
 
   void raiseDBError_(const std::string& error, int line, const char* function,
                      const std::string& context, const std::string& query)
@@ -521,9 +522,9 @@ namespace OpenMS::Internal
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "software_id INTEGER NOT NULL, "                                  \
       "date_time TEXT, "                                                \
-      "search_param_id INTEGER, "                                       \
+      "search_param_id INTEGER, "
+      "processing_actions TEXT, "                                       \
       "FOREIGN KEY (search_param_id) REFERENCES ID_DBSearchParam (id)");
-    // @TODO: add support for processing actions
     // @TODO: store primary files in a separate table (like input files)?
     // @TODO: store (optional) search param reference in a separate table?
 
@@ -531,7 +532,8 @@ namespace OpenMS::Internal
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":date_time, "                                \
-                  ":search_param_id)");
+                  ":search_param_id, "
+                  ":processing_actions)");
     bool any_input_files = false;
     Key id = 1;
     // use iterator here because we need one to look up the DB search params:
@@ -542,7 +544,13 @@ namespace OpenMS::Internal
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bind(":id", id);
       query.bind(":software_id", processing_software_keys_[&(*step.software_ref)]);
-      query.bind(":date_time", step.date_time.get());
+      query.bind(":date_time", step.date_time.toString("yyyy-MM-ddThh:mm:ss.zzz"));
+      StringList action_names;
+      for (const auto action : step.actions)
+      {
+        action_names.push_back(DataProcessing::processingActionToString(action));
+      }
+      query.bind(":processing_actions", ListUtils::concatenate(action_names, ","));
       auto pos = id_data.getDBSearchSteps().find(step_ref);
       if (pos != id_data.getDBSearchSteps().end())
       {

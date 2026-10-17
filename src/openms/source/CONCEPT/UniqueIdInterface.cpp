@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 
 namespace OpenMS

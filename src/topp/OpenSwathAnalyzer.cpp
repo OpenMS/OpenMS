@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -17,6 +18,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
 #include <memory>
@@ -75,7 +77,7 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
+           "Picks peaks and finds features in an SWATH-MS or SRM experiment.")
   {
   }
 
@@ -201,7 +203,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(file_list.size()); ++i)
     {
       MRMFeatureFinderScoring featureFinder;
       std::shared_ptr<MapType> swath_map (new MapType());
@@ -241,7 +243,7 @@ protected:
         featureFinder.pickExperiment(chromatogram_ptr, featureFile,
                                      transition_exp_used, trafo, swath_maps, transition_group_map);
 
-        // write all features and the protein identifications from tmp_featureFile into featureFile
+        // write all features from tmp_featureFile into featureFile (their protein identification run is added below)
 #ifdef _OPENMP
 #pragma omp critical (featureFinder)
 #endif
@@ -250,14 +252,13 @@ protected:
           {
             out_featureFile.push_back(feature);
           }
-          for (const ProteinIdentification& protid : featureFile.getProteinIdentifications())
-          {
-            out_featureFile.getProteinIdentifications().push_back(protid);
-          }
-
         }
       } // end of do_continue
     } // end of loop over all files / end of OpenMP
+
+    // the protein identification run the features of every file reference, once (not once per file, which repeated
+    // its identifier), with the proteins of the transition list in its order
+    MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
 
     addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
     out_featureFile.ensureUniqueId();

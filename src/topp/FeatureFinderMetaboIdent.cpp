@@ -23,7 +23,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/OMSFileLoad.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <cmath>
 
@@ -100,12 +100,12 @@ Features representing the same analyte detected at different CV values are merge
 No special preparation of the input mzML file is required.
 
 @b Bruker @b TimsTOF (trapped ion mobility):
-TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
-single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+The .d directory (or a zipped .d.zip) can be given as input directly: its MS1 data is read as one spectrum per
+frame, with the ion mobility of every peak. An mzML file with the same layout can be created with msconvert and
+its @p --combineIonMobilitySpectra option:
 @code
 msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
 @endcode
-The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
 Ion mobility values for targets can be specified in the @p IonMobility column of the input TSV file.
 The extraction window is controlled by @p extract:im_window.
 

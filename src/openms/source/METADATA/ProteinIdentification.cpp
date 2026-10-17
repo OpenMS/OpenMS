@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -32,7 +33,11 @@ namespace OpenMS
 
   bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return std::tie(probability, accessions) == std::tie(rhs.probability, rhs.accessions);
+    // The data arrays are part of the group's state - they carry the quantities attached by
+    // PeptideAndProteinQuant - so they have to be compared. Leaving them out made store/load tests
+    // pass while every quantity was being dropped.
+    return std::tie(probability, accessions, float_data_arrays_, string_data_arrays_, integer_data_arrays_)
+        == std::tie(rhs.probability, rhs.accessions, rhs.float_data_arrays_, rhs.string_data_arrays_, rhs.integer_data_arrays_);
   }
 
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
@@ -95,6 +100,72 @@ namespace OpenMS
   void ProteinIdentification::ProteinGroup::setIntegerDataArrays(const ProteinIdentification::ProteinGroup::IntegerDataArrays& ida)
   {
     integer_data_arrays_ = ida;
+  }
+
+  ProteinIdentification::ProteinGroup::IntegerDataArray& ProteinIdentification::ProteinGroup::getIntegerDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+      [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    if (it == integer_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IntegerDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  ProteinIdentification::ProteinGroup::StringDataArray& ProteinIdentification::ProteinGroup::getStringDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+      [&name](const StringDataArray& da) { return da.getName() == name; } );
+    if (it == string_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("StringDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  ProteinIdentification::ProteinGroup::FloatDataArray& ProteinIdentification::ProteinGroup::getFloatDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+      [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    if (it == float_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("FloatDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::IntegerDataArray& ProteinIdentification::ProteinGroup::getIntegerDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+      [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    if (it == integer_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IntegerDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::StringDataArray& ProteinIdentification::ProteinGroup::getStringDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+      [&name](const StringDataArray& da) { return da.getName() == name; } );
+    if (it == string_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("StringDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::FloatDataArray& ProteinIdentification::ProteinGroup::getFloatDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+      [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    if (it == float_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("FloatDataArray: ") + name);
+    }
+    return *it;
   }
 
   ProteinIdentification::SearchParameters::SearchParameters() :
@@ -396,16 +467,9 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
-    setMetaValue(meta_name, DataValue(StringList()));
-    if (s.empty())
-    {
-      OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
-    }
-    else
-    {
-      addPrimaryMSRunPath(s, raw);
-    }
+    // an empty list names no files and is not stored
+    removeMetaValue(raw ? "spectra_data_raw" : "spectra_data");
+    addPrimaryMSRunPath(s, raw);
   }
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
@@ -414,7 +478,7 @@ namespace OpenMS
     e.getPrimaryMSRunPath(ms_path);
     if (ms_path.size() == 1)
     {
-      FileTypes::Type filetype = FileHandler::getTypeByFileName(ms_path[0]);
+      FileTypes::Type filetype = FileNameUtils::getTypeByFileName(ms_path[0]);
       if ((filetype == FileTypes::MZML) && File::exists(ms_path[0]))
       {
         setMetaValue("spectra_data", DataValue(StringList({ms_path[0]})));
@@ -440,12 +504,16 @@ namespace OpenMS
 
   void ProteinIdentification::addPrimaryMSRunPath(const StringList& s, bool raw)
   {
+    if (s.empty())
+    {
+      return;
+    }
     std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
       for (const std::string &filename : s)
       {
-        FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
+        FileTypes::Type filetype = FileNameUtils::getTypeByFileName(filename);
         if (filetype != FileTypes::MZML)
         {
           OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"
@@ -456,6 +524,21 @@ namespace OpenMS
     StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
     spectra_data.insert(spectra_data.end(), s.begin(), s.end());
     setMetaValue(meta_name, spectra_data);
+  }
+
+  void ProteinIdentification::removeEmptyPrimaryMSRunPaths()
+  {
+    for (const char* meta_name : {"spectra_data", "spectra_data_raw"})
+    {
+      if (metaValueExists(meta_name))
+      {
+        const DataValue& value = getMetaValue(meta_name);
+        if (value.valueType() == DataValue::STRING_LIST && value.toStringList().empty())
+        {
+          removeMetaValue(meta_name);
+        }
+      }
+    }
   }
 
   void ProteinIdentification::addPrimaryMSRunPath(const std::string& s, bool raw)
@@ -544,7 +627,10 @@ namespace OpenMS
       {
         if (StringUtils::hasPrefix(mvkey, se))
         {
-          result.emplace_back(StringUtils::substr(mvkey, se.size()+1), params.getMetaValue(mvkey));
+          // Lenient stringification: settings meta values may be non-string (e.g. an
+          // Int like missed_cleavages). DataValue's implicit operator std::string() is
+          // strict (throws on non-string), so convert explicitly like the cases above.
+          result.emplace_back(StringUtils::substr(mvkey, se.size()+1), StringUtils::toStr(params.getMetaValue(mvkey)));
         }
       }
     }

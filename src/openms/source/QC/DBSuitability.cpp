@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -25,6 +26,7 @@
 #include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <random>
 
@@ -225,7 +227,7 @@ namespace OpenMS
     const set<std::string>& accessions = hit.extractProteinAccessionsSet();
     for (const std::string& acc : accessions)
     {
-      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !boost::regex_search(StringUtils::toLowered(std::string(acc)), decoy_pattern_))
+      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !decoy_pattern_.search(StringUtils::toLowered(std::string(acc))))
       {
         return false;
       }
@@ -311,7 +313,7 @@ namespace OpenMS
 
     // temporary folder for search in- und output files
     bool keep_files = param_.getValue("keep_search_files").toBool();
-    File::TempDir tmp_dir(keep_files);
+    TempDir tmp_dir(keep_files);
     std::string mzml_path = tmp_dir.getPath() + "spectra.mzML";
     std::string db_path = tmp_dir.getPath() + "database.FASTA";
     std::string out_path = tmp_dir.getPath() + "out.idXML";
@@ -614,7 +616,7 @@ namespace OpenMS
           {
             continue;
           }
-          if (boost::regex_search(StringUtils::toLowered(std::string(acc)), decoy_pattern_))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
+          if (decoy_pattern_.search(StringUtils::toLowered(std::string(acc))))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
           {
             continue;
           }

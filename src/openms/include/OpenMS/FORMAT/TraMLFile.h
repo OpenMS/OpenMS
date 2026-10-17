@@ -10,7 +10,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 namespace OpenMS
 {

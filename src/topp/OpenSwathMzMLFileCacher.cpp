@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 // TODO move transform to handler
 #include <OpenMS/FORMAT/MzMLFile.h>
 

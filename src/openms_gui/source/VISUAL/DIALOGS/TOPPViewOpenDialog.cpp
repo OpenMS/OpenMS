@@ -64,7 +64,7 @@ namespace OpenMS
       ui_->window_->setChecked(true);
       ui_->window_->setFocus();
     }
-    connect(ui_->merge_combo_, SIGNAL(activated(int)), ui_->merge_, SLOT(click()));
+    connect(ui_->merge_combo_, &QComboBox::activated, ui_->merge_, &QRadioButton::click);
 
     //set title
     setWindowTitle(toQString((std::string("Open data options for ") + data_name)));

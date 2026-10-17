@@ -353,6 +353,22 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((instrument configurations are copied and compared))
+{
+  ExperimentalSettings original;
+  Instrument instrument;
+  instrument.setName("Orbitrap Astral");
+  original.getInstrumentConfigurations()["astral"] = instrument;
+  ExperimentalSettings copy(original);
+  TEST_EQUAL(copy, original)
+  TEST_EQUAL(copy.getInstrumentConfigurations().at("astral").getName(), "Orbitrap Astral")
+  copy.getInstrumentConfigurations().at("astral").setName("Q Exactive");
+  TEST_NOT_EQUAL(copy, original)
+  copy.setInstrumentConfigurations(original.getInstrumentConfigurations());
+  TEST_EQUAL(copy, original)
+}
+END_SECTION
+
 END_TEST
 
 

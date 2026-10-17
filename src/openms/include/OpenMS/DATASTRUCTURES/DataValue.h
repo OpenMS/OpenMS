@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/OpenMSConfig.h>
+
+#include <cmath>
 
 namespace OpenMS
 {
@@ -84,21 +85,21 @@ public:
     DataValue(double);
     /// specific constructor for float values (note: the implementation uses double)
     DataValue(float);
-    /// specific constructor for short int values (note: the implementation uses SignedSize)
+    /// specific constructor for short int values (note: the implementation uses Int64)
     DataValue(short int);
-    /// specific constructor for unsigned short int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned short int values (note: the implementation uses Int64)
     DataValue(unsigned short int);
-    /// specific constructor for int values (note: the implementation uses SignedSize)
+    /// specific constructor for int values (note: the implementation uses Int64)
     DataValue(int);
-    /// specific constructor for unsigned int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned int values (note: the implementation uses Int64)
     DataValue(unsigned);
-    /// specific constructor for long int values (note: the implementation uses SignedSize)
+    /// specific constructor for long int values (note: the implementation uses Int64)
     DataValue(long int);
-    /// specific constructor for unsigned long int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned long int values (note: the implementation uses Int64)
     DataValue(unsigned long);
-    /// specific constructor for long long int values (note: the implementation uses SignedSize)
+    /// specific constructor for long long int values (note: the implementation uses Int64)
     DataValue(long long);
-    /// specific constructor for unsigned long long int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned long long int values (note: the implementation uses Int64)
     DataValue(unsigned long long);
     /// specific constructor for ParamValue
     DataValue(const ParamValue&);
@@ -185,7 +186,7 @@ public:
     /**
       @brief conversion operator to short int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -194,7 +195,7 @@ public:
     /**
       @brief conversion operator to unsigned short int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -203,7 +204,7 @@ public:
     /**
       @brief conversion operator to int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -213,7 +214,7 @@ public:
     /**
       @brief conversion operator to unsigned int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -222,7 +223,7 @@ public:
     /**
       @brief conversion operator to long int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -231,7 +232,7 @@ public:
     /**
       @brief conversion operator to unsigned long int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -240,7 +241,7 @@ public:
     /**
       @brief conversion operator to long long
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -249,7 +250,7 @@ public:
     /**
       @brief conversion operator to unsigned long long
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses Int64.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -317,21 +318,21 @@ public:
     DataValue& operator=(const double);
     /// specific assignment for float values (note: the implementation uses double)
     DataValue& operator=(const float);
-    /// specific assignment for short int values (note: the implementation uses SignedSize)
+    /// specific assignment for short int values (note: the implementation uses Int64)
     DataValue& operator=(const short int);
-    /// specific assignment for unsigned short int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned short int values (note: the implementation uses Int64)
     DataValue& operator=(const unsigned short int);
-    /// specific assignment for int values (note: the implementation uses SignedSize)
+    /// specific assignment for int values (note: the implementation uses Int64)
     DataValue& operator=(const int);
-    /// specific assignment for unsigned int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned int values (note: the implementation uses Int64)
     DataValue& operator=(const unsigned);
-    /// specific assignment for long int values (note: the implementation uses SignedSize)
+    /// specific assignment for long int values (note: the implementation uses Int64)
     DataValue& operator=(const long int);
-    /// specific assignment for unsigned long int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned long int values (note: the implementation uses Int64)
     DataValue& operator=(const unsigned long);
-    /// specific assignment for long long int values (note: the implementation uses SignedSize)
+    /// specific assignment for long long int values (note: the implementation uses Int64)
     DataValue& operator=(const long long);
-    /// specific assignment for unsigned long long int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned long long int values (note: the implementation uses Int64)
     DataValue& operator=(const unsigned long long);
     //@}
 
@@ -407,7 +408,7 @@ protected:
     /// Space to store the data
     union
     {
-      SignedSize ssize_;
+      Int64 ssize_; ///< integer value; 64 bits on every platform (SignedSize would be 32 bits on wasm32)
       double dou_;
       std::string* str_;
       StringList* str_list_;

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <cmath> // for "exp"
 #include <limits> // for "infinity"
 #include <map>
@@ -236,14 +237,15 @@ namespace OpenMS
         if (n_assays - 1 <= n_decoys_) n_decoys_ = 0; // use all available assays
 
         decoy_index_.resize(n_assays);
-        for (Size i = 0; i < n_assays; ++i) decoy_index_[i] = boost::numeric_cast<Int>(i);
+        for (Size i = 0; i < n_assays; ++i)
+          decoy_index_[i] = OpenMS::checkedCast<Int>(i);
 
         // build mapping between assays and transitions:
         OPENMS_LOG_DEBUG << "Building transition map..." << std::endl;
         for (Size i = 0; i < library_.getTransitions().size(); ++i)
         {
           const std::string& ref = library_.getTransitions()[i].getPeptideRef();
-          transition_map_[ref].push_back(boost::numeric_cast<Int>(i));
+          transition_map_[ref].push_back(OpenMS::checkedCast<Int>(i));
         }
         // find min./max. RT in the library:
         OPENMS_LOG_DEBUG << "Determining retention time range..." << std::endl;

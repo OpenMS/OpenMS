@@ -6,10 +6,12 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 
 namespace OpenMS

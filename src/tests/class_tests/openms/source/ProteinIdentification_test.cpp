@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -348,6 +349,35 @@ START_SECTION((void setSearchParameters(const SearchParameters& search_parameter
 	param.db = "Mascot";
 	hits.setSearchParameters(param);
 	TEST_EQUAL(hits.getSearchParameters() == ProteinIdentification::SearchParameters(), false)
+END_SECTION
+
+
+START_SECTION((std::vector<std::pair<std::string, std::string> > getSearchEngineSettingsAsPairs(const std::string& se = "") const))
+{
+	// Regression (ProteomicsLFQ mzTab export crash): non-string search settings such
+	// as an Int missed_cleavages must be stringified, not throw. DataValue's implicit
+	// operator std::string() is strict (throws on non-string) since the String class
+	// was removed, so this method must convert leniently (StringUtils::toStr).
+	ProteinIdentification prot;
+	prot.setSearchEngine("ConsensusID"); // merged run: per-engine settings live as meta values
+	ProteinIdentification::SearchParameters sp;
+	sp.setMetaValue("Comet:missed_cleavages", 2);    // Int    -- used to crash here
+	sp.setMetaValue("Comet:fragment_bin_tol", 0.02); // Double
+	sp.setMetaValue("Comet:enzyme", "Trypsin");      // String
+	prot.setSearchParameters(sp);
+
+	std::string missed, enzyme;
+	bool have_tol = false;
+	for (const std::pair<std::string, std::string>& kv : prot.getSearchEngineSettingsAsPairs("Comet"))
+	{
+		if (kv.first == "missed_cleavages") { missed = kv.second; }
+		else if (kv.first == "enzyme") { enzyme = kv.second; }
+		else if (kv.first == "fragment_bin_tol") { have_tol = true; }
+	}
+	TEST_EQUAL(missed == "2", true)
+	TEST_EQUAL(enzyme == "Trypsin", true)
+	TEST_EQUAL(have_tol, true)
+}
 END_SECTION
 
 
@@ -942,6 +972,54 @@ START_SECTION((get*DataArrayByName throws ElementNotFound for missing name))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getIntegerDataArrayByName("missing_int"))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getStringDataArrayByName("missing_str"))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getFloatDataArrayByName("missing_float"))
+}
+END_SECTION
+
+START_SECTION((void setPrimaryMSRunPath(const StringList& s, bool raw = false)))
+{
+  ProteinIdentification run;
+  run.setPrimaryMSRunPath(StringList({"a.mzML", "b.mzML"}));
+  StringList files;
+  run.getPrimaryMSRunPath(files);
+  TEST_EQUAL(files == StringList({"a.mzML", "b.mzML"}), true)
+  // an empty list names no files and is not stored
+  run.setPrimaryMSRunPath(StringList());
+  TEST_EQUAL(run.metaValueExists("spectra_data"), false)
+  run.setPrimaryMSRunPath(StringList({"a.raw"}), true);
+  run.setPrimaryMSRunPath(StringList(), true);
+  TEST_EQUAL(run.metaValueExists("spectra_data_raw"), false)
+  ProteinIdentification without_files;
+  without_files.setPrimaryMSRunPath(StringList());
+  TEST_EQUAL(without_files.metaValueExists("spectra_data"), false)
+}
+END_SECTION
+
+START_SECTION((void addPrimaryMSRunPath(const StringList& s, bool raw = false)))
+{
+  ProteinIdentification run;
+  run.addPrimaryMSRunPath(StringList());
+  TEST_EQUAL(run.metaValueExists("spectra_data"), false)
+  run.addPrimaryMSRunPath(StringList({"a.mzML"}));
+  run.addPrimaryMSRunPath(StringList());
+  run.addPrimaryMSRunPath("b.mzML");
+  TEST_EQUAL(run.nrPrimaryMSRunPaths(), 2)
+}
+END_SECTION
+
+START_SECTION((void removeEmptyPrimaryMSRunPaths()))
+{
+  ProteinIdentification run;
+  run.setMetaValue("spectra_data", StringList());
+  run.setMetaValue("spectra_data_raw", StringList());
+  run.removeEmptyPrimaryMSRunPaths();
+  TEST_EQUAL(run.metaValueExists("spectra_data"), false)
+  TEST_EQUAL(run.metaValueExists("spectra_data_raw"), false)
+  // lists that name files stay
+  run.setPrimaryMSRunPath(StringList({"a.mzML"}));
+  run.setPrimaryMSRunPath(StringList({"a.raw"}), true);
+  run.removeEmptyPrimaryMSRunPaths();
+  TEST_EQUAL(run.nrPrimaryMSRunPaths(), 1)
+  TEST_EQUAL(run.nrPrimaryMSRunPaths(true), 1)
 }
 END_SECTION
 
