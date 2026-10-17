@@ -1409,6 +1409,64 @@ test("ProSEResultSet.delete() releases the results", async () => {
   });
 });
 
+// WebAssembly: ProSE's PeptDeep batches are smaller than natively (500): ONNX Runtime has no memory arena there, and the
+// memory of large tensors is not reused.
+test("ProSEAlgorithm: peptdeep:batch_size is 128 by default", () => {
+  using([new OpenMS.ProSEAlgorithm()], (prose) => {
+    using([prose.getDefaults()], (defaults) => assert.equal(defaults.toObject()["peptdeep:batch_size"], 128));
+    assert.equal(prose.getParameterValues()["peptdeep:batch_size"], 128);
+  });
+});
+
+// A module with ONNX Runtime: a PeptDeep-rescored search does not take memory per file beyond the search's own. A module
+// of its own, whose memory grows with these searches only. The spectra of DatabaseSuitability_in_spec.mzML twice (the
+// copy with other native IDs and later retention times): the sample of confident PSMs on which PeptDeepRescoring selects
+// the collision energy then holds most peptides twice. Before ONNXPredictorBase did without ONNX Runtime's memory
+// pattern and PeptDeepRescoring predicted each peptide of that sample once, the heap was 1.4 GB after the first search
+// and 3.3 GB after the second. The heap of a threaded search still grows from search to search, also without PeptDeep
+// (see "ProSEResultSet.delete() releases the results"), but by far less than the bound.
+test("ProSEAlgorithm: repeated PeptDeep searches do not grow the heap per file (ONNX Runtime)", async (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ print: () => {}, printErr: () => {}, numThreads: 4 });
+  m.mountHostDirectory("/topp", toppDataDir);
+  m.mountHostDirectory("/models", path.join(path.dirname(modulePath), "models"));
+  m.FS.mkdir("/twice");
+  using([new m.MzMLFile(), new m.MSExperiment(), new m.MSExperiment()], (mzml, spectra, twice) => {
+    mzml.load("/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML", spectra);
+    let lastRT = 0;
+    for (let i = 0; i < spectra.size(); ++i) using([spectra.getSpectrum(i)], (s) => { lastRT = Math.max(lastRT, s.getRT()); });
+    for (let copy = 0; copy < 2; ++copy) {
+      for (let i = 0; i < spectra.size(); ++i) {
+        using([spectra.getSpectrum(i)], (s) => {
+          s.setNativeID(`scan=${copy * spectra.size() + i + 1}`);
+          s.setRT(s.getRT() + copy * (lastRT + 1));
+          twice.addSpectrum(s);
+        });
+      }
+    }
+    mzml.store("/twice/spectra.mzML", twice);
+  });
+  const heapAfterSearch = () => using([new m.ProSEAlgorithm(), new m.ProteinIdentificationList(), new m.PeptideIdentificationList()],
+    (prose, proteins, peptides) => {
+      prose.setParameterValues({
+        "enzyme": "Trypsin", "decoys": "generate",
+        "precursor:mass_tolerance_lower": 20, "precursor:mass_tolerance_upper": 20, "precursor:mass_tolerance_unit": "ppm",
+        "fragment:mass_tolerance": 10, "fragment:mass_tolerance_unit": "ppm",
+        "modifications:fixed": ["Carbamidomethyl (C)"], "modifications:variable": ["Oxidation (M)"],
+        "FDR:PSM": 0.01, "FDR:protein": 0,
+        "peptdeep:enable": true,
+        "peptdeep:ms2_model": "/models/peptdeep_ms2_dynamic.onnx", "peptdeep:rt_model": "/models/peptdeep_rt_dynamic.onnx",
+      });
+      const summary = prose.search("/twice/spectra.mzML", suitabilityDatabase, proteins, peptides, { rescore: false });
+      assert.equal(summary.status, "EXECUTION_OK");
+      return m.getMemoryInfo().heapSize;
+    });
+  const h1 = heapAfterSearch();
+  const h2 = heapAfterSearch();
+  assert.ok(h2 - h1 < 400 * 1024 * 1024, `the heap grew from ${h1} to ${h2} bytes by the second search`);
+});
+
 test("annotateSpectrum: b and y ions of a theoretical spectrum", () => {
   using([OpenMS.AASequence.fromString("PEPTIDEK"), new OpenMS.TheoreticalSpectrumGenerator(), new OpenMS.MSSpectrum()],
     (peptide, generator, spectrum) => {
