@@ -852,6 +852,9 @@ TOPP tools:
         consensus features, half of the values zero; they now cover each feature once (#10498).
       - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
         spectra are now skipped as unidentified (#10497).
+      - FIX: the consensusXML peptide-per-map counts indexed a vector of map positions with map ids,
+        which wrote out of bounds (or crashed) and miscounted when map ids are not 0..n-1; the
+        counts are now kept per map id (#10496).
     QualityControl:
       - FIX: The identifications of a feature are sorted best first according to their score
         direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
