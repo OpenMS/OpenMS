@@ -40,6 +40,14 @@ namespace OpenMS
     - Transition: requires prior MS2/MS1MS2 scoring and writes
       SCORE_TRANSITION / score_transition_*
 
+    For MS1, MS2 and MS1MS2 scoring, Percolator is trained on the best peak
+    group of every precursor of every run (by the parameter
+    training_main_score) plus at most percolator:subset_max_train other peak
+    groups drawn at random, and the model is then applied to all peak groups.
+    A plain random sample is not used because true peak groups are rare among
+    all candidates. percolator:subset_max_train = 0 trains on all peak groups.
+    Transitions are always trained on all rows.
+
     Transition-level scoring reuses the historical OpenMS / PyProphet-style
     candidate filters: only transitions from non-decoy precursors whose
     peak-group rank and PEP pass the configured thresholds and whose
