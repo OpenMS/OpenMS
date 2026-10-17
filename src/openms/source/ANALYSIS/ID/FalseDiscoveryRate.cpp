@@ -1203,6 +1203,8 @@ namespace OpenMS
       }
     }
 
+    // The best hit of each identification is the one that is scored (and kept).
+    map.applyFunctionOnPeptideIDs([](PeptideIdentification& id) { id.sort(); }, include_unassigned);
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, map, include_unassigned);
 
@@ -1242,6 +1244,8 @@ namespace OpenMS
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
 
+    // The best hit of each identification is the one that is scored (and kept).
+    for (auto& id : ids) { id.sort(); }
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, ids);
 

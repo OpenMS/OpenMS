@@ -818,7 +818,8 @@ END_SECTION
 START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identification (the one it scores))
 {
   // Only the best hit of each identification gets a peptide q-value. A second hit would keep its
-  // search score (0.1) under the q-value score type and pass a q-value filter at 0.25.
+  // search score (0.1) under the q-value score type and pass a q-value filter at 0.25. The best hit
+  // is kept even when it is not stored first.
   auto make_map = []()
   {
     ConsensusMap cmap;
@@ -839,6 +840,12 @@ START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identifica
         hits.push_back(hits[0]);
         hits[1].setSequence(AASequence::fromString("KKKKKKKK"));
         hits[1].setScore(0.1);
+      }
+      if (sequence == "CCCCCCCK") // the same, but stored before the best hit
+      {
+        hits.insert(hits.begin(), hits[0]);
+        hits[0].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[0].setScore(0.1);
       }
       PeptideIdentification id;
       id.setIdentifier("run");
