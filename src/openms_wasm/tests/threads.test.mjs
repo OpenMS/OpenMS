@@ -14,10 +14,8 @@ const withoutThreads = !info.threaded && "built without threads";
 async function createInstance(options) {
   const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
   const instance = await createOpenMS({ print: () => {}, printErr: () => {}, ...options });
-  instance.FS.mkdir("/data");
-  instance.FS.mount(instance.FS.filesystems.NODEFS, { root: testDataDir }, "/data");
-  instance.FS.mkdir("/topp");
-  instance.FS.mount(instance.FS.filesystems.NODEFS, { root: toppDataDir }, "/topp");
+  instance.mountHostDirectory("/data", testDataDir);
+  instance.mountHostDirectory("/topp", toppDataDir);
   return instance;
 }
 

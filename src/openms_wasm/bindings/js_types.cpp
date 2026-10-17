@@ -73,6 +73,7 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
   // processing
   register_type<Alignment>("[number, number][]");
   register_type<ThreadingInfo>("ThreadingInfo", "{ threaded: boolean; available: boolean; numThreads: number }");
+  register_type<MemoryInfo>("MemoryInfo", "{ heapSize: number; heapMax: number }");
 
   // files
   register_type<PeakFileOptions>("PeakFileOptions",
@@ -95,6 +96,41 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
   register_type<ProteinIdentificationObjects>("ProteinIdentificationData[]");
   register_type<PeptideHitList>("PeptideHit[]");
   register_type<ProteinHitList>("ProteinHit[]");
+  register_type<PeakAnnotations>("{ mz: number; intensity: number; annotation: string; charge: number }[]");
+
+  // ProSE
+  register_type<ProgressCallback>(
+    "((progress: { event: 'start' | 'progress' | 'end'; label: string; depth: number; begin: number; end: number; value: number }) => void) "
+    "| null | undefined");
+  register_type<ProSESummary>("ProSESummary",
+    "{ status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
+    "openSearch: boolean; haveDecoys: boolean; decoyString: string; decoyIsPrefix: boolean; proteinFDRApplied: boolean; "
+    "percolator: { applied: boolean; skipped: string | null; seconds: number } | null; "
+    "run: { inputFile: string; ms2Spectra: number; matchedSpectra: number; targetPSMs: number; decoyPSMs: number; "
+    "fdrApplied: boolean; achievedPsmFDR: number | null; uniquePeptides: number; uniqueProteins: number; "
+    "chargeHistogram: Record<string, number>; missedCleavageHistogram: Record<string, number>; "
+    "hyperscore?: { min: number; median: number; max: number }; "
+    "precursorError: { median: number; mad: number; recommended: number } | null; "
+    "fragmentError: { median: number; mad: number; recommended: number } | null; "
+    "secondsSearch: number; secondsCalibration: number; secondsFDR: number }; "
+    "search: { databaseFile: string; enzyme: string; openSearch: boolean; calibration: boolean; chunked: boolean; "
+    "decoyMode: string; targetProteins: number; decoyProteins: number; indexedPeptides: number; indexedFragments: number; "
+    "secondsIndexBuild: number; secondsTotal: number }; "
+    "modificationAnalysis: { "
+    "deltaMasses: { totalPSMs: number; modifiedPSMs: number; unmodifiedPSMs: number; meanDeltaMass: number; medianDeltaMass: number; "
+    "entries: { deltaMass: number; count: number; uniquePeptides: number; chargeStates: number; percentage: number; "
+    "modification: string; known: boolean }[] }; "
+    "ptms: { totalModifiedPSMs: number; unknownModificationPSMs: number; uniqueModifications: number; "
+    "entries: { name: string; theoreticalMass: number; observedMass: number; massDeviation: number; count: number; "
+    "uniquePeptides: number; chargeStates: number; percentage: number; targetResidues: string; residueCounts: Record<string, number> }[] } "
+    "} | null }");
+  register_type<ProSEOptions>("ProSEOptions", "{ /** Percolator rescoring (default: true) */ rescore?: boolean } | null | undefined");
+  register_type<AnnotationOptions>("AnnotationOptions",
+    "{ tolerance?: number; unit?: 'Da' | 'ppm'; maxCharge?: number; ions?: ('a' | 'b' | 'c' | 'x' | 'y' | 'z')[]; "
+    "losses?: boolean; precursor?: boolean } | null | undefined");
+  register_type<SpectrumAnnotation>("SpectrumAnnotation",
+    "{ matches: { mz: number; intensity: number; ion: string; charge: number; theoreticalMZ: number; error: number }[]; "
+    "theoretical: { mz: Float64Array; ion: string[]; charge: number[] }; unit: 'Da' | 'ppm' }");
 
   // features
   register_type<BoundingBox>("BoundingBox", "{ minRT: number; maxRT: number; minMZ: number; maxMZ: number }");

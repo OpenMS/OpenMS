@@ -745,7 +745,12 @@ if(WITH_ONNX AND NOT OPENMS_USE_INSTALLED_LIBRARY)
     find_package(onnxruntime CONFIG REQUIRED)
   else()
     find_package(ONNXRuntime REQUIRED)
-  endif() 
+  endif()
+  # The CMake config of a static ONNX Runtime (e.g. WebAssembly) imports nlohmann_json as a
+  # dependency: use that target instead of the vendored one, as for Arrow (cmake_findExternalLibs.cmake).
+  if(TARGET nlohmann_json::nlohmann_json)
+    set(USE_EXTERNAL_JSON ON CACHE BOOL "Use an external nlohmann::json library" FORCE)
+  endif()
 endif()
 
 

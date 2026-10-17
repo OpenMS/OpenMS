@@ -21,6 +21,8 @@
 #include <emscripten/val.h>
 
 #include <cstdint>
+#include <new>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -48,6 +50,15 @@ namespace OpenMS::WASM
     catch (const Exception::BaseException& e)
     {
       return std::string(e.getName()) + ": " + e.what();
+    }
+    // Memory: a wasm32 module addresses at most 4 GB (and its memory does not shrink again)
+    catch (const std::bad_alloc&)
+    {
+      return "OutOfMemory: an allocation failed (a WebAssembly module can address at most 4 GB)";
+    }
+    catch (const std::length_error& e)
+    {
+      return std::string("OutOfMemory: ") + e.what() + ": a container would exceed what a 32-bit WebAssembly module can address";
     }
     catch (const std::exception& e)
     {

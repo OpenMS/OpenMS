@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProSE in the Browser</title>
+  <link rel="stylesheet" href="../browser/style.css">
+  <link rel="stylesheet" href="prose.css">
+</head>
+<body>
+  <header>
+    <h1>ProSE in the browser</h1>
+    <p class="subtitle">The OpenMS search engine ProSE, compiled to WebAssembly. Your spectra and database stay on this machine.</p>
+    <p id="status" class="status">Loading OpenMS…</p>
+  </header>
+
+  <!-- Input and settings ------------------------------------------------------------>
+  <section class="panel">
+    <div class="grid inputs">
+      <label class="drop-zone" id="spectra-drop">
+        <input id="spectra-file" type="file" accept=".mzML,.mzml">
+        <span><strong>Spectra</strong><br><span id="spectra-name">Drop an mzML file or click to choose one.</span></span>
+      </label>
+      <label class="drop-zone" id="database-drop">
+        <input id="database-file" type="file" accept=".fasta,.fa,.fas">
+        <span><strong>Protein database</strong><br><span id="database-name">Drop a FASTA file or click to choose one.</span></span>
+      </label>
+    </div>
+
+    <h2>Settings</h2>
+    <form id="settings">
+      <div id="common-parameters" class="parameters"></div>
+      <details id="all-parameters-box">
+        <summary>All parameters</summary>
+        <label class="inline"><input type="checkbox" id="show-advanced"> show advanced parameters</label>
+        <div id="all-parameters"></div>
+      </details>
+      <div class="row">
+        <label class="inline" title="Rescore the PSMs with Percolator, in-process, as the ProSE tool's -rescore: a model trained on the target and decoy PSMs replaces the search engine scores by q-values. Needs decoys and at least 100 PSMs.">
+          <input type="checkbox" id="rescore" checked> Rescore with Percolator</label>
+        <label class="inline" id="peptdeep-box" hidden title="PeptDeep (AlphaPeptDeep, ONNX Runtime) predicts the fragment intensities and the retention time of every PSM; their agreement with the spectrum becomes five more Percolator features (ProSE's peptdeep:enable). Loads the models (19 MB) on first use; needs Percolator rescoring.">
+          <input type="checkbox" id="peptdeep"> with PeptDeep features (predicted spectra and retention times)</label>
+      </div>
+      <div class="row">
+        <label>Threads
+          <select id="threads"></select>
+        </label>
+        <span id="threads-hint" class="hint"></span>
+      </div>
+      <div class="row">
+        <button id="run" type="submit" disabled>Search</button>
+        <button id="download-idxml" type="button" class="secondary" hidden>Download idXML</button>
+        <button id="download-tsv" type="button" class="secondary" hidden>Download PSMs (TSV)</button>
+        <button id="reload" type="button" class="secondary" hidden>Reload the page</button>
+      </div>
+      <div id="progress" class="progress" hidden>
+        <div class="bar"><div id="progress-bar"></div></div>
+        <span id="progress-label"></span>
+      </div>
+      <div id="error" class="error" hidden></div>
+    </form>
+  </section>
+
+  <!-- Results --------------------------------------------------------------------->
+  <section id="results" class="panel" hidden>
+    <h2>Summary</h2>
+    <div id="cards" class="cards"></div>
+
+    <div class="grid">
+      <div>
+        <h2>Score distribution</h2>
+        <svg id="score-plot" class="plot" viewBox="0 0 480 220" role="img" aria-label="Score distribution of target and decoy PSMs"></svg>
+      </div>
+      <div>
+        <h2>Precursor mass error</h2>
+        <svg id="precursor-error-plot" class="plot" viewBox="0 0 480 220" role="img" aria-label="Precursor mass error"></svg>
+      </div>
+    </div>
+
+    <div id="open-search" hidden>
+      <h2>Delta masses (open search)</h2>
+      <svg id="delta-mass-plot" class="plot wide" viewBox="0 0 960 240" role="img" aria-label="Delta mass histogram"></svg>
+      <div class="table-wrap">
+        <table id="ptm-table" class="data">
+          <thead><tr><th>Modification</th><th>Δ mass (theor.)</th><th>Δ mass (obs.)</th><th>PSMs</th><th>Peptides</th><th>%</th><th>Residues</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2>Peptide-spectrum matches</h2>
+    <div class="row">
+      <label>Filter <input id="psm-filter" type="search" placeholder="sequence, protein or spectrum" size="32"></label>
+      <label class="inline"><input type="checkbox" id="show-decoys"> show decoys</label>
+      <span id="psm-count" class="hint"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="psm-table" class="data selectable sortable">
+        <thead><tr>
+          <th data-key="index" data-type="number">#</th>
+          <th data-key="sequence">Sequence</th>
+          <th data-key="charge" data-type="number">z</th>
+          <th data-key="mz" data-type="number">m/z</th>
+          <th data-key="rt" data-type="number">RT (s)</th>
+          <th data-key="hyperscore" data-type="number">Score</th>
+          <th data-key="qValue" data-type="number">q-value</th>
+          <th data-key="precursorErrorPPM" data-type="number">Δ ppm</th>
+          <th data-key="deltaMass" data-type="number">Δ mass</th>
+          <th data-key="proteins">Proteins</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="psm-detail" hidden>
+      <h2 id="psm-title"></h2>
+      <div id="sequence-view" class="sequence-view"></div>
+      <div class="row">
+        <span class="hint">Ions:</span>
+        <label class="inline"><input type="checkbox" class="ion-type" value="a"> a</label>
+        <label class="inline"><input type="checkbox" class="ion-type" value="b" checked> b</label>
+        <label class="inline"><input type="checkbox" class="ion-type" value="c"> c</label>
+        <label class="inline"><input type="checkbox" class="ion-type" value="x"> x</label>
+        <label class="inline"><input type="checkbox" class="ion-type" value="y" checked> y</label>
+        <label class="inline"><input type="checkbox" class="ion-type" value="z"> z</label>
+        <label class="inline"><input type="checkbox" id="losses"> neutral losses</label>
+      </div>
+      <svg id="spectrum-plot" class="plot wide" viewBox="0 0 960 360" role="img" aria-label="Annotated spectrum with the theoretical spectrum mirrored below"></svg>
+      <div class="grid">
+        <div>
+          <h2>Fragment mass error</h2>
+          <svg id="fragment-error-plot" class="plot" viewBox="0 0 480 220" role="img" aria-label="Fragment mass error"></svg>
+        </div>
+        <div>
+          <h2>PSM features</h2>
+          <div class="table-wrap short"><table id="psm-meta" class="kv"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Proteins</h2>
+    <div class="table-wrap">
+      <table id="protein-table" class="data sortable">
+        <thead><tr>
+          <th data-key="accession">Accession</th>
+          <th data-key="score" data-type="number">Score</th>
+          <th data-key="coverage" data-type="number">Coverage (%)</th>
+          <th data-key="description">Description</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>Built with <a href="https://www.openms.org">OpenMS</a> <span id="version"></span> and Emscripten.
+       A service worker caches the module and isolates the page for threads where the server does not send the
+       headers <code>Cross-Origin-Opener-Policy: same-origin</code> and <code>Cross-Origin-Embedder-Policy: require-corp</code>;
+       a hard reload (Shift+Reload) bypasses it.</p>
+  </footer>
+
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>

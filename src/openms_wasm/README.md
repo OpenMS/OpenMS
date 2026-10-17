@@ -23,9 +23,9 @@ The bindings cover a selection of the OpenMS API, named as in C++ and pyOpenMS:
 | Chemistry | `AASequence`, `EmpiricalFormula`, `IsotopeDistribution`, `CoarseIsotopePatternGenerator`, `FineIsotopePatternGenerator`, `ResidueDB`, `ModificationsDB`, `ProteaseDB`, `ProteaseDigestion`, `TheoreticalSpectrumGenerator` |
 | Signal processing | `PeakPickerHiRes`, `GaussFilter`, `SavitzkyGolayFilter`, `Normalizer`, `ThresholdMower`, `WindowMower`, `NLargest`, `SpectrumAlignment`, `SpectrumAlignmentScore` |
 | Features | `Feature`, `FeatureMap`, `ConsensusMap`, `MassTraceDetection`, `ElutionPeakDetection`, `FeatureFindingMetabo` |
-| Identification | `PeptideHit`, `PeptideIdentification(List)`, `ProteinHit`, `ProteinIdentification(List)`, `SimpleSearchEngineAlgorithm` |
+| Identification | `PeptideHit` (with `getPeakAnnotations()`), `PeptideIdentification(List)`, `ProteinHit`, `ProteinIdentification(List)`, `SimpleSearchEngineAlgorithm`, `ProSEAlgorithm`, `annotateSpectrum()` |
 | Parameters | `Param`, and on every algorithm `getParameters()`/`setParameters()`, `getParameterValues()`/`setParameterValues({...})` |
-| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, the file system `FS` |
+| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, `getThreadingInfo()`, `getMemoryInfo()`, the file system `FS` with `mountHostDirectory()` and `unmount()` |
 
 `openms.d.ts` declares all of them for TypeScript, including the shapes of the plain objects
 they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
@@ -37,7 +37,10 @@ they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
 `openms.mjs` is an ES module whose default export creates an instance of the
 library. It loads `openms.wasm` from the directory it was loaded from; the file includes
 OpenMS' shared data (modifications, enzymes, controlled vocabularies, ...), which the
-library finds at `/share/OpenMS` of its file system. Options of
+library finds at `/share/OpenMS` of its file system. Serve `openms.wasm` so that browsers
+can cache it (e.g. `Cache-Control: public, max-age=31536000, immutable` for a versioned
+path): Chrome then also keeps the compiled code, and the module starts and runs faster from
+the second visit on (see Performance below). Options of
 [Emscripten's Module object](https://emscripten.org/docs/api_reference/module.html) can
 be passed, e.g. to redirect OpenMS' log output or to locate the files elsewhere:
 
@@ -51,8 +54,7 @@ OpenMS.setLogEnabled("info", false);       // silence progress messages
 ```
 
 Browsers have to serve `openms.wasm` as `application/wasm`. Large files are best
-processed in a Web Worker, so that the page stays responsive; a worker can also read the
-user's file directly, without copying it into memory first:
+processed in a Web Worker, so that the page stays responsive:
 
 ```js
 // worker.mjs, started with new Worker("worker.mjs", { type: "module" })
@@ -62,7 +64,7 @@ const ready = createOpenMS();                    // set onmessage before awaitin
 onmessage = async ({ data: file }) => {          // a File from <input type="file">
   const OpenMS = await ready;
   OpenMS.FS.mkdir("/input");
-  OpenMS.FS.mount(OpenMS.FS.filesystems.WORKERFS, { files: [file] }, "/input");
+  OpenMS.FS.writeFile(`/input/${file.name}`, new Uint8Array(await file.arrayBuffer()));
   const handler = new OpenMS.FileHandler();
   const exp = new OpenMS.MSExperiment();
   try {
@@ -71,19 +73,19 @@ onmessage = async ({ data: file }) => {          // a File from <input type="fil
   } finally {
     handler.delete();
     exp.delete();
-    OpenMS.FS.unmount("/input");
-    OpenMS.FS.rmdir("/input");
+    OpenMS.FS.unlink(`/input/${file.name}`);
   }
 };
 ```
 
-`examples/node/summary.mjs` shows the same with Node.js (`NODEFS`).
+`examples/node/summary.mjs` shows the same with Node.js, where the file's directory is
+mounted instead of copied.
 
 ### Files
 
-OpenMS reads and writes files by path. In WebAssembly, paths refer to Emscripten's
-[virtual file system](https://emscripten.org/docs/api_reference/Filesystem-API.html),
-`OpenMS.FS`, which keeps files in memory:
+OpenMS reads and writes files by path. In WebAssembly, paths refer to the module's
+[virtual file system](https://emscripten.org/docs/api_reference/Filesystem-API.html)
+(WasmFS), `OpenMS.FS`, which keeps files in memory:
 
 ```js
 // browser: a File from <input type="file"> or drag and drop
@@ -99,12 +101,15 @@ const result = OpenMS.FS.readFile("/tmp/features.featureXML");   // Uint8Array
 ```
 
 `MzMLFile` also loads from and stores to strings (`loadBuffer(text, exp)`,
-`storeBuffer(exp)`). Without copying the file into memory first:
-
-- Node.js: mount a directory, `FS.mount(FS.filesystems.NODEFS, { root: "/data" }, "/data")`.
-- Web Workers: mount `File` objects,
-  `FS.mount(FS.filesystems.WORKERFS, { files: [file] }, "/input")`; OpenMS then reads
-  them in pieces.
+`storeBuffer(exp)`). In Node.js, `OpenMS.mountHostDirectory("/data", "/path/on/disk")`
+makes a directory of the host visible at `/data`, without copying its files;
+`OpenMS.unmount("/data")` removes the mount point again. Browsers have no such mount:
+write the user's file into the file system (above). The file system is WasmFS, implemented
+inside the module: every thread reads it directly, which matters for ProSE, which reads
+the spectra on a helper thread while the other threads build the index. (With Emscripten's
+JavaScript file system, which lives on the main thread, those reads waited for the busy
+main thread; the index then could not be restricted to the spectra, and a search against
+the human proteome took 8.7 s instead of 5.8 s.)
 
 Gzip- and bzip2-compressed mzML files are read as usual.
 
@@ -138,6 +143,107 @@ picker.pickExperiment(profileExperiment, centroided);
 `getDefaults().getEntries()` lists every parameter with its type, default, description,
 allowed values and limits, e.g. to build a settings form. Invalid values are rejected
 when the parameters are set.
+
+### Database search with ProSE
+
+`ProSEAlgorithm.search(spectra, database, proteins, peptides)` searches an mzML file against a
+FASTA file as the ProSE tool does for one input file: the search with PSM-level FDR
+(`FDR:PSM`), then, if `FDR:protein` is set and the database has decoys, protein inference with
+picked-protein FDR. By default it rescores the PSMs with Percolator first, in-process as the
+tool's `-rescore` does (needs decoys and at least 100 PSMs, else it is skipped; the FDR filters
+then use its q-values); `search(..., { rescore: false })` keeps ProSE's scores. It fills the two lists and returns a summary: the statistics of the run
+and of the fragment index, Percolator's outcome, and for open searches the modification analysis
+(delta-mass histogram, mapped PTMs).
+
+```js
+const prose = new OpenMS.ProSEAlgorithm();
+prose.setParameterValues({ "fragment:mass_tolerance": 0.02, "modifications:fixed": ["Carbamidomethyl (C)"] });
+prose.setProgressCallback((p) => postMessage(p));   // { event, label, depth, begin, end, value }
+const proteins = new OpenMS.ProteinIdentificationList(), peptides = new OpenMS.PeptideIdentificationList();
+const summary = prose.search("/input/run.mzML", "/input/db.fasta", proteins, peptides);
+summary.run.targetPSMs; summary.search.indexedPeptides; summary.modificationAnalysis?.ptms.entries;
+```
+
+The progress callback is called while the search runs, on the thread that set it: in a Web
+Worker, forward the reports to the page with `postMessage()`. Each hit carries the fragment ions
+ProSE matched (`hit.getPeakAnnotations()`, on the preprocessed spectrum); `annotateSpectrum(spectrum,
+peptide, charge, { tolerance, unit, ions, losses })` matches the ions of a peptide to the peaks of
+a spectrum as measured, for spectrum viewers. `getMemoryInfo().heapSize` after a search is its
+memory high-water mark (WebAssembly memory does not shrink).
+
+`examples/prose/` is a web application around it: settings generated from ProSE's parameters,
+progress, summary, score and mass-error distributions, delta masses of open searches, PSM and
+protein tables, and for each PSM the sequence with its fragment coverage, the annotated spectrum
+mirrored against the theoretical one and the fragment mass errors; idXML and TSV downloads. It
+runs OpenMS in a Web Worker with all cores on cross-origin isolated pages. `examples/node/prose.mjs`
+runs a search from the command line and reports time and memory.
+
+Memory is the limit of a browser search: the module can address 4 GB, and a search that needs
+more stops the module (a WebAssembly trap; start a new one). Measured with Node.js (threaded
+build, 16 threads) on a 60-minute Orbitrap TMT run (6,103 MS2 spectra, 78 MB mzML):
+
+| Database, search | Indexed peptides | Memory | Time | Native ProSE (memory, time) |
+|---|---|---|---|---|
+| *Erwinia* (4,499 proteins), tryptic | 0.5 M | 0.9 GB | 2.9 s | 0.25 GB, 2.5 s |
+| *Erwinia*, open search (±500 Da) | 0.5 M | 0.9 GB | 3.9 s | 0.46 GB, 5.7 s |
+| human (20,652 proteins), tryptic | 4.0 M | 2.0 GB | 8.6 s | 1.6 GB, 6.2 s |
+| human, semi-tryptic | | more than 4 GB: stops | | 28 GB, 47 s |
+| human, semi-tryptic, `database:chunk_size` 2000 | 77 M | 3.8 GB | 24 s | 1.2 GB, 43 s |
+
+(Native: the ProSE tool of June 2026 in a container, which adds about a second of startup.)
+`database:chunk_size` builds and searches the index in parts and so keeps larger searches under
+4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64) would
+raise the limit (Chrome and Firefox allow up to 16 GB; Safari does not support Memory64 yet,
+as far as known). Measured with a local wasm64 build, it did not pay off for ProSE: 10 to 20%
+slower, 1.5 to 3 times the memory, and the semi-tryptic human search above still needed
+chunking (it needs more than 16 GB without); Embind would also pass `size_t` as BigInt. More threads than about
+8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
+the spectra are serial.
+
+### Machine learning: ONNX Runtime and PeptDeep
+
+A module built with the CMake preset `wasm32-emscripten-mt-onnx-release` (`WITH_ONNX`, threaded)
+contains ONNX Runtime; `OpenMS.hasONNXRuntime()` says whether a module has it. ProSE's
+`peptdeep:enable` then works as natively: PeptDeep (AlphaPeptDeep) predicts the fragment
+intensities and the retention time of every PSM, and their agreement with the spectrum becomes
+five more Percolator features (`ms2_cosine`, `ms2_spectral_angle`, `ms2_pearson`,
+`ms2_frac_pred_found`, `rt_abs_error`). The models are not part of the module: the build copies
+them to `models/` of the package (MS2 15.5 MB, retention time 2.7 MB; from
+https://archive.openms.de/openms/models). Write them to the module's file system and name them by
+absolute path (`/share/OpenMS` of the module is read-only, so the default names do not resolve):
+
+```js
+const models = { "peptdeep:ms2_model": "peptdeep_ms2_dynamic.onnx", "peptdeep:rt_model": "peptdeep_rt_dynamic.onnx" };
+OpenMS.FS.mkdir("/models");                         // Node.js: OpenMS.mountHostDirectory("/models", "<package>/models")
+const parameters = { "peptdeep:enable": true };
+for (const [parameter, name] of Object.entries(models)) {
+  OpenMS.FS.writeFile(`/models/${name}`, new Uint8Array(await (await fetch(`models/${name}`)).arrayBuffer()));
+  parameters[parameter] = `/models/${name}`;
+}
+prose.setParameterValues(parameters);
+```
+
+The ProSE web application offers this as an option next to Percolator and loads the models on
+first use (the service worker caches them); `examples/node/prose.mjs --peptdeep` mounts them. ONNX
+Runtime computes with WebAssembly SIMD on one pool of as many threads as OpenMP, shared by all
+sessions (ONNX Runtime's WebAssembly build uses global thread pools); `threads.js` starts their Web
+Workers with the module. The predictions are those of native OpenMS: the PeptDeep class tests,
+compiled to WebAssembly, pass (largest difference from Python's ONNX Runtime: 1.2e-7 for retention
+times, 1.1e-6 for fragment intensities), and with the same NCE the five features of 896 PSMs differ
+from native ProSE's by at most 3.3e-7. Measured on the data of TOPP_ProSE_11_rescore (2,789 MS2
+spectra, 896 PSMs, 16 threads):
+
+| | Native ProSE | Node.js | Chromium |
+|---|---|---|---|
+| search with Percolator | 9.4 s | 10.6 s | 11.2 s |
+| with PeptDeep features | 12.2 s | 13.9 s | 12.7 s (14.5 s the first time: models) |
+| memory with PeptDeep | 0.17 GB | 0.8 GB | 1.0 GB |
+
+ONNX Runtime makes `openms.wasm` 42.6 MB instead of 29.1 MB (gzip: 10.3 instead of 6.8 MB); the
+models are 17 MB (gzip). The automatic NCE (`peptdeep:nce` -1) picks the grid point with the best
+median cosine; where the grid is nearly flat, rounding differences between platforms can pick
+another point (here 26 natively, 36 in WebAssembly, median cosines 0.55504 and 0.55503) and with it
+other feature values.
 
 ### Errors
 
@@ -191,6 +297,27 @@ and 880 ms on 4 (1549 ms in the single-threaded build); loading that mzML file (
 and the feature finding of FeatureFinderMetabo_3 (about 220 ms) took the same time on 1 to
 4 threads.
 
+### Serving the module
+
+- `openms.wasm` has to be served as `application/wasm` (for `WebAssembly.instantiateStreaming`).
+- Threads need a cross-origin isolated page: the headers `Cross-Origin-Opener-Policy: same-origin`
+  and `Cross-Origin-Embedder-Policy: require-corp` on the page and on the scripts of the Web
+  Workers it starts. (The module's own threads need none: in browsers their Workers are started
+  from a Blob that imports the module, and so inherit the isolation of their creator.)
+- Let browsers cache `openms.wasm` and `openms.mjs` (e.g. `Cache-Control: public, max-age=31536000,
+  immutable` for versioned paths). Chrome keeps the compiled code of a module it could cache
+  and skips the compilation on later visits; the module then also runs faster: V8 compiles
+  WebAssembly in tiers, and code that was optimized once comes back optimized. A search against
+  the human proteome (16 threads) took 5.9 s on the first visit and 3.7 s on the next; natively
+  2.4 s. With `Cache-Control: no-store`, every visit is the first.
+- Where the server does neither, a service worker can: the demo applications register
+  `examples/sw.js` (through `examples/sw-client.mjs`), which adds the isolation headers to the
+  page and to worker scripts, so threads work on static hosts such as GitHub Pages, and stores
+  the module files in the Cache API, answering even the first request from the store, so that
+  Chrome keeps the compiled code from the first visit on. On the first visit the page reloads
+  once. The stores are named after the package version; a hard reload (Shift+Reload) bypasses
+  the worker, e.g. after rebuilding the module with the same version.
+
 ### Limits
 
 The module is a 32-bit (wasm32) program: it can address up to 4 GB. It cannot start
@@ -229,6 +356,14 @@ cmake -DSINGLE=build/wasm32-emscripten-release/openms-wasm \
       -DMULTI=build/wasm32-emscripten-mt-release/openms-wasm \
       -DOUTPUT=build/openms-wasm-package -P src/openms_wasm/assemble_package.cmake
 ```
+
+The preset `wasm32-emscripten-mt-onnx-release` is the threaded build with ONNX Runtime (`WITH_ONNX`,
+vcpkg feature `onnxruntime`; see "Machine learning" above). vcpkg builds ONNX Runtime for the
+`wasm32-emscripten-mt` triplet in about two minutes, with the ports of
+`vcpkg-overlays/emscripten/ports`: `onnxruntime` as static libraries with WebAssembly SIMD and
+threads, without LTO, onnxruntime-web's JavaScript module or cpuinfo; `onnx` without static schema
+registration (ONNX Runtime registers the schemas itself). The build downloads the PeptDeep models
+and copies them to `models/` of the package.
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`

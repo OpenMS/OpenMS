@@ -2,6 +2,7 @@
 // Served from the package directory: the module is ../../openms.mjs.
 
 import createOpenMS from "../../openms.mjs";
+import { registerServiceWorker } from "../sw-client.mjs";
 
 const $ = (id) => document.getElementById(id);
 const status = (text) => { $("status").textContent = text; };
@@ -9,6 +10,7 @@ const status = (text) => { $("status").textContent = text; };
 const repaint = () => new Promise((resolve) => setTimeout(resolve, 20));
 
 status("Loading OpenMS…");
+await registerServiceWorker(); // caches the module; isolates the page for threads (may reload once)
 const OpenMS = await createOpenMS({ printErr: (line) => console.warn(line) });
 OpenMS.setLogEnabled("info", false);
 $("version").textContent = OpenMS.getVersion();

@@ -84,6 +84,29 @@ export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = 
   });
   lap("search");
 
+  // the same search with ProSE (the settings of TOPP_ProSE_1, tests/prose.test.mjs)
+  const prose = new m.ProSEAlgorithm();
+  const proseProteins = new m.ProteinIdentificationList(), prosePeptides = new m.PeptideIdentificationList();
+  const progressLabels = [];
+  prose.setParameterValues({
+    "enzyme": "Trypsin", "decoys": "ignore",
+    "precursor:mass_tolerance_lower": 5, "precursor:mass_tolerance_upper": 5, "precursor:mass_tolerance_unit": "ppm",
+    "precursor:min_charge": 2, "precursor:max_charge": 5,
+    "fragment:mass_tolerance": 0.1, "fragment:mass_tolerance_unit": "Da",
+    "modifications:fixed": ["Carbamidomethyl (C)"], "modifications:variable": ["Oxidation (M)"],
+    "modifications:variable_max_per_peptide": 2, "peptide:min_size": 7, "peptide:max_size": 40,
+    "peptide:missed_cleavages": 1, "report:top_hits": 1,
+  });
+  prose.setProgressCallback((p) => { if (p.event === "start") progressLabels.push(p.label); });
+  const proseSummary = prose.search("/in/sse.mzML", "/in/sse.fasta", proseProteins, prosePeptides);
+  const proseResult = {
+    status: proseSummary.status,
+    hits: prosePeptides.toArray().flatMap((id) => id.hits.map((h) => h.sequence)).sort(),
+    progressLabels,
+  };
+  for (const o of [prose, proseProteins, prosePeptides]) o.delete();
+  lap("prose");
+
   let benchmarkResult;
   if (benchmark) {
     // 1684 spectra of a BSA run against an E. coli target-decoy database (as the Node.js benchmark of the README)
@@ -96,5 +119,5 @@ export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = 
     lap("benchmarkSearch");
   }
 
-  return { info, warnings, featureTable, search: searchResult, benchmark: benchmarkResult, timings };
+  return { info, warnings, featureTable, search: searchResult, prose: proseResult, benchmark: benchmarkResult, timings };
 }
