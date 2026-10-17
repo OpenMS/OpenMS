@@ -91,6 +91,12 @@ OpenMS Library:
     did not match the inputs (no alignment points).
   - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
     all passing through one OpenMP critical section, which serialized threads that read or set meta values.
+  - PERF: OpenSwathWorkflow/OpenDIA output no longer stalls the scoring threads: XIC Parquet chromatograms are
+    compressed by the thread that extracted them (MSChromatogramParquetConsumer::encodeChromatogram(),
+    consumeEncodedChromatograms()) and only appended inside the output lock, and the buffered OSW writer writes
+    queued rows as they are instead of merging them under its queue lock. Output is unchanged.
+  - PERF: MSChromatogramParquetConsumer writes its row batches (ZSTD compression) on a thread of its own, in the order
+    in which they are completed, instead of inside the lock that serializes chromatogram output. The rows are unchanged.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
