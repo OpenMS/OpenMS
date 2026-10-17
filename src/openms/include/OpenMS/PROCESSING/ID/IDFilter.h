@@ -881,7 +881,7 @@ namespace OpenMS
     static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
     {
       IDScoreSwitcherAlgorithm switcher;
-      bool at_least_one_found = false;
+      bool any_id_missing_score_type = false;
       for (IdentificationType& id : ids)
       {
         if (switcher.isScoreType(id.getScoreType(), score_type))
@@ -906,11 +906,19 @@ namespace OpenMS
               struct HasMaxMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
               keepMatchingItems(id.getHits(), score_filter);
             }
-            at_least_one_found = true;
+          }
+          else
+          {
+            // Remove all hits when the requested score type is absent, as documented above.
+            id.getHits().clear();
+            any_id_missing_score_type = true;
           }
         }
       }
-      if (!at_least_one_found) OPENMS_LOG_WARN << std::string("Warning: No hit with the given score_type found. All hits removed.") << std::endl;
+      if (any_id_missing_score_type)
+      {
+        OPENMS_LOG_WARN << "Warning: At least one identification did not contain the given score_type; all hits of those identifications were removed." << std::endl;
+      }
     }
 
     /**
@@ -1446,16 +1454,21 @@ namespace OpenMS
     */
     static void keepBestMatchPerObservation(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref);
 
-    /*!
+    /**
       @brief Filter observation matches (e.g. PSMs) in IdentificationData by score
 
       Matches with scores of the required type that are worse than the cut-off are removed.
       Matches without a score of the required type are also removed.
+      Stored scores must be finite. PSM-level and distinct peptide-level q-values
+      (MS:1002354 and MS:1001868) must additionally lie in [0, 1]. Other score types
+      may have valid negative scores. All stored scores of the required type across
+      every processing step are validated before filtering; invalid scores cause an exception and leave the data unchanged.
       The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
-      @param[in] id_data Data to be filtered
+      @param[in,out] id_data Data to be filtered
       @param[in] score_ref Reference to the score type used for filtering
-      @param[in] cutoff Score cut-off for filtering
+      @param[in] cutoff Inclusive score cut-off for filtering
+      @throws Exception::InvalidValue A stored score is non-finite or a q-value lies outside [0, 1]
     */
     static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff);
 

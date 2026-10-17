@@ -90,6 +90,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Quadtree
   SIMDe
   SQLiteCpp
+  Threads::Threads
   ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
   ${OPENMS_ZSTD_TARGET}
@@ -535,5 +536,9 @@ if(WITH_ONNX)
     source/ML/PEPTDEEP/PeptDeepInput.cpp
     source/ML/PEPTDEEP/PeptDeepRTInference.cpp
     source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
+    source/ANALYSIS/ID/PeptDeepRescoring.cpp
   )
+  # Lets dependent code (e.g. ProSEAlgorithm) compile out the PeptDeep calls when the
+  # runtime is absent, the same way WITH_OPENTIMS / WITH_THERMO_RAW are handled.
+  target_compile_definitions(OpenMS PUBLIC WITH_ONNX=1)
 endif()

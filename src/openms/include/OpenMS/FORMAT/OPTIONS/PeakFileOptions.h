@@ -96,6 +96,23 @@ public:
     const DRange<1> & getPrecursorMZRange() const;
     //@}
 
+    ///@name Ion mobility range option
+    //@{
+    /**
+      @brief Restricts the ion mobility of the data to load, in the unit of the data (e.g. 1/K0 in V·s/cm² for Bruker timsTOF)
+
+      Peaks outside the range are removed from spectra with an ion mobility per peak (an ion mobility float data
+      array, see MSSpectrum::containsIMData()); spectra with a single ion mobility (MSSpectrum::getDriftTime()) outside
+      it are skipped. Spectra without ion mobility are kept. Applied by FileHandler::loadExperiment() and
+      FileHandler::transformExperiment() for all formats; the readers of the formats themselves ignore it.
+    */
+    void setIMRange(const DRange<1> & range);
+    ///returns @c true if an ion mobility range has been set
+    bool hasIMRange() const;
+    ///returns the ion mobility range
+    const DRange<1> & getIMRange() const;
+    //@}
+
     /**
         @name MS levels option
 
@@ -242,12 +259,14 @@ private:
     bool has_mz_range_ = false;
     bool has_intensity_range_ = false;
     bool has_precursor_mz_range_ = false;
+    bool has_im_range_ = false;
     bool mz_32_bit_ = false;
     bool int_32_bit_ = true;
     DRange<1> rt_range_{};
     DRange<1> mz_range_{};
     DRange<1> intensity_range_{};
     DRange<1> precursor_mz_range_{};
+    DRange<1> im_range_{};
     std::vector<Int> ms_levels_{};
     bool zlib_compression_ = false;
     bool zstd_compression_ = false;

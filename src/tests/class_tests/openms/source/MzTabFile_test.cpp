@@ -186,6 +186,43 @@ START_SECTION([EXTRA] store - every peptide identification needs its protein ide
 }
 END_SECTION
 
+START_SECTION([EXTRA] colunit metadata is written and read as specified by mzTab 1.0)
+{
+  MzTab mz_tab;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mz_tab);
+
+  MzTabMetaData md = mz_tab.getMetaData();
+  md.colunit_protein.push_back("best_search_engine_score[1]=[MS, MS:1001171, Mascot:score, ]");
+  md.colunit_psm.push_back("retention_time=[UO, UO:0000031, minute, ]");
+  md.colunit_psm.push_back("exp_mass_to_charge=[UO, UO:0000221, dalton, ]");
+  mz_tab.setMetaData(md);
+
+  std::string stored;
+  NEW_TMP_FILE(stored)
+  MzTabFile().store(stored, mz_tab);
+
+  // key and value are separate cells, and the PSM key is lower case
+  TextFile stored_lines;
+  stored_lines.load(stored, true);
+  bool found_psm_line = false;
+  for (const std::string& line : stored_lines)
+  {
+    if (line == "MTD\tcolunit-psm\tretention_time=[UO, UO:0000031, minute, ]") found_psm_line = true;
+  }
+  TEST_EQUAL(found_psm_line, true)
+
+  // reading back does not fail on the unindexed keys and keeps every entry in order
+  MzTab reloaded;
+  MzTabFile().load(stored, reloaded);
+  const MzTabMetaData& reloaded_md = reloaded.getMetaData();
+  TEST_EQUAL(reloaded_md.colunit_protein.size(), 1)
+  TEST_EQUAL(reloaded_md.colunit_psm.size(), 2)
+  TEST_STRING_EQUAL(reloaded_md.colunit_psm[0], "retention_time=[UO, UO:0000031, minute, ]")
+  TEST_STRING_EQUAL(reloaded_md.colunit_psm[1], "exp_mass_to_charge=[UO, UO:0000221, dalton, ]")
+  TEST_EQUAL(reloaded_md.colunit_peptide.empty(), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

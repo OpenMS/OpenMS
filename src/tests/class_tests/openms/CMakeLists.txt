@@ -142,11 +142,15 @@ target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
 target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test ${LPTARGET})
+target_link_libraries(UniqueIdGenerator_test Threads::Threads)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
 target_link_libraries(MatrixEigen_test Eigen3::Eigen)
 target_link_libraries(MRMScoring_test Eigen3::Eigen)
+# The vendored Percolator is linked PRIVATE into libOpenMS with hidden symbols.
+# This test calls its PosteriorEstimator directly, so it links the static library.
+target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
 
 
 if (WITH_HDF5)
@@ -324,10 +328,15 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
 endif()
 
-if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
-  target_compile_definitions(ThermoRawFile_test PRIVATE
-    THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
-endif()
+# Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the
+# random-access tests only the small one.
+set(_thermo_raw_tests ThermoRawFile_test OnDiscThermoRawExperiment_test SpectrumAccessOnDisc_test)
+foreach(_thermo_test ${_thermo_raw_tests})
+  if (TARGET ${_thermo_test} AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+    target_compile_definitions(${_thermo_test} PRIVATE
+      THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+  endif()
+endforeach()
 
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
 # THERMO_FAIMS_DIA_TEST_DATA or downloaded by ENABLE_THERMO_FAIMS_DIA_TESTS.
@@ -339,19 +348,21 @@ if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA
     THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
 endif()
 
-if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND
-    (THERMO_RAW_TEST_DATA OR THERMO_FAIMS_DIA_TEST_DATA))
-  set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
+foreach(_thermo_test ${_thermo_raw_tests})
+  if (TARGET ${_thermo_test} AND WITH_THERMO_RAW AND
+      (THERMO_RAW_TEST_DATA OR (_thermo_test STREQUAL "ThermoRawFile_test" AND THERMO_FAIMS_DIA_TEST_DATA)))
+    set_tests_properties(${_thermo_test} PROPERTIES TIMEOUT 1200)
 
-  # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
-  # test binary. The bridge looks first in the executable's own directory; on
-  # Windows the test exe is in src/tests/class_tests/bin (not next to
-  # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
-  # is in a different directory and would not be found at test runtime.
-  if (COMMAND openms_thermo_bridge_copy_runtime_files)
-    openms_thermo_bridge_copy_runtime_files(TARGET ThermoRawFile_test)
+    # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
+    # test binary. The bridge looks first in the executable's own directory; on
+    # Windows the test exe is in src/tests/class_tests/bin (not next to
+    # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
+    # is in a different directory and would not be found at test runtime.
+    if (COMMAND openms_thermo_bridge_copy_runtime_files)
+      openms_thermo_bridge_copy_runtime_files(TARGET ${_thermo_test})
+    endif()
   endif()
-endif()
+endforeach()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags
