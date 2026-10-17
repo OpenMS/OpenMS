@@ -6804,6 +6804,18 @@ def testNASequence():
     oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
     oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
 
+    # Regression for #6718: retain the modified terminal sugar after base loss;
+    # only phosphorothioate bonds inside the fragment contribute sulfur.
+    for sequence, expected in (
+        ("[dA][dA*]", "C15H18N5O7P1"),
+        ("[dA][Am]", "C16H20N5O8P1"),
+        ("[dA*][Am]", "C16H20N5O7P1S1"),
+    ):
+        fragment = pyopenms.NASequence.fromString(sequence)
+        formula = fragment.getFormula(pyopenms.NASequence.NASFragmentType.AminusB, 0)
+        assert formula.toString() == expected
+        assert fragment.getMonoWeight(pyopenms.NASequence.NASFragmentType.AminusB, 0) == formula.getMonoWeight()
+
     # Test __repr__ and __str__ methods
     # Test __repr__ method
     na_repr = pyopenms.NASequence.fromString("ACGU")

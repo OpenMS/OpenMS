@@ -9,6 +9,10 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -99,6 +103,75 @@ START_SECTION(RibonucleotideTSVDataProvider::loadRibonucleotides())
     }
   }
   TEST_EQUAL(found_msu, true)
+
+  // Explicit sugar formulas must reach both NASequence and the spectrum generator.
+  // The extra notes column ensures that the formula is selected by header name.
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  {
+    std::ofstream file(filename);
+    file << "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass\talternatives\tnotes\tbaseloss_formula\n"
+         << "2'-O-methyladenosine\tOMeA\t\tA\t\t\tC11H15N5O4\t0\t0\t\t\tC6H12O5\n"
+         << "LNA adenosine\tLNA-A\t\tA\t\t\tC11H13N5O4\t0\t0\t\t\tC6H10O5\n"
+         << "2'-fluorodeoxyadenosine\tdFA\t\tA\t\t\tC10H12FN5O3\t0\t0\t\t\tC5H9FO4\n"
+         << "inferred methyladenosine\tAm\t\tA\t\t\tC11H15N5O4\t0\t0\t\t\t\n"
+         << "inferred deoxyadenosine\tdA\t\tA\t\t\tC10H13N5O3\t0\t0\t\t\t-\n"
+         << "invalid explicit formula\tbadA\t\tA\t\t\tC10H13N5O4\t0\t0\t\t\tinvalid_formula\n"
+         << "ambiguous methyladenosine\tmA?\t\tA\t\t\tC11H15N5O4\t0\t0\tmA Am\t\tC5H10O5\n";
+  }
+  RibonucleotideTSVDataProvider custom_provider(filename);
+  auto custom_entries = custom_provider.loadRibonucleotides();
+  TEST_EQUAL(custom_entries.size(), 6)
+  TEST_TRUE(custom_entries[5].isAmbiguous())
+  TEST_STRING_EQUAL(custom_entries[5].alternative_code_1, "mA")
+  TEST_STRING_EQUAL(custom_entries[5].alternative_code_2, "Am")
+  TEST_EQUAL(custom_entries[3].ribo->getBaselossFormula(), EmpiricalFormula("C6H12O5"))
+  TEST_EQUAL(custom_entries[4].ribo->getBaselossFormula(), EmpiricalFormula("C5H10O4"))
+  const vector<EmpiricalFormula> sugar_formulas = {
+    EmpiricalFormula("C6H12O5"), EmpiricalFormula("C6H10O5"), EmpiricalFormula("C5H9FO4")};
+  const vector<EmpiricalFormula> ab_formulas = {
+    EmpiricalFormula("C16H20N5O8P"), EmpiricalFormula("C16H18N5O8P"), EmpiricalFormula("C15H17FN5O7P")};
+  const auto* db = RibonucleotideDB::getInstance();
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  parameters.setValue("add_b_ions", "false");
+  parameters.setValue("add_y_ions", "false");
+  parameters.setValue("add_a-B_ions", "true");
+  parameters.setValue("add_metainfo", "true");
+  generator.setParameters(parameters);
+  for (Size i = 0; i < 3; ++i)
+  {
+    TEST_EQUAL(custom_entries[i].ribo->getBaselossFormula(), sugar_formulas[i])
+    for (const std::string& prefix : {std::string("dA"), std::string("dA*")})
+    {
+      const EmpiricalFormula expected = ab_formulas[i] +
+        (prefix == "dA*" ? EmpiricalFormula("SO-1") : EmpiricalFormula());
+      // A '*' on the last nucleotide describes the outgoing bond; it must not
+      // change a2-B, whose only retained bond belongs to the first nucleotide.
+      Ribonucleotide terminal_thiol(*custom_entries[i].ribo);
+      terminal_thiol.setCode(terminal_thiol.getCode() + "*");
+      for (const Ribonucleotide* terminal : {custom_entries[i].ribo.get(), &terminal_thiol})
+      {
+        NASequence sequence({db->getRibonucleotide(prefix), terminal, db->getRibonucleotide("dA")}, nullptr, nullptr);
+        TEST_EQUAL(sequence.getPrefix(2).getFormula(NASequence::AminusB), expected)
+        for (Int charge : {-2, -1, 1, 2})
+        {
+          const EmpiricalFormula charged_formula = expected + EmpiricalFormula::hydrogen(charge);
+          TEST_EQUAL(sequence.getPrefix(2).getFormula(NASequence::AminusB, charge), charged_formula)
+          MSSpectrum spectrum;
+          generator.getSpectrum(spectrum, sequence, charge, charge);
+          TEST_EQUAL(spectrum.size(), 1)
+          TEST_STRING_EQUAL(spectrum.getStringDataArrays()[0][0], "a2-B")
+          const double expected_mz = (charged_formula.getMonoWeight() - charge * Constants::ELECTRON_MASS_U) / abs(charge);
+          TEST_REAL_SIMILAR(spectrum[0].getMZ(), expected_mz)
+          map<Int, MSSpectrum> multiple;
+          generator.getMultipleSpectra(multiple, sequence, {charge}, charge);
+          TEST_EQUAL(multiple.at(charge).size(), 1)
+          TEST_REAL_SIMILAR(multiple.at(charge)[0].getMZ(), expected_mz)
+        }
+      }
+    }
+  }
 }
 END_SECTION
 
