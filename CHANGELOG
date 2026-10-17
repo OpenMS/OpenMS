@@ -80,6 +80,11 @@ OpenMS Library:
   - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
+  - FIX: EmpiricalFormula orders its elements by atomic number, an element before its isotopes ("C", "(12)C", "(13)C"),
+    instead of by the addresses of the Element objects. Weights, isotope distributions and operator< followed the address
+    order, which differs between runs where the heap is randomized (Windows): theoretical masses differed in the last
+    bits between two identical runs, and Percolator rescoring in ProSE turned that into percolator_score differences of
+    about 1%. On Linux the new order is the order the elements had in memory, so results do not change there.
   - FIX: ConsensusMapNormalizerAlgorithmMedian, -Quantile and -Threshold accept maps whose indices are not consecutive, as
     'FileFilter -consensus:map' leaves them. Median and Quantile threw ElementNotFound for them, and Threshold
     (ConsensusMapNormalizer -algorithm_type robust_regression) read past the end of its per-map vectors and crashed. The
