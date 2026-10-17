@@ -11,6 +11,7 @@
 
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianSettings.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
@@ -159,18 +160,7 @@ public:
     }
 
     /// The parameters of an estimation as plain values (see the parameters of the class); the defaults are theirs
-    struct Settings
-    {
-      double max_intensity = -1;
-      double auto_max_stdev_factor = 3.0;
-      double auto_max_percentile = 95;
-      int auto_mode = AUTOMAXBYSTDEV;
-      double win_len = 200.0;
-      int bin_count = 30;
-      int min_required_elements = 10;
-      double noise_for_empty_window = std::pow(10.0, 20);
-      bool write_log_messages = true;
-    };
+    using Settings = SignalToNoiseEstimatorMedianSettings;
 
     /// What an estimation determined besides the S/N values
     struct Statistics
