@@ -578,19 +578,18 @@ START_SECTION((USI buildUSI(const std::string& ms_run_name, const std::string& d
   id1.setRT(100.0);
   id1.setMZ(500.0);
 
-  USI usi1 = id1.buildUSI("sample.mzML", "PXD000561", false);
+  USI usi1 = id1.buildUSI("sample", "PXD000561", false);
   TEST_EQUAL(usi1.isValid(), true);
   TEST_STRING_EQUAL(usi1.getCollection(), "PXD000561");
-  TEST_STRING_EQUAL(usi1.getMSRun(), "sample.mzML");
+  TEST_STRING_EQUAL(usi1.getMSRun(), "sample");
   TEST_STRING_EQUAL(usi1.getIndex(), "12345");
   TEST_EQUAL(usi1.getIndexType(), USI::IndexType::SCAN);
   TEST_STRING_EQUAL(usi1.getInterpretation(), "");
 
   // Test default dataset_id ("local")
-  USI usi_local = id1.buildUSI("sample.mzML");
+  USI usi_local = id1.buildUSI("sample");
   TEST_EQUAL(usi_local.isValid(), true);
   TEST_STRING_EQUAL(usi_local.getCollection(), "local");
-  TEST_STRING_EQUAL(usi_local.getMSRun(), "sample.mzML");
 
   // Test USI generation with peptide interpretation
   PeptideHit hit;
@@ -600,7 +599,7 @@ START_SECTION((USI buildUSI(const std::string& ms_run_name, const std::string& d
   id1.insertHit(hit);
   id1.sort();
 
-  USI usi2 = id1.buildUSI("sample.mzML", "PXD000561", true);
+  USI usi2 = id1.buildUSI("sample", "PXD000561", true);
   TEST_EQUAL(usi2.isValid(), true);
   TEST_STRING_EQUAL(usi2.getInterpretation(), "PEPTIDEK/2");
 
@@ -615,31 +614,46 @@ START_SECTION((USI buildUSI(const std::string& ms_run_name, const std::string& d
   id_mod.insertHit(mod_hit);
   id_mod.sort();
 
-  USI usi_mod = id_mod.buildUSI("sample.mzML", "PXD000561", true);
+  USI usi_mod = id_mod.buildUSI("sample", "PXD000561", true);
   TEST_EQUAL(usi_mod.isValid(), true);
   TEST_STRING_EQUAL(usi_mod.getInterpretation(), "EM[UNIMOD:35]K/2");
-  TEST_STRING_EQUAL(usi_mod.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2");
+  TEST_STRING_EQUAL(usi_mod.toString(), "mzspec:PXD000561:sample:scan:12345:EM[UNIMOD:35]K/2");
 
   // Test USI generation with simple scan= format
   PeptideIdentification id2;
   id2.setSpectrumReference("scan=54321");
 
-  USI usi3 = id2.buildUSI("another.mzML", "PXD000562", false);
+  USI usi3 = id2.buildUSI("another", "PXD000562", false);
   TEST_EQUAL(usi3.isValid(), true);
   TEST_STRING_EQUAL(usi3.getIndex(), "54321");
+  TEST_EQUAL(usi3.getIndexType(), USI::IndexType::SCAN);
 
   // Test USI with nativeId fallback (when scan can't be extracted)
   PeptideIdentification id3;
   id3.setSpectrumReference("custom_format_123");
 
-  USI usi4 = id3.buildUSI("data.mzML", "PXD000563", false);
+  USI usi4 = id3.buildUSI("data", "PXD000563", false);
   TEST_EQUAL(usi4.isValid(), true);
   TEST_EQUAL(usi4.getIndexType(), USI::IndexType::NATIVEID);
   TEST_STRING_EQUAL(usi4.getIndex(), "custom_format_123");
 
+  // Test non-Thermo native IDs use nativeId: with comma-separated values
+  PeptideIdentification id_bruker;
+  id_bruker.setSpectrumReference("frame=120 scan=475");
+  USI usi_bruker = id_bruker.buildUSI("sample", "PXD000561", false);
+  TEST_EQUAL(usi_bruker.getIndexType(), USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(usi_bruker.getIndex(), "120,475");
+
+  // Test index= uses index: type
+  PeptideIdentification id_idx;
+  id_idx.setSpectrumReference("index=2074");
+  USI usi_idx = id_idx.buildUSI("sample", "PXD000561", false);
+  TEST_EQUAL(usi_idx.getIndexType(), USI::IndexType::INDEX);
+  TEST_STRING_EQUAL(usi_idx.getIndex(), "2074");
+
   // Test empty spectrum reference returns invalid USI
   PeptideIdentification id4;
-  USI usi5 = id4.buildUSI("test.mzML", "PXD000564", false);
+  USI usi5 = id4.buildUSI("test", "PXD000564", false);
   TEST_EQUAL(usi5.isValid(), false);
 }
 END_SECTION
@@ -657,29 +671,26 @@ START_SECTION(([EXTRA] buildUSI().toString() convenience pattern))
   id.insertHit(hit);
 
   // Test without interpretation
-  std::string usi_str1 = id.buildUSI("sample.mzML", "PXD000561", false).toString();
-  TEST_STRING_EQUAL(usi_str1, "mzspec:PXD000561:sample.mzML:scan:12345");
+  std::string usi_str1 = id.buildUSI("sample", "PXD000561", false).toString();
+  TEST_STRING_EQUAL(usi_str1, "mzspec:PXD000561:sample:scan:12345");
 
   // Test with interpretation
-  std::string usi_str2 = id.buildUSI("sample.mzML", "PXD000561", true).toString();
-  TEST_STRING_EQUAL(usi_str2, "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2");
+  std::string usi_str2 = id.buildUSI("sample", "PXD000561", true).toString();
+  TEST_STRING_EQUAL(usi_str2, "mzspec:PXD000561:sample:scan:12345:PEPTIDEK/2");
 
   // Test default dataset_id ("local")
-  std::string usi_str_local = id.buildUSI("sample.mzML").toString();
-  TEST_STRING_EQUAL(usi_str_local, "mzspec:local:sample.mzML:scan:12345");
+  std::string usi_str_local = id.buildUSI("sample").toString();
+  TEST_STRING_EQUAL(usi_str_local, "mzspec:local:sample:scan:12345");
 
   // Test empty spectrum reference returns empty string
   PeptideIdentification id2;
-  std::string usi_str3 = id2.buildUSI("sample.mzML", "PXD000561", false).toString();
+  std::string usi_str3 = id2.buildUSI("sample", "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str3, "");
 }
 END_SECTION
 
 START_SECTION(([EXTRA] buildUSI().toString() is well-formed mzspec accepted by USI::isValidUSI))
 {
-  // issue #9460 §7, L299: pin that the generator (buildUSI) and the static validator (isValidUSI) agree.
-  // Every USI string buildUSI emits for a referenced spectrum must begin with the "mzspec:" scheme and be
-  // accepted by USI::isValidUSI; the empty string from an unreferenced ID must be rejected.
   PeptideIdentification id;
   id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=12345");
   PeptideHit hit;
@@ -689,29 +700,35 @@ START_SECTION(([EXTRA] buildUSI().toString() is well-formed mzspec accepted by U
   id.sort();
 
   // scan-based, with and without ProForma interpretation
-  std::string s_plain = id.buildUSI("sample.mzML", "PXD000561", false).toString();
-  std::string s_interp = id.buildUSI("sample.mzML", "PXD000561", true).toString();
-  TEST_EQUAL(s_plain.rfind("mzspec:", 0) == 0, true) // begins with the mzspec: scheme
+  std::string s_plain = id.buildUSI("sample", "PXD000561", false).toString();
+  std::string s_interp = id.buildUSI("sample", "PXD000561", true).toString();
+  TEST_EQUAL(s_plain.rfind("mzspec:", 0) == 0, true)
   TEST_EQUAL(USI::isValidUSI(s_plain), true)
   TEST_EQUAL(USI::isValidUSI(s_interp), true)
-  TEST_STRING_EQUAL(s_interp, "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2")
+  TEST_STRING_EQUAL(s_interp, "mzspec:PXD000561:sample:scan:12345:EM[UNIMOD:35]K/2")
 
   // nativeID fallback path (scan number not extractable)
   PeptideIdentification id_nat;
   id_nat.setSpectrumReference("custom_format_123");
-  std::string s_nat = id_nat.buildUSI("data.mzML", "PXD000563", false).toString();
+  std::string s_nat = id_nat.buildUSI("data", "PXD000563", false).toString();
   TEST_EQUAL(USI::isValidUSI(s_nat), true)
+
+  // Bruker TDF → nativeId:
+  PeptideIdentification id_bruker;
+  id_bruker.setSpectrumReference("frame=120 scan=475");
+  std::string s_bruker = id_bruker.buildUSI("sample", "PXD000561", false).toString();
+  TEST_STRING_EQUAL(s_bruker, "mzspec:PXD000561:sample:nativeId:120,475")
+  TEST_EQUAL(USI::isValidUSI(s_bruker), true)
 
   // empty reference -> empty string -> NOT a valid USI
   PeptideIdentification id_empty;
-  TEST_EQUAL(USI::isValidUSI(id_empty.buildUSI("x.mzML", "PXD0", false).toString()), false)
+  TEST_EQUAL(USI::isValidUSI(id_empty.buildUSI("x", "PXD0", false).toString()), false)
 }
 END_SECTION
 
 // Additional tests for file path handling in buildUSI
 START_SECTION(([EXTRA] buildUSI with file paths and basenames))
 {
-  // Test buildUSI with full file path as MS run name
   PeptideIdentification id1;
   id1.setSpectrumReference("scan=12345");
 
@@ -721,34 +738,41 @@ START_SECTION(([EXTRA] buildUSI with file paths and basenames))
   TEST_EQUAL(usi1.isValid(), true);
   TEST_STRING_EQUAL(usi1.getMSRun(), full_path);
 
-  // Test with basename extracted using USI::extractBasename
+  // Test with basename extracted using USI::extractBasename (extension stripped)
   std::string extracted_basename = USI::extractBasename(full_path);
   USI usi2 = id1.buildUSI(extracted_basename, "PXD000561", false);
-  TEST_STRING_EQUAL(usi2.getMSRun(), "sample.mzML");
-  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:sample.mzML:scan:12345");
+  TEST_STRING_EQUAL(usi2.getMSRun(), "sample");
+  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:sample:scan:12345");
 
   // Test with file:// URI (common in consensusXML)
   std::string file_uri = "file:///C:/Users/bielow/data/ES-0014b_2.mzML";
   USI usi3 = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false);
-  TEST_STRING_EQUAL(usi3.getMSRun(), "ES-0014b_2.mzML");
+  TEST_STRING_EQUAL(usi3.getMSRun(), "ES-0014b_2");
 
   // Test buildUSI().toString() with extracted basename
   std::string usi_str = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false).toString();
-  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:ES-0014b_2.mzML:scan:12345");
+  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:ES-0014b_2:scan:12345");
 
-  // Test with various native ID formats and basenames
+  // Test spectrum= native ID → nativeId: (not scan:)
   PeptideIdentification id2;
-  id2.setSpectrumReference("spectrum=219");  // Another common format
-  USI usi4 = id2.buildUSI("sample.mzML", "PXD000561", false);
+  id2.setSpectrumReference("spectrum=219");
+  USI usi4 = id2.buildUSI("sample", "PXD000561", false);
   TEST_STRING_EQUAL(usi4.getIndex(), "219");
-  TEST_EQUAL(usi4.getIndexType(), USI::IndexType::SCAN);
+  TEST_EQUAL(usi4.getIndexType(), USI::IndexType::NATIVEID);
 
   // Test with Thermo native ID format
   PeptideIdentification id3;
   id3.setSpectrumReference("controllerType=0 controllerNumber=1 scan=7890");
-  USI usi5 = id3.buildUSI("thermo_sample.raw", "PXD000561", false);
+  USI usi5 = id3.buildUSI("thermo_sample", "PXD000561", false);
   TEST_STRING_EQUAL(usi5.getIndex(), "7890");
-  TEST_STRING_EQUAL(usi5.getMSRun(), "thermo_sample.raw");
+  TEST_STRING_EQUAL(usi5.getMSRun(), "thermo_sample");
+
+  // controllerType=0 controllerNumber=2 → nativeId: (§3.6.4)
+  PeptideIdentification id_cn2;
+  id_cn2.setSpectrumReference("controllerType=0 controllerNumber=2 scan=7");
+  USI usi_cn2 = id_cn2.buildUSI("thermo_sample", "PXD000561", false);
+  TEST_EQUAL(usi_cn2.getIndexType(), USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(usi_cn2.getIndex(), "0,2,7");
 }
 END_SECTION
 
@@ -773,7 +797,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id1.setSpectrumReference("scan=100");
   USI usi1 = id1.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi1.isValid(), true);
-  TEST_STRING_EQUAL(usi1.getMSRun(), "file1.mzML");
+  TEST_STRING_EQUAL(usi1.getMSRun(), "file1");  // extension stripped
   TEST_STRING_EQUAL(usi1.getCollection(), "PXD000561");
   TEST_STRING_EQUAL(usi1.getIndex(), "100");
 
@@ -783,7 +807,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id2.setSpectrumReference("scan=200");
   USI usi2 = id2.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi2.isValid(), true);
-  TEST_STRING_EQUAL(usi2.getMSRun(), "fileA.mzML");  // first file
+  TEST_STRING_EQUAL(usi2.getMSRun(), "fileA");  // first file, extension stripped
 
   // Test merged file case - explicit merge_index = 1
   PeptideIdentification id3;
@@ -792,7 +816,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id3.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
   USI usi3 = id3.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi3.isValid(), true);
-  TEST_STRING_EQUAL(usi3.getMSRun(), "fileB.mzML");  // second file
+  TEST_STRING_EQUAL(usi3.getMSRun(), "fileB");  // second file, extension stripped
 
   // Test with default dataset_id ("local")
   USI usi4 = id1.buildUSI(mapping);
@@ -801,7 +825,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
 
   // Test buildUSI().toString() with mapping
   std::string usi_str = id3.buildUSI(mapping, "PXD000561", false).toString();
-  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:fileB.mzML:scan:300");
+  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:fileB:scan:300");
 
   // Test invalid identifier returns invalid USI
   PeptideIdentification id_invalid;
@@ -829,7 +853,17 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   USI usi_interp = id_with_hit.buildUSI(mapping, "PXD000561", true);
   TEST_EQUAL(usi_interp.isValid(), true);
   TEST_STRING_EQUAL(usi_interp.getInterpretation(), "PEPTIDEK/2");
-  TEST_STRING_EQUAL(usi_interp.toString(), "mzspec:PXD000561:file1.mzML:scan:500:PEPTIDEK/2");
+  TEST_STRING_EQUAL(usi_interp.toString(), "mzspec:PXD000561:file1:scan:500:PEPTIDEK/2");
+
+  // §3.3.4: index: type keeps the file extension (tells resolver which format)
+  PeptideIdentification id_idx;
+  id_idx.setIdentifier("run1");
+  id_idx.setSpectrumReference("index=42");
+  USI usi_idx = id_idx.buildUSI(mapping, "PXD000561", false);
+  TEST_EQUAL(usi_idx.isValid(), true);
+  TEST_STRING_EQUAL(usi_idx.getMSRun(), "file1.mzML");
+  TEST_EQUAL(usi_idx.getIndexType(), USI::IndexType::INDEX);
+  TEST_STRING_EQUAL(usi_idx.toString(), "mzspec:PXD000561:file1.mzML:index:42");
 }
 END_SECTION
 
