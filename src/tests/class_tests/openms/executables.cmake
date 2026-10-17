@@ -162,6 +162,7 @@ set(kernel_executables_list
   DimMapper_test
   DPeak_test
   FeatureMap_test
+  FeatureUniqueIds_test
   Feature_test
   MassTrace_test
   Mobilogram_test
@@ -294,6 +295,7 @@ set(format_executables_list
   SqliteConnector_test
   MRMFile_test
   ThermoRawFile_test
+  OnDiscThermoRawExperiment_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -325,6 +327,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SpectrumAccessOnDisc_test
   SpectrumAccessOpenMS_test
   SpectrumAccessOpenMSInMemory_test
   MRMFeatureAccessOpenMS_test
@@ -546,6 +549,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapNormalizerAlgorithmRTLocal_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test

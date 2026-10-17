@@ -641,8 +641,10 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
         .def("setTime", [](OpenMS::DateTime& self, unsigned int hour, unsigned int minute, unsigned int second) { return self.setTime(hour, minute, second); }, "hour"_a, "minute"_a, "second"_a)
         .def("set", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year, unsigned int hour, unsigned int minute, unsigned int second) { return self.set(month, day, year, hour, minute, second); }, "month"_a, "day"_a, "year"_a, "hour"_a, "minute"_a, "second"_a,
             R"doc(
-@brief Sets date and time
+Sets date and time
+
 The following formats are supported:
+
 - MM/dd/yyyy hh:mm:ss
 - dd.MM.yyyy hh:mm:ss
 - yyyy-MM-dd hh:mm:ss
@@ -652,8 +654,9 @@ The following formats are supported:
 )doc")
         .def("getDateAndTime", [](const OpenMS::DateTime& self) { unsigned int month, day, year, hour, minute, second; self.get(month, day, year, hour, minute, second); return nb::make_tuple(month, day, year, hour, minute, second); },
             R"doc(
-@brief Returns date and time components as a tuple
-@return Tuple of (month, day, year, hour, minute, second) as integers
+Returns date and time components as a tuple
+
+:return: Tuple of (month, day, year, hour, minute, second) as integers
 )doc")
         .def("getDateComponents", [](const OpenMS::DateTime& self) { unsigned int month, day, year; self.getDate(month, day, year); return nb::make_tuple(month, day, year); }, "Returns (month, day, year) as a tuple of integers")
         .def("getDate", [](const OpenMS::DateTime& self) { return self.getDate(); })
@@ -663,13 +666,16 @@ The following formats are supported:
         .def("clear", [](OpenMS::DateTime& self) { return self.clear(); })
         .def("get", [](const OpenMS::DateTime& self) { return self.get(); },
             R"doc(
-@brief Returns a string representation of the date and time
+Returns a string representation of the date and time
+
 The format of the string will be yyyy-MM-dd hh:mm:ss
 )doc")
         .def("set", [](OpenMS::DateTime& self, const std::string& date) { return self.set(date); }, "date"_a,
             R"doc(
-@brief Sets date and time
+Sets date and time
+
 The following formats are supported:
+
 - MM/dd/yyyy hh:mm:ss
 - dd.MM.yyyy hh:mm:ss
 - yyyy-MM-dd hh:mm:ss
@@ -772,36 +778,51 @@ LogStream
             R"doc(
 Translates the given list of parameter settings into a LogStream configuration.
 Usually this list stems from a command line call.
+
 Each element in the stringlist should follow this naming convention
+
 <LOG_NAME> <ACTION> <PARAMETER>
+
 with
+
 - LOG_NAME: DEBUG,INFO,WARNING,ERROR,FATAL_ERROR
 - ACTION: add,remove,clear
 - PARAMETER: for 'add'/'remove' it is the stream name (cout, cerr or a filename), 'clear' does not require any further parameter
+
 Example:
 `DEBUG add debug.log`
+
 This function will **not** apply to settings to the log handlers. Use configure() for that.
+
 :param setting: StringList containing the configuration options
-:raises ParseError: In case of an invalid configuration.
+:raises:
+  Exception: ParseError in case of an invalid configuration.
 :return: Param object containing all settings, that can be applied using the LogConfigHandler.configure() method
 )doc")
         .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a,
             R"doc(
 Applies the given parameters (@p param) to the current configuration
+
 <LOG_NAME> <ACTION> <PARAMETER> <STREAMTYPE>
+
 LOG_NAME: DEBUG, INFO, WARNING, ERROR, FATAL_ERROR
 ACTION: add, remove, clear
 PARAMETER: for 'add'/'remove' it is the stream name ('cout', 'cerr' or a filename), 'clear' does not require any further parameter
 STREAMTYPE: FILE, STRING (for a StringStream, which you can grab by this name using getStream() )
+
 You cannot specify a file named "cout" or "cerr" even if you specify streamtype 'FILE' - the handler will mistake this for the
 internal streams, but you can use "./cout" to print to a file named cout.
+
 A classical configuration would contain a list of settings e.g.
+
 `DEBUG add debug.log FILE`
 `INFO remove cout FILE` (FILE will be ignored)
 `INFO add string_stream1 STRING`
-:raises ElementNotFound: If the LogStream (first argument) does not exist.
-:raises FileNotWritable: If a file (or stream) should be opened as log file (or stream) that is not accessible.
-:raises IllegalArgument: If a stream should be registered, that was already registered with a different type.
+
+:raises:
+  Exception: ElementNotFound if the LogStream (first argument) does not exist.
+  Exception: FileNotWritable if a file (or stream) should be opened as log file (or stream) that is not accessible.
+  Exception: IllegalArgument if a stream should be registered, that was already registered with a different type.
 )doc")
         .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const std::string& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
             R"doc(
@@ -811,8 +832,10 @@ Order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR", "NONE"
 Special value "NONE" disables all logging by removing streams from all levels.
 The default configuration writes debug and info messages to stdout, and warnings and errors to
 stderr. Debug messages are written from setLogLevel("DEBUG") on.
+
 :param log_level: The minimum log level to enable. Levels below this will have their streams removed.
-:raises IllegalArgument: If log_level is not one of the levels above.
+:raises:
+  Exception: IllegalArgument if log_level is not one of the levels above.
 )doc")
         .def_static("getInstance", []() -> OpenMS::LogConfigHandler* { return OpenMS::LogConfigHandler::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
@@ -912,19 +935,21 @@ stderr. Debug messages are written from setLogLevel("DEBUG") on.
     auto multipletesting_class = nb::class_<OpenMS::Math::MultipleTesting>(m, "MultipleTesting",
         R"doc(
 Statistical functions for multiple testing correction.
+
 Provides FDR estimation, q-value calculation, and local FDR computation
 based on the Storey-Tibshirani method.
+
 Example:
->>> import pyopenms
->>> p_values = [0.001, 0.01, 0.05, 0.1, 0.5]
->>> # Estimate pi0
->>> pi0_result = pyopenms.MultipleTesting.pi0Est(p_values, [])
->>> # Calculate q-values
->>> q_values = pyopenms.MultipleTesting.qValue(p_values, pi0_result.pi0, False)
->>> # Calculate local FDR
->>> lfdr_values = pyopenms.MultipleTesting.lfdr(
-...     p_values, pi0_result.pi0, True, True,
-...     pyopenms.MultipleTesting.LfdrTransform.Probit)
+  >>> import pyopenms
+  >>> p_values = [0.001, 0.01, 0.05, 0.1, 0.5]
+  >>> # Estimate pi0
+  >>> pi0_result = pyopenms.MultipleTesting.pi0Est(p_values, [])
+  >>> # Calculate q-values
+  >>> q_values = pyopenms.MultipleTesting.qValue(p_values, pi0_result.pi0, False)
+  >>> # Calculate local FDR
+  >>> lfdr_values = pyopenms.MultipleTesting.lfdr(
+  ...     p_values, pi0_result.pi0, True, True,
+  ...     pyopenms.MultipleTesting.LfdrTransform.Probit)
 )doc");
 
     // The nested enums are registered before the methods below: lfdr() uses
@@ -944,7 +969,7 @@ Example:
 
     multipletesting_class
         .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) { return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr); }, "p_values"_a, "pi0"_a, "pfdr"_a, "Compute q-values from p-values using the Storey-Tibshirani method")
-        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute p-values from observed and null statistics using the empirical distribution")
+        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute upper tail probabilities (p-values) of stat under a normal distribution fitted to the null statistics stat0")
 
         .def_static("pi0Est", [](std::vector<double> p_values,
                                   std::vector<double> lambda,
@@ -1316,13 +1341,15 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     nb::class_<OpenMS::Math::Pi0Result>(m, "Pi0Result",
         R"doc(
 Result of pi0 estimation for multiple testing correction.
+
 Contains the estimated proportion of true null hypotheses (pi0),
 which is a key parameter in FDR estimation.
+
 Attributes:
-pi0: Estimated proportion of true null hypotheses (0-1)
-pi0_lambda: Vector of pi0 estimates at each lambda threshold
-``lambda_``: Vector of lambda threshold values used
-pi0_smooth: Whether smoothing was successfully applied
+  pi0: Estimated proportion of true null hypotheses (0-1)
+  pi0_lambda: Vector of pi0 estimates at each lambda threshold
+  ``lambda_``: Vector of lambda threshold values used
+  pi0_smooth: Whether smoothing was successfully applied
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::Pi0Result &>())
@@ -1362,6 +1389,7 @@ pi0_smooth: Whether smoothing was successfully applied
     auto rankdata_class = nb::class_<OpenMS::Math::RankData>(m, "RankData",
         R"doc(
 Rank items (1-based) with SciPy-like tie and NaN handling.
+
 This wrapper exposes the concrete forwarders rankdata_double/float/int
 and the enum classes RankData.Method and RankData.NaNPolicy.
 )doc")
@@ -1406,22 +1434,40 @@ PeakSpectrumCompareFunctor inheritance
         .def(nb::init<const OpenMS::SpectraSTSimilarityScore &>())
         .def("__copy__", [](const OpenMS::SpectraSTSimilarityScore& self) { return OpenMS::SpectraSTSimilarityScore(self); })
         .def("__deepcopy__", [](const OpenMS::SpectraSTSimilarityScore& self, nb::dict) { return OpenMS::SpectraSTSimilarityScore(self); }, "memo"_a)
-        .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, size_t min_peak_number, size_t max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a = 2.01, "cut_peaks_below"_a = 1000, "min_peak_number"_a = 5, "max_peak_number"_a = 150)
+        .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, size_t min_peak_number, size_t max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a = 2.01, "cut_peaks_below"_a = 1000, "min_peak_number"_a = 5, "max_peak_number"_a = 150, 
+            R"doc(
+Preprocesses the spectrum
+
+The preprocessing removes peak below a intensity threshold, reject spectra that does
+not have enough peaks, and cuts peaks exceeding the max_peak_number most intense peaks
+
+:returns: true if spectrum passes filtering
+)doc")
         .def("transform", [](OpenMS::SpectraSTSimilarityScore& self, const OpenMS::MSSpectrum& spec) { return self.transform(spec); }, "spec"_a, "Spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized")
-        .def("dot_bias", [](const OpenMS::SpectraSTSimilarityScore& self, const OpenMS::BinnedSpectrum& bin1, const OpenMS::BinnedSpectrum& bin2, double dot_product) { return self.dot_bias(bin1, bin2, dot_product); }, "bin1"_a, "bin2"_a, "dot_product"_a = -1)
-        .def("delta_D", [](OpenMS::SpectraSTSimilarityScore& self, double top_hit, double runner_up) { return self.delta_D(top_hit, runner_up); }, "top_hit"_a, "runner_up"_a,
+        .def("dot_bias", [](const OpenMS::SpectraSTSimilarityScore& self, const OpenMS::BinnedSpectrum& bin1, const OpenMS::BinnedSpectrum& bin2, double dot_product) { return self.dot_bias(bin1, bin2, dot_product); }, "bin1"_a, "bin2"_a, "dot_product"_a = -1, 
             R"doc(
 Calculates how much of the dot product is dominated by a few peaks
+
 :param dot_product: If -1 this value will be calculated as well.
 :param bin1: First spectrum in binned representation
 :param bin2: Second spectrum in binned representation
 )doc")
-        .def("compute_F", [](OpenMS::SpectraSTSimilarityScore& self, double dot_product, double delta_D, double dot_bias) { return self.compute_F(dot_product, delta_D, dot_bias); }, "dot_product"_a, "delta_D"_a, "dot_bias"_a,
+        .def("delta_D", [](OpenMS::SpectraSTSimilarityScore& self, double top_hit, double runner_up) { return self.delta_D(top_hit, runner_up); }, "top_hit"_a, "runner_up"_a,
             R"doc(
 Calculates the normalized distance between top_hit and runner_up
+
 :param top_hit: Is the best score for a given match
 :param runner_up: A match with a worse score than top_hit, e.g. the second best score
 :returns: normalized distance
+)doc")
+        .def("compute_F", [](OpenMS::SpectraSTSimilarityScore& self, double dot_product, double delta_D, double dot_bias) { return self.compute_F(dot_product, delta_D, dot_bias); }, "dot_product"_a, "delta_D"_a, "dot_bias"_a,
+            R"doc(
+Computes the overall all score
+
+:param dot_product: dot_product of a match
+:param delta_D: delta_D should be calculated after all dot products for a unidentified spectrum are computed
+:param dot_bias: the bias
+:returns: The SpectraST similarity score
 )doc")
         ;
 
@@ -1431,10 +1477,12 @@ Calculates the normalized distance between top_hit and runner_up
     auto spectrumalignmentscore_class = nb::class_<OpenMS::SpectrumAlignmentScore>(m, "SpectrumAlignmentScore",
         R"doc(
 Similarity score via spectra alignment
+
 This class implements a simple scoring based on the alignment of spectra. This alignment
 is implemented in the SpectrumAlignment class and performs a dynamic programming alignment
 of the peaks, minimizing the distances between the aligned peaks and maximizing the number
 of peak pairs
+
 The scoring is done via the simple formula score = sum / (sqrt(sum1 * sum2)). sum is the
 product of the intensities of the aligned peaks, with the given exponent (default is 2)
 sum1 and sum2 are the sum of the intensities squared for each peak of both spectra respectively
@@ -1488,16 +1536,16 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::Compomer &>())
         .def("__copy__", [](const OpenMS::Compomer& self) { return OpenMS::Compomer(self); })
         .def("__deepcopy__", [](const OpenMS::Compomer& self, nb::dict) { return OpenMS::Compomer(self); }, "memo"_a)
-        .def("setID", [](OpenMS::Compomer& self, const OpenMS::Size& id) { self.setID(id); }, "id"_a)
-        .def("getID", [](const OpenMS::Compomer& self) { return self.getID(); })
-        .def("getNetCharge", [](const OpenMS::Compomer& self) { return self.getNetCharge(); })
-        .def("getMass", [](const OpenMS::Compomer& self) { return self.getMass(); })
-        .def("getPositiveCharges", [](const OpenMS::Compomer& self) { return self.getPositiveCharges(); })
-        .def("getNegativeCharges", [](const OpenMS::Compomer& self) { return self.getNegativeCharges(); })
-        .def("getLogP", [](const OpenMS::Compomer& self) { return self.getLogP(); })
-        .def("getRTShift", [](const OpenMS::Compomer& self) { return self.getRTShift(); })
-        .def("getAdductsAsString", [](const OpenMS::Compomer& self) { return self.getAdductsAsString(); })
-        .def("getAdductsAsString", [](const OpenMS::Compomer& self, OpenMS::UInt side) { return self.getAdductsAsString(side); }, "side"_a)
+        .def("setID", [](OpenMS::Compomer& self, const OpenMS::Size& id) { self.setID(id); }, "id"_a, "Sets an Id which allows unique identification of a compomer")
+        .def("getID", [](const OpenMS::Compomer& self) { return self.getID(); }, "Returns Id which allows unique identification of this compomer")
+        .def("getNetCharge", [](const OpenMS::Compomer& self) { return self.getNetCharge(); }, "Net charge of compomer (i.e. difference between left and right side of compomer)")
+        .def("getMass", [](const OpenMS::Compomer& self) { return self.getMass(); }, "Mass of all contained adducts")
+        .def("getPositiveCharges", [](const OpenMS::Compomer& self) { return self.getPositiveCharges(); }, "Summed positive charges of contained adducts")
+        .def("getNegativeCharges", [](const OpenMS::Compomer& self) { return self.getNegativeCharges(); }, "Summed negative charges of contained adducts")
+        .def("getLogP", [](const OpenMS::Compomer& self) { return self.getLogP(); }, "Returns the log probability")
+        .def("getRTShift", [](const OpenMS::Compomer& self) { return self.getRTShift(); }, "Returns the expected RT shift")
+        .def("getAdductsAsString", [](const OpenMS::Compomer& self) { return self.getAdductsAsString(); }, "Get adducts with their abundance as compact string for both sides")
+        .def("getAdductsAsString", [](const OpenMS::Compomer& self, OpenMS::UInt side) { return self.getAdductsAsString(side); }, "side"_a, "Get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)")
         .def("add", [](OpenMS::Compomer& self, const OpenMS::Adduct& a, OpenMS::UInt side) { self.add(a, side); }, "a"_a, "side"_a)
         .def(nb::self == nb::self)
         .def("__hash__", [](const OpenMS::Compomer& self) { return std::hash<OpenMS::Compomer>{}(self); })
@@ -1528,17 +1576,17 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::ChargePair &>())
         .def("__copy__", [](const OpenMS::ChargePair& self) { return OpenMS::ChargePair(self); })
         .def("__deepcopy__", [](const OpenMS::ChargePair& self, nb::dict) { return OpenMS::ChargePair(self); }, "memo"_a)
-        .def("getCharge", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getCharge(pairID); }, "pairID"_a)
-        .def("setCharge", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Int e) { self.setCharge(pairID, e); }, "pairID"_a, "e"_a)
-        .def("getElementIndex", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getElementIndex(pairID); }, "pairID"_a)
-        .def("setElementIndex", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Size e) { self.setElementIndex(pairID, e); }, "pairID"_a, "e"_a)
-        .def("getCompomer", [](const OpenMS::ChargePair& self) -> OpenMS::Compomer { return self.getCompomer(); })
-        .def("setCompomer", [](OpenMS::ChargePair& self, const OpenMS::Compomer& compomer) { self.setCompomer(compomer); }, "compomer"_a)
-        .def("getMassDiff", [](const OpenMS::ChargePair& self) { return self.getMassDiff(); })
-        .def("setMassDiff", [](OpenMS::ChargePair& self, double mass_diff) { self.setMassDiff(mass_diff); }, "mass_diff"_a)
-        .def("getEdgeScore", [](const OpenMS::ChargePair& self) { return self.getEdgeScore(); })
-        .def("setEdgeScore", [](OpenMS::ChargePair& self, double score) { self.setEdgeScore(score); }, "score"_a)
-        .def("isActive", [](const OpenMS::ChargePair& self) { return self.isActive(); })
+        .def("getCharge", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getCharge(pairID); }, "pairID"_a, "Returns the charge (for element 0 or 1)")
+        .def("setCharge", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Int e) { self.setCharge(pairID, e); }, "pairID"_a, "e"_a, "Sets the charge (for element 0 or 1)")
+        .def("getElementIndex", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getElementIndex(pairID); }, "pairID"_a, "Returns the element index (for element 0 or 1)")
+        .def("setElementIndex", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Size e) { self.setElementIndex(pairID, e); }, "pairID"_a, "e"_a, "Sets the element index (for element 0 or 1)")
+        .def("getCompomer", [](const OpenMS::ChargePair& self) -> OpenMS::Compomer { return self.getCompomer(); }, "Returns the compomer that explains the mass difference")
+        .def("setCompomer", [](OpenMS::ChargePair& self, const OpenMS::Compomer& compomer) { self.setCompomer(compomer); }, "compomer"_a, "Sets the compomer that explains the mass difference")
+        .def("getMassDiff", [](const OpenMS::ChargePair& self) { return self.getMassDiff(); }, "Returns the mass difference")
+        .def("setMassDiff", [](OpenMS::ChargePair& self, double mass_diff) { self.setMassDiff(mass_diff); }, "mass_diff"_a, "Sets the mass difference")
+        .def("getEdgeScore", [](const OpenMS::ChargePair& self) { return self.getEdgeScore(); }, "Returns the ILP edge score")
+        .def("setEdgeScore", [](OpenMS::ChargePair& self, double score) { self.setEdgeScore(score); }, "score"_a, "Sets the ILP edge score")
+        .def("isActive", [](const OpenMS::ChargePair& self) { return self.isActive(); }, "Is this pair realized?")
         .def("setActive", [](OpenMS::ChargePair& self, bool active) { self.setActive(active); }, "active"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -1623,19 +1671,19 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::CVMappingRule &>())
         .def("__copy__", [](const OpenMS::CVMappingRule& self) { return OpenMS::CVMappingRule(self); })
         .def("__deepcopy__", [](const OpenMS::CVMappingRule& self, nb::dict) { return OpenMS::CVMappingRule(self); }, "memo"_a)
-        .def("setIdentifier", [](OpenMS::CVMappingRule& self, const std::string& id) { self.setIdentifier(id); }, "identifier"_a)
-        .def("getIdentifier", [](const OpenMS::CVMappingRule& self) { return self.getIdentifier(); })
-        .def("setElementPath", [](OpenMS::CVMappingRule& self, const std::string& path) { self.setElementPath(path); }, "element_path"_a)
-        .def("getElementPath", [](const OpenMS::CVMappingRule& self) { return self.getElementPath(); })
-        .def("setRequirementLevel", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::RequirementLevel level) { self.setRequirementLevel(level); }, "level"_a)
-        .def("getRequirementLevel", [](const OpenMS::CVMappingRule& self) { return self.getRequirementLevel(); })
-        .def("setCombinationsLogic", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::CombinationsLogic logic) { self.setCombinationsLogic(logic); }, "logic"_a)
-        .def("getCombinationsLogic", [](const OpenMS::CVMappingRule& self) { return self.getCombinationsLogic(); })
-        .def("setScopePath", [](OpenMS::CVMappingRule& self, const std::string& path) { self.setScopePath(path); }, "path"_a)
-        .def("getScopePath", [](const OpenMS::CVMappingRule& self) { return self.getScopePath(); })
-        .def("setCVTerms", [](OpenMS::CVMappingRule& self, const std::vector<OpenMS::CVMappingTerm>& terms) { self.setCVTerms(terms); }, "cv_terms"_a)
-        .def("getCVTerms", [](const OpenMS::CVMappingRule& self) { return self.getCVTerms(); })
-        .def("addCVTerm", [](OpenMS::CVMappingRule& self, const OpenMS::CVMappingTerm& term) { self.addCVTerm(term); }, "cv_term"_a)
+        .def("setIdentifier", [](OpenMS::CVMappingRule& self, const std::string& id) { self.setIdentifier(id); }, "identifier"_a, "Sets the identifier of the rule")
+        .def("getIdentifier", [](const OpenMS::CVMappingRule& self) { return self.getIdentifier(); }, "Returns the identifier of the rule")
+        .def("setElementPath", [](OpenMS::CVMappingRule& self, const std::string& path) { self.setElementPath(path); }, "element_path"_a, "Sets the path of the DOM element, where this rule is allowed")
+        .def("getElementPath", [](const OpenMS::CVMappingRule& self) { return self.getElementPath(); }, "Returns the path of the DOM element, where this rule is allowed")
+        .def("setRequirementLevel", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::RequirementLevel level) { self.setRequirementLevel(level); }, "level"_a, "Sets the requirement level of this rule")
+        .def("getRequirementLevel", [](const OpenMS::CVMappingRule& self) { return self.getRequirementLevel(); }, "Returns the requirement level of this rule")
+        .def("setCombinationsLogic", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::CombinationsLogic logic) { self.setCombinationsLogic(logic); }, "logic"_a, "Sets the combination operator of the rule")
+        .def("getCombinationsLogic", [](const OpenMS::CVMappingRule& self) { return self.getCombinationsLogic(); }, "Returns the combinations operator of the rule")
+        .def("setScopePath", [](OpenMS::CVMappingRule& self, const std::string& path) { self.setScopePath(path); }, "path"_a, "Sets the scope path of the rule")
+        .def("getScopePath", [](const OpenMS::CVMappingRule& self) { return self.getScopePath(); }, "Returns the scope path of the rule")
+        .def("setCVTerms", [](OpenMS::CVMappingRule& self, const std::vector<OpenMS::CVMappingTerm>& terms) { self.setCVTerms(terms); }, "cv_terms"_a, "Sets the terms which are allowed")
+        .def("getCVTerms", [](const OpenMS::CVMappingRule& self) { return self.getCVTerms(); }, "Returns the allowed terms")
+        .def("addCVTerm", [](OpenMS::CVMappingRule& self, const OpenMS::CVMappingTerm& term) { self.addCVTerm(term); }, "cv_term"_a, "Adds a term to the allowed terms")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         ;

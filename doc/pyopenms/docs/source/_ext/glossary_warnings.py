@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 class FindTextNodesVisitor(nodes.SparseNodeVisitor):
     def __init__(self, document, words):
         super().__init__(document)
-        self.words = words
+        # longest term first, so the reported match is stable and the most specific
+        self.words = sorted(words, key=lambda w: (-len(w), w))
 
     def visit_Text(self, node):
         for substring in self.words:

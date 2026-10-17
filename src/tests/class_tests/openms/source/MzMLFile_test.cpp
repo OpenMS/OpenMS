@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -1287,6 +1288,126 @@ START_SECTION([EXTRA] the streaming mzML writer refuses compressed file names)
   PeakMap exp;
   MzMLFile().load(tmp, exp);
   TEST_EQUAL(exp.size(), 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] the streaming mzML writer corrects the count of spectra it announced)
+{
+  // The writer gets the number of spectra before the first one (setExpectedSize()) and writes it into the
+  // spectrumList tag then. A source that leaves spectra out afterwards (BrukerTimsFile::transform() for
+  // precursors without peaks, any filter) writes fewer: the tag is corrected when the file is closed, in
+  // place, so that the offsets of the index stay valid.
+  const auto write = [](Size expected, Size written, bool index)
+  {
+    std::string file;
+    NEW_TMP_FILE(file);
+    file += ".mzML";
+    {
+      PlainMSDataWritingConsumer consumer(file);
+      consumer.getOptions().setWriteIndex(index);
+      consumer.setExpectedSize(expected, 0);
+      for (Size i = 0; i < written; ++i)
+      {
+        MSSpectrum spec;
+        spec.setRT(static_cast<double>(i));
+        spec.setNativeID("scan=" + std::to_string(i + 1));
+        spec.push_back(Peak1D(100.0 + i, 1.0f));
+        consumer.consumeSpectrum(spec);
+      }
+    }
+    return file;
+  };
+  // the spectrumList tag of a file, and the spectra read through the index of the file
+  const auto list_tag = [](const std::string& file) -> std::string
+  {
+    std::ifstream is(file.c_str());
+    for (std::string line; std::getline(is, line);)
+    {
+      if (line.find("<spectrumList") != std::string::npos) return line;
+    }
+    return "";
+  };
+
+  // as announced: the tag is the one that was written first
+  std::string file = write(3, 3, true);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"3\" defaultDataProcessingRef=\"dp_sp_0\">")
+  // fewer spectra than announced, same number of digits
+  file = write(5, 3, true);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"3\" defaultDataProcessingRef=\"dp_sp_0\">")
+  // fewer digits: blanks keep the length of the tag
+  file = write(1200, 12, true);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"12\" defaultDataProcessingRef=\"dp_sp_0\"  >")
+  PeakMap exp;
+  MzMLFile().load(file, exp);
+  TEST_EQUAL(exp.size(), 12)
+  // ... so the index still leads to the spectra
+  OnDiscMSExperiment on_disc;
+  TEST_EQUAL(on_disc.openFile(file), true)
+  TEST_EQUAL(on_disc.getNrSpectra(), 12)
+  TEST_STRING_EQUAL(on_disc.getSpectrum(11).getNativeID(), "scan=12")
+  TEST_REAL_SIMILAR(on_disc.getSpectrum(7)[0].getMZ(), 107.0)
+  // more spectra than announced: corrected if the number has no more digits
+  file = write(2, 7, false);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"7\" defaultDataProcessingRef=\"dp_sp_0\">")
+  // a number with more digits does not fit: the tag keeps what was announced
+  file = write(2, 11, false);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">")
+  MzMLFile().load(file, exp);
+  TEST_EQUAL(exp.size(), 11)
+
+  // setExpectedSize() after the first spectrum: the count in the tag (0) is corrected, and the correction
+  // goes by the digits of that count, not of the number expected at the end
+  NEW_TMP_FILE(file);
+  file += ".mzML";
+  {
+    PlainMSDataWritingConsumer consumer(file);
+    for (Size i = 0; i < 3; ++i)
+    {
+      if (i == 1) consumer.setExpectedSize(10, 0);
+      MSSpectrum spec;
+      spec.setRT(static_cast<double>(i));
+      spec.setNativeID("scan=" + std::to_string(i + 1));
+      spec.push_back(Peak1D(100.0 + i, 1.0f));
+      consumer.consumeSpectrum(spec);
+    }
+  }
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"3\" defaultDataProcessingRef=\"dp_sp_0\">")
+  OnDiscMSExperiment on_disc_late;
+  TEST_EQUAL(on_disc_late.openFile(file), true)
+  TEST_EQUAL(on_disc_late.getNrSpectra(), 3)
+  TEST_STRING_EQUAL(on_disc_late.getSpectrum(0).getNativeID(), "scan=1")
+  TEST_REAL_SIMILAR(on_disc_late.getSpectrum(2)[0].getMZ(), 102.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] the streaming mzML writer writes a run without spectra)
+{
+  // A reader that gives the settings of its input and then no spectrum (all of them filtered out) leaves
+  // the mzML document of a run without spectra, as MzMLFile::store() writes it, not an empty file
+  PeakMap empty_run;
+  empty_run.setLoadedFilePath(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  empty_run.getSample().setName("a sample");
+  std::string streamed, stored, no_settings;
+  NEW_TMP_FILE(streamed);
+  NEW_TMP_FILE(stored);
+  NEW_TMP_FILE(no_settings);
+  {
+    PlainMSDataWritingConsumer consumer(streamed);
+    consumer.setExpectedSize(5, 0);
+    consumer.setExperimentalSettings(empty_run);
+  }
+  MzMLFile().store(stored, empty_run);
+  TEST_FILE_EQUAL(streamed.c_str(), stored.c_str())
+  PeakMap exp;
+  MzMLFile().load(streamed, exp);
+  TEST_EQUAL(exp.size(), 0)
+  TEST_STRING_EQUAL(exp.getSample().getName(), "a sample")
+
+  // without settings there is nothing to write
+  {
+    PlainMSDataWritingConsumer consumer(no_settings);
+  }
+  TEST_EQUAL(File::empty(no_settings), true)
 }
 END_SECTION
 
