@@ -3237,7 +3237,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // The windows of the peaks; peak_windows[f - 1] holds those of the fragment charges 1..f, as queryPeaks()
     // matches a precursor of charge z with the fragment charges 1..min(z, fragment:max_charge)
     uint16_t max_fragment_charge = 0;
-    for (const auto& [precursor_idx, z] : searched) max_fragment_charge = std::max(max_fragment_charge, std::min(z, max_fragment_charge_));
+    for (const auto& precursor_charge : searched) max_fragment_charge = std::max(max_fragment_charge, std::min(precursor_charge.second, max_fragment_charge_));
     thread_local std::vector<PeakWindows_> peak_windows;
     if (peak_windows.size() < max_fragment_charge) peak_windows.resize(max_fragment_charge);
     for (uint16_t f = 1; f <= max_fragment_charge; ++f)
@@ -3296,8 +3296,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       return (i > 0 && sigma - mod_shifts_[i - 1].sigma <= it->sigma - sigma) ? i - 1 : i;
     };
 
-    for (const auto& [precursor_idx, charge] : searched)
+    for (const auto& precursor_charge : searched)
     {
+      // no structured binding: the lambdas below capture these, which clang does not support in OpenMP code
+      const uint16_t precursor_idx = precursor_charge.first;
+      const uint16_t charge = precursor_charge.second;
       const uint16_t fragment_charges = std::min(charge, max_fragment_charge_);
       if (fragment_charges == 0) continue; // as in queryPeaks(): no fragment charge, no matches
       const PeakWindows_& windows = peak_windows[fragment_charges - 1];
