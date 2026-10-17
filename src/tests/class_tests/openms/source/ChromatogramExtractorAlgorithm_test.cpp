@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
+#include <algorithm>
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/test_config.h>
@@ -512,6 +514,55 @@ START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::cons
   TEST_REAL_SIMILAR(integrated_intensity, 0.0); // test very first data point
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, im_it, 400.0001, 100, integrated_intensity, 0.001, im_extract_window, false);
   TEST_REAL_SIMILAR(integrated_intensity, 8.0);
+}
+END_SECTION
+
+START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, const double &mz_extraction_window, bool ppm))
+{
+  // Targets far ahead of the current position (e.g. the precursors of one isolation window in a
+  // full MS1 spectrum): the iterators have to end up where a peak-by-peak walk would leave them.
+  std::vector<double> mz, intensities, ion_mobility;
+  for (Size i = 0; i < 10000; ++i)
+  {
+    mz.push_back(300.0 + 0.1 * static_cast<double>(i));
+    intensities.push_back(static_cast<double>(i % 7 + 1));
+    ion_mobility.push_back(100.0);
+  }
+  // some duplicated m/z values around a target
+  mz[5001] = mz[5000];
+  mz[5002] = mz[5000];
+
+  // (the last target lies beyond the spectrum, with the last peak outside of its window)
+  const double targets[] = {300.0, 300.35, 420.04, 800.0, 800.0, 800.05, 1299.9, 1500.0};
+  ChromatogramExtractorAlgorithm extractor;
+
+  std::vector<double>::const_iterator mz_it = mz.begin();
+  std::vector<double>::const_iterator int_it = intensities.begin();
+  std::vector<double>::const_iterator mz_it_im = mz.begin();
+  std::vector<double>::const_iterator int_it_im = intensities.begin();
+  std::vector<double>::const_iterator im_it = ion_mobility.begin();
+  for (const double target : targets)
+  {
+    // reference: first peak that is not below the target, and the summed peaks inside the window
+    const std::ptrdiff_t expected_pos = std::lower_bound(mz.begin(), mz.end(), target) - mz.begin();
+    double expected_intensity = 0;
+    for (Size i = 0; i < mz.size(); ++i)
+    {
+      if (mz[i] > target - 0.1 && mz[i] < target + 0.1) expected_intensity += intensities[i];
+    }
+
+    double integrated_intensity = 0;
+    extractor.extract_value_tophat(mz.begin(), mz_it, mz.end(), int_it, target, integrated_intensity, 0.2, false);
+    TEST_EQUAL(mz_it - mz.begin(), expected_pos)
+    TEST_EQUAL(int_it - intensities.begin(), expected_pos)
+    TEST_REAL_SIMILAR(integrated_intensity, expected_intensity)
+
+    extractor.extract_value_tophat(mz.begin(), mz_it_im, mz.end(), int_it_im, im_it, target, 100, integrated_intensity, 0.2, 0.3, false);
+    TEST_EQUAL(mz_it_im - mz.begin(), expected_pos)
+    TEST_EQUAL(int_it_im - intensities.begin(), expected_pos)
+    TEST_EQUAL(im_it - ion_mobility.begin(), expected_pos)
+    TEST_REAL_SIMILAR(integrated_intensity, expected_intensity)
+  }
 }
 END_SECTION
 
