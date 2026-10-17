@@ -1844,7 +1844,7 @@ test("predictMS2 predicts b and y intensities", (t) => {
       assert.ok(ion.intensity > 0.01 && ion.intensity <= 1, `${ion.ion}: intensity ${ion.intensity}`);
       assert.equal(ion.ion, predictedLabel(ion), "the ion is named as annotatePeaks names it");
     }
-    // relative to the most intense predicted b/y ion, which is exactly 1
+    // relative to the most intense returned b/y ion, which is exactly 1
     assert.equal(Math.max(...ions.map((i) => i.intensity)), 1);
     assert.equal(new Set(ions.map((i) => i.ion)).size, ions.length, "every ion once");
     // by ascending m/z

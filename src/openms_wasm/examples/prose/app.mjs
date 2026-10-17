@@ -138,7 +138,8 @@ function buildForm(parameterEntries) {
   $("common-parameters").replaceChildren(...COMMON.filter((n) => byName.has(n)).map((n) => inputFor(byName.get(n), true)));
   const sections = new Map();
   for (const e of entries) {
-    if (COMMON.includes(e.name)) continue;
+    // "rescore" has the checkbox at the top of the page: one control, which search() passes as the option
+    if (COMMON.includes(e.name) || e.name === "rescore") continue;
     const section = e.name.includes(":") ? e.name.slice(0, e.name.lastIndexOf(":")) : "general";
     if (!sections.has(section)) sections.set(section, []);
     sections.get(section).push(e);
