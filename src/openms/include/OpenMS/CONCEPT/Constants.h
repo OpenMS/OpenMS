@@ -319,6 +319,13 @@ namespace OpenMS
       */
       inline const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
+      /** User parameter name (of a PeptideHit) for the observed m/z of the precursor the PSM was matched to, if its
+          spectrum has several precursors (e.g. the MS1 candidates of a DIA isolation window); otherwise the PSM's
+          precursor m/z is that of its PeptideIdentification
+              double
+      */
+      inline const std::string PSM_PRECURSOR_MZ = "precursor_mz";
+
       /** User parameter name for median of fragment mz error in ppm
               String
       */

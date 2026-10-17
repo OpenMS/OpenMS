@@ -139,6 +139,16 @@ namespace OpenMS
         int max_charge);
 
       /**
+       * @brief The observed precursor m/z of a PSM (its ExpMass and mass features).
+       *
+       * That of @p hit's own precursor (meta value Constants::UserParam::PSM_PRECURSOR_MZ) if the spectrum has several
+       * (e.g. the MS1 candidates of a DIA isolation window), otherwise the m/z of @p pid. Percolator takes PSMs with
+       * the same ScanNr but different ExpMass for different spectra, so the candidates of a DIA spectrum do not
+       * compete with each other.
+       */
+      static double getPrecursorMZ(const PeptideIdentification& pid, const PeptideHit& hit);
+
+      /**
        * @brief Compute and stamp PIN-equivalent meta values, recording newly added keys.
        *
        * This overload additionally records, for every kept hit, the meta-value keys

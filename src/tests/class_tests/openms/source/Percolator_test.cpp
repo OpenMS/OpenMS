@@ -19,6 +19,7 @@
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -1738,6 +1739,28 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
   PeptideIdentificationList ids_mixed_svm = makeMixedIds();
   perc.rescorePSMs(ids_mixed_svm, feature_set, "trypsin", 2, 2, "svm");
   TEST_REAL_SIMILAR(ids_mixed_svm[1].getHits()[1].getScore(), -100.0)
+
+  // a spectrum with several precursors (DIA candidates) gets the precursor m/z of its best hit after rescoring: here
+  // the former best hit cannot be rescored, so the other candidate wins (hits keep their order)
+  PeptideIdentificationList ids_dia = makeIds();
+  {
+    PeptideIdentification& pid = ids_dia[0];
+    PeptideHit& candidate = pid.getHits()[0];
+    candidate.setMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ, pid.getMZ());
+    PeptideHit former_best = candidate;
+    former_best.setPeptideEvidences({});
+    former_best.setScore(25.0);
+    former_best.setMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ, 600.0);
+    pid.getHits().insert(pid.getHits().begin(), former_best);
+    pid.setMZ(600.0);
+  }
+  const double candidate_mz = makeIds()[0].getMZ();
+  perc.rescorePSMs(ids_dia, feature_set, "trypsin", 2, 2, "svm");
+  ABORT_IF(ids_dia[0].getHits().size() != 2)
+  TEST_REAL_SIMILAR(ids_dia[0].getHits()[0].getScore(), -100.0)
+  TEST_EQUAL(ids_dia[0].getHits()[1].getScore() > -100.0, true)
+  TEST_REAL_SIMILAR(ids_dia[0].getMZ(), candidate_mz)
+  TEST_REAL_SIMILAR(ids_dia[1].getMZ(), makeIds()[1].getMZ()) // one precursor: unchanged
 
   // errors leave the input untouched
   PeptideIdentificationList only_empty;

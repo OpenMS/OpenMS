@@ -2618,28 +2618,31 @@ namespace OpenMS
     std::vector<uint16_t> charges;
     for (const MSSpectrum& spectrum : spectra)
     {
-      if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) { continue; } // not searched
-      const Precursor& precursor = spectrum.getPrecursors()[0];
-      charges.clear();
-      if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
-      else
+      if (spectrum.empty() || spectrum.getMSLevel() != 2) { continue; } // not searched
+      // every precursor of the spectrum is searched (a DIA spectrum has one per MS1 candidate)
+      for (const Precursor& precursor : spectrum.getPrecursors())
       {
-        for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
-      }
-      for (const uint16_t charge : charges)
-      {
-        const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
-        for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+        charges.clear();
+        if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
+        else
         {
-          const float shifted_mass = precursor_mass
-            + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
-          const auto window = computeMassWindow_(shifted_mass);
-          const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
-          const float lo = shifted_mass + window.first - margin;
-          const float hi = shifted_mass + window.second + margin;
-          // a NaN bound gives the query an arbitrary peptide range: keep them all
-          if (std::isnan(lo) || std::isnan(hi)) { return; }
-          windows.emplace_back(lo, hi);
+          for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
+        }
+        for (const uint16_t charge : charges)
+        {
+          const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
+          for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+          {
+            const float shifted_mass = precursor_mass
+              + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+            const auto window = computeMassWindow_(shifted_mass);
+            const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
+            const float lo = shifted_mass + window.first - margin;
+            const float hi = shifted_mass + window.second + margin;
+            // a NaN bound gives the query an arbitrary peptide range: keep them all
+            if (std::isnan(lo) || std::isnan(hi)) { return; }
+            windows.emplace_back(lo, hi);
+          }
         }
       }
     }
@@ -3029,6 +3032,7 @@ namespace OpenMS
       //      most once per block.
       //   6. realized_length_, subset_bitmask_ ascending — peptide-mass mode only (0 otherwise): the peptidoforms of
       //      one mother, of which querySpectrumPeptideMasses_ emits each at most once per (charge, iso).
+      //   7. precursor_idx_    ascending  — a spectrum with several precursors (DIA) is searched once per precursor.
       auto by_rank = [](const SpectrumMatch& a, const SpectrumMatch& b)
       {
         if (a.num_matched_ != b.num_matched_)
@@ -3043,7 +3047,8 @@ namespace OpenMS
         if (a.precursor_charge_ != b.precursor_charge_) return a.precursor_charge_ < b.precursor_charge_;
         if (a.peptide_idx_ != b.peptide_idx_) return a.peptide_idx_ < b.peptide_idx_;
         if (a.realized_length_ != b.realized_length_) return a.realized_length_ < b.realized_length_;
-        return a.subset_bitmask_ < b.subset_bitmask_;
+        if (a.subset_bitmask_ != b.subset_bitmask_) return a.subset_bitmask_ < b.subset_bitmask_;
+        return a.precursor_idx_ < b.precursor_idx_;
       };
 
       if (init_hits.hits_.size() > max_processed_hits_)
@@ -3212,24 +3217,27 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                                   bool with_electron_ions)
   {
     // Preconditions checked by the public entry point querySpectrum.
-    const Precursor& precursor = spectrum.getPrecursors()[0];
-    std::vector<uint16_t> charges;
-    // Precursor::getCharge() returns signed Int; treat non-positive (0 = unset,
-    // rare negative-mode encodings) as "unknown" and fall back to the
-    // configured min..max range.
-    if (precursor.getCharge() > 0)
+    // The searched (precursor, charge) pairs: every precursor of the spectrum (a DIA spectrum has one per MS1
+    // candidate), with its charge. Precursor::getCharge() returns signed Int; treat non-positive (0 = unset,
+    // rare negative-mode encodings) as "unknown" and fall back to the configured min..max range.
+    const auto& precursors = spectrum.getPrecursors();
+    std::vector<std::pair<uint16_t, uint16_t>> searched; // {precursor index, charge}
+    for (uint16_t precursor_idx = 0; precursor_idx < static_cast<uint16_t>(precursors.size()); ++precursor_idx)
     {
-      charges.push_back(static_cast<uint16_t>(precursor.getCharge()));
-    }
-    else
-    {
-      for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z) charges.push_back(z);
+      if (precursors[precursor_idx].getCharge() > 0)
+      {
+        searched.emplace_back(precursor_idx, static_cast<uint16_t>(precursors[precursor_idx].getCharge()));
+      }
+      else
+      {
+        for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z) searched.emplace_back(precursor_idx, z);
+      }
     }
 
     // The windows of the peaks; peak_windows[f - 1] holds those of the fragment charges 1..f, as queryPeaks()
     // matches a precursor of charge z with the fragment charges 1..min(z, fragment:max_charge)
     uint16_t max_fragment_charge = 0;
-    for (uint16_t z : charges) max_fragment_charge = std::max(max_fragment_charge, std::min(z, max_fragment_charge_));
+    for (const auto& precursor_charge : searched) max_fragment_charge = std::max(max_fragment_charge, std::min(precursor_charge.second, max_fragment_charge_));
     thread_local std::vector<PeakWindows_> peak_windows;
     if (peak_windows.size() < max_fragment_charge) peak_windows.resize(max_fragment_charge);
     for (uint16_t f = 1; f <= max_fragment_charge; ++f)
@@ -3288,14 +3296,17 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       return (i > 0 && sigma - mod_shifts_[i - 1].sigma <= it->sigma - sigma) ? i - 1 : i;
     };
 
-    for (const uint16_t charge : charges)
+    for (const auto& precursor_charge : searched)
     {
+      // no structured binding: the lambdas below capture these, which clang does not support in OpenMP code
+      const uint16_t precursor_idx = precursor_charge.first;
+      const uint16_t charge = precursor_charge.second;
       const uint16_t fragment_charges = std::min(charge, max_fragment_charge_);
       if (fragment_charges == 0) continue; // as in queryPeaks(): no fragment charge, no matches
       const PeakWindows_& windows = peak_windows[fragment_charges - 1];
 
       // the precursor (M+H)+ of searchDifferentPrecursorRanges() for this charge
-      const float mz = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
+      const float mz = (float)precursors[precursor_idx].getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
       for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
       {
         // The window of the fragment index (searchDifferentPrecursorRanges(), getPeptidesInMassWindow()): a
@@ -3363,6 +3374,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             sm.subset_bitmask_ = subset;
             sm.sigma_delta_ = static_cast<float>(peptidoform_mass - mass);
             sm.precursor_charge_ = charge;
+            sm.precursor_idx_ = precursor_idx;
             sm.isotope_error_ = isotope_error;
             sm.realized_length_ = static_cast<uint16_t>(length);
             sm.peptide_idx_ = mother_idx;
@@ -3441,8 +3453,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     }
 
     // peptide:deduplicate: as the fragment index holds every peptidoform once (the first of its entries, i.e. of
-    // its occurrences the one in the protein that comes first), keep one candidate per peptidoform, charge and
-    // isotope error (its occurrences in other proteins or positions have the same matched fragments)
+    // its occurrences the one in the protein that comes first), keep one candidate per peptidoform, precursor, charge
+    // and isotope error (its occurrences in other proteins or positions have the same matched fragments)
     if (deduplicate_ && sms.hits_.size() > first_hit + 1)
     {
       thread_local std::unordered_map<std::string, size_t> kept_of;
@@ -3457,6 +3469,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         const std::string& protein = fasta_entries[mother.protein_idx].sequence;
         const size_t start = mother.sequence_.first;
         key.assign(protein, start, hit.realized_length_);
+        key.append(reinterpret_cast<const char*>(&hit.precursor_idx_), sizeof(hit.precursor_idx_));
         key.append(reinterpret_cast<const char*>(&hit.precursor_charge_), sizeof(hit.precursor_charge_));
         key.append(reinterpret_cast<const char*>(&hit.isotope_error_), sizeof(hit.isotope_error_));
         if (hit.subset_bitmask_ != 0)
@@ -3521,8 +3534,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       if (x.precursor_charge_ != y.precursor_charge_) return x.precursor_charge_ < y.precursor_charge_;
       const TieKey& kx = tie_keys[a];
       const TieKey& ky = tie_keys[b];
-      return std::tie(kx.precursor_mz, kx.protein_idx, kx.start, x.realized_length_, x.subset_bitmask_)
-           < std::tie(ky.precursor_mz, ky.protein_idx, ky.start, y.realized_length_, y.subset_bitmask_);
+      return std::tie(kx.precursor_mz, kx.protein_idx, kx.start, x.realized_length_, x.subset_bitmask_, x.precursor_idx_)
+           < std::tie(ky.precursor_mz, ky.protein_idx, ky.start, y.realized_length_, y.subset_bitmask_, y.precursor_idx_);
     };
     const size_t keep = std::min<size_t>(order.size(), max_processed_hits_);
     std::partial_sort(order.begin(), order.begin() + keep, order.end(), by_rank);
@@ -3572,10 +3585,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         return;
       }
 
-      const auto& precursor = spectrum.getPrecursors();
-      if (precursor.size() != 1)
+      // Every precursor is searched: a DIA spectrum has one per MS1 candidate (SpectrumMatch::precursor_idx_)
+      const auto& precursors = spectrum.getPrecursors();
+      if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
         return;
       }
 
@@ -3593,28 +3606,34 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
 
       // Fragment-index path: fasta_entries not needed.
-      // two posible modes. Precursor has a charge or we test all possible charges
-      vector<size_t> charges;
-      if (precursor[0].getCharge())
+      for (uint16_t precursor_idx = 0; precursor_idx < static_cast<uint16_t>(precursors.size()); ++precursor_idx)
       {
-        charges.push_back(precursor[0].getCharge());
-      }
-      else
-      {
-        for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
+        const Precursor& precursor = precursors[precursor_idx];
+        // two posible modes. Precursor has a charge or we test all possible charges
+        vector<size_t> charges;
+        if (precursor.getCharge())
         {
-          charges.push_back(i);
+          charges.push_back(precursor.getCharge());
         }
-      }
+        else
+        {
+          for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
+          {
+            charges.push_back(i);
+          }
+        }
 
-      // Charge outer, isotope error inner (inside searchDifferentPrecursorRanges); each
-      // block appends to sms in ascending peptide index. A per-charge staging container
-      // would only add a second full copy of every candidate before the same tail insert.
-      for (uint16_t charge : charges)
-      {
-        float mz;
-        mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
-        searchDifferentPrecursorRanges(spectrum, mz, sms, charge, with_electron_ions);
+        // Charge outer, isotope error inner (inside searchDifferentPrecursorRanges); each
+        // block appends to sms in ascending peptide index. A per-charge staging container
+        // would only add a second full copy of every candidate before the same tail insert.
+        const size_t first_hit = sms.hits_.size();
+        for (uint16_t charge : charges)
+        {
+          float mz;
+          mz = (float)precursor.getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
+          searchDifferentPrecursorRanges(spectrum, mz, sms, charge, with_electron_ions);
+        }
+        for (size_t i = first_hit; i < sms.hits_.size(); ++i) { sms.hits_[i].precursor_idx_ = precursor_idx; }
       }
       trimHits(sms);
   }

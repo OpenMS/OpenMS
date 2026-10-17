@@ -89,6 +89,7 @@ namespace OpenMS
       uint32_t subset_bitmask_{};    ///< Peptide-mass mode: active slots in the slot list returned by buildModSlots_ for the realized sub-peptide. 0 = unmodified. Ignored without low_memory.
       float    sigma_delta_{};       ///< Peptide-mass mode: Σ of the variable-mod deltas of subset_bitmask_. 0 without low_memory or unmodified.
       uint16_t precursor_charge_{};  ///< The precursor_charge used for the performed search
+      uint16_t precursor_idx_{};     ///< Index into the spectrum's precursor list (supports multi-precursor DIA spectra)
       int16_t  isotope_error_{};     ///< The isotope_error used for the performed search
       uint16_t realized_length_{};   ///< Peptide-mass mode: length of the realized sub-peptide, a prefix of the mother peptide_idx_. 0 without low_memory.
       size_t   peptide_idx_{};       ///< The idx this struct belongs to
@@ -434,7 +435,8 @@ namespace OpenMS
      * detected (no matches are returned then); different entries of the same number give candidates that do not
      * belong to the index. The fragment-index path ignores the @p fasta_entries argument.
      *
-     * @param[in]  spectrum      Experimental spectrum with a single precursor.
+     * @param[in]  spectrum      Experimental spectrum. Each of its precursors is searched (a DIA spectrum may have one
+     *                           per MS1 candidate); SpectrumMatch::precursor_idx_ names the one of a match.
      * @param[in]  fasta_entries The FASTA entries passed to build(), in the same order.
      * @param[out] sms           Accumulated candidate matches.
      */
@@ -452,7 +454,7 @@ namespace OpenMS
      * without these ions. Use it for electron-activated spectra, so that the c and z+1 ions do not
      * change the candidates of other spectra.
      *
-     * @param[in]  spectrum           Experimental spectrum with a single precursor.
+     * @param[in]  spectrum           Experimental spectrum, with one or more precursors (see above).
      * @param[in]  fasta_entries      The FASTA database passed to build().
      * @param[out] sms                Accumulated candidate matches.
      * @param[in]  with_electron_ions Also match the c and z+1 ions of ions:electron_ions.
@@ -901,7 +903,7 @@ private:
      *
      * Only called when @ref isPeptideMassMode is true.
      *
-     * @param[in]  spectrum Experimental spectrum with a single precursor.
+     * @param[in]  spectrum Experimental spectrum, with one or more precursors (SpectrumMatch::precursor_idx_).
      * @param[in]  fasta_entries Source database passed to build().
      * @param[out] sms Accumulated candidate matches; SpectrumMatch::realized_length_ and subset_bitmask_
      *             name the realized peptidoform.

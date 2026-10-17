@@ -161,6 +161,14 @@ public:
   using ProSEAlgorithm::annotateIonPriors_;
   using ProSEAlgorithm::reversedNoiseSequence_;
   using ProSEAlgorithm::fragment_mass_tolerance_;
+
+  // DIA support
+  using ProSEAlgorithm::PrecursorCandidate_;
+  using ProSEAlgorithm::isDIAExperiment_;
+  using ProSEAlgorithm::buildMS2ToMS1Map_;
+  using ProSEAlgorithm::extractMS1PrecursorCandidates_;
+  using ProSEAlgorithm::expandDIASpectra_;
+  using ProSEAlgorithm::AnnotatedHit_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -4278,6 +4286,345 @@ START_SECTION(([EXTRA] preprocessSpectra_ removes only peaks without intensity, 
 }
 END_SECTION
 
+// =====================================================================
+// DIA support tests
+// =====================================================================
+
+START_SECTION(([EXTRA] DIA auto-detection - wide isolation windows))
+{
+  // Build a PeakMap with wide-window MS2 spectra (DIA-like)
+  PeakMap dia_exp;
+  for (int i = 0; i < 5; ++i)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(100.0 + i);
+    Precursor p;
+    p.setMZ(500.0 + i * 25.0);
+    p.setIsolationWindowLowerOffset(12.5);
+    p.setIsolationWindowUpperOffset(12.5);
+    s.setPrecursors({p});
+    dia_exp.addSpectrum(s);
+  }
+
+  ProSEAlgorithm_test algo;
+  Param params = algo.getParameters();
+  params.setValue("dia:min_isolation_width", 4.0);
+  algo.setParameters(params);
+
+  TEST_EQUAL(algo.isDIAExperiment_(dia_exp), true)
+
+  // Narrow windows (DDA-like) should not trigger DIA
+  PeakMap dda_exp;
+  for (int i = 0; i < 5; ++i)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(100.0 + i);
+    Precursor p;
+    p.setMZ(500.0 + i);
+    p.setIsolationWindowLowerOffset(0.7);
+    p.setIsolationWindowUpperOffset(0.7);
+    s.setPrecursors({p});
+    dda_exp.addSpectrum(s);
+  }
+  TEST_EQUAL(algo.isDIAExperiment_(dda_exp), false)
+
+  // No isolation window info should return false
+  PeakMap no_iso_exp;
+  for (int i = 0; i < 5; ++i)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(100.0 + i);
+    Precursor p;
+    p.setMZ(500.0);
+    s.setPrecursors({p});
+    no_iso_exp.addSpectrum(s);
+  }
+  TEST_EQUAL(algo.isDIAExperiment_(no_iso_exp), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA buildMS2ToMS1Map))
+{
+  PeakMap exp;
+  // MS1 at index 0
+  MSSpectrum ms1_0;
+  ms1_0.setMSLevel(1);
+  ms1_0.setRT(10.0);
+  exp.addSpectrum(ms1_0);
+
+  // MS2 at index 1, 2 (children of MS1 at 0)
+  for (int i = 0; i < 2; ++i)
+  {
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(11.0 + i);
+    Precursor p;
+    p.setMZ(500.0);
+    ms2.setPrecursors({p});
+    exp.addSpectrum(ms2);
+  }
+
+  // MS1 at index 3
+  MSSpectrum ms1_1;
+  ms1_1.setMSLevel(1);
+  ms1_1.setRT(20.0);
+  exp.addSpectrum(ms1_1);
+
+  // MS2 at index 4 (child of MS1 at 3)
+  MSSpectrum ms2_3;
+  ms2_3.setMSLevel(2);
+  ms2_3.setRT(21.0);
+  Precursor p3;
+  p3.setMZ(600.0);
+  ms2_3.setPrecursors({p3});
+  exp.addSpectrum(ms2_3);
+
+  auto map = ProSEAlgorithm_test::buildMS2ToMS1Map_(exp);
+  TEST_EQUAL(map.size(), 5)
+  TEST_EQUAL(map[0], -1) // MS1 itself
+  TEST_EQUAL(map[1], 0)  // MS2 → MS1 at 0
+  TEST_EQUAL(map[2], 0)  // MS2 → MS1 at 0
+  TEST_EQUAL(map[3], -1) // MS1 itself
+  TEST_EQUAL(map[4], 3)  // MS2 → MS1 at 3
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - deisotopes envelopes))
+{
+  // Build MS1 spectrum with two proper isotope envelopes inside the window
+  // plus an isolated peak outside the window.
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+
+  // Charge-2 envelope at mono 495.0 (peaks at 495.0, 495.5, 496.0)
+  ms1.push_back(Peak1D(495.0, 1000.0));
+  ms1.push_back(Peak1D(495.0 + c13 / 2.0, 500.0));
+  ms1.push_back(Peak1D(495.0 + 2 * c13 / 2.0, 200.0));
+
+  // Charge-3 envelope at mono 502.0 (peaks at 502.0, 502.334, 502.667)
+  ms1.push_back(Peak1D(502.0, 2000.0));
+  ms1.push_back(Peak1D(502.0 + c13 / 3.0, 800.0));
+  ms1.push_back(Peak1D(502.0 + 2 * c13 / 3.0, 300.0));
+
+  // Peak outside isolation window — must not appear in result
+  ms1.push_back(Peak1D(550.0, 5000.0));
+  ms1.sortByPosition();
+
+  // Isolation window [487.5, 512.5]
+  Precursor prec;
+  prec.setMZ(500.0);
+  prec.setIsolationWindowLowerOffset(12.5);
+  prec.setIsolationWindowUpperOffset(12.5);
+
+  auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+      ms1, prec, /*max=*/10, /*min_charge=*/2, /*max_charge=*/5, /*tol_ppm=*/20.0);
+
+  // Two monoisotopic precursors expected (envelopes collapsed)
+  TEST_EQUAL(candidates.size(), 2)
+
+  // Sorted by intensity: 502.0 (2000) first, 495.0 (1000) second
+  TEST_REAL_SIMILAR(candidates[0].mz, 502.0)
+  TEST_EQUAL(candidates[0].charge, 3)
+  TEST_REAL_SIMILAR(candidates[1].mz, 495.0)
+  TEST_EQUAL(candidates[1].charge, 2)
+
+  // Out-of-window peak must not appear
+  for (const auto& c : candidates)
+  {
+    TEST_NOT_EQUAL(c.mz, 550.0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - boundary cases))
+{
+  // Isolation window [487.5, 512.5]
+  Precursor prec;
+  prec.setMZ(500.0);
+  prec.setIsolationWindowLowerOffset(12.5);
+  prec.setIsolationWindowUpperOffset(12.5);
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+
+  // Case 1: envelope straddling upper edge — mono in window, +1 outside
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Charge-2 envelope at mono 512.0 (just inside upper edge); +1 at 512.5, +2 at 513.0
+    ms1.push_back(Peak1D(512.0, 1000.0));
+    ms1.push_back(Peak1D(512.0 + c13 / 2.0, 500.0));   // 512.50 — at edge
+    ms1.push_back(Peak1D(512.0 + 2 * c13 / 2.0, 200.0)); // 513.00 — outside
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 1)
+    TEST_REAL_SIMILAR(candidates[0].mz, 512.0)
+    TEST_EQUAL(candidates[0].charge, 2)
+  }
+
+  // Case 2: envelope with mono just below window — KEPT because isotopes
+  // reach into the window and contribute fragments. The candidate carries
+  // the true monoisotopic m/z (487.0), not a fabricated in-window mono.
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Charge-2 envelope at mono 487.0 (below lower_mz=487.5);
+    // +1 at 487.50 — in window
+    ms1.push_back(Peak1D(487.0, 1000.0));
+    ms1.push_back(Peak1D(487.0 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(487.0 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 1)
+    TEST_REAL_SIMILAR(candidates[0].mz, 487.0)
+    TEST_EQUAL(candidates[0].charge, 2)
+  }
+
+  // Case 2b: envelope with mono FAR below window — excluded (no isotopes reach window)
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Charge-2 envelope at mono 480.0; +1 at 480.50, +2 at 481.00 — none in window
+    ms1.push_back(Peak1D(480.0, 1000.0));
+    ms1.push_back(Peak1D(480.0 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(480.0 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 0)
+  }
+
+  // Case 2c: envelope with mono above upper_mz — excluded (whole envelope above window)
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Mono at 513.0 (above upper_mz=512.5)
+    ms1.push_back(Peak1D(513.0, 1000.0));
+    ms1.push_back(Peak1D(513.0 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(513.0 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 0)
+  }
+
+  // Case 3: envelope with mono just at lower_mz — kept
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.push_back(Peak1D(487.5, 1000.0));
+    ms1.push_back(Peak1D(487.5 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(487.5 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 1)
+    TEST_REAL_SIMILAR(candidates[0].mz, 487.5)
+    TEST_EQUAL(candidates[0].charge, 2)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA expandDIASpectra))
+{
+  // Build a small DIA experiment: 1 MS1 + 2 MS2
+  PeakMap full_exp;
+
+  // MS1 with isotope envelopes in both DIA windows
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(10.0);
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  // Window 1: charge-2 envelope at 498.0, charge-3 envelope at 502.0
+  ms1.push_back(Peak1D(498.0, 500.0));
+  ms1.push_back(Peak1D(498.0 + c13 / 2.0, 250.0));
+  ms1.push_back(Peak1D(498.0 + 2 * c13 / 2.0, 100.0));
+  ms1.push_back(Peak1D(502.0, 1000.0));
+  ms1.push_back(Peak1D(502.0 + c13 / 3.0, 400.0));
+  ms1.push_back(Peak1D(502.0 + 2 * c13 / 3.0, 150.0));
+  // Window 2: charge-2 envelope at 523.0
+  ms1.push_back(Peak1D(523.0, 800.0));
+  ms1.push_back(Peak1D(523.0 + c13 / 2.0, 400.0));
+  ms1.sortByPosition();
+  full_exp.addSpectrum(ms1);
+
+  // MS2 window 1: isolation [487.5, 512.5]
+  MSSpectrum ms2_1;
+  ms2_1.setMSLevel(2);
+  ms2_1.setRT(11.0);
+  ms2_1.setNativeID("scan=1");
+  ms2_1.push_back(Peak1D(200.0, 100.0));
+  ms2_1.push_back(Peak1D(300.0, 200.0));
+  Precursor p1;
+  p1.setMZ(500.0);
+  p1.setIsolationWindowLowerOffset(12.5);
+  p1.setIsolationWindowUpperOffset(12.5);
+  ms2_1.setPrecursors({p1});
+  full_exp.addSpectrum(ms2_1);
+
+  // MS2 window 2: isolation [512.5, 537.5]
+  MSSpectrum ms2_2;
+  ms2_2.setMSLevel(2);
+  ms2_2.setRT(12.0);
+  ms2_2.setNativeID("scan=2");
+  ms2_2.push_back(Peak1D(250.0, 150.0));
+  Precursor p2;
+  p2.setMZ(525.0);
+  p2.setIsolationWindowLowerOffset(12.5);
+  p2.setIsolationWindowUpperOffset(12.5);
+  ms2_2.setPrecursors({p2});
+  full_exp.addSpectrum(ms2_2);
+
+  auto ms2_to_ms1 = ProSEAlgorithm_test::buildMS2ToMS1Map_(full_exp);
+
+  ProSEAlgorithm_test algo;
+  Param params = algo.getParameters();
+  params.setValue("dia:max_precursor_candidates", 20);
+  params.setValue("dia:isotope_tolerance_ppm", 20.0);
+  params.setValue("precursor:min_charge", 2);
+  params.setValue("precursor:max_charge", 5);
+  algo.setParameters(params);
+
+  PeakMap expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1);
+
+  // Multi-precursor mode: one spectrum per DIA window, multiple precursors per spectrum
+  TEST_EQUAL(expanded.size(), 2) // one per DIA window
+
+  // Both should be MS level 2 with multiple precursors
+  TEST_EQUAL(expanded[0].getMSLevel(), 2)
+  TEST_EQUAL(expanded[1].getMSLevel(), 2)
+
+  // After deisotoping: window 1 has 2 monoisotopic precursors (498.0, 502.0),
+  // window 2 has 1 (523.0).
+  TEST_EQUAL(expanded[0].getPrecursors().size(), 2)
+  TEST_EQUAL(expanded[1].getPrecursors().size(), 1)
+
+  // Window 1 precursors sorted by intensity descending: 502.0 (1000) first
+  const auto& w1_precs = expanded[0].getPrecursors();
+  TEST_REAL_SIMILAR(w1_precs[0].getMZ(), 502.0)
+  TEST_EQUAL(w1_precs[0].getCharge(), 3)
+  TEST_REAL_SIMILAR(w1_precs[1].getMZ(), 498.0)
+  TEST_EQUAL(w1_precs[1].getCharge(), 2)
+
+  // Window 2 precursor
+  TEST_REAL_SIMILAR(expanded[1].getPrecursors()[0].getMZ(), 523.0)
+  TEST_EQUAL(expanded[1].getPrecursors()[0].getCharge(), 2)
+
+  // Fragment peaks unchanged (no duplication)
+  TEST_EQUAL(expanded[0].size(), 2) // 200.0 and 300.0
+  TEST_EQUAL(expanded[1].size(), 1) // 250.0
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION(([EXTRA] ProSE searches initial methionine loss by default in single and chunked multi - file searches))
@@ -4470,6 +4817,71 @@ START_SECTION(([EXTRA] report:isotope_error_convention: isotope_error is reporte
     TEST_EQUAL(sp.metaValueExists("isotope_error_convention"), sign == 1)
     if (sign == 1) { TEST_STRING_EQUAL(sp.getMetaValue("isotope_error_convention").toString(), "observed_minus_theoretical") }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the hits of a spectrum with several precursors (DIA candidates) carry the m/z of their own precursor))
+{
+  // One MS2 spectrum with the fragments of two peptides and one precursor for each, as DIA expansion produces them.
+  const vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  const vector<AASequence> sequences = {AASequence::fromString("THQPSANLDIK"), AASequence::fromString("GWSADELK")};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  MSSpectrum spec;
+  vector<Precursor> precursors;
+  for (const AASequence& seq : sequences)
+  {
+    MSSpectrum fragments;
+    tsg.getSpectrum(fragments, seq, 1, 1);
+    for (const Peak1D& peak : fragments) spec.push_back(peak);
+    Precursor prec;
+    prec.setMZ(seq.getMZ(2));
+    prec.setCharge(2);
+    precursors.push_back(prec);
+  }
+  spec.sortByPosition();
+  spec.setMSLevel(2);
+  spec.setRT(100.0);
+  spec.setPrecursors(precursors);
+  spec.setNativeID("scan=1");
+  PeakMap spectra;
+  spectra.addSpectrum(spec);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("report:top_hits", 2);
+  p.setValue("dia:enabled", "false");
+  algo.setParameters(p);
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_TRUE(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  ABORT_IF(pep_ids.size() != 1 || pep_ids[0].getHits().size() != 2)
+  const PeptideIdentification& pid = pep_ids[0];
+  set<string> found;
+  TOLERANCE_ABSOLUTE(1e-6)
+  for (const PeptideHit& hit : pid.getHits())
+  {
+    found.insert(hit.getSequence().toString());
+    ABORT_IF(!hit.metaValueExists(Constants::UserParam::PSM_PRECURSOR_MZ))
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)), hit.getSequence().getMZ(2))
+    TEST_TRUE(std::abs(static_cast<double>(hit.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))) < 0.1)
+  }
+  TEST_EQUAL(found.size(), 2)
+  // the identification has the precursor of its best hit
+  TEST_REAL_SIMILAR(pid.getMZ(), static_cast<double>(pid.getHits()[0].getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)))
 }
 END_SECTION
 

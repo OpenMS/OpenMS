@@ -337,6 +337,79 @@ START_SECTION(([EXTRA] isotope correction preserves spectrum identity in stamped
 }
 END_SECTION
 
+START_SECTION((static double getPrecursorMZ(const PeptideIdentification& pid, const PeptideHit& hit)))
+{
+  PeptideIdentification pid;
+  pid.setMZ(500.0);
+  PeptideHit hit;
+  TEST_REAL_SIMILAR(PercolatorInfile::getPrecursorMZ(pid, hit), 500.0)
+  hit.setMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ, 510.0);
+  TEST_REAL_SIMILAR(PercolatorInfile::getPrecursorMZ(pid, hit), 510.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the candidates of a spectrum with several precursors (DIA) keep their own precursor m/z in the PIN features))
+{
+  // One DIA spectrum, two MS1 precursor candidates: SAMPLER (2+) and PEPTIDEK (2+), each observed 0.01 above its
+  // theoretical m/z. The identification has the m/z of the best hit (SAMPLER); PEPTIDEK must get the mass features of
+  // its own precursor, and a different ExpMass, so that Percolator does not let the two compete as PSMs of one spectrum.
+  const std::vector<AASequence> sequences = {AASequence::fromString("SAMPLER"), AASequence::fromString("PEPTIDEK")};
+  PeptideIdentification pid;
+  pid.setMZ(sequences[0].getMZ(2) + 0.01);
+  pid.setRT(10.0);
+  pid.setSpectrumReference("scan=7");
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    PeptideHit hit;
+    hit.setSequence(sequences[i]);
+    hit.setCharge(2);
+    hit.setScore(2.0 - i);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("PROT1");
+    evidence.setAABefore('K');
+    evidence.setAAAfter('S');
+    hit.addPeptideEvidence(evidence);
+    hit.setMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ, sequences[i].getMZ(2) + 0.01);
+    pid.insertHit(hit);
+  }
+  PeptideIdentificationList pids;
+  pids.push_back(pid);
+  std::string pin_file;
+  NEW_TMP_FILE(pin_file);
+  StringList features = PercolatorInfile::getStandardFeatureSet(2, 2);
+  features.insert(features.end(), {"deltamass", "Peptide", "Proteins"});
+  PercolatorInfile::store(pin_file, pids, features, "trypsin", 2, 2);
+  TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 2).size(), 0)
+  TextFile txt(pin_file);
+  const StringList lines(txt.begin(), txt.end());
+  ABORT_IF(lines.size() != 3)
+  auto col = [&features](const std::string& name) -> Size
+  {
+    return std::find(features.begin(), features.end(), name) - features.begin();
+  };
+  TOLERANCE_ABSOLUTE(1e-6)
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    const PeptideHit& hit = pids[0].getHits()[i];
+    const double precursor_mz = sequences[i].getMZ(2) + 0.01;
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("ExpMass")), precursor_mz)
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("mass")), precursor_mz)
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("CalcMass")), sequences[i].getMZ(2))
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("dm")), 0.01)
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("absdm")), 0.01)
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("deltamass")), 0.01)
+    StringList row;
+    StringUtils::split(lines[i + 1], '\t', row);
+    ABORT_IF(row.size() != features.size())
+    TEST_STRING_EQUAL(row[col("ScanNr")], "7")
+    TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("ExpMass")]), precursor_mz)
+    TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("mass")]), precursor_mz)
+    TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("deltamass")]), 0.01)
+  }
+}
+END_SECTION
+
 START_SECTION((static std::string getFileIdentifier(const PeptideIdentification& pid)))
 {
   PeptideIdentification pid;
