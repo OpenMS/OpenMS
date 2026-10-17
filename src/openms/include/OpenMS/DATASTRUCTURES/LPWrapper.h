@@ -14,43 +14,21 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 
-// do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
-// include them in LPWrapper.cpp where they do not harm
-// only declare them here
-class CoinModel;
-
-// Forward declare HiGHS
+// do NOT include the HiGHS headers here (they are only available when building OpenMS), forward declare instead
 class Highs;
-
-// if GLPK was found:
-#if !defined(OPENMS_HAS_COINOR) && !defined(OPENMS_HAS_HIGHS)
-  #ifndef GLP_PROB_DEFINED
-    #define GLP_PROB_DEFINED
-    // depending on the glpk version
-    // define glp_prob as forward or struct
-    #if OPENMS_GLPK_VERSION_MAJOR == 4 && OPENMS_GLPK_VERSION_MINOR < 48
-    typedef struct
-    {
-      double _opaque_prob[100];
-    } glp_prob;
-    #else
-    class glp_prob;
-    #endif
-  #endif
-#endif
 
 namespace OpenMS
 {
 
   /**
-    @brief A wrapper class for linear programming (LP) solvers
+    @brief A wrapper class for the linear programming (LP) solver
 
-    This class provides a unified interface to different linear programming solvers,
-    including GLPK (GNU Linear Programming Kit), COIN-OR, and HiGHS (selected via the
-    LP_SOLVER CMake variable: AUTO, COIN, GLPK, or HIGHS).
+    This class provides an interface to the HiGHS linear and mixed-integer programming solver
+    (https://highs.dev).
     
     Linear programming is a method to find the best outcome in a mathematical model
     whose requirements are represented by linear relationships. It is used for
@@ -59,7 +37,7 @@ namespace OpenMS
     LPWrapper allows you to:
     - Create and manipulate LP problems (add rows, columns, set bounds)
     - Set objective functions and constraints
-    - Solve the LP problem using different solvers
+    - Solve the LP problem
     - Access the solution and status information
     
     The class supports both continuous and integer variables, allowing for
@@ -73,41 +51,13 @@ public:
     /**
        @brief Struct that holds the parameters of the LP solver
        
-       This structure contains various parameters that control the behavior of the LP solver,
-       including algorithm selection, cut generation, heuristics, and output control.
-       
-       Most parameters have reasonable defaults and don't need to be modified for basic use cases.
-       Advanced users can tune these parameters to improve performance for specific problem types.
+       The defaults solve to proven optimality without a time limit.
     */
     struct SolverParam
     {
-      /**
-        @brief Default constructor that initializes all parameters with reasonable defaults
-      */
-      SolverParam() :
-        message_level(3), branching_tech(4), backtrack_tech(3),
-        preprocessing_tech(2), enable_feas_pump_heuristic(true), enable_gmi_cuts(true),
-        enable_mir_cuts(true), enable_cov_cuts(true), enable_clq_cuts(true), mip_gap(0.0),
-        time_limit((std::numeric_limits<Int>::max)()), output_freq(5000), output_delay(10000), enable_presolve(true),
-        enable_binarization(true)
-      {
-      }
-
-      Int message_level;                ///< Controls verbosity of solver output (0-3)
-      Int branching_tech;               ///< Branching technique for MIP problems
-      Int backtrack_tech;               ///< Backtracking technique for MIP problems
-      Int preprocessing_tech;           ///< Preprocessing technique
-      bool enable_feas_pump_heuristic;  ///< Enable feasibility pump heuristic
-      bool enable_gmi_cuts;             ///< Enable Gomory mixed-integer cuts
-      bool enable_mir_cuts;             ///< Enable mixed-integer rounding cuts
-      bool enable_cov_cuts;             ///< Enable cover cuts
-      bool enable_clq_cuts;             ///< Enable clique cuts
-      double mip_gap;                   ///< Relative gap tolerance for MIP problems
-      Int time_limit;                   ///< Time limit in milliseconds
-      Int output_freq;                  ///< Output frequency in milliseconds
-      Int output_delay;                 ///< Output delay in milliseconds
-      bool enable_presolve;             ///< Enable presolve techniques
-      bool enable_binarization;         ///< Enable binarization (only with presolve)
+      double mip_gap = 0.0;                                   ///< Relative gap tolerance for MIP problems (0 = solve to proven optimality)
+      Int time_limit = (std::numeric_limits<Int>::max)();     ///< Time limit per solve() in milliseconds
+      bool enable_presolve = true;                            ///< Enable presolve techniques
     };
 
     /**
@@ -155,24 +105,17 @@ public:
     enum WriteFormat
     {
       FORMAT_LP = 0,      ///< LP format (human-readable)
-      FORMAT_MPS,         ///< MPS format (industry standard)
-      FORMAT_GLPK         ///< GLPK's native format
+      FORMAT_MPS          ///< MPS format (industry standard)
     };
 
     /**
       @brief Enumeration for available LP solvers
-      
-      Defines which solver backend to use for solving LP problems.
+
+      HiGHS is the only supported backend (COIN-OR and GLPK were removed).
     */
     enum SOLVER
     {
-      SOLVER_GLPK = 0     ///< GNU Linear Programming Kit solver
-#ifdef OPENMS_HAS_COINOR
-      , SOLVER_COINOR     ///< COIN-OR solver (if available)
-#endif
-#ifdef OPENMS_HAS_HIGHS
-      , SOLVER_HIGHS      ///< HiGHS solver (if available)
-#endif
+      SOLVER_HIGHS        ///< HiGHS solver
     };
 
     /**
@@ -191,8 +134,7 @@ public:
     /**
       @brief Default constructor
       
-      Initializes a new LP problem with the default solver (COIN-OR, HiGHS, or GLPK,
-      depending on which LP solver was selected at build time via LP_SOLVER).
+      Initializes a new, empty LP problem.
     */
     LPWrapper();
     
@@ -233,8 +175,6 @@ public:
 
     /**
       @brief Adds a row with boundaries to the LP matrix, returns index
-
-      If you have a fixed variable, GLPK requires to use the "fixed" type, instead of "double-bounded" with equal bounds.
 
       @param[in] row_indices
       @param[in] row_values
@@ -370,6 +310,8 @@ public:
 
       @param[in] index
       @param[in] type 1- continuous, 2- integer, 3- binary variable
+
+      @exception Exception::IndexOverflow if @p index is not a valid column index
      */
     void setColumnType(Int index, VariableType type);
 
@@ -446,16 +388,16 @@ public:
     /**
       @brief Read LP from file
 
-      @param[out] filename Filename where to store the LP problem.
-      @param[in] format LP, MPS or GLPK.
+      @param[in] filename File to read; HiGHS determines the format from the extension (e.g. '.mps', '.lp').
+      @param[in] format Ignored; kept for backwards compatibility.
      */
     void readProblem(const std::string& filename, const std::string& format);
 
     /**
       @brief Write LP formulation to a file.
 
-      @param[out] filename output filename, if the filename ends with '.gz' it will be compressed
-      @param[in] format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
+      @param[out] filename output filename; HiGHS determines the format from the extension (e.g. '.mps', '.lp')
+      @param[in] format Ignored; kept for backwards compatibility.
      */
     void writeProblem(const std::string& filename, const WriteFormat format) const;
 
@@ -467,13 +409,10 @@ public:
       @param[in] solver_param
       @param[in] verbose_level
 
-      @return the raw return code of the backend solver (glp_intopt() for GLPK, CbcModel::status() for
-              COIN-OR, HighsStatus for HiGHS). The raw code is solver dependent and a code indicating a
-              completed run does not imply that a solution exists (e.g. COIN-OR reports a completed run
-              for proven infeasibility). Use getStatus() after solving to check - portably across
-              backends - whether an optimal/feasible solution was actually found before reading it
-              via getColumnValue() or getObjectiveValue(). If no feasible solution was produced, a
-              warning is logged.
+      @return the raw HighsStatus returned by Highs::run(). A code indicating a completed run does not
+              imply that a solution exists. Use getStatus() after solving to check whether an
+              optimal/feasible solution was actually found before reading it via getColumnValue() or
+              getObjectiveValue(). If no feasible solution was produced, a warning is logged.
     */
     Int solve(SolverParam& solver_param, const Size verbose_level = 0);
 
@@ -523,25 +462,18 @@ public:
     /**
       @brief Get the currently active solver backend
       
-      @return Currently active solver (GLPK or COIN-OR)
+      @return Currently active solver (always SOLVER_HIGHS)
     */
     SOLVER getSolver() const;
 
 protected:
-#ifdef OPENMS_HAS_COINOR
-    CoinModel * model_ = nullptr;      ///< COIN-OR model object for the LP problem
-    std::vector<double> solution_;     ///< Solution vector when using COIN-OR
-    SolverStatus solver_status_ = UNDEFINED; ///< Status of the last solve() call (the COIN-OR solver object only lives during solve(), so the status must be stored for getStatus())
-#elif defined(OPENMS_HAS_HIGHS)
     std::unique_ptr<Highs> highs_;     ///< HiGHS solver instance
     std::vector<double> solution_;     ///< Solution vector when using HiGHS
-#else
-    glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
-#endif
-
-    SOLVER solver_;                    ///< Currently active solver backend
-
-
+    /// Column integrality staged by setColumnType() (values of HighsVarType; empty = nothing pending).
+    /// Highs::changeColIntegrality() is expensive per call, so changes are applied in one batch by flushIntegrality_().
+    mutable std::vector<uint8_t> staged_integrality_;
+    /// Apply staged_integrality_ to the HiGHS model (const: also needed by writeProblem())
+    void flushIntegrality_() const;
   }; // class
 
 } // namespace
