@@ -129,10 +129,10 @@ private:
       StringManager sm;
 
       // Detect remote URIs (skip local file existence check for them)
-      bool is_remote = filename.hasPrefix("http://") || filename.hasPrefix("https://")
-                       || filename.hasPrefix("ftp://")
+      bool is_remote = StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://")
+                       || StringUtils::hasPrefix(filename, "ftp://")
 #ifdef WITH_S3
-                       || filename.hasPrefix("s3://")
+                       || StringUtils::hasPrefix(filename, "s3://")
 #endif
                        ;
 
@@ -155,13 +155,13 @@ private:
 
       unique_ptr<xercesc::InputSource> source;
 
-      if (filename.hasPrefix("http://") || filename.hasPrefix("https://") || filename.hasPrefix("ftp://"))
+      if (StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://") || StringUtils::hasPrefix(filename, "ftp://"))
       {
         // Use Xerces URLInputSource for HTTP/HTTPS/FTP streaming
         source.reset(new xercesc::URLInputSource(sm.convert(filename).c_str()));
       }
 #ifdef WITH_S3
-      else if (filename.hasPrefix("s3://"))
+      else if (StringUtils::hasPrefix(filename, "s3://"))
       {
         source.reset(new S3InputSource(filename));
       }
@@ -169,13 +169,13 @@ private:
       else
       {
         // Local file: peek ahead to detect compression (bzip2, gzip, zip)
-        String bz;
+        std::string bz;
         {
           std::ifstream file(filename.c_str());
           char tmp_bz[3];
           file.read(tmp_bz, 2);
           tmp_bz[2] = '\0';
-          bz = String(tmp_bz);
+          bz = std::string(tmp_bz);
         }
 
         char g1 = 0x1f;

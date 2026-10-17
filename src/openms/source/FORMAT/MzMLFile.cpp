@@ -143,7 +143,7 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    if (filename.hasPrefix("http://") || filename.hasPrefix("https://") || filename.hasPrefix("ftp://") || filename.hasPrefix("s3://"))
+    if (StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://") || StringUtils::hasPrefix(filename, "ftp://") || StringUtils::hasPrefix(filename, "s3://"))
     {
       map.setLoadedFileType(FileTypes::MZML);
       map.setLoadedNetFilePath(filename);

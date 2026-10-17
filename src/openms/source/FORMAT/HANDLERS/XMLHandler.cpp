@@ -46,8 +46,8 @@ namespace OpenMS::Internal
         error_message = std::string("While loading '") + file_ + "': " + msg;
         // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a local file (not remote URIs)
-        if (!file_.hasPrefix("http://") && !file_.hasPrefix("https://")
-            && !file_.hasPrefix("ftp://") && !file_.hasPrefix("s3://"))
+        if (!StringUtils::hasPrefix(file_, "http://") && !StringUtils::hasPrefix(file_, "https://")
+            && !StringUtils::hasPrefix(file_, "ftp://") && !StringUtils::hasPrefix(file_, "s3://"))
         {
           FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
           FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);

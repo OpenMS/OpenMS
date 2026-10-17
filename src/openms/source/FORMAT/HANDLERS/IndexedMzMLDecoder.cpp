@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/CONCEPT/Init.h>
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #ifdef WITH_S3
@@ -39,7 +40,7 @@ namespace OpenMS
   namespace
   {
     /// Parse S3 URI into bucket and key
-    void parseS3Uri(const String& s3uri, std::string& bucket, std::string& key)
+    void parseS3Uri(const std::string& s3uri, std::string& bucket, std::string& key)
     {
       std::string uri = s3uri;
       if (uri.compare(0, 5, "s3://") == 0)
@@ -149,7 +150,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Handle S3 URIs
     //-------------------------------------------------------------
-    if (filename.hasPrefix("s3://"))
+    if (StringUtils::hasPrefix(filename, "s3://"))
     {
       AwsSdkHelper::initializeAwsSdk();
 
@@ -250,7 +251,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Handle S3 URIs
     //-------------------------------------------------------------
-    if (filename.hasPrefix("s3://"))
+    if (StringUtils::hasPrefix(filename, "s3://"))
     {
       AwsSdkHelper::initializeAwsSdk();
 
@@ -308,7 +309,7 @@ namespace OpenMS
     boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
     boost::smatch matches;
     boost::regex_search(buffer_str, matches, listoffset_rx);
-    String thismatch(matches[1].first, matches[1].second);
+    std::string thismatch(matches[1].first, matches[1].second);
     if (!thismatch.empty())
     {
       try

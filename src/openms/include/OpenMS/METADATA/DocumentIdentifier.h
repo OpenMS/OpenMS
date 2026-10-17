@@ -81,7 +81,7 @@ public:
 
       @param[in] file_name Network URI or path to store
     */
-    void setLoadedNetFilePath(const String & file_name);
+    void setLoadedNetFilePath(const std::string & file_name);
 
     /// get the file_name_ which is the absolute path to the file loaded from
     const std::string & getLoadedFilePath() const;

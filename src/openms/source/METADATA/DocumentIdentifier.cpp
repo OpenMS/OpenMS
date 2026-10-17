@@ -57,7 +57,7 @@ namespace OpenMS
     }
   }
 
-  void DocumentIdentifier::setLoadedNetFilePath(const String & file_name)
+  void DocumentIdentifier::setLoadedNetFilePath(const std::string & file_name)
   {
     file_path_ = file_name;
   }
