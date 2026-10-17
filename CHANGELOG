@@ -637,7 +637,7 @@ OpenMS Library:
   - API: The ConsensusIDAlgorithm classes (Average, Best, Worst, Ranks, PEPMatrix, PEPIons, Identity,
     Similarity) are removed, also from pyOpenMS, together with the TOPP tool ConsensusID (see there).
     Identifications written by ConsensusID (search engine "OpenMS/ConsensusID_*") are still read, e.g. by
-    PosteriorErrorProbabilityModel and the mzTab export.
+    PosteriorErrorProbabilityModel and the mzTab export (#10619).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -680,7 +680,7 @@ TOPP tools:
       retention time and m/z, -per_spectrum by spectrum; no OpenMS workflow used either. OpenMS has no
       tool to combine the results of several search engines: pass the results of one engine to the
       quantification workflows. Conflicting identifications of one feature are resolved with
-      IDConflictResolver or FileFilter (-id:keep_best_score_id), as before.
+      IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
   Changes:
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with

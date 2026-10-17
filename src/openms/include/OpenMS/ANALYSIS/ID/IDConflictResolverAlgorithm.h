@@ -139,8 +139,8 @@ public:
     counts one measurement several times.
 
     This keeps the best-scoring identification of each such group and removes the rest. That is a
-    tie-break on scores something upstream already assigned, not a scoring decision: scores from
-    different engines are not made comparable here.
+    tie-break on the scores as given, not a rescoring: it does not make the scores of different
+    engines comparable.
 
     Identifications are keyed on the top hit as stored; hits are never re-sorted, so the key
     matches what the exporters and quantifiers read. Surviving identifications keep their
