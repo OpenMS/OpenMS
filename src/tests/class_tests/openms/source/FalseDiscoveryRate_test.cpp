@@ -10,8 +10,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -716,6 +718,166 @@ START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the gro
     TEST_TRUE(run.getIndistinguishableProteins().empty())
     TEST_EQUAL(run.getScoreType(), "q-value")
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] FDRs and q-values on a ConsensusMap are lower-is-better whatever the search score)
+{
+  // The q-values are lower-is-better even after a higher-is-better search score (a hyperscore), so
+  // filtering by them keeps the best hits.
+  auto make_map = []()
+  {
+    ConsensusMap cmap;
+    ProteinIdentification run;
+    run.setIdentifier("run");
+    cmap.getProteinIdentifications().push_back(run);
+    const std::vector<std::tuple<std::string, double, std::string>> psms = {
+      {"AAAAAAAK", 90.0, "target"}, {"CCCCCCCK", 80.0, "target"}, {"DDDDDDDK", 70.0, "target"},
+      {"FFFFFFFK", 50.0, "decoy"}, {"EEEEEEEK", 40.0, "target"}, {"HHHHHHHK", 30.0, "decoy"}};
+    for (const auto& [sequence, score, target_decoy] : psms)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequence));
+      hit.setScore(score);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", target_decoy);
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("hyperscore");
+      id.setHigherScoreBetter(true);
+      id.setHits({hit});
+      ConsensusFeature feature;
+      feature.setPeptideIdentifications({id});
+      cmap.push_back(feature);
+    }
+    return cmap;
+  };
+
+  // q-value of the hit with this sequence (-1 if it is gone)
+  auto qvalue = [](const ConsensusMap& cmap, const std::string& sequence)
+  {
+    for (const auto& feature : cmap)
+    {
+      for (const auto& id : feature.getPeptideIdentifications())
+      {
+        if (!id.getHits().empty() && id.getHits()[0].getSequence().toUnmodifiedString() == sequence)
+        {
+          return id.getHits()[0].getScore();
+        }
+      }
+    }
+    return -1.0;
+  };
+
+  for (bool peptide_level : {false, true})
+  {
+    ConsensusMap cmap = make_map();
+    FalseDiscoveryRate fdr;
+    if (peptide_level) { fdr.applyBasicPeptideLevel(cmap, true); }
+    else { fdr.applyBasic(cmap, true); }
+
+    for (const auto& feature : cmap)
+    {
+      for (const auto& id : feature.getPeptideIdentifications())
+      {
+        if (id.getHits().empty()) { continue; } // a decoy, removed
+        TEST_EQUAL(id.isHigherScoreBetter(), false)
+      }
+    }
+
+    // the best target has a lower q-value than the target ranked below a decoy ...
+    const double q_best = qvalue(cmap, "AAAAAAAK");
+    const double q_worse = qvalue(cmap, "EEEEEEEK");
+    TEST_EQUAL(q_best < q_worse, true)
+
+    // ... so filtering at the best target's q-value keeps it and removes the other one
+    for (auto& feature : cmap)
+    {
+      IDFilter::filterHitsByScore(feature.getPeptideIdentifications(), q_best);
+    }
+    TEST_REAL_SIMILAR(qvalue(cmap, "AAAAAAAK"), q_best)
+    TEST_REAL_SIMILAR(qvalue(cmap, "EEEEEEEK"), -1.0)
+  }
+
+  // the same for the PeptideIdentificationList overload of the peptide-level FDR
+  PeptideIdentificationList ids;
+  for (const auto& feature : make_map())
+  {
+    ids.push_back(feature.getPeptideIdentifications()[0]);
+  }
+  FalseDiscoveryRate fdr;
+  fdr.applyBasicPeptideLevel(ids);
+  for (const auto& id : ids)
+  {
+    if (id.getHits().empty()) { continue; }
+    TEST_EQUAL(id.isHigherScoreBetter(), false)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identification (the one it scores))
+{
+  // Only the best hit of each identification gets a peptide q-value. A second hit would keep its
+  // search score (0.1) under the q-value score type and pass a q-value filter at 0.25. The best hit
+  // is kept even when it is not stored first.
+  auto make_map = []()
+  {
+    ConsensusMap cmap;
+    ProteinIdentification run;
+    run.setIdentifier("run");
+    cmap.getProteinIdentifications().push_back(run);
+    const std::vector<std::tuple<std::string, double, std::string>> psms = {
+      {"AAAAAAAK", 90.0, "target"}, {"CCCCCCCK", 80.0, "target"}, {"FFFFFFFK", 50.0, "decoy"}};
+    for (const auto& [sequence, score, target_decoy] : psms)
+    {
+      std::vector<PeptideHit> hits(1);
+      hits[0].setSequence(AASequence::fromString(sequence));
+      hits[0].setScore(score);
+      hits[0].setCharge(2);
+      hits[0].setMetaValue("target_decoy", target_decoy);
+      if (sequence == "AAAAAAAK") // a second, much worse candidate for the same spectrum
+      {
+        hits.push_back(hits[0]);
+        hits[1].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[1].setScore(0.1);
+      }
+      if (sequence == "CCCCCCCK") // the same, but stored before the best hit
+      {
+        hits.insert(hits.begin(), hits[0]);
+        hits[0].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[0].setScore(0.1);
+      }
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("hyperscore");
+      id.setHigherScoreBetter(true);
+      id.setHits(hits);
+      ConsensusFeature feature;
+      feature.setPeptideIdentifications({id});
+      cmap.push_back(feature);
+    }
+    return cmap;
+  };
+
+  auto check = [](const PeptideIdentificationList& ids)
+  {
+    for (const auto& id : ids)
+    {
+      if (id.getHits().empty()) { continue; } // a decoy, removed
+      TEST_EQUAL(id.getHits().size(), 1)
+      TEST_NOT_EQUAL(id.getHits()[0].getSequence().toUnmodifiedString(), "KKKKKKKK")
+    }
+  };
+
+  FalseDiscoveryRate fdr;
+  ConsensusMap cmap = make_map();
+  fdr.applyBasicPeptideLevel(cmap, true);
+  for (const auto& feature : cmap) { check(feature.getPeptideIdentifications()); }
+
+  PeptideIdentificationList ids;
+  for (const auto& feature : make_map()) { ids.push_back(feature.getPeptideIdentifications()[0]); }
+  fdr.applyBasicPeptideLevel(ids);
+  check(ids);
 }
 END_SECTION
 
