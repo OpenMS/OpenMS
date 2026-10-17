@@ -105,7 +105,9 @@ namespace OpenMS
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES))
       {
+#if !defined(__EMSCRIPTEN__) || defined(__EMSCRIPTEN_PTHREADS__)
         worker_ = std::thread([this]() { writerLoop_(); });
+#endif
       }
 
       ~OSWBufferedWriter()
@@ -119,6 +121,20 @@ namespace OpenMS
         {
           return;
         }
+
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+        // WebAssembly without threads has no writer thread: write the rows right away
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          if (finish_requested_)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Cannot enqueue OSW rows after the buffered writer was finished.");
+          }
+        }
+        writer_.writeRows(rows);
+        return;
+#endif
 
         const UInt64 byte_count = std::max<UInt64>(rows.estimateMemoryUsage(), 1ull);
 

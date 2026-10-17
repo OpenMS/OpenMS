@@ -49,6 +49,7 @@ Features
 --------
 - Core C++ library under three-clause BSD licence using modern C++23
 - Python bindings to the C++ API through pyOpenMS
+- A WebAssembly build of the library with JavaScript bindings, for web applications that run OpenMS in the browser ([src/openms_wasm](src/openms_wasm/README.md))
 - Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML, mzTab, etc.)
 - Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks
 - Powerful 1D, 2D and 3D visualization tools (TOPPView)
@@ -85,6 +86,9 @@ The CMake presets build the third-party libraries with [vcpkg](https://vcpkg.io)
 `--recurse-submodules` (or run `git submodule update --init vcpkg`) and configure with a preset, e.g.
 `cmake --preset linux-x64-release` (`cmake --list-presets` lists them). Without a preset, OpenMS takes its
 dependencies from system packages and `CMAKE_PREFIX_PATH` (`OPENMS_USE_VCPKG=OFF`, the default).
+
+The preset `wasm32-emscripten-release` builds the library for WebAssembly, with the
+[Emscripten SDK](https://emscripten.org), and its JavaScript bindings: see [src/openms_wasm](src/openms_wasm/README.md).
 
 For more detailed instructions, see the [Developer Tutorial](https://archive.openms.de/openms/Documentation/release/latest/html/developer_tutorial.html).
 

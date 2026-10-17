@@ -90,6 +90,12 @@ OpenMS/
 
 **Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 
+## WebAssembly (Emscripten)
+
+- `cmake --preset wasm32-emscripten-release` (needs `EMSDK` from `emsdk_env.sh`) builds static libraries and the JavaScript bindings in `src/openms_wasm` (target `openms_wasm`, tests: `ctest -R openms_wasm`). Settings and disabled features are in `cmake/emscripten.cmake`; dependencies come from the `wasm32-emscripten` overlay triplet, with port fixes in `vcpkg-overlays/emscripten/ports` (used only by that preset).
+- The target is wasm32: `size_t`/`long` are 32 bit (`uint64_t` is `unsigned long long`). Do not shift a `Size` by 32 or more, or assume 64-bit `Size` arithmetic.
+- No processes, threads, sockets or dlopen: code that spawns programs or uses curl is guarded with `__EMSCRIPTEN__` / `WITH_CURL`; do not start `std::async(std::launch::async)` tasks unconditionally.
+
 ## Platform-Specific Build Gotchas
 
 ### Windows

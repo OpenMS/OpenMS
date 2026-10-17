@@ -1,0 +1,225 @@
+# OpenMS for WebAssembly: builds the library and its JavaScript bindings with Emscripten,
+# single-threaded (CMake preset wasm32-emscripten-release, package @openms/openms-wasm) and
+# multi-threaded (preset wasm32-emscripten-mt-release, package @openms/openms-wasm-mt; see
+# src/openms_wasm/README.md), runs the tests of the bindings in Node.js and Chromium, and
+# assembles the npm package @openms/openms-wasm from both builds and the loader that picks one.
+#
+# The dependencies are built by vcpkg for the wasm32-emscripten (wasm32-emscripten-mt)
+# triplet; the binary caches live on the rsync archive like the one of the native builds
+# (.github/actions/dependencies).
+#
+# Trigger: changes to the WebAssembly build in pull requests, the nightly branch, releases,
+# or manual dispatch.
+
+name: "WebAssembly"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - nightly
+      - release/*
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - ".github/workflows/wasm.yml"
+      - "cmake/emscripten.cmake"
+      - "src/openms_wasm/**"
+      - "vcpkg-overlays/emscripten/**"
+      - "vcpkg-overlays/triplets/wasm32-emscripten.cmake"
+      - "vcpkg-overlays/triplets/wasm32-emscripten-mt.cmake"
+      - "vcpkg-overlays/toolchains/wasm32-emscripten.cmake"
+      - "vcpkg.json"
+      - "CMakePresets.json"
+
+permissions:
+  contents: read
+
+env:
+  # The Emscripten release the build is tested with (src/openms_wasm/README.md).
+  EMSDK_VERSION: "6.0.12"
+
+jobs:
+  build-and-test:
+    name: build-and-test (${{ matrix.variant.name }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - name: single-threaded
+            preset: wasm32-emscripten-release
+            triplet: wasm32-emscripten
+            artifact: openms-wasm
+          - name: multi-threaded
+            preset: wasm32-emscripten-mt-release
+            triplet: wasm32-emscripten-mt
+            artifact: openms-wasm-mt
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          # flex and bison: the Apache Thrift port (Parquet) needs them on the build machine;
+          # rsync and rclone: the binary cache action below writes with rsync and reads over
+          # HTTP with rclone (as in tools/ci/deps-ubuntu.sh)
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build flex bison ccache rsync rclone
+
+      - name: Install the Emscripten SDK
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          cd "$RUNNER_TEMP/emsdk"
+          ./emsdk install "$EMSDK_VERSION"
+          ./emsdk activate "$EMSDK_VERSION"
+          source ./emsdk_env.sh
+          {
+            echo "EMSDK=$EMSDK"
+            echo "EMSDK_NODE=$EMSDK_NODE"
+          } >> "$GITHUB_ENV"
+          {
+            echo "$EMSDK"
+            echo "$EMSDK/upstream/emscripten"
+            dirname "$EMSDK_NODE"
+          } >> "$GITHUB_PATH"
+
+      - uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
+        with:
+          name: vcpkg-cache
+          path: ${{ github.workspace }}/.vcpkg-cache
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', format('vcpkg-overlays/triplets/{0}.cmake', matrix.variant.triplet), 'vcpkg-overlays/toolchains/wasm32-emscripten.cmake') }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+
+      - name: Init vcpkg submodule and binary cache
+        shell: bash
+        run: |
+          git submodule update --init vcpkg
+          mkdir -p "$GITHUB_WORKSPACE/.vcpkg-cache"
+          echo "VCPKG_BINARY_SOURCES=clear;files,$GITHUB_WORKSPACE/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+      - name: Restore ccache
+        uses: actions/cache/restore@v5
+        with:
+          path: .ccache
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-
+            ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-develop-
+            ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-
+
+      - name: Configure
+        shell: bash
+        run: |
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache" CCACHE_MAXSIZE=2G
+          cmake --preset ${{ matrix.variant.preset }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build
+        shell: bash
+        run: |
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
+          cmake --build build/${{ matrix.variant.preset }} --target openms_wasm -j"$(nproc)"
+          ccache --show-stats
+          ls -la build/${{ matrix.variant.preset }}/openms-wasm
+
+      - name: Save ccache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: .ccache
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Test the JavaScript bindings
+        shell: bash
+        run: ctest --test-dir build/${{ matrix.variant.preset }} -R openms_wasm --output-on-failure
+
+      - name: Test in Chromium
+        shell: bash
+        run: |
+          # the module on pages with and without cross-origin isolation, on the page and in a
+          # Web Worker (src/openms_wasm/tests/browser/run.mjs); Playwright with its Chromium
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-audit --no-fund playwright-core@1.56.1
+          node "$RUNNER_TEMP/playwright/node_modules/playwright-core/cli.js" install chromium
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/playwright/node_modules/playwright-core" \
+            node src/openms_wasm/tests/browser/run.mjs build/${{ matrix.variant.preset }}/openms-wasm
+
+      - name: Pack the npm package
+        shell: bash
+        run: |
+          cd build/${{ matrix.variant.preset }}/openms-wasm
+          npm pack
+          ls -la *.tgz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.variant.artifact }}
+          path: build/${{ matrix.variant.preset }}/openms-wasm
+          if-no-files-found: error
+
+  # The npm package @openms/openms-wasm: both builds and the loader that picks one
+  # (src/openms_wasm/assemble_package.cmake).
+  package:
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openms-wasm
+          path: builds/st
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openms-wasm-mt
+          path: builds/mt
+
+      - name: Assemble the package
+        shell: bash
+        run: |
+          cmake -DSINGLE=builds/st -DMULTI=builds/mt -DOUTPUT=package \
+            -P src/openms_wasm/assemble_package.cmake
+
+      - name: Test in Node.js
+        shell: bash
+        run: |
+          # the loader, and all tests of the bindings through it (the threaded build, in Node.js)
+          cd src/openms_wasm
+          OPENMS_WASM_PACKAGE="$GITHUB_WORKSPACE/package" \
+          OPENMS_WASM_MODULE="$GITHUB_WORKSPACE/package/index.mjs" \
+          OPENMS_TEST_DATA="$GITHUB_WORKSPACE/src/tests/class_tests/openms/data" \
+            node --test --test-reporter=spec tests/*.test.mjs
+
+      - name: Test in Chromium
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-audit --no-fund playwright-core@1.56.1
+          node "$RUNNER_TEMP/playwright/node_modules/playwright-core/cli.js" install chromium
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/playwright/node_modules/playwright-core" \
+            node src/openms_wasm/tests/browser/run.mjs package
+
+      - name: Pack the npm package
+        shell: bash
+        run: |
+          cd package
+          npm pack
+          ls -la *.tgz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: openms-wasm-package
+          path: package/*.tgz
+          if-no-files-found: error

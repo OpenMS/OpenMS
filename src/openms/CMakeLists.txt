@@ -76,9 +76,15 @@ set(OPENMS_DEP_LIBRARIES)
 ## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
+## libcurl is optional (WITH_CURL). Named as plain target, not as generator expression:
+## the -rpath-link hints below only consider the entries that name a target.
+set(OPENMS_CURL_TARGET)
+if(WITH_CURL)
+  set(OPENMS_CURL_TARGET CURL::libcurl)
+endif()
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::boost
-  CURL::libcurl
+  ${OPENMS_CURL_TARGET}
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
@@ -456,7 +462,9 @@ endif()
 # NOTE: We intentionally do NOT hide libarrow.a or libparquet.a symbols because
 # the OpenMS public API exposes arrow::Table etc., and downstream consumers
 # (including test executables) need to resolve those symbols from libOpenMS.so.
-if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
+# (Not for WebAssembly: libOpenMS is a static library there, and wasm-ld has no
+# --exclude-libs.)
+if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE AND NOT EMSCRIPTEN)
   target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
 endif()
 
