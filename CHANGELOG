@@ -29,8 +29,9 @@ OpenMS Library:
     restores the previous results. The ProSE tool and other callers (e.g. the WebAssembly bindings) share this implementation.
   - Percolator::usedDefaultDirection() tells whether the last rescore()/train() kept the learned model or Percolator's sanity
     check replaced it by the default direction ("Resetting score vector" of the percolator binary): no target at q < test_fdr
-    on the held-out folds, or fewer targets than the best single feature. Typical for blank runs and small inputs (q-values
-    count the decoys + 1, so a fold needs about 1 / test_fdr targets above its first decoy).
+    on the held-out folds, fewer targets than the best single feature, or a configured initial direction of the wrong sign
+    (ProSE configures none). Typical for blank runs and small inputs (q-values count the decoys + 1, so a fold needs about
+    1 / test_fdr targets above its first decoy).
   - ProSEAlgorithm::mergeFileResults(): the merged evaluation of the ProSE tool's -out_merged moves into the library, so that
     other callers (e.g. a browser app on the WebAssembly module) can share it. It pools the PSMs of the result of a multi-file
     searchWithModificationAnalysis(), infers proteins across the files and, with FDR:protein and decoys in the database,
