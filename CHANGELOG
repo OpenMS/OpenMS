@@ -97,6 +97,14 @@ OpenMS Library:
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
     critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
     The seeded sequence is preserved except for skipped zeros.
+  - PERF: OpenDIA returns the memory freed by extraction and scoring to the system before rescoring (glibc), so that
+    rescoring, inference and export no longer run on top of it: 26.8 GB instead of 34.8 GB peak for three Astral runs.
+  - PERF: OpenDIA/CalibrationWorkflow apply the RT extraction window estimated by the calibration to the precursor (MS1)
+    traces as well (plus 15 s on either side), instead of leaving them at the uncalibrated default, unless the MS1 traces
+    are peak-picked too (TransitionGroupPicker:use_precursors). Scores are unchanged;
+    on Astral DIA runs the peak memory drops from 25.5 GB to 19-20 GB and the XIC output to about half its size.
+  - PERF: OpenSwathOSWWriter::OSWValue takes 16 instead of 40 bytes (text values, which are rare, are held out of
+    line), so the rows queued for the OSW writer need less than half the memory and block the scoring threads less.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
   - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
