@@ -4941,14 +4941,37 @@ foreach(_part a b)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
-# Percolator rescores the first file but not the second (too few PSMs): their runs cannot be pooled,
-# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written. The outputs of an
-# earlier run are removed first, so that only this run's outputs can pass the checks.
+# Percolator rescores the first file but not the second (too few PSMs). With the joint model (the default),
+# the small run is trained jointly with the large one, so both files get Percolator q-values and
+# -out_merged succeeds.
+add_test("TOPP_ProSE_11_rescore_joint" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+      ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_joint_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_joint_b.tmp.idXML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_joint_merged.tmp.idXML)
+add_test("TOPP_ProSE_11_rescore_joint_info_a" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_joint_a.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_joint_info_a" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_joint"
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+add_test("TOPP_ProSE_11_rescore_joint_info_b" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_joint_b.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_joint_info_b" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_joint"
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+add_test("TOPP_ProSE_11_rescore_joint_info_merged" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_joint_merged.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_joint_info_merged" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_joint"
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+
+# With 'per_run' (the old behaviour), their runs cannot be pooled because the second run is not rescored,
+# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written.
 add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -f
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -Search:rescore_model per_run
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta

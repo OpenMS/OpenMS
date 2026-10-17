@@ -55,7 +55,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   public ProgressLogger
 {
   public:
-    ProSEAlgorithm(); 
+    ProSEAlgorithm();
 
     /// Exit codes
     enum class ExitCodes
@@ -534,7 +534,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     ExitCodes search(PeakMap& spectra,
                      SearchContext& ctx,
                      std::vector<ProteinIdentification>& prot_ids,
-                     PeptideIdentificationList& pep_ids) const;
+                     PeptideIdentificationList& pep_ids,
+                     bool defer_fdr = false) const;
 
     /**
      * @brief In-memory search with modification analysis: no file I/O required.
@@ -1126,6 +1127,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
+    std::string rescore_model_{"joint"}; ///< rescore:model: 'joint' or 'per_run'
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1352,6 +1354,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                      bool has_decoys,
                                      RunStatistics& stats,
                                      PeptideIdentificationList* pre_fdr_psms = nullptr) const;
+
+    /// Helper: apply a single joint Percolator model across all files of a multi-file batch,
+    /// then apply per-run Target-Decoy Competition (TDC).
+    void applyJointPsmFDR_(std::vector<SearchResult>& per_file, bool has_decoys) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and
     /// per-run tolerance estimation for one searched file (post-FDR). Silent;
