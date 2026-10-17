@@ -447,7 +447,6 @@ namespace OpenMS
       const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);
 
-      double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
 
       auto& hits = pep_id.getHits();
@@ -491,6 +490,7 @@ namespace OpenMS
         const int charge = hit.getCharge();
         const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
 
+        const double exp_mass = getPrecursorMZ(pep_id, hit);
         double calc_mass;
         if (!hit.metaValueExists("CalcMass"))
         {
@@ -503,9 +503,9 @@ namespace OpenMS
         }
 
         // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
-        // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
+        // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the precursor:
         // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
-        // different isotope errors would not compete with each other.
+        // different isotope errors would not compete with each other (see getPrecursorMZ()).
         double isotope_corrected_mass = exp_mass;
         if (hit.metaValueExists("IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
         {
@@ -566,6 +566,15 @@ namespace OpenMS
       }
     }
     return skipped;
+  }
+
+  double PercolatorInfile::getPrecursorMZ(const PeptideIdentification& pid, const PeptideHit& hit)
+  {
+    if (hit.metaValueExists(Constants::UserParam::PSM_PRECURSOR_MZ))
+    {
+      return getFeatureValue(hit.getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ), Constants::UserParam::PSM_PRECURSOR_MZ);
+    }
+    return pid.getMZ();
   }
 
   double PercolatorInfile::getFeatureValue(const DataValue& value, const std::string& feature)

@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include "PercolatorImpl.h"
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
@@ -946,7 +947,7 @@ namespace
     static const std::vector<std::string> blocklist {
       "percolator_score", "percolator_q_value", "percolator_pep",
       "q-value", "q-value_score", "score", "RT", "MZ",
-      "target_decoy", "isDecoy"
+      "target_decoy", "isDecoy", Constants::UserParam::PSM_PRECURSOR_MZ
     };
     StringList out;
     std::vector<std::string> keys;
@@ -969,6 +970,24 @@ namespace
     }
     std::sort(out.begin(), out.end());
     return out;
+  }
+
+  /// A spectrum searched with several precursors (DIA candidates) has the precursor m/z of its best hit, the one
+  /// PeptideIdentification::sort() puts first: after rescoring that may be the hit of another precursor.
+  void setPrecursorMZOfBestHit_(PeptideIdentification& pid)
+  {
+    const std::vector<PeptideHit>& hits = pid.getHits();
+    if (hits.empty()) return;
+    const auto better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
+    size_t best = 0;
+    for (size_t j = 1; j < hits.size(); ++j)
+    {
+      if (better(hits[j], hits[best])) best = j; // the first of equal hits, as the stable sort
+    }
+    if (hits[best].metaValueExists(Constants::UserParam::PSM_PRECURSOR_MZ))
+    {
+      pid.setMZ(PercolatorInfile::getPrecursorMZ(pid, hits[best]));
+    }
   }
 }
 
@@ -1027,12 +1046,13 @@ void Percolator::fillPINCompatibleFields(
       spec_file_to_idx[file_key] = spec_file;
     }
 
-    const double exp_mass = pid.hasMZ() ? pid.getMZ() : 0.0;
-
     const size_t hit_count = flatten_hits ? pid.getHits().size() : 1u;
     for (size_t h = 0; h < hit_count; ++h)
     {
       const PeptideHit& hit = pid.getHits()[h];
+      // the precursor of the hit, as PercolatorInfile stamps it as ExpMass (one per DIA candidate of a spectrum)
+      const double exp_mass = (pid.hasMZ() || hit.metaValueExists(Constants::UserParam::PSM_PRECURSOR_MZ))
+                              ? PercolatorInfile::getPrecursorMZ(pid, hit) : 0.0;
       double calc_mass = 0.0;
       if (hit.metaValueExists("CalcMass"))
       {
@@ -1352,6 +1372,7 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
     for (size_t i : pids_touched)
     {
       peptide_ids[i].sort();
+      setPrecursorMZOfBestHit_(peptide_ids[i]);
     }
   }
 }
@@ -1526,6 +1547,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       else if (score_type == "pep")     hit.setScore(pep);
       else                              hit.setScore(svm);
     }
+    setPrecursorMZOfBestHit_(pid);
   }
   return ro.scores.size();
 }

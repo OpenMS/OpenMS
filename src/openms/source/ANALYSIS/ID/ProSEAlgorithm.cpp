@@ -1670,6 +1670,12 @@ namespace OpenMS
           ph.setCharge(used_charge);
           ph.setScore(ah.score);
           ph.setSequence(ah.sequence);
+          if (several_precursors)
+          {
+            // the precursor (MS1 candidate) the hit was matched to: PSM features and rescoring use it instead of the
+            // identification's m/z, that of the best hit
+            ph.setMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ, ah.dia_precursor_mz);
+          }
 
           // Generate theoretical spectrum + alignment for annotations that need it.
           std::vector<std::pair<Size, Size>> alignment;

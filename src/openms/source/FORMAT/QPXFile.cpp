@@ -1038,6 +1038,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   const UInt idx_ion_mobility        = mreg.getIndex("ion_mobility");
   const UInt idx_IM                  = mreg.getIndex("IM");
   const UInt idx_missed_cleavages    = mreg.getIndex("missed_cleavages");
+  const UInt idx_psm_precursor_mz    = mreg.getIndex(Constants::UserParam::PSM_PRECURSOR_MZ);
   // Resolved once for the whole range, like every other metavalue key here: looking one up by
   // name takes the MetaInfoRegistry's `omp critical` lock, and this runs inside a parallel build.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
@@ -1235,8 +1236,10 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       }
       (void)calculated_mz_builder.Append(calc_mz);
 
-      // === observed_mz (float32, non-nullable) ===
-      float obs_mz = static_cast<float>(pep_id.getMZ());
+      // === observed_mz (float32, non-nullable) === (the hit's own precursor if the spectrum has several)
+      float obs_mz = static_cast<float>(metaHas(hit, idx_psm_precursor_mz)
+                                        ? static_cast<double>(hit.getMetaValue(idx_psm_precursor_mz))
+                                        : pep_id.getMZ());
       if (obs_mz != obs_mz) obs_mz = 0.0f; // NaN -> 0
       (void)observed_mz_builder.Append(obs_mz);
 

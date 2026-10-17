@@ -4820,6 +4820,71 @@ START_SECTION(([EXTRA] report:isotope_error_convention: isotope_error is reporte
 }
 END_SECTION
 
+START_SECTION(([EXTRA] the hits of a spectrum with several precursors (DIA candidates) carry the m/z of their own precursor))
+{
+  // One MS2 spectrum with the fragments of two peptides and one precursor for each, as DIA expansion produces them.
+  const vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  const vector<AASequence> sequences = {AASequence::fromString("THQPSANLDIK"), AASequence::fromString("GWSADELK")};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  MSSpectrum spec;
+  vector<Precursor> precursors;
+  for (const AASequence& seq : sequences)
+  {
+    MSSpectrum fragments;
+    tsg.getSpectrum(fragments, seq, 1, 1);
+    for (const Peak1D& peak : fragments) spec.push_back(peak);
+    Precursor prec;
+    prec.setMZ(seq.getMZ(2));
+    prec.setCharge(2);
+    precursors.push_back(prec);
+  }
+  spec.sortByPosition();
+  spec.setMSLevel(2);
+  spec.setRT(100.0);
+  spec.setPrecursors(precursors);
+  spec.setNativeID("scan=1");
+  PeakMap spectra;
+  spectra.addSpectrum(spec);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("report:top_hits", 2);
+  p.setValue("dia:enabled", "false");
+  algo.setParameters(p);
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_TRUE(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  ABORT_IF(pep_ids.size() != 1 || pep_ids[0].getHits().size() != 2)
+  const PeptideIdentification& pid = pep_ids[0];
+  set<string> found;
+  TOLERANCE_ABSOLUTE(1e-6)
+  for (const PeptideHit& hit : pid.getHits())
+  {
+    found.insert(hit.getSequence().toString());
+    ABORT_IF(!hit.metaValueExists(Constants::UserParam::PSM_PRECURSOR_MZ))
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)), hit.getSequence().getMZ(2))
+    TEST_TRUE(std::abs(static_cast<double>(hit.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))) < 0.1)
+  }
+  TEST_EQUAL(found.size(), 2)
+  // the identification has the precursor of its best hit
+  TEST_REAL_SIMILAR(pid.getMZ(), static_cast<double>(pid.getHits()[0].getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] scoring:method=mass_accuracy agrees with HyperScore for exact matches and discounts shifted ones in every search path))
 {
   // One noise-free spectrum of THQPSANLDIK: with exact fragment m/z every matched ion has weight 1
