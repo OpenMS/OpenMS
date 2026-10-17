@@ -292,25 +292,33 @@ namespace OpenMS
         "Input to extractChromatogram needs to be sorted by m/z");
     }
 
+    // The RT of every spectrum, read once here and used by the extraction loop below (with an on-disk
+    // access such as sqMass, every meta data read is a query).
+    std::vector<double> spectrum_rts(input_size);
+    for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
+    {
+      spectrum_rts[scan_idx] = input->getSpectrumMetaById(scan_idx).RT;
+    }
+
     // A chromatogram gets one point for every spectrum inside its RT window: reserve that many
     // up front instead of growing the arrays point by point (which leaves each of them with up
     // to twice the capacity it needs and fragments the heap with the outgrown buffers).
     {
-      std::vector<double> spectrum_rts;
-      spectrum_rts.reserve(input_size);
-      for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
+      std::vector<double> sorted_rts;
+      if (std::any_of(extraction_coordinates.begin(), extraction_coordinates.end(),
+                      [](const ExtractionCoordinates& coord) { return coord.rt_end - coord.rt_start > 0; }))
       {
-        spectrum_rts.push_back(input->getSpectrumMetaById(scan_idx).RT);
+        sorted_rts = spectrum_rts;
+        std::sort(sorted_rts.begin(), sorted_rts.end());
       }
-      std::sort(spectrum_rts.begin(), spectrum_rts.end());
       for (Size k = 0; k < extraction_coordinates.size(); ++k)
       {
         const ExtractionCoordinates& coord = extraction_coordinates[k];
         Size nr_points = input_size;
         if (coord.rt_end - coord.rt_start > 0)
         {
-          nr_points = std::upper_bound(spectrum_rts.begin(), spectrum_rts.end(), coord.rt_end) -
-                      std::lower_bound(spectrum_rts.begin(), spectrum_rts.end(), coord.rt_start);
+          nr_points = std::upper_bound(sorted_rts.begin(), sorted_rts.end(), coord.rt_end) -
+                      std::lower_bound(sorted_rts.begin(), sorted_rts.end(), coord.rt_start);
         }
         std::vector<double>& times = output[k]->getTimeArray()->data;
         std::vector<double>& intensities = output[k]->getIntensityArray()->data;
@@ -326,7 +334,7 @@ namespace OpenMS
       setProgress(scan_idx);
 
       OpenSwath::SpectrumPtr sptr = input->getSpectrumById(scan_idx);
-      OpenSwath::SpectrumMeta s_meta = input->getSpectrumMetaById(scan_idx);
+      const double current_rt = spectrum_rts[scan_idx];
 
       OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
       OpenSwath::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
@@ -364,7 +372,6 @@ namespace OpenMS
       for (Size k = 0; k < extraction_coordinates.size(); ++k)
       {
         double integrated_intensity = 0;
-        double current_rt = s_meta.RT;
         if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 &&
              (current_rt < extraction_coordinates[k].rt_start ||
               current_rt > extraction_coordinates[k].rt_end) )
