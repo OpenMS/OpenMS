@@ -290,7 +290,15 @@ namespace OpenMS
     defaults_.setValue("peptdeep:nce", -1.0, "Normalised collision energy for the PeptDeep MS2 model. Negative selects it automatically from the collision energy recorded in the spectra, refined by scoring a small grid on confident PSMs.");
     defaults_.setValue("peptdeep:rt_model_type", "b_spline", "Model mapping predicted onto observed retention time.", {"advanced"});
     defaults_.setValidStrings("peptdeep:rt_model_type", {"b_spline", "lowess", "linear"});
-    defaults_.setValue("peptdeep:batch_size", 500, "Peptides per ONNX inference call.", {"advanced"});
+    // WebAssembly: smaller batches. ONNX Runtime has no memory arena on 32-bit platforms, and in
+    // WebAssembly the memory of large tensors (batches of hundreds of peptides of one length) is
+    // not reused: mimalloc reserves new arenas for them and never releases them.
+#ifdef __EMSCRIPTEN__
+    constexpr int default_peptdeep_batch_size = 128;
+#else
+    constexpr int default_peptdeep_batch_size = 500;
+#endif
+    defaults_.setValue("peptdeep:batch_size", default_peptdeep_batch_size, "Peptides per ONNX inference call.", {"advanced"});
     defaults_.setMinInt("peptdeep:batch_size", 1);
     defaults_.setSectionDescription("peptdeep", "PeptDeep (ONNX) prediction-based rescoring features");
 
