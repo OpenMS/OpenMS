@@ -84,6 +84,7 @@ test("mountHostDirectory: a file deleted on the host cannot be read, and no desc
   // Workers of its threads may have it)
   const own = holdDescriptor(44, file);
   let readError;
+  let ownStillOpen;
   OpenMS.mountHostDirectory("/host", dir);
   try {
     assert.equal(OpenMS.FS.readFile("/host/deleted.txt", { encoding: "utf8" }), "deleted on the host\n");
@@ -93,15 +94,47 @@ test("mountHostDirectory: a file deleted on the host cannot be read, and no desc
     } catch (e) {
       readError = e;
     }
+    if (own !== undefined) ownStillOpen = isOpen(own);
+  } finally {
+    if (own !== undefined && isOpen(own)) fs.closeSync(own);
+    OpenMS.unmount("/host");
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  if (own !== undefined) assert.ok(ownStillOpen, "descriptor 44 of the test is still open");
+  assert.equal(readError?.errno, 44, "the read fails with ENOENT");
+});
+
+/// The descriptor of the process that is open on @p file (Linux: /proc/self/fd), or undefined.
+function descriptorOn(file) {
+  const target = fs.realpathSync(file);
+  for (const name of fs.readdirSync("/proc/self/fd")) {
+    try {
+      if (fs.readlinkSync(`/proc/self/fd/${name}`) === target) return Number(name);
+    } catch {
+      // the descriptor of the readdir itself, closed again
+    }
+  }
+  return undefined;
+}
+
+// The other half of the same bug (wasmfs_node.js): a close of a host file that fails (here EBADF, 8, because the
+// descriptor was closed behind the module's back) was reported as a positive number, which came out of
+// FS.close() as the errno 65528.
+test("mountHostDirectory: a host file that cannot be closed reports its errno", { skip: !fs.existsSync("/proc/self/fd") }, () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-io-"));
+  const file = path.join(dir, "closed.txt");
+  fs.writeFileSync(file, "closed behind the module's back\n");
+  OpenMS.mountHostDirectory("/host", dir);
+  try {
+    const stream = OpenMS.FS.open("/host/closed.txt", "r");
+    const fd = descriptorOn(file);
+    assert.notEqual(fd, undefined, "the module has the file open");
+    fs.closeSync(fd);
+    assert.throws(() => OpenMS.FS.close(stream), (e) => e.errno === 8, "FS.close() fails with EBADF");
   } finally {
     OpenMS.unmount("/host");
     fs.rmSync(dir, { recursive: true, force: true });
   }
-  if (own !== undefined) {
-    assert.ok(isOpen(own), "descriptor 44 of the test is still open");
-    fs.closeSync(own);
-  }
-  assert.equal(readError?.errno, 44, "the read fails with ENOENT");
 });
 
 test("MzMLFile from the (mounted) file system", () => {

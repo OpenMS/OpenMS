@@ -116,9 +116,10 @@ target_link_options(openms_wasm PRIVATE
   # mountHostDirectory() (bindings/bind_misc.cpp); files of a browser are written to it.
   "-sWASMFS=1"
   "-sFORCE_FILESYSTEM=1"
-  # Host files (mountHostDirectory()): an open that fails reports its error. Emscripten's took the
-  # errno for a file descriptor of the Node.js process (wasmfs_node.js).
-  "--js-library" "${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js"
+  # Host files (mountHostDirectory()): an open or a close that fails reports its error with the sign
+  # the backend expects. Emscripten's took the errno of an open for a file descriptor of the Node.js
+  # process (wasmfs_node.js). SHELL: like the --pre-js below, so that CMake cannot drop it as a duplicate.
+  "SHELL:--js-library \"${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js\""
   "-sEXPORTED_RUNTIME_METHODS=FS,ENV"
   # A library module: keep the runtime alive between calls.
   "-sEXIT_RUNTIME=0"
