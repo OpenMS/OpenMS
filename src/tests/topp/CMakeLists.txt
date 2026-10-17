@@ -1302,7 +1302,9 @@ set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm_out1" PROPERTIES DEPEN
 # spectrum's reporter intensities went to both of its peptides (issue #10603). Each spectrum must be
 # quantified once: by one feature, credited to its best-scoring identification (scan=24221 to
 # ELEFANTK, whose GIRAFFERK identification moves to the unassigned IDs), and carrying both of its
-# identifications where they name the same peptidoform (scan=24217).
+# identifications where they name the same peptidoform (scan=24217). The second identifications are
+# listed first and score worse, and all q-values tie after FDR, so crediting by position or by
+# q-value instead of by the input scores would credit GIRAFFERK.
 add_test("TOPP_IsobaricWorkflow_multi_id" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
   -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_multi_id_input.idXML

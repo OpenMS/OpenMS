@@ -18,8 +18,25 @@
 		</ProteinIdentification>
 		<!-- Note: scan=24215 is the first spectrum in the file and has no preceding MS1, which the
 		     precursor-purity code cannot handle, so no PSM is placed on it. -->
+		<!-- A second identification for three spectra, as when two search engines' results are
+		     concatenated rather than combined. Each is listed before, and scores worse than, the
+		     identification of IsobaricWorkflow_1_input.idXML, so crediting a spectrum to its first
+		     identification instead of its best one would show. Each spectrum must be quantified once.
+		     scan=24221: names a different peptide (GIRAFFERK).
+		     scan=24217: names the same peptide at a different charge.
+		     scan=24220: a second decoy; like the first, it loses its hit to the FDR filter. -->
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
+			<PeptideHit score="0.20" sequence="GIRAFFERK" charge="2" aa_before="K" aa_after="M" start="0" end="8" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
 			<PeptideHit score="0.01" sequence="ELEFANTK" charge="2" aa_before="[" aa_after="I" start="0" end="7" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="768.950003899738" RT="4880.56854" spectrum_reference="controllerType=0 controllerNumber=1 scan=24217" >
+			<PeptideHit score="0.05" sequence="IMTELLERK" charge="3" aa_before="K" aa_after="M" start="8" end="16" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -39,27 +56,12 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="479.744303406726" RT="4881.26316" spectrum_reference="controllerType=0 controllerNumber=1 scan=24220" >
-			<PeptideHit score="0.90" sequence="MYTIGERK" charge="2" aa_before="K" aa_after="[" start="0" end="7" protein_refs="PH_2" >
+			<PeptideHit score="0.95" sequence="TIGERMYK" charge="2" aa_before="K" aa_after="[" start="8" end="15" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<!-- A second identification for three of the spectra above, as when two search engines'
-		     results are concatenated rather than combined. Each spectrum must still be quantified once.
-		     scan=24221: names a different peptide (GIRAFFERK) than the first identification.
-		     scan=24217: names the same peptide at a different charge.
-		     scan=24220: a second decoy; like the first, it loses its hit to the FDR filter. -->
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
-			<PeptideHit score="0.20" sequence="GIRAFFERK" charge="2" aa_before="K" aa_after="M" start="0" end="8" protein_refs="PH_1" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="768.950003899738" RT="4880.56854" spectrum_reference="controllerType=0 controllerNumber=1 scan=24217" >
-			<PeptideHit score="0.05" sequence="IMTELLERK" charge="3" aa_before="K" aa_after="M" start="8" end="16" protein_refs="PH_0" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="479.744303406726" RT="4881.26316" spectrum_reference="controllerType=0 controllerNumber=1 scan=24220" >
-			<PeptideHit score="0.95" sequence="TIGERMYK" charge="2" aa_before="K" aa_after="[" start="8" end="15" protein_refs="PH_2" >
+			<PeptideHit score="0.90" sequence="MYTIGERK" charge="2" aa_before="K" aa_after="[" start="0" end="7" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</PeptideHit>
 		</PeptideIdentification>
