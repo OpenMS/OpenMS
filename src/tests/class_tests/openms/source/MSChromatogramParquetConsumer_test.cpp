@@ -157,6 +157,22 @@ START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_finalize_surfaces_errors)
+{
+  // Unlike the destructor, which must not throw and only logs, finalize() throws on write errors
+  TargetedExperiment targeted_exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+
+  // Unwritable path (non-existent directory) -> finalize()/write_() must throw, NOT swallow.
+  std::string out = SystemSettings::getTempDirectory() + "/openms_missing_dir/xic_finalize.xic";
+  MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+  TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
+}
+END_SECTION
+
 START_SECTION(MSChromatogramParquetConsumer_mixed_target_and_decoy_identifying_transitions_keep_single_target_analyte)
 {
   OpenSwath::LightTargetedExperiment light_exp;

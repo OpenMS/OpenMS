@@ -16,26 +16,148 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
-- NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
-
 OpenMS Library:
+  - ConsensusMapNormalizerAlgorithmRTLocal: normalizes each map of a consensus map by a log2 offset that may vary
+    with retention time, estimated as the median deviation of the features quantified in several maps among the
+    neighbouring features in retention time (the run normalisation of andes). It removes both different loading
+    and a drift of the ion signal along the gradient. On the ProteoBench DDA ion module (QExactive), applied to
+    ProteomicsLFQ output, it lowers the median CV from 0.23-0.24 to 0.09-0.10 and the median absolute fold-change
+    error from 0.22 to 0.15-0.16; one median per map ('median') reaches a CV of 0.16 at an error of 0.22.
+  - PepXMLFile accepts the optional pepXML `no_cut` attribute when reading unknown enzymes,
+    including files written by OpenMS (#10321).
+  - FIX: PepXMLFile::store writes the expect score of X! Tandem and Mascot hits read from pepXML (it wrote an empty
+    value, so the stored file could not be read back), and skips scores without a value. PepXMLFile::load keeps
+    'unknown_enzyme' for an empty `cut` (as OpenMS writes it) instead of naming a "user-defined" enzyme that grew
+    with every pepXML pass and was not recognized as missing. It also keeps the Mascot expectation value (MS:1001172)
+    for search_engine "MASCOT", as TPP and PepXMLFile::store write it (#10570).
+  - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
+    (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
+    optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
+    channels). It only predicts; digestion, filtering and decoys stay with the calling
+    workflow. Available in builds with WITH_ONNX (#10380).
+  - Added OpenSwathLibraryPreparation, which holds the library preparation (normalization to PQP,
+    assay generation, decoy generation) shared by OpenSwathAssayGenerator, OpenSwathDecoyGenerator
+    and OpenDIA (#10373).
+  - Added BedRModFile (FileTypes::BEDRMOD, also in pyOpenMS), which exports RNA modification sites
+    as bedRMod v2 (#10529).
+  - FIX: FLASH (SpectralDeconvolution, FLASHHelperClasses): averagine isotope trimming subtracted the
+    power of isotopes that were not removed, and the isotope cosine assumed a unit-norm averagine
+    vector. The cosine now normalizes both vectors and is clamped to [0, 1]; a cosine above 1
+    produced negative noise power in PeakGroup::updateSNR_ (#10543).
+  - FIX: Fixes found by running the class tests on a WebAssembly build (#10558): the
+    MetaboliteSpectralMatching comparator objects (PrecursorMZLess, SpectralMatchScoreGreater) are
+    inline variables (duplicate symbols with two translation units); a protein group without a score
+    gets the worst calibrated FDR value explicitly (a NaN lookup in a std::map was undefined);
+    toStr(long double) no longer prints the binary expansion of the double under libc++;
+    IndexedMzMLDecoder and MzMLSpectrumDecoder initialise Xerces before DOM parsing; DataValue stores
+    integers as Int64 (they were truncated on 32-bit targets).
+  - FIX: MzMLSqliteHandler (sqMass) throws Exception::IllegalArgument when the m/z (or retention time)
+    and intensity arrays of a spectrum or chromatogram differ in length. Before, depending on which
+    array SQLite returned first, data was silently dropped or the shorter array was read past its
+    end (#10471).
+  - FIX: Percolator (in-process rescoring of PercolatorAdapter and ProSE -rescore): the static flag
+    PosteriorEstimator::includeNegativesInResult is atomic. It was written and read by the threads of
+    the parallel cross-validation at the same time (data race, found with ThreadSanitizer); results
+    do not change (#10474).
+  - FIX: ProteaseDB and RNaseDB also find enzyme names and synonyms ignoring case, whitespace, '-' and '_' (e.g. 'glu-c',
+    'GluC' and 'Glu_C' find glutamyl endopeptidase, 'LysC/P' finds Lys-C/P); other characters such as '/' and '+' stay
+    significant. pepXML files with sample_enzyme or enzymatic_search_constraint 'Glu-C' load with glutamyl endopeptidase
+    instead of failing. Adding an enzyme named like a synonym of another enzyme no longer removes that enzyme (#10571).
+  - Enzymes.xml and the built-in proteases drop the synonyms 'argc', 'arg_c', 'asp_n', 'glu_c', 'lys_c' and 'lys_n' and two
+    synonyms that repeated the enzyme's name. ProteaseDB still finds these spellings; getSynonyms() no longer lists them.
+  - PepXMLFile: a known enzyme of 'enzymatic_search_constraint' takes precedence over 'sample_enzyme' (unchanged, now
+    documented); the warning when they differ names both enzymes. A user-defined enzyme from an unknown 'sample_enzyme'
+    keeps the case of its name.
+  - FIX: PepXMLFile::store no longer writes an empty <specificity cut=""> for enzymes without cleavage rules (e.g.
+    'unknown_enzyme') or a misleading cut="A" for unspecific cleavage, and writes 'search_engine' only on
+    'search_summary' (it is not an attribute of 'msms_run_summary') (#10346).
+  - FIX: MzTabFile reads and writes the colunit metadata as specified by mzTab 1.0 ('MTD<tab>colunit-<section><tab><value>').
+    The writer emitted an upper-case 'colunit-PSM' without a tab, and the reader expected an index in the key, so
+    conforming lines failed with a ConversionError (#10524).
+  - FIX: MzMLSqliteHandler (sqMass with write_full_meta) keeps the original spectrum native IDs: the embedded mzML
+    snapshot replaced them by 'spectrum=<index>', so such files could not be read back (#10525).
+  - Faster SignalToNoiseEstimatorMedianRapid (1.4-2 fold) (#9782).
+  - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
+  - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
+    closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
+  - FIX: EmpiricalFormula orders its elements by atomic number, an element before its isotopes ("C", "(12)C", "(13)C"),
+    instead of by the addresses of the Element objects. Weights, isotope distributions and operator< followed the address
+    order, which differs between runs where the heap is randomized (Windows): theoretical masses differed in the last
+    bits between two identical runs, and Percolator rescoring in ProSE turned that into percolator_score differences of
+    about 1%. On Linux the new order is the order the elements had in memory, so results do not change there.
+  - FIX: ConsensusMapNormalizerAlgorithmMedian, -Quantile and -Threshold accept maps whose indices are not consecutive, as
+    'FileFilter -consensus:map' leaves them. Median and Quantile threw ElementNotFound for them, and Threshold
+    (ConsensusMapNormalizer -algorithm_type robust_regression) read past the end of its per-map vectors and crashed. The
+    per-map vectors (medians, ratios, intensity vectors) are numbered by the position of a map among the column headers,
+    which is the map index for maps numbered 0 ... N-1.
+  - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
+    parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
+    lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
+    did not match the inputs (no alignment points).
+  - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
+    all passing through one OpenMP critical section, which serialized threads that read or set meta values.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
+  - PERF: ChromatogramExtractorAlgorithm reaches a target m/z that is far ahead in a spectrum by binary search
+    instead of walking there peak by peak (MS1 extraction of one isolation window's precursors). Output is unchanged.
+  - PERF: ChromatogramExtractorAlgorithm reserves each chromatogram for the spectra inside its RT window instead of
+    growing it point by point, and ChromatogramExtractor::return_chromatogram moves the converted chromatograms into
+    the output. OpenDIA peak memory on an Astral DIA run with 600k precursors and 32 threads: 25.6 GB instead of 32.6 GB.
+  - PERF: SWATH maps that were cached to disk (readOptions cache/cacheWorkingInMemory of OpenSwathWorkflow and
+    OpenDIA) get their access objects in parallel: 12 s instead of 48 s for the 300 windows of an Astral DIA run.
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
     critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
     The seeded sequence is preserved except for skipped zeros.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
+  - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
+    sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
+  - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
+    when binning auto percentiles. MeanIterative selects the actual maximum and safely handles all-zero spectra (#10521).
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
+  - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every
+    feature a valid unique id (FeatureFinderAlgorithmPicked when the feature is found, so the FAIMS merge
+    in FeatureFinderCentroided sees valid ids). The new FeatureUniqueIds::check() (also in pyOpenMS) throws
+    Exception::InvalidValue for invalid or duplicate ids of the features (including subordinates) or
+    consensus features of a map.
+  - API: MapConversion::convert(PeakMap -> ConsensusMap) is removed (also from pyOpenMS): each peak became a
+    consensus feature whose handle referred to the peak's index (the first one being the invalid id 0), not to
+    an element with a unique id. MapAlignmentAlgorithmPoseClustering selects the most intense MS1 peaks of a
+    PeakMap itself (holding only the selected peaks, without copying the map); its setReference() template is
+    replaced by overloads for FeatureMap and PeakMap.
+  - MapAlignmentAlgorithmPoseClustering (MapAlignerPoseClustering): new 'peak_selection:method' 'spread', the new
+    default for peak maps (e.g. mzML input), selects at most one MS1 peak per analyte (non-maximum suppression over
+    the elution profile, within 'peak_selection:rt_window', and the isotope pattern, up to
+    'peak_selection:max_charge'), spread round-robin over a 'peak_selection:rt_bins' x 'peak_selection:mz_bins' grid.
+    The most intense peaks of a few analytes cancel out in the superimposer and make the pair finder's matches
+    ambiguous. 'peak_selection:method' 'intensity' selects the most intense peaks as before. Feature maps are not
+    affected.
+  - FIX: MapAlignmentAlgorithmPoseClustering (MapAlignerPoseClustering) used the first 'max_num_peaks_considered'
+    features of a feature map in file order (e.g. the 1000 lowest-RT features of a position-sorted featureXML)
+    instead of the most intense ones. Peaks or features with a NaN intensity or a non-finite RT or m/z now throw
+    Exception::InvalidValue instead of making the selection undefined.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
   - FIX: OMS schema 6 preserves IdentificationData processing actions and distinct same-second search provenance; schemas 1-5 remain readable.
   - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
+  - ProteinIdentification: an empty file list ('spectra_data', 'spectra_data_raw') names no files and is not
+    stored. setPrimaryMSRunPath() with an empty list removes the meta value (it stored an empty list and warned),
+    addPrimaryMSRunPath() with an empty list changes nothing, and idXML, featureXML, consensusXML and the Parquet
+    formats drop an empty list when loading (removeEmptyPrimaryMSRunPaths()). An empty list could not be told from
+    a missing one: getPrimaryMSRunPath() returns no files for both, and the Parquet formats wrote both as an empty
+    list and read an empty list back, so converting a run without files added one.
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) throws InvalidParameter for isotopic_pattern:charge_low above
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
+  - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) counted aborted seeds in a map shared by
+    the OpenMP threads of the seed extension without a lock, which could corrupt the map (intermittent crash).
+  - FIX: MapAlignmentAlgorithmIdentification (MapAlignerIdentification, ProteomicsLFQ, MS1LabeledWorkflow) applies
+    'score_cutoff'/'min_score' in the score direction of each peptide identification. The cut-off was ignored for
+    peptide identifications (idXML input), applied the score direction of the first identification of a feature or
+    consensus map to all of them, and read out of bounds (crash) if the first feature had no identification. With
+    'use_feature_rt', a feature whose identifications all failed the cut-off was an alignment point under an empty sequence.
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
     for string and list values instead of returning garbage.
   - FIX: MRMIonSeries::annotateTransitionCV gave every formula neutral loss (e.g. y7-H2O1) the mass
@@ -115,13 +237,135 @@ OpenMS Library:
     Config::bruker_sdk_path) it is used for m/z as well as 1/K0 ("TIMS calibration: Bruker SDK
     (m/z + 1/K0)"). The SDK is never required; one that cannot be loaded is reported as a warning
     (before: debug message) unless tims_calibration_strategy is BRUKER_SDK.
+  - FIX: BrukerTimsFile (RationalScan2ImConverter, tims_calibration_strategy RATIONAL or AUTO without
+    SDK) returned negative 1/K0 for negative-mode runs: the TimsCalibration ramp voltages are signed
+    by polarity and entered 1/K0 = 1/(c6 + c7/V) with their sign. The mobility term now uses |V|, and
+    the inverse (1/K0 to scan) restores the sign from the calibration. 1/K0 matches the Bruker SDK
+    (without pressure compensation) in both polarities; positive-mode results are unchanged.
   - Added FileHandler::loadImagingExperiment(), which loads mass spectrometry imaging files (imzML and
     Bruker timsTOF MALDI imaging .d) into an MSImagingExperiment; exposed through pyOpenMS.
     FileHandler::loadExperiment() now rejects Bruker MALDI imaging .d folders with InvalidFileType, as
     it already did for imzML. Before, it read them as DDA-PASEF and failed on the missing Precursors table.
+  - pyOpenMS: BrukerTimsFile.Config has every field of the C++ struct. New are the frame and retention
+    time range (frame_id_min, frame_id_max, rt_min_sec, rt_max_sec), ms1_centroid_algo, the HillBased
+    centroiding options and the isotopic prefilter options.
+  - FileHandler::loadExperiment() no longer decodes what its PeakFileOptions exclude from Bruker .d
+    input. The reader skips the MS levels that are not requested, and the retention times outside the
+    requested range if only MS1 is requested, instead of reading everything and filtering afterwards.
+    The spectra returned are unchanged. An MS2-only load of a ddaPASEF run (SimpleSearchEngine, ProSE,
+    ...) no longer reads the MS1 frames, an MS1-only load (the FeatureFinders) no MS2 frames. For direct
+    use of the reader there is BrukerTimsFile::Config::load_ms2 (also in pyOpenMS).
+  - FIX: BrukerTimsFile no longer warns "ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0 to
+    enable MS1 centroiding" on every load with the default configuration (ms1_centroid_mz_ppm has been
+    10 by default since HillBased centroiding uses it; on its own it selects nothing).
+  - BrukerTimsFile reads raw frames (MS1 without centroiding, FRAME export mode) more than twice as fast:
+    the peaks of a frame are put in m/z order while they are read, by their TOF index, instead of sorting
+    every spectrum by m/z at the end of the load, which took most of the time. The output is unchanged.
+  - BrukerTimsFile decodes every MS2 frame of a diaPASEF run once and splits it into the isolation windows
+    of its window group (load() without RT aggregation, transform() and loadDIAStreaming(), which
+    OpenSWATH uses), instead of decoding it once per window; the window spectra are emitted in m/z order.
+    A default diaPASEF load takes less than half the time. The output is unchanged.
+  - BrukerTimsFile keeps a decoded MS2 frame of a ddaPASEF run only until the last precursor that needs
+    it has been read, not until the end of the load. An MS2-only load of a 110 min run (62,000 frames,
+    230,000 precursors) peaks at 5.8 GB instead of 14 GB. The output is unchanged.
+  - BrukerTimsFile decodes raw frames (MS1 without centroiding or aggregation, FRAME export mode) on up to
+    four threads, in batches that it hands on in order. With the changes above, a default load of a 5.6 min
+    ddaPASEF run takes 4.1 s instead of 20.8 s and one of a diaPASEF run 5.5 s instead of 19.4 s. Frames
+    are decoded one at a time if the Bruker SDK does the conversions. The output is unchanged.
+  - Bruker .d input that cannot be read is reported as such. A .d directory with TSF data (analysis.tsf,
+    timsTOF without ion mobility) or BAF data (analysis.baf, QTOF) was an unknown file type ("Could not
+    determine input file type"); FileHandler::getType() now takes it as Bruker .d and the readers throw
+    a ParseError that names the format. TDF data that is not zstd-compressed (TimsCompressionType other
+    than 2) gets a ParseError naming the value instead of "... is not readable for the current user".
+    A '.d.zip' archive is typed by its list of entries: one without a .d directory (or without entries)
+    is no longer taken for Bruker data, and nothing is extracted before the reader rejects an archive.
+    New: BrukerTimsFile::detectFormat() and checkDataFormat(), and ZipArchiveFile::listEntries() with a
+    result that tells an archive without entries from one that cannot be read.
+  - BrukerTimsFile::transform() hands the spectra to the consumer as they are read, in the order and form
+    load() returns them, instead of loading the whole run first; the memory it needs no longer grows with
+    the run. (Exceptions, loaded completely as before: DIA with MS2 aggregation over retention time, and
+    DDA with calibrate on the linear m/z model.) Exposed in pyOpenMS (BrukerTimsFile.transform()), as are
+    detectFormat() and checkDataFormat().
+  - FileHandler::transformExperiment() streams Bruker .d input (directory or .d.zip) as well; before, it threw
+    InvalidFileType. As for loadExperiment(), the reader skips the frames the PeakFileOptions exclude, and
+    every spectrum is then filtered on its way to the consumer (MS level, RT and precursor m/z range, peak
+    m/z and intensity range, metadata-only), so the consumer gets the spectra loadExperiment() returns.
+    MALDI imaging .d is rejected as by loadExperiment(). The number of spectra passed to setExpectedSize()
+    is an upper bound (see BrukerTimsFile::transform()). loadExperiment() now also honours fill-data off for
+    Bruker .d input (spectra without peaks, as for Thermo .raw).
+  - BrukerTimsFile::Config::rt_selects_spectra (new, default false): the retention time range selects the spectra
+    instead of the frames. load() and transform() then return the spectra of a load without the range whose retention
+    time lies in it, unchanged: a DDA MS2 spectrum (the mean time of its frames) is built from all of its frames, and
+    aggregation over retention time reads the neighboring frames outside the range that it needs. FileHandler uses it,
+    so loadExperiment() and transformExperiment() no longer decode the MS2 frames outside a requested RT range of
+    Bruker .d input (before, the RT range was passed to the reader for MS1-only loads alone).
+  - Ion mobility range: PeakFileOptions::setIMRange() (new) restricts the ion mobility of the data FileHandler loads or
+    streams, for every format: peaks outside the range are removed from spectra with an ion mobility per peak, spectra
+    with a single ion mobility outside it are left out, spectra without ion mobility are kept. For Bruker .d input it is
+    passed to the reader, BrukerTimsFile::Config::im_min/im_max (new), which filters likewise and skips the DDA
+    precursors isolated outside the range before their frames are decoded. Both are exposed in pyOpenMS.
+  - FIX: BrukerTimsFile reads TDF data without DDA-PASEF precursors (no Precursors and PasefFrameMsMsInfo tables,
+    e.g. MS1-only MALDI runs) as its MS1 frames, and warns if such a run has MS2 frames, which only export mode
+    FRAME reads. It threw SQLite::Exception "no such table: Precursors", which ended TOPP tools such as
+    FileConverter (exit code 134). No SQLite::Exception leaves load(), transform(), readDIAMetadata() or
+    loadDIAStreaming() any more: an analysis.tdf that lacks a table or column the reader needs gives a ParseError
+    that names the file (#10597).
+  - FIX: BrukerTimsImagingFile reads '.d.zip' archives (it looked for <archive>/analysis.tdf); only analysis.tdf
+    is extracted for the metadata. isImagingDataset() now recognizes zipped MALDI imaging runs, so
+    FileHandler::loadExperiment() and transformExperiment() reject them as they reject .d directories, and
+    loadImagingExperiment() loads them (#10596).
+  - FIX: ZipArchiveFile::extractEntryToTempFile() rejected every entry as "would extract outside target directory"
+    when the path of the temporary directory was not in normal form: always on Windows, where it holds both '/' and
+    '\', and elsewhere with a temporary directory ending in '/' (e.g. TMPDIR on macOS). It now checks containment as
+    unzipDirectory() does. This affected zipped .oswpq archives and the .d.zip support of BrukerTimsImagingFile.
+  - FIX: BrukerTimsFile rejects MALDI imaging runs (.d or .d.zip) with InvalidFileType unless the export mode is
+    FRAME, which BrukerTimsImagingFile uses; readDIAMetadata() and loadDIAStreaming() reject them in any case.
+    The tools that read .d with BrukerTimsFile directly instead of FileHandler read them as DDA or DIA data,
+    without their pixel positions (#10596).
+  - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
+    without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
+    invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
+    frame without peaks keeps its empty ion mobility array. CachedMzMLHandler::readMemdump() also returns the values
+    of the data arrays of chromatograms, which came back empty.
+  - MSDataWritingConsumer (the streaming mzML writer of the low-memory modes) corrects the count of its
+    spectrumList when the file is closed, if another number of spectra was written than it was told to
+    expect (a filter, or a reader that leaves empty spectra out). The tag is rewritten in place and
+    padded with blanks, so the index stays valid. Before, the count stayed at the expected number.
+    If it got the settings of a run but no spectrum or chromatogram, it now writes the mzML document of
+    a run without spectra, as MzMLFile::store() does, instead of an empty file (e.g. -process_lowmemory
+    conversions in which every spectrum is filtered out).
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
+  - ThermoRawFile reads .raw files faster: trailer values are looked up by a per-file label index,
+    numbers and scan filters are parsed without locale streams and regular expressions, the TIC
+    is built from the scan headers, and with more than one thread up to three worker threads read
+    scans ahead while the calling thread converts them (output independent of the thread count). New ThermoRawFile::Options select scans by scan number, RT, MS
+    level and precursor m/z, and load metadata only or skip chromatograms; scans that are not
+    selected are not decoded, and selected MSn scans keep the precursors of a full load (#10522).
+    FileHandler::loadExperiment() passes the PeakFileOptions MS levels, RT and precursor m/z ranges,
+    metadata-only, fill-data and skip-chromatograms to the reader (MS2-only tools no longer decode
+    MS1 scans; fill-data off now loads spectra without peaks) and no longer computes the SHA-1 of the
+    RAW file. Instrument configuration ids no longer depend on which scans are loaded.
+  - ThermoRawFile::transform() streams a .raw file into an IMSDataConsumer in acquisition order with
+    the same spectra as load() and constant memory (only the parent MS1 scans that later precursor
+    intensity estimates need are kept). FileHandler::transformExperiment() streams mzML, mzXML and
+    Thermo .raw files into a consumer and applies the PeakFileOptions like loadExperiment(). SwathFile
+    gains loadThermoRaw(); loadFromMSExperiment() keeps only the experimental settings as metadata (#10522).
+  - Random access to Thermo .raw files: OnDiscThermoRawExperiment keeps the file open with an index of
+    the selected scans and converts single spectra on request, identical to the corresponding spectra of
+    ThermoRawFile::load() with the same Options; clone() gives handles for concurrent reads. It and
+    OnDiscMSExperiment implement the new IMSExperimentRandomAccess interface (OnDiscMSExperiment gains
+    getSpectrumMetadata(), getSpectrumRT(), getSpectrumMSLevel() and findFirstRT()).
+    SpectrumAccessOnDisc exposes any IMSExperimentRandomAccess (or an RT-sorted subset of it) as an
+    OpenSwath::ISpectrumAccess; SwathFile::loadThermoRaw() supports readoptions "onDisc" (#10522).
+    SwathFile::loadOnDisc() and loadOnDiscByFAIMSCV() build the SWATH maps on any
+    IMSExperimentRandomAccess, the latter split by FAIMS compensation voltage like
+    IMDataConverter::splitByFAIMSCV(). Their file overloads choose the random-access backend by file
+    type (indexed mzML: OnDiscMSExperiment, Thermo .raw: OnDiscThermoRawExperiment). Plugin consumers
+    may only observe the spectra with "onDisc".
+  - pyOpenMS: ThermoRawFile.transform() streams into a Python consumer; OnDiscThermoRawExperiment is
+    wrapped with indexing, iteration and RT lookup (#10522).
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -219,6 +463,9 @@ OpenMS Library:
     scoring:method, when the parameters are set; such searches ended without hits or with inflated
     scores. An exception on a worker thread of the parallel preprocessing, scoring and calibration
     loops is rethrown after the loop instead of terminating the process.
+  - FIX: ProSEAlgorithm::searchWithModificationAnalysis() for a single input (spectrum file or
+    in-memory spectra) ignored FDR:protein and returned the decoys; like search(), it now applies
+    protein inference and picked-protein FDR and removes the decoys.
   - FIX: GlobalExceptionHandler records the last exception per thread (the fields were shared strings
     that exceptions constructed on several threads at once wrote concurrently), and its singleton is
     initialised thread-safely. Xerces initialisation and termination are serialised
@@ -304,6 +551,9 @@ OpenMS Library:
     one gets the best q-value now (with no_qvalues: FDR 1), a worse one the q-value or FDR of the
     worst calibrated score. If there are groups but none takes part in the competition,
     Exception::MissingInformation is thrown.
+  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
+    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
+    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
   - FIX: For lower-is-better scores, FalseDiscoveryRate gave a protein group whose score is not a
     calibrated score (in picked protein FDR: a group that takes no part in the competition) the
     q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or
@@ -323,6 +573,63 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: SwathQC (the charge distribution of OpenSwathWorkflow -out_qc and OpenSwathFileSplitter) used only
+    the first MS1 spectrum of a run with 45 or more MS1 spectra: the index for subsampling 30 spectra only
+    counted the spectra already taken. It now counts every MS1 spectrum.
+  - FIX: TargetedSpectraExtractor with mz_unit_is_Da 'false' (ppm): annotateSpectra() with a TargetedExperiment
+    and pickSpectrum() divided mz_tolerance and fwhm_threshold by 1e6 without multiplying by the m/z, so the
+    precursor window and the FWHM threshold were about a factor of m/z too small; annotateSpectra() with MS1
+    features (extractSpectra() with features) took mz_tolerance in Th. They are now relative to the precursor
+    and the peak m/z.
+  - FIX: FeatureFinderMultiplexAlgorithm with knock_out: a partial pattern lacking the lightest channel
+    (e.g. medium and heavy of a triple SILAC peptide without light) kept the mass shifts of the complete
+    pattern, so the filtering only found it next to a peak at the absent light position; such peptides
+    came out as unrelated singlets. Knock-out patterns now start at shift 0 (relative to their lightest
+    present channel), and the quadruplex knock-out without its third channel is searched as well.
+  - FIX: FeatureFinderMultiplexAlgorithm fills getBlacklist() for centroided input, too (it was empty, so
+    MultiplexResolver reported overlapped dummy channels as absent instead of not quantifiable). Every
+    FeatureHandle of getConsensusMap() carries the unique id of its feature in getFeatureMap() (the
+    channel's mass trace hulls); getCentroidedExperiment() returns the peaks the detection worked on.
+  - MultiplexResolverAlgorithm: a pattern also has to label as many K, R (and L for Leu3) residues as
+    the identified sequence has. The label set of an unlabelled identification occurs in every pattern,
+    so e.g. a light singlet of a K-terminal peptide could be completed with Arg-shifted channels. New
+    checkIdentifications() tells which identifications of a multiplet agree with its mass shifts,
+    expectedChannelMZs() where the peptide of an identification appears in every channel.
+  - FIX: TheoreticalSpectrumGenerator with add_internal_fragments never generated the internal fragment that
+    ends next to the C-terminal residue (e.g. ID of PEPTIDE), and none at all for peptides of 4 residues.
+    OpenNuXL, which annotates spectra with internal fragments, now reports these fragments too.
+  - FIX: TMT 32-plex and 35-plex (IsobaricAnalyzer, IsobaricWorkflow) could not use isotope correction:
+    the correction_matrix parameter was ignored and the identity matrix used, which the isotope correction
+    rejects, so the tools failed with the default isotope_correction 'true'. Both methods now ship the
+    matrices of a Thermo Certificate of Analysis as defaults, in two parameters laid out like the two CoA
+    sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
+    correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
+    14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
+  - FIX: pyOpenMS docstrings (#10599): the former pxd-to-nanobind generator attached every multi-line
+    docstring to the method declared after it (getRT() read "Checks if retention time is set") and
+    dropped blank lines and indentation, so examples, lists and :param:/:return: fields rendered as
+    one paragraph. All such docstrings are reattributed and reformatted, docstrings lost by the shift
+    are restored. The API docs list nanobind methods as methods, with signatures, instead of as
+    attributes, and static methods no longer render as "<nanobind.nb_func object>".
+  - FIX: pyOpenMS bindings that could not work (#10599): SimpleTSGXLMS and TheoreticalSpectrumGeneratorXLMS
+    getLinearIonSpectrum()/getXLinkIonSpectrum() generated the spectrum of an empty peptide (or cross-link)
+    instead of taking it as argument; they now take spectrum, peptide (or cross-link) and the other arguments
+    of the C++ API. IsotopeLabelingMDVs calculateIsotopicPurity()/calculateMDVAccuracy() annotate the feature
+    passed to them, like the C++ API, instead of a new empty one. PeptideIndexing.run() takes the FASTA file
+    name instead of a FASTAContainer, which Python could not create. CachedMzMLHandler.getSpectraIndex(),
+    getChromatogramIndex() and IndexedMzMLDecoder.findIndexListOffset() return int offsets instead of raw
+    std::streampos objects. MZTrafoModel.getCoefficients() returns (intercept, slope, power) instead of
+    filling float arguments, which Python cannot observe. Bound the nested types the signatures referred to
+    but Python could not use (ConsensusFeature.Ratio, whose ratio value now defaults to 0 instead of being
+    uninitialized, SignalToNoiseEstimatorMedianRapid.NoiseEstimator, SplineInterpolatedPeaks.Navigator,
+    the IsotopeLabelingMDVs enums, ims Weights, FeatureFinderAlgorithmPickedHelperStructs_MassTrace) and
+    DeltaMass.label_set. Removed what could not be called from Python: begin()/end() returning C++ iterators
+    (MSExperiment, IsotopeDistribution, DeconvolvedSpectrum, PeakGroup), the initializer_list and std::list
+    constructors, MascotGenericFile.store() to a C++ stream and MapToResidueType.val (now len()).
+    OPXLHelper.buildCandidates returns cross-links that keep their peptides alive (they pointed into a freed
+    copy of the peptide list) and checks the candidate indices it was given.
+    Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
+    pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -345,27 +652,121 @@ Dependencies:
     package and the pyOpenMS wheels bundle it. 3.6.5 fixes the 13 advisories of 2026-09-29
     listed under 3.6.0's known issues, among them the High-severity CVE-2026-84782 (DTLS,
     which OpenMS does not use).
+  - WITH_THERMO_RAW requires openms-thermo-bridge 1.0.0 (FetchContent, vcpkg overlay and
+    find_package). ThermoRawFile reads each scan through its typed single-pass API (header,
+    m/z-sorted peaks, charges and noise in one call) instead of per-scan JSON and separate
+    peak and auxiliary-array calls; system or vcpkg installations of 0.x are no longer
+    accepted (#10522). With noise_data, scans without a centroid stream (e.g. ion trap
+    scans) no longer carry a "sampled noise m/z array" without intensities; the vendor
+    returned the segmented scan masses there, not noise samples.
 
 TOPP tools:
+  New tools:
+    - OpenDIA: high-level DIA workflow in one call: library preparation (prepared PQP/TSV/OSWPQ/TraML
+      library or empirical transition list, mode chosen automatically from the presence of decoys),
+      OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
+      and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
+      removed on success unless workflow:keep_intermediate_files is set (#10373).
   Changes:
+    ConsensusMapNormalizer:
+      - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
+        retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter
+        restrict the reference features as for 'median'.
     NucleicAcidSearchEngine:
       - Resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times. Exact cutoff tie retention is unchanged; exported ties now follow the shared library value order.
+      - Enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications
+        before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase
+        products in pyOpenMS.
+      - PARAM: New scoring:method (hyperscore, mvh) with MVH options (scoring:num_intensity_classes,
+        scoring:tic_fraction, scoring:single_peak_credit), scoring:use_mass_accuracy,
+        scoring:blacklist_tolerance (ion blacklist) and report:require_coverage (minimum fraction of
+        internal positions covered by fragment ions) (#10526).
+      - PARAM: New configurable MS2 preprocessing: preprocessing:deisotoping (legacy, none, flash), the
+        WindowMower and NLargest filters (preprocessing:window_mower:*, preprocessing:nlargest:n),
+        precursor peak removal, and out_preprocessed to write the preprocessed spectra.
+        preprocessing:window_mower:movetype 'jump' reproduces the historical preprocessing (#10526).
+      - PARAM: New preprocessing:deisotoping flash: FLASHDeconv RNA averagine isotope detection of
+        fragment spectra (preprocessing:flash:min_cos, preprocessing:flash:min_snr; requires a ppm
+        fragment tolerance) (#10531).
+      - PARAM: New precursor:correct_with_flash infers the monoisotopic precursor m/z of each MS2 from
+        the complete parent MS1 with FLASH RNA (precursor:flash:mass_tolerance, min_cos, min_snr);
+        out_precursor_corrections writes an audit table (#10532).
+      - PARAM: New report:precursor_percentage reports the strongest peak in the precursor window as a
+        percentage of the raw MS2 base peak intensity (report:precursor_percentage_mass_tolerance and
+        _unit) (#10530).
+      - PARAM: New bedrmod_out exports RNA modification sites as a bedRMod v2 track
+        (bedrmod_chebi_mapping, bedrmod:* reference metadata) (#10529).
     All tools:
+      - FIX: CometAdapter, ProteomicsLFQ, IsobaricWorkflow and the OpenSWATH tools reject Bruker MALDI imaging .d
+        input, as FileConverter and the tools reading through FileHandler do. PeakPickerIM, which reads raw frames
+        by default (-bruker:export_mode frame), still reads their frames, without pixel positions; with
+        -bruker:export_mode auto it rejects them (#10596).
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI
         files also take effect. A subsequent run in the same process removes the console
         destination from both the global configuration and the current thread before it parses
         its command line, and adds it again only if its debug level is above 0 (#10478).
-	  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
-	    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
-	    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
-	    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
+      - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+        CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+        ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+        exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported()
+        (#10459).
+    FileConverter:
+      - New option -bruker:load_ms2: 'false' skips the MS2 spectra of a Bruker .d (MS1-only conversion),
+        the counterpart of -bruker:load_ms1.
+      - -process_lowmemory also works for Bruker .d input (to mzML; before: an error). The spectra are
+        written as they are read, and the mzML file is the one the conversion in memory gives. A 110 min
+        ddaPASEF run (5.6 GB .d, 1.9 billion peaks) converts in under 5 minutes with 170 MB of heap memory
+        (the resident memory, 4.8 GB at its peak, is the memory-mapped analysis.tdf_bin).
+      - FIX: -force_TPP_compatibility had no effect with -process_lowmemory (mzML output from mzML, mzXML,
+        Thermo .raw and now Bruker .d input).
+      - -process_lowmemory also converts Bruker .d input to cachedMzML (before: an error); the spectra go to
+        the cache as they are read, and both files are those of the conversion in memory.
+      - FIX: Bruker MALDI imaging .d input is rejected (exit code INCOMPATIBLE_INPUT_DATA), as by
+        FileHandler::loadExperiment(); it was read as DDA-PASEF data, without its pixel geometry. This covers
+        zipped imaging runs (.d.zip) as well (#10596).
+      - FIX: Bruker .d input without DDA-PASEF precursors (e.g. MS1-only MALDI runs) converts to its MS1 spectra;
+        the tool aborted (exit code 134), and with -process_lowmemory left an empty output file behind (#10597).
+    MS1LabeledWorkflow:
+      - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
+        its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum
+        whose precursor was picked on another isotope (accepted by searches with isotope error
+        correction), stayed unassigned. They are now matched against the elution region of the
+        multiplet's channels (their mass traces, plus the tolerances), and id_mapping:mz_reference
+        defaults to 'peptide': the theoretical m/z of the identified, labelled peptidoform. The
+        channel of a spectrum match is the one closest to that m/z, too (an off-isotope precursor
+        could be closer to another channel and turn the multiplet into a conflict).
+      - FIX: of several identifications on a multiplet, those whose labels agree with its mass shifts
+        are preferred; a better-scoring one that contradicts them (e.g. a co-isolated peptide) made
+        the whole multiplet a quant/ID conflict.
+      - PARAM: algorithm:knock_out defaults to 'true': partial multiplets (e.g. a peptide seen in the
+        heavy channel only, or whose weaker channels fail the detection's filters) are quantified;
+        before, every multiplet with an undetected channel was dropped. Partial multiplets that only
+        flank a larger multiplet of the same peptide are merged into it. Supported for up to four
+        channels. -match_between_runs can be combined with it (only complete unidentified
+        multiplets are kept).
+      - PARAM: new -requantify (default 'true'): a channel the detection did not find is measured at
+        its expected position over the elution region of the multiplet, relative to its most intense
+        detected channel (like MaxQuant's re-quantify), and reported as absent only if it shows no
+        signal there. An identification of such a channel (e.g. the minor channel of a mixture, which
+        DDA fragments as well) joins the multiplet detected in the peptide's other channels.
+      - On a synthetic triple SILAC run (120 peptides; complete, partial and weak 1:0.15:0.15
+        multiplets; MS2 over the whole elution, precursors partly on M+1..M+3) 119 peptides are
+        quantified with the exact channel ratios. The previous per-run chain (apex mapping on precursor
+        m/z, complete multiplets only) quantified 27, i.e. not even half of the 60 complete ones.
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
         experimental design names the runs with their extension (e.g. run1.raw).
       - FIX: no longer crashes while printing reporter statistics when a channel has no
         reporter signal at all.
+    MapAlignerPoseClustering:
+      - PARAM: new algorithm:peak_selection:* parameters for mzML input. The new default
+        'algorithm:peak_selection:method' 'spread' aligns one MS1 peak per analyte, spread over RT and
+        m/z, instead of the most intense MS1 peaks, so mzML alignments change; 'intensity' selects the
+        most intense peaks as before. The other parameters (rt_window, mz_tolerance, max_charge, rt_bins,
+        mz_bins) tune 'spread'. featureXML input does not use them, but is now aligned on its most
+        intense features instead of the first ones (see OpenMS Library).
     ProSE:
       - PARAM: Percolator rescoring runs in-process (OpenMS' built-in Percolator, the default
         backend of PercolatorAdapter) and is switched on with the new flag -rescore. The parameter
@@ -386,6 +787,33 @@ TOPP tools:
         features added: N / M PSMs (<features>), NCE=<nce>'. On the 20-file suite of #10364
         (10 hits per spectrum) it gave 5.7% more PSMs at 1% FDR for 3.4 times the search CPU
         time (#9975).
+      - FIX: -out_pin holds the PSMs before any FDR filter. With Search:FDR:PSM, the .pin had only the
+        PSMs that passed, with q-values as score; with one input and Search:FDR:protein, it had no
+        decoys, so Percolator could not use it. The search now also hands back the PSMs before
+        FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
+        protein FDR; with -rescore it still holds the rescored PSMs before the FDR filters. The other
+        outputs do not change.
+    FileConverter:
+      - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
+        default, which cost a second read of the whole file (5-15% of the conversion time); the new
+        flag -raw_checksum restores it. Without it the mzML sourceFile has an empty SHA-1 (#10522).
+      - -process_lowmemory streams Thermo .raw input (in-process reader) scan by scan into mzML and
+        cachedMzML outputs in constant memory; it was ignored for .raw before. Other output types
+        still load the file into memory (with a warning) (#10522).
+      - Spectra (e.g. mzML) can no longer be converted to consensusXML or consensusparquet: each peak
+        became a consensus feature. The tool exits with an error (INCOMPATIBLE_INPUT_DATA) before loading
+        the input (#10520).
+    OpenSwathWorkflow:
+      - Thermo .raw input is streamed into the SWATH maps instead of being loaded completely and
+        copied, and the full map is no longer kept alive as run metadata; -out_qc (SwathQC) now also
+        receives the spectra of .raw input (#10522).
+      - -readOptions onDisc for indexed mzML and Thermo .raw input reads the spectra of each SWATH window from the file
+        during extraction instead of holding them in memory; results are identical to 'normal'.
+        Input with more than one FAIMS compensation voltage is rejected (#10522).
+      - FIX (also OpenDIA): with -out_chrom .xic, an error while writing the Parquet file (e.g. a full disk) was
+        only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
+    SageAdapter, CometAdapter:
+      - Thermo .raw input is streamed into the temporary mzML instead of being loaded into memory (#10522).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
@@ -400,6 +828,30 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+      - The RT tolerance of linking (QT linking, and the global RT window of PIP-ECHO) is
+        sized from the 95th percentile of the RT differences of the alignment points after alignment
+        (the largest over the runs) instead of their maximum, and no longer has a 2-minute minimum.
+        A few outlying points decided the maximum: on the ProteoBench DDA ion module (QExactive, 6 runs,
+        2 h gradients) the tolerance was +-20 min, and match-between-runs without PIP-ECHO raised the
+        median absolute E. coli fold-change error from 0.41 (identified only) to 0.62. With the 95th
+        percentile the tolerance is +-74 s, and match-between-runs adds 4,600 precursors (42,322 to
+        46,929) at the accuracy of identified only (median error 0.221, E. coli 0.41).
+      - FIX: -Alignment:model_type and -Alignment:model:<type>:* were ignored: the RT transformations
+        were always B-splines with default parameters. They now select the RT model and its parameters.
+        The second, unused switch -Alignment:model:type is removed; use -Alignment:model_type.
+      - FIX: -feat_dir checkpoints record -protein_quantification. Detection keeps the peptide
+        uniqueness annotation that strictly_unique_peptides filters on only in that mode, so a
+        strict combine accepted checkpoints detected in another mode and then dropped the peptide
+        hits lacking it (all of them, ending in "No protein is supported by a strictly unique
+        peptide"). Such a combine is now refused and names the setting; detecting and combining
+        runs have to use the same -protein_quantification (#10481, #10486).
+    FileInfo:
+      - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
+        same std::hash value; each hash now keeps all of its entries (#10499).
+      - FIX: the consensusXML statistics (-s) for qualities were computed over twice the number of
+        consensus features, half of the values zero; they now cover each feature once (#10498).
+      - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
+        spectra are now skipped as unidentified (#10497).
     QualityControl:
       - FIX: The identifications of a feature are sorted best first according to their score
         direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
@@ -408,10 +860,22 @@ TOPP tools:
         Identifications without hits are sorted last instead of being read past their end. The
         identifications that ID conflict resolution removes from a consensus feature are now
         listed best first among the unassigned ones (-out_cm, PSM section of -out).
-  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
-    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
-    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
-    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
+    PeptideIndexer:
+      - PeptideIndexer evaluates enzyme specificity on the original protein sequence again, instead
+        of the I/L-substituted one used for matching. With '-IL_equivalent', every 'L' (and 'J') in
+        the database was replaced by 'I' before the cleavage sites were determined, which silently
+        dropped valid hits for enzymes that cleave after 'L' but not after 'I' (Chymotrypsin,
+        Chymotrypsin/P, TrypChymo, PepsinA, PepsinA + P, leukocyte elastase and
+        elastase-trypsin-chymotrypsin). The reported flanking residues ('aa_before'/'aa_after')
+        likewise come from the original sequence, so an 'L' or 'J' next to a peptide is no longer
+        reported as 'I'. The former hard error rejecting '-IL_equivalent' for three of those enzymes
+        was removed; it did not cover the other four and never triggered for the default
+        'enzyme:name=auto', where the enzyme is taken from the idXML (#1793).
+      - The cleavage rule of 'elastase-trypsin-chymotrypsin' now includes 'J', matching its own
+        description ("cuts after A,L,I(or J),V,K,R,W,F,Y") and the six other enzymes that cleave
+        after I/L. It was the only one omitting 'J', so a peptide preceded by 'J' in the database
+        was rejected as non-specific. This was previously masked with '-IL_equivalent', which
+        rewrote 'J' to 'I' before the cleavage sites were determined (#1793).
 
 Build System:
   - WebAssembly: the OpenMS library builds with Emscripten (CMake presets wasm32-emscripten-release
@@ -424,6 +888,10 @@ Build System:
     formats or GUI (src/openms_wasm/README.md) (#10564).
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and
     MascotRemoteQuery report an error when run, and the update check is off.
+  - Installing with WITH_ONNX=ON also installs the versioned files and symlinks of ONNX Runtime
+    (libonnxruntime.so.1, libonnxruntime.1.dylib, ...) next to libonnxruntime.so/.dylib. Before, a
+    non-vcpkg ONNX Runtime left a dangling unversioned symlink and no SONAME file, so an installed
+    libOpenMS could not load ONNX Runtime (#10465).
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
     Runtime release and ship libonnxruntime and the PeptDeep models (amd64 and arm64).
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
@@ -862,8 +1330,8 @@ Dependencies:
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
     #9148, #9389, #9736, #10206).
-  - WITH_WNETALIGN (default OFF) fetches wnetalign/wnet/pylmcf when enabled. WITH_ONNX
-    (default OFF) requires an external ONNX Runtime installation (#8992, #9453, #10255).
+  - WITH_WNETALIGN (default OFF, #10255) fetches wnetalign/wnet/pylmcf when enabled. WITH_ONNX
+    (default OFF) requires an external ONNX Runtime installation (#8992, #9453).
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).

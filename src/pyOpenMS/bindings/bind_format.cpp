@@ -4,11 +4,15 @@
 #include "all_casters.h"
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/BedRModFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include "index_value_iterator.h"
 #endif
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -101,6 +105,20 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
+    nb::class_<OpenMS::OMSFile>(m, "OMSFile", "Load and store identification data in OMS format")
+        .def(nb::init<>())
+        .def("load", nb::overload_cast<const std::string&, OpenMS::IdentificationData&>(&OpenMS::OMSFile::load),
+             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>())
+        .def("store", nb::overload_cast<const std::string&, const OpenMS::IdentificationData&>(&OpenMS::OMSFile::store),
+             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>());
+
+    nb::class_<OpenMS::BedRModFile>(m, "BedRModFile", "Export RNA modifications with explicit bedRMod reference metadata")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::BedRModFile&>())
+        .def("store", &OpenMS::BedRModFile::store, "out_file"_a, "id_data"_a,
+             "chebi_mapping_file"_a = "", "reference_metadata"_a = std::map<std::string, std::string>{},
+             "Write aggregated RNA modification sites; unspecified metadata is NA. Custom codes require a validated modomics_short_name CSV mapping.",
+             nb::call_guard<nb::gil_scoped_release>());
 
 #ifdef WITH_THERMO_RAW
     // -----------------------------------------------------------------------
@@ -116,7 +134,16 @@ NB_MODULE(_pyopenms_format, m) {
         .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
         .def_rw("preserve_trailers", &OpenMS::ThermoRawFile::Options::preserve_trailers, "Retain all scan trailer label/value pairs")
         .def_rw("instrument_methods", &OpenMS::ThermoRawFile::Options::instrument_methods, "Retain the embedded instrument method texts")
-        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance");
+        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance")
+        .def_rw("first_scan", &OpenMS::ThermoRawFile::Options::first_scan, "First scan number to load (0: from the first scan)")
+        .def_rw("last_scan", &OpenMS::ThermoRawFile::Options::last_scan, "Last scan number to load (0: up to the last scan)")
+        .def_rw("rt_min", &OpenMS::ThermoRawFile::Options::rt_min, "Load scans with rt_min <= RT (seconds)")
+        .def_rw("rt_max", &OpenMS::ThermoRawFile::Options::rt_max, "Load scans with RT < rt_max (seconds)")
+        .def_rw("ms_levels", &OpenMS::ThermoRawFile::Options::ms_levels, "MS levels to load (empty: all; PDA spectra have level 0)")
+        .def_rw("precursor_mz_min", &OpenMS::ThermoRawFile::Options::precursor_mz_min, "Skip MSn scans whose first precursor m/z is below this")
+        .def_rw("precursor_mz_max", &OpenMS::ThermoRawFile::Options::precursor_mz_max, "Skip MSn scans whose first precursor m/z is at or above this")
+        .def_rw("metadata_only", &OpenMS::ThermoRawFile::Options::metadata_only, "Load spectrum metadata only (no peaks are read)")
+        .def_rw("skip_chromatograms", &OpenMS::ThermoRawFile::Options::skip_chromatograms, "Do not load the TIC and detector chromatograms");
     // ProgressLogger lives in another extension module, so its methods are added
     // explicitly instead of declaring it as a nanobind base class.
     auto thermorawfile_class = nb::class_<OpenMS::ThermoRawFile>(m, "ThermoRawFile", "Load Thermo RAW spectra and metadata for mzML export");
@@ -126,8 +153,98 @@ NB_MODULE(_pyopenms_format, m) {
         .def("getOptions", &OpenMS::ThermoRawFile::getOptions, nb::rv_policy::copy, "Returns a copy of the current loading options")
         .def("setOptions", &OpenMS::ThermoRawFile::setOptions, "options"_a, "Sets the loading options")
         .def("load", &OpenMS::ThermoRawFile::load, "filename"_a, "experiment"_a, nb::call_guard<nb::gil_scoped_release>(),
-             "Loads a Thermo RAW file into an MSExperiment");
+             "Loads a Thermo RAW file into an MSExperiment")
+        .def("transform", [](OpenMS::ThermoRawFile& self, const std::string& filename, nb::object consumer) {
+            // each spectrum is a local that is dropped after the callback, so it is not read back
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(filename, &wrapper);
+        }, "filename"_a, "consumer"_a,
+        R"doc(Streams a Thermo RAW file into a consumer, one spectrum at a time.
+
+The consumer is a Python object with the methods ``setExpectedSize(nr_spectra, nr_chromatograms)``,
+``setExperimentalSettings(settings)``, ``consumeSpectrum(spectrum)`` and ``consumeChromatogram(chromatogram)``
+(as for ``MzMLFile.transform``). The spectra are the ones load() would return with the same options.
+)doc");
     def_ProgressLogger<OpenMS::ThermoRawFile>(thermorawfile_class);
+
+    // -----------------------------------------------------------------------
+    // OnDiscThermoRawExperiment (random access to the spectra of a .raw file)
+    // -----------------------------------------------------------------------
+    pyopenms_iter::bind_index_value_iterator<OpenMS::OnDiscThermoRawExperiment>(m, "_OnDiscThermoRawExperimentIter");
+    using ODTRE = OpenMS::OnDiscThermoRawExperiment;
+    nb::class_<ODTRE>(m, "OnDiscThermoRawExperiment",
+        R"doc(Random access to the spectra of a Thermo RAW file.
+
+openFile() reads the scan headers once and keeps a small index; getSpectrum(i) then reads and converts
+a single scan. The spectra are the same as the i-th spectrum of ThermoRawFile.load() with the same
+options, in any access order. Options.ms_levels, the scan, RT and precursor m/z ranges select the
+indexed spectra. Copies share the index and read through their own file handle, so a copy per thread
+can be used concurrently.
+
+Example::
+
+    exp = OnDiscThermoRawExperiment()
+    exp.openFile("run.raw")
+    for i in range(exp.findFirstRT(600.0), len(exp)):
+        spectrum = exp.getSpectrum(i)
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const ODTRE&>())
+        .def("__copy__", [](const ODTRE& self) { return ODTRE(self); })
+        .def("__deepcopy__", [](const ODTRE& self, nb::dict) { return ODTRE(self); }, "memo"_a)
+        .def("openFile", [](ODTRE& self, const std::string& filename, const OpenMS::ThermoRawFile::Options& options) {
+            nb::gil_scoped_release release;
+            self.openFile(filename, options);
+        }, "filename"_a, "options"_a = OpenMS::ThermoRawFile::Options(), "Opens a .raw file and builds the spectrum index (no peaks are read)")
+        .def("isOpen", &ODTRE::isOpen, "Whether a file was opened")
+        .def("getFilename", &ODTRE::getFilename, "The opened file")
+        .def("getOptions", &ODTRE::getOptions, nb::rv_policy::copy, "The options given to openFile() (checksum is always off)")
+        .def("getNrSpectra", &ODTRE::getNrSpectra, "Number of indexed spectra")
+        .def("getNrChromatograms", &ODTRE::getNrChromatograms, "Number of chromatograms")
+        .def("size", &ODTRE::size, "Number of indexed spectra")
+        .def("__len__", &ODTRE::size)
+        .def("getSpectrum", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrum(index);
+        }, "index"_a, "Reads the spectrum with the given index, with peaks (as ThermoRawFile.load())")
+        .def("__getitem__", [](ODTRE& self, long long index) {
+            const long long n = static_cast<long long>(self.size());
+            if (index < 0) { index += n; }
+            if (index < 0 || index >= n) { throw nb::index_error("spectrum index out of range"); }
+            nb::gil_scoped_release release;
+            return self.getSpectrum(static_cast<size_t>(index));
+        }, "index"_a)
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<ODTRE>(self); },
+             "Iterates over all spectra in index order, reading one at a time")
+        .def("getSpectrumMetadata", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumMetadata(index);
+        }, "index"_a, "The spectrum without peaks and data arrays (no peaks are read)")
+        .def("getSpectrumPeaks", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumPeaks(index);
+        }, "index"_a, "Only the peaks and data arrays of the spectrum (other fields may be left empty)")
+        .def("getSpectrumByNativeId", [](ODTRE& self, const std::string& native_id) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumByNativeId(native_id);
+        }, "native_id"_a, "Reads the spectrum with the given native ID")
+        .def("getSpectrumRT", &ODTRE::getSpectrumRT, "index"_a, "Retention time (seconds) of a spectrum, from the index")
+        .def("getSpectrumMSLevel", &ODTRE::getSpectrumMSLevel, "index"_a, "MS level of a spectrum, from the index")
+        .def("getSpectrumNativeID", &ODTRE::getSpectrumNativeID, "index"_a, "Native ID of a spectrum, from the index")
+        .def("getScanNumber", &ODTRE::getScanNumber, "index"_a, "Thermo scan number of a spectrum (0 for PDA spectra)")
+        .def("getSpectrumIndexByScanNumber", &ODTRE::getSpectrumIndexByScanNumber, "scan"_a,
+             "Index of the spectrum of a scan number (size() if the scan is not indexed)")
+        .def("isSortedByRT", &ODTRE::isSortedByRT, "Whether the spectra are sorted by retention time (always true)")
+        .def("findFirstRT", &ODTRE::findFirstRT, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none)")
+        .def("getChromatogram", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getChromatogram(index);
+        }, "index"_a, "Returns a chromatogram (TIC and detector traces, as loaded by ThermoRawFile.load())")
+        .def("getExperimentalSettings", [](const ODTRE& self) { return OpenMS::ExperimentalSettings(*self.getExperimentalSettings()); },
+             "The run metadata (a copy)")
+        ;
 #endif
 
     // -----------------------------------------------------------------------
@@ -227,8 +344,38 @@ runtime.
             auto meta = self.readDIAMetadata(path, settings, config);
             return nb::make_tuple(meta, settings);
         }, "path"_a, "config"_a, "Read DIA SWATH boundaries and spectrum counts with explicit configuration. Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer) {
+            // the reader does not use a spectrum again after the consumer had it, so the value
+            // need not be restored after each callback
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(path, &wrapper);
+        }, "path"_a, "consumer"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns, in the same order (default configuration)")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer,
+                             const OpenMS::BrukerTimsFile::Config& config) {
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(path, &wrapper, config);
+        }, "path"_a, "consumer"_a, "config"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns with this configuration, in the same order. DIA data with MS2 aggregation "
+        "over retention time, and DDA data with calibrate=True on the linear m/z model, are loaded completely first.")
+        .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
+        "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
+        .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
+        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
+
+    nb::enum_<OpenMS::BrukerTimsFile::DataFormat>(brukertimsfile_class, "DataFormat")
+        .value("NONE", OpenMS::BrukerTimsFile::DataFormat::NONE)
+        .value("TDF", OpenMS::BrukerTimsFile::DataFormat::TDF)
+        .value("TSF", OpenMS::BrukerTimsFile::DataFormat::TSF)
+        .value("BAF", OpenMS::BrukerTimsFile::DataFormat::BAF)
+        .value("UNREADABLE_ARCHIVE", OpenMS::BrukerTimsFile::DataFormat::UNREADABLE_ARCHIVE)
+        ;
 
     // Nested Config struct
     auto brukertimsfile_config = nb::class_<OpenMS::BrukerTimsFile::Config>(brukertimsfile_class, "Config",
@@ -237,10 +384,27 @@ runtime.
         .def_rw("calibration_tolerance", &OpenMS::BrukerTimsFile::Config::calibration_tolerance, "m/z recalibration tolerance in Da (0 = default 0.1 Da)")
         .def_rw("calibrate", &OpenMS::BrukerTimsFile::Config::calibrate, "Enable m/z recalibration (off by default; may fail on some datasets)")
         .def_rw("load_ms1", &OpenMS::BrukerTimsFile::Config::load_ms1, "Load MS1 spectra. Disable for MS2-only workflows.")
-        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0)")
-        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)")
-        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "Upper bound on centroided peaks per MS1 spectrum")
+        .def_rw("load_ms2", &OpenMS::BrukerTimsFile::Config::load_ms2, "Load MS2 spectra. Disable for MS1-only workflows: the MS2 frames are then not read.")
+        .def_rw("frame_id_min", &OpenMS::BrukerTimsFile::Config::frame_id_min, "Lowest frame ID to read (inclusive; frame IDs are 1-based; default 0 = from the first frame)")
+        .def_rw("frame_id_max", &OpenMS::BrukerTimsFile::Config::frame_id_max, "Highest frame ID to read (inclusive; default 4294967295 = to the last frame). Frames outside the range are not read.")
+        .def_rw("rt_min_sec", &OpenMS::BrukerTimsFile::Config::rt_min_sec, "Lower retention time limit in seconds (inclusive; default 0.0). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")
+        .def_rw("rt_max_sec", &OpenMS::BrukerTimsFile::Config::rt_max_sec, "Upper retention time limit in seconds (inclusive; default +inf = no limit). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")
+        .def_rw("rt_selects_spectra", &OpenMS::BrukerTimsFile::Config::rt_selects_spectra, "What the retention time range selects (default False: frames). True: the spectra of a load without the range whose retention time lies in it, in the same form (DDA MS2 spectra from all of their frames, aggregation with its neighbors outside the range). Honored by load() and transform().")
+        .def_rw("im_min", &OpenMS::BrukerTimsFile::Config::im_min, "Lower ion mobility limit, 1/K0 in Vs/cm2 (inclusive; default 0.0). load() and transform() remove the peaks outside the range from spectra with an ion mobility per peak and leave out DDA MS2 spectra whose ion mobility lies outside.")
+        .def_rw("im_max", &OpenMS::BrukerTimsFile::Config::im_max, "Upper ion mobility limit, 1/K0 in Vs/cm2 (inclusive; default +inf = no limit). See im_min.")
+        .def_rw("ms1_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms1_centroid_algo, "MS1 centroiding algorithm (default OFF). OFF with ms1_centroid_mz_ppm and ms1_centroid_im_pct both > 0 selects GREEDY2D.")
         .def_rw("ms2_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms2_centroid_algo, "MS2 centroiding algorithm for DIA-PASEF and DDA-PASEF")
+        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 centroiding m/z tolerance in ppm, used by GREEDY2D and HILL_BASED (default 10.0; 0 = MS1 centroiding disabled)")
+        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "GREEDY2D only: MS1 centroiding ion mobility tolerance in percent (0 = GREEDY2D disabled, suggested: 3.0). Ignored by HILL_BASED.")
+        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "GREEDY2D only: upper bound on centroided peaks per MS1 spectrum (the most intense ones are kept)")
+        .def_rw("ms2_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms2_centroid_mz_ppm, "HILL_BASED MS2 centroiding m/z tolerance in ppm (default 20.0; 0 = HILL_BASED MS2 centroiding falls back to OFF with a warning)")
+        .def_rw("centroid_valley_factor", &OpenMS::BrukerTimsFile::Config::centroid_valley_factor, "HILL_BASED (MS1 and MS2): a hill is split at a valley if both neighbouring maxima exceed the valley by this factor (default 1.3; smaller = more splitting)")
+        .def_rw("ms1_centroid_min_hill_length", &OpenMS::BrukerTimsFile::Config::ms1_centroid_min_hill_length, "HILL_BASED MS1: minimum number of IM scans a hill must span (default 1)")
+        .def_rw("ms2_centroid_min_hill_length", &OpenMS::BrukerTimsFile::Config::ms2_centroid_min_hill_length, "HILL_BASED MS2: minimum number of IM scans a hill must span (default 2, tuned for DIA-PASEF; use 1 for DDA-PASEF)")
+        .def_rw("centroid_max_scan_gap", &OpenMS::BrukerTimsFile::Config::centroid_max_scan_gap, "HILL_BASED (MS1 and MS2): maximum number of consecutive empty IM scans a hill may bridge (default 0 = consecutive scans only)")
+        .def_rw("expose_hill_bounds", &OpenMS::BrukerTimsFile::Config::expose_hill_bounds, "HILL_BASED (MS1 and DIA MS2): attach four float data arrays with the IM and m/z bounds of each centroid's hill (default False)")
+        .def_rw("isotopic_prefilter", &OpenMS::BrukerTimsFile::Config::isotopic_prefilter, "MS1 and DIA MS2: before centroiding, drop peaks without an isotopic partner (charge 1-5) in the same or an adjacent IM scan (default False)")
+        .def_rw("isotopic_prefilter_tol_ppm", &OpenMS::BrukerTimsFile::Config::isotopic_prefilter_tol_ppm, "m/z tolerance in ppm for the isotopic partner match of isotopic_prefilter (default 50.0)")
         .def_rw("dia_ms2_n_neighbors", &OpenMS::BrukerTimsFile::Config::dia_ms2_n_neighbors, "DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled)")
         .def_rw("dia_ms2_min_support", &OpenMS::BrukerTimsFile::Config::dia_ms2_min_support, "DIA MS2 denoising: minimum occupied neighbors in 3x3 (m/z x IM) grid")
         .def_rw("dia_ms2_centroid", &OpenMS::BrukerTimsFile::Config::dia_ms2_centroid, "DIA MS2 2D peak picking: Gaussian smoothing + local maxima detection")
@@ -298,10 +462,10 @@ runtime.
         .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("CachedSwathFileConsumer cannot be copied"); }, "memo"_a)
         .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
         .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
-        .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::CachedSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::CachedSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
-        .def("consumeChromatogram", [](OpenMS::CachedSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("consumeChromatogram", [](OpenMS::CachedSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("consumeSpectrum", [](OpenMS::CachedSwathFileConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         ;
 
@@ -417,7 +581,17 @@ Note: Methods taking std::ostream are not directly exposed. Use file-based workf
         .def(nb::init<const OpenMS::FLASHDeconvSpectrumFile &>())
         .def("__copy__", [](const OpenMS::FLASHDeconvSpectrumFile& self) { return OpenMS::FLASHDeconvSpectrumFile(self); })
         .def("__deepcopy__", [](const OpenMS::FLASHDeconvSpectrumFile& self, nb::dict) { return OpenMS::FLASHDeconvSpectrumFile(self); }, "memo"_a)
-        .def_static("writeMzML", [](const OpenMS::MSExperiment& map, std::vector<OpenMS::DeconvolvedSpectrum>& deconvolved_spectra, const std::string& deconvolved_mzML_file, const std::string& annotated_mzML_file, int mzml_charge, std::vector<double> tols) { return OpenMS::FLASHDeconvSpectrumFile::writeMzML(map, deconvolved_spectra, deconvolved_mzML_file, annotated_mzML_file, mzml_charge, tols); }, "map"_a, "deconvolved_spectra"_a, "deconvolved_mzML_file"_a, "annotated_mzML_file"_a, "mzml_charge"_a, "tols"_a)
+        .def_static("writeMzML", [](const OpenMS::MSExperiment& map, std::vector<OpenMS::DeconvolvedSpectrum>& deconvolved_spectra, const std::string& deconvolved_mzML_file, const std::string& annotated_mzML_file, int mzml_charge, std::vector<double> tols) { return OpenMS::FLASHDeconvSpectrumFile::writeMzML(map, deconvolved_spectra, deconvolved_mzML_file, annotated_mzML_file, mzml_charge, tols); }, "map"_a, "deconvolved_spectra"_a, "deconvolved_mzML_file"_a, "annotated_mzML_file"_a, "mzml_charge"_a, "tols"_a, 
+            R"doc(
+Write deconvolved and annotated mzML files.
+
+:param map: The original MSExperiment
+:param deconvolved_spectra: The deconvolved spectra
+:param deconvolved_mzML_file: Output path for deconvolved mzML
+:param annotated_mzML_file: Output path for annotated mzML
+:param mzml_charge: Charge to use in output mzML
+:param tols: Mass tolerances per MS level
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -457,13 +631,15 @@ FileHandler().loadExperiment("test.mzML", exp)
         .def(nb::init<>())
         .def_static("getTypeByFileName", [](const std::string& filename) { return OpenMS::FileHandler::getTypeByFileName(filename); }, "filename"_a, 
             R"doc(
-Determines the file type based on the file name and/or content
+Determines the file type based on the file extension
+
 :param filename: Path to the file
-:returns: Integer representation of the file type
+:returns: The file type based on the extension
 )doc")
         .def_static("hasValidExtension", [](const std::string& filename, OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::hasValidExtension(filename, type); }, "filename"_a, "type"_a,
             R"doc(
 Checks whether the file has a valid extension for the given type
+
 :param filename: Path to the file
 :param type: The expected file type
 :returns: True if the extension matches the file type
@@ -471,12 +647,14 @@ Checks whether the file has a valid extension for the given type
         .def_static("stripExtension", [](const std::string& filename) { return OpenMS::FileHandler::stripExtension(filename); }, "filename"_a,
             R"doc(
 Returns the file name without the extension
+
 :param filename: Path to the file
 :returns: File path without extension
 )doc")
         .def_static("swapExtension", [](const std::string& filename, OpenMS::FileTypes::Type new_type) { return OpenMS::FileHandler::swapExtension(filename, new_type); }, "filename"_a, "new_type"_a,
             R"doc(
 Replaces the file extension with the extension for the given type
+
 :param filename: Path to the file
 :param new_type: The new file type whose extension to use
 :returns: File path with the new extension
@@ -484,38 +662,43 @@ Replaces the file extension with the extension for the given type
         .def_static("getTypeByContent", [](const std::string& filename) { return OpenMS::FileHandler::getTypeByContent(filename); }, "filename"_a,
             R"doc(
 Determines the file type based on the file content
+
 :param filename: Path to the file
 :returns: The file type based on file content analysis
 )doc")
         .def_static("isSupported", [](OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::isSupported(type); }, "type"_a,
             R"doc(
 Checks whether the given file type is supported
+
 :param type: The file type to check
 :returns: True if the file type is supported
 )doc")
         .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Access to the options for loading/storing")
-        .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
+        .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "options"_a, "Sets options for loading/storing")
         .def("loadFeatures", [](OpenMS::FileHandler& self, const std::string& filename) { OpenMS::FeatureMap map; self.loadFeatures(filename, map); return map; }, "filename"_a,
             R"doc(
 Loads features from a file into a FeatureMap (auto-detect file type)
+
 :param filename: The name of the file to load features from
 :returns: FeatureMap containing the loaded features
 :raises:
-Exception: FileNotFound is thrown if the file could not be opened
+  Exception: FileNotFound is thrown if the file could not be opened
 )doc")
         .def("loadFeatures", [](OpenMS::FileHandler& self, const std::string& filename, std::vector<OpenMS::FileTypes::Type> allowed_types, OpenMS::ProgressLogger::LogType log) { OpenMS::FeatureMap map; self.loadFeatures(filename, map, allowed_types, log); return map; }, "filename"_a, "allowed_types"_a, "log"_a,
             R"doc(
 Loads features from a file into a FeatureMap
+
 :param filename: The name of the file to load features from
 :param allowed_types: List of allowed file types
 :param log: Progress logging mode
 :returns: FeatureMap containing the loaded features
 :raises:
-Exception: FileNotFound is thrown if the file could not be opened
+  Exception: FileNotFound is thrown if the file could not be opened
 )doc")
         .def_static("computeFileHash", [](const std::string& filename) { return OpenMS::FileHandler::computeFileHash(filename); }, "filename"_a,
             R"doc(
 Computes a SHA-1 hash of the file content
+
 :param filename: Path to the file
 :returns: SHA-1 hash string of the file content
 )doc")
@@ -687,7 +870,12 @@ Computes a SHA-1 hash of the file content
         .def_static("typeToName", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToName(type); }, "type"_a, "Returns the name/preferred extension of the type")
         .def_static("typeToExtensions", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToExtensions(type); }, "type"_a, "Returns every extension accepted for the type, preferred one first (e.g. FASTA -> ['fasta', 'fa', 'faa'])")
         .def_static("typeToDescription", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToDescription(type); }, "type"_a, "Returns the human-readable explanation of the type")
-        .def_static("nameToType", [](const std::string& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a)
+        .def_static("nameToType", [](const std::string& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a, 
+            R"doc(
+Converts a file type name into a Type
+
+:param name: A case-insensitive name (e.g. FASTA or Fasta, etc.)
+)doc")
         .def_static("typeToMZML", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToMZML(type); }, "type"_a, "Returns the mzML name")
         ;
     // FileType enum nested under FileTypes
@@ -725,6 +913,7 @@ Computes a SHA-1 hash of the file content
         .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
         .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
         .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
+        .value("BEDRMOD", OpenMS::FileTypes::Type::BEDRMOD)
         .value("FASTA", OpenMS::FileTypes::Type::FASTA)
         .value("EDTA", OpenMS::FileTypes::Type::EDTA)
         .value("CSV", OpenMS::FileTypes::Type::CSV)
@@ -777,7 +966,15 @@ Computes a SHA-1 hash of the file content
         .def(nb::init<const OpenMS::GNPSMetaValueFile &>())
         .def("__copy__", [](const OpenMS::GNPSMetaValueFile& self) { return OpenMS::GNPSMetaValueFile(self); })
         .def("__deepcopy__", [](const OpenMS::GNPSMetaValueFile& self, nb::dict) { return OpenMS::GNPSMetaValueFile(self); }, "memo"_a)
-        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const std::string& output_file) { return OpenMS::GNPSMetaValueFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
+        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const std::string& output_file) { return OpenMS::GNPSMetaValueFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a, 
+            R"doc(
+Write meta value table (tsv file) from a list of mzML files. Required for GNPS FBMN.
+
+This will produce the minimal required meta values and can be extended manually.
+
+:param consensus_map: Input ConsensusMap from which the input mzML files will be determined.
+:param output_file: Output file path for the meta value table.
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -788,7 +985,17 @@ Computes a SHA-1 hash of the file content
         .def(nb::init<const OpenMS::GNPSQuantificationFile &>())
         .def("__copy__", [](const OpenMS::GNPSQuantificationFile& self) { return OpenMS::GNPSQuantificationFile(self); })
         .def("__deepcopy__", [](const OpenMS::GNPSQuantificationFile& self, nb::dict) { return OpenMS::GNPSQuantificationFile(self); }, "memo"_a)
-        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const std::string& output_file) { return OpenMS::GNPSQuantificationFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
+        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const std::string& output_file) { return OpenMS::GNPSQuantificationFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a, 
+            R"doc(
+Write feature quantification table (txt file) from a ConsensusMap. Required for GNPS FBMN.
+
+The table contains map information on the featureXML files from which the ConsensusMap was generated as well as
+a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
+added for each original feature in the consensus feature.
+
+:param consensus_map: Input ConsensusMap annotated with IonIdentityMolecularNetworking.annotateConsensusMap.
+:param output_file: Output file path for the feature quantification table.
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -803,7 +1010,15 @@ by isobar to load quantification results
         .def(nb::init<const OpenMS::IBSpectraFile &>())
         .def("__copy__", [](const OpenMS::IBSpectraFile& self) { return OpenMS::IBSpectraFile(self); })
         .def("__deepcopy__", [](const OpenMS::IBSpectraFile& self, nb::dict) { return OpenMS::IBSpectraFile(self); }, "memo"_a)
-        .def("store", [](OpenMS::IBSpectraFile& self, const std::string& filename, const OpenMS::ConsensusMap& cm) { return self.store(filename, cm); }, "filename"_a, "cm"_a)
+        .def("store", [](OpenMS::IBSpectraFile& self, const std::string& filename, const OpenMS::ConsensusMap& cm) { return self.store(filename, cm); }, "filename"_a, "cm"_a, 
+            R"doc(
+Writes the contents of the ConsensusMap cm into the file named by filename
+
+:param filename: The name of the file where the contents of cm should be stored
+:param cm: The ConsensusMap that should be exported to filename
+:raises:
+  Exception: InvalidParameter if the ConsensusMap does not hold the result of an isobaric quantification experiment (e.g., itraq)
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -893,7 +1108,7 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         }, "filename"_a, "exp"_a, "Store an MSImagingExperiment as imzML (.imzML + .ibd); coordinates come from its MSImagingGeometry")
         .def("getOptions", [](OpenMS::ImzMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); },
              "Returns the options for loading")
-        .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },
+        .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); }, "options"_a,
              "Set PeakFileOptions for filtering during load")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
             nb::gil_scoped_release release;
@@ -940,9 +1155,11 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
     nb::class_<OpenMS::IndexedMzMLDecoder>(m, "IndexedMzMLDecoder", 
         R"doc(
 A class to analyze indexedmzML files and extract the offsets of individual tags
+
 Specifically, this class allows one to extract the offsets of the <indexList>
 tag and of all <spectrum> and <chromatogram> tag using the indices found at
 the end of the indexedmzML XML structure
+
 While findIndexListOffset tries extracts the offset of the indexList tag from
 the last 1024 bytes of the file, this offset allows the function parseOffsets
 to extract all elements contained in the <indexList> tag and thus get access
@@ -952,7 +1169,29 @@ to all spectra and chromatogram offsets
         .def(nb::init<const OpenMS::IndexedMzMLDecoder &>())
         .def("__copy__", [](const OpenMS::IndexedMzMLDecoder& self) { return OpenMS::IndexedMzMLDecoder(self); })
         .def("__deepcopy__", [](const OpenMS::IndexedMzMLDecoder& self, nb::dict) { return OpenMS::IndexedMzMLDecoder(self); }, "memo"_a)
-        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const std::string& filename, int buffersize) { return self.findIndexListOffset(filename, buffersize); }, "filename"_a, "buffersize"_a = 1023)
+        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const std::string& filename, int buffersize) { return static_cast<long long>(self.findIndexListOffset(filename, buffersize)); }, "filename"_a, "buffersize"_a = 1023, 
+            R"doc(
+Tries to extract the indexList offset from an indexedmzML
+
+This function reads by default the last few (1024) bytes of the given
+input file and tries to read the content of the <indexListOffset> tag
+The idea is that somewhere in the last parts of the file specified by the
+input string, the string <indexListOffset>xxx</indexListOffset> occurs
+This function returns the xxx part converted to an integer
+
+Since this function cannot determine where it will start reading
+the XML, no regular XML parser can be used for this. Therefore it uses
+regex to do its job. It matches the <indexListOffset> part and any
+numerical characters that follow
+
+:param filename: Filename of the input indexedmzML file
+:param buffersize: How many bytes of the input file should be searched for the tag
+:return: A positive integer containing the content of the indexListOffset tag, returns -1 in case of failure no tag was found (you can re-try with a larger buffersize but most likely its not an indexed mzML). Using -1 is what the reference docu recommends: http://en.cppreference.com/w/cpp/io/streamoff
+:raises:
+  Exception: FileNotFound is thrown if file cannot be found
+:raises:
+  Exception: ParseError if offset cannot be parsed
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -961,23 +1200,30 @@ to all spectra and chromatogram offsets
     nb::class_<OpenMS::IndexedMzMLFileLoader>(m, "IndexedMzMLFileLoader", "A class to load an indexedmzML file")
         .def(nb::init<>())
         .def("getOptions", [](OpenMS::IndexedMzMLFileLoader& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
-        .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Returns the options for loading/storing")
-        .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a)
-        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
+        .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "options"_a, "Sets the options for loading/storing")
+        .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a, 
             R"doc(
-Load a file\n
+Load a file
+
 Tries to parse the file, success needs to be checked with the return value
+
 :param filename: Filename determines where the file is located
 :param exp: Object which will contain the data after the call
 :return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
 )doc")
+        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
+            R"doc(
+Store a file from an on-disc data-structure
+
+:param filename: Filename determines where the file will be stored
+:param exp: MS data to be stored
+)doc")
         .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::MSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
             R"doc(
-Load a file\n
-Tries to parse the file, success needs to be checked with the return value
-:param filename: Filename determines where the file is located
-:param exp: Object which will contain the data after the call
-:return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
+Store a file from an in-memory data-structure
+
+:param filename: Filename determines where the file will be stored
+:param exp: MS data to be stored
 )doc")
         ;
 
@@ -1015,7 +1261,20 @@ Tries to parse the file, success needs to be checked with the return value
         .def("__deepcopy__", [](const OpenMS::InspectInfile& self, nb::dict) { return OpenMS::InspectInfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("store", [](OpenMS::InspectInfile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, "Stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution")
-        .def("handlePTMs", [](OpenMS::InspectInfile& self, const std::string& modification_line, const std::string& modifications_filename, bool monoisotopic) { return self.handlePTMs(modification_line, modifications_filename, monoisotopic); }, "modification_line"_a, "modifications_filename"_a, "monoisotopic"_a)
+        .def("handlePTMs", [](OpenMS::InspectInfile& self, const std::string& modification_line, const std::string& modifications_filename, bool monoisotopic) { return self.handlePTMs(modification_line, modifications_filename, monoisotopic); }, "modification_line"_a, "modifications_filename"_a, "monoisotopic"_a, 
+            R"doc(
+Retrieves the name, mass change, affected residues, type and position for all modifications from a string
+
+:param modification_line:
+:param modifications_filename:
+:param monoisotopic: if true, masses are considered to be monoisotopic
+:raises:
+  Exception: FileNotReadable if the modifications_filename could not be read
+:raises:
+  Exception: FileNotFound if modifications_filename could not be found
+:raises:
+  Exception: ParseError if modifications_filename could not be parsed
+)doc")
         .def("getSpectra", [](const OpenMS::InspectInfile& self) { return self.getSpectra(); }, "Specifies a spectrum file to search")
         .def("setSpectra", [](OpenMS::InspectInfile& self, const std::string& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Specifies a spectrum file to search")
         .def("getDb", [](const OpenMS::InspectInfile& self) { return self.getDb(); }, "Specifies the name of a database (.trie file) to search")
@@ -1056,21 +1315,32 @@ Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the av
         .def("__copy__", [](const OpenMS::InspectOutfile& self) { return OpenMS::InspectOutfile(self); })
         .def("__deepcopy__", [](const OpenMS::InspectOutfile& self, nb::dict) { return OpenMS::InspectOutfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("load", [](OpenMS::InspectOutfile& self, const std::string& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const std::string& database_filename) { return self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, database_filename); }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database_filename"_a = "")
-        .def("getWantedRecords", [](OpenMS::InspectOutfile& self, const std::string& result_filename, double p_value_threshold) { return self.getWantedRecords(result_filename, p_value_threshold); }, "result_filename"_a, "p_value_threshold"_a, 
+        .def("load", [](OpenMS::InspectOutfile& self, const std::string& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const std::string& database_filename) { return self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, database_filename); }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database_filename"_a = "", 
             R"doc(
 Load the results of an Inspect search
+
 :param result_filename: Input parameter which is the file name of the input file
 :param peptide_identifications: Output parameter which holds the peptide identifications from the given file
 :param protein_identification: Output parameter which holds the protein identifications from the given file
 :param p_value_threshold:
 :param database_filename:
 :raises:
-Exception: FileNotFound is thrown if the given file could not be found
+  Exception: FileNotFound is thrown if the given file could not be found
 :raises:
-Exception: ParseError is thrown if the given file could not be parsed
+  Exception: ParseError is thrown if the given file could not be parsed
 :raises:
-Exception: FileEmpty is thrown if the given file is empty
+  Exception: FileEmpty is thrown if the given file is empty
+)doc")
+        .def("getWantedRecords", [](OpenMS::InspectOutfile& self, const std::string& result_filename, double p_value_threshold) { return self.getWantedRecords(result_filename, p_value_threshold); }, "result_filename"_a, "p_value_threshold"_a, 
+            R"doc(
+Loads only results which exceeds a given p-value threshold
+
+:param result_filename: The filename of the results file
+:param p_value_threshold: Only identifications exceeding this threshold are read
+:raises:
+  Exception: FileNotFound is thrown if the given file could not be found
+:raises:
+  Exception: FileEmpty is thrown if the given file is empty
 )doc")
         .def("compressTrieDB", [](OpenMS::InspectOutfile& self, const std::string& database_filename, const std::string& index_filename, std::vector<size_t>& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append) { return self.compressTrieDB(database_filename, index_filename, wanted_records, snd_database_filename, snd_index_filename, append); }, "database_filename"_a, "index_filename"_a, "wanted_records"_a, "snd_database_filename"_a, "snd_index_filename"_a, "append"_a = false, "Generates a trie database from another one, using the wanted records only")
         .def("generateTrieDB", [](OpenMS::InspectOutfile& self, const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append, const std::string& species) { return self.generateTrieDB(source_database_filename, database_filename, index_filename, append, species); }, "source_database_filename"_a, "database_filename"_a, "index_filename"_a, "append"_a = false, "species"_a = "", "Generates a trie database from a given one (the type of database is determined by getLabels)")
@@ -1093,15 +1363,29 @@ Exception: FileEmpty is thrown if the given file is empty
     nb::class_<OpenMS::KroenikFile>(m, "KroenikFile", 
         R"doc(
 File adapter for Kroenik (HardKloer sibling) files
+
 The first line is the header and contains the column names:
 File,  First Scan,  Last Scan,  Num of Scans,  Charge,  Monoisotopic Mass,  Base Isotope Peak,  Best Intensity,  Summed Intensity,  First RTime,  Last RTime,  Best RTime,  Best Correlation,  Modifications
+
 Every subsequent line is a feature
+
 All properties in the file are converted to Feature properties, whereas "First Scan", "Last Scan", "Num of Scans" and "Modifications" are stored as
 metavalues with the following names "FirstScan", "LastScan", "NumOfScans" and "AveragineModifications"
+
 The width in m/z of the overall convex hull of each feature is set to 3 Th in lack of a value provided by the Kroenik file
 )doc")
         .def(nb::init<>())
-        .def("load", [](OpenMS::KroenikFile& self, const std::string& filename) { OpenMS::FeatureMap feature_map; self.load(filename, feature_map); return feature_map; }, "filename"_a)
+        .def("load", [](OpenMS::KroenikFile& self, const std::string& filename) { OpenMS::FeatureMap feature_map; self.load(filename, feature_map); return feature_map; }, "filename"_a, 
+            R"doc(
+Loads a Kroenik file
+
+:param filename: The name of the file to read from
+:return: FeatureMap with the features of the file
+:raises:
+  Exception: FileNotFound is thrown if the file could not be opened
+:raises:
+  Exception: ParseError is thrown if an error occurs during parsing
+)doc")
         .def("store", [](const OpenMS::KroenikFile& self, const std::string& filename, const OpenMS::FeatureMap& fmap) { self.store(filename, fmap); }, "filename"_a, "fmap"_a, "Stores a FeatureMap to a Kroenik file")
         ;
 
@@ -1198,8 +1482,8 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<const OpenMS::MSstatsFile &>())
         .def("__copy__", [](const OpenMS::MSstatsFile& self) { return OpenMS::MSstatsFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSstatsFile& self, nb::dict) { return OpenMS::MSstatsFile(self); }, "memo"_a)
-        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const std::string& bioreplicate, const std::string& condition, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
-        .def("storeISO", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const std::string& bioreplicate, const std::string& condition, const std::string& mixture, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
+        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const std::string& bioreplicate, const std::string& condition, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true, "Store label free experiment (MSstats)")
+        .def("storeISO", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const std::string& bioreplicate, const std::string& condition, const std::string& mixture, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true, "Store isobaric experiment (MSstatsTMT)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1210,8 +1494,18 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<const OpenMS::MsInspectFile &>())
         .def("__copy__", [](const OpenMS::MsInspectFile& self) { return OpenMS::MsInspectFile(self); })
         .def("__deepcopy__", [](const OpenMS::MsInspectFile& self, nb::dict) { return OpenMS::MsInspectFile(self); }, "memo"_a)
-        .def("load", [](OpenMS::MsInspectFile& self, const std::string& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a)
-        .def("store", [](const OpenMS::MsInspectFile& self, const std::string& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a)
+        .def("load", [](OpenMS::MsInspectFile& self, const std::string& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a, 
+            R"doc(
+Loads a MsInspect file into the given FeatureMap
+
+:param filename: The name of the file to read from
+:param feature_map: FeatureMap that is filled with the features of the file
+:raises:
+  Exception: FileNotFound is thrown if the file could not be opened
+:raises:
+  Exception: ParseError is thrown if an error occurs during parsing
+)doc")
+        .def("store", [](const OpenMS::MsInspectFile& self, const std::string& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a, "Stores a spectrum as a MsInspect file")
         ;
 
     // -----------------------------------------------------------------------
@@ -1220,6 +1514,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     nb::class_<OpenMS::MzMLSpectrumDecoder>(m, "MzMLSpectrumDecoder", 
         R"doc(
 A class to decode input strings that contain an mzML chromatogram or spectrum tag
+
 It uses xercesc to parse a string containing either a exactly one mzML
 spectrum or chromatogram (from <chromatogram> to </chromatogram> or
 <spectrum> to </spectrum> tag). It returns the data contained in the
@@ -1230,26 +1525,50 @@ binaryDataArray for Intensity / mass-to-charge or Intensity / time
         .def("__deepcopy__", [](const OpenMS::MzMLSpectrumDecoder& self, nb::dict) { return OpenMS::MzMLSpectrumDecoder(self); }, "memo"_a)
         .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, std::shared_ptr<OpenMS::Interfaces::Spectrum>& sptr) { return self.domParseSpectrum(in, sptr); }, "in"_a, "sptr"_a, 
             R"doc(
-Extract data from a string which contains a full mzML chromatogram
+Extract data from a string which contains a full mzML spectrum
+
 Extracts data from the input string which is expected to contain exactly
-one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
-function will extract the contained binaryDataArray and provide the
-result as Chromatogram
+one <spectrum> tag (from <spectrum> to </spectrum>). This function will
+extract the contained binaryDataArray and provide the result as Spectrum
+
 :param in: Input string containing the raw XML
-:param cptr: Resulting chromatogram
+:param sptr: Resulting spectrum
 )doc")
         .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, OpenMS::MSSpectrum& s) { return self.domParseSpectrum(in, s); }, "in"_a, "s"_a, 
             R"doc(
+Extract data from a string which contains a full mzML spectrum
+
+Extracts data from the input string which is expected to contain exactly
+one <spectrum> tag (from <spectrum> to </spectrum>). This function will
+extract the contained binaryDataArray and provide the result as Spectrum
+
+:param in: Input string containing the raw XML
+:param s: Resulting spectrum
+)doc")
+        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, OpenMS::MSChromatogram& c) { return self.domParseChromatogram(in, c); }, "in"_a, "c"_a, 
+            R"doc(
 Extract data from a string which contains a full mzML chromatogram
+
 Extracts data from the input string which is expected to contain exactly
 one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
 function will extract the contained binaryDataArray and provide the
 result as Chromatogram
+
+:param in: Input string containing the raw XML
+:param c: Resulting chromatogram
+)doc")
+        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, std::shared_ptr<OpenMS::Interfaces::Chromatogram>& cptr) { return self.domParseChromatogram(in, cptr); }, "in"_a, "cptr"_a, 
+            R"doc(
+Extract data from a string which contains a full mzML chromatogram
+
+Extracts data from the input string which is expected to contain exactly
+one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
+function will extract the contained binaryDataArray and provide the
+result as Chromatogram
+
 :param in: Input string containing the raw XML
 :param cptr: Resulting chromatogram
 )doc")
-        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, OpenMS::MSChromatogram& c) { return self.domParseChromatogram(in, c); }, "in"_a, "c"_a)
-        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, std::shared_ptr<OpenMS::Interfaces::Chromatogram>& cptr) { return self.domParseChromatogram(in, cptr); }, "in"_a, "cptr"_a)
         .def("setSkipXMLChecks", [](OpenMS::MzMLSpectrumDecoder& self, bool only) { return self.setSkipXMLChecks(only); }, "only"_a, "Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead")
         ;
 
@@ -1263,10 +1582,10 @@ result as Chromatogram
         // the original both delete (a double free).
         .def("__copy__", [](const OpenMS::MzMLSwathFileConsumer&) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); })
         .def("__deepcopy__", [](const OpenMS::MzMLSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); }, "memo"_a)
-        .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::MzMLSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::MzMLSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
-        .def("consumeChromatogram", [](OpenMS::MzMLSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("consumeChromatogram", [](OpenMS::MzMLSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("consumeSpectrum", [](OpenMS::MzMLSwathFileConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         ;
 
@@ -1276,10 +1595,25 @@ result as Chromatogram
     nb::class_<OpenMS::MzQCFile>(m, "MzQCFile", 
         R"doc(
 File adapter for mzQC files used to load and store mzQC files
+
 This class collects the data for the mzQC File
 )doc")
         .def(nb::init<>())
-        .def("store", [](const OpenMS::MzQCFile& self, const std::string& input_file, const std::string& output_file, const OpenMS::MSExperiment& exp, const std::string& contact_name, const std::string& contact_address, const std::string& description, const std::string& label, const OpenMS::FeatureMap& feature_map, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { self.store(input_file, output_file, exp, contact_name, contact_address, description, label, feature_map, prot_ids, pep_ids); }, "input_file"_a, "output_file"_a, "exp"_a, "contact_name"_a, "contact_address"_a, "description"_a, "label"_a, "feature_map"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("store", [](const OpenMS::MzQCFile& self, const std::string& input_file, const std::string& output_file, const OpenMS::MSExperiment& exp, const std::string& contact_name, const std::string& contact_address, const std::string& description, const std::string& label, const OpenMS::FeatureMap& feature_map, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { self.store(input_file, output_file, exp, contact_name, contact_address, description, label, feature_map, prot_ids, pep_ids); }, "input_file"_a, "output_file"_a, "exp"_a, "contact_name"_a, "contact_address"_a, "description"_a, "label"_a, "feature_map"_a, "prot_ids"_a, "pep_ids"_a, 
+            R"doc(
+Stores QC data in mzQC file with JSON format
+
+:param input_file: MzML input file name
+:param output_file: MzQC output file name
+:param exp: MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+:param contact_name: Name of the person creating the mzQC file
+:param contact_address: Contact address (mail/e-mail or phone) of the person creating the mzQC file
+:param description: Description and comments about the mzQC file contents
+:param label: Qnique and informative label for the run
+:param feature_map: FeatureMap from feature file (featureXML)
+:param prot_ids: Protein identifications from ID file (idXML)
+:param pep_ids: Protein identifications from ID file (idXML)
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -1288,6 +1622,7 @@ This class collects the data for the mzQC File
     nb::class_<OpenMS::MzTab>(m, "MzTab", 
         R"doc(
 Data model of MzTab files
+
 Please see the official MzTab specification at https://code.google.com/p/mztab/
 )doc")
         .def(nb::init<>())
@@ -1315,6 +1650,7 @@ Please see the official MzTab specification at https://code.google.com/p/mztab/
     nb::class_<OpenMS::MzTabM>(m, "MzTabM", 
         R"doc(
 Data model of MzTabM files
+
 Please see the official MzTabM specification at https://github.com/HUPO-PSI/mzTab/tree/master/specification_document-releases/2_0-Metabolomics-Release
 )doc")
         .def(nb::init<>())
@@ -1341,14 +1677,15 @@ Please see the official MzTabM specification at https://github.com/HUPO-PSI/mzTa
     nb::class_<OpenMS::NoopMSDataWritingConsumer>(m, "NoopMSDataWritingConsumer", 
         R"doc(
 Consumer class that perform no operation
+
 This is sometimes necessary to fulfill the requirement of passing an
 valid MSDataWritingConsumer object or pointer but no operation is
 required
 )doc")
         .def(nb::init<std::string>())
-        .def("setExperimentalSettings", [](OpenMS::NoopMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); })
-        .def("consumeSpectrum", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSSpectrum& p0) { return self.consumeSpectrum(p0); })
-        .def("consumeChromatogram", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("setExperimentalSettings", [](OpenMS::NoopMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); }, "exp"_a)
+        .def("consumeSpectrum", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSSpectrum& p0) { return self.consumeSpectrum(p0); }, "spectrum"_a)
+        .def("consumeChromatogram", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("setExpectedSize", [](OpenMS::NoopMSDataWritingConsumer& self, size_t expectedSpectra, size_t expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("addDataProcessing", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::DataProcessing d) { return self.addDataProcessing(d); }, "d"_a)
         .def("getNrSpectraWritten", [](OpenMS::NoopMSDataWritingConsumer& self) { return self.getNrSpectraWritten(); })
@@ -1361,6 +1698,7 @@ required
     nb::class_<OpenMS::OMSSACSVFile>(m, "OMSSACSVFile",
         R"doc(
 File adapter for OMSSACSV files
+
 The files contain the results of the OMSSA algorithm in a comma separated manner. This file adapter is able to
 load the data from such a file into the structures of OpenMS
 )doc")
@@ -1368,7 +1706,17 @@ load the data from such a file into the structures of OpenMS
         .def(nb::init<const OpenMS::OMSSACSVFile &>())
         .def("__copy__", [](const OpenMS::OMSSACSVFile& self) { return OpenMS::OMSSACSVFile(self); })
         .def("__deepcopy__", [](const OpenMS::OMSSACSVFile& self, nb::dict) { return OpenMS::OMSSACSVFile(self); }, "memo"_a)
-        .def("load", [](const OpenMS::OMSSACSVFile& self, const std::string& filename) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data); return std::make_tuple(protein_identification, id_data); }, "filename"_a)
+        .def("load", [](const OpenMS::OMSSACSVFile& self, const std::string& filename) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data); return std::make_tuple(protein_identification, id_data); }, "filename"_a, 
+            R"doc(
+Loads an OMSSA CSV file
+
+:param filename: The name of the file to read from
+:return: Tuple of (protein_identification, id_data): the protein ProteinIdentification data and the peptide ids of the file
+:raises:
+  Exception: FileNotFound is thrown if the file could not be opened
+:raises:
+  Exception: ParseError is thrown if an error occurs during parsing
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -1377,9 +1725,10 @@ load the data from such a file into the structures of OpenMS
     nb::class_<OpenMS::PEFFCustomKeyDef>(m, "PEFFCustomKeyDef", 
         R"doc(
 Represents a custom key definition from the PEFF header
+
 Attributes:
-key_name: Custom key name
-description: Description of the key
+  key_name: Custom key name
+  description: Description of the key
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PEFFCustomKeyDef &>())
@@ -1399,23 +1748,24 @@ description: Description of the key
     auto peffdatabasemetadata_class = nb::class_<OpenMS::PEFFDatabaseMetadata>(m, "PEFFDatabaseMetadata", 
         R"doc(
 Metadata from a PEFF database header section
+
 Attributes:
-version: PEFF version
-db_name: Database name
-prefix: Database prefix
-db_description: Database description
-is_decoy: Whether this is a decoy database
-db_sources: List of database sources
-db_version: Database version
-number_of_entries: Number of entries
-sequence_type: Sequence type (AA or NA)
-general_comments: List of general comments
-conversion: Conversion notes
-specific_keys: Custom key definitions
-specific_values: Custom value type definitions
-has_annotation_identifiers: Whether entries use annotation identifiers
-is_proteoform_db: Whether this is a proteoform database
-unrecognized_keys: Unrecognized header keys preserved for round-trip
+  version: PEFF version
+  db_name: Database name
+  prefix: Database prefix
+  db_description: Database description
+  is_decoy: Whether this is a decoy database
+  db_sources: List of database sources
+  db_version: Database version
+  number_of_entries: Number of entries
+  sequence_type: Sequence type (AA or NA)
+  general_comments: List of general comments
+  conversion: Conversion notes
+  specific_keys: Custom key definitions
+  specific_values: Custom value type definitions
+  has_annotation_identifiers: Whether entries use annotation identifiers
+  is_proteoform_db: Whether this is a proteoform database
+  unrecognized_keys: Unrecognized header keys preserved for round-trip
 )doc")
         .def(nb::init<>())
         .def_rw("version", &OpenMS::PEFFDatabaseMetadata::version)
@@ -1449,11 +1799,12 @@ unrecognized_keys: Unrecognized header keys preserved for round-trip
     nb::class_<OpenMS::PEFFDisulfideBond>(m, "PEFFDisulfideBond", 
         R"doc(
 Represents a disulfide bond annotation in PEFF
+
 Attributes:
-id1: First cysteine reference (AnnotationIdentifier)
-id2: Second cysteine reference (AnnotationIdentifier)
-optional_tag: Optional tag (e.g., "between chains")
-annotation_id: Optional annotation identifier (UInt, max value = not set)
+  id1: First cysteine reference (AnnotationIdentifier)
+  id2: Second cysteine reference (AnnotationIdentifier)
+  optional_tag: Optional tag (e.g., "between chains")
+  annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::string, std::string, std::string, unsigned int>())
@@ -1469,40 +1820,44 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     nb::class_<OpenMS::PEFFEntry>(m, "PEFFEntry", 
         R"doc(
 Represents a single entry in a PEFF file with all annotations.
+
 Each entry corresponds to one description line and sequence.
 The description line format is: >Prefix:DbUniqueId \\key=value ...
+
 Attributes:
-prefix: Database prefix from description line
-identifier: Protein identifier (Prefix:DbUniqueId)
-sequence: Amino acid sequence
-protein_names: List of protein names
-gene_name: Gene name
-ncbi_tax_id: NCBI taxonomy ID
-taxonomy_name: Taxonomy name
-sequence_length: Sequence length
-modifications: List of modifications
-simple_variants: List of simple variants
-complex_variants: List of complex variants
-processed_regions: List of processed regions
-proteoforms: List of proteoforms in ProForma notation
+  prefix: Database prefix from description line
+  identifier: Protein identifier (Prefix:DbUniqueId)
+  sequence: Amino acid sequence
+  protein_names: List of protein names
+  gene_name: Gene name
+  ncbi_tax_id: NCBI taxonomy ID
+  taxonomy_name: Taxonomy name
+  sequence_length: Sequence length
+  modifications: List of modifications
+  simple_variants: List of simple variants
+  complex_variants: List of complex variants
+  processed_regions: List of processed regions
+  proteoforms: List of proteoforms in ProForma notation
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PEFFEntry &>())
         .def("__copy__", [](const OpenMS::PEFFEntry& self) { return OpenMS::PEFFEntry(self); })
         .def("__deepcopy__", [](const OpenMS::PEFFEntry& self, nb::dict) { return OpenMS::PEFFEntry(self); }, "memo"_a)
-        .def("toFASTAEntry", [](const OpenMS::PEFFEntry& self) { return self.toFASTAEntry(); })
+        .def("toFASTAEntry", [](const OpenMS::PEFFEntry& self) { return self.toFASTAEntry(); }, "Convert to a FASTAEntry (loses PEFF-specific annotations)")
         .def_static("fromFASTAEntry", [](const OpenMS::FASTAFile::FASTAEntry& fasta) { return OpenMS::PEFFEntry::fromFASTAEntry(fasta); }, "fasta"_a)
         .def("getSequence", [](const OpenMS::PEFFEntry& self) { return self.getSequence(); }, "Get the base AASequence for this entry (unmodified sequence)")
         .def("getModifiedSequence", [](const OpenMS::PEFFEntry& self) { return self.getModifiedSequence(); }, "Get an AASequence with all annotated modifications applied. Modifications with unknown positions (position == 0) or that cannot be resolved are skipped.")
         .def("getVariantSequences", [](const OpenMS::PEFFEntry& self, bool include_complex) { std::vector<std::basic_string<char>> descriptions; std::vector<OpenMS::AASequence> sequences; self.getVariantSequences(descriptions, sequences, include_complex); return std::make_tuple(descriptions, sequences); }, "include_complex"_a, 
             R"doc(
 Get all variant sequences (each variant applied individually).
+
 :param include_complex: If True, also include complex variants; otherwise only simple variants
 :return: Tuple (descriptions, sequences) of variant descriptions and AASequences
 )doc")
         .def("getProcessedSequence", [](const OpenMS::PEFFEntry& self, const std::string& region_accession) { return self.getProcessedSequence(region_accession); }, "region_accession"_a, 
             R"doc(
 Get processed sequence (e.g., mature protein without signal peptide).
+
 :param region_accession: PEFF CV accession of the region type (e.g., "PEFF:0001021" for signal peptide)
 :return: Processed AASequence, or an empty AASequence if no region has this accession
 )doc")
@@ -1547,13 +1902,14 @@ Get processed sequence (e.g., mature protein without signal peptide).
     auto peffmodification_class = nb::class_<OpenMS::PEFFModification>(m, "PEFFModification", 
         R"doc(
 Represents a PEFF modification annotation
+
 Attributes:
-position: 1-based position (0 = unknown)
-accession: Modification accession (MOD:xxxxx, UNIMOD:xx, or custom)
-name: Human-readable name
-optional_tag: Optional tag (last component of annotation tuple)
-annotation_id: Optional annotation identifier (UInt, max value = not set)
-type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
+  position: 1-based position (0 = unknown)
+  accession: Modification accession (MOD:xxxxx, UNIMOD:xx, or custom)
+  name: Human-readable name
+  optional_tag: Optional tag (last component of annotation tuple)
+  annotation_id: Optional annotation identifier (UInt, max value = not set)
+  type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
 )doc")
         .def(nb::init<>())
         .def(nb::init<size_t, std::string, std::string, std::string, unsigned int>())
@@ -1577,13 +1933,14 @@ type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
     nb::class_<OpenMS::PEFFProcessedRegion>(m, "PEFFProcessedRegion", 
         R"doc(
 Represents a PEFF processed region (signal peptide, etc.)
+
 Attributes:
-start_position: 1-based start position
-end_position: 1-based end position
-accession: PEFF CV accession (e.g., PEFF:0001021)
-name: Optional name
-optional_tag: Optional tag (last component of annotation tuple)
-annotation_id: Optional annotation identifier (UInt, max value = not set)
+  start_position: 1-based start position
+  end_position: 1-based end position
+  accession: PEFF CV accession (e.g., PEFF:0001021)
+  name: Optional name
+  optional_tag: Optional tag (last component of annotation tuple)
+  annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
         .def(nb::init<size_t, size_t, std::string, std::string, std::string, unsigned int>())
@@ -1601,12 +1958,13 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     nb::class_<OpenMS::PEFFVariantComplex>(m, "PEFFVariantComplex", 
         R"doc(
 Represents a complex PEFF variant (multi-residue change)
+
 Attributes:
-start_position: 1-based start position
-end_position: 1-based end position
-replacement: Replacement sequence (empty = deletion)
-optional_tag: Optional tag (last component of annotation tuple)
-annotation_id: Optional annotation identifier (UInt, max value = not set)
+  start_position: 1-based start position
+  end_position: 1-based end position
+  replacement: Replacement sequence (empty = deletion)
+  optional_tag: Optional tag (last component of annotation tuple)
+  annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
         .def(nb::init<size_t, size_t, std::string, std::string, unsigned int>())
@@ -1623,11 +1981,12 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     nb::class_<OpenMS::PEFFVariantSimple>(m, "PEFFVariantSimple", 
         R"doc(
 Represents a simple PEFF variant (single amino acid substitution)
+
 Attributes:
-position: 1-based position
-variant_aa: Variant amino acid character
-optional_tag: Optional tag (last component of annotation tuple)
-annotation_id: Optional annotation identifier (UInt, max value = not set)
+  position: 1-based position
+  variant_aa: Variant amino acid character
+  optional_tag: Optional tag (last component of annotation tuple)
+  annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
         .def(nb::init<size_t, char, std::string, unsigned int>())
@@ -1707,6 +2066,9 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("setPrecursorMZRange", [](OpenMS::PeakFileOptions& self, const OpenMS::DRange<1>& range) { return self.setPrecursorMZRange(range); }, "range"_a, "Restricts the range of precursor m/z values for MS2+ spectra to load")
         .def("hasPrecursorMZRange", [](const OpenMS::PeakFileOptions& self) { return self.hasPrecursorMZRange(); }, "Returns true if a precursor m/z range has been set")
         .def("getPrecursorMZRange", [](const OpenMS::PeakFileOptions& self) -> OpenMS::DRange<1> { return self.getPrecursorMZRange(); }, "Returns the precursor m/z range")
+        .def("setIMRange", [](OpenMS::PeakFileOptions& self, const OpenMS::DRange<1>& range) { return self.setIMRange(range); }, "range"_a, "Restricts the ion mobility of the data to load (in the unit of the data, e.g. 1/K0 for Bruker timsTOF): peaks outside it are removed from spectra with an ion mobility per peak, spectra with a single ion mobility outside it are skipped. Applied by FileHandler.")
+        .def("hasIMRange", [](const OpenMS::PeakFileOptions& self) { return self.hasIMRange(); }, "Returns true if an ion mobility range has been set")
+        .def("getIMRange", [](const OpenMS::PeakFileOptions& self) -> OpenMS::DRange<1> { return self.getIMRange(); }, "Returns the ion mobility range")
         .def("setMSLevels", [](OpenMS::PeakFileOptions& self, const std::vector<int>& levels) { return self.setMSLevels(levels); }, "levels"_a, "Sets the desired MS levels for peaks to load")
         .def("addMSLevel", [](OpenMS::PeakFileOptions& self, int level) { return self.addMSLevel(level); }, "level"_a, "Adds a desired MS level for peaks to load")
         .def("clearMSLevels", [](OpenMS::PeakFileOptions& self) { return self.clearMSLevels(); }, "Clears the MS levels")
@@ -1730,13 +2092,13 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("setIntensity32Bit", [](OpenMS::PeakFileOptions& self, bool int_32_bit) { return self.setIntensity32Bit(int_32_bit); }, "int_32_bit"_a, "Sets if intensity data should be stored with 32bit or 64bit precision")
         .def("getIntensity32Bit", [](const OpenMS::PeakFileOptions& self) { return self.getIntensity32Bit(); }, "Returns true, if intensity data should be stored with 32bit precision")
         .def("getWriteIndex", [](const OpenMS::PeakFileOptions& self) { return self.getWriteIndex(); }, "Returns whether to write an index at the end of the file (e.g. indexedmzML file format)")
-        .def("setWriteIndex", [](OpenMS::PeakFileOptions& self, bool write_index) { return self.setWriteIndex(write_index); }, "write_index"_a, "Returns whether to write an index at the end of the file (e.g. indexedmzML file format)")
-        .def("getNumpressConfigurationMassTime", [](const OpenMS::PeakFileOptions& self) { return self.getNumpressConfigurationMassTime(); }, "Sets numpress configuration options for m/z or rt dimension")
-        .def("setNumpressConfigurationMassTime", [](OpenMS::PeakFileOptions& self, OpenMS::MSNumpressCoder::NumpressConfig config) { return self.setNumpressConfigurationMassTime(config); }, "config"_a, "Returns numpress configuration options for m/z or rt dimension")
-        .def("getNumpressConfigurationIntensity", [](const OpenMS::PeakFileOptions& self) { return self.getNumpressConfigurationIntensity(); }, "Sets numpress configuration options for intensity dimension")
-        .def("setNumpressConfigurationIntensity", [](OpenMS::PeakFileOptions& self, OpenMS::MSNumpressCoder::NumpressConfig config) { return self.setNumpressConfigurationIntensity(config); }, "config"_a, "Returns numpress configuration options for intensity dimension")
-        .def("getNumpressConfigurationFloatDataArray", [](const OpenMS::PeakFileOptions& self) { return self.getNumpressConfigurationFloatDataArray(); }, "Sets numpress configuration options for float data arrays")
-        .def("setNumpressConfigurationFloatDataArray", [](OpenMS::PeakFileOptions& self, OpenMS::MSNumpressCoder::NumpressConfig config) { return self.setNumpressConfigurationFloatDataArray(config); }, "config"_a, "Returns numpress configuration options for float data arrays")
+        .def("setWriteIndex", [](OpenMS::PeakFileOptions& self, bool write_index) { return self.setWriteIndex(write_index); }, "write_index"_a, "Sets whether to write an index at the end of the file (e.g. indexedmzML file format)")
+        .def("getNumpressConfigurationMassTime", [](const OpenMS::PeakFileOptions& self) { return self.getNumpressConfigurationMassTime(); }, "Returns numpress configuration options for m/z or rt dimension")
+        .def("setNumpressConfigurationMassTime", [](OpenMS::PeakFileOptions& self, OpenMS::MSNumpressCoder::NumpressConfig config) { return self.setNumpressConfigurationMassTime(config); }, "config"_a, "Sets numpress configuration options for m/z or rt dimension")
+        .def("getNumpressConfigurationIntensity", [](const OpenMS::PeakFileOptions& self) { return self.getNumpressConfigurationIntensity(); }, "Returns numpress configuration options for intensity dimension")
+        .def("setNumpressConfigurationIntensity", [](OpenMS::PeakFileOptions& self, OpenMS::MSNumpressCoder::NumpressConfig config) { return self.setNumpressConfigurationIntensity(config); }, "config"_a, "Sets numpress configuration options for intensity dimension")
+        .def("getNumpressConfigurationFloatDataArray", [](const OpenMS::PeakFileOptions& self) { return self.getNumpressConfigurationFloatDataArray(); }, "Returns numpress configuration options for float data arrays")
+        .def("setNumpressConfigurationFloatDataArray", [](OpenMS::PeakFileOptions& self, OpenMS::MSNumpressCoder::NumpressConfig config) { return self.setNumpressConfigurationFloatDataArray(config); }, "config"_a, "Sets numpress configuration options for float data arrays")
         .def("getMaxDataPoolSize", [](const OpenMS::PeakFileOptions& self) { return self.getMaxDataPoolSize(); }, "Returns maximal size of the data pool")
         .def("setMaxDataPoolSize", [](OpenMS::PeakFileOptions& self, size_t size) { return self.setMaxDataPoolSize(size); }, "size"_a, "Sets maximal size of the data pool")
         .def("hasFilters", [](const OpenMS::PeakFileOptions& self) { return self.hasFilters(); })
@@ -1767,14 +2129,14 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
             return self.isIntersected(other);
         }, "other"_a, "Check if two ranges intersect")
         .def("isEmpty", [](const OpenMS::DRange<1>& self) { return self.isEmpty(); })
-        .def("minX", [](const OpenMS::DRange<1>& self) { return self.minPosition()[0]; })
-        .def("maxX", [](const OpenMS::DRange<1>& self) { return self.maxPosition()[0]; })
+        .def("minX", [](const OpenMS::DRange<1>& self) { return self.minPosition()[0]; }, "Returns the minimum x coordinate (same as getMin for 1D)")
+        .def("maxX", [](const OpenMS::DRange<1>& self) { return self.maxPosition()[0]; }, "Returns the maximum x coordinate (same as getMax for 1D)")
         .def("setMinX", [](OpenMS::DRange<1>& self, double c) {
             self.min_[0] = c;
-        }, "c"_a)
+        }, "c"_a, "Sets the minimum x coordinate")
         .def("setMaxX", [](OpenMS::DRange<1>& self, double c) {
             self.max_[0] = c;
-        }, "c"_a)
+        }, "c"_a, "Sets the maximum x coordinate")
         .def("__repr__", [](const OpenMS::DRange<1>& self) {
             std::ostringstream oss;
             oss << std::showpoint << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
@@ -1870,6 +2232,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     auto percolatoroutfile_class = nb::class_<OpenMS::PercolatorOutfile>(m, "PercolatorOutfile", 
         R"doc(
 Class for reading Percolator tab-delimited output files
+
 For PSM-level output, the file extension should be ".psms"
 )doc")
         .def(nb::init<>())
@@ -1892,22 +2255,33 @@ For PSM-level output, the file extension should be ".psms"
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::PlainMSDataWritingConsumer>(m, "PlainMSDataWritingConsumer", "Consumer class that writes MS data to disk using the mzML format")
         .def(nb::init<std::string>())
-        .def("setExperimentalSettings", [](OpenMS::PlainMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
-        .def("setExpectedSize", [](OpenMS::PlainMSDataWritingConsumer& self, size_t expectedSpectra, size_t expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a, 
+        .def("setExperimentalSettings", [](OpenMS::PlainMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a, 
             R"doc(
 Set experimental settings for the whole file
+
 :param exp: Experimental settings to be used for this file (from this and the first spectrum/chromatogram, the class will deduce most of the header of the mzML file)
+)doc")
+        .def("setExpectedSize", [](OpenMS::PlainMSDataWritingConsumer& self, size_t expectedSpectra, size_t expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a, 
+            R"doc(
+Set expected size of spectra and chromatograms to be written
+
+These numbers will be written in the spectrumList and chromatogramList
+tag in the mzML file. Therefore, these will contain wrong numbers if
+the expected size is not set correctly
+
+:param expectedSpectra: Number of spectra expected
+:param expectedChromatograms: Number of chromatograms expected
 )doc")
         .def("consumeSpectrum", [](OpenMS::PlainMSDataWritingConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         .def("consumeChromatogram", [](OpenMS::PlainMSDataWritingConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a)
         .def("addDataProcessing", [](OpenMS::PlainMSDataWritingConsumer& self, OpenMS::DataProcessing d) { return self.addDataProcessing(d); }, "d"_a, 
             R"doc(
-Set expected size of spectra and chromatograms to be written
-These numbers will be written in the spectrumList and chromatogramList
-tag in the mzML file. Therefore, these will contain wrong numbers if
-the expected size is not set correctly
-:param expectedSpectra: Number of spectra expected
-:param expectedChromatograms: Number of chromatograms expected
+Optionally add a data processing method to each chromatogram and spectrum
+
+The provided DataProcessing object will be added to each chromatogram
+and spectrum written to to the mzML file
+
+:param d: The DataProcessing object to be added
 )doc")
         .def("getNrSpectraWritten", [](OpenMS::PlainMSDataWritingConsumer& self) { return self.getNrSpectraWritten(); }, "Returns the number of spectra written")
         .def("getNrChromatogramsWritten", [](OpenMS::PlainMSDataWritingConsumer& self) { return self.getNrChromatogramsWritten(); }, "Returns the number of chromatograms written")
@@ -1922,16 +2296,15 @@ the expected size is not set correctly
         R"doc(
 Consumes spectra from a SWATH experiment stored in a single file.
 Groups MS2 spectra by their precursor m/z into SWATH windows
-FullSwathFileConsumer
 )doc")
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::RegularSwathFileConsumer& self) { return OpenMS::RegularSwathFileConsumer(self); })
         .def("__deepcopy__", [](const OpenMS::RegularSwathFileConsumer& self, nb::dict) { return OpenMS::RegularSwathFileConsumer(self); }, "memo"_a)
         .def(nb::init<std::vector<OpenSwath::SwathMap>>())
-        .def("setExpectedSize", [](OpenMS::RegularSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::RegularSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::RegularSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::RegularSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
-        .def("consumeChromatogram", [](OpenMS::RegularSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("consumeChromatogram", [](OpenMS::RegularSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("consumeSpectrum", [](OpenMS::RegularSwathFileConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         ;
 
@@ -1962,7 +2335,12 @@ FullSwathFileConsumer
         .def("__copy__", [](const OpenMS::SequestInfile& self) { return OpenMS::SequestInfile(self); })
         .def("__deepcopy__", [](const OpenMS::SequestInfile& self, nb::dict) { return OpenMS::SequestInfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("store", [](OpenMS::SequestInfile& self, const std::string& filename) { return self.store(filename); }, "filename"_a)
+        .def("store", [](OpenMS::SequestInfile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, 
+            R"doc(
+Stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
+
+:param filename: the name of the file in which the infile is stored into
+)doc")
         .def("getEnzymeInfoAsString", [](const OpenMS::SequestInfile& self) { return self.getEnzymeInfoAsString(); }, "Returns the enzyme list as a string")
         .def("getDatabase", [](const OpenMS::SequestInfile& self) { return self.getDatabase(); }, "Returns the used database")
         .def("setDatabase", [](OpenMS::SequestInfile& self, const std::string& database) { return self.setDatabase(database); }, "database"_a, "Sets the used database")
@@ -2031,7 +2409,18 @@ FullSwathFileConsumer
         .def("__copy__", [](const OpenMS::SequestOutfile& self) { return OpenMS::SequestOutfile(self); })
         .def("__deepcopy__", [](const OpenMS::SequestOutfile& self, nb::dict) { return OpenMS::SequestOutfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("load", [](OpenMS::SequestOutfile& self, const std::string& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const std::string& database, bool ignore_proteins_per_peptide) { std::vector<double> pvalues; self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, pvalues, database, ignore_proteins_per_peptide); return pvalues; }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database"_a, "ignore_proteins_per_peptide"_a)
+        .def("load", [](OpenMS::SequestOutfile& self, const std::string& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const std::string& database, bool ignore_proteins_per_peptide) { std::vector<double> pvalues; self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, pvalues, database, ignore_proteins_per_peptide); return pvalues; }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database"_a, "ignore_proteins_per_peptide"_a, 
+            R"doc(
+Loads data from a Sequest outfile
+
+:param result_filename: The file to be loaded
+:param peptide_identifications: The identifications
+:param protein_identification: The protein identifications
+:param p_value_threshold: The significance level (for the peptide hit scores)
+:param database: The database used for the search
+:param ignore_proteins_per_peptide: This is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
+:return: A list with the pvalues of the peptides (pvalues computed with peptide prophet)
+)doc")
         .def("getColumns", [](OpenMS::SequestOutfile& self, const std::string& line, size_t number_of_columns, size_t reference_column) { std::vector<std::string> substrings; self.getColumns(line, substrings, number_of_columns, reference_column); return substrings; }, "line"_a, "number_of_columns"_a, "reference_column"_a, "Retrieves columns from a Sequest outfile line")
         .def("getACAndACType", [](OpenMS::SequestOutfile& self, std::string line) { std::string accession; std::string accession_type; self.getACAndACType(line, accession, accession_type); return std::make_tuple(accession, accession_type); }, "line"_a, "Retrieves the accession type and accession number from a protein description line")
         .def("getSequences", [](OpenMS::SequestOutfile& self, const std::string& database_filename, const std::map<std::string, size_t>& ac_position_map) {
@@ -2089,6 +2478,7 @@ FullSwathFileConsumer
     nb::class_<OpenMS::SqMassFile>(m, "SqMassFile", 
         R"doc(
 An class that uses on-disk SQLite database to read and write spectra and chromatograms
+
 This class provides functions to read and write spectra and chromatograms
 to disk using a SQLite database and store them in sqMass format. This
 allows users to access, select and filter spectra and chromatograms
@@ -2142,8 +2532,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XICParquetFile& self) { return OpenMS::XICParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XICParquetFile& self, nb::dict) { return OpenMS::XICParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH chromatogram Parquet files (.xic).")
-        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
+        .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Returns the primary filename (the first one for a multi-file reader)")
+        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, "Returns all filenames read by this reader")
 
         .def("getColumns", [](const OpenMS::XICParquetFile& self) {
             std::vector<std::string> columns;
@@ -2341,8 +2731,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
-        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
+        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Returns the primary filename (the first one for a multi-file reader)")
+        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, "Returns all filenames read by this reader")
 
         .def("getColumns", [](const OpenMS::XIMParquetFile& self) {
             std::vector<std::string> columns;
@@ -2553,8 +2943,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIPMParquetFile& self) { return OpenMS::XIPMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIPMParquetFile& self, nb::dict) { return OpenMS::XIPMParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH peak-map Parquet files (.xipm).")
-        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
+        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Returns the primary filename (the first one for a multi-file reader)")
+        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, "Returns all filenames read by this reader")
 
         .def("getColumns", [](const OpenMS::XIPMParquetFile& self) {
             std::vector<std::string> columns;
@@ -2851,10 +3241,10 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__copy__", [](const OpenMS::ControlledVocabulary& self) { return OpenMS::ControlledVocabulary(self); })
         .def("__deepcopy__", [](const OpenMS::ControlledVocabulary& self, nb::dict) { return OpenMS::ControlledVocabulary(self); }, "memo"_a)
         .def("loadFromOBO", [](OpenMS::ControlledVocabulary& self, const std::string& name, const std::string& filename) { self.loadFromOBO(name, filename); }, "name"_a, "filename"_a, "Loads the CV from an OBO file")
-        .def("name", [](const OpenMS::ControlledVocabulary& self) { return self.name(); })
-        .def("exists", [](const OpenMS::ControlledVocabulary& self, const std::string& id) { return self.exists(id); }, "id"_a)
-        .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const std::string& name) { return self.hasTermWithName(name); }, "name"_a)
-        .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const std::string& child_id, const std::string& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
+        .def("name", [](const OpenMS::ControlledVocabulary& self) { return self.name(); }, "Returns the CV name (set in the load method)")
+        .def("exists", [](const OpenMS::ControlledVocabulary& self, const std::string& id) { return self.exists(id); }, "id"_a, "Returns true if the term is in the CV. Returns false otherwise.")
+        .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const std::string& name) { return self.hasTermWithName(name); }, "name"_a, "Returns true if a term with the given name is in the CV. Returns false otherwise")
+        .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const std::string& child_id, const std::string& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a, "Returns True if `child` is a child of `parent`")
         // Return a copy of the term as a ControlledVocabulary.CVTerm, as 3.5.0 did.
         .def("getTerm", [](const OpenMS::ControlledVocabulary& self, const std::string& id) {
             return OpenMS::ControlledVocabulary::CVTerm(self.getTerm(id));
@@ -2937,12 +3327,12 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             bool result = self.validate(filename, errors, warnings);
             return nb::make_tuple(result, errors, warnings);
         }, "filename"_a, "Validates an XML file. Returns (success, errors, warnings)")
-        .def("setCheckTermValueTypes", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckTermValueTypes(check); }, "check"_a)
-        .def("setCheckUnits", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckUnits(check); }, "check"_a)
-        .def("setTag", [](OpenMS::Internal::SemanticValidator& self, const std::string& tag) { self.setTag(tag); }, "tag"_a)
-        .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& accession) { self.setAccessionAttribute(accession); }, "accession"_a)
-        .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& name) { self.setNameAttribute(name); }, "name"_a)
-        .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& value) { self.setValueAttribute(value); }, "value"_a)
+        .def("setCheckTermValueTypes", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckTermValueTypes(check); }, "check"_a, "Sets if CV term value types should be check (enabled by default)")
+        .def("setCheckUnits", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckUnits(check); }, "check"_a, "Sets if CV term units should be check (disabled by default)")
+        .def("setTag", [](OpenMS::Internal::SemanticValidator& self, const std::string& tag) { self.setTag(tag); }, "tag"_a, "Sets the CV parameter tag name (default 'cvParam')")
+        .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& accession) { self.setAccessionAttribute(accession); }, "accession"_a, "Sets the name of the attribute for accessions in the CV parameter tag name (default 'accession')")
+        .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& name) { self.setNameAttribute(name); }, "name"_a, "Sets the name of the attribute for accessions in the CV parameter tag name (default 'name')")
+        .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& value) { self.setValueAttribute(value); }, "value"_a, "Sets the name of the attribute for accessions in the CV parameter tag name (default 'value')")
         .def("setUnitAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& accession) { self.setUnitAccessionAttribute(accession); }, "accession"_a, "Sets the name of the unit accession attribute")
         .def("setUnitNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& name) { self.setUnitNameAttribute(name); }, "name"_a, "Sets the name of the unit name attribute")
         .def("locateTerm", [](const OpenMS::Internal::SemanticValidator& self,
@@ -2961,19 +3351,62 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__copy__", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return OpenMS::Internal::MzMLSqliteHandler(self); })
         .def("__deepcopy__", [](const OpenMS::Internal::MzMLSqliteHandler& self, nb::dict) { return OpenMS::Internal::MzMLSqliteHandler(self); }, "memo"_a)
         .def(nb::init<const std::string&, const OpenMS::UInt64>(), "filename"_a, "run_id"_a)
-        .def("readExperiment", [](const OpenMS::Internal::MzMLSqliteHandler& self, OpenMS::MSExperiment& exp, bool meta_only) { self.readExperiment(exp, meta_only); }, "exp"_a, "meta_only"_a = false)
-        .def("writeExperiment", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp) { self.writeExperiment(exp); }, "exp"_a)
-        .def("createTables", [](OpenMS::Internal::MzMLSqliteHandler& self) { self.createTables(); })
-        .def("writeSpectra", [](OpenMS::Internal::MzMLSqliteHandler& self, const std::vector<OpenMS::MSSpectrum>& spectra) { self.writeSpectra(spectra); }, "spectra"_a)
-        .def("writeChromatograms", [](OpenMS::Internal::MzMLSqliteHandler& self, const std::vector<OpenMS::MSChromatogram>& chroms) { self.writeChromatograms(chroms); }, "chromatograms"_a)
-        .def("writeRunLevelInformation", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp, bool write_full_meta) { self.writeRunLevelInformation(exp, write_full_meta); }, "exp"_a, "write_full_meta"_a)
-        .def("readSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self, std::vector<OpenMS::MSSpectrum>& spectra, const std::vector<int>& indices, bool meta_only) { self.readSpectra(spectra, indices, meta_only); }, "spectra"_a, "indices"_a, "meta_only"_a = false)
-        .def("readChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self, std::vector<OpenMS::MSChromatogram>& chroms, const std::vector<int>& indices, bool meta_only) { self.readChromatograms(chroms, indices, meta_only); }, "chromatograms"_a, "indices"_a, "meta_only"_a = false)
-        .def("getNrSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrSpectra(); })
-        .def("getNrChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrChromatograms(); })
-        .def("getRunID", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getRunID(); })
-        .def("getSpectraIndicesbyRT", [](const OpenMS::Internal::MzMLSqliteHandler& self, double RT, double deltaRT, const std::vector<int>& indices) { return self.getSpectraIndicesbyRT(RT, deltaRT, indices); }, "RT"_a, "deltaRT"_a, "indices"_a)
-        .def("setConfig", [](OpenMS::Internal::MzMLSqliteHandler& self, bool write_full_meta, bool use_lossy, double linear_abs, int batch_size) { self.setConfig(write_full_meta, use_lossy, linear_abs, batch_size); }, "write_full_meta"_a, "use_lossy_compression"_a, "linear_abs_mass_acc"_a, "sql_batch_size"_a = 500)
+        .def("readExperiment", [](const OpenMS::Internal::MzMLSqliteHandler& self, OpenMS::MSExperiment& exp, bool meta_only) { self.readExperiment(exp, meta_only); }, "exp"_a, "meta_only"_a = false, 
+            R"doc(
+Read an experiment into an MSExperiment structure
+
+:param exp: The result data structure
+:param meta_only: Only read the meta data
+)doc")
+        .def("writeExperiment", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp) { self.writeExperiment(exp); }, "exp"_a, "Write an MSExperiment to disk")
+        .def("createTables", [](OpenMS::Internal::MzMLSqliteHandler& self) { self.createTables(); }, "Create data tables for a new file")
+        .def("writeSpectra", [](OpenMS::Internal::MzMLSqliteHandler& self, const std::vector<OpenMS::MSSpectrum>& spectra) { self.writeSpectra(spectra); }, "spectra"_a, "Writes a set of spectra to disk")
+        .def("writeChromatograms", [](OpenMS::Internal::MzMLSqliteHandler& self, const std::vector<OpenMS::MSChromatogram>& chroms) { self.writeChromatograms(chroms); }, "chromatograms"_a, "Writes a set of chromatograms to disk")
+        .def("writeRunLevelInformation", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp, bool write_full_meta) { self.writeRunLevelInformation(exp, write_full_meta); }, "exp"_a, "write_full_meta"_a, 
+            R"doc(
+Write the run-level information for an experiment into tables
+
+This is a low level function, do not call this function unless you know what you are doing
+
+:param exp: The experiment whose run-level information is written
+:param write_full_meta: Add full meta information into sql tables
+)doc")
+        .def("readSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self, std::vector<OpenMS::MSSpectrum>& spectra, const std::vector<int>& indices, bool meta_only) { self.readSpectra(spectra, indices, meta_only); }, "spectra"_a, "indices"_a, "meta_only"_a = false, 
+            R"doc(
+Read a set of spectra (potentially restricted to a subset)
+
+:param spectra: The result data structure
+:param indices: A list of indices restricting the resulting spectra only to those specified here
+:param meta_only: Only read the meta data
+)doc")
+        .def("readChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self, std::vector<OpenMS::MSChromatogram>& chroms, const std::vector<int>& indices, bool meta_only) { self.readChromatograms(chroms, indices, meta_only); }, "chromatograms"_a, "indices"_a, "meta_only"_a = false, 
+            R"doc(
+Read a set of chromatograms (potentially restricted to a subset)
+
+:param chromatograms: The result data structure
+:param indices: A list of indices restricting the resulting chromatograms only to those specified here
+:param meta_only: Only read the meta data
+)doc")
+        .def("getNrSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrSpectra(); }, "Returns the number of spectra in the file")
+        .def("getNrChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms in the file")
+        .def("getRunID", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getRunID(); }, "Extract the `RUN` ID from the sqMass file")
+        .def("getSpectraIndicesbyRT", [](const OpenMS::Internal::MzMLSqliteHandler& self, double RT, double deltaRT, const std::vector<int>& indices) { return self.getSpectraIndicesbyRT(RT, deltaRT, indices); }, "RT"_a, "deltaRT"_a, "indices"_a, 
+            R"doc(
+Returns spectral indices around a specific retention time
+
+:param RT: The retention time
+:param deltaRT: Tolerance window around RT (if less or equal than zero, only the first spectrum *after* RT is returned)
+:param indices: Spectra to consider (if empty, all spectra are considered)
+:return: The indices of the spectra within RT +/- deltaRT
+)doc")
+        .def("setConfig", [](OpenMS::Internal::MzMLSqliteHandler& self, bool write_full_meta, bool use_lossy, double linear_abs, int batch_size) { self.setConfig(write_full_meta, use_lossy, linear_abs, batch_size); }, "write_full_meta"_a, "use_lossy_compression"_a, "linear_abs_mass_acc"_a, "sql_batch_size"_a = 500, 
+            R"doc(
+Sets file configuration
+
+:param write_full_meta: Whether to write a complete mzML meta data structure into the RUN_EXTRA field (allows complete recovery of the input file)
+:param use_lossy_compression: Whether to use lossy compression (ms numpress)
+:param linear_abs_mass_acc: Accepted loss in mass accuracy (absolute m/z, in Th)
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -2988,8 +3421,24 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<const OpenMS::MSPGenericFile &>())
         .def("__copy__", [](const OpenMS::MSPGenericFile& self) { return OpenMS::MSPGenericFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSPGenericFile& self, nb::dict) { return OpenMS::MSPGenericFile(self); }, "memo"_a)
-        .def("load", [](OpenMS::MSPGenericFile& self, const std::string& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a)
-        .def("store", [](const OpenMS::MSPGenericFile& self, const std::string& filename, const OpenMS::MSExperiment& library) { self.store(filename, library); }, "filename"_a, "library"_a)
+        .def("load", [](OpenMS::MSPGenericFile& self, const std::string& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a, 
+            R"doc(
+Load the file's data and metadata, and save it into an `MSExperiment`
+
+:param filename: Path to the MSP input file
+:param library: The variable into which the extracted information will be saved
+:raises:
+  Exception: FileNotFound If the file could not be found
+)doc")
+        .def("store", [](const OpenMS::MSPGenericFile& self, const std::string& filename, const OpenMS::MSExperiment& library) { self.store(filename, library); }, "filename"_a, "library"_a, 
+            R"doc(
+Save data and metadata into a file
+
+:param filename: Path to the MSP input file
+:param library: The variable from which extracted information will be saved
+:raises:
+  Exception: FileNotWritable If the file is not writable
+)doc")
         .def("getDefaultParameters", [](OpenMS::MSPGenericFile& self) { OpenMS::Param p; self.getDefaultParameters(p); return p; }, "Gets the class' default parameters")
         ;
     def_DefaultParamHandler<OpenMS::MSPGenericFile>(mspgenericfile_class);
@@ -3003,10 +3452,10 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__copy__", [](const OpenMS::SpectrumAccessSqMass& self) { return OpenMS::SpectrumAccessSqMass(self); })
         .def("__deepcopy__", [](const OpenMS::SpectrumAccessSqMass& self, nb::dict) { return OpenMS::SpectrumAccessSqMass(self); }, "memo"_a)
         .def(nb::init<const OpenMS::Internal::MzMLSqliteHandler&, const std::vector<int>&>(), "handler"_a, "indices"_a)
-        .def("getNrSpectra", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrSpectra(); })
-        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrChromatograms(); })
-        .def("getSpectrumById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getSpectrumById(id); }, "id"_a)
-        .def("getChromatogramById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramById(id); }, "id"_a)
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrSpectra(); }, "Returns the number of spectra available")
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms available")
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Returns a pointer to a spectrum at the given string id")
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Returns a pointer to a chromatogram at the given id")
         .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram with the given id")
         .def("getSpectraByRT", [](const OpenMS::SpectrumAccessSqMass& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns indices of spectra within RT +/- deltaRT")
         ;

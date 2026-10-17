@@ -1094,6 +1094,8 @@ namespace OpenMS
       getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
       getProteinGroups_(prot_id_.getIndistinguishableProteins(),
                         "indistinguishable_proteins");
+      // older files may contain an empty file list, which names no files
+      prot_id_.removeEmptyPrimaryMSRunPaths();
 
       prot_ids_->push_back(prot_id_);
       prot_id_ = ProteinIdentification();

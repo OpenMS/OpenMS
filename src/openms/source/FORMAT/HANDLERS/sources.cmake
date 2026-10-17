@@ -35,6 +35,10 @@ set(sources_list
   XQuestResultXMLHandler.cpp
 )
 
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawScanReader.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

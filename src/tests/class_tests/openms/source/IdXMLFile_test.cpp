@@ -1954,4 +1954,15 @@ END_SECTION
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
 
+START_SECTION([EXTRA] load - an empty file list ('spectra_data') is not stored)
+{
+  // the protein run of this file has an empty 'spectra_data' list
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc_check.idXML"), proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(proteins[0].metaValueExists("spectra_data"), false)
+}
+END_SECTION
+
 END_TEST
