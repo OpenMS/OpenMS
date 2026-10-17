@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <boost/dynamic_bitset.hpp>
 #ifdef _OPENMP
   #include <omp.h>
@@ -206,7 +207,6 @@ namespace OpenMS
     }
   }
 
-  // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
   void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
   {
     // Every bitsets_.impl access is reached through this function, so this is the only place a
@@ -716,7 +716,9 @@ namespace OpenMS
     // this stores which peak is now being considered per charge. Per charge, peak is considered from left (lowest m/z) to right (highest m/z).
     auto current_peak_index = std::vector<int>(charge_range, 0);
     deconvolved_spectrum_.reserve(bitsets_.impl->binned_log_masses_.count());
-    Size mass_bin_index = bitsets_.impl->binned_log_masses_.find_first();
+    std::vector<Size> mass_bins;
+    for (Size bin = bitsets_.impl->binned_log_masses_.find_first(); bin != bitsets_.impl->binned_log_masses_.npos;
+         bin = bitsets_.impl->binned_log_masses_.find_next(bin)) mass_bins.push_back(bin);
     auto peak_bin_numbers = std::vector<Size>(log_mz_peak_size);
     // per peak, store the m/z bin number for fast processing
     for (int i = 0; i < log_mz_peak_size; i++)
@@ -725,8 +727,9 @@ namespace OpenMS
     }
 
     // main iteration. per_mass_abs_charge_ranges gives the range of charges for each mass bin
-    while (mass_bin_index != bitsets_.impl->binned_log_masses_.npos)
+    for (SignedSize group_index = 0; group_index < SignedSize(mass_bins.size()); ++group_index)
     {
+      const Size mass_bin_index = mass_bins[group_index];
       double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_mul_factor);
       double mass = exp(log_m);
 
@@ -749,7 +752,7 @@ namespace OpenMS
         if (mass_bin_index < (size_t)bin_offset) { continue; }
 
         Size b_index = mass_bin_index - bin_offset; // m/z bin
-        int& cpi = current_peak_index[j];           // in this charge which peak is to be considered?
+        int cpi = current_peak_index[j];           // in this charge which peak is to be considered?
         double max_intensity = -1;
 
         while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
@@ -767,6 +770,7 @@ namespace OpenMS
           cpi++;
         }
 
+        current_peak_index[j] = cpi;
         if (max_peak_index < 0) { continue; }
 
         // Search for local max.
@@ -871,10 +875,9 @@ namespace OpenMS
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           pg.sort();
 
-          deconvolved_spectrum_.push_back(pg); //
+          deconvolved_spectrum_.push_back(pg);
         }
       }
-      mass_bin_index = bitsets_.impl->binned_log_masses_.find_next(mass_bin_index);
     }
   }
 
@@ -980,6 +983,22 @@ namespace OpenMS
     // main algorithm to generate mass bins
     const auto per_mass_abs_charge_ranges = updateMassBins_(binned_log_mz_peak_intensities);
     // main algorithm to generate peak groups
+    const CandidateSelectionContext context{avg_, tolerance_[ms_level_ - 1],
+      iso_da_distance_, current_max_mass_, min_abs_charge_, current_max_charge_, is_positive_};
+    const auto intervals = selectCandidateMassRanges_(context, nullptr, {});
+    if (intervals)
+    {
+      const auto all_bins = bitsets_.impl->binned_log_masses_;
+      restrictCandidateMassBins_(*intervals);
+      const auto seed_bins = bitsets_.impl->binned_log_masses_;
+      getCandidatePeakGroups_(per_mass_abs_charge_ranges);
+      const auto scored = scorePeakGroups_();
+      const auto refined = selectCandidateMassRanges_(context, &deconvolved_spectrum_, scored);
+      bitsets_.impl->binned_log_masses_ = all_bins;
+      if (refined) restrictCandidateMassBins_(*refined);
+      bitsets_.impl->binned_log_masses_ |= seed_bins;
+      deconvolved_spectrum_.clear();
+    }
     getCandidatePeakGroups_(per_mass_abs_charge_ranges);
     scoreAndFilterPeakGroups_();
   }
@@ -1008,10 +1027,43 @@ namespace OpenMS
   }
 
 
-  void SpectralDeconvolution::scoreAndFilterPeakGroups_()
+  std::optional<SpectralDeconvolution::MassRanges> SpectralDeconvolution::selectCandidateMassRanges_(
+    const CandidateSelectionContext&, const DeconvolvedSpectrum*, const std::vector<Size>&) const
+  {
+    return std::nullopt;
+  }
+
+  void SpectralDeconvolution::restrictCandidateMassBins_(std::vector<std::pair<double, double>> intervals)
+  {
+    std::sort(intervals.begin(), intervals.end());
+    std::vector<std::pair<double, double>> merged;
+    for (const auto& interval : intervals)
+    {
+      if (merged.empty() || interval.first > merged.back().second)
+      {
+        merged.push_back(interval);
+      }
+      else
+      {
+        merged.back().second = std::max(merged.back().second, interval.second);
+      }
+    }
+    Size range = 0;
+    auto& bins = bitsets_.impl->binned_log_masses_;
+    for (Size bin = bins.find_first(); bin != bins.npos;)
+    {
+      const Size next = bins.find_next(bin);
+      const double mass = exp(getBinValue_(bin, mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]));
+      while (range < merged.size() && merged[range].second < mass) ++range;
+      if (range == merged.size() || mass < merged[range].first) bins.reset(bin);
+      bin = next;
+    }
+  }
+
+  std::vector<Size> SpectralDeconvolution::scorePeakGroups_()
   {
     double tol = tolerance_[ms_level_ - 1];
-    auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
+    std::vector<unsigned char> selected(deconvolved_spectrum_.size(), 0);
     double snr_threshold = min_snr_[ms_level_ - 1];
 
   #pragma omp parallel for default(none) shared(tol, selected, snr_threshold, std::cout)
@@ -1082,10 +1134,23 @@ namespace OpenMS
         }
       }
 
-  #pragma omp critical
-      selected[i] = true;
+      selected[i] = 1;
     }
 
+    std::vector<Size> indices;
+    for (Size i = 0; i < selected.size(); ++i)
+    {
+      if (selected[i]) indices.push_back(i);
+    }
+    return indices;
+  }
+
+  void SpectralDeconvolution::scoreAndFilterPeakGroups_()
+  {
+    double snr_threshold = min_snr_[ms_level_ - 1];
+    double tol = tolerance_[ms_level_ - 1];
+    auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
+    for (Size i : scorePeakGroups_()) selected[i] = true;
     Size selected_count = selected.count();
     if (selected_count == 0)
     {

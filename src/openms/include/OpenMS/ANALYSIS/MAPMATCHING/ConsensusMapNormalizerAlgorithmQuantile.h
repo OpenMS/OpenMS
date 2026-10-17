@@ -56,14 +56,13 @@ public:
       reference back to map @c j 's original length).
 
       @param[in,out] map Consensus map whose feature-handle intensities
-                         are rewritten in place. Per-map column-header
-                         indices @c 0 ... @c N-1 must each be present
-                         (@ref extractIntensityVectors throws
-                         otherwise).
+                         are rewritten in place. Its map indices need
+                         not be consecutive (e.g. after FileFilter
+                         -consensus:map).
 
-      @throws Exception::ElementNotFound when a column-header index in
-                                         @c 0 ... @c N-1 is missing
-                                         from @p map (propagated from
+      @throws Exception::ElementNotFound when the map index of a feature
+                                         handle has no column header
+                                         (propagated from
                                          @ref extractIntensityVectors).
     */
     static void normalizeMaps(ConsensusMap & map);
@@ -97,17 +96,16 @@ public:
       @p out_intensities is cleared and resized to the number of
       column-header entries; the per-map row receives the intensities
       of every feature handle whose @c map_index points at it (in the
-      iteration order of the consensus features).
+      iteration order of the consensus features). The rows are in the
+      order of the column headers: row @c j belongs to the @c j -th map
+      index (which is @c j for maps numbered @c 0 ... @c N-1).
 
       @param[in]  map             Source @ref ConsensusMap.
-      @param[out] out_intensities Per-map intensity vectors; index
-                                  @c j contains the intensities of all
-                                  feature handles whose map-index is
-                                  @c j.
+      @param[out] out_intensities Per-map intensity vectors, one per
+                                  column header (in map index order).
 
-      @throws Exception::ElementNotFound when the column-header lookup
-                                         for one of the expected map
-                                         indices fails.
+      @throws Exception::ElementNotFound when the map index of a feature
+                                         handle has no column header.
     */
     static void extractIntensityVectors(const ConsensusMap & map, std::vector<std::vector<double> > & out_intensities);
 
@@ -115,9 +113,9 @@ public:
       @brief Push the per-map intensity vectors back into the corresponding feature handles.
 
       Iterates the consensus features of @p map in the same order as
-      @ref extractIntensityVectors and writes
-      @c feature_ints[map_index][k] into the @c k -th feature handle of
-      that map index. The caller is responsible for keeping
+      @ref extractIntensityVectors and writes @c feature_ints[j][k] into
+      the @c k -th feature handle of the @c j -th map index (rows in the
+      order of the column headers, as in @ref extractIntensityVectors). The caller is responsible for keeping
       @p feature_ints in lock-step with the iteration order used by
       @ref extractIntensityVectors -- @ref normalizeMaps does this by
       mutating the same per-map vector in place.
