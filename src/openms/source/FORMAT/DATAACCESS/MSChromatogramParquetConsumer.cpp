@@ -673,7 +673,8 @@ namespace OpenMS
       Writing a batch means compressing it (ZSTD), and the caller holds the lock that serializes
       all chromatogram output. A single thread writes the batches in the order in which they are
       submitted, so the file is the same as when every batch is written in place. The queue is
-      bounded by the size of the encoded arrays it holds, so a slow disk still holds the
+      bounded by the size of the encoded arrays it holds, including the batch being written
+      (max_pending_bytes_; a single larger batch is held alone), so a slow disk still holds the
       producers back; the bound is large enough for the burst at the end of a scheduler wave of
       OpenSwathWorkflow, when all threads deliver their chromatograms at once (a bound of 64
       batches made them wait for the compression again).
@@ -681,7 +682,12 @@ namespace OpenMS
     void submitTable_(std::shared_ptr<arrow::Table> table, const size_t batch_bytes)
     {
       std::unique_lock<std::mutex> lock(writer_mutex_);
-      writer_cv_.wait(lock, [this]() { return writer_error_ != nullptr || pending_tables_.empty() || pending_bytes_ < max_pending_bytes_; });
+      // Admit the batch if it fits next to the batches queued or being written; a batch larger than the
+      // bound on its own is admitted once nothing else is held.
+      writer_cv_.wait(lock, [this, batch_bytes]() {
+        return writer_error_ != nullptr || pending_bytes_ == 0 ||
+               (pending_bytes_ <= max_pending_bytes_ && batch_bytes <= max_pending_bytes_ - pending_bytes_);
+      });
       if (writer_error_)
       {
         std::rethrow_exception(writer_error_); // kept, so that finalize() reports it as well
