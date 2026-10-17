@@ -10,18 +10,10 @@
 #include <OpenMS/CONCEPT/Init.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#ifdef WITH_S3
-#include <arrow/filesystem/filesystem.h>
-#include <arrow/io/interfaces.h>
-#include <arrow/buffer.h>
-#include <arrow/result.h>
-#include <arrow/status.h>
-#endif
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -33,50 +25,6 @@
 
 namespace OpenMS
 {
-#ifdef WITH_S3
-  namespace
-  {
-    template <typename T>
-    T checkedS3Index(arrow::Result<T> result, const char* operation = "index read")
-    {
-      if (!result.ok())
-      {
-        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    std::string("Arrow S3 ") + operation + " failed (" + result.status().CodeAsString() + ")");
-      }
-      return std::move(result).ValueOrDie();
-    }
-
-    struct S3IndexFile
-    {
-      std::shared_ptr<arrow::fs::FileSystem> filesystem;
-      std::shared_ptr<arrow::io::RandomAccessFile> file;
-
-      explicit S3IndexFile(const std::string& uri)
-      {
-        std::string path;
-        filesystem = checkedS3Index(arrow::fs::FileSystemFromUri(uri, &path), "URI resolution");
-        file = checkedS3Index(filesystem->OpenInputFile(path), "object open (check credentials and permissions)");
-      }
-
-      ~S3IndexFile()
-      {
-        if (file) (void)file->Close();
-      }
-
-      std::string read(int64_t offset, int64_t length)
-      {
-        auto buffer = checkedS3Index(file->ReadAt(offset, length));
-        if (buffer->size() != length)
-        {
-          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Unexpected EOF while reading S3 mzML index");
-        }
-        return buffer->ToString();
-      }
-    };
-  }
-#endif
 
   namespace IndexedMzMLUtils
   {
@@ -121,17 +69,6 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
-#ifdef WITH_S3
-    if (filename.compare(0, 5, "s3://") == 0)
-    {
-      S3IndexFile input(filename);
-      const auto length = checkedS3Index(input.file->GetSize());
-      const auto offset = static_cast<std::streamoff>(indexoffset);
-      if (offset < 0 || offset > length) return -1;
-      return domParseIndexedEnd_("<indexedmzML>" + input.read(offset, length - offset) + "\n",
-                                 spectra_offsets, chromatograms_offsets);
-    }
-#endif
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------
@@ -204,22 +141,6 @@ namespace OpenMS
     // return value
     std::streampos indexoffset = -1;
 
-    if (buffersize <= 0) return indexoffset;
-#ifdef WITH_S3
-    if (filename.compare(0, 5, "s3://") == 0)
-    {
-      S3IndexFile input(filename);
-      const auto length = checkedS3Index(input.file->GetSize());
-      const auto count = std::min<int64_t>(buffersize, length);
-      const auto tail = input.read(length - count, count);
-      boost::smatch match;
-      if (boost::regex_search(tail, match, boost::regex(R"(<[^>/]*indexListOffset\s*>\s*(\d*))")))
-      {
-        return IndexedMzMLUtils::stringToStreampos(match[1].str());
-      }
-      return indexoffset;
-    }
-#endif
     //-------------------------------------------------------------
     // Open file, jump to end and read last n bytes into buffer.
     //-------------------------------------------------------------

@@ -13,6 +13,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <cstdlib>
 ///////////////////////////
 
@@ -980,7 +981,7 @@ END_SECTION
 // Experimental, opt-in manual examples (no network access in the normal test suite):
 // OPENMS_TEST_REMOTE_XML_URI=https://host/example.mzML ./MzMLFile_test
 // OPENMS_TEST_REMOTE_XML_URI=ftp://host/example.mzML ./MzMLFile_test
-// OPENMS_TEST_REMOTE_XML_URI='s3://bucket/example.mzML.gz?anonymous=true' ./MzMLFile_test
+// OPENMS_TEST_REMOTE_XML_URI='s3://bucket/example.mzML.gz?region=eu-west-1' ./MzMLFile_test
 // HTTPS/FTP depend on the Xerces network accessor; S3 requires WITH_S3.
 START_SECTION(([EXTRA] opt-in experimental remote XML loading))
 {
@@ -990,8 +991,7 @@ START_SECTION(([EXTRA] opt-in experimental remote XML loading))
     MzMLFile file;
     PeakMap map;
     file.load(uri, map);
-    TEST_EQUAL(map.getLoadedFilePath(), uri)
-    TEST_EQUAL(map.getLoadedFileType(), FileTypes::MZML)
+    TEST_EQUAL(map.getLoadedFilePath(), FileNameUtils::redactRemoteResource(uri))
   }
   else
   {

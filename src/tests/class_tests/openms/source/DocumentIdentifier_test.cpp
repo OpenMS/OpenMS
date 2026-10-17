@@ -104,22 +104,39 @@ START_SECTION((const FileTypes::Type& getLoadedFileType() const))
 }
 END_SECTION
 
-START_SECTION((void setLoadedFileType(FileTypes::Type type)))
+START_SECTION(([EXTRA] remote file types require no local file reads))
 {
   DocumentIdentifier identifier;
-  identifier.setLoadedFileType(FileTypes::MZML);
-  TEST_EQUAL(identifier.getLoadedFileType(), FileTypes::MZML)
+  struct Case
+  {
+    const char* uri;
+    FileTypes::Type type;
+  };
+  const Case cases[] = {
+    {"https://unused.invalid/sample.mzML?token=value#part", FileTypes::MZML},
+    {"http://unused.invalid/sample.featureXML?download=1", FileTypes::FEATUREXML},
+    {"ftp://unused.invalid/sample.consensusXML#part", FileTypes::CONSENSUSXML},
+    {"s3://unused/sample.mzXML.gz?region=eu-west-1", FileTypes::MZXML},
+    {"s3://unused/sample.mzData.bz2?region=eu-west-1", FileTypes::MZDATA},
+    {"https://unused.invalid/download?filename=sample.mzML", FileTypes::UNKNOWN},
+    {"s3://unused/object#sample.mzML", FileTypes::UNKNOWN}
+  };
+  for (const auto& entry : cases)
+  {
+    identifier.setLoadedFileType(entry.uri);
+    TEST_EQUAL(identifier.getLoadedFileType(), entry.type)
+  }
 }
 END_SECTION
 
-START_SECTION((void setLoadedNetFilePath(const std::string& uri)))
+START_SECTION(([EXTRA] remote provenance is redacted before copying))
 {
   DocumentIdentifier identifier;
-  const std::string uri = "s3://bucket/object.mzML?anonymous=true&region=eu-west-1";
-  identifier.setLoadedNetFilePath(uri);
-  TEST_EQUAL(identifier.getLoadedFilePath(), uri)
+  const std::string uri = std::string("s3://") + "fake-user:fake-password@" + "bucket/object.mzML?signature=fake-secret#private-fragment";
+  identifier.setLoadedFilePath(uri);
+  TEST_EQUAL(identifier.getLoadedFilePath(), "s3://bucket/object.mzML")
   DocumentIdentifier copy(identifier);
-  TEST_EQUAL(copy.getLoadedFilePath(), uri)
+  TEST_EQUAL(copy.getLoadedFilePath(), "s3://bucket/object.mzML")
 }
 END_SECTION
 
@@ -128,11 +145,21 @@ START_SECTION((void setLoadedFilePath(const std::string &file_name)))
   DocumentIdentifier di1;
 	di1.setLoadedFilePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
 	TEST_EQUAL(di1.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
-  for (const std::string uri : {"http://example.org/file.mzML", "https://example.org/file.mzML?q=1",
-                                "ftp://example.org/file.mzML", "s3://bucket/key?anonymous=true"})
+  struct Case
   {
-    di1.setLoadedFilePath(uri);
-    TEST_EQUAL(di1.getLoadedFilePath(), uri)
+    const char* uri;
+    const char* expected;
+  };
+  const Case cases[] = {
+    {"http://example.org/file.mzML", "http://example.org/file.mzML"},
+    {"https://example.org/file.mzML?q=1", "https://example.org/file.mzML"},
+    {"ftp://example.org/file.mzML", "ftp://example.org/file.mzML"},
+    {"s3://bucket/key?region=eu-west-1", "s3://bucket/key"}
+  };
+  for (const auto& entry : cases)
+  {
+    di1.setLoadedFilePath(entry.uri);
+    TEST_EQUAL(di1.getLoadedFilePath(), entry.expected)
   }
 }
 END_SECTION
@@ -166,4 +193,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

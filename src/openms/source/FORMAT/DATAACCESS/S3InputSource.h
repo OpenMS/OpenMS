@@ -64,11 +64,20 @@ namespace OpenMS
   /**
     @brief Experimental streaming XML input from an Arrow S3 URI.
 
-    Arrow handles credentials, anonymous access, region and endpoint URI options.
-    gzip and bzip2 are detected by content, not by filename. Arrow owns the
-    process-wide S3 initialization/finalization; individual readers never finalize it.
-    @warning Do not embed credentials in URIs. Loaded document provenance retains
-    the original URI; use Arrow's standard credential providers instead.
+    Arrow's URI factory preserves its default credential chain and supported URI
+    options (for example region and endpoint). Temporary credentials can be supplied
+    through Arrow's standard environment/credential providers. Anonymous access and
+    session_token query parameters are not supported by this URI-based interface.
+    gzip and bzip2 are detected by content, not by filename.
+
+    The URI factory initializes S3 safely on concurrent first use. This reader
+    borrows that process-wide lifecycle and never finalizes S3. The host must
+    coordinate shutdown: quiesce all Arrow S3 users, release their resources, then
+    call arrow::fs::EnsureS3Finalized() before process teardown. Finalization is
+    irreversible and must not be deferred to a reader destructor or atexit handler.
+    @warning Prefer Arrow's standard credential providers to URI credentials.
+    Userinfo, query and fragment are removed from parser identifiers and document
+    provenance; the original URI is retained only for opening the resource.
     @ingroup FileIO
   */
   class OPENMS_DLLAPI S3InputSource : public xercesc::InputSource

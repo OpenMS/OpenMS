@@ -164,7 +164,7 @@ END_SECTION
 START_SECTION(([EXTRA] input source construction does not access S3))
 {
   Internal::xercesInitialize();
-  S3InputSource source(std::string("s3://") + "user:password@" + "unused-bucket/example.mzML?signature=private-value");
+  S3InputSource source(std::string("s3://") + "user:password@" + "unused-bucket/example.mzML?signature=private-value#private-fragment");
   TEST_TRUE(source.getSystemId() != nullptr)
   TEST_TRUE(xercesc::XMLString::equals(source.getSystemId(), u"s3://unused-bucket/example.mzML"))
   TEST_EXCEPTION(Exception::ParseError, (void)S3InputSource("file:///unused.xml"))

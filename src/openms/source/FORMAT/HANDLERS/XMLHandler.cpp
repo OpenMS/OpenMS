@@ -27,7 +27,7 @@ namespace OpenMS::Internal
 {
 
     XMLHandler::XMLHandler(const std::string & filename, const std::string & version) :
-      file_(filename),
+      file_(FileNameUtils::redactRemoteResource(filename)),
       version_(version),
       load_detail_(LD_ALLDATA)
     {
@@ -60,7 +60,7 @@ namespace OpenMS::Internal
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -68,7 +68,7 @@ namespace OpenMS::Internal
       }
 
       OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, FileNameUtils::redactRemoteResource(file_), error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const std::string & msg, UInt line, UInt column) const
@@ -76,11 +76,11 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while loading '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while storing '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -94,11 +94,11 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       if (line != 0 || column != 0)
       {

@@ -106,7 +106,7 @@ individual reader destructors or an `atexit` handler.
 S3 gzip/bzip2 objects are decoded incrementally using Arrow's corresponding codecs
 (`ARROW_WITH_ZLIB=ON` / `ARROW_WITH_BZ2=ON`); missing codecs produce a read error.
 Sequential XML loading is supported, not remote on-disc/indexed random access.
-Remote loading remains experimental; HTTP/FTP authentication, TLS and redirects
+Remote loading remains experimental and unsupported (use at your own risk); HTTP/FTP authentication, TLS and redirects
 depend on the installed Xerces transport. No live AWS requests run in automated tests.
 
 For more detailed instructions, see the [Developer Tutorial](https://archive.openms.de/openms/Documentation/release/latest/html/developer_tutorial.html).

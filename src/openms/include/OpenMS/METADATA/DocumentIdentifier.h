@@ -70,24 +70,14 @@ public:
     void swap(DocumentIdentifier & from);
 
 
-    /// Set the loaded file's absolute local path, or preserve a remote resource URI verbatim.
+    /// Set the loaded file's absolute local path, or its remote URI without userinfo, query or fragment.
     void setLoadedFilePath(const std::string & file_name);
 
-    /** @brief Store a remote resource URI without local path normalization.
-        @param[in] uri URI of the loaded resource.
-    */
-    void setLoadedNetFilePath(const std::string& uri) { file_path_ = uri; }
-
-    /// Get the loaded file's absolute local path or remote resource URI.
+    /// Get the loaded file's absolute local path or redacted remote resource URI.
     const std::string & getLoadedFilePath() const;
 
-    /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
+    /// Detect local file type from content, or remote resource type from its filename (ignoring query and fragment).
     void setLoadedFileType(const std::string & file_name);
-
-    /** @brief Set a known file type without reading the resource again.
-        @param[in] type Type of the loaded resource.
-    */
-    void setLoadedFileType(FileTypes::Type type) { file_type_ = type; }
 
     /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
     const FileTypes::Type & getLoadedFileType() const;

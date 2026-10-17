@@ -8,7 +8,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -60,16 +59,8 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    if (FileNameUtils::isRemoteResource(filename))
-    {
-      map.setLoadedFileType(FileTypes::MZDATA);
-      map.setLoadedNetFilePath(filename);
-    }
-    else
-    {
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-    }
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
 
     Internal::MzDataHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);

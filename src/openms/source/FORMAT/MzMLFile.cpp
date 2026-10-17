@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -145,16 +144,8 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    if (FileNameUtils::isRemoteResource(filename))
-    {
-      map.setLoadedFileType(FileTypes::MZML);
-      map.setLoadedNetFilePath(filename);
-    }
-    else
-    {
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-    }
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
 
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);

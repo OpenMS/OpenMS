@@ -41,7 +41,7 @@ namespace OpenMS
   {
     if (FileNameUtils::isRemoteResource(file_name))
     {
-      file_path_ = file_name;
+      file_path_ = FileNameUtils::redactRemoteResource(file_name);
       return;
     }
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
@@ -70,7 +70,14 @@ namespace OpenMS
 
   void DocumentIdentifier::setLoadedFileType(const std::string & file_name)
   {
-    file_type_ = FileHandler::getTypeByContent(file_name);
+    if (FileNameUtils::isRemoteResource(file_name))
+    {
+      file_type_ = FileNameUtils::getTypeByFileName(file_name.substr(0, file_name.find_first_of("?#")));
+    }
+    else
+    {
+      file_type_ = FileHandler::getTypeByContent(file_name);
+    }
   }
 
   const FileTypes::Type & DocumentIdentifier::getLoadedFileType() const

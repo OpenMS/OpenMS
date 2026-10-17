@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
@@ -21,6 +22,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <sstream>
 
 ///////////////////////////
 
@@ -99,7 +101,18 @@ START_SECTION(([EXTRA] remote XML error diagnostics do not reopen URIs as local 
     XMLHandler handler(uri, "1.0");
     TEST_EXCEPTION(Exception::ParseError, handler.fatalError(XMLHandler::LOAD, "offline parser error"))
   }
-  XMLHandler handler(std::string("s3://") + "user:password@" + "bucket/key?signature=private-value", "1.0");
+  class DiagnosticHandler : public XMLHandler
+  {
+  public:
+    using XMLHandler::XMLHandler;
+    const std::string& diagnosticFile() const { return file_; }
+    void throwDirect() const
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "offline direct handler error");
+    }
+  };
+  DiagnosticHandler handler(std::string("s3://") + "user:password@" + "bucket/key?signature=private-value", "1.0");
+  TEST_EQUAL(handler.diagnosticFile(), "s3://bucket/key")
   try
   {
     handler.fatalError(XMLHandler::LOAD, "offline parser error");
@@ -113,28 +126,62 @@ START_SECTION(([EXTRA] remote XML error diagnostics do not reopen URIs as local 
     TEST_TRUE(message.find("signature") == std::string::npos)
     TEST_TRUE(message.find("private-value") == std::string::npos)
   }
+  try
+  {
+    handler.throwDirect();
+    TEST_TRUE(false)
+  }
+  catch (const Exception::ParseError& error)
+  {
+    const std::string message = error.getMessage();
+    TEST_TRUE(message.find("offline direct handler error") != std::string::npos)
+    TEST_TRUE(message.find("password") == std::string::npos)
+    TEST_TRUE(message.find("signature") == std::string::npos)
+    TEST_TRUE(message.find("private-value") == std::string::npos)
+  }
+  std::ostringstream logged;
+  getThreadLocalLogError().insert(logged);
+  getThreadLocalLogWarn().insert(logged);
+  getThreadLocalLogDebug().insert(logged);
+  handler.error(XMLHandler::LOAD, "offline non-fatal error");
+  handler.warning(XMLHandler::LOAD, "offline warning");
+  getThreadLocalLogError().remove(logged);
+  getThreadLocalLogWarn().remove(logged);
+  getThreadLocalLogDebug().remove(logged);
+  TEST_TRUE(logged.str().find("offline non-fatal error") != std::string::npos)
+  TEST_TRUE(logged.str().find("offline warning") != std::string::npos)
+  TEST_TRUE(logged.str().find("password") == std::string::npos)
+  TEST_TRUE(logged.str().find("signature") == std::string::npos)
+  TEST_TRUE(logged.str().find("private-value") == std::string::npos)
 }
 END_SECTION
 
 #ifndef WITH_S3
 START_SECTION(([EXTRA] XML readers preserve remote metadata before reporting disabled S3))
 {
-  const std::string uri = "s3://unused-bucket/object?anonymous=true";
+  std::string uri = "s3://unused-bucket/object.featureXML?region=eu-west-1";
   FeatureMap features;
   TEST_EXCEPTION(Exception::ParseError, FeatureXMLFile().load(uri, features))
-  TEST_EQUAL(features.getLoadedFilePath(), uri)
+  TEST_EQUAL(features.getLoadedFilePath(), "s3://unused-bucket/object.featureXML")
   TEST_EQUAL(features.getLoadedFileType(), FileTypes::FEATUREXML)
+  uri = "s3://unused-bucket/object.consensusXML?region=eu-west-1";
   ConsensusMap consensus;
   TEST_EXCEPTION(Exception::ParseError, ConsensusXMLFile().load(uri, consensus))
-  TEST_EQUAL(consensus.getLoadedFilePath(), uri)
+  TEST_EQUAL(consensus.getLoadedFilePath(), "s3://unused-bucket/object.consensusXML")
   TEST_EQUAL(consensus.getLoadedFileType(), FileTypes::CONSENSUSXML)
+  uri = "s3://unused-bucket/object.mzXML?region=eu-west-1";
   MSExperiment experiment;
   TEST_EXCEPTION(Exception::ParseError, MzXMLFile().load(uri, experiment))
-  TEST_EQUAL(experiment.getLoadedFilePath(), uri)
+  TEST_EQUAL(experiment.getLoadedFilePath(), "s3://unused-bucket/object.mzXML")
   TEST_EQUAL(experiment.getLoadedFileType(), FileTypes::MZXML)
+  uri = "s3://unused-bucket/object.mzData?region=eu-west-1";
   TEST_EXCEPTION(Exception::ParseError, MzDataFile().load(uri, experiment))
-  TEST_EQUAL(experiment.getLoadedFilePath(), uri)
+  TEST_EQUAL(experiment.getLoadedFilePath(), "s3://unused-bucket/object.mzData")
   TEST_EQUAL(experiment.getLoadedFileType(), FileTypes::MZDATA)
+  uri = "s3://unused-bucket/object?filename=object.featureXML";
+  TEST_EXCEPTION(Exception::ParseError, FeatureXMLFile().load(uri, features))
+  TEST_EQUAL(features.getLoadedFilePath(), "s3://unused-bucket/object")
+  TEST_EQUAL(features.getLoadedFileType(), FileTypes::UNKNOWN)
 }
 END_SECTION
 #endif
