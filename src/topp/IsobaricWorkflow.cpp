@@ -96,17 +96,15 @@ using namespace std;
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one identified spectrum together with its reporter ions.
 
-  All identifications of one spectrum read the same MS2/MS3 scan, so they are quantified together:
-  one consensus feature carries all of them, and the scan's reporter intensities are counted once.
-  The input is nevertheless expected to carry one identification per spectrum. Where several of
-  them agree on peptidoform and charge, only the best-scoring one is kept and the reduction is
-  reported. Results from several search engines should therefore be combined - with
-  @ref TOPP_ConsensusID (@p -algorithm best @p -keep_old_scores, which preserves each engine's
-  score) - rather than simply concatenated. Spectra whose identifications name *different*
-  peptidoforms (a chimeric spectrum, or search engines that disagree) are reported. Such a spectrum
-  is credited to the peptidoform of its best-scoring identification (by the scores in the input)
-  that survives filtering; identifications naming another peptidoform are moved to the unassigned
-  peptide identifications.
+  All identifications of one spectrum read the same MS2/MS3 scan, so one consensus feature carries
+  all of them and the scan's reporter intensities are counted once. Identifications of one spectrum
+  that agree on peptidoform and charge are reduced to the best-scoring one. If they name *different*
+  peptidoforms (a chimeric spectrum, or search engines that disagree), the spectrum is credited to
+  the best-scoring identification that survives filtering, judged by the scores in the input; the
+  others are moved to the unassigned peptide identifications. Both cases are reported. One
+  identification per spectrum is still expected: results from several search engines should be
+  combined - with @ref TOPP_ConsensusID (@p -algorithm best @p -keep_old_scores, which preserves
+  each engine's score) - rather than simply concatenated.
 
   At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
@@ -507,14 +505,14 @@ protected:
   }
 
   /**
-   * @brief Orders the identifications of one spectrum best first, by the score of their top hit as stored.
+   * @brief Orders the identifications of one spectrum best first, by the score of their top hit.
    *
-   * Identifications without hits go last. The sort is stable, so equal scores keep the input order.
-   * Scores are only comparable within one score type and orientation: if the identifications with
-   * hits disagree on either, the order is left as it is.
+   * Identifications without hits go last; equal scores keep the input order. If the identifications
+   * with hits differ in score type or orientation, their scores are not comparable and the order is
+   * left unchanged.
    *
    * @param[in,out] peps the identifications of one spectrum
-   * @return false if the scores were not comparable (and the order was left as it is)
+   * @return false if the scores were not comparable
    */
   static bool sortBestFirst_(PeptideIdentificationList& peps)
   {
@@ -548,18 +546,17 @@ protected:
   /**
    * @brief Credits each consensus feature to one peptidoform: that of its first identification with a hit.
    *
-   * A feature carries all identifications of its spectrum, ordered best first by their scores in the
-   * input (see sortBestFirst_); filtering keeps that order and only removes hits. Its reporter
-   * intensities can only be attributed to one peptidoform, so the first identification that still
-   * has a hit is credited and those naming the same peptidoform are kept. The others, and those left
-   * without hits, are moved to the unassigned peptide identifications, where they remain PSMs. A
-   * feature without any hit keeps its identifications.
+   * The identifications of a feature are sorted best first by their input scores (see sortBestFirst_),
+   * and filtering only removes hits, so the first one with a hit is the best-scoring survivor. Reporter
+   * intensities can only be attributed to one peptidoform: identifications naming it are kept, the
+   * others and those without hits are moved to the unassigned peptide identifications. A feature
+   * without any hit is left unchanged.
    *
-   * The scores after filtering are not used: q-values tie heavily, and peptide-level q-values rate
-   * a peptide by its best match in any spectrum rather than by its match to this one.
+   * Scores after filtering are not compared: q-values tie heavily, and a peptide-level q-value rates
+   * the peptide's best match in any spectrum, not its match to this one.
    *
    * @param[in,out] cmap the consensus map
-   * @return the number of features with identifications naming different peptidoforms
+   * @return the number of features whose identifications named different peptidoforms
    */
   static Size creditBestPeptidoform_(ConsensusMap& cmap)
   {
@@ -574,8 +571,7 @@ protected:
                                      [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
       if (best == peps.end()) { continue; } // no hits at all: nothing to credit
 
-      // operator== like MzTab and PeptideAndProteinQuant, which see the kept identifications next:
-      // anything kept here has to be the same peptidoform for them as well.
+      // Same comparison (AASequence::operator==) as MzTab and PeptideAndProteinQuant downstream.
       const AASequence best_sequence = best->getHits()[0].getSequence();
       PeptideIdentificationList kept;
       bool conflicting = false;
@@ -777,9 +773,8 @@ protected:
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
 
-      // Two identifications of one spectrum agreeing on peptidoform and charge are the same match
-      // counted twice (as PSMs in the FDR, protein inference and peptide counts). Keep the
-      // best-scoring one of each such group.
+      // Identifications of one spectrum that agree on peptidoform and charge are one match counted
+      // several times (in the FDR, protein inference and peptide counts). Keep the best-scoring one.
       {
         const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(pep_ids);
         if (report.removed > 0)
@@ -819,14 +814,10 @@ protected:
 
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
 
-      // All identifications of one spectrum read the same MS2/MS3 scan, so they are quantified
-      // together, by one ConsensusFeature per spectrum that carries all of them. One feature per
-      // identification would give the same reporter intensities to every peptide the spectrum is
-      // identified as, and two features of one spectrum left without hits by filtering would have
-      // nothing to tell them apart in the QPX export.
-      // Groups keep the order in which their spectra first appear in the input. Within a group the
-      // identifications are ordered best first by their scores here, the only point where each is
-      // still rated by its own match to the spectrum; creditBestPeptidoform_ relies on that order.
+      // Quantify each spectrum once: all of its identifications read the same MS2/MS3 scan, so one
+      // ConsensusFeature carries all of them. Spectra keep the order in which they first appear.
+      // Within a spectrum, the identifications are sorted best first by their input scores, which
+      // rate each one by its own match to the spectrum; creditBestPeptidoform_ relies on this order.
       std::vector<PeptideIdentificationList> ids_per_spectrum;
       std::vector<std::string> spectrum_refs;
       {
@@ -917,8 +908,8 @@ protected:
           // For SPS-MS3: optionally count how many of the co-isolated MS3 precursors (SPS ions)
           // match a theoretical b/y fragment ion of the identified peptide. This estimates how many
           // of the ions selected for MS3 originate from true fragments of the identified peptide.
-          // A spectrum whose identifications name different peptides is not annotated: which of
-          // them it is credited to is only decided after filtering (see creditBestPeptidoform_).
+          // Skipped if the identifications name different peptides: the credited one is only decided
+          // after filtering (creditBestPeptidoform_).
           const AASequence* sps_seq = nullptr;
           if (count_sps_matches && has_ms3)
           {
@@ -998,13 +989,11 @@ protected:
 
       // TODO cleanup, reset?
 
-      // cur_cmap was pre-sized to one ConsensusFeature per identified spectrum (resize above) and only
-      // the features we could actually quantify were filled in - fillConsensusFeature_ always inserts
-      // at least one FeatureHandle per channel. Spectra we could not quantify (an identified MS2 with
-      // no corresponding MS3, or an identified spectrum missing from the mzML) leave their slot as a
-      // default-constructed feature with zero FeatureHandles (rt/mz/charge = 0, empty sequence, no map
-      // association). The identifications of an MS2 without MS3 are preserved in the unassigned
-      // peptide IDs, so drop these empty placeholders here instead of merging them into the output map.
+      // cur_cmap holds one ConsensusFeature per identified spectrum (resize above), and
+      // fillConsensusFeature_ gives each quantified one at least one FeatureHandle per channel. A
+      // spectrum that could not be quantified (an MS2 without MS3, or a spectrum missing from the
+      // mzML) left an empty default-constructed feature. Drop those; the identifications of an MS2
+      // without MS3 are kept in the unassigned peptide IDs.
       const Size before_prune = cur_cmap.size();
       cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
                                [](const ConsensusFeature& cf) { return cf.empty(); }),
@@ -1235,8 +1224,8 @@ protected:
       proteins.fillIndistinguishableGroupsWithSingletons();
     }
 
-    // Inference and FDR saw every identification of a spectrum; quantification and the exporters need
-    // one peptidoform per feature.
+    // Inference and FDR used every identification of a spectrum; quantification and the exporters
+    // need one peptidoform per feature.
     if (const Size credited = creditBestPeptidoform_(cmap); credited > 0)
     {
       OPENMS_LOG_INFO << "Credited " << credited << " spectra whose identifications name different"

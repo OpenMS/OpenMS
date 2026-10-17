@@ -1296,15 +1296,12 @@ set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm" PROPERTIES PASS_REGUL
 add_test("TOPP_IsobaricWorkflow_duplicate_psm_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_duplicate_psm_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_duplicate_psm")
 
-# Same run as TOPP_IsobaricWorkflow_1, with a second identification for three of its spectra (see the
-# input): one naming another peptide, one the same peptide at another charge, and a second decoy that
-# loses its hit like the first. One ConsensusFeature was created per identification, so the first
-# spectrum's reporter intensities went to both of its peptides (issue #10603). Each spectrum must be
-# quantified once: by one feature, credited to its best-scoring identification (scan=24221 to
-# ELEFANTK, whose GIRAFFERK identification moves to the unassigned IDs), and carrying both of its
-# identifications where they name the same peptidoform (scan=24217). The second identifications are
-# listed first and score worse, and all q-values tie after FDR, so crediting by position or by
-# q-value instead of by the input scores would credit GIRAFFERK.
+# Same run as TOPP_IsobaricWorkflow_1, with a second identification for three spectra (#10603):
+# another peptide (scan=24221), the same peptide at charge 3 (scan=24217), and a second decoy that
+# loses its hit like the first (scan=24220). Each spectrum yields one feature. scan=24221 is credited
+# to ELEFANTK and its GIRAFFERK identification moves to the unassigned IDs; scan=24217 keeps both
+# identifications. The second identifications come first in the file and score worse, and the
+# q-values tie, so crediting by position or by q-value would pick GIRAFFERK.
 add_test("TOPP_IsobaricWorkflow_multi_id" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
   -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_multi_id_input.idXML
@@ -1314,11 +1311,9 @@ set_tests_properties("TOPP_IsobaricWorkflow_multi_id" PROPERTIES PASS_REGULAR_EX
 add_test("TOPP_IsobaricWorkflow_multi_id_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_multi_id_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_multi_id_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_multi_id_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_multi_id")
 
-# The same input exported to QPX. Two features of one spectrum shared the spectrum's RT, m/z and
-# charge, and so their QPX feature identity whenever their peptidoforms agreed (the scan=24217 pair,
-# and the scan=24220 pair once both had lost their hits): the export refused the batch and the run
-# failed. Like mzTab below, QPX also refuses a feature whose identifications name different
-# peptidoforms (scan=24221), so each feature has to be credited to one.
+# The same input exported to QPX, which refuses two features with the same identity (features of
+# one spectrum share its RT, m/z and charge) and, like mzTab below, a feature whose identifications
+# name different peptidoforms.
 add_test(NAME "TOPP_IsobaricWorkflow_multi_id_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/IsobaricWorkflow_multi_id_qpx_dir)
 add_test("TOPP_IsobaricWorkflow_multi_id_qpx" ${TOPP_BIN_PATH}/IsobaricWorkflow -test
          -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
