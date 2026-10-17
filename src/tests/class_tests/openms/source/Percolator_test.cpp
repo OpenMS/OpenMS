@@ -675,6 +675,52 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
 }
 END_SECTION
 
+START_SECTION((bool usedDefaultDirection() const))
+{
+  Percolator p;
+  Param param = p.getDefaults();
+  param.setValue("seed", 42);
+  p.setParameters(param);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Separable targets: the learned model identifies at least as many targets as the best single feature
+  // and passes the sanity check. With fewer targets it would not: q-values count the decoys + 1, so a
+  // held-out fold needs about 1 / test_fdr targets above its first decoy for any q < test_fdr.
+  RescoreInput separable;
+  separable.feature_names = StringList{"separator", "noise"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({+1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 7)});
+    separable.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({-1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 11)});
+    separable.is_decoy.push_back(true);
+  }
+  p.rescore(separable);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Targets and decoys with the same feature values (like a blank run; low-discrepancy sequences, so targets
+  // and decoys interleave): no target at q < test_fdr, so the sanity check replaces the learned model by the
+  // default direction.
+  RescoreInput noise;
+  noise.feature_names = StringList{"f0", "f1"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    noise.features.push_back({std::fmod(0.6180339887 * static_cast<double>(i), 1.0),
+                              std::fmod(0.7548776662 * static_cast<double>(i), 1.0)});
+    noise.is_decoy.push_back(i % 2 == 1);
+  }
+  p.rescore(noise);
+  TEST_TRUE(p.usedDefaultDirection())
+
+  // Each call reports its own outcome.
+  p.train(separable);
+  TEST_FALSE(p.usedDefaultDirection())
+}
+END_SECTION
+
 START_SECTION([EXTRA] nonparametric PEP with fewer than 4 distinct scores)
 {
   // A feature that does not separate targets from decoys and takes only two

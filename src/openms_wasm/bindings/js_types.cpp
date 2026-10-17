@@ -100,12 +100,13 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
 
   // ProSE
   register_type<ProgressCallback>(
-    "((progress: { event: 'start' | 'progress' | 'end'; label: string; depth: number; begin: number; end: number; value: number }) => void) "
-    "| null | undefined");
+    "((progress: { event: 'start' | 'progress' | 'end'; label: string; depth: number; begin: number; end: number; value: number; "
+    "/** position of the input file being searched (its step 'Searching <name> (<i> of <n>)...': i - 1), -1 outside a file */ "
+    "file: number }) => void) | null | undefined");
   register_type<ProSESummary>("ProSESummary",
     "{ status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
     "openSearch: boolean; haveDecoys: boolean; decoyString: string; decoyIsPrefix: boolean; proteinFDRApplied: boolean; "
-    "percolator: { applied: boolean; skipped: string | null; seconds: number } | null; "
+    "percolator: { applied: boolean; skipped: string | null } | null; "
     "run: { inputFile: string; ms2Spectra: number; matchedSpectra: number; targetPSMs: number; decoyPSMs: number; "
     "fdrApplied: boolean; achievedPsmFDR: number | null; uniquePeptides: number; uniqueProteins: number; "
     "chargeHistogram: Record<string, number>; missedCleavageHistogram: Record<string, number>; "
@@ -124,13 +125,108 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "entries: { name: string; theoreticalMass: number; observedMass: number; massDeviation: number; count: number; "
     "uniquePeptides: number; chargeStates: number; percentage: number; targetResidues: string; residueCounts: Record<string, number> }[] } "
     "} | null }");
-  register_type<ProSEOptions>("ProSEOptions", "{ /** Percolator rescoring (default: true) */ rescore?: boolean } | null | undefined");
+  register_type<ProSEOptions>("ProSEOptions",
+    "{ /** Percolator rescoring: sets the parameter 'rescore' for the call (default: the parameter, true) */ rescore?: boolean } "
+    "| null | undefined");
+  register_type<ProSEFilesOptions>("ProSEFilesOptions",
+    "{ /** Percolator rescoring of each file: sets the parameter 'rescore' for the call (default: the parameter, true) */ "
+    "rescore?: boolean; "
+    "/** keep the peaks of the identified spectra with the results (default true) */ keepSpectra?: boolean; "
+    "/** with the protein FDR, remove the decoy PSMs and proteins from the pooled results, as the ProSE tool's -out_merged "
+    "does (default false: keep those that pass) */ removeDecoys?: boolean } | null | undefined");
+  register_type<ProSEFileSummary>("ProSEFileSummary",
+    "{ path: string; status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
+    "ms2Spectra: number; targetPSMs: number; decoyPSMs: number; "
+    "percolator: { applied: boolean; skipped: string | null; warning: string | null } | null; "
+    "peptdeepNce: number | null; secondsSearch: number }");
+  register_type<ProSEMultiSummary>("ProSEMultiSummary",
+    "{ files: ProSEFileSummary[]; proteinFdrApplied: boolean; psmFdr: number; proteinFdr: number; decoyString: string; "
+    "openSearch: boolean; modificationAnalysis: ProSESummary['modificationAnalysis'] }");
+  register_type<ResultTables>("ResultTables",
+    "{ /** the input files, in the order of the search */ files: string[]; "
+    "/** one row per identified spectrum (its best hit), in the order of the pooled PSMs */ "
+    "psms: { count: number; /** position of the PSM's file in files */ file: Uint16Array; "
+    "/** native ID of the spectrum */ nativeId: string[]; /** NaN: unknown */ rt: Float64Array; "
+    "/** precursor m/z; NaN: unknown */ mz: Float64Array; charge: Int8Array; /** row of peptides */ peptide: Uint32Array; "
+    "/** Percolator's (SVM) score if the search rescored the PSMs, else ProSE's ln(hyperscore); higher is better. A hit "
+    "of a rescored file that Percolator could not rescore (e.g. without protein reference) has -100, with q-value and "
+    "PEP 1, as Percolator's output gives it */ score: Float64Array; "
+    "/** NaN: no FDR (no decoys) */ qValue: Float64Array; /** posterior error probability (Percolator); NaN: not rescored */ "
+    "pep: Float64Array; /** NaN: unknown */ precursorErrorPpm: Float64Array; "
+    "/** precursor isotope error, observed minus theoretical (in 13C spacings); 0: unknown */ isotopeError: Int8Array; "
+    "/** mass shift of an open search (Da), not localized: peptides.proforma never has it (write '[+delta]?' + proforma, "
+    "delta being the signed psms.deltaMass, e.g. '[-57.0215]?'); NaN: none */ deltaMass: Float64Array; "
+    "/** 1: decoy */ decoy: Uint8Array; "
+    "/** Percolator's input features, as ProSE's rescoring gives them: 'ln(hyperscore)' (its 'score'), the standard "
+    "features of the .pin format that Percolator trains on (CalcMass, mass, peplen, charge<N> for N over the precursor "
+    "charges of the search, enzN, enzC, enzInt, dm, absdm; computed by PercolatorInfile, also for searches without "
+    "rescoring), the search engine's features (the 'extra_features' of the runs) and PeptDeep's (ms2_cosine, "
+    "ms2_spectral_angle, ms2_pearson, ms2_frac_pred_found, rt_abs_error); of these, those that some PSM has */ "
+    "featureNames: string[]; /** row-major, count * featureNames.length: features[i * featureNames.length + j]; NaN: absent */ "
+    "features: Float64Array }; "
+    "/** unique by openms */ "
+    "peptides: { count: number; /** AASequence.toString(), e.g. 'AVM(Oxidation)DDFAAFVEK', '.(Acetyl)DAHKSEVAHR' */ openms: string[]; "
+    "/** ProForma with Unimod names, fixed modifications included: 'AVM[Oxidation]DDFAAFVEK', '[Acetyl]-DAHKSEVAHR', "
+    "'PEPTIDER-[Amidated]'; other modifications as mass deltas, e.g. '[+15.9949]'. Never the unlocalized mass shift of an "
+    "open search, which is a value of each PSM (psms.deltaMass) */ proforma: string[]; "
+    "/** the residues */ sequence: string[]; /** 1: decoy */ decoy: Uint8Array; "
+    "/** the modifications of peptide k: modOffsets[k] .. modOffsets[k + 1] of the mod* columns (count + 1 entries) */ "
+    "modOffsets: Uint32Array; /** -1: N-terminus, sequence.length: C-terminus, else the 0-based residue */ modPosition: Int16Array; "
+    "/** the (Unimod) name, e.g. 'Oxidation' */ modName: string[]; /** Unimod accession number, e.g. 35; -1: none */ "
+    "modUnimod: Int32Array; /** monoisotopic mass delta (Da) */ modMass: Float64Array; "
+    "/** the proteins of peptide k: proteinOffsets[k] .. proteinOffsets[k + 1] of protein, start and end (count + 1 entries); "
+    "one per occurrence */ proteinOffsets: Uint32Array; /** row of proteins */ protein: Uint32Array; "
+    "/** the peptide in proteins.sequence: 0-based start, exclusive end. Where the sequence has the peptide; if the "
+    "sequence is unknown ('') or lacks the peptide, the position the search recorded, which may exceed sequence.length; "
+    "0 and 0 if none is recorded */ start: Uint32Array; end: Uint32Array }; "
+    "/** the protein hits of the pooled run */ "
+    "proteins: { count: number; accession: string[]; /** from the FASTA */ description: string[]; "
+    "/** as searched: from the FASTA; a decoy that ProSE generated: as generated; '' if unknown */ sequence: string[]; "
+    "/** the best score (psms.score) of its PSMs; NaN: none */ score: Float64Array; "
+    "/** picked-protein FDR; NaN: no protein FDR */ qValue: Float64Array; /** 1: decoy */ decoy: Uint8Array; "
+    "/** index of its indistinguishable-protein group; -1: none */ group: Int32Array } }");
+  register_type<StoredSpectra>("StoredSpectra",
+    "{ /** per PSM row of ResultTables.psms: the index of its spectrum; -1: none (keepSpectra false, a q-value above "
+    "FDR:PSM, no MS2 spectrum with its native ID in its file, or several of them and not exactly one at the PSM's RT, "
+    "or a file that could not be read again). The PSMs of the same spectrum share it */ "
+    "psmSpectrum: Int32Array; "
+    "/** the peaks of spectrum s: offsets[s] .. offsets[s + 1] of mz and intensity (n + 1 entries) */ offsets: Uint32Array; "
+    "/** the peaks of the MS2 spectra as read from the files (not preprocessed), sorted by m/z */ mz: Float32Array; "
+    "intensity: Float32Array; /** m/z of the first precursor; NaN: none */ precursorMz: Float64Array; "
+    "/** activation (collision) energy of the first precursor; NaN: unknown */ collisionEnergy: Float32Array }");
   register_type<AnnotationOptions>("AnnotationOptions",
     "{ tolerance?: number; unit?: 'Da' | 'ppm'; maxCharge?: number; ions?: ('a' | 'b' | 'c' | 'x' | 'y' | 'z')[]; "
     "losses?: boolean; precursor?: boolean } | null | undefined");
   register_type<SpectrumAnnotation>("SpectrumAnnotation",
     "{ matches: { mz: number; intensity: number; ion: string; charge: number; theoreticalMZ: number; error: number }[]; "
     "theoretical: { mz: Float64Array; ion: string[]; charge: number[] }; unit: 'Da' | 'ppm' }");
+  register_type<PeakMatch>("PeakMatch",
+    "{ /** index of the peak in the mz and intensity arrays as passed (not in sorted order); in ppm several matches can "
+    "have the same peak */ peak: number; "
+    "/** the ion as labelled in a spectrum: 'b3'; 'y5++' (one '+' per charge, none for charge 1); 'y7-H2O' with a neutral "
+    "loss; '[M+2H]++' and '[M+H-NH3]' for precursor peaks */ ion: string; "
+    "/** 'a' to 'z', or 'precursor' */ type: string; /** the ion number (3 for b3); 0 for a precursor */ ordinal: number; "
+    "charge: number; /** formula of the neutral loss ('H2O', 'NH3', 'H3PO4'); '' if none */ loss: string; "
+    "theoreticalMz: number; /** (observed - theoretical) / theoretical * 1e6, whatever the unit of the tolerance */ "
+    "errorPpm: number }");
+  register_type<PeakAnnotationResult>("PeakAnnotationResult",
+    "{ /** the ions that have a peak within the tolerance, by ascending m/z: one match per ion. In ppm each ion takes the "
+    "closest peak, so several ions can have the same peak (the same index in peak), and of peaks of equal m/z the first in "
+    "the arrays. In Da the matching is one to one and in m/z order: a peak has at most one ion (of two ions of one m/z, "
+    "one is left out, unless there are two peaks), and of peaks of equal m/z one is taken; which one is unspecified */ "
+    "matches: PeakMatch[]; "
+    "/** every ion of the peptide for the options (charges 1 to maxCharge), by ascending m/z, matched or not */ "
+    "theoretical: { ion: string; type: string; ordinal: number; charge: number; mz: number }[] }");
+  register_type<PredictedIon>("PredictedIon",
+    "{ /** the ion as annotatePeaks names it: 'b3'; 'y5++' (one '+' per charge, none for charge 1) */ ion: string; "
+    "type: 'b' | 'y'; /** the ion number, 1 to the length of the peptide - 1 (3 for b3) */ ordinal: number; "
+    "/** 2 only if the precursor has charge 2 or more */ charge: 1 | 2; "
+    "/** from the theoretical spectrum, with the modifications of the peptide as given; the ions of a peptide come by "
+    "ascending m/z */ mz: number; "
+    "/** relative to the most intense returned b/y ion, which is 1; ions of 0.01 or less are left out. (For a precursor "
+    "of charge 1 the model's own maximum may be in a channel that is not returned.) */ intensity: number }");
+  register_type<PredictedIons>("PredictedIon[]");
+  register_type<ModelPathInput>("string | null | undefined");
 
   // features
   register_type<BoundingBox>("BoundingBox", "{ minRT: number; maxRT: number; minMZ: number; maxMZ: number }");

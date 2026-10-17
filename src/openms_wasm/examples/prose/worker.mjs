@@ -139,7 +139,7 @@ const handlers = {
     try {
       prose.setParameterValues(parameters);
       prose.setProgressCallback((p) => postMessage({ type: "progress", ...p }));
-      // rescore: Percolator, in-process, as the ProSE tool's -rescore (q-values as scores)
+      // rescore: Percolator, in-process, as the ProSE tool's Search:rescore (q-values as scores)
       summary = prose.search(spectraPath, databasePath, proteins, peptides, { rescore });
       // q-values for the FDR filter of the page: with FDR:PSM = 0, ProSE reports its scores only
       if (summary.haveDecoys && peptides.size() > 0) {

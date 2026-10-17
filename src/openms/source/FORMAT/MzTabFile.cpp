@@ -680,29 +680,25 @@ namespace OpenMS
         mz_tab_metadata.study_variable[n].description = p;
         count_study_variable_description = std::max((Size)n, count_study_variable_description);
       }
-      else if (StringUtils::hasPrefix(meta_key, "colunit") && meta_key_fields[1] == "protein")
+      else if (meta_key == "colunit" && meta_key_fields.size() == 2 && meta_key_fields[1] == "protein")
       {
-        Int n = (Size)extractBracketIndex(meta_key_fields[0], "colunit[");
-        const std::string& s = cells[2];
-        mz_tab_metadata.colunit_protein[n] = s;
+        // mzTab 1.0: "MTD  colunit-protein  <column>=<unit parameter>", one line per column, no index
+        mz_tab_metadata.colunit_protein.push_back(cells[2]);
       }
-      else if (StringUtils::hasPrefix(meta_key, "colunit") && meta_key_fields[1] == "peptide")
+      else if (meta_key == "colunit" && meta_key_fields.size() == 2 && meta_key_fields[1] == "peptide")
       {
-        Int n = (Size)extractBracketIndex(meta_key_fields[0], "colunit[");
-        const std::string& s = cells[2];
-        mz_tab_metadata.colunit_peptide[n] = s;
+        // mzTab 1.0: "MTD  colunit-peptide  <column>=<unit parameter>", one line per column, no index
+        mz_tab_metadata.colunit_peptide.push_back(cells[2]);
       }
-      else if (StringUtils::hasPrefix(meta_key, "colunit") && meta_key_fields[1] == "psm")
+      else if (meta_key == "colunit" && meta_key_fields.size() == 2 && meta_key_fields[1] == "psm")
       {
-        Int n = (Size)extractBracketIndex(meta_key_fields[0], "colunit[");
-        const std::string& s = cells[2];
-        mz_tab_metadata.colunit_psm[n] = s;
+        // mzTab 1.0: "MTD  colunit-psm  <column>=<unit parameter>", one line per column, no index
+        mz_tab_metadata.colunit_psm.push_back(cells[2]);
       }
-      else if (StringUtils::hasPrefix(meta_key, "colunit") && meta_key_fields[1] == "small_molecule")
+      else if (meta_key == "colunit" && meta_key_fields.size() == 2 && meta_key_fields[1] == "small_molecule")
       {
-        Int n = (Size)extractBracketIndex(meta_key_fields[0], "colunit[");
-        const std::string& s = cells[2];
-        mz_tab_metadata.colunit_small_molecule[n] = s;
+        // mzTab 1.0: "MTD  colunit-small_molecule  <column>=<unit parameter>", one line per column, no index
+        mz_tab_metadata.colunit_small_molecule.push_back(cells[2]);
       }
     }
 
@@ -1981,28 +1977,28 @@ namespace OpenMS
   // colunit-protein
   for (Size i = 0; i != md.colunit_protein.size(); ++i)
   {
-    std::string s =std::string("MTD\tcolunit-protein") + md.colunit_protein[i];
+    std::string s =std::string("MTD\tcolunit-protein\t") + md.colunit_protein[i];
     sl.push_back(s);
   }
 
   // colunit-peptide
   for (Size i = 0; i != md.colunit_peptide.size(); ++i)
   {
-    std::string s =std::string("MTD\tcolunit-peptide") + md.colunit_peptide[i];
+    std::string s =std::string("MTD\tcolunit-peptide\t") + md.colunit_peptide[i];
     sl.push_back(s);
   }
 
-  // colunit-PSM
+  // colunit-psm
   for (Size i = 0; i != md.colunit_psm.size(); ++i)
   {
-    std::string s =std::string("MTD\tcolunit-PSM") + md.colunit_psm[i];
+    std::string s =std::string("MTD\tcolunit-psm\t") + md.colunit_psm[i];
     sl.push_back(s);
   }
 
   // colunit-small_molecule
   for (Size i = 0; i != md.colunit_small_molecule.size(); ++i)
   {
-    std::string s =std::string("MTD\tcolunit-small_molecule") + md.colunit_small_molecule[i];
+    std::string s =std::string("MTD\tcolunit-small_molecule\t") + md.colunit_small_molecule[i];
     sl.push_back(s);
   }
   }

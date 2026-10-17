@@ -54,6 +54,9 @@ SAX2HandlerAdapter.h
 ThermoRawFileMetadata.h
 MzIdentMLDOMHandler.h
 )
+if (WITH_THERMO_RAW)
+  list(APPEND private_headers_list_h ThermoRawScanReader.h)
+endif()
 set(private_sources_h)
 foreach(i ${private_headers_list_h})
 	list(APPEND private_sources_h ${directory}/${i})

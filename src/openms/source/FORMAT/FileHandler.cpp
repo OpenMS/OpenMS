@@ -54,6 +54,7 @@
 #include <OpenMS/FORMAT/KroenikFile.h>
 
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
@@ -71,6 +72,7 @@
 #endif
 
 #include <cstdint>
+#include <functional>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -190,6 +192,190 @@ namespace OpenMS
 
   } // anonymous namespace
 
+  namespace
+  {
+    /// Keep only the peaks inside the m/z and intensity ranges of @p options.
+    void filterPeaks(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      if (! options.hasMZRange() && ! options.hasIntensityRange()) { return; }
+      const bool filter_mz = options.hasMZRange();
+      const bool filter_int = options.hasIntensityRange();
+      const auto& mz_range = options.getMZRange();
+      const auto& int_range = options.getIntensityRange();
+      std::vector<Size> kept;
+      kept.reserve(spectrum.size());
+      for (Size i = 0; i < spectrum.size(); ++i)
+      {
+        const Peak1D& p = spectrum[i];
+        if (filter_mz && ! mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
+        if (filter_int && ! int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
+        kept.push_back(i);
+      }
+      // select() keeps the data arrays aligned with the peaks (erase() would not).
+      if (kept.size() != spectrum.size()) { spectrum.select(kept); }
+    }
+
+    /// Whether @p spectrum passes the spectrum-level filters of @p options: MS level, RT range and,
+    /// for MSn spectra with a precursor, precursor m/z range.
+    bool selectSpectrum(const PeakFileOptions& options, const MSSpectrum& spectrum)
+    {
+      if (options.hasMSLevels() && ! options.containsMSLevel(spectrum.getMSLevel())) { return false; }
+      if (options.hasRTRange() && ! options.getRTRange().encloses(DPosition<1>(spectrum.getRT()))) { return false; }
+      if (options.hasPrecursorMZRange() && spectrum.getMSLevel() > 1 && ! spectrum.getPrecursors().empty())
+      {
+        return options.getPrecursorMZRange().encloses(DPosition<1>(spectrum.getPrecursors()[0].getMZ()));
+      }
+      return true;
+    }
+
+    /// Apply the peak-level filters of @p options to @p spectrum: the m/z and intensity ranges, and
+    /// metadata-only or fill-data off, which leave the spectrum without peaks.
+    void applyPeakOptions(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      filterPeaks(options, spectrum);
+      if (options.getMetadataOnly() || ! options.getFillData())
+      {
+        spectrum.clear(false); // clear the peaks and data arrays, keep the metadata
+      }
+    }
+
+    /// Point the (first) source file of @p settings to @p filename.
+    void rewriteSourceFile(ExperimentalSettings& settings, const std::string& filename, FileTypes::Type type, bool compute_hash)
+    {
+      SourceFile src_file;
+      if (settings.getSourceFiles().empty()) // copy settings like native ID format
+      {
+        OPENMS_LOG_WARN << "No source file annotated." << endl;
+      }
+      else
+      {
+        if (settings.getSourceFiles().size() > 1)
+        {
+          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << settings.getSourceFiles().size() << " will take only first one for rewriting." << endl;
+        }
+        src_file = settings.getSourceFiles()[0];
+      }
+
+      // Normalize directory paths: strip trailing slashes for basename and URI
+      std::string normalized_name = filename;
+      while (StringUtils::hasSuffix(normalized_name, "/") || StringUtils::hasSuffix(normalized_name, "\\"))
+        normalized_name = StringUtils::prefix(normalized_name, normalized_name.size() - 1);
+      src_file.setNameOfFile(File::basename(normalized_name));
+      src_file.setPathToFile(File::toFileURI(File::path(normalized_name)));
+      // this is more complicated since the data formats allowed by mzML are very verbose.
+      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
+      src_file.setFileType(FileTypes::typeToMZML(type));
+
+      if (compute_hash && type != FileTypes::BRUKER_TDF)
+      {
+        src_file.setChecksum(FileHandler::computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+      }
+
+      settings.getSourceFiles().clear();
+      settings.getSourceFiles().push_back(src_file);
+    }
+
+#ifdef WITH_THERMO_RAW
+    /// ThermoRawFile options for FileHandler: centroided, no checksum, scan-level PeakFileOptions pushed down.
+    ThermoRawFile::Options thermoRawOptions(const PeakFileOptions& options, ThermoRawFile::Options raw_options)
+    {
+      // Apply Thermo's peak picking, as FileConverter and ThermoRawFileParser do by default:
+      // the tools that read .raw expect centroided spectra. ThermoRawFile itself keeps the
+      // acquired profile scans unless Options::centroid is set.
+      raw_options.centroid = true;
+      // The SHA-1 reads the whole file again; the source file checksum is set by FileHandler if requested.
+      raw_options.checksum = false;
+      // Push the scan-level PeakFileOptions down, so skipped scans and peaks are never decoded.
+      if (options.hasMSLevels()) { raw_options.ms_levels = options.getMSLevels(); }
+      if (options.hasRTRange())
+      {
+        raw_options.rt_min = options.getRTRange().minPosition()[0];
+        raw_options.rt_max = options.getRTRange().maxPosition()[0];
+      }
+      if (options.hasPrecursorMZRange())
+      {
+        raw_options.precursor_mz_min = options.getPrecursorMZRange().minPosition()[0];
+        raw_options.precursor_mz_max = options.getPrecursorMZRange().maxPosition()[0];
+      }
+      raw_options.metadata_only = options.getMetadataOnly() || ! options.getFillData();
+      raw_options.skip_chromatograms = options.getSkipChromatograms();
+      return raw_options;
+    }
+#endif
+
+#ifdef WITH_OPENTIMS
+    /// MALDI imaging .d is, like imzML, not readable as a flat MSExperiment (AUTO export mode would otherwise misread it as DDA).
+    void rejectBrukerImaging(const std::string& filename)
+    {
+      if (BrukerTimsImagingFile::isImagingDataset(filename))
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "Bruker MALDI imaging .d is a mass spectrometry imaging format; load it via "
+                                         "FileHandler::loadImagingExperiment into an MSImagingExperiment");
+      }
+    }
+
+    /// BrukerTimsFile configuration for FileHandler: the PeakFileOptions that select whole frames are passed to
+    /// the reader, so the excluded frames are not decoded. The caller applies all options to the spectra afterwards.
+    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
+    {
+      // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
+      // Asking for MS3 or higher alone therefore decodes nothing.
+      BrukerTimsFile::Config config;
+      if (options.hasMSLevels())
+      {
+        config.load_ms1 = options.containsMSLevel(1);
+        config.load_ms2 = options.containsMSLevel(2);
+      }
+      // The reader's RT range selects frames. That equals selecting spectra by RT for MS1, but not for
+      // DDA MS2 spectra, which are built from several frames: a range would cut those at its ends.
+      if (options.hasRTRange() && ! config.load_ms2)
+      {
+        config.rt_min_sec = options.getRTRange().minPosition()[0];
+        config.rt_max_sec = options.getRTRange().maxPosition()[0];
+      }
+      return config;
+    }
+#endif
+
+    /// Forwards to another consumer, rewriting the source file and applying PeakFileOptions on the way.
+    class ForwardingConsumer : public Interfaces::IMSDataConsumer
+    {
+    public:
+      /// @p filter: the PeakFileOptions applied to each spectrum (nullptr: none). Only the peak-level ones, unless
+      /// @p select_spectra is set: then the spectra the spectrum-level ones exclude are not forwarded either.
+      ForwardingConsumer(Interfaces::IMSDataConsumer* next, std::function<void(ExperimentalSettings&)> settings, const PeakFileOptions* filter,
+                         bool select_spectra = false) :
+        next_(next), settings_(std::move(settings)), filter_(filter), select_spectra_(select_spectra)
+      {
+      }
+      void setExperimentalSettings(const ExperimentalSettings& settings) override
+      {
+        if (! settings_) { next_->setExperimentalSettings(settings); return; }
+        ExperimentalSettings copy(settings);
+        settings_(copy);
+        next_->setExperimentalSettings(copy);
+      }
+      void setExpectedSize(Size spectra, Size chromatograms) override { next_->setExpectedSize(spectra, chromatograms); }
+      void consumeSpectrum(SpectrumType& spectrum) override
+      {
+        if (filter_ != nullptr)
+        {
+          if (select_spectra_ && ! selectSpectrum(*filter_, spectrum)) { return; }
+          applyPeakOptions(*filter_, spectrum);
+        }
+        next_->consumeSpectrum(spectrum);
+      }
+      void consumeChromatogram(ChromatogramType& chromatogram) override { next_->consumeChromatogram(chromatogram); }
+
+    private:
+      Interfaces::IMSDataConsumer* next_;
+      std::function<void(ExperimentalSettings&)> settings_;
+      const PeakFileOptions* filter_;
+      bool select_spectra_;
+    };
+  } // namespace
+
   std::string allowedToString_(vector<FileTypes::Type> types)
   {
     std::string aStrings;
@@ -220,16 +406,12 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
-      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
-      if (File::exists(normalized) && !File::isDirectory(normalized) && StringUtils::hasSuffix(StringUtils::toLowered(normalized), ".zip"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries. TSF and BAF
+      // data (no ion mobility) count as well: BrukerTimsFile then says that it cannot read them, which tells
+      // more than an unknown file type. An archive whose entries cannot be listed is taken by its name; the
+      // reader reports what is wrong with it.
+      return BrukerTimsFile::detectFormat(normalized) != BrukerTimsFile::DataFormat::NONE ? FileTypes::BRUKER_TDF
+                                                                                          : FileTypes::UNKNOWN;
     }
 #else
     if (type == FileTypes::BRUKER_TDF)
@@ -731,6 +913,12 @@ namespace OpenMS
       return FileTypes::PSMS;
     }
 
+    // bedRMod file format
+    if (first_line.find("fileformat=bedRMod") != std::string::npos)
+    {
+      return FileTypes::BEDRMOD;
+    }
+
     // EDTA file
     // hard to tell... so we don't even try...
 
@@ -961,21 +1149,15 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
-        // MALDI imaging .d: like imzML, not loadable into a flat MSExperiment
-        // (AUTO export mode would otherwise misread it as DDA).
-        if (BrukerTimsImagingFile::isImagingDataset(filename))
-        {
-          throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-                                           "Bruker MALDI imaging .d is a mass spectrometry imaging format; load it via "
-                                           "FileHandler::loadImagingExperiment into an MSImagingExperiment");
-        }
+        rejectBrukerImaging(filename);
 
         // BrukerTimsFile unpacks a .d.zip archive itself.
         BrukerTimsFile f;
         f.setLogType(log);
-        f.load(filename, exp);
+        // Do not decode what the PeakFileOptions exclude anyway
+        f.load(filename, exp, brukerConfig(options_));
 
-        // BrukerTimsFile loads everything; apply PeakFileOptions filters post-load.
+        // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
         applyPostLoadOptions_(exp);
       }
       break;
@@ -984,18 +1166,13 @@ namespace OpenMS
 #ifdef WITH_THERMO_RAW
       case FileTypes::RAW:
       {
-        // Apply Thermo's peak picking, as FileConverter and ThermoRawFileParser do by default:
-        // the tools that read .raw expect centroided spectra. ThermoRawFile itself keeps the
-        // acquired profile scans unless Options::centroid is set.
         ThermoRawFile f;
         f.setLogType(log);
-        ThermoRawFile::Options raw_options = f.getOptions();
-        raw_options.centroid = true;
-        f.setOptions(raw_options);
+        f.setOptions(thermoRawOptions(options_, f.getOptions()));
         f.load(filename, exp);
 
-        // ThermoRawFile loads everything; apply PeakFileOptions filters post-load.
-        applyPostLoadOptions_(exp);
+        // Only the peak-level filters (m/z, intensity) are left to apply post-load.
+        if (options_.hasMZRange() || options_.hasIntensityRange()) { applyPostLoadOptions_(exp); }
       }
       break;
 #endif
@@ -1005,39 +1182,81 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
     }
+    if (rewrite_source_file) { rewriteSourceFile(exp, filename, type, compute_hash); }
+  }
+
+  void FileHandler::transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer, const std::vector<FileTypes::Type> allowed_types,
+                                        ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
+  {
+    OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
+    if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+
+    const FileTypes::Type type = getType(filename);
+    if (!allowed_types.empty() && !FileTypeList(allowed_types).contains(type))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for transforming an experiment. Allowed types are: " + allowedToString_(allowed_types));
+    }
+    std::function<void(ExperimentalSettings&)> settings;
     if (rewrite_source_file)
     {
-      SourceFile src_file;
-      if (exp.getSourceFiles().empty()) // copy settings like native ID format
-      {
-        OPENMS_LOG_WARN << "No source file annotated." << endl;
-      }
-      else
-      {
-        if (exp.getSourceFiles().size() > 1)
-        {
-          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() << " will take only first one for rewriting." << endl;
-        }
-        src_file = exp.getSourceFiles()[0];
-      }
+      settings = [&filename, type, compute_hash](ExperimentalSettings& s) { rewriteSourceFile(s, filename, type, compute_hash); };
+    }
 
-      // Normalize directory paths: strip trailing slashes for basename and URI
-      std::string normalized_name = filename;
-      while (StringUtils::hasSuffix(normalized_name, "/") || StringUtils::hasSuffix(normalized_name, "\\"))
-        normalized_name = StringUtils::prefix(normalized_name, normalized_name.size() - 1);
-      src_file.setNameOfFile(File::basename(normalized_name));
-      src_file.setPathToFile(File::toFileURI(File::path(normalized_name)));
-      // this is more complicated since the data formats allowed by mzML are very verbose.
-      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-      src_file.setFileType(FileTypes::typeToMZML(type));
-
-      if (compute_hash && type != FileTypes::BRUKER_TDF)
+    switch (type)
+    {
+      case FileTypes::MZML:
       {
-        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+        ForwardingConsumer forward(consumer, settings, nullptr);
+        MzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.transform(filename, &forward);
       }
+      break;
 
-      exp.getSourceFiles().clear();
-      exp.getSourceFiles().push_back(src_file);
+      case FileTypes::MZXML:
+      {
+        ForwardingConsumer forward(consumer, settings, nullptr);
+        MzXMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.transform(filename, &forward);
+      }
+      break;
+
+#ifdef WITH_THERMO_RAW
+      case FileTypes::RAW:
+      {
+        // The reader applies the scan-level options; the peak-level ones are applied per spectrum.
+        ForwardingConsumer forward(consumer, settings, (options_.hasMZRange() || options_.hasIntensityRange()) ? &options_ : nullptr);
+        ThermoRawFile f;
+        f.setLogType(log);
+        f.setOptions(thermoRawOptions(options_, f.getOptions()));
+        f.transform(filename, &forward);
+      }
+      break;
+#endif
+
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        rejectBrukerImaging(filename);
+
+        // The reader skips the frames the options exclude; all options are then applied to each spectrum, as
+        // loadExperiment() applies them to the loaded experiment.
+        ForwardingConsumer forward(consumer, settings, &options_, true);
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.transform(filename, &forward, brukerConfig(options_));
+      }
+      break;
+#endif
+
+      default:
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "type " + FileTypes::typeToName(type) + " cannot be streamed; use loadExperiment");
+      }
     }
   }
 
@@ -1087,80 +1306,13 @@ namespace OpenMS
 
   void FileHandler::applyPostLoadOptions_(MSExperiment& exp) const
   {
-    // Filter by MS level
-    if (options_.hasMSLevels())
-    {
-      exp.getSpectra().erase(
-        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-          [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
-        exp.getSpectra().end());
-    }
-
-    // Filter by RT range
-    if (options_.hasRTRange())
-    {
-      const auto& rt_range = options_.getRTRange();
-      exp.getSpectra().erase(
-        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-          [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
-        exp.getSpectra().end());
-    }
-
-    // Filter by precursor m/z range (for MSn spectra)
-    if (options_.hasPrecursorMZRange())
-    {
-      const auto& prec_range = options_.getPrecursorMZRange();
-      exp.getSpectra().erase(
-        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-          [&prec_range](const MSSpectrum& s)
-          {
-            if (s.getMSLevel() <= 1) { return false; } // keep MS1
-            if (s.getPrecursors().empty()) { return false; }
-            return !prec_range.encloses(DPosition<1>(s.getPrecursors()[0].getMZ()));
-          }),
-        exp.getSpectra().end());
-    }
-
-    // Filter peaks by m/z range and intensity range within each spectrum.
-    // Use MSSpectrum::select() rather than erase(): select() rebuilds the parallel data
-    // arrays so the per-peak ion-mobility FloatDataArray carried by Bruker .d frames (and any
-    // other float/string/integer array) stays aligned with the peaks. A raw erase() would
-    // shrink only the peak vector, leaving the IM array too long -> corrupt mzML output or a
-    // Precondition throw on the next sortByPosition()/select().
-    if (options_.hasMZRange() || options_.hasIntensityRange())
-    {
-      const bool filter_mz = options_.hasMZRange();
-      const bool filter_int = options_.hasIntensityRange();
-      const auto& mz_range = options_.getMZRange();
-      const auto& int_range = options_.getIntensityRange();
-
-      std::vector<Size> kept;
-      for (auto& spectrum : exp.getSpectra())
-      {
-        kept.clear();
-        kept.reserve(spectrum.size());
-        for (Size i = 0; i < spectrum.size(); ++i)
-        {
-          const Peak1D& p = spectrum[i];
-          if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
-          if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
-          kept.push_back(i);
-        }
-        if (kept.size() != spectrum.size())
-        {
-          spectrum.select(kept);
-        }
-      }
-    }
-
-    // Metadata only: strip peak data
-    if (options_.getMetadataOnly())
-    {
-      for (auto& spectrum : exp.getSpectra())
-      {
-        spectrum.clear(false); // clear data but keep metadata
-      }
-    }
+    // The same filters as transformExperiment() applies to each spectrum, so loading and streaming give the same spectra.
+    // filterPeaks() keeps the per-peak data arrays (e.g. the ion mobility of Bruker .d frames) aligned with the peaks.
+    exp.getSpectra().erase(
+      std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+        [this](const MSSpectrum& s) { return ! selectSpectrum(options_, s); }),
+      exp.getSpectra().end());
+    for (auto& spectrum : exp.getSpectra()) { applyPeakOptions(options_, spectrum); }
 
     exp.updateRanges();
   }

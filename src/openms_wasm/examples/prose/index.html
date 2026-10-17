@@ -36,7 +36,7 @@
         <div id="all-parameters"></div>
       </details>
       <div class="row">
-        <label class="inline" title="Rescore the PSMs with Percolator, in-process, as the ProSE tool's -rescore: a model trained on the target and decoy PSMs replaces the search engine scores by q-values. Needs decoys and at least 100 PSMs.">
+        <label class="inline" title="Rescore the PSMs with Percolator, in-process, as the ProSE tool does by default (Search:rescore): a model trained on the target and decoy PSMs replaces the search engine scores by q-values. Needs decoys and at least 100 PSMs.">
           <input type="checkbox" id="rescore" checked> Rescore with Percolator</label>
         <label class="inline" id="peptdeep-box" hidden title="PeptDeep (AlphaPeptDeep, ONNX Runtime) predicts the fragment intensities and the retention time of every PSM; their agreement with the spectrum becomes five more Percolator features (ProSE's peptdeep:enable). Loads the models (19 MB) on first use; needs Percolator rescoring.">
           <input type="checkbox" id="peptdeep"> with PeptDeep features (predicted spectra and retention times)</label>

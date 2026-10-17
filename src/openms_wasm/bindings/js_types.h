@@ -92,8 +92,18 @@ namespace OpenMS::WASM::JS
   OPENMS_WASM_JS_TYPE(ProgressCallback);
   OPENMS_WASM_JS_TYPE(ProSESummary);
   OPENMS_WASM_JS_TYPE(ProSEOptions);
+  OPENMS_WASM_JS_TYPE(ProSEFilesOptions);
+  OPENMS_WASM_JS_TYPE(ProSEFileSummary);
+  OPENMS_WASM_JS_TYPE(ProSEMultiSummary);
+  OPENMS_WASM_JS_TYPE(ResultTables);
+  OPENMS_WASM_JS_TYPE(StoredSpectra);
   OPENMS_WASM_JS_TYPE(AnnotationOptions);
   OPENMS_WASM_JS_TYPE(SpectrumAnnotation);
+  OPENMS_WASM_JS_TYPE(PeakMatch);
+  OPENMS_WASM_JS_TYPE(PeakAnnotationResult);
+  OPENMS_WASM_JS_TYPE(PredictedIon);
+  OPENMS_WASM_JS_TYPE(PredictedIons);
+  OPENMS_WASM_JS_TYPE(ModelPathInput);
 
   // features
   OPENMS_WASM_JS_TYPE(BoundingBox);
