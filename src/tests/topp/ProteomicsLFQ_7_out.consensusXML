@@ -26,7 +26,7 @@
 				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="3.6.0-pre-claude-openms-pr-9781-tests-2bpami-2026-07-22"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.7.0-pre-HEAD-2026-10-13"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -554,7 +554,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6878260161865568505"/>
 		</consensusElement>
-		<consensusElement id="e_12758854762884412659" quality="0.936618" charge="3">
+		<consensusElement id="e_12758854762884412659" quality="0.910279" charge="3">
 			<centroid rt="2261.25968001314277" mz="435.910228820904251" it="1.5863716e07"/>
 			<groupedElementList>
 				<element map="0" id="2927519776102075938" rt="2298.177860719876662" mz="435.910228820904251" it="2.26047e05" charge="3"/>
@@ -573,7 +573,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="12758854762884412659"/>
 		</consensusElement>
-		<consensusElement id="e_17287849381738438716" quality="0.940335" charge="2">
+		<consensusElement id="e_17287849381738438716" quality="0.912093" charge="2">
 			<centroid rt="2294.989851757738506" mz="464.250362519471025" it="1.8806003e08"/>
 			<groupedElementList>
 				<element map="0" id="3023658190814908261" rt="2334.575496276142076" mz="464.250362519471025" it="2.6090838e08" charge="2"/>
@@ -610,7 +610,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="12561328592123678330"/>
 		</consensusElement>
-		<consensusElement id="e_2660422259164526995" quality="0.970623" charge="2">
+		<consensusElement id="e_2660422259164526995" quality="0.955957" charge="2">
 			<centroid rt="2371.154602033372157" mz="501.795134726820947" it="6.963116e07"/>
 			<groupedElementList>
 				<element map="0" id="12524258085768770586" rt="2391.711976196807882" mz="501.795134726820947" it="7.702177e07" charge="2"/>

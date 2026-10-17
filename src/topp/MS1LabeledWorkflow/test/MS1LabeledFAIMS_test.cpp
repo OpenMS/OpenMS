@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
@@ -108,6 +109,32 @@ ConsensusMap makeMap(Size run)
   map.updateRanges();
   return map;
 }
+
+/// One channel feature per handle of @p map, as the workflow builds them: the handle's unique id and a convex hull
+/// around its elution region, at the CV of its multiplet.
+FeatureMap channelsOf(const ConsensusMap& map)
+{
+  FeatureMap channels;
+  for (const auto& multiplet : map)
+  {
+    for (const auto& handle : multiplet.getFeatures())
+    {
+      Feature channel;
+      channel.setUniqueId(handle.getUniqueId());
+      channel.setRT(handle.getRT());
+      channel.setMZ(handle.getMZ());
+      channel.setCharge(handle.getCharge());
+      channel.setIntensity(handle.getIntensity());
+      channel.setMetaValue(Constants::UserParam::FAIMS_CV, multiplet.getMetaValue(Constants::UserParam::FAIMS_CV));
+      ConvexHull2D hull;
+      hull.addPoint(DPosition<2>(handle.getRT() - 2.0, handle.getMZ() - 0.005));
+      hull.addPoint(DPosition<2>(handle.getRT() + 2.0, handle.getMZ() + 0.005));
+      channel.getConvexHulls().push_back(hull);
+      channels.push_back(channel);
+    }
+  }
+  return channels;
+}
 } // namespace
 
 START_TEST(MS1LabeledFAIMS, "$Id$")
@@ -163,21 +190,30 @@ START_SECTION((static void annotateCompensationVoltages(const MSExperiment&, Pep
 }
 END_SECTION
 
-START_SECTION((static void annotate(const IDMapper&, ConsensusMap&, const IdentificationData&)))
+START_SECTION((static void annotate(const IDMapper&, ConsensusMap&, const FeatureMap&, const IdentificationData&)))
 {
   auto map = makeMap(0);
   const auto proteins = IdentificationDataConverter::proteinIdentifications(map);
   map.clearIdentifications();
+  const FeatureMap channels = channelsOf(map);
   IDMapper mapper;
   // The wrong CV is an exact m/z match. It must never receive the identification.
-  PeptideIdentificationList ids {makeId("scan=4", -65.0), makeId("scan=9", -85.0)};
-  MS1LabeledFAIMS::annotate(mapper, map, IdentificationDataAdapter::fromLegacy(proteins, ids));
+  PeptideIdentificationList ids {makeId("scan=4", -65.0), makeId("scan=9", -85.0), makeId("scan=3", -45.0)};
+  // The last ID is on the heavy channel of the -45 multiplet.
+  ids[2].setMZ(504.0071);
+  MS1LabeledFAIMS::annotate(mapper, map, channels, IdentificationDataAdapter::fromLegacy(proteins, ids));
   TEST_EQUAL(map.size(), 2)
   const auto& data = map.getIdentificationData();
-  TEST_EQUAL(map[0].getLinkedIdentifications(data).size(), 0)
+  const auto heavy_linked = map[0].getLinkedIdentifications(data);
+  TEST_EQUAL(heavy_linked.size(), 1)
+  ABORT_IF(heavy_linked.size() != 1)
+  TEST_EQUAL(heavy_linked[0].query->data_id, "scan=3")
+  TEST_EQUAL((int)heavy_linked[0].query->getMetaValue("map_index"), 1)
+  TEST_EQUAL(heavy_linked[0].matches.size(), 1)
   const auto linked = map[1].getLinkedIdentifications(data);
   TEST_EQUAL(linked.size(), 1)
   ABORT_IF(linked.size() != 1)
+  TEST_EQUAL(linked[0].query->data_id, "scan=4")
   TEST_EQUAL((int)linked[0].query->getMetaValue("map_index"), 0)
   const auto unassigned = map.getUnassignedIdentifications();
   TEST_EQUAL(unassigned.size(), 1)
@@ -187,6 +223,31 @@ START_SECTION((static void annotate(const IDMapper&, ConsensusMap&, const Identi
   TEST_EQUAL(map.getColumnHeaders().at(0).filename, "run0.mzML")
   // the mapper given keeps its parameters
   TEST_EQUAL(mapper.getParameters().getValue("match_meta_value").toString(), "")
+
+  // An ID matching both channels of a multiplet is attached to it once, with the first channel it matched.
+  IDMapper wide;
+  Param param = wide.getParameters();
+  param.setValue("mz_tolerance", 5.0);
+  param.setValue("mz_measure", "Da");
+  wide.setParameters(param);
+  auto both = makeMap(0);
+  both.clearIdentifications();
+  PeptideIdentificationList between {makeId("scan=3", -45.0)};
+  between[0].setMZ(502.0);
+  MS1LabeledFAIMS::annotate(wide, both, channelsOf(both), IdentificationDataAdapter::fromLegacy(proteins, between));
+  const auto once = both[0].getLinkedIdentifications(both.getIdentificationData());
+  TEST_EQUAL(once.size(), 1)
+  ABORT_IF(once.size() != 1)
+  TEST_EQUAL((int)once[0].query->getMetaValue("map_index"), 0)
+  TEST_EQUAL(both[1].getLinkedIdentifications(both.getIdentificationData()).size(), 0)
+  TEST_EQUAL(both.getUnassignedIdentifications().size(), 0)
+  TEST_EQUAL(both.getIdentificationData().getRuns().front().getNumberOfIdentifications(), 1)
+
+  // A matched channel feature that belongs to no multiplet is a caller error (new map, new handle ids).
+  auto other = makeMap(0);
+  other.clearIdentifications();
+  PeptideIdentificationList heavy {ids[2]};
+  TEST_EXCEPTION(Exception::InvalidValue, MS1LabeledFAIMS::annotate(mapper, other, channels, IdentificationDataAdapter::fromLegacy(proteins, heavy)))
 }
 END_SECTION
 

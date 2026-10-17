@@ -97,7 +97,7 @@ production code.
 
 
 To discover the full set of functionality of :py:class:`~.MSSpectrum`, we use the Python
-:py:func:`~.help` function. In particular, we find several important sets of meta
+``help()`` function. In particular, we find several important sets of meta
 information attached to the mass spectrum including retention time, the MS level
 (:term:`MS1`, :term:`MS2`, ...), precursor ion, ion mobility drift time and extra data arrays.
 
@@ -821,7 +821,7 @@ to only retain a list of MS scans we are interested in:
 Note: the scan numbers are the index of the respective spectra in the data file (mzML). This may not be identical to the vendor scan number, especially if the data has been sliced/filtered before.            
             
 Advanced Filtering of NativeID via SpectrumLookup
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To find a spectrum using their original scan number from their native ID we can use :py:class:`~.SpectrumLookup`:
 

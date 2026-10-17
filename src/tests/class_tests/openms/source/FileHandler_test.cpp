@@ -15,6 +15,9 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -151,10 +154,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
-  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() resolves this to
-  // BRUKER_TDF for an existing, non-directory ".zip" whose name strips to ".d".
-  // SDK-free: only the name and the file's existence matter for type detection,
-  // not the archive contents.
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() looks at the list of entries of
+  // the archive (see BrukerTimsFile_test for archives with entries). A file whose entries
+  // cannot be listed, as this one, is taken for Bruker data by its name; the reader then
+  // reports what is wrong with it.
   {
     std::string dzip_base;
     NEW_TMP_FILE(dzip_base)
@@ -166,6 +169,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
 #else
     TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
 #endif
+    File::remove(dzip);
+    // an archive that can be read but has no entries (just the end of central directory record) holds no .d
+    { std::ofstream os(dzip.c_str(), std::ios::binary); os << std::string("PK\005\006", 4) << std::string(18, '\0'); }
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN)
     File::remove(dzip);
   }
 
@@ -389,7 +396,7 @@ START_SECTION((void loadImagingExperiment(const std::string& filename, MSImaging
 END_SECTION
 
 #ifdef WITH_OPENTIMS
-START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and routed by loadImagingExperiment))
+START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and transformExperiment and routed by loadImagingExperiment))
 {
   // Fake .d folders with only GlobalMetadata: enough for type detection and the
   // imaging probe, both of which run before any frame is read. TempDir removes them
@@ -406,11 +413,45 @@ START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and route
   };
 
   PeakMap exp;
-  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(fake_d("Imaging"), exp))
+  const std::string imaging = fake_d("Imaging");
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging, exp))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
 
   // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
   MSImagingExperiment img;
   TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(fake_d("SingleSpectra"), img))
+}
+END_SECTION
+
+START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
+{
+  // TDF data is what can be read. TSF and BAF data (no ion mobility) are taken as Bruker .d as well, so
+  // that loading them fails with a message that names the format, not with an unknown file type.
+  TempDir tmp_dir;
+  auto make_d = [&tmp_dir](const std::string& name, const std::string& file)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    if (!file.empty()) { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
+    return d;
+  };
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf_bin", "analysis.tdf_bin")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf") + "/"), FileTypes::BRUKER_TDF) // as shells complete it
+  TEST_EQUAL(FileHandler::getType(make_d("tsf", "analysis.tsf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("baf", "analysis.baf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("empty", "")), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getType(make_d("other", "readme.txt")), FileTypes::UNKNOWN)
+
+  PeakMap exp;
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
 }
 END_SECTION
 #endif
@@ -924,6 +965,124 @@ START_SECTION(([EXTRA] transformExperiment applies PeakFileOptions to mzML and m
       TEST_EQUAL(data.getNrChromatograms(), loaded.getNrChromatograms())
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the ion mobility range of the PeakFileOptions, for any format))
+{
+  // FileHandler applies PeakFileOptions::setIMRange() itself, also to the formats whose readers do not know it: the peaks
+  // outside the range leave the spectra with an ion mobility per peak, the spectra with a single ion mobility outside it
+  // are left out, and the spectra without ion mobility stay.
+  PeakMap exp;
+  MSSpectrum per_peak;
+  per_peak.setRT(1.0);
+  per_peak.setNativeID("spectrum=1");
+  for (const auto& [mz, im] : std::vector<std::pair<double, float>>{{100.0, 0.7f}, {200.0, 0.95f}, {300.0, 1.05f}, {400.0, 1.3f}})
+  {
+    per_peak.push_back(Peak1D(mz, 10.0f));
+    if (per_peak.getFloatDataArrays().empty()) per_peak.getFloatDataArrays().resize(1);
+    per_peak.getFloatDataArrays()[0].push_back(im);
+  }
+  IMDataConverter::setIMUnit(per_peak.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+  exp.addSpectrum(per_peak);
+  for (const auto& [rt, drift_time] : std::vector<std::pair<double, double>>{{2.0, 1.0}, {3.0, 1.5}})
+  {
+    MSSpectrum single;
+    single.setRT(rt);
+    single.setMSLevel(2);
+    single.setNativeID("spectrum=" + std::to_string(static_cast<int>(rt)));
+    single.setDriftTime(drift_time);
+    single.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    // as BrukerTimsFile gives DDA MS2 spectra; mzML stores the ion mobility of the precursor
+    Precursor precursor;
+    precursor.setMZ(700.0);
+    precursor.setDriftTime(drift_time);
+    precursor.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    single.setPrecursors({precursor});
+    single.push_back(Peak1D(500.0, 5.0f));
+    exp.addSpectrum(single);
+  }
+  MSSpectrum without;
+  without.setRT(4.0);
+  without.setNativeID("spectrum=4");
+  without.push_back(Peak1D(600.0, 5.0f));
+  exp.addSpectrum(without);
+
+  std::string file;
+  NEW_TMP_FILE(file);
+  file += ".mzML";
+  MzMLFile().store(file, exp);
+
+  FileHandler handler;
+  handler.getOptions().setIMRange(DRange<1>(0.9, 1.1));
+  PeakMap loaded;
+  handler.loadExperiment(file, loaded);
+  TEST_EQUAL(loaded.size(), 3)
+  ABORT_IF(loaded.size() != 3)
+  TEST_EQUAL(loaded[0].size(), 2)
+  TEST_REAL_SIMILAR(loaded[0][0].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(loaded[0][1].getMZ(), 300.0)
+  TEST_EQUAL(loaded[0].containsIMData(), true)
+  TEST_EQUAL(loaded[0].getFloatDataArrays()[loaded[0].getIMData().first].size(), 2)
+  TEST_REAL_SIMILAR(loaded[1].getDriftTime(), 1.0)
+  TEST_REAL_SIMILAR(loaded[2].getRT(), 4.0)
+
+  // the same when streamed
+  MSDataStoringConsumer streamed;
+  handler.transformExperiment(file, &streamed);
+  TEST_EQUAL(streamed.getData().size(), loaded.size())
+  ABORT_IF(streamed.getData().size() != loaded.size())
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    TEST_EQUAL(streamed.getData()[i] == loaded[i], true)
+  }
+
+  // SRM spectra: loadExperiment() turns them into chromatograms, after the ion mobility range has left out the spectra
+  // outside it. Two scans of one transition, at RT 1 (ion mobility 1.0, kept) and RT 2 (1.5, left out).
+  PeakMap srm;
+  for (const auto& [rt, drift_time] : std::vector<std::pair<double, double>>{{1.0, 1.0}, {2.0, 1.5}})
+  {
+    MSSpectrum scan;
+    scan.setRT(rt);
+    scan.setMSLevel(2);
+    scan.setNativeID("scan=" + std::to_string(static_cast<int>(rt)));
+    scan.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+    Precursor precursor;
+    precursor.setMZ(500.0);
+    precursor.setDriftTime(drift_time);
+    precursor.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    scan.setPrecursors({precursor});
+    scan.setDriftTime(drift_time);
+    scan.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    scan.push_back(Peak1D(400.0, 100.0f * static_cast<float>(rt)));
+    srm.addSpectrum(scan);
+  }
+  std::string srm_file;
+  NEW_TMP_FILE(srm_file);
+  srm_file += ".mzML";
+  MzMLFile().store(srm_file, srm);
+
+  PeakMap srm_all;
+  FileHandler().loadExperiment(srm_file, srm_all);
+  TEST_EQUAL(srm_all.getChromatograms().size(), 1)
+  ABORT_IF(srm_all.getChromatograms().size() != 1)
+  TEST_EQUAL(srm_all.getChromatograms()[0].size(), 2) // without a range, both scans
+
+  PeakMap srm_loaded;
+  handler.loadExperiment(srm_file, srm_loaded);
+  TEST_EQUAL(srm_loaded.size(), 0) // the SRM spectra became chromatograms
+  TEST_EQUAL(srm_loaded.getChromatograms().size(), 1)
+  ABORT_IF(srm_loaded.getChromatograms().size() != 1)
+  TEST_EQUAL(srm_loaded.getChromatograms()[0].size(), 1)
+  ABORT_IF(srm_loaded.getChromatograms()[0].size() != 1)
+  TEST_REAL_SIMILAR(srm_loaded.getChromatograms()[0][0].getRT(), 1.0)
+
+  // streamed, the SRM spectra stay spectra; the same one is left out
+  MSDataStoringConsumer srm_streamed;
+  handler.transformExperiment(srm_file, &srm_streamed);
+  TEST_EQUAL(srm_streamed.getData().size(), 1)
+  ABORT_IF(srm_streamed.getData().size() != 1)
+  TEST_REAL_SIMILAR(srm_streamed.getData()[0].getRT(), 1.0)
 }
 END_SECTION
 

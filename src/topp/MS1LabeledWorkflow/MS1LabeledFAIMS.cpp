@@ -16,6 +16,8 @@
 #include <cmath>
 #include <iterator>
 #include <set>
+#include <unordered_map>
+#include <utility>
 
 namespace OpenMS
 {
@@ -200,14 +202,95 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
   return result;
 }
 
-void MS1LabeledFAIMS::annotate(const IDMapper& mapper, ConsensusMap& map, const IdentificationData& ids)
+void MS1LabeledFAIMS::annotate(const IDMapper& mapper, ConsensusMap& map, const FeatureMap& channels, const IdentificationData& ids)
 {
+  using ID = IdentificationData;
+
+  // channel feature (= handle unique id) -> (multiplet, channel)
+  std::unordered_map<UInt64, std::pair<Size, Size>> channel_of;
+  for (Size m = 0; m < map.size(); ++m)
+  {
+    for (const FeatureHandle& handle : map[m].getFeatures())
+    {
+      channel_of.emplace(handle.getUniqueId(), std::make_pair(m, static_cast<Size>(handle.getMapIndex())));
+    }
+  }
+
+  // The channels and IDs of one CV are mapped together; the channels get the identification data of the map, which
+  // the mapping adds the runs of the IDs to.
   IDMapper constrained = mapper;
   Param param = constrained.getParameters();
   param.setValue("match_meta_value", Constants::UserParam::FAIMS_CV);
   constrained.setParameters(param);
-  constrained.annotate(map, ids, true, true);
-  map.sortByPosition();
+  FeatureMap part = channels;
+  part.getIdentificationData() = std::move(map.getIdentificationData());
+  part.updateRanges();
+  const Size recorded = part.getDataProcessing().size();
+  // RT and m/z from the convex hulls: the elution region of the channel, plus the tolerances
+  constrained.annotate(part, ids, false, false);
+  map.getDataProcessing().insert(map.getDataProcessing().end(), part.getDataProcessing().begin() + recorded, part.getDataProcessing().end());
+  ID& data = part.getIdentificationData();
+
+  // the source of every identification, for its copies
+  std::map<ID::QueryReference, ID::SourceId> source_of;
+  for (const auto& run : data.getRuns())
+  {
+    for (const auto& source : run.getSources())
+    {
+      for (const auto& query : source.identifications) { source_of.emplace(ID::QueryReference {run.getUuid(), query.getId()}, source.id); }
+    }
+  }
+
+  // Every assignment of an ID to a multiplet is a copy of it, with the matched channel as map index. A channel links
+  // the IDs it matched with all their matches.
+  struct Copy
+  {
+    std::string run;
+    ID::SourceId source;
+    ID::Observation observation;
+    std::vector<std::pair<ID::MatchData, std::vector<std::optional<double>>>> matches;
+    Size multiplet;
+  };
+  std::vector<Copy> copies;
+  std::set<ID::QueryReference> copied;
+  std::vector<std::set<ID::QueryReference>> attached(map.size()); // per multiplet: the IDs attached to it
+  for (const Feature& channel : part)
+  {
+    const auto linked = channel.getLinkedIdentifications(data);
+    if (linked.empty()) { continue; }
+    const auto it = channel_of.find(channel.getUniqueId());
+    if (it == channel_of.end())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A channel feature does not belong to any multiplet.",
+                                    StringUtils::toStr(channel.getUniqueId()));
+    }
+    const auto [multiplet, map_index] = it->second;
+    for (const auto& entry : linked)
+    {
+      const ID::QueryReference reference {entry.run->getUuid(), entry.query->getId()};
+      if (!attached[multiplet].insert(reference).second) { continue; } // already attached through another channel
+      Copy copy {entry.run->getIdentifier(), source_of.at(reference), entry.query->getObservation(), {}, multiplet};
+      copy.observation.setMetaValue("map_index", map_index);
+      for (const ID::Match* match : entry.matches) { copy.matches.emplace_back(match->getData(), entry.run->getScores(*match)); }
+      copies.push_back(std::move(copy));
+      copied.insert(reference);
+    }
+  }
+
+  // the copies are listed after all other identifications, in the order of assignment
+  UInt64 next = 1;
+  for (const auto& run : data.getRuns()) { next = std::max(next, run.getNextQueryId()); }
+  for (auto& copy : copies)
+  {
+    auto& run = data.getRun(copy.run);
+    const ID::QueryId query = run.importIdentification(copy.source, ID::QueryId {next++}, std::move(copy.observation));
+    ConsensusFeature& feature = map[copy.multiplet];
+    feature.addIDQuery({run.getUuid(), query});
+    for (const auto& [match, scores] : copy.matches) { feature.addIDMatch({run.getUuid(), run.addMatch(query, match, scores)}); }
+  }
+  // the attached IDs are replaced by their copies; the others stay unassigned
+  data.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) { return copied.contains({run.getUuid(), query.getId()}); });
+  map.getIdentificationData() = std::move(data);
   map.updateRanges();
 }
 

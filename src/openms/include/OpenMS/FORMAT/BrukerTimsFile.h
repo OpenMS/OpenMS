@@ -12,6 +12,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <string>
@@ -69,6 +70,11 @@ namespace OpenMS
                                            ///< (peptide database search) where MS1 surveys are not needed —
                                            ///< cuts memory and time substantially. Affects all export modes.
 
+      bool load_ms2 = true;                ///< Load MS2 spectra. Disable (false) for MS1-only workflows
+                                           ///< (feature detection, quantification): the MS2 frames are then
+                                           ///< not decoded and, for DDA, the precursor table is not read.
+                                           ///< Affects all export modes.
+
       /// Frame ID range filter (inclusive). Only frames with
       /// frame_id_min <= Id <= frame_id_max are read; all peak data for frames
       /// outside the range is skipped, so memory and I/O scale with the range,
@@ -108,9 +114,36 @@ namespace OpenMS
       /// frame_id_min/frame_id_max. TIMS frame IDs are monotonic in
       /// acquisition time, so an RT range maps to a contiguous frame_id
       /// sub-range. Defaults (0.0, +inf) impose no RT filter. All other
-      /// interplay caveats listed on frame_id_min apply identically.
+      /// interplay caveats listed on frame_id_min apply identically, unless
+      /// rt_selects_spectra is set.
       double rt_min_sec = 0.0;
       double rt_max_sec = std::numeric_limits<double>::infinity();
+
+      /// What the retention time range selects. false (default): frames, as
+      /// described above. true: spectra. load() and transform() then return
+      /// the spectra of a load without the range whose retention time lies in
+      /// [rt_min_sec, rt_max_sec], in the same form. A DDA MS2 spectrum (whose
+      /// retention time is the mean time of its frames) is built from all of
+      /// its frames, and aggregation over retention time (ms1_n_neighbors,
+      /// dia_ms2_n_neighbors) reads the neighboring frames outside the range
+      /// that the spectra in it need. Nothing is reconstructed partially.
+      /// frame_id_min/frame_id_max still select frames. With calibrate = true,
+      /// the OLS fit uses the selected precursors only. readDIAMetadata() and
+      /// loadDIAStreaming() select frames either way.
+      bool rt_selects_spectra = false;
+
+      /// Ion mobility range filter (inclusive, 1/K0 in V·s/cm²). load() and
+      /// transform() return the spectra of a load without it, filtered: the
+      /// peaks outside the range are removed from the spectra with an ion
+      /// mobility per peak (MS1, DIA MS2, FRAME mode), and a DDA MS2 spectrum,
+      /// which has a single ion mobility, is left out if that lies outside.
+      /// DDA precursors isolated entirely outside the range are skipped before
+      /// their frames are decoded; with calibrate = true, the OLS fit uses the
+      /// precursors isolated at least partly inside it. Defaults (0.0, +inf)
+      /// impose no filter; a NaN bound, like im_min > im_max, leaves no peaks.
+      /// readDIAMetadata() and loadDIAStreaming() ignore it.
+      double im_min = 0.0;
+      double im_max = std::numeric_limits<double>::infinity();
 
       /// Centroiding algorithms for IM-PASEF frames.
       ///   - Off:       no IM-axis centroiding (raw detector peaks pass through).
@@ -224,6 +257,35 @@ namespace OpenMS
       std::string bruker_sdk_path;
     };
 
+    /// The Bruker data format of a .d directory, as told by the names of its files
+    enum class DataFormat
+    {
+      NONE,              ///< no Bruker data: none of the files below, or not a directory or ZIP archive at all
+      TDF,               ///< timsTOF data with ion mobility (analysis.tdf, analysis.tdf_bin): what this class reads
+      TSF,               ///< timsTOF data without ion mobility (analysis.tsf, analysis.tsf_bin): cannot be read
+      BAF,               ///< QTOF data (analysis.baf): cannot be read
+      UNREADABLE_ARCHIVE ///< a ZIP archive whose list of entries could not be read
+    };
+
+    /**
+      @brief Which Bruker data format the .d directory or '.d.zip' archive @p path holds
+
+      Only file names are looked at, in an archive its list of entries (nothing is extracted), so the
+      call is cheap and does not throw. In an archive the files have to be in a directory named '*.d',
+      as load() requires; '__MACOSX' directories are ignored. TDF takes precedence over TSF, and TSF
+      over BAF, if the files of several formats are present.
+    */
+    static DataFormat detectFormat(const std::string& path);
+
+    /**
+      @brief Checks that @p path does not hold Bruker data in a format that cannot be read
+
+      load() and the other read functions call this, so there is no need to call it before them.
+
+      @throws Exception::ParseError if detectFormat() finds TSF or BAF data
+    */
+    static void checkDataFormat(const std::string& path);
+
     /// Metadata for constructing a FullSwathFileConsumer for DIA streaming.
     struct DIAStreamingMetadata
     {
@@ -248,29 +310,47 @@ namespace OpenMS
                           const Config& config);
 
     /// Load entire .d directory into MSExperiment
+    /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF
+    ///         data that is not zstd-compressed (TimsCompressionType other than 2), or a '.d.zip' archive without a
+    ///         .d directory. The other read functions throw the same.
+    /// @throws Exception::FileNotReadable if opentims cannot open the directory
     void load(const std::string& path, MSExperiment& exp);
     /// @overload with explicit configuration
     void load(const std::string& path, MSExperiment& exp, const Config& config);
 
-    /// Feed spectra from a .d directory to a consumer.
-    /// @note Currently loads the full dataset into memory before streaming to the consumer.
-    ///       A future optimization should iterate frame-by-frame for true constant-memory operation.
+    /**
+      @brief Feeds the spectra of a .d directory to a consumer, without keeping them
+
+      The consumer gets what load() returns with the same configuration: the same spectra in the same
+      order (by retention time), each with its peaks in m/z order. They are handed over as they are
+      read, so the memory needed does not grow with the run. Two configurations are an exception and
+      are loaded completely before the first spectrum is handed over, as their spectra are not read in
+      order of retention time: DIA data with MS2 aggregation over retention time (dia_ms2_n_neighbors
+      > 0), and DDA data with calibrate = true while m/z comes from the linear model.
+
+      The consumer is told the experimental settings and the expected number of spectra before the
+      first spectrum. That number is an upper bound: a DDA precursor or a DIA window of a frame that
+      ends up without peaks gives no spectrum.
+    */
     void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer);
     /// @overload with explicit configuration
     void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
   private:
+    /// Receives the spectra a loader emits, one after the other. It may move from the spectrum.
+    using SpectrumSink = std::function<void(MSSpectrum&)>;
+
+    // The loaders emit their spectra in order of retention time, spectra of equal retention time MS1
+    // first, unless the configuration is one of the two that transform() names.
+
     /// Load DDA-PASEF data: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
-    void loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
+    void loadDDA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
     /// Load DIA-PASEF data: MS1 frames (IM_PEAK) + MS2 frames split by SWATH window
-    void loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
+    void loadDIA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
     /// Load raw frames without precursor grouping or SWATH splitting
-    void loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
-
-    /// Detect DDA vs DIA by checking for SWATH windows
-    bool isDIA_(const std::string& tdf_path) const;
+    void loadFrames_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
     /// Populate SourceFile metadata from the input @p path and the run and instrument metadata from the analysis.tdf of
     /// the .d directory @p d_path (the unpacked directory for a .d.zip; no peak data read)

@@ -339,6 +339,98 @@ START_SECTION(([EXTRA] resolve() keeps the identifications of conflicting multip
 }
 END_SECTION
 
+START_SECTION((std::vector<bool> checkIdentifications(const ConsensusFeature& consensus, const IdentificationData& data) const))
+{
+  MultiplexResolverAlgorithm resolver;
+  // a Lys8 doublet carrying: the light peptide on the light feature (consistent), a better-scoring
+  // Arg10-labelled peptide on the light feature (its heavy partner would sit at the Arg10 shift),
+  // the heavy peptide on the heavy feature (consistent), an identification naming no handle,
+  // one without map index and one without matches
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setCharge(2);
+  cf.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
+  cf.insert(makeHandle(1, 100.0, 500.0 + LYS8 / 2, 2, 200.0));
+  // a duplex map with the multiplet, which links @p peptides
+  const auto map_with = [&cf](const PeptideIdentificationList& peptides)
+  {
+    ConsensusMap map;
+    map.setExperimentType("labeled_MS1");
+    map.getColumnHeaders() = makeDuplexMap().getColumnHeaders();
+    map.push_back(cf);
+    map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    MapPeptideIdentifications ids;
+    ids.features[{0}] = peptides;
+    Internal::ClassTest::addSearchRun(ids);
+    Internal::ClassTest::setIdentifications(map, ids);
+    return map;
+  };
+  PeptideIdentificationList peptides;
+  peptides.push_back(makeId("PEPTIDEK", 2, 0));
+  PeptideIdentification wrong = makeId("PEPTIDER(Label:13C(6)15N(4))", 2, 0);
+  wrong.getHits()[0].setScore(0.001);
+  peptides.push_back(wrong);
+  peptides.push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))", 2, 1));
+  peptides.push_back(makeId("PEPTIDEK", 2, 5));
+  PeptideIdentification no_index = makeId("PEPTIDEK", 2, 0);
+  no_index.removeMetaValue("map_index");
+  peptides.push_back(no_index);
+  PeptideIdentification no_hits = makeId("PEPTIDEK", 2, 0);
+  no_hits.setHits({});
+  peptides.push_back(no_hits);
+  const ConsensusMap map = map_with(peptides);
+  // in the order of the peptide identifications
+  ABORT_IF(Internal::ClassTest::peptidesOf(map, {0}).size() != 6)
+  TEST_EQUAL(Internal::ClassTest::peptidesOf(map, {0})[1].getHits()[0].getSequence().toString(), "PEPTIDER(Label:13C(6)15N(4))")
+
+  const std::vector<bool> consistent = resolver.checkIdentifications(map[0], map.getIdentificationData());
+  TEST_EQUAL(consistent.size(), 6)
+  TEST_TRUE(consistent[0])
+  TEST_FALSE(consistent[1])
+  TEST_TRUE(consistent[2])
+  TEST_FALSE(consistent[3])
+  TEST_FALSE(consistent[4])
+  TEST_FALSE(consistent[5])
+
+  // the same verdict as resolve() reaches for the first identification
+  ConsensusMap out, conflicts;
+  resolver.resolve(map_with({wrong}), out, conflicts);
+  TEST_EQUAL(out.size(), 0)
+  TEST_EQUAL(conflicts.size(), 1)
+
+  // a multiplet without features has nothing to agree with
+  TEST_EQUAL(resolver.checkIdentifications(ConsensusFeature(), map.getIdentificationData()).size(), 0)
+}
+END_SECTION
+
+START_SECTION((std::vector<double> expectedChannelMZs(const AASequence& sequence, int charge, Size& position) const))
+{
+  MultiplexResolverAlgorithm resolver;
+  Size position = 99;
+  // the light peptide of a K-terminal peptide: light, then Lys8
+  const AASequence light = AASequence::fromString("PEPTIDEK");
+  std::vector<double> mzs = resolver.expectedChannelMZs(light, 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 0)
+  TEST_REAL_SIMILAR(mzs[0], light.getMZ(2))
+  TEST_REAL_SIMILAR(mzs[1], light.getMZ(2) + LYS8 / 2)
+
+  // its heavy form names the heavy channel; an R-terminal light peptide gets the Arg10 shift
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEPTIDEK(Label:13C(6)15N(2))"), 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 1)
+  TEST_REAL_SIMILAR(mzs[0], light.getMZ(2))
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEPTIDER"), 3, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], ARG10 / 3)
+
+  // no pattern: two labelled residues with max_nr_labelled_aas = 0, or no charge
+  TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEKPTIDEK"), 2, position).size(), 0)
+  TEST_EQUAL(resolver.expectedChannelMZs(light, 0, position).size(), 0)
+}
+END_SECTION
+
 START_SECTION((FAIMS metadata and CV - specific blacklisting))
 {
   auto in = makeDuplexMap();

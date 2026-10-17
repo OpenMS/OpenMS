@@ -180,6 +180,10 @@ public:
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
       The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
       (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
+      Bruker .d directories and .d.zip archives (OpenMS built with WITH_OPENTIMS): the MS levels and the RT and ion mobility ranges are passed to the reader,
+      which selects the spectra by their RT (a DDA MS2 spectrum is built from all of its frames) and skips the DDA precursors isolated outside the ion
+      mobility range, so the frames they exclude are not decoded; all options are then applied to the loaded spectra.
+      The ion mobility range (PeakFileOptions::setIMRange()) is applied to the data of every format here; the format readers themselves ignore it.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -193,12 +197,18 @@ public:
 
       The consumer receives IMSDataConsumer::setExpectedSize() and IMSDataConsumer::setExperimentalSettings()
       first, then the spectra and chromatograms. Supported are mzML (MzMLFile::transform), mzXML
-      (MzXMLFile::transform) and Thermo .raw (ThermoRawFile::transform, OpenMS built with WITH_THERMO_RAW).
+      (MzXMLFile::transform), Thermo .raw (ThermoRawFile::transform, OpenMS built with WITH_THERMO_RAW) and
+      Bruker timsTOF .d directories and .d.zip archives (BrukerTimsFile::transform, OpenMS built with WITH_OPENTIMS).
       The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
-      scan-level options passed to the reader, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
+      scan-level options passed to the reader, as by loadExperiment(). For .d data the reader skips the frames
+      the options exclude, as for loadExperiment(), and every spectrum is then filtered on its way to the
+      consumer. Bruker MALDI imaging data is rejected, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
       that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
       to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
-      numbers of selected spectra and chromatograms.
+      numbers of selected spectra and chromatograms. For .d data the number of spectra is an upper bound: it is
+      counted before any peak is read (see BrukerTimsFile::transform()), and the spectra the options exclude
+      are not subtracted. Some Bruker configurations are loaded completely before the first spectrum is passed
+      on (see BrukerTimsFile::transform()); the default configuration used here is not one of them.
 
       @param[in] filename The file to read
       @param[in] consumer Receives the data (not owned)
@@ -503,11 +513,14 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths whose loaders read all scans/peaks regardless of
-      PeakFileOptions (Bruker .d), and for the per-peak filters on Thermo .raw (the
-      scan-level filters are passed to ThermoRawFile). Filters MS level, RT range, precursor
-      m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end.
+      Used by the vendor-format paths. Bruker .d: loadExperiment() has the reader skip the
+      MS levels, retention times and DDA precursors the options exclude, so that this data
+      is not decoded; the filters here make the result exact (the reader's ranges are
+      inclusive). Thermo .raw: the scan-level filters are passed to ThermoRawFile, only the
+      per-peak filters are applied here. Filters MS level, RT range, precursor m/z range,
+      ion mobility range, per-peak m/z and intensity ranges, and strips peak data when
+      metadata-only is requested or fill-data is off. transformExperiment() applies the same
+      filters to each spectrum. Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 

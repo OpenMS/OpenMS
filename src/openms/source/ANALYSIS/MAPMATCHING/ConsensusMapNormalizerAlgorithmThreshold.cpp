@@ -26,20 +26,22 @@ namespace OpenMS
     // the filters read the identification data
     const ConsensusMap& map = input_map;
     Size number_of_features = map.size();
-    Size number_of_maps = map.getColumnHeaders().size();
+    // the maps are numbered by their position among the column headers: map indices need not be consecutive
+    const std::map<UInt64, Size> positions = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(map);
+    Size number_of_maps = positions.size();
     vector<vector<double> > feature_int(number_of_maps);
 
-    //get map with most features, resize feature_int
-    UInt map_with_most_features_idx = 0;
-    ConsensusMap::ColumnHeaders::const_iterator map_with_most_features = map.getColumnHeaders().find(0);
-    for (UInt i = 0; i < number_of_maps; i++)
+    //get map with most features (ties: the first one), resize feature_int
+    Size most_features = 0;
+    Size map_with_most_features_idx = 0;
+    for (const auto& [map_index, header] : map.getColumnHeaders())
     {
-      feature_int[i].resize(number_of_features);
-      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
-      if (it->second.size > map_with_most_features->second.size)
+      const Size pos = positions.at(map_index);
+      feature_int[pos].resize(number_of_features);
+      if (header.size > most_features)
       {
-        map_with_most_features = it;
-        map_with_most_features_idx = i;
+        most_features = header.size;
+        map_with_most_features_idx = pos;
       }
     }
 
@@ -58,7 +60,7 @@ namespace OpenMS
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        feature_int[f_it->getMapIndex()][idx] = f_it->getIntensity();
+        feature_int[ConsensusMapNormalizerAlgorithmMedian::mapPosition_(positions, f_it->getMapIndex())][idx] = f_it->getIntensity();
       }
     }
 
@@ -92,6 +94,7 @@ namespace OpenMS
 
   void ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(ConsensusMap& map, const vector<double>& ratios)
   {
+    const std::map<UInt64, Size> positions = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(map);
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;
     progresslogger.setLogType(ProgressLogger::CMD);
@@ -102,7 +105,7 @@ namespace OpenMS
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        f_it->asMutable().setIntensity(f_it->getIntensity() * ratios[f_it->getMapIndex()]);
+        f_it->asMutable().setIntensity(f_it->getIntensity() * ratios[ConsensusMapNormalizerAlgorithmMedian::mapPosition_(positions, f_it->getMapIndex())]);
       }
     }
     progresslogger.endProgress();
