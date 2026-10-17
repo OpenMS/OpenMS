@@ -105,6 +105,14 @@ OpenMS Library:
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
     when binning auto percentiles. MeanIterative selects the actual maximum and safely handles all-zero spectra (#10521).
+  - PERF: SignalToNoiseOpenMS keeps only the S/N values of its chromatogram: it computes them with the new static
+    SignalToNoiseEstimatorMedian::estimate(), which takes the parameters as a plain Settings struct, instead of
+    constructing an estimator with its whole parameter set for every chromatogram (about 4% of the CPU time of
+    OpenSWATH/OpenDIA scoring). The values are unchanged.
+  - PERF: PeakPickerHiRes no longer builds a SignalToNoiseEstimatorMedian with its whole parameter set for every
+    spectrum or chromatogram it picks: the S/N settings (new SignalToNoiseEstimatorMedianSettings) are read once and
+    the values come from the static SignalToNoiseEstimatorMedian::estimate(). The values are unchanged. OpenSWATH and
+    OpenDIA pick every fragment trace this way; a 150-point chromatogram takes about a fifth of the time to pick.
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every
