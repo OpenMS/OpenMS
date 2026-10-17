@@ -114,7 +114,6 @@
 
 
   <b>Identification Processing</b>
-  - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_Digestor - Digests a protein database in-silico.
   - @subpage TOPP_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage TOPP_Epifany - Bayesian protein inference based on PSM probabilities.

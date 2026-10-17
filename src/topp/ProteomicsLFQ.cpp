@@ -102,9 +102,8 @@ Input: @n
    (spectrum, peptidoform, charge), so where several identifications of one spectrum agree on
    all three, only the best-scoring one is kept and the reduction is reported. The others would
    otherwise count the same measurement more than once, in the PSM-level FDR and in every output.
-   Results from several search engines must therefore be combined - with @ref TOPP_ConsensusID
-   (@p -algorithm best @p -keep_old_scores, which preserves each engine's score) - rather than
-   simply concatenated. Identifications of one spectrum that name *different* peptidoforms are
+   Pass the results of one search engine rather than concatenating those of several, whose
+   scores are not comparable. Identifications of one spectrum that name *different* peptidoforms are
    left alone: a chimeric spectrum yields two distinct measurements.
 
   - An experimental design file: @n
@@ -268,8 +267,8 @@ protected:
       "ID files must be provided in same order as spectra files.\n"
       "One identification per spectrum is expected: where several identifications of one\n"
       "spectrum agree on peptidoform and charge, only the best-scoring one is kept, since\n"
-      "the others would count the same measurement more than once. Combine results from\n"
-      "several search engines with ConsensusID rather than concatenating them.", false);
+      "the others would count the same measurement more than once. Pass the results of one\n"
+      "search engine rather than concatenating those of several.", false);
     setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -1104,9 +1103,9 @@ protected:
                       << " repeat a (spectrum, peptidoform, charge) already claimed by another"
                          " identification, e.g. " << report.example << ".\n"
                          "Kept the best-scoring one of each group; the others would have counted"
-                         " the same measurement more than once. To control this upstream, combine"
-                         " search engine results with ConsensusID (-algorithm best"
-                         " -keep_old_scores) rather than concatenating them." << endl;
+                         " the same measurement more than once. To control this upstream, pass"
+                         " the results of one search engine rather than concatenating those of"
+                         " several." << endl;
     }
     if (report.inconsistent_score_direction > 0)
     {

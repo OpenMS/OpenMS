@@ -634,6 +634,10 @@ OpenMS Library:
     copy of the peptide list) and checks the candidate indices it was given.
     Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
     pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
+  - API: The ConsensusIDAlgorithm classes (Average, Best, Worst, Ranks, PEPMatrix, PEPIons, Identity,
+    Similarity) are removed, also from pyOpenMS, together with the TOPP tool ConsensusID (see there).
+    Identifications written by ConsensusID (search engine "OpenMS/ConsensusID_*") are still read, e.g. by
+    PosteriorErrorProbabilityModel and the mzTab export.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -671,6 +675,12 @@ TOPP tools:
       OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
+  Removed tools:
+    - BREAKING: ConsensusID removed. Its default mode grouped identifications of different spectra by
+      retention time and m/z, -per_spectrum by spectrum; no OpenMS workflow used either. OpenMS has no
+      tool to combine the results of several search engines: pass the results of one engine to the
+      quantification workflows. Conflicting identifications of one feature are resolved with
+      IDConflictResolver or FileFilter (-id:keep_best_score_id), as before.
   Changes:
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
