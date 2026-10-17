@@ -319,6 +319,9 @@ namespace OpenMS
         best_hit.setScore(it->second.first);
         id.setScoreType(score_type);
         id.setHigherScoreBetter(false); // peptide FDRs and q-values, whatever the search score was
+        // Only the best hit has a peptide FDR/q-value. Further hits would keep their search score under
+        // that score type, and filtering by it would keep or drop them at random, so remove them.
+        id.getHits().resize(1);
       }
       else
       {
