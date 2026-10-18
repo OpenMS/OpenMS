@@ -396,6 +396,32 @@ START_SECTION((static std::string extractBasename(const std::string& filepath)))
 }
 END_SECTION
 
+START_SECTION((static std::string extractMSRunName(const std::string& filepath)))
+{
+  // Recognized MS extensions are dropped, per USI spec section 3.3.4 ("root name of a .RAW or .mzML file")
+  TEST_STRING_EQUAL(USI::extractMSRunName("/path/to/sample.mzML"), "sample");
+  TEST_STRING_EQUAL(USI::extractMSRunName("/data/experiments/run1.raw"), "run1");
+  TEST_STRING_EQUAL(USI::extractMSRunName("sample.mzXML"), "sample");
+
+  // file:// URIs and Windows paths still go through extractBasename() first
+  TEST_STRING_EQUAL(USI::extractMSRunName("file:///C:/data/experiments/ES-0014b_2.mzML"), "ES-0014b_2");
+  TEST_STRING_EQUAL(USI::extractMSRunName("C:\\data\\sample.mzML"), "sample");
+
+  // An unrecognized extension (not a registered OpenMS file type) is left untouched
+  TEST_STRING_EQUAL(USI::extractMSRunName("/data/sample.unknownext"), "sample.unknownext");
+
+  // A name with no extension at all, or a leading dot only, is left untouched
+  TEST_STRING_EQUAL(USI::extractMSRunName("/data/sample"), "sample");
+  TEST_STRING_EQUAL(USI::extractMSRunName(".mzML"), ".mzML");
+
+  // Empty string
+  TEST_STRING_EQUAL(USI::extractMSRunName(""), "");
+
+  // A name with multiple dots only drops the last, recognized extension
+  TEST_STRING_EQUAL(USI::extractMSRunName("/data/HepG2_rep1_small.d.mzML"), "HepG2_rep1_small.d");
+}
+END_SECTION
+
 START_SECTION((static const std::string& getCVAccession()))
 {
   TEST_STRING_EQUAL(USI::getCVAccession(), "MS:1003063");

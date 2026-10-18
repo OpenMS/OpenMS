@@ -773,7 +773,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id1.setSpectrumReference("scan=100");
   USI usi1 = id1.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi1.isValid(), true);
-  TEST_STRING_EQUAL(usi1.getMSRun(), "file1.mzML");
+  TEST_STRING_EQUAL(usi1.getMSRun(), "file1");  // extension dropped, per USI spec section 3.3.4
   TEST_STRING_EQUAL(usi1.getCollection(), "PXD000561");
   TEST_STRING_EQUAL(usi1.getIndex(), "100");
 
@@ -783,7 +783,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id2.setSpectrumReference("scan=200");
   USI usi2 = id2.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi2.isValid(), true);
-  TEST_STRING_EQUAL(usi2.getMSRun(), "fileA.mzML");  // first file
+  TEST_STRING_EQUAL(usi2.getMSRun(), "fileA");  // first file, extension dropped
 
   // Test merged file case - explicit merge_index = 1
   PeptideIdentification id3;
@@ -792,7 +792,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id3.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
   USI usi3 = id3.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi3.isValid(), true);
-  TEST_STRING_EQUAL(usi3.getMSRun(), "fileB.mzML");  // second file
+  TEST_STRING_EQUAL(usi3.getMSRun(), "fileB");  // second file, extension dropped
 
   // Test with default dataset_id ("local")
   USI usi4 = id1.buildUSI(mapping);
@@ -801,7 +801,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
 
   // Test buildUSI().toString() with mapping
   std::string usi_str = id3.buildUSI(mapping, "PXD000561", false).toString();
-  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:fileB.mzML:scan:300");
+  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:fileB:scan:300");
 
   // Test invalid identifier returns invalid USI
   PeptideIdentification id_invalid;
@@ -829,7 +829,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   USI usi_interp = id_with_hit.buildUSI(mapping, "PXD000561", true);
   TEST_EQUAL(usi_interp.isValid(), true);
   TEST_STRING_EQUAL(usi_interp.getInterpretation(), "PEPTIDEK/2");
-  TEST_STRING_EQUAL(usi_interp.toString(), "mzspec:PXD000561:file1.mzML:scan:500:PEPTIDEK/2");
+  TEST_STRING_EQUAL(usi_interp.toString(), "mzspec:PXD000561:file1:scan:500:PEPTIDEK/2");
 }
 END_SECTION
 

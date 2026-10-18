@@ -666,6 +666,11 @@ Dependencies:
     accepted (#10522). With noise_data, scans without a centroid stream (e.g. ion trap
     scans) no longer carry a "sampled noise m/z array" without intensities; the vendor
     returned the segmented scan masses there, not noise samples.
+  - FIX: PeptideIdentification::buildUSI and TextExporter's -id:add_usi now drop a recognized MS
+    file extension (mzML, raw, mzXML, ...) from the msRun name, as USI spec section 3.3.4 defines
+    the msRun as the root name of a .RAW or .mzML file; keeping the extension produced a
+    non-universal USI. New USI::extractMSRunName(), also exposed in pyOpenMS; USI::extractBasename()
+    (which other callers rely on keeping the extension) is unchanged (#10591).
 
 TOPP tools:
   New tools:

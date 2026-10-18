@@ -10,6 +10,7 @@
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <boost/regex.hpp>
 #include <sstream>
@@ -372,6 +373,25 @@ namespace OpenMS
     }
 
     return path;
+  }
+
+  std::string USI::extractMSRunName(const std::string& filepath)
+  {
+    std::string basename = extractBasename(filepath);
+
+    size_t last_dot = basename.rfind('.');
+    if (last_dot == std::string::npos || last_dot == 0)
+    {
+      return basename;
+    }
+
+    std::string extension = StringUtils::substr(basename, last_dot + 1);
+    if (FileTypes::nameToType(extension) == FileTypes::UNKNOWN)
+    {
+      return basename;
+    }
+
+    return StringUtils::substr(basename, 0, last_dot);
   }
 
   const std::string& USI::getCVAccession()

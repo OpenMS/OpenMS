@@ -421,7 +421,7 @@ namespace OpenMS
   // not spectra_data); idXML/consensusXML set neither otherwise.
   std::string resolveUSIMSRun(const IdentifierMSRunMapper& mapper, const PeptideIdentification& pid)
   {
-    return USI::extractBasename(mapper.getPrimaryMSRunPath(pid));
+    return USI::extractMSRunName(mapper.getPrimaryMSRunPath(pid));
   }
 
   // write the header for peptide data
