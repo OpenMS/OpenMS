@@ -805,7 +805,8 @@ protected:
         {
           OPENMS_LOG_INFO << report.without_spectrum_reference << " identification(s) in " << id_file
                           << " carry no spectrum reference and were therefore not checked for"
-                             " repeats. They cannot be quantified either." << endl;
+                             " repeats. They cannot be quantified and are kept as unassigned"
+                             " identifications." << endl;
         }
         if (report.multiply_identified_spectra > 0)
         {
@@ -826,13 +827,22 @@ protected:
       // rate each one by its own match to the spectrum; creditBestPeptidoform_ relies on this order.
       std::vector<PeptideIdentificationList> ids_per_spectrum;
       std::vector<std::string> spectrum_refs;
+      // Identifications that cannot be quantified are kept as unassigned ones. Shared across the
+      // threads of the quantification loop below; insertion there is protected by a critical section.
+      PeptideIdentificationList unassigned_pep_ids;
+      auto keep_unassigned = [&](PeptideIdentification& pep)
+      {
+        pep.setIdentifier(ID_RUN_NAME_);
+        pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
+        unassigned_pep_ids.push_back(std::move(pep));
+      };
       {
         std::unordered_map<std::string, Size> spectrum_index;
         spectrum_index.reserve(pep_ids.size());
         for (auto& pep : pep_ids)
         {
           std::string spec_ref = pep.getSpectrumReference();
-          if (spec_ref.empty()) { continue; } // cannot be quantified
+          if (spec_ref.empty()) { keep_unassigned(pep); continue; }
           const auto [it, inserted] = spectrum_index.try_emplace(std::move(spec_ref), ids_per_spectrum.size());
           if (inserted)
           {
@@ -866,10 +876,6 @@ protected:
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
 
-      // Collect peptide IDs without corresponding MS3 spectra (thread-safe collection)
-      // Note: unassigned_pep_ids is shared across threads; insertion is protected by critical section
-      PeptideIdentificationList unassigned_pep_ids;
-
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t spec_idx = 0; spec_idx < static_cast<int64_t>(ids_per_spectrum.size()); ++spec_idx)
       {
@@ -885,19 +891,11 @@ protected:
           // Check if MS3 spectrum is missing for MS2 spectrum
           if (has_ms3 && quant_spec_idx == -1)
           {
-            // Store peptide IDs with file association for unassigned IDs
-            for (auto& pep : peps)
-            {
-              pep.setIdentifier(ID_RUN_NAME_);
-              pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
-            }
             #pragma omp critical(unassigned_pep_ids_collection)
             {
               OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second
                               << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned.\n";
-              unassigned_pep_ids.insert(unassigned_pep_ids.end(),
-                                        std::make_move_iterator(peps.begin()),
-                                        std::make_move_iterator(peps.end()));
+              for (auto& pep : peps) { keep_unassigned(pep); }
             }
             continue;
           }
@@ -972,16 +970,20 @@ protected:
           // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
           // pruned before the merge below. Should not normally happen: an identified spectrum is
           // expected to exist in the mzML.
-          OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in spectrum file " << mz_file << ". Skipping." << std::endl;
+          #pragma omp critical(unassigned_pep_ids_collection)
+          {
+            OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in spectrum file " << mz_file
+                            << ". Skipping quantification and adding to unassigned." << std::endl;
+            for (auto& pep : peps) { keep_unassigned(pep); }
+          }
         }
       }
       channel_extractor.printStatsWithMissing(qc);
 
-      // Add peptide IDs without MS3 spectra to unassigned IDs
       if (!unassigned_pep_ids.empty())
       {
-        OPENMS_LOG_INFO << "Adding " << unassigned_pep_ids.size() 
-                        << " peptide identifications without MS3 spectra to unassigned IDs." << std::endl;
+        OPENMS_LOG_INFO << "Adding " << unassigned_pep_ids.size()
+                        << " peptide identifications that could not be quantified to unassigned IDs." << std::endl;
         auto& cmap_unassigned = cmap.getUnassignedPeptideIdentifications();
         cmap_unassigned.insert(cmap_unassigned.end(), 
                                std::make_move_iterator(unassigned_pep_ids.begin()), 
@@ -998,8 +1000,8 @@ protected:
       // cur_cmap holds one ConsensusFeature per identified spectrum (resize above), and
       // fillConsensusFeature_ gives each quantified one at least one FeatureHandle per channel. A
       // spectrum that could not be quantified (an MS2 without MS3, or a spectrum missing from the
-      // mzML) left an empty default-constructed feature. Drop those; the identifications of an MS2
-      // without MS3 are kept in the unassigned peptide IDs.
+      // mzML) left an empty default-constructed feature. Drop those; their identifications are kept in
+      // the unassigned peptide IDs.
       const Size before_prune = cur_cmap.size();
       cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
                                [](const ConsensusFeature& cf) { return cf.empty(); }),
@@ -1007,8 +1009,7 @@ protected:
       if (const Size pruned = before_prune - cur_cmap.size(); pruned > 0)
       {
         OPENMS_LOG_INFO << "Removed " << pruned << " unquantified consensus feature(s) without reporter "
-                        << "channels (those of an MS2 without MS3 keep their peptide identifications in the "
-                        << "unassigned IDs)." << std::endl;
+                        << "channels (their peptide identifications are kept in the unassigned IDs)." << std::endl;
       }
 
       // Always use insert (not move assignment) to preserve column headers registered at line 577.
@@ -1138,13 +1139,15 @@ protected:
       fdr.applyBasic(proteins);
     }
     
+    // Unassigned identifications (e.g. of an MS2 without MS3) are PSMs too: -psmFDR filters them below
+    // and they are exported, so they get FDRs/q-values like the others (as in ProteomicsLFQ).
     if (getStringOption_("FDR_type") == "PSM+peptide")
     { 
-      fdr.applyBasicPeptideLevel(cmap, false);
+      fdr.applyBasicPeptideLevel(cmap, true);
     }
     else 
     {
-      fdr.applyBasic(cmap, false);
+      fdr.applyBasic(cmap, true);
     }
     
 
