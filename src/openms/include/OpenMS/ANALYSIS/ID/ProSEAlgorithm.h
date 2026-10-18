@@ -1359,7 +1359,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                      PeptideIdentificationList* pre_fdr_psms = nullptr) const;
 
     /// Helper: apply a single joint Percolator model across all files of a multi-file batch,
-    /// then apply per-run Target-Decoy Competition (TDC).
+    /// then recompute per-run Target-Decoy Competition (TDC) q-values from the pooled SVM score
+    /// (MS:1001492) as the main score (while MS:1001491 and MS:1001493 retain the pooled Percolator
+    /// q-value and PEP). If the pooled batch cannot be rescored, every file falls back to native-score FDR.
     void applyJointPsmFDR_(std::vector<SearchResult>& per_file, bool has_decoys) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and

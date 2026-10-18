@@ -358,7 +358,8 @@ namespace OpenMS
                        "implementation, as PercolatorAdapter uses by default) before the FDR filters: Percolator q-values become "
                        "the main score (the SVM score and PEP are kept as meta values), only the best hit per spectrum is kept, "
                        "and FDR:PSM and FDR:protein are applied to the rescored PSMs. Needs decoys (see 'decoys') and at least "
-                       "100 PSMs: a run without them, or for which Percolator fails, is not rescored and keeps its search engine "
+                       "100 PSMs (applied to the pooled batch with rescore_model='joint', or per run with 'per_run' or a single input): "
+                       "a batch/run without them, or for which Percolator fails, is not rescored and keeps its search engine "
                        "scores, which the FDR filters then use (the ProSE tool warns). Set to 'false' to report the search engine "
                        "scores, e.g. to rescore the Percolator input (.pin) of the ProSE tool externally.");
     defaults_.setValidStrings("rescore", {"true", "false"});
@@ -2067,6 +2068,7 @@ namespace OpenMS
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
     p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
+    p.remove("rescore_model");
     return p;
   }
 
@@ -5903,7 +5905,7 @@ namespace OpenMS
       if (file_res.exit_code != ExitCodes::EXECUTION_OK || file_res.protein_ids.empty()) continue;
 
       file_res.percolator = joint_rescoring;
-      file_res.percolator.warning.clear(); // Per-run fallback warning is set below if no targets pass test_fdr
+      // The joint model's warning (sanity check fell back to the default direction) applies to every run.
       file_res.protein_ids[0] = std::move(pooled_prot_ids[valid_run_idx++]);
 
       file_res.peptide_ids.assign(
