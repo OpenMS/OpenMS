@@ -304,30 +304,40 @@ namespace OpenMS
       {
         continue;
       }
-      auto& best_hit = id.getHits()[0];
-      if (!keep_decoys && (best_hit.getMetaValue("target_decoy") == DataValue::EMPTY || best_hit.getMetaValue("target_decoy") == "decoy"))
+      auto is_decoy = [](const PeptideHit& hit)
+      {
+        return hit.getMetaValue("target_decoy") == DataValue::EMPTY || hit.getMetaValue("target_decoy") == "decoy";
+      };
+      const auto& best_hit = id.getHits()[0];
+      if (!keep_decoys && is_decoy(best_hit))
       {
         id.setHits({});
         continue;
       }
       const auto seq = best_hit.getSequence().toUnmodifiedString();
-      auto it = seq_to_fdr.find(seq);
-      const auto& old_score_type = id.getScoreType();
-      if (it != seq_to_fdr.end())
-      {
-        best_hit.setMetaValue(old_score_type, best_hit.getScore());
-        best_hit.setScore(it->second.first);
-        id.setScoreType(score_type);
-        id.setHigherScoreBetter(false); // FDRs and q-values, whatever the search score was
-        // Only the best hit gets a peptide FDR/q-value. Remove the others: they would keep their search
-        // score under the FDR/q-value score type.
-        id.getHits().resize(1);
-      }
-      else
+      if (seq_to_fdr.find(seq) == seq_to_fdr.end())
       {
         OPENMS_LOG_ERROR << "Error: No FDR found for " + seq + "." << std::endl;
         continue;
       }
+      // The best hit gets the FDR/q-value of its peptide, and so does a hit tied with it whose peptide
+      // has one. Remove the other hits: they would keep their search score under the FDR/q-value score
+      // type.
+      const std::string old_score_type = id.getScoreType();
+      const double best_score = best_hit.getScore();
+      std::vector<PeptideHit> scored;
+      for (auto& hit : id.getHits())
+      {
+        if (hit.getScore() != best_score || (!keep_decoys && is_decoy(hit))) { continue; }
+        auto it = seq_to_fdr.find(hit.getSequence().toUnmodifiedString());
+        if (it == seq_to_fdr.end()) { continue; }
+        hit.setMetaValue(old_score_type, hit.getScore());
+        hit.setScore(it->second.first);
+        scored.push_back(std::move(hit));
+      }
+      id.setHits(std::move(scored));
+      id.setScoreType(score_type);
+      id.setHigherScoreBetter(false); // FDRs and q-values, whatever the search score was
     }
   }
 

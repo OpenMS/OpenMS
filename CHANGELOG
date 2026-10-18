@@ -640,9 +640,10 @@ OpenMS Library:
     the best PSMs - typically every target, failing with "No proteins left after FDR filtering" - in
     ProteomicsLFQ, MS1LabeledWorkflow and IsobaricWorkflow with Bayesian protein inference (which turns
     each PSM's PEP into a posterior probability) and in IsobaricWorkflow on a higher-is-better main
-    score (e.g. a hyperscore). applyBasicPeptideLevel also removes all but the best hit of each
-    identification: only that hit gets a peptide FDR/q-value, the others kept their search score under
-    the new score type and were kept or dropped at random by a filter on it.
+    score (e.g. a hyperscore). applyBasicPeptideLevel also sorts the hits of each identification and
+    keeps only the best one and the hits tied with it whose peptide has a peptide FDR/q-value. The other
+    hits had no FDR/q-value: they kept their search score under the new score type and were kept or
+    dropped at random by a filter on it.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

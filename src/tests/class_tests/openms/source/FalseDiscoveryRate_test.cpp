@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 ///////////////////////////
@@ -815,11 +816,11 @@ START_SECTION([EXTRA] FDRs and q-values on a ConsensusMap are lower-is-better wh
 }
 END_SECTION
 
-START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identification (the one it scores))
+START_SECTION([EXTRA] peptide-level FDR scores the best hit of an identification and the hits tied with it)
 {
-  // Only the best hit of each identification gets a peptide q-value. A second hit would keep its
-  // search score (0.1) under the q-value score type and pass a q-value filter at 0.25. The best hit
-  // is kept even when it is not stored first.
+  // Only the best hit of each identification, and a hit tied with it whose peptide has a q-value,
+  // get a peptide q-value. Any other hit would keep its search score (0.1) under the q-value score
+  // type and pass a q-value filter at 0.25. The best hit is kept even when it is not stored first.
   auto make_map = []()
   {
     ConsensusMap cmap;
@@ -835,11 +836,15 @@ START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identifica
       hits[0].setScore(score);
       hits[0].setCharge(2);
       hits[0].setMetaValue("target_decoy", target_decoy);
-      if (sequence == "AAAAAAAK") // a second, much worse candidate for the same spectrum
+      if (sequence == "AAAAAAAK")
       {
-        hits.push_back(hits[0]);
+        hits.push_back(hits[0]); // a much worse candidate for the same spectrum
         hits[1].setSequence(AASequence::fromString("KKKKKKKK"));
         hits[1].setScore(0.1);
+        hits.push_back(hits[0]); // tied, and the best hit of another identification: kept
+        hits[2].setSequence(AASequence::fromString("CCCCCCCK"));
+        hits.push_back(hits[0]); // tied, but its peptide has no q-value: removed
+        hits[3].setSequence(AASequence::fromString("EEEEEEEK"));
       }
       if (sequence == "CCCCCCCK") // the same, but stored before the best hit
       {
@@ -864,8 +869,15 @@ START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identifica
     for (const auto& id : ids)
     {
       if (id.getHits().empty()) { continue; } // a decoy, removed
-      TEST_EQUAL(id.getHits().size(), 1)
-      TEST_NOT_EQUAL(id.getHits()[0].getSequence().toUnmodifiedString(), "KKKKKKKK")
+      std::vector<std::string> sequences;
+      for (const auto& hit : id.getHits())
+      {
+        sequences.push_back(hit.getSequence().toUnmodifiedString());
+        TEST_EQUAL(hit.getScore() <= 1.0, true) // a q-value, not the search score
+      }
+      if (sequences[0] == "AAAAAAAK") { TEST_EQUAL(ListUtils::concatenate(sequences, ","), "AAAAAAAK,CCCCCCCK") }
+      else { TEST_EQUAL(sequences.size(), 1) }
+      TEST_NOT_EQUAL(sequences[0], "KKKKKKKK")
     }
   };
 
