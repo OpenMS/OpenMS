@@ -33,6 +33,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <set>
 #include <tuple>
@@ -54,7 +55,7 @@ namespace OpenMS
     double transition_peakgroup_max_pep = 0.7;
     double transition_max_isotope_overlap = 0.5;
     double transition_min_log_sn = 0.0;
-    std::string training_main_score = "var_library_corr";
+    std::string training_main_score = "var_xcorr_shape";
   };
 
   namespace
@@ -1543,9 +1544,9 @@ namespace OpenMS
     defaults_.setValue("training_main_score", impl_->training_main_score,
                        "Peak-group score that selects the best peak group of each precursor for the Percolator training "
                        "set of ms1, ms2 and ms1ms2 rescoring (prefix '-' if lower values are better). The training set holds "
-                       "these peak groups plus at most percolator:subset_max_train others drawn at random "
-                       "(0: train on all peak groups); the model then scores all peak groups. If the score is not among "
-                       "the features, all peak groups are used.");
+                       "these peak groups plus all peak groups of precursors drawn at random, up to "
+                       "percolator:subset_max_train further peak groups (0: train on all peak groups); the model then "
+                       "scores all peak groups. If the score is not among the features, all peak groups are used.");
     defaults_.insert("percolator:", impl_->percolator.getDefaults());
     defaultsToParam_();
     updateMembers_();
@@ -1563,97 +1564,137 @@ namespace OpenMS
     impl_->percolator.setParameters(param_.copy("percolator:", true));
   }
 
+  std::vector<Size> OpenSwathPercolatorScoring::trainingRows(const RescoreInput& input,
+                                                             const std::string& main_score,
+                                                             const Size max_others,
+                                                             const UInt64 seed)
+  {
+    const Size n_rows = input.features.size();
+    std::vector<Size> all_rows(n_rows);
+    std::iota(all_rows.begin(), all_rows.end(), Size(0));
+    if (max_others == 0 || input.cv_group_keys.size() != n_rows)
+    {
+      return all_rows;
+    }
+    String main_name = main_score;
+    double direction = 1.0;
+    if (StringUtils::hasPrefix(main_name, "-"))
+    {
+      direction = -1.0;
+      main_name = main_name.substr(1);
+    }
+    const auto name_it = std::find(input.feature_names.begin(), input.feature_names.end(), main_name);
+    if (name_it == input.feature_names.end())
+    {
+      return all_rows;
+    }
+    const Size main_col = static_cast<Size>(name_it - input.feature_names.begin());
+
+    // the rows of every group (a group is one precursor in one run), groups in the order of their first row
+    std::unordered_map<int, Size> group_of_key;
+    std::vector<std::vector<Size>> group_rows;
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      const auto inserted = group_of_key.emplace(input.cv_group_keys[i], group_rows.size());
+      if (inserted.second)
+      {
+        group_rows.emplace_back();
+      }
+      group_rows[inserted.first->second].push_back(i);
+    }
+
+    // the best row of every group; ties keep the first
+    std::vector<char> take(n_rows, 0);
+    Size n_others = 0;
+    for (const auto& rows : group_rows)
+    {
+      Size best = rows.front();
+      for (const Size row : rows)
+      {
+        if (direction * input.features[row][main_col] > direction * input.features[best][main_col])
+        {
+          best = row;
+        }
+      }
+      take[best] = 1;
+      n_others += rows.size() - 1;
+    }
+    if (n_others <= max_others)
+    {
+      return all_rows; // everything would be taken
+    }
+
+    // complete groups in random order while their other rows fit; RandomShuffler draws the same
+    // shuffle on every platform (std::shuffle does not)
+    std::vector<Size> group_order(group_rows.size());
+    std::iota(group_order.begin(), group_order.end(), Size(0));
+    Math::RandomShuffler shuffler;
+    shuffler.seed(seed);
+    shuffler.portable_random_shuffle(group_order.begin(), group_order.end());
+    Size n_added = 0;
+    for (const Size group : group_order)
+    {
+      const Size n_group_others = group_rows[group].size() - 1;
+      if (n_added + n_group_others > max_others)
+      {
+        break;
+      }
+      for (const Size row : group_rows[group])
+      {
+        take[row] = 1;
+      }
+      n_added += n_group_others;
+    }
+
+    std::vector<Size> rows;
+    rows.reserve(group_rows.size() + n_added);
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (take[i])
+      {
+        rows.push_back(i);
+      }
+    }
+    return rows;
+  }
+
   namespace
   {
     /**
-      @brief The rows Percolator is trained on for peak-group (ms1/ms2/ms1ms2) rescoring.
+      @brief The training input of peak-group (ms1/ms2/ms1ms2) rescoring: the rows of
+      OpenSwathPercolatorScoring::trainingRows().
 
-      Training on all peak groups takes most of the rescoring time, and a plain random sample does
-      not work: only a small part of the peak groups are true (about 1,500 of 2.9 M per Orbitrap
-      Astral DIA run), so a sample of 100,000 contains too few of them to train on. The training
-      set is therefore the best peak group of every precursor of every run by @p main_score, which
-      holds the likely true ones, plus a random sample of at most @p max_others of the other peak
-      groups. The trained model is applied to all peak groups afterwards.
-
-      @return @p input itself if @p max_others is 0 (train on everything), if the main score is not
-              among the features, or if the sample would not leave anything out; otherwise @p subset
+      @return @p input itself if all rows are used, otherwise @p subset
     */
     const RescoreInput& trainingInput_(const RescoreInput& input, const String& main_score, const Size max_others,
                                        const UInt64 seed, RescoreInput& subset)
     {
       const Size n_rows = input.features.size();
-      if (max_others == 0 || input.cv_group_keys.size() != n_rows)
+      if (max_others > 0 && input.cv_group_keys.size() == n_rows)
+      {
+        String main_name = main_score;
+        if (StringUtils::hasPrefix(main_name, "-"))
+        {
+          main_name = main_name.substr(1);
+        }
+        if (std::find(input.feature_names.begin(), input.feature_names.end(), main_name) == input.feature_names.end())
+        {
+          OPENMS_LOG_INFO << "OpenSWATH Percolator training: '" << main_name
+                          << "' is not among the features, training on all " << n_rows << " rows.\n";
+        }
+      }
+      const std::vector<Size> rows = OpenSwathPercolatorScoring::trainingRows(input, main_score, max_others, seed);
+      if (rows.size() == n_rows)
       {
         return input;
-      }
-      String main_name = main_score;
-      double direction = 1.0;
-      if (StringUtils::hasPrefix(main_name, "-"))
-      {
-        direction = -1.0;
-        main_name = main_name.substr(1);
-      }
-      const auto name_it = std::find(input.feature_names.begin(), input.feature_names.end(), main_name);
-      if (name_it == input.feature_names.end())
-      {
-        OPENMS_LOG_INFO << "OpenSWATH Percolator training: '" << main_name
-                        << "' is not among the features, training on all " << n_rows << " rows.\n";
-        return input;
-      }
-      const Size main_col = static_cast<Size>(name_it - input.feature_names.begin());
-
-      // best row of every group (a group is one precursor in one run, see cv_group_key); ties keep the first
-      std::unordered_map<int, Size> best_of_group;
-      for (Size i = 0; i < n_rows; ++i)
-      {
-        const auto it = best_of_group.find(input.cv_group_keys[i]);
-        if (it == best_of_group.end())
-        {
-          best_of_group.emplace(input.cv_group_keys[i], i);
-        }
-        else if (direction * input.features[i][main_col] > direction * input.features[it->second][main_col])
-        {
-          it->second = i;
-        }
-      }
-      std::vector<char> take(n_rows, 0);
-      for (const auto& group_row : best_of_group)
-      {
-        take[group_row.second] = 1;
-      }
-      std::vector<Size> others;
-      others.reserve(n_rows - best_of_group.size());
-      for (Size i = 0; i < n_rows; ++i)
-      {
-        if (!take[i])
-        {
-          others.push_back(i);
-        }
-      }
-      if (others.size() <= max_others)
-      {
-        return input; // everything would be taken
-      }
-      // the first max_others entries of a shuffle are a uniform sample; RandomShuffler draws the same
-      // shuffle on every platform (std::uniform_int_distribution does not)
-      Math::RandomShuffler shuffler;
-      shuffler.seed(seed);
-      shuffler.portable_random_shuffle(others.begin(), others.end());
-      for (Size k = 0; k < max_others; ++k)
-      {
-        take[others[k]] = 1;
       }
 
       subset = RescoreInput();
       subset.feature_names = input.feature_names;
-      const Size n_subset = best_of_group.size() + max_others;
-      subset.features.reserve(n_subset);
-      for (Size i = 0; i < n_rows; ++i) // keep the order of the input
+      subset.features.reserve(rows.size());
+      std::unordered_map<int, Size> rows_of_group;
+      for (const Size i : rows) // keeps the order of the input
       {
-        if (!take[i])
-        {
-          continue;
-        }
         subset.features.push_back(input.features[i]);
         subset.is_decoy.push_back(input.is_decoy[i]);
         subset.cv_group_keys.push_back(input.cv_group_keys[i]);
@@ -1661,10 +1702,13 @@ namespace OpenMS
         if (!input.spec_file_numbers.empty()) subset.spec_file_numbers.push_back(input.spec_file_numbers[i]);
         if (!input.exp_masses.empty()) subset.exp_masses.push_back(input.exp_masses[i]);
         if (!input.calc_masses.empty()) subset.calc_masses.push_back(input.calc_masses[i]);
+        ++rows_of_group[input.cv_group_keys[i]];
       }
-      OPENMS_LOG_INFO << "OpenSWATH Percolator training on " << subset.features.size() << " of " << n_rows
-                      << " peak groups: the best of each precursor by " << main_score << " (" << best_of_group.size()
-                      << ") and " << max_others << " others drawn at random.\n";
+      const Size n_drawn = static_cast<Size>(std::count_if(rows_of_group.begin(), rows_of_group.end(),
+                                                           [](const auto& group) { return group.second > 1; }));
+      OPENMS_LOG_INFO << "OpenSWATH Percolator training on " << rows.size() << " of " << n_rows
+                      << " peak groups: the best of each of " << rows_of_group.size() << " precursors by " << main_score
+                      << ", and all peak groups of " << n_drawn << " of these precursors drawn at random.\n";
       return subset;
     }
   }
@@ -1720,7 +1764,7 @@ namespace OpenMS
                                    impl_->transition_max_isotope_overlap,
                                    impl_->transition_min_log_sn);
     RescoreInput training_subset;
-      const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
+    const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
     const RescoreOutput output = impl_->percolator.score(prepared.input, model);
     const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
     const auto results = computePeakGroupResults_(prepared, output, exported_scores);

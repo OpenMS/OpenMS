@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/config.h>
@@ -15,6 +16,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace OpenMS
 {
@@ -40,13 +42,17 @@ namespace OpenMS
     - Transition: requires prior MS2/MS1MS2 scoring and writes
       SCORE_TRANSITION / score_transition_*
 
-    For MS1, MS2 and MS1MS2 scoring, Percolator is trained on the best peak
-    group of every precursor of every run (by the parameter
-    training_main_score) plus at most percolator:subset_max_train other peak
-    groups drawn at random, and the model is then applied to all peak groups.
-    A plain random sample is not used because true peak groups are rare among
-    all candidates. percolator:subset_max_train = 0 trains on all peak groups.
-    Transitions are always trained on all rows.
+    For MS1, MS2 and MS1MS2 scoring, Percolator is trained on a subset of the
+    peak groups (see trainingRows()) and the model is then applied to all peak
+    groups. The subset holds the best peak group of every precursor of every
+    run by the parameter training_main_score, which brings in most of the rare
+    true peak groups, and all peak groups of precursors drawn at random, up to
+    percolator:subset_max_train further peak groups. Within these
+    complete precursors, Percolator's choice of the best peak group per
+    precursor in each training iteration (percolator:train_best_positive) can
+    still promote a peak group that the main score ranked lower.
+    percolator:subset_max_train = 0 trains on all peak groups. Transitions
+    are always trained on all rows.
 
     Transition-level scoring reuses the historical OpenMS / PyProphet-style
     candidate filters: only transitions from non-decoy precursors whose
@@ -102,6 +108,27 @@ namespace OpenMS
     ScoreSummary score(const std::string& input_path,
                        Level level,
                        const std::string& output_path = "");
+
+    /**
+      @brief The rows Percolator is trained on for peak-group (ms1, ms2, ms1ms2) rescoring.
+
+      Rows sharing a value of RescoreInput::cv_group_keys form a group (one precursor in one run).
+      The training set is the best row of every group by @p main_score (ties keep the first row) plus
+      all rows of groups drawn at random, in the order of a shuffle with @p seed, as long as their other
+      rows fit into @p max_others (the first group that does not fit ends the drawing).
+
+      @param[in] input       Peak groups; cv_group_keys must hold one key per row
+      @param[in] main_score  Feature name; prefix '-' if lower values are better
+      @param[in] max_others  Rows besides the best of every group (0: all rows)
+      @param[in] seed        Seed of the shuffle that draws the groups
+
+      @return Ascending row indices. All rows if @p max_others is 0, if cv_group_keys does not hold one
+              key per row, if @p main_score is not among the features, or if all rows would fit.
+    */
+    static std::vector<Size> trainingRows(const RescoreInput& input,
+                                          const std::string& main_score,
+                                          Size max_others,
+                                          UInt64 seed);
 
   protected:
     void updateMembers_() override;

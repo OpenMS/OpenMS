@@ -102,11 +102,10 @@ OpenMS Library:
   - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
     sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
   - OpenSwathPercolatorScoring (OpenDIA rescoring) trains Percolator on the best peak group of every precursor (new
-    parameter training_main_score, default var_library_corr) plus at most percolator:subset_max_train other peak groups
-    drawn at random, and scores all peak groups with the model; before, percolator:subset_max_train had no effect and
-    training used all peak groups. percolator:subset_max_train = 0 restores that. Results change slightly; on three
-    Orbitrap Astral DIA runs rescoring takes 3:41 min instead of 9:56 min (4,471 instead of 4,377 precursors at 1% FDR,
-    64 instead of 67 entrapment hits).
+    parameter training_main_score, default var_xcorr_shape) plus all peak groups of precursors drawn at random, up to
+    percolator:subset_max_train further peak groups, and scores all peak groups with the model; before,
+    percolator:subset_max_train had no effect and training used all peak groups. percolator:subset_max_train = 0
+    restores that. Results change.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
