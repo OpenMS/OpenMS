@@ -603,7 +603,7 @@ namespace OpenMS
     const auto& params = this->getSearchParameters();
     if (se.empty() || (this->getSearchEngine() == se
                         && this->getSearchEngine() != "Percolator" //meaningless settings
-                        && !StringUtils::hasPrefix(this->getSearchEngine(), "ConsensusID"))) //meaningless settings
+                        && !StringUtils::hasSubstring(this->getSearchEngine(), "ConsensusID"))) //meaningless settings (e.g. "OpenMS/ConsensusID_best")
     {
       //TODO add spectra_data?
       result.emplace_back("db", params.db);

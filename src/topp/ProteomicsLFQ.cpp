@@ -1087,8 +1087,8 @@ protected:
     @brief Reduce identifications this tool cannot tell apart to one per spectrum.
 
     ProteomicsLFQ measures one value per (spectrum, peptidoform, charge). Input that carries
-    several identifications of that same triple - two search engines concatenated rather than
-    combined, for instance - leaves it undecided which of them owns the measurement, and keeping
+    several identifications of that same triple - the concatenated results of two search engines,
+    for instance - leaves it undecided which of them owns the measurement, and keeping
     all of them counts one identification several times in the PSM-level FDR and repeats it in
     every output. Keep the best-scoring one and say what went.
   **/

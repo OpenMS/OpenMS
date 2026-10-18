@@ -644,7 +644,7 @@ protected:
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
-            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " Please use the merge_proteins_add_PSMs option if you used IDMerger. Alternatively, pass"
             " all original single-run idXML inputs as list to this tool.",
             "# runs: " + StringUtils::toStr(protein_ids.size()));
       }
