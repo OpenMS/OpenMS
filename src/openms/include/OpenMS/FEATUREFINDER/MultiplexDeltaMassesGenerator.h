@@ -68,6 +68,10 @@ namespace OpenMS
     /**
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
      * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
+     *
+     * Every knock-out pattern starts at mass shift zero, i.e. its shifts are relative to its lightest
+     * present peptide (medium and heavy of a triplet without light: 0 and heavy - medium). The label
+     * sets keep naming the channels. The singlet carries the label set "any_label_set".
      */
     void generateKnockoutDeltaMasses();
 

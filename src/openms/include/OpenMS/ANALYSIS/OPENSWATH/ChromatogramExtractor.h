@@ -18,6 +18,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
@@ -176,6 +178,7 @@ public:
         trans_map[transition_exp_used.getTransitions()[i].getNativeID()] = &transition_exp_used.getTransitions()[i];
       }
 
+      output_chromatograms.reserve(output_chromatograms.size() + chromatograms.size());
       for (Size i = 0; i < chromatograms.size(); i++)
       {
         const OpenSwath::ChromatogramPtr & chromptr = chromatograms[i];
@@ -260,7 +263,7 @@ public:
           settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
           chrom.getDataProcessing().push_back(settings.getDataProcessing()[j]);
         }
-        output_chromatograms.push_back(chrom);
+        output_chromatograms.push_back(std::move(chrom));
       }
     }
 
