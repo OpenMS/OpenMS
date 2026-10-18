@@ -123,6 +123,12 @@ FileConverter -in sample.d -out sample.mzML -process_lowmemory
 
 This works for cachedMzML output (`-out sample.cachedMzML`) as well.
 
+In the library and in pyOpenMS, `FileHandler::loadExperiment()` and
+`FileHandler::transformExperiment()` (which streams the spectra into a consumer) read `.d`
+input and apply the same `PeakFileOptions`, including the ion mobility range
+(`PeakFileOptions::setIMRange()`, in 1/K0 for timsTOF data). The number of spectra that
+`transformExperiment()` announces for `.d` input is an upper bound.
+
 ## pyOpenMS
 
 pyOpenMS reads both formats as well; see

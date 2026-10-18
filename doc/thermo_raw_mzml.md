@@ -142,7 +142,7 @@ read in one go. The SHA-1 is only computed if `Options::checksum` is set.
 
 | Entry point | Behaviour |
 | --- | --- |
-| `FileHandler::transformExperiment()` | Streams mzML, mzXML and .raw into a consumer and applies the `PeakFileOptions` (MS levels, RT/m/z/intensity/precursor ranges, metadata only, skip chromatograms) as `loadExperiment()` does, for all three formats. For mzML/mzXML, `setExpectedSize()` reports the counts from the file before any selection; for .raw the scan-level options go to the reader, which reports the selected counts, and the m/z and intensity ranges are applied per spectrum |
+| `FileHandler::transformExperiment()` | Streams mzML, mzXML, .raw (and Bruker .d) into a consumer and applies the `PeakFileOptions` (MS levels, RT/m/z/intensity/precursor ranges, metadata only, skip chromatograms) as `loadExperiment()` does, for all three formats. For mzML/mzXML, `setExpectedSize()` reports the counts from the file before any selection; for .raw the scan-level options go to the reader, which reports the selected counts, and the m/z and intensity ranges are applied per spectrum |
 | `FileConverter -process_lowmemory` | Streams .raw to mzML and cachedMzML only; for any other output type it logs a warning and loads the whole file |
 | `OpenSwathWorkflow` | Streams .raw into the SWATH consumers; the run metadata is taken from a metadata-only read |
 | `SageAdapter`, `CometAdapter` | Stream .raw into the temporary mzML |
