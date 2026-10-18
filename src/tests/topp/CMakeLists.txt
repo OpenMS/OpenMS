@@ -1903,6 +1903,13 @@ add_test("TOPP_MSstatsConverter_subset" ${TOPP_BIN_PATH}/MSstatsConverter -test 
 add_test("TOPP_MSstatsConverter_subset_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_subset_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_subset_out.csv)
 
 set_tests_properties("TOPP_MSstatsConverter_subset_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_subset")
+
+# MSstatsConverter: a Condition value containing a comma must come out CSV-quoted (#10512)
+add_test("TOPP_MSstatsConverter_4" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_subset_in.consensusXML -in_design ${DATA_DIR_TOPP}/MSstatsConverter_4_design.tsv -out ${TESTS_TEMP_DIR}/MSstatsConverter_4_out.tmp.csv)
+
+add_test("TOPP_MSstatsConverter_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_4_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_4_out.csv)
+
+set_tests_properties("TOPP_MSstatsConverter_4_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_4")
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)

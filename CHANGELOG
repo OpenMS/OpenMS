@@ -666,6 +666,10 @@ Dependencies:
     accepted (#10522). With noise_data, scans without a centroid stream (e.g. ion trap
     scans) no longer carry a "sampled noise m/z array" without intensities; the vendor
     returned the segmented scan masses there, not noise samples.
+  - FIX: MSstatsFile (MSstatsConverter) writes the Condition, BioReplicate, Run and ProteinName
+    fields quoted when they contain a comma, a quote or a newline, doubling any embedded quote
+    (RFC 4180). Before, an SDRF factor value with a comma (e.g. "SDS + ultrasonication, urea")
+    split into extra columns and made the MSstats/MSstatsTMT CSV invalid (#10512).
 
 TOPP tools:
   New tools:
