@@ -852,6 +852,10 @@ TOPP tools:
         hits lacking it (all of them, ending in "No protein is supported by a strictly unique
         peptide"). Such a combine is now refused and names the setting; detecting and combining
         runs have to use the same -protein_quantification (#10481, #10486).
+      - FIX: ignored its Seeding:charge and Seeding:traceRTTolerance settings: since the seeding
+        code moved to DDAWorkflowCommons the call passed a fixed charge range of 2:5 and the helper
+        used a fixed RT band of 3 s. Both settings take effect again; the defaults are unchanged,
+        so results with default parameters stay the same (#10300).
     FileInfo:
       - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
         same std::hash value; each hash now keeps all of its entries (#10499).

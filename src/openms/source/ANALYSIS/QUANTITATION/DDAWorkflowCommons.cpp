@@ -185,8 +185,8 @@ namespace OpenMS
         const double intensity_threshold,
         FeatureMap & seeds, 
         double median_fwhm,
-        Size charge_min,
-        Size charge_max
+        const std::string& charge_range,
+        double rt_band
     )
     {
         //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
@@ -208,9 +208,9 @@ namespace OpenMS
         FeatureFinderMultiplexAlgorithm algorithm;
         Param p = algorithm.getParameters();
         p.setValue("algorithm:labels", ""); // unlabeled only
-        p.setValue("algorithm:charge",StringUtils::toStr(charge_min) + ":" + StringUtils::toStr(charge_max));
+        p.setValue("algorithm:charge", charge_range);
         p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-        p.setValue("algorithm:rt_band", 3.0); // max 3 seconds shifts between isotopic traces (not sure if needed)
+        p.setValue("algorithm:rt_band", rt_band); // max shift between isotopic traces
         p.setValue("algorithm:rt_min", median_fwhm * 0.5);
         p.setValue("algorithm:spectrum_type", "centroid");
         algorithm.setParameters(p);
