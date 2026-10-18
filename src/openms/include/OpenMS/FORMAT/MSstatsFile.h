@@ -90,6 +90,13 @@ namespace OpenMS
       static const char quote_ = '"';
 
       /*
+        *  @brief Quote a free-text CSV field if it contains the delimiter, a quote character, or a
+        *  newline, doubling any embedded quote characters (RFC 4180). Fields that don't need it are
+        *  returned unchanged, so most lines keep their current, unquoted form.
+        */
+      static std::string csvQuoteIfNeeded_(const std::string& field);
+
+      /*
         *  @brief: Struct to aggregate intermediate information from ConsensusFeature and ConsensusMap,
         *  such as filenames, intensities, retention times, labels and features (for further processing)
         */
@@ -184,15 +191,15 @@ namespace OpenMS
         std::string toString() const
         {
           const std::string delim(",");
-          return  accession_
+          return  MSstatsFile::csvQuoteIfNeeded_(accession_)
                   + delim + sequence_
                   + delim + precursor_charge_
                   + delim + fragment_ion_
                   + delim + frag_charge_
                   + delim + isotope_label_type_
-                  + delim + condition_
-                  + delim + bioreplicate_
-                  + delim + run_
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(condition_)
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(bioreplicate_)
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(run_)
                   + (this->has_fraction_ ? delim + std::string(fraction_) : "");
         }
 
@@ -251,13 +258,13 @@ namespace OpenMS
         std::string toString() const
         {
           const std::string delim(",");
-          return  accession_
+          return  MSstatsFile::csvQuoteIfNeeded_(accession_)
                   + delim + sequence_
                   + delim + precursor_charge_
                   + delim + channel_
-                  + delim + condition_
-                  + delim + bioreplicate_
-                  + delim + run_
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(condition_)
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(bioreplicate_)
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(run_)
                   + delim + mixture_
                   + delim + techrepmixture_
                   + delim + std::string(fraction_);
