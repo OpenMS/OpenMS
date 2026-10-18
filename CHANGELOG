@@ -81,6 +81,8 @@ OpenMS Library:
     snapshot replaced them by 'spectrum=<index>', so such files could not be read back (#10525).
   - Faster SignalToNoiseEstimatorMedianRapid (1.4-2 fold) (#9782).
   - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
+  - PERF: NucleicAcidSearchEngine (RNAPrecursorCorrector) directs the FLASH deconvolution of the parent MS1 to the precursor
+    hypotheses of the MS2 spectra instead of deconvolving the complete MS1 spectrum (#10533).
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
   - FIX: EmpiricalFormula orders its elements by atomic number, an element before its isotopes ("C", "(12)C", "(13)C"),
