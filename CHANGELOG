@@ -752,8 +752,8 @@ TOPP tools:
         carrying all of them. One feature per identification gave the spectrum's reporter
         intensities to every peptide it was identified as, and two such features of one spectrum
         made -out_qpx fail with a repeated QPX feature identity. A spectrum whose identifications
-        name different peptidoforms is credited to the best-scoring one (by the scores in the input)
-        that survives filtering; the others move to the unassigned identifications (#10603).
+        differ in peptidoform or charge is credited to the best-scoring one (by the scores in the
+        input) that survives filtering; the others move to the unassigned identifications (#10603).
     MapAlignerPoseClustering:
       - PARAM: new algorithm:peak_selection:* parameters for mzML input. The new default
         'algorithm:peak_selection:method' 'spread' aligns one MS1 peak per analyte, spread over RT and

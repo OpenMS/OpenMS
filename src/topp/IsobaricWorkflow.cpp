@@ -98,10 +98,10 @@ using namespace std;
 
   All identifications of one spectrum read the same MS2/MS3 scan, so one consensus feature carries
   all of them and the scan's reporter intensities are counted once. Identifications of one spectrum
-  that agree on peptidoform and charge are reduced to the best-scoring one. If they name *different*
-  peptidoforms (a chimeric spectrum, or search engines that disagree), the spectrum is credited to
-  the best-scoring identification that survives filtering, judged by the scores in the input; the
-  others are moved to the unassigned peptide identifications. Both cases are reported. One
+  that agree on peptidoform and charge are reduced to the best-scoring one. If they differ in
+  peptidoform or charge (a chimeric spectrum, or search engines that disagree), the spectrum is
+  credited to the best-scoring identification that survives filtering, judged by the scores in the
+  input; the others are moved to the unassigned peptide identifications. Both cases are reported. One
   identification per spectrum is still expected: results from several search engines should be
   combined - with @ref TOPP_ConsensusID (@p -algorithm best @p -keep_old_scores, which preserves
   each engine's score) - rather than simply concatenated.
@@ -220,7 +220,7 @@ protected:
       "corresponding input PSMs.\n"
       "One identification per spectrum is expected. Of several identifications of one spectrum\n"
       "agreeing on peptidoform and charge, only the best-scoring one is kept. Each spectrum is\n"
-      "quantified once: if its identifications name different peptidoforms, it is credited to\n"
+      "quantified once: if its identifications differ in peptidoform or charge, it is credited to\n"
       "the best-scoring one that survives filtering, and the others become unassigned. Combine\n"
       "results from several search engines with ConsensusID rather than concatenating them.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
@@ -544,19 +544,19 @@ protected:
   }
 
   /**
-   * @brief Credits each consensus feature to one peptidoform: that of its first identification with a hit.
+   * @brief Credits each consensus feature to its first identification with a hit.
    *
    * The identifications of a feature are sorted best first by their input scores (see sortBestFirst_),
    * and filtering only removes hits, so the first one with a hit is the best-scoring survivor. Reporter
-   * intensities can only be attributed to one peptidoform: identifications naming it are kept, the
-   * others and those without hits are moved to the unassigned peptide identifications. A feature
-   * without any hit is left unchanged.
+   * intensities can only be attributed to one peptidoform at one charge: identifications that agree
+   * with it on both are kept, the others and those without hits are moved to the unassigned peptide
+   * identifications. A feature without any hit is left unchanged.
    *
    * Scores after filtering are not compared: q-values tie heavily, and a peptide-level q-value rates
    * the peptide's best match in any spectrum, not its match to this one.
    *
    * @param[in,out] cmap the consensus map
-   * @return the number of features whose identifications named different peptidoforms
+   * @return the number of features whose identifications differed in peptidoform or charge
    */
   static Size creditBestPeptidoform_(ConsensusMap& cmap)
   {
@@ -571,13 +571,15 @@ protected:
                                      [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
       if (best == peps.end()) { continue; } // no hits at all: nothing to credit
 
-      // Same comparison (AASequence::operator==) as MzTab and PeptideAndProteinQuant downstream.
+      // Same sequence comparison (AASequence::operator==) as MzTab and PeptideAndProteinQuant downstream.
       const AASequence best_sequence = best->getHits()[0].getSequence();
+      const int best_charge = best->getHits()[0].getCharge();
       PeptideIdentificationList kept;
       bool conflicting = false;
       for (auto& pep : peps)
       {
-        if (!pep.getHits().empty() && pep.getHits()[0].getSequence() == best_sequence)
+        if (!pep.getHits().empty() && pep.getHits()[0].getSequence() == best_sequence
+            && pep.getHits()[0].getCharge() == best_charge)
         {
           kept.push_back(std::move(pep));
         }
@@ -810,9 +812,9 @@ protected:
           OPENMS_LOG_WARN << "Warning: " << report.multiply_identified_spectra << " spectra in " << id_file
                           << " carry identifications that differ in peptidoform or charge (a chimeric"
                              " spectrum, or search engines that disagree). Each such spectrum is"
-                             " quantified once and credited to the peptidoform of its best-scoring"
-                             " identification that survives filtering; identifications naming another"
-                             " peptidoform are moved to the unassigned identifications." << endl;
+                             " quantified once and credited to its best-scoring identification that"
+                             " survives filtering; the others are moved to the unassigned"
+                             " identifications." << endl;
         }
       }
 
@@ -1232,9 +1234,10 @@ protected:
     // need one peptidoform per feature.
     if (const Size credited = creditBestPeptidoform_(cmap); credited > 0)
     {
-      OPENMS_LOG_INFO << "Credited " << credited << " spectra whose identifications name different"
-                         " peptidoforms to their best-scoring identification; the others were moved to"
-                         " the unassigned peptide identifications." << endl;
+      OPENMS_LOG_INFO << "Credited " << credited << " spectra whose identifications differ in peptidoform"
+                         " or charge to one of them (the best-scoring one where their scores are"
+                         " comparable); the others were moved to the unassigned peptide identifications."
+                      << endl;
     }
 
     PeptideAndProteinQuant prot_quantifier;
