@@ -17,6 +17,14 @@ diff --git a/cmake/XercesNetAccessorSelection.cmake b/cmake/XercesNetAccessorSel
    endif()
  
    # Windows
+@@ -85,6 +82,7 @@ if(network)
+   set(XERCES_USE_NETACCESSOR_WINSOCK 0)
+   if(netaccessor STREQUAL "curl")
+     set(XERCES_USE_NETACCESSOR_CURL 1)
++    set(CURL_REQUIRES "libcurl")
+   elseif(netaccessor STREQUAL "socket")
+     set(XERCES_USE_NETACCESSOR_SOCKET 1)
+   elseif(netaccessor STREQUAL "cfurl")
 diff --git a/src/XercesCConfig.cmake.in b/src/XercesCConfig.cmake.in
 --- a/src/XercesCConfig.cmake.in
 +++ b/src/XercesCConfig.cmake.in
@@ -69,3 +77,13 @@ diff --git a/src/xercesc/util/NetAccessors/Curl/CurlURLInputStream.cpp b/src/xer
      }
  
      return curlResult == CURLM_CALL_MULTI_PERFORM;
+diff --git a/xerces-c.pc.in b/xerces-c.pc.in
+--- a/xerces-c.pc.in
++++ b/xerces-c.pc.in
+@@ -8,5 +8,5 @@ Description: Validating XML parser library for C++
+ Version: @VERSION@
+ Libs: -L${libdir} -lxerces-c
+ Libs.private: @CURL_LIBS@ @TRANSCODER_LIBS@
+-Requires.private: @TRANSCODER_REQUIRES@
++Requires.private: @CURL_REQUIRES@ @TRANSCODER_REQUIRES@
+ Cflags: -I${includedir}
