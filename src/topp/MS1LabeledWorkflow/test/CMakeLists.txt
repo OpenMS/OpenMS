@@ -17,7 +17,7 @@ if(NOT COMMAND openms_add_tool_class_test)
 endif()
 
 # Each of these classes is standalone, so each test links only the class it covers.
-foreach(_ms1_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpectra)
+foreach(_ms1_test MS1LabeledFAIMS MS1LabeledIdentifications MS1LabeledRatioQuantifier MS1LabeledSpectra)
   openms_add_tool_class_test(${_ms1_test}_test
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../${_ms1_test}.cpp
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..)

@@ -22,6 +22,8 @@ set(tool_sources
   MS1LabeledSpectra.h
   MS1LabeledFAIMS.cpp
   MS1LabeledFAIMS.h
+  MS1LabeledIdentifications.cpp
+  MS1LabeledIdentifications.h
   MS1LabeledRatioQuantifier.cpp
   MS1LabeledRatioQuantifier.h
 )

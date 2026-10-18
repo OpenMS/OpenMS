@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include "MS1LabeledFAIMS.h"
+#include "MS1LabeledIdentifications.h"
 #include "MS1LabeledRatioQuantifier.h"
 #include "MS1LabeledSpectra.h"
 
@@ -987,302 +988,6 @@ protected:
     return channels;
   }
 
-  /// An identification of a map to move: the consensus feature that links it afterwards (none: unassigned) and its channel
-  /// (meta value 'map_index'; none: removed)
-  struct IdentificationMove
-  {
-    IdentificationData::QueryReference identification;
-    std::optional<Size> feature;
-    std::optional<Size> map_index;
-  };
-
-  /**
-    @brief Move identifications of @p map to other consensus features or to the unassigned ones.
-
-    Every identification of @p moves is replaced by a copy with its matches and their scores, in the order of @p moves and
-    after all other identifications, so that it comes last among the identifications of its consensus feature resp. among
-    the unassigned ones (like a peptide identification appended to a list). The links to the original are removed.
-  */
-  static void moveIdentifications_(ConsensusMap& map, const vector<IdentificationMove>& moves)
-  {
-    if (moves.empty()) { return; }
-    using ID = IdentificationData;
-    ID& data = map.getIdentificationData();
-    struct Copy
-    {
-      std::string run;
-      ID::SourceId source;
-      ID::Observation observation;
-      vector<std::pair<ID::MatchData, vector<std::optional<double>>>> matches;
-      std::optional<Size> feature;
-    };
-    vector<Copy> copies;
-    std::set<ID::QueryReference> originals;
-    for (const IdentificationMove& move : moves)
-    {
-      const ID::Run* run = data.findRunByUuid(move.identification.run_uuid);
-      if (run == nullptr || !originals.insert(move.identification).second)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An identification to move is unknown or moved twice.",
-                                      move.identification.run_uuid);
-      }
-      for (const auto& source : run->getSources())
-      {
-        for (const auto& query : source.identifications)
-        {
-          if (query.getId() != move.identification.query) { continue; }
-          Copy copy {run->getIdentifier(), source.id, query.getObservation(), {}, move.feature};
-          if (move.map_index) { copy.observation.setMetaValue("map_index", *move.map_index); }
-          else { copy.observation.removeMetaValue("map_index"); }
-          for (const auto& match : query.getMatches()) { copy.matches.emplace_back(match.getData(), run->getScores(match)); }
-          copies.push_back(std::move(copy));
-        }
-      }
-    }
-    UInt64 next = 1;
-    for (const auto& run : data.getRuns()) { next = std::max(next, run.getNextQueryId()); }
-    for (auto& copy : copies)
-    {
-      auto& run = data.getRun(copy.run);
-      const ID::QueryId query = run.importIdentification(copy.source, ID::QueryId {next++}, std::move(copy.observation));
-      vector<ID::MatchId> matches;
-      for (const auto& [match, scores] : copy.matches) { matches.push_back(run.addMatch(query, match, scores)); }
-      if (!copy.feature) { continue; }
-      ConsensusFeature& feature = map[*copy.feature];
-      feature.addIDQuery({run.getUuid(), query});
-      for (const ID::MatchId& match : matches) { feature.addIDMatch({run.getUuid(), match}); }
-    }
-    map.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) { return originals.contains({run.getUuid(), query.getId()}); });
-  }
-
-  /**
-    @brief Attach identifications of channels the detection did not find to the multiplet of their peptide.
-
-    An identification maps onto a multiplet through its own channel. When that channel was too weak to be detected (e.g. the
-    minor channel of a mixture, which DDA fragments all the same), the multiplet can still be there, detected in the other
-    channels of the peptide. So an identification that stayed unassigned is looked up at the m/z its peptide has in the other
-    channels (MultiplexResolverAlgorithm::expectedChannelMZs()): if a partial multiplet of the same charge and CV has a channel
-    there that elutes at the identification (within the 'id_mapping' tolerances), the identification is attached to it, and its
-    own channel is added to the multiplet as a feature of intensity 0 for the re-quantification to measure. The resolver then
-    checks the result like any other identified multiplet.
-  */
-  void attachToUndetectedChannels_(ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver) const
-  {
-    std::unordered_map<UInt64, Size> multiplet_of;
-    for (Size m = 0; m < multiplets.size(); ++m)
-    {
-      for (const FeatureHandle& handle : multiplets[m].getFeatures()) { multiplet_of.emplace(handle.getUniqueId(), m); }
-    }
-    vector<std::pair<double, const Feature*>> by_mz;
-    by_mz.reserve(channels.size());
-    for (const Feature& channel : channels) { by_mz.emplace_back(channel.getMZ(), &channel); }
-    std::sort(by_mz.begin(), by_mz.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-
-    const double rt_tolerance = getParam_().getValue("id_mapping:rt_tolerance");
-    const double mz_tolerance = getParam_().getValue("id_mapping:mz_tolerance");
-    const bool ppm = getParam_().getValue("id_mapping:mz_measure").toString() == "ppm";
-    auto tolerance_at = [&](double mz) { return ppm ? mz * mz_tolerance * 1e-6 : mz_tolerance; };
-
-    vector<IdentificationMove> moves;
-    for (const auto& entry : multiplets.getUnassignedIdentifications())
-    {
-      if (entry.matches.empty() || entry.matches[0]->charge == 0 || !entry.query->rt) { continue; }
-      const IdentificationData::Match& match = *entry.matches[0];
-      const double rt = *entry.query->rt;
-      Size own = 0;
-      const vector<double> mzs = resolver.expectedChannelMZs(AASequence::fromString(match.representation), match.charge, own);
-      const std::optional<double> cv = compensationVoltage_(*entry.query);
-
-      // the closest channel feature at the m/z of the peptide in another channel
-      const Feature* best = nullptr;
-      double best_error = std::numeric_limits<double>::max();
-      for (Size j = 0; j < mzs.size(); ++j)
-      {
-        if (j == own) { continue; }
-        const double tolerance = tolerance_at(mzs[j]);
-        auto it = std::lower_bound(by_mz.begin(), by_mz.end(), mzs[j] - tolerance, [](const auto& a, double mz) { return a.first < mz; });
-        for (; it != by_mz.end() && it->first <= mzs[j] + tolerance; ++it)
-        {
-          const Feature& channel = *it->second;
-          if (channel.getCharge() != match.charge || compensationVoltage_(channel) != cv) { continue; }
-          const DBoundingBox<2> box = channel.getConvexHull().getBoundingBox();
-          if (rt < box.minX() - rt_tolerance || rt > box.maxX() + rt_tolerance) { continue; }
-          // in a complete multiplet the identification's channel was detected and did not match it (placeholders added
-          // below for earlier identifications have no unique id and do not count)
-          const auto& handles = multiplets[multiplet_of.at(channel.getUniqueId())].getFeatures();
-          if (static_cast<Size>(std::count_if(handles.begin(), handles.end(), [](const FeatureHandle& h) { return h.hasValidUniqueId(); })) >= multiplicity_)
-          {
-            continue;
-          }
-          const double error = std::abs(channel.getMZ() - mzs[j]);
-          if (error < best_error)
-          {
-            best = &channel;
-            best_error = error;
-          }
-        }
-      }
-      if (best == nullptr) { continue; }
-
-      // the identification's own channel joins the multiplet (unless an earlier identification added it already)
-      const Size m = multiplet_of.at(best->getUniqueId());
-      ConsensusFeature& multiplet = multiplets[m];
-      const double own_mz = mzs[own];
-      vector<FeatureHandle> handles(multiplet.getFeatures().begin(), multiplet.getFeatures().end());
-      if (std::none_of(handles.begin(), handles.end(), [&](const FeatureHandle& h) { return std::abs(h.getMZ() - own_mz) <= tolerance_at(own_mz); }))
-      {
-        FeatureHandle placeholder;
-        placeholder.setMZ(own_mz);
-        placeholder.setRT(multiplet.getRT());
-        placeholder.setCharge(match.charge);
-        placeholder.setIntensity(0.0);
-        handles.push_back(placeholder);
-        // channels in m/z order, numbered from 0 like a detected (partial) pattern; the lightest is the anchor
-        std::sort(handles.begin(), handles.end(), [](const FeatureHandle& a, const FeatureHandle& b) { return a.getMZ() < b.getMZ(); });
-        ConsensusFeature::HandleSetType renumbered;
-        for (Size i = 0; i < handles.size(); ++i)
-        {
-          handles[i].setMapIndex(i);
-          renumbered.insert(handles[i]);
-        }
-        multiplet.setFeatures(std::move(renumbered));
-        multiplet.setMZ(handles.front().getMZ());
-      }
-      // the channel is settled by keepMultiAssignedOnClosest_
-      moves.push_back({{entry.run->getUuid(), entry.query->getId()}, m, 0});
-    }
-    // the identifications join their multiplets after the ones mapped onto them
-    moveIdentifications_(multiplets, moves);
-
-    if (!moves.empty())
-    {
-      OPENMS_LOG_INFO << moves.size() << " identification(s) of channels the detection did not find were attached to the multiplet of their "
-                      << "peptide, detected in another channel." << endl;
-    }
-  }
-
-  /**
-    @brief Attach every spectrum match to the closest channel, and to the closest multiplet only.
-
-    The mapping attaches an identification to every multiplet within its tolerances and records the
-    channel it matched as its 'map_index'. The resolver reads that index as the channel the spectrum
-    belongs to, so it is set to the channel closest to the identification's m/z here: the theoretical
-    m/z of the identified peptidoform, whose labels name its channel (the precursor m/z can be off by
-    isotopes and then lie closer to another channel, e.g. Lys4 at charge 3). One spectrum is evidence
-    for one multiplet, too (and a QPX PSM may reference one feature): it stays with the multiplet whose
-    closest channel is closest to the identification in m/z, then in RT. This runs before the best-scoring
-    match is chosen per multiplet, so that a multiplet does not first take a neighbour's
-    better-scoring spectrum and then lose it, ending up without its own. Distinct spectra of the same
-    peptide on distinct multiplets are not touched: both multiplets are quantified and their channel
-    values add up per peptide.
-  */
-  void keepMultiAssignedOnClosest_(ConsensusMap& multiplets) const
-  {
-    struct Candidate
-    {
-      IdentificationData::QueryReference identification;
-      double mz_ppm;
-      double rt_diff;
-    };
-    std::map<std::string, vector<Candidate>> by_spectrum_match; // (spectrum, peptidoform, charge) -> where it sits
-
-    // Every assignment is an identification of its own (IDMapper with 'annotate_ids_with_subelements').
-    IdentificationData& data = multiplets.getIdentificationData();
-    for (const ConsensusFeature& cf : multiplets)
-    {
-      for (const auto& entry : cf.getLinkedIdentifications(data))
-      {
-        if (entry.matches.empty()) { continue; }
-        const IdentificationData::Identification& id = *entry.query;
-        const double id_rt = id.rt.value_or(0.0);
-
-        // the channel closest to the identified peptidoform is the one the spectrum belongs to
-        const IdentificationData::Match& first = *entry.matches[0];
-        const double id_mz = first.charge != 0 ? AASequence::fromString(first.representation).getMZ(first.charge) : id.mz.value_or(0.0);
-        double best_ppm = std::numeric_limits<double>::infinity(), best_rt = 0.0;
-        Size best_map_index = 0;
-        for (const FeatureHandle& handle : cf.getFeatures())
-        {
-          const double ppm = std::abs(handle.getMZ() - id_mz) / handle.getMZ() * 1e6;
-          if (ppm < best_ppm)
-          {
-            best_ppm = ppm;
-            best_rt = std::abs(handle.getRT() - id_rt);
-            best_map_index = handle.getMapIndex();
-          }
-        }
-        if (!id.data_id.empty())
-        {
-          const std::string key = id.data_id + '\t' + first.representation + '\t' + StringUtils::toStr(first.charge);
-          by_spectrum_match[key].push_back({{entry.run->getUuid(), id.getId()}, best_ppm, best_rt});
-        }
-        if (!cf.getFeatures().empty())
-        {
-          IdentificationData::Observation observation = id;
-          observation.setMetaValue("map_index", best_map_index);
-          data.getRun(entry.run->getIdentifier()).replaceObservation(id.getId(), observation);
-        }
-      }
-    }
-
-    std::set<IdentificationData::QueryReference> to_remove; // the copies to drop
-    Size shared = 0;
-    for (auto& [key, candidates] : by_spectrum_match)
-    {
-      if (candidates.size() < 2) { continue; }
-      ++shared;
-      const auto closest = std::min_element(candidates.begin(), candidates.end(),
-                                            [](const Candidate& a, const Candidate& b)
-                                            { return std::tie(a.mz_ppm, a.rt_diff) < std::tie(b.mz_ppm, b.rt_diff); });
-      for (auto it = candidates.begin(); it != candidates.end(); ++it)
-      {
-        if (it != closest) { to_remove.insert(it->identification); }
-      }
-    }
-    if (!to_remove.empty())
-    {
-      multiplets.eraseIdentifications([&](const IdentificationData::Run& run, const IdentificationData::Identification& id)
-                                      { return to_remove.contains({run.getUuid(), id.getId()}); });
-    }
-    if (shared > 0)
-    {
-      OPENMS_LOG_INFO << shared << " spectrum match(es) were mapped onto several multiplets; each stays with the closest one." << endl;
-    }
-  }
-
-  /**
-    @brief Of several identifications on one multiplet, keep those whose labels agree with its mass shifts.
-
-    The best-scoring identification is the one a multiplet is quantified under, and if its labels contradict the detected mass
-    shifts, the multiplet is a quant/ID conflict - even when another identification on it fits (e.g. the best one comes from
-    a co-isolated peptide). So the identifications that fit are preferred: those that do not are moved to the unassigned ones
-    (they remain PSMs for protein inference). A multiplet that none of its identifications fits stays a conflict.
-  */
-  static void keepConsistentIdentifications_(ConsensusMap& multiplets, const MultiplexResolverAlgorithm& resolver)
-  {
-    const IdentificationData& data = multiplets.getIdentificationData();
-    vector<IdentificationMove> moves;
-    for (const auto& cf : multiplets)
-    {
-      const auto ids = cf.getLinkedIdentifications(data);
-      if (ids.size() < 2) { continue; }
-      const vector<bool> consistent = resolver.checkIdentifications(cf, data);
-      if (std::none_of(consistent.begin(), consistent.end(), [](bool c) { return c; })) { continue; }
-      if (std::all_of(consistent.begin(), consistent.end(), [](bool c) { return c; })) { continue; }
-      for (Size i = 0; i < ids.size(); ++i)
-      {
-        if (!consistent[i]) { moves.push_back({{ids[i].run->getUuid(), ids[i].query->getId()}, std::nullopt, std::nullopt}); }
-      }
-    }
-    // as unassigned identifications, after the others
-    moveIdentifications_(multiplets, moves);
-    if (!moves.empty())
-    {
-      OPENMS_LOG_INFO << moves.size() << " identification(s) contradict the labels of the multiplet they were mapped onto, which another "
-                      << "identification on it fits; they are not used for quantification." << endl;
-    }
-  }
-
   /**
     @brief The intensity of a channel that the multiplet detection did not find, measured at its expected position.
 
@@ -1465,13 +1170,31 @@ protected:
     }
 
     // an identification of a channel the detection missed joins the multiplet detected in the peptide's other channels
-    if (knock_out_) { attachToUndetectedChannels_(multiplets, channels, resolver); }
+    if (knock_out_)
+    {
+      const MS1LabeledIdentifications::Tolerances tolerances {getParam_().getValue("id_mapping:rt_tolerance"),
+                                                              getParam_().getValue("id_mapping:mz_tolerance"),
+                                                              getParam_().getValue("id_mapping:mz_measure").toString() == "ppm"};
+      const Size attached = MS1LabeledIdentifications::attachToUndetectedChannels(multiplets, channels, resolver, multiplicity_, tolerances);
+      if (attached > 0)
+      {
+        OPENMS_LOG_INFO << attached << " identification(s) of channels the detection did not find were attached to the multiplet of their "
+                        << "peptide, detected in another channel." << endl;
+      }
+    }
 
     // a spectrum match that landed on several multiplets stays on the closest one only
-    keepMultiAssignedOnClosest_(multiplets);
+    if (const Size shared = MS1LabeledIdentifications::keepMultiAssignedOnClosest(multiplets); shared > 0)
+    {
+      OPENMS_LOG_INFO << shared << " spectrum match(es) were mapped onto several multiplets; each stays with the closest one." << endl;
+    }
 
     // identifications whose labels fit the multiplet are preferred over better-scoring ones that do not
-    keepConsistentIdentifications_(multiplets, resolver);
+    if (const Size moved = MS1LabeledIdentifications::keepConsistentIdentifications(multiplets, resolver); moved > 0)
+    {
+      OPENMS_LOG_INFO << moved << " identification(s) contradict the labels of the multiplet they were mapped onto, which another "
+                      << "identification on it fits; they are not used for quantification." << endl;
+    }
 
     // one identification (the best) per multiplet
     IDConflictResolverAlgorithm::resolve(multiplets);
