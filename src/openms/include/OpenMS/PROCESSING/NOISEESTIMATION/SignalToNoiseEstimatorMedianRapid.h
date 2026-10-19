@@ -134,7 +134,8 @@ public:
         {
           throwWindowOutOfRange_(window, n_windows);
         }
-        return static_cast<Size>(window);
+        // convert via a signed integer: a single instruction on x86, unlike double -> unsigned
+        return static_cast<Size>(static_cast<SignedSize>(window));
       }
 
       [[noreturn]] static void throwWindowOutOfRange_(double window, Size n_windows);
