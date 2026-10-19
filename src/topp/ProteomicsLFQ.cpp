@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ConsensusElutionWidth.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -350,6 +351,12 @@ protected:
 
     registerStringOption_("pip_echo", "<option>", "false", "Perform match between runs (MBR) via PIP-ECHO", false, false);
     setValidStrings_("pip_echo", ListUtils::create<std::string>("true,false"));
+    registerStringOption_("consensus_elution_width", "<option>", "false",
+      "Report every run's feature at one elution width per linked precursor: the median of the fitted Gaussian widths "
+      "of its identified features (carried between runs by the RT alignment), times the run's fitted peak height. "
+      "Removes the run-to-run error of the width fit from the quantities. Needs the symmetric elution model "
+      "(PeptideQuantification:model:type); features without a valid fit keep their intensity.", false, true);
+    setValidStrings_("consensus_elution_width", ListUtils::create<std::string>("true,false"));
 
     registerDoubleOption_(
       "feature_with_id_min_score", "<p-value>", 0.0,
@@ -1911,6 +1918,11 @@ protected:
     // references), so gate on pip_echo.
     const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
     if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
+    // The elution model fit, needed (only) by -consensus_elution_width after linking; removed again there.
+    if (getStringOption_("consensus_elution_width") == "true")
+    {
+      for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) keep_meta.insert(k);
+    }
     for (auto & f : fm)
     {
       std::vector<std::string> keys;
@@ -2139,6 +2151,20 @@ protected:
     }
 
     alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
+
+    if (getStringOption_("consensus_elution_width") == "true")
+    {
+      const auto stats = ConsensusElutionWidth::apply(consensus_fraction, feature_maps, transformations);
+      OPENMS_LOG_INFO << "Consensus elution width: " << stats.consensus_features << " consensus features, "
+                      << stats.handles_updated << " features re-quantified, " << stats.handles_kept << " kept.\n";
+      for (auto& fm : feature_maps)
+      {
+        for (auto& f : fm)
+        {
+          for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) f.removeMetaValue(k);
+        }
+      }
+    }
 
     // Nothing to link is not an error: typically no run of the fraction has a feature because none
     // of its identifications passed the upstream FDR filter, so targeted feature detection had
