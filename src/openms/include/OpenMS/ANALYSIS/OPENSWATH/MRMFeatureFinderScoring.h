@@ -333,6 +333,9 @@ private:
       }
     };
 
+    /// The inverse of @p trafo (cached per thread: a run scores all transition groups with one transformation)
+    static const TransformationDescription& invertedTransformation_(const TransformationDescription& trafo);
+
     /** @brief Splits combined transition groups into detection transition groups
      *
      * For standard assays, transition_group_detection is identical to transition_group and the others are empty.

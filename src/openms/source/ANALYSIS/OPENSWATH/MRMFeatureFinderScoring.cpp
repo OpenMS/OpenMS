@@ -543,6 +543,31 @@ namespace OpenMS
     }
   }
 
+  const TransformationDescription& MRMFeatureFinderScoring::invertedTransformation_(const TransformationDescription& trafo)
+  {
+    // All transition groups of a run are scored with the same transformation, and inverting it
+    // refits the model: keep the inverse of the last transformation per thread.
+    struct InverseCache
+    {
+      bool valid = false;
+      TransformationDescription trafo;
+      TransformationDescription inverse;
+    };
+    static thread_local InverseCache cache;
+    if (!cache.valid ||
+        cache.trafo.getModelType() != trafo.getModelType() ||
+        !(cache.trafo.getDataPoints() == trafo.getDataPoints()) ||
+        !(cache.trafo.getModelParameters() == trafo.getModelParameters()))
+    {
+      cache.valid = false;
+      cache.trafo = trafo;
+      cache.inverse = trafo;
+      cache.inverse.invert();
+      cache.valid = true;
+    }
+    return cache.inverse;
+  }
+
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
                                                 const TransformationDescription& trafo,
                                                 const std::vector<OpenSwath::SwathMap>& swath_maps,
@@ -630,10 +655,7 @@ namespace OpenMS
 
     // get the expected rt value for this compound
     const PeptideType* pep = PeptideRefMap_.at(transition_group_detection.getTransitionGroupID());
-    double expected_rt = pep->rt;
-    TransformationDescription newtr = trafo;
-    newtr.invert();
-    expected_rt = newtr.apply(expected_rt);
+    const double expected_rt = invertedTransformation_(trafo).apply(pep->rt);
 
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_,

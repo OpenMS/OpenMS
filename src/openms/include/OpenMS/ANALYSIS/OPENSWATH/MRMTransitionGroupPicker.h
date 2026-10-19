@@ -950,7 +950,7 @@ public:
           f.setMetaValue(MRMTransitionGroupPickerMeta::pointsAcrossHalfHeight(), psm.points_across_half_height);
         }
 
-        mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
+        mrmFeature.addFeature(std::move(f), chromatogram.getNativeID()); //map index and feature
       }
     }
 
@@ -1081,7 +1081,7 @@ public:
           total_intensity += peak_integral;
         }
 
-        mrmFeature.addPrecursorFeature(f, chromatogram.getNativeID());
+        mrmFeature.addPrecursorFeature(std::move(f), chromatogram.getNativeID());
       }
     }
 

@@ -145,6 +145,46 @@ namespace OpenMS
       std::vector<MSChromatogramParquetConsumer::EncodedChromatograms> rows;
     };
 
+    /**
+      @brief The points of @p chromatogram with an RT in [@p rt_min, @p rt_max]
+
+      The same as a copy of @p chromatogram followed by select() of these points (which also handles
+      data arrays), without copying the points outside the range.
+    */
+    MSChromatogram copyRTRange_(const MSChromatogram& chromatogram, double rt_min, double rt_max)
+    {
+      std::vector<Size> indices_to_keep;
+      indices_to_keep.reserve(chromatogram.size());
+      for (Size i = 0; i < chromatogram.size(); ++i)
+      {
+        double rt = chromatogram[i].getRT();
+        if (rt >= rt_min && rt <= rt_max)
+        {
+          indices_to_keep.push_back(i);
+        }
+      }
+      if (indices_to_keep.size() == chromatogram.size() || !chromatogram.getFloatDataArrays().empty() ||
+          !chromatogram.getStringDataArrays().empty() || !chromatogram.getIntegerDataArrays().empty())
+      {
+        MSChromatogram result = chromatogram;
+        if (indices_to_keep.size() != chromatogram.size())
+        {
+          result.select(indices_to_keep);
+        }
+        return result;
+      }
+      MSChromatogram result;
+      static_cast<RangeManagerContainer<RangeRT, RangeIntensity>&>(result) = chromatogram;
+      static_cast<ChromatogramSettings&>(result) = chromatogram;
+      result.setName(chromatogram.getName());
+      result.reserve(indices_to_keep.size());
+      for (Size i : indices_to_keep)
+      {
+        result.push_back(chromatogram[i]);
+      }
+      return result;
+    }
+
     // --- Dynamic batching helpers ---
     Size estimateFeatureMemoryPerCompound()
     {
@@ -1471,29 +1511,21 @@ namespace OpenMS
           }
         }
 
-        // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
-        auto chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
-        chromatogram.setNativeID(transition->getNativeID());
+        // Copy the chromatogram, restricted to the RT extraction window
+        const MSChromatogram& extracted_chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
+        MSChromatogram chromatogram;
         if (rt_extraction_window > 0)
         {
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
           double rt_max = de_normalized_experimental_rt + rt_extraction_window;
           double rt_min = de_normalized_experimental_rt - rt_extraction_window;
-          std::vector<Size> indices_to_keep;
-          indices_to_keep.reserve(chromatogram.size());
-          for (Size i = 0; i < chromatogram.size(); ++i)
-          {
-            double rt = chromatogram[i].getRT();
-            if (rt >= rt_min && rt <= rt_max)
-            {
-              indices_to_keep.push_back(i);
-            }
-          }
-          if (indices_to_keep.size() != chromatogram.size())
-          {
-            chromatogram.select(indices_to_keep);
-          }
+          chromatogram = copyRTRange_(extracted_chromatogram, rt_min, rt_max);
         }
+        else
+        {
+          chromatogram = extracted_chromatogram;
+        }
+        chromatogram.setNativeID(transition->getNativeID());
 
         // Add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
