@@ -57,6 +57,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   public:
     ProSEAlgorithm(); 
 
+    /// PSM meta value of a chimeric search (chimeric:enabled): 1 for a PSM of the selected precursor, 2 for one of a
+    /// precursor co-isolated with it
+    static constexpr const char* CHIMERIC_RANK = "chimeric_rank";
+
     /// Exit codes
     enum class ExitCodes
     {
@@ -849,8 +853,30 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
     /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built.
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_; }
+    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know.
+    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
+
+    /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
+    /// The file-based searches then also read the survey scans.
+    bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
+
+    /**
+     * @brief Residual spectra of the co-isolated precursors of chimeric spectra (chimeric:enabled).
+     *
+     * For each spectrum of @p spectra with co-isolated precursors (meta values of CoIsolationDetector::annotate()) and
+     * at least one hit, the peaks that the theoretical ions of its best hit match (within the fragment tolerance) are
+     * removed, and the rest becomes one spectrum per co-isolated precursor, with that precursor's m/z and charge.
+     *
+     * @param[out] parent_of For each residual spectrum, the index of its spectrum in @p spectra
+     * @return The residual spectra, in the order of @p parent_of
+     */
+    PeakMap buildCoIsolatedSpectra_(const PeakMap& spectra,
+                                    const std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+                                    const SpectrumGenerators_& generators,
+                                    double fragment_tol,
+                                    bool fragment_tol_ppm,
+                                    std::vector<Size>& parent_of) const;
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -1080,6 +1106,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};
+    bool chimeric_enabled_{false};       ///< chimeric:enabled: also search the precursors co-isolated with the selected one
     Size calibration_min_psms_{50};
 
     /**

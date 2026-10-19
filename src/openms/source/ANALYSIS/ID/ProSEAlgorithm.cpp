@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
@@ -473,6 +474,24 @@ namespace OpenMS
       "very large cohorts across separate ProSE invocations.");
     defaults_.setMinInt("database:chunk_size", 0);
 
+    defaults_.setValue("chimeric:enabled", "false",
+      "Also identify precursors co-isolated with the selected one. The survey scan of each MS2 spectrum is searched "
+      "for isotope envelopes in its isolation window that fit averagine (needs centroided MS1 spectra in the input "
+      "and isolation windows on the precursors); after the search, the peaks the best hit of the spectrum explains "
+      "are removed, and the rest is searched once for each co-isolated precursor at its m/z and charge. These PSMs "
+      "get the spectrum reference of their spectrum and the PSM meta value 'chimeric_rank' 2 (the others 1). Not with "
+      "database:chunk_size > 0.");
+    defaults_.setValidStrings("chimeric:enabled", {"true", "false"});
+    defaults_.setValue("chimeric:max_coisolated", 4, "At most this many co-isolated precursors per spectrum, the most intense first.");
+    defaults_.setMinInt("chimeric:max_coisolated", 1);
+    defaults_.setValue("chimeric:max_kl", 0.3,
+      "Largest Kullback-Leibler divergence of an isotope envelope in the survey scan from averagine (first four isotope "
+      "peaks) to accept it as a co-isolated precursor.");
+    defaults_.setMinFloat("chimeric:max_kl", 0.0);
+    defaults_.setValue("chimeric:mz_tolerance", 10.0, "Tolerance (ppm) for the m/z of the isotope peaks in the survey scan.");
+    defaults_.setMinFloat("chimeric:mz_tolerance", 0.0);
+    defaults_.setSectionDescription("chimeric", "Search of precursors co-isolated with the selected one (chimeric spectra).");
+
     defaults_.setSectionDescription("calibration",
       "Automatic mass accuracy calibration (two-pass search). A fast first pass on a subset of "
       "spectra estimates instrument-specific mass accuracy, then the main search uses the "
@@ -683,6 +702,7 @@ namespace OpenMS
     protein_mapping_from_index_ = param_.getValue("peptide:protein_mapping").toString() == "index";
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
+    chimeric_enabled_ = param_.getValue("chimeric:enabled").toBool();
 
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
@@ -1974,6 +1994,7 @@ namespace OpenMS
     }
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
+    if (chimericSearch_()) feature_set.push_back(CHIMERIC_RANK); // set by search() after this
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or
@@ -2619,6 +2640,70 @@ namespace OpenMS
     if (scoring_error) std::rethrow_exception(scoring_error);
   }
 
+  PeakMap ProSEAlgorithm::buildCoIsolatedSpectra_(const PeakMap& spectra,
+                                                  const std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+                                                  const SpectrumGenerators_& generators,
+                                                  double fragment_tol,
+                                                  bool fragment_tol_ppm,
+                                                  std::vector<Size>& parent_of) const
+  {
+    parent_of.clear();
+    PeakMap residuals;
+    const Size max_n = static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated")));
+    PeakSpectrum theo;
+    for (Size i = 0; i < spectra.size() && i < annotated_hits.size(); ++i)
+    {
+      const MSSpectrum& spectrum = spectra[i];
+      const std::vector<AnnotatedHit_>& hits = annotated_hits[i];
+      if (hits.empty() || spectrum.empty() || spectrum.getPrecursors().empty()
+          || !spectrum.metaValueExists(CoIsolationDetector::META_MZ) || !spectrum.metaValueExists(CoIsolationDetector::META_CHARGE))
+      {
+        continue;
+      }
+      const DoubleList mzs = spectrum.getMetaValue(CoIsolationDetector::META_MZ);
+      const IntList charges = spectrum.getMetaValue(CoIsolationDetector::META_CHARGE);
+      const Size n = std::min({mzs.size(), charges.size(), max_n});
+      if (n == 0) continue;
+
+      // the peaks the best hit explains: within the fragment tolerance of one of its theoretical ions
+      const AnnotatedHit_& best = *std::min_element(hits.begin(), hits.end(), AnnotatedHit_::hasBetterScore);
+      theo.clear(true);
+      generators.forSpectrum(spectrum).getSpectrum(theo, best.sequence, 1, scoringMaxCharge_(best.applied_charge));
+      std::vector<bool> explained(spectrum.size(), false);
+      for (const Peak1D& ion : theo)
+      {
+        const double tol = fragment_tol_ppm ? ion.getMZ() * fragment_tol * 1e-6 : fragment_tol;
+        for (auto it = spectrum.MZBegin(ion.getMZ() - tol); it != spectrum.end() && it->getMZ() <= ion.getMZ() + tol; ++it)
+        {
+          explained[static_cast<Size>(it - spectrum.begin())] = true;
+        }
+      }
+      std::vector<Size> rest;
+      for (Size p = 0; p < spectrum.size(); ++p)
+      {
+        if (!explained[p]) rest.push_back(p);
+      }
+      if (rest.empty()) continue;
+
+      MSSpectrum residual = spectrum;
+      residual.select(rest);
+      residual.removeMetaValue(CoIsolationDetector::META_MZ);
+      residual.removeMetaValue(CoIsolationDetector::META_CHARGE);
+      for (Size k = 0; k < n; ++k)
+      {
+        if (charges[k] <= 0) continue;
+        Precursor precursor = spectrum.getPrecursors()[0];
+        precursor.setMZ(mzs[k]);
+        precursor.setCharge(charges[k]);
+        MSSpectrum coisolated = residual;
+        coisolated.setPrecursors({precursor});
+        residuals.addSpectrum(std::move(coisolated));
+        parent_of.push_back(i);
+      }
+    }
+    return residuals;
+  }
+
   // =====================================================================
   // In-memory search: thin wrapper that builds a fresh SearchContext per call.
   // For repeated searches against the same database, prefer the
@@ -2696,6 +2781,10 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids) const
   {
     const Size n_chunks = (full_db.size() + database_chunk_size_ - 1) / database_chunk_size_;
+    if (chimeric_enabled_)
+    {
+      OPENMS_LOG_WARN << "[ProSE] chimeric:enabled is not supported with database:chunk_size > 0 and is ignored." << std::endl;
+    }
     OPENMS_LOG_INFO << "[ProSE] Database chunking enabled: " << full_db.size()
                     << " proteins (incl. decoys), chunk_size=" << database_chunk_size_
                     << " → " << n_chunks << " chunks." << std::endl;
@@ -3601,6 +3690,33 @@ namespace OpenMS
     last_run_stats_ = RunStatistics{};
     pre_fdr_peptide_ids_ = PeptideIdentificationList();
 
+    // chimeric:enabled: find the precursors co-isolated with the selected one in the survey scans, which are not
+    // searched themselves
+    if (chimeric_enabled_ && !chimericSearch_())
+    {
+      OPENMS_LOG_WARN << "[ProSE] chimeric:enabled is not supported with database:chunk_size > 0 and is ignored." << std::endl;
+    }
+    if (chimericSearch_())
+    {
+      std::vector<MSSpectrum>& all = spectra.getSpectra();
+      const bool survey_scans = std::any_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; });
+      if (survey_scans)
+      {
+        const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
+                                                         param_.getValue("chimeric:mz_tolerance"),
+                                                         param_.getValue("chimeric:max_kl"),
+                                                         static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
+        all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
+        OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
+                        << spectra.size() << " spectra." << std::endl;
+      }
+      else if (std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
+      {
+        OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
+                        << " no co-isolated precursors are searched." << std::endl;
+      }
+    }
+
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
     bool open_search = isOpenSearchMode_();
@@ -3770,6 +3886,37 @@ namespace OpenMS
                               "Scoring peptide models against spectra...", query_ptr);
     query_spectra.clear(true);
 
+    // chimeric:enabled: score the co-isolated precursors against what the best hit leaves of their spectrum. Their
+    // spectra, hits and pool statistics are appended after those of the searched spectra, and removed again below.
+    const Size n_searched_spectra = spectra.size();
+    std::vector<Size> coisolated_parent;
+    if (chimericSearch_())
+    {
+      PeakMap coisolated = buildCoIsolatedSpectra_(spectra, annotated_hits, generators, effective_fragment_tol,
+                                                   fragment_mass_tolerance_unit_ppm, coisolated_parent);
+      if (!coisolated.empty())
+      {
+        std::vector<std::vector<AnnotatedHit_>> coisolated_hits(coisolated.size());
+        std::vector<CandidatePoolStats_> coisolated_stats(coisolated.size());
+        scoreSpectraAgainstIndex_(coisolated, fragment_index_, db, generators,
+                                  effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
+                                  open_search_mode, coisolated_hits, coisolated_stats,
+                                  "Scoring co-isolated precursors...");
+        for (Size k = 0; k < coisolated.size(); ++k)
+        {
+          if (evidence_ptr != nullptr)
+          {
+            MSSpectrum evidence = evidence_spectra[coisolated_parent[k]];
+            evidence.setPrecursors(coisolated[k].getPrecursors());
+            evidence_spectra.addSpectrum(std::move(evidence));
+          }
+          spectra.addSpectrum(std::move(coisolated[k]));
+          annotated_hits.push_back(std::move(coisolated_hits[k]));
+          pool_stats.push_back(std::move(coisolated_stats[k]));
+        }
+      }
+    }
+
     // The PeptideIndexing that maps the hits to their proteins below.
     // The PeptideIndexer drops peptides whose termini do not match the configured
     // specificity, so it must agree with the search-time setting — otherwise
@@ -3837,6 +3984,36 @@ namespace OpenMS
     endProgress();
 
     annotatePeptDeepFeatures_(spectra, protein_ids, peptide_ids);
+
+    // chimeric:enabled: the PSMs of co-isolated precursors refer to the spectrum they were found in (scan_index and
+    // spectrum reference), next to its own PSMs, and are told apart by chimeric_rank
+    if (chimericSearch_())
+    {
+      Size n_coisolated_psms = 0;
+      for (PeptideIdentification& pi : peptide_ids)
+      {
+        bool coisolated = false;
+        if (pi.metaValueExists("scan_index"))
+        {
+          const Size scan = static_cast<unsigned int>(pi.getMetaValue("scan_index"));
+          if (scan >= n_searched_spectra && scan - n_searched_spectra < coisolated_parent.size())
+          {
+            pi.setMetaValue("scan_index", static_cast<unsigned int>(coisolated_parent[scan - n_searched_spectra]));
+            coisolated = true;
+            ++n_coisolated_psms;
+          }
+        }
+        for (PeptideHit& hit : pi.getHits()) { hit.setMetaValue(CHIMERIC_RANK, coisolated ? 2 : 1); }
+      }
+      std::stable_sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      {
+        return static_cast<unsigned int>(a.getMetaValue("scan_index", 0u)) < static_cast<unsigned int>(b.getMetaValue("scan_index", 0u));
+      });
+      std::vector<MSSpectrum>& all = spectra.getSpectra();
+      all.erase(all.begin() + static_cast<SignedSize>(n_searched_spectra), all.end());
+      OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << coisolated_parent.size() << " co-isolated precursors searched, "
+                      << n_coisolated_psms << " with a PSM." << std::endl;
+    }
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
 
@@ -4412,15 +4589,16 @@ namespace OpenMS
       return true;
     }
 
-    // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
+    // The MS2 spectra (with @p survey_scans also the MS1 spectra) of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
     // @p threads OpenMP threads: an mzML file in chunks parsed in parallel (loadMzMLChunked) with two
     // or more, otherwise with FileHandler.
-    PeakMap loadMS2Spectra(const std::string& filename, int threads)
+    PeakMap loadMS2Spectra(const std::string& filename, int threads, bool survey_scans = false)
     {
       PeakMap spectra;
       FileHandler f;
       f.getOptions().clearMSLevels();
       f.getOptions().addMSLevel(2);
+      if (survey_scans) { f.getOptions().addMSLevel(1); } // chimeric:enabled (see ProSEAlgorithm::search(spectra, ctx, ...))
       // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
       // default): with several threads, fewer and larger regions
       if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
@@ -4462,15 +4640,15 @@ namespace OpenMS
     // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads(true) of
     // this thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores),
     // not with what was set for this one (e.g. by TOPPBase from -threads).
-    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
+    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename, bool survey_scans = false)
     {
       const int threads = readerThreads(true);
-      return std::async(std::launch::async, [&filename, threads]()
+      return std::async(std::launch::async, [&filename, threads, survey_scans]()
       {
 #ifdef _OPENMP
         omp_set_num_threads(threads);
 #endif
-        return loadMS2Spectra(filename, threads);
+        return loadMS2Spectra(filename, threads, survey_scans);
       });
     }
 
@@ -4526,7 +4704,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      std::future<PeakMap> spectra_ready = loadMS2SpectraAsync(in_spectra);
+      std::future<PeakMap> spectra_ready = loadMS2SpectraAsync(in_spectra, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -4594,7 +4772,7 @@ namespace OpenMS
     }
     else
     {
-      spectra = loadMS2Spectra(in_spectra, readerThreads(false));
+      spectra = loadMS2Spectra(in_spectra, readerThreads(false), chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -4751,7 +4929,7 @@ namespace OpenMS
     {
       if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
       {
-        next_spectra = loadMS2SpectraAsync(in_spectra_files[i]);
+        next_spectra = loadMS2SpectraAsync(in_spectra_files[i], chimericSearch_());
       }
     };
     read_next(0);
@@ -4851,7 +5029,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false));
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), chimericSearch_());
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, deisotoping_,
                            self_trained_ion_priors_ ? &all_ion_evidence[i] : nullptr, ion_prior_scored_peaks_,
@@ -4967,6 +5145,10 @@ namespace OpenMS
         per_file_hits[i].resize(all_spectra[i].size());
         for (auto& a : per_file_hits[i]) a.reserve(report_top_hits_);
         per_file_pool_stats[i].resize(all_spectra[i].size());
+      }
+      if (chimeric_enabled_)
+      {
+        OPENMS_LOG_WARN << "[ProSE] chimeric:enabled is not supported with database:chunk_size > 0 and is ignored." << std::endl;
       }
       OPENMS_LOG_INFO << "[ProSE] Chunk-major multi-file: " << full_db.size()
                       << " proteins, " << n_chunks << " chunks, "
@@ -5274,7 +5456,7 @@ namespace OpenMS
                         << "] Searching " << in_spectra << std::endl;
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
-                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), chimericSearch_());
         first_spectra_taken = false;
         read_next(i + 1);
         std::function<const PeakMap*(Size)> searched_spectra;
@@ -5553,6 +5735,37 @@ namespace OpenMS
   // =====================================================================
   // Recompute result-level stats from a FINAL (post-rescoring/post-FDR) PSM list.
   // =====================================================================
+  namespace
+  {
+    // Spectra with at least one PSM. The PSMs of co-isolated precursors (chimeric:enabled) belong to the spectrum
+    // (scan_index) of the selected precursor, which counts once.
+    Size countMatchedSpectra(const PeptideIdentificationList& peptide_ids)
+    {
+      Size matched = 0;
+      std::set<unsigned int> selected_scans, coisolated_scans;
+      for (const PeptideIdentification& pid : peptide_ids)
+      {
+        if (pid.getHits().empty()) continue;
+        const PeptideHit& top = pid.getHits().front();
+        const bool coisolated = top.metaValueExists(ProSEAlgorithm::CHIMERIC_RANK)
+                                && static_cast<int>(top.getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)) == 2;
+        if (!pid.metaValueExists("scan_index"))
+        {
+          if (!coisolated) ++matched;
+          continue;
+        }
+        const unsigned int scan = static_cast<unsigned int>(pid.getMetaValue("scan_index"));
+        (coisolated ? coisolated_scans : selected_scans).insert(scan);
+        if (!coisolated) ++matched;
+      }
+      for (unsigned int scan : coisolated_scans)
+      {
+        if (selected_scans.count(scan) == 0) ++matched;
+      }
+      return matched;
+    }
+  }
+
   void ProSEAlgorithm::updateFinalStats(RunStatistics& stats,
                                         const PeptideIdentificationList& peptide_ids,
                                         const std::string& enzyme,
@@ -5561,8 +5774,7 @@ namespace OpenMS
     // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
     // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
     // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
-    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
-      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
+    stats.matched_spectra = countMatchedSpectra(peptide_ids);
     stats.charge_histogram.clear();
     stats.missed_cleavage_histogram.clear();
     Size n_target = 0, n_decoy = 0;
@@ -5626,8 +5838,7 @@ namespace OpenMS
     // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
     // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
     // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
-    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
-      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
+    stats.matched_spectra = countMatchedSpectra(peptide_ids);
 
     set<std::string> unique_peptides;
     set<std::string> unique_proteins;

@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -1700,6 +1701,126 @@ START_SECTION(([EXTRA] Closed search baseline))
   TEST_TRUE(pep_ids.size() > 0)
   TEST_EQUAL(prot_ids.size(), 1)
   TEST_EQUAL(prot_ids[0].getSearchEngine(), "ProSE")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in what the best hit leaves of the spectrum))
+{
+  // VLGFHQR (2+) is selected; SDDEFYYTDK (3+) lies 0.57 Th below it in the isolation window
+  vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "GASPRSDDEFYYTDKVLGFHQRGEPTIDENWK"}};
+  const AASequence selected = AASequence::fromString("VLGFHQR");
+  const AASequence coisolated = AASequence::fromString("SDDEFYYTDK");
+
+  // survey scan with the averagine envelopes of both precursors
+  auto add_envelope = [](MSSpectrum& s, double mono_mz, int charge, double total)
+  {
+    const IsotopeDistribution dist = CoarseIsotopePatternGenerator(5).estimateFromPeptideWeight((mono_mz - Constants::PROTON_MASS_U) * charge);
+    for (Size k = 0; k < dist.size(); ++k)
+    {
+      s.emplace_back(mono_mz + k * Constants::C13C12_MASSDIFF_U / charge, total * dist[k].getIntensity());
+    }
+  };
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(99.0);
+  ms1.setNativeID("scan=1");
+  add_envelope(ms1, selected.getMZ(2), 2, 1e7);
+  add_envelope(ms1, coisolated.getMZ(3), 3, 5e6);
+  ms1.sortByPosition();
+
+  // MS2 spectrum with the b and y ions of both, those of the co-isolated precursor at half intensity
+  TheoreticalSpectrumGenerator tsg;
+  MSSpectrum ms2, ions;
+  tsg.getSpectrum(ms2, selected, 1, 1);
+  tsg.getSpectrum(ions, coisolated, 1, 1);
+  for (Peak1D peak : ions)
+  {
+    peak.setIntensity(peak.getIntensity() * 0.5f);
+    ms2.push_back(peak);
+  }
+  ms2.sortByPosition();
+  ms2.setMSLevel(2);
+  ms2.setRT(100.0);
+  ms2.setNativeID("scan=2");
+  Precursor precursor;
+  precursor.setMZ(selected.getMZ(2));
+  precursor.setCharge(2);
+  precursor.setIsolationWindowLowerOffset(1.0);
+  precursor.setIsolationWindowUpperOffset(1.0);
+  ms2.setPrecursors({precursor});
+
+  auto configure = [](ProSEAlgorithm& algo, bool chimeric)
+  {
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("decoys", "ignore");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("chimeric:enabled", chimeric ? "true" : "false");
+    algo.setParameters(p);
+  };
+  auto search = [&](bool chimeric, bool with_survey_scan, PeakMap& spectra)
+  {
+    spectra.clear(true);
+    if (with_survey_scan) spectra.addSpectrum(ms1);
+    spectra.addSpectrum(ms2);
+    ProSEAlgorithm algo;
+    configure(algo, chimeric);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    return std::make_pair(prot_ids, pep_ids);
+  };
+
+  PeakMap spectra;
+  const auto [plain_proteins, plain] = search(false, false, spectra);
+  TEST_EQUAL(plain.size(), 1)
+  ABORT_IF(plain.empty())
+  TEST_EQUAL(plain[0].getHits()[0].getSequence(), selected)
+  TEST_EQUAL(plain[0].getHits()[0].metaValueExists(ProSEAlgorithm::CHIMERIC_RANK), false)
+
+  const auto [proteins, chimeric] = search(true, true, spectra);
+  TEST_EQUAL(spectra.size(), 1) // the survey scan is not searched and the residual spectrum is removed again
+  TEST_EQUAL(chimeric.size(), 2)
+  ABORT_IF(chimeric.size() != 2)
+  TEST_EQUAL(chimeric[0].getHits()[0].getSequence(), selected)
+  TEST_EQUAL(int(chimeric[0].getHits()[0].getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 1)
+  TEST_EQUAL(chimeric[1].getHits()[0].getSequence(), coisolated)
+  TEST_EQUAL(chimeric[1].getHits()[0].getCharge(), 3)
+  TEST_EQUAL(int(chimeric[1].getHits()[0].getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)
+  TEST_REAL_SIMILAR(chimeric[1].getMZ(), coisolated.getMZ(3))
+  TEST_EQUAL(chimeric[1].getSpectrumReference(), "scan=2")
+  TEST_EQUAL(int(chimeric[1].getMetaValue("scan_index")), 0)
+  TEST_EQUAL(extra_features_(proteins[0]).find(ProSEAlgorithm::CHIMERIC_RANK) != std::string::npos, true)
+
+  // without survey scans, nothing is co-isolated
+  const auto [no_survey_proteins, no_survey] = search(true, false, spectra);
+  TEST_EQUAL(no_survey.size(), 1)
+
+  // the file-based search reads the survey scans
+  spectra.clear(true);
+  spectra.addSpectrum(ms1);
+  spectra.addSpectrum(ms2);
+  std::string tmp_mzml, tmp_fasta;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  FASTAFile().store(tmp_fasta, fasta_db);
+  ProSEAlgorithm from_file;
+  configure(from_file, true);
+  vector<ProteinIdentification> file_proteins;
+  PeptideIdentificationList file_peptides;
+  TEST_EQUAL(from_file.search(tmp_mzml, tmp_fasta, file_proteins, file_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(file_peptides.size(), 2)
+  ABORT_IF(file_peptides.size() != 2)
+  TEST_EQUAL(file_peptides[1].getHits()[0].getSequence(), coisolated)
+  TEST_EQUAL(file_peptides[1].getSpectrumReference(), "scan=2")
 }
 END_SECTION
 

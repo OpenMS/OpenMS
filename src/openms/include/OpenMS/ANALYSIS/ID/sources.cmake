@@ -8,6 +8,7 @@ AhoCorasickAmbiguous.h
 AScore.h
 BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
+CoIsolationDetector.h
 ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h

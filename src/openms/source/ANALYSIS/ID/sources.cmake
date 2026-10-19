@@ -8,6 +8,7 @@ AhoCorasickAmbiguous.cpp
 AScore.cpp
 BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
+CoIsolationDetector.cpp
 ConsensusIDAlgorithm.cpp
 ConsensusIDAlgorithmAverage.cpp
 ConsensusIDAlgorithmBest.cpp
