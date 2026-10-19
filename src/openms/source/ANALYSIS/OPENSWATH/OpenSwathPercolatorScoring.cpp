@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
@@ -32,6 +33,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <set>
 #include <tuple>
@@ -53,6 +55,7 @@ namespace OpenMS
     double transition_peakgroup_max_pep = 0.7;
     double transition_max_isotope_overlap = 0.5;
     double transition_min_log_sn = 0.0;
+    std::string training_main_score = "var_xcorr_shape";
   };
 
   namespace
@@ -1685,6 +1688,12 @@ namespace OpenMS
     defaults_.setValue("transition:min_log_sn", impl_->transition_min_log_sn,
                        "Transition scoring: minimum log signal-to-noise score retained for rescoring.");
 
+    defaults_.setValue("training_main_score", impl_->training_main_score,
+                       "Peak-group score that selects the best peak group of each precursor for the Percolator training "
+                       "set of ms1, ms2 and ms1ms2 rescoring (prefix '-' if lower values are better). The training set holds "
+                       "these peak groups plus all peak groups of precursors drawn at random, up to "
+                       "percolator:subset_max_train further peak groups (0: train on all peak groups); the model then "
+                       "scores all peak groups. If the score is not among the features, all peak groups are used.");
     defaults_.insert("percolator:", impl_->percolator.getDefaults());
     defaultsToParam_();
     updateMembers_();
@@ -1698,7 +1707,157 @@ namespace OpenMS
     impl_->transition_peakgroup_max_pep = static_cast<double>(param_.getValue("transition:peakgroup_max_pep"));
     impl_->transition_max_isotope_overlap = static_cast<double>(param_.getValue("transition:max_isotope_overlap"));
     impl_->transition_min_log_sn = static_cast<double>(param_.getValue("transition:min_log_sn"));
+    impl_->training_main_score = param_.getValue("training_main_score").toString();
     impl_->percolator.setParameters(param_.copy("percolator:", true));
+  }
+
+  std::vector<Size> OpenSwathPercolatorScoring::trainingRows(const RescoreInput& input,
+                                                             const std::string& main_score,
+                                                             const Size max_others,
+                                                             const UInt64 seed)
+  {
+    const Size n_rows = input.features.size();
+    std::vector<Size> all_rows(n_rows);
+    std::iota(all_rows.begin(), all_rows.end(), Size(0));
+    if (max_others == 0 || input.cv_group_keys.size() != n_rows)
+    {
+      return all_rows;
+    }
+    String main_name = main_score;
+    double direction = 1.0;
+    if (StringUtils::hasPrefix(main_name, "-"))
+    {
+      direction = -1.0;
+      main_name = main_name.substr(1);
+    }
+    const auto name_it = std::find(input.feature_names.begin(), input.feature_names.end(), main_name);
+    if (name_it == input.feature_names.end())
+    {
+      return all_rows;
+    }
+    const Size main_col = static_cast<Size>(name_it - input.feature_names.begin());
+
+    // the rows of every group (a group is one precursor in one run), groups in the order of their first row
+    std::unordered_map<int, Size> group_of_key;
+    std::vector<std::vector<Size>> group_rows;
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      const auto inserted = group_of_key.emplace(input.cv_group_keys[i], group_rows.size());
+      if (inserted.second)
+      {
+        group_rows.emplace_back();
+      }
+      group_rows[inserted.first->second].push_back(i);
+    }
+
+    // the best row of every group; ties keep the first
+    std::vector<char> take(n_rows, 0);
+    Size n_others = 0;
+    for (const auto& rows : group_rows)
+    {
+      Size best = rows.front();
+      for (const Size row : rows)
+      {
+        if (direction * input.features[row][main_col] > direction * input.features[best][main_col])
+        {
+          best = row;
+        }
+      }
+      take[best] = 1;
+      n_others += rows.size() - 1;
+    }
+    if (n_others <= max_others)
+    {
+      return all_rows; // everything would be taken
+    }
+
+    // complete groups in random order while their other rows fit; RandomShuffler draws the same
+    // shuffle on every platform (std::shuffle does not)
+    std::vector<Size> group_order(group_rows.size());
+    std::iota(group_order.begin(), group_order.end(), Size(0));
+    Math::RandomShuffler shuffler;
+    shuffler.seed(seed);
+    shuffler.portable_random_shuffle(group_order.begin(), group_order.end());
+    Size n_added = 0;
+    for (const Size group : group_order)
+    {
+      const Size n_group_others = group_rows[group].size() - 1;
+      if (n_added + n_group_others > max_others)
+      {
+        break;
+      }
+      for (const Size row : group_rows[group])
+      {
+        take[row] = 1;
+      }
+      n_added += n_group_others;
+    }
+
+    std::vector<Size> rows;
+    rows.reserve(group_rows.size() + n_added);
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (take[i])
+      {
+        rows.push_back(i);
+      }
+    }
+    return rows;
+  }
+
+  namespace
+  {
+    /**
+      @brief The training input of peak-group (ms1/ms2/ms1ms2) rescoring: the rows of
+      OpenSwathPercolatorScoring::trainingRows().
+
+      @return @p input itself if all rows are used, otherwise @p subset
+    */
+    const RescoreInput& trainingInput_(const RescoreInput& input, const String& main_score, const Size max_others,
+                                       const UInt64 seed, RescoreInput& subset)
+    {
+      const Size n_rows = input.features.size();
+      if (max_others > 0 && input.cv_group_keys.size() == n_rows)
+      {
+        String main_name = main_score;
+        if (StringUtils::hasPrefix(main_name, "-"))
+        {
+          main_name = main_name.substr(1);
+        }
+        if (std::find(input.feature_names.begin(), input.feature_names.end(), main_name) == input.feature_names.end())
+        {
+          OPENMS_LOG_INFO << "OpenSWATH Percolator training: '" << main_name
+                          << "' is not among the features, training on all " << n_rows << " rows.\n";
+        }
+      }
+      const std::vector<Size> rows = OpenSwathPercolatorScoring::trainingRows(input, main_score, max_others, seed);
+      if (rows.size() == n_rows)
+      {
+        return input;
+      }
+
+      subset = RescoreInput();
+      subset.feature_names = input.feature_names;
+      subset.features.reserve(rows.size());
+      std::unordered_map<int, Size> rows_of_group;
+      for (const Size i : rows) // keeps the order of the input
+      {
+        subset.features.push_back(input.features[i]);
+        subset.is_decoy.push_back(input.is_decoy[i]);
+        subset.cv_group_keys.push_back(input.cv_group_keys[i]);
+        if (!input.scan_numbers.empty()) subset.scan_numbers.push_back(input.scan_numbers[i]);
+        if (!input.spec_file_numbers.empty()) subset.spec_file_numbers.push_back(input.spec_file_numbers[i]);
+        if (!input.exp_masses.empty()) subset.exp_masses.push_back(input.exp_masses[i]);
+        if (!input.calc_masses.empty()) subset.calc_masses.push_back(input.calc_masses[i]);
+        ++rows_of_group[input.cv_group_keys[i]];
+      }
+      const Size n_drawn = static_cast<Size>(std::count_if(rows_of_group.begin(), rows_of_group.end(),
+                                                           [](const auto& group) { return group.second > 1; }));
+      OPENMS_LOG_INFO << "OpenSWATH Percolator training on " << rows.size() << " of " << n_rows
+                      << " peak groups: the best of each of " << rows_of_group.size() << " precursors by " << main_score
+                      << ", and all peak groups of " << n_drawn << " of these precursors drawn at random.\n";
+      return subset;
+    }
   }
 
   OpenSwathPercolatorScoring::ScoreSummary OpenSwathPercolatorScoring::score(const std::string& input_path,
@@ -1714,6 +1873,19 @@ namespace OpenMS
     OPENMS_LOG_INFO << "OpenSWATH Percolator scoring (" << levelName_(level)
                     << ") on '" << input_path << "'\n";
 
+    // Peak groups are trained on a subset (see trainingInput_); transitions on all rows.
+    const Param percolator_param = impl_->percolator.getParameters();
+    const Size max_others = static_cast<Size>(static_cast<int>(percolator_param.getValue("subset_max_train")));
+    const UInt64 seed = static_cast<UInt64>(static_cast<int>(percolator_param.getValue("seed")));
+    auto trainingInputForLevel_ = [&](const PreparedInput& input, RescoreInput& subset) -> const RescoreInput&
+    {
+      if (level == Level::TRANSITION)
+      {
+        return input.input;
+      }
+      return trainingInput_(input.input, impl_->training_main_score, max_others, seed, subset);
+    };
+
     PreparedInput prepared;
     if (StringUtils::hasSuffix(input_path, ".osw"))
     {
@@ -1723,7 +1895,8 @@ namespace OpenMS
                                     impl_->transition_peakgroup_max_pep,
                                     impl_->transition_max_isotope_overlap,
                                     impl_->transition_min_log_sn);
-      const PercolatorModel model = impl_->percolator.train(prepared.input);
+      RescoreInput training_subset;
+      const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
       const RescoreOutput output = impl_->percolator.score(prepared.input, model);
       const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
       const auto results = computePeakGroupResults_(prepared, output, exported_scores);
@@ -1737,7 +1910,8 @@ namespace OpenMS
                                    impl_->transition_peakgroup_max_pep,
                                    impl_->transition_max_isotope_overlap,
                                    impl_->transition_min_log_sn);
-    const PercolatorModel model = impl_->percolator.train(prepared.input);
+    RescoreInput training_subset;
+    const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
     const RescoreOutput output = impl_->percolator.score(prepared.input, model);
     const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
     const auto results = computePeakGroupResults_(prepared, output, exported_scores);

@@ -62,7 +62,7 @@ namespace OpenMS
     bool   post_processing_tdc = true;
     int    nested_xval_bins = 1;
     int    subset_max_train = 100000;         ///< 0 = no cap; default 100k
-    int    num_threads = 3;                   ///< OpenMP threads for CV (one per fold; max useful = 3)
+    int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
     bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
@@ -75,6 +75,10 @@ namespace OpenMS
     /// set right before calcPep. Populated by rescore() and score(). Read by
     /// Percolator::getPi0(). Negative (-1.0) before the first call.
     double last_pi0 = -1.0;
+
+    /// True if the sanity check of the last rescore()/train() replaced the learned
+    /// weights by the default direction. Read by Percolator::usedDefaultDirection().
+    bool last_used_default_direction = false;
 
     void reset();
   };
