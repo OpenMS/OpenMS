@@ -587,6 +587,47 @@ test("searchFiles pools two files like ProSE -out_merged", () => {
   assert.deepEqual([...fileIndices].sort(), [0, 1]);
 });
 
+test("searchFiles: the summary has the search statistics of search()", () => {
+  withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
+    // search() of one of the files (a copy of the other), with the settings of pooled() but Percolator (which takes long)
+    const single = using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+      (prose, proteins, peptides) => {
+        prose.setParameterValues(prose6);
+        return prose.search(files[0], suitabilityDatabase, proteins, peptides, { rescore: false });
+      });
+    const set = searchFiles(OpenMS, files, { rescore: false });
+    try {
+      const summary = set.summary();
+      // the database, the decoys and the settings: those of search(). (The times differ; so does the index: the search of a
+      // single file indexes only the peptides its spectra can reach, that of several files all of the digest.)
+      const { secondsIndexBuild, secondsTotal, indexedPeptides, indexedFragments, ...search } = summary.search;
+      const { secondsIndexBuild: singleIndexBuild, secondsTotal: singleTotal, indexedPeptides: singlePeptides,
+              indexedFragments: singleFragments, ...singleSearch } = single.search;
+      assert.deepEqual(search, singleSearch);
+      assert.equal(search.databaseFile, suitabilityDatabase);
+      assert.equal(search.decoyMode, "generated");
+      assert.ok(search.targetProteins > 0 && search.decoyProteins > 0);
+      assert.ok(indexedPeptides > 0 && indexedFragments > indexedPeptides, `${indexedPeptides} peptides, ${indexedFragments} fragments`);
+      assert.ok(indexedPeptides >= singlePeptides && singleFragments > 0);
+      // times: the index is built once for the two files, within the time of the call
+      assert.ok(secondsIndexBuild > 0 && singleIndexBuild > 0);
+      assert.ok(secondsTotal >= secondsIndexBuild, `${secondsTotal} s in total, ${secondsIndexBuild} s for the index`);
+      assert.ok(secondsTotal >= Math.max(...summary.files.map((f) => f.secondsSearch)));
+      assert.ok(singleTotal >= singleIndexBuild);
+      // the mass errors of the PSMs of each file and the tolerances ProSE recommends: those of search() for this data
+      assert.ok(single.run.precursorError !== null && single.run.fragmentError !== null, "estimated");
+      for (const f of summary.files) {
+        assert.deepEqual(f.precursorError, single.run.precursorError);
+        assert.deepEqual(f.fragmentError, single.run.fragmentError);
+        assert.equal(typeof f.precursorError.recommended, "number");
+        assert.equal(typeof f.fragmentError.recommended, "number");
+      }
+    } finally {
+      set.delete();
+    }
+  });
+});
+
 test("searchFiles reports one progress step per file", () => {
   const { reports, summary } = pooled();
   // then the step that reads the spectra of the PSMs (keepSpectra), over the MS2 spectra of the files
@@ -850,6 +891,11 @@ function resultsOf(set, files) {
     f.path = files.indexOf(f.path);
     f.secondsSearch = 0;
   }
+  // (the times, and the size of the index: a search file by file builds it for each file, from the spectra of the file)
+  summary.search.secondsIndexBuild = 0;
+  summary.search.secondsTotal = 0;
+  summary.search.indexedPeptides = 0;
+  summary.search.indexedFragments = 0;
   const tables = plain(set.tables());
   tables.files = tables.files.map((f) => files.indexOf(f));
   return { summary, tables, spectra: plain(set.spectra()) };

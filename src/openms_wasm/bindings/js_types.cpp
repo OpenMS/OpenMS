@@ -146,9 +146,17 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "{ path: string; status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
     "ms2Spectra: number; targetPSMs: number; decoyPSMs: number; "
     "percolator: { applied: boolean; skipped: string | null; warning: string | null } | null; "
-    "peptdeepNce: number | null; secondsSearch: number }");
+    "peptdeepNce: number | null; "
+    "/** the precursor mass error of the file's PSMs and the tolerance ProSE recommends for it, as in search(); null: not estimated */ "
+    "precursorError: ProSESummary['run']['precursorError']; "
+    "/** the fragment mass error and the tolerance ProSE recommends, as precursorError */ "
+    "fragmentError: ProSESummary['run']['fragmentError']; secondsSearch: number }");
   register_type<ProSEMultiSummary>("ProSEMultiSummary",
-    "{ files: ProSEFileSummary[]; proteinFdrApplied: boolean; psmFdr: number; proteinFdr: number; decoyString: string; "
+    "{ files: ProSEFileSummary[]; "
+    "/** the database, the fragment index (indexedPeptides, indexedFragments), the decoys (decoyMode) and the times, as "
+    "search() reports them (summary.search). secondsTotal is the time of searchFiles() (with provideFile, the writing and removing "
+    "of the files too); secondsIndexBuild that of building the index (with provideFile, of all the files together) */ "
+    "search: ProSESummary['search']; proteinFdrApplied: boolean; psmFdr: number; proteinFdr: number; decoyString: string; "
     "openSearch: boolean; modificationAnalysis: ProSESummary['modificationAnalysis'] }");
   register_type<ResultTables>("ResultTables",
     "{ /** the input files, in the order of the search */ files: string[]; "

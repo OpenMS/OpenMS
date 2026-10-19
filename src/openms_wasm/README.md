@@ -291,7 +291,9 @@ interface ProSEResultSet {
   delete(): void;
 }
 type ProSEMultiSummary = {
-  files: ProSEFileSummary[]; proteinFdrApplied: boolean; psmFdr: number; proteinFdr: number;
+  files: ProSEFileSummary[];
+  search: ProSESummary['search'];     // as search() reports it: database, enzyme, decoyMode, indexedPeptides, indexedFragments, secondsIndexBuild, secondsTotal, ...
+  proteinFdrApplied: boolean; psmFdr: number; proteinFdr: number;
   decoyString: string; openSearch: boolean; modificationAnalysis: ProSESummary['modificationAnalysis'];
 };
 type ProSEFileSummary = {
@@ -299,6 +301,8 @@ type ProSEFileSummary = {
   ms2Spectra: number; targetPSMs: number; decoyPSMs: number;
   percolator: { applied: boolean; skipped: string | null; warning: string | null } | null;
   peptdeepNce: number | null;         // the collision energy the PeptDeep predictions of the file used
+  precursorError: ProSESummary['run']['precursorError'];   // { median, mad, recommended } of the PSMs of the file; null: not estimated
+  fragmentError: ProSESummary['run']['fragmentError'];
   secondsSearch: number;
 };
 ```
@@ -317,6 +321,17 @@ type ProSEFileSummary = {
   files that were not rescored): search with `{ rescore: false }`, or leave those files out.
 
 - `provideFile` and `releaseFile`: search the files one at a time, each while it is there (below).
+- `summary().search` holds the statistics `search()` has under `search`, for the whole search: the database,
+  the enzyme, the decoy mode (`decoyMode`: `generated`, `external` or `none (target-only)`), the size of the
+  fragment index (`indexedPeptides`, `indexedFragments`) and the times. The index is built once for all
+  files, so `secondsIndexBuild` is its time; `secondsTotal` is the time of the whole `searchFiles()` call,
+  with pooling and reading the spectra. (The index of several files holds all peptides of the digest; that
+  of `search()`, and of a search of one file, only those its spectra can reach, so the sizes differ.) With
+  `provideFile` the index is built for each file, from its spectra: `secondsIndexBuild` adds up the builds,
+  the size is that of the first file's index, and `secondsTotal` includes the writing and removing of the
+  files. The tolerances ProSE recommends from the mass errors of the PSMs (`precursorError`,
+  `fragmentError`: `{ median, mad, recommended }` or `null`) are those of each file, so they are in
+  `files[i]`, not in `search`.
 
 **Inputs larger than the memory: file by file.** The input files are searched while they are in the
 module's file system, which in a browser keeps them in the module's memory (4 GB at most, and

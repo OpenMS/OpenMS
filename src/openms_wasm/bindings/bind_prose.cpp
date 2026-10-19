@@ -344,6 +344,27 @@ namespace OpenMS::WASM
       return o;
     }
 
+    /// {median, mad, recommended} of a mass error estimate (the tolerance ProSE recommends), null if there is none
+    val errorEstimateToJS(bool valid, double median, double mad, double recommended)
+    {
+      if (!valid) return val::null();
+      val e = val::object();
+      e.set("median", median);
+      e.set("mad", mad);
+      e.set("recommended", recommended);
+      return e;
+    }
+
+    val precursorErrorToJS(const ProSEAlgorithm::RunStatistics& s)
+    {
+      return errorEstimateToJS(s.prec_tol_valid, s.prec_err_median, s.prec_err_mad, s.prec_err_recommended);
+    }
+
+    val fragmentErrorToJS(const ProSEAlgorithm::RunStatistics& s)
+    {
+      return errorEstimateToJS(s.frag_tol_valid, s.frag_err_median, s.frag_err_mad, s.frag_err_recommended);
+    }
+
     val runStatisticsToJS(const ProSEAlgorithm::RunStatistics& s)
     {
       val o = val::object();
@@ -366,16 +387,8 @@ namespace OpenMS::WASM
         h.set("max", s.hyperscore_max);
         o.set("hyperscore", h);
       }
-      const auto error = [](bool valid, double median, double mad, double recommended) {
-        if (!valid) return val::null();
-        val e = val::object();
-        e.set("median", median);
-        e.set("mad", mad);
-        e.set("recommended", recommended);
-        return e;
-      };
-      o.set("precursorError", error(s.prec_tol_valid, s.prec_err_median, s.prec_err_mad, s.prec_err_recommended));
-      o.set("fragmentError", error(s.frag_tol_valid, s.frag_err_median, s.frag_err_mad, s.frag_err_recommended));
+      o.set("precursorError", precursorErrorToJS(s));
+      o.set("fragmentError", fragmentErrorToJS(s));
       o.set("secondsSearch", s.seconds_search);
       o.set("secondsCalibration", s.seconds_calibration);
       o.set("secondsFDR", s.seconds_fdr);
@@ -608,11 +621,14 @@ namespace OpenMS::WASM
       o.set("decoyPSMs", static_cast<double>(f.stats.decoy_psms));
       o.set("percolator", percolator);
       o.set("peptdeepNce", f.peptdeep_nce ? val(*f.peptdeep_nce) : val::null());
+      o.set("precursorError", precursorErrorToJS(f.stats));
+      o.set("fragmentError", fragmentErrorToJS(f.stats));
       o.set("secondsSearch", f.stats.seconds_search);
       return o;
     };
     val o = val::object();
     o.set("files", toArray(files, file_summary));
+    o.set("search", sharedStatisticsToJS(search));
     o.set("proteinFdrApplied", merged.protein_fdr_applied);
     o.set("psmFdr", psm_fdr);
     o.set("proteinFdr", protein_fdr);
@@ -702,6 +718,10 @@ namespace OpenMS::WASM
             combined.decoy_is_prefix = one.decoy_is_prefix;
             combined.have_decoys = one.have_decoys;
             combined.shared = one.shared;
+          }
+          else
+          {
+            combined.shared.seconds_index_build += one.shared.seconds_index_build; // the index is built for each file
           }
           combined.aggregate.is_open_search = one.aggregate.is_open_search;
           ProSEAlgorithm::SearchResult& run = one.per_file[0];
@@ -795,6 +815,8 @@ namespace OpenMS::WASM
       }
 
       resetProgress(algo);
+      StopWatch watch;
+      watch.start();
       auto set = std::make_unique<ProSEResultSet>();
       set->keep_spectra = isNullish(keep_spectra_option) || keep_spectra_option.as<bool>();
       set->psm_fdr = static_cast<double>(algo.getParameters().getValue("FDR:PSM"));
@@ -862,6 +884,8 @@ namespace OpenMS::WASM
       // a search of one file analyses the modifications of its PSMs, not of a pooled set
       set->modification_analysis = std::move(files.size() == 1 ? result.per_file[0].modification_analysis
                                                                 : result.aggregate.modification_analysis);
+      set->search = result.shared;
+      if (set->search.database_file.empty()) set->search.database_file = database_path; // (searched from memory)
       set->decoy_string = result.decoy_string;
       set->decoy_is_prefix = result.decoy_is_prefix;
       // how the search built its decoys, for the sequences of the decoy proteins (ProSEAlgorithm's decoy database)
@@ -877,7 +901,12 @@ namespace OpenMS::WASM
 
       // Without PSMs, nothing is pooled: the results stay empty, as without a searched file. (mergeFileResults() would
       // throw: the protein inference needs PSMs.)
-      if (!have_psms) return set;
+      if (!have_psms)
+      {
+        watch.stop();
+        set->search.seconds_total = watch.getClockTime();
+        return set;
+      }
       bool partly_rescored = false;
       try
       {
@@ -904,6 +933,8 @@ namespace OpenMS::WASM
       {
         set->collectSpectra(&algo);
       }
+      watch.stop();
+      set->search.seconds_total = watch.getClockTime();
       return set;
     }
 

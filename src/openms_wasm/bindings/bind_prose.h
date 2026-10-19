@@ -90,6 +90,10 @@ namespace OpenMS::WASM
     bool open_search = false;
     /// of the PSMs of all files (open search)
     OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
+    /// The facts of the search shared by its files (the database, the fragment index, the settings), as search() reports
+    /// them; seconds_total is the wall time of searchFiles() (file by file: the writing and removing of the files
+    /// included), seconds_index_build that of building the index (file by file: of all the files together)
+    ProSEAlgorithm::SharedSearchStats search;
     std::string decoy_string;                ///< the decoy marker of the accessions (empty: target-only)
     bool decoy_is_prefix = true;             ///< whether decoy_string is a prefix (else a suffix)
     double psm_fdr = 0.0;                    ///< FDR:PSM
