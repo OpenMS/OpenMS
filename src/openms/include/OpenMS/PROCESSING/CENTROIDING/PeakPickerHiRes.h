@@ -12,6 +12,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianSettings.h>
 
 #define DEBUG_PEAK_PICKING
 #undef DEBUG_PEAK_PICKING
@@ -173,6 +174,9 @@ protected:
 
     // signal-to-noise parameter
     double signal_to_noise_;
+
+    /// settings of the S/N estimation (parameters "SignalToNoise:*"), read once in updateMembers_()
+    SignalToNoiseEstimatorMedianSettings sn_settings_;
 
     // maximal spacing difference defining a large gap
     double spacing_difference_gap_;
