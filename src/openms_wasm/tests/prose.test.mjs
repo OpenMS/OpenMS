@@ -377,6 +377,7 @@ const prose6 = {
 };
 const suitabilityDatabase = "/topp/THIRDPARTY/DatabaseSuitability_database.fasta";
 const suitabilitySpectra = path.join(toppDataDir, "THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+const suitabilitySpectraModule = "/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML"; // the same, in the module's file system
 
 /// Copies @p source (default: DatabaseSuitability_in_spec.mzML) to @p names (paths relative to a new temporary
 /// directory, e.g. "0/run.mzML"), mounted at /searchfiles of module @p m while @p fn runs; @p fn gets the paths of
@@ -1723,6 +1724,63 @@ test("spectra() with FDR:PSM 0 (no filter): the spectra of all PSMs, whatever th
       set.delete();
     }
   });
+});
+
+test("searchFiles with FDR:PSM 0 and without Percolator: q-values, nothing filtered", () => {
+  // an open search of the spectra against shuffled proteins: 100s of target and decoy PSMs, q-values from 0 to 1
+  const database = "/tmp/shuffled-q.fasta";
+  writeShuffledDatabase(database);
+  try {
+    const spectra = "/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML";
+    const blank = { "precursor:mass_tolerance_lower": 300, "precursor:mass_tolerance_upper": 300, "precursor:mass_tolerance_unit": "Da",
+                    "fragment:min_matched_ions": 3, "fragment:min_ion_index": 1, "FDR:protein": 0 };
+    const run = (parameters, options = { rescore: false }, db = database) => {
+      const set = searchFiles(OpenMS, [spectra], options, { parameters: { ...prose6, ...blank, ...parameters }, database: db });
+      try {
+        return { psms: set.tables().psms, proteins: set.tables().proteins, summary: set.summary() };
+      } finally {
+        set.delete();
+      }
+    };
+    // FDR:PSM 1 filters nothing either, and computes the q-values of each file: those that FDR:PSM 0 has to give
+    const reference = run({ "FDR:PSM": 1 });
+    const unfiltered = run({ "FDR:PSM": 0 });
+    const { psms } = unfiltered;
+    assert.equal(unfiltered.summary.psmFdr, 0);
+    assert.equal(unfiltered.summary.files[0].percolator, null, "no Percolator");
+    assert.ok(psms.decoy.includes(1) && psms.decoy.includes(0), "target and decoy PSMs");
+    assert.equal(psms.count, reference.psms.count, "nothing is filtered");
+    assert.ok(psms.count > 100);
+    assert.ok(psms.qValue.every((q) => q >= 0 && q <= 1), "a q-value for every PSM");
+    assert.ok(psms.qValue.some((q) => q > 0.5), "q-values far above any FDR:PSM that one would set");
+    assert.deepEqual(Array.from(psms.qValue), Array.from(reference.psms.qValue), "the q-values of FDR:PSM");
+    // the scores stay ProSE's: the same ln(hyperscore) as with the FDR:PSM that computes the q-values
+    assert.deepEqual(Array.from(psms.score), Array.from(reference.psms.score));
+    assert.deepEqual(Array.from(psms.nativeId), Array.from(reference.psms.nativeId));
+    assert.ok(psms.pep.every(Number.isNaN), "no Percolator");
+    // a better score has a q-value that is not larger
+    const rows = [...psms.score.keys()].sort((a, b) => psms.score[b] - psms.score[a]);
+    for (let k = 1; k < rows.length; ++k) assert.ok(psms.qValue[rows[k]] >= psms.qValue[rows[k - 1]], `rank ${k}`);
+
+    // Percolator's q-values where it rescored
+    const rescored = run({ "FDR:PSM": 0 }, { rescore: true });
+    assert.equal(rescored.summary.files[0].percolator.applied, true);
+    assert.ok(rescored.psms.qValue.every(Number.isFinite) && rescored.psms.pep.every(Number.isFinite));
+    assert.notDeepEqual(Array.from(rescored.psms.qValue), Array.from(psms.qValue));
+  } finally {
+    OpenMS.FS.unlink(database);
+  }
+  // a search without decoys has no q-values to give
+  const noDecoys = (() => {
+    const set = searchFiles(OpenMS, [suitabilitySpectraModule], { rescore: false }, { parameters: { ...prose6, "decoys": "ignore", "FDR:PSM": 0, "FDR:protein": 0 } });
+    try {
+      return set.tables().psms;
+    } finally {
+      set.delete();
+    }
+  })();
+  assert.ok(noDecoys.count > 0 && !noDecoys.decoy.includes(1));
+  assert.ok(noDecoys.qValue.every(Number.isNaN), "no decoys, no q-values");
 });
 
 test("ProSEResultSet.delete() releases the results", async () => {

@@ -134,6 +134,16 @@ namespace OpenMS::WASM
       return firstMetaNumber(hit, {k.percolator_q, k.q_cv, k.q, k.q_score});
     }
 
+    /// The best hit of @p id (by its score and the orientation of the score); @p id has hits
+    PeptideHit& mutableBestHit(PeptideIdentification& id)
+    {
+      auto& hits = id.getHits();
+      const bool higher_better = id.isHigherScoreBetter();
+      return *std::min_element(hits.begin(), hits.end(), [higher_better](const PeptideHit& a, const PeptideHit& b) {
+        return higher_better ? a.getScore() > b.getScore() : a.getScore() < b.getScore();
+      });
+    }
+
     double pep(const PeptideIdentification& id, const PeptideHit& hit, const ScoreKeys& k)
     {
       if (id.getScoreType() == "Posterior Error Probability") return hit.getScore();
@@ -296,6 +306,27 @@ namespace OpenMS::WASM
       }
     }
   } // namespace
+
+  bool annotatePsmQValueMetaValues(const ProSEAlgorithm& algo, PeptideIdentificationList& ids)
+  {
+    // FalseDiscoveryRate needs decoy PSMs to estimate anything: without them it gives every PSM the q-value 0
+    const bool has_decoy_psm = std::any_of(ids.begin(), ids.end(), [](const PeptideIdentification& id) {
+      return std::any_of(id.getHits().begin(), id.getHits().end(), [](const PeptideHit& hit) { return hit.isDecoy(); });
+    });
+    if (!has_decoy_psm) return false;
+    // The q-values replace the scores of the PSMs, and ProSE's scores are what the protein inference of the pooled
+    // results ranks by (as without FDR:PSM): compete on a copy, which keeps the order of the identifications and the best
+    // hit of each as its first (FalseDiscoveryRate sorts the hits, ties stay in order, as bestHit() takes the first)
+    PeptideIdentificationList competed = ids;
+    algo.annotatePsmQValues(competed);
+    const UInt q_key = metaIndex("q-value");
+    for (Size i = 0; i < ids.size(); ++i)
+    {
+      if (ids[i].getHits().empty() || competed[i].getHits().empty()) continue;
+      mutableBestHit(ids[i]).setMetaValue(q_key, competed[i].getHits()[0].getScore());
+    }
+    return true;
+  }
 
   JS::ResultTables ProSEResultSet::tables() const
   {

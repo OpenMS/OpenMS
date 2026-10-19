@@ -870,6 +870,13 @@ namespace OpenMS::WASM
           }
           // the statistics of the PSMs of the file, as the ProSE tool reports them
           ProSEAlgorithm::updateFinalStats(run.stats, run.peptide_ids, result.shared.enzyme, run.stats.fdr_applied);
+          // Without Percolator's q-values and without FDR:PSM to compute them (0: no filter), the PSMs of a search with decoys
+          // get the q-values FDR:PSM would give them (per file), as meta values: filtering nothing, and leaving the scores
+          // the protein inference ranks by
+          if (set->psm_fdr <= 0.0 && !run.percolator.applied && result.have_decoys)
+          {
+            annotatePsmQValueMetaValues(algo, run.peptide_ids);
+          }
           have_psms = have_psms || std::any_of(run.peptide_ids.begin(), run.peptide_ids.end(),
                                                [](const PeptideIdentification& id) { return !id.getHits().empty(); });
           if (set->rescore && !run.percolator.applied)

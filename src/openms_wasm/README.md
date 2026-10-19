@@ -465,8 +465,11 @@ type ResultTables = {
 ```
 
 - `psms.score` is Percolator's (SVM) score if the search rescored the PSMs, else ln(hyperscore); higher
-  is better. `proteins.score` is the best `psms.score` of the protein's PSMs. `qValue` and `pep` are NaN
-  where there is none (no decoys, not rescored).
+  is better. `proteins.score` is the best `psms.score` of the protein's PSMs. `pep` is NaN where the file
+  was not rescored. `psms.qValue` is Percolator's q-value for a rescored file; otherwise it is the q-value of
+  the target-decoy competition of the file's PSMs, as `FDR:PSM` computes it, **also with `FDR:PSM` 0**, which
+  filters nothing (the scores stay ProSE's: only the q-values are added). It is NaN only when the search had no
+  decoys (or the file no decoy PSM). `proteins.qValue` is NaN without a protein FDR.
 - `featureNames` holds the features Percolator trained on, those that some PSM has: `ln(hyperscore)`,
   the standard features of the .pin format (`CalcMass`, `mass`, `peplen`, `charge<N>`, `enzN`, `enzC`,
   `enzInt`, `dm`, `absdm`, computed also for searches without rescoring; the enzyme is

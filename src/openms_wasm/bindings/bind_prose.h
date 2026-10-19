@@ -68,6 +68,12 @@ namespace OpenMS::WASM
     std::vector<float> collision_energy;   ///< the collision energy of the first precursor (MS:1000045, else the activation energy); NaN: unknown
   };
 
+  /// Gives the best hit of each identification of @p ids the meta value "q-value" that tables() reads: the q-value that
+  /// FDR:PSM would compute by target-decoy competition of the best hits (ProSEAlgorithm::annotatePsmQValues(), with
+  /// the settings of @p algo), without filtering and without changing the scores of the hits. Returns false, and does
+  /// nothing, where @p ids have no decoy PSM.
+  bool annotatePsmQValueMetaValues(const ProSEAlgorithm& algo, PeptideIdentificationList& ids);
+
   /// The search of one input file of ProSEAlgorithm.searchFiles()
   struct ProSEFileResult
   {
