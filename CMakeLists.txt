@@ -133,6 +133,7 @@ option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration te
 option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+option(OPENMS_ENABLE_RUST_EXPERIMENT "Build the optional Corrosion/quick-xml C ABI experiment (requires Rust and network access)." OFF)
 
 ## Build only the applications (TOPP tools and/or the GUI) against an installed OpenMS
 ## library of the same version instead of building the libraries, e.g. to package OpenMS in
@@ -149,6 +150,17 @@ if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
 endif()
 if(ENABLE_CWL_GENERATION AND NOT BUILD_TOPP_TOOLS)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires BUILD_TOPP_TOOLS to be ON.")
+endif()
+
+if(OPENMS_ENABLE_RUST_EXPERIMENT)
+  include(FetchContent)
+  FetchContent_Declare(
+    Corrosion
+    GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+    GIT_TAG v0.6
+  )
+  FetchContent_MakeAvailable(Corrosion)
+  add_subdirectory(src/rust_experiment)
 endif()
 
 if(MSVC)

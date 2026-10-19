@@ -1,0 +1,5 @@
+corrosion_import_crate(MANIFEST_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml")
+
+add_executable(openms_rust_experiment_test smoke_test.cpp)
+target_link_libraries(openms_rust_experiment_test PRIVATE openms_rust_xml)
+add_test(NAME OpenMSRustExperiment COMMAND openms_rust_experiment_test)

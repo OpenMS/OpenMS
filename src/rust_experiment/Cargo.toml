@@ -1,0 +1,12 @@
+[package]
+name = "openms-rust-experiment"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "openms_rust_xml"
+crate-type = ["staticlib"]
+
+[dependencies]
+quick-xml = "=0.37.5"
