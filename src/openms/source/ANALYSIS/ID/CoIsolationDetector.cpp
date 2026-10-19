@@ -118,8 +118,10 @@ namespace OpenMS
       return false;
     };
 
-    for (const auto& [mz, intensity] : candidates)
+    for (const auto& candidate : candidates)
     {
+      // not a structured binding: clang cannot capture one in a lambda when OpenMP is enabled
+      const double mz = candidate.first;
       if (out.size() >= max_n) break;
       if (is_selected(mz)) continue;
       // an isotope peak of an envelope already accepted
