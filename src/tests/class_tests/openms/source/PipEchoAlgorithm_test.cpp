@@ -359,7 +359,7 @@ START_SECTION([EXTRA] shape_features compares a transfer's peak shape with its p
   Size transfer_count = 0;
   for (const ConsensusFeature& cf : consensus)
   {
-    if (cf.metaValueExists("mbr_transfer_map_indices")) transfer_count += IntList(cf.getMetaValue("mbr_transfer_map_indices")).size();
+    if (cf.metaValueExists("mbr_transfer_map_indices")) transfer_count += cf.getMetaValue("mbr_transfer_map_indices").toIntList().size();
   }
   TEST_EQUAL(transfer_count, 2)
 }
