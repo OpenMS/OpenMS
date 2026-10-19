@@ -374,6 +374,9 @@ namespace OpenMS
       OPENMS_LOG_INFO << "[PeptDeepRescoring] " << rows_by_run.size()
                       << " identification runs; calibrating each separately." << '\n';
     }
+    // The NCE each run's predictions used, recorded on the run below. used_nce_ only
+    // keeps the last one.
+    std::map<std::string, double> nce_by_run;
     for (const auto& [run_id, run_rows] : rows_by_run)
     {
       // Score orientation is a property of the run, not of the container: a merged file
@@ -382,6 +385,7 @@ namespace OpenMS
       const bool higher_better = peptide_ids[rows[run_rows.front()].pi].isHigherScoreBetter();
       annotateRun_(run_id, collision_energies, peptide_ids, rows, run_rows, uniq_seq, uniq_charge,
                    higher_better, ms2, rt);
+      nce_by_run[run_id] = used_nce_;
     }
 
     // ---- register the features for rescoring, per run ----
@@ -403,6 +407,7 @@ namespace OpenMS
       }
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       prot.setSearchParameters(sp);
+      prot.setMetaValue(NCE_META_VALUE, nce_by_run.at(prot.getIdentifier()));
     }
     if (!any_matched && !protein_ids.empty())
     {
@@ -418,6 +423,15 @@ namespace OpenMS
       }
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       protein_ids[0].setSearchParameters(sp);
+      // The runs are all folded onto this one entry, so a single NCE can only stand for
+      // them if they agree (always so for a fixed 'nce'); otherwise record none rather
+      // than an arbitrary run's.
+      const double first_nce = nce_by_run.begin()->second;
+      if (std::all_of(nce_by_run.begin(), nce_by_run.end(),
+                      [&](const auto& kv) { return kv.second == first_nce; }))
+      {
+        protein_ids[0].setMetaValue(NCE_META_VALUE, first_nce);
+      }
     }
 
     // Stable, machine-checkable summary (pipelines such as quantms grep for it).
