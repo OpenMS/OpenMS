@@ -1383,6 +1383,19 @@ add_test("TOPP_IsobaricWorkflow_bayesian" ${TOPP_BIN_PATH}/IsobaricWorkflow -tes
   -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_bayesian_out.tmp.consensusXML)
 add_test("TOPP_IsobaricWorkflow_bayesian_out1" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/IsobaricWorkflow_bayesian_out.tmp.consensusXML)
 set_tests_properties("TOPP_IsobaricWorkflow_bayesian_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_bayesian" PASS_REGULAR_EXPRESSION "peptides \\(with different mod. and charge\\) observed in 10 maps: 4")
+# Bayesian inference keeping every PSM (keep_best_PSM_only false) leaves each identification all of
+# its hits. The input adds a second identification for scan=24221, listed first: its best hit is a
+# decoy scoring better than ELEFANTK, its second a target (MYFINGERK) scoring worse. The FDR removes
+# the decoy hit, so the spectrum must be credited to ELEFANTK (4 peptides). Ranking the
+# identifications by their first hit instead of their best target hit credits MYFINGERK (3 peptides).
+add_test("TOPP_IsobaricWorkflow_bayesian_decoy_top_hit" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_decoy_top_hit_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -inference_method bayesian -BayesianProteinInference:keep_best_PSM_only false
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_bayesian_decoy_top_hit_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_bayesian_decoy_top_hit_out1" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/IsobaricWorkflow_bayesian_decoy_top_hit_out.tmp.consensusXML)
+set_tests_properties("TOPP_IsobaricWorkflow_bayesian_decoy_top_hit_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_bayesian_decoy_top_hit" PASS_REGULAR_EXPRESSION "peptides \\(with different mod. and charge\\) observed in 10 maps: 4")
 
 # An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
 # TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made

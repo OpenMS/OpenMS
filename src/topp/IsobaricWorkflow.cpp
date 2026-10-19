@@ -504,13 +504,14 @@ protected:
   }
 
   /**
-   * @brief Orders the identifications of one spectrum best first, by the score of their top hit.
+   * @brief Orders the identifications of one spectrum best first, by the score of their best target hit.
    *
-   * Identifications without hits go last; equal scores keep the input order. If the identifications
-   * with hits differ in score type or orientation, their scores are not comparable and the order is
-   * left unchanged.
+   * The FDR removes decoy hits, so an identification whose top hit is a decoy can only be credited
+   * with a target hit below it, and is ranked by that one. Identifications without target hits go
+   * last; equal scores keep the input order. If the identifications with hits differ in score type or
+   * orientation, their scores are not comparable and the order is left unchanged.
    *
-   * @param[in,out] peps the identifications of one spectrum
+   * @param[in,out] peps the identifications of one spectrum, each with its hits sorted best first
    * @return false if the scores were not comparable
    */
   static bool sortBestFirst_(PeptideIdentificationList& peps)
@@ -528,16 +529,22 @@ protected:
     }
     if (reference == nullptr) { return true; }
 
-    const bool higher_better = reference->isHigherScoreBetter();
-    std::stable_sort(peps.begin(), peps.end(), [higher_better](const PeptideIdentification& left, const PeptideIdentification& right)
+    const auto best_target = [](const PeptideIdentification& pep) -> const PeptideHit*
     {
-      if (left.getHits().empty() || right.getHits().empty())
+      const auto& hits = pep.getHits();
+      const auto it = std::find_if(hits.begin(), hits.end(), [](const PeptideHit& hit) { return !hit.isDecoy(); });
+      return it == hits.end() ? nullptr : &*it;
+    };
+    const bool higher_better = reference->isHigherScoreBetter();
+    std::stable_sort(peps.begin(), peps.end(), [&best_target, higher_better](const PeptideIdentification& left, const PeptideIdentification& right)
+    {
+      const PeptideHit* left_hit = best_target(left);
+      const PeptideHit* right_hit = best_target(right);
+      if (left_hit == nullptr || right_hit == nullptr)
       {
-        return !left.getHits().empty() && right.getHits().empty();
+        return left_hit != nullptr && right_hit == nullptr;
       }
-      const double left_score = left.getHits()[0].getScore();
-      const double right_score = right.getHits()[0].getScore();
-      return higher_better ? left_score > right_score : left_score < right_score;
+      return higher_better ? left_hit->getScore() > right_hit->getScore() : left_hit->getScore() < right_hit->getScore();
     });
     return true;
   }
@@ -545,14 +552,19 @@ protected:
   /**
    * @brief Credits each consensus feature to its first identification with a hit.
    *
-   * The identifications of a feature are sorted best first by their input scores (see sortBestFirst_),
-   * and filtering only removes hits, so the first one with a hit is the best-scoring survivor. Reporter
-   * intensities can only be attributed to one peptidoform at one charge: identifications that agree
-   * with it on both are kept, the others and those without hits are moved to the unassigned peptide
-   * identifications. A feature without any hit is left unchanged.
+   * The identifications of a feature are sorted best first by the input score of their best target
+   * hit (see sortBestFirst_). The FDR removes the decoy hits and filtering only removes hits, so the
+   * first identification with a hit is the best-scoring survivor and is credited with that hit.
+   * Reporter intensities can only be attributed to one peptidoform at one charge: identifications that
+   * agree with it on both are kept, the others and those without hits are moved to the unassigned
+   * peptide identifications. A feature without any hit is left unchanged.
    *
    * Scores after filtering are not compared: q-values tie heavily, and a peptide-level q-value rates
-   * the peptide's best match in any spectrum, not its match to this one.
+   * the peptide's best match in any spectrum, not its match to this one. Identifications keep more
+   * than one hit only with Bayesian inference keeping several PSMs per spectrum. There, a filter that
+   * removes an identification's best target hit but keeps a worse one (peptide-level q-values, or
+   * removing the hits of filtered proteins) can leave that worse hit ahead of a better one of another
+   * identification.
    *
    * @param[in,out] cmap the consensus map
    * @return the number of features whose identifications differed in peptidoform or charge
@@ -774,8 +786,8 @@ protected:
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
 
-      // The reduction below and the crediting rank identifications by their first hit, which the
-      // input need not store first (protein inference sorts the hits only later).
+      // The reduction below ranks identifications by their best hit and the crediting by their best
+      // target hit, which the input need not store first (protein inference sorts the hits only later).
       for (auto& pep : pep_ids) { pep.sort(); }
 
       // Identifications of one spectrum that agree on peptidoform and charge are one match counted
@@ -821,8 +833,9 @@ protected:
 
       // Quantify each spectrum once: all of its identifications read the same MS2/MS3 scan, so one
       // ConsensusFeature carries all of them. Spectra keep the order in which they first appear.
-      // Within a spectrum, the identifications are sorted best first by their input scores, which
-      // rate each one by its own match to the spectrum; creditBestPeptidoform_ relies on this order.
+      // Within a spectrum, the identifications are sorted best first by the input score of their best
+      // target hit, which rates each one by its own match to the spectrum; creditBestPeptidoform_
+      // relies on this order.
       std::vector<PeptideIdentificationList> ids_per_spectrum;
       std::vector<std::string> spectrum_refs;
       {
