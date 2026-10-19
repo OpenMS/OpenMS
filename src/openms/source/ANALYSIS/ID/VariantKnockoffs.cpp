@@ -336,7 +336,7 @@ namespace OpenMS
 
   std::vector<VariantKnockoffs::StratumCount> VariantKnockoffs::applyKnockoffQValues(
     PeptideIdentificationList& ids, const Index& index, const std::function<double(const PeptideHit&)>& rank_of,
-    double cutoff, Size min_tested, bool use_all_hits)
+    double cutoff, Size min_tested, bool use_all_hits, const std::set<std::string>& decoy_accessions)
   {
     if (index.knockoffs_per_variant.empty()) return {};
     const double k_max = static_cast<double>(std::max<Size>(index.max_knockoffs, 1));
@@ -364,12 +364,14 @@ namespace OpenMS
         if (hit.isDecoy()) continue;
         const auto accessions = hit.extractProteinAccessionsSet();
         if (accessions.empty()) continue;
-        bool variant_only = true, all_knockoff = true, tested = false, have_real = false;
+        bool variant_only = true, all_knockoff = true, tested = false, have_real = false, have_target = false;
         double weight = 1.0, delta = 0.0, ko_delta = 0.0;
         std::string tier, ko_tier;
         Size best_tier = TIERS.size() + 1;
         for (const auto& acc : accessions)
         {
+          if (decoy_accessions.count(acc) > 0) continue; // the decoy side of a target+decoy hit
+          have_target = true;
           auto it = index.entries.find(acc);
           if (it == index.entries.end())
           {
@@ -397,7 +399,7 @@ namespace OpenMS
             }
           }
         }
-        if (!variant_only) continue;
+        if (!variant_only || !have_target) continue;
         if (all_knockoff)
         {
           if (h == 0 || use_all_hits)

@@ -15,6 +15,7 @@
 
 #include <functional>
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -174,7 +175,8 @@ namespace OpenMS
       @brief Raise the q-values of variant PSMs to their knockoff q-values
 
       Must run after the PSM q-values are computed: the main score of each identification must be a q-value. Decoy
-      hits are ignored. Does nothing if @p index has no knockoff entry. See the class description.
+      hits are ignored, and so are the decoy proteins of a target+decoy hit: a hit whose target proteins are all
+      variant entries is a variant PSM. Does nothing if @p index has no knockoff entry. See the class description.
 
       @param ids Identifications (main score: q-value); re-sorted afterwards
       @param index Variant and knockoff entries of the searched database
@@ -182,10 +184,12 @@ namespace OpenMS
       @param cutoff q-value at which the strata are counted and small tiers are pooled
       @param min_tested Least tested PSMs at the cutoff for a tier to get its own estimate
       @param use_all_hits Use all hits, not only the best hit of each identification
+      @param decoy_accessions Accessions of the decoy proteins
       @return Per stratum, in a fixed order
     */
     static std::vector<StratumCount> applyKnockoffQValues(PeptideIdentificationList& ids, const Index& index,
                                                           const std::function<double(const PeptideHit&)>& rank_of,
-                                                          double cutoff, Size min_tested = 50, bool use_all_hits = false);
+                                                          double cutoff, Size min_tested = 50, bool use_all_hits = false,
+                                                          const std::set<std::string>& decoy_accessions = {});
   };
 } // namespace OpenMS

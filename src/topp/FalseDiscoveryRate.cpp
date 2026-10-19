@@ -288,8 +288,18 @@ protected:
               const double s = hit.getMetaValue(search_score);
               return search_higher_better ? s : -s;
             };
+            // a target+decoy hit whose target proteins are all variant entries is a variant PSM
+            std::set<std::string> decoy_accessions;
+            for (const auto& prot_id : prot_ids)
+            {
+              for (const auto& prot_hit : prot_id.getHits())
+              {
+                if (prot_hit.isDecoy()) decoy_accessions.insert(prot_hit.getAccession());
+              }
+            }
             const auto counts = VariantKnockoffs::applyKnockoffQValues(pep_ids, index, rank_of, cutoff,
-              static_cast<Size>(getIntOption_("PSM_variant_min_tested")), alg_param.getValue("use_all_hits").toBool());
+              static_cast<Size>(getIntOption_("PSM_variant_min_tested")), alg_param.getValue("use_all_hits").toBool(),
+              decoy_accessions);
             if (!counts.empty())
             {
               OPENMS_LOG_INFO << "Variant PSMs at q-value <= " << cutoff << " before -> after knockoff q-values:" << endl;

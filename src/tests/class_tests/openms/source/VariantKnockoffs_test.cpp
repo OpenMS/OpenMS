@@ -242,7 +242,7 @@ START_SECTION(static std::vector<FASTAFile::FASTAEntry> buildDatabase(const std:
 }
 END_SECTION
 
-START_SECTION(static std::vector<StratumCount> applyKnockoffQValues(PeptideIdentificationList& ids, const Index& index, const std::function<double(const PeptideHit&)>& rank_of, double cutoff, Size min_tested = 50, bool use_all_hits = false))
+START_SECTION(static std::vector<StratumCount> applyKnockoffQValues(PeptideIdentificationList& ids, const Index& index, const std::function<double(const PeptideHit&)>& rank_of, double cutoff, Size min_tested = 50, bool use_all_hits = false, const std::set<std::string>& decoy_accessions = {}))
 {
   // no knockoff entry: nothing changes
   {
@@ -334,6 +334,21 @@ START_SECTION(static std::vector<StratumCount> applyKnockoffQValues(PeptideIdent
     TEST_EQUAL(VariantKnockoffs::applyKnockoffQValues(ids, index(), rawScore, 0.01).empty(), true)
     TEST_REAL_SIMILAR(hitOf(ids, 5.0).getScore(), 0.001)
     TEST_REAL_SIMILAR(hitOf(ids, 6.0).getScore(), 0.001)
+  }
+
+  // a target+decoy hit whose target proteins are all variant entries is a variant PSM: without the decoy accessions
+  // it escapes the knockoff q-value
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makeId(5.0, 0.001, {"DECOY_P9", "P1_VAR_D35W"}));
+    ids[0].getHits()[0].setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
+    PeptideIdentificationList with_decoys = ids;
+    TEST_EQUAL(VariantKnockoffs::applyKnockoffQValues(ids, index(), rawScore, 0.01).empty(), true)
+    TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.001)
+    const auto counts = VariantKnockoffs::applyKnockoffQValues(with_decoys, index(), rawScore, 0.01, 50, false, {"DECOY_P9"});
+    TEST_EQUAL(counts.size(), 1)
+    TEST_EQUAL(counts[0].real_before, 1)
+    TEST_REAL_SIMILAR(with_decoys[0].getHits()[0].getScore(), 1.0) // a variant without knockoffs
   }
 
   // prior tiers: a tier with enough tested PSMs gets its own estimate, a small one joins its class's pool
