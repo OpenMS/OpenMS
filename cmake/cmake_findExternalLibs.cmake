@@ -54,23 +54,34 @@ endif()
 
 #------------------------------------------------------------------------------
 # LP Solver selection
-# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
-# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
-set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
-set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+# LP_SOLVER option: HIGHS (default), COIN or GLPK.
+# HiGHS is taken from the system/vcpkg if found, otherwise fetched via FetchContent.
+# COIN and GLPK are deprecated and will be removed in the next release (see #10551).
+# AUTO (the former default) is kept as an alias for HIGHS, so existing build trees switch over.
+set(LP_SOLVER "HIGHS" CACHE STRING "LP solver to use: HIGHS (default), COIN (deprecated) or GLPK (deprecated)")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS HIGHS COIN GLPK)
+if (LP_SOLVER STREQUAL "AUTO")
+  message(STATUS "LP_SOLVER=AUTO now selects HiGHS")
+  set(LP_SOLVER "HIGHS")
+endif()
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "GLPK")
+  message(DEPRECATION "LP_SOLVER=${LP_SOLVER} is deprecated and will be removed in the next OpenMS release. Use the default, HIGHS.")
+elseif (NOT LP_SOLVER STREQUAL "HIGHS")
+  message(FATAL_ERROR "Invalid LP_SOLVER '${LP_SOLVER}'. Use HIGHS (default), COIN or GLPK.")
+endif()
 
-if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+if (LP_SOLVER STREQUAL "COIN")
   find_package(COIN QUIET)
   if (COIN_FOUND)
     set(OPENMS_HAS_COINOR 1)
     set(LPTARGET "CoinOR::CoinOR")
     message(STATUS "LP solver: COIN-OR")
-  elseif(LP_SOLVER STREQUAL "COIN")
+  else()
     message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
   endif()
 endif()
 
-if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+if (LP_SOLVER STREQUAL "GLPK")
   find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
@@ -78,18 +89,20 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
     message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
-  elseif(LP_SOLVER STREQUAL "GLPK")
+  else()
     message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
   endif()
 endif()
 
-if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
-  # Try to find a system-installed HiGHS first
-  find_package(highs QUIET CONFIG)
+if (LP_SOLVER STREQUAL "HIGHS")
+  # Try to find a system-installed (or vcpkg) HiGHS first.
+  # 1.11 is the first release with the probing presolve rule LPWrapper switches off (LPWrapper.cpp guards the
+  # enumeration rule, added in 1.13, by version).
+  find_package(highs 1.11 QUIET CONFIG)
   if (highs_FOUND)
     set(OPENMS_HAS_HIGHS 1)
     set(LPTARGET "highs::highs")
-    message(STATUS "LP solver: HiGHS (system)")
+    message(STATUS "LP solver: HiGHS ${highs_VERSION} (system)")
   else()
     # Fetch HiGHS via FetchContent
     include(FetchContent)
@@ -99,32 +112,41 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
       GIT_TAG        v1.14.0
       GIT_SHALLOW    TRUE
     )
-    set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    # Settings for the HiGHS subproject only (normal variables, restored afterwards; HiGHS' option()s honor them):
+    # - static + PIC: HiGHS is linked into libOpenMS, so no extra shared library has to be installed or shipped
+    #   alongside it (OpenMS sets BUILD_SHARED_LIBS=ON for libOpenMS itself)
+    # - no LTO: OpenMS is a CXX-only project, so the C compiler HiGHS enables may differ from the C++ compiler
+    #   (e.g. clang vs. gcc), and their LTO objects cannot be linked together
+    # - only the library: no tests, examples or the highs executable
+    set(_openms_highs_saved_vars BUILD_SHARED_LIBS CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INTERPROCEDURAL_OPTIMIZATION
+                                 BUILD_TESTING BUILD_EXAMPLES BUILD_CXX_EXE HIGHS_BUILD_TESTING)
+    foreach(_var IN LISTS _openms_highs_saved_vars)
+      if (DEFINED ${_var})
+        set(_openms_highs_saved_${_var} "${${_var}}")
+      endif()
+    endforeach()
+    set(BUILD_SHARED_LIBS OFF)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+    set(BUILD_TESTING OFF)
+    set(BUILD_EXAMPLES OFF)
+    set(BUILD_CXX_EXE OFF)
+    set(HIGHS_BUILD_TESTING OFF)
     FetchContent_MakeAvailable(highs)
-    # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
-    # annotate its C++ API for export, so a shared HiGHS build must opt out of
-    # hidden visibility or libOpenMS cannot link against those symbols.
-    if (TARGET highs)
-      set_target_properties(highs PROPERTIES
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF)
-    endif()
-    if (TARGET libhighs)
-      set_target_properties(libhighs PROPERTIES
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF)
-    endif()
+    foreach(_var IN LISTS _openms_highs_saved_vars)
+      if (DEFINED _openms_highs_saved_${_var})
+        set(${_var} "${_openms_highs_saved_${_var}}")
+        unset(_openms_highs_saved_${_var})
+      else()
+        unset(${_var})
+      endif()
+    endforeach()
     set(OPENMS_HAS_HIGHS 1)
     set(LPTARGET "highs")
     message(STATUS "LP solver: HiGHS (FetchContent)")
   endif()
 endif()
 
-if (NOT LPTARGET)
-  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
-endif()
 
 # Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
 if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
