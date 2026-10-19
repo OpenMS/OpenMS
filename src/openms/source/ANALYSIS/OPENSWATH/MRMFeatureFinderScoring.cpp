@@ -561,8 +561,16 @@ namespace OpenMS
                                        "Error: Transition group id is empty, please set it.");
     }
 
-    MRMTransitionGroupType transition_group_detection, transition_group_identification, transition_group_identification_decoy;
-    splitTransitionGroupsDetection_(transition_group, transition_group_detection);
+    // Score the detecting transitions. If all transitions are detecting (the usual case), the
+    // group itself is scored instead of a copy that would replace it at the end.
+    const bool all_transitions_detecting = std::all_of(transition_group.getTransitions().begin(), transition_group.getTransitions().end(),
+                                                       [](const TransitionType& tr) { return tr.isDetectingTransition(); });
+    MRMTransitionGroupType transition_group_detection_subset, transition_group_identification, transition_group_identification_decoy;
+    if (!all_transitions_detecting)
+    {
+      splitTransitionGroupsDetection_(transition_group, transition_group_detection_subset);
+    }
+    MRMTransitionGroupType& transition_group_detection = all_transitions_detecting ? transition_group : transition_group_detection_subset;
     if (su_.use_uis_scores)
     {
       splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
@@ -1002,7 +1010,10 @@ namespace OpenMS
     }
 
     // store all data manipulation performed on the features of the transition group
-    transition_group = transition_group_detection;
+    if (!all_transitions_detecting)
+    {
+      transition_group = std::move(transition_group_detection_subset);
+    }
   }
 
   void MRMFeatureFinderScoring::addScoreMetaValues_(OpenMS::MRMFeature& mrmfeature,
@@ -1301,9 +1312,9 @@ namespace OpenMS
         total_intensity += curr_feature.getIntensity();
         total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
       }
-      allFeatures.push_back(curr_feature);
+      allFeatures.push_back(std::move(curr_feature));
     }
-    mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates
+    mrmfeature.getSubordinates() = std::move(allFeatures); // add all the subfeatures as subordinates
 
     // overwrite the reported intensities with those above the m/z cutoff
     mrmfeature.setIntensity(total_intensity);

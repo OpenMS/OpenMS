@@ -112,6 +112,11 @@ public:
                                                                        std::vector<double>& normalized_data2, const int maxdelay, const int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
+    /// As normalizedCrossCorrelationPost(), but stores the result in @p result, reusing its memory
+    OPENSWATHALGO_DLLAPI void normalizedCrossCorrelationPost(const std::vector<double>& normalized_data1,
+                                                             const std::vector<double>& normalized_data2, const int maxdelay, const int lag,
+                                                             XCorrArrayType& result);
+
     OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
                                                                   const std::vector<double>& data2, const int maxdelay, const int lag);
 

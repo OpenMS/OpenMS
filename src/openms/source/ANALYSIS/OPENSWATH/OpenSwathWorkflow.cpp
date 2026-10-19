@@ -1497,7 +1497,7 @@ namespace OpenMS
 
         // Add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
-        transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+        transition_group.addChromatogram(std::move(chromatogram), transition->getNativeID());
       }
 
       // currently  .osw and .featureXML are mutually exclusive

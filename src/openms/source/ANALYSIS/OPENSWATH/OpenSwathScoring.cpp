@@ -493,8 +493,17 @@ namespace OpenMS
     chrom_pool.reset();
     thread_local OpenSwath::MRMScoring mrmscore_;
     const bool has_precursor_features = !precursor_ids.empty();
-    if (su_.use_coelution_score_ || su_.use_shape_score_ || (has_precursor_features && su_.use_ms1_correlation))
+    // With MS1 traces, the precursor matrices are built together with the transition matrix: their
+    // combined matrix consists of the entries of the others.
+    const bool use_ms1_xcorr = has_precursor_features && su_.use_ms1_correlation;
+    if (use_ms1_xcorr)
+    {
+      mrmscore_.initializeXCorrPrecursorMatrices(imrmfeature, precursor_ids, native_ids);
+    }
+    else if (su_.use_coelution_score_ || su_.use_shape_score_)
+    {
       mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
+    }
 
     // XCorr score (coelution)
     if (su_.use_coelution_score_)
@@ -514,20 +523,18 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
-    if (has_precursor_features && su_.use_ms1_correlation)
+    if (use_ms1_xcorr)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)
       {
-        mrmscore_.initializeXCorrPrecursorMatrix(imrmfeature, precursor_ids);
         scores.ms1_xcorr_coelution_score = mrmscore_.calcXcorrPrecursorCoelutionScore();
         scores.ms1_xcorr_shape_score = mrmscore_.calcXcorrPrecursorShapeScore();
       }
-      mrmscore_.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
+      // cross-correlation of the precursor isotopes with the transitions
       scores.ms1_xcorr_coelution_contrast_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
       scores.ms1_xcorr_shape_contrast_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
 
-      mrmscore_.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
       scores.ms1_xcorr_coelution_combined_score = mrmscore_.calcXcorrPrecursorCombinedCoelutionScore();
       scores.ms1_xcorr_shape_combined_score = mrmscore_.calcXcorrPrecursorCombinedShapeScore();
     }
@@ -552,27 +559,31 @@ namespace OpenMS
       }
     }
 
-    // Mutual information scoring
-    if (su_.use_mi_score_)
+    // Mutual information scoring (with MS1 traces, all MI matrices are built together as above)
+    const bool use_ms1_mi = has_precursor_features && su_.use_ms1_mi;
+    if (use_ms1_mi)
+    {
+      mrmscore_.initializeMIPrecursorMatrices(imrmfeature, precursor_ids, native_ids);
+    }
+    else if (su_.use_mi_score_)
     {
       mrmscore_.initializeMIMatrix(imrmfeature, native_ids);
+    }
+    if (su_.use_mi_score_)
+    {
       scores.mi_score = mrmscore_.calcMIScore();
       scores.weighted_mi_score = mrmscore_.calcMIWeightedScore(normalized_library_intensity);
     }
 
     // check that the MS1 feature is present and that the MS1 MI should be calculated
-    if (has_precursor_features && su_.use_ms1_mi)
+    if (use_ms1_mi)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)
       {
-        mrmscore_.initializeMIPrecursorMatrix(imrmfeature, precursor_ids);
         scores.ms1_mi_score = mrmscore_.calcMIPrecursorScore();
       }
-      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
       scores.ms1_mi_contrast_score = mrmscore_.calcMIPrecursorContrastScore();
-
-      mrmscore_.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
       scores.ms1_mi_combined_score = mrmscore_.calcMIPrecursorCombinedScore();
     }
   }

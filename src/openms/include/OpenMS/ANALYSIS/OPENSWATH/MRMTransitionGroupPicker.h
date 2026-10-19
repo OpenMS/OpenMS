@@ -456,10 +456,12 @@ public:
         }
       }
 
-      // Check for completely overlapping features
+      // Check for completely overlapping features (against all earlier features, so decide for all
+      // of them before moving the kept ones into the transition group)
+      std::vector<char> keep(features.size(), 0);
       for (Size i = 0; i < features.size(); i++)
       {
-        MRMFeature& mrm_feature = features[i];
+        const MRMFeature& mrm_feature = features[i];
         bool skip = false;
         for (Size j = 0; j < i; j++)
         {
@@ -467,9 +469,13 @@ public:
               (double)mrm_feature.getMetaValue(MRMTransitionGroupPickerMeta::rightWidth()) <= (double)features[j].getMetaValue(MRMTransitionGroupPickerMeta::rightWidth()))
           { skip = true; }
         }
-        if (mrm_feature.getIntensity() > 0 && !skip)
+        keep[i] = mrm_feature.getIntensity() > 0 && !skip;
+      }
+      for (Size i = 0; i < features.size(); i++)
+      {
+        if (keep[i])
         {
-          transition_group.addFeature(mrm_feature);
+          transition_group.addFeature(std::move(features[i]));
         }
       }
 
@@ -1542,7 +1548,8 @@ protected:
       if (end != chromatogram.end()) { end++; }
 
       auto resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
-      LinearResamplerAlign lresampler;
+      // raster() only uses the default parameters: construct the resampler (and its Param) once per thread
+      static thread_local LinearResamplerAlign lresampler;
       lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
 
       return resampled_peak_container;

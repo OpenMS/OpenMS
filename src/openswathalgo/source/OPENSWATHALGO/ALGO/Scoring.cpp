@@ -116,6 +116,49 @@ namespace OpenSwath::Scoring
       return result;
     }
 
+    namespace
+    {
+      void calculateCrossCorrelationInto_(const std::vector<double>& data1,
+                                          const std::vector<double>& data2, const int maxdelay, const int lag,
+                                          XCorrArrayType& result)
+      {
+        OPENSWATH_PRECONDITION(data1.size() == data2.size(), "Both data vectors need to have the same length");
+
+        result.data.clear();
+        result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
+        const int datasize = static_cast<int>(data1.size());
+        const double* __restrict d1 = data1.data();
+        const double* __restrict d2 = data2.data();
+
+        for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
+        {
+          const int start = std::max(0, -delay);
+          const int end = std::min(datasize, datasize - delay);
+          const int len = end - start;
+
+          double sxy = 0.0;
+          if (len > 0)
+          {
+            Eigen::Map<const Eigen::VectorXd> sub1(d1 + start, len);
+            Eigen::Map<const Eigen::VectorXd> sub2(d2 + start + delay, len);
+            sxy = sub1.dot(sub2);
+          }
+          result.data.push_back(std::make_pair(delay, sxy));
+        }
+      }
+    }
+
+    void normalizedCrossCorrelationPost(const std::vector<double>& normalized_data1,
+                                        const std::vector<double>& normalized_data2, const int maxdelay, const int lag,
+                                        XCorrArrayType& result)
+    {
+      calculateCrossCorrelationInto_(normalized_data1, normalized_data2, maxdelay, lag, result);
+      for (XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
+      {
+        it->second /= normalized_data1.size();
+      }
+    }
+
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
                                              const std::vector<double>& data2, const int maxdelay, const int lag)
     {
@@ -147,7 +190,7 @@ namespace OpenSwath::Scoring
 
     unsigned int computeAndAppendRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
     {
-      std::vector<unsigned int> ranks{};
+      thread_local std::vector<unsigned int> ranks;
       ranks.resize(v_temp.size());
       std::iota(ranks.begin(), ranks.end(), 0);
       std::sort(ranks.begin(), ranks.end(),
@@ -186,9 +229,13 @@ namespace OpenSwath::Scoring
       const unsigned int inputVectorlength = ranked_data1.size();
       const unsigned int firstNumStates = max_rank1 + 1;
       const unsigned int secondNumStates = max_rank2 + 1;
-      std::vector<unsigned int> firstStateCounts(firstNumStates, 0);
-      std::vector<unsigned int> secondStateCounts(secondNumStates, 0);
-      std::vector<std::uint64_t> jointStates;
+      // per-thread buffers: this is called for every pair of traces of every peak group
+      thread_local std::vector<unsigned int> firstStateCounts;
+      thread_local std::vector<unsigned int> secondStateCounts;
+      thread_local std::vector<std::uint64_t> jointStates;
+      firstStateCounts.assign(firstNumStates, 0);
+      secondStateCounts.assign(secondNumStates, 0);
+      jointStates.clear();
       jointStates.reserve(inputVectorlength);
 
       for (unsigned int i = 0; i < inputVectorlength; i++)
