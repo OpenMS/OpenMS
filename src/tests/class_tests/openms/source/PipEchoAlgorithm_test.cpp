@@ -322,7 +322,7 @@ START_SECTION([EXTRA] ion mobility disambiguates competing acceptors when presen
 }
 END_SECTION
 
-START_SECTION([EXTRA] shape_features compares a transfer's peak shape with its precursor's identified features)
+START_SECTION([EXTRA] shape_features compares the peak shape of a transfer with the identified features of its precursor)
 {
   auto shaped = [](Feature f, double width, double tailing, const DoubleList& envelope)
   {
