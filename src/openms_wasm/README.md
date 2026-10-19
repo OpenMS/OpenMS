@@ -139,14 +139,23 @@ for (let at = 0; at < file.size; at += 16 << 20) {
 }
 ```
 
-Each chunk is copied once (450-850 MB/s in Chrome, with the reads of `FileReaderSync`). Allocate the
-file first when its size is known: the memory file system keeps a file in one block (of less than
-2 GiB), which grows by doubling otherwise and then briefly takes up to three times its size. The
-functions throw `OutOfMemory` where the module's memory cannot hold the file, and the module stays
-usable. So do `FS.writeFile()`, `FS.write()` and
-`FS.read()`, with an `FS.ErrnoError` of errno 48 (ENOMEM): Emscripten's took the 0 that `malloc`
-returns then for the address of their buffer and wrote over the start of the module's memory
-(`wasmfs_fs.js`, which also makes `FS.write()` copy its data in one piece instead of byte by byte).
+Each chunk is copied once (450-850 MB/s in Chrome, with the reads of `FileReaderSync`; 7.7 GB/s writing
+and 3.1 GB/s reading in Node.js). Allocate the file first when its size is known: the memory file
+system keeps a file in one block, which grows by doubling otherwise and then briefly takes up to
+three times its size. Errors, after which the module stays usable:
+
+- A file has to be smaller than 2 GiB (at most 2080374784 bytes, 2 GiB - 64 MiB): a larger size or end
+  of a write throws `InvalidValue: the value '<bytes>' was used but is not valid; a file of the module's
+  file system has to be smaller than 2 GiB (at most 2080374784 bytes): <path>` before anything is
+  allocated (an app can tell the user that the file is too large). A file of more than about 1 GiB
+  cannot grow by a write past its end (that takes a block of 2 GiB): `InvalidValue: ... growing the file
+  <path> of <n> bytes takes a block of ... allocate the file at its final size first (allocateFile())`.
+- Where the module's memory cannot hold the file: `OutOfMemory`.
+- `FS.writeFile()`, `FS.write()` and `FS.read()` throw an `FS.ErrnoError` of errno 48 (ENOMEM) there:
+  Emscripten's took the 0 that `malloc` returns then for the address of their buffer and wrote over the
+  start of the module's memory (`wasmfs_fs.js`, which also makes `FS.write()` copy a typed array of
+  bytes in one piece instead of byte by byte). `FS.write()` and `FS.read()` throw errno 28 (EINVAL) for
+  an `offset` and `length` beyond their buffer.
 
 ### Memory
 
@@ -351,7 +360,7 @@ avoids that).
 The heap still grows with the number of files, by about 70 MB per file of this size (110 MB for the
 second): part of it are the results (the PSMs and the peaks of their spectra), the rest is memory the
 allocator (mimalloc, with threads) does not reuse. With many small files it is more: 12 files of 78 MB
-took the heap from 715 to 2959 MB. A file of the memory file system has less than 2 GiB.
+took the heap from 715 to 2959 MB. A file has to be smaller than 2 GiB (above).
 
 **Exporting idXML.** `storeIdXML(path)` writes into the memory file system as well, where the file
 grows by doubling and briefly takes up to three times its size. Hand it over in chunks and remove it:

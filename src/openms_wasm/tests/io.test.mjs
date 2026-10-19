@@ -201,6 +201,28 @@ test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for b
   }
 });
 
+test("allocateFile and writeFileChunk: a file has to be smaller than 2 GiB", () => {
+  // WasmFS' memory backend keeps a file in one std::vector: less than 2 GiB in wasm32, and a block close to that cannot
+  // be allocated. Sizes beyond the limit are rejected before any allocation, also where they exceed what a size_t of
+  // wasm32 holds (4 GiB).
+  const MiB = 1048576, limit = 2 ** 31 - 64 * MiB;
+  const tooLarge = /InvalidValue: the value '\d+' was used but is not valid; a file of the module's file system has to be smaller than 2 GiB \(at most 2080374784 bytes\): \/limit\.bin/;
+  try {
+    for (const size of [limit + 1, 2 ** 31 - 1, 2 ** 31, 2 ** 32 + 5, 2 ** 40]) {
+      assert.throws(() => OpenMS.allocateFile("/limit.bin", size), tooLarge, `allocateFile ${size}`);
+    }
+    const data = new Uint8Array(16);
+    for (const offset of [limit - 8, 2 ** 31, 2 ** 32, 2 ** 32 - 8]) {
+      assert.throws(() => OpenMS.writeFileChunk("/limit.bin", data, offset), tooLarge, `writeFileChunk at ${offset}`);
+    }
+    // up to the limit: a small file is fine
+    OpenMS.writeFileChunk("/limit.bin", data, 0);
+    assert.equal(OpenMS.FS.stat("/limit.bin").size, 16);
+  } finally {
+    try { OpenMS.FS.unlink("/limit.bin"); } catch { /* not there */ }
+  }
+});
+
 test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where the memory cannot hold their data", async () => {
   // Emscripten's FS.writeFile/write/read took the 0 that malloc returns then for the address of their buffer, and
   // wrote over the start of the module's memory (wasmfs_fs.js). A module of its own: its memory grows to the limit.
@@ -208,15 +230,13 @@ test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where
   const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
   const MB = 1048576;
   const { heapMax } = m.getMemoryInfo();
-  // files that take 3/4 of the memory (of at most 1 GiB each: a file of the memory file system has less than 2 GiB),
-  // then data of 1/3 of it, which the memory has (it is larger), but not free
-  const occupying = [];
-  for (let left = Math.floor(heapMax / MB / 4) * 3 * MB; left > 0; left -= 1024 * MB) {
-    const file = `/occupied${occupying.length}.bin`;
-    m.FS.writeFile(file, new Uint8Array(0));
-    m.FS.truncate(file, Math.min(left, 1024 * MB));
-    occupying.push(file);
-  }
+  // files that take 3/4 of the memory: one of the largest size the memory file system takes (2 GiB - 64 MiB; one byte
+  // more is rejected) and one of 1 GiB; then data of 1/3 of the memory, which the memory has (it is larger), but not free
+  const occupying = ["/max.bin", "/occupied.bin"];
+  m.allocateFile(occupying[0], 2 ** 31 - 64 * MB);
+  assert.equal(m.FS.stat(occupying[0]).size, 2 ** 31 - 64 * MB);
+  assert.throws(() => m.allocateFile(occupying[0], 2 ** 31 - 64 * MB + 1), /smaller than 2 GiB/);
+  m.allocateFile(occupying[1], 1024 * MB);
   const tooLarge = Math.floor(heapMax / 3);
   const data = new Uint8Array(tooLarge); // (never written: its pages stay unallocated)
   const enomem = (e) => e?.name === "ErrnoError" && e.errno === 48;
@@ -227,6 +247,17 @@ test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where
   m.FS.close(stream);
   assert.throws(() => m.allocateFile("/z.bin", tooLarge), /OutOfMemory/, "allocateFile");
   assert.throws(() => m.writeFileChunk("/z.bin", data, 0), /OutOfMemory/, "writeFileChunk");
+  // growing a file of 1 GiB takes a block of 2 GiB (it grows by doubling), which the file system cannot take
+  assert.throws(() => m.writeFileChunk(occupying[1], data.subarray(0, 16), 1024 * MB),
+    /growing the file \/occupied\.bin of 1073741824 bytes takes a block of 2147483647 bytes.*allocate the file at its final size first/);
+  // FS.write() and FS.read() of a range beyond their buffer: EINVAL, before any allocation
+  const einval = (e) => e?.name === "ErrnoError" && e.errno === 28;
+  const small = m.FS.open("/small.bin", "w+");
+  assert.throws(() => m.FS.write(small, new Uint8Array(4), 2, 4, 0), einval, "FS.write past its buffer");
+  assert.throws(() => m.FS.read(small, new Uint8Array(4), 0, 8, 0), einval, "FS.read past its buffer");
+  m.FS.write(small, new Uint8Array([1, 2, 3, 4]), 1, 2, 0);
+  m.FS.close(small);
+  assert.deepEqual(m.FS.readFile("/small.bin"), new Uint8Array([2, 3]));
   // growing a file by a chunk: the memory has to hold it at its new size (here: twice its size)
   m.allocateFile("/w.bin", Math.floor(tooLarge / 2));
   assert.throws(() => m.writeFileChunk("/w.bin", data.subarray(0, 16), Math.floor(tooLarge / 2)), /OutOfMemory/, "writeFileChunk past the end");

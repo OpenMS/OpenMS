@@ -156,9 +156,9 @@ namespace OpenMS::WASM
     // array set), unlike FS.write(), which copies byte by byte.
     //
     // WasmFS' memory backend keeps a file in one std::vector, and WasmFS is compiled without exceptions: an
-    // allocation that fails inside it would unwind through its locks, which then stay locked. So the memory a write
-    // or a resize needs is allocated once here first, and an error (OutOfMemory) is thrown if the module's memory
-    // cannot hold it.
+    // allocation that fails inside it aborts (and would unwind through its locks). So the size of a file is checked
+    // first (InvalidValue at 2 GiB), then the memory a write or a resize needs is allocated once here, and an error
+    // (OutOfMemory) is thrown if the module's memory cannot hold it.
 
     /// A file descriptor, closed when it goes out of scope
     struct FileDescriptor
@@ -173,9 +173,40 @@ namespace OpenMS::WASM
       if (!(value >= 0.0 && value <= 9007199254740991.0 && std::floor(value) == value))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string(what) + " has to be a non-negative integer (" + path + ")", std::to_string(value));
+                                      std::string(what) + " has to be a non-negative integer (" + path + ")",
+                                      val(value).call<std::string>("toString")); // NaN, Infinity, 1e+21 as JavaScript writes them
       }
       return static_cast<off_t>(value);
+    }
+
+    /// The largest file of WasmFS' memory backend: its std::vector holds less than 2 GiB in wasm32 (max_size() is
+    /// 2^31 - 1), and an allocation close to that aborts inside WasmFS (in a fresh module 1.99 GiB worked, 1.999 GiB
+    /// aborted although the memory had room). Up to 2 GiB - 64 MiB, an allocation succeeds where the memory has room.
+    constexpr off_t MAX_FILE_SIZE = (off_t(1) << 31) - (off_t(64) << 20);
+
+    /// Throws InvalidValue if a file of @p size bytes does not fit into the memory file system (MAX_FILE_SIZE)
+    void checkFileSize(off_t size, const std::string& path)
+    {
+      if (size <= MAX_FILE_SIZE) return;
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "a file of the module's file system has to be smaller than 2 GiB (at most " + std::to_string(MAX_FILE_SIZE)
+        + " bytes): " + path, std::to_string(size));
+    }
+
+    /// The block that growing a file of @p size bytes to @p end bytes allocates: its std::vector grows to twice its
+    /// capacity (taken as its size; allocateFile() makes them equal), or to @p end if that is larger, and at most to
+    /// max_size(). Throws InvalidValue if that block would not fit (a file of more than 1 GiB that grows).
+    off_t growthAllocation(off_t size, off_t end, const std::string& path)
+    {
+      const off_t block = std::min<off_t>(std::max<off_t>(end, 2 * size), (off_t(1) << 31) - 1);
+      if (block > MAX_FILE_SIZE)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "growing the file " + path + " of " + std::to_string(size) + " bytes takes a block of " + std::to_string(block)
+          + " bytes (it grows by doubling), and a block of the module's file system has to be smaller than 2 GiB: "
+          "allocate the file at its final size first (allocateFile())", std::to_string(end));
+      }
+      return block;
     }
 
     /// Throws OutOfMemory unless the module's memory can hold @p bytes more (it grows if it can)
@@ -203,7 +234,7 @@ namespace OpenMS::WASM
 
     /// Writes @p data (a Uint8Array) into the file @p path at byte @p offset; the file is created if missing. Writing
     /// past its end grows it: allocate the file first (allocateFile()) when its size is known, else it grows by
-    /// doubling, which can take up to three times its size while it grows.
+    /// doubling, which can take up to three times its size while it grows (and fails beyond 1 GiB).
     void writeFileChunk(const std::string& path, const JS::Bytes& data, double offset)
     {
       if (!data.instanceof(val::global("Uint8Array")))
@@ -211,7 +242,11 @@ namespace OpenMS::WASM
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "writeFileChunk() takes the data as Uint8Array (" + path + ")");
       }
       const off_t at = byteCount(offset, "The offset", path);
-      const size_t n = data["length"].as<size_t>();
+      // (the length of a typed array can exceed 4 GiB, more than a size_t of wasm32 holds)
+      const off_t length = byteCount(data["length"].as<double>(), "The length of the data", path);
+      const off_t end = at + length;
+      checkFileSize(end, path);
+      const size_t n = static_cast<size_t>(length);
       FileDescriptor file;
       struct stat st;
       file.fd = ::open(path.c_str(), O_WRONLY | O_CREAT, 0666);
@@ -220,9 +255,7 @@ namespace OpenMS::WASM
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
       }
       if (n == 0) return;
-      // the file grows: a std::vector grows to twice its size, or to the new size if larger
-      const off_t end = at + static_cast<off_t>(n);
-      if (end > st.st_size) checkMemoryFor(static_cast<size_t>(std::max<off_t>(end, 2 * st.st_size)));
+      if (end > st.st_size) checkMemoryFor(static_cast<size_t>(growthAllocation(st.st_size, end, path)));
       const std::unique_ptr<uint8_t[]> buffer = copyBuffer(n);
       for (size_t done = 0; done < n;)
       {
@@ -273,6 +306,7 @@ namespace OpenMS::WASM
     void allocateFile(const std::string& path, double size)
     {
       const off_t bytes = byteCount(size, "The size", path);
+      checkFileSize(bytes, path);
       FileDescriptor file;
       struct stat st;
       file.fd = ::open(path.c_str(), O_WRONLY | O_CREAT, 0666);
@@ -281,7 +315,7 @@ namespace OpenMS::WASM
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
       }
       if (bytes == st.st_size) return;
-      if (bytes > st.st_size) checkMemoryFor(static_cast<size_t>(bytes));
+      if (bytes > st.st_size) checkMemoryFor(static_cast<size_t>(growthAllocation(st.st_size, bytes, path)));
       if (::ftruncate(file.fd, bytes) != 0)
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
