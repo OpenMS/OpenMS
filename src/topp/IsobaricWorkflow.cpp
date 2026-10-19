@@ -399,7 +399,8 @@ protected:
           else if (exp[next_ms1_spec].getMSLevel() == 1
                    // with FAIMS, the next survey scan at the same compensation voltage
                    && (exp[ms1_spec_idx].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                       || exp[next_ms1_spec].getDriftTime() == exp[ms1_spec_idx].getDriftTime()))
+                       || (exp[next_ms1_spec].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                           && exp[next_ms1_spec].getDriftTime() == exp[ms1_spec_idx].getDriftTime())))
           {
             break;
           }

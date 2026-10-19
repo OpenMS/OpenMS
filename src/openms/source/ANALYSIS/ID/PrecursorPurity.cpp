@@ -14,6 +14,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <algorithm>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -307,11 +308,10 @@ namespace OpenMS
       return score;
     }
 
-    // estimate a lower boundary for isotopic peaks
-    int negative_isotopes((pre.getIsolationWindowLowerOffset() * charge));
-    double iso = -negative_isotopes;
-    // depending on the isolation window, the first estimated peak might be outside the window
-    if (target_mz + (iso * Constants::C13C12_MASSDIFF_U / charge) < lower)
+    // the first isotope position of the precursor inside the isolation window (the window need not be centred on
+    // the precursor, e.g. when the selected ion is an isotope above the window's target m/z)
+    double iso = std::ceil((lower - target_mz) * charge / Constants::C13C12_MASSDIFF_U);
+    if (target_mz + (iso * Constants::C13C12_MASSDIFF_U / charge) < lower) // rounding
     {
       iso++;
     }

@@ -10,7 +10,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 
-#include <limits>
+#include <algorithm>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
@@ -387,18 +387,16 @@ namespace OpenMS
   {
     const auto& windows = spec.getInstrumentSettings().getScanWindows();
     if (windows.empty() || method.getChannelInformation().empty()) return true; // nothing known: assume it does
-    double lo = std::numeric_limits<double>::max();
-    double hi = std::numeric_limits<double>::lowest();
-    for (const auto& w : windows)
-    {
-      if (w.begin == 0.0 && w.end == 0.0) continue; // unset window
-      lo = std::min(lo, w.begin);
-      hi = std::max(hi, w.end);
-    }
-    if (lo > hi) return true;
+    auto is_set = [](const ScanWindow& w) { return !(w.begin == 0.0 && w.end == 0.0); };
+    if (std::none_of(windows.begin(), windows.end(), is_set)) return true;
+    // every reporter m/z must lie in one of the (possibly disjoint) windows
     for (const auto& channel : method.getChannelInformation())
     {
-      if (channel.center < lo - tolerance || channel.center > hi + tolerance) return false;
+      const bool covered = std::any_of(windows.begin(), windows.end(), [&](const ScanWindow& w)
+      {
+        return is_set(w) && channel.center >= w.begin - tolerance && channel.center <= w.end + tolerance;
+      });
+      if (!covered) return false;
     }
     return true;
   }
@@ -620,7 +618,8 @@ namespace OpenMS
         pState.followUpScan = it_last_MS2;
         while (pState.followUpScan != ms_exp_data.end() &&
                (pState.followUpScan->getMSLevel() != 1 ||
-                (faims && pState.followUpScan->getDriftTime() != pState.precursorScan->getDriftTime())))
+                (faims && (pState.followUpScan->getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                           || pState.followUpScan->getDriftTime() != pState.precursorScan->getDriftTime()))))
         {
           ++pState.followUpScan;
         }
