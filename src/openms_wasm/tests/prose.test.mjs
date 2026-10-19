@@ -1424,7 +1424,10 @@ test("spectra(): the peaks as read, sorted by m/z, and the collision energy of t
         if (psms.nativeId[i] === "spectrum=0") {
           assert.equal(s.collisionEnergy[k], 27.5);
         } else {
-          assert.ok(Number.isNaN(s.collisionEnergy[k]), `no energy (0 in OpenMS) for ${psms.nativeId[i]}`);
+          // the data records 45 eV as MS:1000045 "collision energy" (what converters write), which OpenMS keeps as a meta
+          // value of the precursor and not as its activation energy (0): NaN before collisionEnergy read the meta value
+          assert.equal(e.precursors[0].activationEnergy, 0, "the activation energy of OpenMS is unknown");
+          assert.equal(s.collisionEnergy[k], 45, `the collision energy of ${psms.nativeId[i]}`);
         }
       }
       assert.deepEqual(new Set(psms.nativeId), new Set(["spectrum=0", "spectrum=1", "spectrum=2"]));
@@ -1432,6 +1435,65 @@ test("spectra(): the peaks as read, sorted by m/z, and the collision energy of t
       set.delete();
     }
   });
+});
+
+/// Stores the spectra of TOPP_ProSE_1 as mzML at @p file (in the module's memory), with the collision energy as converters
+/// write it: the first MS2 spectrum has MS:1000045 "collision energy" (35 eV) only, the second MS:1000045 (30 eV) and
+/// MS:1000509 "activation energy" (25 eV), the third MS:1000509 (27.5 eV) only. (The module's Precursor has no meta values
+/// to set, so the stored file is edited.)
+function storeSpectraWithCollisionEnergy(file) {
+  const temporary = `${file}.orig`;
+  using([new OpenMS.MSExperiment(), new OpenMS.MSExperiment(), new OpenMS.MzMLFile()], (original, changed, mzml) => {
+    mzml.load("/topp/SimpleSearchEngine_1.mzML", original);
+    const energies = [35, 25, 27.5];
+    for (let i = 0; i < original.size(); ++i) {
+      using([original.getSpectrum(i)], (spectrum) => {
+        if (i < energies.length) {
+          spectrum.setPrecursors(spectrum.getPrecursors().map((p) => ({ ...p, activationEnergy: energies[i] })));
+        }
+        changed.addSpectrum(spectrum);
+      });
+    }
+    mzml.store(temporary, changed);
+  });
+  const activation = (value) =>
+    `<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="${value}" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />`;
+  const collision = (value) =>
+    `<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="${value}" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />`;
+  let text = new TextDecoder().decode(OpenMS.FS.readFile(temporary));
+  OpenMS.FS.unlink(temporary);
+  for (const [from, to] of [[activation(35), collision(35)], [activation(25), collision(30) + activation(25)]]) {
+    assert.ok(text.includes(from), `${from} in the stored file`);
+    text = text.replace(from, to);
+  }
+  OpenMS.FS.writeFile(file, new TextEncoder().encode(text));
+}
+
+test("spectra(): the collision energy of converters (MS:1000045) is a meta value of the precursor", () => {
+  const file = "/tmp/converted.mzML";
+  storeSpectraWithCollisionEnergy(file);
+  try {
+    // the file, as OpenMS reads it: MS:1000045 is no activation energy (the premise of the fix)
+    const expected = fileSpectra(file);
+    assert.equal(expected.get("spectrum=0").precursors[0].activationEnergy, 0, "MS:1000045 only");
+    assert.equal(expected.get("spectrum=1").precursors[0].activationEnergy, 25, "both");
+    assert.equal(expected.get("spectrum=2").precursors[0].activationEnergy, 27.5, "MS:1000509 only");
+
+    const set = searchFiles(OpenMS, [file], undefined, { parameters: prose1, database: "/topp/SimpleSearchEngine_1.fasta" });
+    try {
+      const { psms } = set.tables();
+      const s = set.spectra();
+      assert.equal(assertSpectraShapes(s, psms.count), 3);
+      const energy = new Map(psms.nativeId.map((id, i) => [id, s.collisionEnergy[s.psmSpectrum[i]]]));
+      assert.equal(energy.get("spectrum=0"), 35, "MS:1000045");
+      assert.equal(energy.get("spectrum=1"), 30, "MS:1000045 before MS:1000509");
+      assert.equal(energy.get("spectrum=2"), 27.5, "MS:1000509 when there is no MS:1000045");
+    } finally {
+      set.delete();
+    }
+  } finally {
+    OpenMS.FS.unlink(file);
+  }
 });
 
 test("spectra() without keepSpectra: no peaks", () => {
@@ -1480,8 +1542,8 @@ test("spectra(): a native ID that a file has more than once", () => {
       assert.equal(ones.length, 2, JSON.stringify(psms.nativeId));
       const [early, late] = ones.map((i) => s.psmSpectrum[i]);
       assert.ok(early >= 0 && late >= 0 && early !== late, `spectra ${early}, ${late}`);
-      assert.ok(Number.isNaN(s.collisionEnergy[early]));
-      assert.equal(s.collisionEnergy[late], 40);
+      assert.equal(s.collisionEnergy[early], 45, "the collision energy (MS:1000045) the file records");
+      assert.equal(s.collisionEnergy[late], 40, "the activation energy set for the copy");
       // spectrum=2 twice, at the same RT: neither is the one at the RT of its PSMs
       const twos = rowsOf("spectrum=2");
       assert.ok(twos.length > 0);

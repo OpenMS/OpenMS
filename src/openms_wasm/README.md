@@ -480,9 +480,13 @@ type StoredSpectra = {
   offsets: Uint32Array;               // spectrum s: offsets[s] .. offsets[s + 1] of mz and intensity
   mz: Float32Array; intensity: Float32Array;
   precursorMz: Float64Array;          // per spectrum; NaN: none
-  collisionEnergy: Float32Array;      // per spectrum; NaN: unknown
+  collisionEnergy: Float32Array;      // per spectrum, in eV; NaN: unknown
 };
 ```
+
+`collisionEnergy` is the collision energy MS:1000045 that converters write (msconvert, ThermoRawFileParser, Bruker),
+which OpenMS keeps as the precursor's meta value "collision energy" (PeptDeep's rescoring reads that one); where a
+file has none, the activation energy MS:1000509. NaN where it has neither (OpenMS has 0 for an unknown activation energy).
 
 The peaks are the raw MS2 peaks of the file (not preprocessed), as Float32 arrays sorted by m/z.
 A row keeps its spectrum if `qValue <= psmFdr` (decoys included), if `FDR:PSM` is 0 (no filter:

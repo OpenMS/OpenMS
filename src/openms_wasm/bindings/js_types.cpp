@@ -199,7 +199,7 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "/** the peaks of spectrum s: offsets[s] .. offsets[s + 1] of mz and intensity (n + 1 entries) */ offsets: Uint32Array; "
     "/** the peaks of the MS2 spectra as read from the files (not preprocessed), sorted by m/z */ mz: Float32Array; "
     "intensity: Float32Array; /** m/z of the first precursor; NaN: none */ precursorMz: Float64Array; "
-    "/** activation (collision) energy of the first precursor; NaN: unknown */ collisionEnergy: Float32Array }");
+    "/** collision energy of the first precursor in eV (MS:1000045 \"collision energy\" of the file, else its MS:1000509 \"activation energy\"); NaN: unknown */ collisionEnergy: Float32Array }");
   register_type<AnnotationOptions>("AnnotationOptions",
     "{ tolerance?: number; unit?: 'Da' | 'ppm'; maxCharge?: number; ions?: ('a' | 'b' | 'c' | 'x' | 'y' | 'z')[]; "
     "losses?: boolean; precursor?: boolean } | null | undefined");

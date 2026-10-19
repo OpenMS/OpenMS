@@ -704,9 +704,7 @@ namespace OpenMS::WASM
         stored_.offsets.push_back(static_cast<uint32_t>(stored_.mz.size));
         const std::vector<Precursor>& precursors = s.getPrecursors();
         stored_.precursor_mz.push_back(precursors.empty() ? NaN : precursors[0].getMZ());
-        // OpenMS has 0 for an energy that is not known
-        const double energy = precursors.empty() ? 0.0 : precursors[0].getActivationEnergy();
-        stored_.collision_energy.push_back(energy > 0.0 ? static_cast<float>(energy) : std::numeric_limits<float>::quiet_NaN());
+        stored_.collision_energy.push_back(collisionEnergy(precursors));
         read_[s.getNativeID()].emplace_back(index, s.getRT());
       }
 
@@ -715,6 +713,20 @@ namespace OpenMS::WASM
       void setExperimentalSettings(const ExperimentalSettings& /*settings*/) override {}
 
     private:
+      /// The collision energy of the first of @p precursors, NaN if unknown. msconvert, ThermoRawFileParser and Bruker's
+      /// converter write MS:1000045 "collision energy", which MzMLHandler keeps as the meta value "collision energy"
+      /// of the precursor (what PeptDeepRescoring reads), not as its activation energy; only MS:1000509 "activation
+      /// energy" is that. So the meta value counts first, then the activation energy (OpenMS has 0 for an energy that
+      /// is not known).
+      float collisionEnergy(const std::vector<Precursor>& precursors) const
+      {
+        if (precursors.empty()) return std::numeric_limits<float>::quiet_NaN();
+        const double meta = metaNumber(precursors[0], collision_energy_key_);
+        const double energy = meta > 0.0 ? meta : precursors[0].getActivationEnergy();
+        return energy > 0.0 ? static_cast<float>(energy) : std::numeric_limits<float>::quiet_NaN();
+      }
+
+      const UInt collision_energy_key_ = metaIndex("collision energy");
       const std::unordered_set<std::string>& wanted_;
       ProSEStoredSpectra& stored_;
       ProSEResultSet::SpectraOfFile& read_;

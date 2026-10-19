@@ -65,7 +65,7 @@ namespace OpenMS::WASM
     std::vector<uint32_t> offsets{0};      ///< the peaks of spectrum s: offsets[s] .. offsets[s + 1] of mz and intensity
     BlockVector<float> mz, intensity;      ///< as read, sorted by m/z
     std::vector<double> precursor_mz;      ///< of the first precursor; NaN: none
-    std::vector<float> collision_energy;   ///< the activation energy of the first precursor; NaN: unknown (none, or 0)
+    std::vector<float> collision_energy;   ///< the collision energy of the first precursor (MS:1000045, else the activation energy); NaN: unknown
   };
 
   /// The search of one input file of ProSEAlgorithm.searchFiles()
