@@ -85,6 +85,7 @@
 #include <set>
 #include <sstream>
 #include <string_view>
+#include <thread>
 #include <tuple>
 
 #ifdef _OPENMP
@@ -4678,25 +4679,79 @@ namespace OpenMS
 #endif
     }
 
+    // The spectra of a file read on a helper thread (loadMS2SpectraAsync()): a std::future of them, whose
+    // thread is joined by the thread that takes them (get()) or drops them (destructor, move assignment).
+    // Not std::async, which detaches its thread: in WebAssembly (Emscripten) a detached thread that ends
+    // gives its Web Worker back to the pool only when the event loop of the main thread runs, which it
+    // does not while a search runs. Every file read in the background kept a Worker, and with 4 threads
+    // the 7th file of a search waited for one forever. A join gives the Worker back at once.
+    class BackgroundSpectra
+    {
+    public:
+      BackgroundSpectra() = default;
+      BackgroundSpectra(std::future<PeakMap> spectra, std::thread thread) :
+        spectra_(std::move(spectra)), thread_(std::move(thread)) {}
+      BackgroundSpectra(BackgroundSpectra&&) = default;
+      BackgroundSpectra& operator=(BackgroundSpectra&& other) noexcept
+      {
+        join_();
+        spectra_ = std::move(other.spectra_);
+        thread_ = std::move(other.thread_);
+        return *this;
+      }
+      BackgroundSpectra(const BackgroundSpectra&) = delete;
+      BackgroundSpectra& operator=(const BackgroundSpectra&) = delete;
+      ~BackgroundSpectra() { join_(); }
+
+      bool valid() const { return spectra_.valid(); }
+
+      template <typename Rep, typename Period>
+      std::future_status wait_for(const std::chrono::duration<Rep, Period>& timeout) const
+      {
+        return spectra_.wait_for(timeout);
+      }
+
+      /// The spectra (or the exception of their read), once read
+      PeakMap get()
+      {
+        struct Join
+        {
+          BackgroundSpectra& b;
+          ~Join() { b.join_(); }
+        } join{*this};
+        return spectra_.get();
+      }
+
+    private:
+      void join_() noexcept
+      {
+        if (thread_.joinable()) thread_.join();
+      }
+      std::future<PeakMap> spectra_;
+      std::thread thread_;
+    };
+
     // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads(true) of
     // this thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores),
     // not with what was set for this one (e.g. by TOPPBase from -threads).
-    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
+    BackgroundSpectra loadMS2SpectraAsync(const std::string& filename)
     {
       const int threads = readerThreads(true);
-#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
-      // WebAssembly without threads has no helper thread: load when the result is collected
-      constexpr std::launch policy = std::launch::deferred;
-#else
-      constexpr std::launch policy = std::launch::async;
-#endif
-      return std::async(policy, [&filename, threads]()
+      auto load = [&filename, threads]()
       {
 #ifdef _OPENMP
         omp_set_num_threads(threads);
 #endif
         return loadMS2Spectra(filename, threads);
-      });
+      };
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+      // WebAssembly without threads has no helper thread: load when the result is collected
+      return BackgroundSpectra(std::async(std::launch::deferred, load), std::thread());
+#else
+      std::packaged_task<PeakMap()> task(load);
+      std::future<PeakMap> spectra = task.get_future();
+      return BackgroundSpectra(std::move(spectra), std::thread(std::move(task)));
+#endif
     }
 
     // Whether the first MBs of an mzML file name an electron-based activation (the terms that
@@ -4751,7 +4806,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      std::future<PeakMap> spectra_ready = loadMS2SpectraAsync(in_spectra);
+      BackgroundSpectra spectra_ready = loadMS2SpectraAsync(in_spectra);
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -4972,7 +5027,7 @@ namespace OpenMS
     const Size threads_started = startOpenMPThreads();
     const bool read_in_background = threads_started > 1;
     const auto is_mzml = [&in_spectra_files](Size i) { return FileHandler::getTypeByFileName(in_spectra_files[i]) == FileTypes::MZML; };
-    std::future<PeakMap> next_spectra; // the spectra of the next file to search, if read in the background
+    BackgroundSpectra next_spectra; // the spectra of the next file to search, if read in the background
     const auto read_next = [&](Size i)
     {
       if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
