@@ -5266,20 +5266,27 @@ START_SECTION(([EXTRA] the hits of a spectrum with several precursors (DIA candi
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;
   TEST_TRUE(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
-  ABORT_IF(pep_ids.size() != 1 || pep_ids[0].getHits().size() != 2)
-  const PeptideIdentification& pid = pep_ids[0];
+  // one identification per precursor, each with the precursor's m/z: the candidates of a DIA window are searched as
+  // the precursors of DDA spectra (their PSMs compete only among themselves)
+  ABORT_IF(pep_ids.size() != 2)
   set<string> found;
   TOLERANCE_ABSOLUTE(1e-6)
-  for (const PeptideHit& hit : pid.getHits())
+  for (const PeptideIdentification& pid : pep_ids)
   {
+    TEST_EQUAL(pid.getSpectrumReference(), "scan=1")
+    ABORT_IF(pid.getHits().empty())
+    const PeptideHit& hit = pid.getHits()[0];
     found.insert(hit.getSequence().toString());
+    TEST_REAL_SIMILAR(pid.getMZ(), hit.getSequence().getMZ(2))
     ABORT_IF(!hit.metaValueExists(Constants::UserParam::PSM_PRECURSOR_MZ))
     TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)), hit.getSequence().getMZ(2))
     TEST_TRUE(std::abs(static_cast<double>(hit.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))) < 0.1)
+    for (const PeptideHit& other : pid.getHits()) // all hits of an identification belong to its precursor
+    {
+      TEST_REAL_SIMILAR(static_cast<double>(other.getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)), pid.getMZ())
+    }
   }
   TEST_EQUAL(found.size(), 2)
-  // the identification has the precursor of its best hit
-  TEST_REAL_SIMILAR(pid.getMZ(), static_cast<double>(pid.getHits()[0].getMetaValue(Constants::UserParam::PSM_PRECURSOR_MZ)))
 }
 END_SECTION
 
