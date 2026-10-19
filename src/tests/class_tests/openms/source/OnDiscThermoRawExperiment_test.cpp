@@ -14,7 +14,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <limits>
@@ -340,6 +342,36 @@ START_SECTION(std::unique_ptr<IMSExperimentRandomAccess> clone() const)
     }
   }
   TEST_EQUAL(accumulate(mismatches.begin(), mismatches.end(), Size(0)), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] a ZIP archive that holds the RAW file)
+{
+  // The RAW file extracted from the archive stays while an accessor reads it: the reader that indexed the file is
+  // gone after openFile(), and here the copy of the experiment also outlives the original.
+  TempDir tmp;
+  const std::string archive = tmp.getPath() + "/run.raw.zip";
+  ZipArchiveFile::addOrReplaceFromFile(archive, "Angiotensin_AllScans.raw", THERMO_RAW_TEST_DATA);
+  const ThermoRawFile::Options options = centroided();
+  const MSExperiment loaded = loadAll(options);
+  unique_ptr<IMSExperimentRandomAccess> copy;
+  {
+    OnDiscThermoRawExperiment exp;
+    exp.openFile(archive, options);
+    TEST_STRING_EQUAL(exp.getFilename(), archive)
+    TEST_EQUAL(exp.getNrSpectra(), loaded.size())
+    vector<Size> order(exp.getNrSpectra());
+    iota(order.begin(), order.end(), 0);
+    shuffle(order.begin(), order.end(), mt19937(7));
+    TEST_EQUAL(countMismatches(exp, loaded, order), 0)
+    copy = exp.clone();
+  }
+  Size mismatches = 0;
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    if (!(copy->getSpectrum(i) == loaded[i])) { ++mismatches; }
+  }
+  TEST_EQUAL(mismatches, 0)
 }
 END_SECTION
 

@@ -442,6 +442,15 @@ OpenMS Library:
     may only observe the spectra with "onDisc".
   - pyOpenMS: ThermoRawFile.transform() streams into a Python consumer; OnDiscThermoRawExperiment is
     wrapped with indexing, iteration and RT lookup (#10522).
+  - FIX: Thermo .raw files in a ZIP archive ('run.raw.zip', compressed or stored) are read by ThermoRawFile
+    (load(), transform()), OnDiscThermoRawExperiment, FileHandler, FileConverter (both readers) and the other
+    TOPP tools: the one .raw file in the archive is extracted into a temporary directory first, as for Bruker
+    '.d.zip'. Before, the archive went to the vendor library, which failed with "Could not open RAW file", and
+    TOPP tools refused it as compressed input. An archive with no .raw file or more than one, and gzip- or
+    bzip2-compressed RAW files ('.raw.gz', '.raw.bz2'), are rejected with a ParseError that says so (#10645).
+    FileTypes::supportsCompressedReading() accepts RAW with ZIP only, as for BRUKER_TDF. New:
+    ZipArchiveFile::findSingleEntry(). ZipArchiveFile::extractEntryToTempFile() checks the free space and the
+    declared size of the entry as unzipDirectory() does.
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
