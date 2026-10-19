@@ -177,6 +177,30 @@ START_SECTION([EXTRA] reproducibility with fixed seed is bit-identical)
 }
 END_SECTION
 
+START_SECTION([EXTRA] num_threads does not change the results)
+{
+  // num_threads limits the threads of the cross-validation loops; each fold and
+  // (Cpos, Cneg) pair is trained on its own, so the result does not depend on it
+  const RescoreInput input = makeModeratelySeparableInput_(500, 7);
+  std::vector<RescoreOutput> outs;
+  for (const int threads : {1, 3, 8})
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("num_threads", threads);
+    p.setParameters(par);
+    outs.push_back(p.rescore(input));
+  }
+  for (Size i = 1; i < outs.size(); ++i)
+  {
+    TEST_EQUAL(outs[0].scores == outs[i].scores, true)
+    TEST_EQUAL(outs[0].q_values == outs[i].q_values, true)
+    TEST_EQUAL(outs[0].peps == outs[i].peps, true)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] q-values in expected range)
 {
   // Moderately separable data. Verify q-values are bounded [0, 1] and that
@@ -672,6 +696,52 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
   }
   TEST_EQUAL(counted, 100)
   TEST_TRUE(mean_on < mean_off)
+}
+END_SECTION
+
+START_SECTION((bool usedDefaultDirection() const))
+{
+  Percolator p;
+  Param param = p.getDefaults();
+  param.setValue("seed", 42);
+  p.setParameters(param);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Separable targets: the learned model identifies at least as many targets as the best single feature
+  // and passes the sanity check. With fewer targets it would not: q-values count the decoys + 1, so a
+  // held-out fold needs about 1 / test_fdr targets above its first decoy for any q < test_fdr.
+  RescoreInput separable;
+  separable.feature_names = StringList{"separator", "noise"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({+1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 7)});
+    separable.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({-1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 11)});
+    separable.is_decoy.push_back(true);
+  }
+  p.rescore(separable);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Targets and decoys with the same feature values (like a blank run; low-discrepancy sequences, so targets
+  // and decoys interleave): no target at q < test_fdr, so the sanity check replaces the learned model by the
+  // default direction.
+  RescoreInput noise;
+  noise.feature_names = StringList{"f0", "f1"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    noise.features.push_back({std::fmod(0.6180339887 * static_cast<double>(i), 1.0),
+                              std::fmod(0.7548776662 * static_cast<double>(i), 1.0)});
+    noise.is_decoy.push_back(i % 2 == 1);
+  }
+  p.rescore(noise);
+  TEST_TRUE(p.usedDefaultDirection())
+
+  // Each call reports its own outcome.
+  p.train(separable);
+  TEST_FALSE(p.usedDefaultDirection())
 }
 END_SECTION
 
