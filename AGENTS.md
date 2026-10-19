@@ -413,7 +413,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 - New C++ class: add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, register in CMake lists.
 - C++ API change: update nanobind bindings/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
 - New/changed TOPP tool: declare in `src/topp/executables.cmake` with its category, add docs, add TOPP tests and data.
-- Parameter or I/O change: update tool docs/CTD, tests, and `CHANGELOG`; use `PARAM`/`IO` commit tags.
+- Parameter or I/O change: update tool docs/CTD and tests; use `PARAM`/`IO` commit tags (the `CHANGELOG` entry is generated automatically, see below).
 - File format change: update `FileHandler::NamesOfTypes[]`, schemas/validators, and tests.
 
 ## Contribution Workflow and Commit Messages
@@ -422,7 +422,8 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Build locally and run the relevant tests before opening a PR (see Critical Constraints).
 - Commit format: `[TAG1,TAG2] short summary` (<=120 chars, <=80 preferred), blank line, longer description, and `Fixes #N`/`Closes #N` when applicable.
 - Commit tags: NOP, DOC, COMMENT, API, INTERNAL, FEATURE, FIX, TEST, FORMAT, PARAM, IO, LOG, GUI, RESOURCE, BUILD.
-- PR checklist: update `AUTHORS` and `CHANGELOG`, run/extend tests, update pyOpenMS bindings when needed.
+- PR checklist: update `AUTHORS`, run/extend tests, update pyOpenMS bindings when needed.
+- Do not add `CHANGELOG` entries in PRs: they are generated automatically once per week by a GitHub Action (`.github/workflows/changelog-sync.md`), which opens a `[changelog-sync]` PR from the merged changes. Clear commit messages and tags (`API`, `PARAM`, `IO`, `FEATURE`, `FIX`) are what it works from.
 - Minimize pushes on open PRs (CI is heavy).
 - Run clang-format for local style checks.
 
@@ -498,7 +499,7 @@ When you change | Also update
 C++ class (new) | Add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, CMake registration
 C++ API | nanobind bindings (`bind_<domain>.cpp`), pyOpenMS addons, tests, docs
 TOPP tool (new) | `src/topp/executables.cmake` (name + category), docs, TOPP tests
-Parameters | Tool docs, CTD, tests, `CHANGELOG`
+Parameters | Tool docs, CTD, tests (not `CHANGELOG`; it is generated weekly)
 File format | `FileHandler::NamesOfTypes[]`, schemas, tests
 
 ## pyOpenMS Wrapping
