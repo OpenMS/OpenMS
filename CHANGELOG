@@ -108,6 +108,7 @@ OpenMS Library:
     restores that. Results change.
   - FIX: Percolator's num_threads (OpenDIA rescoring, OpenSwathPercolatorScoring, in-process PercolatorAdapter, ProSE) had
     no effect; cross-validation now runs on at most num_threads threads, and never on more than the tool's -threads.
+    num_threads accepts up to 128 (as upstream) instead of 3; the default stays 3.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset

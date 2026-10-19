@@ -183,7 +183,7 @@ START_SECTION([EXTRA] num_threads does not change the results)
   // (Cpos, Cneg) pair is trained on its own, so the result does not depend on it
   const RescoreInput input = makeModeratelySeparableInput_(500, 7);
   std::vector<RescoreOutput> outs;
-  for (const int threads : {1, 3})
+  for (const int threads : {1, 3, 8})
   {
     Percolator p;
     Param par = p.getDefaults();
@@ -192,9 +192,12 @@ START_SECTION([EXTRA] num_threads does not change the results)
     p.setParameters(par);
     outs.push_back(p.rescore(input));
   }
-  TEST_EQUAL(outs[0].scores == outs[1].scores, true)
-  TEST_EQUAL(outs[0].q_values == outs[1].q_values, true)
-  TEST_EQUAL(outs[0].peps == outs[1].peps, true)
+  for (Size i = 1; i < outs.size(); ++i)
+  {
+    TEST_EQUAL(outs[0].scores == outs[i].scores, true)
+    TEST_EQUAL(outs[0].q_values == outs[i].q_values, true)
+    TEST_EQUAL(outs[0].peps == outs[i].peps, true)
+  }
 }
 END_SECTION
 
