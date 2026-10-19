@@ -713,10 +713,13 @@ TOPP tools:
   Changes:
     ProSE:
       - PARAM: New database:mass_slices (default 1, off): search the spectra (of all input files) in slices by
-        precursor mass, each against a fragment index that holds only the peptides the slice can reach. Without
-        calibration, the PSMs are those of one full index; with calibration:enabled, calibration runs on a sample of
-        about 1/slices of the database, so the tolerances and PSMs can differ. The index takes about 1/slices of the
-        memory.
+        precursor mass, cut at equal numbers of the database's peptides; each slice is searched against a fragment
+        index built from only the peptides in its precursor mass range that it can reach
+        (FragmentIndex::build(..., bounded_generation), FragmentIndex::countPeptidesByMass()). Without calibration,
+        the PSMs are those of one full index; with calibration:enabled, calibration runs on a sample of about
+        1/slices of the database, so the tolerances and PSMs can differ. The peptides and the index take about
+        1/slices of the memory. Ignored, with a warning, with database:chunk_size > 0, in open search mode and with
+        low_memory without enzyme specificity.
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter

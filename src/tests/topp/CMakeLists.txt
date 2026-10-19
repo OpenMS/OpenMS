@@ -4769,6 +4769,14 @@ ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_
 add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 "TOPP_ProSE_1")
+# database:mass_slices: the same identifications as the search with one index
+add_test("TOPP_ProSE_1_mass_slices" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_mass_slices_out.tmp.idXML
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta -Search:database:mass_slices 3)
+add_test("TOPP_ProSE_1_mass_slices_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_mass_slices_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_1_mass_slices_out" PROPERTIES DEPENDS
+"TOPP_ProSE_1_mass_slices")
 
 add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in

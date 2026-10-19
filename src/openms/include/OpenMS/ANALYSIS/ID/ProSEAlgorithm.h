@@ -865,16 +865,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double seconds_index_build{0};
       Size indexed_peptides{0};  ///< summed over the slices
       Size indexed_fragments{0}; ///< summed over the slices
+      std::vector<double> seconds_scoring; ///< per file: scoring time, summed over the slices
     };
 
     /**
      * @brief Score the spectra of one or more files in slices by precursor mass (database:mass_slices).
      *
-     * The searchable spectra of all files are ordered by precursor mass and split into slices of equal size. For each
-     * slice, a fragment index of @p db that holds only the peptides its spectra can reach is built (see
-     * FragmentIndex::build(fasta_entries, searched_spectra)), the slice's spectra are scored against it, and it is
-     * released. Each spectrum is scored once, against the candidates the full index would give it, so the result is
-     * that of one full index while the index takes about 1/slices of the memory.
+     * The searchable spectra of all files are ordered by precursor mass and split into slices that span equal numbers of
+     * the database's peptides (FragmentIndex::countPeptidesByMass()). For each slice, a fragment index of @p db is built
+     * from only the peptides in the precursor mass range of its spectra, restricted to those its spectra can reach (see
+     * FragmentIndex::build(fasta_entries, searched_spectra, bounded_generation)); the slice's spectra are scored against
+     * it, and it is released. Each spectrum is scored once, against the candidates the full index would give it, so the
+     * result is that of one full index (up to the order of equally heavy peptidoforms of one protein, see there), while
+     * the index takes about 1/slices of the memory.
      *
      * @param[in] files The preprocessed spectra of each file
      * @param[in] query_files Per file, the candidate-retrieval spectra aligned with @p files (or nullptr)
@@ -1121,6 +1124,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
     Size database_mass_slices_{1}; ///< database:mass_slices; 1 = disabled
+    mutable bool mass_slices_ignored_logged_{false}; ///< massSlicing_() warned that database:mass_slices is ignored
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};

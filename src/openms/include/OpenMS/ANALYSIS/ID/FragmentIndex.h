@@ -21,6 +21,7 @@
 #include <mutex>
 #include <vector>
 #include <functional>
+#include <limits>
 #include <algorithm>   // std::max (used by inline static isOpenSearchMode)
 
 namespace OpenMS
@@ -286,11 +287,35 @@ namespace OpenMS
      * these spectra and the current parameters.
      * The full index is built if @p searched_spectra is empty or returns nullptr, and in peptide-mass and open search mode.
      *
+     * With @p bounded_generation, @p searched_spectra is called once, with 0, before the peptides are generated, and only
+     * the peptides with a precursor mass between the lowest and the highest bound of the spectra's precursor windows are
+     * generated at all (the variable modifications of a peptide are not enumerated if none of its peptidoforms can lie in
+     * that range). Peak memory and time then follow that range instead of the whole database, for a search of the spectra in
+     * slices by precursor mass. The kept peptides are those of the unbounded build, sorted in the same way; among peptides
+     * with equal precursor mass and protein (e.g. positional isomers) the unstable sort can arrange them differently. If
+     * peptide:deduplicate has to compare peptidoforms by string (see peptidoformRendering_()), all peptides are generated.
+     *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
+     * @param[in] bounded_generation Generate only the peptides in the precursor mass range of the spectra (see above)
      */
     void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-               const std::function<const MSExperiment*(Size)>& searched_spectra);
+               const std::function<const MSExperiment*(Size)>& searched_spectra,
+               bool bounded_generation = false);
+
+    /** @brief The number of peptides build() would generate (before peptide:deduplicate), per precursor mass (M+H) bin.
+     *
+     * Bin k counts the peptides with precursor mass in [k * @p bin_width, (k + 1) * @p bin_width). The peptides are
+     * generated @p proteins_per_block proteins at a time and discarded, so the memory taken is that of one block. Clears
+     * the index.
+     *
+     * @param[in] fasta_entries The FASTA entries
+     * @param[in] bin_width Width of a bin (Th), > 0
+     * @param[in] proteins_per_block Proteins whose peptides are held at once (0: all)
+     * @return The counts, up to the last non-empty bin
+     */
+    std::vector<Size> countPeptidesByMass(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, double bin_width,
+                                          Size proteins_per_block);
 
     /** @brief Delete fragment index. Sets is_build=false*/
     void clear();
@@ -1040,6 +1065,14 @@ private:
     /// of @p spectra, keeping the order of the others (see build(fasta_entries, searched_spectra)). Removed occurrences
     /// recorded before (removed_occurrences_) follow their kept entries to their new indices or are dropped with them.
     void keepPeptidesInPrecursorWindows_(const MSExperiment& spectra);
+
+    /// The precursor windows ([M+H]+ bounds, ascending by their lower bound) that querySpectrum() tries for the MS2 spectra
+    /// of @p spectra (see keepPeptidesInPrecursorWindows_()). Returns false if a bound is NaN (no restriction possible).
+    bool precursorWindows_(const MSExperiment& spectra, std::vector<std::pair<float, float>>& windows) const;
+
+    /// build(..., bounded_generation): generatePeptides() emits only peptides with precursor_mz_ in this range
+    float generation_min_mz_{-std::numeric_limits<float>::infinity()};
+    float generation_max_mz_{std::numeric_limits<float>::infinity()};
 
   };
 
