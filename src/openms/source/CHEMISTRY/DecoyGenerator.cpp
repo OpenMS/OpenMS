@@ -13,6 +13,8 @@
 
 #include <chrono>
 #include <algorithm>
+#include <map>
+#include <random>
 
 using namespace OpenMS;
 
@@ -20,11 +22,104 @@ DecoyGenerator::DecoyGenerator()
 {
   const UInt64 seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
   shuffler_.seed(seed);
+  seed_ = seed;
 }
 
 void DecoyGenerator::setSeed(UInt64 seed)
 {
   shuffler_.seed(seed);
+  seed_ = seed;
+}
+
+std::vector<AASequence> DecoyGenerator::generateDeBruijnDecoys(const std::vector<AASequence>& proteins, Size k)
+{
+  OPENMS_PRECONDITION(k > 0, "The de Bruijn k-mer length must be positive.")
+
+  // Collect distinct target (k + 1)-mers. Their replacement is shared by all
+  // proteins, which is the key property that preserves repeated regions.
+  std::unordered_map<std::string, Size> edge_occurrences;
+  std::map<char, Size> amino_acid_counts;
+  std::string amino_acids;
+  for (const auto& protein : proteins)
+  {
+    OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
+    const std::string sequence = protein.toUnmodifiedString();
+    amino_acids += sequence;
+    for (const char amino_acid : sequence)
+    {
+      ++amino_acid_counts[amino_acid];
+    }
+    const std::string padded(k, '-');
+    const std::string input = padded + sequence;
+    if (input.size() < k + 1) continue;
+    for (Size i = 0; i + k < input.size(); ++i)
+    {
+      ++edge_occurrences[input.substr(i, k + 1)];
+    }
+  }
+
+  if (amino_acids.empty()) return std::vector<AASequence>(proteins.size(), AASequence());
+
+  // Assign labels according to the amino-acid composition while accounting
+  // for how often each edge occurs in the database.
+  std::vector<std::string> edges;
+  edges.reserve(edge_occurrences.size());
+  for (const auto& edge : edge_occurrences)
+  {
+    edges.push_back(edge.first);
+  }
+  std::sort(edges.begin(), edges.end());
+  std::vector<char> alphabet;
+  std::vector<double> remaining_counts;
+  std::vector<double> original_counts;
+  alphabet.reserve(amino_acid_counts.size());
+  remaining_counts.reserve(amino_acid_counts.size());
+  original_counts.reserve(amino_acid_counts.size());
+  for (const auto& [amino_acid, count] : amino_acid_counts)
+  {
+    alphabet.push_back(amino_acid);
+    remaining_counts.push_back(static_cast<double>(count));
+    original_counts.push_back(static_cast<double>(count));
+  }
+  std::mt19937_64 random_engine(seed_);
+  std::unordered_map<std::string, char> edge_labels;
+  edge_labels.reserve(edge_occurrences.size());
+  for (const auto& edge : edges)
+  {
+    std::vector<double> weights = remaining_counts;
+    double total_weight = 0.0;
+    for (double& weight : weights)
+    {
+      weight = std::max(0.0, weight);
+      total_weight += weight;
+    }
+    if (total_weight == 0.0)
+    {
+      weights = original_counts;
+    }
+    std::discrete_distribution<Size> choose_amino_acid(weights.begin(), weights.end());
+    const Size selected = choose_amino_acid(random_engine);
+    edge_labels.emplace(edge, alphabet[selected]);
+    remaining_counts[selected] -= static_cast<double>(edge_occurrences.at(edge));
+  }
+
+  std::vector<AASequence> decoys;
+  decoys.reserve(proteins.size());
+  for (const auto& protein : proteins)
+  {
+    const std::string sequence = protein.toUnmodifiedString();
+    const std::string input = std::string(k, '-') + sequence;
+    std::string decoy;
+    decoy.reserve(sequence.size());
+    for (Size i = 0; i < sequence.size(); ++i)
+    {
+      const auto edge = edge_labels.find(input.substr(i, k + 1));
+      OPENMS_PRECONDITION(edge != edge_labels.end(), "Every target edge must have a decoy label.")
+      decoy.push_back(edge->second);
+    }
+    decoys.push_back(AASequence::fromString(decoy));
+  }
+  return decoys;
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const

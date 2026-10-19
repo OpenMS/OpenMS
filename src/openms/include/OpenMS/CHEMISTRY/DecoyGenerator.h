@@ -12,6 +12,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <unordered_map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -32,6 +33,19 @@ namespace OpenMS
 
       // random seed for shuffling
       void setSeed(UInt64 seed);
+
+      /**
+        @brief Generate a repeat-preserving de Bruijn decoy database.
+
+        The mapping is built across the complete input database, so repeated
+        (k + 1)-mers receive the same replacement in every protein. No enzyme
+        cleavage rule is required, which also supports nonspecific searches.
+
+        @param[in] proteins Target protein sequences
+        @param[in] k Vertex k-mer length (must be positive; default: 2)
+        @return One decoy sequence for each input protein, in input order
+      */
+      std::vector<AASequence> generateDeBruijnDecoys(const std::vector<AASequence>& proteins, Size k = 2);
 
       /* 
          @brief reverses the protein sequence. 
@@ -87,6 +101,9 @@ namespace OpenMS
 
       // portable shuffle
       Math::RandomShuffler shuffler_;
+
+      /// Seed used to make database-wide decoy generation reproducible
+      UInt64 seed_;
 
       // ensures that shuffling same peptide (in different proteins) leads to same decoy
       std::unordered_map<std::string, std::string> td_cache_;

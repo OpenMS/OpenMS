@@ -100,6 +100,37 @@ START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const 
   TEST_EQUAL(result6[1].toString(), "FEIRPNEEDOROERNNCNETQGLOWOOPTUS")
 END_SECTION
 
+START_SECTION((std::vector<AASequence> generateDeBruijnDecoys(const std::vector<AASequence>& proteins, Size k)))
+  std::vector<AASequence> targets =
+  {
+    AASequence::fromString("APEPTIDEK"),
+    AASequence::fromString("QPEPTIDER")
+  };
+  dg->setSeed(4711);
+  const auto de_bruijn_decoys = dg->generateDeBruijnDecoys(targets, 2);
+  TEST_EQUAL(de_bruijn_decoys.size(), targets.size())
+  TEST_EQUAL(de_bruijn_decoys[0].size(), targets[0].size())
+  TEST_EQUAL(de_bruijn_decoys[1].size(), targets[1].size())
+
+  // The shared internal target region PEPTIDE has length seven. With k=2,
+  // the five decoy residues whose edges lie fully inside that region match.
+  const std::string first_decoy = de_bruijn_decoys[0].toUnmodifiedString();
+  const std::string second_decoy = de_bruijn_decoys[1].toUnmodifiedString();
+  TEST_EQUAL(first_decoy.substr(1, 5), second_decoy.substr(1, 5))
+
+  dg->setSeed(4711);
+  const auto repeated_decoys = dg->generateDeBruijnDecoys(targets, 2);
+  TEST_EQUAL(repeated_decoys[0].toString(), de_bruijn_decoys[0].toString())
+  TEST_EQUAL(repeated_decoys[1].toString(), de_bruijn_decoys[1].toString())
+
+  // A database containing short and empty proteins is also valid.
+  const auto short_decoys = dg->generateDeBruijnDecoys(
+    {AASequence::fromString("A"), AASequence()}, 2);
+  TEST_EQUAL(short_decoys.size(), 2)
+  TEST_EQUAL(short_decoys[0].size(), 1)
+  TEST_EQUAL(short_decoys[1].size(), 0)
+END_SECTION
+
 delete dg;
 
 /////////////////////////////////////////////////////////////
