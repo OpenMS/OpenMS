@@ -138,6 +138,14 @@ OpenMS Library:
     instead of for every peak group of the file (OpenDIA/OpenSwathExport result export: 30 s instead of 72 s).
   - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
     sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
+  - OpenSwathPercolatorScoring (OpenDIA rescoring) trains Percolator on the best peak group of every precursor (new
+    parameter training_main_score, default var_xcorr_shape) plus all peak groups of precursors drawn at random, up to
+    percolator:subset_max_train further peak groups, and scores all peak groups with the model; before,
+    percolator:subset_max_train had no effect and training used all peak groups. percolator:subset_max_train = 0
+    restores that. Results change.
+  - FIX: Percolator's num_threads (OpenDIA rescoring, OpenSwathPercolatorScoring, in-process PercolatorAdapter, ProSE) had
+    no effect; cross-validation now runs on at most num_threads threads, and never on more than the tool's -threads.
+    num_threads accepts up to 128 (as upstream) instead of 3; the default stays 3.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
