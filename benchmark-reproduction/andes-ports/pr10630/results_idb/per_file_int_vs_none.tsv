@@ -1,0 +1,4 @@
+dataset	group	ref	arm	ref_seeds	arm_seeds	ref_mean	arm_mean	delta_pct	z	call
+idb_spleen	MHC-I timsTOF Pro (id_bruker)	none	int	1310/1325/1322	1258/1292/1347	1319	1299	-1.52	-0.76	flat
+idb_corpus	MHC-I timsTOF Pro (id_bruker)	none	int	501/527/559	479/555/646	529	560	5.86	0.61	flat
+idb_liver	MHC-I timsTOF Pro (id_bruker)	none	int	724/818/764	805/780/752	768.7	779	1.34	0.33	flat

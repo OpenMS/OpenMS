@@ -1,0 +1,4 @@
+group	arm	files	psms	entrapment	fdp_combined_pct	gained_vs_ref	gained_entrapment	gained_fdp_combined_pct
+MHC-I timsTOF Pro (id_bruker)	none_E	3	2171.3	5.7	0.52	0	0	
+MHC-I timsTOF Pro (id_bruker)	int_E	3	2163.3	7.3	0.68	653	13	4.0
+MHC-I timsTOF Pro (id_bruker)	intiso_E	3	2088.3	8.0	0.77	207	11	10.6

@@ -26,6 +26,22 @@ def sha(p):
         return hashlib.file_digest(f, 'sha256').hexdigest()
 
 
+IDB = BENCH / 'idb/data'
+
+
+def idb_params():
+    """Second dataset (id_bruker, MHC class I, timsTOF Pro): the frozen tims parameters with the immunopeptidomics
+    search space (unspecific cleavage, length 8-12, no fixed modification, <= 1 Ox(M))."""
+    p, _ = frozen('tims_plasma_30min')
+    p = dict(p)
+    p.update({'enzyme': 'unspecific cleavage', 'peptide:enzyme_specificity': 'none', 'peptide:min_size': 8, 'peptide:max_size': 12,
+              'peptide:missed_cleavages': 0, 'modifications:fixed': [], 'database:chunk_size': CHUNK})
+    return p, 'human_td.fasta'
+
+
+CHUNK = 5000
+
+
 def frozen(dataset):
     for j in json.load(open(BENCH / 'frozen/jobs.json')):
         if j['stage'] == 'native_dedup' and j['arm'] == 'default' and j['dataset'] == dataset:
@@ -45,18 +61,19 @@ def main():
     entrap = '--entrap' in a
     rep = int(a[a.index('--rep') + 1]) if '--rep' in a else 0
     keep_idxml = '--keep-idxml' in a
-    params, fasta = frozen(dataset)
+    params, fasta = idb_params() if dataset.startswith('idb_') else frozen(dataset)
+    data = IDB if dataset.startswith('idb_') else DATA
     if entrap: fasta = fasta.replace('_td.fasta', '_E_td.fasta')
     out = BENCH / 'runs' / (arm + ('_E' if entrap else '')) / dataset / (f'rep{rep}' if rep else '')
     out.mkdir(parents=True, exist_ok=True)
     if (out / 'summary.json').exists():
         print('done already', out); return
     prefix = Path('/opt/openms-' + build)
-    cmd = [str(prefix / 'bin/ProSE'), '-in', str(DATA / (dataset + '.mzML')), '-database', str(DATA / fasta),
+    cmd = [str(prefix / 'bin/ProSE'), '-in', str(data / (dataset + '.mzML')), '-database', str(data / fasta),
            '-out_pin', str(out / 'search.pin.tsv'), '-out_idxml', str(out / 'search.idXML'), '-threads', '4', '-no_summary']
     for k, v in params.items():
         if k in DROPPED: continue
-        cmd += ['-Search:' + k] + value(v)
+        cmd += ['-Search:' + k] + (value(v) if v != [] else [])
     if arm.startswith('int'):
         cmd += ['-Search:scoring:candidate_tie_break', 'intensity']
     env = dict(os.environ, OPENMS_DATA_PATH=str(prefix / 'share/OpenMS'), LD_LIBRARY_PATH=str(prefix / 'lib'), OMP_NUM_THREADS='4')
@@ -69,8 +86,8 @@ def main():
     logtxt = (out / 'search.log').read_text()
     rss_kb = int(re.search(r'Maximum resident set size \(kbytes\): (\d+)', logtxt).group(1))
     cpu = sum(float(x) for x in re.findall(r'(?:User|System) time \(seconds\): ([\d.]+)', logtxt))
-    res = dict(build=build, arm=arm, dataset=dataset, entrap=entrap, rep=rep, fasta=fasta, fasta_sha256=sha(DATA / fasta),
-               mzml_sha256=sha(DATA / (dataset + '.mzML')), wall_s=round(wall, 2), cpu_s=round(cpu, 2), max_rss_kb=rss_kb)
+    res = dict(build=build, arm=arm, dataset=dataset, entrap=entrap, rep=rep, fasta=fasta, fasta_sha256=sha(data / fasta),
+               mzml_sha256=sha(data / (dataset + '.mzML')), wall_s=round(wall, 2), cpu_s=round(cpu, 2), max_rss_kb=rss_kb)
     res['pin_sha256'] = sha(out / 'search.pin.tsv')
     res['idxml_sha256'] = sha(out / 'search.idXML')
     # idXML without the date/time attribute and the version string, for identity checks

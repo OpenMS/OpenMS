@@ -21,6 +21,9 @@ before the `scoring:max_candidates_per_spectrum` cut. Measured 2026-10-19, one m
   1.77 → 1.72%, HF-X −1.0% (2 files down), Lumos LFQ +0.2% (FDP 1.17 → 1.36%). andes reported +1.7% on the full
   Astral file PXD070049. The Astral direction holds in andes, but not in OpenMS.
 - **Cost:** +1.3% wall time, +1.0% CPU time, unchanged peak RSS.
+- **Second dataset, MHC class I** (id_bruker, unspecific, `results_idb/`): +0.8% (3 files flat, noisy seeds) on the
+  target-decoy database, −0.4% on the entrapment database. The FDP of 0.52 → 0.68% rests on 6–7 entrapment PSMs. No
+  gain either, although 30–40% of the (per-chunk) queries end inside a vote tie.
 
 ## Builds
 
@@ -75,6 +78,32 @@ ProSEAlgorithm_test pass on the PR head. andes: `cargo build --release --locked 
 | `resources.tsv` | timing and memory |
 | `run_summaries.json` | per run: input/output hashes, seeds, wall/CPU time, RSS |
 
+## Second dataset: MHC class I immunopeptidomics (id_bruker)
+
+- Data: archive.openms.de `testfiles/id_bruker/classI/high/` (PXD058436, MHCquant2, timsTOF Pro), techRep1 of
+  DN02_Spleen, DN13_Corpus and DN12_Liver (`scripts/idb_manifest.json`, with byte counts). 8,000 MS2 per file with
+  the frozen `prepare.py` sampling (copied next to the manifest; charge 2–5 only, so singly charged precursors are
+  excluded). `scripts/idb_inputs.sh` resumes truncated downloads and checks the byte count.
+- Database: `testfiles/human_sp.fasta` (20,431 entries, sha256 `b205ed99…`) plus reversed `DECOY_` decoys
+  (`321b4b05…`), and the shuffled entrapment version from `make_entrapment.py` (`93f43ae9…`). For unspecific
+  digestion, the shuffle keeps protein composition and length (hence r ≈ 1 in candidate count) but does not pair
+  peptide masses.
+- Search: the frozen tims parameters with `enzyme 'unspecific cleavage'`, `peptide:enzyme_specificity none`, length
+  8–12, no fixed modification, ≤1 Ox(M), and `database:chunk_size 5000` (9 chunks; each chunk applies its own cap of
+  50, so `vote_ties.tsv` counts 9 queries per spectrum). Same Percolator protocol. About 60 s and 3 GB per search.
+- Only 3 files and about 700–1,300 PSMs per file. Seed-to-seed spread is large (corpus 501–559 vs 479–646), and the
+  entrapment estimate rests on single-digit counts.
+
+| arm | PSMs (sum of 3 files) | Δ vs `none` | entrapment DB PSMs | FDP (combined) |
+| --- | ---: | ---: | ---: | ---: |
+| `none` | 2616.7 | | 2171.3 | 0.52% |
+| `intensity` | 2638.0 | +0.81% (0/3/0) | 2163.3 (−0.37%) | 0.68% |
+| variant (intensity after isotope keys) | 2632.7 | +0.61% (0/3/0) | 2088.3 (−3.8%) | 0.77% |
+
+The default is identical to the merge base on all three files (PIN). The rank-1 peptide changes in 6–9% of the
+spectra. Among the changed rank-1 PSMs, isotope error 0 falls from 48–61% to 18–23%, and about half are decoys,
+as on the tryptic suite.
+
 ## Reproduce
 
 Paths in the scripts assume the root `/home/user/bench` (`BENCH` in each script).
@@ -89,4 +118,5 @@ bash scripts/queue.sh jobs/jobs_pr.txt; bash scripts/queue.sh jobs/jobs_bd.txt; 
 while read a d; do python3 scripts/andes_run.py $a $d; done < jobs/jobs_andes.txt
 bash scripts/queue.sh jobs/jobs_timing.txt   # on an idle machine
 python3 scripts/evaluate.py results; python3 scripts/isotope_check.py <datasets> > results/rank1_isotope_error.tsv
+bash scripts/idb_inputs.sh; bash scripts/queue.sh jobs/jobs_idb.txt; python3 scripts/evaluate.py results_idb --idb
 ```

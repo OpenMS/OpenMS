@@ -1,0 +1,3 @@
+group	n	ref	arm	ref_mean	arm_mean	delta_pct	up_flat_down
+MHC-I timsTOF Pro (id_bruker)	3	none	int	872.2	879.3	0.82	0/3/0
+All files (sum)	3	none	int	2616.7	2638	0.81	0/3/0

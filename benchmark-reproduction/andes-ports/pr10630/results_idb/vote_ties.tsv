@@ -1,0 +1,4 @@
+dataset	group	queries	over_cap	boundary_tie	boundary_tie_pct	median_tie_size	candidate_set_changed	peptide_set_changed
+idb_spleen	MHC-I timsTOF Pro (id_bruker)	72000	29432	29088	40.4	67.0	29066	29066
+idb_corpus	MHC-I timsTOF Pro (id_bruker)	72000	21981	21712	30.2	62.0	21687	21687
+idb_liver	MHC-I timsTOF Pro (id_bruker)	72000	27955	27555	38.3	66	27531	27531

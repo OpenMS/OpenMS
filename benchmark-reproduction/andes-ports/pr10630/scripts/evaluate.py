@@ -17,13 +17,16 @@ from pathlib import Path
 
 BENCH = Path('/home/user/bench')
 RUNS = BENCH / 'runs'
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else BENCH / 'results'
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 and not sys.argv[1].startswith('--') else BENCH / 'results'
 OUT.mkdir(parents=True, exist_ok=True)
 DATA = BENCH / 'frozen/broad_benchmark/data'
 SEEDS = (1, 42, 137)
 GROUPS = [('velos', 'Velos CID'), ('hfx', 'HF-X HCD'), ('astral', 'Astral HCD'), ('lumos_lfq', 'Lumos HCD LFQ'),
           ('lumos_tmt', 'Lumos CID TMT6plex'), ('eclipse', 'Exploris 480 TMTpro'), ('tims', 'timsTOF HT')]
 DATASETS = list(json.load(open(BENCH / 'frozen/inputs.json')))
+if '--idb' in sys.argv:  # second dataset: id_bruker MHC class I (PXD058436), see README
+    GROUPS = [('idb', 'MHC-I timsTOF Pro (id_bruker)')]
+    DATASETS = ['idb_spleen', 'idb_corpus', 'idb_liver']
 
 
 def group(d):

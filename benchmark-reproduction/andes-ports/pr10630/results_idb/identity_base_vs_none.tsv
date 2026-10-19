@@ -1,0 +1,4 @@
+dataset	pin_identical	idxml_identical	reps_deterministic	seeds_base	seeds_none
+idb_spleen	True		True	1310/1325/1322	1310/1325/1322
+idb_corpus	True		True	501/527/559	501/527/559
+idb_liver	True		True	724/818/764	724/818/764

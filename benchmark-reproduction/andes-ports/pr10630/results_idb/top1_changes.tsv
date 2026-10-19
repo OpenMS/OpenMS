@@ -1,0 +1,4 @@
+dataset	group	spectra_none	spectra_int	only_none	only_int	top1_changed	int_higher_score	int_lower_score	equal_score	changed_target_to_decoy	changed_decoy_to_target
+idb_spleen	MHC-I timsTOF Pro (id_bruker)	5947	5947	0	0	417	361	54	2	108	101
+idb_corpus	MHC-I timsTOF Pro (id_bruker)	4767	4767	0	0	313	254	58	1	71	83
+idb_liver	MHC-I timsTOF Pro (id_bruker)	5204	5204	0	0	476	401	71	4	113	131

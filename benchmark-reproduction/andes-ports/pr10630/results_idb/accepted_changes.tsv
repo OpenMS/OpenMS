@@ -1,0 +1,4 @@
+dataset	group	gained_scans	lost_scans	same_scan_other_peptide
+idb_spleen	MHC-I timsTOF Pro (id_bruker)	32.3	52.3	1.0
+idb_corpus	MHC-I timsTOF Pro (id_bruker)	43.7	12.7	0.0
+idb_liver	MHC-I timsTOF Pro (id_bruker)	46.7	36.3	1.3

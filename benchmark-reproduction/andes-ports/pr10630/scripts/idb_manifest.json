@@ -1,0 +1,20 @@
+[
+ {
+  "id": "idb_spleen",
+  "url": "https://archive.openms.de/openms/testfiles/id_bruker/classI/high/DN02_Spleen_classI_techRep1.mzML",
+  "max_spectra": 8000,
+  "bytes": 2040806112
+ },
+ {
+  "id": "idb_corpus",
+  "url": "https://archive.openms.de/openms/testfiles/id_bruker/classI/high/DN13_Corpus_classI_techRep1.mzML",
+  "max_spectra": 8000,
+  "bytes": 2140680395
+ },
+ {
+  "id": "idb_liver",
+  "url": "https://archive.openms.de/openms/testfiles/id_bruker/classI/high/DN12_Liver_classI_techRep1.mzML",
+  "max_spectra": 8000,
+  "bytes": 2152847878
+ }
+]

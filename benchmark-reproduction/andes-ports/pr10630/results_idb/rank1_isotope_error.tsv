@@ -1,0 +1,13 @@
+dataset	arm	subset	n	iso0_pct	decoy_pct
+idb_spleen	none	all	5947	62.3	33.9
+idb_spleen	none	changed	417	53.2	49.4
+idb_spleen	int	all	5947	59.9	34.0
+idb_spleen	int	changed	417	18.9	51.1
+idb_corpus	none	all	4767	56.6	38.2
+idb_corpus	none	changed	313	61.3	50.2
+idb_corpus	int	all	4767	54.1	37.9
+idb_corpus	int	changed	313	23.3	46.3
+idb_liver	none	all	5204	57.9	37.3
+idb_liver	none	changed	476	48.3	50.6
+idb_liver	int	all	5204	55.2	37.0
+idb_liver	int	changed	476	18.1	46.8

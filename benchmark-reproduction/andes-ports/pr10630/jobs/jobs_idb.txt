@@ -1,0 +1,24 @@
+base base idb_spleen
+pr none idb_spleen
+pr int idb_spleen
+diag int_diag idb_spleen
+iso intiso idb_spleen
+pr none idb_spleen --entrap
+pr int idb_spleen --entrap
+iso intiso idb_spleen --entrap
+base base idb_corpus
+pr none idb_corpus
+pr int idb_corpus
+diag int_diag idb_corpus
+iso intiso idb_corpus
+pr none idb_corpus --entrap
+pr int idb_corpus --entrap
+iso intiso idb_corpus --entrap
+base base idb_liver
+pr none idb_liver
+pr int idb_liver
+diag int_diag idb_liver
+iso intiso idb_liver
+pr none idb_liver --entrap
+pr int idb_liver --entrap
+iso intiso idb_liver --entrap
