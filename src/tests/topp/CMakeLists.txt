@@ -1854,17 +1854,8 @@ add_test("TOPP_MetaProSIP_2" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_D
 set_tests_properties("TOPP_MetaProSIP_2" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## bins must be >= 1
 add_test("TOPP_MetaProSIP_3" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_2.tmp.csv -heatmap_bins -1)
 set_tests_properties("TOPP_MetaProSIP_3" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## negative wraps to a huge Size
-# pseudo features: for MS2 spectra without identification (averagine), and for unassigned identifications
-add_test("TOPP_MetaProSIP_4" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_4_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_4_output_2.tmp.csv -use_averagine_ids)
-add_test("TOPP_MetaProSIP_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_4_output_1.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_4_output_1.csv )
-set_tests_properties("TOPP_MetaProSIP_4_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_4")
-add_test("TOPP_MetaProSIP_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_4_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_4_output_2.csv )
-set_tests_properties("TOPP_MetaProSIP_4_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_4")
-add_test("TOPP_MetaProSIP_5" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_5_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_5_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_5_output_2.tmp.csv -use_unassigned_ids)
-add_test("TOPP_MetaProSIP_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_5_output_1.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_5_output_1.csv )
-set_tests_properties("TOPP_MetaProSIP_5_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_5")
-add_test("TOPP_MetaProSIP_5_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_5_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_5_output_2.csv )
-set_tests_properties("TOPP_MetaProSIP_5_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_5")
+# pseudo features for MS2 spectra without identification (averagine) and for unassigned identifications, end to end
+# (their construction: MetaProSIPPseudoFeatures_test)
 add_test("TOPP_MetaProSIP_6" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_5_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_6_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_6_output_2.tmp.csv -use_averagine_ids -use_unassigned_ids)
 add_test("TOPP_MetaProSIP_6_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_6_output_1.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_6_output_1.csv )
 set_tests_properties("TOPP_MetaProSIP_6_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_6")
@@ -4549,15 +4540,6 @@ add_test("TOPP_MS1LabeledWorkflow_7_partial" ${TOPP_BIN_PATH}/MS1LabeledWorkflow
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find; 5 show no signal")
 add_test("TOPP_MS1LabeledWorkflow_7_partial_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_partial_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial")
-add_test("TOPP_MS1LabeledWorkflow_7_attached" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
-  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
-  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
-  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
-  -labels "[][Lys4,Arg6][Lys8,Arg10]"
-  -proteinFDR 1.0
-  -ratios:min_ratio_count 1
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_attached.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_7_attached" PROPERTIES PASS_REGULAR_EXPRESSION "1 identification.s. of channels the detection did not find were attached")
 add_test("TOPP_MS1LabeledWorkflow_7_complete_only" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML

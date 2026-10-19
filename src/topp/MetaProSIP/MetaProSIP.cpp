@@ -6,6 +6,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include "MetaProSIPPseudoFeatures.h"
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -3065,38 +3067,7 @@ protected:
     // if also unassigned ids are used create a pseudo feature
     if (use_unassigned_ids)
     {
-      Size unassigned_id_features = 0;
-      vector<Feature> pseudo_features;
-      for (const auto& unassigned : feature_map.getUnassignedIdentifications())
-      {
-        if (!unassigned.matches.empty())
-        {
-          Feature f;
-          f.setMetaValue("feature_type", UNASSIGNED_ID_STRING);
-          f.setRT(unassigned.query->rt.value_or(0.0));
-          // take sequence of first match to calculate ground truth mz
-          const IdentificationData::Match& first = *unassigned.matches[0];
-          Int charge = first.charge;
-          if (charge == 0)
-          {
-            continue;
-          }
-          double mz = AASequence::fromString(first.representation).getMZ(charge);
-          f.setMZ(mz);
-          // the pseudo feature links the identification (with its matches)
-          for (const auto* match : unassigned.matches)
-          {
-            f.addIDMatch({unassigned.run->getUuid(), match->getId()});
-          }
-          pseudo_features.push_back(f);
-          unassigned_id_features++;
-        }
-      }
-      for (auto& f : pseudo_features)
-      {
-        feature_map.push_back(std::move(f));
-      }
-      feature_map.updateRanges();
+      const Size unassigned_id_features = MetaProSIPPseudoFeatures::addUnassignedIdentifications(feature_map, UNASSIGNED_ID_STRING);
       OPENMS_LOG_INFO << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
     }
 
@@ -3111,67 +3082,7 @@ protected:
       mh.loadExperiment(in_mzml, peak_map, {FileTypes::MZML});
       peak_map.sortSpectra();
       peak_map.updateRanges();
-
-      // extract rt and mz of all identified precursors and store them in blacklist
-      vector<Peak2D> blacklisted_precursors;
-      const auto blacklist = [&blacklisted_precursors](const IdentificationData::QueryMatches& identification)
-      {
-        if (identification.matches.empty())
-        {
-          return;
-        }
-        // Feature with id found so we don't need to generate averagine id. Find MS2 in experiment and blacklist it.
-        Peak2D p;
-        p.setRT(identification.query->rt.value_or(0.0));
-        p.setMZ(identification.query->mz.value_or(0.0));
-        blacklisted_precursors.push_back(p);
-      };
-      // in features
-      for (const Feature& feature : feature_map) // for each peptide feature
-      {
-        for (const auto& identification : feature.getLinkedIdentifications(identifications))
-        {
-          blacklist(identification);
-        }
-      }
-      // and in unassigned ids
-      for (const auto& identification : feature_map.getUnassignedIdentifications())
-      {
-        blacklist(identification);
-      }
-
-      // find index of all precursors that have been blacklisted
-      vector<Size> blacklist_idx;
-      for (vector<Peak2D>::const_iterator it = blacklisted_precursors.begin(); it != blacklisted_precursors.end(); ++it)
-      {
-        PeakMap::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
-        PeakMap::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
-        Size index = std::distance(map_rt_begin, rt_begin);
-        //cout << "Blacklist Index: " << index << endl;
-        blacklist_idx.push_back(index);
-      }
-
-      for (Size i = 0; i != peak_map.size(); ++i)
-      {
-        // precursor not blacklisted?
-        if (find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end() && !peak_map[i].getPrecursors().empty())
-        {
-          // a pseudo feature for the unidentified spectrum, modelled as an averagine peptide
-          Feature f;
-
-          double precursor_mz = peak_map[i].getPrecursors()[0].getMZ();
-          int precursor_charge = peak_map[i].getPrecursors()[0].getCharge();
-          //double precursor_mass = (double)precursor_charge * precursor_mz - (double)precursor_charge * Constants::PROTON_MASS_U;
-
-          // the averagine model takes the place of an identified peptide: no sequence, the precursor's charge
-          f.setCharge(precursor_charge);
-          f.setRT(peak_map[i].getRT());
-          f.setMZ(precursor_mz);
-          f.setMetaValue("feature_type", UNIDENTIFIED_STRING);
-          feature_map.push_back(f);
-        }
-      }
-      feature_map.updateRanges();
+      MetaProSIPPseudoFeatures::addUnidentifiedSpectra(feature_map, peak_map, UNIDENTIFIED_STRING);
     }
 
     OPENMS_LOG_INFO << "loading experiment..." << endl;
