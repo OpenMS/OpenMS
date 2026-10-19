@@ -136,6 +136,8 @@ export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = 
           f.path = paths.indexOf(f.path);
           f.secondsSearch = 0;
         }
+        // (the times, and the size of the index, which a search file by file builds for each file from its spectra)
+        Object.assign(summary.search, { secondsIndexBuild: 0, secondsTotal: 0, indexedPeptides: 0, indexedFragments: 0 });
         const tables = set.tables();
         tables.files = tables.files.map((f) => paths.indexOf(f));
         return { results: plain(summary) + plain(tables) + plain(set.spectra()), psms: tables.psms.count };
