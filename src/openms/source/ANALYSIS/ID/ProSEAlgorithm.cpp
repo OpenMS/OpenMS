@@ -4681,10 +4681,11 @@ namespace OpenMS
 
     // The spectra of a file read on a helper thread (loadMS2SpectraAsync()): a std::future of them, whose
     // thread is joined by the thread that takes them (get()) or drops them (destructor, move assignment).
-    // Not std::async, which detaches its thread: in WebAssembly (Emscripten) a detached thread that ends
-    // gives its Web Worker back to the pool only when the event loop of the main thread runs, which it
-    // does not while a search runs. Every file read in the background kept a Worker, and with 4 threads
-    // the 7th file of a search waited for one forever. A join gives the Worker back at once.
+    // Not std::async: libc++'s std::async detaches its thread, and in WebAssembly (Emscripten) a detached
+    // thread that ends gives its Web Worker back to the pool only when the event loop of the main thread
+    // runs, which it does not while a search runs. Every file read in the background kept a Worker, and
+    // with 4 threads the 7th file of a search waited for one forever. A join on the module's main thread
+    // (the thread a search runs on when called from JavaScript) gives the Worker back at once.
     class BackgroundSpectra
     {
     public:

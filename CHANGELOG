@@ -43,6 +43,10 @@ OpenMS Library:
   - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
     position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
     later files named the wrong file.
+  - FIX: ProSEAlgorithm: the thread that reads the next spectrum file of a search is joined instead of detached (libc++'s
+    std::async detaches it). In WebAssembly a detached thread returns its Web Worker to the pool only when the event loop of
+    the main thread runs, so a search of more than six files with 4 threads waited for a Worker forever. Natively nothing
+    changes.
   - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
     file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
     label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major
@@ -843,9 +847,7 @@ Build System:
     writeFileChunk() and readFileChunk() write and read files in chunks. FS.writeFile(), FS.write()
     and FS.read() throw ENOMEM where the module's memory cannot hold their buffer (Emscripten's wrote
     from address 0 then), and FS.write() copies in one piece. A file of the module's file system has
-    to be smaller than 2 GiB (InvalidValue). ProSE joins the thread that reads the next spectrum file
-    instead of detaching it: in a browser, a search of more than six files with 4 threads waited for
-    a Web Worker forever.
+    to be smaller than 2 GiB (InvalidValue).
   - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
     directly); Node.js mounts host directories with mountHostDirectory() (working around
     emscripten#27825). The demo applications
