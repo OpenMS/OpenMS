@@ -628,32 +628,41 @@ namespace OpenMS::WASM
 
   namespace
   {
-    /// Calls the JavaScript function @p f with (@p index, @p path) and returns what it threw (undefined: nothing).
-    /// A JavaScript exception must not unwind the C++ frames of a search.
+    /// Calls the JavaScript function @p f with (@p index, @p path). Returns undefined if it returned (nothing, or a
+    /// value that is not a thenable), {thrown} with what it threw, or {promise: true} if it returned a thenable (a
+    /// Promise: an async function). A JavaScript exception must not unwind the C++ frames of a search.
     val callCatching(const val& f, Size index, const std::string& path)
     {
       // (not static: a JavaScript value belongs to the thread that made it)
       const val call = val::global("Function").new_(std::string("f"), std::string("i"), std::string("p"),
-        std::string("try { f(i, p); return undefined; } catch (e) { return e === undefined ? null : e; }"));
+        std::string("try { const r = f(i, p); return r != null && typeof r.then === 'function' ? { promise: true } : undefined; }"
+                    " catch (e) { return { thrown: e }; }"));
       return call(f, static_cast<double>(index), path);
     }
 
     /// The message of a JavaScript value that was thrown
     std::string thrownMessage(const val& e)
     {
-      if (e.isNull()) return "undefined";
+      if (e.isNull() || e.isUndefined()) return e.isNull() ? "null" : "undefined";
       const val message = e["message"];
       return message.isString() ? message.as<std::string>() : val::global("String")(e).as<std::string>();
     }
 
     /// Calls @p f (provideFile or releaseFile, named @p name) for input file @p index at @p path; throws what it threw as
-    /// OpenMS exception (with its message)
+    /// OpenMS exception (with its message), and IllegalArgument if it returned a Promise: the search needs the file
+    /// when the function returns, and cannot wait for a Promise
     void callFileFunction(const val& f, const char* name, Size index, const std::string& path)
     {
-      const val thrown = callCatching(f, index, path);
-      if (thrown.isUndefined()) return;
+      const val outcome = callCatching(f, index, path);
+      if (outcome.isUndefined()) return;
+      const std::string call = std::string(name) + "(" + std::to_string(index) + ", '" + path + "')";
+      if (outcome.hasOwnProperty("promise"))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("searchFiles(): ") + name
+          + " must be synchronous (return nothing, not a Promise): " + call + " returned a Promise.");
+      }
       throw Exception::BaseException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "SearchFilesError",
-        std::string("searchFiles(): ") + name + "(" + std::to_string(index) + ", '" + path + "') threw: " + thrownMessage(thrown));
+        "searchFiles(): " + call + " threw: " + thrownMessage(outcome["thrown"]));
     }
 
     /// searchFiles() with provideFile: searches the input files one at a time, each while it is there. provideFile(i,

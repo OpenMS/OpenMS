@@ -539,7 +539,8 @@ function pooled() {
     const reports = [];
     const set = searchFiles(OpenMS, files, { removeDecoys: true }, { onProgress: (r) => reports.push(r) });
     try {
-      return { files, reports, summary: set.summary(), stored: storedIdentifications(set, "/searchfiles/merged.idXML") };
+      return { files, reports, summary: set.summary(), stored: storedIdentifications(set, "/searchfiles/merged.idXML"),
+               results: resultsOf(set, files) };
     } finally {
       set.delete();
     }
@@ -740,11 +741,10 @@ test("searchFiles: files that Percolator could not all rescore are not pooled", 
   });
 });
 
-/// searchFiles() of copies of DatabaseSuitability_in_spec.mzML at @p files of the module's memory file system, file by
-/// file (provideFile and releaseFile): each copy is written in chunks when its search needs it and removed after it.
-/// Returns the result set (the caller deletes it), the calls of the two functions, and the progress reports.
-function searchFileByFile(m, files, options, settings = {}) {
-  const bytes = new Uint8Array(fs.readFileSync(suitabilitySpectra));
+/// searchFiles() of the mzML files @p sources (bytes) at @p files of the module's memory file system, file by file
+/// (provideFile and releaseFile): each one is written in chunks when its search needs it and removed after it. Returns
+/// the result set (the caller deletes it), the calls of the two functions, and the progress reports.
+function searchFileByFile(m, files, sources, options, settings = {}) {
   const calls = [];
   const reports = [];
   const exists = (p) => { try { m.FS.stat(p); return true; } catch { return false; } };
@@ -752,6 +752,7 @@ function searchFileByFile(m, files, options, settings = {}) {
     ...options,
     provideFile: (i, p) => {
       calls.push(["provide", i, p, files.filter(exists)]); // the files there before
+      const bytes = sources[i];
       m.allocateFile(p, bytes.length);
       for (let at = 0; at < bytes.length; at += 1 << 20) m.writeFileChunk(p, bytes.subarray(at, at + (1 << 20)), at);
     },
@@ -761,6 +762,25 @@ function searchFileByFile(m, files, options, settings = {}) {
     },
   }, { ...settings, onProgress: (r) => reports.push(r) });
   return { set, calls, reports };
+}
+
+/// DatabaseSuitability_in_spec.mzML (bytes), and its two halves, the spectra at even and at odd positions: inputs that
+/// differ, so that a search that mixed up its files would not give the same results
+let suitabilityInputs;
+function suitabilitySources() {
+  suitabilityInputs ??= using([new OpenMS.MzMLFile(), new OpenMS.MSExperiment(), new OpenMS.MSExperiment(), new OpenMS.MSExperiment()],
+    (mzml, all, even, odd) => {
+      mzml.load("/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML", all);
+      for (let i = 0; i < all.size(); ++i) using([all.getSpectrum(i)], (spectrum) => (i % 2 ? odd : even).addSpectrum(spectrum));
+      const bytes = (exp) => {
+        mzml.store("/suitability-part.mzML", exp);
+        const b = OpenMS.FS.readFile("/suitability-part.mzML");
+        OpenMS.FS.unlink("/suitability-part.mzML");
+        return b;
+      };
+      return { full: new Uint8Array(fs.readFileSync(suitabilitySpectra)), even: bytes(even), odd: bytes(odd) };
+    });
+  return suitabilityInputs;
 }
 
 /// The results of result set @p set as plain data (summary without times, tables, spectra), with the paths of the
@@ -778,23 +798,33 @@ function resultsOf(set, files) {
 }
 
 test("searchFiles file by file (provideFile): the results of the search with all files there", () => {
-  // TOPP_ProSE_13_merged (Percolator, the decoys removed, so that the pooling drops PSMs whose spectra were read), and
-  // the open search of two files (the modification analysis of their pooled PSMs)
+  // TOPP_ProSE_13_merged (the search of pooled(): Percolator, the decoys removed, so that the pooling drops PSMs whose
+  // spectra were read), and the open search of the two halves of the file, inputs that differ (with the modification
+  // analysis of their pooled PSMs)
   const open = { ...prose6, "rescore": false, "precursor:mass_tolerance_lower": 100, "precursor:mass_tolerance_upper": 300,
                  "precursor:mass_tolerance_unit": "Da", "FDR:PSM": 0.0005, "FDR:protein": 0 };
+  const { full, even, odd } = suitabilitySources();
   OpenMS.FS.mkdir("/fbf");
+  OpenMS.FS.mkdir("/all");
   try {
-    for (const [parameters, options] of [[prose6, { removeDecoys: true }], [open, {}]]) {
-      const expected = withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
-        const set = searchFiles(OpenMS, files, options, { parameters });
+    const cases = [
+      { parameters: prose6, options: { removeDecoys: true }, sources: [full, full], expected: () => pooled().results },
+      { parameters: open, options: {}, sources: [even, odd], expected: () => {
+        const present = ["/all/a.mzML", "/all/b.mzML"];
+        present.forEach((p, i) => OpenMS.FS.writeFile(p, [even, odd][i]));
+        const set = searchFiles(OpenMS, present, {}, { parameters: open });
         try {
-          return resultsOf(set, files);
+          return resultsOf(set, present);
         } finally {
           set.delete();
+          present.forEach((p) => OpenMS.FS.unlink(p));
         }
-      });
+      } },
+    ];
+    for (const { parameters, options, sources, expected: search } of cases) {
+      const expected = search();
       const files = ["/fbf/a.mzML", "/fbf/b.mzML"];
-      const { set, calls, reports } = searchFileByFile(OpenMS, files, options, { parameters });
+      const { set, calls, reports } = searchFileByFile(OpenMS, files, sources, options, { parameters });
       try {
         // one file at a time: each written before its search, removed after it (and before the next one is written)
         assert.deepEqual(calls, [["provide", 0, files[0], []], ["release", 0, files[0]], ["provide", 1, files[1], []],
@@ -803,7 +833,13 @@ test("searchFiles file by file (provideFile): the results of the search with all
         assert.ok(actual.tables.psms.count > 0);
         assert.ok(actual.spectra.psmSpectrum.some((k) => k >= 0), "spectra of the PSMs");
         assert.deepEqual(actual, expected);
-        if (parameters === open) assert.ok(actual.summary.modificationAnalysis.deltaMasses.entries.length > 0, "delta masses");
+        if (parameters === open) {
+          assert.ok(actual.summary.modificationAnalysis.deltaMasses.entries.length > 0, "delta masses");
+          // the two files have different PSMs: a search that mixed them up would not give the same results
+          const nativeIds = (f) => new Set(actual.tables.psms.nativeId.filter((_, k) => actual.tables.psms.file[k] === f));
+          assert.ok(nativeIds(0).size > 0 && nativeIds(1).size > 0);
+          assert.notDeepEqual(nativeIds(0), nativeIds(1));
+        }
         // the steps of the files as in the search with all files there, and the spectra of the PSMs of each file are
         // read in its step (the search of a file alone does not report its step "(1 of 1)")
         assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."]);
@@ -817,6 +853,7 @@ test("searchFiles file by file (provideFile): the results of the search with all
     }
   } finally {
     OpenMS.FS.rmdir("/fbf");
+    OpenMS.FS.rmdir("/all");
   }
 });
 
@@ -837,6 +874,16 @@ test("searchFiles file by file: the errors of provideFile and releaseFile", () =
       // a value that is not an Error
       assert.throws(() => prose.searchFiles(files, suitabilityDatabase, { provideFile: () => { throw "full"; } }),
         /provideFile\(0, '\/fbf\/a\.mzML'\) threw: full/);
+      // a function that returns a Promise (an async function): the search needs the file when it returns; the file is
+      // released
+      released.length = 0;
+      assert.throws(() => prose.searchFiles(files, suitabilityDatabase, { provideFile: async () => {}, releaseFile: release }),
+        /provideFile must be synchronous \(return nothing, not a Promise\): provideFile\(0, '\/fbf\/a\.mzML'\) returned a Promise/);
+      assert.deepEqual(released, [0]);
+      assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {
+        provideFile: (i, p) => OpenMS.FS.writeFile(p, new Uint8Array(fs.readFileSync(suitabilitySpectra))),
+        releaseFile: (i, p) => { OpenMS.FS.unlink(p); return { then: () => {} }; },
+      }), /releaseFile must be synchronous \(return nothing, not a Promise\)/);
       // what releaseFile throws after a search
       const bytes = new Uint8Array(fs.readFileSync(suitabilitySpectra));
       assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {

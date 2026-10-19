@@ -302,8 +302,11 @@ the heap to 3.9 GB. With `provideFile`, `searchFiles()` searches the files one a
 
 1. `provideFile(i, path)` writes file `i` (its position in `files`) at `path`, e.g. from the user's
    `File` with `allocateFile()` and `writeFileChunk()` (above). It is called synchronously from the
-   search, so in a browser it reads the `File` with `FileReaderSync`: run the module in a Web Worker
-   (as recommended anyway).
+   search and has to have written the file when it returns, so in a browser it reads the `File` with
+   `FileReaderSync`: run the module in a Web Worker (as recommended anyway). It must be synchronous:
+   an `async` function, or one that returns a Promise (any thenable), makes `searchFiles()` throw
+   `IllegalArgument: searchFiles(): provideFile must be synchronous (return nothing, not a Promise):
+   provideFile(0, '<path>') returned a Promise.` (the same for `releaseFile`).
 2. The file is searched on its own, and the spectra of its PSMs are read for `spectra()`.
 3. `releaseFile(i, path)` removes it, e.g. with `OpenMS.FS.unlink(path)`.
 
@@ -349,13 +352,14 @@ the time that of `searchFiles()` without writing the files:
 
 | Inputs | All files written first | File by file |
 |---|---|---|
-| 1 × 733 MB | 2393 MB, 14.5 s | 2153 MB, 13.9 s (+ 1.2 s writing) |
+| 1 × 733 MB | 2393 MB², 14.5 s | 2153 MB, 13.9 s (+ 1.2 s writing) |
 | 2 × 733 MB | 3969 MB¹, 23.6 s | 2269 MB, 27.0 s (+ 2.4 s) |
 | 4 × 733 MB | does not fit | 2485 MB, 52.9 s (+ 5.1 s) |
 | 12 × 733 MB | does not fit | 2969 MB, 163 s (+ 12 s) |
 
-¹ written with `FS.write()` in chunks of 16 MB, by which a file grows by doubling (`allocateFile()` first
-avoids that).
+¹ ² written with `FS.write()` in chunks of 16 MB, by which a file grows by doubling (`allocateFile()` first
+avoids that). ¹ is from a run before this module's `FS.write()`, which copied byte by byte (the same run
+gave 2569 MB and 13.7 s for one file); ² and the file-by-file column are from the module as it is.
 
 The heap still grows with the number of files, by about 70 MB per file of this size (110 MB for the
 second): part of it are the results (the PSMs and the peaks of their spectra), the rest is memory the
