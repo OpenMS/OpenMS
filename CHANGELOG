@@ -847,7 +847,11 @@ Build System:
     neutral losses, and predictMS2() predicts PeptDeep fragment intensities (builds with ONNX
     Runtime). The progress reports carry the position of the searched file. The library gets the
     public ProSEAlgorithm::pinEnzymeName(), the enzyme name for the enzyme features of Percolator's
-    .pin input that ProSE's rescoring passes (unchanged behaviour).
+    .pin input that ProSE's rescoring passes (unchanged behaviour). The summary of searchFiles() has the
+    statistics of search() (the index, the decoy mode, the times; per file the recommended tolerances), the
+    PSMs get q-values also with FDR:PSM 0 and no Percolator (as FDR:PSM computes them, without filtering),
+    spectra() reads the collision energy that converters write (MS:1000045), search() reports Percolator's
+    warning, and predictMS2() accepts the charges 1 to 6 and the collision energies 10 to 60.
   - WebAssembly: searchFiles() searches the files one at a time with the options provideFile and
     releaseFile, which write each file when its search needs it and remove it after it: in a browser
     only the largest input file has to fit into the module's memory, not all of them. allocateFile()

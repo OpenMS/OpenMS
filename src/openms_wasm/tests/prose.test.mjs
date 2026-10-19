@@ -1823,7 +1823,7 @@ test("ProSEAlgorithm: peptdeep:batch_size is 128 by default", () => {
 // pattern and PeptDeepRescoring predicted each peptide of that sample once, the heap was 1.4 GB after the first search
 // and 3.3 GB after the second. The heap of a threaded search still grows from search to search, also without PeptDeep
 // (see "ProSEResultSet.delete() releases the results"), but by far less than the bound.
-test("ProSEAlgorithm: repeated PeptDeep searches do not grow the heap per file (ONNX Runtime)", async (t) => {
+test("ProSEAlgorithm: repeated PeptDeep searches take no memory per file beyond the search's own (ONNX Runtime)", async (t) => {
   if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
   const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
   const m = await createOpenMS({ print: () => {}, printErr: () => {}, numThreads: 4 });

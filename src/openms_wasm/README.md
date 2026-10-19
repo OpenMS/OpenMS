@@ -119,6 +119,9 @@ Errors are now reported as such. `FS.writeFile()` traps where its open of a host
 read-only file; it used to write to the process' stderr) and where its close fails (it used to go
 on).
 
+`FS.writeFile()` of WasmFS (Emscripten 6.0.12) appends to a file that exists, instead of replacing its
+contents: `FS.unlink()` the file first (or use `allocateFile()`, which replaces it).
+
 Gzip- and bzip2-compressed mzML files are read as usual.
 
 **Files in parts.** Large files are written and read in chunks of a bounded size, so that JavaScript
@@ -166,9 +169,14 @@ to 1103, 2147 and 3295 MB, and 1.2 GiB did not fit), unless their blocks have th
 than 2 GiB): allocate each file with the size of the largest as capacity, and every file takes the
 block of the one before (0.9 to 1.4 GiB in increasing order: 1615 MB throughout). Only files allocated
 this way, with the same capacity, reuse the block; the path may be the same or a new one. With a
-capacity the file is created anew: an existing file at `path` is replaced (its contents go). The file
-can grow up to its capacity without a new block, but `writeFileChunk()` checks a write past its size
-as growth by doubling (WasmFS does not tell the capacity of a file): write within the size.
+capacity the file is created anew: an existing file at `path` is replaced (its contents go).
+
+**Write within the size.** A write that goes past the size of a file makes WasmFS allocate a larger block
+(twice the capacity) inside the file system, which is not guarded: where the memory cannot hold that
+block, **a write past a file's capacity can abort the module** (a `RuntimeError`, fatal: see "What is not
+guarded"). `writeFileChunk()` checks a write past the size as growth by doubling the size, but WasmFS does
+not tell the capacity of a file, so it cannot know the block that a file with a capacity grows to. The
+recipes allocate each file at its final size and write within it; do the same.
 
 **What is not guarded.** These paths still allocate inside WasmFS without a check, and where the memory
 cannot hold the file they abort the module: a write into the memory file system by `FS.writeFile()` or
@@ -474,6 +482,10 @@ type ResultTables = {
   the standard features of the .pin format (`CalcMass`, `mass`, `peplen`, `charge<N>`, `enzN`, `enzC`,
   `enzInt`, `dm`, `absdm`, computed also for searches without rescoring; the enzyme is
   `ProSEAlgorithm::pinEnzymeName()` of the search's), the search engine's extra features and PeptDeep's.
+- A peptide `k` with `proteinOffsets[k] === proteinOffsets[k + 1]` has no protein: all its proteins failed the
+  protein FDR, and the references to them were removed. The peptide and its PSMs stay (19 of 967
+  peptides in one test search), so an application can show them as "below protein FDR" and leave them out
+  of the protein counts. Without a protein FDR every peptide has proteins.
 - `peptides.proforma` is ProForma with Unimod names (`AVM[Oxidation]DDFAAFVEK`). It never has the
   unlocalized mass shift of an open search: that is a value of each PSM. Compose it from
   `psms.deltaMass`, which is NaN in a closed search. In an open search the shift of an unmodified
@@ -547,6 +559,10 @@ type PeakMatch = {
 - In `Da`, the matching is one to one in m/z order: a peak has at most one ion (of two ions of one m/z,
   one is left out, unless there are two peaks). Of peaks of equal m/z one is taken; which one is
   unspecified.
+- `maxCharge` defaults to the precursor charge - 1 (at least 1): a precursor of charge 3 gets b and y ions of
+  charge 1 and 2. `predictMS2()` gives doubly charged ions for a precursor of charge **2** or more, so
+  the two disagree for charge 2: `annotatePeaks()` then has singly charged ions only. Pass `maxCharge`
+  explicitly where they have to agree (`maxCharge: 2` for the mirror plot of `predictMS2()`; the ProSE app does).
 - Ions are named `b3`, `y5++` (one `+` per charge, none for charge 1), `y7-H2O++` with a neutral loss,
   `[M+2H]++` and `[M+H-NH3]` for precursor peaks. The losses are written as formulas: `H2O`, `NH3`,
   `H3PO4` (phosphorylation) and `HPO3`; any other as the empirical formula without counts of 1
