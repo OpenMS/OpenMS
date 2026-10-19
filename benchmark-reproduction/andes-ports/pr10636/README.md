@@ -127,9 +127,10 @@ FalseDiscoveryRate of `77cccda7` and of the PR without `-PSM_class` give byte-id
 
 ## Verdict
 
-- Calibration inside hard classes: **reproduced**. Classes that a global 1% lets through at 2–55% FDP (phospho and
+- Calibration inside hard classes: **reproduced**. Classes that a global 1% lets through at 2–56% FDP (phospho and
   deamidation in a search with more modifications, 2 missed cleavages, oxidised PSMs on Astral/Velos, semi-tryptic PSMs
-  on Velos, isoform-specific PSMs) come down to ≤ 1.3% with `-PSM_class`; overall FDP drops too (0.87 → 0.50% in
+  on Velos, isoform-specific PSMs) come down to ≤ 1.3% with `-PSM_class` (isoform-specific: 2.1%, from 0.3 entrapment
+  hits); overall FDP drops too (0.87 → 0.50% in
   `hardmods`).
 - Cost: −0.3 to −1.1% PSMs on the standard suite, −2.4% with more variable modifications, −2.6% semi-specific.
 - The estimator is conservative where a class is already calibrated: semi-tryptic PSMs at 0.74% FDP lose 40% (to
