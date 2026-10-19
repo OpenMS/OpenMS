@@ -1279,6 +1279,13 @@ namespace OpenMS::WASM
     constexpr const char* default_ms2_model = "/models/peptdeep_ms2_dynamic.onnx";
 
 #ifdef WITH_ONNX
+    /// The precursor charges and normalised collision energies that predictMS2() accepts: the binding's choice, as neither
+    /// the library nor peptdeep states a range (ML:: has only the instruments). The model answers for any value but is
+    /// reliable only for the usual ones: its predictions degrade for charges above 6 (those from 8 on all give the same
+    /// prediction) and for energies above 60 (none at all from about 100).
+    constexpr int ms2_min_charge = 1, ms2_max_charge = 6;
+    constexpr double ms2_min_nce = 10.0, ms2_max_nce = 60.0;
+
     /// The inference session of the MS2 model file @p model_path. The first call for a path loads the model (it takes a
     /// while); the session is then kept for the rest of the module's life and used by every later call, so the file is
     /// read once, whatever happens to it (or to its mount point) afterwards. A model that does not load throws and is not
@@ -1314,18 +1321,23 @@ namespace OpenMS::WASM
     ///   ion, or a doubly charged one of a precursor of charge 1.)
     /// - m/z from TheoreticalSpectrumGenerator, as annotatePeaks() (b and y, charges 1 and 2).
     /// - By ascending m/z; a peptide of one residue has no ions.
+    /// - InvalidValue for a charge outside 1 to 6 and an energy outside 10 to 60 (ms2_min_charge ...).
     /// Without ONNX Runtime (WITH_ONNX) in the module it throws.
     JS::PredictedIons predictMS2(const std::string& peptide_string, int charge, double nce, const std::string& instrument,
                                  const std::string& model_path)
     {
 #ifdef WITH_ONNX
-      if (charge < 1)
+      if (charge < ms2_min_charge || charge > ms2_max_charge)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The precursor charge has to be at least 1", std::to_string(charge));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The precursor charge has to be " + std::to_string(ms2_min_charge) + " to " + std::to_string(ms2_max_charge)
+          + " (the range of the MS2 model)", std::to_string(charge));
       }
-      if (!std::isfinite(nce))
+      if (!(nce >= ms2_min_nce && nce <= ms2_max_nce)) // (not a number: not in the range)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The collision energy has to be a finite number", std::to_string(nce));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The normalised collision energy has to be a number from " + std::to_string(static_cast<int>(ms2_min_nce)) + " to "
+          + std::to_string(static_cast<int>(ms2_max_nce)) + " (the range of the MS2 model)", std::to_string(nce));
       }
       const AASequence peptide = AASequence::fromString(peptide_string);
       if (peptide.empty())

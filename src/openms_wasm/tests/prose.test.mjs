@@ -2433,6 +2433,18 @@ test("predictMS2: errors", (t) => {
     rejects("charge -1", () => OpenMS.predictMS2("PEPTIDEK", -1, 30, "QE"), /InvalidValue/);
     rejects("NaN as energy", () => OpenMS.predictMS2("PEPTIDEK", 2, NaN, "QE"), /InvalidValue/);
     rejects("Infinity as energy", () => OpenMS.predictMS2("PEPTIDEK", 2, Infinity, "QE"), /InvalidValue/);
+    rejects("-Infinity as energy", () => OpenMS.predictMS2("PEPTIDEK", 2, -Infinity, "QE"), /InvalidValue/);
+    // the range of the binding: charges 1 to 6 and energies 10 to 60 (the model answers with saturated ions for charge 12
+    // and with none for an energy of 200)
+    for (const charge of [7, 8, 12, 100]) {
+      rejects(`charge ${charge}`, () => OpenMS.predictMS2(avmPeptide, charge, 30, "QE"), new RegExp(`InvalidValue.*'${charge}'.*precursor charge has to be 1 to 6`, "s"));
+    }
+    for (const nce of [0, 9.99, 60.01, 100, 200, -30]) {
+      rejects(`energy ${nce}`, () => OpenMS.predictMS2(avmPeptide, 2, nce, "QE"), /InvalidValue.*normalised collision energy has to be a number from 10 to 60/s);
+    }
+    for (const [charge, nce] of [[1, 10], [6, 60], [1, 60], [6, 10]]) {
+      assert.ok(OpenMS.predictMS2(avmPeptide, charge, nce, "QE").length > 0, `charge ${charge}, energy ${nce}: the ends of the range`);
+    }
     rejects("empty peptide", () => OpenMS.predictMS2("", 2, 30, "QE"), /InvalidValue/);
     // (AASequence.fromString's own errors: a syntax error is a ParseError, an unknown residue an InvalidValue)
     rejects("a peptide with a digit", () => OpenMS.predictMS2("PEPT1DE", 2, 30, "QE"), /Parse Error.*PEPT1DE/);

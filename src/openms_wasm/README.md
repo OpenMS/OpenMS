@@ -576,6 +576,14 @@ OpenMS.predictMS2("AVM(Oxidation)DDFAAFVEK", 2, 30, "QE");   // 13 ions by ascen
   `SciexTOF`, `ThermoTOF` (case-insensitive); any other name goes to peptdeep's catch-all slot.
 - The result is sorted by ascending m/z. Intensities are relative to the most intense returned b/y ion
   (which is 1), and ions of 0.01 or less are left out. A peptide of one residue gives `[]`.
+- Ions are of charge 1, and also of charge 2 for a precursor of charge 2 or more (`annotatePeaks()` has
+  charge 2 only from a precursor of charge 3, unless `maxCharge` is passed: see above).
+- The charge has to be 1 to 6 and `nce` 10 to 60, else `InvalidValue` (`The precursor charge has to be 1 to 6 ...`,
+  `The normalised collision energy has to be a number from 10 to 60 ...`). This range is the binding's choice, as
+  neither the library nor peptdeep states one: the model answers for any value, but badly outside the usual ones
+  (all charges from 8 on give the same ions, and an energy of 100 gives none). A search can use an energy
+  outside it (`peptdeep:nce` takes any value, and the automatic one follows the energy in the file): clamp or
+  show a message for such a file.
 - `modelPath` defaults to `/models/peptdeep_ms2_dynamic.onnx` (write the model there, as described
   below). The ONNX session is cached per model path and never evicted (tens of MB per path; a path
   that later names another file keeps answering from the first one). A failed load is not cached.
