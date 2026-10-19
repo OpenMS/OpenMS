@@ -878,9 +878,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * @param[in] files The preprocessed spectra of each file
      * @param[in] query_files Per file, the candidate-retrieval spectra aligned with @p files (or nullptr)
+     * @param[in] db The protein database (with decoys) the slice indices are built from
+     * @param[in] electron_ions Also index c and z+1 ions, for electron-activated spectra
      * @param[in] tolerances Per file: fragment tolerance, precursor tolerance lower and upper (after calibration)
+     * @param[in] generators Theoretical spectrum generators of the search
      * @param[out] hits Per file, the hits of each spectrum (sized like the file)
      * @param[out] pool_stats Per file, the candidate-pool statistics of each spectrum (sized like the file)
+     * @return Time and size of the slice index builds
      */
     MassSliceStats_ scoreMassSlices_(const std::vector<const PeakMap*>& files,
                                      const std::vector<const PeakMap*>& query_files,
