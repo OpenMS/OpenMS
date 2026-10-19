@@ -170,12 +170,6 @@ The most important CMake variables are:
     Recommended for Linux distributions. (Default: Off, On for Ubuntu in CI)</td>
   </tr>
   <tr>
-    <th valign="top">LP_SOLVER=AUTO/COIN/GLPK/HIGHS</td>
-    <td>Select the linear programming solver backend. <code>AUTO</code> (default) tries COIN-OR first,
-    then GLPK, then fetches HiGHS automatically via FetchContent if neither is installed.
-    Set to <code>COIN</code>, <code>GLPK</code>, or <code>HIGHS</code> to require a specific solver.</td>
-  </tr>
-  <tr>
     <th valign="top">WITH_THERMO_RAW=On/Off</td>
     <td>Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library
     (fetched automatically via CMake FetchContent from GitHub).

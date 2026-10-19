@@ -1,6 +1,6 @@
 # OpenMS development container: Ubuntu 24.04 with the build tools that the
 # vcpkg presets in CMakePresets.json need. vcpkg itself builds the C++
-# dependencies (Boost, Arrow, Xerces-C, COIN-OR, ...) on the first configure;
+# dependencies (Boost, Arrow, Xerces-C, HiGHS, ...) on the first configure;
 # see .devcontainer/README.md.
 #
 # The build context is the repository root (see devcontainer.json), restricted

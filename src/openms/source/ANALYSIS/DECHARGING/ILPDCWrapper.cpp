@@ -261,12 +261,6 @@ namespace OpenMS
     }
 
     LPWrapper::SolverParam param;
-    param.enable_mir_cuts = true;
-    param.enable_cov_cuts = true;
-    param.enable_feas_pump_heuristic = true;
-    param.enable_binarization = false;
-    param.enable_clq_cuts = true;
-    param.enable_gmi_cuts = true;
     param.enable_presolve = true;
 
     build.solve(param);
@@ -432,12 +426,6 @@ namespace OpenMS
     if (verbose_level > 0)
       OPENMS_LOG_INFO << "Starting to solve..." << std::endl;
     LPWrapper::SolverParam param;
-    param.enable_mir_cuts = true;
-    param.enable_cov_cuts = true;
-    param.enable_feas_pump_heuristic = true;
-    param.enable_binarization = false;
-    param.enable_clq_cuts = true;
-    param.enable_gmi_cuts = true;
     param.enable_presolve = true;
     StopWatch time1;
     time1.start();
