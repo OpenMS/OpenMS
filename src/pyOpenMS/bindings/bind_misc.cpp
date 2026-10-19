@@ -10,15 +10,6 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
@@ -438,112 +429,6 @@ C++ implementation of the Biosaur2 feature detection workflow.
         .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns a copy of MS data")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { nb::gil_scoped_release release; return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; { nb::gil_scoped_release release; self.run(feature_map, hills, peptide_features); } return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithm
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithm, OpenMS::DefaultParamHandler>(m, "ConsensusIDAlgorithm", 
-        R"doc(
-Abstract base class for all ConsensusID algorithms (that calculate a
-consensus from multiple ID runs)
-)doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, size_t number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmIdentity
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmIdentity, OpenMS::ConsensusIDAlgorithm>(m, "ConsensusIDAlgorithmIdentity", 
-        R"doc(
-Abstract base class for ConsensusID algorithms that compare only
-identical sequences
-)doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmIdentity& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmAverage
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmAverage, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmAverage", 
-        R"doc(
-Calculates a consensus from multiple ID runs by averaging the search
-scores
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmAverage& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmBest
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmBest, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmBest", 
-        R"doc(
-Calculates a consensus from multiple ID runs by taking the best
-search score
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmBest& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmRanks
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmRanks, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmRanks", 
-        R"doc(
-Calculates a consensus from multiple ID runs based on the ranks of
-the search hits
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmRanks& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmSimilarity
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmSimilarity, OpenMS::ConsensusIDAlgorithm>(m, "ConsensusIDAlgorithmSimilarity", 
-        R"doc(
-Abstract base class for ConsensusID algorithms that take peptide
-similarity into account
-)doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmPEPIons
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmPEPIons, OpenMS::ConsensusIDAlgorithmSimilarity>(m, "ConsensusIDAlgorithmPEPIons", 
-        R"doc(
-Calculates a consensus from multiple ID runs based on PEPs and shared
-ions
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmPEPMatrix
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmPEPMatrix, OpenMS::ConsensusIDAlgorithmSimilarity>(m, "ConsensusIDAlgorithmPEPMatrix", 
-        R"doc(
-Calculates a consensus from multiple ID runs based on PEPs and
-sequence similarities
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmWorst
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmWorst, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmWorst", 
-        R"doc(
-Calculates a consensus from multiple ID runs by taking the worst
-search score (conservative approach)
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmWorst& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         ;
 
     // -----------------------------------------------------------------------
