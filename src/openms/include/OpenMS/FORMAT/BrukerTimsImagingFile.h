@@ -38,6 +38,10 @@ namespace OpenMS
     (multiple distinct @c ZIndexPos values) are rejected; load each
     section into its own MSImagingExperiment instead.
 
+    Acquisition time: each frame's time is kept as the MetaValue
+    @p imzml:scan_start_time (seconds) and RT is -1, the convention of
+    MSImagingExperiment.
+
     @ingroup FileIO
   */
   class OPENMS_DLLAPI BrukerTimsImagingFile : public ProgressLogger

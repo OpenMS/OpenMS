@@ -11,6 +11,7 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
@@ -1773,14 +1774,15 @@ END_SECTION
 
 START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the same spectrum metadata with RT -1)
 {
-  // three pixels: scan start times 12.34 s / 13.5 s / none, MS level 1, ion mobility on the second
+  // four pixels: scan start times 12.34 s / 13.5 s / none / -1 s, MS level 1, ion mobility
+  // on the second (declared centroided below) and the fourth (profile, nothing declared)
   MSExperiment original;
-  for (Int x = 1; x <= 3; ++x)
+  for (Int x = 1; x <= 4; ++x)
   {
     MSSpectrum s = makePixelSpectrum_(x, 1, 100.0 + x, 10.0f * x);
     s.push_back(Peak1D(200.0 + x, 20.0f));
     s.setMSLevel(1);
-    if (x == 2)
+    if (x == 2 || x == 4)
     {
       MSSpectrum::FloatDataArray im;
       im.setName("mean inverse reduced ion mobility array");
@@ -1793,6 +1795,7 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
   original[0].setMetaValue("imzml:scan_start_time", 12.34);
   original[1].setMetaValue("imzml:scan_start_time", 13.5);
   original[1].setRT(99.0); // an RT the caller sets is written and wins over the MetaValue
+  original[3].setMetaValue("imzml:scan_start_time", -0.5); // negative: no time, not written
   original.setMetaValue("imzml:imaging_mode", "processed");
 
   std::string tmp_imzml;
@@ -1800,7 +1803,8 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
   ImzMLFile().store(tmp_imzml, original);
 
   // the writer omits "scan start time" for the pixel without one, and cannot write the
-  // IM peak type: declare the ion mobility pixel (x = 2) IM centroided (MS:1003441) by hand
+  // IM peak type: declare the ion mobility pixel (x = 2) IM centroided (MS:1003441) by hand.
+  // Also add a userParam to the m/z array of pixel x = 1, which loads as a spectrum MetaValue.
   {
     std::ifstream in(tmp_imzml.c_str());
     std::string xml((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
@@ -1815,13 +1819,29 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
     const Size level = xml.find("accession=\"MS:1000511\"", xml.rfind("<spectrum ", px));
     const Size eol = xml.find('\n', level) + 1;
     xml.insert(eol, "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003441\" name=\"ion mobility centroid frame\"/>\n");
+    const Size px1 = xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"1\"");
+    // a per-pixel peak summary: metadata like any other, kept on every load path
+    const Size level1 = xml.find("accession=\"MS:1000511\"", xml.rfind("<spectrum ", px1));
+    xml.insert(xml.find('\n', level1) + 1, "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000285\" name=\"total ion current\" value=\"30.0\"/>\n");
+    const Size mz_array = xml.find("ref=\"mzArray\"", xml.find("<binaryDataArray ", px1));
+    const Size mz_eol = xml.find('\n', mz_array) + 1;
+    xml.insert(mz_eol, "\t\t\t\t\t\t<userParam name=\"mz_array_note\" type=\"xsd:string\" value=\"calibrated\"/>\n");
+    // ... and to the ion mobility array of pixel x = 4, which stays on that FloatDataArray
+    const Size px4 = xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"4\"");
+    const Size im_array = xml.find("accession=\"MS:1003006\"", px4);
+    const Size im_eol = xml.find('\n', im_array) + 1;
+    xml.insert(im_eol, "\t\t\t\t\t<userParam name=\"im_array_note\" type=\"xsd:string\" value=\"tims\"/>\n");
+    // the -1 placeholder that OpenMS <= 3.6 wrote for a pixel without a time
+    const Size px4_line = xml.rfind('\n', xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"4\"")) + 1;
+    xml.insert(px4_line, "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"-1\" "
+                         "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>\n");
     std::ofstream out(tmp_imzml.c_str());
     out << xml;
   }
 
   // in-memory: RT unset, scan start time kept as MetaValue (seconds)
   MSExperiment ram = loadImzMLExperiment_(tmp_imzml);
-  TEST_EQUAL(ram.getNrSpectra(), 3)
+  TEST_EQUAL(ram.getNrSpectra(), 4)
   for (Size i = 0; i < ram.getNrSpectra(); ++i)
   {
     TEST_REAL_SIMILAR(ram[i].getRT(), -1.0)
@@ -1829,8 +1849,15 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
   TEST_REAL_SIMILAR(static_cast<double>(ram[0].getMetaValue("imzml:scan_start_time")), 12.34)
   TEST_REAL_SIMILAR(static_cast<double>(ram[1].getMetaValue("imzml:scan_start_time")), 99.0)
   TEST_FALSE(ram[2].metaValueExists("imzml:scan_start_time"))
+  TEST_FALSE(ram[3].metaValueExists("imzml:scan_start_time")) // the negative placeholder is no time
+  TEST_EQUAL(ram[0].getMetaValue("mz_array_note"), "calibrated")
+  TEST_REAL_SIMILAR(static_cast<double>(ram[0].getMetaValue("total ion current")), 30.0)
   TEST_TRUE(ram[1].containsIMData())
   TEST_TRUE(ram[1].getIMPeakType() == IMPeakType::IM_CENTROIDED)
+  TEST_TRUE(ram[3].containsIMData())
+  TEST_TRUE(ram[3].getIMPeakType() == IMPeakType::IM_PROFILE)
+  TEST_EQUAL(ram[3].getFloatDataArrays().size(), 1)
+  TEST_EQUAL(ram[3].getFloatDataArrays()[0].getMetaValue("im_array_note"), "tims")
   TEST_TRUE(ram[0].getIMPeakType() == IMPeakType::UNKNOWN)
 
   // on-disc: every spectrum and the dataset settings equal the in-memory load
@@ -1844,10 +1871,32 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
     TEST_TRUE(od_spec == ram[i])
     TEST_TRUE(od_spec.getIMPeakType() == ram[i].getIMPeakType())
     TEST_TRUE(od_spec.getIMFormat() == ram[i].getIMFormat())
+    TEST_TRUE(od_spec.getFloatDataArrays() == ram[i].getFloatDataArrays()) // incl. the array metadata
   }
   TEST_TRUE(od.getExperimentalSettings() == static_cast<const ExperimentalSettings&>(ram))
+  od.close(); // releases the .ibd (and all parsed state) before the files are removed
+  TEST_EQUAL(od.getNrSpectra(), 0)
 
-  // metadata only: same spectra and settings, without peaks, aux arrays or .ibd reads
+  // skip_metadata keeps no spectrum metadata: peaks, arrays and coordinates only
+  OnDiscImzMLExperiment od_skip;
+  od_skip.open(tmp_imzml, "", true);
+  TEST_EQUAL(od_skip.getNrSpectra(), ram.getNrSpectra())
+  const MSSpectrum skip0 = od_skip.getSpectrum(0);
+  TEST_EQUAL(skip0.size(), ram[0].size())
+  TEST_REAL_SIMILAR(skip0[0].getMZ(), ram[0][0].getMZ())
+  TEST_EQUAL(static_cast<Int>(skip0.getMetaValue("imzml:x")), 1)
+  TEST_FALSE(skip0.metaValueExists("mz_array_note"))
+  TEST_TRUE(od_skip.getSpectrum(3).containsIMData())
+  // the declared IM peak type is metadata: UNKNOWN, not a guessed IM_PROFILE, for the
+  // IM-centroided pixel
+  const MSSpectrum skip1 = od_skip.getSpectrum(1);
+  TEST_TRUE(skip1.containsIMData())
+  TEST_TRUE(skip1.getIMPeakType() == IMPeakType::UNKNOWN)
+  TEST_TRUE(od_skip.getExperimentalSettings() == ExperimentalSettings())
+  od_skip.close();
+
+  // metadata only: same spectra and settings, without peaks or .ibd reads; data arrays are
+  // empty but keep their metadata
   PeakFileOptions opts;
   opts.setMetadataOnly(true);
   ImzMLFile md_file;
@@ -1855,29 +1904,63 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
   MSImagingExperiment md;
   md_file.load(tmp_imzml, md);
   TEST_EQUAL(md.getNumberOfSpectra(), ram.getNrSpectra())
-  TEST_EQUAL(md.getGeometry().getNumberOfPixels(), 3)
+  TEST_EQUAL(md.getGeometry().getNumberOfPixels(), 4)
   for (Size i = 0; i < ram.getNrSpectra(); ++i)
   {
-    const MSSpectrum& m = md.getMSExperiment()[i];
+    MSSpectrum m = md.getMSExperiment()[i];
     TEST_TRUE(m.empty())
-    TEST_TRUE(m.getFloatDataArrays().empty())
+    for (const auto& a : m.getFloatDataArrays())
+    {
+      TEST_TRUE(a.empty())
+    }
+    ImzMLSpectrumRules::pruneEmptyDataArrays(m);
     MSSpectrum ref = ram[i];
-    ref.clear(false);                 // drop peaks, keep metadata (incl. the declared IM peak type)
-    ref.getFloatDataArrays().clear();
+    ref.clear(false);                 // drop peaks and arrays, keep metadata (incl. the IM peak type)
     TEST_TRUE(m == ref)
     TEST_TRUE(m.getIMPeakType() == ref.getIMPeakType())
   }
   TEST_TRUE(static_cast<const ExperimentalSettings&>(md.getMSExperiment()) == static_cast<const ExperimentalSettings&>(ram))
+  // the ion mobility array of pixel x = 4 is there, empty, with its metadata
+  TEST_EQUAL(md.getMSExperiment()[3].getFloatDataArrays().size(), 1)
+  TEST_EQUAL(md.getMSExperiment()[3].getFloatDataArrays()[0].getName(), ram[3].getFloatDataArrays()[0].getName())
+  TEST_EQUAL(md.getMSExperiment()[3].getFloatDataArrays()[0].getMetaValue("im_array_note"), "tims")
 
-  // loadSpectraIndex ignores a metadata-only setting instead of returning nothing
+  // setFillData(false) is metadata only as well
+  PeakFileOptions no_fill_opts;
+  no_fill_opts.setFillData(false);
+  ImzMLFile no_fill_file;
+  no_fill_file.setOptions(no_fill_opts);
+  MSImagingExperiment no_fill;
+  no_fill_file.load(tmp_imzml, no_fill);
+  TEST_EQUAL(no_fill.getNumberOfSpectra(), 4)
+  TEST_TRUE(no_fill.getMSExperiment()[0].empty())
+
+  // loadSpectraIndex ignores a metadata-only setting instead of returning nothing; its
+  // spectra equal the in-memory load apart from peaks and with empty data arrays
   ImzMLMeta idx_meta;
   std::vector<ImzMLSpectrumIndex> idx;
   MSExperiment idx_spectra;
   md_file.loadSpectraIndex(tmp_imzml, idx_meta, idx, idx_spectra);
-  TEST_EQUAL(idx.size(), 3)
-  TEST_EQUAL(idx_spectra.getNrSpectra(), 3)
+  TEST_EQUAL(idx.size(), 4)
+  TEST_EQUAL(idx_spectra.getNrSpectra(), 4)
+  TEST_EQUAL(idx[3].aux.size(), 1)
+  for (Size i = 0; i < ram.getNrSpectra(); ++i)
+  {
+    MSSpectrum idx_spec = idx_spectra[i];
+    TEST_TRUE(idx_spec.empty())
+    for (const auto& a : idx_spec.getFloatDataArrays())
+    {
+      TEST_TRUE(a.empty())
+    }
+    ImzMLSpectrumRules::pruneEmptyDataArrays(idx_spec);
+    MSSpectrum ref = ram[i];
+    ref.clear(false);
+    TEST_TRUE(idx_spec == ref)
+    TEST_TRUE(idx_spec.getIMPeakType() == ref.getIMPeakType())
+  }
 
   // store-time RT filter uses the scan start time of loaded spectra (RT is -1 after a load)
+  // and, like the load filter, keeps the pixels without a time
   ImzMLFile rt_file;
   PeakFileOptions rt_opts;
   rt_opts.setRTRange(DRange<1>(10.0, 13.0));
@@ -1886,13 +1969,50 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
   NEW_TMP_FILE_EXT(tmp_rt, ".imzML");
   rt_file.store(tmp_rt, ram);
   MSExperiment rt_kept = loadImzMLExperiment_(tmp_rt);
-  TEST_EQUAL(rt_kept.getNrSpectra(), 1)
+  TEST_EQUAL(rt_kept.getNrSpectra(), 3)
   TEST_REAL_SIMILAR(static_cast<double>(rt_kept[0].getMetaValue("imzml:scan_start_time")), 12.34)
+  TEST_FALSE(rt_kept[1].metaValueExists("imzml:scan_start_time"))
+  TEST_FALSE(rt_kept[2].metaValueExists("imzml:scan_start_time"))
   remove(tmp_rt.c_str());
   remove(ibdPathFor_(tmp_rt).c_str());
 
-  remove(tmp_imzml.c_str());
+  // a non-numeric imzml:scan_start_time counts as no time instead of making store throw
+  MSExperiment string_time = ram;
+  string_time[0].setMetaValue("imzml:scan_start_time", "12.3");
+  std::string tmp_str;
+  NEW_TMP_FILE_EXT(tmp_str, ".imzML");
+  ImzMLFile().store(tmp_str, string_time);
+  MSExperiment string_time_loaded = loadImzMLExperiment_(tmp_str);
+  TEST_EQUAL(string_time_loaded.getNrSpectra(), 4)
+  TEST_FALSE(string_time_loaded[0].metaValueExists("imzml:scan_start_time"))
+  remove(tmp_str.c_str());
+  remove(ibdPathFor_(tmp_str).c_str());
+
+  // export to mzML writes the scan start time, not RT -1
+  std::string tmp_mzml;
+  NEW_TMP_FILE_EXT(tmp_mzml, ".mzML");
+  MzMLFile().store(tmp_mzml, ram);
+  MSExperiment mzml;
+  MzMLFile().load(tmp_mzml, mzml);
+  TEST_EQUAL(mzml.getNrSpectra(), 4)
+  TEST_REAL_SIMILAR(mzml[0].getRT(), 12.34)
+  TEST_REAL_SIMILAR(mzml[1].getRT(), 99.0)
+  TEST_REAL_SIMILAR(mzml[2].getRT(), -1.0)
+  TEST_REAL_SIMILAR(mzml[3].getRT(), -1.0)
+  for (Size i = 0; i < mzml.getNrSpectra(); ++i)
+  { // written as MS:1000016 only, not also as a userParam
+    TEST_FALSE(mzml[i].metaValueExists("imzml:scan_start_time"))
+  }
+  remove(tmp_mzml.c_str());
+
+  // metadata only does not need the .ibd
   remove(ibdPathFor_(tmp_imzml).c_str());
+  MSImagingExperiment md_no_ibd;
+  md_file.load(tmp_imzml, md_no_ibd);
+  TEST_EQUAL(md_no_ibd.getNumberOfSpectra(), 4)
+  TEST_TRUE(md_no_ibd.getMSExperiment()[0] == md.getMSExperiment()[0])
+
+  remove(tmp_imzml.c_str());
 }
 END_SECTION
 

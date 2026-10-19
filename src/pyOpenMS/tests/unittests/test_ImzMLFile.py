@@ -237,13 +237,16 @@ class TestImzMLFile(unittest.TestCase):
         ram = img.getMSExperiment()
 
         od = pyopenms.OnDiscImzMLExperiment()
-        od.open(self.imzml_path)
-        self.assertEqual(od.getNrSpectra(), ram.getNrSpectra())
-        for i in range(ram.getNrSpectra()):
-            self.assertTrue(od.getSpectrum(i) == ram.getSpectrum(i))
-        settings = od.getExperimentalSettings()
-        self.assertEqual(str(settings.getMetaValue("imzml:imaging_mode")), str(ram.getMetaValue("imzml:imaging_mode")))
-        self.assertEqual(str(settings.getMetaValue("imzml:mz_data_type")), str(ram.getMetaValue("imzml:mz_data_type")))
+        try:
+            od.open(self.imzml_path)
+            self.assertEqual(od.getNrSpectra(), ram.getNrSpectra())
+            for i in range(ram.getNrSpectra()):
+                self.assertTrue(od.getSpectrum(i) == ram.getSpectrum(i))
+            settings = od.getExperimentalSettings()
+            self.assertEqual(str(settings.getMetaValue("imzml:imaging_mode")), str(ram.getMetaValue("imzml:imaging_mode")))
+            self.assertEqual(str(settings.getMetaValue("imzml:mz_data_type")), str(ram.getMetaValue("imzml:mz_data_type")))
+        finally:
+            od.close()
 
         f = pyopenms.ImzMLFile()
         opts = f.getOptions()

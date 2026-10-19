@@ -52,8 +52,9 @@ namespace OpenMS
     coordinate map) so that this header has no dependency on expat, Xerces, or
     the native @p imzml:: parser library.  The index is built by running
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
-    are decoded until @p getSpectrum() is called. The same parse keeps every
-    spectrum's metadata (without peaks) in memory, so @p getSpectrum() returns the
+    are decoded until @p getSpectrum() is called. Unless opened with @p skip_metadata,
+    the same parse keeps every spectrum's metadata (without peaks) in memory, as
+    @p OnDiscMSExperiment does for mzML, so @p getSpectrum() returns the
     metadata the in-memory @p ImzMLFile::load gives (RT = -1 and
     @p imzml:scan_start_time, see @p ImzMLFile).
 
@@ -102,18 +103,26 @@ namespace OpenMS
       (the dataset still loads; of duplicates, only the first spectrum per pixel enters
       the geometry).
 
-      @param imzml_path  Path to the .imzML file.
-      @param ibd_path    Optional override for the .ibd path.
+      @param imzml_path     Path to the .imzML file.
+      @param ibd_path       Optional override for the .ibd path.
+      @param skip_metadata  Keep no spectrum metadata (as @p OnDiscMSExperiment::openFile):
+                            @p getSpectrum() then returns only peaks, auxiliary arrays and
+                            @p imzml:x/y/z, with IM peak type UNKNOWN (the declared type
+                            is metadata), and @p getExperimentalSettings() is empty.
+                            Saves the memory of one peak-less spectrum per pixel once
+                            @p open() returns (the metadata is still parsed, and released
+                            at its end, so the peak memory of @p open() is unchanged).
       @throws Exception::FileNotFound if either file cannot be opened.
       @throws Exception::ParseError   on malformed XML.
     */
-    void open(const std::string& imzml_path, const std::string& ibd_path = "");
+    void open(const std::string& imzml_path, const std::string& ibd_path = "", bool skip_metadata = false);
 
     /**
       @brief Close the companion .ibd file and release on-disc resources.
 
       After @p close(), @p isOpen() returns @c false and spectrum decode calls fail
-      until @p open() is invoked again.
+      until @p open() is invoked again. The index, spectrum metadata, settings and
+      geometry are released, so @p getNrSpectra() returns 0.
     */
     void close() noexcept;
 

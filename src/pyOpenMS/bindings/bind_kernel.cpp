@@ -1948,9 +1948,10 @@ This is an alias for getChromatogramByNativeId().
     nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment",
         "Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.")
         .def(nb::init<>())
-        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path) {
-            self.open(imzml_path, ibd_path);
-        }, "imzml_path"_a, "ibd_path"_a = "", "Open imzML index and companion .ibd file")
+        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path, bool skip_metadata) {
+            self.open(imzml_path, ibd_path, skip_metadata);
+        }, "imzml_path"_a, "ibd_path"_a = "", "skip_metadata"_a = false,
+        "Open imzML index and companion .ibd file; skip_metadata keeps no spectrum metadata (getSpectrum returns peaks, arrays and imzml:x/y/z only)")
         .def("close", [](OpenMS::OnDiscImzMLExperiment& self) { self.close(); },
             "Close the companion .ibd file and release on-disc resources")
         .def("isOpen", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.isOpen(); })

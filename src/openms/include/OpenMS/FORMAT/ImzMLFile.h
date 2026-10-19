@@ -60,21 +60,26 @@ namespace OpenMS
       after the @c spectrumList XML section is parsed (same as @p MzMLHandler),
       not on a per-startElement basis.
     - Index only: @p loadSpectraIndex() builds a byte-offset index for
-      @p OnDiscImzMLExperiment together with every spectrum's metadata (without
-      peaks), so on-disc spectra carry the same metadata as in-memory ones.
-    - Metadata only (@p PeakFileOptions::setMetadataOnly): every spectrum is returned
-      with its metadata and pixel coordinates but without peaks or auxiliary arrays,
-      and no peak data is read from the @c .ibd. (For mzML, metadata-only skips the
-      spectra entirely; an imaging dataset needs them for its geometry.)
+      @p OnDiscImzMLExperiment together with every spectrum's metadata (without peaks;
+      data arrays empty, with their metadata), so on-disc spectra carry the same metadata
+      as in-memory ones.
+    - Metadata only (@p PeakFileOptions::setMetadataOnly, or @p setFillData(false)): every
+      spectrum is returned with its metadata and pixel coordinates but without peaks; its
+      data arrays are empty and keep their metadata. The @c .ibd is not opened, so it need not exist (and its UUID is not
+      checked). (For mzML, metadata-only skips the spectra entirely; an imaging dataset
+      needs them for its geometry.)
 
     @b Retention time
     imzML spectra are pixels, not chromatographic scans. A @c scan start time
     (@c MS:1000016) is kept, in seconds, as the spectrum MetaValue
-    @p imzml:scan_start_time (not set when the file has none), and RT is set to -1 on
+    @p imzml:scan_start_time (not set when the file has none or a negative placeholder
+    such as -1), and RT is set to -1 on
     every load path (in-memory, streaming, metadata-only and on-disc). @p store() writes
-    @c scan start time from RT when the caller set it (>= 0), otherwise from
+    @c scan start time from RT when the caller set it (>= 0), otherwise from a numeric
     @p imzml:scan_start_time, and omits it when neither exists; an RT range in the store
-    options filters on that same value.
+    options filters on that same value and, as on load, keeps spectra without a time.
+    @p MzMLFile::store writes the same value as @c scan start time, so the time survives an
+    export to mzML (see @p ImzMLSpectrumRules::scanStartTime).
 
     @b Imaging metadata on @p MSExperiment
     After @p load(), dataset fields are stored as MetaValues, e.g.
@@ -206,9 +211,10 @@ namespace OpenMS
       @p spectra receives one spectrum per index entry, in the same order, with all
       metadata the in-memory @p load() gives it (native ID, MS level, polarity, scan and
       instrument settings, MetaValues incl. @p imzml:x/y/z and @p imzml:scan_start_time)
-      but no peaks or auxiliary arrays, plus the dataset-level ExperimentalSettings and
-      @p imzml:* MetaValues. Opens the companion @c .ibd and records its path in
-      @p meta.ibd_file_path.
+      but no peaks. Its data arrays are present but empty, keeping their metadata (they
+      receive the .ibd values in @p OnDiscImzMLExperiment::getSpectrum()). @p spectra also
+      receives the dataset-level ExperimentalSettings and @p imzml:* MetaValues. Opens the
+      companion @c .ibd and records its path in @p meta.ibd_file_path.
 
       @param[in] filename Path to the @c .imzML file.
       @param[out] meta     Dataset-level imaging metadata.

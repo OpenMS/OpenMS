@@ -948,7 +948,7 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
               py_index.append(entry);
             }
             return nb::make_tuple(std::move(meta), py_index, std::move(spectra));
-        }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex], MSExperiment) without loading peaks; the MSExperiment holds every spectrum's metadata (no peaks) in index order plus the dataset settings")
+        }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex], MSExperiment) without loading peaks; the MSExperiment holds every spectrum's metadata (no peaks; data arrays empty, with their metadata) in index order plus the dataset settings")
         .def("isValid", [](OpenMS::ImzMLFile& self, const std::string& filename) {
             std::ostringstream os;
             bool ok = false;

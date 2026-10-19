@@ -86,7 +86,7 @@ namespace Internal
       @brief Open the companion .ibd file for random-access binary reads.
 
       Must be called before @p parse_() when peak data is needed.
-      When loading metadata only (no IBD), skip this call.
+      When loading metadata only (no .ibd reads, see @p connectDecodeConsumer), skip this call.
 
       @param ibd_path  Absolute path to the .ibd file.
 
@@ -107,7 +107,9 @@ namespace Internal
       @brief Wire @p ImzMLInterceptConsumer between MzMLHandler and an optional downstream consumer.
 
       Decodes .ibd peak data when spectra are delivered. When @p append_spectra_to_map
-      is @c true, decoded spectra are also appended to the bound @p PeakMap.
+      is @c true, decoded spectra are also appended to the bound @p PeakMap. Without
+      @p decode_ibd, nothing is read from the .ibd and the data arrays stay empty, with
+      their metadata.
     */
     void connectDecodeConsumer(Interfaces::IMSDataConsumer* downstream,
                                bool append_spectra_to_map,
@@ -167,6 +169,8 @@ namespace Internal
       std::vector<ArrayMeta> aux_meta;
       /// Non-external aux arrays seen while peaks come from the .ibd (warned and dropped).
       std::vector<std::string> inline_aux_names;
+      /// A scan start time (MS:1000016) was parsed (MzMLHandler::rt_set_ at the spectrum end).
+      bool has_scan_start_time {false};
     };
 
     // ------------------------------------------------------------------
