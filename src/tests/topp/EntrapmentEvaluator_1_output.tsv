@@ -1,0 +1,7 @@
+file	class	q_value	accepted_psms	entrapment_psms	psm_fdp	accepted_peptides	entrapment_peptides	peptide_fdp	te_ratio
+EntrapmentEvaluator_1_input.idXML	all	0.01	4	1	0.5	3	1	0.6667	1
+EntrapmentEvaluator_1_input.idXML	phospho	0.01	1	0	0	1	0	0	1
+EntrapmentEvaluator_1_input.idXML	unmodified	0.01	3	1	0.6667	2	1	1	1
+EntrapmentEvaluator_1_input.idXML	all	0.05	5	2	0.8	4	2	1	1
+EntrapmentEvaluator_1_input.idXML	phospho	0.05	2	1	1	2	1	1	1
+EntrapmentEvaluator_1_input.idXML	unmodified	0.05	3	1	0.6667	2	1	1	1

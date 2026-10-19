@@ -103,6 +103,13 @@ protected:
     registerIntOption_("shuffle_decoy_ratio", "<int>", 1, "shuffle: target-decoy database size ratio. The resulting size between target and decoy databases is 1 to this integer value.", false, true);
     setMinInt_("shuffle_decoy_ratio", 1);
 
+    registerIntOption_("entrapment_ratio", "<int>", 0,
+                       "Number of entrapment proteins written per target protein (0: none). An entrapment protein is the target with every "
+                       "peptide (as defined by 'enzyme') shuffled, keeping the peptide termini in place. Entrapment proteins receive decoys like "
+                       "targets do and are searched as targets; PSMs that only match entrapment proteins are false by construction, which lets "
+                       "EntrapmentEvaluator measure the false discovery proportion at a nominal FDR.", false);
+    setMinInt_("entrapment_ratio", 0);
+    registerStringOption_("entrapment_string", "<string>", "ENTRAP_", "Prefix added to the accession of each entrapment protein.", false);
     registerStringOption_("seed", "<int/'time')>", "1", "Random number seed (use 'time' for system time)", false, true);
 
     StringList all_enzymes;
@@ -150,6 +157,32 @@ protected:
     }
   }
   
+
+  /// Shuffle every peptide of a protein sequence (termini kept in place as configured), or the whole sequence for 'no cleavage'.
+  /// Identical peptides are shuffled identically, so the entrapment database has as many distinct peptides as the target.
+  static std::string shuffleProteinPeptides_(const std::string& sequence, ProteaseDigestion& digestion, const MRMDecoy& m,
+                                             double identity_threshold, int seed, int max_attempts, const std::string& enzyme,
+                                             bool keepN, bool keepC, Math::RandomShuffler& shuffler)
+  {
+    if (enzyme == "no cleavage" || enzyme.empty() || !(keepN || keepC))
+    {
+      std::string shuffled = sequence;
+      shuffler.seed(seed);
+      shuffler.portable_random_shuffle(shuffled.begin(), shuffled.end());
+      return shuffled;
+    }
+    std::vector<AASequence> peptides;
+    digestion.digest(AASequence::fromString(sequence), peptides);
+    std::string new_sequence;
+    new_sequence.reserve(sequence.size());
+    OpenMS::TargetedExperiment::Peptide p;
+    for (const auto& peptide : peptides)
+    {
+      p.sequence = peptide.toString();
+      new_sequence += m.shufflePeptide(p, identity_threshold, seed, max_attempts).sequence;
+    }
+    return new_sequence;
+  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -372,6 +405,22 @@ protected:
     MRMDecoy m;
     m.setParameters(decoy_param);
 
+    const int entrapment_ratio = getIntOption_("entrapment_ratio");
+    const std::string entrapment_string = getStringOption_("entrapment_string");
+    if (entrapment_ratio > 0)
+    {
+      if (input_type != SeqType::protein)
+      {
+        OPENMS_LOG_ERROR << "Entrapment sequences ('entrapment_ratio' > 0) are only supported for 'type' protein.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (entrapment_string.empty())
+      {
+        OPENMS_LOG_ERROR << "'entrapment_string' must not be empty when 'entrapment_ratio' > 0.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+
     Math::RandomShuffler shuffler(seed);
     for (const auto& file_fasta : in)
     {
@@ -379,20 +428,36 @@ protected:
       const bool write_relevant = neighbor_mode && file_fasta == in_relevant_proteins;
 
       f.readStart(file_fasta);
-      FASTAFile::FASTAEntry entry;
+      FASTAFile::FASTAEntry read_entry;
       OpenMS::TargetedExperiment::Peptide p;
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-      while (f.readNext(entry))
+      while (f.readNext(read_entry))
       {
-        if (identifiers.contains(entry.identifier))
+        if (identifiers.contains(read_entry.identifier))
         {
-          OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
+          OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << read_entry.identifier << "' occurs more than once!" << endl;
         }
-        identifiers.insert(entry.identifier);
+        identifiers.insert(read_entry.identifier);
 
+        // the target itself, followed by its entrapment copies (if requested); each gets its own decoys
+        std::vector<FASTAFile::FASTAEntry> sources(1, read_entry);
+        for (int n = 0; n < entrapment_ratio; ++n)
+        {
+          FASTAFile::FASTAEntry entrap_entry = read_entry;
+          entrap_entry.identifier = entrapment_string + read_entry.identifier + (entrapment_ratio == 1 ? std::string() : "_" + std::to_string(n + 1));
+          entrap_entry.description = "entrapment (shuffled) of " + read_entry.identifier;
+          // a seed that differs from the decoy seeds, so entrapment and decoy sequences differ even with method 'shuffle'
+          entrap_entry.sequence = shuffleProteinPeptides_(read_entry.sequence, digestion, m, identity_threshold,
+                                                          seed + 7919 * (n + 1), max_attempts, enzyme, keepN, keepC, shuffler);
+          sources.push_back(std::move(entrap_entry));
+        }
+
+        for (const auto& source : sources)
+        {
+        const FASTAFile::FASTAEntry& entry = source;
         if (append)
         {
           f.writeNext(entry);
@@ -497,6 +562,7 @@ protected:
             fasta_out_relevant.writeNext(decoy_entry);
           }
         }
+        } // next source (target and its entrapment copies)
 
       } // next protein
     }   // input files

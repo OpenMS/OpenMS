@@ -18,6 +18,7 @@ ConsensusIDAlgorithmRanks.cpp
 ConsensusIDAlgorithmSimilarity.cpp
 ConsensusIDAlgorithmWorst.cpp
 ConsensusMapMergerAlgorithm.cpp
+EntrapmentEvaluation.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
