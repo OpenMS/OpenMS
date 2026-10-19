@@ -7,6 +7,7 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/FORMAT/HANDLERS/BrukerTimsSpectrumReader.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
@@ -48,6 +49,7 @@
 #include <unordered_map>
 #include <optional>
 #include <functional>
+#include <mutex>
 #include <stdexcept>
 #include <tuple>
 
@@ -1720,8 +1722,9 @@ namespace OpenMS
   static const char* const BRUKER_SDK_ATTRIBUTION =
     "This software uses Software software. Copyright \xC2\xA9 2019 by Bruker Daltonik GmbH. All rights reserved.";
 
+  // @p report: log the calibration that is used (and why another one could not be)
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
-    const std::string& path, const Config& config = Config())
+    const std::string& path, const Config& config = Config(), bool report = true)
   {
     BrukerTimsFile::checkDataFormat(path);
     checkCompression(path);
@@ -1753,7 +1756,7 @@ namespace OpenMS
     auto strategy = config.tims_calibration_strategy;
 
     // Warn if pressure compensation requested without SDK strategy
-    if (config.pressure_compensation != Config::PressureCompensation::NONE
+    if (report && config.pressure_compensation != Config::PressureCompensation::NONE
         && strategy != Strategy::BRUKER_SDK
         && strategy != Strategy::AUTO)
     {
@@ -1769,7 +1772,7 @@ namespace OpenMS
       {
         handle->tof2mz_converter = std::move(mz_converter);
       }
-      else
+      else if (report)
       {
         OPENMS_LOG_WARN << "TIMS m/z calibration: MzCalibration table not usable, using the linear "
                            "approximation from GlobalMetadata (errors of tens of ppm are possible)"
@@ -1797,6 +1800,7 @@ namespace OpenMS
           auto scan2im = BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path).produce(*handle, pcs);
           handle->tof2mz_converter = std::move(tof2mz);
           handle->scan2inv_ion_mobility_converter = std::move(scan2im);
+          if (!report) return handle;
           OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK (m/z + 1/K0)"
                           << (pcs != NoPressureCompensation ? " (pressure_comp=on)" : "")
                           << " [" << sdk_path << "]" << std::endl;
@@ -1811,7 +1815,7 @@ namespace OpenMS
               std::string("Bruker SDK failed: ") + e.what());
           }
           // the SDK is optional: say so visibly, then continue without it
-          OPENMS_LOG_WARN << "Bruker SDK '" << sdk_path << "' could not be used (" << e.what()
+          if (report) OPENMS_LOG_WARN << "Bruker SDK '" << sdk_path << "' could not be used (" << e.what()
                           << "); continuing without it (m/z and 1/K0 from the analysis.tdf calibration tables)"
                           << std::endl;
         }
@@ -1840,7 +1844,7 @@ namespace OpenMS
     }
 
     // 4. Linear fallback (already set from step 1)
-    OPENMS_LOG_INFO << "TIMS calibration: linear (GlobalMetadata)" << std::endl;
+    if (report) OPENMS_LOG_INFO << "TIMS calibration: linear (GlobalMetadata)" << std::endl;
     return handle;
   }
 
@@ -2805,6 +2809,8 @@ namespace OpenMS
     return rt_sum / static_cast<double>(entries.size());
   }
 
+  namespace
+  {
   // The peaks of an MS2 frame of DDA data, with their range per scan
   struct DDAFrameData
   {
@@ -2824,6 +2830,7 @@ namespace OpenMS
       return {scan_offsets[scan_begin], scan_offsets[scan_end]};
     }
   };
+  } // namespace
 
   // Decodes an MS2 frame of DDA data, with the m/z converter of the handle
   static DDAFrameData decodeDDAFrame(TimsFrame& frame)
@@ -3144,6 +3151,8 @@ namespace OpenMS
     return true;
   }
 
+  namespace
+  {
   // The SWATH windows of diaPASEF data and the MS2 frames of each window group that the DIA loader reads
   struct DIAPlan
   {
@@ -3155,6 +3164,7 @@ namespace OpenMS
     DIAPlan(const DIAPlan&) = delete; // group_to_windows points into windows
     DIAPlan& operator=(const DIAPlan&) = delete;
   };
+  } // namespace
 
   // Fills @p plan. Without SWATH windows, only plan.windows (empty) is set.
   static void planDIA(SQLite::Database& db, TimsDataHandle& handle, const BrukerTimsFile::Config& config, DIAPlan& plan)
@@ -3411,6 +3421,8 @@ namespace OpenMS
     return true;
   }
 
+  namespace
+  {
   // A frame that export mode FRAME turns into a spectrum
   struct ExportedFrame
   {
@@ -3418,6 +3430,7 @@ namespace OpenMS
     int level;
     uint32_t id;
   };
+  } // namespace
 
   // The frames of export mode FRAME, of the MS levels that are loaded (load_ms1 / load_ms2), by retention time.
   // Frames of equal time keep MS1 first, as a stable sort of all spectra by retention time would. @p n_ms2: the number
@@ -4269,6 +4282,398 @@ namespace OpenMS
     if (config.load_ms1 && frames.size() > n_ms2)
       centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
+
+
+  // =====================================================================
+  // Internal::BrukerTimsRun / BrukerTimsSpectrumReader: the spectra of load(), one at a time
+  // =====================================================================
+  namespace Internal
+  {
+    struct BrukerTimsRun::Impl
+    {
+      /// What a spectrum is built from
+      enum class Kind : uint8_t
+      {
+        FRAME,         ///< a frame in export mode FRAME
+        MS1,           ///< MS1 frame ms1_frame_ids[index] (with aggregation or centroiding, if configured)
+        PRECURSOR,     ///< DDA precursor precursors[index]
+        DIA_WINDOW,    ///< window @p window of DIA frame @p frame_id
+        DIA_AGGREGATED ///< window @p window of the frame (*group_frames)[index], aggregated over retention time
+      };
+
+      struct Entry
+      {
+        double rt = 0.0;
+        UInt ms_level = 0;
+        Kind kind = Kind::FRAME;
+        uint32_t frame_id = 0;
+        size_t index = 0;
+        const DIAWindow* window = nullptr;
+        const std::vector<uint32_t>* group_frames = nullptr;
+      };
+
+      std::shared_ptr<void> unpacked; ///< keeps the files of a .d.zip
+      std::string d_path;             ///< the .d directory
+      BrukerTimsFile::Config config;  ///< of the user (for the handles)
+      BrukerTimsFile::Config eff;     ///< the effective configuration, as load() gives it to the loaders
+      bool serialize = false;         ///< the converters of the Bruker SDK: one reader at a time
+      ExperimentalSettings settings;
+      std::vector<uint32_t> ms1_frame_ids;
+      std::vector<DDAPrecursorInfo> precursor_entries;
+      std::vector<std::pair<int, std::vector<const DDAPrecursorInfo*>>> precursors; ///< into precursor_entries, by id
+      DIAPlan dia;
+      std::vector<Entry> entries;
+      std::vector<std::string> native_ids;
+
+      /// The spectrum of @p entry without peaks
+      void metadata(const Entry& entry, MSSpectrum& spec) const
+      {
+        spec.clear(true);
+        switch (entry.kind)
+        {
+          case Kind::FRAME:
+          case Kind::MS1:
+            spec.setRT(entry.rt);
+            spec.setMSLevel(entry.ms_level);
+            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            // aggregated MS1 spectra are labelled centroided only if they are centroided
+            if (entry.kind == Kind::FRAME || eff.ms1_n_neighbors <= 0 || effectiveMS1Algo(eff, /*emit_warnings=*/false) != Config::CentroidAlgo::OFF)
+            {
+              spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+            }
+            spec.setNativeID("frame=" + StringUtils::toStr(entry.frame_id));
+            break;
+          case Kind::PRECURSOR:
+          {
+            const auto& [prec_id, prec_entries] = precursors[entry.index];
+            initPrecursorSpectrum(prec_id, prec_entries, entry.rt, spec);
+            break;
+          }
+          case Kind::DIA_WINDOW:
+          case Kind::DIA_AGGREGATED:
+            initDIAWindowSpectrum(entry.frame_id, entry.rt, *entry.window, spec);
+            break;
+        }
+      }
+    };
+
+    BrukerTimsRun::BrukerTimsRun() :
+      impl_(std::make_unique<Impl>())
+    {
+    }
+
+    BrukerTimsRun::~BrukerTimsRun() = default;
+
+    std::shared_ptr<const BrukerTimsRun> BrukerTimsRun::open(const std::string& path, const BrukerTimsFile::Config& config)
+    {
+      return rethrowSQLiteErrors(path, [&]
+      {
+        using Kind = Impl::Kind;
+        std::shared_ptr<BrukerTimsRun> run(new BrukerTimsRun());
+        Impl& r = *run->impl_;
+        // The same steps as BrukerTimsFile::load_()
+        const auto unpacked = BrukerTimsFile::unpack_(path);
+        r.unpacked = unpacked;
+        r.d_path = unpacked ? unpacked->d_path : path;
+        if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, r.d_path);
+        auto handle = openTimsDataHandle(r.d_path, config);
+        r.serialize = dynamic_cast< ::BrukerTof2MzConverter*>(handle->tof2mz_converter.get()) != nullptr
+                   || dynamic_cast< ::BrukerScan2InvIonMobilityConverter*>(handle->scan2inv_ion_mobility_converter.get()) != nullptr;
+
+        SQLite::Database db(r.d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+        r.config = config;
+        r.eff = resolveEffectiveConfig(db, config, handle->min_frame_id(), handle->max_frame_id());
+        const bool is_dia = isDIA(db);
+        keepFrameRangeOfUser(r.eff, config);
+        BrukerTimsFile().loadExperimentalSettings_(path, r.d_path, r.settings);
+
+        const Config& eff = r.eff;
+        TimsDataHandle& h = *handle;
+        const Config::ExportMode mode = eff.export_mode;
+        // The spectra in the order in which the loader of the configuration emits them
+        std::vector<Impl::Entry> entries;
+        const auto add_ms1 = [&]()
+        {
+          if (!eff.load_ms1) return;
+          for (size_t i = 0; i < r.ms1_frame_ids.size(); ++i)
+          {
+            Impl::Entry e;
+            e.rt = h.get_frame(r.ms1_frame_ids[i]).time;
+            e.ms_level = 1;
+            e.kind = Kind::MS1;
+            e.frame_id = r.ms1_frame_ids[i];
+            e.index = i;
+            entries.push_back(e);
+          }
+        };
+        if (mode == Config::FRAME)
+        {
+          if (eff.ms1_n_neighbors > 0)
+          {
+            OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << eff.ms1_n_neighbors
+                            << ") is ignored when export_mode=FRAME because FRAME mode returns raw frames." << std::endl;
+          }
+          Size n_ms2 = 0;
+          for (const ExportedFrame& frame : exportedFrames(h, eff, n_ms2))
+          {
+            Impl::Entry e;
+            e.rt = frame.time;
+            e.ms_level = static_cast<UInt>(frame.level);
+            e.kind = Kind::FRAME;
+            e.frame_id = frame.id;
+            entries.push_back(e);
+          }
+        }
+        else if (mode == Config::SPECTRUM || !is_dia)
+        {
+          // loadDDA_(): the MS1 frames and the precursors, by retention time
+          if (fitsOLSRecalibration(h, eff))
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Random access does not support BrukerTimsFile::Config::calibrate with the linear m/z model: its OLS fit "
+              "needs all precursors of the run decoded. Use BrukerTimsFile::load(), or calibrate = false.");
+          }
+          size_t ms2_frames = 0;
+          r.ms1_frame_ids = ms1FrameIds(h, eff, &ms2_frames);
+          warnPartialMS1AggregationConfig(eff, r.ms1_frame_ids.size());
+          r.precursor_entries = selectDDAPrecursors(db, h, eff, ms2_frames);
+          for (auto& [prec_id, group] : groupDDAPrecursors(r.precursor_entries))
+          {
+            r.precursors.emplace_back(prec_id, std::move(group));
+          }
+          add_ms1();
+          for (size_t p = 0; p < r.precursors.size(); ++p)
+          {
+            Impl::Entry e;
+            e.rt = precursorRT(h, r.precursors[p].second);
+            e.ms_level = 2;
+            e.kind = Kind::PRECURSOR;
+            e.index = p;
+            entries.push_back(e);
+          }
+        }
+        else
+        {
+          // loadDIA_(): the MS1 frames, then the windows of the MS2 frames
+          r.ms1_frame_ids = ms1FrameIds(h, eff);
+          warnPartialMS1AggregationConfig(eff, r.ms1_frame_ids.size());
+          add_ms1();
+          if (eff.load_ms2)
+          {
+            planDIA(db, h, eff, r.dia);
+            if (r.dia.windows.empty())
+            {
+              OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
+            }
+            for (const auto& [group, frame_ids] : r.dia.group_to_frames)
+            {
+              auto wit = r.dia.group_to_windows.find(group);
+              if (wit == r.dia.group_to_windows.end()) continue;
+              const auto add_window = [&](size_t i, const DIAWindow* win)
+              {
+                Impl::Entry e;
+                e.rt = h.get_frame(frame_ids[i]).time;
+                e.ms_level = 2;
+                e.frame_id = frame_ids[i];
+                e.window = win;
+                if (eff.dia_ms2_n_neighbors > 0)
+                {
+                  e.kind = Kind::DIA_AGGREGATED;
+                  e.index = i;
+                  e.group_frames = &frame_ids;
+                }
+                else
+                {
+                  e.kind = Kind::DIA_WINDOW;
+                }
+                entries.push_back(e);
+              };
+              if (eff.dia_ms2_n_neighbors > 0)
+              {
+                for (const DIAWindow* win : wit->second) // window by window
+                {
+                  for (size_t i = 0; i < frame_ids.size(); ++i) add_window(i, win);
+                }
+              }
+              else
+              {
+                for (size_t i = 0; i < frame_ids.size(); ++i) // frame by frame
+                {
+                  for (const DIAWindow* win : wit->second) add_window(i, win);
+                }
+              }
+            }
+          }
+        }
+
+        // load() sorts what the loader emits by retention time (stably), after the sink has left out the spectra
+        // outside the retention time range (those read for the aggregation of the ones in it)
+        std::stable_sort(entries.begin(), entries.end(), [](const Impl::Entry& a, const Impl::Entry& b) { return a.rt < b.rt; });
+        if (selectsSpectraByRT(eff))
+        {
+          entries.erase(std::remove_if(entries.begin(), entries.end(), [&eff](const Impl::Entry& e) { return !rtInRange(e.rt, eff); }),
+                        entries.end());
+        }
+        r.entries = std::move(entries);
+        r.native_ids.reserve(r.entries.size());
+        MSSpectrum spec;
+        for (const Impl::Entry& e : r.entries)
+        {
+          r.metadata(e, spec);
+          r.native_ids.push_back(spec.getNativeID());
+        }
+        return std::shared_ptr<const BrukerTimsRun>(std::move(run));
+      });
+    }
+
+    Size BrukerTimsRun::size() const
+    {
+      return impl_->entries.size();
+    }
+
+    double BrukerTimsRun::getRT(Size index) const
+    {
+      return impl_->entries[index].rt;
+    }
+
+    UInt BrukerTimsRun::getMSLevel(Size index) const
+    {
+      return impl_->entries[index].ms_level;
+    }
+
+    const std::string& BrukerTimsRun::getNativeID(Size index) const
+    {
+      return impl_->native_ids[index];
+    }
+
+    const ExperimentalSettings& BrukerTimsRun::getSettings() const
+    {
+      return impl_->settings;
+    }
+
+    void BrukerTimsRun::readMetadata(Size index, MSSpectrum& spectrum) const
+    {
+      impl_->metadata(impl_->entries[index], spectrum);
+    }
+
+    struct BrukerTimsSpectrumReader::Impl
+    {
+      using Kind = BrukerTimsRun::Impl::Kind;
+
+      std::shared_ptr<const BrukerTimsRun> run;
+      const BrukerTimsRun::Impl* r = nullptr; ///< of run
+      std::unique_ptr<TimsDataHandle> handle; ///< opened on the first read
+      std::unique_ptr<MS1SpectrumReader> ms1;
+      FrameCentroider centroider;
+      DecodedFrame decoded;
+      DecodedFrame window_frame;              ///< the last DIA frame split into windows
+      uint32_t window_frame_id = 0;
+      std::vector<char> in_window;
+      FrameAggregator aggregator;             ///< DIA MS2 (the MS1 reader has its own)
+      /// The DDA frames decoded last, most recent at the back
+      std::vector<std::pair<uint32_t, DDAFrameData>> dda_frames;
+      static constexpr size_t DDA_FRAME_CACHE = 32;
+
+      TimsDataHandle& open()
+      {
+        if (!handle)
+        {
+          handle = openTimsDataHandle(r->d_path, r->config, /*report=*/false);
+          ms1 = std::make_unique<MS1SpectrumReader>(*handle, r->ms1_frame_ids, r->eff);
+        }
+        return *handle;
+      }
+
+      const DDAFrameData& ddaFrame(uint32_t frame_id)
+      {
+        for (auto it = dda_frames.begin(); it != dda_frames.end(); ++it)
+        {
+          if (it->first != frame_id) continue;
+          if (std::next(it) != dda_frames.end()) std::rotate(it, std::next(it), dda_frames.end()); // most recent at the back
+          return dda_frames.back().second;
+        }
+        if (dda_frames.size() >= DDA_FRAME_CACHE) dda_frames.erase(dda_frames.begin());
+        dda_frames.emplace_back(frame_id, decodeDDAFrame(handle->get_frame(frame_id)));
+        return dda_frames.back().second;
+      }
+
+      void read(Size index, MSSpectrum& spec)
+      {
+        const BrukerTimsRun::Impl::Entry& e = r->entries[index];
+        const Config& eff = r->eff;
+        TimsDataHandle& h = open();
+        bool built = true;
+        switch (e.kind)
+        {
+          case Kind::FRAME:
+          {
+            TimsFrame& frame = h.get_frame(e.frame_id);
+            if (e.ms_level == 1 && isCentroidingEnabled(eff))
+              loadMS1Spectrum(h, frame, spec, eff, centroider, decoded);
+            else
+              frameToSpectrum(h, frame, spec, static_cast<int>(e.ms_level), decoded);
+            break;
+          }
+          case Kind::MS1:
+            ms1->read(e.index, spec);
+            break;
+          case Kind::PRECURSOR:
+          {
+            const auto& [prec_id, entries] = r->precursors[e.index];
+            built = buildPrecursorSpectrum(h, prec_id, entries, eff,
+                                           [this](uint32_t frame_id) -> const DDAFrameData& { return ddaFrame(frame_id); },
+                                           [](uint32_t) {}, spec);
+            break;
+          }
+          case Kind::DIA_WINDOW:
+          {
+            TimsFrame& frame = h.get_frame(e.frame_id);
+            built = frame.num_peaks > 0;
+            if (built)
+            {
+              if (window_frame_id != e.frame_id)
+              {
+                window_frame_id = 0;
+                window_frame.decode(h, frame, /*order_by_mz=*/diaWindowsAsIs(eff));
+                window_frame_id = e.frame_id;
+              }
+              built = buildDIAWindowSpectrum(frame, window_frame, *e.window, eff, in_window, spec);
+            }
+            break;
+          }
+          case Kind::DIA_AGGREGATED:
+            built = buildAggregatedDIAWindowSpectrum(h, *e.group_frames, e.index, *e.window, eff, aggregator, spec);
+            break;
+        }
+        // What load() does with the spectra of the loaders: the ion mobility range (in its sink), then the peaks by m/z
+        if (!built || (imRangeSet(eff) && !applyIMRange(spec, eff)))
+        {
+          r->metadata(e, spec); // a spectrum that load() leaves out
+        }
+        spec.sortByPosition();
+        spec.updateRanges();
+      }
+    };
+
+    BrukerTimsSpectrumReader::BrukerTimsSpectrumReader(std::shared_ptr<const BrukerTimsRun> run) :
+      impl_(std::make_unique<Impl>())
+    {
+      impl_->run = std::move(run);
+      impl_->r = impl_->run->impl_.get();
+    }
+
+    BrukerTimsSpectrumReader::~BrukerTimsSpectrumReader() = default;
+
+    void BrukerTimsSpectrumReader::read(Size index, MSSpectrum& spectrum)
+    {
+      const BrukerTimsRun& run = *impl_->run;
+      // The converters of the Bruker SDK are called by one thread at a time (see RawFrameReader)
+      static std::mutex sdk_mutex;
+      std::unique_lock<std::mutex> lock(sdk_mutex, std::defer_lock);
+      if (run.impl_->serialize) lock.lock();
+      rethrowSQLiteErrors(run.impl_->d_path, [&] { impl_->read(index, spectrum); });
+    }
+  } // namespace Internal
 
 } // namespace OpenMS
 

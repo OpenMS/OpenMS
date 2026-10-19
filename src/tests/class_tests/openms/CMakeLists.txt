@@ -328,6 +328,16 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
 endif()
 
+# Tests reading the real Bruker .d runs with random access
+foreach(_bruker_test OnDiscBrukerTimsExperiment_test)
+  if (TARGET ${_bruker_test} AND WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
+    target_compile_definitions(${_bruker_test} PRIVATE
+      OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"
+      OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}")
+    set_tests_properties(${_bruker_test} PROPERTIES TIMEOUT 3600)
+  endif()
+endforeach()
+
 # Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the
 # random-access tests only the small one.
 set(_thermo_raw_tests ThermoRawFile_test OnDiscThermoRawExperiment_test SpectrumAccessOnDisc_test)

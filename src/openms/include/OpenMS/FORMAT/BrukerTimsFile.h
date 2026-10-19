@@ -23,6 +23,11 @@ namespace OpenMS
 {
   class FullSwathFileConsumer;
 
+  namespace Internal
+  {
+    class BrukerTimsRun;
+  }
+
   /**
    * @brief Reader for Bruker TimsTOF .d directories via opentims.
    *
@@ -382,6 +387,9 @@ namespace OpenMS
 
     /// The archive the last readDIAMetadata() unpacked, kept for the call that follows
     std::shared_ptr<UnpackedArchive> unpacked_;
+
+    /// Random access (OnDiscBrukerTimsExperiment) lists the spectra of load() with the same steps
+    friend class Internal::BrukerTimsRun;
   };
 
 } // namespace OpenMS
