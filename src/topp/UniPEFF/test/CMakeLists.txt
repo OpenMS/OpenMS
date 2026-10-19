@@ -16,3 +16,7 @@ openms_add_tool_class_test(UniProtXMLFile_test
     ${CMAKE_CURRENT_SOURCE_DIR}/../source/UniProtXMLFile.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../source/UniProtXMLHandler.cpp
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+
+openms_add_tool_class_test(UniPEFFEntries_test
+  SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../source/UniPEFFEntries.cpp
+  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)

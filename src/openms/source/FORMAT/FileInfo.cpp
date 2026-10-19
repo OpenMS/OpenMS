@@ -928,7 +928,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
+          m_headers[id_hash].push_back(std::distance(entries.begin(), loopiter));
         }
 
         {
@@ -946,7 +946,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
+          m_seqs[id_seq].push_back(std::distance(entries.begin(), loopiter));
         }
 
         // Collect sequence length for statistics
@@ -1154,7 +1154,7 @@ namespace OpenMS
       map<Size, UInt> num_consfeat_of_size_with_id;
       Size assigned_ids = 0;
 
-      map<pair<std::string, UInt>, vector<int> > seq_charge2map_occurence;
+      map<pair<std::string, UInt>, map<UInt64, int> > seq_charge2map_occurence; // per map id
       for (const ConsensusFeature& cm : cons)
       {
         ++num_consfeat_of_size[cm.size()];
@@ -1171,16 +1171,11 @@ namespace OpenMS
             const std::string s = phits[0].getSequence().toString();
             const int z = phits[0].getCharge();
 
-            if (seq_charge2map_occurence[make_pair(s,z)].empty())
-            {
-              seq_charge2map_occurence[make_pair(s,z)] = vector<int>(cons.getColumnHeaders().size(), 0);
-            }
-
             // assign id to all dimensions in the consensus feature
+            auto& occurrences = seq_charge2map_occurence[make_pair(s,z)];
             for (auto const & f : cm.getFeatures())
             {
-              Size map_index = f.getMapIndex();
-              seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
+              occurrences[f.getMapIndex()] += 1;
             }
           }
         }
@@ -1196,10 +1191,10 @@ namespace OpenMS
       map<Size, Size> num_aggregated_feat_of_size_with_id;
       for (auto & a : seq_charge2map_occurence)
       {
-        const vector<int>& occurrences = a.second;
+        const map<UInt64, int>& occurrences = a.second;
         UInt n(0); // dimensions with at least one peptide id assigned
         UInt f(0); // number of subfeatures with a least one peptide id assigned
-        for (int i : occurrences)
+        for (const auto& [map_id, i] : occurrences)
         {
           if (i != 0) ++n;
           f += i;
@@ -1344,7 +1339,7 @@ namespace OpenMS
       Size average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
-        if (!id_data.peptides[i].empty())
+        if (!id_data.peptides[i].getHits().empty())
         {
           ++spectrum_count;
           average_peptide_hits += id_data.peptides[i].getHits().size();
@@ -2260,9 +2255,9 @@ namespace OpenMS
 
         vector<double> intensities;
         intensities.reserve(size);
-        vector<double> qualities(size);
+        vector<double> qualities;
         qualities.reserve(size);
-        vector<double> widths(size);
+        vector<double> widths;
         widths.reserve(size);
 
         vector<double> rt_delta_by_elems;

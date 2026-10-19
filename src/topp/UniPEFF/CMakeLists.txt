@@ -15,10 +15,12 @@ if(NOT TARGET OpenMS::OpenMS_CLI)
 endif()
 
 set(tool_sources
+  source/UniPEFFEntries.cpp
   source/UniProtXMLFile.cpp
   source/UniProtXMLHandler.cpp
 )
 set(tool_headers
+  include/UniPEFFEntries.h
   include/UniProtXMLFile.h
   include/UniProtXMLHandler.h
 )

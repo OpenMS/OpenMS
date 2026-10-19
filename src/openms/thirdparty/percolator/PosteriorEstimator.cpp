@@ -168,12 +168,12 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
         return;
       }
 
-      double random_offset = PseudoRandom::lcg_uniform_rand() * 1e-20;
-      for (int i = medians.size(); i < 4; ++i) {
-        medians.push_back(medians.back() + i*random_offset);
-        negatives.push_back(negatives.back());
-        sizes.push_back(sizes.back());
-      }
+      // OpenMS: LogisticRegression::setData pads to 4 bins, in the spline's
+      // transformed coordinates. Upstream added i * lcg_uniform_rand() * 1e-20
+      // here, which is lost to rounding unless the median is ~0, and the padding
+      // could change the transform chosen from the medians. The random draw is
+      // kept, so the random stream stays the same.
+      PseudoRandom::lcg_uniform_rand();
     } else {
       throw MyException(oss.str());
     }

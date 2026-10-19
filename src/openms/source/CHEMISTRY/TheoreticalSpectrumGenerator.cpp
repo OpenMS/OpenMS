@@ -594,7 +594,7 @@ namespace OpenMS
       }
     }
 
-    for (Size l = 1; l + 3 < peptide.size(); ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2 (additive form avoids unsigned underflow on short peptides)
+    for (Size l = 1; l + 2 < peptide.size(); ++l) // first residue after the N-terminal one; the fragment ends before the C-terminal residue and has at least 2 residues (additive form avoids unsigned underflow on short peptides)
     {
       double intensity(1);
 

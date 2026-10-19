@@ -326,21 +326,29 @@ void ZipArchiveFile::addOrReplaceFromFile(const std::string& archive_path, const
 std::vector<std::string> ZipArchiveFile::listEntries(const std::string& archive_path)
 {
   std::vector<std::string> out;
+  listEntries(archive_path, out);
+  return out;
+}
+
+bool ZipArchiveFile::listEntries(const std::string& archive_path, std::vector<std::string>& entries)
+{
+  entries.clear();
 #if defined(OPENMS_HAVE_LIBZIP)
   int err = 0;
   zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
-  if (!za) return out;
+  if (!za) return false;
   zip_int64_t num = zip_get_num_entries(za, 0);
   for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
   {
     const char* name = zip_get_name(za, i, 0);
-    if (name) out.emplace_back(name);
+    if (name) entries.emplace_back(name);
   }
   zip_close(za);
+  return true;
 #else
   (void)archive_path;
+  return false;
 #endif
-  return out;
 }
 
 void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
@@ -523,10 +531,13 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
                                   "Zip entry has absolute path", entry_name);
   }
 
-  const std::filesystem::path outpath = (std::filesystem::u8path(std::string(base)) / entry_path).lexically_normal();
-  const std::string base_str = std::filesystem::u8path(std::string(base)).string();
-  const std::string out_str = outpath.string();
-  if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+  // As in unzipDirectory(): the base is normalized as the output path is (on Windows lexically_normal() turns the '/'
+  // in the TempDir path into '\', so comparing strings with the unnormalized base rejected every entry), and path
+  // elements are compared, not strings
+  const std::filesystem::path base_path = std::filesystem::u8path(std::string(base)).lexically_normal();
+  const std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
+  const std::filesystem::path relative = outpath.lexically_relative(base_path);
+  if (relative.empty() || *relative.begin() == "..")
   {
     zip_fclose(zf);
     zip_close(za);

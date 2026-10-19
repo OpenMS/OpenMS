@@ -585,7 +585,7 @@ protected:
       if (!score_type.empty())
       {
         IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type);
-        IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
+        IDFilter::filterHitsByScore(peptides.getData(), pep_score, score_type_enum);
       }
       else
       {

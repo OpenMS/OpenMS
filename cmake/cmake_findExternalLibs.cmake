@@ -632,9 +632,8 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  # 0.3.1 is the first release that publishes THIRD-PARTY-NOTICES.txt with its managed
-  # assemblies; the install below takes it from there.
-  find_package(OpenMSThermoBridge 0.3.1 QUIET)
+  # ThermoRawFile uses the typed single-pass scan API of the 1.x series.
+  find_package(OpenMSThermoBridge 1.0.0 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -662,9 +661,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      # This is the commit the v0.3.1 release tag points at; tools/ci/fetch_thermo_assets.sh
-      # checks that its own pin matches and downloads the v0.3.1 release assets.
-      GIT_TAG        d809f8ac6264d00c81da4b7abe456a08f124f804  # v0.3.1
+      # This is the commit of the v1.0.0 release tag. tools/ci/fetch_thermo_assets.sh checks
+      # that its own pin matches and downloads the matching release assets.
+      GIT_TAG        75849ecf6f600a3e52479823043842e571a774ae  # v1.0.0
     )
 
     # Configure the thermo bridge build options
