@@ -90,7 +90,7 @@ namespace OpenMS
      * @param[in] precursor_spec_idx index for the precursor spectrum to extract the intensities from
      * @param[in] exp the MSExperiment holding the spectra to look them up
      * @param[in] max_precursor_isotope_deviation the maximum allowed deviation for the precursor isotopes in ppm
-     * @return std::vector<double> precursor intensity vs. total intensity for every precursor window in @p ms2_spec_idx
+     * @return std::vector<double> precursor intensity vs. total intensity in the isolation window (only peaks inside it count; 0 if it holds no signal) for every precursor window in @p ms2_spec_idx
      */
     static std::vector<double> computeSingleScanPrecursorPurities(int ms2_spec_idx, int precursor_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation);
     
@@ -104,6 +104,7 @@ namespace OpenMS
      *
      * @note If @p next_ms1_spec_idx is out of range, does not refer to an MS1 spectrum, or the RT denominator is zero/invalid,
      *       the function will fall back to returning the early scan purity (from @p precursor_spec_idx) without interpolation.
+     *       If only one of the two survey scans holds signal in a precursor's isolation window, that scan's purity is returned.
      *
      * @param[in] ms2_spec_idx index for the spectrum holding the precursor information
      * @param[in] precursor_spec_idx index for the precursor spectrum to extract the intensities from

@@ -18,8 +18,22 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    // whether the isolation window of @p precursor (with its fuzzy border) holds any signal in @p spec
+    bool windowHasSignal(const MSSpectrum& spec, const Precursor& precursor, double max_precursor_isotope_deviation)
+    {
+      const double center = PrecursorPurity::isolationWindowCenter(precursor);
+      const double lower = (center - precursor.getIsolationWindowLowerOffset()) * (1 - max_precursor_isotope_deviation / 1e6);
+      const double upper = (center + precursor.getIsolationWindowUpperOffset()) * (1 + max_precursor_isotope_deviation / 1e6);
+      for (auto it = spec.MZBegin(lower); it != spec.end() && it->getMZ() < upper; ++it)
+      {
+        if (it->getIntensity() > 0) return true;
+      }
+      return false;
+    }
+  }
 
-  
   double PrecursorPurity::isolationWindowCenter(const Precursor& precursor)
   {
     if (precursor.metaValueExists("isolation window target m/z"))
@@ -69,8 +83,18 @@ namespace OpenMS
       const_spec_iterator lower_bound = precursor_spec.MZBegin(fuzzy_lower_mz);
       const_spec_iterator upper_bound = precursor_spec.MZEnd(precursor_info.getMZ());
 
-      Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
-      Peak1D::IntensityType total_intensity = precursor_peak.getIntensity();
+      // Only intensity inside the isolation window counts, the precursor's own peaks included: when the window is not
+      // centred on the precursor (see isolationWindowCenter()), the precursor peak or some of its isotopes lie outside it.
+      // Weight 1 inside the window, 0.5 in its fuzzy border (its borders are not sharp), 0 outside.
+      auto window_weight = [&](double mz)
+      {
+        if (mz > strict_lower_mz && mz < strict_upper_mz) return 1.0;
+        if (mz > fuzzy_lower_mz && mz < fuzzy_upper_mz) return 0.5;
+        return 0.0;
+      };
+
+      Peak1D::IntensityType precursor_intensity = window_weight(precursor_peak.getMZ()) * precursor_peak.getIntensity();
+      Peak1D::IntensityType total_intensity = 0;
 
       // ------------------------------------------------------------------------------
       // try to find a match for our isotopic peak on the left side
@@ -103,16 +127,7 @@ namespace OpenMS
         // check if we found an isotopic peak
         if (min_ppm_diff < max_precursor_isotope_deviation)
         {
-          if (np_it->getMZ() > strict_lower_mz)
-          {
-            precursor_intensity += np_it->getIntensity();
-          }
-          else
-          {
-            // we're in the fuzzy area, so we will take only 50% of the given intensity
-            // since we assume that the isolation window borders are not sharp
-            precursor_intensity += 0.5 * np_it->getIntensity();
-          }
+          precursor_intensity += window_weight(np_it->getMZ()) * np_it->getIntensity();
 
           // update expected_next_mz
           expected_next_mz = np_it->getMZ() - charge_dist;
@@ -159,16 +174,7 @@ namespace OpenMS
         // check if we found an isotopic peak
         if (min_ppm_diff < max_precursor_isotope_deviation)
         {
-          if (np_it->getMZ() < strict_upper_mz)
-          {
-            precursor_intensity += np_it->getIntensity();
-          }
-          else
-          {
-            // we're in the fuzzy area, so we will take only 50% of the given intensity
-            // since we assume that the isolation window borders are not sharp
-            precursor_intensity += 0.5 * np_it->getIntensity();
-          }
+          precursor_intensity += window_weight(np_it->getMZ()) * np_it->getIntensity();
 
           // update expected_next_mz
           expected_next_mz = np_it->getMZ() + charge_dist;
@@ -181,40 +187,14 @@ namespace OpenMS
       }
 
       // ------------------------------------------------------------------------------
-      // compute total intensity
-      int idx = static_cast<int>(precursor_peak_idx) - 1;
-      while (idx >= 0 && precursor_spec[idx].getMZ() > fuzzy_lower_mz)
+      // compute total intensity in the isolation window
+      for (auto it = precursor_spec.MZBegin(fuzzy_lower_mz); it != precursor_spec.end() && it->getMZ() < fuzzy_upper_mz; ++it)
       {
-        if (precursor_spec[idx].getMZ() > strict_lower_mz)
-        {
-          total_intensity += precursor_spec[idx].getIntensity();
-        }
-        else
-        {
-          // we're in the fuzzy area, so we will take only 50% of the given intensity
-          // since we assume that the isolation window borders are not sharp
-          total_intensity += 0.5 * precursor_spec[idx].getIntensity();
-        }
-        --idx;
+        total_intensity += window_weight(it->getMZ()) * it->getIntensity();
       }
 
-      idx = static_cast<int>(precursor_peak_idx) + 1;
-      while (idx < static_cast<int>(precursor_spec.size()) && precursor_spec[idx].getMZ() < fuzzy_upper_mz)
-      {
-        if (precursor_spec[idx].getMZ() < strict_upper_mz)
-        {
-          total_intensity += precursor_spec[idx].getIntensity();
-        }
-        else
-        {
-          // we're in the fuzzy area, so we will take only 50% of the given intensity
-          // since we assume that the isolation window borders are not sharp
-          total_intensity += 0.5 * precursor_spec[idx].getIntensity();
-        }
-        ++idx;
-      }
-
-      purities[precursor_idx] = precursor_intensity / total_intensity;
+      // an empty window (nothing isolated) has no precursor intensity either
+      purities[precursor_idx] = total_intensity > 0 ? precursor_intensity / total_intensity : 0.0;
       precursor_idx++;
     }
     return purities;
@@ -257,6 +237,16 @@ namespace OpenMS
     interpolated_purity.reserve(early_scan_purity.size());
     for (Size i = 0; i < early_scan_purity.size(); ++i)
     {
+      // a survey scan without signal in the window (e.g. the precursor eluted before the next one) tells nothing about
+      // the purity: take the other scan's
+      const Precursor& precursor = ms2_spec.getPrecursors()[i];
+      const bool early_signal = windowHasSignal(precursor_spec, precursor, max_precursor_isotope_deviation);
+      const bool late_signal = windowHasSignal(next_ms1_spec, precursor, max_precursor_isotope_deviation);
+      if (early_signal != late_signal)
+      {
+        interpolated_purity.push_back(early_signal ? early_scan_purity[i] : late_scan_purity[i]);
+        continue;
+      }
       // calculating the extrapolated, S2I value as a time weighted linear combination of the two scans
       // see: Savitski MM, Sweetman G, Askenazi M, Marto JA, Lang M, Zinn N, et al. (2011).
       // Analytical chemistry 83: 8959–67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
