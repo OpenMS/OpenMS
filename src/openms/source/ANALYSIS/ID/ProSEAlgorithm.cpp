@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 
+#include <unordered_set>
+
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -337,6 +339,11 @@ namespace OpenMS
     defaults_.setValidStrings("low_memory", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setValue("report:collapse_positional_isomers", "false",
+      "With report:top_hits > 1: of the hits of a spectrum that differ only in where their modifications sit (same charge, "
+      "same residues, same modifications), report only the best. The others are near-duplicates that split the spectrum's "
+      "evidence in rescoring.");
+    defaults_.setValidStrings("report:collapse_positional_isomers", {"true", "false"});
     defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
                        "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
                        "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
@@ -630,6 +637,7 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
 
     report_top_hits_ = param_.getValue("report:top_hits");
+    collapse_positional_isomers_ = param_.getValue("report:collapse_positional_isomers").toBool();
     isotope_error_observed_minus_theoretical_ =
       param_.getValue("report:isotope_error_convention").toString() == "observed_minus_theoretical";
 
@@ -1381,6 +1389,23 @@ namespace OpenMS
     }
   }
 
+  std::string ProSEAlgorithm::positionalIsomerKey_(const AASequence& sequence, int charge)
+  {
+    // modifications by name (UniMod id), not by site: Phospho on S and on T, or Acetyl on the N-terminus and on K,
+    // are the same mass at other positions
+    std::vector<std::string> mods;
+    if (sequence.hasNTerminalModification()) mods.push_back(sequence.getNTerminalModification()->getId());
+    if (sequence.hasCTerminalModification()) mods.push_back(sequence.getCTerminalModification()->getId());
+    for (Size i = 0; i < sequence.size(); ++i)
+    {
+      if (sequence[i].isModified()) mods.push_back(sequence[i].getModification()->getId());
+    }
+    std::sort(mods.begin(), mods.end());
+    std::string key = std::to_string(charge) + "|" + sequence.toUnmodifiedString();
+    for (const auto& m : mods) { key += "|"; key += m; }
+    return key;
+  }
+
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
         std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         const std::vector<CandidatePoolStats_>& pool_stats,
@@ -1420,7 +1445,8 @@ namespace OpenMS
     std::vector<float> delta_scores(annotated_hits.size(), 0.0f);
     std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
     std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
-#pragma omp parallel for default(none) shared(annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates)
+    const bool collapse_isomers = collapse_positional_isomers_ && top_hits > 1;
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates, collapse_isomers)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       const CandidatePoolStats_& stats = pool_stats[scan_index];
@@ -1433,6 +1459,20 @@ namespace OpenMS
 
       // sort and keep n best elements according to score (unchanged)
       auto& hits = annotated_hits[scan_index];
+      if (collapse_isomers && hits.size() > 1)
+      {
+        // Of positional isomers (same charge, same residues, same multiset of modifications), keep the best:
+        // they explain the same spectrum with the same composition, and passing all of them on to rescoring
+        // splits the spectrum's evidence over near-duplicate rows. Same residues means the same proteins, so a
+        // target never collapses into a decoy or vice versa.
+        std::sort(hits.begin(), hits.end(), AnnotatedHit_::hasBetterScore);
+        std::unordered_set<std::string> seen;
+        auto keep_end = std::remove_if(hits.begin(), hits.end(), [&seen](const AnnotatedHit_& h)
+        {
+          return !seen.insert(positionalIsomerKey_(h.sequence, h.applied_charge)).second;
+        });
+        hits.erase(keep_end, hits.end());
+      }
       Size topn = top_hits > hits.size() ? hits.size() : top_hits;
       std::partial_sort(hits.begin(), hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore);
       hits.resize(topn);

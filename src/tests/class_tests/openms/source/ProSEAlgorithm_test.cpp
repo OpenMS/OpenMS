@@ -148,6 +148,7 @@ public:
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
+  using ProSEAlgorithm::positionalIsomerKey_;
   using ProSEAlgorithm::DeisotopingSettings_;
   using ProSEAlgorithm::deisotoping_;
   using ProSEAlgorithm::localFragmentEvidence_;
@@ -881,6 +882,27 @@ if (std::getenv("OPENMS_PROSE_TEST_ALLOC_FAULT_CHILD") != nullptr)
 
 ProSEAlgorithm* ptr = nullptr;
 ProSEAlgorithm* null_ptr = nullptr;
+
+START_SECTION(([EXTRA] positionalIsomerKey_: one key per positional isomer set))
+{
+  const auto key = [](const std::string& seq, int charge)
+  {
+    return ProSEAlgorithm_test::positionalIsomerKey_(AASequence::fromString(seq), charge);
+  };
+  // the same modifications at other sites: one key
+  TEST_EQUAL(key("PEPS(Phospho)TIDEK", 2), key("PEPST(Phospho)IDEK", 2))
+  TEST_EQUAL(key("M(Oxidation)PEPS(Phospho)TK", 2), key("MPEPS(Phospho)T(Oxidation)K", 2))
+  // other charge, other backbone, other modifications or count: other keys
+  TEST_NOT_EQUAL(key("PEPS(Phospho)TIDEK", 2), key("PEPS(Phospho)TIDEK", 3))
+  TEST_NOT_EQUAL(key("PEPS(Phospho)TIDEK", 2), key("PEPT(Phospho)SIDEK", 2))
+  TEST_NOT_EQUAL(key("PEPS(Phospho)TIDEK", 2), key("PEPS(Phospho)T(Phospho)IDEK", 2))
+  TEST_NOT_EQUAL(key("PEPS(Phospho)TIDEK", 2), key("PEPSTIDEK", 2))
+  // terminal modifications count as modifications, and a terminal and a side-chain site of one modification are isomers
+  TEST_EQUAL(key(".(Acetyl)PEPS(Phospho)TIDEK", 2), key(".(Acetyl)PEPST(Phospho)IDEK", 2))
+  TEST_NOT_EQUAL(key(".(Acetyl)PEPS(Phospho)TIDEK", 2), key("PEPS(Phospho)TIDEK", 2))
+  TEST_EQUAL(key(".(Acetyl)PEPSTIDEK", 2), key("PEPSTIDEK(Acetyl)", 2))
+}
+END_SECTION
 
 START_SECTION(ProSEAlgorithm())
 {

@@ -539,6 +539,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     void updateMembers_() override;
 
     /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
+    /// Key of a hit up to the positions of its modifications: charge, unmodified sequence, sorted modifications
+    static std::string positionalIsomerKey_(const AASequence& sequence, int charge);
+
     struct AnnotatedHit_
     {
       AASequence sequence;
@@ -1062,6 +1065,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string peptide_motif_;
 
     Size report_top_hits_;
+
+    bool collapse_positional_isomers_ = false; ///< report:collapse_positional_isomers
     /// report:isotope_error_convention: the PSMs report isotope_error as observed minus theoretical (true) or with the
     /// sign of the search offset, theoretical minus observed (false)
     bool isotope_error_observed_minus_theoretical_{true};

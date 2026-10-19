@@ -711,6 +711,9 @@ TOPP tools:
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
   Changes:
+    ProSE:
+      - PARAM: New report:collapse_positional_isomers (default false): with report:top_hits > 1, report only the
+        best of a spectrum's hits that differ only in where their modifications sit.
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter
