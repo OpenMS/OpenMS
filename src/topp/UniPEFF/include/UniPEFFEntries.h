@@ -32,7 +32,7 @@ namespace OpenMS::UniPEFFEntries
 
   struct PtmEntry
   {
-    std::string id;               ///< UniProt PTM name (the lookup key from feature/@description)
+    std::string id;               ///< UniProt PTM name (the lookup key from feature/\@description)
     std::string accession;        ///< UniProt internal accession, e.g. "PTM-0253"
     std::string psi_mod;          ///< "MOD:xxxxx" or empty
     std::string unimod;           ///< "N" (numeric Unimod id) or empty (NOT prefixed with "UNIMOD:")
@@ -90,8 +90,8 @@ namespace OpenMS::UniPEFFEntries
     /// Indices into EntryAnnotations::mods after merge — resolved to annotation_ids during emission.
     size_t idx_a{0};
     size_t idx_b{0};
-    bool valid{false};       ///< true when both endpoints come from a <begin>/<end> location; cleared by invalidateOutOfRangeDisulfides()
-    uint32_t annotation_id{kNoId};  ///< id of the \DisulfideBond tuple itself (kNoId = not emitted)
+    bool valid{false};       ///< true when both endpoints come from a &lt;begin&gt;/&lt;end&gt; location; cleared by invalidateOutOfRangeDisulfides()
+    uint32_t annotation_id{kNoId};  ///< id of the \\DisulfideBond tuple itself (kNoId = not emitted)
   };
 
   struct EntryAnnotations
