@@ -146,6 +146,17 @@ OpenMS Library:
     spectrum or chromatogram it picks: the S/N settings (new SignalToNoiseEstimatorMedianSettings) are read once and
     the values come from the static SignalToNoiseEstimatorMedian::estimate(). The values are unchanged. OpenSWATH and
     OpenDIA pick every fragment trace this way; a 150-point chromatogram takes about a fifth of the time to pick.
+  - PERF: OpenSwathWorkflow/OpenDIA extraction and scoring use all threads when a wave holds fewer SWATHs than threads
+    (e.g. maxConcurrentSwaths 1): the minimum inner batch size no longer scores a whole SWATH in one job, and the
+    chromatogram extraction, the conversion of the extracted chromatograms, loading a SWATH into memory and the XIC
+    encoding of a SWATH run in parallel. Scoring needs about 45% less CPU time: transition groups are scored in place,
+    picked features and chromatograms are moved instead of copied, the MS1 combined cross-correlation and MI matrices
+    reuse the entries of the transition, precursor and contrast matrices, the inverse RT transformation, averagine
+    isotope distributions (by element composition) and the chromatogram index of a SWATH are computed once, and when
+    only the best peak groups are reported (stop_report_after_feature) the scores outside the SWATH prescore are
+    computed for those only. On an Astral DIA run (300 windows, 600k precursors, 4 threads, maxConcurrentSwaths 1)
+    extraction and scoring take 15 min instead of 1:33 h, and OpenDIA 33 min instead of 1:51 h. Scores and results
+    are unchanged.
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every
