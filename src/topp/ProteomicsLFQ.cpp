@@ -1278,7 +1278,7 @@ protected:
       "feat_dir", "detect_only", "force_recompute",
       "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
       "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
-      "alignment_order"};
+      "alignment_order", "consensus_elution_width"};
     // Every entry above names a parameter this tool actually registers, except the command-line-only
     // ones ('version', 'write_ini', 'ini') and the two prefixes not yet registered as subsections
     // ('Protein Inference:', 'Posterior Error Probability:', both read by the combining half only).
@@ -1918,11 +1918,10 @@ protected:
     // references), so gate on pip_echo.
     const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
     if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
-    // The elution model fit, needed (only) by -consensus_elution_width after linking; removed again there.
-    if (getStringOption_("consensus_elution_width") == "true")
-    {
-      for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) keep_meta.insert(k);
-    }
+    // The elution model fit, needed (only) by -consensus_elution_width after linking, and removed there in any
+    // case. Kept regardless of that option, which only the combining half applies, so that one set of feature
+    // checkpoints serves both settings.
+    for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) keep_meta.insert(k);
     for (auto & f : fm)
     {
       std::vector<std::string> keys;
@@ -2150,13 +2149,11 @@ protected:
       }
     }
 
-    alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
-
-    if (getStringOption_("consensus_elution_width") == "true")
+    // The elution model fit is kept through detection (see detectRun_) for -consensus_elution_width only. Remove it
+    // before linking, which can copy feature meta values into the consensus map, and otherwise after it.
+    const bool consensus_elution_width = getStringOption_("consensus_elution_width") == "true";
+    auto remove_fit = [&feature_maps, &consensus_fraction]()
     {
-      const auto stats = ConsensusElutionWidth::apply(consensus_fraction, feature_maps, transformations);
-      OPENMS_LOG_INFO << "Consensus elution width: " << stats.consensus_features << " consensus features, "
-                      << stats.handles_updated << " features re-quantified, " << stats.handles_kept << " kept.\n";
       for (auto& fm : feature_maps)
       {
         for (auto& f : fm)
@@ -2164,6 +2161,21 @@ protected:
           for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) f.removeMetaValue(k);
         }
       }
+      for (auto& cf : consensus_fraction)
+      {
+        for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) cf.removeMetaValue(k);
+      }
+    };
+    if (! consensus_elution_width) remove_fit();
+
+    alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
+
+    if (consensus_elution_width)
+    {
+      const auto stats = ConsensusElutionWidth::apply(consensus_fraction, feature_maps, transformations);
+      OPENMS_LOG_INFO << "Consensus elution width: " << stats.consensus_features << " consensus features, "
+                      << stats.handles_updated << " features re-quantified, " << stats.handles_kept << " kept.\n";
+      remove_fit();
     }
 
     // Nothing to link is not an error: typically no run of the fraction has a feature because none
