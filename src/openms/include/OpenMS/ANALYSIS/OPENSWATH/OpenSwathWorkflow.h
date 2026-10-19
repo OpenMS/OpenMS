@@ -228,6 +228,16 @@ protected:
 
 };
 
+  /// Positions of chromatograms by native ID (see OpenSwathWorkflow::scoreAllChromatograms_())
+  struct OPENMS_DLLAPI ChromatogramIndex
+  {
+    std::unordered_map<std::string, int> ms2; ///< index into the MS2 chromatograms
+    std::unordered_map<std::string, int> ms1; ///< index into the MS1 (precursor) chromatograms
+
+    /// Index the chromatograms by their native ID
+    void build(const std::vector<MSChromatogram>& ms2_chromatograms, const std::vector<MSChromatogram>& ms1_chromatograms);
+  };
+
   /**
    * @brief Execute all steps in an \ref TOPP_OpenSwathWorkflow "OpenSwath" analysis
    *
@@ -256,16 +266,6 @@ protected:
    *        - Write scored chromatograms and peak groups to disk (see writeOutFeaturesAndChroms_())
    *
    */
-  /// Positions of chromatograms by native ID (see OpenSwathWorkflow::scoreAllChromatograms_())
-  struct OPENMS_DLLAPI ChromatogramIndex
-  {
-    std::unordered_map<std::string, int> ms2; ///< index into the MS2 chromatograms
-    std::unordered_map<std::string, int> ms1; ///< index into the MS1 (precursor) chromatograms
-
-    /// Index the chromatograms by their native ID
-    void build(const std::vector<MSChromatogram>& ms2_chromatograms, const std::vector<MSChromatogram>& ms1_chromatograms);
-  };
-
   class OPENMS_DLLAPI OpenSwathWorkflow :
     public OpenSwathWorkflowBase
   {

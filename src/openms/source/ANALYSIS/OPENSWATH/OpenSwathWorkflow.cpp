@@ -698,13 +698,14 @@ namespace OpenMS
                          << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
 
       // Extract the SWATHs of a wave in parallel only if every thread gets one. Fewer SWATHs (e.g.
-      // max_concurrent_swaths = 1) are extracted one after the other, and the chromatogram
-      // extraction of each then uses all threads.
+      // max_concurrent_swaths = 1) are extracted one after the other outside of a parallel region,
+      // and the chromatogram extraction of each then uses all threads.
       const bool parallel_swath_extraction = wave.swath_indices.size() >= scoring_threads;
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,1) if (parallel_swath_extraction)
-#endif
-      for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+      // Such SWATHs are written out after the wave if all threads then encode their XIC chromatograms
+      // (see PreEncodedChromatograms); otherwise the thread that scored their last job writes them.
+      const bool finalize_after_wave = !parallel_swath_extraction &&
+                                       dynamic_cast<MSChromatogramParquetConsumer*>(chromConsumer) != nullptr;
+      auto extract_swath = [&](const SignedSize wave_pos)
       {
         const SignedSize swath_index = checkedCast<SignedSize>(wave.swath_indices[wave_pos]);
         SwathSchedulerContext& context = contexts[swath_index];
@@ -712,7 +713,7 @@ namespace OpenMS
 
         if (swath_maps[swath_index].ms1)
         {
-          continue;
+          return;
         }
 
         if (!(prm_ || pasef_))
@@ -762,7 +763,7 @@ namespace OpenMS
         }
         if (context.transition_exp_used_all.getTransitions().empty())
         {
-          continue;
+          return;
         }
 
         context.current_swath_map = swath_maps[swath_index].sptr;
@@ -805,6 +806,23 @@ namespace OpenMS
         context.chromatogram_index.build(context.chrom_exp.getChromatograms(), context.ms1_chromatograms);
 
         context.active = true;
+      };
+      if (parallel_swath_extraction)
+      {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1)
+#endif
+        for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+        {
+          extract_swath(wave_pos);
+        }
+      }
+      else
+      {
+        for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+        {
+          extract_swath(wave_pos);
+        }
       }
 
       // Create inner scoring jobs for all active SWATHs. The assay-range scheduler
@@ -1003,10 +1021,9 @@ namespace OpenMS
               context_ready_to_finalize = context.remaining_score_jobs == 0;
             }
 
-            // With a SWATH per thread, the thread that scored the last job of a SWATH writes it out
-            // while the others score; with fewer SWATHs than threads, they are written out after the
-            // wave, when all threads encode their chromatograms.
-            if (context_ready_to_finalize && parallel_swath_extraction)
+            // The thread that scored the last job of a SWATH writes it out while the others score
+            // (unless all threads encode the chromatograms after the wave, see finalize_after_wave).
+            if (context_ready_to_finalize && !finalize_after_wave)
             {
               finalize_context(job.context_index);
             }

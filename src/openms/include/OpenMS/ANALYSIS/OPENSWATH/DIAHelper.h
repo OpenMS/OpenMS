@@ -112,6 +112,9 @@ namespace OpenMS
       The same as CoarseIsotopePatternGenerator(nr_isotopes).estimateFromPeptideWeight(average_weight). The
       distribution only depends on the element composition that the averagine model estimates for the weight,
       which many weights share: it is computed once per composition (and thread).
+
+      The returned reference points into a per-thread cache, which is cleared when it gets large: it is only
+      valid until the next call of this function on the same thread.
     */
     OPENMS_DLLAPI const IsotopeDistribution& averagineIsotopeDistribution(double average_weight, int nr_isotopes);
 

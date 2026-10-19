@@ -157,6 +157,8 @@ OpenMS Library:
     computed for those only. On an Astral DIA run (300 windows, 600k precursors, 4 threads, maxConcurrentSwaths 1)
     extraction and scoring take 15 min instead of 1:33 h, and OpenDIA 33 min instead of 1:51 h. Scores and results
     are unchanged.
+  - FIX: ChromatogramExtractorAlgorithm: with ion mobility extraction, a coordinate with ion mobility that follows
+    (in m/z order) coordinates without ion mobility no longer compares the ion mobility of other peaks.
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every

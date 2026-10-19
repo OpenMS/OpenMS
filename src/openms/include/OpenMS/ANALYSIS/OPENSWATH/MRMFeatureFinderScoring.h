@@ -159,6 +159,11 @@ public:
      * Iterate through all features found along the chromatograms of the
      * transition group and score each one individually.
      *
+     * If only the best peak groups are reported (parameter stop_report_after_feature) and they are
+     * ranked by the SWATH prescore (DIA scores, but no ion mobility or UIS scores), the peak groups
+     * that are not reported only get the scores of the ranking: their OpenSwath_Scores in
+     * @p transition_group lack e.g. the MI, MS1 and DIA isotope (dot product / Manhattan) scores.
+     *
      * @param[in] transition_group The MRMTransitionGroup to be scored (input)
      * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the

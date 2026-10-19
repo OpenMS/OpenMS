@@ -107,12 +107,8 @@ namespace OpenSwath::Scoring
     XCorrArrayType normalizedCrossCorrelationPost(std::vector<double>& normalized_data1,
                                                   std::vector<double>& normalized_data2, const int maxdelay, const int lag = 1)
     {
-      XCorrArrayType result = calculateCrossCorrelation(normalized_data1, normalized_data2, maxdelay, lag);
-
-      for (XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
-      {
-        it->second /= normalized_data1.size();
-      }
+      XCorrArrayType result;
+      normalizedCrossCorrelationPost(normalized_data1, normalized_data2, maxdelay, lag, result);
       return result;
     }
 
@@ -162,29 +158,8 @@ namespace OpenSwath::Scoring
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
                                              const std::vector<double>& data2, const int maxdelay, const int lag)
     {
-      OPENSWATH_PRECONDITION(data1.size() == data2.size(), "Both data vectors need to have the same length");
-
       XCorrArrayType result;
-      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      const int datasize = static_cast<int>(data1.size());
-      const double* __restrict d1 = data1.data();
-      const double* __restrict d2 = data2.data();
-
-      for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
-      {
-        const int start = std::max(0, -delay);
-        const int end = std::min(datasize, datasize - delay);
-        const int len = end - start;
-
-        double sxy = 0.0;
-        if (len > 0)
-        {
-          Eigen::Map<const Eigen::VectorXd> sub1(d1 + start, len);
-          Eigen::Map<const Eigen::VectorXd> sub2(d2 + start + delay, len);
-          sxy = sub1.dot(sub2);
-        }
-        result.data.push_back(std::make_pair(delay, sxy));
-      }
+      calculateCrossCorrelationInto_(data1, data2, maxdelay, lag, result);
       return result;
     }
 

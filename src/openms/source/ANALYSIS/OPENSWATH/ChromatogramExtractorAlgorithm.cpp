@@ -393,8 +393,15 @@ namespace OpenMS
           const bool use_im = (extraction_coordinates[k].ion_mobility >= 0.0 && has_im);
           if (!use_im && used_filter == 1)
           {
+            const std::vector<double>::const_iterator mz_before = mz_it;
             extract_value_tophat(mz_start, mz_it, mz_end, int_it,
                                  extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
+            if (has_im)
+            {
+              // keep the ion mobility iterator at the same peak as the m/z iterator for the next
+              // coordinate that uses ion mobility
+              im_it += mz_it - mz_before;
+            }
           }
           else if (use_im && used_filter == 1)
           {
