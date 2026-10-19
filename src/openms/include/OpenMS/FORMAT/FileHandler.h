@@ -232,7 +232,7 @@ public:
 
       Imaging data is always loaded into an MSImagingExperiment.
       Supported here are imzML (via ImzMLFile) and Bruker
-      timsTOF MALDI imaging .d folders (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
+      timsTOF MALDI imaging .d folders and .d.zip archives (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
 
       @param[in] filename The file name of the file to load.
       @param[out] exp The imaging experiment to load the data into; replaced (not appended).

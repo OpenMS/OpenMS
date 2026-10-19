@@ -29,6 +29,9 @@
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <exception>
+#include <vector>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -149,11 +152,41 @@ public:
           correct_window_counter_ << " correct (non-zero) window limits (expected " << swath_maps_.size() << " windows)." << std::endl;
       }
 
+      // Creating the access object of a map that was cached to disk means building the index of
+      // its data file and parsing its meta data file. The maps are independent of each other, so
+      // do that for all of them at once: one after the other it took 38 s for the 300 windows of
+      // an Orbitrap Astral run.
+      std::vector<OpenSwath::SpectrumAccessPtr> map_access(swath_maps_.size());
+      std::exception_ptr access_error;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize i = 0; i < static_cast<SignedSize>(swath_maps_.size()); i++)
+      {
+        try
+        {
+          map_access[i] = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
+        }
+        catch (...)
+        {
+#ifdef _OPENMP
+#pragma omp critical (FullSwathFileConsumer_retrieveSwathMaps)
+#endif
+          {
+            if (!access_error) access_error = std::current_exception();
+          }
+        }
+      }
+      if (access_error)
+      {
+        std::rethrow_exception(access_error);
+      }
+
       size_t nonempty_maps = 0;
       for (Size i = 0; i < swath_maps_.size(); i++)
       {
         OpenSwath::SwathMap map;
-        map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
+        map.sptr = map_access[i];
         map.lower = swath_map_boundaries_[i].lower;
         map.upper = swath_map_boundaries_[i].upper;
         map.center = swath_map_boundaries_[i].center;

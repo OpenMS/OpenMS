@@ -25,6 +25,7 @@
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
 #include <algorithm>
@@ -797,6 +798,55 @@ START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next
   TEST_EXCEPTION(Exception::FileNotReadable, f.loadDIAStreaming(archive, consumer)) // the kept files
   MSExperiment exp;
   TEST_EXCEPTION(Exception::FileNotFound, f.load(archive, exp)) // nothing kept any more
+}
+END_SECTION
+
+START_SECTION([EXTRA] MALDI imaging runs are read in export mode FRAME only)
+{
+  // Read as DDA or DIA data, an imaging run would lose the pixel positions that BrukerTimsImagingFile keeps (#10596).
+  // GlobalMetadata is checked before any frame is read, so the runs need no frame data. SDK-free.
+  using Config = BrukerTimsFile::Config;
+  TempDir tmp;
+  auto fake_d = [&tmp](const std::string& dir, const std::string& application_type)
+  {
+    const std::string d = tmp.getPath() + "/" + dir + "/run.d";
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    return d;
+  };
+  const std::string imaging = fake_d("imaging", "Imaging");
+  const std::string imaging_zip = tmp.getPath() + "/imaging.d.zip"; // checked once unpacked
+  ZipArchiveFile::zipDirectory(tmp.getPath() + "/imaging", imaging_zip);
+
+  BrukerTimsFile f;
+  for (const std::string& path : {imaging, imaging_zip})
+  {
+    for (const Config::ExportMode mode : {Config::AUTO, Config::SPECTRUM})
+    {
+      Config cfg;
+      cfg.export_mode = mode;
+      MSExperiment exp;
+      TEST_EXCEPTION(Exception::InvalidFileType, f.load(path, exp, cfg))
+      MSDataStoringConsumer consumer;
+      TEST_EXCEPTION(Exception::InvalidFileType, f.transform(path, &consumer, cfg))
+      TEST_EQUAL(consumer.getData().size(), 0)
+    }
+    ExperimentalSettings settings;
+    TEST_EXCEPTION(Exception::InvalidFileType, f.readDIAMetadata(path, settings))
+    RegularSwathFileConsumer swath_consumer;
+    TEST_EXCEPTION(Exception::InvalidFileType, f.loadDIAStreaming(path, swath_consumer))
+    // FRAME (as BrukerTimsImagingFile reads) passes the check and reaches opentims, which finds no frame data
+    Config frame;
+    frame.export_mode = Config::FRAME;
+    MSExperiment exp;
+    TEST_EXCEPTION(Exception::FileNotReadable, f.load(path, exp, frame))
+  }
+
+  // Other MALDI runs (dried droplet) are no imaging runs: they reach opentims as well
+  MSExperiment exp;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(fake_d("droplet", "SingleSpectra"), exp))
 }
 END_SECTION
 
@@ -4135,6 +4185,75 @@ START_SECTION([EXTRA] loadDIAStreaming() fills the SWATH maps with the spectra o
     TEST_EQUAL(r.metadata_ms1, 0)
     TEST_EQUAL(r.ms2.spectra, raw_counts.ms2)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] TDF data without DDA-PASEF precursors is read as its MS1 frames by the DDA loader (#10597))
+{
+  // Runs without PASEF precursors, such as MS1-only MALDI runs, have no Precursors and PasefFrameMsMsInfo tables.
+  // Neither has this diaPASEF run, which export mode SPECTRUM reads with the DDA loader, as AUTO does for a run
+  // without isolation windows. That gave SQLite::Exception "no such table: Precursors", which ended the TOPP tools.
+  using Config = BrukerTimsFile::Config;
+  const std::string path = OPENTIMS_DIA_TEST_DATA;
+  Config cfg;
+  cfg.export_mode = Config::SPECTRUM;
+  cfg.frame_id_min = 1;
+  cfg.frame_id_max = 60;
+  BrukerTimsFile f;
+  MSExperiment as_dda;
+  f.load(path, as_dda, cfg);
+  const SpectraCounts counts = countSpectra(spectrumPointers(as_dda));
+  TEST_EQUAL(counts.ms1 > 0, true)
+  TEST_EQUAL(counts.ms2, 0)
+
+  // the MS1 spectra are those of an MS1-only load
+  Config ms1_only = cfg;
+  ms1_only.load_ms2 = false;
+  MSExperiment ms1;
+  f.load(path, ms1, ms1_only);
+  TEST_EQUAL(ms1.size(), counts.ms1)
+  TEST_STRING_EQUAL(spectraDifference(spectrumPointers(ms1), spectrumPointers(as_dda)), "")
+
+  // transform() delivers the same spectra and announces their number
+  const TransformParity r = testTransformAgainstLoad(path, cfg);
+  TEST_EQUAL(r.loaded.spectra, counts.ms1)
+  TEST_EQUAL(r.expected_size, counts.ms1)
+
+  // A copy of the run whose precursor tables lack the columns the reader needs: a ParseError that names the run.
+  // (No SQLite::Exception leaves the reader.) analysis.tdf_bin is linked into the copy where the file system allows.
+  TempDir tmp;
+  const std::string copy = tmp.getPath() + "/broken_precursors.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+  {
+    SqliteConnector conn(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE Precursors (Id INTEGER PRIMARY KEY);");
+    conn.executeStatement("CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER, Precursor INTEGER);");
+  }
+  const auto parse_error = [&copy](const std::function<void()>& read) -> std::string
+  {
+    try
+    {
+      read();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    return "no ParseError";
+  };
+  MSExperiment exp;
+  const std::string load_error = parse_error([&] { f.load(copy, exp, cfg); });
+  TEST_EQUAL(load_error.find("no such column") != std::string::npos, true)
+  TEST_EQUAL(load_error.find("broken_precursors.d") != std::string::npos, true)
+  MSDataStoringConsumer streamed;
+  const std::string transform_error = parse_error([&] { f.transform(copy, &streamed, cfg); });
+  TEST_EQUAL(transform_error.find("no such column") != std::string::npos, true)
+  TEST_EQUAL(streamed.getData().size(), 0)
 }
 END_SECTION
 
