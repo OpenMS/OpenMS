@@ -1,0 +1,10 @@
+arm	dataset	psms_s1/s42/s137	mean	pass2_mean	deam_mean	deam_near0_pct	deam_mispick_pct	deam_mimic_rule_pct	dropped_as_mimics
+rule_norefine	astral_A2	2843/2910/2812	2855.0	0.0	0.0	0.0	0.0	0.0	
+rule_norefine	astral_B1	3219/3339/3247	3268.3	0.0	0.0	0.0	0.0	0.0	
+rule_norefine	astral_B3	3267/3348/3244	3286.3	0.0	0.0	0.0	0.0	0.0	
+norule	astral_A2	2287/2316/2396	2333.0	70.3	47.7	23.1	44.8	51.7	
+norule	astral_B1	2539/2619/2509	2555.7	61.7	38.7	18.1	54.3	56.9	
+norule	astral_B3	2522/2512/2518	2517.3	66.3	45.0	24.4	43.7	47.4	
+rule	astral_A2	2305/2287/2354	2315.3	41.0	21.0	50.8	0.0	0.0	5297
+rule	astral_B1	2528/2559/2580	2555.7	32.0	14.0	50.0	0.0	0.0	5699
+rule	astral_B3	2573/2565/2532	2556.7	45.0	23.0	44.9	0.0	0.0	5449

@@ -1,0 +1,121 @@
+db	dataset	group	arm	psms_s1/s42/s137	mean	delta_vs_off	z	verdict	fdp_combined_pct	flagged_n	flagged_fdp_pct	flagged_decoy_pct	deam_unflagged_n	deam_unflagged_fdp_pct	deam_unflagged_decoy_pct	plain_n	plain_fdp_pct	plain_decoy_pct
+plain	velos_125_R1	Velos CID	nodeam	2953/2966/3013	2977.3	+59.7	3.0	up	nan	0.0	nan	nan	0.0	nan	nan	2977.3	nan	0.95
+plain	velos_125_R1	Velos CID	off	2932/2905/2916	2917.7	+0.0	0.0	flat	nan	506.3	nan	1.65	202.3	nan	3.62	2209.0	nan	0.56
+plain	velos_125_R1	Velos CID	on	2927/2937/2914	2926.0	+8.3	0.8	flat	nan	679.3	nan	2.11	188.3	nan	3.89	2058.3	nan	0.31
+plain	velos_125_R1	Velos CID	post	2440/2406/2388	2411.3	-506.3	-29.5	down	nan	0.0	nan	nan	202.3	nan	3.62	2209.0	nan	0.56
+plain	velos_125_R1	Velos CID	drop	2908/2983/3009	2966.7	+49.0	1.6	flat	nan	0.0	nan	nan	219.3	nan	5.17	2747.3	nan	0.62
+plain	velos_5000_R2	Velos CID	nodeam	3014/3091/3026	3043.7	+53.0	1.9	flat	nan	0.0	nan	nan	0.0	nan	nan	3043.7	nan	0.95
+plain	velos_5000_R2	Velos CID	off	3006/3004/2962	2990.7	+0.0	0.0	flat	nan	452.3	nan	2.06	229.0	nan	2.62	2309.3	nan	0.58
+plain	velos_5000_R2	Velos CID	on	2977/2976/2982	2978.3	-12.3	-0.9	flat	nan	579.7	nan	2.19	224.0	nan	2.68	2174.7	nan	0.43
+plain	velos_5000_R2	Velos CID	post	2556/2544/2515	2538.3	-452.3	-24.0	down	nan	0.0	nan	nan	229.0	nan	2.62	2309.3	nan	0.58
+plain	velos_5000_R2	Velos CID	drop	3013/2988/3028	3009.7	+19.0	1.0	flat	nan	0.0	nan	nan	248.3	nan	5.10	2761.3	nan	0.58
+plain	velos_25000_R3	Velos CID	nodeam	2900/2909/2926	2911.7	+78.3	6.8	up	nan	0.0	nan	nan	0.0	nan	nan	2911.7	nan	0.96
+plain	velos_25000_R3	Velos CID	off	2832/2849/2819	2833.3	+0.0	0.0	flat	nan	400.7	nan	1.66	202.0	nan	3.30	2230.7	nan	0.61
+plain	velos_25000_R3	Velos CID	on	2839/2856/2922	2872.3	+39.0	1.5	flat	nan	571.3	nan	1.69	195.3	nan	2.90	2105.7	nan	0.57
+plain	velos_25000_R3	Velos CID	post	2412/2456/2430	2432.7	-400.7	-25.9	down	nan	0.0	nan	nan	202.0	nan	3.30	2230.7	nan	0.61
+plain	velos_25000_R3	Velos CID	drop	2894/2847/2920	2887.0	+53.7	2.3	up	nan	0.0	nan	nan	210.0	nan	5.24	2677.0	nan	0.61
+plain	hfx_A2	HF-X HCD	nodeam	4671/4663/4678	4670.7	+151.7	6.3	up	nan	0.0	nan	nan	0.0	nan	nan	4670.7	nan	0.96
+plain	hfx_A2	HF-X HCD	off	4537/4548/4472	4519.0	+0.0	0.0	flat	nan	378.7	nan	2.55	164.7	nan	6.88	3975.7	nan	0.57
+plain	hfx_A2	HF-X HCD	on	4501/4535/4465	4500.3	-18.7	-0.6	flat	nan	576.0	nan	3.30	158.7	nan	4.62	3765.7	nan	0.46
+plain	hfx_A2	HF-X HCD	post	4161/4171/4089	4140.3	-378.7	-10.8	down	nan	0.0	nan	nan	164.7	nan	6.88	3975.7	nan	0.57
+plain	hfx_A2	HF-X HCD	drop	4615/4586/4633	4611.3	+92.3	3.4	up	nan	0.0	nan	nan	182.0	nan	8.97	4429.3	nan	0.64
+plain	hfx_B1	HF-X HCD	nodeam	4546/4550/4528	4541.3	+136.0	5.7	up	nan	0.0	nan	nan	0.0	nan	nan	4541.3	nan	0.97
+plain	hfx_B1	HF-X HCD	off	4443/4409/4364	4405.3	+0.0	0.0	flat	nan	451.7	nan	1.03	165.0	nan	10.71	3788.7	nan	0.54
+plain	hfx_B1	HF-X HCD	on	4417/4400/4371	4396.0	-9.3	-0.4	flat	nan	659.3	nan	1.82	154.0	nan	9.96	3582.7	nan	0.43
+plain	hfx_B1	HF-X HCD	post	3982/3960/3919	3953.7	-451.7	-15.4	down	nan	0.0	nan	nan	165.0	nan	10.71	3788.7	nan	0.54
+plain	hfx_B1	HF-X HCD	drop	4474/4464/4501	4479.7	+74.3	2.9	up	nan	0.0	nan	nan	177.0	nan	12.43	4302.7	nan	0.50
+plain	hfx_B3	HF-X HCD	nodeam	4577/4557/4608	4580.7	+147.3	5.9	up	nan	0.0	nan	nan	0.0	nan	nan	4580.7	nan	0.97
+plain	hfx_B3	HF-X HCD	off	4445/4394/4461	4433.3	+0.0	0.0	flat	nan	445.3	nan	1.65	153.7	nan	9.54	3834.3	nan	0.54
+plain	hfx_B3	HF-X HCD	on	4467/4389/4465	4440.3	+7.0	0.2	flat	nan	598.0	nan	2.23	145.7	nan	8.92	3696.7	nan	0.44
+plain	hfx_B3	HF-X HCD	post	3993/3957/4014	3988.0	-445.3	-17.0	down	nan	0.0	nan	nan	153.7	nan	9.54	3834.3	nan	0.54
+plain	hfx_B3	HF-X HCD	drop	4436/4516/4504	4485.3	+52.0	1.6	flat	nan	0.0	nan	nan	159.0	nan	10.90	4326.3	nan	0.61
+plain	astral_A2	Astral HCD	nodeam	2828/2832/2837	2832.3	+439.0	15.6	up	nan	0.0	nan	nan	0.0	nan	nan	2832.3	nan	0.95
+plain	astral_A2	Astral HCD	off	2345/2393/2442	2393.3	+0.0	0.0	flat	nan	215.3	nan	2.01	87.7	nan	9.13	2090.3	nan	0.48
+plain	astral_A2	Astral HCD	on	2366/2438/2382	2395.3	+2.0	0.1	flat	nan	305.0	nan	2.51	84.7	nan	7.87	2005.7	nan	0.40
+plain	astral_A2	Astral HCD	post	2121/2192/2221	2178.0	-215.3	-5.3	down	nan	0.0	nan	nan	87.7	nan	9.13	2090.3	nan	0.48
+plain	astral_A2	Astral HCD	drop	2519/2515/2455	2496.3	+103.0	3.0	up	nan	0.0	nan	nan	94.0	nan	9.93	2402.3	nan	0.60
+plain	astral_B1	Astral HCD	nodeam	3225/3167/3178	3190.0	+458.7	16.2	up	nan	0.0	nan	nan	0.0	nan	nan	3190.0	nan	0.95
+plain	astral_B1	Astral HCD	off	2769/2693/2732	2731.3	+0.0	0.0	flat	nan	223.0	nan	2.39	85.3	nan	14.84	2423.0	nan	0.32
+plain	astral_B1	Astral HCD	on	2658/2623/2731	2670.7	-60.7	-1.6	flat	nan	269.3	nan	3.09	81.3	nan	13.11	2320.0	nan	0.27
+plain	astral_B1	Astral HCD	post	2553/2472/2500	2508.3	-223.0	-6.9	down	nan	0.0	nan	nan	85.3	nan	14.84	2423.0	nan	0.32
+plain	astral_B1	Astral HCD	drop	2902/2810/2939	2883.7	+152.3	3.4	up	nan	0.0	nan	nan	99.3	nan	12.42	2784.3	nan	0.55
+plain	astral_B3	Astral HCD	nodeam	3127/3109/3145	3127.0	+419.3	36.8	up	nan	0.0	nan	nan	0.0	nan	nan	3127.0	nan	0.96
+plain	astral_B3	Astral HCD	off	2702/2717/2704	2707.7	+0.0	0.0	flat	nan	147.0	nan	5.22	96.3	nan	9.34	2464.3	nan	0.38
+plain	astral_B3	Astral HCD	on	2632/2579/2703	2638.0	-69.7	-1.9	flat	nan	201.3	nan	4.80	89.3	nan	9.33	2347.3	nan	0.30
+plain	astral_B3	Astral HCD	post	2560/2563/2559	2560.7	-147.0	-30.3	down	nan	0.0	nan	nan	96.3	nan	9.34	2464.3	nan	0.38
+plain	astral_B3	Astral HCD	drop	2838/2858/2831	2842.3	+134.7	14.4	up	nan	0.0	nan	nan	116.3	nan	11.17	2726.0	nan	0.51
+plain	lumos_lfq_5192	Lumos HCD LFQ	nodeam	5574/5569/5558	5567.0	-12.0	-1.7	flat	nan	0.0	nan	nan	0.0	nan	nan	5567.0	nan	0.97
+plain	lumos_lfq_5192	Lumos HCD LFQ	off	5589/5574/5574	5579.0	+0.0	0.0	flat	nan	1069.0	nan	1.40	189.7	nan	7.38	4320.3	nan	0.58
+plain	lumos_lfq_5192	Lumos HCD LFQ	on	5577/5575/5581	5577.7	-1.3	-0.3	flat	nan	1508.7	nan	1.46	172.7	nan	6.95	3896.3	nan	0.51
+plain	lumos_lfq_5192	Lumos HCD LFQ	post	4575/4438/4517	4510.0	-1069.0	-26.7	down	nan	0.0	nan	nan	189.7	nan	7.38	4320.3	nan	0.58
+plain	lumos_lfq_5192	Lumos HCD LFQ	drop	5620/5589/5594	5601.0	+22.0	2.0	up	nan	0.0	nan	nan	222.3	nan	10.79	5378.7	nan	0.56
+plain	lumos_lfq_5194	Lumos HCD LFQ	nodeam	5524/5529/5522	5525.0	-85.3	-9.7	down	nan	0.0	nan	nan	0.0	nan	nan	5525.0	nan	0.98
+plain	lumos_lfq_5194	Lumos HCD LFQ	off	5594/5623/5614	5610.3	+0.0	0.0	flat	nan	948.3	nan	1.02	160.3	nan	8.73	4501.7	nan	0.69
+plain	lumos_lfq_5194	Lumos HCD LFQ	on	5600/5620/5596	5605.3	-5.0	-0.4	flat	nan	1440.0	nan	1.32	146.0	nan	8.45	4019.3	nan	0.58
+plain	lumos_lfq_5194	Lumos HCD LFQ	post	4643/4695/4648	4662.0	-948.3	-50.9	down	nan	0.0	nan	nan	160.3	nan	8.73	4501.7	nan	0.69
+plain	lumos_lfq_5194	Lumos HCD LFQ	drop	5581/5569/5586	5578.7	-31.7	-3.2	down	nan	0.0	nan	nan	171.7	nan	11.46	5407.0	nan	0.63
+plain	lumos_lfq_5199	Lumos HCD LFQ	nodeam	5561/5562/5583	5568.7	+6.7	0.7	flat	nan	0.0	nan	nan	0.0	nan	nan	5568.7	nan	0.97
+plain	lumos_lfq_5199	Lumos HCD LFQ	off	5549/5568/5569	5562.0	+0.0	0.0	flat	nan	1021.3	nan	1.37	179.3	nan	11.15	4361.3	nan	0.46
+plain	lumos_lfq_5199	Lumos HCD LFQ	on	5556/5550/5555	5553.7	-8.3	-1.2	flat	nan	1448.7	nan	1.33	165.7	nan	9.66	3939.3	nan	0.47
+plain	lumos_lfq_5199	Lumos HCD LFQ	post	4535/4530/4557	4540.7	-1021.3	-96.9	down	nan	0.0	nan	nan	179.3	nan	11.15	4361.3	nan	0.46
+plain	lumos_lfq_5199	Lumos HCD LFQ	drop	5600/5605/5600	5601.7	+39.7	5.9	up	nan	0.0	nan	nan	226.3	nan	13.25	5375.3	nan	0.47
+entrap	velos_125_R1	Velos CID	nodeam	2823/2759/2845	2809.0	+54.3	1.5	flat	1.85	0.0	nan	nan	0.0	nan	nan	2809.0	1.85	0.95
+entrap	velos_125_R1	Velos CID	off	2702/2779/2783	2754.7	+0.0	0.0	flat	1.28	493.7	0.68	1.62	192.0	2.43	4.69	2069.0	1.32	0.43
+entrap	velos_125_R1	Velos CID	on	2726/2751/2750	2742.3	-12.3	-0.4	flat	1.53	739.0	1.89	2.12	172.7	2.32	3.28	1830.7	1.31	0.25
+entrap	velos_125_R1	Velos CID	post	2206/2258/2319	2261.0	-493.7	-11.8	down	1.42	0.0	nan	nan	192.0	2.43	4.69	2069.0	1.32	0.43
+entrap	velos_125_R1	Velos CID	drop	2717/2803/2721	2747.0	-7.7	-0.2	flat	1.67	0.0	nan	nan	212.0	6.29	5.35	2535.0	1.29	0.59
+entrap	velos_5000_R2	Velos CID	nodeam	2724/2780/2709	2737.7	+34.7	1.1	flat	1.56	0.0	nan	nan	0.0	nan	nan	2737.7	1.56	0.95
+entrap	velos_5000_R2	Velos CID	off	2727/2658/2724	2703.0	+0.0	0.0	flat	1.78	477.3	1.12	1.40	213.3	2.19	2.97	2012.3	1.89	0.63
+entrap	velos_5000_R2	Velos CID	on	2710/2655/2626	2663.7	-39.3	-1.2	flat	1.48	753.3	1.24	1.81	193.3	2.76	2.93	1717.0	1.44	0.35
+entrap	velos_5000_R2	Velos CID	post	2258/2181/2238	2225.7	-477.3	-14.8	down	1.92	0.0	nan	nan	213.3	2.19	2.97	2012.3	1.89	0.63
+entrap	velos_5000_R2	Velos CID	drop	2668/2765/2648	2693.7	-9.3	-0.2	flat	1.36	0.0	nan	nan	227.0	3.52	4.41	2466.7	1.16	0.62
+entrap	velos_25000_R3	Velos CID	nodeam	2673/2633/2758	2688.0	-81.7	-2.1	down	1.49	0.0	nan	nan	0.0	nan	nan	2688.0	1.49	0.94
+entrap	velos_25000_R3	Velos CID	off	2785/2751/2773	2769.7	+0.0	0.0	flat	2.14	472.3	1.55	0.92	192.7	4.15	3.98	2104.7	2.09	0.67
+entrap	velos_25000_R3	Velos CID	on	2716/2718/2769	2734.3	-35.3	-1.8	flat	1.76	624.0	1.92	1.44	181.3	3.68	4.23	1929.0	1.52	0.48
+entrap	velos_25000_R3	Velos CID	post	2311/2295/2286	2297.3	-472.3	-38.2	down	2.26	0.0	nan	nan	192.7	4.15	3.98	2104.7	2.09	0.67
+entrap	velos_25000_R3	Velos CID	drop	2745/2790/2726	2753.7	-16.0	-0.7	flat	1.31	0.0	nan	nan	198.3	4.37	5.04	2555.3	1.07	0.63
+entrap	hfx_A2	HF-X HCD	nodeam	4482/4522/4473	4492.3	+167.3	8.7	up	1.48	0.0	nan	nan	0.0	nan	nan	4492.3	1.48	0.96
+entrap	hfx_A2	HF-X HCD	off	4302/4341/4332	4325.0	+0.0	0.0	flat	1.70	289.3	5.53	3.57	160.0	9.17	7.50	3875.7	1.10	0.51
+entrap	hfx_A2	HF-X HCD	on	4302/4316/4305	4307.7	-17.3	-1.4	flat	1.44	390.7	4.78	4.35	153.0	6.54	7.41	3764.0	0.89	0.36
+entrap	hfx_A2	HF-X HCD	post	4018/4049/4040	4035.7	-289.3	-19.3	down	1.42	0.0	nan	nan	160.0	9.17	7.50	3875.7	1.10	0.51
+entrap	hfx_A2	HF-X HCD	drop	4415/4315/4371	4367.0	+42.0	1.3	flat	1.16	0.0	nan	nan	165.3	9.27	11.49	4201.7	0.84	0.56
+entrap	hfx_B1	HF-X HCD	nodeam	4380/4368/4338	4362.0	+185.0	9.6	up	1.57	0.0	nan	nan	0.0	nan	nan	4362.0	1.57	0.96
+entrap	hfx_B1	HF-X HCD	off	4203/4152/4176	4177.0	+0.0	0.0	flat	1.76	511.7	3.52	1.50	143.7	11.60	9.98	3521.7	1.10	0.52
+entrap	hfx_B1	HF-X HCD	on	4154/4217/4154	4175.0	-2.0	-0.1	flat	1.96	680.3	4.41	1.86	134.0	13.93	11.69	3360.7	0.99	0.36
+entrap	hfx_B1	HF-X HCD	post	3678/3641/3677	3665.3	-511.7	-26.8	down	1.51	0.0	nan	nan	143.7	11.60	9.98	3521.7	1.10	0.52
+entrap	hfx_B1	HF-X HCD	drop	4324/4308/4244	4292.0	+115.0	4.0	up	1.83	0.0	nan	nan	159.0	18.87	15.93	4133.0	1.18	0.40
+entrap	hfx_B3	HF-X HCD	nodeam	4442/4426/4446	4438.0	+346.7	17.2	up	1.65	0.0	nan	nan	0.0	nan	nan	4438.0	1.65	0.97
+entrap	hfx_B3	HF-X HCD	off	4112/4053/4109	4091.3	+0.0	0.0	flat	1.11	386.0	1.04	2.07	145.7	10.98	11.21	3559.7	0.71	0.43
+entrap	hfx_B3	HF-X HCD	on	4120/4100/4073	4097.7	+6.3	0.3	flat	1.20	585.0	2.17	2.22	136.7	9.76	10.73	3376.0	0.69	0.36
+entrap	hfx_B3	HF-X HCD	post	3727/3663/3726	3705.3	-386.0	-13.5	down	1.12	0.0	nan	nan	145.7	10.98	11.21	3559.7	0.71	0.43
+entrap	hfx_B3	HF-X HCD	drop	4301/4220/4311	4277.3	+186.0	5.4	up	1.70	0.0	nan	nan	159.0	15.93	11.53	4118.3	1.15	0.57
+entrap	astral_A2	Astral HCD	nodeam	2467/2426/2471	2454.7	+259.0	8.0	up	0.71	0.0	nan	nan	0.0	nan	nan	2454.7	0.71	0.94
+entrap	astral_A2	Astral HCD	off	2230/2219/2138	2195.7	+0.0	0.0	flat	1.03	213.3	3.75	2.34	71.0	4.69	9.39	1911.3	0.59	0.47
+entrap	astral_A2	Astral HCD	on	2225/2198/2178	2200.3	+4.7	0.1	flat	1.00	279.7	3.58	2.74	73.3	3.64	7.73	1847.3	0.51	0.38
+entrap	astral_A2	Astral HCD	post	2013/2005/1929	1982.3	-213.3	-5.4	down	0.74	0.0	nan	nan	71.0	4.69	9.39	1911.3	0.59	0.47
+entrap	astral_A2	Astral HCD	drop	2213/2204/2239	2218.7	+23.0	0.7	flat	0.78	0.0	nan	nan	77.7	6.87	12.45	2141.0	0.56	0.53
+entrap	astral_B1	Astral HCD	nodeam	2912/2967/2981	2953.3	+536.0	22.8	up	2.10	0.0	nan	nan	0.0	nan	nan	2953.3	2.10	0.95
+entrap	astral_B1	Astral HCD	off	2400/2436/2416	2417.3	+0.0	0.0	flat	1.49	217.0	0.31	2.30	70.7	13.21	14.62	2129.7	1.22	0.36
+entrap	astral_B1	Astral HCD	on	2402/2455/2429	2428.7	+11.3	0.6	flat	1.59	281.3	0.95	2.61	68.3	11.71	13.66	2079.0	1.35	0.30
+entrap	astral_B1	Astral HCD	post	2184/2213/2204	2200.3	-217.0	-16.1	down	1.61	0.0	nan	nan	70.7	13.21	14.62	2129.7	1.22	0.36
+entrap	astral_B1	Astral HCD	drop	2515/2522/2502	2513.0	+95.7	8.0	up	1.59	0.0	nan	nan	80.7	14.88	18.60	2432.3	1.15	0.37
+entrap	astral_B3	Astral HCD	nodeam	2832/2693/2801	2775.3	+515.0	10.5	up	1.27	0.0	nan	nan	0.0	nan	nan	2775.3	1.27	0.95
+entrap	astral_B3	Astral HCD	off	2228/2310/2243	2260.3	+0.0	0.0	flat	1.00	139.0	5.76	4.32	78.3	10.21	11.06	2043.0	0.33	0.33
+entrap	astral_B3	Astral HCD	on	2252/2227/2285	2254.7	-5.7	-0.2	flat	1.03	190.0	5.26	4.04	75.0	8.89	10.67	1989.7	0.34	0.27
+entrap	astral_B3	Astral HCD	post	2101/2161/2102	2121.3	-139.0	-4.3	down	0.69	0.0	nan	nan	78.3	10.21	11.06	2043.0	0.33	0.33
+entrap	astral_B3	Astral HCD	drop	2357/2325/2382	2354.7	+94.3	3.1	up	1.30	0.0	nan	nan	84.0	17.46	17.46	2270.7	0.70	0.32
+entrap	lumos_lfq_5192	Lumos HCD LFQ	nodeam	5513/5525/5526	5521.3	+61.3	8.6	up	1.44	0.0	nan	nan	0.0	nan	nan	5521.3	1.44	0.98
+entrap	lumos_lfq_5192	Lumos HCD LFQ	off	5460/5470/5450	5460.0	+0.0	0.0	flat	0.83	967.0	0.69	1.76	173.7	8.83	4.80	4319.3	0.54	0.64
+entrap	lumos_lfq_5192	Lumos HCD LFQ	on	5472/5471/5451	5464.7	+4.7	0.5	flat	0.90	1419.0	1.08	1.69	160.7	8.71	4.77	3885.0	0.51	0.55
+entrap	lumos_lfq_5192	Lumos HCD LFQ	post	4471/4507/4501	4493.0	-967.0	-77.1	down	0.86	0.0	nan	nan	173.7	8.83	4.80	4319.3	0.54	0.64
+entrap	lumos_lfq_5192	Lumos HCD LFQ	drop	5515/5530/5520	5521.7	+61.7	8.5	up	1.30	0.0	nan	nan	214.0	16.20	9.03	5307.7	0.70	0.65
+entrap	lumos_lfq_5194	Lumos HCD LFQ	nodeam	5539/5534/5525	5532.7	+20.3	1.3	flat	1.12	0.0	nan	nan	0.0	nan	nan	5532.7	1.12	0.98
+entrap	lumos_lfq_5194	Lumos HCD LFQ	off	5519/5534/5484	5512.3	+0.0	0.0	flat	1.15	611.7	2.72	2.29	162.0	7.41	9.67	4738.7	0.73	0.51
+entrap	lumos_lfq_5194	Lumos HCD LFQ	on	5507/5538/5521	5522.0	+9.7	0.6	flat	1.32	1223.7	2.89	2.04	147.3	6.79	8.14	4151.0	0.66	0.41
+entrap	lumos_lfq_5194	Lumos HCD LFQ	post	4905/4922/4875	4900.7	-611.7	-30.3	down	0.95	0.0	nan	nan	162.0	7.41	9.67	4738.7	0.73	0.51
+entrap	lumos_lfq_5194	Lumos HCD LFQ	drop	5546/5539/5567	5550.7	+38.3	2.3	up	1.37	0.0	nan	nan	182.3	17.92	11.88	5368.3	0.81	0.60
+entrap	lumos_lfq_5199	Lumos HCD LFQ	nodeam	5520/5510/5526	5518.7	-21.0	-2.2	down	1.17	0.0	nan	nan	0.0	nan	nan	5518.7	1.17	0.98
+entrap	lumos_lfq_5199	Lumos HCD LFQ	off	5530/5533/5556	5539.7	+0.0	0.0	flat	1.18	819.3	1.22	1.30	191.0	12.22	10.12	4529.3	0.71	0.53
+entrap	lumos_lfq_5199	Lumos HCD LFQ	on	5529/5557/5547	5544.3	+4.7	0.4	flat	1.18	1250.0	1.81	1.33	179.3	12.27	9.29	4115.0	0.50	0.50
+entrap	lumos_lfq_5199	Lumos HCD LFQ	post	4706/4712/4743	4720.3	-819.3	-58.1	down	1.17	0.0	nan	nan	191.0	12.22	10.12	4529.3	0.71	0.53
+entrap	lumos_lfq_5199	Lumos HCD LFQ	drop	5569/5545/5558	5557.3	+17.7	1.6	flat	1.15	0.0	nan	nan	227.7	16.40	11.13	5329.7	0.50	0.54

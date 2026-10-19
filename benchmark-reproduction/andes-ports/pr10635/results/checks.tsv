@@ -1,0 +1,73 @@
+db	dataset	check	ok
+plain	velos_125_R1	off PIN == on PIN without isotope_mimic column	True
+plain	velos_125_R1	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	velos_125_R1	PIN rows 79346, deamidated 43728, flagged 16107	True
+plain	velos_5000_R2	off PIN == on PIN without isotope_mimic column	True
+plain	velos_5000_R2	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	velos_5000_R2	PIN rows 77917, deamidated 42421, flagged 15232	True
+plain	velos_25000_R3	off PIN == on PIN without isotope_mimic column	True
+plain	velos_25000_R3	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	velos_25000_R3	PIN rows 73748, deamidated 39965, flagged 14344	True
+plain	hfx_A2	off PIN == on PIN without isotope_mimic column	True
+plain	hfx_A2	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	hfx_A2	PIN rows 50220, deamidated 27726, flagged 10106	True
+plain	hfx_B1	off PIN == on PIN without isotope_mimic column	True
+plain	hfx_B1	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	hfx_B1	PIN rows 43885, deamidated 25058, flagged 9564	True
+plain	hfx_B3	off PIN == on PIN without isotope_mimic column	True
+plain	hfx_B3	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	hfx_B3	PIN rows 49217, deamidated 27806, flagged 10344	True
+plain	astral_A2	off PIN == on PIN without isotope_mimic column	True
+plain	astral_A2	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	astral_A2	PIN rows 73258, deamidated 39115, flagged 11952	True
+plain	astral_B1	off PIN == on PIN without isotope_mimic column	True
+plain	astral_B1	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	astral_B1	PIN rows 73794, deamidated 40120, flagged 12634	True
+plain	astral_B3	off PIN == on PIN without isotope_mimic column	True
+plain	astral_B3	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	astral_B3	PIN rows 73932, deamidated 39965, flagged 12513	True
+plain	lumos_lfq_5192	off PIN == on PIN without isotope_mimic column	True
+plain	lumos_lfq_5192	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	lumos_lfq_5192	PIN rows 59895, deamidated 35720, flagged 14339	True
+plain	lumos_lfq_5194	off PIN == on PIN without isotope_mimic column	True
+plain	lumos_lfq_5194	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	lumos_lfq_5194	PIN rows 61443, deamidated 36871, flagged 15062	True
+plain	lumos_lfq_5199	off PIN == on PIN without isotope_mimic column	True
+plain	lumos_lfq_5199	flag == rule recomputed from PIN dm (mismatches 0)	True
+plain	lumos_lfq_5199	PIN rows 62408, deamidated 37897, flagged 15455	True
+entrap	velos_125_R1	off PIN == on PIN without isotope_mimic column	True
+entrap	velos_125_R1	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	velos_125_R1	PIN rows 79459, deamidated 43564, flagged 16173	True
+entrap	velos_5000_R2	off PIN == on PIN without isotope_mimic column	True
+entrap	velos_5000_R2	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	velos_5000_R2	PIN rows 78077, deamidated 42309, flagged 15417	True
+entrap	velos_25000_R3	off PIN == on PIN without isotope_mimic column	True
+entrap	velos_25000_R3	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	velos_25000_R3	PIN rows 74094, deamidated 39795, flagged 14456	True
+entrap	hfx_A2	off PIN == on PIN without isotope_mimic column	True
+entrap	hfx_A2	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	hfx_A2	PIN rows 55610, deamidated 30162, flagged 10906	True
+entrap	hfx_B1	off PIN == on PIN without isotope_mimic column	True
+entrap	hfx_B1	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	hfx_B1	PIN rows 50179, deamidated 27807, flagged 10447	True
+entrap	hfx_B3	off PIN == on PIN without isotope_mimic column	True
+entrap	hfx_B3	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	hfx_B3	PIN rows 55371, deamidated 30508, flagged 11308	True
+entrap	astral_A2	off PIN == on PIN without isotope_mimic column	True
+entrap	astral_A2	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	astral_A2	PIN rows 74324, deamidated 38876, flagged 11838	True
+entrap	astral_B1	off PIN == on PIN without isotope_mimic column	True
+entrap	astral_B1	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	astral_B1	PIN rows 74743, deamidated 40076, flagged 12661	True
+entrap	astral_B3	off PIN == on PIN without isotope_mimic column	True
+entrap	astral_B3	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	astral_B3	PIN rows 74904, deamidated 39859, flagged 12292	True
+entrap	lumos_lfq_5192	off PIN == on PIN without isotope_mimic column	True
+entrap	lumos_lfq_5192	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	lumos_lfq_5192	PIN rows 64699, deamidated 37697, flagged 15284	True
+entrap	lumos_lfq_5194	off PIN == on PIN without isotope_mimic column	True
+entrap	lumos_lfq_5194	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	lumos_lfq_5194	PIN rows 66080, deamidated 38657, flagged 15950	True
+entrap	lumos_lfq_5199	off PIN == on PIN without isotope_mimic column	True
+entrap	lumos_lfq_5199	flag == rule recomputed from PIN dm (mismatches 0)	True
+entrap	lumos_lfq_5199	PIN rows 67263, deamidated 39843, flagged 16206	True

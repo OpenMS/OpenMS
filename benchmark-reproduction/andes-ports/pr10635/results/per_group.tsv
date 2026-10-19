@@ -1,0 +1,51 @@
+db	group	arm	n_files	mean_psms	delta_vs_off_pct	up/flat/down	fdp_combined_pct	est_true_psms	flagged_psms	flagged_fdp_pct	flagged_decoy_pct	deam_unflagged_psms	deam_unflagged_fdp_pct	deam_unflagged_decoy_pct	plain_psms	plain_fdp_pct	plain_decoy_pct
+plain	Velos CID	off	3	2913.9	+0.00	0/3/0	nan	nan	453.1	nan	1.79	211.1	nan	3.16	2249.7	nan	0.58
+plain	Velos CID	nodeam	3	2977.6	+2.18	2/1/0	nan	nan	0.0	nan	nan	0.0	nan	nan	2977.6	nan	0.96
+plain	Velos CID	on	3	2925.6	+0.40	0/3/0	nan	nan	610.1	nan	2.00	202.6	nan	3.13	2112.9	nan	0.44
+plain	Velos CID	post	3	2460.8	-15.55	0/0/3	nan	nan	0.0	nan	nan	211.1	nan	3.16	2249.7	nan	0.58
+plain	Velos CID	drop	3	2954.4	+1.39	1/2/0	nan	nan	0.0	nan	nan	225.9	nan	5.16	2728.6	nan	0.60
+plain	HF-X HCD	off	3	4452.6	+0.00	0/3/0	nan	nan	425.2	nan	1.70	161.1	nan	9.03	3866.2	nan	0.55
+plain	HF-X HCD	nodeam	3	4597.6	+3.26	3/0/0	nan	nan	0.0	nan	nan	0.0	nan	nan	4597.6	nan	0.97
+plain	HF-X HCD	on	3	4445.6	-0.16	0/3/0	nan	nan	611.1	nan	2.42	152.8	nan	7.78	3681.7	nan	0.44
+plain	HF-X HCD	post	3	4027.3	-9.55	0/0/3	nan	nan	0.0	nan	nan	161.1	nan	9.03	3866.2	nan	0.55
+plain	HF-X HCD	drop	3	4525.4	+1.64	2/1/0	nan	nan	0.0	nan	nan	172.7	nan	10.75	4352.8	nan	0.58
+plain	Astral HCD	off	3	2610.8	+0.00	0/3/0	nan	nan	195.1	nan	2.96	89.8	nan	11.01	2325.9	nan	0.39
+plain	Astral HCD	nodeam	3	3049.8	+16.81	3/0/0	nan	nan	0.0	nan	nan	0.0	nan	nan	3049.8	nan	0.95
+plain	Astral HCD	on	3	2568.0	-1.64	0/3/0	nan	nan	258.6	nan	3.31	85.1	nan	10.05	2224.3	nan	0.32
+plain	Astral HCD	post	3	2415.7	-7.47	0/0/3	nan	nan	0.0	nan	nan	89.8	nan	11.01	2325.9	nan	0.39
+plain	Astral HCD	drop	3	2740.8	+4.98	3/0/0	nan	nan	0.0	nan	nan	103.2	nan	11.19	2637.6	nan	0.55
+plain	Lumos HCD LFQ	off	3	5583.8	+0.00	0/3/0	nan	nan	1012.9	nan	1.27	176.4	nan	9.07	4394.4	nan	0.58
+plain	Lumos HCD LFQ	nodeam	3	5553.6	-0.54	0/2/1	nan	nan	0.0	nan	nan	0.0	nan	nan	5553.6	nan	0.97
+plain	Lumos HCD LFQ	on	3	5578.9	-0.09	0/3/0	nan	nan	1465.8	nan	1.37	161.4	nan	8.33	3951.7	nan	0.52
+plain	Lumos HCD LFQ	post	3	4570.9	-18.14	0/0/3	nan	nan	0.0	nan	nan	176.4	nan	9.07	4394.4	nan	0.58
+plain	Lumos HCD LFQ	drop	3	5593.8	+0.18	2/0/1	nan	nan	0.0	nan	nan	206.8	nan	11.88	5387.0	nan	0.55
+plain	All	off	12	46683.0	+0.00	0/12/0	nan	nan	6259.0	nan	1.63	1915.3	nan	7.38	38508.7	nan	0.53
+plain	All	nodeam	12	48535.3	+3.97	8/3/1	nan	nan	0.0	nan	nan	0.0	nan	nan	48535.3	nan	0.96
+plain	All	on	12	46554.0	-0.28	0/12/0	nan	nan	8836.7	nan	1.89	1805.7	nan	6.68	35911.7	nan	0.45
+plain	All	post	12	40424.0	-13.41	0/0/12	nan	nan	0.0	nan	nan	1915.3	nan	7.38	38508.7	nan	0.53
+plain	All	drop	12	47443.3	+1.63	8/3/1	nan	nan	0.0	nan	nan	2125.7	nan	9.36	45317.7	nan	0.57
+entrap	Velos CID	off	3	2742.4	+0.00	0/3/0	1.73	2694.9	481.1	1.11	1.32	199.3	2.90	3.85	2062.0	1.77	0.58
+entrap	Velos CID	nodeam	3	2744.9	+0.09	0/2/1	1.64	2700.0	0.0	nan	nan	0.0	nan	nan	2744.9	1.64	0.95
+entrap	Velos CID	on	3	2713.4	-1.06	0/3/0	1.59	2670.3	705.4	1.67	1.81	182.4	2.92	3.47	1825.6	1.42	0.37
+entrap	Velos CID	post	3	2261.3	-17.54	0/0/3	1.87	2219.1	0.0	nan	nan	199.3	2.90	3.85	2062.0	1.77	0.58
+entrap	Velos CID	drop	3	2731.4	-0.40	0/3/0	1.45	2691.9	0.0	nan	nan	212.4	4.71	4.92	2519.0	1.17	0.61
+entrap	HF-X HCD	off	3	4197.8	+0.00	0/3/0	1.52	4133.8	395.7	3.20	2.19	149.8	10.53	9.50	3652.3	0.97	0.49
+entrap	HF-X HCD	nodeam	3	4430.8	+5.55	3/0/0	1.57	4361.2	0.0	nan	nan	0.0	nan	nan	4430.8	1.57	0.97
+entrap	HF-X HCD	on	3	4193.4	-0.10	0/3/0	1.54	4129.0	552.0	3.70	2.58	141.2	9.91	9.83	3500.2	0.86	0.36
+entrap	HF-X HCD	post	3	3802.1	-9.43	0/0/3	1.35	3750.8	0.0	nan	nan	149.8	10.53	9.50	3652.3	0.97	0.49
+entrap	HF-X HCD	drop	3	4312.1	+2.72	2/1/0	1.56	4244.8	0.0	nan	nan	161.1	14.62	12.97	4151.0	1.05	0.51
+entrap	Astral HCD	off	3	2291.1	+0.00	0/3/0	1.18	2264.0	189.8	2.93	2.81	73.3	9.39	11.67	2028.0	0.72	0.38
+entrap	Astral HCD	nodeam	3	2727.8	+19.06	3/0/0	1.40	2689.6	0.0	nan	nan	0.0	nan	nan	2727.8	1.40	0.95
+entrap	Astral HCD	on	3	2294.6	+0.15	0/3/0	1.22	2266.6	250.3	3.02	3.02	72.2	8.00	10.62	1972.0	0.74	0.32
+entrap	Astral HCD	post	3	2101.3	-8.28	0/0/3	1.03	2079.8	0.0	nan	nan	73.3	9.39	11.67	2028.0	0.72	0.38
+entrap	Astral HCD	drop	3	2362.1	+3.10	2/1/0	1.24	2332.8	0.0	nan	nan	80.8	13.20	16.23	2281.3	0.82	0.40
+entrap	Lumos HCD LFQ	off	3	5504.0	+0.00	0/3/0	1.05	5446.0	799.3	1.39	1.74	175.6	9.62	8.23	4529.1	0.66	0.56
+entrap	Lumos HCD LFQ	nodeam	3	5524.2	+0.37	1/1/1	1.24	5455.6	0.0	nan	nan	0.0	nan	nan	5524.2	1.24	0.98
+entrap	Lumos HCD LFQ	on	3	5510.3	+0.12	0/3/0	1.13	5447.9	1297.6	1.88	1.69	162.4	9.44	7.46	4050.3	0.56	0.49
+entrap	Lumos HCD LFQ	post	3	4704.7	-14.52	0/0/3	1.00	4657.8	0.0	nan	nan	175.6	9.62	8.23	4529.1	0.66	0.56
+entrap	Lumos HCD LFQ	drop	3	5543.2	+0.71	2/1/0	1.27	5472.6	0.0	nan	nan	208.0	16.77	10.63	5335.2	0.67	0.60
+entrap	All	off	12	44206.0	+0.00	0/12/0	1.33	43616.0	5597.7	1.86	1.83	1794.0	7.58	7.51	36814.3	0.95	0.51
+entrap	All	nodeam	12	46283.0	+4.70	7/3/2	1.43	45619.0	0.0	nan	nan	0.0	nan	nan	46283.0	1.43	0.96
+entrap	All	on	12	44135.3	-0.16	0/12/0	1.35	43541.3	8416.0	2.29	2.01	1675.0	7.24	7.16	34044.3	0.82	0.40
+entrap	All	post	12	38608.3	-12.66	0/0/12	1.26	38122.3	0.0	nan	nan	1794.0	7.58	7.51	36814.3	0.95	0.51
+entrap	All	drop	12	44846.7	+1.45	6/6/0	1.38	44226.0	0.0	nan	nan	1987.0	11.94	10.05	42859.7	0.89	0.54

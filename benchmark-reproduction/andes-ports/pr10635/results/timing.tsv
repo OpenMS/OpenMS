@@ -1,0 +1,13 @@
+dataset	arm	round	search_seconds	peak_rss_kb
+astral_B1	off	r1	21.37	4176728
+astral_B1	on	r1	19.93	4177000
+astral_B1	off	r2	19.92	4176784
+astral_B1	on	r2	20.05	4177244
+astral_B1	off	r3	20.84	4177188
+astral_B1	on	r3	20.98	4176732
+hfx_A2	off	r1	16.60	4552504
+hfx_A2	on	r1	14.21	4555672
+hfx_A2	off	r2	15.02	4552832
+hfx_A2	on	r2	14.35	4553368
+hfx_A2	off	r3	14.63	4558972
+hfx_A2	on	r3	14.57	4557472
