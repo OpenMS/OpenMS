@@ -159,7 +159,7 @@ export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = 
     const actual = searchTwo(["/in/fbf/a.mzML", "/in/fbf/b.mzML"], {
       provideFile: (i, p) => {
         calls.push(`provide ${i}`);
-        m.allocateFile(p, blob.size);
+        m.allocateFile(p, blob.size, blob.size); // (with a capacity, as the ProSE app allocates files of different sizes)
         for (let at = 0; at < blob.size; at += chunk) m.writeFileChunk(p, read(at, Math.min(blob.size, at + chunk)), at);
       },
       releaseFile: (i, p) => {

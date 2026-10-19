@@ -223,6 +223,41 @@ test("allocateFile and writeFileChunk: a file has to be smaller than 2 GiB", () 
   }
 });
 
+test("allocateFile with a capacity: files of increasing size, one at a time, keep the heap flat", async () => {
+  // mimalloc does not give a freed block to a larger one: files of 64, 96, 128 MB allocated at their size, each removed
+  // before the next, took the heap from 243 to 359 to 507 MB. Allocated with the capacity of the largest, every file
+  // gets a block of that size, and the next one takes the block of the last. A module of its own, for its heap.
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
+  const MB = 1048576;
+  const sizes = [64 * MB, 96 * MB, 128 * MB, 160 * MB];
+  const capacity = Math.max(...sizes);
+  const chunk = new Uint8Array(MB).map((_, i) => i & 255);
+  const heaps = [];
+  for (const [k, size] of sizes.entries()) {
+    const file = `/increasing${k}.bin`;
+    m.allocateFile(file, size, capacity);
+    assert.equal(m.FS.stat(file).size, size, "the size, not the capacity");
+    m.writeFileChunk(file, chunk, size - MB); // the last MB: within the size
+    assert.deepEqual(m.readFileChunk(file, size - MB, MB), chunk);
+    heaps.push(m.getMemoryInfo().heapSize);
+    m.FS.unlink(file);
+  }
+  assert.ok(heaps.every((h) => h === heaps[0]), `the heap after each file: ${heaps.map((h) => h / MB)} MB`);
+  // one path for all files: allocateFile with a capacity replaces the file (its contents go)
+  m.allocateFile("/slot.bin", 32 * MB, capacity);
+  m.writeFileChunk("/slot.bin", chunk, 0);
+  m.allocateFile("/slot.bin", 160 * MB, capacity);
+  assert.equal(m.FS.stat("/slot.bin").size, 160 * MB);
+  assert.deepEqual(m.readFileChunk("/slot.bin", 0, 4), new Uint8Array(4), "a new file");
+  assert.equal(m.getMemoryInfo().heapSize, heaps[0]);
+  m.FS.unlink("/slot.bin");
+  // the capacity: at least the size, and smaller than 2 GiB
+  assert.throws(() => m.allocateFile("/c.bin", 2 * MB, MB), /capacity has to be at least the size/);
+  assert.throws(() => m.allocateFile("/c.bin", MB, 2 ** 31), /smaller than 2 GiB/);
+  assert.throws(() => m.allocateFile("/c.bin", MB, -1), /capacity has to be a non-negative integer/);
+});
+
 test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where the memory cannot hold their data", async () => {
   // Emscripten's FS.writeFile/write/read took the 0 that malloc returns then for the address of their buffer, and
   // wrote over the start of the module's memory (wasmfs_fs.js). A module of its own: its memory grows to the limit.

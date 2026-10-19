@@ -126,6 +126,7 @@ never holds a whole file next to the module's copy:
 
 ```ts
 allocateFile(path: string, size: number): void;                          // create (or resize) with size bytes, in one allocation
+allocateFile(path: string, size: number, capacity: number): void;        // create anew with size bytes in a block of capacity bytes
 writeFileChunk(path: string, data: Uint8Array, offset: number): void;    // write data at offset (the file is created if missing)
 readFileChunk(path: string, offset: number, length: number): Uint8Array; // up to length bytes from offset (fewer at the end)
 ```
@@ -156,6 +157,27 @@ three times its size. Errors, after which the module stays usable:
   start of the module's memory (`wasmfs_fs.js`, which also makes `FS.write()` copy a typed array of
   bytes in one piece instead of byte by byte). `FS.write()` and `FS.read()` throw errno 28 (EINVAL) for
   an `offset` and `length` beyond their buffer.
+
+**Files one after the other: allocate them with a capacity.** The allocator (mimalloc) does not give the
+block of a removed file to a larger one. Files that come one at a time, each removed before the next,
+therefore grow the heap with each file that is larger than the ones before (0.9, 1.0 and 1.1 GiB took it
+to 1103, 2147 and 3295 MB, and 1.2 GiB did not fit), unless their blocks have the same size.
+`allocateFile(path, size, capacity)` gives the file a block of `capacity` bytes (at least `size`, smaller
+than 2 GiB): allocate each file with the size of the largest as capacity, and every file takes the
+block of the one before (0.9 to 1.4 GiB in increasing order: 1615 MB throughout). Only files allocated
+this way, with the same capacity, reuse the block; the path may be the same or a new one. With a
+capacity the file is created anew: an existing file at `path` is replaced (its contents go). The file
+can grow up to its capacity without a new block, but `writeFileChunk()` checks a write past its size
+as growth by doubling (WasmFS does not tell the capacity of a file): write within the size.
+
+**What is not guarded.** These paths still allocate inside WasmFS without a check, and where the memory
+cannot hold the file they abort the module: a write into the memory file system by `FS.writeFile()` or
+`FS.write()` that grows the file (their own buffer is checked, the growth of the file is not),
+`FS.truncate()`, and files that OpenMS writes, e.g. `storeIdXML()`, whose file grows by doubling (up to
+three times its size) and fails when the heap is high. An exception that is not an `Error`, a raw
+`WebAssembly.Exception` (e.g. `std::bad_alloc` from inside WasmFS) or a `RuntimeError` ("unreachable",
+an abort), is fatal: the module's state is undefined (a lock of the file system may be held). Terminate
+the Worker and start a new module; do not call the module again.
 
 ### Memory
 
@@ -314,10 +336,13 @@ the heap to 3.9 GB. With `provideFile`, `searchFiles()` searches the files one a
 // in a Web Worker: files are the user's File objects (from the page), the database is written already
 const paths = files.map((f, i) => `/input/${i}/${f.name}`);   // distinct paths, as always
 const chunk = 16 << 20, reader = new FileReaderSync();
+// one block of the size of the largest file for all of them (allocateFile with a capacity, above): files of
+// increasing size would grow the heap with every file otherwise. Larger than 2080374784 bytes: too large.
+const capacity = Math.max(...files.map((f) => f.size));
 const set = prose.searchFiles(paths, "/input/database.fasta", {
   provideFile: (i, path) => {
     OpenMS.FS.mkdirTree(path.slice(0, path.lastIndexOf("/")));
-    OpenMS.allocateFile(path, files[i].size);
+    OpenMS.allocateFile(path, files[i].size, capacity);
     for (let at = 0; at < files[i].size; at += chunk) {
       OpenMS.writeFileChunk(path, new Uint8Array(reader.readAsArrayBuffer(files[i].slice(at, at + chunk))), at);
     }
@@ -367,7 +392,8 @@ allocator (mimalloc, with threads) does not reuse. With many small files it is m
 took the heap from 715 to 2959 MB. A file has to be smaller than 2 GiB (above).
 
 **Exporting idXML.** `storeIdXML(path)` writes into the memory file system as well, where the file
-grows by doubling and briefly takes up to three times its size. Hand it over in chunks and remove it:
+grows by doubling and briefly takes up to three times its size (not guarded: see "Files in parts"). Hand
+it over in chunks and remove it:
 
 ```js
 set.storeIdXML("/output/merged.idXML");

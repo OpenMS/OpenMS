@@ -322,6 +322,40 @@ namespace OpenMS::WASM
       }
     }
 
+    /// Creates the file @p path anew with @p size bytes (zeros) in a block of @p capacity bytes (at least @p size): an
+    /// existing file at @p path is replaced (its block is freed first; if it is open elsewhere, when that is closed).
+    /// mimalloc does not give a freed block to a larger one: files that come one after the other, each removed before
+    /// the next, keep the heap flat only if their blocks have the same size, e.g. the size of the largest of them.
+    /// The file grows within its capacity (up to @p capacity bytes) without a new block, but writeFileChunk() checks a
+    /// write past the size as growth of a block of that size (WasmFS does not tell the capacity of a file).
+    void allocateFileWithCapacity(const std::string& path, double size, double capacity)
+    {
+      const off_t bytes = byteCount(size, "The size", path);
+      const off_t reserved = byteCount(capacity, "The capacity", path);
+      checkFileSize(reserved, path);
+      if (reserved < bytes)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The capacity has to be at least the size (" + std::to_string(bytes) + " bytes): " + path, std::to_string(reserved));
+      }
+      if (::unlink(path.c_str()) != 0 && errno != ENOENT)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
+      }
+      FileDescriptor file;
+      file.fd = ::open(path.c_str(), O_WRONLY | O_CREAT, 0666);
+      if (file.fd < 0)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
+      }
+      // the file is empty: its std::vector allocates exactly the capacity, and keeps it when it shrinks to the size
+      checkMemoryFor(static_cast<size_t>(reserved));
+      if (::ftruncate(file.fd, reserved) != 0 || ::ftruncate(file.fd, bytes) != 0)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
+      }
+    }
+
     /// Removes the mount point @p mount_point (a directory created by mountHostDirectory()).
     void unmountDirectory(const std::string& mount_point)
     {
@@ -352,4 +386,5 @@ EMSCRIPTEN_BINDINGS(openms_misc)
   function("writeFileChunk", OMS_FN(&writeFileChunk));
   function("readFileChunk", OMS_FN(&readFileChunk));
   function("allocateFile", OMS_FN(&allocateFile));
+  function("allocateFile", OMS_FN(&allocateFileWithCapacity));
 }

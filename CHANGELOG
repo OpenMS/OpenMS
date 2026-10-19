@@ -843,8 +843,9 @@ Build System:
     .pin input that ProSE's rescoring passes (unchanged behaviour).
   - WebAssembly: searchFiles() searches the files one at a time with the options provideFile and
     releaseFile, which write each file when its search needs it and remove it after it: in a browser
-    only the largest input file has to fit into the module's memory, not all of them. allocateFile(),
-    writeFileChunk() and readFileChunk() write and read files in chunks. FS.writeFile(), FS.write()
+    only the largest input file has to fit into the module's memory, not all of them. allocateFile()
+    (with a capacity, so that files one after the other reuse one block), writeFileChunk() and
+    readFileChunk() write and read files in chunks. FS.writeFile(), FS.write()
     and FS.read() throw ENOMEM where the module's memory cannot hold their buffer (Emscripten's wrote
     from address 0 then), and FS.write() copies in one piece. A file of the module's file system has
     to be smaller than 2 GiB (InvalidValue).
