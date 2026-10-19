@@ -472,6 +472,16 @@ namespace OpenMS
       "MS2 spectra in memory for the whole search, so budget for their sum as well, or split "
       "very large cohorts across separate ProSE invocations.");
     defaults_.setMinInt("database:chunk_size", 0);
+    defaults_.setValue("database:mass_slices", 1,
+      "Search the spectra in this many slices by precursor mass, for databases whose fragment index exceeds the "
+      "available memory (e.g. many variable modifications, or no enzyme specificity). The spectra (of all input files) "
+      "are ordered by precursor mass and split into slices of equal size; for each slice, a fragment index of the whole "
+      "database is built with only the peptides its spectra can reach, the slice is scored and the index released. "
+      "Each spectrum is scored once with the candidates of the full index, so the results do not change; the index "
+      "takes about 1/slices of the memory, and the database is digested once per slice. Holds the preprocessed MS2 "
+      "spectra of all input files in memory. 1 = disabled. Not with database:chunk_size > 0, in open search mode, or "
+      "with low_memory and no enzyme specificity.");
+    defaults_.setMinInt("database:mass_slices", 1);
 
     defaults_.setSectionDescription("calibration",
       "Automatic mass accuracy calibration (two-pass search). A fast first pass on a subset of "
@@ -683,6 +693,7 @@ namespace OpenMS
     protein_mapping_from_index_ = param_.getValue("peptide:protein_mapping").toString() == "index";
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
+    database_mass_slices_ = static_cast<Size>(static_cast<int>(param_.getValue("database:mass_slices")));
 
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
@@ -2406,8 +2417,11 @@ namespace OpenMS
     // Follow-up issue: pool calibration PSMs across the first K chunks of the
     // main search loop, so calibration quality becomes independent of
     // chunk_size.
+    // database:mass_slices: a sample of the size of one slice's share of the database
+    const Size budget = database_chunk_size_ > 0 ? database_chunk_size_
+                        : (full_db.size() + database_mass_slices_ - 1) / std::max<Size>(database_mass_slices_, 1);
     const Size cal_target = std::min(
-        std::max<Size>(database_chunk_size_, Size(1)),
+        std::max<Size>(budget, Size(1)),
         full_db.size());
     if (cal_target >= full_db.size()) return full_db;
 
@@ -2619,6 +2633,118 @@ namespace OpenMS
     if (scoring_error) std::rethrow_exception(scoring_error);
   }
 
+  bool ProSEAlgorithm::massSlicing_() const
+  {
+    return database_mass_slices_ > 1 && database_chunk_size_ == 0 && !isOpenSearchMode_()
+           && !(param_.getValue("low_memory").toBool() && peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE);
+  }
+
+  ProSEAlgorithm::MassSliceStats_ ProSEAlgorithm::scoreMassSlices_(
+      const std::vector<const PeakMap*>& files,
+      const std::vector<const PeakMap*>& query_files,
+      const std::vector<FASTAFile::FASTAEntry>& db,
+      bool electron_ions,
+      const std::vector<std::array<double, 3>>& tolerances,
+      const SpectrumGenerators_& generators,
+      const std::vector<std::vector<std::vector<AnnotatedHit_>>*>& hits,
+      const std::vector<std::vector<CandidatePoolStats_>*>& pool_stats) const
+  {
+    MassSliceStats_ out;
+    const bool fragment_tol_ppm = (fragment_mass_tolerance_unit_ == "ppm");
+    const bool open_search_mode = isOpenSearchMode_();
+
+    // The spectra querySpectrum() searches (see FragmentIndex::keepPeptidesInPrecursorWindows_), by precursor mass;
+    // the others get no candidates from any index
+    struct SpectrumRef { Size file; Size index; double mass; };
+    std::vector<SpectrumRef> refs;
+    for (Size f = 0; f < files.size(); ++f)
+    {
+      for (Size i = 0; i < files[f]->size(); ++i)
+      {
+        const MSSpectrum& spectrum = (*files[f])[i];
+        if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) continue;
+        const Precursor& precursor = spectrum.getPrecursors()[0];
+        const int charge = precursor.getCharge() > 0 ? precursor.getCharge() : precursor_min_charge_;
+        refs.push_back({f, i, (precursor.getMZ() - Constants::PROTON_MASS_U) * charge});
+      }
+    }
+    std::stable_sort(refs.begin(), refs.end(), [](const SpectrumRef& a, const SpectrumRef& b) { return a.mass < b.mass; });
+
+    // The index restriction uses the widest precursor window of any file; each file is then queried with its own
+    Param build_params = fragmentIndexParameters_(electron_ions);
+    {
+      double lower = precursor_mass_tolerance_lower_, upper = precursor_mass_tolerance_upper_;
+      for (const auto& tol : tolerances)
+      {
+        lower = std::max(lower, tol[1]);
+        upper = std::max(upper, tol[2]);
+      }
+      build_params.setValue("precursor:mass_tolerance_lower", lower);
+      build_params.setValue("precursor:mass_tolerance_upper", upper);
+    }
+
+    const Size n_slices = std::max<Size>(1, std::min(database_mass_slices_, refs.size()));
+    OPENMS_LOG_INFO << "[ProSE] Mass slices: " << refs.size() << " spectra in " << n_slices << " slices by precursor mass."
+                    << std::endl;
+    for (Size slice = 0; slice < n_slices; ++slice)
+    {
+      const Size from = refs.size() * slice / n_slices, to = refs.size() * (slice + 1) / n_slices;
+      if (from == to) continue;
+
+      // the slice's spectra per file, and their precursors (with one peak each) for the index restriction
+      std::vector<PeakMap> part(files.size()), query_part(files.size());
+      std::vector<std::vector<Size>> where(files.size());
+      PeakMap precursors;
+      for (Size r = from; r < to; ++r)
+      {
+        const SpectrumRef& ref = refs[r];
+        const MSSpectrum& spectrum = (*files[ref.file])[ref.index];
+        part[ref.file].addSpectrum(spectrum);
+        if (query_files[ref.file] != nullptr) query_part[ref.file].addSpectrum((*query_files[ref.file])[ref.index]);
+        where[ref.file].push_back(ref.index);
+        MSSpectrum stub;
+        stub.setMSLevel(2);
+        stub.setPrecursors(spectrum.getPrecursors());
+        stub.push_back(spectrum[0]);
+        precursors.addSpectrum(std::move(stub));
+      }
+      OPENMS_LOG_INFO << "[ProSE] Mass slice " << (slice + 1) << "/" << n_slices << ": " << (to - from)
+                      << " spectra, precursor mass " << refs[from].mass << " to " << refs[to - 1].mass << " Da" << std::endl;
+
+      FragmentIndex slice_fi;
+      slice_fi.setParameters(build_params);
+      StopWatch sw; sw.start();
+      slice_fi.build(db, [&precursors](Size) { return &precursors; });
+      sw.stop();
+      precursors.clear(true);
+      out.seconds_index_build += sw.getClockTime();
+      out.indexed_peptides += slice_fi.getPeptides().size();
+      out.indexed_fragments += slice_fi.getNumFragments();
+
+      for (Size f = 0; f < files.size(); ++f)
+      {
+        if (part[f].empty()) continue;
+        Param query_params = build_params;
+        query_params.setValue("fragment:mass_tolerance", tolerances[f][0]);
+        query_params.setValue("precursor:mass_tolerance_lower", tolerances[f][1]);
+        query_params.setValue("precursor:mass_tolerance_upper", tolerances[f][2]);
+        slice_fi.setParameters(query_params);
+        std::vector<std::vector<AnnotatedHit_>> slice_hits(part[f].size());
+        std::vector<CandidatePoolStats_> slice_stats(part[f].size());
+        scoreSpectraAgainstIndex_(part[f], slice_fi, db, generators, tolerances[f][0], fragment_tol_ppm, open_search_mode,
+                                  slice_hits, slice_stats,
+                                  "Scoring mass slice " + StringUtils::toStr(slice + 1) + (files.size() > 1 ? ", file " + StringUtils::toStr(f + 1) : std::string()) + "...",
+                                  query_files[f] != nullptr ? &query_part[f] : nullptr);
+        for (Size k = 0; k < where[f].size(); ++k)
+        {
+          (*hits[f])[where[f][k]] = std::move(slice_hits[k]);
+          (*pool_stats[f])[where[f][k]] = std::move(slice_stats[k]);
+        }
+      }
+    }
+    return out;
+  }
+
   // =====================================================================
   // In-memory search: thin wrapper that builds a fresh SearchContext per call.
   // For repeated searches against the same database, prefer the
@@ -2646,7 +2772,7 @@ namespace OpenMS
     // so opt in to eager FI release (M1) before PeptideIndexing.
     // ions:by_activation: index c and z+1 ions up front if electron-activated spectra are searched
     const bool electron_ions = countElectronActivated_(spectra) > 0;
-    if (database_chunk_size_ == 0)
+    if (database_chunk_size_ == 0 && !massSlicing_())
     {
       // single use: index only the peptides these spectra can reach
       std::function<const PeakMap*(Size)> searched_spectra;
@@ -2663,7 +2789,7 @@ namespace OpenMS
     // chunking and built a full FI 2× the user's declared memory budget.
     const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
     auto full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
-    if (full_db.size() <= database_chunk_size_)
+    if (!massSlicing_() && full_db.size() <= database_chunk_size_)
     {
       // Augmented DB fits in one chunk — use the single-context path but skip
       // prepareContext's internal decoy re-generation by building ctx inline.
@@ -2695,10 +2821,15 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    const Size n_chunks = (full_db.size() + database_chunk_size_ - 1) / database_chunk_size_;
-    OPENMS_LOG_INFO << "[ProSE] Database chunking enabled: " << full_db.size()
-                    << " proteins (incl. decoys), chunk_size=" << database_chunk_size_
-                    << " → " << n_chunks << " chunks." << std::endl;
+    // database:mass_slices: the spectra are split instead of the database
+    const bool mass_sliced = massSlicing_();
+    if (!mass_sliced)
+    {
+      const Size n_chunks = (full_db.size() + database_chunk_size_ - 1) / database_chunk_size_;
+      OPENMS_LOG_INFO << "[ProSE] Database chunking enabled: " << full_db.size()
+                      << " proteins (incl. decoys), chunk_size=" << database_chunk_size_
+                      << " → " << n_chunks << " chunks." << std::endl;
+    }
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
@@ -2792,10 +2923,16 @@ namespace OpenMS
     // same spectrum, and the pool features must see all of them.
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
 
-    // 5. Chunk loop.
-    const Size chunk_size = database_chunk_size_;
+    // 5. Chunk loop (or the mass slices).
+    if (mass_sliced)
+    {
+      scoreMassSlices_({&spectra}, {query_ptr}, full_db, electron_ions,
+                       {{effective_fragment_tol, effective_precursor_tol_lower, effective_precursor_tol_upper}},
+                       generators, {&annotated_hits}, {&pool_stats});
+    }
+    const Size chunk_size = mass_sliced ? full_db.size() : database_chunk_size_;
     Size chunk_idx = 0;
-    for (Size start = 0; start < full_db.size(); start += chunk_size)
+    for (Size start = 0; !mass_sliced && start < full_db.size(); start += chunk_size)
     {
       ++chunk_idx;
       const Size end = std::min(start + chunk_size, full_db.size());
@@ -4513,7 +4650,7 @@ namespace OpenMS
     bool strategy_resolved = false;
     ExitCodes ec;
     const Size threads = startOpenMPThreads();
-    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && threads > 1)
+    if (database_chunk_size_ == 0 && !massSlicing_() && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && threads > 1)
     {
       // Unchunked, multi-threaded search of an mzML file: a helper thread reads the spectra while
       // this thread reads the FASTA file and builds the fragment index; then the search continues
@@ -4804,10 +4941,10 @@ namespace OpenMS
     // would exceed the user's memory budget by 2×.
     std::vector<FASTAFile::FASTAEntry> full_db;
     bool use_chunked = false;
-    if (database_chunk_size_ > 0)
+    if (database_chunk_size_ > 0 || massSlicing_())
     {
       full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
-      use_chunked = (full_db.size() > database_chunk_size_);
+      use_chunked = massSlicing_() || (full_db.size() > database_chunk_size_);
     }
 
     if (use_chunked)
@@ -4876,7 +5013,9 @@ namespace OpenMS
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
       // Stores per-file effective tolerances (asymmetric lower/upper preserved — see #9180)
       // for use during scoring.
-      const Size chunk_size = database_chunk_size_;
+      // database:mass_slices: the spectra of all files are split by precursor mass instead of the database
+      const bool mass_sliced = massSlicing_();
+      const Size chunk_size = mass_sliced ? std::max<Size>(full_db.size(), 1) : database_chunk_size_;
       const Size n_chunks = (full_db.size() + chunk_size - 1) / chunk_size;
       struct PerFileCalibration
       {
@@ -4968,12 +5107,36 @@ namespace OpenMS
         for (auto& a : per_file_hits[i]) a.reserve(report_top_hits_);
         per_file_pool_stats[i].resize(all_spectra[i].size());
       }
-      OPENMS_LOG_INFO << "[ProSE] Chunk-major multi-file: " << full_db.size()
-                      << " proteins, " << n_chunks << " chunks, "
-                      << in_spectra_files.size() << " files." << std::endl;
+      if (mass_sliced)
+      {
+        std::vector<const PeakMap*> files, query_files;
+        std::vector<std::array<double, 3>> tolerances;
+        std::vector<std::vector<std::vector<AnnotatedHit_>>*> hits;
+        std::vector<std::vector<CandidatePoolStats_>*> stats;
+        for (Size i = 0; i < in_spectra_files.size(); ++i)
+        {
+          files.push_back(&all_spectra[i]);
+          query_files.push_back(query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
+          tolerances.push_back({per_file_cal[i].effective_fragment_tol, per_file_cal[i].effective_precursor_tol_lower,
+                                per_file_cal[i].effective_precursor_tol_upper});
+          hits.push_back(&per_file_hits[i]);
+          stats.push_back(&per_file_pool_stats[i]);
+        }
+        const MassSliceStats_ slices = scoreMassSlices_(files, query_files, full_db, electron_ions, tolerances, generators, hits, stats);
+        mfres.shared.seconds_index_build += slices.seconds_index_build;
+        mfres.shared.indexed_peptides += slices.indexed_peptides;
+        mfres.shared.indexed_fragments += slices.indexed_fragments;
+        mfres.shared.mass_slices = database_mass_slices_;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "[ProSE] Chunk-major multi-file: " << full_db.size()
+                        << " proteins, " << n_chunks << " chunks, "
+                        << in_spectra_files.size() << " files." << std::endl;
+      }
 
       Size chunk_idx = 0;
-      for (Size start = 0; start < full_db.size(); start += chunk_size)
+      for (Size start = 0; !mass_sliced && start < full_db.size(); start += chunk_size)
       {
         ++chunk_idx;
         const Size end = std::min(start + chunk_size, full_db.size());
@@ -6283,6 +6446,7 @@ namespace OpenMS
     y << "  calibration_enabled: " << bol(sh.calibration_enabled) << "\n";
     y << "  peptide_mass_mode: " << bol(sh.peptide_mass_mode) << "\n";
     y << "  chunked: " << bol(sh.chunked) << "\n";
+    y << "  mass_slices: " << sh.mass_slices << "\n";
     y << "  decoy_mode: " << q(sh.decoy_mode) << "\n";
     y << "  psm_fdr_threshold: " << num(sh.psm_fdr_threshold) << "\n";
     y << "  protein_fdr_threshold: " << num(sh.protein_fdr_threshold) << "\n";
@@ -6454,7 +6618,7 @@ namespace OpenMS
        << " | calibration: " << (sh.calibration_enabled ? "on" : "off")
        << " | mode: " << (sh.open_search ? "open" : "closed")
        << (sh.peptide_mass_mode ? " | low_memory" : "")
-       << (sh.chunked ? " | chunked" : "") << "\n";
+       << (sh.mass_slices > 1 ? " | " + StringUtils::toStr(sh.mass_slices) + " mass slices" : std::string(sh.chunked ? " | chunked" : "")) << "\n";
 
     // -- Database / fragment index --
     os << "[ProSE] Database     : " << (sh.database_file.empty() ? std::string("(in-memory)") : std::string(sh.database_file))

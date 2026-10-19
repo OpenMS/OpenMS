@@ -2952,6 +2952,92 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
 }
 END_SECTION
 
+START_SECTION(([EXTRA] database:mass_slices gives the PSMs of the search with one index))
+{
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap synthetic;
+  buildSyntheticProteinFDRData(fasta_db, synthetic);
+
+  const auto configure = [](ProSEAlgorithm& algo, int slices, bool calibration = false)
+  {
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<std::string>{"Carbamidomethyl (C)"});
+    p.setValue("modifications:variable", vector<std::string>{"Oxidation (M)"});
+    p.setValue("decoys", "generate");
+    p.setValue("FDR:PSM", 0.0);
+    p.setValue("FDR:protein", 0.0);
+    p.setValue("database:mass_slices", slices);
+    p.setValue("calibration:enabled", calibration ? "true" : "false");
+    algo.setParameters(p);
+  };
+  // the run identifier holds the time of the search
+  const auto same_psms = [](PeptideIdentificationList a, PeptideIdentificationList b)
+  {
+    if (a.size() != b.size()) { return false; }
+    for (Size i = 0; i < a.size(); ++i)
+    {
+      a[i].setIdentifier("");
+      b[i].setIdentifier("");
+      if (a[i] != b[i]) { return false; }
+    }
+    return true;
+  };
+
+  // in-memory search
+  PeptideIdentificationList one_index, sliced;
+  {
+    ProSEAlgorithm algo;
+    configure(algo, 1);
+    PeakMap spectra = synthetic;
+    vector<ProteinIdentification> proteins;
+    TEST_EQUAL(algo.search(spectra, fasta_db, proteins, one_index) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  }
+  {
+    ProSEAlgorithm algo;
+    configure(algo, 3);
+    PeakMap spectra = synthetic;
+    vector<ProteinIdentification> proteins;
+    TEST_EQUAL(algo.search(spectra, fasta_db, proteins, sliced) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(spectra.size(), synthetic.size())
+  }
+  TEST_TRUE(one_index.size() > 100)
+  TEST_TRUE(same_psms(one_index, sliced))
+
+  // multi-file search: the slices span the spectra of both files
+  std::string fasta_file;
+  NEW_TMP_FILE(fasta_file)
+  fasta_file += ".fasta";
+  FASTAFile().store(fasta_file, fasta_db);
+  vector<std::string> files(2);
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap run;
+    for (Size i = f; i < synthetic.size(); i += files.size()) run.addSpectrum(synthetic[i]);
+    NEW_TMP_FILE(files[f])
+    files[f] += "_" + StringUtils::toStr(f) + ".mzML";
+    MzMLFile().store(files[f], run);
+  }
+  ProSEAlgorithm algo_one, algo_sliced;
+  configure(algo_one, 1);
+  configure(algo_sliced, 4);
+  const auto result_one = algo_one.searchWithModificationAnalysis(files, fasta_file, {}, "", false);
+  const auto result_sliced = algo_sliced.searchWithModificationAnalysis(files, fasta_file, {}, "", false);
+  TEST_EQUAL(result_sliced.per_file.size(), 2)
+  ABORT_IF(result_sliced.per_file.size() != 2 || result_one.per_file.size() != 2)
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    TEST_TRUE(result_one.per_file[f].peptide_ids.size() > 50)
+    TEST_TRUE(same_psms(result_one.per_file[f].peptide_ids, result_sliced.per_file[f].peptide_ids))
+  }
+  TEST_EQUAL(result_sliced.shared.mass_slices, 4)
+  TEST_TRUE(result_sliced.shared.indexed_peptides < result_one.shared.indexed_peptides)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragment annotations))
 {
   // Create a small FASTA database with one protein containing a single tryptic peptide
