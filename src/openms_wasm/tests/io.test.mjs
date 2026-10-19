@@ -5,7 +5,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { loadOpenMS, using, assertClose, testDataDir } from "./helpers.mjs";
+import { pathToFileURL } from "node:url";
+import { loadOpenMS, using, assertClose, testDataDir, modulePath } from "./helpers.mjs";
 
 const OpenMS = await loadOpenMS();
 
@@ -177,7 +178,7 @@ test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for b
     assert.equal(OpenMS.readFileChunk("/chunks/a.bin", bytes.length, 10).length, 0);
     assert.equal(OpenMS.readFileChunk("/chunks/a.bin", bytes.length + 100, 10).length, 0);
     assert.deepEqual(OpenMS.readFileChunk("/chunks/a.bin", 7, 3), bytes.subarray(7, 10));
-    // FS.write() with an offset into its buffer
+    // FS.write() (one copy instead of byte by byte, wasmfs_fs.js) with an offset into its buffer
     const stream = OpenMS.FS.open("/chunks/c.bin", "w");
     OpenMS.FS.write(stream, bytes, 100, 1000, 0);
     OpenMS.FS.close(stream);
@@ -198,6 +199,45 @@ test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for b
     }
     OpenMS.FS.rmdir("/chunks");
   }
+});
+
+test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where the memory cannot hold their data", async () => {
+  // Emscripten's FS.writeFile/write/read took the 0 that malloc returns then for the address of their buffer, and
+  // wrote over the start of the module's memory (wasmfs_fs.js). A module of its own: its memory grows to the limit.
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
+  const MB = 1048576;
+  const { heapMax } = m.getMemoryInfo();
+  // files that take 3/4 of the memory (of at most 1 GiB each: a file of the memory file system has less than 2 GiB),
+  // then data of 1/3 of it, which the memory has (it is larger), but not free
+  const occupying = [];
+  for (let left = Math.floor(heapMax / MB / 4) * 3 * MB; left > 0; left -= 1024 * MB) {
+    const file = `/occupied${occupying.length}.bin`;
+    m.FS.writeFile(file, new Uint8Array(0));
+    m.FS.truncate(file, Math.min(left, 1024 * MB));
+    occupying.push(file);
+  }
+  const tooLarge = Math.floor(heapMax / 3);
+  const data = new Uint8Array(tooLarge); // (never written: its pages stay unallocated)
+  const enomem = (e) => e?.name === "ErrnoError" && e.errno === 48;
+  assert.throws(() => m.FS.writeFile("/x.bin", data), enomem, "FS.writeFile");
+  const stream = m.FS.open("/y.bin", "w+");
+  assert.throws(() => m.FS.write(stream, data, 0, data.length, 0), enomem, "FS.write");
+  assert.throws(() => m.FS.read(stream, data, 0, data.length, 0), enomem, "FS.read");
+  m.FS.close(stream);
+  assert.throws(() => m.allocateFile("/z.bin", tooLarge), /OutOfMemory/, "allocateFile");
+  assert.throws(() => m.writeFileChunk("/z.bin", data, 0), /OutOfMemory/, "writeFileChunk");
+  // growing a file by a chunk: the memory has to hold it at its new size (here: twice its size)
+  m.allocateFile("/w.bin", Math.floor(tooLarge / 2));
+  assert.throws(() => m.writeFileChunk("/w.bin", data.subarray(0, 16), Math.floor(tooLarge / 2)), /OutOfMemory/, "writeFileChunk past the end");
+  // the module is usable: the start of its memory is intact, and the file system works
+  for (const file of occupying) m.FS.unlink(file);
+  m.FS.unlink("/w.bin");
+  m.FS.writeFile("/ok.bin", new Uint8Array([1, 2, 3]));
+  assert.deepEqual(m.FS.readFile("/ok.bin"), new Uint8Array([1, 2, 3]));
+  assert.equal(m.FS.stat("/y.bin").size, 0);
+  assert.match(m.getVersion(), /^\d+\.\d+/);
+  using([m.AASequence.fromString("PEPTIDEK")], (seq) => assertClose(assert, seq.getMonoWeight(m.ResidueType.Full, 0), 927.4549, 1e-3, "mono weight"));
 });
 
 test("MzMLFile from the (mounted) file system", () => {

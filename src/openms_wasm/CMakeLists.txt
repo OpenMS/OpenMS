@@ -120,6 +120,9 @@ target_link_options(openms_wasm PRIVATE
   # the backend expects. Emscripten's took the errno of an open for a file descriptor of the Node.js
   # process (wasmfs_node.js). SHELL: like the --pre-js below, so that CMake cannot drop it as a duplicate.
   "SHELL:--js-library \"${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js\""
+  # FS.writeFile(), FS.write() and FS.read() throw ENOMEM where the memory cannot hold their buffer (Emscripten's
+  # wrote the data from address 0 then), and FS.write() copies its data in one piece (wasmfs_fs.js)
+  "SHELL:--js-library \"${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_fs.js\""
   "-sEXPORTED_RUNTIME_METHODS=FS,ENV"
   # A library module: keep the runtime alive between calls.
   "-sEXIT_RUNTIME=0"
@@ -131,7 +134,8 @@ elseif(OPENMS_WASM_SHARE STREQUAL "PRELOAD")
   target_link_options(openms_wasm PRIVATE "--preload-file" "${_share_stage}@/share/OpenMS")
 endif()
 # Relink when the data or the link options change.
-set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}" "${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js")
+set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}" "${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js"
+             "${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_fs.js")
 
 ## Threads: threads.js chooses the number of threads (Module.numThreads, OMP_NUM_THREADS)
 ## and the number of Web Workers started with the module (openmsThreadPoolSize): none

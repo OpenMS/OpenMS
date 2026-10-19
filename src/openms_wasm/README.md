@@ -143,7 +143,10 @@ Each chunk is copied once (450-850 MB/s in Chrome, with the reads of `FileReader
 file first when its size is known: the memory file system keeps a file in one block (of less than
 2 GiB), which grows by doubling otherwise and then briefly takes up to three times its size. The
 functions throw `OutOfMemory` where the module's memory cannot hold the file, and the module stays
-usable.
+usable. So do `FS.writeFile()`, `FS.write()` and
+`FS.read()`, with an `FS.ErrnoError` of errno 48 (ENOMEM): Emscripten's took the 0 that `malloc`
+returns then for the address of their buffer and wrote over the start of the module's memory
+(`wasmfs_fs.js`, which also makes `FS.write()` copy its data in one piece instead of byte by byte).
 
 ### Memory
 
