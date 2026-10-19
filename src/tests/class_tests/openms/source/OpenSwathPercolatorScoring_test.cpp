@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
@@ -19,7 +20,11 @@
 #include <arrow/api.h>
 #include <sqlite3.h>
 
+#include <algorithm>
+#include <map>
 #include <memory>
+#include <numeric>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -144,6 +149,127 @@ namespace
     TEST_TRUE(total_rows > 0)
     TEST_TRUE(total_non_null > 0)
   }
+
+  /// Peak groups of one run in which, in a fraction of the target groups, an interference peak beats the true peak
+  /// on var_library_corr but not on var_xcorr_shape, var_xcorr_coelution and var_norm_rt_score (review of #10610).
+  /// Decoy groups get interference peaks at the same rate. Portable: std::mt19937 is specified by the standard and
+  /// the features are sums of uniforms (no <random> distributions, no libm), so every platform draws the same data.
+  struct ControlledCase
+  {
+    RescoreInput input;
+    std::vector<int> truth; // 1: the true peak of its group
+  };
+
+  double approxGauss_(std::mt19937& rng, const double mean, const double sd)
+  {
+    double s = 0; // sum of 4 uniforms, variance 4/12
+    for (int k = 0; k < 4; ++k) s += (static_cast<double>(rng()) + 0.5) / 4294967296.0;
+    return mean + sd * (s - 2.0) * 1.7320508075688772;
+  }
+
+  /// n_groups target and n_groups decoy groups of 5 peak groups; a fraction frac_true of the groups has a true
+  /// peak (targets only) and, of those, a fraction frac_interference an interference peak
+  ControlledCase makeControlledCase_(const int n_groups, const double frac_true, const double frac_interference,
+                                     const unsigned seed)
+  {
+    ControlledCase c;
+    c.input.feature_names = {"var_library_corr", "var_xcorr_shape", "var_xcorr_coelution", "var_norm_rt_score", "var_noise"};
+    std::mt19937 rng(seed);
+    auto uniform = [&rng]() { return (static_cast<double>(rng()) + 0.5) / 4294967296.0; };
+    int key = 0;
+    for (int decoy = 0; decoy < 2; ++decoy)
+    {
+      for (int g = 0; g < n_groups; ++g, ++key)
+      {
+        const bool has_true = uniform() < frac_true;
+        const bool has_interference = has_true && uniform() < frac_interference;
+        std::vector<std::pair<std::vector<double>, int>> peaks;
+        if (has_true && !decoy) // true peak: good on everything
+        {
+          peaks.push_back({{approxGauss_(rng, 0.65, 0.2), approxGauss_(rng, 0.8, 0.1), approxGauss_(rng, 1.8, 1.0),
+                            approxGauss_(rng, 1.8, 1.0), approxGauss_(rng, 0, 1)}, 1});
+        }
+        if (has_interference) // best library correlation, poor shape, coelution and RT
+        {
+          peaks.push_back({{approxGauss_(rng, 0.8, 0.1), approxGauss_(rng, 0.45, 0.15), approxGauss_(rng, 0.3, 1.0),
+                            approxGauss_(rng, 0.0, 1.0), approxGauss_(rng, 0, 1)}, 0});
+        }
+        while (peaks.size() < 5) // noise
+        {
+          peaks.push_back({{approxGauss_(rng, 0.2, 0.25), approxGauss_(rng, 0.4, 0.15), approxGauss_(rng, 0.0, 1.0),
+                            approxGauss_(rng, 0.0, 1.0), approxGauss_(rng, 0, 1)}, 0});
+        }
+        for (Size i = peaks.size() - 1; i > 0; --i) // portable shuffle
+        {
+          std::swap(peaks[i], peaks[rng() % (i + 1)]);
+        }
+        for (auto& peak : peaks)
+        {
+          c.input.features.push_back(peak.first);
+          c.input.is_decoy.push_back(decoy == 1);
+          c.input.cv_group_keys.push_back(key);
+          c.truth.push_back(peak.second);
+        }
+      }
+    }
+    return c;
+  }
+
+  int trueInRows_(const ControlledCase& c, const std::vector<Size>& rows)
+  {
+    int n = 0;
+    for (const Size i : rows) n += c.truth[i];
+    return n;
+  }
+
+  /// Trains Percolator on @p rows (as OpenSwathPercolatorScoring::score does with the training subset), scores all
+  /// rows with the raw model and counts the target groups at 1% FDR (target-decoy on the group tops) whose top
+  /// pick is the true peak. @p trained is set to false if the model weights only one feature, i.e. if
+  /// Percolator's sanity check replaced the trained weights by the initial direction.
+  int trueTopPicksAtOnePercent_(const ControlledCase& c, const std::vector<Size>& rows, bool& trained)
+  {
+    RescoreInput train;
+    train.feature_names = c.input.feature_names;
+    for (const Size i : rows)
+    {
+      train.features.push_back(c.input.features[i]);
+      train.is_decoy.push_back(c.input.is_decoy[i]);
+      train.cv_group_keys.push_back(c.input.cv_group_keys[i]);
+    }
+    Percolator percolator;
+    Param p = percolator.getParameters();
+    p.setValue("subset_max_train", 0);
+    percolator.setParameters(p);
+    const PercolatorModel model = percolator.train(train);
+    trained = std::count_if(model.weights.begin(), model.weights.end() - 1, [](double w) { return w != 0.0; }) > 1;
+
+    const int n_groups = c.input.cv_group_keys.back() + 1;
+    std::vector<double> score(c.input.features.size());
+    std::vector<long> top(n_groups, -1);
+    for (Size i = 0; i < score.size(); ++i)
+    {
+      double v = model.weights.back();
+      for (Size j = 0; j < c.input.features[i].size(); ++j) v += model.weights[j] * c.input.features[i][j];
+      score[i] = v;
+      long& t = top[c.input.cv_group_keys[i]];
+      if (t < 0 || score[i] > score[t]) t = static_cast<long>(i);
+    }
+    std::vector<int> order(n_groups);
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&](int a, int b) { return score[top[a]] > score[top[b]]; });
+    int n_target = 0, n_decoy = 0, cut = 0; // the longest prefix with decoys <= 1% of targets
+    for (int k = 0; k < n_groups; ++k)
+    {
+      (c.input.is_decoy[top[order[k]]] ? n_decoy : n_target)++;
+      if (n_decoy <= 0.01 * n_target) cut = k + 1;
+    }
+    int n_true = 0;
+    for (int k = 0; k < cut; ++k)
+    {
+      if (!c.input.is_decoy[top[order[k]]] && c.truth[top[order[k]]] == 1) ++n_true;
+    }
+    return n_true;
+  }
 } // namespace
 
 START_TEST(OpenSwathPercolatorScoring, "$Id$")
@@ -154,6 +280,150 @@ START_SECTION(OpenSwathPercolatorScoring())
   ptr = new OpenSwathPercolatorScoring();
   TEST_NOT_EQUAL(ptr, nullptr)
   delete ptr;
+}
+END_SECTION
+
+START_SECTION([EXTRA] training on the best peak group per precursor plus a sample of the others)
+{
+  // a cap far below the number of peak groups: training uses a subset, all peak groups are scored
+  std::string capped_osw;
+  NEW_TMP_FILE(capped_osw);
+  capped_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", capped_osw);
+  const Int64 n_features = querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM FEATURE_MS2;");
+  const Int64 n_precursors = querySqliteInt64_(capped_osw, "SELECT COUNT(DISTINCT PRECURSOR_ID) FROM FEATURE;");
+  TEST_TRUE(n_features > n_precursors + 5) // otherwise nothing would be left out
+
+  OpenSwathPercolatorScoring capped;
+  Param p = capped.getParameters();
+  p.setValue("percolator:subset_max_train", 5);
+  capped.setParameters(p);
+  const auto capped_summary = capped.score(capped_osw, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_EQUAL(static_cast<Int64>(capped_summary.total_rows), n_features)
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM SCORE_MS2;"), n_features)
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE RANK < 1;"), 0)
+
+  // the same seed draws the same sample: the scores are reproducible
+  std::string capped_again_osw;
+  NEW_TMP_FILE(capped_again_osw);
+  capped_again_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", capped_again_osw);
+  capped.score(capped_again_osw, OpenSwathPercolatorScoring::Level::MS2);
+  executeSqlite_(capped_osw, "ATTACH DATABASE '" + capped_again_osw + "' AS again; "
+                 "CREATE TABLE score_differences AS SELECT COUNT(*) AS N FROM SCORE_MS2 a "
+                 "JOIN again.SCORE_MS2 b ON a.FEATURE_ID = b.FEATURE_ID WHERE a.SCORE != b.SCORE;");
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT N FROM score_differences;"), 0)
+
+  // a main score that is not among the features: all peak groups are used, no error
+  std::string unknown_score_osw;
+  NEW_TMP_FILE(unknown_score_osw);
+  unknown_score_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", unknown_score_osw);
+  p.setValue("training_main_score", "var_no_such_score");
+  capped.setParameters(p);
+  const auto unknown_summary = capped.score(unknown_score_osw, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_EQUAL(static_cast<Int64>(unknown_summary.total_rows), n_features)
+}
+END_SECTION
+
+START_SECTION((static std::vector<Size> trainingRows(const RescoreInput& input, const std::string& main_score, Size max_others, UInt64 seed)))
+{
+  // 6 groups of 4 rows; the best row by var_a is row g % 4 of group g, the last group is a tie (all equal)
+  RescoreInput input;
+  input.feature_names = {"var_a", "var_b"};
+  const std::vector<int> keys = {10, 11, 12, 13, 14, 15}; // keys need not be consecutive
+  for (Size g = 0; g < keys.size(); ++g)
+  {
+    for (Size r = 0; r < 4; ++r)
+    {
+      const double a = (g == 5) ? 0.5 : (r == g % 4 ? 1.0 : 0.1 * static_cast<double>(r));
+      input.features.push_back({a, static_cast<double>(g)});
+      input.is_decoy.push_back(g % 2 == 1);
+      input.cv_group_keys.push_back(keys[g]);
+    }
+  }
+  const Size n_rows = input.features.size();
+  std::vector<Size> all_rows(n_rows);
+  std::iota(all_rows.begin(), all_rows.end(), Size(0));
+
+  // everything: no cap, a cap the other rows fit into, an unknown main score, no group keys
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(input, "var_a", 0, 1) == all_rows, true)
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(input, "var_a", 18, 1) == all_rows, true)
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(input, "var_no_such_score", 7, 1) == all_rows, true)
+  RescoreInput no_keys = input;
+  no_keys.cv_group_keys.clear();
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(no_keys, "var_a", 7, 1) == all_rows, true)
+
+  // which rows enter training: the best of every group, and complete groups while their other rows fit
+  auto rowsPerGroup = [&](const std::vector<Size>& rows)
+  {
+    std::map<int, std::vector<Size>> per_group;
+    for (const Size i : rows) per_group[input.cv_group_keys[i]].push_back(i);
+    return per_group;
+  };
+  const std::vector<Size> rows = OpenSwathPercolatorScoring::trainingRows(input, "var_a", 7, 1);
+  TEST_EQUAL(std::is_sorted(rows.begin(), rows.end()), true)
+  TEST_EQUAL(rows.size(), 12) // 6 best + 2 complete groups (3 others each); a third would exceed 7
+  Size n_complete = 0;
+  for (const auto& [key, group_rows] : rowsPerGroup(rows))
+  {
+    const Size g = static_cast<Size>(key - 10);
+    TEST_EQUAL(group_rows.size() == 1 || group_rows.size() == 4, true)
+    if (group_rows.size() == 1)
+    {
+      TEST_EQUAL(group_rows[0], 4 * g + (g == 5 ? 0 : g % 4)) // the best; a tie keeps the first row
+    }
+    n_complete += group_rows.size() == 4;
+  }
+  TEST_EQUAL(rowsPerGroup(rows).size(), 6)
+  TEST_EQUAL(n_complete, 2)
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(input, "var_a", 7, 1) == rows, true) // same seed, same rows
+
+  // a cap below the other rows of one group: only the best rows
+  std::vector<Size> best_rows;
+  for (Size g = 0; g < 6; ++g) best_rows.push_back(4 * g + (g == 5 ? 0 : g % 4));
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(input, "var_a", 2, 1) == best_rows, true)
+
+  // '-' selects the lowest value: row 1 of groups 0 and 4 (0.1), row 0 of groups 1-3 (0.0), row 0 of the tie group
+  const std::vector<Size> lowest = {1, 4, 8, 12, 17, 20};
+  TEST_EQUAL(OpenSwathPercolatorScoring::trainingRows(input, "-var_a", 2, 1) == lowest, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] training subset when an interference peak beats the true peak on the main score)
+{
+  // 5,000 target and 5,000 decoy groups of 5 peak groups; 30% of the target groups have a true peak and, of those,
+  // 40% an interference peak with a better var_library_corr. Training subset: the best peak group of each group
+  // plus at most 500 others (125 complete groups).
+  const ControlledCase c = makeControlledCase_(5000, 0.3, 0.4, 1);
+  std::vector<Size> all_rows(c.input.features.size());
+  std::iota(all_rows.begin(), all_rows.end(), Size(0));
+  const int n_true = trueInRows_(c, all_rows);
+  TEST_EQUAL(n_true, 1525)
+
+  const std::vector<Size> by_shape = OpenSwathPercolatorScoring::trainingRows(c.input, "var_xcorr_shape", 500, 1);
+  const std::vector<Size> by_corr = OpenSwathPercolatorScoring::trainingRows(c.input, "var_library_corr", 500, 1);
+  TEST_EQUAL(by_shape.size(), 10500)
+  TEST_EQUAL(by_corr.size(), 10500)
+  // which candidates enter training: selecting by var_xcorr_shape (the default) keeps 1,447 of the 1,525 true
+  // peaks, selecting by var_library_corr 825 (the others lose to the interference or a noise peak)
+  TEST_EQUAL(trueInRows_(c, by_shape) >= 0.9 * n_true, true)
+  TEST_EQUAL(trueInRows_(c, by_corr) <= 0.6 * n_true, true)
+
+  // subset training against training on all rows (subset_max_train = 0); all three train (no fallback to one
+  // feature). True top picks at 1% FDR here: all rows 1,234, by var_xcorr_shape 1,258, by var_library_corr 1,236
+  // (over data seeds 1-5, the subsets reach 0.967-1.019 of all rows); allow 5% for platform differences.
+  bool trained_all = false, trained_shape = false, trained_corr = false;
+  const int with_all = trueTopPicksAtOnePercent_(c, all_rows, trained_all);
+  const int with_shape = trueTopPicksAtOnePercent_(c, by_shape, trained_shape);
+  const int with_corr = trueTopPicksAtOnePercent_(c, by_corr, trained_corr);
+  TEST_EQUAL(trained_all, true)
+  TEST_EQUAL(trained_shape, true)
+  TEST_EQUAL(trained_corr, true)
+  TEST_EQUAL(with_all >= 1100, true)
+  TEST_EQUAL(with_shape >= 0.95 * with_all, true)
+  TEST_EQUAL(with_corr >= 0.95 * with_all, true)
 }
 END_SECTION
 
