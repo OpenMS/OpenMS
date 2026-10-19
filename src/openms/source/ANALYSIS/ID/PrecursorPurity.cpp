@@ -19,6 +19,16 @@ namespace OpenMS
 {
 
   
+  double PrecursorPurity::isolationWindowCenter(const Precursor& precursor)
+  {
+    if (precursor.metaValueExists("isolation window target m/z"))
+    {
+      const double target = precursor.getMetaValue("isolation window target m/z");
+      if (target > 0.0) return target;
+    }
+    return precursor.getMZ();
+  }
+
   std::vector<double> PrecursorPurity::computeSingleScanPrecursorPurities(int ms2_spec_idx, int precursor_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation)
   {
     const auto& ms2_spec = exp[ms2_spec_idx];
@@ -37,8 +47,10 @@ namespace OpenMS
       const double charge_dist = Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
 
       // the actual boundary values
-      const double strict_lower_mz = precursor_info.getMZ() - precursor_info.getIsolationWindowLowerOffset();
-      const double strict_upper_mz = precursor_info.getMZ() + precursor_info.getIsolationWindowUpperOffset();
+      // the isolation window offsets are relative to the window's target m/z (see isolationWindowCenter())
+      const double window_center = isolationWindowCenter(precursor_info);
+      const double strict_lower_mz = window_center - precursor_info.getIsolationWindowLowerOffset();
+      const double strict_upper_mz = window_center + precursor_info.getIsolationWindowUpperOffset();
       if (strict_lower_mz == strict_upper_mz)
       {
         return purities;
@@ -260,8 +272,9 @@ namespace OpenMS
   {
     PrecursorPurity::PurityScores score;
     double target_mz = pre.getMZ();
-    double lower = target_mz - pre.getIsolationWindowLowerOffset();
-    double upper = target_mz + pre.getIsolationWindowUpperOffset();
+    const double window_center = isolationWindowCenter(pre);
+    double lower = window_center - pre.getIsolationWindowLowerOffset();
+    double upper = window_center + pre.getIsolationWindowUpperOffset();
 
     int charge = abs(pre.getCharge());
 

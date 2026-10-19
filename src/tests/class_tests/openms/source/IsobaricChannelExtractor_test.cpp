@@ -1012,4 +1012,36 @@ delete q_method;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static bool scanWindowCoversChannels(const MSSpectrum& spec, const IsobaricQuantitationMethod& method, double tolerance = 0.0)))
+{
+  TMTTenPlexQuantitationMethod tmt10;
+  MSSpectrum spec;
+  // no scan window: assume it covers the channels
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  ScanWindow w;
+  w.begin = 100.0;
+  w.end = 2000.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  // TMT10 reporters are at m/z 126.1-131.1: a scan from m/z 120 covers them, a scan from m/z 127 misses 126
+  w.begin = 120.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  w.begin = 127.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), false)
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10, 1.0), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PrecursorPurity::isolationWindowCenter))
+{
+  Precursor p;
+  p.setMZ(627.646);
+  TEST_REAL_SIMILAR(PrecursorPurity::isolationWindowCenter(p), 627.646)
+  p.setMetaValue("isolation window target m/z", 627.980);
+  TEST_REAL_SIMILAR(PrecursorPurity::isolationWindowCenter(p), 627.980)
+}
+END_SECTION
+
 END_TEST

@@ -124,6 +124,13 @@ public:
      */
     ChannelQCSet& getStats();
 
+    /**
+      @brief Whether the scan window(s) of @p spec reach every reporter ion of @p method (within @p tolerance)
+
+      Spectra without scan window annotation are assumed to cover them.
+    */
+    static bool scanWindowCoversChannels(const MSSpectrum& spec, const IsobaricQuantitationMethod& method, double tolerance = 0.0);
+
 private:
     /**
       @brief Small struct to capture the current state of the purity computation.

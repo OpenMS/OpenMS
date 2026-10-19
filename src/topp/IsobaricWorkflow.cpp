@@ -396,7 +396,10 @@ protected:
             next_ms1_spec = ms1_spec_idx;
             break;
           }
-          else if (exp[next_ms1_spec].getMSLevel() == 1)          
+          else if (exp[next_ms1_spec].getMSLevel() == 1
+                   // with FAIMS, the next survey scan at the same compensation voltage
+                   && (exp[ms1_spec_idx].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                       || exp[next_ms1_spec].getDriftTime() == exp[ms1_spec_idx].getDriftTime()))
           {
             break;
           }
@@ -761,6 +764,22 @@ protected:
               continue;
             }
             
+            // A reporter scan that does not reach every reporter m/z would report zero for the channels it misses.
+            if (!IsobaricChannelExtractor::scanWindowCoversChannels(exp[quant_spec_idx], *quant_method,
+                                                                    channel_extractor.getParameters().getValue("reporter_mass_shift")))
+            {
+              PeptideIdentification unassigned_pep = pep;
+              unassigned_pep.setIdentifier(ID_RUN_NAME_);
+              unassigned_pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
+              #pragma omp critical(unassigned_pep_ids_collection)
+              {
+                OPENMS_LOG_WARN << "The scan window of spectrum " << exp[quant_spec_idx].getNativeID()
+                                << " does not cover all reporter ions. Skipping quantification and adding to unassigned.\n";
+                unassigned_pep_ids.push_back(std::move(unassigned_pep));
+              }
+              continue;
+            }
+
             auto [quant_purity, id_purity] = getPurities_(quant_spec_idx, id_spec_idx, ms1_spec_idx, exp, has_ms3, max_precursor_isotope_deviation, calc_id_purity, interpolate_precursor_purity);
 
             if (has_ms3 && exp[quant_spec_idx].getMSLevel() != 3)

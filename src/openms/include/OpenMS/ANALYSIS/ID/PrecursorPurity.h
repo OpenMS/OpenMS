@@ -72,6 +72,15 @@ namespace OpenMS
     static PurityScores computePrecursorPurity(const PeakSpectrum& ms1, const Precursor& pre, const double precursor_mass_tolerance, const bool precursor_mass_tolerance_unit_ppm);
 
     /**
+      @brief The centre of the isolation window of @p precursor
+
+      The isolation window offsets are relative to the isolation window target m/z. The mzML reader keeps that target as
+      the meta value "isolation window target m/z" when it differs from the selected ion m/z (which getMZ() returns then,
+      see PeakFileOptions::getPrecursorMZSelectedIon()). Returns getMZ() without that meta value.
+    */
+    static double isolationWindowCenter(const Precursor& precursor);
+
+    /**
      * @brief Computes a simple purity score aggregate for all Precursors (and their windows) of spectrum at @p ms2_spec_idx in the precursor spectrum at @p precursor_spec_idx
      * 
      * Extracts with fuzzy boundaries around expected isotopes where it only considers 50% of the intensity of the peak as belonging to the target.
