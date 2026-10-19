@@ -1,0 +1,21 @@
+dataset	group	ref	arm	ref_seeds	arm_seeds	ref_mean	arm_mean	delta_pct	z	call
+velos_125_R1	Velos CID	none	intiso	2953/2966/3013	2970/2975/3018	2977.3	2987.7	0.35	0.44	flat
+velos_5000_R2	Velos CID	none	intiso	3014/3091/3026	3006/3074/3021	3043.7	3033.7	-0.33	-0.32	flat
+velos_25000_R3	Velos CID	none	intiso	2900/2909/2926	2925/2860/2912	2911.7	2899	-0.44	-0.6	flat
+hfx_A2	HF-X HCD	none	intiso	4671/4663/4678	4682/4722/4683	4670.7	4695.7	0.54	1.8	flat
+hfx_B1	HF-X HCD	none	intiso	4546/4550/4528	4530/4550/4520	4541.3	4533.3	-0.18	-0.72	flat
+hfx_B3	HF-X HCD	none	intiso	4577/4557/4608	4571/4574/4638	4580.7	4594.3	0.3	0.52	flat
+astral_A2	Astral HCD	none	intiso	2828/2832/2837	2831/2817/2835	2832.3	2827.7	-0.16	-0.77	flat
+astral_B1	Astral HCD	none	intiso	3225/3167/3178	3241/3161/3141	3190	3181	-0.28	-0.25	flat
+astral_B3	Astral HCD	none	intiso	3127/3109/3145	3103/3124/3156	3127	3127.7	0.02	0.04	flat
+lumos_lfq_5192	Lumos HCD LFQ	none	intiso	5574/5569/5558	5574/5569/5543	5567	5562	-0.09	-0.47	flat
+lumos_lfq_5194	Lumos HCD LFQ	none	intiso	5524/5529/5522	5522/5530/5544	5525	5532	0.13	1.04	flat
+lumos_lfq_5199	Lumos HCD LFQ	none	intiso	5561/5562/5583	5570/5569/5584	5568.7	5574.3	0.1	0.65	flat
+lumos_tmt_5058	Lumos CID TMT6plex	none	intiso	2378/2401/2282	2419/2407/2305	2353.7	2377	0.99	0.45	flat
+lumos_tmt_5059	Lumos CID TMT6plex	none	intiso	2404/2416/2460	2418/2394/2445	2426.7	2419	-0.32	-0.34	flat
+lumos_tmt_5066	Lumos CID TMT6plex	none	intiso	2602/2590/2581	2585/2574/2600	2591	2586.3	-0.18	-0.48	flat
+eclipse_tmtpro_10855	Exploris 480 TMTpro	none	intiso	2776/2765/2748	2782/2767/2755	2763	2768	0.18	0.44	flat
+eclipse_tmtpro_10858	Exploris 480 TMTpro	none	intiso	2543/2547/2573	2545/2542/2560	2554.3	2549	-0.21	-0.49	flat
+eclipse_tmtpro_10863	Exploris 480 TMTpro	none	intiso	2553/2568/2527	2554/2566/2543	2549.3	2554.3	0.2	0.37	flat
+tims_plasma_30min	timsTOF HT	none	intiso	1080/1094/1083	1071/1081/1091	1085.7	1081	-0.43	-0.65	flat
+tims_plasma_50min	timsTOF HT	none	intiso	973/1011/1050	974/1027/1053	1011.3	1018	0.66	0.21	flat

@@ -1,0 +1,8 @@
+group	files	boundary_tie_pct_of_queries	rank1_changed_per_file	rank1_changed_pct_of_spectra	new_rank1_higher_hyperscore_pct	accepted_scans_gained_per_file	accepted_scans_lost_per_file
+Velos CID	3	89.4	221	2.9	60	30.5	42.8
+HF-X HCD	3	8.8	28	0.4	70	21.7	9.4
+Astral HCD	3	77.4	781	10.4	85	65.3	102.6
+Lumos HCD LFQ	3	17.3	44	0.6	78	9.7	7.1
+Lumos CID TMT6plex	3	70.0	223	2.9	59	18.7	27.8
+Exploris 480 TMTpro	3	19.9	121	2.4	76	7.4	12.2
+timsTOF HT	2	18.8	190	4.3	80	16.4	13.5

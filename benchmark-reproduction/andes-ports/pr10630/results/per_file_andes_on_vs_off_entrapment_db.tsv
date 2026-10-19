@@ -1,0 +1,10 @@
+dataset	group	ref	arm	ref_seeds	arm_seeds	ref_mean	arm_mean	delta_pct	z	call
+hfx_A2	HF-X HCD	andes_off_E	andes_on_E	4572/4530/4512	4461/4393/4450	4538	4434.7	-2.28	-3.75	down
+hfx_B1	HF-X HCD	andes_off_E	andes_on_E	4374/4363/4447	4478/4430/4424	4394.7	4444	1.12	1.57	flat
+hfx_B3	HF-X HCD	andes_off_E	andes_on_E	4473/4539/4442	4410/4379/4428	4484.7	4405.7	-1.76	-2.47	down
+astral_A2	Astral HCD	andes_off_E	andes_on_E	2384/2430/2407	2580/2716/2344	2407	2546.7	5.8	1.28	flat
+astral_B1	Astral HCD	andes_off_E	andes_on_E	2902/2958/2966	2983/3023/2936	2942	2980.7	1.31	1.2	flat
+astral_B3	Astral HCD	andes_off_E	andes_on_E	2857/2937/2951	2867/2887/2945	2915	2899.7	-0.53	-0.41	flat
+lumos_lfq_5192	Lumos HCD LFQ	andes_off_E	andes_on_E	5538/5523/5530	5541/5562/5558	5530.3	5553.7	0.42	3.01	up
+lumos_lfq_5194	Lumos HCD LFQ	andes_off_E	andes_on_E	5569/5530/5539	5553/5568/5559	5546	5560	0.25	1.11	flat
+lumos_lfq_5199	Lumos HCD LFQ	andes_off_E	andes_on_E	5519/5552/5556	5525/5560/5539	5542.3	5541.3	-0.02	-0.06	flat

@@ -1,0 +1,21 @@
+dataset	group	spectra_none	spectra_int	only_none	only_int	top1_changed	int_higher_score	int_lower_score	equal_score	changed_target_to_decoy	changed_decoy_to_target
+velos_125_R1	Velos CID	7950	7950	0	0	234	137	97	0	66	52
+velos_5000_R2	Velos CID	7838	7838	0	0	213	121	92	0	71	48
+velos_25000_R3	Velos CID	7473	7473	0	0	217	140	77	0	45	60
+hfx_A2	HF-X HCD	6460	6460	0	0	27	22	5	0	7	6
+hfx_B1	HF-X HCD	6174	6174	0	0	27	16	10	1	6	4
+hfx_B3	HF-X HCD	6422	6422	0	0	30	21	9	0	10	4
+astral_A2	Astral HCD	7517	7517	0	0	793	673	117	3	194	190
+astral_B1	Astral HCD	7546	7546	0	0	792	672	115	5	190	208
+astral_B3	Astral HCD	7558	7558	0	0	759	644	113	2	176	179
+lumos_lfq_5192	Lumos HCD LFQ	7010	7010	0	0	45	36	8	1	9	10
+lumos_lfq_5194	Lumos HCD LFQ	7073	7073	0	0	47	36	11	0	14	13
+lumos_lfq_5199	Lumos HCD LFQ	7129	7129	0	0	40	31	9	0	11	6
+lumos_tmt_5058	Lumos CID TMT6plex	7588	7588	0	0	237	143	94	0	45	61
+lumos_tmt_5059	Lumos CID TMT6plex	7516	7516	0	0	201	126	75	0	49	49
+lumos_tmt_5066	Lumos CID TMT6plex	7628	7628	0	0	231	126	105	0	74	45
+eclipse_tmtpro_10855	Exploris 480 TMTpro	5178	5178	0	0	144	113	30	1	34	39
+eclipse_tmtpro_10858	Exploris 480 TMTpro	4806	4806	0	0	100	78	21	1	24	28
+eclipse_tmtpro_10863	Exploris 480 TMTpro	4943	4943	0	0	119	84	34	1	32	23
+tims_plasma_30min	timsTOF HT	4496	4496	0	0	212	172	40	0	56	56
+tims_plasma_50min	timsTOF HT	4361	4361	0	0	167	131	36	0	47	38

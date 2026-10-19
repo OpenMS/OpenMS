@@ -1,0 +1,25 @@
+diff --git a/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp b/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
+index 2097a808..b65d80d0 100644
+--- a/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
++++ b/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
+@@ -3054,15 +3054,16 @@ namespace OpenMS
+         {
+           return a.num_matched_ > b.num_matched_;
+         }
+-        if (a.matched_intensity_ != b.matched_intensity_)
+-        {
+-          return a.matched_intensity_ > b.matched_intensity_;
+-        }
+         // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
+         const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
+         const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
+         if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
+         if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
++        // BENCHMARK VARIANT (not pushed): the intensity key after the isotope keys
++        if (a.matched_intensity_ != b.matched_intensity_)
++        {
++          return a.matched_intensity_ > b.matched_intensity_;
++        }
+         if (a.precursor_charge_ != b.precursor_charge_) return a.precursor_charge_ < b.precursor_charge_;
+         if (a.peptide_idx_ != b.peptide_idx_) return a.peptide_idx_ < b.peptide_idx_;
+         if (a.realized_length_ != b.realized_length_) return a.realized_length_ < b.realized_length_;

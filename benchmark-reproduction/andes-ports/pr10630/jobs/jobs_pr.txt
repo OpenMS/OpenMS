@@ -1,0 +1,74 @@
+pr none velos_125_R1
+pr none velos_5000_R2
+pr none velos_25000_R3
+pr none hfx_A2
+pr none hfx_B1
+pr none hfx_B3
+pr none astral_A2
+pr none astral_B1
+pr none astral_B3
+pr none lumos_lfq_5192
+pr none lumos_lfq_5194
+pr none lumos_lfq_5199
+pr none lumos_tmt_5058
+pr none lumos_tmt_5059
+pr none lumos_tmt_5066
+pr none eclipse_tmtpro_10855
+pr none eclipse_tmtpro_10858
+pr none eclipse_tmtpro_10863
+pr none tims_plasma_30min
+pr none tims_plasma_50min
+pr int velos_125_R1
+pr int velos_5000_R2
+pr int velos_25000_R3
+pr int hfx_A2
+pr int hfx_B1
+pr int hfx_B3
+pr int astral_A2
+pr int astral_B1
+pr int astral_B3
+pr int lumos_lfq_5192
+pr int lumos_lfq_5194
+pr int lumos_lfq_5199
+pr int lumos_tmt_5058
+pr int lumos_tmt_5059
+pr int lumos_tmt_5066
+pr int eclipse_tmtpro_10855
+pr int eclipse_tmtpro_10858
+pr int eclipse_tmtpro_10863
+pr int tims_plasma_30min
+pr int tims_plasma_50min
+pr none hfx_A2 --entrap
+pr none hfx_B1 --entrap
+pr none hfx_B3 --entrap
+pr none astral_A2 --entrap
+pr none astral_B1 --entrap
+pr none astral_B3 --entrap
+pr none lumos_lfq_5192 --entrap
+pr none lumos_lfq_5194 --entrap
+pr none lumos_lfq_5199 --entrap
+pr none lumos_tmt_5058 --entrap
+pr none lumos_tmt_5059 --entrap
+pr none lumos_tmt_5066 --entrap
+pr none eclipse_tmtpro_10855 --entrap
+pr none eclipse_tmtpro_10858 --entrap
+pr none eclipse_tmtpro_10863 --entrap
+pr none tims_plasma_30min --entrap
+pr none tims_plasma_50min --entrap
+pr int hfx_A2 --entrap
+pr int hfx_B1 --entrap
+pr int hfx_B3 --entrap
+pr int astral_A2 --entrap
+pr int astral_B1 --entrap
+pr int astral_B3 --entrap
+pr int lumos_lfq_5192 --entrap
+pr int lumos_lfq_5194 --entrap
+pr int lumos_lfq_5199 --entrap
+pr int lumos_tmt_5058 --entrap
+pr int lumos_tmt_5059 --entrap
+pr int lumos_tmt_5066 --entrap
+pr int eclipse_tmtpro_10855 --entrap
+pr int eclipse_tmtpro_10858 --entrap
+pr int eclipse_tmtpro_10863 --entrap
+pr int tims_plasma_30min --entrap
+pr int tims_plasma_50min --entrap

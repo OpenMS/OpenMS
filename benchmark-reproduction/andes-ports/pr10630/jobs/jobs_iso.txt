@@ -1,0 +1,37 @@
+iso intiso velos_125_R1
+iso intiso velos_5000_R2
+iso intiso velos_25000_R3
+iso intiso hfx_A2
+iso intiso hfx_B1
+iso intiso hfx_B3
+iso intiso astral_A2
+iso intiso astral_B1
+iso intiso astral_B3
+iso intiso lumos_lfq_5192
+iso intiso lumos_lfq_5194
+iso intiso lumos_lfq_5199
+iso intiso lumos_tmt_5058
+iso intiso lumos_tmt_5059
+iso intiso lumos_tmt_5066
+iso intiso eclipse_tmtpro_10855
+iso intiso eclipse_tmtpro_10858
+iso intiso eclipse_tmtpro_10863
+iso intiso hfx_A2 --entrap
+iso intiso hfx_B1 --entrap
+iso intiso hfx_B3 --entrap
+iso intiso astral_A2 --entrap
+iso intiso astral_B1 --entrap
+iso intiso astral_B3 --entrap
+iso intiso lumos_lfq_5192 --entrap
+iso intiso lumos_lfq_5194 --entrap
+iso intiso lumos_lfq_5199 --entrap
+iso intiso lumos_tmt_5058 --entrap
+iso intiso lumos_tmt_5059 --entrap
+iso intiso lumos_tmt_5066 --entrap
+iso intiso eclipse_tmtpro_10855 --entrap
+iso intiso eclipse_tmtpro_10858 --entrap
+iso intiso eclipse_tmtpro_10863 --entrap
+iso intiso tims_plasma_30min
+iso intiso tims_plasma_50min
+iso intiso tims_plasma_30min --entrap
+iso intiso tims_plasma_50min --entrap

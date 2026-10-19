@@ -1,0 +1,25 @@
+group	arm	files	psms	entrapment	fdp_combined_pct	gained_vs_ref	gained_entrapment	gained_fdp_combined_pct
+HF-X HCD	none_E	3	13292.3	104.3	1.57	0	0	
+HF-X HCD	int_E	3	13295.3	107.0	1.61	192	19	19.8
+Astral HCD	none_E	3	8183.3	57.3	1.4	0	0	
+Astral HCD	int_E	3	8129.7	62.0	1.53	628	42	13.4
+Lumos HCD LFQ	none_E	3	16572.7	103.0	1.24	0	0	
+Lumos HCD LFQ	int_E	3	16562.3	101.3	1.22	86	23	53.5
+Lumos CID TMT6plex	none_E	3	7027.0	41.7	1.19	0	0	
+Lumos CID TMT6plex	int_E	3	7095.3	40.7	1.15	424	28	13.2
+Exploris 480 TMTpro	none_E	3	7728.3	52.7	1.36	0	0	
+Exploris 480 TMTpro	int_E	3	7681.0	40.7	1.06	93	6	12.9
+timsTOF HT	none_E	2	1996.0	8.7	0.87	0	0	
+timsTOF HT	int_E	2	2035.3	10.0	0.98	203	8	7.9
+HF-X HCD	intiso_E	3	13302.0	104.0	1.56	156	10	12.8
+Astral HCD	intiso_E	3	8238.3	59.0	1.43	535	16	6.0
+Lumos HCD LFQ	intiso_E	3	16558.0	99.7	1.2	48	8	33.3
+Lumos CID TMT6plex	intiso_E	3	6990.7	34.7	0.99	221	13	11.8
+Exploris 480 TMTpro	intiso_E	3	7721.3	48.7	1.26	120	11	18.3
+timsTOF HT	intiso_E	2	2011.7	8.3	0.83	129	2	3.1
+HF-X HCD	andes_off_E	3	13417.3	104.3	1.56	0	0	
+HF-X HCD	andes_on_E	3	13284.3	95.3	1.44	1529	102	13.3
+Astral HCD	andes_off_E	3	8264.0	73.3	1.77	0	0	
+Astral HCD	andes_on_E	3	8427.0	72.7	1.72	3424	131	7.7
+Lumos HCD LFQ	andes_off_E	3	16618.7	97.3	1.17	0	0	
+Lumos HCD LFQ	andes_on_E	3	16655.0	113.0	1.36	1226	150	24.5

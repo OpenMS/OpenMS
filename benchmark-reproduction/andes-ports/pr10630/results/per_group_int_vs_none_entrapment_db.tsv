@@ -1,0 +1,8 @@
+group	n	ref	arm	ref_mean	arm_mean	delta_pct	up_flat_down
+HF-X HCD	3	none_E	int_E	4430.8	4431.8	0.02	0/3/0
+Astral HCD	3	none_E	int_E	2727.8	2709.9	-0.66	0/3/0
+Lumos HCD LFQ	3	none_E	int_E	5524.2	5520.8	-0.06	0/3/0
+Lumos CID TMT6plex	3	none_E	int_E	2342.3	2365.1	0.97	0/3/0
+Exploris 480 TMTpro	3	none_E	int_E	2576.1	2560.3	-0.61	0/2/1
+timsTOF HT	2	none_E	int_E	998.0	1017.7	1.97	0/2/0
+All files (sum)	17	none_E	int_E	54799.6	54799.0	-0.0	0/16/1

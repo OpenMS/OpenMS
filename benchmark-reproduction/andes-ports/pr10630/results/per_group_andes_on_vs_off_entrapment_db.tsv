@@ -1,0 +1,5 @@
+group	n	ref	arm	ref_mean	arm_mean	delta_pct	up_flat_down
+HF-X HCD	3	andes_off_E	andes_on_E	4472.4	4428.1	-0.99	0/1/2
+Astral HCD	3	andes_off_E	andes_on_E	2754.7	2809.0	1.97	0/3/0
+Lumos HCD LFQ	3	andes_off_E	andes_on_E	5539.6	5551.7	0.22	1/2/0
+All files (sum)	9	andes_off_E	andes_on_E	38300.0	38366.5	0.17	1/6/2

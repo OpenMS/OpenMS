@@ -1,0 +1,18 @@
+dataset	group	ref	arm	ref_seeds	arm_seeds	ref_mean	arm_mean	delta_pct	z	call
+hfx_A2	HF-X HCD	none_E	intiso_E	4482/4522/4473	4475/4522/4519	4492.3	4505.3	0.29	0.61	flat
+hfx_B1	HF-X HCD	none_E	intiso_E	4380/4368/4338	4371/4376/4362	4362	4369.7	0.18	0.58	flat
+hfx_B3	HF-X HCD	none_E	intiso_E	4442/4426/4446	4421/4426/4434	4438	4427	-0.25	-1.53	flat
+astral_A2	Astral HCD	none_E	intiso_E	2467/2426/2471	2472/2417/2527	2454.7	2472	0.71	0.5	flat
+astral_B1	Astral HCD	none_E	intiso_E	2912/2967/2981	2910/3007/3019	2953.3	2978.7	0.86	0.63	flat
+astral_B3	Astral HCD	none_E	intiso_E	2832/2693/2801	2825/2746/2792	2775.3	2787.7	0.44	0.26	flat
+lumos_lfq_5192	Lumos HCD LFQ	none_E	intiso_E	5513/5525/5526	5511/5517/5510	5521.3	5512.7	-0.16	-1.84	flat
+lumos_lfq_5194	Lumos HCD LFQ	none_E	intiso_E	5539/5534/5525	5531/5534/5516	5532.7	5527	-0.1	-0.82	flat
+lumos_lfq_5199	Lumos HCD LFQ	none_E	intiso_E	5520/5510/5526	5513/5514/5528	5518.7	5518.3	-0.01	-0.05	flat
+lumos_tmt_5058	Lumos CID TMT6plex	none_E	intiso_E	2238/2255/2222	2220/2185/2206	2238.3	2203.7	-1.55	-2.49	down
+lumos_tmt_5059	Lumos CID TMT6plex	none_E	intiso_E	2349/2365/2309	2345/2330/2358	2341	2344.3	0.14	0.18	flat
+lumos_tmt_5066	Lumos CID TMT6plex	none_E	intiso_E	2435/2479/2429	2439/2459/2430	2447.7	2442.7	-0.2	-0.28	flat
+eclipse_tmtpro_10855	Exploris 480 TMTpro	none_E	intiso_E	2719/2762/2744	2742/2746/2738	2741.7	2742	0.01	0.03	flat
+eclipse_tmtpro_10858	Exploris 480 TMTpro	none_E	intiso_E	2478/2481/2476	2484/2458/2458	2478.3	2466.7	-0.47	-1.33	flat
+eclipse_tmtpro_10863	Exploris 480 TMTpro	none_E	intiso_E	2537/2495/2493	2540/2513/2485	2508.3	2512.7	0.17	0.2	flat
+tims_plasma_30min	timsTOF HT	none_E	intiso_E	1012/981/1024	1048/1003/995	1005.7	1015.3	0.96	0.46	flat
+tims_plasma_50min	timsTOF HT	none_E	intiso_E	1024/985/962	1025/979/985	990.3	996.3	0.61	0.26	flat

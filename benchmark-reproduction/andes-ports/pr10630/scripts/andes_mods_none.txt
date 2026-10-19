@@ -1,0 +1,3 @@
+NumMods=1
+57.021464,C,fix,any,Carbamidomethyl (C)
+15.994915,M,opt,any,Oxidation (M)

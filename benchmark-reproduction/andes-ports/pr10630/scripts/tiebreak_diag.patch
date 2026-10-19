@@ -1,0 +1,48 @@
+--- a/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
++++ b/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
+@@ -47,6 +47,8 @@
+ #include <unordered_map>
+ #include <unordered_set>
+ #include <boost/sort/sort.hpp>
++#include <cstdlib>
++#include <fstream>
+ #if defined(__linux__)
+   #include <cstdint>
+   #include <type_traits>
+@@ -3639,6 +3641,36 @@
+         mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
+         searchDifferentPrecursorRanges(spectrum, mz, sms, charge, with_electron_ions);
+       }
++      // BENCHMARK DIAGNOSTIC (not part of PR #10630): rank the same candidates with and without the intensity key
++      if (const char* diag_path = std::getenv("OPENMS_TIEBREAK_DIAG"); diag_path != nullptr && tie_break_by_intensity_)
++      {
++        SpectrumMatchesTopN with = sms, without = sms;
++        for (auto& h : without.hits_) h.matched_intensity_ = 0.0f;
++        trimHits(with);
++        trimHits(without);
++        std::vector<uint32_t> votes;
++        for (const auto& h : sms.hits_) if (h.num_matched_ >= min_matched_peaks_) votes.push_back(h.num_matched_);
++        std::sort(votes.begin(), votes.end(), std::greater<>());
++        const size_t cap = max_processed_hits_;
++        const bool over = votes.size() > cap;
++        const uint32_t v = over ? votes[cap - 1] : 0;
++        const size_t at_v = over ? std::count(votes.begin(), votes.end(), v) : 0;
++        const size_t above = over ? std::count_if(votes.begin(), votes.end(), [v](uint32_t x) { return x > v; }) : 0;
++        const bool boundary_tie = over && votes[cap] == v;
++        auto key = [](const SpectrumMatch& h) { return std::make_tuple(h.peptide_idx_, h.precursor_charge_, h.isotope_error_); };
++        std::set<std::tuple<uint32_t, uint16_t, int16_t>> kw, kwo;
++        std::set<uint32_t> pw, pwo;
++        for (const auto& h : with.hits_) { kw.insert(key(h)); pw.insert(h.peptide_idx_); }
++        for (const auto& h : without.hits_) { kwo.insert(key(h)); pwo.insert(h.peptide_idx_); }
++        size_t swapped = 0, swapped_pep = 0;
++        for (const auto& k : kw) swapped += kwo.count(k) == 0;
++        for (const auto& k : pw) swapped_pep += pwo.count(k) == 0;
++        static std::mutex diag_mutex;
++        std::lock_guard<std::mutex> lock(diag_mutex);
++        static std::ofstream diag_out(diag_path);
++        diag_out << spectrum.getNativeID() << '\t' << votes.size() << '\t' << int(boundary_tie) << '\t' << v << '\t' << at_v
++                 << '\t' << (over ? cap - above : 0) << '\t' << swapped << '\t' << swapped_pep << '\t' << kw.size() << '\n';
++      }
+       trimHits(sms);
+   }
+ 

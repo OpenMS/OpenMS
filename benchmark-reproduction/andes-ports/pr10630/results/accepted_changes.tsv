@@ -1,0 +1,21 @@
+dataset	group	gained_scans	lost_scans	same_scan_other_peptide
+velos_125_R1	Velos CID	27.0	48.3	0.7
+velos_5000_R2	Velos CID	26.7	37.3	0.7
+velos_25000_R3	Velos CID	37.7	42.7	0.7
+hfx_A2	HF-X HCD	31.3	10.0	9.0
+hfx_B1	HF-X HCD	12.7	10.0	4.3
+hfx_B3	HF-X HCD	21.0	8.3	8.7
+astral_A2	Astral HCD	72.0	93.0	12.0
+astral_B1	Astral HCD	52.7	99.0	9.7
+astral_B3	Astral HCD	71.3	115.7	12.3
+lumos_lfq_5192	Lumos HCD LFQ	4.7	6.3	7.3
+lumos_lfq_5194	Lumos HCD LFQ	16.3	5.7	8.0
+lumos_lfq_5199	Lumos HCD LFQ	8.0	9.3	12.0
+lumos_tmt_5058	Lumos CID TMT6plex	19.7	19.0	0.7
+lumos_tmt_5059	Lumos CID TMT6plex	23.3	33.0	2.3
+lumos_tmt_5066	Lumos CID TMT6plex	13.0	31.3	0.7
+eclipse_tmtpro_10855	Exploris 480 TMTpro	13.0	4.7	4.3
+eclipse_tmtpro_10858	Exploris 480 TMTpro	4.0	20.7	2.3
+eclipse_tmtpro_10863	Exploris 480 TMTpro	5.3	11.3	2.0
+tims_plasma_30min	timsTOF HT	21.0	14.7	1.3
+tims_plasma_50min	timsTOF HT	11.7	12.3	0.0
