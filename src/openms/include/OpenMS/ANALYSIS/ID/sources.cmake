@@ -47,6 +47,7 @@ Scores.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h
+VariantKnockoffs.h
 )
 
 if (WITH_ONNX)

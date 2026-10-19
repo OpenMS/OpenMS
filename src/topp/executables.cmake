@@ -151,6 +151,7 @@ openms_topp_tool(StaticModification               "Identification Processing")
 openms_topp_tool(TICCalculator                    "Misc")
 openms_topp_tool(TextExporter                     "File Converter")
 openms_topp_tool(UniPEFF                          "File Converter")
+openms_topp_tool(VariantDatabase                  "File Filtering, Extraction and Merging")
 openms_topp_tool(XFDR                             "Cross-Linking")
 openms_topp_tool(XMLValidator                     "[for Developers]")
 

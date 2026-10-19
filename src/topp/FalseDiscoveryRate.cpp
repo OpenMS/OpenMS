@@ -8,6 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/VariantKnockoffs.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -55,6 +57,18 @@ This should be a serious concern, since it indicates a possible problem with the
 Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
 automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
 
+<B>Variant PSMs and knockoffs</B>
+
+With @p -PSM_variant_database (a database made by @ref TOPP_VariantDatabase, as searched), PSMs of protein variants
+also get a knockoff q-value. Decoys model random matches, but most false variant PSMs are canonical peptides carrying a
+modification of the substitution's mass (N→D and deamidation, ...) or picked at the wrong isotope. Knockoff entries copy
+each variant's substitution to positions that are almost certainly not variant, so the knockoff PSMs that pass a score
+estimate the false variant PSMs that pass it, per substitution class and prior tier (see VariantKnockoffs). A variant
+PSM's q-value becomes the larger of its PSM and its knockoff q-value (meta value "knockoff_q-value"); a variant without
+knockoffs gets q-value 1. Knockoff PSMs get q-value 1 (meta value "knockoff") and knockoff accessions are removed from
+all PSMs. Run @ref TOPP_PeptideIndexer with @p IL_equivalent so that peptides a canonical protein holds up to I/L are
+not counted as variant-specific. Only available for PSM-level FDR (@p -peptide false).
+
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
@@ -96,6 +110,10 @@ protected:
     registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
     registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
     setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<std::string>("higher_better, lower_better"));
+    registerInputFile_("PSM_variant_database", "<file>", "", "Protein database made by VariantDatabase (as searched): PSMs of its variant entries also get a knockoff q-value, and knockoff PSMs are not accepted. Empty: off.", false);
+    setValidFormats_("PSM_variant_database", {"fasta"});
+    registerIntOption_("PSM_variant_min_tested", "<number>", 50, "With several prior tiers of variants: least variant PSMs (of variants with knockoffs) at the PSM cutoff for a tier to get its own knockoff estimate; smaller tiers are pooled within their substitution class.", false, true);
+    setMinInt_("PSM_variant_min_tested", 1);
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
     setValidStrings_("protein", ListUtils::create<std::string>("true,false"));
     registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
@@ -235,9 +253,55 @@ protected:
       bool peptide_level_fdr = getStringOption_("peptide") == "true";
       bool psm_level_fdr = getStringOption_("PSM") == "true";
 
+      const std::string variant_db = getStringOption_("PSM_variant_database");
+      if (!variant_db.empty() && peptide_level_fdr)
+      {
+        OPENMS_LOG_ERROR << "Error: 'PSM_variant_database' is only supported for PSM-level FDR ('peptide' false)." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      // the search score ranks variant PSMs for the knockoff estimate; FDR keeps it as meta value "<score type>_score"
+      const std::string search_score = pep_ids.empty() ? std::string() : pep_ids.front().getScoreType() + "_score";
+      const bool search_higher_better = pep_ids.empty() || pep_ids.front().isHigherScoreBetter();
+
       if (psm_level_fdr || peptide_level_fdr)
       {
         fdr.apply(pep_ids, peptide_level_fdr);
+        if (!variant_db.empty() && psm_level_fdr)
+        {
+          if (!pep_ids.empty() && pep_ids.front().getScoreType() != "q-value")
+          {
+            OPENMS_LOG_WARN << "Knockoff q-values need q-values ('no_qvalues' false): not applied." << endl;
+          }
+          else
+          {
+            std::vector<FASTAFile::FASTAEntry> db;
+            FASTAFile().load(variant_db, db);
+            const VariantKnockoffs::Index index = VariantKnockoffs::indexDatabase(db);
+            if (index.knockoffs_per_variant.empty())
+            {
+              OPENMS_LOG_WARN << "No knockoff entries in " << variant_db << ": knockoff q-values not applied." << endl;
+            }
+            const double cutoff = psm_fdr < 1 ? psm_fdr : 0.01;
+            auto rank_of = [&search_score, search_higher_better](const PeptideHit& hit)
+            {
+              if (!hit.metaValueExists(search_score)) return -hit.getScore();
+              const double s = hit.getMetaValue(search_score);
+              return search_higher_better ? s : -s;
+            };
+            const auto counts = VariantKnockoffs::applyKnockoffQValues(pep_ids, index, rank_of, cutoff,
+              static_cast<Size>(getIntOption_("PSM_variant_min_tested")), alg_param.getValue("use_all_hits").toBool());
+            if (!counts.empty())
+            {
+              OPENMS_LOG_INFO << "Variant PSMs at q-value <= " << cutoff << " before -> after knockoff q-values:" << endl;
+            }
+            for (const auto& c : counts)
+            {
+              OPENMS_LOG_INFO << "  " << c.name << ": " << c.real_before << " -> " << c.real_after << " ("
+                              << c.tested_before << " of variants with knockoffs; knockoff PSMs " << c.knockoff_weighted
+                              << ", estimated false share " << c.falseShare() << ")" << endl;
+            }
+          }
+        }
         // TODO If no decoys are removed in the param settings, we shouldn't need cleanups
         //  but then all tests need to be changed since cleanup sorts.
         //if (alg_param.getValue("add_decoy_peptides").toBool())

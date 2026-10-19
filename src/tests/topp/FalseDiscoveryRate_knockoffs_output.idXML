@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="VariantDatabase_1_output.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2-3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2026-10-19T10:00:00" search_engine="ProSE" search_engine_version="1" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="P1" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="P1_VAR_D5N" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="P1_KO1_D15N_VAR_D5N" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="P1_KO2_D25N_VAR_D5N" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="P1_VAR_D35W" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="500.0" RT="100.0" >
+			<PeptideHit score="0.0" sequence="IYFPVDAVK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="100.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="501.0" RT="101.0" >
+			<PeptideHit score="0.0" sequence="LYIHVYYVK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="99.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="502.0" RT="102.0" >
+			<PeptideHit score="0.0" sequence="QFIFWQADK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="98.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="503.0" RT="103.0" >
+			<PeptideHit score="0.0" sequence="GCMALVQSK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="97.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="504.0" RT="104.0" >
+			<PeptideHit score="0.0" sequence="QTFPECFVK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="96.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="505.0" RT="105.0" >
+			<PeptideHit score="0.0" sequence="HLSMSWQPK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="95.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="506.0" RT="106.0" >
+			<PeptideHit score="0.0" sequence="YSINALGNK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="94.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="507.0" RT="107.0" >
+			<PeptideHit score="0.0" sequence="YEHLMEDVK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="93.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="508.0" RT="108.0" >
+			<PeptideHit score="0.0" sequence="VDPDSFAMK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="92.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="509.0" RT="109.0" >
+			<PeptideHit score="0.0" sequence="SSECCQNYK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="91.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="510.0" RT="110.0" >
+			<PeptideHit score="0.0" sequence="LWICMADEK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="90.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="511.0" RT="111.0" >
+			<PeptideHit score="0.0" sequence="YCHSMLFCK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="89.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="512.0" RT="112.0" >
+			<PeptideHit score="0.0" sequence="NNPFQQTWK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="88.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="513.0" RT="113.0" >
+			<PeptideHit score="0.0" sequence="QYEWLSIMK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="87.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="514.0" RT="114.0" >
+			<PeptideHit score="0.0" sequence="SLWMYNASK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="86.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="515.0" RT="115.0" >
+			<PeptideHit score="0.0" sequence="NAQFCNTPK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="85.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="516.0" RT="116.0" >
+			<PeptideHit score="0.0" sequence="PLVACAPLK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="84.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="517.0" RT="117.0" >
+			<PeptideHit score="0.0" sequence="TMNGPGNPK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="83.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="518.0" RT="118.0" >
+			<PeptideHit score="0.0" sequence="LMQEAFMWK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="82.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="519.0" RT="119.0" >
+			<PeptideHit score="0.0" sequence="ILINGSEEK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="81.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="526.0" RT="126.0" >
+			<PeptideHit score="0.333333333333333" sequence="IDMEICCWK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="70.0"/>
+				<UserParam type="string" name="knockoff_stratum" value="deamidation-like"/>
+				<UserParam type="float" name="knockoff_q-value" value="0.333333333333333"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="527.0" RT="127.0" >
+			<PeptideHit score="0.333333333333333" sequence="HSCAVEGWK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="65.0"/>
+				<UserParam type="string" name="knockoff_stratum" value="deamidation-like"/>
+				<UserParam type="float" name="knockoff_q-value" value="0.333333333333333"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="528.0" RT="128.0" >
+			<PeptideHit score="0.333333333333333" sequence="MIAWYSCEK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="60.0"/>
+				<UserParam type="string" name="knockoff_stratum" value="deamidation-like"/>
+				<UserParam type="float" name="knockoff_q-value" value="0.333333333333333"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="529.0" RT="129.0" >
+			<PeptideHit score="0.375" sequence="NFLYVCPIK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="55.0"/>
+				<UserParam type="string" name="knockoff_stratum" value="deamidation-like"/>
+				<UserParam type="float" name="knockoff_q-value" value="0.375"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="530.0" RT="130.0" >
+			<PeptideHit score="1.0" sequence="HEYEGILFK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="67.0"/>
+				<UserParam type="int" name="knockoff" value="1"/>
+				<UserParam type="string" name="knockoff_stratum" value="deamidation-like"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="531.0" RT="131.0" >
+			<PeptideHit score="1.0" sequence="AVQCLILWK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="57.0"/>
+				<UserParam type="int" name="knockoff" value="1"/>
+				<UserParam type="string" name="knockoff_stratum" value="deamidation-like"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="532.0" RT="132.0" >
+			<PeptideHit score="1.0" sequence="WSCVNACFK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_4" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="75.0"/>
+				<UserParam type="string" name="knockoff_stratum" value="other"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="533.0" RT="133.0" >
+			<PeptideHit score="0.0" sequence="CECDVCDWK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="hyperscore_score" value="90.5"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

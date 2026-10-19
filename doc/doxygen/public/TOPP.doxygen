@@ -49,6 +49,7 @@
   - @subpage TOPP_IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
+  - @subpage TOPP_VariantDatabase - Adds single-residue protein variants and their knockoff entries to a protein database.
   
 
   <b>Spectrum processing: Centroiding</b>

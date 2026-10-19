@@ -48,6 +48,7 @@ Scores.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp
+VariantKnockoffs.cpp
 )
 
 ### add path to the filenames

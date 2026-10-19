@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - Added VariantKnockoffs: knockoff entries for single-residue protein variants (the substitution moved to a matched
+    position that no listed variant has) and knockoff q-values for variant PSMs, estimated per substitution class
+    (deamidation-, methyl-, oxidation-like, other) and prior tier; variants without knockoffs are not accepted.
   - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
     (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
     single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
@@ -753,7 +756,13 @@ TOPP tools:
       OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
+    - VariantDatabase: adds single-residue protein variants (tab-separated list, optional prior tier) and their knockoff
+      entries to a protein database, for the knockoff q-values of FalseDiscoveryRate -PSM_variant_database.
   Changes:
+    FalseDiscoveryRate:
+      - PARAM: New -PSM_variant_database (a VariantDatabase output, as searched): variant PSMs get the larger of their
+        PSM and knockoff q-value, variants without knockoffs and knockoff PSMs get q-value 1, and knockoff accessions are
+        removed. New advanced -PSM_variant_min_tested (50).
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter

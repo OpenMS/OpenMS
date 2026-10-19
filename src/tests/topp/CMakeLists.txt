@@ -3617,6 +3617,10 @@ set_tests_properties("TOPP_FalseDiscoveryRate_6_out1" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_7_output.tmp.idXML -PSM false -protein true -FDR:protein 0.30 -force)
 add_test("TOPP_FalseDiscoveryRate_7_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_7_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_7")
+# PSM FDR with knockoff q-values for variant PSMs
+add_test("TOPP_FalseDiscoveryRate_knockoffs" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_knockoffs_input.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_knockoffs_output.tmp.idXML -PSM true -protein false -FDR:PSM 1 -PSM_variant_database ${DATA_DIR_TOPP}/FalseDiscoveryRate_knockoffs_database.fasta)
+add_test("TOPP_FalseDiscoveryRate_knockoffs_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_knockoffs_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_knockoffs_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_knockoffs_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_knockoffs")
 
 
 #------------------------------------------------------------------------------
@@ -4692,6 +4696,10 @@ set_tests_properties("TOPP_DatabaseFilter_4_out" PROPERTIES DEPENDS "TOPP_Databa
 add_test("TOPP_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_1.tmp.fasta -only_decoy)
 add_test("TOPP_DecoyDatabase_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_1.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_1_out.fasta )
 set_tests_properties("TOPP_DecoyDatabase_1_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_1")
+# VariantDatabase:
+add_test("TOPP_VariantDatabase_1" ${TOPP_BIN_PATH}/VariantDatabase -test -in ${DATA_DIR_TOPP}/VariantDatabase_1_input.fasta -variants ${DATA_DIR_TOPP}/VariantDatabase_1_variants.tsv -out ${TESTS_TEMP_DIR}/VariantDatabase_1.tmp.fasta)
+add_test("TOPP_VariantDatabase_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/VariantDatabase_1.tmp.fasta -in2 ${DATA_DIR_TOPP}/VariantDatabase_1_output.fasta)
+set_tests_properties("TOPP_VariantDatabase_1_out" PROPERTIES DEPENDS "TOPP_VariantDatabase_1")
 add_test("TOPP_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_2.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KRP" -seed 42)
 add_test("TOPP_DecoyDatabase_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_2.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_2_out.fasta )
 set_tests_properties("TOPP_DecoyDatabase_2_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_2")
