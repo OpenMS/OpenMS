@@ -192,11 +192,14 @@ namespace OpenMS
                                             const double drift_target,// TODO is this needed
                                             const RangeMobility& im_range,
                                             MobilogramParquetConsumer* mobilogram_consumer,
-                                            Int64 feature_id)
+                                            Int64 feature_id,
+                                            ScoreSubset subset)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
+    const bool ranking = subset != ScoreSubset::REMAINDER;
+    const bool remainder = subset != ScoreSubset::RANKING;
 
     // normalized_library_intensity is passed in to avoid per-call allocation
 
@@ -230,7 +233,7 @@ namespace OpenMS
     const bool dia_extraction_ppm_ = diascoring.isDIAExtractionPPM();
 
     // score drift time dimension
-    if ( su_.use_im_scores)
+    if (ranking && su_.use_im_scores)
     {
       IonMobilityScoring::driftScoring(spectra, transitions, scores,
                                        drift_target, im_range,
@@ -240,13 +243,19 @@ namespace OpenMS
 
 
     // Mass deviation score
-    diascoring.dia_massdiff_score(transitions, spectra, normalized_library_intensity, im_range, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
+    if (ranking)
+    {
+      diascoring.dia_massdiff_score(transitions, spectra, normalized_library_intensity, im_range, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
+    }
 
     //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
     // DIA dotproduct and manhattan score based on library intensity and sum formula if present
     if (su_.use_ms2_isotope_scores)
     {
-      diascoring.score_with_isotopes(spectra, transitions, im_range, scores.dotprod_score_dia, scores.manhatt_score_dia);
+      if (remainder)
+      {
+        diascoring.score_with_isotopes(spectra, transitions, im_range, scores.dotprod_score_dia, scores.manhatt_score_dia);
+      }
 
       // Isotope correlation / overlap score: Is this peak part of an
       // isotopic pattern or is it the monoisotopic peak in an isotopic
@@ -254,12 +263,15 @@ namespace OpenMS
       // Currently this is computed for an averagine model of a peptide so its
       // not optimal for metabolites - but better than nothing, given that for
       // most fragments we don't really know their composition
-      diascoring.dia_isotope_scores(transitions, spectra, imrmfeature, im_range, scores.isotope_correlation, scores.isotope_overlap);
+      if (ranking)
+      {
+        diascoring.dia_isotope_scores(transitions, spectra, imrmfeature, im_range, scores.isotope_correlation, scores.isotope_overlap);
+      }
     }
 
     // Peptide-specific scores (only useful, when product transitions are REAL fragments, e.g. not in FFID)
     // and only if sequence is known (non-empty)
-    if (compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
+    if (ranking && compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score
       if (!aa_sequence_cache.valid ||
@@ -286,7 +298,7 @@ namespace OpenMS
       im_range_ms1 = RangeMobility();
     }
 
-    const bool has_ms1_spectra = ms1_map && ms1_map->getNrSpectra() > 0;
+    const bool has_ms1_spectra = remainder && ms1_map && ms1_map->getNrSpectra() > 0;
     bool can_reuse_precursor_ms1_spectrum = false;
     if (has_ms1_spectra)
     {
@@ -486,27 +498,30 @@ namespace OpenMS
         const std::vector<std::string>& precursor_ids,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Scores & scores) const
+        OpenSwath_Scores & scores,
+        ScoreSubset subset) const
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
+    const bool ranking = subset != ScoreSubset::REMAINDER;
+    const bool remainder = subset != ScoreSubset::RANKING;
     // reuse small chroma-related temporaries
     chrom_pool.reset();
     thread_local OpenSwath::MRMScoring mrmscore_;
     const bool has_precursor_features = !precursor_ids.empty();
     // With MS1 traces, the precursor matrices are built together with the transition matrix: their
     // combined matrix consists of the entries of the others.
-    const bool use_ms1_xcorr = has_precursor_features && su_.use_ms1_correlation;
+    const bool use_ms1_xcorr = remainder && has_precursor_features && su_.use_ms1_correlation;
     if (use_ms1_xcorr)
     {
       mrmscore_.initializeXCorrPrecursorMatrices(imrmfeature, precursor_ids, native_ids);
     }
-    else if (su_.use_coelution_score_ || su_.use_shape_score_)
+    else if (ranking && (su_.use_coelution_score_ || su_.use_shape_score_))
     {
       mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
     }
 
     // XCorr score (coelution)
-    if (su_.use_coelution_score_)
+    if (ranking && su_.use_coelution_score_)
     {
       scores.xcorr_coelution_score = mrmscore_.calcXcorrCoelutionScore();
       scores.weighted_coelution_score = mrmscore_.calcXcorrCoelutionWeightedScore(normalized_library_intensity);
@@ -516,7 +531,7 @@ namespace OpenMS
     // mean over the intensities at the max of the crosscorrelation
     // FEATURE : weigh by the intensity as done by mQuest
     // FEATURE : normalize with the intensity at the peak group apex?
-    if (su_.use_shape_score_)
+    if (ranking && su_.use_shape_score_)
     {
       scores.xcorr_shape_score = mrmscore_.calcXcorrShapeScore();
       scores.weighted_xcorr_shape = mrmscore_.calcXcorrShapeWeightedScore(normalized_library_intensity);
@@ -539,13 +554,13 @@ namespace OpenMS
       scores.ms1_xcorr_shape_combined_score = mrmscore_.calcXcorrPrecursorCombinedShapeScore();
     }
 
-    if (su_.use_nr_peaks_score_)
+    if (ranking && su_.use_nr_peaks_score_)
     {
       scores.nr_peaks = checkedCast<int>(imrmfeature->size());
     }
 
     // Signal to noise scoring
-    if (su_.use_sn_score_)
+    if (ranking && su_.use_sn_score_)
     {
       scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
       // everything below S/N 1 can be set to zero (and the log safely applied)
@@ -560,16 +575,17 @@ namespace OpenMS
     }
 
     // Mutual information scoring (with MS1 traces, all MI matrices are built together as above)
-    const bool use_ms1_mi = has_precursor_features && su_.use_ms1_mi;
+    const bool use_mi = remainder && su_.use_mi_score_;
+    const bool use_ms1_mi = remainder && has_precursor_features && su_.use_ms1_mi;
     if (use_ms1_mi)
     {
       mrmscore_.initializeMIPrecursorMatrices(imrmfeature, precursor_ids, native_ids);
     }
-    else if (su_.use_mi_score_)
+    else if (use_mi)
     {
       mrmscore_.initializeMIMatrix(imrmfeature, native_ids);
     }
-    if (su_.use_mi_score_)
+    if (use_mi)
     {
       scores.mi_score = mrmscore_.calcMIScore();
       scores.weighted_mi_score = mrmscore_.calcMIWeightedScore(normalized_library_intensity);

@@ -740,6 +740,15 @@ namespace OpenMS
       idscores_needed_capacity = std::max(idscores_needed_capacity, transition_group_identification_decoy.getTransitions().size());
     }
 
+    // If only the best peak groups are reported and they are ranked by the SWATH prescore, the candidates
+    // are first scored with the scores of the ranking only, and the remaining scores are computed for the
+    // reported peak groups. Ion mobility (mobilograms of every candidate) and UIS scores (which use the MI
+    // score) need all scores of every candidate.
+    const bool defer_unranked_scores = defer_feature_output && !ms1only && swath_present && su_.use_dia_scores_ &&
+                                       !su_.use_im_scores && !su_.use_uis_scores;
+    const OpenSwathScoring::ScoreSubset candidate_scores = defer_unranked_scores ?
+      OpenSwathScoring::ScoreSubset::RANKING : OpenSwathScoring::ScoreSubset::ALL;
+
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
@@ -864,7 +873,7 @@ namespace OpenMS
           // Library and chromatographic scores
           OpenSwath_Scores& scores = mrmfeature.getScores();
           scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
-                        signal_noise_estimators, scores);
+                        signal_noise_estimators, scores, candidate_scores);
 
           double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
           scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
@@ -879,7 +888,7 @@ namespace OpenMS
                                       transitions,
                                       tg_cache.normalized_library_intensity,
                                       swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                      drift_target, im_range, mobilogram_consumer, feature_id);
+                                      drift_target, im_range, mobilogram_consumer, feature_id, candidate_scores);
             mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
           }
 
@@ -1009,6 +1018,33 @@ namespace OpenMS
       else if (report_count > 0)
       {
         std::sort(scored_feature_indices.begin(), scored_feature_indices.end(), quality_greater);
+      }
+      if (defer_unranked_scores)
+      {
+        // the scores that did not take part in the ranking, for the reported peak groups
+        #ifdef _OPENMP
+        #pragma omp parallel for if (in_parallel == 0)
+        #endif
+        for (SignedSize i = 0; i < static_cast<SignedSize>(report_count); ++i)
+        {
+          MRMFeature& selected_feature = mrmfeatures[scored_feature_indices[i]];
+          MRMFeatureOpenMS imrmfeature(selected_feature,
+                                       tg_cache.transition_native_ids,
+                                       tg_cache.precursor_ids,
+                                       tg_cache.transition_native_ids_openms,
+                                       tg_cache.precursor_ids_openms);
+          OpenSwath_Scores& scores = selected_feature.getScores();
+          scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids,
+                                                tg_cache.normalized_library_intensity, signal_noise_estimators, scores,
+                                                OpenSwathScoring::ScoreSubset::REMAINDER);
+          const Int64 feature_id = selected_feature.hasValidUniqueId() ?
+            static_cast<Int64>(Internal::SqliteHelper::clearSignBit(selected_feature.getUniqueId())) : -1;
+          std::vector<double> masserror_ppm; // filled by the ranking scores
+          scorer.calculateDIAScores(&imrmfeature, transitions, tg_cache.normalized_library_intensity,
+                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
+                                    drift_target, im_range, mobilogram_consumer, feature_id,
+                                    OpenSwathScoring::ScoreSubset::REMAINDER);
+        }
       }
       for (Size i = 0; i < report_count; ++i)
       {
