@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
 #include <cassert>
 #include <vector>
@@ -97,27 +98,46 @@ public:
         return std::max(1.0, (get_noise_even(mz)+get_noise_odd(mz))/2.0 );
       }
 
+      /**
+        @brief Return the noise value of the even window that contains @p mz
+
+        @throws Exception::IndexUnderflow if @p mz lies before the first window (or is NaN)
+        @throws Exception::IndexOverflow if @p mz lies after the last window
+      */
       double get_noise_even (double mz)
       {
-        // PRECONDITION
-        int window_nr = (int)((mz - mz_start)/window_length);
-        assert(window_nr >= 0);
-        assert(window_nr < (int)result_windows_even.size());
-
-        double noise = result_windows_even[window_nr];
-        return noise;
+        return result_windows_even[windowIndex_((mz - mz_start) / window_length, result_windows_even.size())];
       }
 
+      /**
+        @brief Return the noise value of the odd window (shifted by half a window length) that contains @p mz
+
+        @throws Exception::IndexUnderflow if @p mz lies before the first window (or is NaN)
+        @throws Exception::IndexOverflow if @p mz lies after the last window
+      */
       double get_noise_odd (double mz)
       {
-        // PRECONDITION
-        int window_nr = (int)((mz - mz_start + window_length/2.0)/window_length);
-        assert(window_nr >= 0);
-        assert(window_nr < (int)result_windows_odd.size());
-
-        double noise = result_windows_odd[window_nr];
-        return noise;
+        return result_windows_odd[windowIndex_((mz - mz_start + window_length / 2.0) / window_length, result_windows_odd.size())];
       }
+
+    private:
+      /**
+        @brief Convert a fractional window position into a checked window index
+
+        The position is truncated towards zero (as before), so positions in (-1, 0)
+        map to window 0. The range check is done on the double value, which also
+        rejects NaN and values too large to convert to an integer.
+      */
+      static Size windowIndex_(double window, Size n_windows)
+      {
+        if (!(window > -1.0 && window < static_cast<double>(n_windows)))
+        {
+          throwWindowOutOfRange_(window, n_windows);
+        }
+        return static_cast<Size>(window);
+      }
+
+      [[noreturn]] static void throwWindowOutOfRange_(double window, Size n_windows);
     };
 
     /// default constructor
@@ -147,11 +167,13 @@ public:
     /** @brief Compute noise estimator for an m/z and intensity array using windows
      *
      * Will return a noise estimator object.
+     *
+     * @throws Exception::InvalidParameter if the arrays are empty or differ in length
     */
     NoiseEstimator estimateNoise(const std::vector<double>& mz_array, const std::vector<double>& int_array)
     {
       // PRECONDITION
-      assert(mz_array.size() == int_array.size());
+      checkInputArrays_(mz_array, int_array);
       assert(mz_array.size() > 2);
 
       int nr_windows = (int)((mz_array[mz_array.size()-1] - mz_array[0])/window_length_) + 1;
@@ -166,6 +188,9 @@ public:
     }
 
 private:
+
+    /// Throws Exception::InvalidParameter if the arrays are empty or differ in length
+    static void checkInputArrays_(const std::vector<double>& mz_array, const std::vector<double>& int_array);
 
     /** @brief Computes the noise in windows for two input arrays and stores the median intensity in the result (internal)
      *
