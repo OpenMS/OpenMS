@@ -162,13 +162,29 @@ del _patch_pyarrow_filesystem
 
 # On conda the libs will be installed to the general conda lib path which is available during load.
 # Try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip).
-if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOpenMS.so")):
-    # load local shared libraries before we import pyopenms*.so, else
-    # those are not found. setting LD_LIBRARY_PATH does not work,
-    # see: http://stackoverflow.com/questions/1178094
-    import ctypes
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
+def _find_local_lib(stem):
+    """Locate a bundled shared library, whether versioned (SOVERSION) or not."""
+    import glob
+    versioned = sorted(glob.glob(os.path.join(here, stem + ".so.*")))
+    if versioned:
+        return versioned[0]
+    plain = os.path.join(here, stem + ".so")
+    return plain if os.path.exists(plain) else None
+
+if sys.platform.startswith("linux"):
+    _openms_lib = _find_local_lib("libOpenMS")
+    if _openms_lib is not None:
+        # load local shared libraries before we import pyopenms*.so, else
+        # those are not found. setting LD_LIBRARY_PATH does not work,
+        # see: http://stackoverflow.com/questions/1178094
+        import ctypes
+        _swath_lib = _find_local_lib("libOpenSwathAlgo")
+        if _swath_lib is not None:
+            ctypes.cdll.LoadLibrary(_swath_lib)
+        ctypes.cdll.LoadLibrary(_openms_lib)
+        del _swath_lib
+    del _openms_lib
+del _find_local_lib
 
 
 # On Windows, Python >= 3.8 no longer uses PATH to resolve an extension module's

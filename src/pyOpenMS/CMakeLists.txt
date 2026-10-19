@@ -474,6 +474,7 @@ if(PYOPENMS_USE_PREBUILT)
     PATTERN "*.pyi"
     PATTERN "py.typed"
     PATTERN "*.so"
+    PATTERN "*.so.*"
     PATTERN "*.dylib"
     PATTERN "*.pyd"
     PATTERN "Qt*"
