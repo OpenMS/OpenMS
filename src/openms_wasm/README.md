@@ -120,7 +120,9 @@ read-only file; it used to write to the process' stderr) and where its close fai
 on).
 
 `FS.writeFile()` of WasmFS (Emscripten 6.0.12) appends to a file that exists, instead of replacing its
-contents: `FS.unlink()` the file first (or use `allocateFile()`, which replaces it).
+contents: `FS.unlink()` the file first, or use `allocateFile(path, size, capacity)`, which creates it
+anew. (`allocateFile(path, size)` resizes an existing file in place, keeping its old bytes, so write all
+of it.)
 
 Gzip- and bzip2-compressed mzML files are read as usual.
 
@@ -333,8 +335,10 @@ type ProSEFileSummary = {
   the enzyme, the decoy mode (`decoyMode`: `generated`, `external` or `none (target-only)`), the size of the
   fragment index (`indexedPeptides`, `indexedFragments`) and the times. The index is built once for all
   files, so `secondsIndexBuild` is its time; `secondsTotal` is the time of the whole `searchFiles()` call,
-  with pooling and reading the spectra. (The index of several files holds all peptides of the digest; that
-  of `search()`, and of a search of one file, only those its spectra can reach, so the sizes differ.) With
+  with pooling and reading the spectra. (The index of several files holds all peptides of the digest. That
+  of `search()`, and of a search of one file, holds only those its spectra can reach when the search runs
+  on one thread; with more threads it, too, holds the whole digest. So the sizes differ with the number of
+  files and of threads.) With
   `provideFile` the index is built for each file, from its spectra: `secondsIndexBuild` adds up the builds,
   the size is that of the first file's index, and `secondsTotal` includes the writing and removing of the
   files. The tolerances ProSE recommends from the mass errors of the PSMs (`precursorError`,
@@ -412,8 +416,11 @@ gave 2569 MB and 13.7 s for one file); ² and the file-by-file column are from t
 
 The heap still grows with the number of files, by about 70 MB per file of this size (110 MB for the
 second): part of it are the results (the PSMs and the peaks of their spectra), the rest is memory the
-allocator (mimalloc, with threads) does not reuse. With many small files it is more: 12 files of 78 MB
-took the heap from 715 to 2959 MB. A file has to be smaller than 2 GiB (above).
+allocator (mimalloc, with threads) does not reuse. With many small files it is more, and it grows with
+the number of threads and with PeptDeep: 12 files of 75 MB, file by file, ended at 3007 MB with 8 threads
+and at 3971 MB with 16 (PeptDeep off), and at 3263 MB with 4 threads, 4079 MB with 8 and the 4 GB limit
+with 16 (PeptDeep on). For searches of many files, use fewer threads (4 kept 12 such files with PeptDeep
+at 3.3 GB). A file has to be smaller than 2 GiB (above).
 
 **Exporting idXML.** `storeIdXML(path)` writes into the memory file system as well, where the file
 grows by doubling and briefly takes up to three times its size (not guarded: see "Files in parts"). Hand
