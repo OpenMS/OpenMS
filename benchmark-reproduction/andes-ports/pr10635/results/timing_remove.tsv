@@ -1,0 +1,13 @@
+build	dataset	arm	round	search_seconds	peak_rss_kb
+pr2	astral_B1	off	r1	18.03	4179476
+pr2	astral_B1	remove	r1	17.65	4179388
+pr2	astral_B1	off	r2	17.79	4178728
+pr2	astral_B1	remove	r2	17.80	4178756
+pr2	astral_B1	off	r3	17.79	4179192
+pr2	astral_B1	remove	r3	17.75	4179312
+pr2	hfx_A2	off	r1	14.32	4555032
+pr2	hfx_A2	remove	r1	14.07	4554800
+pr2	hfx_A2	off	r2	13.68	4558644
+pr2	hfx_A2	remove	r2	13.56	4557692
+pr2	hfx_A2	off	r3	13.69	4558740
+pr2	hfx_A2	remove	r3	13.27	4553960

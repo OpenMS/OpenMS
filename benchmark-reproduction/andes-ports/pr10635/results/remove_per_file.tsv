@@ -1,0 +1,109 @@
+db	dataset	group	arm	psms_s1/s42/s137	mean	delta_vs_off	z	verdict	entrapment_psms_3seeds
+plain	velos_125_R1	Velos CID	off	2932/2905/2916	2917.7	+0.0	0.0	flat	0
+plain	velos_125_R1	Velos CID	on	2927/2937/2914	2926.0	+8.3	0.8	flat	0
+plain	velos_125_R1	Velos CID	drop	2908/2983/3009	2966.7	+49.0	1.6	flat	0
+plain	velos_125_R1	Velos CID	remove	2984/3010/3044	3012.7	+95.0	5.0	up	0
+plain	velos_5000_R2	Velos CID	off	3006/3004/2962	2990.7	+0.0	0.0	flat	0
+plain	velos_5000_R2	Velos CID	on	2977/2976/2982	2978.3	-12.3	-0.9	flat	0
+plain	velos_5000_R2	Velos CID	drop	3013/2988/3028	3009.7	+19.0	1.0	flat	0
+plain	velos_5000_R2	Velos CID	remove	3033/3137/3004	3058.0	+67.3	1.6	flat	0
+plain	velos_25000_R3	Velos CID	off	2832/2849/2819	2833.3	+0.0	0.0	flat	0
+plain	velos_25000_R3	Velos CID	on	2839/2856/2922	2872.3	+39.0	1.5	flat	0
+plain	velos_25000_R3	Velos CID	drop	2894/2847/2920	2887.0	+53.7	2.3	up	0
+plain	velos_25000_R3	Velos CID	remove	2900/2918/2909	2909.0	+75.7	7.5	up	0
+plain	hfx_A2	HF-X HCD	off	4537/4548/4472	4519.0	+0.0	0.0	flat	0
+plain	hfx_A2	HF-X HCD	on	4501/4535/4465	4500.3	-18.7	-0.6	flat	0
+plain	hfx_A2	HF-X HCD	drop	4615/4586/4633	4611.3	+92.3	3.4	up	0
+plain	hfx_A2	HF-X HCD	remove	4616/4586/4625	4609.0	+90.0	3.4	up	0
+plain	hfx_B1	HF-X HCD	off	4443/4409/4364	4405.3	+0.0	0.0	flat	0
+plain	hfx_B1	HF-X HCD	on	4417/4400/4371	4396.0	-9.3	-0.4	flat	0
+plain	hfx_B1	HF-X HCD	drop	4474/4464/4501	4479.7	+74.3	2.9	up	0
+plain	hfx_B1	HF-X HCD	remove	4482/4460/4486	4476.0	+70.7	2.9	up	0
+plain	hfx_B3	HF-X HCD	off	4445/4394/4461	4433.3	+0.0	0.0	flat	0
+plain	hfx_B3	HF-X HCD	on	4467/4389/4465	4440.3	+7.0	0.2	flat	0
+plain	hfx_B3	HF-X HCD	drop	4436/4516/4504	4485.3	+52.0	1.6	flat	0
+plain	hfx_B3	HF-X HCD	remove	4471/4513/4507	4497.0	+63.7	2.6	up	0
+plain	astral_A2	Astral HCD	off	2345/2393/2442	2393.3	+0.0	0.0	flat	0
+plain	astral_A2	Astral HCD	on	2366/2438/2382	2395.3	+2.0	0.1	flat	0
+plain	astral_A2	Astral HCD	drop	2519/2515/2455	2496.3	+103.0	3.0	up	0
+plain	astral_A2	Astral HCD	remove	2570/2423/2547	2513.3	+120.0	2.2	up	0
+plain	astral_B1	Astral HCD	off	2769/2693/2732	2731.3	+0.0	0.0	flat	0
+plain	astral_B1	Astral HCD	on	2658/2623/2731	2670.7	-60.7	-1.6	flat	0
+plain	astral_B1	Astral HCD	drop	2902/2810/2939	2883.7	+152.3	3.4	up	0
+plain	astral_B1	Astral HCD	remove	2848/2872/2931	2883.7	+152.3	4.6	up	0
+plain	astral_B3	Astral HCD	off	2702/2717/2704	2707.7	+0.0	0.0	flat	0
+plain	astral_B3	Astral HCD	on	2632/2579/2703	2638.0	-69.7	-1.9	flat	0
+plain	astral_B3	Astral HCD	drop	2838/2858/2831	2842.3	+134.7	14.4	up	0
+plain	astral_B3	Astral HCD	remove	2771/2889/2811	2823.7	+116.0	3.3	up	0
+plain	lumos_lfq_5192	Lumos HCD LFQ	off	5589/5574/5574	5579.0	+0.0	0.0	flat	0
+plain	lumos_lfq_5192	Lumos HCD LFQ	on	5577/5575/5581	5577.7	-1.3	-0.3	flat	0
+plain	lumos_lfq_5192	Lumos HCD LFQ	drop	5620/5589/5594	5601.0	+22.0	2.0	up	0
+plain	lumos_lfq_5192	Lumos HCD LFQ	remove	5611/5585/5613	5603.0	+24.0	2.3	up	0
+plain	lumos_lfq_5194	Lumos HCD LFQ	off	5594/5623/5614	5610.3	+0.0	0.0	flat	0
+plain	lumos_lfq_5194	Lumos HCD LFQ	on	5600/5620/5596	5605.3	-5.0	-0.4	flat	0
+plain	lumos_lfq_5194	Lumos HCD LFQ	drop	5581/5569/5586	5578.7	-31.7	-3.2	down	0
+plain	lumos_lfq_5194	Lumos HCD LFQ	remove	5585/5569/5598	5584.0	-26.3	-2.2	down	0
+plain	lumos_lfq_5199	Lumos HCD LFQ	off	5549/5568/5569	5562.0	+0.0	0.0	flat	0
+plain	lumos_lfq_5199	Lumos HCD LFQ	on	5556/5550/5555	5553.7	-8.3	-1.2	flat	0
+plain	lumos_lfq_5199	Lumos HCD LFQ	drop	5600/5605/5600	5601.7	+39.7	5.9	up	0
+plain	lumos_lfq_5199	Lumos HCD LFQ	remove	5615/5611/5615	5613.7	+51.7	7.8	up	0
+entrap	velos_125_R1	Velos CID	off	2702/2779/2783	2754.7	+0.0	0.0	flat	53
+entrap	velos_125_R1	Velos CID	on	2726/2751/2750	2742.3	-12.3	-0.4	flat	63
+entrap	velos_125_R1	Velos CID	drop	2717/2803/2721	2747.0	-7.7	-0.2	flat	69
+entrap	velos_125_R1	Velos CID	annotate	2702/2779/2783	2754.7	+0.0	0.0	flat	53
+entrap	velos_125_R1	Velos CID	remove	2853/2746/2840	2813.0	+58.3	1.4	flat	76
+entrap	velos_5000_R2	Velos CID	off	2727/2658/2724	2703.0	+0.0	0.0	flat	72
+entrap	velos_5000_R2	Velos CID	on	2710/2655/2626	2663.7	-39.3	-1.2	flat	59
+entrap	velos_5000_R2	Velos CID	drop	2668/2765/2648	2693.7	-9.3	-0.2	flat	55
+entrap	velos_5000_R2	Velos CID	annotate	2727/2658/2724	2703.0	+0.0	0.0	flat	72
+entrap	velos_5000_R2	Velos CID	remove	2766/2747/2654	2722.3	+19.3	0.5	flat	53
+entrap	velos_25000_R3	Velos CID	off	2785/2751/2773	2769.7	+0.0	0.0	flat	89
+entrap	velos_25000_R3	Velos CID	on	2716/2718/2769	2734.3	-35.3	-1.8	flat	72
+entrap	velos_25000_R3	Velos CID	drop	2745/2790/2726	2753.7	-16.0	-0.7	flat	54
+entrap	velos_25000_R3	Velos CID	annotate	2785/2751/2773	2769.7	+0.0	0.0	flat	89
+entrap	velos_25000_R3	Velos CID	remove	2729/2750/2803	2760.7	-9.0	-0.4	flat	61
+entrap	hfx_A2	HF-X HCD	off	4302/4341/4332	4325.0	+0.0	0.0	flat	110
+entrap	hfx_A2	HF-X HCD	on	4302/4316/4305	4307.7	-17.3	-1.4	flat	93
+entrap	hfx_A2	HF-X HCD	drop	4415/4315/4371	4367.0	+42.0	1.3	flat	76
+entrap	hfx_A2	HF-X HCD	annotate	4302/4341/4332	4325.0	+0.0	0.0	flat	110
+entrap	hfx_A2	HF-X HCD	remove	4395/4371/4427	4397.7	+72.7	3.6	up	97
+entrap	hfx_B1	HF-X HCD	off	4203/4152/4176	4177.0	+0.0	0.0	flat	110
+entrap	hfx_B1	HF-X HCD	on	4154/4217/4154	4175.0	-2.0	-0.1	flat	123
+entrap	hfx_B1	HF-X HCD	drop	4324/4308/4244	4292.0	+115.0	4.0	up	118
+entrap	hfx_B1	HF-X HCD	annotate	4203/4152/4176	4177.0	+0.0	0.0	flat	110
+entrap	hfx_B1	HF-X HCD	remove	4300/4255/4265	4273.3	+96.3	4.8	up	114
+entrap	hfx_B3	HF-X HCD	off	4112/4053/4109	4091.3	+0.0	0.0	flat	68
+entrap	hfx_B3	HF-X HCD	on	4120/4100/4073	4097.7	+6.3	0.3	flat	74
+entrap	hfx_B3	HF-X HCD	drop	4301/4220/4311	4277.3	+186.0	5.4	up	109
+entrap	hfx_B3	HF-X HCD	annotate	4112/4053/4109	4091.3	+0.0	0.0	flat	68
+entrap	hfx_B3	HF-X HCD	remove	4301/4289/4345	4311.7	+220.3	8.6	up	87
+entrap	astral_A2	Astral HCD	off	2230/2219/2138	2195.7	+0.0	0.0	flat	34
+entrap	astral_A2	Astral HCD	on	2225/2198/2178	2200.3	+4.7	0.1	flat	33
+entrap	astral_A2	Astral HCD	drop	2213/2204/2239	2218.7	+23.0	0.7	flat	26
+entrap	astral_A2	Astral HCD	annotate	2230/2219/2138	2195.7	+0.0	0.0	flat	34
+entrap	astral_A2	Astral HCD	remove	2301/2330/2300	2310.3	+114.7	3.7	up	35
+entrap	astral_B1	Astral HCD	off	2400/2436/2416	2417.3	+0.0	0.0	flat	54
+entrap	astral_B1	Astral HCD	on	2402/2455/2429	2428.7	+11.3	0.6	flat	58
+entrap	astral_B1	Astral HCD	drop	2515/2522/2502	2513.0	+95.7	8.0	up	60
+entrap	astral_B1	Astral HCD	annotate	2400/2436/2416	2417.3	+0.0	0.0	flat	54
+entrap	astral_B1	Astral HCD	remove	2519/2525/2468	2504.0	+86.7	4.2	up	51
+entrap	astral_B3	Astral HCD	off	2228/2310/2243	2260.3	+0.0	0.0	flat	34
+entrap	astral_B3	Astral HCD	on	2252/2227/2285	2254.7	-5.7	-0.2	flat	35
+entrap	astral_B3	Astral HCD	drop	2357/2325/2382	2354.7	+94.3	3.1	up	46
+entrap	astral_B3	Astral HCD	annotate	2228/2310/2243	2260.3	+0.0	0.0	flat	34
+entrap	astral_B3	Astral HCD	remove	2511/2384/2412	2435.7	+175.3	3.8	up	47
+entrap	lumos_lfq_5192	Lumos HCD LFQ	off	5460/5470/5450	5460.0	+0.0	0.0	flat	68
+entrap	lumos_lfq_5192	Lumos HCD LFQ	on	5472/5471/5451	5464.7	+4.7	0.5	flat	74
+entrap	lumos_lfq_5192	Lumos HCD LFQ	drop	5515/5530/5520	5521.7	+61.7	8.5	up	108
+entrap	lumos_lfq_5192	Lumos HCD LFQ	annotate	5460/5470/5450	5460.0	+0.0	0.0	flat	68
+entrap	lumos_lfq_5192	Lumos HCD LFQ	remove	5544/5521/5528	5531.0	+71.0	8.0	up	129
+entrap	lumos_lfq_5194	Lumos HCD LFQ	off	5519/5534/5484	5512.3	+0.0	0.0	flat	95
+entrap	lumos_lfq_5194	Lumos HCD LFQ	on	5507/5538/5521	5522.0	+9.7	0.6	flat	109
+entrap	lumos_lfq_5194	Lumos HCD LFQ	drop	5546/5539/5567	5550.7	+38.3	2.3	up	114
+entrap	lumos_lfq_5194	Lumos HCD LFQ	annotate	5519/5534/5484	5512.3	+0.0	0.0	flat	95
+entrap	lumos_lfq_5194	Lumos HCD LFQ	remove	5538/5542/5560	5546.7	+34.3	2.1	up	117
+entrap	lumos_lfq_5199	Lumos HCD LFQ	off	5530/5533/5556	5539.7	+0.0	0.0	flat	98
+entrap	lumos_lfq_5199	Lumos HCD LFQ	on	5529/5557/5547	5544.3	+4.7	0.4	flat	98
+entrap	lumos_lfq_5199	Lumos HCD LFQ	drop	5569/5545/5558	5557.3	+17.7	1.6	flat	96
+entrap	lumos_lfq_5199	Lumos HCD LFQ	annotate	5530/5533/5556	5539.7	+0.0	0.0	flat	98
+entrap	lumos_lfq_5199	Lumos HCD LFQ	remove	5537/5535/5523	5531.7	-8.0	-0.9	flat	101

@@ -1,0 +1,46 @@
+db	group	arm	mean_psms	delta_vs_off_pct	up/flat/down	fdp_combined_pct	est_true_psms	accepted_deamidated	deam_mispick_pct	deam_mimic_rule_pct	deam_near0_pct
+plain	Velos CID	off	2913.9	+0.00	0/3/0	nan	nan	1992.7	48.3	68.2	19.3
+plain	Velos CID	on	2925.6	+0.40	0/3/0	nan	nan	2438.0	54.4	75.1	15.8
+plain	Velos CID	drop	2954.4	+1.39	1/2/0	nan	nan	677.7	2.3	0.0	66.5
+plain	Velos CID	remove	2993.2	+2.72	2/1/0	nan	nan	687.7	2.6	0.0	65.8
+plain	HF-X HCD	off	4452.6	+0.00	0/3/0	nan	nan	1759.0	57.8	72.5	12.8
+plain	HF-X HCD	on	4445.6	-0.16	0/3/0	nan	nan	2291.7	64.8	80.0	9.7
+plain	HF-X HCD	drop	4525.4	+1.64	2/1/0	nan	nan	518.0	2.0	0.0	50.8
+plain	HF-X HCD	remove	4527.3	+1.68	3/0/0	nan	nan	521.3	1.9	0.0	50.4
+plain	Astral HCD	off	2610.8	+0.00	0/3/0	nan	nan	854.7	63.4	68.5	14.6
+plain	Astral HCD	on	2568.0	-1.64	0/3/0	nan	nan	1031.0	70.2	75.2	11.5
+plain	Astral HCD	drop	2740.8	+4.98	3/0/0	nan	nan	309.7	0.0	0.0	47.7
+plain	Astral HCD	remove	2740.2	+4.96	3/0/0	nan	nan	288.3	0.2	0.0	49.4
+plain	Lumos HCD LFQ	off	5583.8	+0.00	0/3/0	nan	nan	3568.0	79.1	85.2	8.4
+plain	Lumos HCD LFQ	on	5578.9	-0.09	0/3/0	nan	nan	4881.7	85.2	90.1	5.9
+plain	Lumos HCD LFQ	drop	5593.8	+0.18	2/0/1	nan	nan	620.3	1.8	0.0	59.5
+plain	Lumos HCD LFQ	remove	5600.2	+0.29	2/0/1	nan	nan	630.3	1.5	0.0	60.1
+plain	All	off	46683.0	+0.00	0/12/0	nan	nan	8174.3	65.3	76.6	12.7
+plain	All	on	46554.0	-0.28	0/12/0	nan	nan	10642.3	72.3	83.0	9.5
+plain	All	drop	47443.3	+1.63	8/3/1	nan	nan	2125.7	1.7	0.0	57.9
+plain	All	remove	47583.0	+1.93	10/1/1	nan	nan	2127.7	1.8	0.0	58.1
+entrap	Velos CID	off	2742.4	+0.00	0/3/0	1.73	2694.9	2041.3	50.5	70.7	17.4
+entrap	Velos CID	on	2713.4	-1.06	0/3/0	1.59	2670.3	2663.7	58.8	79.5	13.0
+entrap	Velos CID	drop	2731.4	-0.40	0/3/0	1.45	2691.9	637.3	2.2	0.0	66.4
+entrap	Velos CID	annotate	2742.4	+0.00	0/3/0	1.73	2694.9	2041.3	50.5	70.7	17.4
+entrap	Velos CID	remove	2765.3	+0.83	0/3/0	1.53	2723.1	652.0	2.1	0.0	65.6
+entrap	HF-X HCD	off	4197.8	+0.00	0/3/0	1.52	4133.8	1636.3	57.5	72.5	14.1
+entrap	HF-X HCD	on	4193.4	-0.10	0/3/0	1.54	4129.0	2079.7	63.8	79.6	10.7
+entrap	HF-X HCD	drop	4312.1	+2.72	2/1/0	1.56	4244.8	483.3	1.9	0.0	53.7
+entrap	HF-X HCD	annotate	4197.8	+0.00	0/3/0	1.52	4133.8	1636.3	57.5	72.5	14.1
+entrap	HF-X HCD	remove	4327.6	+3.09	3/0/0	1.53	4261.3	476.7	2.1	0.0	53.8
+entrap	Astral HCD	off	2291.1	+0.00	0/3/0	1.18	2264.0	789.3	67.0	72.1	14.4
+entrap	Astral HCD	on	2294.6	+0.15	0/3/0	1.22	2266.6	967.7	72.9	77.6	11.8
+entrap	Astral HCD	drop	2362.1	+3.10	2/1/0	1.24	2332.8	242.3	0.3	0.0	54.2
+entrap	Astral HCD	annotate	2291.1	+0.00	0/3/0	1.18	2264.0	789.3	67.0	72.1	14.4
+entrap	Astral HCD	remove	2416.7	+5.48	3/0/0	1.22	2387.1	235.0	0.4	0.0	54.0
+entrap	Lumos HCD LFQ	off	5504.0	+0.00	0/3/0	1.05	5446.0	2924.7	75.6	82.0	11.0
+entrap	Lumos HCD LFQ	on	5510.3	+0.12	0/3/0	1.13	5447.9	4380.0	84.2	88.9	7.0
+entrap	Lumos HCD LFQ	drop	5543.2	+0.71	2/1/0	1.27	5472.6	624.0	0.9	0.0	64.7
+entrap	Lumos HCD LFQ	annotate	5504.0	+0.00	0/3/0	1.05	5446.0	2924.7	75.6	82.0	11.0
+entrap	Lumos HCD LFQ	remove	5536.4	+0.59	2/1/0	1.39	5459.3	622.0	1.0	0.0	64.8
+entrap	All	off	44206.0	+0.00	0/12/0	1.33	43616.0	7391.7	63.7	75.7	13.8
+entrap	All	on	44135.3	-0.16	0/12/0	1.35	43541.3	10091.0	72.2	83.4	9.8
+entrap	All	drop	44846.7	+1.45	6/6/0	1.38	44226.0	1987.0	1.5	0.0	61.3
+entrap	All	annotate	44206.0	+0.00	0/12/0	1.33	43616.0	7391.7	63.7	75.7	13.8
+entrap	All	remove	45138.0	+2.11	8/4/0	1.43	44492.7	1985.7	1.6	0.0	61.1

@@ -9,14 +9,17 @@ isotope-step precursor error explains better: accepted deamidations at the mis-p
 (modified) PSMs 9,879 → 3,940, total 50,013 → 44,804 (`--refine` gain over no-refine +21% → +8%). bigbio/andes#152 later
 added the same flag as PIN column `IsotopeMimic`; no numbers for it. No entrapment numbers were given.
 
-The PR ports the flag (`isotope_mimic` meta value + Percolator feature, option off by default), not the drop.
+The first PR head (`6ceb7553`) ported the flag (`isotope_mimic` meta value + Percolator feature), not the drop. After
+the benchmark below, the second head (`e1df7302`) adds the drop as `precursor:isotope_mimic=remove` and no longer uses
+the flag as a Percolator feature (section "Second head").
 
 ## Builds
 
 | build | commit | |
 |---|---|---|
 | base | `74048ef5` | `git merge-base origin/develop` of the PR |
-| pr | `6ceb7553` | PR head |
+| pr | `6ceb7553` | first PR head: `annotate:isotope_mimic` (flag + Percolator feature) |
+| pr2 | `e1df7302` | second PR head: `precursor:isotope_mimic` off/annotate/remove |
 
 Release, Ubuntu 24.04 system packages, `-DWITH_THERMO_RAW=OFF`, TOPP tool `ProSE`. `ProSEAlgorithm_test` and the
 ProSE TOPP tests that do not need FuzzyDiff pass on the PR head.
@@ -110,6 +113,45 @@ PSMs against the no-refine control in both variants.
 - Search time, median of 3 interleaved runs, 4 threads: Astral B1 20.84 s off / 20.05 s on, HF-X A2 15.02 / 14.35 s;
   peak RSS equal (4.18 / 4.55 GB) (`results/timing.tsv`).
 
+## Second head `e1df7302`: `precursor:isotope_mimic=remove`
+
+`remove` skips isotope mimics in ProSE's scoring loop: they are neither scored nor part of the candidate pool, so the
+unmodified candidate matched at the other isotope offset takes their rank. `annotate` keeps only the meta value;
+the flag is no longer a Percolator feature. Same files, databases, parameters, Percolator and seeds as above
+(`scripts/run_all.sh pr2 remove|annotate|off <db>`, `scripts/evaluate_remove.py`).
+
+PSMs at q ≤ 0.01 (suite databases; group mean; All = sum of 12 files; up/flat/down per file vs `off`):
+
+| group | off | on (first head) | drop (simulated) | **remove (second head)** |
+|---|---:|---:|---:|---:|
+| Velos CID | 2913.9 | 2925.6 (+0.40%) | 2954.4 (+1.39%, 1/2/0) | 2993.2 (**+2.72%**, 2/1/0) |
+| HF-X HCD | 4452.6 | 4445.6 (−0.16%) | 4525.4 (+1.64%, 2/1/0) | 4527.3 (**+1.68%**, 3/0/0) |
+| Astral HCD | 2610.8 | 2568.0 (−1.64%) | 2740.8 (+4.98%, 3/0/0) | 2740.2 (**+4.96%**, 3/0/0) |
+| Lumos HCD LFQ | 5583.8 | 5578.9 (−0.09%) | 5593.8 (+0.18%, 2/0/1) | 5600.2 (**+0.29%**, 2/0/1) |
+| **All 12** | 46683.0 | 46554.0 (−0.28%, 0/12/0) | 47443.3 (+1.63%, 8/3/1) | 47583.0 (**+1.93%**, 10/1/1) |
+
+Entrapment databases (all 12 files):
+
+| arm | PSMs | combined FDP | est. true PSMs | accepted deamidated / seed | at mis-pick | rule-flagged |
+|---|---:|---:|---:|---:|---:|---:|
+| off | 44206.0 | 1.33% | 43616 | 7392 | 63.7% | 75.7% |
+| on (first head) | 44135.3 | 1.35% | 43541 | 10091 | 72.2% | 83.4% |
+| drop (simulated) | 44846.7 | 1.38% | 44226 | 1987 | 1.5% | 0% |
+| annotate (second head) | 44206.0 | 1.33% | 43616 | 7392 | 63.7% | 75.7% |
+| **remove (second head)** | 45138.0 (+2.11%, 8/4/0) | 1.43% | 44493 (+2.0%) | 1986 | 1.6% | 0% |
+
+Per group FDP off → remove: Velos 1.73 → 1.53%, HF-X 1.52 → 1.53%, Astral 1.18 → 1.22%, Lumos LFQ 1.05 → 1.39%
+(est. true PSMs +1.0%, +3.1%, +5.4%, +0.2%). `results/remove_per_group.tsv`, `results/remove_per_file.tsv`.
+
+- The real implementation slightly exceeds the simulation (+1.93% vs +1.63%; entrapment databases +2.11% vs +1.45%):
+  removing mimics before the top-N pruning lets further candidates into the report set, which the PIN-level
+  simulation cannot.
+- Removed candidates per file: 26k–83k (`results/remove_candidates_removed.tsv`), targets and decoys alike.
+- Second head with the option off vs merge-base: PIN, Percolator results and normalized idXML identical on all 12
+  files (`results/isolation_base_vs_pr2_off.tsv`); `annotate` gives exactly the `off` counts.
+- Search time, median of 3 interleaved runs: Astral B1 17.79 s off / 17.75 s remove, HF-X A2 13.69 / 13.56 s; peak
+  RSS equal (`results/timing_remove.tsv`).
+
 ## Reproduce
 
 ```bash
@@ -130,4 +172,9 @@ for ds in astral_A2 astral_B1 astral_B3; do bash scripts/run_andes.sh norule $ds
   REFINE= bash scripts/run_andes.sh rule $ds; done
 python3 scripts/evaluate_andes.py $S/runs/andes results/andes_astral.tsv
 bash scripts/timing.sh
+# second head (installed to /opt/openms-pr2)
+for db in entrap plain; do bash scripts/run_all.sh pr2 remove $db; done
+bash scripts/run_all.sh pr2 off plain; bash scripts/run_all.sh pr2 annotate entrap
+python3 scripts/evaluate_remove.py $S/runs results
+BUILD=pr2 ARM2=remove bash scripts/timing.sh
 ```
