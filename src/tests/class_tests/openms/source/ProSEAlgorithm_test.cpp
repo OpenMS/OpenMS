@@ -32,6 +32,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <array>
@@ -162,6 +164,7 @@ public:
   using ProSEAlgorithm::annotateIonPriors_;
   using ProSEAlgorithm::reversedNoiseSequence_;
   using ProSEAlgorithm::fragment_mass_tolerance_;
+  using ProSEAlgorithm::poolSearchedFiles_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -189,6 +192,56 @@ private:
   int& starts_;
   int& ends_;
   std::string throw_at_;
+};
+
+// A progress display that records its events: the kind ('s' start, 'e' end), the recursion depth that the ProgressLogger
+// passes (the nesting level of the step: 0 for an outer step) and the label of a start.
+struct ProgressEvent
+{
+  char kind;
+  int depth;
+  std::string label;
+};
+class RecordingProgressLogger : public ProgressLogger::ProgressLoggerImpl
+{
+public:
+  explicit RecordingProgressLogger(std::vector<ProgressEvent>& events) : events_(events) {}
+  void startProgress(const SignedSize, const SignedSize, const std::string& label, const int depth) const override
+  {
+    events_.push_back({'s', depth, label});
+  }
+  void setProgress(const SignedSize, const int) const override {}
+  SignedSize nextProgress() const override { return 0; }
+  void endProgress(const int depth, UInt64) const override { events_.push_back({'e', depth, ""}); }
+
+private:
+  std::vector<ProgressEvent>& events_;
+};
+
+// Sets the number of OpenMP threads of the calling thread for its scope. With one thread the multi-file search reads no
+// file in the background: the mzML reader shares the (static, unsynchronized) step depth of the ProgressLogger with the
+// search, so with threads the depths that the search sees are not reliable.
+class ScopedOpenMPThreads
+{
+public:
+  explicit ScopedOpenMPThreads([[maybe_unused]] int threads)
+  {
+#ifdef _OPENMP
+    saved_ = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+  }
+  ~ScopedOpenMPThreads()
+  {
+#ifdef _OPENMP
+    omp_set_num_threads(saved_);
+#endif
+  }
+  ScopedOpenMPThreads(const ScopedOpenMPThreads&) = delete;
+  ScopedOpenMPThreads& operator=(const ScopedOpenMPThreads&) = delete;
+
+private:
+  [[maybe_unused]] int saved_ = 1;
 };
 
 #if FAULT_INJECTION_TESTS
@@ -5274,9 +5327,6 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
   {
     ProSEAlgorithm algo;
     configure(algo, "", 0.05, 0.0);
-    Param p = algo.getParameters();
-    p.setValue("rescore_model", "per_run"); // explicitly test per-file mode where small runs are skipped
-    algo.setParameters(p);
     ProSEAlgorithm::MultiFileSearchResult mfres =
       algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, small_spectra_file}, database_file);
     ABORT_IF(mfres.per_file.size() != 2)
@@ -5299,6 +5349,39 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     // runs of different search engines are not pooled
     TEST_TRUE(mfres.aggregate.protein_ids.empty())
     TEST_TRUE(mfres.aggregate.peptide_ids.empty())
+  }
+
+  // The copy for a Percolator .pin (setKeepPreFdrPsms) is taken before the rescoring: ProSE's own scores, every
+  // reported hit and the decoys, i.e. the PSMs of the same search without rescoring and without FDR:PSM.
+  {
+    const auto psms = [](const PeptideIdentificationList& peptide_ids)
+    {
+      std::vector<std::string> out;
+      for (const auto& pid : peptide_ids)
+      {
+        for (const auto& hit : pid.getHits())
+        {
+          out.push_back(pid.getSpectrumReference() + " " + pid.getScoreType() + " " + hit.getSequence().toString() + " "
+                        + std::to_string(hit.getScore()) + (hit.isDecoy() ? " decoy" : ""));
+        }
+      }
+      std::sort(out.begin(), out.end());
+      return out;
+    };
+    ProSEAlgorithm algo;
+    configure(algo, "", 0.05, 0.0);
+    algo.setKeepPreFdrPsms(true);
+    ProSEAlgorithm::MultiFileSearchResult mfres =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file}, database_file);
+    ABORT_IF(mfres.per_file.size() != 1)
+    TEST_TRUE(mfres.per_file[0].percolator.applied)
+    ProSEAlgorithm plain;
+    configure(plain, "false", 0.0, 0.0);
+    std::vector<ProteinIdentification> prot_plain;
+    PeptideIdentificationList pep_plain;
+    TEST_TRUE(plain.search(spectra_file, database_file, prot_plain, pep_plain) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(pep_plain.empty())
+    TEST_TRUE(psms(mfres.per_file[0].pre_fdr_peptide_ids) == psms(pep_plain))
   }
 
   // Off: ProSE's own scores, nothing attempted.
@@ -5358,6 +5441,577 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     }
     TEST_EQUAL(decoy_proteins, 0) // the protein FDR's finalization removes the decoys
     TEST_EQUAL(decoy_psms, 0)
+  }
+}
+END_SECTION
+
+// mergeFileResults(), the pooled evaluation of the ProSE tool's -out_merged, on the search of TOPP_ProSE_13_merged: the
+// settings of ProSE_6_fdr.ini (generated decoys, Percolator rescoring, FDR:PSM 0.05) with FDR:protein 0.05, on the TOPP
+// file and a copy of it. The first section runs the search, and the [EXTRA] sections merge copies of its result, but
+// for the two on files that share a basename and without decoys, which merge a target-only search of such files.
+const std::string merge_spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+const std::string merge_database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta");
+const auto configure_merge = [](ProSEAlgorithm& algo, const std::string& decoys)
+{
+  Param p = algo.getParameters();
+  p.setValue("decoys", decoys);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 10.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.05);
+  algo.setParameters(p);
+  algo.setLogType(ProgressLogger::NONE);
+};
+// the 'id_merge_index' values of the PSMs (-1: none)
+const auto merge_indices = [](const PeptideIdentificationList& peptides)
+{
+  std::set<int> indices;
+  for (const PeptideIdentification& id : peptides)
+  {
+    indices.insert(id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)
+                     ? static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)) : -1);
+  }
+  return indices;
+};
+// the target PSMs (spectrum and sequence), sorted: what the protein FDR's finalization keeps, as it removes the decoy hits
+const auto target_psms = [](const PeptideIdentificationList& peptides)
+{
+  std::vector<std::string> psms;
+  for (const PeptideIdentification& id : peptides)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      if (!hit.isDecoy()) { psms.push_back(id.getSpectrumReference() + " " + hit.getSequence().toString()); }
+    }
+  }
+  std::sort(psms.begin(), psms.end());
+  return psms;
+};
+StringList merge_files;
+ProSEAlgorithm::MultiFileSearchResult merge_search;
+
+START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files, bool remove_decoys = true) const))
+{
+  std::string copy_file;
+  NEW_TMP_FILE_EXT(copy_file, ".mzML")
+  File::remove(copy_file); // left over if an earlier run failed; File::copy() does not overwrite
+  TEST_TRUE(File::copy(merge_spectra_file, copy_file))
+  merge_files = {merge_spectra_file, copy_file};
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  merge_search = algo.searchWithModificationAnalysis(merge_files, merge_database_file);
+  ABORT_IF(merge_search.per_file.size() != 2)
+  for (const ProSEAlgorithm::SearchResult& file : merge_search.per_file)
+  {
+    TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_TRUE(file.percolator.applied)
+  }
+  ABORT_IF(merge_search.aggregate.protein_ids.size() != 1) // the search pooled the files
+  // the pooled run has decoy proteins and decoy PSMs, which the protein FDR's finalization removes
+  const auto& pooled_proteins = merge_search.aggregate.protein_ids[0].getHits();
+  TEST_TRUE(std::any_of(pooled_proteins.begin(), pooled_proteins.end(),
+                        [](const ProteinHit& hit) { return hit.getAccession().starts_with("DECOY_"); }))
+  TEST_TRUE(target_psms(merge_search.aggregate.peptide_ids).size() < merge_search.aggregate.peptide_ids.size())
+
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+
+  // the PSMs of both files, but for the decoy PSMs
+  const Size psms_0 = target_psms(merge_search.per_file[0].peptide_ids).size();
+  const Size psms_1 = target_psms(merge_search.per_file[1].peptide_ids).size();
+  TEST_TRUE(psms_0 > 0 && psms_1 > 0)
+  TEST_EQUAL(merged.peptide_ids.size(), psms_0 + psms_1)
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  StringList run_paths;
+  merged.protein_ids[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == merge_files)
+
+  // no decoys left, and every peptide evidence references a protein of the run
+  std::set<std::string> accessions;
+  for (const ProteinHit& hit : merged.protein_ids[0].getHits()) { accessions.insert(hit.getAccession()); }
+  TEST_FALSE(accessions.empty())
+  Size other_runs = 0, decoy_hits = 0, evidences = 0, dangling = 0;
+  for (const PeptideIdentification& id : merged.peptide_ids)
+  {
+    other_runs += id.getIdentifier() != merged.protein_ids[0].getIdentifier();
+    for (const PeptideHit& hit : id.getHits())
+    {
+      decoy_hits += hit.isDecoy();
+      for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+      {
+        ++evidences;
+        dangling += !accessions.contains(evidence.getProteinAccession());
+      }
+    }
+  }
+  TEST_EQUAL(other_runs, 0)
+  TEST_EQUAL(decoy_hits, 0)
+  TEST_TRUE(evidences > 0)
+  TEST_EQUAL(dangling, 0)
+  TEST_FALSE(std::any_of(accessions.begin(), accessions.end(), [](const std::string& acc) { return acc.starts_with("DECOY_"); }))
+
+  // the identifications were moved out of the pooled aggregate
+  TEST_TRUE(result.aggregate.protein_ids.empty())
+  TEST_TRUE(result.aggregate.peptide_ids.empty())
+}
+END_SECTION
+
+// the target-only search of the next section, merged again in the section without decoys
+StringList merge_same_name_files;
+ProSEAlgorithm::MultiFileSearchResult merge_target_only_search;
+
+START_SECTION(([EXTRA] mergeFileResults keeps files apart that share a basename))
+{
+  // Copies of the same name in two directories, searched target-only (decoys 'ignore'), which needs no Percolator run.
+  // The search pools them, and without its pooled aggregate the merge pools the runs of the files itself: either way
+  // the PSMs keep apart by file.
+  TempDir dir_a, dir_b;
+  merge_same_name_files = {dir_a.getPath() + "/ProSE_merge.mzML", dir_b.getPath() + "/ProSE_merge.mzML"};
+  for (const std::string& file : merge_same_name_files) { TEST_TRUE(File::copy(merge_spectra_file, file)) }
+  ProSEAlgorithm algo;
+  configure_merge(algo, "ignore");
+  merge_target_only_search = algo.searchWithModificationAnalysis(merge_same_name_files, merge_database_file);
+  ABORT_IF(merge_target_only_search.per_file.size() != 2 || merge_target_only_search.aggregate.protein_ids.empty())
+
+  ProSEAlgorithm::MultiFileSearchResult pooled = merge_target_only_search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(pooled, merge_same_name_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+
+  ProSEAlgorithm::MultiFileSearchResult unpooled = merge_target_only_search;
+  unpooled.aggregate.protein_ids.clear();
+  unpooled.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(unpooled, merge_same_name_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults rejects runs of which only some were rescored))
+{
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[1].percolator.applied = false;
+  TEST_EXCEPTION(Exception::InvalidValue, algo.mergeFileResults(result, merge_files))
+  // nothing was moved out
+  TEST_EQUAL(result.aggregate.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_EQUAL(result.per_file[0].peptide_ids.size(), merge_search.per_file[0].peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults skips failed files))
+{
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  // A failed second file, and no pooled aggregate (as with build_pooled_aggregate false; the search itself would pool
+  // the file that was searched): the merge pools the runs of the searched files.
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[1].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  TEST_TRUE(target_psms(merged.peptide_ids) == target_psms(merge_search.per_file[0].peptide_ids))
+  TEST_EQUAL(merged.peptide_ids.size(), target_psms(merge_search.per_file[0].peptide_ids).size())
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0}))
+
+  // no file searched: nothing to pool
+  result = merge_search;
+  for (ProSEAlgorithm::SearchResult& file : result.per_file) { file.exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY; }
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merged.protein_ids.empty())
+  TEST_TRUE(merged.peptide_ids.empty())
+  TEST_FALSE(merged.protein_fdr_applied)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults rejects input files that are not those of the search))
+{
+  // The run lists the input files, and 'id_merge_index' indexes them: one entry per file of the search.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  const StringList too_few = {merge_files[0]};
+  const StringList too_many = {merge_files[0], merge_files[1], merge_files[1]};
+  TEST_EXCEPTION(Exception::IllegalArgument, algo.mergeFileResults(result, too_few))
+  TEST_EXCEPTION(Exception::IllegalArgument, algo.mergeFileResults(result, too_many))
+  // nothing was moved out
+  TEST_EQUAL(result.aggregate.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_EQUAL(result.per_file[0].peptide_ids.size(), merge_search.per_file[0].peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults of a single file keeps the run of the file))
+{
+  // The search of one file builds no pooled aggregate, so the merge always pools the runs of the files itself. It moves
+  // only their PSMs out of the result: the runs (search parameters, meta values such as 'peptdeep_nce', run paths) stay.
+  // 'rescore' is not needed here, and would add a Percolator run.
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  Param p = algo.getParameters();
+  p.setValue("rescore", "false");
+  algo.setParameters(p);
+  const StringList single_file = {merge_spectra_file};
+  const ProSEAlgorithm::MultiFileSearchResult search = algo.searchWithModificationAnalysis(single_file, merge_database_file);
+  ABORT_IF(search.per_file.size() != 1)
+  TEST_TRUE(search.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(search.aggregate.protein_ids.empty())
+  ABORT_IF(search.per_file[0].protein_ids.empty())
+  const Size psms = target_psms(search.per_file[0].peptide_ids).size();
+  TEST_TRUE(psms > 0)
+
+  ProSEAlgorithm::MultiFileSearchResult result = search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, single_file);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_FALSE(merged.protein_ids[0].getHits().empty())
+  StringList run_paths;
+  merged.protein_ids[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == single_file)
+  TEST_EQUAL(merged.peptide_ids.size(), psms) // the decoy PSMs are removed
+  TEST_TRUE(target_psms(merged.peptide_ids) == target_psms(search.per_file[0].peptide_ids))
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0}))
+
+  // the run of the file is kept as the search returned it, its PSMs were moved out
+  TEST_FALSE(result.per_file[0].protein_ids.empty())
+  TEST_TRUE(result.per_file[0].protein_ids == search.per_file[0].protein_ids)
+  TEST_TRUE(result.per_file[0].peptide_ids.empty())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults and the pooled aggregate give each PSM the input position of its file, also after a failed file))
+{
+  // IDMergerAlgorithm numbers only the files it pools, while the pooled run lists all input files: with the first file
+  // failed, the PSMs of the second one must carry index 1 (the second file of the run), not 0.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  const std::vector<std::string> file_1_psms = target_psms(merge_search.per_file[1].peptide_ids);
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+
+  // the pooling of the search's aggregate, which copies the identifications of the files
+  std::vector<ProteinIdentification> pooled_proteins;
+  PeptideIdentificationList pooled_peptides;
+  ProSEAlgorithm_test::poolSearchedFiles_(result.per_file, false, merge_files, pooled_proteins, pooled_peptides);
+  ABORT_IF(pooled_proteins.size() != 1)
+  StringList run_paths;
+  pooled_proteins[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == merge_files)
+  TEST_EQUAL(pooled_peptides.size(), merge_search.per_file[1].peptide_ids.size())
+  TEST_TRUE(merge_indices(pooled_peptides) == (std::set<int>{1}))
+  TEST_EQUAL(result.per_file[1].peptide_ids.size(), merge_search.per_file[1].peptide_ids.size()) // copied
+
+  // mergeFileResults on such a pooled aggregate (the search's) keeps the indices
+  result.aggregate.protein_ids = pooled_proteins;
+  result.aggregate.peptide_ids = pooled_peptides;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{1}))
+  TEST_TRUE(target_psms(merged.peptide_ids) == file_1_psms)
+
+  // mergeFileResults without an aggregate pools the files itself
+  result = merge_search;
+  result.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{1}))
+  TEST_TRUE(target_psms(merged.peptide_ids) == file_1_psms)
+
+  // a failed file between two others: the third file keeps index 2
+  result = merge_search;
+  result.per_file.insert(result.per_file.begin() + 1, merge_search.per_file[1]);
+  result.per_file[1].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  const StringList three_files = {merge_files[0], "failed.mzML", merge_files[1]};
+  merged = algo.mergeFileResults(result, three_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 2}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults without decoys infers proteins but applies no protein FDR))
+{
+  // the target-only search of the section on files that share a basename
+  ABORT_IF(merge_target_only_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "ignore");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_target_only_search;
+  TEST_FALSE(result.have_decoys)
+  const Size psms = result.per_file[0].peptide_ids.size() + result.per_file[1].peptide_ids.size();
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_same_name_files);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_FALSE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_FALSE(merged.protein_ids[0].getHits().empty())
+  TEST_EQUAL(merged.protein_ids[0].getInferenceEngine(), "TOPPProteinInference")
+  TEST_FALSE(merged.protein_ids[0].getIndistinguishableProteins().empty())
+  TEST_TRUE(psms > 0)
+  TEST_EQUAL(merged.peptide_ids.size(), psms) // nothing removed
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults keeps decoys when asked))
+{
+  // With remove_decoys false the merge infers the proteins and applies the picked-protein FDR and its filter as by
+  // default, but keeps the decoy PSMs and the decoy proteins that pass; it only drops the references to the proteins
+  // the filter removed, so that the result can still be stored.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  const ProSEAlgorithm::MergedResult with_decoys = algo.mergeFileResults(result, merge_files, false);
+  result = merge_search;
+  const ProSEAlgorithm::MergedResult without_decoys = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(with_decoys.protein_fdr_applied)
+  TEST_TRUE(without_decoys.protein_fdr_applied)
+  ABORT_IF(with_decoys.protein_ids.size() != 1 || without_decoys.protein_ids.size() != 1)
+
+  // every PSM of the pooled aggregate is kept, the decoys among them, and the targets are those of the default
+  Size decoy_psms = 0;
+  for (const PeptideIdentification& id : with_decoys.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+  }
+  TEST_TRUE(decoy_psms > 0)
+  TEST_EQUAL(with_decoys.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_TRUE(target_psms(with_decoys.peptide_ids) == target_psms(without_decoys.peptide_ids))
+  TEST_TRUE(merge_indices(with_decoys.peptide_ids) == (std::set<int>{0, 1}))
+
+  // the proteins carry the q-values of the picked-protein FDR, all within FDR:protein; the decoys among them are kept,
+  // and the targets are those of the default
+  const ProteinIdentification& run = with_decoys.protein_ids[0];
+  TEST_STRING_EQUAL(run.getScoreType(), "q-value")
+  TEST_FALSE(run.getHits().empty())
+  std::set<std::string> accessions, target_accessions, default_accessions;
+  Size above_fdr = 0;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    accessions.insert(hit.getAccession());
+    if (!hit.getAccession().starts_with("DECOY_")) { target_accessions.insert(hit.getAccession()); }
+    above_fdr += hit.getScore() > 0.05;
+  }
+  std::map<std::string, double> default_q_values;
+  for (const ProteinHit& hit : without_decoys.protein_ids[0].getHits())
+  {
+    default_accessions.insert(hit.getAccession());
+    default_q_values[hit.getAccession()] = hit.getScore();
+  }
+  TEST_EQUAL(above_fdr, 0)
+  TEST_TRUE(accessions.size() > target_accessions.size()) // decoy proteins passed the filter
+  TEST_TRUE(target_accessions == default_accessions)
+  Size other_q_values = 0;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    const auto it = default_q_values.find(hit.getAccession());
+    other_q_values += it != default_q_values.end() && it->second != hit.getScore();
+  }
+  TEST_EQUAL(other_q_values, 0) // keeping the decoys does not change the q-values of the targets
+
+  // no dangling references: every evidence and every group names a protein of the run, and the result can be stored
+  Size evidences = 0, dangling = 0;
+  for (const PeptideIdentification& id : with_decoys.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+      {
+        ++evidences;
+        dangling += !accessions.contains(evidence.getProteinAccession());
+      }
+    }
+  }
+  TEST_TRUE(evidences > 0)
+  TEST_EQUAL(dangling, 0)
+  Size dangling_in_groups = 0;
+  for (const auto* groups : {&run.getIndistinguishableProteins(), &run.getProteinGroups()})
+  {
+    for (const ProteinIdentification::ProteinGroup& group : *groups)
+    {
+      for (const std::string& accession : group.accessions) { dangling_in_groups += !accessions.contains(accession); }
+    }
+  }
+  TEST_EQUAL(dangling_in_groups, 0)
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, with_decoys.protein_ids, with_decoys.peptide_ids, {FileTypes::IDXML});
+  std::vector<ProteinIdentification> stored_proteins;
+  PeptideIdentificationList stored_peptides;
+  FileHandler().loadIdentifications(out_file, stored_proteins, stored_peptides, {FileTypes::IDXML});
+  TEST_EQUAL(stored_proteins.size(), 1)
+  TEST_EQUAL(stored_peptides.size(), with_decoys.peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the multi-file search reports one outer progress step per file))
+{
+  // The search reports an outer step per input file, "Searching <file> (i of n)...", so that a caller can tell which
+  // file is being searched; the steps of the search of the file (index build, filtering, scoring, ...) nest one level
+  // below it. The searches here run with a progress display that records its events, and with one OpenMP thread (see
+  // ScopedOpenMPThreads), unless said otherwise.
+  // The depth that the ProgressLogger passes is its static step counter, which threaded searches before (also those of
+  // other sections of this test) can leave off zero. So the depths are taken relative to the first event of a search,
+  // the start of the step of its first file.
+  TempDir dir;
+  const StringList files = {dir.getPath() + "/ProSE_13_a.mzML", dir.getPath() + "/ProSE_13_b.mzML"};
+  for (const std::string& file : files)
+  {
+    File::remove(file); // File::copy() does not overwrite
+    TEST_TRUE(File::copy(merge_spectra_file, file))
+  }
+  const std::vector<std::string> outer_steps = {"Searching ProSE_13_a.mzML (1 of 2)...", "Searching ProSE_13_b.mzML (2 of 2)..."};
+
+  // 'rescore' is not needed here, and would add a Percolator run
+  const auto configure_progress = [&](ProSEAlgorithm& algo, std::vector<ProgressEvent>& events)
+  {
+    configure_merge(algo, "generate");
+    Param p = algo.getParameters();
+    p.setValue("rescore", "false");
+    algo.setParameters(p);
+    algo.setLogger(new RecordingProgressLogger(events)); // after configure_merge(), which sets the log type
+  };
+  // the depth of the first event, to which the others are relative
+  const auto base_depth = [](const std::vector<ProgressEvent>& events) { return events.empty() ? 0 : events.front().depth; };
+  // the labels of the starts of the steps of a depth, relative to the first event (-1: all depths)
+  const auto labels = [&](const std::vector<ProgressEvent>& events, int depth)
+  {
+    const int base = base_depth(events);
+    std::vector<std::string> result;
+    for (const ProgressEvent& event : events)
+    {
+      if (event.kind == 's' && (depth < 0 || event.depth - base == depth)) { result.push_back(event.label); }
+    }
+    return result;
+  };
+  // Events that break the nesting of the steps: a start has the depth of the steps open, an end that of its start, and
+  // an end has a start; plus the steps that are still open at the end. Depths relative to the first event.
+  const auto nesting_errors = [&](const std::vector<ProgressEvent>& events)
+  {
+    const int base = base_depth(events);
+    Size errors = 0;
+    int open = 0;
+    for (const ProgressEvent& event : events)
+    {
+      if (event.kind == 's')
+      {
+        errors += event.depth - base != open;
+        ++open;
+      }
+      else if (open == 0)
+      {
+        ++errors;
+      }
+      else
+      {
+        --open;
+        errors += event.depth - base != open;
+      }
+    }
+    return errors + static_cast<Size>(open);
+  };
+
+  {
+    // two files: one outer step each, in input order, with the steps of the file inside it
+    ScopedOpenMPThreads one_thread(1);
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
+    ABORT_IF(result.per_file.size() != 2)
+    for (const ProSEAlgorithm::SearchResult& file : result.per_file)
+    {
+      TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    }
+    TEST_TRUE(labels(events, 0) == outer_steps)
+    TEST_EQUAL(nesting_errors(events), 0)
+    // the first event starts the first file, the last one ends the second; each has steps of its own inside
+    ABORT_IF(events.empty())
+    const int base = base_depth(events);
+    TEST_TRUE(events.front().kind == 's')
+    TEST_STRING_EQUAL(events.front().label, outer_steps[0])
+    TEST_TRUE(events.back().kind == 'e' && events.back().depth == base)
+    Size inner_steps_of_file[2] = {0, 0};
+    Size file_index = 0;
+    for (const ProgressEvent& event : events)
+    {
+      if (event.kind != 's') { continue; }
+      if (event.depth == base) { ++file_index; }
+      else if (file_index >= 1 && file_index <= 2) { ++inner_steps_of_file[file_index - 1]; }
+    }
+    TEST_TRUE(inner_steps_of_file[0] > 0)
+    TEST_TRUE(inner_steps_of_file[1] > 0)
+  }
+
+  {
+    // With the threads of the machine, a file is read in the background, and the index is built while the first one is
+    // read; that build is inside the step of the first file as well. The depths are not reliable then (see
+    // ScopedOpenMPThreads), but the steps of the files, their order and the balance of starts and ends are.
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
+    TEST_EQUAL(result.per_file.size(), 2)
+    std::vector<std::string> searching;
+    for (const std::string& label : labels(events, -1))
+    {
+      if (label.starts_with("Searching ")) { searching.push_back(label); }
+    }
+    TEST_TRUE(searching == outer_steps)
+    ABORT_IF(events.empty())
+    TEST_STRING_EQUAL(events.front().label, outer_steps[0])
+    TEST_EQUAL(std::count_if(events.begin(), events.end(), [](const ProgressEvent& e) { return e.kind == 's'; }),
+               std::count_if(events.begin(), events.end(), [](const ProgressEvent& e) { return e.kind == 'e'; }))
+  }
+
+  {
+    // Files whose search fails (here: an empty database) end their step as well, before the next file.
+    ScopedOpenMPThreads one_thread(1);
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const std::vector<FASTAFile::FASTAEntry> no_proteins;
+    const ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, no_proteins);
+    ABORT_IF(result.per_file.size() != 2)
+    for (const ProSEAlgorithm::SearchResult& file : result.per_file)
+    {
+      TEST_FALSE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    }
+    TEST_TRUE(labels(events, 0) == outer_steps)
+    TEST_EQUAL(nesting_errors(events), 0)
+  }
+
+  {
+    // ... and so does a file that throws: its step ends while the exception leaves the search, and the next search
+    // starts at the depth of the first one again (no step was left open).
+    ScopedOpenMPThreads one_thread(1);
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const std::string missing_file = dir.getPath() + "/ProSE_13_missing.mzML";
+    TEST_EXCEPTION(Exception::FileNotFound, algo.searchWithModificationAnalysis(StringList{missing_file}, merge_database_file))
+    TEST_TRUE(labels(events, 0) == std::vector<std::string>{"Searching ProSE_13_missing.mzML (1 of 1)..."})
+    TEST_EQUAL(nesting_errors(events), 0)
+    const int first_search_depth = base_depth(events);
+    events.clear();
+    algo.searchWithModificationAnalysis(StringList{files[0]}, std::vector<FASTAFile::FASTAEntry>{});
+    TEST_TRUE(labels(events, 0) == std::vector<std::string>{"Searching ProSE_13_a.mzML (1 of 1)..."})
+    TEST_EQUAL(nesting_errors(events), 0)
+    TEST_EQUAL(base_depth(events), first_search_depth)
   }
 }
 END_SECTION

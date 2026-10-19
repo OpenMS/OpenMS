@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/ChromatogramProcessor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -41,6 +42,51 @@ namespace OpenMS
 {
   namespace
   {
+    /**
+      @brief Chromatograms encoded for the output ahead of the output lock.
+
+      The chromatogram consumers are not thread-safe, so all chromatograms pass through one
+      critical section. The XIC Parquet consumer can do the expensive part (compressing the
+      arrays) without touching its state: the thread that owns the chromatograms does that here,
+      and only the finished rows are appended inside the lock. For other consumers this does
+      nothing and writeOutFeaturesAndChroms_() writes the chromatograms as before.
+    */
+    struct PreEncodedChromatograms
+    {
+      PreEncodedChromatograms(Interfaces::IMSDataConsumer* chrom_consumer,
+                              std::vector<MSChromatogram>& chromatograms,
+                              std::vector<MSChromatogram>& ms1_chromatograms) :
+        consumer(dynamic_cast<MSChromatogramParquetConsumer*>(chrom_consumer))
+      {
+        if (consumer == nullptr)
+        {
+          return;
+        }
+        // same order and the same skipping of empty chromatograms as writeOutFeaturesAndChroms_(),
+        // which finds the encoded chromatograms empty afterwards and skips them
+        for (MSChromatogram& chromatogram : ms1_chromatograms)
+        {
+          if (!chromatogram.empty()) consumer->encodeChromatogram(chromatogram, rows);
+        }
+        for (MSChromatogram& chromatogram : chromatograms)
+        {
+          if (!chromatogram.empty()) consumer->encodeChromatogram(chromatogram, rows);
+        }
+      }
+
+      /// Appends the encoded rows: call inside the output lock, before writeOutFeaturesAndChroms_().
+      void write()
+      {
+        if (consumer != nullptr)
+        {
+          consumer->consumeEncodedChromatograms(rows);
+        }
+      }
+
+      MSChromatogramParquetConsumer* consumer;
+      MSChromatogramParquetConsumer::EncodedChromatograms rows;
+    };
+
     // --- Dynamic batching helpers ---
     Size estimateFeatureMemoryPerCompound()
     {
@@ -190,8 +236,10 @@ namespace OpenMS
         {
           while (true)
           {
-            OpenSwathOSWWriter::OSWData batch;
-            UInt64 batch_bytes = 0;
+            // Take everything that is queued in one step. The rows are written as they were
+            // enqueued: merging them into one batch first means moving every row once more,
+            // and doing that under the mutex blocks the scoring threads in enqueue().
+            std::deque<QueueItem> pending;
 
             {
               std::unique_lock<std::mutex> lock(mutex_);
@@ -211,25 +259,18 @@ namespace OpenMS
               {
                 return;
               }
-              if (queue_.empty())
-              {
-                continue;
-              }
-              while (!queue_.empty())
-              {
-                QueueItem item = std::move(queue_.front());
-                queue_.pop_front();
-                batch_bytes += item.byte_count;
-                batch.append(std::move(item.rows));
-              }
+              pending.swap(queue_);
             }
 
-            if (!batch.empty())
+            for (QueueItem& item : pending)
             {
-              writer_.writeRows(batch);
-
-              std::lock_guard<std::mutex> lock(mutex_);
-              buffered_bytes_ -= batch_bytes;
+              writer_.writeRows(item.rows);
+              // release the rows before handing their share of the budget back
+              item.rows = OpenSwathOSWWriter::OSWData();
+              {
+                std::lock_guard<std::mutex> lock(mutex_);
+                buffered_bytes_ -= item.byte_count;
+              }
               cv_.notify_all();
             }
           }
@@ -783,10 +824,12 @@ namespace OpenMS
           return;
         }
 
+        PreEncodedChromatograms encoded(chromConsumer, context.chrom_exp.getChromatograms(), context.ms1_chromatograms);
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
         {
+          encoded.write();
           writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
               context.feature_file, out_featureFile, store_features, chromConsumer);
         }
@@ -1142,8 +1185,10 @@ namespace OpenMS
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
             // output file and one output map).
+            PreEncodedChromatograms encoded(chromConsumer, chrom_exp.getChromatograms(), ms1_chromatograms);
             #pragma omp critical (osw_write_out)
             {
+              encoded.write();
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
           }

@@ -170,7 +170,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       RunStatistics stats;
       /// Outcome of the Percolator rescoring of this run (parameter 'rescore')
       PercolatorRescoring percolator;
-      PeptideIdentificationList pre_fdr_peptide_ids; ///< the PSMs before FDR:PSM; only filled with setKeepPreFdrPsms(true)
+      PeptideIdentificationList pre_fdr_peptide_ids; ///< the PSMs before rescoring and FDR:PSM; only filled with setKeepPreFdrPsms(true)
     };
 
     /**
@@ -207,7 +207,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * The aggregate's @c protein_ids template is taken from the first
      * successful per-file result (search parameters are identical across files
      * by construction), with the primary MS run path overwritten to list every
-     * input file.
+     * input file. Its PSMs carry the meta value 'id_merge_index', the input
+     * position of their file (for inputs with distinct paths), also when other
+     * files failed.
      */
     struct MultiFileSearchResult
     {
@@ -226,6 +228,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// Configuration / database / fragment-index facts shared across all input
       /// files (the index is built once and reused), for the end-of-search report.
       SharedSearchStats shared;
+    };
+
+    /// The pooled evaluation of a multi-file search (the ProSE tool's -out_merged).
+    struct MergedResult
+    {
+      std::vector<ProteinIdentification> protein_ids; ///< one pooled run; empty if no file succeeded
+      /// PSMs of all files; meta value 'id_merge_index' = input position of the file (inputs with distinct paths)
+      PeptideIdentificationList peptide_ids;
+      /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
+      bool protein_fdr_applied = false;
     };
 
     /**
@@ -566,6 +578,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * pooled set (see @p build_pooled_aggregate to skip retaining that second
      * copy of every PSM).
      *
+     * Progress: the search of each input file is a progress step of its own,
+     * labelled "Searching &lt;file name&gt; (i of n)..." (i from 1, in input order).
+     * Consumers identify the per-file step by this label. Every start of a
+     * per-file step is balanced by its end, also if the search of the file
+     * fails or throws; the steps nested in it are not exception-safe (one that
+     * an exception leaves stays open). The steps of the search of the file
+     * (index build, filtering, scoring, ...) nest one level below it (depth 0
+     * for the per-file step, depth 1 inside), but this nesting holds only with
+     * one OpenMP thread: with more, the background reading of the next mzML
+     * file shares the static step depth of the ProgressLogger, and the depths
+     * reported are not reliable. Chunk-major searches (database:chunk_size > 0
+     * with a database of more proteins, decoys included, than the chunk size)
+     * emit no per-file step.
+     *
      * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d).
      * @param[in] fasta_db Protein sequence database as FASTA entries.
      * @param[in] output_base_names Optional per-file base names for
@@ -617,9 +643,53 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::string& aggregate_base_name = "",
         bool build_pooled_aggregate = true) const;
 
+    /**
+     * @brief Pools result (moving its PSMs out), infers proteins across files, applies FDR:protein of this instance
+     * with picked-protein FDR if decoy proteins were identified and then, by default, removes the decoys. Throws
+     * Exception::InvalidValue if Percolator rescored only some files.
+     *
+     * The evaluation of the ProSE tool's -out_merged, for the result of a multi-file
+     * searchWithModificationAnalysis() with the parameters of this instance:
+     *  - Pooling: the pooled aggregate of the search (@c build_pooled_aggregate) is taken as it is. Without one (e.g.
+     *    @c build_pooled_aggregate false, or a search of a single file, which builds none), the runs of the files that
+     *    were searched (exit code EXECUTION_OK) are merged with IDMergerAlgorithm: the PSMs of the files are moved,
+     *    their runs are copied and stay with the files. 'id_merge_index' is the input position of a PSM's file (its
+     *    index in @p in_spectra_files, for inputs with distinct paths), also when other files failed. The pooled run
+     *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
+     *  - Cross-file protein inference (BasicProteinInferenceAlgorithm).
+     *  - With FDR:protein > 0 and decoys in the searched database: picked-protein FDR (Savitski et al. 2015) and the
+     *    filter at FDR:protein, provided the inference identified decoy proteins (otherwise a warning, and nothing is
+     *    filtered). The finalization then removes the decoys and the references to removed proteins, as
+     *    applyCompleteSetProteinFDR() does. With @p remove_decoys false the picked-protein FDR keeps the decoy proteins
+     *    in the run, with q-values (FalseDiscoveryRate's add_decoy_proteins; the q-values of the targets are the
+     *    same), and the filter applies to them as to the targets; the decoy PSMs and the decoy proteins that pass are
+     *    kept, and only the references to the proteins the filter removed go (peptide evidences, indistinguishable
+     *    proteins and protein groups), so that the result can still be stored, e.g. as idXML. Without the protein
+     *    FDR the result keeps the targets and decoys.
+     *
+     * @param[in,out] result The search result. Its pooled aggregate's identifications are moved into the returned
+     *                       result; without an aggregate, the PSMs of the files that were searched are, while the runs
+     *                       of the files (@c per_file[i].protein_ids: search parameters, meta values such as
+     *                       PeptDeepRescoring::NCE_META_VALUE, primary MS run paths) stay as they are. The statistics,
+     *                       exit codes, Percolator outcomes and modification analyses stay, too. Unchanged if
+     *                       Exception::IllegalArgument or Exception::InvalidValue is thrown.
+     * @param[in] in_spectra_files The input files of the search, in its order: one per entry of @c result.per_file.
+     * @param[in] remove_decoys Whether the finalization of the protein FDR removes the decoy PSMs and proteins (default,
+     *                          as in the ProSE tool's -out_merged). False keeps those that pass, e.g. to show them;
+     *                          @c protein_fdr_applied of the result still tells whether the FDR was applied. No effect
+     *                          without the protein FDR.
+     * @return The pooled run and PSMs; empty if no file was searched.
+     *
+     * @throws Exception::IllegalArgument if @p in_spectra_files has not one entry per file of @p result.
+     * @throws Exception::InvalidValue if Percolator ('rescore') rescored only some of the files that were searched: their
+     *         runs report different search engines and scores and cannot be pooled.
+     */
+    MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files,
+                                  bool remove_decoys = true) const;
+
     /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
-    /// file before FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a Percolator .pin); with 'rescore', as
-    /// Percolator rescored them. Default: false (no copy).
+    /// file before the rescoring ('rescore') and FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a
+    /// Percolator .pin): the search engine scores, every reported hit and the decoys. Default: false (no copy).
     void setKeepPreFdrPsms(bool keep)
     {
       keep_pre_fdr_psms_ = keep;
@@ -1130,7 +1200,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
-    std::string rescore_model_{"joint"}; ///< rescore:model: 'joint' or 'per_run'
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1332,6 +1401,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static bool accessionHasDecoyMarker_(const std::string& accession,
                                          const std::string& marker, bool is_prefix);
 
+    /// Helper: pool the runs of the files of @p per_file that were searched (exit code EXECUTION_OK) with
+    /// IDMergerAlgorithm into one run (@p protein_ids, one entry) that lists @p in_spectra_files as primary MS run
+    /// paths, and their PSMs (@p peptide_ids). Copies the identifications, or with @p move_psms moves the PSMs out of
+    /// @p per_file (leaving them empty) and copies the runs, which stay with the files. 'id_merge_index' of a PSM is
+    /// the input position of its file (its index in @p per_file and @p in_spectra_files, for inputs with distinct
+    /// paths), also when other files failed. Shared by the multi-file search's pooled aggregate and
+    /// mergeFileResults().
+    static void poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms, const StringList& in_spectra_files,
+                                   std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids);
+
     /// Helper: capture statistics that must be read BEFORE FDR filtering, namely
     /// target/decoy PSM counts (via the "target_decoy" meta set by PeptideIndexing;
     /// "target+decoy" counts as target, matching OpenMS FDR semantics) and the
@@ -1350,19 +1429,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
     /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
     /// scores (if @p has_decoys). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
-    /// receives the PSMs right before FDR:PSM, i.e. after the rescoring (see setKeepPreFdrPsms()).
+    /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()).
     /// @return The outcome of the rescoring (not applied, no reason with 'rescore' off).
     PercolatorRescoring applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                      PeptideIdentificationList& peptide_ids,
                                      bool has_decoys,
                                      RunStatistics& stats,
                                      PeptideIdentificationList* pre_fdr_psms = nullptr) const;
-
-    /// Helper: apply a single joint Percolator model across all files of a multi-file batch,
-    /// then recompute per-run Target-Decoy Competition (TDC) q-values from the pooled SVM score
-    /// (MS:1001492) as the main score (while MS:1001491 and MS:1001493 retain the pooled Percolator
-    /// q-value and PEP). If the pooled batch cannot be rescored, every file falls back to native-score FDR.
-    void applyJointPsmFDR_(std::vector<SearchResult>& per_file, bool has_decoys) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and
     /// per-run tolerance estimation for one searched file (post-FDR). Silent;

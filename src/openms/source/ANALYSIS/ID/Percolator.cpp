@@ -184,10 +184,11 @@ Percolator::Percolator()
   defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
 
   defaults_.setValue("num_threads",       3,
-                     "Number of OpenMP threads for cross-validation "
-                     "(one per CV fold; max useful = 3). Matches upstream's default.");
+                     "Maximum number of OpenMP threads for cross-validation; never more than the "
+                     "threads the tool may use (-threads). With the default settings, cross-validation "
+                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream.");
   defaults_.setMinInt("num_threads",      1);
-  defaults_.setMaxInt("num_threads",      3);
+  defaults_.setMaxInt("num_threads",      128);
 
   defaults_.setValue("use_pi0", "true",
                      "Enable pi0 correction when computing q-values and PEPs (default). "

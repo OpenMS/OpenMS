@@ -295,6 +295,55 @@ START_SECTION(([SignalToNoiseOpenMS] double getValueAtRT(double RT)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA][SignalToNoiseOpenMS] gives the values of SignalToNoiseEstimatorMedian))
+{
+  // SignalToNoiseOpenMS computes the S/N with SignalToNoiseEstimatorMedian::estimate(), without an estimator
+  // object: the values must be those of an estimator configured with the same parameters.
+  auto makeChromatogram = [](int n, double baseline, int apex, double height)
+  {
+    MSChromatogram chrom;
+    for (int i = 0; i < n; ++i)
+    {
+      ChromatogramPeak p;
+      p.setRT(i * 1.0);
+      p.setIntensity(baseline + (i % 3));
+      chrom.push_back(p);
+    }
+    chrom[apex].setIntensity(height);
+    return chrom;
+  };
+  const MSChromatogram a = makeChromatogram(60, 10.0, 15, 1000.0);
+  const MSChromatogram b = makeChromatogram(25, 200.0, 20, 5000.0);
+  const double win_lens[] = {30.0, 10.0};
+  const unsigned int bin_counts[] = {30, 12};
+  for (const MSChromatogram* chrom : {&a, &b})
+  {
+    for (Size k = 0; k < 2; ++k)
+    {
+      SignalToNoiseEstimatorMedian<MSChromatogram> estimator;
+      Param p = estimator.getParameters();
+      p.setValue("win_len", win_lens[k]);
+      p.setValue("bin_count", bin_counts[k]);
+      p.setValue("write_log_messages", "false");
+      estimator.setParameters(p);
+      estimator.init(*chrom);
+
+      SignalToNoiseOpenMS<MSChromatogram> sn(*chrom, win_lens[k], bin_counts[k], false);
+      Size n_equal = 0;
+      for (Size i = 0; i < chrom->size(); ++i)
+      {
+        if (sn.getValueAtRT((*chrom)[i].getRT()) == estimator.getSignalToNoise(i)) ++n_equal;
+      }
+      TEST_EQUAL(n_equal, chrom->size())
+    }
+  }
+
+  // the ranges of the estimator parameters still apply
+  TEST_EXCEPTION(Exception::InvalidParameter, SignalToNoiseOpenMS<MSChromatogram>(a, 30.0, 2, false))
+  TEST_EXCEPTION(Exception::InvalidParameter, SignalToNoiseOpenMS<MSChromatogram>(a, 0.5, 30, false))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

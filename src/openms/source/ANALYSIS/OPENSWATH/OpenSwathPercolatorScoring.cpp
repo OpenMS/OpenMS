@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
@@ -32,6 +33,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <set>
 #include <tuple>
@@ -53,6 +55,7 @@ namespace OpenMS
     double transition_peakgroup_max_pep = 0.7;
     double transition_max_isotope_overlap = 0.5;
     double transition_min_log_sn = 0.0;
+    std::string training_main_score = "var_xcorr_shape";
   };
 
   namespace
@@ -459,6 +462,147 @@ namespace OpenMS
       return d_scores;
     }
 
+    /**
+      @brief Reads the peak-group rows for ms1/ms2/ms1ms2 scoring with one scan per table.
+
+      Equivalent to joining FEATURE, PRECURSOR, FEATURE_MS2 and FEATURE_MS1 in SQL and ordering by
+      (RUN_ID, PRECURSOR_ID, EXP_RT, FEATURE.ID), but joined and sorted here: for millions of
+      peak groups SQLite answers that query with an index lookup per row, an index built on the
+      fly for FEATURE_MS1 and a temporary B-tree for the order, which takes several times as
+      long as reading the tables front to back.
+
+      @return false if a feature has more than one row in a score table (the SQL join would
+              return it once per combination); @p rows is then unusable and the caller runs the query.
+    */
+    bool readFeatureRowsByScans_(SqliteConnector& conn,
+                                 const Level level,
+                                 const std::vector<String>& ms2_cols,
+                                 const std::vector<String>& ms1_cols,
+                                 std::vector<ScoreRow>& rows)
+    {
+      const double nan = std::numeric_limits<double>::quiet_NaN();
+      const Size n_values = ms2_cols.size() + ms1_cols.size();
+      sqlite3_stmt* stmt = nullptr;
+
+      std::unordered_map<Int64, bool> precursor_decoy;
+      Sql::prepareStatement(conn, &stmt, "SELECT ID, DECOY FROM PRECURSOR;");
+      for (Sql::SqlState state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      {
+        precursor_decoy[Sql::extractInt64(stmt, 0)] = Sql::extractInt(stmt, 1) != 0;
+      }
+      sqlite3_finalize(stmt);
+
+      rows.clear();
+      std::unordered_map<Int64, Size> row_of_feature;
+      Sql::prepareStatement(conn, &stmt, "SELECT ID, RUN_ID, PRECURSOR_ID, EXP_RT FROM FEATURE;");
+      for (Sql::SqlState state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      {
+        ScoreRow row;
+        row.feature_id = Sql::extractInt64(stmt, 0);
+        row.run_id = Sql::extractInt64(stmt, 1);
+        row.precursor_id = Sql::extractInt64(stmt, 2);
+        row.exp_rt = Sql::extractDouble(stmt, 3);
+        const auto precursor = precursor_decoy.find(row.precursor_id);
+        if (precursor == precursor_decoy.end())
+        {
+          continue; // inner join with PRECURSOR
+        }
+        row.decoy = precursor->second;
+        if (!row_of_feature.emplace(row.feature_id, rows.size()).second)
+        {
+          sqlite3_finalize(stmt);
+          return false;
+        }
+        rows.push_back(std::move(row));
+      }
+      sqlite3_finalize(stmt);
+
+      // Fills the columns [offset, offset + cols.size()) of every feature that has a row in `table`;
+      // found[i] tells whether row i has one.
+      auto readScores = [&](const String& table, const std::vector<String>& cols, const Size offset, std::vector<char>& found) -> bool
+      {
+        String sql = "SELECT FEATURE_ID";
+        for (const auto& c : cols)
+        {
+          sql += ", " + c;
+        }
+        sql += " FROM " + table + ";";
+        found.assign(rows.size(), 0);
+        sqlite3_stmt* score_stmt = nullptr;
+        Sql::prepareStatement(conn, &score_stmt, sql);
+        for (Sql::SqlState state = Sql::nextRow(score_stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(score_stmt, state))
+        {
+          const auto feature = row_of_feature.find(Sql::extractInt64(score_stmt, 0));
+          if (feature == row_of_feature.end())
+          {
+            continue;
+          }
+          if (found[feature->second])
+          {
+            sqlite3_finalize(score_stmt);
+            return false;
+          }
+          found[feature->second] = 1;
+          std::vector<double>& values = rows[feature->second].feature_values;
+          if (values.empty())
+          {
+            values.assign(n_values, nan);
+          }
+          for (Size i = 0; i < cols.size(); ++i)
+          {
+            const int col = static_cast<int>(i) + 1;
+            values[offset + i] = sqlite3_column_type(score_stmt, col) == SQLITE_NULL ? nan : sqlite3_column_double(score_stmt, col);
+          }
+        }
+        sqlite3_finalize(score_stmt);
+        return true;
+      };
+
+      // The score table that is joined with INNER JOIN decides which features remain:
+      // FEATURE_MS2 for ms2 and ms1ms2, FEATURE_MS1 for ms1. In ms1ms2, FEATURE_MS1 is a LEFT JOIN.
+      std::vector<char> has_required, has_optional;
+      if (level == Level::MS1)
+      {
+        if (!readScores("FEATURE_MS1", ms1_cols, 0, has_required)) return false;
+      }
+      else
+      {
+        if (!readScores("FEATURE_MS2", ms2_cols, 0, has_required)) return false;
+        if (level == Level::MS1MS2 && !readScores("FEATURE_MS1", ms1_cols, ms2_cols.size(), has_optional)) return false;
+      }
+      row_of_feature.clear();
+
+      std::vector<ScoreRow> joined;
+      joined.reserve(rows.size());
+      for (Size i = 0; i < rows.size(); ++i)
+      {
+        if (has_required[i])
+        {
+          joined.push_back(std::move(rows[i]));
+        }
+      }
+      std::sort(joined.begin(), joined.end(), [](const ScoreRow& lhs, const ScoreRow& rhs)
+      {
+        return std::tie(lhs.run_id, lhs.precursor_id, lhs.exp_rt, lhs.feature_id) <
+               std::tie(rhs.run_id, rhs.precursor_id, rhs.exp_rt, rhs.feature_id);
+      });
+
+      std::unordered_map<std::pair<Int64, Int64>, int, PairHash<std::pair<Int64, Int64>>> group_to_key;
+      int next_group_key = 0;
+      for (ScoreRow& row : joined)
+      {
+        const std::pair<Int64, Int64> group{row.run_id, row.precursor_id};
+        auto it = group_to_key.find(group);
+        if (it == group_to_key.end())
+        {
+          it = group_to_key.emplace(group, next_group_key++).first;
+        }
+        row.cv_group_key = it->second;
+      }
+      rows = std::move(joined);
+      return true;
+    }
+
     PreparedInput extractSqliteRows_(const String& osw_path,
                                      const Level level,
                                      const Int32 transition_peakgroup_max_rank,
@@ -505,6 +649,12 @@ namespace OpenMS
         {
           feature_names.push_back(canonicalFeatureNameSqlite_(c, level, true));
         }
+
+        if (readFeatureRowsByScans_(conn, level, ms2_cols, ms1_cols, rows))
+        {
+          return finalizeInput_(std::move(rows), std::move(feature_names), false);
+        }
+        rows.clear(); // fall back to the query below
 
         String select_sql =
           "SELECT FEATURE.ID AS FEATURE_ID, FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, PRECURSOR.DECOY";
@@ -1538,6 +1688,12 @@ namespace OpenMS
     defaults_.setValue("transition:min_log_sn", impl_->transition_min_log_sn,
                        "Transition scoring: minimum log signal-to-noise score retained for rescoring.");
 
+    defaults_.setValue("training_main_score", impl_->training_main_score,
+                       "Peak-group score that selects the best peak group of each precursor for the Percolator training "
+                       "set of ms1, ms2 and ms1ms2 rescoring (prefix '-' if lower values are better). The training set holds "
+                       "these peak groups plus all peak groups of precursors drawn at random, up to "
+                       "percolator:subset_max_train further peak groups (0: train on all peak groups); the model then "
+                       "scores all peak groups. If the score is not among the features, all peak groups are used.");
     defaults_.insert("percolator:", impl_->percolator.getDefaults());
     defaultsToParam_();
     updateMembers_();
@@ -1551,7 +1707,157 @@ namespace OpenMS
     impl_->transition_peakgroup_max_pep = static_cast<double>(param_.getValue("transition:peakgroup_max_pep"));
     impl_->transition_max_isotope_overlap = static_cast<double>(param_.getValue("transition:max_isotope_overlap"));
     impl_->transition_min_log_sn = static_cast<double>(param_.getValue("transition:min_log_sn"));
+    impl_->training_main_score = param_.getValue("training_main_score").toString();
     impl_->percolator.setParameters(param_.copy("percolator:", true));
+  }
+
+  std::vector<Size> OpenSwathPercolatorScoring::trainingRows(const RescoreInput& input,
+                                                             const std::string& main_score,
+                                                             const Size max_others,
+                                                             const UInt64 seed)
+  {
+    const Size n_rows = input.features.size();
+    std::vector<Size> all_rows(n_rows);
+    std::iota(all_rows.begin(), all_rows.end(), Size(0));
+    if (max_others == 0 || input.cv_group_keys.size() != n_rows)
+    {
+      return all_rows;
+    }
+    String main_name = main_score;
+    double direction = 1.0;
+    if (StringUtils::hasPrefix(main_name, "-"))
+    {
+      direction = -1.0;
+      main_name = main_name.substr(1);
+    }
+    const auto name_it = std::find(input.feature_names.begin(), input.feature_names.end(), main_name);
+    if (name_it == input.feature_names.end())
+    {
+      return all_rows;
+    }
+    const Size main_col = static_cast<Size>(name_it - input.feature_names.begin());
+
+    // the rows of every group (a group is one precursor in one run), groups in the order of their first row
+    std::unordered_map<int, Size> group_of_key;
+    std::vector<std::vector<Size>> group_rows;
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      const auto inserted = group_of_key.emplace(input.cv_group_keys[i], group_rows.size());
+      if (inserted.second)
+      {
+        group_rows.emplace_back();
+      }
+      group_rows[inserted.first->second].push_back(i);
+    }
+
+    // the best row of every group; ties keep the first
+    std::vector<char> take(n_rows, 0);
+    Size n_others = 0;
+    for (const auto& rows : group_rows)
+    {
+      Size best = rows.front();
+      for (const Size row : rows)
+      {
+        if (direction * input.features[row][main_col] > direction * input.features[best][main_col])
+        {
+          best = row;
+        }
+      }
+      take[best] = 1;
+      n_others += rows.size() - 1;
+    }
+    if (n_others <= max_others)
+    {
+      return all_rows; // everything would be taken
+    }
+
+    // complete groups in random order while their other rows fit; RandomShuffler draws the same
+    // shuffle on every platform (std::shuffle does not)
+    std::vector<Size> group_order(group_rows.size());
+    std::iota(group_order.begin(), group_order.end(), Size(0));
+    Math::RandomShuffler shuffler;
+    shuffler.seed(seed);
+    shuffler.portable_random_shuffle(group_order.begin(), group_order.end());
+    Size n_added = 0;
+    for (const Size group : group_order)
+    {
+      const Size n_group_others = group_rows[group].size() - 1;
+      if (n_added + n_group_others > max_others)
+      {
+        break;
+      }
+      for (const Size row : group_rows[group])
+      {
+        take[row] = 1;
+      }
+      n_added += n_group_others;
+    }
+
+    std::vector<Size> rows;
+    rows.reserve(group_rows.size() + n_added);
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (take[i])
+      {
+        rows.push_back(i);
+      }
+    }
+    return rows;
+  }
+
+  namespace
+  {
+    /**
+      @brief The training input of peak-group (ms1/ms2/ms1ms2) rescoring: the rows of
+      OpenSwathPercolatorScoring::trainingRows().
+
+      @return @p input itself if all rows are used, otherwise @p subset
+    */
+    const RescoreInput& trainingInput_(const RescoreInput& input, const String& main_score, const Size max_others,
+                                       const UInt64 seed, RescoreInput& subset)
+    {
+      const Size n_rows = input.features.size();
+      if (max_others > 0 && input.cv_group_keys.size() == n_rows)
+      {
+        String main_name = main_score;
+        if (StringUtils::hasPrefix(main_name, "-"))
+        {
+          main_name = main_name.substr(1);
+        }
+        if (std::find(input.feature_names.begin(), input.feature_names.end(), main_name) == input.feature_names.end())
+        {
+          OPENMS_LOG_INFO << "OpenSWATH Percolator training: '" << main_name
+                          << "' is not among the features, training on all " << n_rows << " rows.\n";
+        }
+      }
+      const std::vector<Size> rows = OpenSwathPercolatorScoring::trainingRows(input, main_score, max_others, seed);
+      if (rows.size() == n_rows)
+      {
+        return input;
+      }
+
+      subset = RescoreInput();
+      subset.feature_names = input.feature_names;
+      subset.features.reserve(rows.size());
+      std::unordered_map<int, Size> rows_of_group;
+      for (const Size i : rows) // keeps the order of the input
+      {
+        subset.features.push_back(input.features[i]);
+        subset.is_decoy.push_back(input.is_decoy[i]);
+        subset.cv_group_keys.push_back(input.cv_group_keys[i]);
+        if (!input.scan_numbers.empty()) subset.scan_numbers.push_back(input.scan_numbers[i]);
+        if (!input.spec_file_numbers.empty()) subset.spec_file_numbers.push_back(input.spec_file_numbers[i]);
+        if (!input.exp_masses.empty()) subset.exp_masses.push_back(input.exp_masses[i]);
+        if (!input.calc_masses.empty()) subset.calc_masses.push_back(input.calc_masses[i]);
+        ++rows_of_group[input.cv_group_keys[i]];
+      }
+      const Size n_drawn = static_cast<Size>(std::count_if(rows_of_group.begin(), rows_of_group.end(),
+                                                           [](const auto& group) { return group.second > 1; }));
+      OPENMS_LOG_INFO << "OpenSWATH Percolator training on " << rows.size() << " of " << n_rows
+                      << " peak groups: the best of each of " << rows_of_group.size() << " precursors by " << main_score
+                      << ", and all peak groups of " << n_drawn << " of these precursors drawn at random.\n";
+      return subset;
+    }
   }
 
   OpenSwathPercolatorScoring::ScoreSummary OpenSwathPercolatorScoring::score(const std::string& input_path,
@@ -1567,6 +1873,19 @@ namespace OpenMS
     OPENMS_LOG_INFO << "OpenSWATH Percolator scoring (" << levelName_(level)
                     << ") on '" << input_path << "'\n";
 
+    // Peak groups are trained on a subset (see trainingInput_); transitions on all rows.
+    const Param percolator_param = impl_->percolator.getParameters();
+    const Size max_others = static_cast<Size>(static_cast<int>(percolator_param.getValue("subset_max_train")));
+    const UInt64 seed = static_cast<UInt64>(static_cast<int>(percolator_param.getValue("seed")));
+    auto trainingInputForLevel_ = [&](const PreparedInput& input, RescoreInput& subset) -> const RescoreInput&
+    {
+      if (level == Level::TRANSITION)
+      {
+        return input.input;
+      }
+      return trainingInput_(input.input, impl_->training_main_score, max_others, seed, subset);
+    };
+
     PreparedInput prepared;
     if (StringUtils::hasSuffix(input_path, ".osw"))
     {
@@ -1576,7 +1895,8 @@ namespace OpenMS
                                     impl_->transition_peakgroup_max_pep,
                                     impl_->transition_max_isotope_overlap,
                                     impl_->transition_min_log_sn);
-      const PercolatorModel model = impl_->percolator.train(prepared.input);
+      RescoreInput training_subset;
+      const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
       const RescoreOutput output = impl_->percolator.score(prepared.input, model);
       const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
       const auto results = computePeakGroupResults_(prepared, output, exported_scores);
@@ -1590,7 +1910,8 @@ namespace OpenMS
                                    impl_->transition_peakgroup_max_pep,
                                    impl_->transition_max_isotope_overlap,
                                    impl_->transition_min_log_sn);
-    const PercolatorModel model = impl_->percolator.train(prepared.input);
+    RescoreInput training_subset;
+    const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
     const RescoreOutput output = impl_->percolator.score(prepared.input, model);
     const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
     const auto results = computePeakGroupResults_(prepared, output, exported_scores);
