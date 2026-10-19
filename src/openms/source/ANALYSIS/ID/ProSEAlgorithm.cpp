@@ -5932,14 +5932,17 @@ namespace OpenMS
         return a.pid_idx < b.pid_idx;
       });
 
-      std::vector<double> q_vals(rows.size(), 0.0);
+      const bool run_has_decoys = std::any_of(rows.begin(), rows.end(), [](const SvmRow& row) { return row.decoy; });
+      std::vector<double> q_vals(rows.size(), 1.0);
       Size targets = 0, decoys = 0;
       for (Size r = 0; r < rows.size(); ++r)
       {
         if (rows[r].decoy) { ++decoys; }
         else { ++targets; }
-        // D / T when targets > 0 (0.0 when decoys == 0); 1.0 if only decoys have been seen so far
-        q_vals[r] = (targets > 0) ? (static_cast<double>(decoys) / static_cast<double>(targets)) : 1.0;
+        // D / T (capped at 1.0) when the run has decoys and targets > 0; 1.0 otherwise
+        q_vals[r] = (run_has_decoys && targets > 0)
+                      ? std::min(1.0, static_cast<double>(decoys) / static_cast<double>(targets))
+                      : 1.0;
       }
       // Monotonize q-values (running minimum from worst to best score)
       for (Size r = rows.size(); r-- > 1;)
