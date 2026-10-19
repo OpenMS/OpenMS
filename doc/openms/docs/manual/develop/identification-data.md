@@ -76,8 +76,7 @@ IDPosteriorErrorProbability and FalseDiscoveryRate record themselves with
 `ProteinIdentification::setScoreSoftware()` (search parameters `ScoreSoftware:<score type>`),
 because downstream tools still need the original search engine. When importing idXML,
 `IdentificationDataAdapter` takes the score's producer from that record and falls back to the
-search engine. PercolatorAdapter and ConsensusID record themselves as search engine and clear such
-records. As a result, PEPs computed by the same IDPosteriorErrorProbability version for Comet and
+search engine. PercolatorAdapter records itself as search engine and clears such records. As a result, PEPs computed by the same IDPosteriorErrorProbability version for Comet and
 MS-GF+ searches share one definition, while raw engine scores do not.
 
 ## Native identification bundles
