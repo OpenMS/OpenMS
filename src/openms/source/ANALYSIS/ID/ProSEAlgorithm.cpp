@@ -2675,6 +2675,16 @@ namespace OpenMS
     // The index restriction uses the widest precursor window of any file; each file is then queried with its own
     Param build_params = fragmentIndexParameters_(electron_ions);
     {
+      // Only the parameters FragmentIndex knows: setParameters() would report each of the others as unknown at every
+      // index build and query below, i.e. twice per slice and file
+      const Param known = FragmentIndex().getDefaults();
+      std::vector<std::string> unknown;
+      for (auto it = build_params.begin(); it != build_params.end(); ++it)
+      {
+        if (!known.exists(it.getName())) unknown.push_back(it.getName());
+      }
+      for (const std::string& name : unknown) build_params.remove(name);
+
       double lower = precursor_mass_tolerance_lower_, upper = precursor_mass_tolerance_upper_;
       for (const auto& tol : tolerances)
       {
