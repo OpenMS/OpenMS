@@ -17,6 +17,50 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
+    (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
+    single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
+    q-values (or, for a run that was not rescored, on q-values of the search engine scores); the file-based search() applies
+    FDR:protein on the rescored PSMs. rescoreWithPercolator keeps the Percolator settings of ProSE's former -rescore (best hit per spectrum,
+    the runs marked as post-processed by Percolator) and returns whether it rescored and, if not, why (fewer than 100 PSMs, no
+    decoy PSMs, Percolator failed); SearchResult::percolator reports that outcome per run, also in pyOpenMS, and its 'warning'
+    names a rescoring whose learned model Percolator's sanity check replaced by the best single feature. Runs that were
+    rescored and runs that were not are not pooled into the multi-file aggregate (different search engines). 'rescore' false
+    restores the previous results. The ProSE tool and other callers (e.g. the WebAssembly bindings) share this implementation.
+  - Percolator::usedDefaultDirection() tells whether the last rescore()/train() kept the learned model or Percolator's sanity
+    check replaced it by the default direction ("Resetting score vector" of the percolator binary): no target at q < test_fdr
+    on the held-out folds, fewer targets than the best single feature, or a configured initial direction of the wrong sign
+    (ProSE configures none). Typical for blank runs and small inputs (q-values count the decoys + 1, so a fold needs about
+    1 / test_fdr targets above its first decoy).
+  - ProSEAlgorithm::mergeFileResults(): the merged evaluation of the ProSE tool's -out_merged moves into the library, so that
+    other callers (e.g. a browser app on the WebAssembly module) can share it. It pools the PSMs of the result of a multi-file
+    searchWithModificationAnalysis(), infers proteins across the files and, with FDR:protein and decoys in the database,
+    applies the picked-protein FDR and removes the decoys (remove_decoys false keeps the decoys that pass, e.g. to show them);
+    the result is the new ProSEAlgorithm::MergedResult. Throws Exception::InvalidValue if Percolator rescored only some of the
+    files (the tool still exits with INCOMPATIBLE_INPUT_DATA). The tool's -out_merged does not change, but for the
+    'id_merge_index' fix below (runs in which a file failed). Other output of the tool changes with the entries below: with
+    peptdeep:enable its per-file idXML runs carry the meta value 'peptdeep_nce', and the command-line progress of a multi-file
+    search nests under "Searching <file> (i of n)...".
+  - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
+    position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
+    later files named the wrong file.
+  - FIX: OpenSearchModificationAnalysis names a delta mass cluster after the Unimod modification nearest to its mass. It
+    named the entries of lowest and highest mass within the tolerance ("A//B"), so that +15.9949 Da (oxidation) was
+    "thiocarboxylic acid//Oxidation or Hydroxylation" (thiocarboxylic acid, +15.9772 Da, is within 0.02 Da), and it annotated the
+    PSMs (meta value 'PTM') and mapped the entries of the delta mass statistics (DeltaMassEntry::mapped_modification) with
+    the lowest one alone, "thiocarboxylic acid". "A//B" now names candidates that are about equally close (distances differing
+    by at most 0.0005 Da, the width of a histogram bin). The nearest entry is also used for the modification that explains a
+    cluster of a higher mass (including the "+1Da" variant) and for the combination of two modifications, which is looked up
+    on both sides of the cluster mass (before, only at or above it, so that a cluster could be "Unknown" with a combination
+    within the tolerance below it). This changes the modification names in the output tables of ProSE's open search
+    (-out_mod_analysis_dir) and of SageAdapter.
+  - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
+    file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
+    label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major
+    search (database:chunk_size) has no per-file step.
+  - PeptDeepRescoring::annotate() stores the normalised collision energy the predictions of each run used (the scanned one, or 'nce'
+    when set) as the double run meta value 'peptdeep_nce' (PeptDeepRescoring::NCE_META_VALUE) on that run's
+    ProteinIdentification, so that a consumer of the result can predict spectra at the same energy. Runs without PSMs get none.
   - ConsensusMapNormalizerAlgorithmRTLocal: normalizes each map of a consensus map by a log2 offset that may vary
     with retention time, estimated as the median deviation of the features quantified in several maps among the
     neighbouring features in retention time (the run normalisation of andes). It removes both different loading
@@ -30,6 +74,9 @@ OpenMS Library:
     'unknown_enzyme' for an empty `cut` (as OpenMS writes it) instead of naming a "user-defined" enzyme that grew
     with every pepXML pass and was not recognized as missing. It also keeps the Mascot expectation value (MS:1001172)
     for search_engine "MASCOT", as TPP and PepXMLFile::store write it (#10570).
+  - FIX: ConsensusMapMergerAlgorithm::mergeAllIDRuns throws Exception::MissingInformation for a ConsensusMap without
+    protein identification runs instead of reading past the end of the run list, on which ProteomicsLFQ,
+    ProteinInference, Epifany and MS1LabeledWorkflow segfaulted (e.g. ProteomicsLFQ on FAIMS data before #10001).
   - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
     (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
     optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
@@ -55,10 +102,18 @@ OpenMS Library:
     and intensity arrays of a spectrum or chromatogram differ in length. Before, depending on which
     array SQLite returned first, data was silently dropped or the shorter array was read past its
     end (#10471).
-  - FIX: Percolator (in-process rescoring of PercolatorAdapter and ProSE -rescore): the static flag
+  - FIX: Percolator (in-process rescoring of PercolatorAdapter and ProSE's Percolator rescoring): the static flag
     PosteriorEstimator::includeNegativesInResult is atomic. It was written and read by the threads of
     the parallel cross-validation at the same time (data race, found with ThreadSanitizer); results
     do not change (#10474).
+  - HiGHS is now the default LP/MIP solver (LP_SOLVER=HIGHS; the former default AUTO is an alias for it). A HiGHS >= 1.11
+    from vcpkg or the system is used if found, otherwise HiGHS is fetched and linked statically into libOpenMS. COIN-OR and
+    GLPK (LP_SOLVER=COIN/GLPK, vcpkg features lp-coin/lp-glpk) are deprecated and will be removed in the next release (#10551).
+    The HiGHS backend of LPWrapper now solves MIPs to proven optimality by default (mip_gap was ignored when 0), resets
+    the time limit on every solve, batches integrality changes and skips the probing/enumeration presolve rules, which
+    makes large decharging ILPs about 15x faster. An ILP with several optimal solutions (e.g. in Decharger and
+    MetaboliteAdductDecharger) may now give a different one of them than COIN-OR did. HiGHS fetched by the build installs
+    its license (share/OpenMS/LICENSES/vendored/HiGHS).
   - FIX: ProteaseDB and RNaseDB also find enzyme names and synonyms ignoring case, whitespace, '-' and '_' (e.g. 'glu-c',
     'GluC' and 'Glu_C' find glutamyl endopeptidase, 'LysC/P' finds Lys-C/P); other characters such as '/' and '+' stay
     significant. pepXML files with sample_enzyme or enzymatic_search_constraint 'Glu-C' load with glutamyl endopeptidase
@@ -80,6 +135,11 @@ OpenMS Library:
   - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
+  - FIX: EmpiricalFormula orders its elements by atomic number, an element before its isotopes ("C", "(12)C", "(13)C"),
+    instead of by the addresses of the Element objects. Weights, isotope distributions and operator< followed the address
+    order, which differs between runs where the heap is randomized (Windows): theoretical masses differed in the last
+    bits between two identical runs, and Percolator rescoring in ProSE turned that into percolator_score differences of
+    about 1%. On Linux the new order is the order the elements had in memory, so results do not change there.
   - FIX: ConsensusMapNormalizerAlgorithmMedian, -Quantile and -Threshold accept maps whose indices are not consecutive, as
     'FileFilter -consensus:map' leaves them. Median and Quantile threw ElementNotFound for them, and Threshold
     (ConsensusMapNormalizer -algorithm_type robust_regression) read past the end of its per-map vectors and crashed. The
@@ -91,20 +151,66 @@ OpenMS Library:
     did not match the inputs (no alignment points).
   - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
     all passing through one OpenMP critical section, which serialized threads that read or set meta values.
+  - FIX: Percolator nonparametric PEPs (e.g. ProSE's Percolator rescoring): fewer than 4 score bins, or bin medians closer than 1e-15,
+  - PERF: OpenSwathWorkflow/OpenDIA output no longer stalls the scoring threads: XIC Parquet chromatograms are
+    compressed by the thread that extracted them (MSChromatogramParquetConsumer::encodeChromatogram(),
+    consumeEncodedChromatograms()) and only appended inside the output lock, and the buffered OSW writer writes
+    queued rows as they are instead of merging them under its queue lock. Output is unchanged.
+  - PERF: MSChromatogramParquetConsumer writes its row batches (ZSTD compression) on a thread of its own, in the order
+    in which they are completed, instead of inside the lock that serializes chromatogram output. The rows are unchanged.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
+  - FIX: TempDir names drop the hostname and, on Windows, use an 8-character random suffix instead
+    of a full UUID (about 45 instead of 90 characters). On Windows, OpenDIA failed with "unable to
+    open database file" once -workflow:intermediate_dir was longer than about 120 characters,
+    because its intermediate SQLite files (and their journals) ended up beyond MAX_PATH.
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
+  - PERF: ChromatogramExtractorAlgorithm reaches a target m/z that is far ahead in a spectrum by binary search
+    instead of walking there peak by peak (MS1 extraction of one isolation window's precursors). Output is unchanged.
+  - PERF: ChromatogramExtractorAlgorithm reserves each chromatogram for the spectra inside its RT window instead of
+    growing it point by point, and ChromatogramExtractor::return_chromatogram moves the converted chromatograms into
+    the output. OpenDIA peak memory on an Astral DIA run with 600k precursors and 32 threads: 25.6 GB instead of 32.6 GB.
+  - PERF: SWATH maps that were cached to disk (readOptions cache/cacheWorkingInMemory of OpenSwathWorkflow and
+    OpenDIA) get their access objects in parallel: 12 s instead of 48 s for the 300 windows of an Astral DIA run.
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
     critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
     The seeded sequence is preserved except for skipped zeros.
+  - PERF: OpenDIA returns the memory freed by extraction and scoring to the system before rescoring (glibc), so that
+    rescoring, inference and export no longer run on top of it: 26.8 GB instead of 34.8 GB peak for three Astral runs.
+  - PERF: OpenDIA/CalibrationWorkflow apply the RT extraction window estimated by the calibration to the precursor (MS1)
+    traces as well (plus 15 s on either side), instead of leaving them at the uncalibrated default, unless the MS1 traces
+    are peak-picked too (TransitionGroupPicker:use_precursors). Scores are unchanged;
+    on Astral DIA runs the peak memory drops from 25.5 GB to 19-20 GB and the XIC output to about half its size.
+  - PERF: OpenSwathOSWWriter::OSWValue takes 16 instead of 40 bytes (text values, which are rare, are held out of
+    line), so the rows queued for the OSW writer need less than half the memory and block the scoring threads less.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
+  - PERF: OpenSwathPercolatorScoring reads the peak groups of an OSW file with one scan per table and joins and sorts
+    them in memory, instead of one SQL join with an ORDER BY (176 s instead of 219 s rescoring for 2.9 M peak groups).
+  - PERF: OSWFile::readOpenSwathExportRows aggregates the transition intensities only for the exported peak groups
+    instead of for every peak group of the file (OpenDIA/OpenSwathExport result export: 30 s instead of 72 s).
   - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
     sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
+  - OpenSwathPercolatorScoring (OpenDIA rescoring) trains Percolator on the best peak group of every precursor (new
+    parameter training_main_score, default var_xcorr_shape) plus all peak groups of precursors drawn at random, up to
+    percolator:subset_max_train further peak groups, and scores all peak groups with the model; before,
+    percolator:subset_max_train had no effect and training used all peak groups. percolator:subset_max_train = 0
+    restores that. Results change.
+  - FIX: Percolator's num_threads (OpenDIA rescoring, OpenSwathPercolatorScoring, in-process PercolatorAdapter, ProSE) had
+    no effect; cross-validation now runs on at most num_threads threads, and never on more than the tool's -threads.
+    num_threads accepts up to 128 (as upstream) instead of 3; the default stays 3.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
     when binning auto percentiles. MeanIterative selects the actual maximum and safely handles all-zero spectra (#10521).
+  - PERF: SignalToNoiseOpenMS keeps only the S/N values of its chromatogram: it computes them with the new static
+    SignalToNoiseEstimatorMedian::estimate(), which takes the parameters as a plain Settings struct, instead of
+    constructing an estimator with its whole parameter set for every chromatogram (about 4% of the CPU time of
+    OpenSWATH/OpenDIA scoring). The values are unchanged.
+  - PERF: PeakPickerHiRes no longer builds a SignalToNoiseEstimatorMedian with its whole parameter set for every
+    spectrum or chromatogram it picks: the S/N settings (new SignalToNoiseEstimatorMedianSettings) are read once and
+    the values come from the static SignalToNoiseEstimatorMedian::estimate(). The values are unchanged. OpenSWATH and
+    OpenDIA pick every fragment trace this way; a 150-point chromatogram takes about a fifth of the time to pick.
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every
@@ -618,6 +724,20 @@ OpenMS Library:
     copy of the peptide list) and checks the candidate indices it was given.
     Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
     pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
+  - API: The ConsensusIDAlgorithm classes (Average, Best, Worst, Ranks, PEPMatrix, PEPIons, Identity,
+    Similarity) are removed, also from pyOpenMS, together with the TOPP tool ConsensusID (see there).
+    Identifications written by ConsensusID (search engine "OpenMS/ConsensusID_*") are still read, e.g. by
+    PosteriorErrorProbabilityModel and the mzTab export (#10619).
+  - FIX: FalseDiscoveryRate::applyBasic(ConsensusMap&) and both applyBasicPeptideLevel overloads mark
+    the FDRs/q-values they write as lower-is-better. They kept the orientation of the PSM scores, so after
+    a higher-is-better score filtering by q-value kept the worst hits. -psmFDR below 1 therefore removed
+    the best PSMs - typically every target, failing with "No proteins left after FDR filtering" - in
+    ProteomicsLFQ, MS1LabeledWorkflow and IsobaricWorkflow with Bayesian protein inference (which turns
+    each PSM's PEP into a posterior probability) and in IsobaricWorkflow on a higher-is-better main
+    score (e.g. a hyperscore). applyBasicPeptideLevel also sorts the hits of each identification and
+    keeps only the best one and the hits tied with it whose peptide has a peptide FDR/q-value. The other
+    hits had no FDR/q-value: they kept their search score under the new score type and were kept or
+    dropped at random by a filter on it.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -655,6 +775,12 @@ TOPP tools:
       OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
+  Removed tools:
+    - BREAKING: ConsensusID removed. Its default mode grouped identifications of different spectra by
+      retention time and m/z, -per_spectrum by spectrum; no OpenMS workflow used either. OpenMS has no
+      tool to combine the results of several search engines: pass the results of one engine to the
+      quantification workflows. Conflicting identifications of one feature are resolved with
+      IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
   Changes:
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
@@ -763,13 +889,23 @@ TOPP tools:
         intense features instead of the first ones (see OpenMS Library).
     ProSE:
       - PARAM: Percolator rescoring runs in-process (OpenMS' built-in Percolator, the default
-        backend of PercolatorAdapter) and is switched on with the new flag -rescore. The parameter
+        backend of PercolatorAdapter) and is ON by default, with the new parameter -Search:rescore
+        (default true; behaviour change: Percolator q-values are the scores of the output, and the
+        FDR filters use them). -Search:rescore false restores the previous output (ProSE's own
+        scores). The flag -rescore of earlier 3.7.0 development versions is removed in favour of the
+        parameter; an INI file written by such a version carries the flag's value over to
+        Search:rescore when it is updated, so with the flag off it keeps rescoring off (INI files of
+        earlier releases get the default). The parameter
         -percolator_executable is removed: ProSE no longer starts PercolatorAdapter (and with it the
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
-        HyperScores with a warning.
+        HyperScores with a warning. ProSE also warns for a file whose learned Percolator model the
+        sanity check replaced by the best single feature (e.g. a blank run). With -out_merged, input files of which only some were rescored
+        are not merged: ProSE writes the per-file outputs and exits with an error
+        (INCOMPATIBLE_INPUT_DATA). A merged idXML that cannot be written now also fails the run
+        (CANNOT_WRITE_OUTPUT_FILE); before, ProSE logged the error and exited successfully.
       - PARAM: Search:peptdeep:enable (default false) adds five features per PSM from
-        AlphaPeptDeep predictions of its peptide, used by -rescore and written to -out_pin:
+        AlphaPeptDeep predictions of its peptide, used by Search:rescore and written to -out_pin:
         ms2_cosine, ms2_spectral_angle, ms2_pearson and ms2_frac_pred_found compare predicted
         with annotated fragment intensities (Search:annotate:PSM must keep fragment annotations,
         as its default ALL does), rt_abs_error compares the observed with the predicted retention
@@ -785,8 +921,9 @@ TOPP tools:
         PSMs that passed, with q-values as score; with one input and Search:FDR:protein, it had no
         decoys, so Percolator could not use it. The search now also hands back the PSMs before
         FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
-        protein FDR; with -rescore it still holds the rescored PSMs before the FDR filters. The other
-        outputs do not change.
+        protein FDR. It is the input of a later rescoring, so with Search:rescore (the default) it also
+        holds the PSMs before the rescoring: ProSE's own scores, all reported hits and the decoys. The
+        other outputs do not change.
     FileConverter:
       - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
         default, which cost a second read of the whole file (5-15% of the conversion time); the new
@@ -839,6 +976,10 @@ TOPP tools:
         hits lacking it (all of them, ending in "No protein is supported by a strictly unique
         peptide"). Such a combine is now refused and names the setting; detecting and combining
         runs have to use the same -protein_quantification (#10481, #10486).
+      - FIX: ignored its Seeding:charge and Seeding:traceRTTolerance settings: since the seeding
+        code moved to DDAWorkflowCommons the call passed a fixed charge range of 2:5 and the helper
+        used a fixed RT band of 3 s. Both settings take effect again; the defaults are unchanged,
+        so results with default parameters stay the same (#10300).
     FileInfo:
       - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
         same std::hash value; each hash now keeps all of its entries (#10499).
@@ -846,6 +987,9 @@ TOPP tools:
         consensus features, half of the values zero; they now cover each feature once (#10498).
       - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
         spectra are now skipped as unidentified (#10497).
+      - FIX: the consensusXML peptide-per-map counts indexed a vector of map positions with map ids,
+        which wrote out of bounds (or crashed) and miscounted when map ids are not 0..n-1; the
+        counts are now kept per map id (#10496).
     QualityControl:
       - FIX: The identifications of a feature are sorted best first according to their score
         direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification

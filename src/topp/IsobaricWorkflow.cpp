@@ -102,9 +102,8 @@ using namespace std;
   peptidoform or charge (a chimeric spectrum, or search engines that disagree), the spectrum is
   credited to the best-scoring identification that survives filtering, judged by the scores in the
   input; the others are moved to the unassigned peptide identifications. Both cases are reported. One
-  identification per spectrum is still expected: results from several search engines should be
-  combined - with @ref TOPP_ConsensusID (@p -algorithm best @p -keep_old_scores, which preserves
-  each engine's score) - rather than simply concatenated.
+  identification per spectrum is still expected: pass the results of one search engine rather than
+  concatenating those of several, whose scores are not comparable.
 
   At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
@@ -221,8 +220,8 @@ protected:
       "One identification per spectrum is expected. Of several identifications of one spectrum\n"
       "agreeing on peptidoform and charge, only the best-scoring one is kept. Each spectrum is\n"
       "quantified once: if its identifications differ in peptidoform or charge, it is credited to\n"
-      "the best-scoring one that survives filtering, and the others become unassigned. Combine\n"
-      "results from several search engines with ConsensusID rather than concatenating them.");
+      "the best-scoring one that survives filtering, and the others become unassigned. Pass the\n"
+      "results of one search engine rather than concatenating those of several.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
@@ -790,8 +789,8 @@ protected:
                              " identification, e.g. " << report.example << ".\n"
                              "Kept the best-scoring one of each group; the others would have"
                              " counted the same match more than once. To control"
-                             " this upstream, combine search engine results with ConsensusID"
-                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                             " this upstream, pass the results of one search engine rather than"
+                             " concatenating those of several."
                           << endl;
         }
         if (report.inconsistent_score_direction > 0)

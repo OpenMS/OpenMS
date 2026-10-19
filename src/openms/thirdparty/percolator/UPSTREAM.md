@@ -67,6 +67,12 @@ hand-editing sources and committing them, to keep sync self-healing.
   scores in [0, 1] past 1 switched the spline from the logit to the log
   transform. Seen with ProSE `-rescore`. Still present in upstream master as of
   2026-10-12.
+- `patches/04-cv-num-threads.patch` — gives the three OpenMP loops of
+  `CrossValidation` a `num_threads` clause, so they run on at most `numThreads_`
+  threads (OpenMS: `Percolator`'s `num_threads`) and never on more than OpenMP
+  allows (a TOPP tool's `-threads`). Upstream sets the count with
+  `omp_set_num_threads()` in its caller, which this tree does not include, so
+  `numThreads_` was stored but unused.
 
 ### Regenerating the patch
 

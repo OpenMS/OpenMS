@@ -42,6 +42,26 @@ namespace OpenMS
 
 namespace P = OpenMS::Internal::Percolator;
 
+namespace
+{
+  // Percolator's sanity check, recording whether it replaced the learned
+  // weights by the default direction (the best single feature): validateDirection()
+  // does that whenever it returns false, i.e. no target at q < test_fdr, fewer
+  // targets than the default direction, or a wrong sign of the initial direction.
+  class RecordingSanityCheck : public P::SanityCheck
+  {
+  public:
+    bool validateDirection(std::vector<std::vector<double>>& w) override
+    {
+      const bool valid = P::SanityCheck::validateDirection(w);
+      used_default_direction = used_default_direction || !valid;
+      return valid;
+    }
+
+    bool used_default_direction = false;
+  };
+}
+
 void Percolator::Impl::reset()
 {
   // Second-pass PSMs are NOT owned by any DataSet — delete explicitly.
@@ -164,10 +184,11 @@ Percolator::Percolator()
   defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
 
   defaults_.setValue("num_threads",       3,
-                     "Number of OpenMP threads for cross-validation "
-                     "(one per CV fold; max useful = 3). Matches upstream's default.");
+                     "Maximum number of OpenMP threads for cross-validation; never more than the "
+                     "threads the tool may use (-threads). With the default settings, cross-validation "
+                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream.");
   defaults_.setMinInt("num_threads",      1);
-  defaults_.setMaxInt("num_threads",      3);
+  defaults_.setMaxInt("num_threads",      128);
 
   defaults_.setValue("use_pi0", "true",
                      "Enable pi0 correction when computing q-values and PEPs (default). "
@@ -217,6 +238,11 @@ const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
 double Percolator::getPi0() const
 {
   return impl_->last_pi0;
+}
+
+bool Percolator::usedDefaultDirection() const
+{
+  return impl_->last_used_default_direction;
 }
 
 struct RowKeys
@@ -421,6 +447,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // value left over from a prior successful rescore()/score() call).
   // Also covers throws from validateRescoreInput_ below.
   impl_->last_pi0 = -1.0;
+  impl_->last_used_default_direction = false;
 
   validateRescoreInput_(input);
 
@@ -483,15 +510,10 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // SanityCheck: reset static state so successive calls don't leak configuration.
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  // initialize() returns a heap-allocated SanityCheck the caller owns.
-  // Wrap it in unique_ptr so it's released on every exit path (including
-  // throws) without manual delete.
-  auto sanity = std::unique_ptr<P::SanityCheck>(P::SanityCheck::initialize(""));
-  if (!sanity)
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "Could not initialize Percolator SanityCheck", "");
-  }
+  // The plain SanityCheck that SanityCheck::initialize() returns, recording
+  // whether it replaced the learned weights (see usedDefaultDirection()).
+  // unique_ptr releases it on every exit path (including throws).
+  auto sanity = std::make_unique<RecordingSanityCheck>();
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -534,6 +556,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
     cv.postIterationProcessing(train_scores, sanity.get());
+    impl_->last_used_default_direction = sanity->used_default_direction;
     // getAvgWeights returns un-normalized (raw feature space) averaged weights:
     // size = n_features + 1, bias last. This is what score() will use.
     cv.getAvgWeights(avg_weights, normalizer);
@@ -708,6 +731,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // last_pi0 in a "no usable value from this call" state, instead of stale
   // from a prior successful call.
   impl_->last_pi0 = -1.0;
+  impl_->last_used_default_direction = false;
 
   validateRescoreInput_(input);
 
@@ -773,15 +797,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  // initialize() returns a heap-allocated SanityCheck the caller owns.
-  // Wrap it in unique_ptr so it's released on every exit path (including
-  // throws) without manual delete.
-  auto sanity = std::unique_ptr<P::SanityCheck>(P::SanityCheck::initialize(""));
-  if (!sanity)
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "Could not initialize Percolator SanityCheck", "");
-  }
+  // The plain SanityCheck that SanityCheck::initialize() returns, recording
+  // whether it replaced the learned weights (see usedDefaultDirection()).
+  // unique_ptr releases it on every exit path (including throws).
+  auto sanity = std::make_unique<RecordingSanityCheck>();
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -824,6 +843,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
     cv.postIterationProcessing(all_scores, sanity.get());
+    impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
   }
   catch (const std::exception& e)
