@@ -311,6 +311,20 @@ START_SECTION(static std::vector<StratumCount> applyKnockoffQValues(PeptideIdent
     TEST_EQUAL(std::isnan(counts[0].falseShare()), true)
   }
 
+  // a lower-ranked hit of a tested variant is not estimated, so it is not accepted (unless use_all_hits)
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makeId(50.0, 0.001, {"P1"}));
+    PeptideHit second = makeId(40.0, 0.001, {"P1_VAR_D5N"}).getHits()[0];
+    ids[0].insertHit(second);
+    PeptideIdentificationList all_hits = ids;
+    VariantKnockoffs::applyKnockoffQValues(ids, index(), rawScore, 0.01);
+    TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.001)
+    TEST_REAL_SIMILAR(ids[0].getHits()[1].getScore(), 1.0)
+    VariantKnockoffs::applyKnockoffQValues(all_hits, index(), rawScore, 0.01, 50, true);
+    TEST_EQUAL(all_hits[0].getHits()[1].metaValueExists(VariantKnockoffs::KNOCKOFF_Q_VALUE), true)
+  }
+
   // decoys and PSMs of a canonical protein are left alone
   {
     PeptideIdentificationList ids;

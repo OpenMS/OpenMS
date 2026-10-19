@@ -412,8 +412,9 @@ namespace OpenMS
         {
           rows.push_back({&hit, rank_of(hit), hit.getScore(), false, 0.0, tested, substitutionClass(delta), tier});
         }
-        else if (!tested)
+        else
         {
+          // a lower-ranked hit is not estimated: no knockoff null covers it, so it is not accepted
           hit.setScore(1.0);
         }
       }

@@ -121,8 +121,10 @@ protected:
     while (std::getline(in, line))
     {
       ++line_no;
-      line = StringUtils::trimmed(line);
-      if (line.empty() || line[0] == '#') continue;
+      // only the line end: trimming tabs would drop an empty first column and shift the others
+      while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) line.pop_back();
+      const std::string trimmed_line = StringUtils::trimmed(line);
+      if (trimmed_line.empty() || trimmed_line[0] == '#') continue;
       const auto fields = ListUtils::create<std::string>(line, '\t');
       auto field = [&](const std::string& name) -> std::string
       {
