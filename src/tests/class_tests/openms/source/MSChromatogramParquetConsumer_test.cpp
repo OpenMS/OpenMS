@@ -135,6 +135,83 @@ START_SECTION(MSChromatogramParquetConsumer_trailing_empty_chromatograms_are_wri
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_encoded_rows_match_consumeChromatogram)
+{
+  TargetedExperiment targeted_exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+
+  MSExperiment exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_output.chrom.mzML"), exp);
+  // an empty chromatogram is written as a row as well
+  MSChromatogram empty_chrom;
+  empty_chrom.setNativeID(exp.getChromatograms().front().getNativeID());
+  exp.addChromatogram(empty_chrom);
+  const Size n_chromatograms = exp.getChromatograms().size();
+  TEST_EQUAL(n_chromatograms > 2, true)
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  const std::string out_direct = tmp + ".direct.xic";
+  const std::string out_encoded = tmp + ".encoded.xic";
+  {
+    MSExperiment copy = exp;
+    MSChromatogramParquetConsumer consumer(out_direct, 1, "test_source", light_exp);
+    for (auto& chrom : copy.getChromatograms())
+    {
+      consumer.consumeChromatogram(chrom);
+    }
+  }
+  {
+    MSExperiment copy = exp;
+    MSChromatogramParquetConsumer consumer(out_encoded, 1, "test_source", light_exp);
+    // encode in two batches, as two threads would, and append the batches afterwards
+    const Size half = n_chromatograms / 2;
+    MSChromatogramParquetConsumer::EncodedChromatograms first, second;
+    for (Size i = 0; i < n_chromatograms; ++i)
+    {
+      consumer.encodeChromatogram(copy.getChromatograms()[i], i < half ? first : second);
+    }
+    TEST_EQUAL(first.size(), half)
+    TEST_EQUAL(second.size(), n_chromatograms - half)
+    // encoding releases the data like consumeChromatogram() does
+    TEST_EQUAL(copy.getChromatograms().front().empty(), true)
+    consumer.consumeEncodedChromatograms(first);
+    consumer.consumeEncodedChromatograms(second);
+    // the rows were moved into the consumer
+    TEST_EQUAL(first.size(), 0)
+  }
+
+  std::vector<XICChromatogram> direct, encoded;
+  XICParquetFile(out_direct).load(direct);
+  XICParquetFile(out_encoded).load(encoded);
+  TEST_EQUAL(direct.size(), n_chromatograms)
+  TEST_EQUAL(encoded.size(), direct.size())
+  for (Size i = 0; i < std::min(direct.size(), encoded.size()); ++i)
+  {
+    TEST_EQUAL(encoded[i].ms_level, direct[i].ms_level)
+    TEST_EQUAL(encoded[i].has_precursor_id, direct[i].has_precursor_id)
+    TEST_EQUAL(encoded[i].precursor_id, direct[i].precursor_id)
+    TEST_EQUAL(encoded[i].has_transition_id, direct[i].has_transition_id)
+    TEST_EQUAL(encoded[i].transition_id, direct[i].transition_id)
+    TEST_EQUAL(encoded[i].modified_sequence, direct[i].modified_sequence)
+    TEST_EQUAL(encoded[i].precursor_charge, direct[i].precursor_charge)
+    TEST_EQUAL(encoded[i].product_charge, direct[i].product_charge)
+    TEST_EQUAL(encoded[i].detecting_transition, direct[i].detecting_transition)
+    TEST_EQUAL(encoded[i].precursor_decoy, direct[i].precursor_decoy)
+    TEST_EQUAL(encoded[i].product_decoy, direct[i].product_decoy)
+    TEST_EQUAL(encoded[i].transition_ordinal, direct[i].transition_ordinal)
+    TEST_EQUAL(encoded[i].transition_type, direct[i].transition_type)
+    TEST_EQUAL(encoded[i].annotation, direct[i].annotation)
+    TEST_EQUAL(encoded[i].rt == direct[i].rt, true)
+    TEST_EQUAL(encoded[i].intensity == direct[i].intensity, true)
+  }
+  TEST_EQUAL(encoded.back().rt.empty(), true)
+}
+END_SECTION
+
 START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
 {
   TargetedExperiment targeted_exp;
@@ -169,6 +246,22 @@ START_SECTION(MSChromatogramParquetConsumer_finalize_surfaces_errors)
   // Unwritable path (non-existent directory) -> finalize()/write_() must throw, NOT swallow.
   std::string out = SystemSettings::getTempDirectory() + "/openms_missing_dir/xic_finalize.xic";
   MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+  TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
+}
+END_SECTION
+
+START_SECTION(MSChromatogramParquetConsumer_finalize_keeps_writer_error)
+{
+  TargetedExperiment targeted_exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+
+  // the writer thread fails to open the file: every finalize() reports it, none closes the output as complete
+  std::string out = SystemSettings::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
+  MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+  TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
   TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
 }
 END_SECTION
