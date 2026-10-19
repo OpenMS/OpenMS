@@ -1,0 +1,30 @@
+## astral_A2
+FDR within each class (targets/decoys, method, pi0): canonical 31431/27787 pooled-null pi0 0.88, isoform 2464/2341 pooled-null pi0 1.00
+global q<=0.01 canonical: targets 1999 decoys 12 decoy/target 0.60%
+global q<=0.01 isoform: targets 10 decoys 0 decoy/target 0.00%
+andes final (class FDR): {'canonical': 2155} total 2155
+## astral_B1
+FDR within each class (targets/decoys, method, pi0): canonical 31705/27935 pooled-null pi0 0.86, isoform 2402/2379 pooled-null pi0 1.00
+global q<=0.01 canonical: targets 2569 decoys 19 decoy/target 0.74%
+global q<=0.01 isoform: targets 14 decoys 0 decoy/target 0.00%
+andes final (class FDR): {'canonical': 2803} total 2803
+## astral_B3
+FDR within each class (targets/decoys, method, pi0): canonical 31552/27860 pooled-null pi0 0.86, isoform 2488/2390 pooled-null pi0 1.00
+global q<=0.01 canonical: targets 2418 decoys 19 decoy/target 0.79%
+global q<=0.01 isoform: targets 18 decoys 0 decoy/target 0.00%
+andes final (class FDR): {'canonical': 2609} total 2609
+## eclipse_tmtpro_10855
+FDR within each class (targets/decoys, method, pi0): canonical 32783/28959 pooled-null pi0 0.88, isoform 2447/2398 pooled-null pi0 1.00
+global q<=0.01 canonical: targets 2636 decoys 11 decoy/target 0.42%
+global q<=0.01 isoform: targets 14 decoys 0 decoy/target 0.00%
+andes final (class FDR): {'canonical': 2798, 'isoform': 13} total 2811
+## eclipse_tmtpro_10858
+FDR within each class (targets/decoys, method, pi0): canonical 30658/27260 pooled-null pi0 0.91, isoform 2299/2230 pooled-null pi0 1.00
+global q<=0.01 canonical: targets 2431 decoys 15 decoy/target 0.62%
+global q<=0.01 isoform: targets 9 decoys 0 decoy/target 0.00%
+andes final (class FDR): {'canonical': 2591} total 2591
+## eclipse_tmtpro_10863
+FDR within each class (targets/decoys, method, pi0): canonical 31623/28182 pooled-null pi0 0.88, isoform 2282/2348 pooled-null pi0 1.00
+global q<=0.01 canonical: targets 2477 decoys 13 decoy/target 0.52%
+global q<=0.01 isoform: targets 15 decoys 0 decoy/target 0.00%
+andes final (class FDR): {'canonical': 2634, 'isoform': 11} total 2645

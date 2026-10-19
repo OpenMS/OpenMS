@@ -1,0 +1,198 @@
+setting	class_def	group	class	global_N	global_NE	global_FDP_pct	global_decoyFDR_pct	class_N	class_NE	class_FDP_pct	class_decoyFDR_pct	delta_N_pct	files_up_flat_down
+hardmods	mod	ALL files	ALL	33150.3	144.3	0.87	0.55	32368.7	80.7	0.50	0.56	-2.36	0/2/10
+hardmods	mod	ALL files	Deamidated	4511.3	47.3	2.10	1.69	4026.7	14.7	0.73	1.90	-10.74	
+hardmods	mod	ALL files	Deamidated+Oxidation	218.7	0.7	0.61	2.90	176.3	0.0	0.00	3.59	-19.36	
+hardmods	mod	ALL files	Deamidated+Phospho	43.7	12.3	56.49	44.27	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	ALL files	Oxidation	1824.3	3.0	0.33	0.26	1793.0	1.7	0.19	0.26	-1.72	
+hardmods	mod	ALL files	Oxidation+Phospho	7.0	0.0	0.00	33.33	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	ALL files	Phospho	209.0	16.3	15.63	7.97	47.3	0.0	0.00	35.21	-77.35	
+hardmods	mod	ALL files	unmodified	26336.3	64.7	0.49	0.21	26325.3	64.3	0.49	0.21	-0.04	
+hardmods	mod	Astral HCD	ALL	6442.3	25.3	0.79	0.48	6256.3	13.0	0.42	0.49	-2.89	0/1/2
+hardmods	mod	Astral HCD	Deamidated	648.7	8.3	2.57	1.90	526.7	2.3	0.89	2.34	-18.81	
+hardmods	mod	Astral HCD	Deamidated+Oxidation	17.0	0.0	0.00	15.69	9.0	0.0	0.00	29.63	-47.06	
+hardmods	mod	Astral HCD	Deamidated+Phospho	8.3	3.7	88.00	36.00	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Astral HCD	Oxidation	119.3	0.0	0.00	0.84	108.3	0.0	0.00	0.92	-9.22	
+hardmods	mod	Astral HCD	Phospho	36.7	2.7	14.55	5.45	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Astral HCD	unmodified	5612.3	10.7	0.38	0.17	5612.3	10.7	0.38	0.17	+0.00	
+hardmods	mod	Exploris 480 TMTpro	ALL	7219.3	31.3	0.87	0.51	7073.7	16.0	0.45	0.52	-2.02	0/0/3
+hardmods	mod	Exploris 480 TMTpro	Deamidated	708.0	11.7	3.30	2.07	623.7	3.0	0.96	2.35	-11.91	
+hardmods	mod	Exploris 480 TMTpro	Deamidated+Oxidation	71.7	0.3	0.93	0.00	67.3	0.0	0.00	0.00	-6.05	
+hardmods	mod	Exploris 480 TMTpro	Deamidated+Phospho	13.3	2.3	35.00	7.50	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Exploris 480 TMTpro	Oxidation	671.3	0.0	0.00	0.15	671.3	0.0	0.00	0.15	+0.00	
+hardmods	mod	Exploris 480 TMTpro	Oxidation+Phospho	2.0	0.0	0.00	0.00	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Exploris 480 TMTpro	Phospho	89.0	4.0	8.99	2.25	47.3	0.0	0.00	4.23	-46.82	
+hardmods	mod	Exploris 480 TMTpro	unmodified	5664.0	13.0	0.46	0.32	5664.0	13.0	0.46	0.32	+0.00	
+hardmods	mod	HF-X HCD	ALL	12058.7	57.0	0.95	0.57	11725.7	27.3	0.47	0.58	-2.76	0/0/3
+hardmods	mod	HF-X HCD	Deamidated	1293.3	21.3	3.30	2.65	1092.3	5.0	0.92	3.14	-15.54	
+hardmods	mod	HF-X HCD	Deamidated+Oxidation	108.0	0.3	0.62	1.85	84.0	0.0	0.00	2.38	-22.22	
+hardmods	mod	HF-X HCD	Deamidated+Phospho	17.3	5.0	57.69	44.23	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	HF-X HCD	Oxidation	979.7	1.7	0.34	0.17	974.7	1.7	0.34	0.17	-0.51	
+hardmods	mod	HF-X HCD	Oxidation+Phospho	4.7	0.0	0.00	14.29	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	HF-X HCD	Phospho	75.3	7.7	20.35	12.83	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	HF-X HCD	unmodified	9580.3	21.0	0.44	0.13	9574.7	20.7	0.43	0.13	-0.06	
+hardmods	mod	Velos CID	ALL	7430.0	30.7	0.83	0.61	7313.0	24.3	0.67	0.62	-1.57	0/1/2
+hardmods	mod	Velos CID	Deamidated	1861.3	6.0	0.64	0.81	1784.0	4.3	0.49	0.84	-4.15	
+hardmods	mod	Velos CID	Deamidated+Oxidation	22.0	0.0	0.00	7.58	16.0	0.0	0.00	10.42	-27.27	
+hardmods	mod	Velos CID	Deamidated+Phospho	4.7	1.3	57.14	164.29	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Velos CID	Oxidation	54.0	1.3	4.94	1.85	38.7	0.0	0.00	2.59	-28.40	
+hardmods	mod	Velos CID	Oxidation+Phospho	0.3	0.0	0.00	500.00	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Velos CID	Phospho	8.0	2.0	50.00	37.50	0.0	0.0	nan	nan	-100.00	
+hardmods	mod	Velos CID	unmodified	5479.7	20.0	0.73	0.29	5474.3	20.0	0.73	0.29	-0.10	
+immuno	bench_len	ALL files	10	89.7	0.0	0.00	0.37	89.7	0.0	0.00	0.37	+0.00	
+immuno	bench_len	ALL files	11	84.0	0.0	0.00	0.00	84.0	0.0	0.00	0.00	+0.00	
+immuno	bench_len	ALL files	12	85.0	0.0	0.00	0.00	85.0	0.0	0.00	0.00	+0.00	
+immuno	bench_len	ALL files	8	45.0	0.3	1.48	0.00	30.3	0.3	2.20	0.00	-32.59	
+immuno	bench_len	ALL files	9	202.7	1.3	1.32	0.00	202.7	1.3	1.32	0.00	+0.00	
+immuno	bench_len	ALL files	ALL	506.3	1.7	0.66	0.07	491.7	1.7	0.68	0.07	-2.90	0/1/0
+immuno	bench_len	timsTOF Pro HLA-I	10	89.7	0.0	0.00	0.37	89.7	0.0	0.00	0.37	+0.00	
+immuno	bench_len	timsTOF Pro HLA-I	11	84.0	0.0	0.00	0.00	84.0	0.0	0.00	0.00	+0.00	
+immuno	bench_len	timsTOF Pro HLA-I	12	85.0	0.0	0.00	0.00	85.0	0.0	0.00	0.00	+0.00	
+immuno	bench_len	timsTOF Pro HLA-I	8	45.0	0.3	1.48	0.00	30.3	0.3	2.20	0.00	-32.59	
+immuno	bench_len	timsTOF Pro HLA-I	9	202.7	1.3	1.32	0.00	202.7	1.3	1.32	0.00	+0.00	
+immuno	bench_len	timsTOF Pro HLA-I	ALL	506.3	1.7	0.66	0.07	491.7	1.7	0.68	0.07	-2.90	0/1/0
+immuno	bench_z	ALL files	1	204.3	1.7	1.63	0.00	204.3	1.7	1.63	0.00	+0.00	
+immuno	bench_z	ALL files	2	265.3	0.0	0.00	0.13	265.3	0.0	0.00	0.13	+0.00	
+immuno	bench_z	ALL files	3	33.3	0.0	0.00	0.00	33.3	0.0	0.00	0.00	+0.00	
+immuno	bench_z	ALL files	4+	3.3	0.0	0.00	0.00	3.3	0.0	0.00	0.00	+0.00	
+immuno	bench_z	ALL files	ALL	506.3	1.7	0.66	0.07	506.3	1.7	0.66	0.07	+0.00	0/1/0
+immuno	bench_z	timsTOF Pro HLA-I	1	204.3	1.7	1.63	0.00	204.3	1.7	1.63	0.00	+0.00	
+immuno	bench_z	timsTOF Pro HLA-I	2	265.3	0.0	0.00	0.13	265.3	0.0	0.00	0.13	+0.00	
+immuno	bench_z	timsTOF Pro HLA-I	3	33.3	0.0	0.00	0.00	33.3	0.0	0.00	0.00	+0.00	
+immuno	bench_z	timsTOF Pro HLA-I	4+	3.3	0.0	0.00	0.00	3.3	0.0	0.00	0.00	+0.00	
+immuno	bench_z	timsTOF Pro HLA-I	ALL	506.3	1.7	0.66	0.07	506.3	1.7	0.66	0.07	+0.00	0/1/0
+immuno	mod	ALL files	ALL	506.3	1.7	0.66	0.07	506.3	1.7	0.66	0.07	+0.00	0/1/0
+immuno	mod	ALL files	Oxidation	34.0	0.0	0.00	0.00	34.0	0.0	0.00	0.00	+0.00	
+immuno	mod	ALL files	unmodified	472.3	1.7	0.71	0.07	472.3	1.7	0.71	0.07	+0.00	
+immuno	mod	timsTOF Pro HLA-I	ALL	506.3	1.7	0.66	0.07	506.3	1.7	0.66	0.07	+0.00	0/1/0
+immuno	mod	timsTOF Pro HLA-I	Oxidation	34.0	0.0	0.00	0.00	34.0	0.0	0.00	0.00	+0.00	
+immuno	mod	timsTOF Pro HLA-I	unmodified	472.3	1.7	0.71	0.07	472.3	1.7	0.71	0.07	+0.00	
+iso	bench_iso	ALL files	ALL	20286.7	85.3	0.84	0.37	20205.3	81.3	0.81	0.37	-0.40	0/5/1
+iso	bench_iso	ALL files	canonical	20233.3	84.0	0.83	0.36	20173.0	81.0	0.80	0.36	-0.30	
+iso	bench_iso	ALL files	isoform	53.3	1.3	5.00	3.75	32.3	0.3	2.06	6.19	-39.37	
+iso	bench_iso	Astral HCD	ALL	7713.7	37.3	0.97	0.45	7643.3	33.7	0.88	0.45	-0.91	0/2/1
+iso	bench_iso	Astral HCD	canonical	7688.0	36.3	0.95	0.42	7627.7	33.3	0.87	0.42	-0.78	
+iso	bench_iso	Astral HCD	isoform	25.7	1.0	7.79	7.79	15.7	0.3	4.26	12.77	-38.96	
+iso	bench_iso	HF-X HCD	ALL	12573.0	48.0	0.76	0.32	12562.0	47.7	0.76	0.32	-0.09	0/3/0
+iso	bench_iso	HF-X HCD	canonical	12545.3	47.7	0.76	0.32	12545.3	47.7	0.76	0.32	+0.00	
+iso	bench_iso	HF-X HCD	isoform	27.7	0.3	2.41	0.00	16.7	0.0	0.00	0.00	-39.76	
+iso	mod	ALL files	ALL	20286.7	85.3	0.84	0.37	20192.7	81.3	0.81	0.37	-0.46	0/5/1
+iso	mod	ALL files	Oxidation	1320.3	5.7	0.86	0.53	1263.7	4.3	0.69	0.55	-4.29	
+iso	mod	ALL files	unmodified	18966.3	79.7	0.84	0.36	18929.0	77.0	0.81	0.36	-0.20	
+iso	mod	Astral HCD	ALL	7713.7	37.3	0.97	0.45	7647.7	34.7	0.91	0.45	-0.86	0/3/0
+iso	mod	Astral HCD	Oxidation	166.3	0.0	0.00	2.00	137.7	0.0	0.00	2.42	-17.23	
+iso	mod	Astral HCD	unmodified	7547.3	37.3	0.99	0.41	7510.0	34.7	0.92	0.41	-0.49	
+iso	mod	HF-X HCD	ALL	12573.0	48.0	0.76	0.32	12545.0	46.7	0.74	0.32	-0.22	0/2/1
+iso	mod	HF-X HCD	Oxidation	1154.0	5.7	0.98	0.32	1126.0	4.3	0.77	0.33	-2.43	
+iso	mod	HF-X HCD	unmodified	11419.0	42.3	0.74	0.32	11419.0	42.3	0.74	0.32	+0.00	
+semi	bench_term	ALL files	ALL	28730.7	108.0	0.75	0.32	27980.0	101.3	0.72	0.33	-2.61	0/3/6
+semi	bench_term	ALL files	semi	1892.7	7.0	0.74	0.48	1142.0	0.3	0.06	0.79	-39.66	
+semi	bench_term	ALL files	specific	26838.0	101.0	0.75	0.31	26838.0	101.0	0.75	0.31	+0.00	
+semi	bench_term	Astral HCD	ALL	7955.0	28.3	0.71	0.29	7690.3	27.3	0.71	0.30	-3.33	0/0/3
+semi	bench_term	Astral HCD	semi	658.3	1.3	0.41	0.20	393.7	0.3	0.17	0.34	-40.20	
+semi	bench_term	Astral HCD	specific	7296.7	27.0	0.74	0.30	7296.7	27.0	0.74	0.30	+0.00	
+semi	bench_term	HF-X HCD	ALL	13750.7	55.3	0.80	0.33	13370.3	52.0	0.78	0.34	-2.77	0/0/3
+semi	bench_term	HF-X HCD	semi	1128.7	3.3	0.59	0.32	748.3	0.0	0.00	0.49	-33.70	
+semi	bench_term	HF-X HCD	specific	12622.0	52.0	0.82	0.34	12622.0	52.0	0.82	0.34	+0.00	
+semi	bench_term	Velos CID	ALL	7025.0	24.3	0.69	0.35	6919.3	22.0	0.64	0.35	-1.50	0/3/0
+semi	bench_term	Velos CID	semi	105.7	2.3	4.42	3.79	0.0	0.0	nan	nan	-100.00	
+semi	bench_term	Velos CID	specific	6919.3	22.0	0.64	0.29	6919.3	22.0	0.64	0.29	+0.00	
+semi	mod	ALL files	ALL	28730.7	108.0	0.75	0.32	28616.3	104.3	0.73	0.33	-0.40	0/9/0
+semi	mod	ALL files	Oxidation	1483.3	7.3	0.99	0.45	1369.0	3.7	0.54	0.49	-7.71	
+semi	mod	ALL files	unmodified	27247.3	100.7	0.74	0.32	27247.3	100.7	0.74	0.32	+0.00	
+semi	mod	Astral HCD	ALL	7955.0	28.3	0.71	0.29	7924.7	27.0	0.68	0.29	-0.38	0/3/0
+semi	mod	Astral HCD	Oxidation	183.3	2.3	2.55	0.55	153.0	1.0	1.31	0.65	-16.55	
+semi	mod	Astral HCD	unmodified	7771.7	26.0	0.67	0.28	7771.7	26.0	0.67	0.28	+0.00	
+semi	mod	HF-X HCD	ALL	13750.7	55.3	0.80	0.33	13723.0	54.0	0.79	0.34	-0.20	0/3/0
+semi	mod	HF-X HCD	Oxidation	1225.7	4.0	0.65	0.22	1198.0	2.7	0.45	0.22	-2.26	
+semi	mod	HF-X HCD	unmodified	12525.0	51.3	0.82	0.35	12525.0	51.3	0.82	0.35	+0.00	
+semi	mod	Velos CID	ALL	7025.0	24.3	0.69	0.35	6968.7	23.3	0.67	0.35	-0.80	0/3/0
+semi	mod	Velos CID	Oxidation	74.3	1.0	2.69	4.04	18.0	0.0	0.00	16.67	-75.78	
+semi	mod	Velos CID	unmodified	6950.7	23.3	0.67	0.31	6950.7	23.3	0.67	0.31	+0.00	
+std	bench_mc	ALL files	0	52051.3	137.0	0.53	0.31	52051.3	137.0	0.53	0.31	+0.00	
+std	bench_mc	ALL files	1	7034.7	36.3	1.03	0.39	6585.7	24.7	0.75	0.42	-6.38	
+std	bench_mc	ALL files	2	632.7	10.0	3.16	0.47	419.0	2.7	1.27	0.72	-33.77	
+std	bench_mc	ALL files	ALL	59718.7	183.3	0.61	0.32	59056.0	164.3	0.56	0.33	-1.11	0/13/7
+std	bench_mc	Astral HCD	0	6999.0	24.3	0.70	0.42	6999.0	24.3	0.70	0.42	+0.00	
+std	bench_mc	Astral HCD	1	738.7	5.3	1.44	0.59	624.3	2.0	0.64	0.69	-15.48	
+std	bench_mc	Astral HCD	2	43.0	2.3	10.85	0.78	17.3	0.0	0.00	1.92	-59.69	
+std	bench_mc	Astral HCD	ALL	7780.7	32.0	0.82	0.44	7640.7	26.3	0.69	0.45	-1.80	0/2/1
+std	bench_mc	Exploris 480 TMTpro	0	6416.7	13.7	0.43	0.31	6416.7	13.7	0.43	0.31	+0.00	
+std	bench_mc	Exploris 480 TMTpro	1	834.3	2.3	0.56	0.48	788.0	1.3	0.34	0.51	-5.55	
+std	bench_mc	Exploris 480 TMTpro	2	55.7	0.0	0.00	0.00	35.3	0.0	0.00	0.00	-36.53	
+std	bench_mc	Exploris 480 TMTpro	ALL	7306.7	16.0	0.44	0.32	7240.0	15.0	0.41	0.33	-0.91	0/1/2
+std	bench_mc	HF-X HCD	0	11202.3	42.7	0.76	0.40	11202.3	42.7	0.76	0.40	+0.00	
+std	bench_mc	HF-X HCD	1	1354.3	6.0	0.89	0.12	1215.7	2.3	0.38	0.14	-10.24	
+std	bench_mc	HF-X HCD	2	109.7	2.7	4.86	0.61	84.0	0.0	0.00	0.79	-23.40	
+std	bench_mc	HF-X HCD	ALL	12666.3	51.3	0.81	0.37	12502.0	45.0	0.72	0.38	-1.30	0/1/2
+std	bench_mc	Lumos CID TMT	0	5783.7	9.7	0.33	0.20	5783.7	9.7	0.33	0.20	+0.00	
+std	bench_mc	Lumos CID TMT	1	554.0	4.3	1.56	0.48	532.0	4.0	1.50	0.50	-3.97	
+std	bench_mc	Lumos CID TMT	2	16.7	0.0	0.00	4.00	0.0	0.0	nan	nan	-100.00	
+std	bench_mc	Lumos CID TMT	ALL	6354.3	14.0	0.44	0.23	6315.7	13.7	0.43	0.23	-0.61	0/3/0
+std	bench_mc	Lumos HCD LFQ	0	14437.0	31.7	0.44	0.23	14437.0	31.7	0.44	0.23	+0.00	
+std	bench_mc	Lumos HCD LFQ	1	1549.0	3.7	0.47	0.58	1501.0	1.3	0.18	0.60	-3.10	
+std	bench_mc	Lumos HCD LFQ	2	100.7	0.3	0.66	0.00	87.0	0.3	0.77	0.00	-13.58	
+std	bench_mc	Lumos HCD LFQ	ALL	16086.7	35.7	0.44	0.27	16025.0	33.3	0.42	0.27	-0.38	0/3/0
+std	bench_mc	Velos CID	0	5843.0	11.3	0.39	0.31	5843.0	11.3	0.39	0.31	+0.00	
+std	bench_mc	Velos CID	1	1452.3	13.3	1.84	0.18	1392.3	12.7	1.82	0.19	-4.13	
+std	bench_mc	Velos CID	2	228.3	3.3	2.92	0.44	169.0	1.7	1.97	0.59	-25.99	
+std	bench_mc	Velos CID	ALL	7523.7	28.0	0.74	0.29	7404.3	25.7	0.69	0.29	-1.59	0/1/2
+std	bench_mc	timsTOF HT	0	1369.7	3.7	0.54	0.37	1369.7	3.7	0.54	0.37	+0.00	
+std	bench_mc	timsTOF HT	1	552.0	1.3	0.48	0.54	532.3	1.0	0.38	0.56	-3.56	
+std	bench_mc	timsTOF HT	2	78.7	1.3	3.39	0.42	26.3	0.7	5.06	1.27	-66.53	
+std	bench_mc	timsTOF HT	ALL	2000.3	6.3	0.63	0.42	1928.3	5.3	0.55	0.43	-3.60	0/2/0
+std	bench_z	ALL files	2	36810.7	108.0	0.59	0.30	36699.3	104.0	0.57	0.30	-0.30	
+std	bench_z	ALL files	3	20252.3	66.0	0.65	0.31	20240.0	65.7	0.65	0.31	-0.06	
+std	bench_z	ALL files	4+	2655.7	9.3	0.70	0.68	2580.0	6.3	0.49	0.70	-2.85	
+std	bench_z	ALL files	ALL	59718.7	183.3	0.61	0.32	59519.3	176.0	0.59	0.32	-0.33	0/19/1
+std	bench_z	Astral HCD	2	5299.0	17.3	0.65	0.43	5209.0	15.0	0.58	0.44	-1.70	
+std	bench_z	Astral HCD	3	2311.3	13.7	1.18	0.46	2304.3	13.3	1.16	0.46	-0.30	
+std	bench_z	Astral HCD	4+	170.3	1.0	1.17	0.39	168.7	0.7	0.79	0.40	-0.98	
+std	bench_z	Astral HCD	ALL	7780.7	32.0	0.82	0.44	7682.0	29.0	0.76	0.45	-1.27	0/2/1
+std	bench_z	Exploris 480 TMTpro	2	2615.0	7.3	0.56	0.29	2605.0	7.0	0.54	0.29	-0.38	
+std	bench_z	Exploris 480 TMTpro	3	3900.0	8.0	0.41	0.26	3900.0	8.0	0.41	0.26	+0.00	
+std	bench_z	Exploris 480 TMTpro	4+	791.7	0.7	0.17	0.72	781.3	0.3	0.09	0.73	-1.31	
+std	bench_z	Exploris 480 TMTpro	ALL	7306.7	16.0	0.44	0.32	7286.3	15.3	0.42	0.32	-0.28	0/3/0
+std	bench_z	HF-X HCD	2	7917.3	35.7	0.90	0.38	7906.0	34.3	0.87	0.38	-0.14	
+std	bench_z	HF-X HCD	3	4168.3	15.7	0.75	0.30	4167.7	15.7	0.75	0.30	-0.02	
+std	bench_z	HF-X HCD	4+	580.7	0.0	0.00	0.75	571.7	0.0	0.00	0.76	-1.55	
+std	bench_z	HF-X HCD	ALL	12666.3	51.3	0.81	0.37	12645.3	50.0	0.79	0.37	-0.17	0/3/0
+std	bench_z	Lumos CID TMT	2	3804.7	5.0	0.26	0.13	3804.7	5.0	0.26	0.13	+0.00	
+std	bench_z	Lumos CID TMT	3	2312.0	7.7	0.66	0.25	2312.0	7.7	0.66	0.25	+0.00	
+std	bench_z	Lumos CID TMT	4+	237.7	1.3	1.12	1.68	224.7	1.0	0.89	1.78	-5.47	
+std	bench_z	Lumos CID TMT	ALL	6354.3	14.0	0.44	0.23	6341.3	13.7	0.43	0.23	-0.20	0/3/0
+std	bench_z	Lumos HCD LFQ	2	11107.0	28.7	0.52	0.31	11107.0	28.7	0.52	0.31	+0.00	
+std	bench_z	Lumos HCD LFQ	3	4424.7	5.7	0.26	0.17	4424.7	5.7	0.26	0.17	+0.00	
+std	bench_z	Lumos HCD LFQ	4+	555.0	1.3	0.48	0.18	552.7	1.3	0.48	0.18	-0.42	
+std	bench_z	Lumos HCD LFQ	ALL	16086.7	35.7	0.44	0.27	16084.3	35.7	0.44	0.27	-0.01	0/3/0
+std	bench_z	Velos CID	2	4789.0	10.3	0.43	0.15	4789.0	10.3	0.43	0.15	+0.00	
+std	bench_z	Velos CID	3	2557.7	15.0	1.17	0.52	2557.7	15.0	1.17	0.52	+0.00	
+std	bench_z	Velos CID	4+	177.0	2.7	3.01	0.56	152.3	1.3	1.75	0.66	-13.94	
+std	bench_z	Velos CID	ALL	7523.7	28.0	0.74	0.29	7499.0	26.7	0.71	0.29	-0.33	0/3/0
+std	bench_z	timsTOF HT	2	1278.7	3.7	0.57	0.34	1278.7	3.7	0.57	0.34	+0.00	
+std	bench_z	timsTOF HT	3	578.3	0.3	0.12	0.46	573.7	0.3	0.12	0.46	-0.81	
+std	bench_z	timsTOF HT	4+	143.3	2.3	3.26	0.93	128.7	1.7	2.59	1.04	-10.23	
+std	bench_z	timsTOF HT	ALL	2000.3	6.3	0.63	0.42	1981.0	5.7	0.57	0.42	-0.97	0/2/0
+std	mod	ALL files	ALL	59718.7	183.3	0.61	0.32	59464.3	173.7	0.58	0.32	-0.43	0/19/1
+std	mod	ALL files	Oxidation	4202.0	11.0	0.52	0.37	3994.0	3.3	0.17	0.39	-4.95	
+std	mod	ALL files	unmodified	55516.7	172.3	0.62	0.32	55470.3	170.3	0.61	0.32	-0.08	
+std	mod	Astral HCD	ALL	7780.7	32.0	0.82	0.44	7692.3	28.0	0.73	0.45	-1.14	0/2/1
+std	mod	Astral HCD	Oxidation	168.7	3.0	3.56	2.57	118.0	0.0	0.00	3.67	-30.04	
+std	mod	Astral HCD	unmodified	7612.0	29.0	0.76	0.39	7574.3	28.0	0.74	0.40	-0.49	
+std	mod	Exploris 480 TMTpro	ALL	7306.7	16.0	0.44	0.32	7298.7	15.3	0.42	0.32	-0.11	0/3/0
+std	mod	Exploris 480 TMTpro	Oxidation	723.3	1.0	0.28	0.00	715.3	0.3	0.09	0.00	-1.11	
+std	mod	Exploris 480 TMTpro	unmodified	6583.3	15.0	0.46	0.36	6583.3	15.0	0.46	0.36	+0.00	
+std	mod	HF-X HCD	ALL	12666.3	51.3	0.81	0.37	12616.7	49.7	0.79	0.37	-0.39	0/3/0
+std	mod	HF-X HCD	Oxidation	1157.0	2.0	0.35	0.20	1116.0	1.3	0.24	0.21	-3.54	
+std	mod	HF-X HCD	unmodified	11509.3	49.3	0.86	0.39	11500.7	48.3	0.84	0.39	-0.08	
+std	mod	Lumos CID TMT	ALL	6354.3	14.0	0.44	0.23	6354.3	14.0	0.44	0.23	+0.00	0/3/0
+std	mod	Lumos CID TMT	Oxidation	876.3	0.0	0.00	0.27	876.3	0.0	0.00	0.27	+0.00	
+std	mod	Lumos CID TMT	unmodified	5478.0	14.0	0.51	0.23	5478.0	14.0	0.51	0.23	+0.00	
+std	mod	Lumos HCD LFQ	ALL	16086.7	35.7	0.44	0.27	16051.0	33.3	0.42	0.27	-0.22	0/3/0
+std	mod	Lumos HCD LFQ	Oxidation	859.7	2.7	0.62	0.35	824.0	0.3	0.08	0.36	-4.15	
+std	mod	Lumos HCD LFQ	unmodified	15227.0	33.0	0.43	0.26	15227.0	33.0	0.43	0.26	+0.00	
+std	mod	Velos CID	ALL	7523.7	28.0	0.74	0.29	7464.7	27.0	0.72	0.29	-0.78	0/3/0
+std	mod	Velos CID	Oxidation	72.7	1.0	2.75	1.38	13.7	0.0	0.00	7.32	-81.19	
+std	mod	Velos CID	unmodified	7451.0	27.0	0.72	0.28	7451.0	27.0	0.72	0.28	+0.00	
+std	mod	timsTOF HT	ALL	2000.3	6.3	0.63	0.42	1986.7	6.3	0.64	0.42	-0.68	0/2/0
+std	mod	timsTOF HT	Oxidation	344.3	1.3	0.77	0.77	330.7	1.3	0.81	0.81	-3.97	
+std	mod	timsTOF HT	unmodified	1656.0	5.0	0.60	0.34	1656.0	5.0	0.60	0.34	+0.00	

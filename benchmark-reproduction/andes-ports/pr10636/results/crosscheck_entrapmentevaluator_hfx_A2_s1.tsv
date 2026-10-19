@@ -1,0 +1,5 @@
+file	class	q_value	accepted_psms	entrapment_psms	psm_fdp	accepted_peptides	entrapment_peptides	peptide_fdp	te_ratio
+global.idXML	0	0.01	3807	8	0.004102	3587	8	0.004354	0.9521
+global.idXML	1	0.01	497	2	0.007855	467	2	0.00836	0.9521
+global.idXML	2	0.01	40	1	0.0488	40	1	0.0488	0.9521
+global.idXML	all	0.01	4344	11	0.004943	4094	11	0.005245	0.9521
