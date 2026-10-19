@@ -459,6 +459,147 @@ namespace OpenMS
       return d_scores;
     }
 
+    /**
+      @brief Reads the peak-group rows for ms1/ms2/ms1ms2 scoring with one scan per table.
+
+      Equivalent to joining FEATURE, PRECURSOR, FEATURE_MS2 and FEATURE_MS1 in SQL and ordering by
+      (RUN_ID, PRECURSOR_ID, EXP_RT, FEATURE.ID), but joined and sorted here: for millions of
+      peak groups SQLite answers that query with an index lookup per row, an index built on the
+      fly for FEATURE_MS1 and a temporary B-tree for the order, which takes several times as
+      long as reading the tables front to back.
+
+      @return false if a feature has more than one row in a score table (the SQL join would
+              return it once per combination); @p rows is then unusable and the caller runs the query.
+    */
+    bool readFeatureRowsByScans_(SqliteConnector& conn,
+                                 const Level level,
+                                 const std::vector<String>& ms2_cols,
+                                 const std::vector<String>& ms1_cols,
+                                 std::vector<ScoreRow>& rows)
+    {
+      const double nan = std::numeric_limits<double>::quiet_NaN();
+      const Size n_values = ms2_cols.size() + ms1_cols.size();
+      sqlite3_stmt* stmt = nullptr;
+
+      std::unordered_map<Int64, bool> precursor_decoy;
+      Sql::prepareStatement(conn, &stmt, "SELECT ID, DECOY FROM PRECURSOR;");
+      for (Sql::SqlState state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      {
+        precursor_decoy[Sql::extractInt64(stmt, 0)] = Sql::extractInt(stmt, 1) != 0;
+      }
+      sqlite3_finalize(stmt);
+
+      rows.clear();
+      std::unordered_map<Int64, Size> row_of_feature;
+      Sql::prepareStatement(conn, &stmt, "SELECT ID, RUN_ID, PRECURSOR_ID, EXP_RT FROM FEATURE;");
+      for (Sql::SqlState state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      {
+        ScoreRow row;
+        row.feature_id = Sql::extractInt64(stmt, 0);
+        row.run_id = Sql::extractInt64(stmt, 1);
+        row.precursor_id = Sql::extractInt64(stmt, 2);
+        row.exp_rt = Sql::extractDouble(stmt, 3);
+        const auto precursor = precursor_decoy.find(row.precursor_id);
+        if (precursor == precursor_decoy.end())
+        {
+          continue; // inner join with PRECURSOR
+        }
+        row.decoy = precursor->second;
+        if (!row_of_feature.emplace(row.feature_id, rows.size()).second)
+        {
+          sqlite3_finalize(stmt);
+          return false;
+        }
+        rows.push_back(std::move(row));
+      }
+      sqlite3_finalize(stmt);
+
+      // Fills the columns [offset, offset + cols.size()) of every feature that has a row in `table`;
+      // found[i] tells whether row i has one.
+      auto readScores = [&](const String& table, const std::vector<String>& cols, const Size offset, std::vector<char>& found) -> bool
+      {
+        String sql = "SELECT FEATURE_ID";
+        for (const auto& c : cols)
+        {
+          sql += ", " + c;
+        }
+        sql += " FROM " + table + ";";
+        found.assign(rows.size(), 0);
+        sqlite3_stmt* score_stmt = nullptr;
+        Sql::prepareStatement(conn, &score_stmt, sql);
+        for (Sql::SqlState state = Sql::nextRow(score_stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(score_stmt, state))
+        {
+          const auto feature = row_of_feature.find(Sql::extractInt64(score_stmt, 0));
+          if (feature == row_of_feature.end())
+          {
+            continue;
+          }
+          if (found[feature->second])
+          {
+            sqlite3_finalize(score_stmt);
+            return false;
+          }
+          found[feature->second] = 1;
+          std::vector<double>& values = rows[feature->second].feature_values;
+          if (values.empty())
+          {
+            values.assign(n_values, nan);
+          }
+          for (Size i = 0; i < cols.size(); ++i)
+          {
+            const int col = static_cast<int>(i) + 1;
+            values[offset + i] = sqlite3_column_type(score_stmt, col) == SQLITE_NULL ? nan : sqlite3_column_double(score_stmt, col);
+          }
+        }
+        sqlite3_finalize(score_stmt);
+        return true;
+      };
+
+      // The score table that is joined with INNER JOIN decides which features remain:
+      // FEATURE_MS2 for ms2 and ms1ms2, FEATURE_MS1 for ms1. In ms1ms2, FEATURE_MS1 is a LEFT JOIN.
+      std::vector<char> has_required, has_optional;
+      if (level == Level::MS1)
+      {
+        if (!readScores("FEATURE_MS1", ms1_cols, 0, has_required)) return false;
+      }
+      else
+      {
+        if (!readScores("FEATURE_MS2", ms2_cols, 0, has_required)) return false;
+        if (level == Level::MS1MS2 && !readScores("FEATURE_MS1", ms1_cols, ms2_cols.size(), has_optional)) return false;
+      }
+      row_of_feature.clear();
+
+      std::vector<ScoreRow> joined;
+      joined.reserve(rows.size());
+      for (Size i = 0; i < rows.size(); ++i)
+      {
+        if (has_required[i])
+        {
+          joined.push_back(std::move(rows[i]));
+        }
+      }
+      std::sort(joined.begin(), joined.end(), [](const ScoreRow& lhs, const ScoreRow& rhs)
+      {
+        return std::tie(lhs.run_id, lhs.precursor_id, lhs.exp_rt, lhs.feature_id) <
+               std::tie(rhs.run_id, rhs.precursor_id, rhs.exp_rt, rhs.feature_id);
+      });
+
+      std::unordered_map<std::pair<Int64, Int64>, int, PairHash<std::pair<Int64, Int64>>> group_to_key;
+      int next_group_key = 0;
+      for (ScoreRow& row : joined)
+      {
+        const std::pair<Int64, Int64> group{row.run_id, row.precursor_id};
+        auto it = group_to_key.find(group);
+        if (it == group_to_key.end())
+        {
+          it = group_to_key.emplace(group, next_group_key++).first;
+        }
+        row.cv_group_key = it->second;
+      }
+      rows = std::move(joined);
+      return true;
+    }
+
     PreparedInput extractSqliteRows_(const String& osw_path,
                                      const Level level,
                                      const Int32 transition_peakgroup_max_rank,
@@ -505,6 +646,12 @@ namespace OpenMS
         {
           feature_names.push_back(canonicalFeatureNameSqlite_(c, level, true));
         }
+
+        if (readFeatureRowsByScans_(conn, level, ms2_cols, ms1_cols, rows))
+        {
+          return finalizeInput_(std::move(rows), std::move(feature_names), false);
+        }
+        rows.clear(); // fall back to the query below
 
         String select_sql =
           "SELECT FEATURE.ID AS FEATURE_ID, FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, PRECURSOR.DECOY";

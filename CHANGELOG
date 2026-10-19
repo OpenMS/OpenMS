@@ -132,6 +132,10 @@ OpenMS Library:
     line), so the rows queued for the OSW writer need less than half the memory and block the scoring threads less.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
+  - PERF: OpenSwathPercolatorScoring reads the peak groups of an OSW file with one scan per table and joins and sorts
+    them in memory, instead of one SQL join with an ORDER BY (176 s instead of 219 s rescoring for 2.9 M peak groups).
+  - PERF: OSWFile::readOpenSwathExportRows aggregates the transition intensities only for the exported peak groups
+    instead of for every peak group of the file (OpenDIA/OpenSwathExport result export: 30 s instead of 72 s).
   - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
     sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
