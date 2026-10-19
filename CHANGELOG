@@ -23,6 +23,40 @@ OpenMS Library:
     FAIMS compensation voltage in its fallback); MS3 quantification reports the purity of the MS2 precursor, not of
     the SPS fragment (which was always 1.0); reporter scans whose scan window misses a reporter ion are skipped by
     IsobaricAnalyzer and left unassigned by IsobaricWorkflow.
+  - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
+    (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
+    single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
+    q-values (or, for a run that was not rescored, on q-values of the search engine scores); the file-based search() applies
+    FDR:protein on the rescored PSMs. rescoreWithPercolator keeps the Percolator settings of ProSE's former -rescore (best hit per spectrum,
+    the runs marked as post-processed by Percolator) and returns whether it rescored and, if not, why (fewer than 100 PSMs, no
+    decoy PSMs, Percolator failed); SearchResult::percolator reports that outcome per run, also in pyOpenMS, and its 'warning'
+    names a rescoring whose learned model Percolator's sanity check replaced by the best single feature. Runs that were
+    rescored and runs that were not are not pooled into the multi-file aggregate (different search engines). 'rescore' false
+    restores the previous results. The ProSE tool and other callers (e.g. the WebAssembly bindings) share this implementation.
+  - Percolator::usedDefaultDirection() tells whether the last rescore()/train() kept the learned model or Percolator's sanity
+    check replaced it by the default direction ("Resetting score vector" of the percolator binary): no target at q < test_fdr
+    on the held-out folds, fewer targets than the best single feature, or a configured initial direction of the wrong sign
+    (ProSE configures none). Typical for blank runs and small inputs (q-values count the decoys + 1, so a fold needs about
+    1 / test_fdr targets above its first decoy).
+  - ProSEAlgorithm::mergeFileResults(): the merged evaluation of the ProSE tool's -out_merged moves into the library, so that
+    other callers (e.g. a browser app on the WebAssembly module) can share it. It pools the PSMs of the result of a multi-file
+    searchWithModificationAnalysis(), infers proteins across the files and, with FDR:protein and decoys in the database,
+    applies the picked-protein FDR and removes the decoys (remove_decoys false keeps the decoys that pass, e.g. to show them);
+    the result is the new ProSEAlgorithm::MergedResult. Throws Exception::InvalidValue if Percolator rescored only some of the
+    files (the tool still exits with INCOMPATIBLE_INPUT_DATA). The tool's -out_merged does not change, but for the
+    'id_merge_index' fix below (runs in which a file failed). Other output of the tool changes with the entries below: with
+    peptdeep:enable its per-file idXML runs carry the meta value 'peptdeep_nce', and the command-line progress of a multi-file
+    search nests under "Searching <file> (i of n)...".
+  - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
+    position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
+    later files named the wrong file.
+  - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
+    file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
+    label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major
+    search (database:chunk_size) has no per-file step.
+  - PeptDeepRescoring::annotate() stores the normalised collision energy the predictions of each run used (the scanned one, or 'nce'
+    when set) as the double run meta value 'peptdeep_nce' (PeptDeepRescoring::NCE_META_VALUE) on that run's
+    ProteinIdentification, so that a consumer of the result can predict spectra at the same energy. Runs without PSMs get none.
   - ConsensusMapNormalizerAlgorithmRTLocal: normalizes each map of a consensus map by a log2 offset that may vary
     with retention time, estimated as the median deviation of the features quantified in several maps among the
     neighbouring features in retention time (the run normalisation of andes). It removes both different loading
@@ -64,7 +98,7 @@ OpenMS Library:
     and intensity arrays of a spectrum or chromatogram differ in length. Before, depending on which
     array SQLite returned first, data was silently dropped or the shorter array was read past its
     end (#10471).
-  - FIX: Percolator (in-process rescoring of PercolatorAdapter and ProSE -rescore): the static flag
+  - FIX: Percolator (in-process rescoring of PercolatorAdapter and ProSE's Percolator rescoring): the static flag
     PosteriorEstimator::includeNegativesInResult is atomic. It was written and read by the threads of
     the parallel cross-validation at the same time (data race, found with ThreadSanitizer); results
     do not change (#10474).
@@ -105,6 +139,7 @@ OpenMS Library:
     did not match the inputs (no alignment points).
   - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
     all passing through one OpenMP critical section, which serialized threads that read or set meta values.
+  - FIX: Percolator nonparametric PEPs (e.g. ProSE's Percolator rescoring): fewer than 4 score bins, or bin medians closer than 1e-15,
   - PERF: OpenSwathWorkflow/OpenDIA output no longer stalls the scoring threads: XIC Parquet chromatograms are
     compressed by the thread that extracted them (MSChromatogramParquetConsumer::encodeChromatogram(),
     consumeEncodedChromatograms()) and only appended inside the output lock, and the buffered OSW writer writes
@@ -144,6 +179,14 @@ OpenMS Library:
     instead of for every peak group of the file (OpenDIA/OpenSwathExport result export: 30 s instead of 72 s).
   - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
     sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
+  - OpenSwathPercolatorScoring (OpenDIA rescoring) trains Percolator on the best peak group of every precursor (new
+    parameter training_main_score, default var_xcorr_shape) plus all peak groups of precursors drawn at random, up to
+    percolator:subset_max_train further peak groups, and scores all peak groups with the model; before,
+    percolator:subset_max_train had no effect and training used all peak groups. percolator:subset_max_train = 0
+    restores that. Results change.
+  - FIX: Percolator's num_threads (OpenDIA rescoring, OpenSwathPercolatorScoring, in-process PercolatorAdapter, ProSE) had
+    no effect; cross-validation now runs on at most num_threads threads, and never on more than the tool's -threads.
+    num_threads accepts up to 128 (as upstream) instead of 3; the default stays 3.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
@@ -818,13 +861,23 @@ TOPP tools:
         intense features instead of the first ones (see OpenMS Library).
     ProSE:
       - PARAM: Percolator rescoring runs in-process (OpenMS' built-in Percolator, the default
-        backend of PercolatorAdapter) and is switched on with the new flag -rescore. The parameter
+        backend of PercolatorAdapter) and is ON by default, with the new parameter -Search:rescore
+        (default true; behaviour change: Percolator q-values are the scores of the output, and the
+        FDR filters use them). -Search:rescore false restores the previous output (ProSE's own
+        scores). The flag -rescore of earlier 3.7.0 development versions is removed in favour of the
+        parameter; an INI file written by such a version carries the flag's value over to
+        Search:rescore when it is updated, so with the flag off it keeps rescoring off (INI files of
+        earlier releases get the default). The parameter
         -percolator_executable is removed: ProSE no longer starts PercolatorAdapter (and with it the
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
-        HyperScores with a warning.
+        HyperScores with a warning. ProSE also warns for a file whose learned Percolator model the
+        sanity check replaced by the best single feature (e.g. a blank run). With -out_merged, input files of which only some were rescored
+        are not merged: ProSE writes the per-file outputs and exits with an error
+        (INCOMPATIBLE_INPUT_DATA). A merged idXML that cannot be written now also fails the run
+        (CANNOT_WRITE_OUTPUT_FILE); before, ProSE logged the error and exited successfully.
       - PARAM: Search:peptdeep:enable (default false) adds five features per PSM from
-        AlphaPeptDeep predictions of its peptide, used by -rescore and written to -out_pin:
+        AlphaPeptDeep predictions of its peptide, used by Search:rescore and written to -out_pin:
         ms2_cosine, ms2_spectral_angle, ms2_pearson and ms2_frac_pred_found compare predicted
         with annotated fragment intensities (Search:annotate:PSM must keep fragment annotations,
         as its default ALL does), rt_abs_error compares the observed with the predicted retention
@@ -840,8 +893,9 @@ TOPP tools:
         PSMs that passed, with q-values as score; with one input and Search:FDR:protein, it had no
         decoys, so Percolator could not use it. The search now also hands back the PSMs before
         FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
-        protein FDR; with -rescore it still holds the rescored PSMs before the FDR filters. The other
-        outputs do not change.
+        protein FDR. It is the input of a later rescoring, so with Search:rescore (the default) it also
+        holds the PSMs before the rescoring: ProSE's own scores, all reported hits and the decoys. The
+        other outputs do not change.
     FileConverter:
       - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
         default, which cost a second read of the whole file (5-15% of the conversion time); the new
