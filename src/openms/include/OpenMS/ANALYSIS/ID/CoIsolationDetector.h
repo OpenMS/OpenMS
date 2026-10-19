@@ -58,6 +58,10 @@ namespace OpenMS
       a the averagine envelope of the same mass (scaled to sum 1); 10 if no isotope position has a peak.
 
       @param ms1 Survey scan, sorted by m/z
+      @param mono_mz m/z of the monoisotopic peak
+      @param charge Charge of the envelope
+      @param tol_da m/z tolerance (Th) for the isotope peaks
+      @param n_isotopes Number of isotope positions compared
     */
     static double isotopeKL(const MSSpectrum& ms1, double mono_mz, int charge, double tol_da, Size n_isotopes = 4);
 
@@ -65,6 +69,8 @@ namespace OpenMS
       @brief Co-isolated precursors in the isolation window [@p window_lower, @p window_upper] of @p ms1
 
       @param ms1 Survey scan, sorted by m/z
+      @param window_lower Lower end of the isolation window (m/z)
+      @param window_upper Upper end of the isolation window (m/z)
       @param selected_mz m/z of the selected precursor (it and its isotope peaks are skipped)
       @param min_charge Lowest charge tried
       @param max_charge Highest charge tried
@@ -84,7 +90,12 @@ namespace OpenMS
       Spectra without a survey scan or an isolation window are left out. Writes the meta values META_MZ and
       META_CHARGE (also when nothing was found, as empty lists). Sorts the survey scans by m/z if they are not.
 
+      @param exp Experiment whose MS2 spectra are annotated (survey scans may be sorted by m/z)
+      @param min_charge Lowest charge tried
+      @param max_charge Highest charge tried
       @param tol_ppm m/z tolerance for the isotope peaks, in ppm of the selected precursor's m/z
+      @param max_kl Largest accepted divergence from averagine
+      @param max_n At most this many precursors per spectrum (most intense monoisotopic peaks first)
       @return Number of co-isolated precursors found
     */
     static Size annotate(PeakMap& exp, int min_charge, int max_charge, double tol_ppm, double max_kl, Size max_n);

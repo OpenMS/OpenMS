@@ -868,6 +868,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * at least one hit, the peaks that the theoretical ions of its best hit match (within the fragment tolerance) are
      * removed, and the rest becomes one spectrum per co-isolated precursor, with that precursor's m/z and charge.
      *
+     * @param spectra The searched spectra
+     * @param annotated_hits The hits of each spectrum of @p spectra (the one with the best score is used)
+     * @param generators Theoretical spectrum generators of the search
+     * @param fragment_tol Fragment mass tolerance
+     * @param fragment_tol_ppm Whether @p fragment_tol is in ppm (else Da)
      * @param[out] parent_of For each residual spectrum, the index of its spectrum in @p spectra
      * @return The residual spectra, in the order of @p parent_of
      */
