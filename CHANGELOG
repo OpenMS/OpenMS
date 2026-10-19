@@ -663,6 +663,16 @@ OpenMS Library:
     copy of the peptide list) and checks the candidate indices it was given.
     Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
     pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
+  - FIX: FalseDiscoveryRate::applyBasic(ConsensusMap&) and both applyBasicPeptideLevel overloads mark
+    the FDRs/q-values they write as lower-is-better. They kept the orientation of the PSM scores, so after
+    a higher-is-better score filtering by q-value kept the worst hits. -psmFDR below 1 therefore removed
+    the best PSMs - typically every target, failing with "No proteins left after FDR filtering" - in
+    ProteomicsLFQ, MS1LabeledWorkflow and IsobaricWorkflow with Bayesian protein inference (which turns
+    each PSM's PEP into a posterior probability) and in IsobaricWorkflow on a higher-is-better main
+    score (e.g. a hyperscore). applyBasicPeptideLevel also sorts the hits of each identification and
+    keeps only the best one and the hits tied with it whose peptide has a peptide FDR/q-value. The other
+    hits had no FDR/q-value: they kept their search score under the new score type and were kept or
+    dropped at random by a filter on it.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
