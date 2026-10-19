@@ -146,9 +146,9 @@ namespace OpenMS
         - Otherwise the heuristic targets @c max(active_swaths, scoring_threads * target_jobs_per_thread)
           jobs in flight: @c batch_size @c = @c ceil(total_compounds / target_jobs), then
           clamped to @c [min_batch, max_inner_batch_size] and finally capped at
-          @p total_compounds. @c min_batch is @c min_inner_batch_size, lowered to
-          @c ceil(total_compounds / (scoring_threads * target_jobs_per_thread)) where the floor
-          would leave fewer jobs than that (e.g. a wave of a single SWATH).
+          @p total_compounds. @c min_batch is @c min_inner_batch_size; with several scoring threads,
+          it is lowered to @c ceil(total_compounds / (scoring_threads * target_jobs_per_thread)) where
+          the floor would leave fewer jobs than that (e.g. a wave of a single SWATH).
 
       @p scoring_threads and @p active_swaths are each treated as @c max(1, value) inside
       the heuristic so callers may pass @c 0 without surprises.
