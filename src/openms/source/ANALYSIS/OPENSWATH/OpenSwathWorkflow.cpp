@@ -51,9 +51,9 @@ namespace OpenMS
       and only the finished rows are appended inside the lock. For other consumers this does
       nothing and writeOutFeaturesAndChroms_() writes the chromatograms as before.
 
-      The chromatograms are encoded in ranges by tasks, which threads without other work (e.g.
-      the scoring threads that wait for the last scoring job of a SWATH) execute; write()
-      appends the ranges in order, so the rows are the same as if one thread encoded them.
+      Outside of a parallel region (e.g. after the scoring of a wave with fewer SWATHs than
+      threads), the chromatograms are encoded in ranges by all threads; write() appends the ranges
+      in order, so the rows are the same as if one thread encoded them.
     */
     struct PreEncodedChromatograms
     {
@@ -101,28 +101,12 @@ namespace OpenMS
           }
         };
 #ifdef _OPENMP
-        if (omp_in_parallel() != 0)
-        {
-#pragma omp taskloop grainsize(1)
-          for (SignedSize range = 0; range < nr_ranges; ++range)
-          {
-            encode_range(range);
-          }
-        }
-        else
-        {
-#pragma omp parallel for schedule(dynamic, 1)
-          for (SignedSize range = 0; range < nr_ranges; ++range)
-          {
-            encode_range(range);
-          }
-        }
-#else
+#pragma omp parallel for schedule(dynamic, 1) if (omp_in_parallel() == 0)
+#endif
         for (SignedSize range = 0; range < nr_ranges; ++range)
         {
           encode_range(range);
         }
-#endif
         if (encode_exception != nullptr)
         {
           std::rethrow_exception(encode_exception);
@@ -716,7 +700,7 @@ namespace OpenMS
       // Extract the SWATHs of a wave in parallel only if every thread gets one. Fewer SWATHs (e.g.
       // max_concurrent_swaths = 1) are extracted one after the other, and the chromatogram
       // extraction of each then uses all threads.
-      [[maybe_unused]] const bool parallel_swath_extraction = wave.swath_indices.size() >= scoring_threads;
+      const bool parallel_swath_extraction = wave.swath_indices.size() >= scoring_threads;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1) if (parallel_swath_extraction)
 #endif
@@ -1019,7 +1003,10 @@ namespace OpenMS
               context_ready_to_finalize = context.remaining_score_jobs == 0;
             }
 
-            if (context_ready_to_finalize)
+            // With a SWATH per thread, the thread that scored the last job of a SWATH writes it out
+            // while the others score; with fewer SWATHs than threads, they are written out after the
+            // wave, when all threads encode their chromatograms.
+            if (context_ready_to_finalize && parallel_swath_extraction)
             {
               finalize_context(job.context_index);
             }
