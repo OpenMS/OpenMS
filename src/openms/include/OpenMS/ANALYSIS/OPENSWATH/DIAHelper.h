@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <vector>
@@ -104,6 +105,15 @@ namespace OpenMS
                                       std::vector<double>& masses,
                                       TheoreticalSpectrumGenerator const * g,
                                       int charge = 1);
+
+    /**
+      @brief The averagine isotope distribution of a peptide of @p average_weight, with @p nr_isotopes isotopes
+
+      The same as CoarseIsotopePatternGenerator(nr_isotopes).estimateFromPeptideWeight(average_weight). The
+      distribution only depends on the element composition that the averagine model estimates for the weight,
+      which many weights share: it is computed once per composition (and thread).
+    */
+    OPENMS_DLLAPI const IsotopeDistribution& averagineIsotopeDistribution(double average_weight, int nr_isotopes);
 
     /// get averagine distribution given mass
     OPENMS_DLLAPI void getAveragineIsotopeDistribution(const double product_mz,

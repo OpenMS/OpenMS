@@ -164,8 +164,7 @@ namespace OpenMS
         isotope_cache.clear();
       }
 
-      CoarseIsotopePatternGenerator solver(nr_isotopes);
-      return isotope_cache.emplace(key, solver.estimateFromPeptideWeight(neutral_mass)).first->second;
+      return isotope_cache.emplace(key, DIAHelpers::averagineIsotopeDistribution(neutral_mass, nr_isotopes)).first->second;
     }
   }
 

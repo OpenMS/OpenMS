@@ -37,6 +37,9 @@
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <cassert>
 #include <limits>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
@@ -253,6 +256,16 @@ protected:
    *        - Write scored chromatograms and peak groups to disk (see writeOutFeaturesAndChroms_())
    *
    */
+  /// Positions of chromatograms by native ID (see OpenSwathWorkflow::scoreAllChromatograms_())
+  struct OPENMS_DLLAPI ChromatogramIndex
+  {
+    std::unordered_map<std::string, int> ms2; ///< index into the MS2 chromatograms
+    std::unordered_map<std::string, int> ms1; ///< index into the MS1 (precursor) chromatograms
+
+    /// Index the chromatograms by their native ID
+    void build(const std::vector<MSChromatogram>& ms2_chromatograms, const std::vector<MSChromatogram>& ms1_chromatograms);
+  };
+
   class OPENMS_DLLAPI OpenSwathWorkflow :
     public OpenSwathWorkflowBase
   {
@@ -409,6 +422,8 @@ protected:
      * @param[in] ms1only If true, will only score on MS1 level and ignore MS2 level
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      * @param[out] deferred_osw_output Optional buffer for OSW output rows, deferring writer access to the caller
+     * @param[in] chromatogram_index Optional index of @p ms2_chromatograms and @p ms1_chromatograms (built if not given),
+     *            to share between calls that score batches of the same chromatograms
      *
     */
   void scoreAllChromatograms_(
@@ -424,7 +439,8 @@ protected:
         int nr_ms1_isotopes = 0,
         bool ms1only = false,
         class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
-        OpenSwathOSWWriter::OSWData* deferred_osw_output = nullptr) const;
+        OpenSwathOSWWriter::OSWData* deferred_osw_output = nullptr,
+        const ChromatogramIndex* chromatogram_index = nullptr) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *

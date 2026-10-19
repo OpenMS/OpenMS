@@ -650,6 +650,7 @@ namespace OpenMS
         OpenSwath::SpectrumAccessPtr current_swath_map;
         std::vector<MSChromatogram> ms1_chromatograms;
         PeakMap chrom_exp;
+        ChromatogramIndex chromatogram_index; // shared by the scoring jobs of the SWATH
         FeatureMap feature_file;
       };
 
@@ -817,6 +818,7 @@ namespace OpenMS
 
         extractor.return_chromatogram(chrom_list, coordinates, context.transition_exp_used_all, SpectrumSettings(),
                                       context.chrom_exp.getChromatograms(), false, cp.im_extraction_window);
+        context.chromatogram_index.build(context.chrom_exp.getChromatograms(), context.ms1_chromatograms);
 
         context.active = true;
       }
@@ -975,7 +977,7 @@ namespace OpenMS
             OpenSwathOSWWriter::OSWData job_osw_output;
             scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
               feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-              mobilogram_consumer, &job_osw_output);
+              mobilogram_consumer, &job_osw_output, &context.chromatogram_index);
 
             if (osw_writer.isActive() && !job_osw_output.empty())
             {
@@ -1062,6 +1064,7 @@ namespace OpenMS
         context.ms1_chromatograms.clear();
         context.ms1_chromatograms.shrink_to_fit();
         context.chrom_exp = PeakMap();
+        context.chromatogram_index = ChromatogramIndex();
         context.feature_file = FeatureMap();
         context.active = false;
         context.finalized = true;
@@ -1380,6 +1383,22 @@ namespace OpenMS
         SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
   }
 
+  void ChromatogramIndex::build(const std::vector<MSChromatogram>& ms2_chromatograms, const std::vector<MSChromatogram>& ms1_chromatograms)
+  {
+    ms1.clear();
+    ms1.reserve(ms1_chromatograms.size());
+    for (Size i = 0; i < ms1_chromatograms.size(); i++)
+    {
+      ms1[ms1_chromatograms[i].getNativeID()] = checkedCast<int>(i);
+    }
+    ms2.clear();
+    ms2.reserve(ms2_chromatograms.size());
+    for (Size i = 0; i < ms2_chromatograms.size(); i++)
+    {
+      ms2[ms2_chromatograms[i].getNativeID()] = checkedCast<int>(i);
+    }
+  }
+
   void OpenSwathWorkflow::scoreAllChromatograms_(
     const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
     const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
@@ -1393,7 +1412,8 @@ namespace OpenMS
     int nr_ms1_isotopes,
     bool ms1only,
     MobilogramParquetConsumer* mobilogram_consumer,
-    OpenSwathOSWWriter::OSWData* deferred_osw_output) const
+    OpenSwathOSWWriter::OSWData* deferred_osw_output,
+    const ChromatogramIndex* chromatogram_index) const
   {
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
@@ -1425,20 +1445,14 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    std::unordered_map<std::string, int> ms1_chromatogram_map;
-    ms1_chromatogram_map.reserve(ms1_chromatograms.size());
-    for (Size i = 0; i < ms1_chromatograms.size(); i++)
+    ChromatogramIndex local_chromatogram_index;
+    if (chromatogram_index == nullptr)
     {
-      ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = checkedCast<int>(i);
+      local_chromatogram_index.build(ms2_chromatograms, ms1_chromatograms);
+      chromatogram_index = &local_chromatogram_index;
     }
-
-    std::unordered_map<std::string, int> chromatogram_map;
-    chromatogram_map.reserve(ms2_chromatograms.size());
-    for (Size i = 0; i < ms2_chromatograms.size(); i++)
-    {
-      const std::string cid = ms2_chromatograms[i].getNativeID();
-      chromatogram_map[cid] = checkedCast<int>(i);
-    }
+    const std::unordered_map<std::string, int>& ms1_chromatogram_map = chromatogram_index->ms1;
+    const std::unordered_map<std::string, int>& chromatogram_map = chromatogram_index->ms2;
     std::unordered_map<std::string, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
@@ -1512,7 +1526,7 @@ namespace OpenMS
         }
 
         // Copy the chromatogram, restricted to the RT extraction window
-        const MSChromatogram& extracted_chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
+        const MSChromatogram& extracted_chromatogram = ms2_chromatograms[ chromatogram_map.at(transition->getNativeID()) ];
         MSChromatogram chromatogram;
         if (rt_extraction_window > 0)
         {
@@ -1543,7 +1557,7 @@ namespace OpenMS
         std::string prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.contains(prec_id))
         {
-          const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
+          const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map.at(prec_id) ];
           transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
         }
       }
