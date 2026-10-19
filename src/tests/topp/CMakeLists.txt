@@ -6071,6 +6071,58 @@ add_test("TOPP_ProteomicsLFQ_feat_dir_requires_design" ${TOPP_BIN_PATH}/Proteomi
 set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_requires_design" PROPERTIES
                      PASS_REGULAR_EXPRESSION "requires an explicit '-design'")
 
+# PipEcho:* is not part of the checkpoint fingerprint, so checkpoints detected without
+# 'PipEcho:shape_features' must still carry the elution width and tailing that a combine with it compares.
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_shape_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/BSA_shape_ckpt)
+add_test("TOPP_ProteomicsLFQ_feat_dir_shape_detect" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -pip_echo true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_shape_ckpt
+         -detect_only
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_shape_detect" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_shape_clean")
+add_test("TOPP_ProteomicsLFQ_feat_dir_shape_combine" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -pip_echo true
+         -PipEcho:shape_features true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_shape_ckpt
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_shape_combine.consensusXML
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_shape_combine" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_shape_detect"
+                     PASS_REGULAR_EXPRESSION "candidate transfers, [1-9][0-9]* compared by elution width, [1-9][0-9]* by tailing"
+                     FAIL_REGULAR_EXPRESSION "candidate transfers, 0 compared by elution width")
+
 
 # QPX Parquet export test (reuses subset test input data)
   # Clear the output directory first. ctest never cleans tmp_path, so without this a

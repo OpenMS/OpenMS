@@ -1933,7 +1933,10 @@ protected:
     if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
     // PIP-ECHO shape features: the elution width (sigma of the elution model fit; put on the aligned RT scale
     // in alignAndLink_) and the tailing of the peak (from its integration boundaries), snapshotted below.
-    const bool pip_echo_shapes = pip_echo_enabled && getParam_().getValue("PipEcho:shape_features").toString() == "true";
+    // Snapshotted whenever PIP-ECHO is on, not only with 'PipEcho:shape_features': PipEcho:* is not part of
+    // the -feat_dir fingerprint, so a checkpoint detected without the option must still serve a combine with
+    // it. quantifyFraction_ drops them again when the option is off.
+    const bool pip_echo_shapes = pip_echo_enabled;
     if (pip_echo_shapes) { keep_meta.insert("pipecho_width"); keep_meta.insert("pipecho_tailing"); }
     for (auto & f : fm)
     {
@@ -2145,6 +2148,20 @@ protected:
       // to produce the checkpoints and stop, so that the runs can be spread over machines and
       // combined later by an invocation that has no raw data at all.
       return EXECUTION_OK;
+    }
+
+    // The shape snapshots of detectRun_ are only used with 'PipEcho:shape_features'; without it they would
+    // leak into the consensusXML/mzTab output.
+    if (getParam_().getValue("PipEcho:shape_features").toString() != "true")
+    {
+      for (auto& fm : feature_maps)
+      {
+        for (auto& f : fm)
+        {
+          f.removeMetaValue("pipecho_width");
+          f.removeMetaValue("pipecho_tailing");
+        }
+      }
     }
 
     auto validation_result = File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true);
