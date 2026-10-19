@@ -67,9 +67,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       @brief Summed isotopeGap() of the variable (not in @p fixed_mod_ids, by full id) modifications of @p sequence
 
       A PSM whose precursor error (peptide - spectrum, in Da) becomes smaller in magnitude when this shift is added is an
-      isotope mimic: an isotope-step precursor error explains the modification(s) (see annotate:isotope_mimic).
+      isotope mimic: an isotope-step precursor error explains the modification(s) (see precursor:isotope_mimic).
     */
     static double isotopeMimicShift(const AASequence& sequence, const std::set<std::string>& fixed_mod_ids);
+
+    /**
+      @brief Whether @p sequence, matched to a precursor at @p precursor_mz and @p charge with the search offset
+      @p isotope_error (13C spacings added to the observed mass, as FragmentIndex searches), is an isotope mimic
+
+      True when the candidate has isotope-like variable modifications (isotopeMimicShift() != 0) and replacing them by
+      whole isotope steps gives a smaller precursor error than the modifications themselves.
+    */
+    static bool isIsotopeMimic(const AASequence& sequence, double precursor_mz, int charge, int isotope_error,
+                               const std::set<std::string>& fixed_mod_ids);
 
     ProSEAlgorithm(); 
 

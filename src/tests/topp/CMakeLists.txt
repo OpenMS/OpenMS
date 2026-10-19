@@ -4778,6 +4778,17 @@ add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 "TOPP_ProSE_2")
 
+# precursor:isotope_mimic remove: scan 2's top hit at off is IALSRPNVEVVALN(Deamidated)DPFITNDYAAYM(Oxidation)FK at
+# isotope error -1, an isotope mimic; with remove the unmodified peptide at isotope error 0 takes its place
+add_test("TOPP_ProSE_13_isotope_mimic" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_13_isotope_mimic_out.tmp.idXML
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+-Search:modifications:variable "Oxidation (M)" "Deamidated (N)" "Deamidated (Q)" -Search:precursor:isotope_mimic remove)
+add_test("TOPP_ProSE_13_isotope_mimic_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_13_isotope_mimic_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_13_isotope_mimic_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_13_isotope_mimic_out" PROPERTIES DEPENDS
+"TOPP_ProSE_13_isotope_mimic")
+
 # Multi-file test: single-file idXML output
 add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini

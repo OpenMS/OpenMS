@@ -265,12 +265,6 @@ namespace OpenMS
       std::vector<std::string>{Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED,
                                Constants::UserParam::ION_PRIOR_TOPK_OBSERVED});
 
-    defaults_.setValue("annotate:isotope_mimic", "false",
-      "Annotate each PSM with 'isotope_mimic' (1/0, also a Percolator feature): whether replacing its variable modifications "
-      "within 0.05 Da of one or two 13C steps (deamidation +0.984, N->D, Q->E, ...) by whole isotope steps explains the "
-      "precursor mass better. Such a PSM is likely an unmodified peptide whose precursor was picked on an isotope peak; "
-      "decoys cannot model this error.");
-    defaults_.setValidStrings("annotate:isotope_mimic", {"true", "false"});
     defaults_.setValue("annotate:local_fragment_evidence", "true",
       "Add chance_match_surprise and mass_competition_evidence annotations and Percolator features. "
       "Uses local peak density and alternative intact/neutral-loss fragment assignments. "
@@ -400,6 +394,13 @@ namespace OpenMS
     defaults_.setValue("precursor:isotope_error_max", 1,
                        "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
                        "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
+    defaults_.setValue("precursor:isotope_mimic", "off",
+      "Candidates whose variable modifications lie within 0.05 Da of one or two 13C steps (deamidation +0.984, N->D, "
+      "Q->E, ...) and whose precursor mass is explained better when these modifications are read as whole isotope steps "
+      "are isotope mimics: usually the unmodified peptide, matched at another isotope offset. Decoys cannot model this "
+      "error. 'annotate': PSM meta value 'isotope_mimic' (1/0). 'remove': such candidates are not scored or reported, so "
+      "the unmodified candidate can take their rank (as andes does). Closed search only.");
+    defaults_.setValidStrings("precursor:isotope_mimic", {"off", "annotate", "remove"});
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
@@ -1409,6 +1410,17 @@ namespace OpenMS
     return shift;
   }
 
+  bool ProSEAlgorithm::isIsotopeMimic(const AASequence& sequence, double precursor_mz, int charge, int isotope_error,
+                                      const std::set<std::string>& fixed_mod_ids)
+  {
+    const double shift = isotopeMimicShift(sequence, fixed_mod_ids);
+    if (shift == 0.0 || charge <= 0) return false;
+    // precursor error peptide - spectrum in Da, at the isotope offset the candidate was matched at
+    const double corrected_mz = precursor_mz + static_cast<double>(isotope_error) * Constants::C13C12_MASSDIFF_U / charge;
+    const double err_da = (sequence.getMZ(charge) - corrected_mz) * static_cast<double>(charge);
+    return std::fabs(err_da + shift) < std::fabs(err_da);
+  }
+
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
         std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         const std::vector<CandidatePoolStats_>& pool_stats,
@@ -1482,7 +1494,9 @@ namespace OpenMS
     bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
     const bool annotation_local_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
-    const bool annotation_isotope_mimic = param_.getValue("annotate:isotope_mimic").toBool();
+    // closed search only: in open search the precursor error is the open delta mass
+    const bool annotation_isotope_mimic =
+      param_.getValue("precursor:isotope_mimic").toString() == "annotate" && !isOpenSearchMode_();
     const std::set<std::string> fixed_mod_ids(modifications_fixed.begin(), modifications_fixed.end());
     const bool evidence_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     if (annotation_local_evidence && (evidence_spectra == nullptr || evidence_spectra->size() != exp.size()))
@@ -1896,12 +1910,8 @@ namespace OpenMS
 
           if (annotation_isotope_mimic)
           {
-            // precursor error peptide - spectrum in Da, at the isotope offset the PSM was matched at
-            const double corrected_mz = mz
-              + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
-            const double err_da = (ah.sequence.getMZ(used_charge) - corrected_mz) * static_cast<double>(used_charge);
-            const double shift = isotopeMimicShift(ah.sequence, fixed_mod_ids);
-            ph.setMetaValue(mv_isotope_mimic, (shift != 0.0 && std::fabs(err_da + shift) < std::fabs(err_da)) ? 1 : 0);
+            ph.setMetaValue(mv_isotope_mimic, isIsotopeMimic(ah.sequence, mz, static_cast<int>(used_charge),
+                                                             ah.isotope_error, fixed_mod_ids) ? 1 : 0);
           }
 
           // Add isotope error metavalue (always; exposed as Percolator feature). ah.isotope_error is the offset
@@ -2015,9 +2025,12 @@ namespace OpenMS
     }
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
-    if (param_.getValue("annotate:isotope_mimic").toBool()) feature_set.push_back("isotope_mimic");
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    // not a Percolator feature: flagged PSMs are mostly the right peptide in the wrong modification state, so a learned
+    // weight favours them over their unmodified competitor
+    const std::string isotope_mimic_mode = param_.getValue("precursor:isotope_mimic").toString();
+    if (isotope_mimic_mode != "off") search_parameters.setMetaValue("isotope_mimic", isotope_mimic_mode);
     // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or
     // report:isotope_error_convention=theoretical_minus_observed) the sign is theoretical minus observed.
     if (isotope_error_observed_minus_theoretical_)
@@ -2536,12 +2549,18 @@ namespace OpenMS
     const double proton_mass_u = Constants::PROTON_MASS_U;
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
     const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0;
+    // precursor:isotope_mimic=remove: isotope mimics are neither scored nor part of the candidate pool, so the
+    // unmodified candidate matched at the other isotope offset competes instead (closed search only)
+    const bool remove_isotope_mimics =
+      !open_search_mode && param_.getValue("precursor:isotope_mimic").toString() == "remove";
+    const std::set<std::string> fixed_mod_ids(modifications_fixed_.begin(), modifications_fixed_.end());
+    std::atomic<Size> isotope_mimics_removed{0};
 
     // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
     // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
     std::exception_ptr scoring_error;
     std::atomic<bool> scoring_failed{false};
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed)
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol, keep, deduplicate_chunks, remove_isotope_mimics, fixed_mod_ids, isotope_mimics_removed, scoring_error, scoring_failed)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       if (scoring_failed.load(std::memory_order_relaxed)) continue;
@@ -2584,6 +2603,18 @@ namespace OpenMS
           std::string key = mod_candidate.toString();
           key += "\t" + std::to_string(sms.precursor_charge_) + "\t" + std::to_string(sms.isotope_error_);
           if (! pool_stats[scan_index].seen_candidates.insert(std::move(key)).second) { continue; }
+        }
+
+        if (remove_isotope_mimics)
+        {
+          const Precursor& precursor = exp_spectrum.getPrecursors()[0];
+          // the charge postProcessHits_ reports: the spectrum's, else the one the index matched
+          const int charge = precursor.getCharge() > 0 ? precursor.getCharge() : static_cast<int>(sms.precursor_charge_);
+          if (isIsotopeMimic(mod_candidate, precursor.getMZ(), charge, sms.isotope_error_, fixed_mod_ids))
+          {
+            isotope_mimics_removed.fetch_add(1, std::memory_order_relaxed);
+            continue;
+          }
         }
 
         // Clear peaks + data arrays (ion names / charges) before refilling for the
@@ -2659,6 +2690,11 @@ namespace OpenMS
     }
     endProgress();
     if (scoring_error) std::rethrow_exception(scoring_error);
+    if (remove_isotope_mimics)
+    {
+      OPENMS_LOG_INFO << "[ProSE] precursor:isotope_mimic=remove: " << isotope_mimics_removed.load()
+                      << " isotope-mimic candidates removed." << endl;
+    }
   }
 
   // =====================================================================

@@ -5803,4 +5803,85 @@ START_SECTION((static double isotopeMimicShift(const AASequence& sequence, const
 }
 END_SECTION
 
+START_SECTION((static bool isIsotopeMimic(const AASequence& sequence, double precursor_mz, int charge, int isotope_error, const std::set<std::string>& fixed_mod_ids)))
+{
+  const std::set<std::string> fixed{"Carbamidomethyl (C)"};
+  const AASequence deamidated = AASequence::fromString("THQPSAN(Deamidated)LDIK");
+  const AASequence plain = AASequence::fromString("THQPSANLDIK");
+  const double step = Constants::C13C12_MASSDIFF_U;
+  // the unmodified peptide's monoisotopic peak, matched by the deamidated candidate at search offset +1
+  TEST_EQUAL(ProSEAlgorithm::isIsotopeMimic(deamidated, plain.getMZ(2), 2, 1, fixed), true)
+  // the unmodified peptide's M+1 peak, matched by the deamidated candidate at offset 0
+  TEST_EQUAL(ProSEAlgorithm::isIsotopeMimic(deamidated, plain.getMZ(2) + step / 2, 2, 0, fixed), true)
+  // a real deamidation: zero precursor error
+  TEST_EQUAL(ProSEAlgorithm::isIsotopeMimic(deamidated, deamidated.getMZ(2), 2, 0, fixed), false)
+  TEST_EQUAL(ProSEAlgorithm::isIsotopeMimic(deamidated, deamidated.getMZ(3), 3, 0, fixed), false)
+  // no isotope-like modification: never a mimic
+  TEST_EQUAL(ProSEAlgorithm::isIsotopeMimic(plain, plain.getMZ(2) + step / 2, 2, 0, fixed), false)
+  TEST_EQUAL(ProSEAlgorithm::isIsotopeMimic(deamidated, plain.getMZ(2), 0, 1, fixed), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] precursor:isotope_mimic annotates, or removes, deamidated candidates that an isotope offset explains))
+{
+  // The fragments are those of the deamidated peptide, so it outscores the unmodified one; the precursor is the
+  // unmodified peptide's monoisotopic peak, which the deamidated candidate reaches at isotope offset 1.
+  const AASequence deamidated = AASequence::fromString("THQPSAN(Deamidated)LDIK");
+  const AASequence plain = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", plain.toString()}, {"P02", "", "VLVLDTDYK"}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, deamidated, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(plain.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_STRING_EQUAL(p.getValue("precursor:isotope_mimic").toString(), "off")
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", 1);
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{"Deamidated (N)"});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("report:top_hits", 5);
+  for (const string mode : {"off", "annotate", "remove"})
+  {
+    p.setValue("precursor:isotope_mimic", mode);
+    algo.setParameters(p);
+    PeakMap input;
+    input.addSpectrum(spectrum);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_TRUE(algo.search(input, db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    ABORT_IF(pep_ids.size() != 1 || pep_ids[0].getHits().empty() || prot_ids.size() != 1)
+    const auto& hits = pep_ids[0].getHits();
+    const bool any_deamidated = std::any_of(hits.begin(), hits.end(),
+      [](const PeptideHit& h) { return h.getSequence().isModified(); });
+    if (mode == "remove")
+    {
+      // the mimic is gone; the unmodified peptide at isotope offset 0 takes rank 1
+      TEST_EQUAL(any_deamidated, false)
+      TEST_STRING_EQUAL(hits[0].getSequence().toString(), plain.toString())
+      TEST_EQUAL(static_cast<int>(hits[0].getMetaValue(Constants::UserParam::ISOTOPE_ERROR)), 0)
+    }
+    else
+    {
+      TEST_STRING_EQUAL(hits[0].getSequence().toString(), deamidated.toString())
+      TEST_EQUAL(hits[0].metaValueExists("isotope_mimic"), mode == "annotate")
+      if (mode == "annotate") { TEST_EQUAL(static_cast<int>(hits[0].getMetaValue("isotope_mimic")), 1) }
+    }
+    // never a Percolator feature; the mode is recorded unless it is off
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_TRUE(extra_features_(prot_ids[0]).find("isotope_mimic") == string::npos)
+    TEST_EQUAL(sp.metaValueExists("isotope_mimic"), mode != "off")
+  }
+}
+END_SECTION
+
 END_TEST
