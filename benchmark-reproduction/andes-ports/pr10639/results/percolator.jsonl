@@ -1,0 +1,14 @@
+{"pin": "runs/frozen_hfx_A2/s1_r1/hfx_A2.pin", "psms": [4482, 4522, 4473], "mean_psms": 4492.3, "entrap": [27, 39, 34], "fdp_combined_pct": 1.48}
+{"pin": "runs/frozen_hfx_B1/s1_r1/hfx_B1.pin", "psms": [4380, 4368, 4338], "mean_psms": 4362, "entrap": [34, 36, 33], "fdp_combined_pct": 1.57}
+{"pin": "runs/frozen_astral_B1/s1_r1/astral_B1.pin", "psms": [2912, 2967, 2981], "mean_psms": 2953.3, "entrap": [32, 29, 32], "fdp_combined_pct": 2.1}
+{"pin": "runs/calib/s1_r1/hfx_A2.pin", "psms": [4324, 4368, 4331], "mean_psms": 4341, "entrap": [32, 40, 34], "fdp_combined_pct": 1.63}
+{"pin": "runs/calib/s4_r1/hfx_A2.pin", "psms": [4476, 4448, 4493], "mean_psms": 4472.3, "entrap": [34, 34, 32], "fdp_combined_pct": 1.49}
+{"pin": "runs/calib/s16_r1/hfx_A2.pin", "psms": [4464, 4479, 4553], "mean_psms": 4498.7, "entrap": [34, 38, 49], "fdp_combined_pct": 1.79}
+{"pin": "runs/chunk/s1_chunk_r1/hfx_A2.pin", "psms": [4487, 4519, 4488], "mean_psms": 4498, "entrap": [34, 32, 30], "fdp_combined_pct": 1.42}
+{"pin": "runs/whole/s1_r1/hfx_A2_full.pin", "psms": [63396, 63459, 63493], "mean_psms": 63449.3, "entrap": [538, 535, 553], "fdp_combined_pct": 1.71}
+{"pin": "runs/phos2_hye/s1_r1/hfx_A2.pin", "psms": [4622, 4627, 4615], "mean_psms": 4621.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/phos2_E/s4_r1/hfx_A2.pin", "psms": [4429, 4412, 4418], "mean_psms": 4419.7, "entrap": [28, 30, 22], "fdp_combined_pct": 1.21}
+{"pin": "runs/frozen_velos_125_R1/s1_r1/velos_125_R1.pin", "psms": [2953, 2966, 3013], "mean_psms": 2977.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/phos2_E_chunk/c4_r1/hfx_A2.pin", "psms": [4463, 4393, 4401], "mean_psms": 4419, "entrap": [36, 26, 24], "fdp_combined_pct": 1.3}
+{"pin": "runs/phos2_E_chunk/c16_r1/hfx_A2.pin", "psms": [4441, 4401, 4442], "mean_psms": 4428, "entrap": [32, 24, 28], "fdp_combined_pct": 1.26}
+{"pin": "andes_runs/phos2_E_sl10_r1/native.pin", "psms": [4456, 4441, 4452], "mean_psms": 4449.7, "entrap": [34, 31, 38], "fdp_combined_pct": 1.54}

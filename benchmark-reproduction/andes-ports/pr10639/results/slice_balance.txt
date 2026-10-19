@@ -1,0 +1,104 @@
+== frozen_hfx_A2/s4_r1: reachable peptides per slice (of all generated)
+ 2308475 2202918 2788980 5516225 | generated per slice 19473439 | sum 12816598 | largest slice 43% of sum
+  1/4 2000 spectra 697.382 to 1070.56 Da
+  2/4 2000 spectra 1070.57 to 1346.61 Da
+  3/4 2000 spectra 1346.65 to 1742.82 Da
+  4/4 2000 spectra 1742.83 to 6884.09 Da
+== frozen_hfx_A2/s16_r1: reachable peptides per slice (of all generated)
+ 288079 666367 774128 631364 563824 576014 531806 599851 590395 659950 745843 851293 1064299 1182239 1576758 1717431 | generated per slice 19473439 | sum 13019641 | largest slice 13% of sum
+  1/16 500 spectra 697.382 to 809.373 Da
+  2/16 500 spectra 809.373 to 901.488 Da
+  3/16 500 spectra 901.517 to 994.524 Da
+  4/16 500 spectra 994.557 to 1070.56 Da
+  5/16 500 spectra 1070.57 to 1136.49 Da
+  6/16 500 spectra 1136.52 to 1205.56 Da
+  7/16 500 spectra 1205.6 to 1270.61 Da
+  8/16 500 spectra 1270.63 to 1346.61 Da
+  9/16 500 spectra 1346.65 to 1422.74 Da
+  10/16 500 spectra 1422.75 to 1510.73 Da
+  11/16 500 spectra 1510.78 to 1613.88 Da
+  12/16 500 spectra 1613.91 to 1742.82 Da
+  13/16 500 spectra 1742.83 to 1919.05 Da
+  14/16 500 spectra 1919.83 to 2141.01 Da
+  15/16 500 spectra 2141.19 to 2531.3 Da
+  16/16 500 spectra 2532.16 to 6884.09 Da
+== phos2_hye/s1_r1: reachable peptides per slice (of all generated)
+ 30755753 | generated per slice 81028688 | sum 30755753 | largest slice 100% of sum
+== phos2_hye/s4_r1: reachable peptides per slice (of all generated)
+ 1943541 2894645 5069051 20918677 | generated per slice 81028688 | sum 30825914 | largest slice 68% of sum
+  1/4 2000 spectra 697.382 to 1070.56 Da
+  2/4 2000 spectra 1070.57 to 1346.61 Da
+  3/4 2000 spectra 1346.65 to 1742.82 Da
+  4/4 2000 spectra 1742.83 to 6884.09 Da
+== phos2_hye/s16_r1: reachable peptides per slice (of all generated)
+ 164053 481078 676170 662266 642300 725336 750478 859468 929651 1108524 1376045 1745103 2565044 3249338 5609365 9577539 | generated per slice 81028688 | sum 31121758 | largest slice 31% of sum
+  1/16 500 spectra 697.382 to 809.373 Da
+  2/16 500 spectra 809.373 to 901.488 Da
+  3/16 500 spectra 901.517 to 994.524 Da
+  4/16 500 spectra 994.557 to 1070.56 Da
+  5/16 500 spectra 1070.57 to 1136.49 Da
+  6/16 500 spectra 1136.52 to 1205.56 Da
+  7/16 500 spectra 1205.6 to 1270.61 Da
+  8/16 500 spectra 1270.63 to 1346.61 Da
+  9/16 500 spectra 1346.65 to 1422.74 Da
+  10/16 500 spectra 1422.75 to 1510.73 Da
+  11/16 500 spectra 1510.78 to 1613.88 Da
+  12/16 500 spectra 1613.91 to 1742.82 Da
+  13/16 500 spectra 1742.83 to 1919.05 Da
+  14/16 500 spectra 1919.83 to 2141.01 Da
+  15/16 500 spectra 2141.19 to 2531.3 Da
+  16/16 500 spectra 2532.16 to 6884.09 Da
+== phos2_E/s4_r1: reachable peptides per slice (of all generated)
+ 3874025 5771230 10107290 41700881 | generated per slice 161486230 | sum 61453426 | largest slice 68% of sum
+  1/4 2000 spectra 697.382 to 1070.56 Da
+  2/4 2000 spectra 1070.57 to 1346.61 Da
+  3/4 2000 spectra 1346.65 to 1742.82 Da
+  4/4 2000 spectra 1742.83 to 6884.09 Da
+== phos2_E/s16_r1: reachable peptides per slice (of all generated)
+ 326715 958776 1347921 1320405 1280544 1446157 1496218 1713668 1853725 2210395 2743703 3479509 5113369 6479040 11183477 19089683 | generated per slice 161486230 | sum 62043305 | largest slice 31% of sum
+  1/16 500 spectra 697.382 to 809.373 Da
+  2/16 500 spectra 809.373 to 901.488 Da
+  3/16 500 spectra 901.517 to 994.524 Da
+  4/16 500 spectra 994.557 to 1070.56 Da
+  5/16 500 spectra 1070.57 to 1136.49 Da
+  6/16 500 spectra 1136.52 to 1205.56 Da
+  7/16 500 spectra 1205.6 to 1270.61 Da
+  8/16 500 spectra 1270.63 to 1346.61 Da
+  9/16 500 spectra 1346.65 to 1422.74 Da
+  10/16 500 spectra 1422.75 to 1510.73 Da
+  11/16 500 spectra 1510.78 to 1613.88 Da
+  12/16 500 spectra 1613.91 to 1742.82 Da
+  13/16 500 spectra 1742.83 to 1919.05 Da
+  14/16 500 spectra 1919.83 to 2141.01 Da
+  15/16 500 spectra 2141.19 to 2531.3 Da
+  16/16 500 spectra 2532.16 to 6884.09 Da
+== whole/s4_r1: reachable peptides per slice (of all generated)
+ 2413236 2342132 3092274 9456177 | generated per slice 19473439 | sum 17303819 | largest slice 55% of sum
+  1/4 27853 spectra 696.431 to 1066.44 Da
+  2/4 27853 spectra 1066.45 to 1346.62 Da
+  3/4 27853 spectra 1346.63 to 1759.88 Da
+  4/4 27854 spectra 1759.88 to 6950.54 Da
+== whole/s16_r1: reachable peptides per slice (of all generated)
+ 302514 683434 749051 738068 592664 616164 594244 619526 652075 693379 843863 975337 1143906 1414363 2187559 4766942 | generated per slice 19473439 | sum 17573089 | largest slice 27% of sum
+  1/16 6963 spectra 696.431 to 806.373 Da
+  2/16 6963 spectra 806.374 to 897.466 Da
+  3/16 6963 spectra 897.467 to 982.575 Da
+  4/16 6964 spectra 982.579 to 1066.44 Da
+  5/16 6963 spectra 1066.45 to 1132.5 Da
+  6/16 6963 spectra 1132.51 to 1201.6 Da
+  7/16 6964 spectra 1201.61 to 1271.56 Da
+  8/16 6963 spectra 1271.56 to 1346.62 Da
+  9/16 6963 spectra 1346.63 to 1426.79 Da
+  10/16 6964 spectra 1426.79 to 1514.74 Da
+  11/16 6963 spectra 1514.74 to 1624.9 Da
+  12/16 6963 spectra 1624.9 to 1759.88 Da
+  13/16 6964 spectra 1759.88 to 1926.98 Da
+  14/16 6963 spectra 1926.98 to 2153.01 Da
+  15/16 6963 spectra 2153.02 to 2547.24 Da
+  16/16 6964 spectra 2547.27 to 6950.54 Da
+== multi3/s4_r1: reachable peptides per slice (of all generated)
+ 2278491 2292300 2860133 7478994 | generated per slice 19473439 | sum 14909918 | largest slice 50% of sum
+  1/4 6000 spectra 697.382 to 1054.48 Da
+  2/4 6000 spectra 1054.49 to 1330.17 Da
+  3/4 6000 spectra 1330.55 to 1713.9 Da
+  4/4 6000 spectra 1713.94 to 6884.09 Da

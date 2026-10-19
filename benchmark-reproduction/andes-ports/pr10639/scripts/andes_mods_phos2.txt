@@ -1,0 +1,6 @@
+NumMods=2
+57.021464000,C,fix,any,Carbamidomethyl (C)
+15.994915000,M,opt,any,Oxidation (M)
+79.966331000,S,opt,any,Phospho (S)
+79.966331000,T,opt,any,Phospho (T)
+79.966331000,Y,opt,any,Phospho (Y)
