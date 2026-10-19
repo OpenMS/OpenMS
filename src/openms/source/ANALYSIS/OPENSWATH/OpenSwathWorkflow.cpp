@@ -50,6 +50,10 @@ namespace OpenMS
       arrays) without touching its state: the thread that owns the chromatograms does that here,
       and only the finished rows are appended inside the lock. For other consumers this does
       nothing and writeOutFeaturesAndChroms_() writes the chromatograms as before.
+
+      The chromatograms are encoded in ranges by tasks, which threads without other work (e.g.
+      the scoring threads that wait for the last scoring job of a SWATH) execute; write()
+      appends the ranges in order, so the rows are the same as if one thread encoded them.
     */
     struct PreEncodedChromatograms
     {
@@ -64,13 +68,64 @@ namespace OpenMS
         }
         // same order and the same skipping of empty chromatograms as writeOutFeaturesAndChroms_(),
         // which finds the encoded chromatograms empty afterwards and skips them
+        std::vector<MSChromatogram*> to_encode;
+        to_encode.reserve(ms1_chromatograms.size() + chromatograms.size());
         for (MSChromatogram& chromatogram : ms1_chromatograms)
         {
-          if (!chromatogram.empty()) consumer->encodeChromatogram(chromatogram, rows);
+          if (!chromatogram.empty()) to_encode.push_back(&chromatogram);
         }
         for (MSChromatogram& chromatogram : chromatograms)
         {
-          if (!chromatogram.empty()) consumer->encodeChromatogram(chromatogram, rows);
+          if (!chromatogram.empty()) to_encode.push_back(&chromatogram);
+        }
+
+        constexpr Size chromatograms_per_range = 256;
+        const SignedSize nr_ranges = static_cast<SignedSize>((to_encode.size() + chromatograms_per_range - 1) / chromatograms_per_range);
+        rows.resize(nr_ranges);
+        std::exception_ptr encode_exception;
+        std::mutex encode_exception_mutex;
+        auto encode_range = [&](const SignedSize range)
+        {
+          try
+          {
+            const Size end = std::min(to_encode.size(), static_cast<Size>(range + 1) * chromatograms_per_range);
+            for (Size i = static_cast<Size>(range) * chromatograms_per_range; i < end; ++i)
+            {
+              consumer->encodeChromatogram(*to_encode[i], rows[range]);
+            }
+          }
+          catch (...)
+          {
+            std::lock_guard<std::mutex> lock(encode_exception_mutex);
+            if (encode_exception == nullptr) encode_exception = std::current_exception();
+          }
+        };
+#ifdef _OPENMP
+        if (omp_in_parallel() != 0)
+        {
+#pragma omp taskloop grainsize(1)
+          for (SignedSize range = 0; range < nr_ranges; ++range)
+          {
+            encode_range(range);
+          }
+        }
+        else
+        {
+#pragma omp parallel for schedule(dynamic, 1)
+          for (SignedSize range = 0; range < nr_ranges; ++range)
+          {
+            encode_range(range);
+          }
+        }
+#else
+        for (SignedSize range = 0; range < nr_ranges; ++range)
+        {
+          encode_range(range);
+        }
+#endif
+        if (encode_exception != nullptr)
+        {
+          std::rethrow_exception(encode_exception);
         }
       }
 
@@ -79,12 +134,15 @@ namespace OpenMS
       {
         if (consumer != nullptr)
         {
-          consumer->consumeEncodedChromatograms(rows);
+          for (MSChromatogramParquetConsumer::EncodedChromatograms& range_rows : rows)
+          {
+            consumer->consumeEncodedChromatograms(range_rows);
+          }
         }
       }
 
       MSChromatogramParquetConsumer* consumer;
-      MSChromatogramParquetConsumer::EncodedChromatograms rows;
+      std::vector<MSChromatogramParquetConsumer::EncodedChromatograms> rows;
     };
 
     // --- Dynamic batching helpers ---
@@ -614,8 +672,12 @@ namespace OpenMS
                          << wave.swath_indices.size() << " SWATHs (estimated "
                          << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
 
+      // Extract the SWATHs of a wave in parallel only if every thread gets one. Fewer SWATHs (e.g.
+      // max_concurrent_swaths = 1) are extracted one after the other, and the chromatogram
+      // extraction of each then uses all threads.
+      [[maybe_unused]] const bool parallel_swath_extraction = wave.swath_indices.size() >= scoring_threads;
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) if (parallel_swath_extraction)
 #endif
       for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
       {
