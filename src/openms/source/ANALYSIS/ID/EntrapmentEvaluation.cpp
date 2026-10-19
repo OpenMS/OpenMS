@@ -45,6 +45,37 @@ namespace OpenMS
       if (acc[rest] != '_' || rest + 1 == acc.size()) return false;
       return std::all_of(acc.begin() + rest + 1, acc.end(), [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
     }
+
+    /// I and L have the same mass: count them as one residue
+    std::string toIL(std::string_view peptide)
+    {
+      std::string s(peptide);
+      std::replace(s.begin(), s.end(), 'I', 'L');
+      return s;
+    }
+
+    /// distinct digested peptides (I = L) of the target and of the entrapment proteins of @p db; decoys are skipped
+    void digestDatabase(const std::vector<FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                        const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                        Size missed_cleavages, Size min_length, Size max_length,
+                        std::unordered_set<std::string>& target_peptides, std::unordered_set<std::string>* entrapment_peptides)
+    {
+      ProteaseDigestion digestion;
+      digestion.setEnzyme(enzyme);
+      digestion.setMissedCleavages(missed_cleavages);
+      std::vector<std::string_view> peptides;
+      for (const auto& entry : db)
+      {
+        const std::string& acc = entry.identifier;
+        if (!decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string))) continue;
+        const bool is_entrapment = !entrapment_prefix.empty() && startsWith(acc, entrapment_prefix);
+        if (is_entrapment && entrapment_peptides == nullptr) continue;
+        peptides.clear();
+        digestion.digestUnmodified(entry.sequence, peptides, min_length, max_length);
+        auto& bucket = is_entrapment ? *entrapment_peptides : target_peptides;
+        for (const auto& p : peptides) bucket.emplace(toIL(p));
+      }
+    }
   }
 
   double EntrapmentEvaluation::Result::psmFDP() const
@@ -78,22 +109,9 @@ namespace OpenMS
                                                Size min_length,
                                                Size max_length)
   {
-    ProteaseDigestion digestion;
-    digestion.setEnzyme(enzyme);
-    digestion.setMissedCleavages(missed_cleavages);
-
     std::unordered_set<std::string> target_peptides, entrapment_peptides;
-    std::vector<std::string_view> peptides;
-    for (const auto& entry : db)
-    {
-      const std::string& acc = entry.identifier;
-      if (!decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string))) continue;
-      const bool is_entrapment = !entrapment_prefix.empty() && startsWith(acc, entrapment_prefix);
-      peptides.clear();
-      digestion.digestUnmodified(entry.sequence, peptides, min_length, max_length);
-      auto& bucket = is_entrapment ? entrapment_peptides : target_peptides;
-      for (const auto& p : peptides) bucket.emplace(p);
-    }
+    digestDatabase(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme, missed_cleavages, min_length, max_length,
+                   target_peptides, &entrapment_peptides);
     Size n_entrapment = 0;
     for (const auto& p : entrapment_peptides)
     {
@@ -101,6 +119,21 @@ namespace OpenMS
     }
     if (n_entrapment == 0) return 1.0;
     return static_cast<double>(target_peptides.size()) / static_cast<double>(n_entrapment);
+  }
+
+  std::unordered_set<std::string> EntrapmentEvaluation::targetPeptides(const std::vector<FASTAFile::FASTAEntry>& db,
+                                                                      const std::string& entrapment_prefix,
+                                                                      const std::string& decoy_string,
+                                                                      bool decoy_is_prefix,
+                                                                      const std::string& enzyme,
+                                                                      Size missed_cleavages,
+                                                                      Size min_length,
+                                                                      Size max_length)
+  {
+    std::unordered_set<std::string> target_peptides;
+    digestDatabase(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme, missed_cleavages, min_length, max_length,
+                   target_peptides, nullptr);
+    return target_peptides;
   }
 
   double EntrapmentEvaluation::qValue(const PeptideIdentification& pep_id, const PeptideHit& hit)
@@ -117,7 +150,8 @@ namespace OpenMS
                                                                                     double q_threshold,
                                                                                     const std::string& entrapment_prefix,
                                                                                     double te_ratio,
-                                                                                    const std::string& class_meta_value)
+                                                                                    const std::string& class_meta_value,
+                                                                                    const std::unordered_set<std::string>* target_peptides)
   {
     std::map<std::string, Result> results;
     // distinct peptides per class, with "is entrapment" (a sequence counts as entrapment only if all its PSMs are)
@@ -143,7 +177,9 @@ namespace OpenMS
       const double q = qValue(pep_id, hit);
       if (!std::isfinite(q) || q < 0.0 || q > q_threshold) continue; // also rejects NaN
 
-      const bool is_entrapment = (kind == Kind::ENTRAPMENT);
+      // an entrapment peptide that equals a target peptide up to I/L cannot be told apart from it
+      const bool is_entrapment = (kind == Kind::ENTRAPMENT) &&
+        (target_peptides == nullptr || !target_peptides->contains(toIL(hit.getSequence().toUnmodifiedString())));
       const std::string sequence = hit.getSequence().toString();
       count("all", sequence, is_entrapment);
       if (!class_meta_value.empty())

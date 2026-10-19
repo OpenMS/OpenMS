@@ -15,6 +15,7 @@
 
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace OpenMS
@@ -37,7 +38,9 @@ namespace OpenMS
     "combined" estimator of Wen et al., Nat. Methods (2025), which is an upper-bound-like estimate of the FDP.
 
     A PSM counts as entrapment only when @em all its proteins are entrapment proteins: a peptide that also occurs in
-    a target protein is a target. Decoy PSMs (target_decoy = decoy) are ignored.
+    a target protein is a target. Given the target peptides of the database (targetPeptides()), a PSM whose sequence
+    equals a target peptide with I and L taken as one residue also counts as target: I and L have the same mass, so
+    the two cannot be told apart. Decoy PSMs (target_decoy = decoy) are ignored.
 
     Results can be stratified by a meta value of the peptide hits (for example a modification class), which shows
     whether the nominal FDR holds within each class.
@@ -85,8 +88,8 @@ namespace OpenMS
 
       Proteins whose accession carries @p decoy_string are skipped: as a prefix, or (see @p decoy_is_prefix) as a suffix,
       optionally followed by "_<n>" as DecoyDatabase writes it with shuffle_decoy_ratio > 1.
-      Peptides are counted after in-silico digestion with @p enzyme, within the length limits; a peptide that occurs
-      in a target protein counts as target only.
+      Peptides are counted after in-silico digestion with @p enzyme, within the length limits, with I and L taken as
+      one residue; a peptide that occurs in a target protein counts as target only.
 
       @return T/E, or 1 if the database has no entrapment peptides
     */
@@ -98,6 +101,20 @@ namespace OpenMS
                                   Size missed_cleavages = 2,
                                   Size min_length = 7,
                                   Size max_length = 40);
+
+    /**
+      @brief The distinct searchable peptides of the target proteins of a database, with every I replaced by L
+
+      Digests like estimateTERatio(); decoy and entrapment proteins are skipped. Pass the result to evaluate().
+    */
+    static std::unordered_set<std::string> targetPeptides(const std::vector<FASTAFile::FASTAEntry>& db,
+                                                          const std::string& entrapment_prefix,
+                                                          const std::string& decoy_string,
+                                                          bool decoy_is_prefix,
+                                                          const std::string& enzyme = "Trypsin",
+                                                          Size missed_cleavages = 2,
+                                                          Size min_length = 7,
+                                                          Size max_length = 40);
 
     /**
       @brief Return the q-value of a hit
@@ -118,12 +135,15 @@ namespace OpenMS
       @param te_ratio T/E (see estimateTERatio())
       @param class_meta_value If not empty, results are additionally reported per value of this hit meta value
              (hits without it are in class "NA")
+      @param target_peptides If given (see targetPeptides()), an entrapment-only hit whose unmodified sequence, with I
+             replaced by L, is one of these counts as target
       @return Results keyed by class; key "all" holds the overall result (a class named "all" is reported as "class:all")
     */
     static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids,
                                                   double q_threshold,
                                                   const std::string& entrapment_prefix,
                                                   double te_ratio,
-                                                  const std::string& class_meta_value = "");
+                                                  const std::string& class_meta_value = "",
+                                                  const std::unordered_set<std::string>* target_peptides = nullptr);
   };
 } // namespace OpenMS

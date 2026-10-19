@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/ID/EntrapmentEvaluation.h>
 
 #include <limits>
+#include <unordered_set>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -74,7 +75,7 @@ START_SECTION((static double qValue(const PeptideIdentification& pep_id, const P
 }
 END_SECTION
 
-START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix, double te_ratio, const std::string& class_meta_value = "")))
+START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix, double te_ratio, const std::string& class_meta_value = "", const std::unordered_set<std::string>* target_peptides = nullptr)))
 {
   PeptideIdentificationList ids;
   // 8 target PSMs (7 distinct peptides), 2 entrapment PSMs (2 peptides), 1 decoy, 1 above threshold
@@ -120,6 +121,17 @@ START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdenti
   ids.push_back(makeId("RRRK", -0.1, {"P1"}));
   res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0);
   TEST_EQUAL(res["all"].accepted_psms, 10)
+
+  // with the target peptides of the database: KILLK (entrapment) is KLLLK with I = L, which a target protein holds,
+  // so it counts as target; KMMMK stays entrapment
+  ids.push_back(makeId("KILLK", 0.003, {"ENTRAP_P8"}));
+  const std::unordered_set<std::string> target_peptides = {"KLLLK", "AAAK"};
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, "", &target_peptides);
+  TEST_EQUAL(res["all"].accepted_psms, 11)
+  TEST_EQUAL(res["all"].entrapment_psms, 1)
+  TEST_EQUAL(res["all"].entrapment_peptides, 1)
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0);
+  TEST_EQUAL(res["all"].entrapment_psms, 3)
 }
 END_SECTION
 
@@ -143,6 +155,25 @@ START_SECTION((static double estimateTERatio(const std::vector<FASTAFile::FASTAE
   // no entrapment: 1
   db.erase(db.begin() + 1);
   TEST_REAL_SIMILAR(EntrapmentEvaluation::estimateTERatio(db, "ENTRAP_", "DECOY_", true, "Trypsin", 0, 7, 40), 1.0)
+  // I = L: the entrapment peptide CCCCLCCK equals the target peptide CCCCICCK, EEEEEEEK is entrapment-only
+  db[0].sequence = "AAAAAAAKCCCCICCKDDDDDDDK";
+  db.emplace_back("ENTRAP_P2", "", "CCCCLCCKEEEEEEEK");
+  TEST_REAL_SIMILAR(EntrapmentEvaluation::estimateTERatio(db, "ENTRAP_", "DECOY_", true, "Trypsin", 0, 7, 40), 3.0)
+}
+END_SECTION
+
+START_SECTION((static std::unordered_set<std::string> targetPeptides(const std::vector<FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix, const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme = "Trypsin", Size missed_cleavages = 2, Size min_length = 7, Size max_length = 40)))
+{
+  std::vector<FASTAFile::FASTAEntry> db;
+  db.emplace_back("P1", "", "AAAAAAAKCCCCICCK");
+  db.emplace_back("ENTRAP_P1", "", "EEEEEEEK");
+  db.emplace_back("DECOY_P1", "", "GGGGGGGK");
+  const auto peptides = EntrapmentEvaluation::targetPeptides(db, "ENTRAP_", "DECOY_", true, "Trypsin", 0, 7, 40);
+  TEST_EQUAL(peptides.size(), 2)
+  TEST_EQUAL(peptides.contains("AAAAAAAK"), true)
+  TEST_EQUAL(peptides.contains("CCCCLCCK"), true) // I replaced by L
+  TEST_EQUAL(peptides.contains("EEEEEEEK"), false)
+  TEST_EQUAL(peptides.contains("GGGGGGGK"), false)
 }
 END_SECTION
 

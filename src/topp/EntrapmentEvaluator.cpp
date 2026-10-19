@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <map>
 #include <sstream>
+#include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
@@ -40,8 +41,10 @@ true false discovery proportion (FDP):
   FDP = N_entrapment / N_accepted * (1 + T/E)
 
 T/E is the ratio of searchable target to entrapment peptides. It is computed from @p -database when given
-(by in-silico digestion), otherwise taken from @p -te_ratio. A PSM counts as entrapment only when all its
-proteins are entrapment proteins.
+(by in-silico digestion, I and L taken as one residue), otherwise taken from @p -te_ratio. A PSM counts as
+entrapment only when all its proteins are entrapment proteins and, with @p -database, its sequence is not also a
+target peptide of the database with I and L taken as one residue (I and L have the same mass, so such a PSM cannot be
+told apart from the target peptide; search engines usually map peptides to proteins without this equivalence).
 
 A nominal FDR that holds gives an FDP at or below the threshold. Use it to validate changes to search and
 rescoring: a change that yields more identifications at the same nominal FDR is only an improvement if the FDP
@@ -75,7 +78,7 @@ protected:
     setValidFormats_("in", {"idXML", "idparquet"});
     registerOutputFile_("out", "<file>", "", "Optional tab-separated output (one row per file name, class and threshold).", false);
     setValidFormats_("out", {"tsv"});
-    registerInputFile_("database", "<file>", "", "Searched database (target + entrapment, decoys are skipped). Used to compute T/E; if not given, 'te_ratio' is used.", false);
+    registerInputFile_("database", "<file>", "", "Searched database (target + entrapment, decoys are skipped). Used to compute T/E (if not given, 'te_ratio' is used) and to count an entrapment PSM whose sequence is also a target peptide with I = L as target.", false);
     setValidFormats_("database", {"fasta"});
     registerDoubleOption_("te_ratio", "<ratio>", 1.0, "Ratio of searchable target to entrapment peptides (used if no 'database' is given).", false);
     setMinFloat_("te_ratio", 0.0);
@@ -101,14 +104,20 @@ protected:
 
     double te_ratio = getDoubleOption_("te_ratio");
     const std::string database = getStringOption_("database");
+    std::unordered_set<std::string> target_peptides;
     if (!database.empty())
     {
       std::vector<FASTAFile::FASTAEntry> db;
       FASTAFile().load(database, db);
-      te_ratio = EntrapmentEvaluation::estimateTERatio(db, entrapment_prefix, getStringOption_("decoy_string"),
-                                                       getStringOption_("decoy_string_position") == "prefix",
-                                                       getStringOption_("enzyme"), getIntOption_("missed_cleavages"),
-                                                       getIntOption_("min_length"), getIntOption_("max_length"));
+      const std::string decoy_string = getStringOption_("decoy_string");
+      const bool decoy_is_prefix = getStringOption_("decoy_string_position") == "prefix";
+      const std::string enzyme = getStringOption_("enzyme");
+      te_ratio = EntrapmentEvaluation::estimateTERatio(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme,
+                                                       getIntOption_("missed_cleavages"), getIntOption_("min_length"),
+                                                       getIntOption_("max_length"));
+      target_peptides = EntrapmentEvaluation::targetPeptides(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme,
+                                                             getIntOption_("missed_cleavages"), getIntOption_("min_length"),
+                                                             getIntOption_("max_length"));
       OPENMS_LOG_INFO << "T/E from '" << database << "': " << te_ratio << '\n';
     }
 
@@ -135,7 +144,8 @@ protected:
     {
       for (double q : thresholds)
       {
-        const auto results = EntrapmentEvaluation::evaluate(peptides, q, entrapment_prefix, te_ratio, class_meta_value);
+        const auto results = EntrapmentEvaluation::evaluate(peptides, q, entrapment_prefix, te_ratio, class_meta_value,
+                                                            database.empty() ? nullptr : &target_peptides);
         for (const auto& [cls, r] : results)
         {
           table << name << '\t' << cls << '\t' << q << '\t' << r.accepted_psms << '\t' << r.entrapment_psms << '\t'
