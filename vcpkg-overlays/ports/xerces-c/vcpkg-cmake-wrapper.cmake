@@ -1,4 +1,6 @@
-_find_package(${ARGS})
+# FindXercesC omits transitive dependencies such as curl from static libraries.
+list(REMOVE_ITEM ARGS "NO_MODULE" "CONFIG" "MODULE")
+_find_package(${ARGS} CONFIG)
 
 if (APPLE)
    if (TARGET XercesC::XercesC)
