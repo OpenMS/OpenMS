@@ -398,6 +398,10 @@ namespace OpenMS
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue("scoring:candidate_tie_break", "none",
+      "How fragment-index candidates with the same number of matched fragments are ranked before the 'scoring:max_candidates_per_spectrum' cut: "
+      "'intensity' prefers the candidate whose matched peaks are more intense in sum; 'none' ranks them by isotope error, charge and index order.");
+    defaults_.setValidStrings("scoring:candidate_tie_break", {"none", "intensity"});
     defaults_.setValue(
       "scoring:fragment_charges", "auto",
       "Fragment charges of the theoretical spectra that score each candidate. 'single' scores singly charged fragments only. "

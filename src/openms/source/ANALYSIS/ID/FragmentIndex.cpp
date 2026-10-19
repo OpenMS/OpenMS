@@ -2792,12 +2792,18 @@ namespace OpenMS
       // therefore restores the all-zero state in O(touched) rather than an O(window) memset,
       // and it does so for ANY subsequent window size.
       thread_local std::vector<uint32_t> match_counts;   // matched-peak count per cell
+      thread_local std::vector<float> match_intensity;   // matched-peak intensity per cell (scoring:candidate_tie_break 'intensity')
       thread_local std::vector<UInt32> touched_ids;      // cells written since the last reset
       thread_local std::vector<UInt32> emit_ids;         // subset of touched_ids that is emitted
 
       // Cells left over from a wider previous window still index within the table and
       // are still nonzero, so they must be cleared here regardless of the current window.
       for (UInt32 cell : touched_ids) match_counts[cell] = 0;
+      // (whatever this index's setting: the thread's tables are shared by every index the thread queries)
+      if (!match_intensity.empty())
+      {
+        for (UInt32 cell : touched_ids) if (cell < match_intensity.size()) match_intensity[cell] = 0.0f;
+      }
       touched_ids.clear();
 
       // Release the high-water table once this thread enters genuinely-small-window
@@ -2813,6 +2819,7 @@ namespace OpenMS
           && match_counts.size() * sizeof(uint32_t) > release_bytes)
       {
         std::vector<uint32_t>(window).swap(match_counts);
+        std::vector<float>().swap(match_intensity);
         touched_ids.shrink_to_fit();
         emit_ids.clear();
         emit_ids.shrink_to_fit();
@@ -2820,6 +2827,9 @@ namespace OpenMS
       // Grow-only otherwise: resize value-initializes just the new tail, and the reset
       // above already restored every older cell to zero.
       else if (window > match_counts.size()) match_counts.resize(window);
+      // The intensity table is only kept when ties are broken by intensity; it follows match_counts in size (a fresh
+      // or grown tail is all-zero, as the reset above requires).
+      if (tie_break_by_intensity_ && match_intensity.size() < match_counts.size()) match_intensity.resize(match_counts.size());
 
       // Loop-invariant: same cap as the previous per-peak std::min(). A precursor charge of
       // 0 yields an empty fragment-charge loop, hence no candidates — as before.
@@ -2827,6 +2837,7 @@ namespace OpenMS
 
       // the thread-local buffers, resolved once for the loops below
       uint32_t* const counts = match_counts.data();
+      float* const intensities = tie_break_by_intensity_ ? match_intensity.data() : nullptr;
       std::vector<UInt32>& touched = touched_ids;
 
       // A bucket visit: the bucket, where in it the candidate ranges are expected to start,
@@ -2839,6 +2850,7 @@ namespace OpenMS
         const Fragment* end;
         float mz_lo;
         float mz_hi;
+        float intensity; // of the peak the visit matches against
       };
 
       // Tolerance window and half-open peptide-range test are identical to
@@ -2871,6 +2883,7 @@ namespace OpenMS
                 uint32_t& count = block_counts[it->peptide_idx_ - block.first];
                 if (count == 0) touched.push_back(static_cast<UInt32>(&count - counts));
                 ++count;   // uint32_t, same type as SpectrumMatch::num_matched_ — no saturation
+                if (intensities != nullptr) intensities[&count - counts] += v.intensity;
               }
             }
             if (it == v.end) return;
@@ -2888,7 +2901,7 @@ namespace OpenMS
 
       // Bucket range of a peak as in FragmentIndex::query() — same buckets visited.
       auto count_matches = [&](const std::vector<Fragment>& fragments, const std::vector<float>& bucket_min_mz,
-                               const std::vector<UInt32>& skip, float adjusted_mass, float frag_tol)
+                               const std::vector<UInt32>& skip, float adjusted_mass, float frag_tol, float peak_intensity)
       {
           const float mz_lo = adjusted_mass - frag_tol;
           const float mz_hi = adjusted_mass + frag_tol;
@@ -2934,7 +2947,7 @@ namespace OpenMS
             prefetchForRead(guess, 96);
 
             if (num_queued - num_scanned == pipeline_depth) scan(pipeline[num_scanned++ % pipeline_depth]);
-            pipeline[num_queued++ % pipeline_depth] = Visit{slice_begin, guess, slice_end, mz_lo, mz_hi};
+            pipeline[num_queued++ % pipeline_depth] = Visit{slice_begin, guess, slice_end, mz_lo, mz_hi, peak_intensity};
           }
       };
 
@@ -2946,9 +2959,10 @@ namespace OpenMS
 
           float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
 
-          count_matches(fi_fragments_, bucket_min_mz_, bucket_skip_, adjusted_mass, frag_tol);
+          const float peak_intensity = peak.getIntensity();
+          count_matches(fi_fragments_, bucket_min_mz_, bucket_skip_, adjusted_mass, frag_tol, peak_intensity);
           // ions:electron_ions: the c and z+1 ions count only when the caller asks for them
-          if (with_electron_ions) count_matches(electron_fragments_, electron_bucket_min_mz_, electron_bucket_skip_, adjusted_mass, frag_tol);
+          if (with_electron_ions) count_matches(electron_fragments_, electron_bucket_min_mz_, electron_bucket_skip_, adjusted_mass, frag_tol, peak_intensity);
         }
       }
       while (num_scanned < num_queued) scan(pipeline[num_scanned++ % pipeline_depth]);
@@ -2965,6 +2979,7 @@ namespace OpenMS
       {
         SpectrumMatch& sm = candidates.hits_.emplace_back();
         sm.num_matched_ = counts[cell];
+        if (intensities != nullptr) sm.matched_intensity_ = intensities[cell];
         sm.precursor_charge_ = precursor_charge;
         sm.isotope_error_ = block.isotope_error;
         sm.peptide_idx_ = block.first + (cell - block.cell_offset);
@@ -3017,6 +3032,10 @@ namespace OpenMS
       // Single ranking predicate for both branches below (they used to carry two copies of it,
       // which is exactly how they would drift apart). Keys, most significant first:
       //   1. num_matched_      descending — more matched fragments wins
+      //   1b. matched_intensity_ descending — with scoring:candidate_tie_break 'intensity' (0 for every hit
+      //      otherwise): of candidates with as many matched fragments, the one matching the more intense peaks
+      //      wins. The vote count ties often, so the top-N cut otherwise falls inside a tie that the keys below
+      //      resolve by isotope error, charge and index position, which says nothing about the spectrum.
       //   2. |isotope_error_|  ascending  — prefer the assignment closest to monoisotopic
       //   3. isotope_error_    ascending  — resolve -k vs +k by sign instead of by luck
       //   4. precursor_charge_ ascending
@@ -3034,6 +3053,10 @@ namespace OpenMS
         if (a.num_matched_ != b.num_matched_)
         {
           return a.num_matched_ > b.num_matched_;
+        }
+        if (a.matched_intensity_ != b.matched_intensity_)
+        {
+          return a.matched_intensity_ > b.matched_intensity_;
         }
         // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
         const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
@@ -3746,6 +3769,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue("scoring:candidate_tie_break", "none",
+      "How candidates with the same number of matched fragments are ranked before the 'scoring:max_candidates_per_spectrum' cut: "
+      "'intensity' prefers the candidate whose matched peaks are more intense in sum; 'none' ranks them by isotope error, charge and index order. "
+      "Not used by the peptide-mass path of 'low_memory'.");
+    defaults_.setValidStrings("scoring:candidate_tie_break", {"none", "intensity"});
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     //defaults from the searchEngine that are not needed for this class, but otherwise we would generate a warning
@@ -3835,6 +3863,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
     max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
+    tie_break_by_intensity_ = param_.getValue("scoring:candidate_tie_break").toString() == "intensity";
     deduplicate_ = param_.getValue("peptide:deduplicate").toBool();
 
     // low_memory applies to non-specific searches only

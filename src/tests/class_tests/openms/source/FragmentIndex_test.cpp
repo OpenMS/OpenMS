@@ -5012,4 +5012,61 @@ START_SECTION(([EXTRA] residue-specific terminal modifications occupy the termin
 }
 END_SECTION
 
+START_SECTION((scoring:candidate_tie_break ranks equal-vote candidates by matched peak intensity))
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {
+    {"test1", "test1",
+    "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"}};
+
+  // theoretical spectrum of one peptide, every peak at intensity 2
+  const AASequence peptide = AASequence::fromString("AGDRVMVLNR");
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum ions;
+  tsg.getSpectrum(ions, peptide, 1, 2);
+  MSSpectrum spectrum;
+  for (const auto& p : ions) spectrum.emplace_back(p.getMZ(), 2.0f);
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setMSLevel(2);
+  spectrum.setPrecursors({precursor});
+
+  auto query = [&](const std::string& tie_break)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    TEST_EQUAL(p.getValue("scoring:candidate_tie_break").toString(), "none")
+    p.setValue("scoring:candidate_tie_break", tie_break);
+    // wide precursor window, so that many candidates compete
+    p.setValue("precursor:mass_tolerance_lower", 50.0);
+    p.setValue("precursor:mass_tolerance_upper", 50.0);
+    p.setValue("precursor:mass_tolerance_unit", "Da");
+    fi.setParameters(p);
+    fi.build(entries);
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, sms);
+    return sms;
+  };
+
+  const auto none = query("none");
+  TEST_EQUAL(none.hits_.empty(), false)
+  for (const auto& h : none.hits_) TEST_REAL_SIMILAR(h.matched_intensity_, 0.0)
+
+  const auto intensity = query("intensity");
+  TEST_EQUAL(intensity.hits_.empty(), false)
+  // the best hit matches the most peaks; each matched peak adds its intensity once per fragment it matches
+  TEST_EQUAL(intensity.hits_[0].num_matched_ > 0, true)
+  TEST_REAL_SIMILAR(intensity.hits_[0].matched_intensity_, 2.0 * intensity.hits_[0].num_matched_)
+  // ranked by matched peaks, then by matched intensity
+  bool ranked = true;
+  for (Size i = 1; i < intensity.hits_.size(); ++i)
+  {
+    const auto& a = intensity.hits_[i - 1];
+    const auto& b = intensity.hits_[i];
+    if (a.num_matched_ < b.num_matched_ || (a.num_matched_ == b.num_matched_ && a.matched_intensity_ < b.matched_intensity_)) ranked = false;
+  }
+  TEST_EQUAL(ranked, true)
+}
+END_SECTION
+
 END_TEST

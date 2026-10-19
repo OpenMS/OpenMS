@@ -88,6 +88,7 @@ namespace OpenMS
       uint32_t num_matched_{};       ///< Number of peaks-fragment hits
       uint32_t subset_bitmask_{};    ///< Peptide-mass mode: active slots in the slot list returned by buildModSlots_ for the realized sub-peptide. 0 = unmodified. Ignored without low_memory.
       float    sigma_delta_{};       ///< Peptide-mass mode: Σ of the variable-mod deltas of subset_bitmask_. 0 without low_memory or unmodified.
+      float    matched_intensity_{}; ///< Σ of the intensities of the matched peaks (a peak counts once per fragment it matches); breaks ties in num_matched_ when scoring:candidate_tie_break is 'intensity', 0 otherwise.
       uint16_t precursor_charge_{};  ///< The precursor_charge used for the performed search
       int16_t  isotope_error_{};     ///< The isotope_error used for the performed search
       uint16_t realized_length_{};   ///< Peptide-mass mode: length of the realized sub-peptide, a prefix of the mother peptide_idx_. 0 without low_memory.
@@ -1020,6 +1021,7 @@ private:
     uint16_t max_precursor_charge_; ///< maximal possible precursor charge
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
+    bool tie_break_by_intensity_ = false; ///< scoring:candidate_tie_break == "intensity": rank candidates with equal num_matched_ by matched_intensity_
     bool deduplicate_{false};       ///< peptide:deduplicate
     
     /// Instance delegate — same rule, reads the member bounds.
