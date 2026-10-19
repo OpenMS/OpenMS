@@ -1,0 +1,2 @@
+hfx pr_off {"all": {"psms": 59969, "peptides": 40930, "entrap": 536, "fdp": 0.01788}, "r1": {"psms": 59969, "peptides": 40930, "entrap": 536, "fdp": 0.01788}}
+hfx pr_on {"all": {"psms": 100030, "peptides": 46838, "entrap": 901, "fdp": 0.01801}, "r1": {"psms": 59768, "peptides": 40811, "entrap": 523, "fdp": 0.0175}, "r2": {"psms": 40262, "peptides": 23475, "entrap": 378, "fdp": 0.01878}}

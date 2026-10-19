@@ -1,0 +1,9 @@
+file	arm	sha256 search.pin.tsv
+hfx	base	bf67a420925985507dcdd6ffe77d48dc1f84af22e13345fcfa6e2e1361a61567
+hfx	pr_off	bf67a420925985507dcdd6ffe77d48dc1f84af22e13345fcfa6e2e1361a61567
+astral	base	b6b86bae621b97aead7d76c7e01cf6d754b1a7f99ae0f7e2a1c2f25cd1459712
+astral	pr_off	b6b86bae621b97aead7d76c7e01cf6d754b1a7f99ae0f7e2a1c2f25cd1459712
+
+idXML without the date lines (grep -v 'date|creation'):
+hfx	base	89d38b00bc2da079b91c51f3b51a1c418cc4549cefdf04e1d4bc7659b1e06667
+hfx	pr_off	89d38b00bc2da079b91c51f3b51a1c418cc4549cefdf04e1d4bc7659b1e06667
