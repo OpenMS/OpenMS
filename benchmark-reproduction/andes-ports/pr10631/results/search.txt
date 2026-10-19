@@ -1,0 +1,6 @@
+Fig2_m23141_hrMS2: Input        : Fig2_m23141_hrMS2.mzML  (14449 MS2 spectra) Target/decoy : 5708 target / 57 decoy PSMs  | PSM FDR <= 1.0%, achieved 1.00% 
+Fig2_m23142_hrMS2: Input        : Fig2_m23142_hrMS2.mzML  (14377 MS2 spectra) Target/decoy : 5557 target / 55 decoy PSMs  | PSM FDR <= 1.0%, achieved 0.99% 
+Fig2_m23145_SPSms3: Input        : Fig2_m23145_SPSms3.mzML  (10472 MS2 spectra) Target/decoy : 4408 target / 43 decoy PSMs  | PSM FDR <= 1.0%, achieved 0.98% 
+Fig2_m23146_SPSms3: Input        : Fig2_m23146_SPSms3.mzML  (10457 MS2 spectra) Target/decoy : 4402 target / 43 decoy PSMs  | PSM FDR <= 1.0%, achieved 0.98% 
+a05058: Input        : a05058.mzML  (37330 MS2 spectra) Target/decoy : 11685 target / 116 decoy PSMs  | PSM FDR <= 1.0%, achieved 1.00% 
+xb10855: Input        : xb10855.mzML  (33013 MS2 spectra) Target/decoy : 11009 target / 109 decoy PSMs  | PSM FDR <= 1.0%, achieved 0.99% 

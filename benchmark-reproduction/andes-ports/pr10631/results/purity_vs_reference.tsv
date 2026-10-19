@@ -1,0 +1,25 @@
+run	subset	arm	psms	median_abs_diff_to_ref	within_0.05_of_ref	above_ref_by_0.2	purity_ge_0.9	ref_purity_ge_0.9
+a05058	selected ion inside window	base	8661	0.0	8589	5	6103	6123
+a05058	selected ion inside window	pr	8661	0.0	8591	5	6102	6123
+a05058	selected ion inside window	fix	8661	0.0	8591	5	6102	6123
+a05058	selected ion outside window	base	2962	0.0197	1661	238	1984	2082
+a05058	selected ion outside window	pr	2962	0.0	2121	42	2181	2082
+a05058	selected ion outside window	fix	2962	0.0	2935	2	2073	2082
+xb10855	selected ion inside window	base	8390	0.0	8077	187	6990	6797
+xb10855	selected ion inside window	pr	8390	0.0	8093	187	6993	6797
+xb10855	selected ion inside window	fix	8390	0.0	8093	187	6993	6797
+xb10855	selected ion outside window	base	2609	0.0	1902	216	2107	2094
+xb10855	selected ion outside window	pr	2609	0.0	2050	170	2244	2094
+xb10855	selected ion outside window	fix	2609	0.0	2446	112	2200	2094
+Fig2_m23145_SPSms3	selected ion inside window	base	4183	0.0	3968	3	3158	3213
+Fig2_m23145_SPSms3	selected ion inside window	pr	4183	0.0	4172	0	3208	3213
+Fig2_m23145_SPSms3	selected ion inside window	fix	4183	0.0	4172	0	3208	3213
+Fig2_m23145_SPSms3	selected ion outside window	base	181	0.0	126	7	138	145
+Fig2_m23145_SPSms3	selected ion outside window	pr	181	0.0	155	4	152	145
+Fig2_m23145_SPSms3	selected ion outside window	fix	181	0.0	181	0	145	145
+Fig2_m23142_hrMS2	selected ion inside window	base	1409	0.0	1405	0	935	936
+Fig2_m23142_hrMS2	selected ion inside window	pr	1409	0.0	1406	0	935	936
+Fig2_m23142_hrMS2	selected ion inside window	fix	1409	0.0	1406	0	935	936
+Fig2_m23142_hrMS2	selected ion outside window	base	28	0.0527	14	5	14	14
+Fig2_m23142_hrMS2	selected ion outside window	pr	28	0.0501	14	3	16	14
+Fig2_m23142_hrMS2	selected ion outside window	fix	28	0.0	28	0	14	14
