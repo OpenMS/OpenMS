@@ -236,6 +236,23 @@ protected:
 
     const SeqType input_type = getStringOption_("type") == "RNA" ? SeqType::RNA : SeqType::protein;
 
+    // checked before any output is written
+    const int entrapment_ratio = getIntOption_("entrapment_ratio");
+    const std::string entrapment_string = getStringOption_("entrapment_string");
+    if (entrapment_ratio > 0)
+    {
+      if (input_type != SeqType::protein)
+      {
+        OPENMS_LOG_ERROR << "Entrapment sequences ('entrapment_ratio' > 0) are only supported for 'type' protein.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (entrapment_string.empty())
+      {
+        OPENMS_LOG_ERROR << "'entrapment_string' must not be empty when 'entrapment_ratio' > 0.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+
     Param decoy_param = getParam_().copy("Decoy:", true);
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
     bool keepC = decoy_param.getValue("keepPeptideCTerm").toBool();
@@ -405,22 +422,6 @@ protected:
     MRMDecoy m;
     m.setParameters(decoy_param);
 
-    const int entrapment_ratio = getIntOption_("entrapment_ratio");
-    const std::string entrapment_string = getStringOption_("entrapment_string");
-    if (entrapment_ratio > 0)
-    {
-      if (input_type != SeqType::protein)
-      {
-        OPENMS_LOG_ERROR << "Entrapment sequences ('entrapment_ratio' > 0) are only supported for 'type' protein.\n";
-        return ILLEGAL_PARAMETERS;
-      }
-      if (entrapment_string.empty())
-      {
-        OPENMS_LOG_ERROR << "'entrapment_string' must not be empty when 'entrapment_ratio' > 0.\n";
-        return ILLEGAL_PARAMETERS;
-      }
-    }
-
     Math::RandomShuffler shuffler(seed);
     for (const auto& file_fasta : in)
     {
@@ -441,6 +442,13 @@ protected:
           OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << read_entry.identifier << "' occurs more than once!" << endl;
         }
         identifiers.insert(read_entry.identifier);
+        if (entrapment_ratio > 0 && StringUtils::hasPrefix(read_entry.identifier, entrapment_string))
+        {
+          // EntrapmentEvaluator would count this target as an entrapment protein
+          OPENMS_LOG_ERROR << "Error: the input identifier '" << read_entry.identifier << "' starts with the 'entrapment_string' '"
+                           << entrapment_string << "'. Choose another 'entrapment_string'." << endl;
+          return INPUT_FILE_CORRUPT;
+        }
 
         // the target itself, followed by its entrapment copies (if requested); each gets its own decoys
         std::vector<FASTAFile::FASTAEntry> sources(1, read_entry);
@@ -448,6 +456,13 @@ protected:
         {
           FASTAFile::FASTAEntry entrap_entry = read_entry;
           entrap_entry.identifier = entrapment_string + read_entry.identifier + (entrapment_ratio == 1 ? std::string() : "_" + std::to_string(n + 1));
+          if (identifiers.contains(entrap_entry.identifier))
+          {
+            OPENMS_LOG_ERROR << "Error: the entrapment identifier '" << entrap_entry.identifier
+                             << "' is already used. Choose an 'entrapment_string' that no input identifier starts with." << endl;
+            return INPUT_FILE_CORRUPT;
+          }
+          identifiers.insert(entrap_entry.identifier);
           entrap_entry.description = "entrapment (shuffled) of " + read_entry.identifier;
           // a seed that differs from the decoy seeds, so entrapment and decoy sequences differ even with method 'shuffle'
           entrap_entry.sequence = shuffleProteinPeptides_(read_entry.sequence, digestion, m, identity_threshold,

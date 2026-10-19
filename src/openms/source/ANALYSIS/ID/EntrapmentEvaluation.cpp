@@ -13,6 +13,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <algorithm>
+#include <cctype>
+#include <cmath>
 #include <set>
 #include <string_view>
 #include <unordered_set>
@@ -32,9 +35,15 @@ namespace OpenMS
       return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
     }
 
-    bool endsWith(const std::string& s, const std::string& suffix)
+    /// whether @p acc carries @p decoy_string as a suffix, possibly followed by "_<n>" (DecoyDatabase with shuffle_decoy_ratio > 1)
+    bool hasDecoySuffix(const std::string& acc, const std::string& decoy_string)
     {
-      return s.size() >= suffix.size() && s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
+      const size_t pos = acc.rfind(decoy_string);
+      if (pos == std::string::npos) return false;
+      const size_t rest = pos + decoy_string.size();
+      if (rest == acc.size()) return true;
+      if (acc[rest] != '_' || rest + 1 == acc.size()) return false;
+      return std::all_of(acc.begin() + rest + 1, acc.end(), [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
     }
   }
 
@@ -78,7 +87,7 @@ namespace OpenMS
     for (const auto& entry : db)
     {
       const std::string& acc = entry.identifier;
-      if (!decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : endsWith(acc, decoy_string))) continue;
+      if (!decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string))) continue;
       const bool is_entrapment = !entrapment_prefix.empty() && startsWith(acc, entrapment_prefix);
       peptides.clear();
       digestion.digestUnmodified(entry.sequence, peptides, min_length, max_length);
@@ -131,7 +140,8 @@ namespace OpenMS
       const PeptideHit& hit = pep_id.getHits().front();
       const Kind kind = classify(hit, entrapment_prefix);
       if (kind == Kind::DECOY) continue;
-      if (qValue(pep_id, hit) > q_threshold) continue;
+      const double q = qValue(pep_id, hit);
+      if (!std::isfinite(q) || q < 0.0 || q > q_threshold) continue; // also rejects NaN
 
       const bool is_entrapment = (kind == Kind::ENTRAPMENT);
       const std::string sequence = hit.getSequence().toString();

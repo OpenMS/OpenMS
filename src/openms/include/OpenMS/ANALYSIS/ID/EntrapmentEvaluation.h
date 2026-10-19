@@ -83,7 +83,8 @@ namespace OpenMS
     /**
       @brief Estimate T/E, the ratio of distinct searchable target to entrapment peptides, from a database
 
-      Proteins whose accession starts with @p decoy_string (as prefix or suffix, see @p decoy_is_prefix) are skipped.
+      Proteins whose accession carries @p decoy_string are skipped: as a prefix, or (see @p decoy_is_prefix) as a suffix,
+      optionally followed by "_<n>" as DecoyDatabase writes it with shuffle_decoy_ratio > 1.
       Peptides are counted after in-silico digestion with @p enzyme, within the length limits; a peptide that occurs
       in a target protein counts as target only.
 

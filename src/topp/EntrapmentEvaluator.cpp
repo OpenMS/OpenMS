@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <map>
 #include <sstream>
 
 using namespace OpenMS;
@@ -113,6 +114,9 @@ protected:
 
     std::vector<std::pair<std::string, PeptideIdentificationList>> runs;
     PeptideIdentificationList all;
+    // label each file by its name, or by its path if two inputs share a name
+    std::map<std::string, Size> name_count;
+    for (const auto& file : in) ++name_count[std::filesystem::path(file).filename().string()];
     for (const auto& file : in)
     {
       std::vector<ProteinIdentification> proteins;
@@ -120,7 +124,8 @@ protected:
       FileHandler().loadIdentifications(file, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       for (auto& pid : peptides) pid.sort();
       all.insert(all.end(), peptides.begin(), peptides.end());
-      runs.emplace_back(std::filesystem::path(file).filename().string(), std::move(peptides));
+      const std::string name = std::filesystem::path(file).filename().string();
+      runs.emplace_back(name_count[name] > 1 ? std::string(file) : name, std::move(peptides));
     }
     if (runs.size() > 1) runs.emplace_back("all files", std::move(all));
 

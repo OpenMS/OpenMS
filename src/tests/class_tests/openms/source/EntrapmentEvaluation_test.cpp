@@ -11,6 +11,8 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/EntrapmentEvaluation.h>
+
+#include <limits>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -105,6 +107,12 @@ START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdenti
   res = EntrapmentEvaluation::evaluate(ids, 0.0, "ENTRAP_", 1.0);
   TEST_EQUAL(res["all"].accepted_psms, 0)
   TEST_REAL_SIMILAR(res["all"].psmFDP(), 0.0)
+
+  // a NaN or negative q-value is never accepted
+  ids.push_back(makeId("QQQK", std::numeric_limits<double>::quiet_NaN(), {"P1"}));
+  ids.push_back(makeId("RRRK", -0.1, {"P1"}));
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0);
+  TEST_EQUAL(res["all"].accepted_psms, 10)
 }
 END_SECTION
 
@@ -116,6 +124,15 @@ START_SECTION((static double estimateTERatio(const std::vector<FASTAFile::FASTAE
   db.emplace_back("DECOY_P1", "", "GGGGGGGKHHHHHHHKIIIIIIIK");
   // targets (0 missed cleavages): 3; entrapment-only: 1
   TEST_REAL_SIMILAR(EntrapmentEvaluation::estimateTERatio(db, "ENTRAP_", "DECOY_", true, "Trypsin", 0, 7, 40), 3.0)
+  // suffix decoys, also numbered as DecoyDatabase writes them with shuffle_decoy_ratio > 1
+  db[2].identifier = "P1_DECOY";
+  db.emplace_back("P1_DECOY_2", "", "MMMMMMMRLLLLLLLK");
+  TEST_REAL_SIMILAR(EntrapmentEvaluation::estimateTERatio(db, "ENTRAP_", "_DECOY", false, "Trypsin", 0, 7, 40), 3.0)
+  // a suffix followed by something other than "_<n>" is not a decoy: its 2 peptides count as targets
+  db.back().identifier = "P1_DECOY_X";
+  TEST_REAL_SIMILAR(EntrapmentEvaluation::estimateTERatio(db, "ENTRAP_", "_DECOY", false, "Trypsin", 0, 7, 40), 5.0)
+  db.pop_back();
+  db[2].identifier = "DECOY_P1";
   // no entrapment: 1
   db.erase(db.begin() + 1);
   TEST_REAL_SIMILAR(EntrapmentEvaluation::estimateTERatio(db, "ENTRAP_", "DECOY_", true, "Trypsin", 0, 7, 40), 1.0)
