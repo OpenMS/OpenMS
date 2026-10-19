@@ -477,7 +477,9 @@ namespace OpenMS
       "available memory (e.g. many variable modifications, or no enzyme specificity). The spectra (of all input files) "
       "are ordered by precursor mass and split into slices of equal size; for each slice, a fragment index of the whole "
       "database is built with only the peptides its spectra can reach, the slice is scored and the index released. "
-      "Each spectrum is scored once with the candidates of the full index, so the results do not change; the index "
+      "Each spectrum is scored once with the candidates of the full index, so without calibration the results do not "
+      "change; with calibration:enabled, calibration runs on a strided sample of about 1/slices of the database, so the "
+      "calibrated tolerances (and the PSMs) can differ. The index "
       "takes about 1/slices of the memory, and the database is digested once per slice. Holds the preprocessed MS2 "
       "spectra of all input files in memory. 1 = disabled. Not with database:chunk_size > 0, in open search mode, or "
       "with low_memory and no enzyme specificity.");
