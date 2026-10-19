@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 #include <memory>
+#include <numeric>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -700,6 +701,8 @@ START_SECTION([EXTRA] ScoreSubset: RANKING followed by REMAINDER gives the score
   {
     std::shared_ptr<OpenSwath::MockFeature> feature(new OpenSwath::MockFeature());
     feature->m_intensity_vec = intensity;
+    feature->m_intensity = static_cast<float>(std::accumulate(intensity.begin(), intensity.end(), 0.0));
+    feature->m_rt = 20.0;
     return feature;
   };
   OpenSwath::MockMRMFeature feature;
@@ -708,7 +711,7 @@ START_SECTION([EXTRA] ScoreSubset: RANKING followed by REMAINDER gives the score
   feature.m_precursor_features["prec_0"] = trace(ms1intensity1);
   feature.m_precursor_features["prec_1"] = trace(ms1intensity2);
   feature.m_rt = 20.0;
-  feature.m_intensity = 1000.0;
+  feature.m_intensity = feature.m_features["tr1"]->m_intensity + feature.m_features["tr2"]->m_intensity;
   feature.m_metavalue = 0.0;
   const std::vector<std::string> native_ids {"tr1", "tr2"};
   const std::vector<std::string> precursor_ids {"prec_0", "prec_1"};
