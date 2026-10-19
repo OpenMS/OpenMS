@@ -72,6 +72,7 @@ namespace OpenMS::WASM::JS
   OPENMS_WASM_JS_TYPE(Alignment);
   OPENMS_WASM_JS_TYPE(ThreadingInfo);
   OPENMS_WASM_JS_TYPE(MemoryInfo);
+  OPENMS_WASM_JS_TYPE(Bytes);           ///< Uint8Array
 
   // files
   OPENMS_WASM_JS_TYPE(PeakFileOptions);

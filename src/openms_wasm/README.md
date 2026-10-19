@@ -25,7 +25,7 @@ The bindings cover a selection of the OpenMS API, named as in C++ and pyOpenMS:
 | Features | `Feature`, `FeatureMap`, `ConsensusMap`, `MassTraceDetection`, `ElutionPeakDetection`, `FeatureFindingMetabo` |
 | Identification | `PeptideHit` (with `getPeakAnnotations()`), `PeptideIdentification(List)`, `ProteinHit`, `ProteinIdentification(List)`, `SimpleSearchEngineAlgorithm`, `ProSEAlgorithm` (`search()`, `searchFiles()`), `ProSEResultSet`, `annotateSpectrum()`, `annotatePeaks()`, `predictMS2()` |
 | Parameters | `Param`, and on every algorithm `getParameters()`/`setParameters()`, `getParameterValues()`/`setParameterValues({...})` |
-| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, `getThreadingInfo()`, `getMemoryInfo()`, the file system `FS` with `mountHostDirectory()` and `unmount()` |
+| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, `getThreadingInfo()`, `getMemoryInfo()`, the file system `FS` with `mountHostDirectory()` and `unmount()`, files in parts with `allocateFile()`, `writeFileChunk()` and `readFileChunk()` |
 
 `openms.d.ts` declares all of them for TypeScript, including the shapes of the plain objects
 they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
@@ -120,6 +120,30 @@ read-only file; it used to write to the process' stderr) and where its close fai
 on).
 
 Gzip- and bzip2-compressed mzML files are read as usual.
+
+**Files in parts.** Large files are written and read in chunks of a bounded size, so that JavaScript
+never holds a whole file next to the module's copy:
+
+```ts
+allocateFile(path: string, size: number): void;                          // create (or resize) with size bytes, in one allocation
+writeFileChunk(path: string, data: Uint8Array, offset: number): void;    // write data at offset (the file is created if missing)
+readFileChunk(path: string, offset: number, length: number): Uint8Array; // up to length bytes from offset (fewer at the end)
+```
+
+```js
+// in a Web Worker: a File of the page, staged in chunks of 16 MB (FileReaderSync reads a slice synchronously)
+OpenMS.allocateFile("/input/0/run.mzML", file.size);
+const reader = new FileReaderSync();
+for (let at = 0; at < file.size; at += 16 << 20) {
+  OpenMS.writeFileChunk("/input/0/run.mzML", new Uint8Array(reader.readAsArrayBuffer(file.slice(at, at + (16 << 20)))), at);
+}
+```
+
+Each chunk is copied once (450-850 MB/s in Chrome, with the reads of `FileReaderSync`). Allocate the
+file first when its size is known: the memory file system keeps a file in one block (of less than
+2 GiB), which grows by doubling otherwise and then briefly takes up to three times its size. The
+functions throw `OutOfMemory` where the module's memory cannot hold the file, and the module stays
+usable.
 
 ### Memory
 

@@ -18,9 +18,18 @@
 #include <emscripten/threading.h>
 #include <emscripten/wasmfs.h>
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <algorithm>
 #include <cerrno>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <memory>
+#include <new>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -141,6 +150,144 @@ namespace OpenMS::WASM
       }
     }
 
+    //------------------------------------------------------------------------------
+    // Files in parts: writeFileChunk(), readFileChunk() and allocateFile(), for files that are written or read in
+    // chunks of a bounded size, e.g. a File of the browser staged with FileReaderSync. One copy each way (a typed
+    // array set), unlike FS.write(), which copies byte by byte.
+    //
+    // WasmFS' memory backend keeps a file in one std::vector, and WasmFS is compiled without exceptions: an
+    // allocation that fails inside it would unwind through its locks, which then stay locked. So the memory a write
+    // or a resize needs is allocated once here first, and an error (OutOfMemory) is thrown if the module's memory
+    // cannot hold it.
+
+    /// A file descriptor, closed when it goes out of scope
+    struct FileDescriptor
+    {
+      int fd = -1;
+      ~FileDescriptor() { if (fd >= 0) ::close(fd); }
+    };
+
+    /// A byte offset or size from JavaScript: a non-negative integer (a safe one)
+    off_t byteCount(double value, const char* what, const std::string& path)
+    {
+      if (!(value >= 0.0 && value <= 9007199254740991.0 && std::floor(value) == value))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      std::string(what) + " has to be a non-negative integer (" + path + ")", std::to_string(value));
+      }
+      return static_cast<off_t>(value);
+    }
+
+    /// Throws OutOfMemory unless the module's memory can hold @p bytes more (it grows if it can)
+    void checkMemoryFor(size_t bytes)
+    {
+      if (bytes == 0) return;
+      // volatile: the compiler may otherwise drop an allocation that is freed unused, and take it as successful
+      void* volatile probe = std::malloc(bytes);
+      if (probe == nullptr) throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bytes);
+      std::free(probe);
+    }
+
+    /// The bytes copied between JavaScript and a file at a time: a buffer of this size, not one of the whole chunk, so
+    /// that a chunk takes no memory of the module (mimalloc does not always reuse the memory of large blocks)
+    constexpr size_t COPY_BUFFER_SIZE = size_t(1) << 20;
+
+    /// A buffer for the copies of a chunk of @p n bytes (at most COPY_BUFFER_SIZE)
+    std::unique_ptr<uint8_t[]> copyBuffer(size_t n)
+    {
+      const size_t size = std::max<size_t>(1, std::min(n, COPY_BUFFER_SIZE));
+      std::unique_ptr<uint8_t[]> buffer(new (std::nothrow) uint8_t[size]);
+      if (!buffer) throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, size);
+      return buffer;
+    }
+
+    /// Writes @p data (a Uint8Array) into the file @p path at byte @p offset; the file is created if missing. Writing
+    /// past its end grows it: allocate the file first (allocateFile()) when its size is known, else it grows by
+    /// doubling, which can take up to three times its size while it grows.
+    void writeFileChunk(const std::string& path, const JS::Bytes& data, double offset)
+    {
+      if (!data.instanceof(val::global("Uint8Array")))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "writeFileChunk() takes the data as Uint8Array (" + path + ")");
+      }
+      const off_t at = byteCount(offset, "The offset", path);
+      const size_t n = data["length"].as<size_t>();
+      FileDescriptor file;
+      struct stat st;
+      file.fd = ::open(path.c_str(), O_WRONLY | O_CREAT, 0666);
+      if (file.fd < 0 || ::fstat(file.fd, &st) != 0)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
+      }
+      if (n == 0) return;
+      // the file grows: a std::vector grows to twice its size, or to the new size if larger
+      const off_t end = at + static_cast<off_t>(n);
+      if (end > st.st_size) checkMemoryFor(static_cast<size_t>(std::max<off_t>(end, 2 * st.st_size)));
+      const std::unique_ptr<uint8_t[]> buffer = copyBuffer(n);
+      for (size_t done = 0; done < n;)
+      {
+        const size_t part = std::min(n - done, COPY_BUFFER_SIZE);
+        val(typed_memory_view(part, buffer.get())).call<void>("set", data.call<val>("subarray", static_cast<double>(done), static_cast<double>(done + part)));
+        for (size_t written = 0; written < part;)
+        {
+          const ssize_t w = ::pwrite(file.fd, buffer.get() + written, part - written, at + static_cast<off_t>(done + written));
+          if (w <= 0)
+          {
+            throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(w < 0 ? errno : EIO));
+          }
+          written += static_cast<size_t>(w);
+        }
+        done += part;
+      }
+    }
+
+    /// Up to @p length bytes of the file @p path from byte @p offset, as a new Uint8Array (fewer at its end, none past it)
+    JS::Bytes readFileChunk(const std::string& path, double offset, double length)
+    {
+      const off_t at = byteCount(offset, "The offset", path);
+      const off_t wanted = byteCount(length, "The length", path);
+      FileDescriptor file;
+      struct stat st;
+      file.fd = ::open(path.c_str(), O_RDONLY);
+      if (file.fd < 0 || ::fstat(file.fd, &st) != 0)
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
+      }
+      const size_t n = at >= st.st_size ? 0 : static_cast<size_t>(std::min<off_t>(wanted, st.st_size - at));
+      val result = val::global("Uint8Array").new_(n);
+      const std::unique_ptr<uint8_t[]> buffer = copyBuffer(n);
+      size_t read = 0;
+      while (read < n)
+      {
+        const ssize_t r = ::pread(file.fd, buffer.get(), std::min(n - read, COPY_BUFFER_SIZE), at + static_cast<off_t>(read));
+        if (r < 0) throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path + ": " + std::strerror(errno));
+        if (r == 0) break; // shorter than its size said
+        result.call<void>("set", val(typed_memory_view(static_cast<size_t>(r), buffer.get())), static_cast<double>(read));
+        read += static_cast<size_t>(r);
+      }
+      return read == n ? result : result.call<val>("slice", 0, static_cast<double>(read));
+    }
+
+    /// Creates the file @p path with @p size bytes (zeros), or resizes it (keeping its contents up to that size), with
+    /// one allocation: then writeFileChunk() writes into it without growing it.
+    void allocateFile(const std::string& path, double size)
+    {
+      const off_t bytes = byteCount(size, "The size", path);
+      FileDescriptor file;
+      struct stat st;
+      file.fd = ::open(path.c_str(), O_WRONLY | O_CREAT, 0666);
+      if (file.fd < 0 || ::fstat(file.fd, &st) != 0)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
+      }
+      if (bytes == st.st_size) return;
+      if (bytes > st.st_size) checkMemoryFor(static_cast<size_t>(bytes));
+      if (::ftruncate(file.fd, bytes) != 0)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::strerror(errno));
+      }
+    }
+
     /// Removes the mount point @p mount_point (a directory created by mountHostDirectory()).
     void unmountDirectory(const std::string& mount_point)
     {
@@ -168,4 +315,7 @@ EMSCRIPTEN_BINDINGS(openms_misc)
   function("hasONNXRuntime", OMS_FN(&hasONNXRuntime));
   function("mountHostDirectory", OMS_FN(&mountHostDirectory));
   function("unmount", OMS_FN(&unmountDirectory));
+  function("writeFileChunk", OMS_FN(&writeFileChunk));
+  function("readFileChunk", OMS_FN(&readFileChunk));
+  function("allocateFile", OMS_FN(&allocateFile));
 }

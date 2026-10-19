@@ -74,6 +74,7 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
   register_type<Alignment>("[number, number][]");
   register_type<ThreadingInfo>("ThreadingInfo", "{ threaded: boolean; available: boolean; numThreads: number }");
   register_type<MemoryInfo>("MemoryInfo", "{ heapSize: number; heapMax: number }");
+  register_type<Bytes>("Uint8Array");
 
   // files
   register_type<PeakFileOptions>("PeakFileOptions",

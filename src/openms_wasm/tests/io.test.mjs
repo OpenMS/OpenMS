@@ -148,6 +148,58 @@ test("mountHostDirectory: a host file that cannot be closed reports its errno", 
   }
 });
 
+test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for byte", () => {
+  const bytes = new Uint8Array(5 * 1048576 + 12345);
+  for (let i = 0; i < bytes.length; ++i) bytes[i] = (i * 2654435761) >>> 24;
+  const chunk = 1048576;
+  OpenMS.FS.mkdir("/chunks");
+  try {
+    // allocated first: written in place
+    OpenMS.allocateFile("/chunks/a.bin", bytes.length);
+    assert.equal(OpenMS.FS.stat("/chunks/a.bin").size, bytes.length);
+    for (let at = 0; at < bytes.length; at += chunk) {
+      OpenMS.writeFileChunk("/chunks/a.bin", bytes.subarray(at, at + chunk), at);
+    }
+    assert.deepEqual(OpenMS.FS.readFile("/chunks/a.bin"), bytes);
+    // not allocated: created, and it grows; chunks in any order
+    const order = [3, 0, 5, 1, 4, 2];
+    for (const k of order) OpenMS.writeFileChunk("/chunks/b.bin", bytes.subarray(k * chunk, (k + 1) * chunk), k * chunk);
+    assert.deepEqual(OpenMS.FS.readFile("/chunks/b.bin"), bytes);
+    // read back in parts: fewer bytes at the end, none past it
+    const parts = [];
+    for (let at = 0; at < bytes.length; at += chunk) {
+      const part = OpenMS.readFileChunk("/chunks/a.bin", at, chunk);
+      assert.ok(part instanceof Uint8Array);
+      parts.push(part);
+    }
+    assert.equal(parts.at(-1).length, bytes.length % chunk);
+    assert.deepEqual(new Uint8Array(Buffer.concat(parts)), bytes);
+    assert.equal(OpenMS.readFileChunk("/chunks/a.bin", bytes.length, 10).length, 0);
+    assert.equal(OpenMS.readFileChunk("/chunks/a.bin", bytes.length + 100, 10).length, 0);
+    assert.deepEqual(OpenMS.readFileChunk("/chunks/a.bin", 7, 3), bytes.subarray(7, 10));
+    // FS.write() with an offset into its buffer
+    const stream = OpenMS.FS.open("/chunks/c.bin", "w");
+    OpenMS.FS.write(stream, bytes, 100, 1000, 0);
+    OpenMS.FS.close(stream);
+    assert.deepEqual(OpenMS.FS.readFile("/chunks/c.bin"), bytes.subarray(100, 1100));
+    // allocateFile resizes, keeping the contents up to the new size
+    OpenMS.allocateFile("/chunks/a.bin", 10);
+    assert.deepEqual(OpenMS.FS.readFile("/chunks/a.bin"), bytes.subarray(0, 10));
+    // errors
+    assert.throws(() => OpenMS.writeFileChunk("/chunks/a.bin", [1, 2, 3], 0), /Uint8Array/);
+    assert.throws(() => OpenMS.writeFileChunk("/chunks/a.bin", bytes.subarray(0, 1), -1), /offset/);
+    assert.throws(() => OpenMS.writeFileChunk("/chunks/a.bin", bytes.subarray(0, 1), 0.5), /offset/);
+    assert.throws(() => OpenMS.readFileChunk("/chunks/missing.bin", 0, 1), /FileNotFound.*missing\.bin/);
+    assert.throws(() => OpenMS.writeFileChunk("/no/such/dir/x.bin", bytes.subarray(0, 1), 0), /UnableToCreateFile.*x\.bin/);
+    assert.throws(() => OpenMS.allocateFile("/chunks/a.bin", -5), /size/);
+  } finally {
+    for (const f of ["a.bin", "b.bin", "c.bin"]) {
+      try { OpenMS.FS.unlink(`/chunks/${f}`); } catch { /* not there */ }
+    }
+    OpenMS.FS.rmdir("/chunks");
+  }
+});
+
 test("MzMLFile from the (mounted) file system", () => {
   using([new OpenMS.MzMLFile(), new OpenMS.MSExperiment()], (file, exp) => {
     file.load("/data/MzMLFile_1.mzML", exp);
