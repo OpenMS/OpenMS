@@ -61,3 +61,9 @@
 | fix_frozen | fix_s4 | 4 | 3 | 13.3 | 1.92 | yes | yes | ok |
 | fix_multi3 | s1 | 4 | 1 | 25.7 | 4.64 | yes | yes | ok |
 | fix_multi3 | fix_s4 | 4 | 1 | 29.5 | 2.87 | yes | yes | ok |
+| mhc | base | 4 | 3 | nan | 13.10 | - | - | killed |
+| mhc | s1 | 4 | 3 | nan | 12.83 | - | - | killed |
+| mhc | s4 | 4 | 3 | 81.9 | 9.29 | - | - | ok |
+| mhc | s16 | 4 | 3 | 208.5 | 6.43 | - | - | ok |
+| mhc | low_memory | 4 | 3 | 163.4 | 2.05 | - | - | ok |
+| mhc | c16 | 4 | 3 | 57.9 | 2.35 | - | - | ok |

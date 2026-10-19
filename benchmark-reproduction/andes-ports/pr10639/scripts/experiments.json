@@ -603,5 +603,56 @@
     ]
    }
   }
+ },
+ "mhc": {
+  "db": "mhc/human_td.fasta",
+  "in": [
+   "mhc/DN08_Brain_classI_techRep1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "base": {
+    "prefix": "/opt/openms-base",
+    "ini": "ini_base/mhc.ini",
+    "args": []
+   },
+   "s1": {
+    "prefix": "/opt/openms-fix",
+    "ini": "ini/mhc.ini",
+    "args": []
+   },
+   "s4": {
+    "prefix": "/opt/openms-fix",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "4"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-fix",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "low_memory": {
+    "prefix": "/opt/openms-fix",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:low_memory",
+     "true"
+    ]
+   },
+   "c16": {
+    "prefix": "/opt/openms-fix",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "2554"
+    ]
+   }
+  }
  }
 }

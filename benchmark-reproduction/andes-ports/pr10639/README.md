@@ -34,6 +34,13 @@ A watchdog (`watchdog.sh`) kills a search above 12.5 GiB RSS so the container ne
 - `multi3`: `hfx_A2`, `hfx_B1`, `astral_B1` in one `ProSE -in` call (frozen, `hye_E`).
 - `chunk`: frozen `hfx_A2` with `database:chunk_size 32000` (4 chunks), alone and with `mass_slices 4`.
 - `calib`: frozen `hfx_A2` with `calibration:enabled true`.
+- `mhc` (added on request of the coordinating session): immunopeptidomics, MHCquant2 timsTOF Pro class I
+  `DN08_Brain_classI_techRep1.mzML` (PXD058436, archive `testfiles/id_bruker/classI/middle/`, 67,944 MS2, 59 % z = 1)
+  against `human_sp.fasta` (archive `testfiles/`, 20,431 proteins) + reversed `DECOY_` decoys, unspecific cleavage
+  (`enzyme "unspecific cleavage"`, `enzyme_specificity none`), length 8–12, z 1–4, no fixed mods, ≤1 Ox(M), max
+  mass 2000, otherwise frozen (±20 ppm, 20 ppm fragments): 134 M peptides. Arms with the fixed build `2b9ee0be`; the
+  existing alternatives `low_memory true` (peptide-mass mode; `mass_slices` is not used there) and `chunk_size 2554`
+  (16 chunks). No entrapment (human only): PSMs only.
 
 Search only: `-out_idxml` and `-out_pin`, no `-rescore` (the timings exclude rescoring). Identity: sha256 of the PIN
 and of the idXML without run date, engine version, file paths and the `ProSE:` parameter echo. Where results differ:
@@ -62,13 +69,17 @@ Peak RSS GiB / wall s (median of 3). All arms of a row give byte-identical idXML
 | `phos2_E`, `chunk_size` (c4 / c16)² | | | | 9.35 / 78.6 | | **3.03 / 70.5** |
 | frozen `hfx_A2`, `chunk_size 32000`³ | 1.40 / 13.6 | 1.41 / 13.6 | | 1.41 / 13.3 | | |
 | frozen `hfx_A2`, calibration on⁴ | 4.13 / 13.0 | 4.13 / 11.6 | | 1.92 / 16.2 | | 1.11 / 32.1 |
+| `mhc` (unspecific, 68k spectra)⁵ | killed (> 12.5) | killed (> 12.5) | | 9.29 / 81.9 | | 6.43 / 208.5 |
+| `mhc`, `low_memory` / `chunk_size` 16 chunks⁵ | | 2.05 / 163.4 · 2.35 / 57.9 | | | | |
 | andes, `phos2_E`, slice 10 / 40 / 150 Da | | | | | | 1.43 / 134.0 · 2.20 / 131.7 · 5.07 / 137.1 |
 
 ¹ From the `order` control (s1, base, s1, base per rep). In the main runs `base` came first in each rep, right after
 the `s16` run, and was 1–2 s slower with 2.5× the system time (10.3 vs 8.6 s); with the order swapped the two builds
 are equal. ² `chunk_size` changes the results (see below). ³ `mass_slices` is ignored with `chunk_size > 0` (as
 documented): the three arms are identical to each other (and differ from the unchunked search, a pre-existing
-`chunk_size` effect). ⁴ base = s1; s4 and s16 differ (documented): calibration runs on a 1/N database sample.
+`chunk_size` effect). ⁴ base = s1; s4 and s16 differ (documented): calibration runs on a 1/N database sample. ⁵ s4 = s16 (identical);
+`low_memory` and `chunk_size` give other idXML/PIN. s16 times 174 / 303 / 209 s (the 303 s run followed a worker
+restart).
 
 Base = PR with `mass_slices 1` everywhere (byte-identical idXML/PIN): nothing changes by default.
 
@@ -84,6 +95,7 @@ PSMs at q ≤ 0.01 (mean of 3 seeds) and entrapment FDP, `results/percolator.jso
 | `phos2_E` | andes (10 = 40 = 150 Da, identical PIN) | 4,450 | 1.54 % |
 | frozen `hfx_A2`, `chunk_size 32000` | c4 | 4,498 | 1.42 % |
 | frozen `hfx_A2`, calibration | s1 / s4 / s16 | 4,341 / 4,472 / 4,499 | 1.63 / 1.49 / 1.79 % |
+| `mhc` | s4 = s16 / `low_memory` / `chunk_size` 16 | 2,011 / 2,011 / 1,987 | – |
 
 With calibration, the 1/N sample gives fewer calibration PSMs (s1 268, s4 160, s16 94) and wider windows (s1
 precursor −8.3/+8.6 ppm; s4 −18.0/+20.0 ppm, fragment 14.8 ppm; s16 −19.1/+19.3, fragment 17.9 ppm). Here the wider
@@ -101,6 +113,10 @@ windows find 3–4 % more PSMs; with s16 the FDP is 0.2 points higher than with 
    slices 13 % to 31 %. Peak memory follows the largest slice.
 3. The time cost is one database digestion per slice: +28–65 % (s4) and +116–256 % (s16) on the `frozen` files,
    +65 / +318 % on `phos2_hye`; less where scoring dominates (`multi3` +12 / +74 %, whole run +19 / +36 %). andes's time is flat in the slice width (132–137 s for 10–150 Da).
+On `mhc` the slices reach 94 % of the 134 M peptides in total, and with 4 slices the two upper slices hold 57 M and
+52 M, so 4 slices still need 9.3 GiB; `low_memory` (2.05 GiB) and `chunk_size` (2.4 GiB, 3.6× faster than 16 slices)
+are the better options for unspecific searches.
+
 4. On the whole run, the spectra held in memory (all files, for the whole search) dominate beyond 4 slices
    (4.88 → 4.87 GiB from 4 to 16 slices).
 
@@ -117,7 +133,7 @@ the same shape: 1.43 → 5.07 GiB from 10 to 150 Da at constant time and identic
 | results identical with slicing | yes (byte-identical PIN for 10/40/150 Da here) | byte-identical idXML and PIN in all searches without calibration (single file, 3 files, whole run, phospho), also vs. base | reproduced |
 | peak memory falls with the slices | ~linear in slice width (0.13 GB/Da); search becomes feasible | −8…−14 / −23…−31 / −45…−60 % for 2/4/16 slices (`frozen`, 4 files); −38/−59 % (`multi3`, s4/s16); −15/−48 % (`phos2_hye`); −18 % (whole run); makes `phos2_E` (> 12.5 GiB) run in 11.8 GiB (s4) / 7.1 GiB (s16) | partly: direction yes, size smaller (full digestion per slice, slices balanced by spectra) |
 | time | flat in slice width | +12–65 % at 4 slices, +36–320 % at 16 (1 thread: +41 / +232 %) | not reproduced (one full digestion per slice) |
-| vs. ProSE's existing options | – | the single-use index restriction already gives single-file searches andes's "only reachable peptides" index; `chunk_size` (16 chunks) beats 16 slices on `phos2_E` (3.0 vs 7.1 GiB, 70 vs 194 s) with equal PSMs/FDP but changed results | the gain over develop is only identity of results |
+| vs. ProSE's existing options | – | the single-use index restriction already gives single-file searches andes's "only reachable peptides" index; `chunk_size` (16 chunks) beats 16 slices on `phos2_E` (3.0 vs 7.1 GiB, 70 vs 194 s) with equal PSMs/FDP but changed results; unspecific `mhc`: `low_memory` 2.05 GiB / 163 s and `chunk_size` 2.35 GiB / 58 s vs. 6.43 GiB / 209 s with 16 slices | the gain over develop is only identity of results |
 
 ## Fix pushed to the PR
 

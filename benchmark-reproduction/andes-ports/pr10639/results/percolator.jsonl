@@ -12,3 +12,6 @@
 {"pin": "runs/phos2_E_chunk/c4_r1/hfx_A2.pin", "psms": [4463, 4393, 4401], "mean_psms": 4419, "entrap": [36, 26, 24], "fdp_combined_pct": 1.3}
 {"pin": "runs/phos2_E_chunk/c16_r1/hfx_A2.pin", "psms": [4441, 4401, 4442], "mean_psms": 4428, "entrap": [32, 24, 28], "fdp_combined_pct": 1.26}
 {"pin": "andes_runs/phos2_E_sl10_r1/native.pin", "psms": [4456, 4441, 4452], "mean_psms": 4449.7, "entrap": [34, 31, 38], "fdp_combined_pct": 1.54}
+{"pin": "runs/mhc/s4_r1/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/mhc/low_memory_r1/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/mhc/c16_r1/DN08_Brain_classI_techRep1.pin", "psms": [1983, 2020, 1959], "mean_psms": 1987.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
