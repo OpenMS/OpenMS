@@ -164,8 +164,8 @@ Percolator::Percolator()
   defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
 
   defaults_.setValue("num_threads",       3,
-                     "Number of OpenMP threads for cross-validation "
-                     "(one per CV fold; max useful = 3). Matches upstream's default.");
+                     "Maximum number of OpenMP threads for cross-validation; never more than the "
+                     "threads the tool may use (-threads). Matches upstream's default.");
   defaults_.setMinInt("num_threads",      1);
   defaults_.setMaxInt("num_threads",      3);
 

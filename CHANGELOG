@@ -106,6 +106,8 @@ OpenMS Library:
     percolator:subset_max_train further peak groups, and scores all peak groups with the model; before,
     percolator:subset_max_train had no effect and training used all peak groups. percolator:subset_max_train = 0
     restores that. Results change.
+  - FIX: Percolator's num_threads (OpenDIA rescoring, OpenSwathPercolatorScoring, in-process PercolatorAdapter, ProSE) had
+    no effect; cross-validation now runs on at most num_threads threads, and never on more than the tool's -threads.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
