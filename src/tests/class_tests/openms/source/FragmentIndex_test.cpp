@@ -5014,19 +5014,37 @@ END_SECTION
 
 START_SECTION((scoring:candidate_tie_break ranks equal-vote candidates by matched peak intensity))
 {
-  const std::vector<FASTAFile::FASTAEntry> entries {
-    {"test1", "test1",
-    "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"}};
+  // two isobaric peptides (E and V swapped) that share all fragment ions but b4 and y6
+  const AASequence pep_a = AASequence::fromString("AGDEVMVLNR");
+  const AASequence pep_b = AASequence::fromString("AGDVEMVLNR");
+  const std::vector<FASTAFile::FASTAEntry> entries {{"test1", "test1", "MK" + pep_a.toUnmodifiedString() + pep_b.toUnmodifiedString() + "K"}};
 
-  // theoretical spectrum of one peptide, every peak at intensity 2
-  const AASequence peptide = AASequence::fromString("AGDRVMVLNR");
+  // the spectrum holds the ions of both: shared ions at intensity 1, the ions of only A at 10, of only B at 1,
+  // so both match the same number of peaks and A matches more intensity
   TheoreticalSpectrumGenerator tsg;
-  PeakSpectrum ions;
-  tsg.getSpectrum(ions, peptide, 1, 2);
+  PeakSpectrum ions_a, ions_b;
+  tsg.getSpectrum(ions_a, pep_a, 1, 2);
+  tsg.getSpectrum(ions_b, pep_b, 1, 2);
+  auto contains = [](const PeakSpectrum& ions, double mz)
+  {
+    return std::any_of(ions.begin(), ions.end(), [mz](const Peak1D& p) { return std::fabs(p.getMZ() - mz) < 1e-6; });
+  };
   MSSpectrum spectrum;
-  for (const auto& p : ions) spectrum.emplace_back(p.getMZ(), 2.0f);
+  Size only_a = 0;
+  for (const auto& p : ions_a)
+  {
+    const bool shared = contains(ions_b, p.getMZ());
+    if (!shared) ++only_a;
+    spectrum.emplace_back(p.getMZ(), shared ? 1.0f : 10.0f);
+  }
+  for (const auto& p : ions_b)
+  {
+    if (!contains(ions_a, p.getMZ())) spectrum.emplace_back(p.getMZ(), 1.0f);
+  }
+  TEST_EQUAL(only_a > 0, true)
+  spectrum.sortByPosition();
   Precursor precursor;
-  precursor.setMZ(peptide.getMZ(2));
+  precursor.setMZ(pep_a.getMZ(2));
   precursor.setCharge(2);
   spectrum.setMSLevel(2);
   spectrum.setPrecursors({precursor});
@@ -5037,10 +5055,6 @@ START_SECTION((scoring:candidate_tie_break ranks equal-vote candidates by matche
     Param p = fi.getParameters();
     TEST_EQUAL(p.getValue("scoring:candidate_tie_break").toString(), "none")
     p.setValue("scoring:candidate_tie_break", tie_break);
-    // wide precursor window, so that many candidates compete
-    p.setValue("precursor:mass_tolerance_lower", 50.0);
-    p.setValue("precursor:mass_tolerance_upper", 50.0);
-    p.setValue("precursor:mass_tolerance_unit", "Da");
     fi.setParameters(p);
     fi.build(entries);
     FragmentIndex::SpectrumMatchesTopN sms;
@@ -5049,14 +5063,21 @@ START_SECTION((scoring:candidate_tie_break ranks equal-vote candidates by matche
   };
 
   const auto none = query("none");
-  TEST_EQUAL(none.hits_.empty(), false)
+  TEST_EQUAL(none.hits_.size() >= 2, true)
   for (const auto& h : none.hits_) TEST_REAL_SIMILAR(h.matched_intensity_, 0.0)
 
   const auto intensity = query("intensity");
-  TEST_EQUAL(intensity.hits_.empty(), false)
-  // the best hit matches the most peaks; each matched peak adds its intensity once per fragment it matches
-  TEST_EQUAL(intensity.hits_[0].num_matched_ > 0, true)
-  TEST_REAL_SIMILAR(intensity.hits_[0].matched_intensity_, 2.0 * intensity.hits_[0].num_matched_)
+  TEST_EQUAL(intensity.hits_.size() >= 2, true)
+  ABORT_IF(intensity.hits_.size() < 2)
+  // A and B tie on matched peaks; A, with the more intense matched peaks, ranks first
+  const auto& first = intensity.hits_[0];
+  const auto& second = intensity.hits_[1];
+  TEST_EQUAL(first.num_matched_, second.num_matched_)
+  TEST_EQUAL(first.num_matched_ > 0, true)
+  TEST_EQUAL(first.matched_intensity_ > second.matched_intensity_, true)
+  // each matched peak adds its intensity once per fragment it matches (10 for an ion of only A, 1 otherwise), so A
+  // leads B by 9 per matched ion of only A, which is A's excess over 1 per match
+  TEST_REAL_SIMILAR(first.matched_intensity_ - second.matched_intensity_, first.matched_intensity_ - first.num_matched_)
   // ranked by matched peaks, then by matched intensity
   bool ranked = true;
   for (Size i = 1; i < intensity.hits_.size(); ++i)
