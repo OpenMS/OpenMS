@@ -1,0 +1,62 @@
+# EntrapmentEvaluator (-te_ratio given, no -database) vs the frozen #10364 entrapment scripts on the same Percolator 3.06 results
+## Velos natural entrapment, PR head 2f5b38d1 (before the I/L fix)
+# UPS1 accessions not in FASTA: []; r = 3.376144; T/E = 1/r = 0.296196
+file	frozen_N	frozen_NE	frozen_FDP	EE_N	EE_NE	EE_FDP	same
+natural/s1	2953	22	0.00966	2953	30	0.01317	False
+natural/s42	2966	26	0.01136	2966	31	0.01355	False
+natural/s137	3013	24	0.01033	3013	30	0.01291	False
+natural/s1	2900	30	0.01341	2900	37	0.01654	False
+natural/s42	2909	24	0.01069	2909	33	0.01470	False
+natural/s137	2926	27	0.01196	2926	32	0.01418	False
+natural/s1	3014	26	0.01118	3014	29	0.01247	False
+natural/s42	3091	37	0.01552	3091	42	0.01761	False
+natural/s137	3026	28	0.01199	3026	37	0.01585	False
+pooled	frozen N 26798 N_E 244	EE (26798, 301, 0.01456)	all_rows_identical False
+## hfx shuffled r = 1 (frozen make_entrapment.py database), with fix
+file	frozen_N	frozen_NE	frozen_FDP	EE_N	EE_NE	EE_FDP	same
+frozenE/s1	4482	27	0.01205	4482	27	0.01205	True
+frozenE/s42	4522	39	0.01725	4522	39	0.01725	True
+frozenE/s137	4473	34	0.01520	4473	34	0.01520	True
+frozenE/s1	4380	34	0.01553	4380	34	0.01553	True
+frozenE/s42	4368	36	0.01648	4368	36	0.01648	True
+frozenE/s137	4338	33	0.01521	4338	33	0.01521	True
+frozenE/s1	4442	37	0.01666	4442	37	0.01666	True
+frozenE/s42	4426	36	0.01627	4426	36	0.01627	True
+frozenE/s137	4446	37	0.01664	4446	37	0.01664	True
+pooled	frozen N 39877 N_E 313	EE (39877, 313, 0.0157)	all_rows_identical True
+## astral shuffled r = 1 (frozen make_entrapment.py database), with fix
+file	frozen_N	frozen_NE	frozen_FDP	EE_N	EE_NE	EE_FDP	same
+frozenE/s1	2467	10	0.00811	2467	10	0.00811	True
+frozenE/s42	2426	7	0.00577	2426	7	0.00577	True
+frozenE/s137	2471	9	0.00728	2471	9	0.00728	True
+frozenE/s1	2912	32	0.02198	2912	32	0.02198	True
+frozenE/s42	2967	29	0.01955	2967	29	0.01955	True
+frozenE/s137	2981	32	0.02147	2981	32	0.02147	True
+frozenE/s1	2832	18	0.01271	2832	18	0.01271	True
+frozenE/s42	2693	13	0.00966	2693	13	0.00966	True
+frozenE/s137	2801	22	0.01571	2801	22	0.01571	True
+pooled	frozen N 24550 N_E 172	EE (24550, 172, 0.01401)	all_rows_identical True
+## eclipse shuffled r = 1 (frozen make_entrapment.py database), with fix
+file	frozen_N	frozen_NE	frozen_FDP	EE_N	EE_NE	EE_FDP	same
+frozenE/s1	2719	17	0.01251	2719	17	0.01250	True
+frozenE/s42	2762	31	0.02245	2762	31	0.02245	True
+frozenE/s137	2744	20	0.01458	2744	20	0.01458	True
+frozenE/s1	2478	16	0.01291	2478	16	0.01291	True
+frozenE/s42	2481	14	0.01129	2481	14	0.01129	True
+frozenE/s137	2476	16	0.01292	2476	16	0.01292	True
+frozenE/s1	2537	17	0.01340	2537	17	0.01340	True
+frozenE/s42	2495	16	0.01283	2495	16	0.01283	True
+frozenE/s137	2493	11	0.00882	2493	11	0.00882	True
+pooled	frozen N 23185 N_E 158	EE (23185, 158, 0.01363)	all_rows_identical True
+## Velos natural entrapment with the fix (8371c2b1): EntrapmentEvaluator -database hy_natural_td.fasta (T/E and I = L from the database)
+file	class	q_value	accepted_psms	entrapment_psms	psm_fdp	accepted_peptides	entrapment_peptides	peptide_fdp	te_ratio
+runs/velos_125_R1/natural/s1/target.idXML	all	0.01	2953	23	0.0101	1729	22	0.01649	0.2962
+runs/velos_125_R1/natural/s137/target.idXML	all	0.01	3013	27	0.01162	1762	25	0.01839	0.2962
+runs/velos_125_R1/natural/s42/target.idXML	all	0.01	2966	27	0.0118	1733	26	0.01945	0.2962
+runs/velos_25000_R3/natural/s1/target.idXML	all	0.01	2900	32	0.0143	1668	30	0.02331	0.2962
+runs/velos_25000_R3/natural/s137/target.idXML	all	0.01	2926	28	0.0124	1683	28	0.02156	0.2962
+runs/velos_25000_R3/natural/s42/target.idXML	all	0.01	2909	25	0.01114	1662	25	0.0195	0.2962
+runs/velos_5000_R2/natural/s1/target.idXML	all	0.01	3014	26	0.01118	1689	22	0.01688	0.2962
+runs/velos_5000_R2/natural/s137/target.idXML	all	0.01	3026	28	0.01199	1698	25	0.01908	0.2962
+runs/velos_5000_R2/natural/s42/target.idXML	all	0.01	3091	37	0.01552	1742	33	0.02455	0.2962
+all files	all	0.01	26798	253	0.01224	3470	117	0.0437	0.2962

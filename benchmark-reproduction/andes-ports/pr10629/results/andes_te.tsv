@@ -1,0 +1,8 @@
+database	T/E andes build_databases.sh (KR, <= 1 missed cleavage, 6-50, no I = L)	T/E EntrapmentEvaluator (Trypsin/P, 2 missed cleavages, 7-40, I = L)	T/E frozen #10364 (Trypsin, 2 MC, 7-40, I = L)
+hy_natural_td (Velos natural)	0.291	0.2906	0.2962 (1/r, r = 3.376)
+hye_entrap_td (#10364 shuffled)	0.957	0.9551	1 (assumed)
+human_entrap_td (#10364 shuffled)	0.953	0.9538	1 (assumed)
+hye_dd_r1 (PR head)	1.012	1.002	-
+hye_ddfix_r1 (fix)	1.023	1.016	-
+hye_ddfix_r2 (fix, ratio 2)	0.542	0.5351	-
+human_ddfix_r1 (fix)	1.023	1.017	-

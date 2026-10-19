@@ -1,0 +1,5 @@
+group	arm	N (3 files x 3 seeds)	N_E andes rule (all proteinIds match /ENTRAP_/)	N_E EntrapmentEvaluator (all accessions start with ENTRAP_, no -database)
+velos	natural	26798	301	301 (PR head; 253 with the fix and -database)
+hfx	frozenE	39877	316	313
+astral	frozenE	24550	172	172
+eclipse	frozenE	23185	158	158

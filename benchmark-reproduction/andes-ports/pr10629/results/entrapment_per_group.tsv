@@ -1,0 +1,22 @@
+group	arm	database	psms_per_file	entrapment_per_file	te_ratio	fdp_pct	fdp_te1_pct	peptides_pooled	peptide_fdp_pct	inproc_psms_per_file	inproc_fdp_pct
+velos	natural	natural entrapment (#10364), r = 3.376	2977.6	28.1	0.2906	1.22	1.89	3470	4.35	3043.7	1.29
+hfx	frozenE	#10364 make_entrapment.py, 1:1	4430.8	33.6	0.9551	1.48	1.51	11639	2.28	4386.7	1.37
+hfx	ddE1	DecoyDatabase -entrapment_ratio 1, PR head	4389.7	18.8	1.002	0.86	0.86	11570	1.44	4385.7	1.23
+hfx	ddfixE1	DecoyDatabase -entrapment_ratio 1, with fix	4388.4	24.3	1.016	1.12	1.11	11580	1.85	4339.0	1.16
+hfx	ddfixE1rev	DecoyDatabase -entrapment_ratio 1, with fix, decoys replaced by full reversals as in #10364	4449.2	26.7	1.016	1.21	1.2	11718	1.98	4378.0	1.2
+hfx	ddfixE1s2rev	as ddfixE1rev, DecoyDatabase -seed 2	4470.8	29.6	1.016	1.33	1.32	11720	2.03	4406.3	1.1
+hfx	ddfixE1noNrev	as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)	4456.0	35.2	1.004	1.58	1.58	11661	2.39	4396.7	1.4
+hfx	ddfixE2	DecoyDatabase -entrapment_ratio 2, with fix	4326.0	42.4	0.5351	1.51	1.96	11460	2.4	4213.0	1.34
+astral	frozenE	#10364 make_entrapment.py, 1:1	2727.8	19.1	0.9551	1.37	1.4	7330	2.0	2786.0	1.38
+astral	ddE1	DecoyDatabase -entrapment_ratio 1, PR head	2671.2	6.8	1.002	0.51	0.51	7243	1.02	2762.3	0.85
+astral	ddfixE1	DecoyDatabase -entrapment_ratio 1, with fix	2715.6	17.9	1.016	1.33	1.32	7319	2.09	2743.7	1.47
+astral	ddfixE1rev	DecoyDatabase -entrapment_ratio 1, with fix, decoys replaced by full reversals as in #10364	2797.1	19.6	1.016	1.41	1.4	7405	2.15	2824.3	1.59
+astral	ddfixE1s2rev	as ddfixE1rev, DecoyDatabase -seed 2	2773.2	19.1	1.016	1.39	1.38	7392	2.21	2819.0	1.43
+astral	ddfixE1noNrev	as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)	2767.1	22.7	1.004	1.64	1.64	7391	2.36	2773.7	1.66
+astral	ddfixE2	DecoyDatabase -entrapment_ratio 2, with fix	2569.2	26.2	0.5351	1.57	2.04	6962	2.38	2597.0	1.68
+tmtpro	frozenE	#10364 make_entrapment.py, 1:1	2576.1	16.2	0.9538	1.23	1.26	7326	1.89	2547.3	1.28
+tmtpro	ddE1	DecoyDatabase -entrapment_ratio 1, PR head	2544.1	11.1	1.002	0.87	0.87	7231	1.38	2486.7	0.72
+tmtpro	ddfixE1	DecoyDatabase -entrapment_ratio 1, with fix	2550.7	9.8	1.017	0.77	0.77	7258	1.19	2506.7	1.13
+tmtpro	ddfixE1rev	DecoyDatabase -entrapment_ratio 1, with fix, decoys replaced by full reversals as in #10364	2580.1	11.8	1.017	0.92	0.91	7316	1.52	2559.3	0.81
+tmtpro	ddfixE1s2rev	as ddfixE1rev, DecoyDatabase -seed 2	2569.3	9.4	1.017	0.74	0.74	7278	1.36	2565.3	1.0
+tmtpro	ddfixE1noNrev	as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)	2575.9	12.1	1.004	0.94	0.94	7305	1.56	2578.7	0.83

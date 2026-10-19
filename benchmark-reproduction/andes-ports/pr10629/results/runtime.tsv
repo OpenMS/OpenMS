@@ -1,0 +1,7 @@
+step	build	wall_s (median of 3)	peak_RSS_MB	notes
+EntrapmentEvaluator, 9 HF-X idXML, -database hye_entrap_td.fasta (63,778 targets+entrapment), 1 thread	PR head 2f5b38d1	11.9	819	one digestion of the database (T/E)
+EntrapmentEvaluator, same	with fixes f0bddcb3	17.9	819	second digestion for the I = L target peptide set
+DecoyDatabase -entrapment_ratio 1, HYE (31,889 proteins)	PR head	15.9	75	single run
+DecoyDatabase -entrapment_ratio 1, HYE	with fixes	8.5	75	single run
+DecoyDatabase -entrapment_ratio 2, HYE	PR head / fix	26.2 / 14.3	74 / 75	single run
+DecoyDatabase (no entrapment), HYE	PR head	2.9	74	single run
