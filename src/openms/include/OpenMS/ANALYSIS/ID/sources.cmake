@@ -9,15 +9,6 @@ AScore.h
 BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
 CoIsolationDetector.h
-ConsensusIDAlgorithm.h
-ConsensusIDAlgorithmAverage.h
-ConsensusIDAlgorithmBest.h
-ConsensusIDAlgorithmIdentity.h
-ConsensusIDAlgorithmPEPIons.h
-ConsensusIDAlgorithmPEPMatrix.h
-ConsensusIDAlgorithmRanks.h
-ConsensusIDAlgorithmSimilarity.h
-ConsensusIDAlgorithmWorst.h
 ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h

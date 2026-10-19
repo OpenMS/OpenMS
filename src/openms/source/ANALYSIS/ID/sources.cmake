@@ -9,15 +9,6 @@ AScore.cpp
 BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
 CoIsolationDetector.cpp
-ConsensusIDAlgorithm.cpp
-ConsensusIDAlgorithmAverage.cpp
-ConsensusIDAlgorithmBest.cpp
-ConsensusIDAlgorithmIdentity.cpp
-ConsensusIDAlgorithmPEPIons.cpp
-ConsensusIDAlgorithmPEPMatrix.cpp
-ConsensusIDAlgorithmRanks.cpp
-ConsensusIDAlgorithmSimilarity.cpp
-ConsensusIDAlgorithmWorst.cpp
 ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp

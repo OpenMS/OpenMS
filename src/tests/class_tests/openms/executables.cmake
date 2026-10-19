@@ -541,12 +541,6 @@ set(analysis_executables_list
   ClusterProxyKD_test
   CoIsolationDetector_test
   ConfidenceScoring_test
-  ConsensusIDAlgorithmAverage_test
-  ConsensusIDAlgorithmBest_test
-  ConsensusIDAlgorithmPEPIons_test
-  ConsensusIDAlgorithmPEPMatrix_test
-  ConsensusIDAlgorithmRanks_test
-  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test

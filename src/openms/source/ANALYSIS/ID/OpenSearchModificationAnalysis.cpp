@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iterator>
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
@@ -23,6 +24,69 @@
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// The entry of a table that is ordered by mass (the key) whose mass is nearest to @p mass,
+    /// or table.end() for an empty table. Of two equally distant entries the lower one is returned.
+    template <typename Table>
+    typename Table::const_iterator nearestEntry_(const Table& table, double mass)
+    {
+      const auto upper = table.lower_bound(mass); // the lowest entry that is not below the mass
+      if (upper == table.begin())
+      {
+        return upper; // nothing below (table.end() if the table is empty)
+      }
+      const auto lower = std::prev(upper);
+      if (upper == table.end() || std::abs(lower->first - mass) <= std::abs(upper->first - mass))
+      {
+        return lower;
+      }
+      return upper;
+    }
+
+    /// The entries of a table that is ordered by mass (the key) that name a cluster of mass @p mass:
+    /// the nearest entry if it is within @p tolerance, and all entries within @p tolerance whose distance to
+    /// @p mass is at most @p ambiguity_tolerance larger than that of the nearest one (these cannot be told apart).
+    /// In order of mass. Empty if no entry is within @p tolerance.
+    template <typename Table>
+    std::vector<typename Table::const_iterator> namingEntries_(const Table& table, double mass, double tolerance, double ambiguity_tolerance)
+    {
+      std::vector<typename Table::const_iterator> entries;
+      const auto nearest = nearestEntry_(table, mass);
+      if (nearest == table.end() || std::abs(nearest->first - mass) > tolerance)
+      {
+        return entries;
+      }
+
+      const double reach = std::min(tolerance, std::abs(nearest->first - mass) + ambiguity_tolerance);
+      constexpr double epsilon = 1e-8; // guard band when seeding a lookup at a window border
+      for (auto it = table.lower_bound(mass - reach - epsilon); it != table.end() && it->first <= mass + reach + epsilon; ++it)
+      {
+        if (std::abs(it->first - mass) <= reach)
+        {
+          entries.push_back(it);
+        }
+      }
+      return entries;
+    }
+
+    /// The names of the entries joined with "//" ("A//B")
+    template <typename Entries>
+    std::string joinedNames_(const Entries& entries)
+    {
+      std::string joined;
+      for (const auto& entry : entries)
+      {
+        if (!joined.empty())
+        {
+          joined += "//";
+        }
+        joined += entry->second;
+      }
+      return joined;
+    }
+  } // namespace
 
   std::pair<OpenSearchModificationAnalysis::DeltaMassHistogram, OpenSearchModificationAnalysis::DeltaMassToChargeCount>
   OpenSearchModificationAnalysis::analyzeDeltaMassPatterns(const PeptideIdentificationList& peptide_ids, 
@@ -173,106 +237,80 @@ namespace OpenMS
     const double effective_tol = precursor_mass_tolerance_unit_ppm
       ? MAX_MOD_MAPPING_TOL_
       : std::min(precursor_mass_tolerance, MAX_MOD_MAPPING_TOL_);
-    const double epsilon = 1e-8;
 
     // Map delta masses to modifications
     for (const auto& hist_entry : delta_mass_histogram)
     {
       double cluster_mass = hist_entry.first;
       double count = hist_entry.second;
-      double lower_bound = cluster_mass - effective_tol;
-      double upper_bound = cluster_mass + effective_tol;
 
-      // Search for modifications within bounds
       bool mapping_found = false;
       std::string mod_name;
       double mod_mass = 0.0;
 
-      // Search in single modifications
-      auto it_lower = mass_to_modification.lower_bound(lower_bound - epsilon);
-      bool found_lower = false;
-      if (it_lower != mass_to_modification.end() &&
-          std::abs(it_lower->first - cluster_mass) <= effective_tol)
+      // Search in single modifications. The cluster is named after the modification nearest to its mass; the other
+      // modifications within the tolerance are not named, as they are less likely to be what was observed. Only if
+      // several are about equally close (within MOD_MAPPING_AMBIGUITY_TOL_ of the distance of the nearest one),
+      // the data cannot tell them apart, and the cluster is named after all of them ("A//B").
+      const auto candidates = namingEntries_(mass_to_modification, cluster_mass, effective_tol, MOD_MAPPING_AMBIGUITY_TOL_);
+      if (!candidates.empty())
       {
-        found_lower = true;
-      }
-
-      auto it_upper = mass_to_modification.upper_bound(upper_bound + epsilon);
-      bool found_upper = false;
-      if (it_upper != mass_to_modification.begin())
-      {
-        --it_upper;
-        if (std::abs(it_upper->first - cluster_mass) <= effective_tol)
+        // Remember what was found: it explains clusters at higher masses (the +1 isotope variant) and
+        // is what the peptide hits are annotated with. Only the modifications that name the cluster qualify.
+        for (const auto& candidate : candidates)
         {
-          found_upper = true;
+          histogram_found[candidate->first] = candidate->second;
         }
-      }
 
-      // Compare results from lower_bound and upper_bound
-      if (found_lower && found_upper)
-      {
-        if (it_lower->first == it_upper->first && it_lower->second == it_upper->second)
+        if (candidates.size() == 1)
         {
-          mod_name = it_lower->second;
-          mod_mass = it_lower->first;
-          histogram_found[mod_mass] = mod_name;
-          mapping_found = true;
+          mod_name = candidates.front()->second;
+          mod_mass = candidates.front()->first;
         }
         else
         {
-          mod_name = it_lower->second + "//" + it_upper->second;
+          mod_name = joinedNames_(candidates);
           mod_mass = cluster_mass;
-          histogram_found[it_lower->first] = it_lower->second;
-          histogram_found[it_upper->first] = it_upper->second;
-          mapping_found = true;
         }
+        mapping_found = true;
       }
       else
       {
-        // Check if modification can be explained by known modifications. Only entries in
-        // two windows of half-width effective_tol qualify: one around cluster_mass (direct
-        // match) and one around cluster_mass - 1.0 (+1 isotope variant). effective_tol is
-        // capped at MAX_MOD_MAPPING_TOL_, so the windows are disjoint and the isotope
-        // window holds the lower masses; it is therefore examined first.
-        for (auto hit = histogram_found.lower_bound(cluster_mass - 1.0 - effective_tol - epsilon);
-             hit != histogram_found.end() && hit->first <= cluster_mass - 1.0 + effective_tol + epsilon;
-             ++hit)
+        // Check if modification can be explained by known modifications. Only entries within the tolerance of
+        // cluster_mass (direct match) or of cluster_mass - 1.0 (+1 isotope variant) qualify, and then the nearest one.
+        // effective_tol is capped at MAX_MOD_MAPPING_TOL_, so that the two windows are disjoint and the order of
+        // the checks does not matter.
+        const auto isotope_hit = nearestEntry_(histogram_found, cluster_mass - 1.0);
+        if (isotope_hit != histogram_found.end() &&
+            std::abs((isotope_hit->first + 1.0) - cluster_mass) < effective_tol)
         {
-          // Check if modification can be explained by a +1 isotope variant
-          if (std::abs((hit->first + 1.0) - cluster_mass) < effective_tol)
+          // Explained by a +1 isotope variant
+          std::string temp_mod_name = isotope_hit->second + "+1Da";
+          addOrUpdateModification(temp_mod_name, isotope_hit->first + 1.0, count, charge_histogram.at(cluster_mass));
+          histogram_found[isotope_hit->first + 1.0] = temp_mod_name;
+          mapping_found = true;
+        }
+
+        if (!mapping_found)
+        {
+          const auto found_hit = nearestEntry_(histogram_found, cluster_mass);
+          if (found_hit != histogram_found.end() &&
+              std::abs(found_hit->first - cluster_mass) < effective_tol)
           {
-            std::string temp_mod_name = hit->second + "+1Da";
-            addOrUpdateModification(temp_mod_name, hit->first + 1.0, count, charge_histogram.at(cluster_mass));
-            histogram_found[hit->first + 1.0] = temp_mod_name;
+            addOrUpdateModification(found_hit->second, found_hit->first, count, charge_histogram.at(cluster_mass));
             mapping_found = true;
-            break;
           }
         }
 
+        // Search in combination modifications: the nearest one, whether above or below the cluster mass
         if (!mapping_found)
         {
-          for (auto hit = histogram_found.lower_bound(cluster_mass - effective_tol - epsilon);
-               hit != histogram_found.end() && hit->first <= cluster_mass + effective_tol + epsilon;
-               ++hit)
+          const auto combo = nearestEntry_(combo_modifications, cluster_mass);
+          if (combo != combo_modifications.end() &&
+              std::abs(combo->first - cluster_mass) <= effective_tol)
           {
-            if (std::abs(hit->first - cluster_mass) < effective_tol)
-            {
-              addOrUpdateModification(hit->second, hit->first, count, charge_histogram.at(cluster_mass));
-              mapping_found = true;
-              break;
-            }
-          }
-        }
-
-        // Search in combination modifications
-        if (!mapping_found)
-        {
-          auto it = combo_modifications.lower_bound(cluster_mass - epsilon);
-          if (it != combo_modifications.end() &&
-              std::abs(it->first - cluster_mass) <= effective_tol)
-          {
-            mod_name = single_mod_names[it->second.first] + "++" + single_mod_names[it->second.second];
-            mod_mass = it->first;
+            mod_name = single_mod_names[combo->second.first] + "++" + single_mod_names[combo->second.second];
+            mod_mass = combo->first;
             mapping_found = true;
           }
         }
@@ -334,20 +372,15 @@ namespace OpenMS
         }
 
         bool found = false;
-        // Check with error tolerance if already present in histogram. Only entries within
-        // effective_tol of delta_mass can match, so the search starts at the window border.
-        for (auto entry = histogram_found.lower_bound(delta_mass - effective_tol - epsilon);
-             entry != histogram_found.end() && entry->first <= delta_mass + effective_tol + epsilon;
-             ++entry)
+        // Check with error tolerance if already present in histogram: the entry nearest to delta_mass
+        // is the one, if it is within effective_tol.
+        const auto entry = nearestEntry_(histogram_found, delta_mass);
+        if (entry != histogram_found.end() && std::abs(delta_mass - entry->first) < effective_tol)
         {
-          if (std::abs(delta_mass - entry->first) < effective_tol)
-          {
-            ptm = entry->second;
-            found = true;
-            break;
-          }
+          ptm = entry->second;
+          found = true;
         }
-        
+
         // Otherwise assign unknown
         if (!found)
         {
@@ -596,7 +629,6 @@ namespace OpenMS
   {
     DeltaMassStatistics stats;
     constexpr double min_mass_for_ppm = 0.1; // Minimum mass to avoid division issues with ppm
-    constexpr double epsilon = 1e-8;         // Guard band when seeding a lookup at a window border
 
     // Effective tolerance for modification mass matching (capped for open search)
     const double mod_tol = precursor_mass_tolerance_unit_ppm
@@ -688,18 +720,13 @@ namespace OpenMS
         }
       }
 
-      // Try to map to known modification. Only entries within mod_tol of delta_mass can
-      // match, so the search starts at the window border; the lowest mass still wins.
-      for (auto mod_it = mod_lookup.lower_bound(delta_mass - mod_tol - epsilon);
-           mod_it != mod_lookup.end() && mod_it->first <= delta_mass + mod_tol + epsilon;
-           ++mod_it)
+      // Try to map to known modification, named as in mapDeltaMassesToModifications(): after the nearest
+      // one within mod_tol, or after all of them ("A//B") if several are about equally close
+      const auto mod_candidates = namingEntries_(mod_lookup, delta_mass, mod_tol, MOD_MAPPING_AMBIGUITY_TOL_);
+      if (!mod_candidates.empty())
       {
-        if (std::abs(mod_it->first - delta_mass) <= mod_tol)
-        {
-          entry.mapped_modification = mod_it->second;
-          entry.is_known_modification = true;
-          break;
-        }
+        entry.mapped_modification = joinedNames_(mod_candidates);
+        entry.is_known_modification = true;
       }
 
       // Collect for statistics

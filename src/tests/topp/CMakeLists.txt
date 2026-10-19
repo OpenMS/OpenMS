@@ -3463,129 +3463,6 @@ set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3"
 
 
 #------------------------------------------------------------------------------
-# ConsensusID tests
-# idXML input, "PEPMatrix" algorithm using PEP30MS matrix (example from the JPR paper):
-add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_1_output.tmp.idXML -algorithm PEPMatrix -PEPMatrix:matrix PAM30MS)
-add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_1_output.idXML )
-set_tests_properties("TOPP_ConsensusID_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_1")
-# featureXML input, "average" algorithm:
-add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML -out ${TESTS_TEMP_DIR}/ConsensusID_2_output.tmp.featureXML -algorithm average)
-add_test("TOPP_ConsensusID_2_out1" ${DIFF} -whitelist "IdentificationRun id" -in1 ${TESTS_TEMP_DIR}/ConsensusID_2_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML )
-set_tests_properties("TOPP_ConsensusID_2_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_2")
-# consensusXML input, "best" algorithm:
-add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusID_3_output.tmp.consensusXML -algorithm best)
-add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun id" -in1 ${TESTS_TEMP_DIR}/ConsensusID_3_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML )
-set_tests_properties("TOPP_ConsensusID_3_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_3")
-# idXML input, "PEPMatrix" algorithm using identity matrix, limited number of considered hits:
-add_test("TOPP_ConsensusID_4" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_4_output.tmp.idXML -algorithm PEPMatrix -PEPMatrix:matrix identity -filter:considered_hits 6)
-add_test("TOPP_ConsensusID_4_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_4_output.idXML )
-set_tests_properties("TOPP_ConsensusID_4_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_4")
-# idXML input, "PEPIons" algorithm:
-add_test("TOPP_ConsensusID_5" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_5_output.tmp.idXML -algorithm PEPIons)
-add_test("TOPP_ConsensusID_5_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_5_output.idXML )
-set_tests_properties("TOPP_ConsensusID_5_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_5")
-# idXML input, "best" algorithm, filtering:
-add_test("TOPP_ConsensusID_6" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_6_output.tmp.idXML -algorithm best -filter:min_support 0.5)
-add_test("TOPP_ConsensusID_6_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_6_output.idXML )
-set_tests_properties("TOPP_ConsensusID_6_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_6")
-# idXML input, "best" algorithm, per_spectrum:
-add_test("TOPP_ConsensusID_7" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_6_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_7_output.tmp.idXML -algorithm best -per_spectrum -filter:keep_old_scores)
-add_test("TOPP_ConsensusID_7_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_7_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_7_output.idXML )
-set_tests_properties("TOPP_ConsensusID_7_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_7")
-# idXML input, with Percolator, "best" algorithm, per_spectrum:
-add_test("TOPP_ConsensusID_8" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_8_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_8_output.tmp.idXML -algorithm best -per_spectrum -filter:keep_old_scores)
-add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_8_output.idXML )
-set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
-
-# Empty search results retain their original runs and all search settings in RT/mz mode.
-# Compare complete files, including spectra_data and custom search/run metadata (#1427, #8250).
-foreach(input IN ITEMS empty empty_runs)
-  add_test("TOPP_ConsensusID_${input}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_${input}_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_${input}.tmp.idXML)
-  add_test("TOPP_ConsensusID_${input}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusID_${input}.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_${input}_input.idXML)
-  set_tests_properties("TOPP_ConsensusID_${input}_out" PROPERTIES DEPENDS "TOPP_ConsensusID_${input}")
-endforeach()
-
-# Finalize per-spectrum metadata even for an MS file with only empty runs.
-# Two search engines cover sample.mzML; empty_sample.mzML has no peptide IDs at all.
-set(consensusid_empty_metadata
-  "search_engine=\"OpenMS/ConsensusID_best\""
-  "db=\"test.fasta\" db_version=\"2020-01\" taxonomy=\"9606\""
-  "charges=\"2-4\" enzyme=\"trypsin\" missed_cleavages=\"2\""
-  "precursor_peak_tolerance=\"20\" precursor_peak_tolerance_ppm=\"true\""
-  "peak_mass_tolerance=\"0.04\" peak_mass_tolerance_ppm=\"false\""
-  "<FixedModification name=\"Carbamidomethyl (C)\""
-  "<VariableModification name=\"Oxidation (M)\""
-  "<VariableModification name=\"Phospho (S)\""
-  "name=\"SE:Engine1\" value=\"1.0\""
-  "name=\"SE:Engine2\" value=\"2.0\""
-  "name=\"Engine1:charges\" value=\"2:3\""
-  "name=\"Engine2:charges\" value=\"2:4\""
-  "name=\"spectra_data\" value=\"[sample.mzML]\""
-  "name=\"spectra_data\" value=\"[empty_sample.mzML]\""
-  "name=\"ConsensusIDBaseSearch\" value=\"Engine2:2.0\"")
-add_test("TOPP_ConsensusID_empty_per_spectrum" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_empty_input.idXML ${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_empty_per_spectrum.tmp.idXML -algorithm best -per_spectrum)
-add_test("TOPP_ConsensusID_empty_per_spectrum_out" ${CMAKE_COMMAND}
-  -DINPUT_FILE=${TESTS_TEMP_DIR}/ConsensusID_empty_per_spectrum.tmp.idXML
-  "-DEXPECTED=${consensusid_empty_metadata}" "-DFORBIDDEN=<PeptideIdentification"
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ConsensusID_empty_per_spectrum_out" PROPERTIES DEPENDS "TOPP_ConsensusID_empty_per_spectrum")
-
-# Missing optional enzyme/charge settings must remain unknown, not fail the
-# enzyme lookup or become the sentinel charge range "10000--10000".
-add_test("TOPP_ConsensusID_empty_unknown" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_empty_unknown_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_empty_unknown.tmp.idXML -algorithm best -per_spectrum)
-add_test("TOPP_ConsensusID_empty_unknown_out" ${CMAKE_COMMAND}
-  -DINPUT_FILE=${TESTS_TEMP_DIR}/ConsensusID_empty_unknown.tmp.idXML
-  "-DEXPECTED=charges=\"\" enzyme=\"unknown_enzyme\";name=\"spectra_data\" value=\"[sample_unknown.mzML]\""
-  "-DFORBIDDEN=<PeptideIdentification;10000--10000"
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ConsensusID_empty_unknown_out" PROPERTIES DEPENDS "TOPP_ConsensusID_empty_unknown")
-
-# Empty runs contribute to support only with count_empty. With min_support=1,
-# the sole peptide survives only if the empty search run is ignored.
-foreach(mode IN ITEMS rt_mz per_spectrum)
-  if(mode STREQUAL "per_spectrum")
-    set(consensusid_mixed_inputs ${DATA_DIR_TOPP}/ConsensusID_nonempty_input.idXML ${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML)
-    set(consensusid_mode_args -per_spectrum)
-  else()
-    set(consensusid_mixed_inputs ${DATA_DIR_TOPP}/ConsensusID_mixed_input.idXML)
-    set(consensusid_mode_args)
-  endif()
-  foreach(count_empty IN ITEMS false true)
-    set(consensusid_test "TOPP_ConsensusID_mixed_${mode}_${count_empty}")
-    set(consensusid_output "${TESTS_TEMP_DIR}/ConsensusID_mixed_${mode}_${count_empty}.tmp.idXML")
-    add_test("${consensusid_test}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${consensusid_mixed_inputs} -out ${consensusid_output} -algorithm best ${consensusid_mode_args} -filter:count_empty ${count_empty} -filter:min_support 1)
-    if(count_empty)
-      set(consensusid_output_check "-DFORBIDDEN=<PeptideIdentification")
-    else()
-      set(consensusid_output_check "-DEXPECTED=sequence=\"PEPTIDE\";name=\"consensus_support\" value=\"1.0\"")
-    endif()
-    add_test("${consensusid_test}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${consensusid_output} "${consensusid_output_check}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-    set_tests_properties("${consensusid_test}_out" PROPERTIES DEPENDS "${consensusid_test}")
-    if(mode STREQUAL "per_spectrum")
-      add_test("${consensusid_test}_metadata" ${CMAKE_COMMAND} -DINPUT_FILE=${consensusid_output} "-DEXPECTED=${consensusid_empty_metadata}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-      set_tests_properties("${consensusid_test}_metadata" PROPERTIES DEPENDS "${consensusid_test}")
-    endif()
-  endforeach()
-endforeach()
-
-# Unannotated features and consensus features have no identification runs.
-foreach(format IN ITEMS featureXML consensusXML)
-  add_test("TOPP_ConsensusID_no_ids_${format}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_no_ids_input.${format} -out ${TESTS_TEMP_DIR}/ConsensusID_no_ids.tmp.${format})
-  add_test("TOPP_ConsensusID_no_ids_${format}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusID_no_ids.tmp.${format} -in2 ${DATA_DIR_TOPP}/ConsensusID_no_ids_input.${format})
-  set_tests_properties("TOPP_ConsensusID_no_ids_${format}_out" PROPERTIES DEPENDS "TOPP_ConsensusID_no_ids_${format}")
-endforeach()
-
-# Require the documented input shape and a clean INCOMPATIBLE_INPUT_DATA return (11).
-add_test("TOPP_ConsensusID_multiple_files_without_per_spectrum" ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ConsensusID;-test;-in;${DATA_DIR_TOPP}/ConsensusID_empty_input.idXML;${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML;-out;${TESTS_TEMP_DIR}/ConsensusID_invalid_multiple.tmp.idXML"
-  -DEXPECTED_CODE=11 "-DEXPECTED_OUTPUT_REGEX=expects a single idXML file"
-  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-add_test("TOPP_ConsensusID_nonempty_single_run" ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ConsensusID;-test;-in;${DATA_DIR_TOPP}/ConsensusID_nonempty_input.idXML;-out;${TESTS_TEMP_DIR}/ConsensusID_invalid_single.tmp.idXML"
-  -DEXPECTED_CODE=11 "-DEXPECTED_OUTPUT_REGEX=At least two runs are required"
-  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-
-#------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
 add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_output_1.tmp.idXML -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_1_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_output_1.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_1.idXML)
@@ -5066,9 +4943,22 @@ foreach(_rescore OFF ON)
     -Search:FDR:PSM 0 -Search:FDR:protein 0 -out_pin ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
   add_test("TOPP_${_f}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}.tmp.tsv -in2 ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
   set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_f}_nofdr")
-  add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
-    -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
-  set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  if(_rescore)
+    # Percolator cannot train properly on this data (1 decoy among 896 PSMs, so the SVM scores are not rescaled):
+    # its SVM scores differ by about 1% between two runs on Windows. Compare the hit counts after FDR instead.
+    foreach(_run ${_f} ${_ref})
+      add_test("TOPP_${_f}_info_${_run}" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/${_run}_out.tmp.idXML
+        -out_tsv ${TESTS_TEMP_DIR}/${_f}_info_${_run}.tmp.tsv)
+      set_tests_properties("TOPP_${_f}_info_${_run}" PROPERTIES DEPENDS "TOPP_${_run}")
+    endforeach()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_info_${_f}.tmp.tsv
+      -in2 ${TESTS_TEMP_DIR}/${_f}_info_${_ref}.tmp.tsv -whitelist "file name")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f}_info_${_f};TOPP_${_f}_info_${_ref}")
+  else()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
+      -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  endif()
 endforeach()
 add_test("TOPP_ProSE_12_pin_rescore_vs_norescore_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_12_pin_rescore.tmp.tsv -in2 ${TESTS_TEMP_DIR}/ProSE_12_pin.tmp.tsv)
 set_tests_properties("TOPP_ProSE_12_pin_rescore_vs_norescore_out" PROPERTIES DEPENDS "TOPP_ProSE_12_pin_rescore;TOPP_ProSE_12_pin")
