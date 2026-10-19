@@ -72,6 +72,15 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
   defaults_.setMinFloat("fdr", 0.0);
   defaults_.setMaxFloat("fdr", 1.0);
 
+  defaults_.setValue("shape_features", "false",
+                     "Also score each candidate transfer by how its peak shape agrees with the"
+                     " identified features of its precursor in the other runs: the log ratio of the"
+                     " elution width (feature meta value 'pipecho_width', on the aligned RT scale), the"
+                     " difference in tailing ('pipecho_tailing') and the cosine between the observed"
+                     " isotope envelopes ('pipecho_obs_envelope'). These describe the peak, not its"
+                     " size. ProteomicsLFQ provides the meta values.");
+  defaults_.setValidStrings("shape_features", {"true", "false"});
+
   defaults_.setValue("random_seed", 0,
                      "Seed for the random number generator used to select decoy"
                      " donors. A fixed seed makes results reproducible.");

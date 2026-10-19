@@ -61,7 +61,8 @@ public:
                std::function<double(const TransferFDRModel::acceptor_t&)> get,
                std::function<bool(double, double)> cmp,
                bool use_im,
-               bool use_rt_score);
+               bool use_rt_score,
+               bool use_shape);
 
   /**
    * Train the model with the given data.
@@ -95,6 +96,7 @@ private:
   std::function<bool(double, double)> cmp;
   bool use_im;
   bool use_rt_score;
+  bool use_shape;
   std::size_t index = 0;
 
   SimpleSVM svm;
@@ -106,9 +108,10 @@ private:
 
 /******************************************************************************/
 TransferFDRModel::TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
-         std::size_t min_decoys, std::size_t max_training_points):
+         std::size_t min_decoys, std::size_t max_training_points, bool use_shape):
     min_decoys_(min_decoys),
-    max_training_points_(max_training_points)
+    max_training_points_(max_training_points),
+    use_shape_(use_shape)
 {
   auto push_acceptor
     = [&](const Acceptor& acceptor, std::optional<Acceptor::scored_t>& scored,
@@ -491,7 +494,7 @@ bool TransferFDRModel::train_predict(const group_t& training,
                         std::function<double(const acceptor_t&)> get,
                         std::function<bool(double, double)> cmp)
 {
-  predictors_t predictors(cutoff, get, cmp, use_im_, use_rt_score_);
+  predictors_t predictors(cutoff, get, cmp, use_im_, use_rt_score_, use_shape_);
   if (! predictors.train(training)) return false;
   return predictors.predict(predict);
 }
@@ -564,12 +567,14 @@ predictors_t::predictors_t(double cutoff,
                            std::function<double(const TransferFDRModel::acceptor_t&)> get,
                            std::function<bool(double, double)> cmp,
                            bool use_im,
-                           bool use_rt_score):
+                           bool use_rt_score,
+                           bool use_shape):
     cutoff(cutoff),
     getter(get),
     cmp(cmp),
     use_im(use_im),
-    use_rt_score(use_rt_score)
+    use_rt_score(use_rt_score),
+    use_shape(use_shape)
 {
   Param svm_param = svm.getParameters();
 
@@ -663,6 +668,12 @@ void predictors_t::encode(const TransferFDRModel::acceptor_t& acceptor,
     predictors["im_diff_score"].push_back(acceptor.score.im_diff_score);
   }
   predictors["mbr_score"].push_back(acceptor.score.mbr_score);
+  if (use_shape)
+  {
+    predictors["shape_width"].push_back(acceptor.score.shape_width);
+    predictors["shape_tailing"].push_back(acceptor.score.shape_tailing);
+    predictors["shape_isotope"].push_back(acceptor.score.shape_isotope);
+  }
 
   if (create_labels)
   {

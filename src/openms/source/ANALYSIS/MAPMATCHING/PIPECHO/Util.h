@@ -48,6 +48,18 @@ std::optional<double> feature_mass_error(const Feature&);
  */
 std::optional<std::vector<double>> feature_obs_envelope(const Feature&);
 
+/**
+ * The elution width of a feature on the aligned RT scale (the "pipecho_width" meta value, e.g. the sigma of
+ * the elution model fit times the local slope of the RT transformation); nullopt if absent or not positive.
+ */
+std::optional<double> feature_elution_width(const Feature&);
+
+/**
+ * The tailing of a feature's elution peak (the "pipecho_tailing" meta value: how much more of the peak lies
+ * after the apex than before it, relative to the peak width); nullopt if absent or not finite.
+ */
+std::optional<double> feature_tailing(const Feature&);
+
 /******************************************************************************/
 /**
  * Return the feature's ion-mobility value (e.g. 1/K0), or nullopt if the

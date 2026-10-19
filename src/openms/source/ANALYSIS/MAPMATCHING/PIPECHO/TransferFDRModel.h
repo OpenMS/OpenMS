@@ -79,9 +79,11 @@ public:
    *                    cross-validation fold (0 = unlimited). Only the model
    *                    fit is subsampled; prediction and the FDR/q-values use
    *                    every transfer, so q-values stay unbiased (see round()).
+   * @param use_shape   Use the peak-shape agreement scores (Score::shape_width,
+   *                    shape_tailing, shape_isotope) as SVM features.
    */
   TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys,
-                   std::size_t max_training_points = 0);
+                   std::size_t max_training_points = 0, bool use_shape = false);
 
   /**
    * Run the PEP analysis.
@@ -149,6 +151,9 @@ private:
   /// exactly on the local adaptive RT path with a calibrated RtScoreMode. The
   /// baseline/global path leaves rt_score at the -1 sentinel -> raw rt_diff_error.
   bool use_rt_score_ = false;
+
+  /// Whether the peak-shape agreement scores are SVM features.
+  bool use_shape_ = false;
 };
 
 } // namespace OpenMS::PipEcho

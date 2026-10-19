@@ -322,6 +322,49 @@ START_SECTION([EXTRA] ion mobility disambiguates competing acceptors when presen
 }
 END_SECTION
 
+START_SECTION([EXTRA] shape_features compares a transfer's peak shape with its precursor's identified features)
+{
+  auto shaped = [](Feature f, double width, double tailing, const DoubleList& envelope)
+  {
+    f.setMetaValue("pipecho_width", width);
+    f.setMetaValue("pipecho_tailing", tailing);
+    f.setMetaValue("pipecho_obs_envelope", envelope);
+    return f;
+  };
+  const DoubleList env = {5.5e5, 3.0e5, 1.1e5, 0.4e5};
+  vector<Feature> runA = {
+    shaped(makeFeature(50.0, 500.00, 2, 1.0e6, "PEPTIDEAAK", 1), 4.0, 0.1, env),
+    shaped(makeFeature(80.0, 600.00, 2, 2.0e6, "PEPTIDEBBR", 2), 4.0, 0.1, env),
+    shaped(makeFeature(110.0, 700.00, 2, 3.0e6, "PEPTIDECCK", 3), 4.0, 0.1, env)
+  };
+  vector<Feature> runB = {
+    shaped(makeFeature(51.0, 500.00, 2, 1.1e6, "PEPTIDEAAK", 11), 4.0, 0.1, env),
+    shaped(makeFeature(80.5, 600.00, 2, 1.9e6, "", 12), 4.2, 0.1, env), // same shape as its donor
+    makeFeature(110.5, 700.00, 2, 2.9e6, "", 13)                          // no shape information
+  };
+  vector<FeatureMap> maps = {makeRun("runA.mzML", runA), makeRun("runB.mzML", runB)};
+
+  TEST_EQUAL(PipEchoAlgorithm().getParameters().getValue("shape_features").toString(), "false")
+
+  PipEchoAlgorithm algo;
+  Param param = algo.getParameters();
+  param.setValue("fdr", 1.0);
+  param.setValue("local_rt:enabled", "false");
+  param.setValue("shape_features", "true");
+  algo.setParameters(param);
+  ConsensusMap consensus;
+  algo.group(maps, consensus);
+
+  // the shape features are additional SVM inputs; with fdr 1.0 both transfers are kept
+  Size transfer_count = 0;
+  for (const ConsensusFeature& cf : consensus)
+  {
+    if (cf.metaValueExists("mbr_transfer_map_indices")) transfer_count += IntList(cf.getMetaValue("mbr_transfer_map_indices")).size();
+  }
+  TEST_EQUAL(transfer_count, 2)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

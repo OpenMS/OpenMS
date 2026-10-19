@@ -69,6 +69,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/METADATA/ProteinRunReferences.h>
 
+#include <cmath>
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
@@ -140,6 +141,9 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
   - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
     cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
     transfers are scored.
+  - @p PipEcho:shape_features @p true also scores how each transfer's peak shape agrees with the identified
+    features of its peptide in the other runs: its elution width on the aligned RT scale, its tailing and its
+    isotope envelope. A transfer to the wrong peak of the right peptide often differs in shape.
 
 @b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
 Feature detection is the expensive part of the workflow and each MS run is detected independently
@@ -787,6 +791,22 @@ protected:
     if (feature_maps.size() > 1)
     {
       max_alignment_diff = align_(feature_maps, transformations);
+
+      // PIP-ECHO shape features compare elution widths across runs: carry each width onto the aligned RT scale
+      // (times the local slope of the run's RT transformation at the feature) while the RTs are still the run's own.
+      if (feature_maps.size() == transformations.size())
+      {
+        for (Size i = 0; i < feature_maps.size(); ++i)
+        {
+          for (auto& f : feature_maps[i])
+          {
+            if (!f.metaValueExists("pipecho_width")) continue;
+            const double rt = f.getRT();
+            const double slope = (transformations[i].apply(rt + 1.0) - transformations[i].apply(rt - 1.0)) / 2.0;
+            if (slope > 0.0 && std::isfinite(slope)) f.setMetaValue("pipecho_width", double(f.getMetaValue("pipecho_width")) * slope);
+          }
+        }
+      }
 
       transform_(feature_maps, transformations);
 
@@ -1911,8 +1931,28 @@ protected:
     // references), so gate on pip_echo.
     const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
     if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
+    // PIP-ECHO shape features: the elution width (sigma of the elution model fit; put on the aligned RT scale
+    // in alignAndLink_) and the tailing of the peak (from its integration boundaries), snapshotted below.
+    const bool pip_echo_shapes = pip_echo_enabled && getParam_().getValue("PipEcho:shape_features").toString() == "true";
+    if (pip_echo_shapes) { keep_meta.insert("pipecho_width"); keep_meta.insert("pipecho_tailing"); }
     for (auto & f : fm)
     {
+      if (pip_echo_shapes)
+      {
+        const bool valid_fit = f.metaValueExists("model_Gauss_sigma") &&
+          (!f.metaValueExists("model_status") || f.getMetaValue("model_status").toString().starts_with('0'));
+        const double apex = (valid_fit && f.metaValueExists("model_center")) ? double(f.getMetaValue("model_center")) : f.getRT();
+        if (valid_fit && double(f.getMetaValue("model_Gauss_sigma")) > 0.0)
+        {
+          f.setMetaValue("pipecho_width", f.getMetaValue("model_Gauss_sigma"));
+        }
+        if (f.metaValueExists("leftWidth") && f.metaValueExists("rightWidth"))
+        {
+          const double left = f.getMetaValue("leftWidth"), right = f.getMetaValue("rightWidth");
+          // > 0: more of the peak after the apex than before it
+          if (right > left) f.setMetaValue("pipecho_tailing", ((right - apex) - (apex - left)) / (right - left));
+        }
+      }
       std::vector<std::string> keys;
       f.getKeys(keys);
       for (const auto& k : keys)

@@ -69,6 +69,17 @@ struct Score
 
   /// Single score used for bootstrapping.
   double mbr_score;
+
+  /// Peak-shape agreement with the precursor's identified features in the other runs (only with
+  /// 'shape_features'; see Impl::annotate_shape_features). Log ratio of the elution width
+  /// (0 = same width or unknown).
+  double shape_width = 0.0;
+
+  /// Difference in tailing (0 = same or unknown).
+  double shape_tailing = 0.0;
+
+  /// Cosine between the observed isotope envelopes, scaled to sum 1 (-1 = unknown).
+  double shape_isotope = -1.0;
 };
 
 } // namespace OpenMS::PipEcho

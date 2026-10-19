@@ -115,6 +115,24 @@ std::optional<std::vector<double>> feature_obs_envelope(const Feature& feature)
 }
 
 /**************************************************************************/
+std::optional<double> feature_elution_width(const Feature& feature)
+{
+  if (! feature.metaValueExists("pipecho_width")) { return {}; }
+  const double w = feature.getMetaValue("pipecho_width");
+  if (! (w > 0.0) || ! std::isfinite(w)) { return {}; }
+  return w;
+}
+
+/**************************************************************************/
+std::optional<double> feature_tailing(const Feature& feature)
+{
+  if (! feature.metaValueExists("pipecho_tailing")) { return {}; }
+  const double t = feature.getMetaValue("pipecho_tailing");
+  if (! std::isfinite(t)) { return {}; }
+  return t;
+}
+
+/**************************************************************************/
 std::optional<double> feature_ion_mobility(const Feature& feature)
 {
   if (feature.metaValueExists("IM_median"))

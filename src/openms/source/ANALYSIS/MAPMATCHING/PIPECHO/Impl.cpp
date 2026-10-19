@@ -18,6 +18,7 @@
 #include "Util.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <memory>
@@ -332,6 +333,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     // setMinInt("max_training_points", 0) guarantees a non-negative value.
     max_training_points(static_cast<std::size_t>(
       static_cast<int>(params.getValue("max_training_points")))),
+    shape_features(params.exists("shape_features") && params.getValue("shape_features").toString() == "true"),
     rng_seed_(static_cast<std::mt19937::result_type>(
       static_cast<int>(params.getValue("random_seed")))),
     rng_(rng_seed_)
@@ -506,6 +508,134 @@ void Impl::partition_features(const std::vector<FeatureMap>& maps, RunMap& runs)
   }
 
   logger.endProgress();
+}
+
+/******************************************************************************/
+namespace
+{
+/// Shape of one identified feature: run, elution width (aligned scale), tailing, isotope envelope scaled to sum 1.
+struct ShapeRef
+{
+  std::size_t map_index;
+  std::optional<double> width;
+  std::optional<double> tailing;
+  std::optional<std::vector<double>> envelope;
+};
+
+/// Isotope envelope clamped at 0 and scaled to sum 1; nullopt if empty or all 0.
+std::optional<std::vector<double>> envelope_profile(const Feature& feature)
+{
+  auto env = Util::feature_obs_envelope(feature);
+  if (! env.has_value()) { return {}; }
+  double sum = 0.0;
+  for (double& v : *env)
+  {
+    v = std::isfinite(v) ? std::max(v, 0.0) : 0.0;
+    sum += v;
+  }
+  if (! (sum > 0.0)) { return {}; }
+  for (double& v : *env) { v /= sum; }
+  return env;
+}
+
+double median_of(std::vector<double> v)
+{
+  std::sort(v.begin(), v.end());
+  const std::size_t n = v.size();
+  return (n % 2 == 1) ? v[n / 2] : 0.5 * (v[n / 2 - 1] + v[n / 2]);
+}
+
+/// [log width ratio, tailing difference, isotope cosine] of @p acceptor against the median of @p refs from
+/// other runs than @p map_index; 0, 0 and -1 where either side is unknown.
+std::array<double, 3> shape_agreement(const Feature& acceptor, std::size_t map_index, const std::vector<ShapeRef>& refs,
+                                      std::array<bool, 3>& compared)
+{
+  std::array<double, 3> out {0.0, 0.0, -1.0};
+  compared = {false, false, false};
+  std::vector<double> widths, tailings;
+  std::vector<const std::vector<double>*> envelopes;
+  for (const ShapeRef& r : refs)
+  {
+    if (r.map_index == map_index) { continue; } // not the acceptor's own run
+    if (r.width) { widths.push_back(*r.width); }
+    if (r.tailing) { tailings.push_back(*r.tailing); }
+    if (r.envelope) { envelopes.push_back(&*r.envelope); }
+  }
+  if (const auto w = Util::feature_elution_width(acceptor); w && ! widths.empty())
+  {
+    out[0] = std::log(*w / median_of(widths));
+    compared[0] = true;
+  }
+  if (const auto t = Util::feature_tailing(acceptor); t && ! tailings.empty())
+  {
+    out[1] = *t - median_of(tailings);
+    compared[1] = true;
+  }
+  if (const auto env = envelope_profile(acceptor); env && ! envelopes.empty())
+  {
+    // per-isotope median of the references (an isotope missing in a reference counts as 0)
+    std::vector<double> ref(env->size());
+    std::vector<double> values;
+    for (std::size_t i = 0; i < ref.size(); ++i)
+    {
+      values.clear();
+      for (const auto* e : envelopes) { values.push_back(i < e->size() ? (*e)[i] : 0.0); }
+      ref[i] = median_of(values);
+    }
+    double dot = 0.0, na = 0.0, nb = 0.0;
+    for (std::size_t i = 0; i < ref.size(); ++i)
+    {
+      dot += (*env)[i] * ref[i];
+      na += (*env)[i] * (*env)[i];
+      nb += ref[i] * ref[i];
+    }
+    if (na > 0.0 && nb > 0.0)
+    {
+      out[2] = dot / std::sqrt(na * nb);
+      compared[2] = true;
+    }
+  }
+  return out;
+}
+} // namespace
+
+/******************************************************************************/
+void Impl::annotate_shape_features(const RunMap& runs, const std::vector<std::shared_ptr<Acceptor>>& acceptors) const
+{
+  std::unordered_map<std::string, std::vector<ShapeRef>> refs;
+  for (const auto& run : runs)
+  {
+    for (const auto& donor : run.second.donors.storage)
+    {
+      refs[feature_sequence_key(donor->feature)].push_back({donor->map_index,
+                                                            Util::feature_elution_width(donor->feature),
+                                                            Util::feature_tailing(donor->feature),
+                                                            envelope_profile(donor->feature)});
+    }
+  }
+  std::size_t n_width = 0, n_tailing = 0, n_isotope = 0, n_total = 0;
+  for (const auto& acceptor : acceptors)
+  {
+    for (auto* scored : {&acceptor->target, &acceptor->decoy})
+    {
+      if (! scored->has_value()) { continue; }
+      const auto it = refs.find(feature_sequence_key((*scored)->second->feature));
+      if (it == refs.end()) { continue; }
+      std::array<bool, 3> compared;
+      const auto shape = shape_agreement(acceptor->feature, acceptor->map_index, it->second, compared);
+      Score& score = (*scored)->first;
+      score.shape_width = shape[0];
+      score.shape_tailing = shape[1];
+      score.shape_isotope = shape[2];
+      ++n_total;
+      n_width += compared[0];
+      n_tailing += compared[1];
+      n_isotope += compared[2];
+    }
+  }
+  OPENMS_LOG_INFO << "PIP-ECHO shape features: of " << n_total << " candidate transfers, " << n_width
+                  << " compared by elution width, " << n_tailing << " by tailing, " << n_isotope
+                  << " by isotope envelope." << '\n';
 }
 
 /******************************************************************************/
@@ -772,7 +902,9 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     all_acceptors.push_back(acpt);
   }
 
-  PipEcho::TransferFDRModel transfer_fdr(all_acceptors, min_decoys, max_training_points);
+  if (shape_features) { annotate_shape_features(runs, all_acceptors); }
+
+  PipEcho::TransferFDRModel transfer_fdr(all_acceptors, min_decoys, max_training_points, shape_features);
   const PipEcho::TransferFDRModel::group_t& acceptors = transfer_fdr.run(mbr_fdr);
 
   // Put each acceptor into the correct feature bucket.

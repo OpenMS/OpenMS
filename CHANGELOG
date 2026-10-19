@@ -711,6 +711,9 @@ TOPP tools:
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
   Changes:
+    ProteomicsLFQ:
+      - PARAM: New PipEcho:shape_features (default false): PIP-ECHO also scores how a transfer's elution width,
+        tailing and isotope envelope agree with the identified features of its precursor in the other runs.
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter

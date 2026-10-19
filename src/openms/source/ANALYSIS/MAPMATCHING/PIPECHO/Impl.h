@@ -104,6 +104,11 @@ public:
   /// Fill in the final ConsensusMap.
   void generate_consensus_map(RunMap&, ConsensusMap&);
 
+  /// With 'shape_features': compare each candidate transfer's peak shape (elution width, tailing, isotope
+  /// envelope) with the identified features of its precursor in the other runs, and store the result in its
+  /// Score (shape_width, shape_tailing, shape_isotope). A decoy transfer is compared with its donor's precursor.
+  void annotate_shape_features(const RunMap&, const std::vector<std::shared_ptr<Acceptor>>&) const;
+
 public:
   /// Max allowed m/z difference between donor and acceptor.
   MzDiff mz_max_diff;
@@ -126,6 +131,9 @@ public:
   /// (0 = unlimited). Only the model fit is subsampled; prediction and the
   /// FDR/q-values still use every transfer (see TransferFDRModel::round).
   std::size_t max_training_points;
+
+  /// Use the peak-shape agreement of a transfer with its precursor's identified features as transfer FDR features.
+  bool shape_features = false;
 
 private:
   std::string path_from_feature_map(const FeatureMap&);
