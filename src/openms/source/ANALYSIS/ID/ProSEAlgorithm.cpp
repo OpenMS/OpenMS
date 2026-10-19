@@ -265,6 +265,12 @@ namespace OpenMS
       std::vector<std::string>{Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED,
                                Constants::UserParam::ION_PRIOR_TOPK_OBSERVED});
 
+    defaults_.setValue("annotate:isotope_mimic", "false",
+      "Annotate each PSM with 'isotope_mimic' (1/0, also a Percolator feature): whether replacing its variable modifications "
+      "within 0.05 Da of one or two 13C steps (deamidation +0.984, N->D, Q->E, ...) by whole isotope steps explains the "
+      "precursor mass better. Such a PSM is likely an unmodified peptide whose precursor was picked on an isotope peak; "
+      "decoys cannot model this error.");
+    defaults_.setValidStrings("annotate:isotope_mimic", {"true", "false"});
     defaults_.setValue("annotate:local_fragment_evidence", "true",
       "Add chance_match_surprise and mass_competition_evidence annotations and Percolator features. "
       "Uses local peak density and alternative intact/neutral-loss fragment assignments. "
@@ -1381,6 +1387,28 @@ namespace OpenMS
     }
   }
 
+  double ProSEAlgorithm::isotopeGap(double delta_mass)
+  {
+    const double step = Constants::C13C12_MASSDIFF_U;
+    const double k = std::round(delta_mass / step);
+    const double gap = k * step - delta_mass;
+    return (k != 0.0 && std::fabs(k) <= 2.0 && std::fabs(gap) < 0.05) ? gap : 0.0;
+  }
+
+  double ProSEAlgorithm::isotopeMimicShift(const AASequence& sequence, const std::set<std::string>& fixed_mod_ids)
+  {
+    double shift = 0.0;
+    auto add = [&](const ResidueModification* mod)
+    {
+      if (mod == nullptr || fixed_mod_ids.contains(mod->getFullId())) return;
+      shift += isotopeGap(mod->getDiffMonoMass());
+    };
+    add(sequence.getNTerminalModification());
+    add(sequence.getCTerminalModification());
+    for (Size i = 0; i < sequence.size(); ++i) add(sequence[i].getModification());
+    return shift;
+  }
+
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
         std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         const std::vector<CandidatePoolStats_>& pool_stats,
@@ -1454,6 +1482,8 @@ namespace OpenMS
     bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
     const bool annotation_local_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
+    const bool annotation_isotope_mimic = param_.getValue("annotate:isotope_mimic").toBool();
+    const std::set<std::string> fixed_mod_ids(modifications_fixed.begin(), modifications_fixed.end());
     const bool evidence_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     if (annotation_local_evidence && (evidence_spectra == nullptr || evidence_spectra->size() != exp.size()))
     {
@@ -1528,7 +1558,7 @@ namespace OpenMS
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
          mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_chance_match_surprise{},
-         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{};
+         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{}, mv_isotope_mimic{};
     {
       const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
                                                 [](const std::vector<AnnotatedHit_>& hits) { return !hits.empty(); });
@@ -1560,6 +1590,7 @@ namespace OpenMS
           mv_mass_competition_evidence = registry.registerName(Constants::UserParam::MASS_COMPETITION_EVIDENCE);
         }
         mv_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
+        if (annotation_isotope_mimic) mv_isotope_mimic = registry.registerName("isotope_mimic");
         if (open_search_mode) mv_delta_mass = registry.registerName("DeltaMass");
       }
     }
@@ -1863,6 +1894,16 @@ namespace OpenMS
             ph.setMetaValue(mv_mass_competition_evidence, evidence.mass_competition_evidence);
           }
 
+          if (annotation_isotope_mimic)
+          {
+            // precursor error peptide - spectrum in Da, at the isotope offset the PSM was matched at
+            const double corrected_mz = mz
+              + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
+            const double err_da = (ah.sequence.getMZ(used_charge) - corrected_mz) * static_cast<double>(used_charge);
+            const double shift = isotopeMimicShift(ah.sequence, fixed_mod_ids);
+            ph.setMetaValue(mv_isotope_mimic, (shift != 0.0 && std::fabs(err_da + shift) < std::fabs(err_da)) ? 1 : 0);
+          }
+
           // Add isotope error metavalue (always; exposed as Percolator feature). ah.isotope_error is the offset
           // FragmentIndex added to the observed mass (theoretical minus observed); report:isotope_error_convention
           // selects the reported sign.
@@ -1974,6 +2015,7 @@ namespace OpenMS
     }
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
+    if (param_.getValue("annotate:isotope_mimic").toBool()) feature_set.push_back("isotope_mimic");
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or

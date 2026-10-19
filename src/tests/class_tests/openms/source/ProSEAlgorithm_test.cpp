@@ -5777,4 +5777,30 @@ START_SECTION(([EXTRA] an exception after the calibration pass leaves the tolera
 }
 END_SECTION
 
+START_SECTION((static double isotopeGap(double delta_mass)))
+{
+  TOLERANCE_ABSOLUTE(1e-6)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::isotopeGap(0.984016), 1.0033548 - 0.984016)   // deamidation
+  TEST_REAL_SIMILAR(ProSEAlgorithm::isotopeGap(15.994915), 0.0)                    // oxidation: not isotope-like
+  TEST_REAL_SIMILAR(ProSEAlgorithm::isotopeGap(0.0), 0.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::isotopeGap(3.01), 0.0)                         // three steps: out of range
+}
+END_SECTION
+
+START_SECTION((static double isotopeMimicShift(const AASequence& sequence, const std::set<std::string>& fixed_mod_ids)))
+{
+  TOLERANCE_ABSOLUTE(1e-4)
+  const std::set<std::string> fixed{"Carbamidomethyl (C)"};
+  const AASequence deamidated = AASequence::fromString("PEPN(Deamidated)C(Carbamidomethyl)K");
+  const double shift = ProSEAlgorithm::isotopeMimicShift(deamidated, fixed);
+  TEST_REAL_SIMILAR(shift, 0.0193)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::isotopeMimicShift(AASequence::fromString("PEPM(Oxidation)K"), fixed), 0.0)
+  // an unmodified PEPNCK precursor picked on its M+1 peak: the deamidated candidate's error closes with the shift
+  const AASequence plain = AASequence::fromString("PEPNC(Carbamidomethyl)K");
+  const double spectrum_mass = plain.getMonoWeight() + Constants::C13C12_MASSDIFF_U;
+  const double err_da = deamidated.getMonoWeight() - spectrum_mass;
+  TEST_EQUAL(std::fabs(err_da + shift) < std::fabs(err_da), true)
+}
+END_SECTION
+
 END_TEST

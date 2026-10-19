@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>     // std::pair (renderRunSummaryJson manifest)
+#include <set>
 #include <vector>
 
 namespace OpenMS
@@ -55,6 +56,21 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   public ProgressLogger
 {
   public:
+    /**
+      @brief k x (13C step) - @p delta_mass if @p delta_mass is within 0.05 Da of k = +-1 or +-2 isotope steps, else 0
+
+      Deamidation (+0.984016 Da) gives +0.019339 Da.
+    */
+    static double isotopeGap(double delta_mass);
+
+    /**
+      @brief Summed isotopeGap() of the variable (not in @p fixed_mod_ids, by full id) modifications of @p sequence
+
+      A PSM whose precursor error (peptide - spectrum, in Da) becomes smaller in magnitude when this shift is added is an
+      isotope mimic: an isotope-step precursor error explains the modification(s) (see annotate:isotope_mimic).
+    */
+    static double isotopeMimicShift(const AASequence& sequence, const std::set<std::string>& fixed_mod_ids);
+
     ProSEAlgorithm(); 
 
     /// Exit codes
