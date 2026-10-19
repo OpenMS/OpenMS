@@ -28,10 +28,8 @@ curl --no-progress-meter --fail --retry 3 --retry-all-errors -L -o NSIS.tar.gz h
 7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
 
 # These are only needed in CI. Like doxygen, they come from the packages built
-# above (pinned GitHub releases, SHA256-checked) rather than from the
-# Chocolatey community feed, which fails too often:
+# above (SHA256-checked) rather than from the Chocolatey community feed, which
+# fails too often. The rsync package is cwRsync 6.2.7, an older version that
+# matches the server:
 (cd chocolatey-packages/build &&
-  choco install -y --no-progress -s . ccache rclone)
-
-# Use an older version of rsync to match the server:
-choco install -y --no-progress --version 6.2.7 rsync
+  choco install -y --no-progress -s . ccache rclone rsync)
