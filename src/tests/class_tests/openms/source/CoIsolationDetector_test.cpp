@@ -129,8 +129,8 @@ START_SECTION((static Size annotate(PeakMap& exp, int min_charge, int max_charge
   TEST_EQUAL(exp[0].metaValueExists(CoIsolationDetector::META_MZ), false)
   TEST_EQUAL(exp[2].metaValueExists(CoIsolationDetector::META_MZ), false)
 
-  // the isotope peaks are matched within at least MIN_TOLERANCE_DA: an envelope whose isotope peaks are 0.005 Th off
-  // their positions is found with 1 ppm (0.0006 Th) and with 0.001 Th
+  // the tolerance in ppm of the selected precursor's m/z or in Th: isotope peaks 0.005 Th off their positions are
+  // matched within 0.01 Th (17 ppm), not within 1 ppm
   PeakMap shifted;
   MSSpectrum ms1_shifted;
   ms1_shifted.setMSLevel(1);
@@ -145,16 +145,15 @@ START_SECTION((static Size annotate(PeakMap& exp, int min_charge, int max_charge
   ms1_shifted.sortByPosition();
   shifted.addSpectrum(ms1_shifted);
   shifted.addSpectrum(ms2);
-  TEST_EQUAL(CoIsolationDetector::annotate(shifted, 1, 4, 1.0, true, 0.3, 4), 1)
-  TEST_EQUAL(CoIsolationDetector::annotate(shifted, 1, 4, 0.001, false, 0.3, 4), 1)
-  const DoubleList found_shifted = shifted[1].getMetaValue(CoIsolationDetector::META_MZ);
-  TEST_EQUAL(found_shifted.size(), 1)
-  ABORT_IF(found_shifted.size() != 1)
-  TEST_REAL_SIMILAR(found_shifted[0], 600.95)
-  // without the floor (0.0006 Th), the monoisotopic peak at 600.95 is not accepted
-  const auto unfloored = CoIsolationDetector::detect(ms1_shifted, 599.30, 601.30, 600.30, 1, 4, 0.0006, 0.3, 4);
-  TEST_EQUAL(std::none_of(unfloored.begin(), unfloored.end(),
-                          [](const CoIsolationDetector::CoIsolated& c) { return std::fabs(c.mono_mz - 600.95) < 0.001; }), true)
+  auto found_at = [&shifted](double tolerance, bool ppm)
+  {
+    CoIsolationDetector::annotate(shifted, 1, 4, tolerance, ppm, 0.3, 4);
+    const DoubleList mzs = shifted[1].getMetaValue(CoIsolationDetector::META_MZ);
+    return std::any_of(mzs.begin(), mzs.end(), [](double mz) { return std::fabs(mz - 600.95) < 0.001; });
+  };
+  TEST_EQUAL(found_at(0.01, false), true)
+  TEST_EQUAL(found_at(17.0, true), true)
+  TEST_EQUAL(found_at(1.0, true), false)
 }
 END_SECTION
 

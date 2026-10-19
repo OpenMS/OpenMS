@@ -49,8 +49,6 @@ namespace OpenMS
     static const std::string META_MZ;
     /// meta value of an MS2 spectrum: the charges of its co-isolated precursors (IntList, same order as META_MZ)
     static const std::string META_CHARGE;
-    /// smallest m/z tolerance (Th) annotate() matches isotope peaks with, as andes does
-    static constexpr double MIN_TOLERANCE_DA = 0.01;
 
     /**
       @brief Divergence of the isotope envelope at @p mono_mz from averagine
@@ -91,13 +89,11 @@ namespace OpenMS
       "isolation window target m/z" of the precursor (its m/z if absent) and spans its isolation window offsets.
       Spectra without a survey scan or an isolation window are left out. Writes the meta values META_MZ and
       META_CHARGE (also when nothing was found, as empty lists). Sorts the survey scans by m/z if they are not.
-      The isotope peaks are matched within @p tolerance at the selected precursor's m/z, but at least
-      MIN_TOLERANCE_DA (as andes, which uses its precursor tolerance).
 
       @param exp Experiment whose MS2 spectra are annotated (survey scans may be sorted by m/z)
       @param min_charge Lowest charge tried
       @param max_charge Highest charge tried
-      @param tolerance m/z tolerance for the isotope peaks (e.g. the precursor mass tolerance)
+      @param tolerance m/z tolerance for the isotope peaks
       @param tolerance_ppm Whether @p tolerance is in ppm of the selected precursor's m/z (else Th)
       @param max_kl Largest accepted divergence from averagine
       @param max_n At most this many precursors per spectrum (most intense monoisotopic peaks first)

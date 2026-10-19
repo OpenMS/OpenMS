@@ -1881,7 +1881,8 @@ START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in wh
   TEST_EQUAL(file_peptides[1].getSpectrumReference(), "scan=2")
 
   // a second co-isolated precursor, GEPTIDENWK (3+, 31.9 Th below the selected one, less intense): searched after
-  // SDDEFYYTDK, in what both other PSMs leave; each co-isolated precursor gets one PSM (report:top_hits 5)
+  // SDDEFYYTDK, in what both other PSMs leave; a co-isolated precursor has at most report:top_hits hits, none with the
+  // best hit's peptide
   const AASequence second = AASequence::fromString("GEPTIDENWK");
   MSSpectrum ms1_two = ms1;
   add_envelope(ms1_two, second.getMZ(3), 3, 3e6);
@@ -1916,9 +1917,12 @@ START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in wh
   TEST_EQUAL(two_peptides[2].getHits()[0].getCharge(), 3)
   for (Size i = 1; i < 3; ++i)
   {
-    TEST_EQUAL(two_peptides[i].getHits().size(), 1)
-    TEST_EQUAL(int(two_peptides[i].getHits()[0].getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)
-    TEST_EQUAL(two_peptides[i].getHits()[0].getSequence() == selected, false) // never the best hit's peptide
+    TEST_EQUAL(two_peptides[i].getHits().empty() || two_peptides[i].getHits().size() > 5, false)
+    for (const PeptideHit& hit : two_peptides[i].getHits())
+    {
+      TEST_EQUAL(int(hit.getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)
+      TEST_EQUAL(hit.getSequence() == selected, false)
+    }
     TEST_EQUAL(int(two_peptides[i].getMetaValue("scan_index")), 0)
   }
 }

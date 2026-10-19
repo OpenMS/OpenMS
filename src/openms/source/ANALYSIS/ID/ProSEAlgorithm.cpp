@@ -488,15 +488,14 @@ namespace OpenMS
     defaults_.setMinInt("database:chunk_size", 0);
 
     defaults_.setValue("chimeric:enabled", "false",
-      "Also identify precursors co-isolated with the selected one (the andes chimeric cascade). The survey scan of each "
-      "MS2 spectrum is searched for isotope envelopes in its isolation window that fit averagine (needs centroided MS1 "
-      "spectra in the input and isolation windows on the precursors; isotope peaks are matched within the precursor "
-      "tolerance, at least 0.01 Th). After the search, the peaks the best hit of the spectrum explains are removed, and "
-      "the rest is searched for each co-isolated precursor in turn, at its m/z and charge and isotope error 0; each one "
-      "removes the peaks its best hit explains before the next is searched. A co-isolated precursor gets one PSM, not "
-      "the best hit's peptide, and none if the spectrum already has a PSM of that peptide at that charge. These PSMs get "
-      "the spectrum reference of their spectrum and the PSM meta value 'chimeric_rank' 2 (the others 1). Not with "
-      "database:chunk_size > 0.");
+      "Also identify precursors co-isolated with the selected one (after the andes chimeric cascade). The survey scan of "
+      "each MS2 spectrum is searched for isotope envelopes in its isolation window that fit averagine (needs centroided "
+      "MS1 spectra in the input and isolation windows on the precursors). After the search, the peaks the best hit of the "
+      "spectrum explains are removed, and the rest is searched for each co-isolated precursor in turn, at its m/z and "
+      "charge; the best hit of each removes the peaks it explains before the next is searched. The best hit's peptide is "
+      "not a hit of a co-isolated precursor, and a co-isolated precursor whose best hit repeats a PSM of the spectrum "
+      "(same peptide and charge) is dropped. These PSMs get the spectrum reference of their spectrum and the PSM meta "
+      "value 'chimeric_rank' 2 (the others 1). Not with database:chunk_size > 0.");
     defaults_.setValidStrings("chimeric:enabled", {"true", "false"});
     defaults_.setValue("chimeric:max_coisolated", 4, "At most this many co-isolated precursors per spectrum, the most intense first.");
     defaults_.setMinInt("chimeric:max_coisolated", 1);
@@ -504,6 +503,8 @@ namespace OpenMS
       "Largest Kullback-Leibler divergence of an isotope envelope in the survey scan from averagine (first four isotope "
       "peaks) to accept it as a co-isolated precursor.");
     defaults_.setMinFloat("chimeric:max_kl", 0.0);
+    defaults_.setValue("chimeric:mz_tolerance", 10.0, "Tolerance (ppm) for the m/z of the isotope peaks in the survey scan.");
+    defaults_.setMinFloat("chimeric:mz_tolerance", 0.0);
     defaults_.setSectionDescription("chimeric", "Search of precursors co-isolated with the selected one (chimeric spectra).");
 
     defaults_.setSectionDescription("calibration",
@@ -2662,23 +2663,21 @@ namespace OpenMS
 
   namespace
   {
-    // chimeric:enabled: the peaks of @p spectrum that the singly charged theoretical ions of @p sequence claim, as
-    // andes does: for each ion the most intense peak within the fragment tolerance. Merged into the ascending peak
-    // indices @p claimed.
+    // chimeric:enabled: the peaks of @p spectrum that the theoretical ions of @p sequence (fragment charges up to
+    // @p max_charge) claim: every peak within the fragment tolerance of an ion. Merged into the ascending peak indices
+    // @p claimed.
     void claimPeaks(const MSSpectrum& spectrum, const AASequence& sequence, const TheoreticalSpectrumGenerator& generator,
-                    double fragment_tol, bool fragment_tol_ppm, PeakSpectrum& theo, std::vector<UInt32>& claimed)
+                    int max_charge, double fragment_tol, bool fragment_tol_ppm, PeakSpectrum& theo, std::vector<UInt32>& claimed)
     {
       theo.clear(true);
-      generator.getSpectrum(theo, sequence, 1, 1);
+      generator.getSpectrum(theo, sequence, 1, max_charge);
       for (const Peak1D& ion : theo)
       {
         const double tol = fragment_tol_ppm ? ion.getMZ() * fragment_tol * 1e-6 : fragment_tol;
-        auto best = spectrum.end();
         for (auto it = spectrum.MZBegin(ion.getMZ() - tol); it != spectrum.end() && it->getMZ() <= ion.getMZ() + tol; ++it)
         {
-          if (best == spectrum.end() || it->getIntensity() > best->getIntensity()) best = it;
+          claimed.push_back(static_cast<UInt32>(it - spectrum.begin()));
         }
-        if (best != spectrum.end()) claimed.push_back(static_cast<UInt32>(best - spectrum.begin()));
       }
       std::sort(claimed.begin(), claimed.end());
       claimed.erase(std::unique(claimed.begin(), claimed.end()), claimed.end());
@@ -2716,7 +2715,7 @@ namespace OpenMS
                                          bool fragment_tol_ppm,
                                          bool open_search_mode,
                                          std::vector<CoIsolatedPSM_>& psms,
-                                         std::vector<AnnotatedHit_>& hits,
+                                         std::vector<std::vector<AnnotatedHit_>>& hits,
                                          std::vector<CandidatePoolStats_>& pool_stats) const
   {
     psms.clear();
@@ -2763,21 +2762,9 @@ namespace OpenMS
       Scan& scan = scans[s];
       const MSSpectrum& spectrum = spectra[scan.spectrum];
       PeakSpectrum theo;
-      claimPeaks(spectrum, scan.primary->sequence, generators.forSpectrum(spectrum), fragment_tol, fragment_tol_ppm, theo, scan.claimed);
+      claimPeaks(spectrum, scan.primary->sequence, generators.forSpectrum(spectrum), scoringMaxCharge_(scan.primary->applied_charge),
+                 fragment_tol, fragment_tol_ppm, theo, scan.claimed);
     }
-
-    // The co-isolated precursors are searched at their monoisotopic mass only (andes): the detector already moved
-    // each envelope to its monoisotopic peak
-    const Param fi_params = fi.getParameters();
-    Param fi_monoisotopic = fi_params;
-    fi_monoisotopic.setValue("precursor:isotope_error_min", 0);
-    fi_monoisotopic.setValue("precursor:isotope_error_max", 0);
-    fi.setParameters(fi_monoisotopic);
-    const OnScopeExit restore_fi([&fi, &fi_params]() noexcept
-    {
-      try { fi.setParameters(fi_params); }
-      catch (...) {}
-    });
 
     // One round per co-isolated precursor rank; a round's residual spectra are scored in batches
     constexpr Size batch_size = 8192;
@@ -2785,7 +2772,7 @@ namespace OpenMS
     {
       Size scan = 0;
       CoIsolatedPSM_ psm;
-      AnnotatedHit_ hit;
+      std::vector<AnnotatedHit_> hits; // the winner first
       CandidatePoolStats_ stats;
       bool emitted = false;
     };
@@ -2828,26 +2815,30 @@ namespace OpenMS
         for (Size b = begin; b < end; ++b)
         {
           Scan& scan = scans[in_round[b]];
+          // the hits that are not the spectrum's best peptide, the best (the winner) first
           std::vector<AnnotatedHit_>& candidates = batch_hits[b - begin];
-          // the best hit that is not the spectrum's best peptide
+          candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+                                          [&scan](const AnnotatedHit_& h) { return h.sequence == scan.primary->sequence; }),
+                           candidates.end());
+          if (candidates.empty()) continue;
           std::sort(candidates.begin(), candidates.end(), AnnotatedHit_::hasBetterScore);
-          auto winner = std::find_if(candidates.begin(), candidates.end(),
-                                     [&scan](const AnnotatedHit_& h) { return !(h.sequence == scan.primary->sequence); });
-          if (winner == candidates.end()) continue;
+          if (candidates.size() > report_top_hits_) candidates.resize(report_top_hits_);
+          const auto winner = candidates.begin();
           const MSSpectrum& spectrum = spectra[scan.spectrum];
-          claimPeaks(spectrum, winner->sequence, generators.forSpectrum(spectrum), fragment_tol, fragment_tol_ppm, theo, scan.claimed);
+          claimPeaks(spectrum, winner->sequence, generators.forSpectrum(spectrum), scoringMaxCharge_(winner->applied_charge),
+                     fragment_tol, fragment_tol_ppm, theo, scan.claimed);
           // dropped if the spectrum already reports this peptide at this charge: its distinct precursor m/z would
           // make it a precursor of its own in Percolator's target-decoy competition and count it twice
           auto same = [&winner](const AnnotatedHit_& h) { return h.applied_charge == winner->applied_charge && h.sequence == winner->sequence; };
           bool repeated = std::any_of(annotated_hits[scan.spectrum].begin(), annotated_hits[scan.spectrum].end(), same);
           for (const auto& [round, position] : scan.winners)
           {
-            repeated = repeated || same(rounds[round][position].hit);
+            repeated = repeated || same(rounds[round][position].hits.front());
           }
           Result result;
           result.scan = in_round[b];
           result.psm = std::move(batch_psms[b - begin]);
-          result.hit = std::move(*winner);
+          result.hits = std::move(candidates);
           result.stats = std::move(batch_stats[b - begin]);
           result.emitted = !repeated;
           if (repeated) ++n_dropped;
@@ -2865,7 +2856,7 @@ namespace OpenMS
         Result& result = rounds[round][position];
         if (!result.emitted) continue;
         psms.push_back(std::move(result.psm));
-        hits.push_back(std::move(result.hit));
+        hits.push_back(std::move(result.hits));
         pool_stats.push_back(std::move(result.stats));
       }
     }
@@ -3855,10 +3846,8 @@ namespace OpenMS
       const bool survey_scans = std::any_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; });
       if (survey_scans)
       {
-        // isotope peaks within the precursor tolerance, but at least 0.01 Th, as andes
         const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
-                                                         std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_),
-                                                         precursor_mass_tolerance_unit_ == "ppm",
+                                                         param_.getValue("chimeric:mz_tolerance"), true,
                                                          param_.getValue("chimeric:max_kl"),
                                                          static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
         all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
@@ -4049,7 +4038,7 @@ namespace OpenMS
     std::vector<Size> coisolated_parent;
     if (chimericSearch_())
     {
-      std::vector<AnnotatedHit_> coisolated_hits;
+      std::vector<std::vector<AnnotatedHit_>> coisolated_hits;
       std::vector<CandidatePoolStats_> coisolated_stats;
       searchCoIsolated_(spectra, annotated_hits, fragment_index_, db, generators, effective_fragment_tol,
                         fragment_mass_tolerance_unit_ppm, open_search_mode, coisolated, coisolated_hits, coisolated_stats);
@@ -4058,7 +4047,7 @@ namespace OpenMS
       coisolated_parent.reserve(coisolated.size());
       for (Size k = 0; k < coisolated.size(); ++k)
       {
-        annotated_hits.push_back({std::move(coisolated_hits[k])});
+        annotated_hits.push_back(std::move(coisolated_hits[k]));
         pool_stats.push_back(std::move(coisolated_stats[k]));
         coisolated_parent.push_back(coisolated[k].parent);
       }

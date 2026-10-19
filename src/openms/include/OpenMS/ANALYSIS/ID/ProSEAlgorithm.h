@@ -1028,26 +1028,26 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /**
      * @brief Search the precursors co-isolated with the selected one in what the spectrum's other PSMs leave of it
-     * (chimeric:enabled), as the andes chimeric cascade does.
+     * (chimeric:enabled), after the andes chimeric cascade.
      *
      * Runs one round per co-isolated precursor rank: round k searches the k-th co-isolated precursor (meta values of
-     * CoIsolationDetector::annotate()) of every spectrum with at least one hit, at its m/z and charge and isotope
-     * error 0, against the spectrum without the peaks claimed so far. The best hit of the spectrum claims its peaks
-     * first, and each winner claims its peaks before the next round: for every singly charged theoretical ion, the
-     * most intense peak within the fragment tolerance. A candidate with the best hit's peptide is not taken; the
-     * winner is the best remaining hit, and it is dropped when the spectrum already reports its peptide at its charge
-     * (a hit of the spectrum or an earlier winner). The residual spectra are scored in batches and not kept.
+     * CoIsolationDetector::annotate()) of every spectrum with at least one hit, at its m/z and charge, against the
+     * spectrum without the peaks claimed so far. The best hit of the spectrum claims its peaks first, and the best hit
+     * of each co-isolated precursor (its winner) claims its peaks before the next round: every peak within the
+     * fragment tolerance of one of its theoretical ions. Hits with the best hit's peptide are left out. A co-isolated
+     * precursor is dropped when its winner repeats a PSM of the spectrum (the peptide and charge of a hit of the
+     * spectrum or of an earlier winner). The residual spectra are scored in batches and not kept.
      *
      * @param spectra The searched spectra
      * @param annotated_hits The hits of each spectrum of @p spectra
-     * @param fi The fragment index of the search (its isotope error range is set to 0 for the call)
+     * @param fi The fragment index of the search
      * @param db The searched database
      * @param generators Theoretical spectrum generators of the search
      * @param fragment_tol Fragment mass tolerance
      * @param fragment_tol_ppm Whether @p fragment_tol is in ppm (else Da)
      * @param open_search_mode Whether the search is an open search
      * @param[out] psms The co-isolated PSMs, in spectrum order and, within a spectrum, in detection order
-     * @param[out] hits The winner of each of @p psms
+     * @param[out] hits The hits of each of @p psms (at most report:top_hits), the winner first
      * @param[out] pool_stats The candidate-pool statistics of each of @p psms
      */
     void searchCoIsolated_(const PeakMap& spectra,
@@ -1059,7 +1059,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                            bool fragment_tol_ppm,
                            bool open_search_mode,
                            std::vector<CoIsolatedPSM_>& psms,
-                           std::vector<AnnotatedHit_>& hits,
+                           std::vector<std::vector<AnnotatedHit_>>& hits,
                            std::vector<CandidatePoolStats_>& pool_stats) const;
 
     /// The residual spectrum of a co-isolated PSM: @p spectrum without the peaks @p removed (ascending indices), with

@@ -187,7 +187,7 @@ namespace OpenMS
         if (target > 0.0) center = target;
       }
       const MSSpectrum& ms1 = *survey;
-      const double tol_da = std::max(tolerance_ppm ? precursor.getMZ() * tolerance * 1e-6 : tolerance, MIN_TOLERANCE_DA);
+      const double tol_da = tolerance_ppm ? precursor.getMZ() * tolerance * 1e-6 : tolerance;
       const auto coisolated = detect(ms1, center - lower_offset, center + upper_offset, precursor.getMZ(),
                                      min_charge, max_charge, tol_da, max_kl, max_n);
       DoubleList mzs;
