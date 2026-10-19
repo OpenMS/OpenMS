@@ -118,7 +118,7 @@ namespace OpenMS
       @param te_ratio T/E (see estimateTERatio())
       @param class_meta_value If not empty, results are additionally reported per value of this hit meta value
              (hits without it are in class "NA")
-      @return Results keyed by class; key "all" holds the overall result
+      @return Results keyed by class; key "all" holds the overall result (a class named "all" is reported as "class:all")
     */
     static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids,
                                                   double q_threshold,

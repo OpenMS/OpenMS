@@ -98,6 +98,13 @@ START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdenti
   TEST_EQUAL(res["unmod"].entrapment_psms, 0)
   TEST_EQUAL(res.count("NA"), 0)
 
+  // a class named "all" does not add to the overall result
+  PeptideIdentificationList ids_all = ids;
+  for (auto& id : ids_all) if (id.getHits()[0].getMetaValue("mod_class") == "mod") id.getHits()[0].setMetaValue("mod_class", "all");
+  auto res_all = EntrapmentEvaluation::evaluate(ids_all, 0.01, "ENTRAP_", 1.0, "mod_class");
+  TEST_EQUAL(res_all["all"].accepted_psms, 10)
+  TEST_EQUAL(res_all["class:all"].accepted_psms, 2)
+
   // T/E = 3: entrapment hits weigh less
   res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 3.0);
   TEST_REAL_SIMILAR(res["all"].psmFDP(), 2.0 / 10.0 * 4.0)

@@ -148,7 +148,8 @@ namespace OpenMS
       count("all", sequence, is_entrapment);
       if (!class_meta_value.empty())
       {
-        const std::string cls = hit.metaValueExists(class_meta_value) ? hit.getMetaValue(class_meta_value).toString() : std::string("NA");
+        std::string cls = hit.metaValueExists(class_meta_value) ? hit.getMetaValue(class_meta_value).toString() : std::string("NA");
+        if (cls == "all") cls = "class:all"; // "all" is the overall result
         count(cls, sequence, is_entrapment);
       }
     }
