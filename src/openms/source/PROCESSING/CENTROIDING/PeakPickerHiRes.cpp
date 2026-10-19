@@ -156,13 +156,12 @@ namespace OpenMS
       check_spacings = false;
     }
 
-    // signal-to-noise estimation
-    SignalToNoiseEstimatorMedian< ContainerType > snt;
-    snt.setParameters(param_.copy("SignalToNoise:", true));
-
+    // signal-to-noise estimation: the S/N of every data point, without an estimator object (whose parameter set would
+    // be built and checked for every container picked)
+    std::vector<double> snt;
     if (signal_to_noise_ > 0.0)
     {
-      snt.init(input);
+      SignalToNoiseEstimatorMedian< ContainerType >::estimate(input, sn_settings_, snt);
     }
 
     // find local maxima in profile data
@@ -197,9 +196,9 @@ namespace OpenMS
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
       if (signal_to_noise_ > 0.0)
       {
-        act_snt = snt.getSignalToNoise(i);
-        act_snt_l1 = snt.getSignalToNoise(i - 1);
-        act_snt_r1 = snt.getSignalToNoise(i + 1);
+        act_snt = snt[i];
+        act_snt_l1 = snt[i - 1];
+        act_snt_r1 = snt[i + 1];
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
@@ -222,8 +221,8 @@ namespace OpenMS
 
         if (signal_to_noise_ > 0.0)
         {
-          act_snt_l2 = snt.getSignalToNoise(i - 2);
-          act_snt_r2 = snt.getSignalToNoise(i + 2);
+          act_snt_l2 = snt[i - 2];
+          act_snt_r2 = snt[i + 2];
         }
 
         // checking signal-to-noise?
@@ -280,7 +279,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_lk = snt.getSignalToNoise(i - k);
+            act_snt_lk = snt[i - k];
           }
 
           if ((act_snt_lk >= signal_to_noise_) && 
@@ -323,7 +322,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_rk = snt.getSignalToNoise(i + k);
+            act_snt_rk = snt[i + k];
           }
 
           if ((act_snt_rk >= signal_to_noise_) && 
@@ -637,6 +636,7 @@ namespace OpenMS
   void PeakPickerHiRes::updateMembers_()
   {
     signal_to_noise_ = param_.getValue("signal_to_noise");
+    sn_settings_ = SignalToNoiseEstimatorMedianSettings::fromParam(param_.copy("SignalToNoise:", true));
     spacing_difference_gap_ = param_.getValue("spacing_difference_gap");
     if (spacing_difference_gap_ == 0.0)
     {
