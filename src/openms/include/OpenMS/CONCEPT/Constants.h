@@ -326,6 +326,42 @@ namespace OpenMS
       */
       inline const std::string PSM_PRECURSOR_MZ = "precursor_mz";
 
+      /** User parameter name (of a Precursor) that marks a DIA precursor searched over its whole isolation window
+          (no MS1 candidate was found in it): FragmentIndex takes the peptides of every precursor mass the window
+          transmits at each charge, instead of those within the precursor mass tolerance of the precursor m/z.
+          As a PeptideHit feature, 1 for a PSM of such a precursor, 0 otherwise.
+              int (1 = window search)
+      */
+      inline const std::string DIA_WINDOW_SEARCH = "DIA_window_search";
+
+      /** User parameter name (of a Precursor) for the MS1 intensities of a DIA precursor candidate in the MS1 spectra
+          around the MS1 spectrum it was found in (the middle value), one per MS1 spectrum (co-elution features)
+              DoubleList
+      */
+      inline const std::string DIA_MS1_XIC = "DIA_ms1_xic";
+
+      /** PeptideHit feature: mean Pearson correlation of the elution profiles of the matched fragments (in the
+          spectra of the same DIA isolation window around the PSM's spectrum) with that of the precursor in MS1
+              double (-1 to 1; 0 without profiles)
+      */
+      inline const std::string DIA_FRAGMENT_PRECURSOR_CORR = "DIA_fragment_precursor_corr";
+
+      /** PeptideHit feature: mean pairwise Pearson correlation of the elution profiles of the matched fragments
+              double (-1 to 1; 0 without profiles)
+      */
+      inline const std::string DIA_FRAGMENT_CORR = "DIA_fragment_corr";
+
+      /** PeptideHit feature: distance (in cycles) between the apex of the summed fragment elution profile and that of
+          the precursor in MS1
+              double (0 = same cycle)
+      */
+      inline const std::string DIA_APEX_DELTA = "DIA_apex_delta";
+
+      /** PeptideHit feature: natural logarithm of 1 + the MS1 intensity of the DIA precursor candidate
+              double
+      */
+      inline const std::string DIA_LN_PRECURSOR_INTENSITY = "DIA_ln_precursor_intensity";
+
       /** User parameter name for median of fragment mz error in ppm
               String
       */

@@ -324,6 +324,19 @@ namespace OpenMS
     }
 
     /**
+     * @brief Whether @p precursor is searched over its whole isolation window (Constants::UserParam::DIA_WINDOW_SEARCH).
+     *
+     * Such a precursor (a DIA isolation window without an MS1 candidate) has as candidates the peptides of every
+     * precursor (M+H)+ that the window [m/z - lower offset, m/z + upper offset] transmits at each searched charge, at
+     * isotope error 0, instead of those within the precursor mass tolerance of its m/z. A precursor without an
+     * isolation window (both offsets 0) is searched as usual.
+     */
+    static bool isWindowSearchPrecursor(const Precursor& precursor);
+
+    /// The (M+H)+ range [first, second] a window-search precursor (isWindowSearchPrecursor()) transmits at @p charge
+    static std::pair<float, float> windowSearchMassRange(const Precursor& precursor, uint16_t charge);
+
+    /**
      * @brief Rejects fixed terminal modifications that the index cannot restrict to the peptides they apply to.
      *
      * A fixed terminal modification adds one N- or C-terminal mass to every peptide of the index. A protein-terminal
@@ -974,6 +987,17 @@ private:
                                         uint16_t charge,
                                         bool with_electron_ions);
 
+    /**
+     * @brief Searches the peptides whose (M+H)+ lies in [@p lower_mass, @p upper_mass] at isotope error 0, for a
+     * window-search precursor (isWindowSearchPrecursor()). Otherwise as searchDifferentPrecursorRanges().
+     */
+    void searchPrecursorMassRange_(const MSSpectrum& spectrum,
+                                   float lower_mass,
+                                   float upper_mass,
+                                   SpectrumMatchesTopN& sms,
+                                   uint16_t charge,
+                                   bool with_electron_ions);
+
     /// Sorts @p fragments by m/z, cuts them into buckets of bucketsize_ and sorts each bucket by
     /// peptide index; @p bucket_min_mz receives the smallest m/z of each bucket.
     void sortAndBucketFragments_(std::vector<Fragment>& fragments,
@@ -982,6 +1006,8 @@ private:
 
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      *
+     * The matches of a spectrum with several precursors (DIA candidates, SpectrumMatch::precursor_idx_) keep up to
+     * k matches per precursor: each precursor is a candidate of its own, as the precursor of a DDA spectrum.
      */
     void trimHits(SpectrumMatchesTopN& init_hits) const;
 

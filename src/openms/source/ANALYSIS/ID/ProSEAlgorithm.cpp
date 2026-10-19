@@ -41,6 +41,10 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -83,6 +87,7 @@
 #include <ostream>
 #include <map>
 #include <set>
+#include <span>
 #include <sstream>
 #include <string_view>
 #include <tuple>
@@ -497,22 +502,52 @@ namespace OpenMS
     defaults_.setValidStrings("dia:enabled", {"auto", "true", "false"});
     defaults_.setValue("dia:max_precursor_candidates", 20,
       "Maximum number of precursor candidates to extract from the MS1 survey scan "
-      "within each DIA isolation window. Each candidate generates a pseudo-spectrum "
-      "that is searched independently against the database.");
+      "within each DIA isolation window (the most intense ones). Each candidate is searched "
+      "as the precursor of a DDA spectrum and gets PSMs of its own.");
     defaults_.setMinInt("dia:max_precursor_candidates", 1);
     defaults_.setMaxInt("dia:max_precursor_candidates", 100);
     defaults_.setValue("dia:isotope_tolerance_ppm", 10.0,
       "Tolerance in ppm for matching isotope peaks in the MS1 spectrum during "
-      "charge state assignment of precursor candidates.");
+      "charge state assignment of precursor candidates, and for summing the MS1 spectra "
+      "(dia:ms1_neighbors) and tracing the candidates' MS1 elution profiles.");
     defaults_.setMinFloat("dia:isotope_tolerance_ppm", 1.0);
     defaults_.setValue("dia:min_isolation_width", 4.0,
       "Minimum total isolation window width (Da) for auto-detection of DIA mode. "
       "Windows wider than this are classified as DIA windows.");
     defaults_.setMinFloat("dia:min_isolation_width", 1.0);
+    defaults_.setValue("dia:ms1_neighbors", 1,
+      "Number of MS1 spectra on each side of the parent MS1 spectrum that are summed with it "
+      "to find the precursor candidates of a DIA window (0 = the parent MS1 spectrum only).");
+    defaults_.setMinInt("dia:ms1_neighbors", 0);
+    defaults_.setMaxInt("dia:ms1_neighbors", 5);
+    defaults_.setValue("dia:im_tolerance", 0.01,
+      "Ion mobility runs (diaPASEF): precursor candidates must lie within the ion mobility range "
+      "of the isolation window, extended by this tolerance (in the unit of the ion mobility, "
+      "e.g. 1/K0). Without ion mobilities, all candidates of the m/z window are taken.");
+    defaults_.setMinFloat("dia:im_tolerance", 0.0);
+    defaults_.setValue("dia:xic_cycles", 3,
+      "Number of cycles on each side of a PSM's spectrum over which the elution profiles of the "
+      "precursor (MS1) and the matched fragments (MS2 spectra of the same isolation window) are "
+      "traced for the co-elution PSM features (DIA_fragment_precursor_corr, DIA_fragment_corr, "
+      "DIA_apex_delta) and for dia:merge_cycles. 0 disables the co-elution features.");
+    defaults_.setMinInt("dia:xic_cycles", 0);
+    defaults_.setMaxInt("dia:xic_cycles", 20);
+    defaults_.setValue("dia:window_search", "no_candidates",
+      "Search a DIA spectrum over its whole isolation window (every precursor mass the window "
+      "transmits at each charge, as Sage's wide_window mode): 'no_candidates' = for windows "
+      "without an MS1 precursor candidate (peptides whose precursor is not seen in MS1), "
+      "'always' = in addition to the MS1 candidates, 'never' = windows without candidates are not "
+      "searched. Window-search PSMs have the feature DIA_window_search = 1.");
+    defaults_.setValidStrings("dia:window_search", {"no_candidates", "always", "never"});
+    defaults_.setValue("dia:merge_cycles", "true",
+      "Keep one PSM (the best scoring) of the PSMs of the same peptidoform and charge in the same "
+      "isolation window within dia:xic_cycles cycles of each other: a peptide elutes over several "
+      "cycles, and its repeated PSMs would otherwise all enter the FDR estimation.");
+    defaults_.setValidStrings("dia:merge_cycles", {"true", "false"});
     defaults_.setSectionDescription("dia",
-      "Data-Independent Acquisition (DIA) support. When enabled, each wide-window "
-      "MS2 spectrum is expanded into multiple pseudo-spectra, one per precursor "
-      "candidate extracted from the parent MS1 survey scan.");
+      "Data-Independent Acquisition (DIA) support. When enabled, each wide-window MS2 spectrum "
+      "is searched with the precursor candidates extracted from the MS1 survey scans around it "
+      "(one PeptideIdentification per candidate), with co-elution PSM features for rescoring.");
 
     defaultsToParam_();
   }
@@ -729,6 +764,11 @@ namespace OpenMS
     dia_max_precursor_candidates_ = param_.getValue("dia:max_precursor_candidates");
     dia_isotope_tolerance_ppm_ = param_.getValue("dia:isotope_tolerance_ppm");
     dia_min_isolation_width_ = param_.getValue("dia:min_isolation_width");
+    dia_ms1_neighbors_ = static_cast<Size>(static_cast<int>(param_.getValue("dia:ms1_neighbors")));
+    dia_im_tolerance_ = param_.getValue("dia:im_tolerance");
+    dia_xic_cycles_ = static_cast<Size>(static_cast<int>(param_.getValue("dia:xic_cycles")));
+    dia_window_search_ = param_.getValue("dia:window_search").toString();
+    dia_merge_cycles_ = param_.getValue("dia:merge_cycles").toBool();
   }
 
   // static
@@ -1196,7 +1236,7 @@ namespace OpenMS
     if (preprocessing_error) std::rethrow_exception(preprocessing_error);
   }
 
-  double ProSEAlgorithm::CandidatePoolStats_::zScore() const
+  double ProSEAlgorithm::ScoreSummary_::zScore() const
   {
     if (count < 2) return 0.0;
     const double n = static_cast<double>(count);
@@ -1468,7 +1508,11 @@ namespace OpenMS
     std::vector<float> delta_scores(annotated_hits.size(), 0.0f);
     std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
     std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
-#pragma omp parallel for default(none) shared(annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates)
+    // The PeptideIdentifications of each spectrum: one per precursor with hits. A spectrum with several precursors (the
+    // MS1 candidates of a DIA window) is one search per precursor, whose PSMs compete only among themselves (FDR,
+    // Percolator's best hit per identification), as those of the precursors of different DDA spectra.
+    std::vector<Size> identifications_of_scan(annotated_hits.size(), 0);
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates, identifications_of_scan, exp)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       const CandidatePoolStats_& stats = pool_stats[scan_index];
@@ -1479,13 +1523,36 @@ namespace OpenMS
       // stays a monotone proxy for the size of the scored search space.
       ln_num_candidates[scan_index] = static_cast<float>(std::log1p(static_cast<double>(stats.count)));
 
-      // sort and keep n best elements according to score (unchanged)
       auto& hits = annotated_hits[scan_index];
+      if (exp[scan_index].getPrecursors().size() > 1)
+      {
+        // the n best of each precursor, grouped by precursor (ascending), best first
+        pruneHits_(hits, top_hits);
+        std::sort(hits.begin(), hits.end(), [](const AnnotatedHit_& a, const AnnotatedHit_& b)
+        {
+          if (a.precursor_idx != b.precursor_idx) return a.precursor_idx < b.precursor_idx;
+          return AnnotatedHit_::hasBetterScore(a, b);
+        });
+        hits.shrink_to_fit();
+        for (Size h = 0; h < hits.size(); ++h)
+        {
+          if (h == 0 || hits[h].precursor_idx != hits[h - 1].precursor_idx) ++identifications_of_scan[scan_index];
+        }
+        continue;
+      }
+      // sort and keep n best elements according to score (unchanged)
       Size topn = top_hits > hits.size() ? hits.size() : top_hits;
       std::partial_sort(hits.begin(), hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore);
       hits.resize(topn);
       hits.shrink_to_fit();
+      identifications_of_scan[scan_index] = hits.empty() ? 0 : 1;
     }
+
+    // DIA spectra (expandDIASpectra_()): their isolation windows, for the co-elution features and dia:merge_cycles
+    const bool dia_spectra = std::any_of(exp.begin(), exp.end(),
+                                         [](const MSSpectrum& s) { return s.metaValueExists("DIA_window_lower_mz"); });
+    const DIAWindowNeighbors_ dia_neighbors = dia_spectra ? diaWindowNeighbors_(exp) : DIAWindowNeighbors_{};
+    const bool dia_coelution = dia_spectra && dia_xic_cycles_ > 0;
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
     bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
@@ -1530,8 +1597,10 @@ namespace OpenMS
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
     // normalized MIC, and complementary ion pairs
+    // and the matched fragments of the DIA co-elution features
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
-      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction
+      || dia_coelution;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -1576,7 +1645,9 @@ namespace OpenMS
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
          mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_chance_match_surprise{},
-         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{};
+         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{}, mv_dia_window_search{},
+         mv_dia_ln_precursor_intensity{}, mv_dia_fragment_precursor_corr{}, mv_dia_fragment_corr{}, mv_dia_apex_delta{},
+         mv_dia_ms1_xic{};
     {
       const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
                                                 [](const std::vector<AnnotatedHit_>& hits) { return !hits.empty(); });
@@ -1609,6 +1680,18 @@ namespace OpenMS
         }
         mv_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
         if (open_search_mode) mv_delta_mass = registry.registerName("DeltaMass");
+        if (dia_spectra)
+        {
+          mv_dia_window_search = registry.registerName(Constants::UserParam::DIA_WINDOW_SEARCH);
+          mv_dia_ln_precursor_intensity = registry.registerName(Constants::UserParam::DIA_LN_PRECURSOR_INTENSITY);
+          mv_dia_ms1_xic = registry.registerName(Constants::UserParam::DIA_MS1_XIC);
+          if (dia_coelution)
+          {
+            mv_dia_fragment_precursor_corr = registry.registerName(Constants::UserParam::DIA_FRAGMENT_PRECURSOR_CORR);
+            mv_dia_fragment_corr = registry.registerName(Constants::UserParam::DIA_FRAGMENT_CORR);
+            mv_dia_apex_delta = registry.registerName(Constants::UserParam::DIA_APEX_DELTA);
+          }
+        }
       }
     }
 
@@ -1624,7 +1707,7 @@ namespace OpenMS
       for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
       {
         slot_of_scan[scan_index] = used_slots;
-        if (!annotated_hits[scan_index].empty()) ++used_slots;
+        used_slots += identifications_of_scan[scan_index];
       }
       peptide_ids.resize(used_slots);
     }
@@ -1633,8 +1716,21 @@ namespace OpenMS
 #pragma omp parallel for schedule(dynamic, 16)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
-      if (!annotated_hits[scan_index].empty())
+      // One identification per precursor with hits: the hits of a spectrum with several precursors (DIA candidates) are
+      // grouped by precursor (see above), those of a spectrum with one precursor are one group
+      const std::vector<AnnotatedHit_>& scan_hits = annotated_hits[scan_index];
+      Size identification_no = 0;
+      for (Size group_begin = 0; group_begin < scan_hits.size(); ++identification_no)
       {
+        Size group_end = scan_hits.size();
+        if (exp[scan_index].getPrecursors().size() > 1)
+        {
+          group_end = group_begin + 1;
+          while (group_end < scan_hits.size() && scan_hits[group_end].precursor_idx == scan_hits[group_begin].precursor_idx) ++group_end;
+        }
+        const std::span<const AnnotatedHit_> group_hits(scan_hits.data() + group_begin, group_end - group_begin);
+        group_begin = group_end;
+
         const MSSpectrum& spec = exp[scan_index];
         const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
         // create empty PeptideIdentification object and fill meta data
@@ -1643,8 +1739,8 @@ namespace OpenMS
         pi.setMetaValue(mv_scan_index, static_cast<unsigned int>(scan_index));
         pi.setScoreType("ln(hyperscore)"); // also for scoring:method mass_accuracy, a log-space HyperScore (recorded in the search parameters)
         pi.setHigherScoreBetter(true);
-        const auto& best_ah = annotated_hits[scan_index][0];
-        double mz = best_ah.dia_precursor_mz;
+        const auto& best_ah = group_hits[0];
+        double mz = best_ah.dia_precursor_mz; // the m/z of the group's precursor
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
@@ -1659,6 +1755,41 @@ namespace OpenMS
         const bool several_precursors = spec.getPrecursors().size() > 1;
         const Size charge = spec.getPrecursors()[0].getCharge();
 
+        // A DIA spectrum (expandDIASpectra_()): the precursor (MS1 candidate) of the identification, its isolation
+        // window and cycle (dia:merge_cycles), and the ion mobility of the candidate (diaPASEF)
+        const Precursor& group_precursor = spec.getPrecursors()[best_ah.precursor_idx];
+        const bool dia_spectrum = dia_spectra && spec.metaValueExists("DIA_window_lower_mz");
+        if (dia_spectrum)
+        {
+          if (static_cast<Size>(scan_index) < dia_neighbors.window.size()
+              && dia_neighbors.window[scan_index] != std::numeric_limits<Size>::max())
+          {
+            pi.setMetaValue("DIA_window", static_cast<int>(dia_neighbors.window[scan_index]));
+            pi.setMetaValue("DIA_cycle", static_cast<int>(dia_neighbors.position[scan_index]));
+          }
+          if (group_precursor.getDriftTime() >= 0.0)
+          {
+            pi.setMetaValue(Constants::UserParam::IM, group_precursor.getDriftTime());
+          }
+        }
+        // the precursor's MS1 elution profile (co-elution features); flat for a window-search precursor
+        std::vector<double> precursor_xic;
+        if (dia_coelution)
+        {
+          if (group_precursor.metaValueExists(mv_dia_ms1_xic))
+          {
+            precursor_xic = group_precursor.getMetaValue(mv_dia_ms1_xic).toDoubleList();
+          }
+          if (precursor_xic.size() != 2 * dia_xic_cycles_ + 1) precursor_xic.assign(2 * dia_xic_cycles_ + 1, 0.0);
+        }
+
+        // The candidate-pool features of the identification: those of its precursor, for several precursors
+        const ScoreSummary_& group_pool = pool_stats[scan_index].ofPrecursor(best_ah.precursor_idx);
+        const float group_delta_score = several_precursors ? static_cast<float>(group_pool.deltaScore()) : delta_scores[scan_index];
+        const float group_zscore = several_precursors ? static_cast<float>(group_pool.zScore()) : hyperscore_zscores[scan_index];
+        const float group_ln_num_candidates = several_precursors
+          ? static_cast<float>(std::log1p(static_cast<double>(group_pool.count))) : ln_num_candidates[scan_index];
+
         // Spectrum-level quantity, identical for every candidate of this spectrum, so it is
         // computed once here rather than per hit.
         const double spectrum_tic =
@@ -1672,7 +1803,7 @@ namespace OpenMS
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
-        for (const auto& ah : annotated_hits[scan_index])
+        for (const auto& ah : group_hits)
         {
           PeptideHit ph;
           // Use per-hit charge from FragmentIndex (supports multi-precursor DIA where
@@ -1764,15 +1895,15 @@ namespace OpenMS
             ph.setMetaValue(mv_matched_suffix_ions, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          ph.setMetaValue(mv_delta_score, delta_scores[scan_index]);
+          ph.setMetaValue(mv_delta_score, group_delta_score);
 
           if (annotation_hyperscore_zscore)
           {
-            ph.setMetaValue(mv_hyperscore_zscore, hyperscore_zscores[scan_index]);
+            ph.setMetaValue(mv_hyperscore_zscore, group_zscore);
           }
           if (annotation_ln_num_candidates)
           {
-            ph.setMetaValue(mv_ln_num_candidates, ln_num_candidates[scan_index]);
+            ph.setMetaValue(mv_ln_num_candidates, group_ln_num_candidates);
           }
 
           // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
@@ -1937,6 +2068,38 @@ namespace OpenMS
             ph.setMetaValue(mv_delta_mass, ah.delta_mass);
           }
 
+          // DIA features: the precursor (window search, MS1 intensity) and the co-elution of the matched fragments with
+          // each other and with the precursor over the cycles around the spectrum
+          if (dia_spectrum)
+          {
+            ph.setMetaValue(mv_dia_window_search, FragmentIndex::isWindowSearchPrecursor(group_precursor) ? 1 : 0);
+            ph.setMetaValue(mv_dia_ln_precursor_intensity,
+                            std::log1p(std::max(0.0, static_cast<double>(group_precursor.getIntensity()))));
+            if (dia_coelution)
+            {
+              // the most intense matched peaks (at most 6)
+              std::vector<Size> matched_peaks;
+              matched_peaks.reserve(alignment.size());
+              for (const auto& match : alignment) matched_peaks.push_back(match.second);
+              std::sort(matched_peaks.begin(), matched_peaks.end());
+              matched_peaks.erase(std::unique(matched_peaks.begin(), matched_peaks.end()), matched_peaks.end());
+              std::sort(matched_peaks.begin(), matched_peaks.end(), [&spec](Size a, Size b)
+              {
+                return spec[a].getIntensity() > spec[b].getIntensity();
+              });
+              if (matched_peaks.size() > 6) matched_peaks.resize(6);
+              std::vector<double> fragment_mz;
+              fragment_mz.reserve(matched_peaks.size());
+              for (const Size peak : matched_peaks) fragment_mz.push_back(spec[peak].getMZ());
+              const DIACoelution_ coelution = diaCoelution_(exp, dia_neighbors, static_cast<Size>(scan_index), fragment_mz,
+                                                            precursor_xic, fragment_mass_tolerance,
+                                                            fragment_mass_tolerance_unit_ppm == "ppm");
+              ph.setMetaValue(mv_dia_fragment_precursor_corr, coelution.fragment_precursor_corr);
+              ph.setMetaValue(mv_dia_fragment_corr, coelution.fragment_corr);
+              ph.setMetaValue(mv_dia_apex_delta, coelution.apex_delta);
+            }
+          }
+
           // store PSM
           phs.push_back(std::move(ph));
         }
@@ -1964,7 +2127,7 @@ namespace OpenMS
         }
         if (slots)
         {
-          peptide_ids[slot_of_scan[scan_index]] = std::move(pi);
+          peptide_ids[slot_of_scan[scan_index] + identification_no] = std::move(pi);
         }
         else
         {
@@ -1984,12 +2147,16 @@ namespace OpenMS
       // one registry lookup for the whole sort instead of two (locked) lookups per comparison;
       // getMetaValue(name) is getMetaValue(getIndex(name)), so the comparisons are unchanged
       const UInt scan_index_key = MetaInfoInterface::metaRegistry().getIndex("scan_index");
-      std::sort(peptide_ids.begin(), peptide_ids.end(), [scan_index_key](const PeptideIdentification& a, const PeptideIdentification& b)
+      // stable: the identifications of the precursors of one spectrum were appended in the order of their precursors
+      std::stable_sort(peptide_ids.begin(), peptide_ids.end(), [scan_index_key](const PeptideIdentification& a, const PeptideIdentification& b)
       {
         return a.getMetaValue(scan_index_key) < b.getMetaValue(scan_index_key);
       });
     }
 #endif
+
+    // DIA: one PSM of a peptide eluting over several cycles (dia:merge_cycles)
+    if (dia_spectra) mergeDIARepeats_(peptide_ids);
 
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
@@ -2037,6 +2204,17 @@ namespace OpenMS
     }
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
+    if (dia_spectra)
+    {
+      feature_set.push_back(Constants::UserParam::DIA_WINDOW_SEARCH);
+      feature_set.push_back(Constants::UserParam::DIA_LN_PRECURSOR_INTENSITY);
+      if (dia_coelution)
+      {
+        feature_set.push_back(Constants::UserParam::DIA_FRAGMENT_PRECURSOR_CORR);
+        feature_set.push_back(Constants::UserParam::DIA_FRAGMENT_CORR);
+        feature_set.push_back(Constants::UserParam::DIA_APEX_DELTA);
+      }
+    }
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or
@@ -2603,7 +2781,8 @@ namespace OpenMS
         if (deduplicate_chunks)
         {
           std::string key = mod_candidate.toString();
-          key += "\t" + std::to_string(sms.precursor_charge_) + "\t" + std::to_string(sms.isotope_error_);
+          key += "\t" + std::to_string(sms.precursor_charge_) + "\t" + std::to_string(sms.isotope_error_)
+                 + "\t" + std::to_string(sms.precursor_idx_);
           if (! pool_stats[scan_index].seen_candidates.insert(std::move(key)).second) { continue; }
         }
 
@@ -2626,7 +2805,7 @@ namespace OpenMS
         // space, so a candidate that scored 0 (no fragment matched) still counts
         // and still belongs in the null distribution the z-score is measured against.
         // Each scan_index is owned by exactly one thread, so this needs no guard.
-        pool_stats[scan_index].add(score);
+        pool_stats[scan_index].add(score, sms.precursor_idx_, exp_spectrum.getPrecursors().size());
 
         if (score == 0) continue;
 
@@ -2643,6 +2822,7 @@ namespace OpenMS
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
         ah.index_peptide = static_cast<UInt32>(sms.peptide_idx_);
+        ah.precursor_idx = sms.precursor_idx_;
         ah.dia_precursor_mz = exp_spectrum.getPrecursors()[sms.precursor_idx_].getMZ();
         ah.delta_mass = 0.0;
         if (open_search_mode)
@@ -2662,11 +2842,11 @@ namespace OpenMS
       // Correct because all of this spectrum's candidates are appended above and
       // scores are independent of the chunk a candidate came from: a hit outside
       // the top-N here can never re-enter it.
+      // (per precursor for the candidates of a DIA window: each precursor gets PSMs of its own)
       auto& hits = annotated_hits[scan_index];
       if (hits.size() > keep)
       {
-        std::partial_sort(hits.begin(), hits.begin() + keep, hits.end(), AnnotatedHit_::hasBetterScore);
-        hits.resize(keep);
+        pruneHits_(hits, keep);
         hits.shrink_to_fit();
       }
       }
@@ -2901,11 +3081,7 @@ namespace OpenMS
       {
         if (annotated_hits[si].size() > keep)
         {
-          std::partial_sort(annotated_hits[si].begin(),
-                            annotated_hits[si].begin() + keep,
-                            annotated_hits[si].end(),
-                            AnnotatedHit_::hasBetterScore);
-          annotated_hits[si].resize(keep);
+          pruneHits_(annotated_hits[si], keep); // per precursor for DIA candidates
         }
       }
     } // end chunk loop
@@ -5294,11 +5470,7 @@ namespace OpenMS
           {
             if (per_file_hits[i][si].size() > keep)
             {
-              std::partial_sort(per_file_hits[i][si].begin(),
-                                per_file_hits[i][si].begin() + keep,
-                                per_file_hits[i][si].end(),
-                                AnnotatedHit_::hasBetterScore);
-              per_file_hits[i][si].resize(keep);
+              pruneHits_(per_file_hits[i][si], keep); // per precursor for DIA candidates
             }
           }
         }
@@ -6482,6 +6654,8 @@ namespace OpenMS
 
       for (const auto& sms : top_sms.hits_)
       {
+        // a precursor searched over its whole DIA isolation window has no precursor mass to calibrate with
+        if (FragmentIndex::isWindowSearchPrecursor(spec.getPrecursors()[sms.precursor_idx_])) continue;
         const FragmentIndex::Peptide& peptide = fragment_index.getPeptides()[sms.peptide_idx_];
         AASequence seq = fragment_index.isPeptideMassMode()
           ? fragment_index.reconstructRealizedSubSequence(peptide, db, sms.realized_length_, sms.subset_bitmask_)
@@ -7036,15 +7210,35 @@ namespace OpenMS
     // The MS1 survey scans hold the precursor candidates: merge them with the MS2 spectra, in RT order (an MS1
     // spectrum comes before the MS2 spectra of equal RT: sortSpectra() keeps tied spectra in their order)
     PeakMap full_exp;
+    bool read_centroided = false;
+#ifdef WITH_OPENTIMS
+    if (FileHandler::getType(filename) == FileTypes::BRUKER_TDF)
+    {
+      // diaPASEF: without centroiding, the reader gives a peak per ion mobility scan and TOF bin, so that an MS1 ion is
+      // a few hundred peaks of a few counts each, which neither the deisotoping nor the ranking by intensity of the
+      // candidates can work with, and a fragment is as many peaks. Centroided along the ion mobility (hills), an ion
+      // is one peak with its ion mobility, which restricts the candidates to the ion mobility range of the window.
+      BrukerTimsFile::Config config;
+      config.ms1_centroid_algo = BrukerTimsFile::Config::CentroidAlgo::HILL_BASED;
+      config.ms2_centroid_algo = BrukerTimsFile::Config::CentroidAlgo::HILL_BASED;
+      BrukerTimsFile reader;
+      reader.setLogType(ProgressLogger::NONE);
+      reader.load(filename, full_exp, config);
+      read_centroided = true;
+      OPENMS_LOG_INFO << "[ProSE] DIA: read " << filename << " again with MS1 and MS2 centroided in m/z and ion mobility"
+                      << std::endl;
+    }
+#endif
+    if (!read_centroided)
     {
       FileHandler f;
       f.getOptions().clearMSLevels();
       f.getOptions().addMSLevel(1);
       f.loadExperiment(filename, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      std::vector<MSSpectrum>& merged = full_exp.getSpectra();
+      merged.reserve(merged.size() + ms2_spectra.size());
+      std::move(ms2_spectra.begin(), ms2_spectra.end(), std::back_inserter(merged));
     }
-    std::vector<MSSpectrum>& merged = full_exp.getSpectra();
-    merged.reserve(merged.size() + ms2_spectra.size());
-    std::move(ms2_spectra.begin(), ms2_spectra.end(), std::back_inserter(merged));
     full_exp.sortSpectra(true);
 
     PeakMap expanded = expandDIASpectra_(full_exp, buildMS2ToMS1Map_(full_exp));
@@ -7091,13 +7285,107 @@ namespace OpenMS
     return map;
   }
 
+
+  namespace
+  {
+    // The ion mobility array of @p spectrum (one value per peak), or nullptr
+    const DataArrays::FloatDataArray* ionMobilities(const MSSpectrum& spectrum)
+    {
+      if (!spectrum.containsIMData()) return nullptr;
+      const DataArrays::FloatDataArray& im = spectrum.getFloatDataArrays()[spectrum.getIMData().first];
+      return im.size() == spectrum.size() ? &im : nullptr;
+    }
+  }
+
+  MSSpectrum ProSEAlgorithm::sumMS1Window_(const std::vector<const MSSpectrum*>& ms1_spectra,
+                                           double min_mz,
+                                           double max_mz,
+                                           double tolerance_ppm,
+                                           double im_lower,
+                                           double im_upper)
+  {
+    struct WindowPeak
+    {
+      double mz;
+      double intensity;
+      double im;
+      Size spectrum;
+    };
+    std::vector<WindowPeak> peaks;
+    const bool im_range = im_lower >= 0.0 && im_upper >= im_lower;
+    bool with_im = false;
+    bool without_im = false;
+    DriftTimeUnit im_unit = DriftTimeUnit::NONE;
+    for (Size s = 0; s < ms1_spectra.size(); ++s)
+    {
+      const MSSpectrum* spectrum = ms1_spectra[s];
+      if (spectrum == nullptr) continue;
+      const DataArrays::FloatDataArray* im = ionMobilities(*spectrum);
+      if (im != nullptr)
+      {
+        with_im = true;
+        im_unit = spectrum->getIMData().second;
+      }
+      else
+      {
+        without_im = true;
+      }
+      const auto end = spectrum->MZEnd(max_mz);
+      for (auto it = spectrum->MZBegin(min_mz); it != end; ++it)
+      {
+        const Size i = static_cast<Size>(it - spectrum->begin());
+        const double peak_im = im != nullptr ? static_cast<double>((*im)[i]) : -1.0;
+        if (im_range && im != nullptr && (peak_im < im_lower || peak_im > im_upper)) continue;
+        peaks.push_back({it->getMZ(), static_cast<double>(it->getIntensity()), peak_im, s});
+      }
+    }
+    std::stable_sort(peaks.begin(), peaks.end(), [](const WindowPeak& a, const WindowPeak& b) { return a.mz < b.mz; });
+
+    // The peaks within tolerance_ppm of the first one of a run, at most one of each spectrum, are one peak
+    MSSpectrum summed;
+    summed.setMSLevel(1);
+    summed.reserve(peaks.size());
+    DataArrays::FloatDataArray summed_im;
+    const bool keep_im = with_im && !without_im;
+    std::vector<char> in_run(ms1_spectra.size(), 0);
+    for (Size i = 0; i < peaks.size();)
+    {
+      const double limit = peaks[i].mz + Math::ppmToMass(tolerance_ppm, peaks[i].mz);
+      std::fill(in_run.begin(), in_run.end(), 0);
+      double intensity = 0.0, weighted_mz = 0.0, weighted_im = 0.0, sum_mz = 0.0, sum_im = 0.0;
+      Size j = i;
+      while (j < peaks.size() && peaks[j].mz <= limit && !in_run[peaks[j].spectrum])
+      {
+        in_run[peaks[j].spectrum] = 1;
+        intensity += peaks[j].intensity;
+        weighted_mz += peaks[j].intensity * peaks[j].mz;
+        weighted_im += peaks[j].intensity * peaks[j].im;
+        sum_mz += peaks[j].mz;
+        sum_im += peaks[j].im;
+        ++j;
+      }
+      const double n = static_cast<double>(j - i);
+      summed.emplace_back(intensity > 0.0 ? weighted_mz / intensity : sum_mz / n, intensity);
+      if (keep_im) summed_im.push_back(static_cast<float>(intensity > 0.0 ? weighted_im / intensity : sum_im / n));
+      i = j;
+    }
+    if (keep_im)
+    {
+      IMDataConverter::setIMUnit(summed_im, im_unit);
+      summed.getFloatDataArrays().push_back(std::move(summed_im));
+    }
+    return summed;
+  }
+
   std::vector<ProSEAlgorithm::PrecursorCandidate_> ProSEAlgorithm::extractMS1PrecursorCandidates_(
       const MSSpectrum& ms1_spectrum,
       const Precursor& ms2_precursor,
       Size max_candidates,
       int min_charge,
       int max_charge,
-      double isotope_tolerance_ppm)
+      double isotope_tolerance_ppm,
+      double im_lower,
+      double im_upper)
   {
     const double center = ms2_precursor.getMZ();
     const double lower_mz = center - ms2_precursor.getIsolationWindowLowerOffset();
@@ -7115,11 +7403,29 @@ namespace OpenMS
     const double envelope_extension =
         static_cast<double>(max_isopeaks) * Constants::C13C12_MASSDIFF_U / std::max(min_charge, 1);
 
+    // diaPASEF: a window isolates a range of ion mobilities as well. The peaks of the precursors outside of it are left
+    // out (their isotope peaks have the same ion mobility, so that envelopes stay complete).
+    const DataArrays::FloatDataArray* im = ionMobilities(ms1_spectrum);
+    const bool im_range = im != nullptr && im_lower >= 0.0 && im_upper >= im_lower;
+    struct WindowPeakIM
+    {
+      double mz;
+      double intensity;
+      double im;
+    };
+    std::vector<WindowPeakIM> window_im; // the ion mobilities of the peaks of window, if known
+
     MSSpectrum window;
     auto it_lo = ms1_spectrum.MZBegin(lower_mz - envelope_extension);
     auto it_hi = ms1_spectrum.MZEnd(upper_mz + envelope_extension);
     for (auto it = it_lo; it != it_hi; ++it)
     {
+      if (im != nullptr)
+      {
+        const double peak_im = (*im)[static_cast<Size>(it - ms1_spectrum.begin())];
+        if (im_range && (peak_im < im_lower || peak_im > im_upper)) continue;
+        window_im.push_back({it->getMZ(), static_cast<double>(it->getIntensity()), peak_im});
+      }
       window.push_back(*it);
     }
     if (window.empty()) return {};
@@ -7151,6 +7457,25 @@ namespace OpenMS
         int_arrays.begin(), int_arrays.end(),
         [](const auto& a) { return a.getName() == "charge"; });
 
+    // The ion mobility of a monoisotopic peak: that of the most intense peak of the window within the tolerance
+    const auto imOf = [&window_im, isotope_tolerance_ppm](double mz)
+    {
+      const double tolerance = Math::ppmToMass(isotope_tolerance_ppm, mz);
+      auto first = std::lower_bound(window_im.begin(), window_im.end(), mz - tolerance,
+                                    [](const WindowPeakIM& p, double v) { return p.mz < v; });
+      double best_intensity = -1.0;
+      double best_im = -1.0;
+      for (; first != window_im.end() && first->mz <= mz + tolerance; ++first)
+      {
+        if (first->intensity > best_intensity)
+        {
+          best_intensity = first->intensity;
+          best_im = first->im;
+        }
+      }
+      return best_im;
+    };
+
     std::vector<PrecursorCandidate_> candidates;
     candidates.reserve(window.size());
     for (Size i = 0; i < window.size(); ++i)
@@ -7176,7 +7501,9 @@ namespace OpenMS
       const int z_for_spacing = (charge > 0) ? charge : max_charge;
       const double first_iso_mz = mz + Constants::C13C12_MASSDIFF_U / z_for_spacing;
       if (first_iso_mz < lower_mz) continue;
-      candidates.push_back({mz, window[i].getIntensity(), charge});
+      PrecursorCandidate_ candidate{mz, window[i].getIntensity(), charge};
+      if (!window_im.empty()) candidate.im = imOf(mz);
+      candidates.push_back(candidate);
     }
 
     std::sort(candidates.begin(), candidates.end(),
@@ -7187,68 +7514,374 @@ namespace OpenMS
     return candidates;
   }
 
+  std::vector<double> ProSEAlgorithm::precursorXIC_(const std::vector<const MSSpectrum*>& ms1_spectra,
+                                                    double mz,
+                                                    double im,
+                                                    double tolerance_ppm,
+                                                    double im_tolerance)
+  {
+    std::vector<double> xic(ms1_spectra.size(), 0.0);
+    const double tolerance = Math::ppmToMass(tolerance_ppm, mz);
+    for (Size s = 0; s < ms1_spectra.size(); ++s)
+    {
+      const MSSpectrum* spectrum = ms1_spectra[s];
+      if (spectrum == nullptr) continue;
+      const DataArrays::FloatDataArray* ims = im >= 0.0 ? ionMobilities(*spectrum) : nullptr;
+      const auto end = spectrum->MZEnd(mz + tolerance);
+      for (auto it = spectrum->MZBegin(mz - tolerance); it != end; ++it)
+      {
+        if (ims != nullptr && std::fabs((*ims)[static_cast<Size>(it - spectrum->begin())] - im) > im_tolerance) continue;
+        xic[s] += it->getIntensity();
+      }
+    }
+    return xic;
+  }
+
   PeakMap ProSEAlgorithm::expandDIASpectra_(
       const PeakMap& full_exp,
       const std::vector<int>& ms2_to_ms1_map) const
   {
     PeakMap result;
 
+    // The MS1 spectra in RT order, and the position of each among them
+    std::vector<Size> ms1_indices;
+    std::vector<Size> ms1_rank(full_exp.size(), 0);
+    for (Size i = 0; i < full_exp.size(); ++i)
+    {
+      if (full_exp[i].getMSLevel() != 1) continue;
+      ms1_rank[i] = ms1_indices.size();
+      ms1_indices.push_back(i);
+    }
+    // The MS1 spectra within @p radius of MS1 spectrum @p ms1_idx (nullptr beyond the first or last one)
+    const auto ms1Around = [&](Size ms1_idx, Size radius)
+    {
+      std::vector<const MSSpectrum*> around;
+      around.reserve(2 * radius + 1);
+      const long rank = static_cast<long>(ms1_rank[ms1_idx]);
+      for (long r = rank - static_cast<long>(radius); r <= rank + static_cast<long>(radius); ++r)
+      {
+        around.push_back(r >= 0 && r < static_cast<long>(ms1_indices.size()) ? &full_exp[ms1_indices[r]] : nullptr);
+      }
+      return around;
+    };
+
+    const int min_charge = static_cast<int>(precursor_min_charge_);
+    const int max_charge = static_cast<int>(precursor_max_charge_);
+    const double envelope_extension = 10.0 * Constants::C13C12_MASSDIFF_U / std::max(min_charge, 1); // as extractMS1PrecursorCandidates_()
+    // a precursor's ion mobility spreads over a few hundredths of 1/K0 between MS1 spectra (hills, splitting)
+    const double xic_im_tolerance = std::max(dia_im_tolerance_, 0.02);
+
     Size ms2_count = 0;
+    Size with_candidates = 0;
+    Size window_searched = 0;
+    Size dropped = 0;
     Size total_candidates = 0;
+    Size im_restricted = 0;
     for (Size i = 0; i < full_exp.size(); ++i)
     {
       if (full_exp[i].getMSLevel() != 2) continue;
 
       const MSSpectrum& ms2 = full_exp[i];
-      int ms1_idx = ms2_to_ms1_map[i];
+      const int ms1_idx = ms2_to_ms1_map[i];
       ++ms2_count;
 
       const auto& orig_precs = ms2.getPrecursors();
       if (orig_precs.empty()) continue;
+      const Precursor& window_precursor = orig_precs[0];
+      const double lower_mz = window_precursor.getMZ() - window_precursor.getIsolationWindowLowerOffset();
+      const double upper_mz = window_precursor.getMZ() + window_precursor.getIsolationWindowUpperOffset();
 
-      if (ms1_idx < 0)
+      // diaPASEF: the ion mobility range of the window (BrukerTimsFile), extended by dia:im_tolerance
+      double im_lower = -1.0;
+      double im_upper = -1.0;
+      if (ms2.metaValueExists("ion mobility lower limit") && ms2.metaValueExists("ion mobility upper limit"))
       {
-        // No preceding MS1 — keep the original spectrum with its DIA precursor
-        result.addSpectrum(ms2);
-        continue;
+        const double lower = ms2.getMetaValue("ion mobility lower limit");
+        const double upper = ms2.getMetaValue("ion mobility upper limit");
+        if (lower >= 0.0 && upper >= lower)
+        {
+          im_lower = std::max(0.0, lower - dia_im_tolerance_);
+          im_upper = upper + dia_im_tolerance_;
+          ++im_restricted;
+        }
       }
 
-      const MSSpectrum& ms1 = full_exp[ms1_idx];
-      auto candidates = extractMS1PrecursorCandidates_(
-          ms1, orig_precs[0], dia_max_precursor_candidates_,
-          static_cast<int>(precursor_min_charge_),
-          static_cast<int>(precursor_max_charge_),
-          dia_isotope_tolerance_ppm_);
-
-      if (candidates.empty())
+      std::vector<PrecursorCandidate_> candidates;
+      std::vector<const MSSpectrum*> xic_spectra;
+      if (ms1_idx >= 0)
       {
-        // No MS1 candidates in isolation window — keep original spectrum
-        result.addSpectrum(ms2);
-        continue;
+        // the summed MS1 spectra around the parent one: an ion is sampled more completely than in one spectrum
+        const MSSpectrum summed = sumMS1Window_(ms1Around(static_cast<Size>(ms1_idx), dia_ms1_neighbors_),
+                                                lower_mz - envelope_extension, upper_mz + envelope_extension,
+                                                dia_isotope_tolerance_ppm_, im_lower, im_upper);
+        candidates = extractMS1PrecursorCandidates_(summed, window_precursor, dia_max_precursor_candidates_,
+                                                    min_charge, max_charge, dia_isotope_tolerance_ppm_,
+                                                    im_lower, im_upper);
+        if (dia_xic_cycles_ > 0) xic_spectra = ms1Around(static_cast<Size>(ms1_idx), dia_xic_cycles_);
       }
 
-      // Store one spectrum with multiple precursors (no peak duplication)
+      // One spectrum with a precursor per candidate (no peak duplication). The absolute isolation window identifies
+      // the spectra of the same window (co-elution features, dia:merge_cycles).
       MSSpectrum spec(ms2);
+      spec.setMetaValue("DIA_window_lower_mz", lower_mz);
+      spec.setMetaValue("DIA_window_upper_mz", upper_mz);
       std::vector<Precursor> new_precs;
-      new_precs.reserve(candidates.size());
+      new_precs.reserve(candidates.size() + 1);
       for (const auto& cand : candidates)
       {
-        Precursor p(orig_precs[0]); // keeps the activation method, the isolation window, ...
+        Precursor p(window_precursor); // keeps the activation method, ...
         p.setMZ(cand.mz);
+        // the isolation window stays that of the spectrum
+        p.setIsolationWindowLowerOffset(std::max(0.0, cand.mz - lower_mz));
+        p.setIsolationWindowUpperOffset(std::max(0.0, upper_mz - cand.mz));
         p.setCharge(cand.charge);
         p.setIntensity(cand.intensity);
+        if (cand.im >= 0.0) p.setDriftTime(cand.im);
+        if (!xic_spectra.empty())
+        {
+          p.setMetaValue(Constants::UserParam::DIA_MS1_XIC,
+                         precursorXIC_(xic_spectra, cand.mz, cand.im, dia_isotope_tolerance_ppm_, xic_im_tolerance));
+        }
         new_precs.push_back(std::move(p));
       }
+      // The whole window: for precursors not seen in MS1 (dia:window_search)
+      if (dia_window_search_ == "always" || (dia_window_search_ == "no_candidates" && candidates.empty()))
+      {
+        Precursor p(window_precursor);
+        p.setCharge(0); // every charge of precursor:min_charge to precursor:max_charge
+        p.setMetaValue(Constants::UserParam::DIA_WINDOW_SEARCH, 1);
+        new_precs.push_back(std::move(p));
+        ++window_searched;
+      }
+      if (new_precs.empty())
+      {
+        ++dropped; // dia:window_search 'never' and no candidate: nothing to search
+        continue;
+      }
+      if (!candidates.empty()) ++with_candidates;
+      total_candidates += candidates.size();
       spec.setPrecursors(std::move(new_precs));
       result.addSpectrum(std::move(spec));
-      total_candidates += candidates.size();
     }
 
-    OPENMS_LOG_INFO << "[ProSE-DIA] " << ms2_count << " DIA MS2 spectra, "
-                    << result.size() << " with MS1 candidates ("
-                    << total_candidates << " total precursor candidates, "
-                    << dia_max_precursor_candidates_ << " max per window)." << std::endl;
+    OPENMS_LOG_INFO << "[ProSE-DIA] " << ms2_count << " DIA MS2 spectra, " << with_candidates << " with MS1 candidates ("
+                    << total_candidates << " candidates, at most " << dia_max_precursor_candidates_ << " per window"
+                    << (im_restricted > 0 ? ", restricted to the ion mobility range of the window" : "") << "), "
+                    << window_searched << " searched over the whole isolation window, " << dropped << " not searched."
+                    << std::endl;
     return result;
+  }
+
+  ProSEAlgorithm::DIAWindowNeighbors_ ProSEAlgorithm::diaWindowNeighbors_(const PeakMap& exp)
+  {
+    DIAWindowNeighbors_ neighbors;
+    neighbors.position.assign(exp.size(), 0);
+    neighbors.window.assign(exp.size(), std::numeric_limits<Size>::max());
+    std::map<std::tuple<long long, long long, long long, long long>, Size> window_of_key;
+    const auto rounded = [](double value, double scale) { return static_cast<long long>(std::llround(value * scale)); };
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      const MSSpectrum& spectrum = exp[i];
+      if (!spectrum.metaValueExists("DIA_window_lower_mz") || !spectrum.metaValueExists("DIA_window_upper_mz")) continue;
+      const double im_lower = spectrum.metaValueExists("ion mobility lower limit")
+                              ? static_cast<double>(spectrum.getMetaValue("ion mobility lower limit")) : -1.0;
+      const double im_upper = spectrum.metaValueExists("ion mobility upper limit")
+                              ? static_cast<double>(spectrum.getMetaValue("ion mobility upper limit")) : -1.0;
+      const auto key = std::make_tuple(rounded(spectrum.getMetaValue("DIA_window_lower_mz"), 1e3),
+                                       rounded(spectrum.getMetaValue("DIA_window_upper_mz"), 1e3),
+                                       rounded(im_lower, 1e4), rounded(im_upper, 1e4));
+      const auto [it, inserted] = window_of_key.try_emplace(key, neighbors.window_spectra.size());
+      if (inserted) neighbors.window_spectra.emplace_back();
+      neighbors.window[i] = it->second;
+      neighbors.window_spectra[it->second].push_back(i);
+    }
+    for (auto& spectra : neighbors.window_spectra)
+    {
+      std::stable_sort(spectra.begin(), spectra.end(), [&exp](Size a, Size b) { return exp[a].getRT() < exp[b].getRT(); });
+      for (Size p = 0; p < spectra.size(); ++p) neighbors.position[spectra[p]] = p;
+    }
+    return neighbors;
+  }
+
+  double ProSEAlgorithm::pearson_(const std::vector<double>& a, const std::vector<double>& b)
+  {
+    const Size n = std::min(a.size(), b.size());
+    if (n < 2) return 0.0;
+    double mean_a = 0.0, mean_b = 0.0;
+    for (Size i = 0; i < n; ++i)
+    {
+      mean_a += a[i];
+      mean_b += b[i];
+    }
+    mean_a /= static_cast<double>(n);
+    mean_b /= static_cast<double>(n);
+    double cov = 0.0, var_a = 0.0, var_b = 0.0;
+    for (Size i = 0; i < n; ++i)
+    {
+      cov += (a[i] - mean_a) * (b[i] - mean_b);
+      var_a += (a[i] - mean_a) * (a[i] - mean_a);
+      var_b += (b[i] - mean_b) * (b[i] - mean_b);
+    }
+    if (var_a <= 0.0 || var_b <= 0.0) return 0.0;
+    return cov / std::sqrt(var_a * var_b);
+  }
+
+  ProSEAlgorithm::DIACoelution_ ProSEAlgorithm::diaCoelution_(const PeakMap& exp,
+                                                              const DIAWindowNeighbors_& neighbors,
+                                                              Size spectrum_index,
+                                                              const std::vector<double>& fragment_mz,
+                                                              const std::vector<double>& precursor_xic,
+                                                              double fragment_tolerance,
+                                                              bool fragment_tolerance_ppm)
+  {
+    DIACoelution_ features;
+    if (spectrum_index >= neighbors.window.size() || neighbors.window[spectrum_index] == std::numeric_limits<Size>::max()
+        || fragment_mz.empty() || precursor_xic.size() < 3 || precursor_xic.size() % 2 == 0)
+    {
+      return features;
+    }
+    // the profiles have one point per cycle, centred on the PSM's spectrum, as the precursor's MS1 profile
+    const long cycles = static_cast<long>(precursor_xic.size() / 2);
+    const std::vector<Size>& window_spectra = neighbors.window_spectra[neighbors.window[spectrum_index]];
+    const long position = static_cast<long>(neighbors.position[spectrum_index]);
+    std::vector<std::vector<double>> fragment_xics;
+    fragment_xics.reserve(fragment_mz.size());
+    std::vector<double> summed(precursor_xic.size(), 0.0);
+    for (const double mz : fragment_mz)
+    {
+      const double tolerance = fragment_tolerance_ppm ? Math::ppmToMass(fragment_tolerance, mz) : fragment_tolerance;
+      std::vector<double> xic(precursor_xic.size(), 0.0);
+      for (long k = -cycles; k <= cycles; ++k)
+      {
+        const long p = position + k;
+        if (p < 0 || p >= static_cast<long>(window_spectra.size())) continue;
+        const MSSpectrum& spectrum = exp[window_spectra[p]];
+        const Int highest = spectrum.findHighestInWindow(mz, tolerance, tolerance);
+        if (highest >= 0) xic[k + cycles] = spectrum[highest].getIntensity();
+      }
+      for (Size j = 0; j < xic.size(); ++j) summed[j] += xic[j];
+      fragment_xics.push_back(std::move(xic));
+    }
+
+    double precursor_corr = 0.0;
+    for (const auto& xic : fragment_xics) precursor_corr += pearson_(xic, precursor_xic);
+    features.fragment_precursor_corr = precursor_corr / static_cast<double>(fragment_xics.size());
+
+    double fragment_corr = 0.0;
+    Size pairs = 0;
+    for (Size a = 0; a < fragment_xics.size(); ++a)
+    {
+      for (Size b = a + 1; b < fragment_xics.size(); ++b)
+      {
+        fragment_corr += pearson_(fragment_xics[a], fragment_xics[b]);
+        ++pairs;
+      }
+    }
+    features.fragment_corr = pairs > 0 ? fragment_corr / static_cast<double>(pairs) : 0.0;
+
+    const auto apex = [](const std::vector<double>& v) { return static_cast<long>(std::max_element(v.begin(), v.end()) - v.begin()); };
+    const bool precursor_seen = std::any_of(precursor_xic.begin(), precursor_xic.end(), [](double v) { return v > 0.0; });
+    // without an MS1 profile: the distance of the fragment apex from the PSM's cycle
+    features.apex_delta = static_cast<double>(std::labs(apex(summed) - (precursor_seen ? apex(precursor_xic) : cycles)));
+    return features;
+  }
+
+  void ProSEAlgorithm::pruneHits_(std::vector<AnnotatedHit_>& hits, Size keep)
+  {
+    const bool several_precursors = std::any_of(hits.begin(), hits.end(),
+      [&hits](const AnnotatedHit_& h) { return h.precursor_idx != hits.front().precursor_idx; });
+    if (!several_precursors)
+    {
+      if (hits.size() <= keep) return;
+      std::partial_sort(hits.begin(), hits.begin() + keep, hits.end(), AnnotatedHit_::hasBetterScore);
+      hits.resize(keep);
+      return;
+    }
+    // per precursor: by precursor, best first
+    std::sort(hits.begin(), hits.end(), [](const AnnotatedHit_& a, const AnnotatedHit_& b)
+    {
+      if (a.precursor_idx != b.precursor_idx) return a.precursor_idx < b.precursor_idx;
+      return AnnotatedHit_::hasBetterScore(a, b);
+    });
+    Size kept = 0;
+    Size of_precursor = 0;
+    for (Size i = 0; i < hits.size(); ++i)
+    {
+      of_precursor = (i > 0 && hits[i].precursor_idx == hits[i - 1].precursor_idx) ? of_precursor + 1 : 0;
+      if (of_precursor >= keep) continue;
+      if (kept != i) hits[kept] = std::move(hits[i]);
+      ++kept;
+    }
+    hits.resize(kept);
+  }
+
+  void ProSEAlgorithm::mergeDIARepeats_(PeptideIdentificationList& peptide_ids) const
+  {
+    if (!dia_merge_cycles_ || peptide_ids.empty()) return;
+    // The PSMs of each peptidoform and charge in each isolation window, in the order of their cycles
+    struct Repeat
+    {
+      Size window;
+      std::string peptide;
+      int charge;
+      Size cycle;
+      Size id;
+    };
+    std::vector<Repeat> repeats;
+    for (Size i = 0; i < peptide_ids.size(); ++i)
+    {
+      const PeptideIdentification& id = peptide_ids[i];
+      if (id.getHits().empty() || !id.metaValueExists("DIA_window") || !id.metaValueExists("DIA_cycle")) continue;
+      const PeptideHit& best = id.getHits().front();
+      repeats.push_back({static_cast<Size>(static_cast<int>(id.getMetaValue("DIA_window"))), best.getSequence().toString(),
+                         best.getCharge(), static_cast<Size>(static_cast<int>(id.getMetaValue("DIA_cycle"))), i});
+    }
+    if (repeats.empty()) return;
+    std::sort(repeats.begin(), repeats.end(), [](const Repeat& a, const Repeat& b)
+    {
+      return std::tie(a.window, a.peptide, a.charge, a.cycle, a.id) < std::tie(b.window, b.peptide, b.charge, b.cycle, b.id);
+    });
+    // Runs of PSMs of the same peptidoform, charge and window, each within dia:xic_cycles cycles of the one before:
+    // the best scoring one stays (the first of equal ones)
+    std::vector<char> remove(peptide_ids.size(), 0);
+    const Size gap = std::max<Size>(dia_xic_cycles_, 1);
+    Size removed = 0;
+    for (Size begin = 0; begin < repeats.size();)
+    {
+      Size end = begin + 1;
+      while (end < repeats.size() && repeats[end].window == repeats[begin].window && repeats[end].charge == repeats[begin].charge
+             && repeats[end].peptide == repeats[begin].peptide && repeats[end].cycle - repeats[end - 1].cycle <= gap)
+      {
+        ++end;
+      }
+      Size best = begin;
+      for (Size r = begin + 1; r < end; ++r)
+      {
+        const PeptideIdentification& candidate = peptide_ids[repeats[r].id];
+        const PeptideIdentification& current = peptide_ids[repeats[best].id];
+        const double score = candidate.getHits().front().getScore();
+        const double best_score = current.getHits().front().getScore();
+        if (candidate.isHigherScoreBetter() ? score > best_score : score < best_score) best = r;
+      }
+      for (Size r = begin; r < end; ++r)
+      {
+        if (r == best) continue;
+        remove[repeats[r].id] = 1;
+        ++removed;
+      }
+      begin = end;
+    }
+    if (removed == 0) return;
+    Size kept = 0;
+    for (Size i = 0; i < peptide_ids.size(); ++i)
+    {
+      if (remove[i]) continue;
+      if (kept != i) peptide_ids[kept] = std::move(peptide_ids[i]);
+      ++kept;
+    }
+    peptide_ids.resize(kept);
+    OPENMS_LOG_INFO << "[ProSE-DIA] dia:merge_cycles: kept the best of the repeated PSMs of a peptide over consecutive "
+                       "cycles (" << removed << " PSMs removed, " << kept << " left)." << std::endl;
   }
 
 } // namespace OpenMS

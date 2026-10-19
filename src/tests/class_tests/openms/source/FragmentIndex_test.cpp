@@ -599,6 +599,113 @@ START_SECTION(isotope_error)
 }
 END_SECTION
 
+START_SECTION((static bool isWindowSearchPrecursor(const Precursor&)))
+{
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  TEST_FALSE(FragmentIndex::isWindowSearchPrecursor(precursor))
+  precursor.setMetaValue(Constants::UserParam::DIA_WINDOW_SEARCH, 1);
+  TEST_FALSE(FragmentIndex::isWindowSearchPrecursor(precursor)) // no isolation window
+  precursor.setIsolationWindowLowerOffset(12.5);
+  precursor.setIsolationWindowUpperOffset(12.5);
+  TEST_TRUE(FragmentIndex::isWindowSearchPrecursor(precursor))
+  const auto range = FragmentIndex::windowSearchMassRange(precursor, 2);
+  TEST_REAL_SIMILAR(range.first, 487.5 * 2 - Constants::PROTON_MASS_U)
+  TEST_REAL_SIMILAR(range.second, 512.5 * 2 - Constants::PROTON_MASS_U)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA: window-search precursors, and up to max_candidates_per_spectrum matches per precursor))
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {
+    {"test1", "test1",
+    "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"
+    "EVTVPSVQTFLIPEAMTFEEAAALLVNYITAYMVLFDFGNLQPGHSVLVHMAAGGVGMAAVQLCRTVENVTVFGTASASKHEALKENGVTHPIDYHTTDYVDEIKKISPKGVDIVMDPLGGSDTAKGYNLLKPMGKVVTYGMANL"
+    "LTGPKRNLMALARTWWNQFSVTALQLLQANRAVCGFHLGYLDGEVELVSGVVARLLALYNQGHIKPHIDSVWPFEKVADAMKQMQEKKNVGKVLLVPGPEKEN"}};
+  const AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum b_y_ions;
+  tsg.getSpectrum(b_y_ions, peptide, 1, 1);
+  MSSpectrum spectrum;
+  spectrum.setMSLevel(2);
+  for (const auto& peak : b_y_ions) spectrum.push_back(peak);
+
+  // a DIA window [m/z + 8 - 12.5, m/z + 8 + 12.5] around the peptide's m/z at charge 2, without a candidate at it
+  Precursor window;
+  window.setMZ(peptide.getMZ(2) + 8.0);
+  window.setIsolationWindowLowerOffset(12.5);
+  window.setIsolationWindowUpperOffset(12.5);
+  Precursor exact; // a DIA candidate at the peptide's m/z
+  exact.setMZ(peptide.getMZ(2));
+  exact.setCharge(2);
+
+  for (const bool peptide_mass_mode : {false, true})
+  {
+    FragmentIndex_test index;
+    auto params = index.getParameters();
+    params.setValue("fragment:min_mz", 0);
+    params.setValue("fragment:max_mz", 90000);
+    params.setValue("modifications:variable", std::vector<std::string> {});
+    params.setValue("modifications:fixed", std::vector<std::string> {});
+    params.setValue("precursor:min_charge", 2);
+    params.setValue("precursor:max_charge", 2);
+    params.setValue("scoring:max_candidates_per_spectrum", 1);
+    if (peptide_mass_mode)
+    {
+      params.setValue("peptide:enzyme_specificity", "none");
+      params.setValue("low_memory", "true");
+    }
+    index.setParameters(params);
+    index.build(entries);
+    if (peptide_mass_mode && !index.isPeptideMassMode()) continue; // not offered by this configuration
+
+    const auto isPeptide = [&](const FragmentIndex::SpectrumMatch& hit)
+    {
+      const AASequence sequence = peptide_mass_mode
+        ? index.reconstructRealizedSubSequence(index.getPeptides()[hit.peptide_idx_], entries, hit.realized_length_, hit.subset_bitmask_)
+        : index.reconstructModifiedSequence(index.getPeptides()[hit.peptide_idx_], entries);
+      return sequence == peptide;
+    };
+
+    // searched at the window centre (precursor mass tolerance): not a candidate
+    {
+      spectrum.setPrecursors({window});
+      FragmentIndex::SpectrumMatchesTopN sms;
+      index.querySpectrum(spectrum, entries, sms);
+      TEST_FALSE(std::any_of(sms.hits_.begin(), sms.hits_.end(), isPeptide))
+    }
+    // searched over the whole window: the best candidate
+    Precursor window_search = window;
+    window_search.setMetaValue(Constants::UserParam::DIA_WINDOW_SEARCH, 1);
+    {
+      spectrum.setPrecursors({window_search});
+      FragmentIndex::SpectrumMatchesTopN sms;
+      index.querySpectrum(spectrum, entries, sms);
+      TEST_EQUAL(sms.hits_.size(), 1)
+      if (!sms.hits_.empty())
+      {
+        TEST_TRUE(isPeptide(sms.hits_[0]))
+        TEST_EQUAL(sms.hits_[0].isotope_error_, 0)
+      }
+    }
+    // two precursors: each keeps its best match (scoring:max_candidates_per_spectrum 1 per precursor)
+    {
+      spectrum.setPrecursors({exact, window_search});
+      FragmentIndex::SpectrumMatchesTopN sms;
+      index.querySpectrum(spectrum, entries, sms);
+      TEST_EQUAL(sms.hits_.size(), 2)
+      std::set<uint16_t> precursors;
+      for (const auto& hit : sms.hits_)
+      {
+        precursors.insert(hit.precursor_idx_);
+        TEST_TRUE(isPeptide(hit))
+      }
+      TEST_EQUAL(precursors.size(), 2)
+    }
+  }
+}
+END_SECTION
+
 // Apply small deterministic fragment m/z jitter and a precursor offset within tolerances;
 // expect the correct peptide hit and zero isotope error.
 START_SECTION(tolerance)

@@ -2594,6 +2594,23 @@ namespace OpenMS
                           std::distance(fi_peptides_.begin(), right_it));
   }
 
+  bool FragmentIndex::isWindowSearchPrecursor(const Precursor& precursor)
+  {
+    // resolved once: metaValueExists(name) would take the lock of the meta registry for every query
+    static const UInt window_search_key = MetaInfoInterface::metaRegistry().registerName(Constants::UserParam::DIA_WINDOW_SEARCH);
+    return precursor.metaValueExists(window_search_key)
+           && precursor.getIsolationWindowLowerOffset() + precursor.getIsolationWindowUpperOffset() > 0.0;
+  }
+
+  std::pair<float, float> FragmentIndex::windowSearchMassRange(const Precursor& precursor, uint16_t charge)
+  {
+    // the (M+H)+ of the m/z at the window bounds, with the expressions of the precursor (M+H)+ of querySpectrum()
+    const float lower_mz = static_cast<float>(precursor.getMZ() - precursor.getIsolationWindowLowerOffset());
+    const float upper_mz = static_cast<float>(precursor.getMZ() + precursor.getIsolationWindowUpperOffset());
+    return {lower_mz * charge - ((charge - 1) * Constants::PROTON_MASS_U),
+            upper_mz * charge - ((charge - 1) * Constants::PROTON_MASS_U)};
+  }
+
   std::pair<float, float> FragmentIndex::computeMassWindow_(float precursor_mass) const
   {
     if (precursor_mass_tolerance_unit_ppm_)
@@ -2628,8 +2645,18 @@ namespace OpenMS
         {
           for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
         }
+        const bool window_search = isWindowSearchPrecursor(precursor);
         for (const uint16_t charge : charges)
         {
+          if (window_search)
+          {
+            // the whole isolation window (searchPrecursorMassRange_())
+            const auto range = windowSearchMassRange(precursor, charge);
+            const float margin = 1e-3f + 1e-6f * std::fabs(range.second);
+            if (std::isnan(range.first) || std::isnan(range.second)) { return; }
+            windows.emplace_back(range.first - margin, range.second + margin);
+            continue;
+          }
           const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
           for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
           {
@@ -3051,6 +3078,30 @@ namespace OpenMS
         return a.precursor_idx_ < b.precursor_idx_;
       };
 
+      // Several precursors (DIA candidates): each keeps up to max_processed_hits_ matches of at least
+      // min_matched_peaks_, as the precursor of a DDA spectrum, so that the candidates of a precursor with few matched
+      // fragments are not crowded out by those of a more intense precursor of the same window
+      const bool several_precursors = std::any_of(init_hits.hits_.begin(), init_hits.hits_.end(),
+        [&init_hits](const SpectrumMatch& m) { return m.precursor_idx_ != init_hits.hits_.front().precursor_idx_; });
+      if (several_precursors)
+      {
+        std::sort(init_hits.hits_.begin(), init_hits.hits_.end(), by_rank);
+        thread_local std::vector<uint32_t> kept_of_precursor;
+        kept_of_precursor.clear();
+        size_t kept = 0;
+        for (size_t i = 0; i < init_hits.hits_.size(); ++i)
+        {
+          const SpectrumMatch& hit = init_hits.hits_[i];
+          if (hit.num_matched_ < min_matched_peaks_) break; // ranked by num_matched_ first: all that follow have fewer
+          if (kept_of_precursor.size() <= hit.precursor_idx_) kept_of_precursor.resize(hit.precursor_idx_ + 1, 0);
+          if (kept_of_precursor[hit.precursor_idx_] >= max_processed_hits_) continue;
+          ++kept_of_precursor[hit.precursor_idx_];
+          init_hits.hits_[kept++] = hit;
+        }
+        init_hits.hits_.resize(kept);
+        return;
+      }
+
       if (init_hits.hits_.size() > max_processed_hits_)
       {
         std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_,
@@ -3134,6 +3185,23 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       const size_t cell_offset = blocks.empty() ? 0 : blocks.back().cell_offset + (blocks.back().second - blocks.back().first);
       blocks.push_back({candidates_range.first, candidates_range.second, cell_offset, isotope_error});
     }
+    queryPeaks(sms, spectrum, blocks, charge, with_electron_ions);
+  }
+
+  void FragmentIndex::searchPrecursorMassRange_(const MSSpectrum& spectrum,
+                                                float lower_mass,
+                                                float upper_mass,
+                                                SpectrumMatchesTopN& sms,
+                                                uint16_t charge,
+                                                bool with_electron_ions)
+  {
+    if (!(lower_mass <= upper_mass)) return; // empty (or NaN) range
+    // getPeptidesInMassWindow() around the lower bound: [lower_mass + 0, lower_mass + (upper_mass - lower_mass)]
+    const auto candidates_range = getPeptidesInMassWindow(lower_mass, {0.0f, upper_mass - lower_mass});
+    if (candidates_range.first >= candidates_range.second) return;
+    thread_local std::vector<CandidateBlock_> blocks;
+    blocks.clear();
+    blocks.push_back({candidates_range.first, candidates_range.second, 0, 0});
     queryPeaks(sms, spectrum, blocks, charge, with_electron_ions);
   }
 
@@ -3307,14 +3375,20 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       // the precursor (M+H)+ of searchDifferentPrecursorRanges() for this charge
       const float mz = (float)precursors[precursor_idx].getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
-      for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
+      // a window-search precursor: the (M+H)+ range of its isolation window at isotope error 0 (searchPrecursorMassRange_())
+      const bool window_search = isWindowSearchPrecursor(precursors[precursor_idx]);
+      const std::pair<float, float> window_range = window_search ? windowSearchMassRange(precursors[precursor_idx], charge)
+                                                                 : std::pair<float, float>{0.0f, 0.0f};
+      const int16_t precursor_iso_lo = window_search ? int16_t(0) : iso_lo;
+      const int16_t precursor_iso_hi = window_search ? int16_t(0) : iso_hi;
+      for (int16_t isotope_error = precursor_iso_lo; isotope_error <= precursor_iso_hi; ++isotope_error)
       {
         // The window of the fragment index (searchDifferentPrecursorRanges(), getPeptidesInMassWindow()): a
         // peptidoform is a candidate if its precursor_mz_ lies in [lo, hi]
         const float shifted_mass = mz + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
         const auto window = computeMassWindow_(shifted_mass);
-        const float lo = shifted_mass + window.first;
-        const float hi = shifted_mass + window.second;
+        const float lo = window_search ? window_range.first : shifted_mass + window.first;
+        const float hi = window_search ? window_range.second : shifted_mass + window.second;
         if (!(lo <= hi)) continue;
         // The entries are the float masses of the unmodified prefixes, the window bounds those of the
         // peptidoforms: a few float roundings and up to the Σ matching tolerance (1e-4 Da) apart from the entry
@@ -3537,9 +3611,24 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       return std::tie(kx.precursor_mz, kx.protein_idx, kx.start, x.realized_length_, x.subset_bitmask_, x.precursor_idx_)
            < std::tie(ky.precursor_mz, ky.protein_idx, ky.start, y.realized_length_, y.subset_bitmask_, y.precursor_idx_);
     };
+    std::vector<SpectrumMatch> trimmed;
+    if (precursors.size() > 1)
+    {
+      // up to max_processed_hits_ per precursor (DIA candidate), as trimHits()
+      std::sort(order.begin(), order.end(), by_rank);
+      std::vector<uint32_t> kept_of_precursor(precursors.size(), 0);
+      for (const size_t i : order)
+      {
+        const SpectrumMatch& hit = sms.hits_[i];
+        if (kept_of_precursor[hit.precursor_idx_] >= max_processed_hits_) continue;
+        ++kept_of_precursor[hit.precursor_idx_];
+        trimmed.push_back(hit);
+      }
+      sms.hits_ = std::move(trimmed);
+      return;
+    }
     const size_t keep = std::min<size_t>(order.size(), max_processed_hits_);
     std::partial_sort(order.begin(), order.begin() + keep, order.end(), by_rank);
-    std::vector<SpectrumMatch> trimmed;
     trimmed.reserve(keep);
     for (size_t i = 0; i < keep; ++i) trimmed.push_back(sms.hits_[order[i]]);
     sms.hits_ = std::move(trimmed);
@@ -3627,8 +3716,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // block appends to sms in ascending peptide index. A per-charge staging container
         // would only add a second full copy of every candidate before the same tail insert.
         const size_t first_hit = sms.hits_.size();
+        const bool window_search = isWindowSearchPrecursor(precursor);
         for (uint16_t charge : charges)
         {
+          if (window_search)
+          {
+            const auto range = windowSearchMassRange(precursor, charge);
+            searchPrecursorMassRange_(spectrum, range.first, range.second, sms, charge, with_electron_ions);
+            continue;
+          }
           float mz;
           mz = (float)precursor.getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
           searchDifferentPrecursorRanges(spectrum, mz, sms, charge, with_electron_ions);

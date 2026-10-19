@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
@@ -173,6 +174,17 @@ public:
   using ProSEAlgorithm::extractMS1PrecursorCandidates_;
   using ProSEAlgorithm::expandDIASpectra_;
   using ProSEAlgorithm::AnnotatedHit_;
+  using ProSEAlgorithm::sumMS1Window_;
+  using ProSEAlgorithm::precursorXIC_;
+  using ProSEAlgorithm::pruneHits_;
+  using ProSEAlgorithm::pearson_;
+  using ProSEAlgorithm::mergeDIARepeats_;
+  using ProSEAlgorithm::DIAWindowNeighbors_;
+  using ProSEAlgorithm::diaWindowNeighbors_;
+  using ProSEAlgorithm::DIACoelution_;
+  using ProSEAlgorithm::diaCoelution_;
+  using ProSEAlgorithm::CandidatePoolStats_;
+  using ProSEAlgorithm::ScoreSummary_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -926,6 +938,22 @@ static Size ambiguousSpanLookups(const string& protein, const std::set<Size>& le
   return total;
 }
 
+
+// An MS1 spectrum with an ion mobility per peak (DIA tests)
+static MSSpectrum ms1WithIM(const std::vector<std::array<double, 3>>& peaks) // {m/z, intensity, ion mobility}
+{
+  MSSpectrum spectrum;
+  spectrum.setMSLevel(1);
+  DataArrays::FloatDataArray im;
+  for (const auto& peak : peaks)
+  {
+    spectrum.push_back(Peak1D(peak[0], static_cast<float>(peak[1])));
+    im.push_back(static_cast<float>(peak[2]));
+  }
+  IMDataConverter::setIMUnit(im, DriftTimeUnit::VSSC);
+  spectrum.getFloatDataArrays().push_back(im);
+  return spectrum;
+}
 
 START_TEST(ProSEAlgorithm, "$Id$")
 
@@ -4685,6 +4713,313 @@ START_SECTION(([EXTRA] DIA expandDIASpectra))
   // Fragment peaks unchanged (no duplication)
   TEST_EQUAL(expanded[0].size(), 2) // 200.0 and 300.0
   TEST_EQUAL(expanded[1].size(), 1) // 250.0
+
+  // the isolation window of the spectrum stays that of every candidate, and each has its MS1 profile
+  for (const Precursor& p : w1_precs)
+  {
+    TEST_REAL_SIMILAR(p.getMZ() - p.getIsolationWindowLowerOffset(), 487.5)
+    TEST_REAL_SIMILAR(p.getMZ() + p.getIsolationWindowUpperOffset(), 512.5)
+    TEST_TRUE(p.metaValueExists(Constants::UserParam::DIA_MS1_XIC))
+    TEST_FALSE(FragmentIndex::isWindowSearchPrecursor(p))
+  }
+  const DoubleList xic = w1_precs[0].getMetaValue(Constants::UserParam::DIA_MS1_XIC).toDoubleList();
+  TEST_EQUAL(xic.size(), 7) // dia:xic_cycles 3 on each side; only the middle MS1 spectrum exists
+  if (xic.size() == 7)
+  {
+    TEST_REAL_SIMILAR(xic[3], 1000.0)
+    TEST_REAL_SIMILAR(xic[0] + xic[6], 0.0)
+  }
+  TEST_REAL_SIMILAR(expanded[0].getMetaValue("DIA_window_lower_mz"), 487.5)
+  TEST_REAL_SIMILAR(expanded[0].getMetaValue("DIA_window_upper_mz"), 512.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA sumMS1Window))
+{
+  MSSpectrum s1;
+  s1.setMSLevel(1);
+  s1.push_back(Peak1D(500.000, 1000.0f));
+  s1.push_back(Peak1D(501.000, 100.0f));
+  s1.push_back(Peak1D(600.000, 5000.0f)); // outside of [490, 510]
+  MSSpectrum s2;
+  s2.setMSLevel(1);
+  s2.push_back(Peak1D(500.002, 1000.0f)); // 4 ppm from 500.000
+  s2.push_back(Peak1D(501.000, 100.0f));
+
+  MSSpectrum summed = ProSEAlgorithm_test::sumMS1Window_({&s1, nullptr, &s2}, 490.0, 510.0, 10.0);
+  TEST_EQUAL(summed.size(), 2)
+  if (summed.size() == 2)
+  {
+    TEST_REAL_SIMILAR(summed[0].getMZ(), 500.001)
+    TEST_REAL_SIMILAR(summed[0].getIntensity(), 2000.0)
+    TEST_REAL_SIMILAR(summed[1].getIntensity(), 200.0)
+  }
+  TEST_FALSE(summed.containsIMData()) // without ion mobilities
+
+  // the peaks of one spectrum are not merged
+  MSSpectrum s3;
+  s3.push_back(Peak1D(500.000, 10.0f));
+  s3.push_back(Peak1D(500.001, 10.0f));
+  TEST_EQUAL(ProSEAlgorithm_test::sumMS1Window_({&s3}, 490.0, 510.0, 10.0).size(), 2)
+
+  // with ion mobilities: the peaks in the ion mobility range only, with their intensity-weighted ion mobility
+  const MSSpectrum i1 = ms1WithIM({{500.000, 1000.0, 0.90}, {500.500, 800.0, 1.20}});
+  const MSSpectrum i2 = ms1WithIM({{500.001, 3000.0, 0.94}, {500.500, 800.0, 1.21}});
+  summed = ProSEAlgorithm_test::sumMS1Window_({&i1, &i2}, 490.0, 510.0, 10.0, 0.85, 1.0);
+  TEST_EQUAL(summed.size(), 1)
+  TEST_TRUE(summed.containsIMData())
+  if (summed.size() == 1 && summed.containsIMData())
+  {
+    TEST_REAL_SIMILAR(summed[0].getIntensity(), 4000.0)
+    TEST_REAL_SIMILAR(summed.getFloatDataArrays()[summed.getIMData().first][0], (0.90 * 1000 + 0.94 * 3000) / 4000)
+  }
+  summed = ProSEAlgorithm_test::sumMS1Window_({&i1, &i2}, 490.0, 510.0, 10.0);
+  TEST_EQUAL(summed.size(), 2) // without a range: both ions
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - ion mobility range of a diaPASEF window))
+{
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  // a charge-2 envelope at 495.0 at ion mobility 0.9, a more intense charge-3 envelope at 502.0 at ion mobility 1.2
+  const MSSpectrum ms1 = ms1WithIM({{495.0, 1000.0, 0.9}, {495.0 + c13 / 2.0, 500.0, 0.9}, {495.0 + c13, 200.0, 0.9},
+                                    {502.0, 2000.0, 1.2}, {502.0 + c13 / 3.0, 800.0, 1.2}, {502.0 + 2 * c13 / 3.0, 300.0, 1.2}});
+  Precursor prec;
+  prec.setMZ(500.0);
+  prec.setIsolationWindowLowerOffset(12.5);
+  prec.setIsolationWindowUpperOffset(12.5);
+
+  auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(ms1, prec, 10, 2, 5, 20.0);
+  TEST_EQUAL(candidates.size(), 2)
+  if (candidates.size() == 2)
+  {
+    TEST_REAL_SIMILAR(candidates[0].mz, 502.0)
+    TEST_REAL_SIMILAR(candidates[0].im, 1.2)
+    TEST_REAL_SIMILAR(candidates[1].im, 0.9)
+  }
+  // the window isolates the ion mobilities 0.85 to 0.95: the precursor at 1.2 was not fragmented in it
+  candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(ms1, prec, 10, 2, 5, 20.0, 0.85, 0.95);
+  TEST_EQUAL(candidates.size(), 1)
+  if (candidates.size() == 1)
+  {
+    TEST_REAL_SIMILAR(candidates[0].mz, 495.0)
+    TEST_EQUAL(candidates[0].charge, 2)
+    TEST_REAL_SIMILAR(candidates[0].im, 0.9)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA expandDIASpectra - ion mobility windows, window search, MS1 profiles))
+{
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  PeakMap full_exp;
+  // three cycles: MS1, then a window isolating [487.5, 512.5] x [0.85, 0.95] and one isolating [612.5, 637.5]
+  for (int cycle = 0; cycle < 3; ++cycle)
+  {
+    const double scale = cycle == 1 ? 2.0 : 1.0; // the precursors elute in the middle cycle
+    MSSpectrum ms1 = ms1WithIM({{495.0, 1000.0 * scale, 0.9}, {495.0 + c13 / 2.0, 500.0 * scale, 0.9}, {495.0 + c13, 200.0 * scale, 0.9},
+                                {502.0, 2000.0 * scale, 1.2}, {502.0 + c13 / 3.0, 800.0 * scale, 1.2}, {502.0 + 2 * c13 / 3.0, 300.0 * scale, 1.2}});
+    ms1.setRT(10.0 * cycle);
+    full_exp.addSpectrum(ms1);
+
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(10.0 * cycle + 1.0);
+    ms2.setNativeID("scan=" + std::to_string(2 * cycle + 1));
+    ms2.push_back(Peak1D(300.0, 100.0f));
+    Precursor p;
+    p.setMZ(500.0);
+    p.setIsolationWindowLowerOffset(12.5);
+    p.setIsolationWindowUpperOffset(12.5);
+    ms2.setPrecursors({p});
+    ms2.setMetaValue("ion mobility lower limit", 0.85);
+    ms2.setMetaValue("ion mobility upper limit", 0.95);
+    full_exp.addSpectrum(ms2);
+
+    MSSpectrum empty_window = ms2; // no MS1 candidate in [612.5, 637.5]
+    empty_window.setRT(10.0 * cycle + 2.0);
+    empty_window.setNativeID("scan=" + std::to_string(2 * cycle + 2));
+    p.setMZ(625.0);
+    empty_window.setPrecursors({p});
+    empty_window.removeMetaValue("ion mobility lower limit");
+    empty_window.removeMetaValue("ion mobility upper limit");
+    full_exp.addSpectrum(empty_window);
+  }
+  const auto ms2_to_ms1 = ProSEAlgorithm_test::buildMS2ToMS1Map_(full_exp);
+
+  ProSEAlgorithm_test algo;
+  Param params = algo.getParameters();
+  params.setValue("dia:isotope_tolerance_ppm", 20.0);
+  params.setValue("dia:ms1_neighbors", 1);
+  params.setValue("dia:xic_cycles", 1);
+  params.setValue("precursor:min_charge", 2);
+  params.setValue("precursor:max_charge", 5);
+  algo.setParameters(params);
+  PeakMap expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1);
+  TEST_EQUAL(expanded.size(), 6)
+  if (expanded.size() == 6)
+  {
+    // the candidate in the ion mobility range of the window, with its ion mobility and its MS1 profile
+    const auto& precursors = expanded[2].getPrecursors(); // the middle cycle
+    TEST_EQUAL(precursors.size(), 1)
+    TEST_REAL_SIMILAR(precursors[0].getMZ(), 495.0)
+    TEST_REAL_SIMILAR(precursors[0].getDriftTime(), 0.9)
+    TEST_REAL_SIMILAR(precursors[0].getIntensity(), 4000.0) // summed over the three cycles
+    const DoubleList xic = precursors[0].getMetaValue(Constants::UserParam::DIA_MS1_XIC).toDoubleList();
+    TEST_EQUAL(xic.size(), 3)
+    if (xic.size() == 3)
+    {
+      TEST_REAL_SIMILAR(xic[0], 1000.0)
+      TEST_REAL_SIMILAR(xic[1], 2000.0)
+      TEST_REAL_SIMILAR(xic[2], 1000.0)
+    }
+    // the window without a candidate is searched as a whole
+    const auto& window_precursors = expanded[3].getPrecursors();
+    TEST_EQUAL(window_precursors.size(), 1)
+    TEST_TRUE(FragmentIndex::isWindowSearchPrecursor(window_precursors[0]))
+    TEST_EQUAL(window_precursors[0].getCharge(), 0)
+  }
+
+  // 'never': windows without candidates are not searched
+  params.setValue("dia:window_search", "never");
+  algo.setParameters(params);
+  TEST_EQUAL(algo.expandDIASpectra_(full_exp, ms2_to_ms1).size(), 3)
+  // 'always': the whole window in addition to the candidates
+  params.setValue("dia:window_search", "always");
+  algo.setParameters(params);
+  expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1);
+  TEST_EQUAL(expanded.size(), 6)
+  if (expanded.size() == 6)
+  {
+    TEST_EQUAL(expanded[2].getPrecursors().size(), 2)
+    TEST_TRUE(FragmentIndex::isWindowSearchPrecursor(expanded[2].getPrecursors().back()))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA pruneHits keeps the best hits of each precursor))
+{
+  std::vector<ProSEAlgorithm_test::AnnotatedHit_> hits(5);
+  const double scores[] = {5.0, 4.0, 3.0, 2.0, 1.0};
+  const uint16_t precursors[] = {0, 0, 0, 1, 1};
+  for (Size i = 0; i < hits.size(); ++i)
+  {
+    hits[i].score = scores[i];
+    hits[i].precursor_idx = precursors[i];
+    hits[i].sequence = AASequence::fromString(std::string(1 + i, 'A') + "K");
+  }
+  auto pruned = hits;
+  ProSEAlgorithm_test::pruneHits_(pruned, 2);
+  TEST_EQUAL(pruned.size(), 4)
+  std::multiset<double> kept;
+  for (const auto& h : pruned) kept.insert(h.score);
+  TEST_TRUE(kept == std::multiset<double>({5.0, 4.0, 2.0, 1.0}))
+
+  // one precursor: the best ones
+  hits.resize(3);
+  ProSEAlgorithm_test::pruneHits_(hits, 2);
+  TEST_EQUAL(hits.size(), 2)
+  kept.clear();
+  for (const auto& h : hits) kept.insert(h.score);
+  TEST_TRUE(kept == std::multiset<double>({5.0, 4.0}))
+
+  // pool statistics per precursor
+  ProSEAlgorithm_test::CandidatePoolStats_ stats;
+  stats.add(3.0, 0, 2);
+  stats.add(1.0, 0, 2);
+  stats.add(5.0, 1, 2);
+  TEST_REAL_SIMILAR(stats.deltaScore(), 2.0)
+  TEST_REAL_SIMILAR(stats.ofPrecursor(0).deltaScore(), 2.0)
+  TEST_REAL_SIMILAR(stats.ofPrecursor(1).deltaScore(), 5.0)
+  TEST_EQUAL(stats.ofPrecursor(1).count, 1)
+  ProSEAlgorithm_test::CandidatePoolStats_ single;
+  single.add(3.0, 0, 1);
+  TEST_EQUAL(single.by_precursor.size(), 0)
+  TEST_EQUAL(single.ofPrecursor(0).count, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA co-elution features))
+{
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::pearson_({1, 2, 3}, {2, 4, 6}), 1.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::pearson_({1, 2, 3}, {3, 2, 1}), -1.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::pearson_({1, 1, 1}, {1, 2, 3}), 0.0)
+
+  // seven cycles of one window, fragments at 300 and 400 eluting with the precursor (apex in cycle 3)
+  const std::vector<double> profile {0, 1, 4, 9, 4, 1, 0};
+  PeakMap exp;
+  for (Size cycle = 0; cycle < profile.size(); ++cycle)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setRT(static_cast<double>(cycle));
+    spectrum.push_back(Peak1D(300.0, static_cast<float>(100 * profile[cycle] + 1)));
+    spectrum.push_back(Peak1D(400.0, static_cast<float>(50 * profile[cycle] + 1)));
+    spectrum.push_back(Peak1D(500.0, static_cast<float>(cycle + 1))); // rising: does not co-elute
+    spectrum.setMetaValue("DIA_window_lower_mz", 487.5);
+    spectrum.setMetaValue("DIA_window_upper_mz", 512.5);
+    exp.addSpectrum(spectrum);
+  }
+  MSSpectrum other_window = exp[0];
+  other_window.setMetaValue("DIA_window_lower_mz", 512.5);
+  exp.addSpectrum(other_window);
+
+  const auto neighbors = ProSEAlgorithm_test::diaWindowNeighbors_(exp);
+  TEST_EQUAL(neighbors.window_spectra.size(), 2)
+  TEST_EQUAL(neighbors.position[3], 3)
+  TEST_NOT_EQUAL(neighbors.window[7], neighbors.window[0])
+
+  const std::vector<double> precursor_xic {1, 4, 9, 4, 1}; // two cycles on each side of cycle 3
+  auto features = ProSEAlgorithm_test::diaCoelution_(exp, neighbors, 3, {300.0, 400.0}, precursor_xic, 10.0, true);
+  TEST_REAL_SIMILAR(features.fragment_precursor_corr, 1.0)
+  TEST_REAL_SIMILAR(features.fragment_corr, 1.0)
+  TEST_REAL_SIMILAR(features.apex_delta, 0.0)
+  features = ProSEAlgorithm_test::diaCoelution_(exp, neighbors, 3, {300.0, 500.0}, precursor_xic, 10.0, true);
+  TEST_EQUAL(features.fragment_precursor_corr < 0.9, true)
+  TEST_REAL_SIMILAR(features.apex_delta, 0.0) // the summed profile still peaks with the precursor
+  // a spectrum at the edge of the run: the cycles before it are missing (0)
+  features = ProSEAlgorithm_test::diaCoelution_(exp, neighbors, 1, {300.0, 400.0}, precursor_xic, 10.0, true);
+  TEST_REAL_SIMILAR(features.apex_delta, 2.0) // fragments peak two cycles later than the profile given for cycle 1
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA mergeDIARepeats keeps the best PSM of a peptide over consecutive cycles))
+{
+  const auto identification = [](const std::string& sequence, int window, int cycle, double score)
+  {
+    PeptideIdentification id;
+    id.setHigherScoreBetter(true);
+    id.setMetaValue("DIA_window", window);
+    id.setMetaValue("DIA_cycle", cycle);
+    PeptideHit hit(score, 0, 2, AASequence::fromString(sequence));
+    id.setHits({hit});
+    return id;
+  };
+  PeptideIdentificationList ids;
+  ids.push_back(identification("PEPTIDER", 0, 1, 1.0));
+  ids.push_back(identification("PEPTIDER", 0, 2, 3.0));
+  ids.push_back(identification("PEPTIDER", 0, 4, 2.0));  // within 3 cycles of cycle 2
+  ids.push_back(identification("PEPTIDER", 0, 10, 1.5)); // another elution
+  ids.push_back(identification("PEPTIDER", 1, 2, 1.0));  // another window
+  ids.push_back(identification("ELVISLIVESK", 0, 2, 1.0));
+  PeptideIdentification dda; // not a DIA identification: kept
+  dda.setHits({PeptideHit(1.0, 0, 2, AASequence::fromString("PEPTIDER"))});
+  ids.push_back(dda);
+
+  ProSEAlgorithm_test algo;
+  algo.mergeDIARepeats_(ids);
+  TEST_EQUAL(ids.size(), 5)
+  std::multiset<std::pair<std::string, double>> kept;
+  for (const auto& id : ids) kept.insert({id.getHits()[0].getSequence().toString(), id.getHits()[0].getScore()});
+  TEST_TRUE(kept == (std::multiset<std::pair<std::string, double>>{{"PEPTIDER", 3.0}, {"PEPTIDER", 1.5}, {"PEPTIDER", 1.0},
+                                                                     {"PEPTIDER", 1.0}, {"ELVISLIVESK", 1.0}}))
+
+  Param params = algo.getParameters();
+  params.setValue("dia:merge_cycles", "false");
+  algo.setParameters(params);
+  ids.push_back(identification("PEPTIDER", 0, 3, 5.0));
+  algo.mergeDIARepeats_(ids);
+  TEST_EQUAL(ids.size(), 6)
 }
 END_SECTION
 

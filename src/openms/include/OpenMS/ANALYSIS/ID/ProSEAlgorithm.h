@@ -706,7 +706,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
       double score = 0; ///< main score
       double delta_mass = 0.0; ///< mass difference for open search (Da)
-      double dia_precursor_mz = 0.0; ///< DIA: winning precursor m/z from MS1 (0.0 = use spectrum metadata)
+      double dia_precursor_mz = 0.0; ///< m/z of the precursor the hit was matched to (that of precursor_idx)
       float prefix_fraction = 0; ///< fraction of annotated prefix ions (a/b/c)
       float suffix_fraction = 0; ///< fraction of annotated suffix ions (x/y/z)
       float mean_error = 0.0f; ///< mean absolute fragment mass error
@@ -714,6 +714,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       uint16_t applied_charge = 0; ///< precursor charge used for this PSM
       uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
       uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
+      uint16_t precursor_idx = 0; ///< index of the precursor of the spectrum the hit was matched to (a DIA candidate)
       UInt32 index_peptide = 0; ///< the candidate: its index in FragmentIndex::getPeptides() of the searched index (protein mapping)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
@@ -742,16 +743,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before add(). The per-chunk candidate cap still determines which distinct
      * hypotheses enter the pool; chunked and unchunked pools can therefore differ.
      */
-    struct CandidatePoolStats_
+    struct ScoreSummary_
     {
       double sum = 0.0;         ///< sum of all candidate scores
       double sumsq = 0.0;       ///< sum of squared candidate scores
       double best = 0.0;        ///< best candidate score (HyperScore is non-negative, so 0 doubles as "none seen")
       double second_best = 0.0; ///< runner-up candidate score
       Size count = 0;           ///< number of candidates scored
-      /// Exact peptide/charge/isotope keys already scored in earlier database chunks.
-      /// Empty in non-chunked searches; full keys resolve hash collisions by equality.
-      std::unordered_set<std::string> seen_candidates;
 
       /// Fold one freshly scored candidate into the summary.
       void add(double score)
@@ -788,6 +786,35 @@ class OPENMS_DLLAPI ProSEAlgorithm :
        * stand out from the pool.
        */
       double zScore() const;
+    };
+
+    /// The summary of the candidate pool of one spectrum (see ScoreSummary_), and of each of its precursors
+    struct CandidatePoolStats_ : ScoreSummary_
+    {
+      /// Exact peptide/charge/isotope keys already scored in earlier database chunks.
+      /// Empty in non-chunked searches; full keys resolve hash collisions by equality.
+      std::unordered_set<std::string> seen_candidates;
+      /// A spectrum with several precursors (the MS1 candidates of a DIA isolation window): the summary of the
+      /// candidates of each precursor, which is a precursor of its own (one PeptideIdentification per precursor).
+      /// Empty for a spectrum with one precursor.
+      std::vector<ScoreSummary_> by_precursor;
+
+      using ScoreSummary_::add;
+
+      /// Fold one freshly scored candidate of precursor @p precursor_idx (of @p num_precursors) into the summaries
+      void add(double score, Size precursor_idx, Size num_precursors)
+      {
+        add(score);
+        if (num_precursors < 2) return;
+        if (by_precursor.size() < num_precursors) by_precursor.resize(num_precursors);
+        by_precursor[precursor_idx].add(score);
+      }
+
+      /// The summary of precursor @p precursor_idx: that of the spectrum for a spectrum with one precursor
+      const ScoreSummary_& ofPrecursor(Size precursor_idx) const
+      {
+        return precursor_idx < by_precursor.size() ? by_precursor[precursor_idx] : *this;
+      }
     };
 
     /**
@@ -1246,6 +1273,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size dia_max_precursor_candidates_{20};
     double dia_isotope_tolerance_ppm_{10.0};
     double dia_min_isolation_width_{4.0};
+    double dia_im_tolerance_{0.01};       ///< dia:im_tolerance
+    Size dia_ms1_neighbors_{1};           ///< dia:ms1_neighbors
+    Size dia_xic_cycles_{3};              ///< dia:xic_cycles
+    std::string dia_window_search_{"no_candidates"}; ///< dia:window_search
+    bool dia_merge_cycles_{true};         ///< dia:merge_cycles
 
     /**
      * @brief Result of a calibration pass.
@@ -1511,6 +1543,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double mz;
       double intensity;
       int charge; ///< 0 = unknown (will enumerate all charges)
+      double im = -1.0; ///< ion mobility of the monoisotopic peak (intensity-weighted), -1 = none
     };
 
     /// Auto-detect DIA by checking isolation window widths on MS2 spectra.
@@ -1519,21 +1552,58 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Build map from spectrum index → parent MS1 spectrum index (-1 if none).
     static std::vector<int> buildMS2ToMS1Map_(const PeakMap& full_exp);
 
+    /**
+     * @brief The peaks of the MS1 spectra @p ms1_spectra in [@p min_mz, @p max_mz], summed into one spectrum.
+     *
+     * Peaks of different spectra within @p tolerance_ppm of each other are one peak, with the summed intensity, the
+     * intensity-weighted m/z and, if every spectrum has an ion mobility array, the intensity-weighted ion mobility
+     * (float data array "ion mobility"). With @p im_lower <= @p im_upper (both >= 0) and ion mobilities, only the
+     * peaks in [@p im_lower, @p im_upper] are taken (a diaPASEF window isolates a range of ion mobilities).
+     * Within one spectrum, peaks are not merged: an isotope envelope keeps its peaks.
+     */
+    static MSSpectrum sumMS1Window_(const std::vector<const MSSpectrum*>& ms1_spectra,
+                                    double min_mz,
+                                    double max_mz,
+                                    double tolerance_ppm,
+                                    double im_lower = -1.0,
+                                    double im_upper = -1.0);
+
     /// Extract top-N deisotoped MS1 peaks within the isolation window of an MS2
     /// precursor. The Deisotoper collapses isotope envelopes to monoisotopic peaks
     /// and assigns charges as a side effect; candidates whose charge could not be
     /// determined are returned with charge=0 (FragmentIndex will enumerate charges).
+    /// With ion mobilities in @p ms1_spectrum (float data array "ion mobility", as sumMS1Window_() gives) and
+    /// @p im_lower <= @p im_upper (both >= 0), only the peaks in [@p im_lower, @p im_upper] are candidates, and
+    /// each candidate gets the ion mobility of its monoisotopic peak.
     static std::vector<PrecursorCandidate_> extractMS1PrecursorCandidates_(
         const MSSpectrum& ms1_spectrum,
         const Precursor& ms2_precursor,
         Size max_candidates,
         int min_charge,
         int max_charge,
-        double isotope_tolerance_ppm);
+        double isotope_tolerance_ppm,
+        double im_lower = -1.0,
+        double im_upper = -1.0);
+
+    /**
+     * @brief The MS1 intensity of a precursor candidate (its monoisotopic peak) in each MS1 spectrum of @p ms1_spectra
+     *
+     * The highest peak within @p tolerance_ppm of @p mz, and, if @p im >= 0 and the spectrum has ion mobilities,
+     * within @p im_tolerance of @p im. 0 for a spectrum without such a peak (or a null pointer).
+     */
+    static std::vector<double> precursorXIC_(const std::vector<const MSSpectrum*>& ms1_spectra,
+                                             double mz,
+                                             double im,
+                                             double tolerance_ppm,
+                                             double im_tolerance);
 
     /// Expand DIA MS2 spectra by replacing the isolation-window-center precursor
     /// with multiple precursors (one per MS1 candidate). Returns a PeakMap where
     /// each spectrum has N precursors; fragment peaks are shared (no duplication).
+    /// The candidates are those of the summed MS1 spectra around the parent one (dia:ms1_neighbors), in the ion
+    /// mobility range of a diaPASEF window (dia:im_tolerance); each carries its MS1 elution profile
+    /// (Constants::UserParam::DIA_MS1_XIC, dia:xic_cycles). A window without candidates is searched as a whole or
+    /// dropped (dia:window_search).
     PeakMap expandDIASpectra_(
         const PeakMap& full_exp,
         const std::vector<int>& ms2_to_ms1_map) const;
@@ -1541,7 +1611,60 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// DIA handling of the MS2 spectra read from @p filename (see 'dia:enabled'): for DIA (detected from the isolation
     /// windows of @p ms2_spectra, or forced), reads the MS1 spectra of the file and replaces the spectra by those of
     /// expandDIASpectra_(), with one precursor per MS1 candidate. Leaves DDA spectra (or 'dia:enabled' false) unchanged.
+    /// A Bruker diaPASEF run (.d) is read again, with the MS1 and MS2 spectra centroided in m/z and ion mobility.
     void expandDIA_(PeakMap& ms2_spectra, const std::string& filename) const;
+
+    /**
+     * @brief Co-elution features of the PSMs of DIA spectra (see Constants::UserParam::DIA_FRAGMENT_PRECURSOR_CORR)
+     *
+     * For each PSM of a spectrum with a DIA precursor (one with an MS1 elution profile, DIA_MS1_XIC), the elution
+     * profiles of its matched fragments (@p matched_fragment_mz, the most intense first) in the spectra of the same
+     * isolation window in the dia:xic_cycles cycles before and after are correlated with each other and with the
+     * precursor's MS1 profile.
+     */
+    struct DIAWindowNeighbors_
+    {
+      /// per spectrum: its index in the RT-ordered spectra of its isolation window (window_spectra)
+      std::vector<Size> position;
+      /// per spectrum: the index of its isolation window in window_spectra
+      std::vector<Size> window;
+      /// per isolation window: its spectra (indices), in RT order
+      std::vector<std::vector<Size>> window_spectra;
+    };
+
+    /// The isolation windows of the DIA spectra of @p exp (those with an absolute window, "DIA_window_lower_mz")
+    static DIAWindowNeighbors_ diaWindowNeighbors_(const PeakMap& exp);
+
+    struct DIACoelution_
+    {
+      double fragment_precursor_corr = 0.0;
+      double fragment_corr = 0.0;
+      double apex_delta = 0.0;
+    };
+
+    /// The co-elution features of a PSM of spectrum @p spectrum_index with the matched fragments @p fragment_mz
+    /// and the precursor MS1 profile @p precursor_xic (centred on the PSM's cycle)
+    static DIACoelution_ diaCoelution_(const PeakMap& exp,
+                                       const DIAWindowNeighbors_& neighbors,
+                                       Size spectrum_index,
+                                       const std::vector<double>& fragment_mz,
+                                       const std::vector<double>& precursor_xic,
+                                       double fragment_tolerance,
+                                       bool fragment_tolerance_ppm);
+
+    /// Pearson correlation of @p a and @p b (same size); 0 if either is constant
+    static double pearson_(const std::vector<double>& a, const std::vector<double>& b);
+
+    /// Keeps the @p keep best hits of @p hits (AnnotatedHit_::hasBetterScore), per precursor (AnnotatedHit_::precursor_idx)
+    /// if they belong to several precursors (DIA candidates). The order of the kept hits is unspecified.
+    static void pruneHits_(std::vector<AnnotatedHit_>& hits, Size keep);
+
+    /**
+     * @brief dia:merge_cycles: of the PeptideIdentifications of DIA precursors (Constants::UserParam::DIA_MS1_XIC on
+     * the spectrum's precursor, meta value "DIA_window") whose best hit is the same peptidoform at the same charge, in
+     * the same isolation window and within dia:xic_cycles cycles of each other, keeps the one with the best score.
+     */
+    void mergeDIARepeats_(PeptideIdentificationList& peptide_ids) const;
 };
 
 } // namespace
