@@ -17,6 +17,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <algorithm>
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -84,7 +86,7 @@ START_SECTION((static std::vector<CoIsolated> detect(const MSSpectrum& ms1, doub
 }
 END_SECTION
 
-START_SECTION((static Size annotate(PeakMap& exp, int min_charge, int max_charge, double tol_ppm, double max_kl, Size max_n)))
+START_SECTION((static Size annotate(PeakMap& exp, int min_charge, int max_charge, double tolerance, bool tolerance_ppm, double max_kl, Size max_n)))
 {
   PeakMap exp;
   MSSpectrum ms1;
@@ -115,7 +117,7 @@ START_SECTION((static Size annotate(PeakMap& exp, int min_charge, int max_charge
   no_window.setPrecursors({q});
   exp.addSpectrum(no_window);
 
-  TEST_EQUAL(CoIsolationDetector::annotate(exp, 1, 4, 10.0, 0.3, 4), 1)
+  TEST_EQUAL(CoIsolationDetector::annotate(exp, 1, 4, 10.0, true, 0.3, 4), 1)
   TEST_EQUAL(exp[1].metaValueExists(CoIsolationDetector::META_MZ), true)
   const DoubleList mzs = exp[1].getMetaValue(CoIsolationDetector::META_MZ);
   const IntList charges = exp[1].getMetaValue(CoIsolationDetector::META_CHARGE);
@@ -126,6 +128,33 @@ START_SECTION((static Size annotate(PeakMap& exp, int min_charge, int max_charge
   TEST_EQUAL(charges[0], 3)
   TEST_EQUAL(exp[0].metaValueExists(CoIsolationDetector::META_MZ), false)
   TEST_EQUAL(exp[2].metaValueExists(CoIsolationDetector::META_MZ), false)
+
+  // the isotope peaks are matched within at least MIN_TOLERANCE_DA: an envelope whose isotope peaks are 0.005 Th off
+  // their positions is found with 1 ppm (0.0006 Th) and with 0.001 Th
+  PeakMap shifted;
+  MSSpectrum ms1_shifted;
+  ms1_shifted.setMSLevel(1);
+  ms1_shifted.setRT(10.0);
+  addEnvelope(ms1_shifted, 600.30, 2, 1e6);
+  MSSpectrum envelope;
+  addEnvelope(envelope, 600.95, 3, 4e5);
+  for (Size k = 0; k < envelope.size(); ++k)
+  {
+    ms1_shifted.emplace_back(envelope[k].getMZ() + (k == 0 ? 0.0 : 0.005), envelope[k].getIntensity());
+  }
+  ms1_shifted.sortByPosition();
+  shifted.addSpectrum(ms1_shifted);
+  shifted.addSpectrum(ms2);
+  TEST_EQUAL(CoIsolationDetector::annotate(shifted, 1, 4, 1.0, true, 0.3, 4), 1)
+  TEST_EQUAL(CoIsolationDetector::annotate(shifted, 1, 4, 0.001, false, 0.3, 4), 1)
+  const DoubleList found_shifted = shifted[1].getMetaValue(CoIsolationDetector::META_MZ);
+  TEST_EQUAL(found_shifted.size(), 1)
+  ABORT_IF(found_shifted.size() != 1)
+  TEST_REAL_SIMILAR(found_shifted[0], 600.95)
+  // without the floor (0.0006 Th), the monoisotopic peak at 600.95 is not accepted
+  const auto unfloored = CoIsolationDetector::detect(ms1_shifted, 599.30, 601.30, 600.30, 1, 4, 0.0006, 0.3, 4);
+  TEST_EQUAL(std::none_of(unfloored.begin(), unfloored.end(),
+                          [](const CoIsolationDetector::CoIsolated& c) { return std::fabs(c.mono_mz - 600.95) < 0.001; }), true)
 }
 END_SECTION
 

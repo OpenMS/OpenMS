@@ -1018,27 +1018,53 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The file-based searches then also read the survey scans.
     bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
 
+    /// The PSM of a precursor co-isolated with the selected one (chimeric:enabled), until its residual spectrum is built
+    struct CoIsolatedPSM_
+    {
+      Size parent = 0;             ///< index of its spectrum in the searched spectra
+      Precursor precursor;         ///< the co-isolated precursor: that of the spectrum with its m/z and charge
+      std::vector<UInt32> removed; ///< the peaks of the spectrum that its residual spectrum leaves out (ascending)
+    };
+
     /**
-     * @brief Residual spectra of the co-isolated precursors of chimeric spectra (chimeric:enabled).
+     * @brief Search the precursors co-isolated with the selected one in what the spectrum's other PSMs leave of it
+     * (chimeric:enabled), as the andes chimeric cascade does.
      *
-     * For each spectrum of @p spectra with co-isolated precursors (meta values of CoIsolationDetector::annotate()) and
-     * at least one hit, the peaks that the theoretical ions of its best hit match (within the fragment tolerance) are
-     * removed, and the rest becomes one spectrum per co-isolated precursor, with that precursor's m/z and charge.
+     * Runs one round per co-isolated precursor rank: round k searches the k-th co-isolated precursor (meta values of
+     * CoIsolationDetector::annotate()) of every spectrum with at least one hit, at its m/z and charge and isotope
+     * error 0, against the spectrum without the peaks claimed so far. The best hit of the spectrum claims its peaks
+     * first, and each winner claims its peaks before the next round: for every singly charged theoretical ion, the
+     * most intense peak within the fragment tolerance. A candidate with the best hit's peptide is not taken; the
+     * winner is the best remaining hit, and it is dropped when the spectrum already reports its peptide at its charge
+     * (a hit of the spectrum or an earlier winner). The residual spectra are scored in batches and not kept.
      *
      * @param spectra The searched spectra
-     * @param annotated_hits The hits of each spectrum of @p spectra (the one with the best score is used)
+     * @param annotated_hits The hits of each spectrum of @p spectra
+     * @param fi The fragment index of the search (its isotope error range is set to 0 for the call)
+     * @param db The searched database
      * @param generators Theoretical spectrum generators of the search
      * @param fragment_tol Fragment mass tolerance
      * @param fragment_tol_ppm Whether @p fragment_tol is in ppm (else Da)
-     * @param[out] parent_of For each residual spectrum, the index of its spectrum in @p spectra
-     * @return The residual spectra, in the order of @p parent_of
+     * @param open_search_mode Whether the search is an open search
+     * @param[out] psms The co-isolated PSMs, in spectrum order and, within a spectrum, in detection order
+     * @param[out] hits The winner of each of @p psms
+     * @param[out] pool_stats The candidate-pool statistics of each of @p psms
      */
-    PeakMap buildCoIsolatedSpectra_(const PeakMap& spectra,
-                                    const std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
-                                    const SpectrumGenerators_& generators,
-                                    double fragment_tol,
-                                    bool fragment_tol_ppm,
-                                    std::vector<Size>& parent_of) const;
+    void searchCoIsolated_(const PeakMap& spectra,
+                           const std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+                           FragmentIndex& fi,
+                           const std::vector<FASTAFile::FASTAEntry>& db,
+                           const SpectrumGenerators_& generators,
+                           double fragment_tol,
+                           bool fragment_tol_ppm,
+                           bool open_search_mode,
+                           std::vector<CoIsolatedPSM_>& psms,
+                           std::vector<AnnotatedHit_>& hits,
+                           std::vector<CandidatePoolStats_>& pool_stats) const;
+
+    /// The residual spectrum of a co-isolated PSM: @p spectrum without the peaks @p removed (ascending indices), with
+    /// @p precursor as its precursor and without the meta values of CoIsolationDetector::annotate()
+    static MSSpectrum residualSpectrum_(const MSSpectrum& spectrum, const std::vector<UInt32>& removed, const Precursor& precursor);
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -1141,6 +1167,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
      * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
      *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
+     * @param[in] evidence_parent For the spectra of @p exp after the first evidence_spectra->size() (the residual
+     *                            spectra of a chimeric search), the index of the spectrum whose peak list in
+     *                            @p evidence_spectra they use; else @p evidence_spectra must be as long as @p exp.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -1159,7 +1188,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_max_charge,
       const std::string& enzyme,
       const std::string& database_name,
-      const PeakMap* evidence_spectra = nullptr) const;
+      const PeakMap* evidence_spectra = nullptr,
+      const std::vector<Size>* evidence_parent = nullptr) const;
 
     /**
      * @brief Adds PeptDeep-prediction-derived rescoring features to the PSMs.

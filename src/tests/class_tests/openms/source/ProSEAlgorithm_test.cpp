@@ -14,6 +14,7 @@
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 ///////////////////////////
 
+#include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
@@ -166,6 +167,7 @@ public:
   using ProSEAlgorithm::reversedNoiseSequence_;
   using ProSEAlgorithm::fragment_mass_tolerance_;
   using ProSEAlgorithm::poolSearchedFiles_;
+  using ProSEAlgorithm::residualSpectrum_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -1877,6 +1879,81 @@ START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in wh
   ABORT_IF(file_peptides.size() != 2)
   TEST_EQUAL(file_peptides[1].getHits()[0].getSequence(), coisolated)
   TEST_EQUAL(file_peptides[1].getSpectrumReference(), "scan=2")
+
+  // a second co-isolated precursor, GEPTIDENWK (3+, 31.9 Th below the selected one, less intense): searched after
+  // SDDEFYYTDK, in what both other PSMs leave; each co-isolated precursor gets one PSM (report:top_hits 5)
+  const AASequence second = AASequence::fromString("GEPTIDENWK");
+  MSSpectrum ms1_two = ms1;
+  add_envelope(ms1_two, second.getMZ(3), 3, 3e6);
+  ms1_two.sortByPosition();
+  MSSpectrum ms2_two = ms2, second_ions;
+  tsg.getSpectrum(second_ions, second, 1, 1);
+  for (Peak1D peak : second_ions)
+  {
+    peak.setIntensity(peak.getIntensity() * 0.3f);
+    ms2_two.push_back(peak);
+  }
+  ms2_two.sortByPosition();
+  Precursor wide = precursor;
+  wide.setIsolationWindowLowerOffset(33.0);
+  ms2_two.setPrecursors({wide});
+  PeakMap two;
+  two.addSpectrum(ms1_two);
+  two.addSpectrum(ms2_two);
+  ProSEAlgorithm two_algo;
+  configure(two_algo, true);
+  Param two_param = two_algo.getParameters();
+  two_param.setValue("report:top_hits", 5);
+  two_algo.setParameters(two_param);
+  vector<ProteinIdentification> two_proteins;
+  PeptideIdentificationList two_peptides;
+  TEST_EQUAL(two_algo.search(two, fasta_db, two_proteins, two_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(two_peptides.size(), 3)
+  ABORT_IF(two_peptides.size() != 3)
+  TEST_EQUAL(two_peptides[0].getHits()[0].getSequence(), selected)
+  TEST_EQUAL(two_peptides[1].getHits()[0].getSequence(), coisolated)
+  TEST_EQUAL(two_peptides[2].getHits()[0].getSequence(), second)
+  TEST_EQUAL(two_peptides[2].getHits()[0].getCharge(), 3)
+  for (Size i = 1; i < 3; ++i)
+  {
+    TEST_EQUAL(two_peptides[i].getHits().size(), 1)
+    TEST_EQUAL(int(two_peptides[i].getHits()[0].getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)
+    TEST_EQUAL(two_peptides[i].getHits()[0].getSequence() == selected, false) // never the best hit's peptide
+    TEST_EQUAL(int(two_peptides[i].getMetaValue("scan_index")), 0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] residualSpectrum_ leaves out the claimed peaks and keeps the data arrays aligned))
+{
+  MSSpectrum spectrum;
+  spectrum.setNativeID("scan=7");
+  spectrum.getFloatDataArrays().resize(1);
+  for (int k = 0; k < 5; ++k)
+  {
+    spectrum.emplace_back(100.0 + k, 10.0f * (k + 1));
+    spectrum.getFloatDataArrays()[0].push_back(static_cast<float>(k));
+  }
+  spectrum.setMetaValue(CoIsolationDetector::META_MZ, DoubleList{500.0});
+  spectrum.setMetaValue(CoIsolationDetector::META_CHARGE, IntList{2});
+  Precursor coisolated;
+  coisolated.setMZ(500.0);
+  coisolated.setCharge(2);
+  const MSSpectrum residual = ProSEAlgorithm_test::residualSpectrum_(spectrum, {1, 3}, coisolated);
+  TEST_EQUAL(residual.size(), 3)
+  ABORT_IF(residual.size() != 3)
+  TEST_REAL_SIMILAR(residual[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(residual[1].getMZ(), 102.0)
+  TEST_REAL_SIMILAR(residual[2].getMZ(), 104.0)
+  TEST_EQUAL(residual.getFloatDataArrays()[0].size(), 3)
+  TEST_REAL_SIMILAR(residual.getFloatDataArrays()[0][1], 2.0)
+  TEST_EQUAL(residual.getPrecursors().size(), 1)
+  TEST_REAL_SIMILAR(residual.getPrecursors()[0].getMZ(), 500.0)
+  TEST_EQUAL(residual.getPrecursors()[0].getCharge(), 2)
+  TEST_EQUAL(residual.getNativeID(), "scan=7")
+  TEST_EQUAL(residual.metaValueExists(CoIsolationDetector::META_MZ), false)
+  TEST_EQUAL(residual.metaValueExists(CoIsolationDetector::META_CHARGE), false)
+  TEST_EQUAL(ProSEAlgorithm_test::residualSpectrum_(spectrum, {}, coisolated).size(), 5)
 }
 END_SECTION
 

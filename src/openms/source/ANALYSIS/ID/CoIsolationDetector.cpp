@@ -161,7 +161,8 @@ namespace OpenMS
     return out;
   }
 
-  Size CoIsolationDetector::annotate(PeakMap& exp, int min_charge, int max_charge, double tol_ppm, double max_kl, Size max_n)
+  Size CoIsolationDetector::annotate(PeakMap& exp, int min_charge, int max_charge, double tolerance, bool tolerance_ppm,
+                                     double max_kl, Size max_n)
   {
     Size found = 0;
     for (MSSpectrum& s : exp)
@@ -186,7 +187,7 @@ namespace OpenMS
         if (target > 0.0) center = target;
       }
       const MSSpectrum& ms1 = *survey;
-      const double tol_da = precursor.getMZ() * tol_ppm * 1e-6;
+      const double tol_da = std::max(tolerance_ppm ? precursor.getMZ() * tolerance * 1e-6 : tolerance, MIN_TOLERANCE_DA);
       const auto coisolated = detect(ms1, center - lower_offset, center + upper_offset, precursor.getMZ(),
                                      min_charge, max_charge, tol_da, max_kl, max_n);
       DoubleList mzs;
