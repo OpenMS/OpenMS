@@ -21,7 +21,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h> // ML::PEPTDEEP_DEFAULT_BATCH_SIZE
 
-#include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
+#include <algorithm>   // std::min (used by inline modMatchTolerance)
 #include <functional>  // std::hash (ProteinMapping_)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
@@ -337,6 +337,27 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            const std::string& decoy_string,
                                            bool decoy_is_prefix,
                                            double protein_fdr);
+
+    /**
+     * @brief The scalar tolerance that the modification analysis of an open search takes from a precursor window: the
+     * tighter of the two positive magnitudes of its sides.
+     *
+     * OpenSearchModificationAnalysis matches delta masses to Unimod with one scalar tolerance (it clamps it at 0.02 Da
+     * internally). A side of zero is a legal one-sided window (e.g. [0, 500] Da searches only positive mass shifts), so
+     * the other side counts then: std::min() would collapse to a useless zero. Callers that analyse the PSMs of an open
+     * search themselves (as the WebAssembly bindings, which search file by file) use it for the same tolerance as the
+     * multi-file search.
+     *
+     * @param[in] lower Magnitude of the lower side of the window (parameter 'precursor:mass_tolerance_lower').
+     * @param[in] upper Magnitude of the upper side (parameter 'precursor:mass_tolerance_upper').
+     * @return @p upper if @p lower is not positive, @p lower if @p upper is not positive, else the smaller of the two.
+     */
+    static double modMatchTolerance(double lower, double upper)
+    {
+      if (lower <= 0.0) return upper;
+      if (upper <= 0.0) return lower;
+      return std::min(lower, upper);
+    }
 
     /**
      * @brief Annotate PSM q-values by target-decoy competition of the best hit of each spectrum, as FDR:PSM does.
@@ -1313,11 +1334,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// a useless zero tolerance into the mod analyzer — masked in ppm mode by the
     /// internal clamp, but genuinely broken in Da mode. Fall back to the non-zero
     /// side so the mod-matching precision reflects the configured tolerance.
+    /// (The rule itself is modMatchTolerance().)
     double computeModMatchTolerance_() const
     {
-      if (precursor_mass_tolerance_lower_ <= 0.0) return precursor_mass_tolerance_upper_;
-      if (precursor_mass_tolerance_upper_ <= 0.0) return precursor_mass_tolerance_lower_;
-      return std::min(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+      return modMatchTolerance(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
     }
 
     /**

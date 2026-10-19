@@ -739,7 +739,7 @@ namespace OpenMS::WASM
         if (!isNullish(release)) callFileFunction(release, "releaseFile", i, files[i]);
       }
       // the modification analysis of the pooled PSMs of an open search, as the multi-file search does (with the
-      // tolerance it takes: the tighter positive side of the precursor window)
+      // tolerance it takes from the precursor window: ProSEAlgorithm::modMatchTolerance())
       if (combined.aggregate.is_open_search && files.size() > 1)
       {
         PeptideIdentificationList pooled;
@@ -750,8 +750,8 @@ namespace OpenMS::WASM
         if (!pooled.empty())
         {
           const Param& p = algo.getParameters();
-          const double lower = p.getValue("precursor:mass_tolerance_lower"), upper = p.getValue("precursor:mass_tolerance_upper");
-          const double tolerance = lower <= 0.0 ? upper : upper <= 0.0 ? lower : std::min(lower, upper);
+          const double tolerance = ProSEAlgorithm::modMatchTolerance(p.getValue("precursor:mass_tolerance_lower"),
+                                                                     p.getValue("precursor:mass_tolerance_upper"));
           combined.aggregate.modification_analysis = OpenSearchModificationAnalysis().analyzeModificationsWithStatistics(
             pooled, tolerance, p.getValue("precursor:mass_tolerance_unit").toString() == "ppm", false, "");
         }

@@ -47,6 +47,9 @@ OpenMS Library:
     std::async detaches it). In WebAssembly a detached thread returns its Web Worker to the pool only when the event loop of
     the main thread runs, so a search of more than six files with 4 threads waited for a Worker forever. Natively nothing
     changes.
+  - ProSEAlgorithm::modMatchTolerance(lower, upper): the scalar tolerance that the modification analysis of an open search
+    takes from a precursor window (the tighter positive side; the other side where one is zero), public and static now, so that
+    callers that analyse the PSMs of an open search themselves use the rule of the multi-file search. Unchanged behaviour.
   - ML::PEPTDEEP_DEFAULT_BATCH_SIZE (PeptDeepUtils.h): the number of peptides per ONNX Runtime run by default, shared by
     PeptDeepMS2Inference, PeptDeepRTInference, PeptDeepCCSInference, PeptDeepRescoring and ProSEAlgorithm (parameter
     'peptdeep:batch_size'). 500 as before; 128 in WebAssembly, where ONNX Runtime has no memory arena and the memory of large
