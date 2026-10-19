@@ -36,7 +36,7 @@ using namespace std;
 </tr>
 <tr>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_Epifany </td>
 </tr>
 </table>
 </CENTER>

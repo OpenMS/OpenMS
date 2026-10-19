@@ -1459,8 +1459,8 @@ void requireUnambiguousIdentitiesOf(const MapPeptideIdentifications& ids)
     std::to_string(divergent) + " consensus feature(s), the first at index "
     + std::to_string(first_index) + ", carry peptide identifications that disagree on the top "
     "peptide. The QPX feature and protein-group views record one peptide per feature and cannot "
-    "represent this. Resolve the conflicts first (IDConflictResolver, ConsensusID with "
-    "algorithm 'best', or FileFilter with id:keep_best_score_id), or export the unresolved data "
+    "represent this. Resolve the conflicts first (IDConflictResolver or FileFilter with "
+    "id:keep_best_score_id), or export the unresolved data "
     "as consensusparquet, which preserves every identification.");
 }
 

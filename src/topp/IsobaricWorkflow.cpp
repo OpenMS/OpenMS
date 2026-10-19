@@ -102,9 +102,8 @@ using namespace std;
   spectrum read the same MS2/MS3 scan, the input is expected to carry one identification per
   spectrum. Where several of them agree on peptidoform and charge, only the best-scoring one is
   kept and the reduction is reported; the others would otherwise contribute the same reporter
-  intensities a second time to every abundance derived from them. Results from several search
-  engines must therefore be combined - with @ref TOPP_ConsensusID (@p -algorithm best
-  @p -keep_old_scores, which preserves each engine's score) - rather than simply concatenated.
+  intensities a second time to every abundance derived from them. Pass the results of one search
+  engine rather than concatenating those of several, whose scores are not comparable.
   Identifications of one spectrum naming *different* peptidoforms are left alone and each
   quantified separately.
 
@@ -223,8 +222,8 @@ protected:
       "One identification per spectrum is expected: this tool quantifies one consensus feature\n"
       "per identification, so several identifications of one spectrum agreeing on peptidoform\n"
       "and charge would contribute the same reporter intensities more than once. Only the\n"
-      "best-scoring one of such a group is kept. Combine results from several search engines\n"
-      "with ConsensusID rather than concatenating them.");
+      "best-scoring one of such a group is kept. Pass the results of one search engine rather\n"
+      "than concatenating those of several.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
@@ -718,8 +717,8 @@ protected:
                              " identification, e.g. " << report.example << ".\n"
                              "Kept the best-scoring one of each group; the others would have"
                              " contributed the same reporter intensities a second time. To control"
-                             " this upstream, combine search engine results with ConsensusID"
-                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                             " this upstream, pass the results of one search engine rather than"
+                             " concatenating those of several."
                           << endl;
         }
         if (report.inconsistent_score_direction > 0)

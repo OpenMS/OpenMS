@@ -317,6 +317,16 @@ OpenMS Library:
   - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
     position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
     later files named the wrong file.
+  - FIX: OpenSearchModificationAnalysis names a delta mass cluster after the Unimod modification nearest to its mass. It
+    named the entries of lowest and highest mass within the tolerance ("A//B"), so that +15.9949 Da (oxidation) was
+    "thiocarboxylic acid//Oxidation or Hydroxylation" (thiocarboxylic acid, +15.9772 Da, is within 0.02 Da), and it annotated the
+    PSMs (meta value 'PTM') and mapped the entries of the delta mass statistics (DeltaMassEntry::mapped_modification) with
+    the lowest one alone, "thiocarboxylic acid". "A//B" now names candidates that are about equally close (distances differing
+    by at most 0.0005 Da, the width of a histogram bin). The nearest entry is also used for the modification that explains a
+    cluster of a higher mass (including the "+1Da" variant) and for the combination of two modifications, which is looked up
+    on both sides of the cluster mass (before, only at or above it, so that a cluster could be "Unknown" with a combination
+    within the tolerance below it). This changes the modification names in the output tables of ProSE's open search
+    (-out_mod_analysis_dir) and of SageAdapter.
   - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
     file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
     label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major
@@ -369,6 +379,14 @@ OpenMS Library:
     PosteriorEstimator::includeNegativesInResult is atomic. It was written and read by the threads of
     the parallel cross-validation at the same time (data race, found with ThreadSanitizer); results
     do not change (#10474).
+  - HiGHS is now the default LP/MIP solver (LP_SOLVER=HIGHS; the former default AUTO is an alias for it). A HiGHS >= 1.11
+    from vcpkg or the system is used if found, otherwise HiGHS is fetched and linked statically into libOpenMS. COIN-OR and
+    GLPK (LP_SOLVER=COIN/GLPK, vcpkg features lp-coin/lp-glpk) are deprecated and will be removed in the next release (#10551).
+    The HiGHS backend of LPWrapper now solves MIPs to proven optimality by default (mip_gap was ignored when 0), resets
+    the time limit on every solve, batches integrality changes and skips the probing/enumeration presolve rules, which
+    makes large decharging ILPs about 15x faster. An ILP with several optimal solutions (e.g. in Decharger and
+    MetaboliteAdductDecharger) may now give a different one of them than COIN-OR did. HiGHS fetched by the build installs
+    its license (share/OpenMS/LICENSES/vendored/HiGHS).
   - FIX: ProteaseDB and RNaseDB also find enzyme names and synonyms ignoring case, whitespace, '-' and '_' (e.g. 'glu-c',
     'GluC' and 'Glu_C' find glutamyl endopeptidase, 'LysC/P' finds Lys-C/P); other characters such as '/' and '+' stay
     significant. pepXML files with sample_enzyme or enzymatic_search_constraint 'Glu-C' load with glutamyl endopeptidase
@@ -978,6 +996,10 @@ OpenMS Library:
     copy of the peptide list) and checks the candidate indices it was given.
     Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
     pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
+  - API: The ConsensusIDAlgorithm classes (Average, Best, Worst, Ranks, PEPMatrix, PEPIons, Identity,
+    Similarity) are removed, also from pyOpenMS, together with the TOPP tool ConsensusID (see there).
+    Identifications written by ConsensusID (search engine "OpenMS/ConsensusID_*") are still read, e.g. by
+    PosteriorErrorProbabilityModel and the mzTab export (#10619).
   - FIX: FalseDiscoveryRate::applyBasic(ConsensusMap&) and both applyBasicPeptideLevel overloads mark
     the FDRs/q-values they write as lower-is-better. They kept the orientation of the PSM scores, so after
     a higher-is-better score filtering by q-value kept the worst hits. -psmFDR below 1 therefore removed
@@ -1025,8 +1047,13 @@ TOPP tools:
       OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
-  Removed:
-    JSONExporter: exported .oms files, which are no longer supported.
+  Removed tools:
+    - BREAKING: ConsensusID removed. Its default mode grouped identifications of different spectra by
+      retention time and m/z, -per_spectrum by spectrum; no OpenMS workflow used either. OpenMS has no
+      tool to combine the results of several search engines: pass the results of one engine to the
+      quantification workflows. Conflicting identifications of one feature are resolved with
+      IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
+    - JSONExporter: exported .oms files, which are no longer supported.
   Changes:
     AccurateMassSearch:
       - -out_annotation accepts .featureparquet (instead of .oms) for results in the owning
@@ -1069,8 +1096,8 @@ TOPP tools:
         (bedrmod_chebi_mapping, bedrmod:* reference metadata) (#10529).
     IDPosteriorErrorProbability, FalseDiscoveryRate:
       - Record themselves as producers of the scores they write (ScoreSoftware:<score type> search
-        parameters in idXML). PercolatorAdapter and ConsensusID, which record themselves as search
-        engine, clear such records.
+        parameters in idXML). PercolatorAdapter, which records itself as search engine, clears such
+        records.
     All tools:
       - FIX: CometAdapter, ProteomicsLFQ, IsobaricWorkflow and the OpenSWATH tools reject Bruker MALDI imaging .d
         input, as FileConverter and the tools reading through FileHandler do. PeakPickerIM, which reads raw frames

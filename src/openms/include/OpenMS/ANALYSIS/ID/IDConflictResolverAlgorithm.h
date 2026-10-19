@@ -139,13 +139,13 @@ public:
     @brief Reduce identifications a quantification workflow cannot tell apart to one per spectrum.
 
     Quantification tools measure one value per (spectrum, peptidoform, charge). Where the input
-    carries several identifications of that same triple - e.g. two search engines that agree,
-    concatenated rather than combined - only one of them can own the measurement, and keeping
-    all of them counts one measurement several times.
+    carries several identifications of that same triple - e.g. the concatenated results of two
+    search engines that agree - only one of them can own the measurement, and keeping all of them
+    counts one measurement several times.
 
     This keeps the best-scoring identification of each such group and removes the rest. That is a
-    tie-break on scores something upstream already assigned, not a scoring decision: combining
-    scores from different engines is ConsensusIDAlgorithm's job and is deliberately not done here.
+    tie-break on the scores as given, not a rescoring: it does not make the scores of different
+    engines comparable.
 
     Identifications are keyed on the top hit as stored; hits are never re-sorted, so the key
     matches what the exporters and quantifiers read. Surviving identifications keep their

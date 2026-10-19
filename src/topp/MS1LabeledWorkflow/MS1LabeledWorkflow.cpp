@@ -119,8 +119,7 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
   - Identifications (@p ids), one file per spectra file in the same order, already filtered at PSM level
     (e.g. q-value < 0.01) and carrying Posterior Error Probability scores, e.g. produced with
     @ref TOPP_PercolatorAdapter (@p -score_type pep) or @ref TOPP_IDPosteriorErrorProbability, followed by
-    @ref TOPP_IDFilter. Results from several search engines must be combined with @ref TOPP_ConsensusID
-    rather than concatenated.
+    @ref TOPP_IDFilter. Pass the results of one search engine rather than concatenating those of several.
   - The label specification (@p labels), in the syntax of @ref TOPP_FeatureFinderMultiplex, e.g.
     <tt>[][Lys8,Arg10]</tt> for SILAC, <tt>[][Lys4,Arg6][Lys8,Arg10]</tt> for triple SILAC,
     <tt>[Dimethyl0][Dimethyl6]</tt> for Dimethyl. Every bracket is one channel; the channels are numbered
@@ -270,7 +269,7 @@ protected:
       "Identifications filtered at PSM level (e.g., q-value < 0.01), one per spectra file in the same order.\n"
       "The identifications must carry Posterior Error Probability scores (e.g. PercolatorAdapter with -score_type pep,\n"
       "or IDPosteriorErrorProbability) and the labels must have been searched as (variable) modifications.\n"
-      "Combine results from several search engines with ConsensusID rather than concatenating them.");
+      "Pass the results of one search engine rather than concatenating those of several.");
     setValidFormats_("ids", {"idXML", "mzId", "idparquet"});
 
     registerInputFile_("design", "<file>", "",
@@ -559,8 +558,8 @@ protected:
       OPENMS_LOG_WARN << "Warning: " << report.removed << " identification(s) in " << id_file_abs_path
                       << " repeat a (spectrum, peptidoform, charge) already claimed by another identification, e.g. "
                       << report.example << ".\nKept the best-scoring one of each group; the others would have counted the same "
-                         "measurement more than once. To control this upstream, combine search engine results with ConsensusID "
-                         "(-algorithm best -keep_old_scores) rather than concatenating them." << endl;
+                         "measurement more than once. To control this upstream, pass the results of one search engine rather "
+                         "than concatenating those of several." << endl;
     }
     if (report.inconsistent_score_direction > 0)
     {
