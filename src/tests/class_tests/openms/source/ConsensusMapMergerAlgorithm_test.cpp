@@ -28,6 +28,16 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
       }
     END_SECTION
 
+    START_SECTION(mergeAllIDRuns (no IdentificationRuns))
+      {
+        // identification data has no identification without its run, so a map whose runs were dropped upstream (as by
+        // FAIMS feature merging before #10001) has no identifications at all
+        ConsensusMap cmap;
+        ConsensusMapMergerAlgorithm cmerge;
+        TEST_EXCEPTION(Exception::MissingInformation, cmerge.mergeAllIDRuns(cmap))
+      }
+    END_SECTION
+
     START_SECTION(mergeProteinsAcrossFractionsAndReplicates (no Design))
       {
         ConsensusXMLFile cf;

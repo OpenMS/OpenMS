@@ -56,7 +56,7 @@ namespace OpenMS
     /// @note In identification data, the runs stay as they are: an inference result (without inference yet) pools them,
     ///   with the proteins of the merged run, and export writes it as the merged protein run (with 'id_merge_index' for
     ///   the identifications). So are the new runs of mergeProteinIDRuns().
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
+    /// @throws MissingInformationException if @p cmap has no IdentificationRun, or for e.g. missing map_indices in PeptideIDs
     void mergeAllIDRuns(ConsensusMap& cmap) const;
 
     /// Takes a ConsensusMap and a mapping between ConsensusMap column index (sub map index in the map_index meta value)

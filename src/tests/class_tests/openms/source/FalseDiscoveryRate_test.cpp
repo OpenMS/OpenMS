@@ -12,6 +12,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -60,6 +62,24 @@ PeptideIdentificationList assignedPSMs(const ConsensusMap& cmap)
 PeptideIdentificationList unassignedPSMs(const ConsensusMap& cmap)
 {
   return IdentificationDataConverter::exportMapIdentifications(cmap).unassigned;
+}
+/// A consensus map with a feature for each identification of @p psms, of the protein run "run"
+ConsensusMap psmMap(const PeptideIdentificationList& psms)
+{
+  ConsensusMap cmap;
+  MapPeptideIdentifications ids;
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  ids.proteins = {run};
+  for (const auto& psm : psms)
+  {
+    ConsensusFeature feature;
+    feature.setUniqueId(cmap.size() + 1);
+    ids.features[{cmap.size()}].push_back(psm);
+    cmap.push_back(feature);
+  }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
+  return cmap;
 }
 /// The peptide identifications of the features of @p cmap, then the unassigned ones
 PeptideIdentificationList allPSMs(const ConsensusMap& cmap)
@@ -765,6 +785,155 @@ START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the gro
     TEST_TRUE(run.getIndistinguishableProteins().empty())
     TEST_EQUAL(run.getScoreType(), "q-value")
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] FDRs and q-values on a ConsensusMap are lower-is-better whatever the search score)
+{
+  // The q-values are lower-is-better even after a higher-is-better search score (a hyperscore), so
+  // filtering by them keeps the best hits.
+  auto make_psms = []()
+  {
+    PeptideIdentificationList ids;
+    const std::vector<std::tuple<std::string, double, std::string>> psms = {
+      {"AAAAAAAK", 90.0, "target"}, {"CCCCCCCK", 80.0, "target"}, {"DDDDDDDK", 70.0, "target"},
+      {"FFFFFFFK", 50.0, "decoy"}, {"EEEEEEEK", 40.0, "target"}, {"HHHHHHHK", 30.0, "decoy"}};
+    for (const auto& [sequence, score, target_decoy] : psms)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequence));
+      hit.setScore(score);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", target_decoy);
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("hyperscore");
+      id.setHigherScoreBetter(true);
+      id.setHits({hit});
+      ids.push_back(id);
+    }
+    return ids;
+  };
+
+  // q-value of the hit with this sequence (-1 if it is gone)
+  auto qvalue = [](const PeptideIdentificationList& ids, const std::string& sequence)
+  {
+    for (const auto& id : ids)
+    {
+      if (!id.getHits().empty() && id.getHits()[0].getSequence().toUnmodifiedString() == sequence)
+      {
+        return id.getHits()[0].getScore();
+      }
+    }
+    return -1.0;
+  };
+
+  for (bool peptide_level : {false, true})
+  {
+    ConsensusMap cmap = psmMap(make_psms());
+    FalseDiscoveryRate fdr;
+    if (peptide_level) { fdr.applyBasicPeptideLevel(cmap, true); }
+    else { fdr.applyBasic(cmap, true); }
+
+    TEST_EQUAL(cmap.getIdentificationData().getPrimaryScoreDefinition()->higher_better, false)
+    PeptideIdentificationList ids = assignedPSMs(cmap);
+    for (const auto& id : ids)
+    {
+      if (id.getHits().empty()) { continue; } // a decoy, removed
+      TEST_EQUAL(id.isHigherScoreBetter(), false)
+    }
+
+    // the best target has a lower q-value than the target ranked below a decoy ...
+    const double q_best = qvalue(ids, "AAAAAAAK");
+    const double q_worse = qvalue(ids, "EEEEEEEK");
+    TEST_EQUAL(q_best < q_worse, true)
+
+    // ... so filtering at the best target's q-value keeps it and removes the other one
+    IDFilter::filterHitsByScore(ids, q_best);
+    TEST_REAL_SIMILAR(qvalue(ids, "AAAAAAAK"), q_best)
+    TEST_REAL_SIMILAR(qvalue(ids, "EEEEEEEK"), -1.0)
+  }
+
+  // the same for the PeptideIdentificationList overload of the peptide-level FDR
+  PeptideIdentificationList ids = make_psms();
+  FalseDiscoveryRate fdr;
+  fdr.applyBasicPeptideLevel(ids);
+  for (const auto& id : ids)
+  {
+    if (id.getHits().empty()) { continue; }
+    TEST_EQUAL(id.isHigherScoreBetter(), false)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] peptide-level FDR scores the best hit of an identification and the hits tied with it)
+{
+  // Only the best hit of each identification, and a hit tied with it whose peptide has a q-value,
+  // get a peptide q-value. Any other hit would keep its search score (0.1) under the q-value score
+  // type and pass a q-value filter at 0.25. The best hit is kept even when it is not stored first.
+  auto make_psms = []()
+  {
+    PeptideIdentificationList ids;
+    const std::vector<std::tuple<std::string, double, std::string>> psms = {
+      {"AAAAAAAK", 90.0, "target"}, {"CCCCCCCK", 80.0, "target"}, {"FFFFFFFK", 50.0, "decoy"}};
+    for (const auto& [sequence, score, target_decoy] : psms)
+    {
+      std::vector<PeptideHit> hits(1);
+      hits[0].setSequence(AASequence::fromString(sequence));
+      hits[0].setScore(score);
+      hits[0].setCharge(2);
+      hits[0].setMetaValue("target_decoy", target_decoy);
+      if (sequence == "AAAAAAAK")
+      {
+        hits.push_back(hits[0]); // a much worse candidate for the same spectrum
+        hits[1].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[1].setScore(0.1);
+        hits.push_back(hits[0]); // tied, and the best hit of another identification: kept
+        hits[2].setSequence(AASequence::fromString("CCCCCCCK"));
+        hits.push_back(hits[0]); // tied, but its peptide has no q-value: removed
+        hits[3].setSequence(AASequence::fromString("EEEEEEEK"));
+      }
+      if (sequence == "CCCCCCCK") // the same, but stored before the best hit
+      {
+        hits.insert(hits.begin(), hits[0]);
+        hits[0].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[0].setScore(0.1);
+      }
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("hyperscore");
+      id.setHigherScoreBetter(true);
+      id.setHits(hits);
+      ids.push_back(id);
+    }
+    return ids;
+  };
+
+  auto check = [](const PeptideIdentificationList& ids)
+  {
+    for (const auto& id : ids)
+    {
+      if (id.getHits().empty()) { continue; } // a decoy, removed
+      std::vector<std::string> sequences;
+      for (const auto& hit : id.getHits())
+      {
+        sequences.push_back(hit.getSequence().toUnmodifiedString());
+        TEST_EQUAL(hit.getScore() <= 1.0, true) // a q-value, not the search score
+      }
+      if (sequences[0] == "AAAAAAAK") { TEST_EQUAL(ListUtils::concatenate(sequences, ","), "AAAAAAAK,CCCCCCCK") }
+      else { TEST_EQUAL(sequences.size(), 1) }
+      TEST_NOT_EQUAL(sequences[0], "KKKKKKKK")
+    }
+  };
+
+  FalseDiscoveryRate fdr;
+  ConsensusMap cmap = psmMap(make_psms());
+  fdr.applyBasicPeptideLevel(cmap, true);
+  check(assignedPSMs(cmap));
+
+  PeptideIdentificationList ids = make_psms();
+  fdr.applyBasicPeptideLevel(ids);
+  check(ids);
 }
 END_SECTION
 

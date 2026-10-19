@@ -319,7 +319,19 @@ namespace OpenMS
     auto& data = cmap.getIdentificationData();
     // the legacy protein runs: runs, or the runs that an inference result pools
     vector<ProteinIdentification> old_prot_runs = legacyRuns(data);
-    if (old_prot_runs.size() <= 1)
+    // The merged run takes its search settings from the first run, and callers index the
+    // single run left afterwards: without any run, both would read past the end.
+    if (old_prot_runs.empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "The ConsensusMap has no protein identification runs to merge. An upstream step may have "
+          "dropped them, or the input carries no identifications.");
+    }
+
+    if (old_prot_runs.size() == 1)
       return;
 
     // Everything needs to agree

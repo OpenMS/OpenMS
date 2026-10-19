@@ -192,6 +192,133 @@ START_SECTION([EXTRA] intensities far above max_intensity land in the last histo
 }
 END_SECTION
 
+START_SECTION((static Statistics estimate(const Container& c, const Settings& settings, std::vector<double>& sn, const ProgressLogger* progress = nullptr)))
+{
+  // the estimation without an estimator object gives the values, the maximal intensity and the statistics of init()
+  MSSpectrum raw_data;
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimator_test.dta"), raw_data);
+  for (int auto_mode = -1; auto_mode <= 1; ++auto_mode)
+  {
+    TestableSignalToNoiseEstimatorMedian sne;
+    Param p = sne.getParameters();
+    p.setValue("auto_mode", auto_mode);
+    p.setValue("max_intensity", 50); // used by auto_mode -1 only
+    p.setValue("auto_max_percentile", 80);
+    p.setValue("win_len", 40.0);
+    p.setValue("bin_count", 20);
+    p.setValue("min_required_elements", 5);
+    p.setValue("noise_for_empty_window", 2.0);
+    p.setValue("write_log_messages", "false");
+    sne.setParameters(p);
+    sne.init(raw_data);
+
+    SignalToNoiseEstimatorMedian<MSSpectrum>::Settings settings;
+    settings.auto_mode = auto_mode;
+    settings.max_intensity = 50;
+    settings.auto_max_percentile = 80;
+    settings.win_len = 40.0;
+    settings.bin_count = 20;
+    settings.min_required_elements = 5;
+    settings.noise_for_empty_window = 2.0;
+    settings.write_log_messages = false;
+    std::vector<double> sn;
+    const SignalToNoiseEstimatorMedian<MSSpectrum>::Statistics stats = SignalToNoiseEstimatorMedian<MSSpectrum>::estimate(raw_data, settings, sn);
+
+    TEST_EQUAL(sn.size(), raw_data.size())
+    Size n_equal = 0;
+    for (Size i = 0; i < sn.size(); ++i)
+    {
+      if (sn[i] == sne.getSignalToNoise(i)) ++n_equal;
+    }
+    TEST_EQUAL(n_equal, raw_data.size())
+    TEST_EQUAL(stats.max_intensity, sne.maxIntensity())
+    TEST_EQUAL(stats.sparse_window_percent, sne.getSparseWindowPercent())
+    TEST_EQUAL(stats.histogram_oob_percent, sne.getHistogramRightmostPercent())
+  }
+
+  // the defaults of the settings are those of the parameters
+  const SignalToNoiseEstimatorMedian<MSSpectrum> defaults_sne;
+  const Param& d = defaults_sne.getDefaults();
+  const SignalToNoiseEstimatorMedian<MSSpectrum>::Settings defaults;
+  TEST_EQUAL(defaults.max_intensity, (double)d.getValue("max_intensity"))
+  TEST_EQUAL(defaults.auto_max_stdev_factor, (double)d.getValue("auto_max_stdev_factor"))
+  TEST_EQUAL(defaults.auto_max_percentile, (double)d.getValue("auto_max_percentile"))
+  TEST_EQUAL(defaults.auto_mode, (int)d.getValue("auto_mode"))
+  TEST_EQUAL(defaults.win_len, (double)d.getValue("win_len"))
+  TEST_EQUAL(defaults.bin_count, (int)d.getValue("bin_count"))
+  TEST_EQUAL(defaults.min_required_elements, (int)d.getValue("min_required_elements"))
+  TEST_EQUAL(defaults.noise_for_empty_window, (double)d.getValue("noise_for_empty_window"))
+  TEST_EQUAL(defaults.write_log_messages, d.getValue("write_log_messages").toBool())
+
+  // settings outside the ranges of the parameters are rejected
+  std::vector<double> sn;
+  SignalToNoiseEstimatorMedian<MSSpectrum>::Settings bad;
+  bad.bin_count = 2;
+  TEST_EXCEPTION(Exception::InvalidParameter, SignalToNoiseEstimatorMedian<MSSpectrum>::estimate(raw_data, bad, sn))
+  bad = SignalToNoiseEstimatorMedian<MSSpectrum>::Settings();
+  bad.win_len = 0.5;
+  TEST_EXCEPTION(Exception::InvalidParameter, SignalToNoiseEstimatorMedian<MSSpectrum>::estimate(raw_data, bad, sn))
+}
+END_SECTION
+
+START_SECTION((static SignalToNoiseEstimatorMedianSettings SignalToNoiseEstimatorMedianSettings::fromParam(const Param& p)))
+{
+  // the defaults of the estimator give the default settings
+  const SignalToNoiseEstimatorMedianSettings from_defaults = SignalToNoiseEstimatorMedianSettings::fromParam(SignalToNoiseEstimatorMedian<MSSpectrum>().getDefaults());
+  const SignalToNoiseEstimatorMedianSettings defaults;
+  TEST_EQUAL(from_defaults.max_intensity, defaults.max_intensity)
+  TEST_EQUAL(from_defaults.auto_max_stdev_factor, defaults.auto_max_stdev_factor)
+  TEST_EQUAL(from_defaults.auto_max_percentile, defaults.auto_max_percentile)
+  TEST_EQUAL(from_defaults.auto_mode, defaults.auto_mode)
+  TEST_EQUAL(from_defaults.win_len, defaults.win_len)
+  TEST_EQUAL(from_defaults.bin_count, defaults.bin_count)
+  TEST_EQUAL(from_defaults.min_required_elements, defaults.min_required_elements)
+  TEST_EQUAL(from_defaults.noise_for_empty_window, defaults.noise_for_empty_window)
+  TEST_EQUAL(from_defaults.write_log_messages, defaults.write_log_messages)
+
+  // changed parameters (as in the "SignalToNoise:" subsection of PeakPickerHiRes) give the values of a configured estimator
+  MSSpectrum raw_data;
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimator_test.dta"), raw_data);
+  for (int auto_mode = -1; auto_mode <= 1; ++auto_mode)
+  {
+    TestableSignalToNoiseEstimatorMedian sne;
+    Param p = sne.getParameters();
+    p.setValue("auto_mode", auto_mode);
+    p.setValue("max_intensity", 50);
+    p.setValue("auto_max_stdev_factor", 2.5);
+    p.setValue("auto_max_percentile", 80);
+    p.setValue("win_len", 40.0);
+    p.setValue("bin_count", 20);
+    p.setValue("min_required_elements", 5);
+    p.setValue("noise_for_empty_window", 2.0);
+    p.setValue("write_log_messages", "false");
+    sne.setParameters(p);
+    sne.init(raw_data);
+
+    const SignalToNoiseEstimatorMedianSettings settings = SignalToNoiseEstimatorMedianSettings::fromParam(p);
+    TEST_EQUAL(settings.auto_mode, auto_mode)
+    TEST_EQUAL(settings.max_intensity, 50.0)
+    TEST_EQUAL(settings.auto_max_stdev_factor, 2.5)
+    TEST_EQUAL(settings.auto_max_percentile, 80.0)
+    TEST_EQUAL(settings.win_len, 40.0)
+    TEST_EQUAL(settings.bin_count, 20)
+    TEST_EQUAL(settings.min_required_elements, 5)
+    TEST_EQUAL(settings.noise_for_empty_window, 2.0)
+    TEST_EQUAL(settings.write_log_messages, false)
+
+    std::vector<double> sn;
+    SignalToNoiseEstimatorMedian<MSSpectrum>::estimate(raw_data, settings, sn);
+    TEST_EQUAL(sn.size(), raw_data.size())
+    Size n_equal = 0;
+    for (Size i = 0; i < sn.size(); ++i)
+    {
+      if (sn[i] == sne.getSignalToNoise(i)) ++n_equal;
+    }
+    TEST_EQUAL(n_equal, raw_data.size())
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

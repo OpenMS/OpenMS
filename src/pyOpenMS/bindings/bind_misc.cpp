@@ -4093,6 +4093,18 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
     // -----------------------------------------------------------------------
     // ProSEAlgorithm
     // -----------------------------------------------------------------------
+    // PercolatorRescoring struct (nested in ProSEAlgorithm)
+    nb::class_<OpenMS::ProSEAlgorithm::PercolatorRescoring>(m, "PercolatorRescoring",
+        "Outcome of the Percolator rescoring of one search run (parameter 'rescore'): whether the PSMs were rescored and, if not, why")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ProSEAlgorithm::PercolatorRescoring&>())
+        .def("__copy__", [](const OpenMS::ProSEAlgorithm::PercolatorRescoring& self) { return OpenMS::ProSEAlgorithm::PercolatorRescoring(self); })
+        .def("__deepcopy__", [](const OpenMS::ProSEAlgorithm::PercolatorRescoring& self, nb::dict) { return OpenMS::ProSEAlgorithm::PercolatorRescoring(self); }, "memo"_a)
+        .def_rw("applied", &OpenMS::ProSEAlgorithm::PercolatorRescoring::applied)
+        .def_rw("skipped_reason", &OpenMS::ProSEAlgorithm::PercolatorRescoring::skipped_reason)
+        .def_rw("warning", &OpenMS::ProSEAlgorithm::PercolatorRescoring::warning)
+        ;
+
     // SearchResult struct (nested in ProSEAlgorithm)
     nb::class_<OpenMS::ProSEAlgorithm::SearchResult>(m, "SearchResult",
         "Comprehensive search result including modification analysis")
@@ -4105,6 +4117,7 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         .def_rw("peptide_ids", &OpenMS::ProSEAlgorithm::SearchResult::peptide_ids)
         .def_rw("modification_analysis", &OpenMS::ProSEAlgorithm::SearchResult::modification_analysis)
         .def_rw("is_open_search", &OpenMS::ProSEAlgorithm::SearchResult::is_open_search)
+        .def_rw("percolator", &OpenMS::ProSEAlgorithm::SearchResult::percolator)
         ;
 
     auto prosealgorithm_class = nb::class_<OpenMS::ProSEAlgorithm, OpenMS::DefaultParamHandler>(m, "ProSEAlgorithm",

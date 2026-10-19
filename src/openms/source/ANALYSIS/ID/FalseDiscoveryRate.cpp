@@ -1261,6 +1261,27 @@ namespace OpenMS
             seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
           }
         }
+        // In the scope, an identification keeps its best match and the matches tied with it whose peptide has an FDR:
+        // the others would keep their search score under the FDR score type. Without decoys, it keeps only targets, and
+        // nothing if its best match is not a target.
+        const auto target = [](const ID::Match& match) {
+          return match.target_decoy == ID::TargetDecoy::TARGET || match.target_decoy == ID::TargetDecoy::BOTH;
+        };
+        std::set<ID::MatchReference> removed;
+        for (const auto& entry : scope)
+        {
+          const auto* best = entry.getBestMatch();
+          if (best == nullptr) continue;
+          const bool keep_any = add_decoy_peptides || target(*best);
+          const double best_score = primaryValue(*entry.run, *best);
+          for (const auto* match : entry.matches)
+          {
+            const bool kept = keep_any && (match == best || (primaryValue(*entry.run, *match) == best_score
+              && (add_decoy_peptides || target(*match))
+              && seq_to_score_labels.contains(AASequence::fromString(match->representation).toUnmodifiedString())));
+            if (! kept) removed.insert({entry.run->getUuid(), match->getId()});
+          }
+        }
         // Every PSM gets the FDR of its peptide; one of a peptide outside the scope gets that of its own score.
         IdentificationDataAdapter::replacePrimaryScore(data, fdrDefinition(score_type),
           [&](const ID::Run&, const ID::Match& match, double score) {
@@ -1268,17 +1289,8 @@ namespace OpenMS
             return found != seq_to_score_labels.end() ? found->second.first : lookupFDR(score_to_fdr, score, higher_better);
           },
           "");
-        if (!add_decoy_peptides)
+        if (! removed.empty())
         {
-          // An identification whose best match is not a target loses its matches in the scope.
-          std::set<ID::MatchReference> removed;
-          for (const auto& entry : scope)
-          {
-            const auto* best = entry.getBestMatch();
-            if (best == nullptr || best->target_decoy == ID::TargetDecoy::TARGET || best->target_decoy == ID::TargetDecoy::BOTH) continue;
-            for (const auto* match : entry.matches)
-              removed.insert({entry.run->getUuid(), match->getId()});
-          }
           map.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
             return removed.contains({run.getUuid(), match.getId()});
           });
@@ -1298,6 +1310,8 @@ namespace OpenMS
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
 
+    // The best hit of each identification is the one that is scored (and kept).
+    for (auto& id : ids) { id.sort(); }
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, ids);
 
