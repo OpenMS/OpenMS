@@ -47,6 +47,10 @@ OpenMS Library:
     std::async detaches it). In WebAssembly a detached thread returns its Web Worker to the pool only when the event loop of
     the main thread runs, so a search of more than six files with 4 threads waited for a Worker forever. Natively nothing
     changes.
+  - ML::PEPTDEEP_DEFAULT_BATCH_SIZE (PeptDeepUtils.h): the number of peptides per ONNX Runtime run by default, shared by
+    PeptDeepMS2Inference, PeptDeepRTInference, PeptDeepCCSInference, PeptDeepRescoring and ProSEAlgorithm (parameter
+    'peptdeep:batch_size'). 500 as before; 128 in WebAssembly, where ONNX Runtime has no memory arena and the memory of large
+    tensors is not reused.
   - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
     file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
     label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major

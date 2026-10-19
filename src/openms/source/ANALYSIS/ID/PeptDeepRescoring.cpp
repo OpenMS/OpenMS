@@ -191,7 +191,7 @@ namespace OpenMS
     defaults_.setMinFloat("ms2_strong_fraction", 0.0);
     defaults_.setMaxFloat("ms2_strong_fraction", 1.0);
 
-    defaults_.setValue("batch_size", 500, "Peptides per ONNX inference call.", {"advanced"});
+    defaults_.setValue("batch_size", ML::PEPTDEEP_DEFAULT_BATCH_SIZE, "Peptides per ONNX inference call.", {"advanced"});
     defaults_.setMinInt("batch_size", 1);
     defaults_.setValue("threads", 4, "ONNX intra-op threads.", {"advanced"});
     defaults_.setMinInt("threads", 1);

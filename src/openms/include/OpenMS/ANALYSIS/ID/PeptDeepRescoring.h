@@ -13,6 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 
 #include <map>
 #include <string>
@@ -187,7 +188,7 @@ namespace OpenMS
     Size rt_num_nodes_{5};
     int ms2_min_ordinal_{1};
     double ms2_strong_fraction_{0.05};
-    Size batch_size_{500};
+    Size batch_size_{ML::PEPTDEEP_DEFAULT_BATCH_SIZE};
     Int threads_{4};
 
     double used_nce_{-1.0};

@@ -10,6 +10,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/ML/ONNX/ONNXPredictorBase.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <string>
 #include <vector>
 
@@ -29,9 +30,9 @@ namespace OpenMS
          * @brief Constructor initializes the ONNX environment and loads the model
          * @param model_path Absolute path to peptdeep_rt_dynamic.onnx
          * @param intra_op_threads Number of ONNX execution threads (default 4).
-         * @param batch_size Maximum number of peptides to process in a single ONNX run (default 500).
+         * @param batch_size Maximum number of peptides to process in a single ONNX run (default ML::PEPTDEEP_DEFAULT_BATCH_SIZE: 500, 128 in WebAssembly).
          */
-        explicit PeptDeepRTInference(const std::string& model_path, int intra_op_threads = 4, size_t batch_size = 500);
+        explicit PeptDeepRTInference(const std::string& model_path, int intra_op_threads = 4, size_t batch_size = ML::PEPTDEEP_DEFAULT_BATCH_SIZE);
 
         /**
          * @brief Destructor

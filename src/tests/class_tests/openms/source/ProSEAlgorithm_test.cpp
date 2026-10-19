@@ -962,6 +962,14 @@ START_SECTION(([EXTRA] default mass tolerances))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] peptdeep:batch_size defaults to ML::PEPTDEEP_DEFAULT_BATCH_SIZE))
+{
+  ProSEAlgorithm algo;
+  TEST_EQUAL((int)algo.getParameters().getValue("peptdeep:batch_size"), ML::PEPTDEEP_DEFAULT_BATCH_SIZE)
+  TEST_EQUAL((int)algo.getDefaults().getValue("peptdeep:batch_size"), ML::PEPTDEEP_DEFAULT_BATCH_SIZE)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/generate/ignore))
 {
   // Target+decoy database (50% decoys, conventional DECOY_ prefix).

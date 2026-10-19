@@ -1298,7 +1298,8 @@ namespace OpenMS::WASM
       const auto it = sessions.find(model_path);
       if (it != sessions.end()) return *it->second;
       // The threads as ProSEAlgorithm gives them to PeptDeepRescoring (the threads OpenMP computes with), and the
-      // default batch size (that of the 'batch_size' parameter, too).
+      // default batch size of the inference classes, ML::PEPTDEEP_DEFAULT_BATCH_SIZE (which the 'batch_size' parameters of
+      // PeptDeepRescoring and ProSEAlgorithm default to, too): 128 in WebAssembly, 500 elsewhere.
 #ifdef _OPENMP
       const int threads = std::max(1, omp_get_max_threads());
 #else
