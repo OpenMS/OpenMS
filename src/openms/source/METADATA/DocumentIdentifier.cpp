@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
@@ -38,6 +39,11 @@ namespace OpenMS
 
   void DocumentIdentifier::setLoadedFilePath(const std::string & file_name)
   {
+    if (FileNameUtils::isRemoteResource(file_name))
+    {
+      file_path_ = FileNameUtils::redactRemoteResource(file_name);
+      return;
+    }
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
     // Treat paths starting with '/' as absolute on all platforms (matching Qt behavior).
@@ -64,7 +70,14 @@ namespace OpenMS
 
   void DocumentIdentifier::setLoadedFileType(const std::string & file_name)
   {
-    file_type_ = FileHandler::getTypeByContent(file_name);
+    if (FileNameUtils::isRemoteResource(file_name))
+    {
+      file_type_ = FileNameUtils::getTypeByFileName(file_name.substr(0, file_name.find_first_of("?#")));
+    }
+    else
+    {
+      file_type_ = FileHandler::getTypeByContent(file_name);
+    }
   }
 
   const FileTypes::Type & DocumentIdentifier::getLoadedFileType() const
@@ -85,4 +98,3 @@ namespace OpenMS
   }
 
 }
-

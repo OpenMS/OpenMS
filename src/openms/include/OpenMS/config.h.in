@@ -160,6 +160,9 @@ static constexpr cstr past_last_slash(cstr str)
 
 #cmakedefine WITH_CRAWDAD 1
 
+// Whether experimental Arrow-backed S3 XML loading was enabled at build time.
+#cmakedefine WITH_S3 1
+
 // NOTE: This is a temporary hack. The aim is that OpenMS should not care
 //       but currently we need this information for the ToolHandler.
 #cmakedefine WITH_GUI 1

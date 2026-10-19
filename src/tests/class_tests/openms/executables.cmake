@@ -334,6 +334,10 @@ set(format_executables_list
   SiriusFragmentAnnotation_test
 )
 
+if(WITH_S3)
+  list(APPEND format_executables_list S3InputSource_test)
+endif()
+
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()

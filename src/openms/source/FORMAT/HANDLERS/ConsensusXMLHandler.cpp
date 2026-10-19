@@ -30,23 +30,21 @@ using namespace std;
 namespace OpenMS::Internal
 {
   ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const std::string& filename) :
-    XMLHandler("", "1.7"),
+    XMLHandler(filename, "1.7"),
     ProgressLogger(),
     act_cons_element_(),
     last_meta_(nullptr)
   {
     consensus_map_ = &map;
-    file_ = filename;
   }
 
   ConsensusXMLHandler::ConsensusXMLHandler(const ConsensusMap& map, const std::string& filename) :
-    XMLHandler("", "1.7"),
+    XMLHandler(filename, "1.7"),
     ProgressLogger(),
     act_cons_element_(),
     last_meta_(nullptr)
   {
     cconsensus_map_ = &map;
-    file_ = filename;
   }
 
   ConsensusXMLHandler::~ConsensusXMLHandler() = default;

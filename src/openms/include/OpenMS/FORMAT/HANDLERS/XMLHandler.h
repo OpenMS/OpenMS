@@ -207,7 +207,7 @@ public:
       void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const;
 
 protected:
-      /// File name
+      /// Local filename or redacted remote URI for diagnostics, never an authenticated transport URI.
       std::string file_;
 
       /// Schema version
@@ -690,5 +690,4 @@ private:
 
   }   // namespace Internal
 } // namespace OpenMS
-
 

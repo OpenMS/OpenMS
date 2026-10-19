@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -26,7 +27,7 @@ namespace OpenMS::Internal
 {
 
     XMLHandler::XMLHandler(const std::string & filename, const std::string & version) :
-      file_(filename),
+      file_(FileNameUtils::redactRemoteResource(filename)),
       version_(version),
       load_detail_(LD_ALLDATA)
     {
@@ -43,21 +44,23 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
-	      // test if file has the wrong extension and is therefore passed to the wrong parser
-        // only makes sense if we are loading/parsing a file
-	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-        if (ft_name != ft_content)
+        error_message = std::string("While loading '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
+        // Content-based diagnostics apply only to local files, never to remote URIs.
+        if (!FileNameUtils::isRemoteResource(file_))
         {
-          error_message +=std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
-                          + "Rename the file to fix this.";
+          FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+          FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+          if (ft_name != ft_content)
+          {
+            error_message += std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                             + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
+                             + "Rename the file to fix this.";
+          }
         }
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -65,7 +68,7 @@ namespace OpenMS::Internal
       }
 
       OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, FileNameUtils::redactRemoteResource(file_), error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const std::string & msg, UInt line, UInt column) const
@@ -73,11 +76,11 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while loading '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while storing '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -91,11 +94,11 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
       }
       if (line != 0 || column != 0)
       {

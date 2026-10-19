@@ -124,7 +124,8 @@ namespace OpenMS
       expr += e.getLine();
       expr += "-";
       expr += e.getFunction();
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr,std::string("- due to that error of type ") + e.getName());
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr,
+                                 std::string("- due to that error of type ") + e.getName() + ": " + e.getMessage());
     }
   }
 

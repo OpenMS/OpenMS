@@ -86,6 +86,29 @@ The CMake presets build the third-party libraries with [vcpkg](https://vcpkg.io)
 `cmake --preset linux-x64-release` (`cmake --list-presets` lists them). Without a preset, OpenMS takes its
 dependencies from system packages and `CMAKE_PREFIX_PATH` (`OPENMS_USE_VCPKG=OFF`, the default).
 
+Experimental remote XML loading accepts HTTP/HTTPS/FTP URLs through Xerces' network
+transport and `s3://bucket/key` URLs through Apache Arrow. S3 is enabled by default
+(`WITH_S3=ON`) and requires Arrow >= 23 built with `ARROW_S3=ON` and
+`ARROW_S3_MODULE=OFF` (built-in S3, not a separate dynamic module). Configuration
+fails if that support is missing; use `-DWITH_S3=OFF` to explicitly opt out.
+The vcpkg manifest already enables Arrow's `s3` feature. OpenMS does not require
+a separately managed AWS SDK; Arrow manages its own transitive dependencies.
+S3 uses Arrow's credential provider chain (including environment/profile/role
+credentials and session tokens), and its URI options for regions, endpoints and
+explicit access/secret keys. Arrow 23's URI parser does not provide anonymous or
+session-token query options. Avoid putting credentials in URLs, logs or command-line history.
+Arrow's URI factory initializes S3 thread-safely. OpenMS closes each reader's stream,
+but deliberately does not finalize the process-global S3 runtime: that would
+invalidate other Arrow users. Applications using S3 must coordinate shutdown with
+all Arrow users, release their S3 resources and call `arrow::fs::EnsureS3Finalized()`
+before process teardown. No S3 use is allowed afterwards. Do not defer this to
+individual reader destructors or an `atexit` handler.
+S3 gzip/bzip2 objects are decoded incrementally using Arrow's corresponding codecs
+(`ARROW_WITH_ZLIB=ON` / `ARROW_WITH_BZ2=ON`); missing codecs produce a read error.
+Sequential XML loading is supported, not remote on-disc/indexed random access.
+Remote loading remains experimental and unsupported (use at your own risk); HTTP/FTP authentication, TLS and redirects
+depend on the installed Xerces transport. No live AWS requests run in automated tests.
+
 For more detailed instructions, see the [Developer Tutorial](https://archive.openms.de/openms/Documentation/release/latest/html/developer_tutorial.html).
 
 Citation
