@@ -76,6 +76,10 @@ namespace OpenMS
     /// Percolator::getPi0(). Negative (-1.0) before the first call.
     double last_pi0 = -1.0;
 
+    /// True if the sanity check of the last rescore()/train() replaced the learned
+    /// weights by the default direction. Read by Percolator::usedDefaultDirection().
+    bool last_used_default_direction = false;
+
     void reset();
   };
 }

@@ -137,7 +137,7 @@ namespace OpenMS
       @brief Rescore search engine PSMs in place on the standard Percolator (.pin) feature set.
 
       This is the in-process equivalent of writing a .pin file, running the percolator executable
-      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('-rescore')
+      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('Search:rescore')
       use it. Steps:
       1. stamp the PIN feature meta values on every hit (PercolatorInfile::stampPinFeaturesOnHits)
       2. build a RescoreInput from the numeric columns of @p feature_set. Bookkeeping columns
@@ -219,6 +219,22 @@ namespace OpenMS
               instance was configured with use_pi0=false.
     */
     double getPi0() const;
+
+    /**
+      @brief Whether the last rescore()/train() call replaced the learned model by the default direction.
+
+      Percolator's sanity check rejects the learned SVM weights if they identify no target at q < test_fdr
+      on the held-out folds, fewer targets than the default direction, or (with initial_direction) give
+      the initial direction's feature the wrong sign. The scores then come from the default direction:
+      the initial_direction feature, or else the single feature that separates the most targets (the
+      external percolator binary prints "Resetting score vector, using default vector"). Typical for
+      inputs without real identifications, e.g. a blank run, and for small inputs: q-values count the
+      decoys + 1, so a fold needs about 1 / test_fdr targets above its first decoy for any q < test_fdr.
+
+      @return True if the default direction was used; false if the learned model was kept, and before
+              the first rescore()/train() call. score() does not change it.
+    */
+    bool usedDefaultDirection() const;
 
     /**
       @brief Train a Percolator model on feature rows. No scoring.
