@@ -16,6 +16,7 @@
 #include "TransferFDRModel.h"
 #include "Score.h"
 #include "Util.h"
+#include <unordered_map>
 
 #include <algorithm>
 #include <cmath>
@@ -332,6 +333,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     // setMinInt("max_training_points", 0) guarantees a non-negative value.
     max_training_points(static_cast<std::size_t>(
       static_cast<int>(params.getValue("max_training_points")))),
+    donor_max_q(params.exists("donor_max_q") ? static_cast<double>(params.getValue("donor_max_q")) : 1.0),
     rng_seed_(static_cast<std::mt19937::result_type>(
       static_cast<int>(params.getValue("random_seed")))),
     rng_(rng_seed_)
@@ -509,12 +511,60 @@ void Impl::partition_features(const std::vector<FeatureMap>& maps, RunMap& runs)
 }
 
 /******************************************************************************/
+void Impl::set_transferable_precursors(const RunMap& runs)
+{
+  transferable_.clear();
+  if (donor_max_q >= 1.0) { return; }
+
+  // the q-value of a feature's identification: its score if the score type is a q-value, else its "q-value" meta
+  // value; unknown -> 0 (passes the gate)
+  std::size_t unknown = 0;
+  auto q_value = [&unknown](const Feature& feature) -> double {
+    const auto& peps = feature.getPeptideIdentifications();
+    if (peps.empty() || peps[0].getHits().empty()) { return 1.0; }
+    const PeptideHit& hit = peps[0].getHits()[0];
+    if (peps[0].getScoreType().find("q-value") != std::string::npos) { return hit.getScore(); }
+    // the score switchers keep a former main score as "<score type>_score" (e.g. ProteomicsLFQ switches to PEP)
+    for (const char* key : {"q-value", "q-value_score", "MS:1001491"})
+    {
+      if (hit.metaValueExists(key)) { return static_cast<double>(hit.getMetaValue(key)); }
+    }
+    ++unknown;
+    return 0.0;
+  };
+
+  std::unordered_map<std::string, double> best_q;
+  for (const auto& run : runs)
+  {
+    for (const auto& donor : run.second.donors.storage)
+    {
+      const std::string key = feature_sequence_key(donor->feature);
+      const double q = q_value(donor->feature);
+      auto [it, inserted] = best_q.emplace(key, q);
+      if (!inserted) { it->second = std::min(it->second, q); }
+    }
+  }
+  for (const auto& [key, q] : best_q)
+  {
+    if (q <= donor_max_q) { transferable_.insert(key); }
+  }
+  OPENMS_LOG_INFO << "PIP-ECHO donor gate (q <= " << donor_max_q << "): " << transferable_.size() << " of "
+                  << best_q.size() << " precursors may be transferred";
+  if (unknown > 0) { OPENMS_LOG_INFO << " (" << unknown << " identifications without q-value pass)"; }
+  OPENMS_LOG_INFO << '\n';
+}
+
+/******************************************************************************/
 void Impl::link_donors_and_acceptors(const RunStatistics& stats,
                                      const DonorMap& donors,
                                      AcceptorMap& acceptors)
 {
   for (auto& donor : donors.storage)
   {
+    if (donor_max_q < 1.0 && ! transferable_.contains(feature_sequence_key(donor->feature)))
+    {
+      continue; // [donor_max_q] not confidently identified anywhere: not transferred
+    }
     for (auto window = initial_window(*donor); window.has_value();
          window = next_window(window))
     {

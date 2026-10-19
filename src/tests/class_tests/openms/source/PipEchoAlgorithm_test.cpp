@@ -322,6 +322,59 @@ START_SECTION([EXTRA] ion mobility disambiguates competing acceptors when presen
 }
 END_SECTION
 
+START_SECTION([EXTRA] donor_max_q transfers only precursors confidently identified somewhere)
+{
+  // As in the group() test, but PEPTIDEBBR is identified at q 0.001 and PEPTIDECCK only at q 0.2.
+  auto withQ = [](Feature f, double q)
+  {
+    auto peps = f.getPeptideIdentifications();
+    peps[0].getHits()[0].setMetaValue("q-value", q);
+    f.setPeptideIdentifications(peps);
+    return f;
+  };
+  vector<Feature> runA = {
+    withQ(makeFeature(50.0, 500.00, 2, 1.0e6, "PEPTIDEAAK", 1), 0.001),
+    withQ(makeFeature(80.0, 600.00, 2, 2.0e6, "PEPTIDEBBR", 2), 0.001),
+    withQ(makeFeature(110.0, 700.00, 2, 3.0e6, "PEPTIDECCK", 3), 0.2),
+    makeFeature(80.0, 600.00, 2, 1.5e6, "", 4)
+  };
+  vector<Feature> runB = {
+    withQ(makeFeature(51.0, 500.00, 2, 1.1e6, "PEPTIDEAAK", 11), 0.001),
+    makeFeature(80.5, 600.00, 2, 1.9e6, "", 12),
+    makeFeature(110.5, 700.00, 2, 2.9e6, "", 13)
+  };
+  vector<FeatureMap> maps = {makeRun("runA.mzML", runA), makeRun("runB.mzML", runB)};
+
+  auto transfers = [&maps](double donor_max_q)
+  {
+    PipEchoAlgorithm algo;
+    Param param = algo.getParameters();
+    param.setValue("fdr", 1.0);
+    param.setValue("local_rt:enabled", "false");
+    param.setValue("donor_max_q", donor_max_q);
+    algo.setParameters(param);
+    ConsensusMap consensus;
+    algo.group(maps, consensus);
+    std::set<UInt64> transferred;
+    for (const ConsensusFeature& cf : consensus)
+    {
+      if (!cf.metaValueExists("mbr_transfer_map_indices")) continue;
+      for (const FeatureHandle& h : cf)
+      {
+        if (h.getMapIndex() == 1 && (h.getUniqueId() == 12 || h.getUniqueId() == 13)) transferred.insert(h.getUniqueId());
+      }
+    }
+    return transferred;
+  };
+
+  TEST_REAL_SIMILAR(double(PipEchoAlgorithm().getParameters().getValue("donor_max_q")), 1.0)
+  TEST_EQUAL(transfers(1.0).size(), 2)
+  const auto gated = transfers(0.01);
+  TEST_EQUAL(gated.size(), 1)
+  TEST_EQUAL(gated.count(12), 1) // PEPTIDEBBR (q 0.001) is transferred, PEPTIDECCK (q 0.2) is not
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
