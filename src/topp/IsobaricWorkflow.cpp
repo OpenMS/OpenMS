@@ -561,10 +561,11 @@ protected:
    *
    * Scores after filtering are not compared: q-values tie heavily, and a peptide-level q-value rates
    * the peptide's best match in any spectrum, not its match to this one. Identifications keep more
-   * than one hit only with Bayesian inference keeping several PSMs per spectrum. There, a filter that
-   * removes an identification's best target hit but keeps a worse one (peptide-level q-values, or
-   * removing the hits of filtered proteins) can leave that worse hit ahead of a better one of another
-   * identification.
+   * than one hit only with Bayesian inference keeping several PSMs per spectrum and a PSM-level FDR
+   * (the peptide-level FDR keeps each identification's best hit only). There, a filter that removes
+   * an identification's best target hit but keeps a worse one (removing the hits of filtered proteins
+   * with -delete_unreferenced_peptide_hits, or of shared peptides with strictly_unique_peptides) can
+   * leave that worse hit ahead of a better one of another identification.
    *
    * @param[in,out] cmap the consensus map
    * @return the number of features whose identifications differed in peptidoform or charge
