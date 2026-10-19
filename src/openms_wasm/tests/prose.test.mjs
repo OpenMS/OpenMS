@@ -741,6 +741,64 @@ test("searchFiles: files that Percolator could not all rescore are not pooled", 
   });
 });
 
+/// The suitability database with the residues of each protein shuffled (a fixed shuffle), written to @p file of the module's
+/// memory: the spectra of the suitability data hardly match it, as the spectra of a blank run
+function writeShuffledDatabase(file) {
+  let seed = 12345;
+  const random = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const entries = fs.readFileSync(path.join(toppDataDir, "THIRDPARTY/DatabaseSuitability_database.fasta"), "utf8").split(">").filter(Boolean);
+  const shuffled = entries.map((entry) => {
+    const [header, ...lines] = entry.split("\n");
+    const residues = lines.join("").replace(/\s/g, "").split("");
+    for (let i = residues.length - 1; i > 0; --i) {
+      const j = Math.floor(random() * (i + 1));
+      [residues[i], residues[j]] = [residues[j], residues[i]];
+    }
+    return `>${header}\n${residues.join("")}\n`;
+  });
+  OpenMS.FS.writeFile(file, new TextEncoder().encode(shuffled.join("")));
+}
+
+test("search() and searchFiles() report Percolator's warning", () => {
+  // an open search of spectra against shuffled proteins gives 100s of PSMs of no quality: Percolator rescores them (100
+  // are needed), but its sanity check rejects the learned model, and the PSMs are scored with the best single feature
+  const database = "/tmp/shuffled.fasta";
+  writeShuffledDatabase(database);
+  try {
+    const parameters = { ...prose6, "FDR:PSM": 1, "FDR:protein": 0, "precursor:mass_tolerance_lower": 300, "precursor:mass_tolerance_upper": 300,
+                         "precursor:mass_tolerance_unit": "Da", "fragment:min_matched_ions": 3, "fragment:min_ion_index": 1 };
+    const spectra = "/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML";
+    const single = using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+      (prose, proteins, peptides) => {
+        prose.setParameterValues(parameters);
+        return prose.search(spectra, database, proteins, peptides).percolator;
+      });
+    const multi = using([new OpenMS.ProSEAlgorithm()], (prose) => {
+      prose.setParameterValues(parameters);
+      const set = prose.searchFiles([spectra], database);
+      try {
+        return set.summary().files[0].percolator;
+      } finally {
+        set.delete();
+      }
+    });
+    assert.equal(multi.applied, true, multi.skipped ?? "");
+    assert.match(multi.warning, /sanity check rejected the learned model/);
+    assert.deepEqual(single, multi, "search() has the outcome of searchFiles()");
+  } finally {
+    OpenMS.FS.unlink(database);
+  }
+  // a search without a caveat has none (null, not missing): here Percolator is skipped for too few PSMs
+  const skipped = using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+    (prose, proteins, peptides) => {
+      prose.setParameterValues({ ...prose1, "decoys": "generate" });
+      return prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides).percolator;
+    });
+  assert.equal(skipped.applied, false);
+  assert.ok(Object.hasOwn(skipped, "warning"));
+  assert.equal(skipped.warning, null);
+});
+
 /// searchFiles() of the mzML files @p sources (bytes) at @p files of the module's memory file system, file by file
 /// (provideFile and releaseFile): each one is written in chunks when its search needs it and removed after it. Returns
 /// the result set (the caller deletes it), the calls of the two functions, and the progress reports.

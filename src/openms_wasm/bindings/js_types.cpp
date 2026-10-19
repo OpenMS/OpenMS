@@ -107,7 +107,9 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
   register_type<ProSESummary>("ProSESummary",
     "{ status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
     "openSearch: boolean; haveDecoys: boolean; decoyString: string; decoyIsPrefix: boolean; proteinFDRApplied: boolean; "
-    "percolator: { applied: boolean; skipped: string | null } | null; "
+    "percolator: { applied: boolean; skipped: string | null; "
+    "/** a caveat of an applied rescoring (Percolator's sanity check replaced the learned model by the best single feature); null: none */ "
+    "warning: string | null } | null; "
     "run: { inputFile: string; ms2Spectra: number; matchedSpectra: number; targetPSMs: number; decoyPSMs: number; "
     "fdrApplied: boolean; achievedPsmFDR: number | null; uniquePeptides: number; uniqueProteins: number; "
     "chargeHistogram: Record<string, number>; missedCleavageHistogram: Record<string, number>; "

@@ -219,8 +219,9 @@ picked-protein FDR. By default (parameter `rescore`) the search rescores the PSM
 before its FDR, in-process as the tool does (needs decoys and at least 100 PSMs, else it is
 skipped; the FDR filters then use its q-values); `search(..., { rescore: false })` sets the
 parameter for the call and keeps ProSE's scores. It fills the two lists and returns a summary: the statistics of the run
-and of the fragment index, Percolator's outcome, and for open searches the modification analysis
-(delta-mass histogram, mapped PTMs).
+and of the fragment index, Percolator's outcome (`applied`, why it was `skipped`, and a `warning` if its
+sanity check replaced the learned model by the best single feature), and for open searches the
+modification analysis (delta-mass histogram, mapped PTMs).
 
 ```js
 const prose = new OpenMS.ProSEAlgorithm();

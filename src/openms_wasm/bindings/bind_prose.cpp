@@ -537,6 +537,7 @@ namespace OpenMS::WASM
         percolator = val::object();
         percolator.set("applied", run.percolator.applied);
         percolator.set("skipped", run.percolator.applied ? val::null() : val(run.percolator.skipped_reason));
+        percolator.set("warning", run.percolator.warning.empty() ? val::null() : val(run.percolator.warning));
       }
 
       bool protein_fdr_applied = false;
