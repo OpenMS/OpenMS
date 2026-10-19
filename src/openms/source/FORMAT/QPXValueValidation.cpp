@@ -480,8 +480,7 @@ namespace OpenMS
         else
         {
           addError(result, "keep one identification per (spectrum, peptidoform, charge) before"
-                           " exporting, e.g. with IDFilter, ConsensusID -algorithm best or"
-                           " IDConflictResolver.");
+                           " exporting, e.g. with IDFilter or IDConflictResolver.");
         }
       }
     }

@@ -57,8 +57,7 @@ target/decoy annotation is mandatory.
 Currently supported search engines are Comet, X!Tandem, MSGF+, MSFragger, andes.
 Mascot support is available but in beta development.
 
-The tool processes exactly one search result at a time. To rescore results from
-several search engines jointly, combine them with @ref TOPP_ConsensusID instead.
+The tool processes the results of exactly one search engine at a time.
 </p>
 
 @note if you have extra features you want to pass to percolator, use the extra
