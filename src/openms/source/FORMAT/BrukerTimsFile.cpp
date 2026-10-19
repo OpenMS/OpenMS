@@ -48,6 +48,7 @@
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
+#include <tuple>
 
 // Open-addressing flat hash map (Boost 1.81+). Used in FrameAggregator's
 // hot path because it eliminates per-node allocations and pointer chasing,
@@ -947,6 +948,14 @@ namespace OpenMS
         double mz;        // intensity-weighted mean m/z
         double intensity;  // summed intensity
         uint32_t scan_id;  // native scan index (for IM conversion)
+
+        /// The order of the output: by m/z. Peaks of equal m/z (e.g. the same TOF index in adjacent scans)
+        /// are ordered by scan and intensity, so that the order does not depend on the order in which the
+        /// grid holds the cells (which depends on the frames aggregated before).
+        static bool byMZ(const OutputPeak& a, const OutputPeak& b)
+        {
+          return std::tie(a.mz, a.scan_id, a.intensity) < std::tie(b.mz, b.scan_id, b.intensity);
+        }
       };
 
       /// Returns the grid key of the neighbor cell at signed (dm, ds) offset.
@@ -1012,8 +1021,7 @@ namespace OpenMS
         }
 
         // Sort by m/z for spectrum output
-        std::sort(result.begin(), result.end(),
-          [](const OutputPeak& a, const OutputPeak& b) { return a.mz < b.mz; });
+        std::sort(result.begin(), result.end(), OutputPeak::byMZ);
 
         return result;
       }
@@ -1139,8 +1147,7 @@ namespace OpenMS
           result.push_back({centroid_mz, total_intensity, centroid_scan});
         }
 
-        std::sort(result.begin(), result.end(),
-          [](const OutputPeak& a, const OutputPeak& b) { return a.mz < b.mz; });
+        std::sort(result.begin(), result.end(), OutputPeak::byMZ);
         return result;
       }
 
