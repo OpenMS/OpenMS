@@ -18,6 +18,7 @@ ConsensusIDAlgorithmRanks.h
 ConsensusIDAlgorithmSimilarity.h
 ConsensusIDAlgorithmWorst.h
 ConsensusMapMergerAlgorithm.h
+ClassFDR.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
