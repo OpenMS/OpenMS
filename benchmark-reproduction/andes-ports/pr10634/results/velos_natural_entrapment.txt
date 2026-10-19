@@ -1,0 +1,2 @@
+Velos natural off: N=8932.7 N_E=81.3 FDP=1.18%
+Velos natural on: N=8928.3 N_E=81.3 FDP=1.18%

@@ -1,0 +1,13 @@
+dataset	arm	rep	search_wall_s	search_max_rss_kb	percolator_wall_s
+hfx_A2	off	1	6.21	1504748	4.29
+hfx_A2	on	1	5.83	1504944	3.94
+hfx_A2	off	2	6.84	1505192	4.07
+hfx_A2	on	2	5.81	1505248	3.72
+hfx_A2	off	3	5.82	1505488	3.99
+hfx_A2	on	3	5.75	1505452	3.57
+phospho	off	1	397.64	12872756	122.2
+phospho	on	1	373.87	12880764	55.29
+phospho	off	2	391.69	12875856	123.21
+phospho	on	2	379.31	12882092	67.09
+phospho	off	3	412.55	12876304	119.17
+phospho	on	3	362.47	12874376	57.18

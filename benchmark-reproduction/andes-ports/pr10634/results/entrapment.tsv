@@ -1,0 +1,21 @@
+group	arm	N	N_E	combined_fdp_pct	per_seed_N_E
+Velos CID	off_entrap	8248.7	41.0	0.99	41/39/43
+Velos CID	on_entrap	8245.3	41.0	0.99	42/38/43
+HF-X HCD	off_entrap	13244.7	65.3	0.99	64/64/68
+HF-X HCD	on_entrap	13238.0	65.0	0.98	68/63/64
+HF-X HCD	off_frozenE	13292.3	105.3	1.58	100/112/104
+HF-X HCD	on_frozenE	13265.3	104.3	1.57	95/114/104
+Astral HCD	off_entrap	8177.7	40.0	0.98	37/46/37
+Astral HCD	on_entrap	8209.3	44.3	1.08	44/47/42
+Astral HCD	off_frozenE	8183.3	57.3	1.40	60/49/63
+Astral HCD	on_frozenE	8211.0	60.3	1.47	66/54/61
+Lumos HCD LFQ	off_entrap	16527.7	79.7	0.96	78/87/74
+Lumos HCD LFQ	on_entrap	16541.0	80.7	0.98	84/86/72
+Lumos CID TMT6plex	off_entrap	7025.7	29.3	0.84	30/30/28
+Lumos CID TMT6plex	on_entrap	7066.0	34.0	0.96	38/35/29
+Exploris 480 TMTpro	off_entrap	7658.3	26.7	0.70	27/24/29
+Exploris 480 TMTpro	on_entrap	7674.7	29.7	0.77	34/28/27
+Exploris 480 TMTpro	off_frozenE	7728.3	52.7	1.36	50/61/47
+Exploris 480 TMTpro	on_frozenE	7721.0	48.0	1.24	44/57/43
+timsTOF HT plasma	off_entrap	2035.7	6.0	0.59	9/6/3
+timsTOF HT plasma	on_entrap	2023.0	6.3	0.63	11/4/4

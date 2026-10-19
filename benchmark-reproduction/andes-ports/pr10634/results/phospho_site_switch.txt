@@ -1,0 +1,2 @@
+off seed42: accepted 38821  not rank-1 4802  of which positional isomer of rank-1 4339
+on seed42: accepted 38982  not rank-1 481  of which positional isomer of rank-1 0
