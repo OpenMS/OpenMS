@@ -9,9 +9,12 @@
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/OnDiscBrukerTimsExperiment.h>
 #ifdef WITH_THERMO_RAW
 #include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
+#if defined(WITH_THERMO_RAW) || defined(WITH_OPENTIMS)
 #include "index_value_iterator.h"
 #endif
 #include <OpenMS/FORMAT/CVMappingFile.h>
@@ -449,6 +452,74 @@ runtime.
         .def_rw("boundaries", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::boundaries, "One SwathMap per DIA window (MS2 only)")
         .def_rw("nr_ms1_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms1_spectra, "Number of MS1 frames")
         .def_rw("nr_ms2_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms2_spectra, "Per-window spectrum counts (parallel to boundaries)")
+        ;
+
+    // -----------------------------------------------------------------------
+    // OnDiscBrukerTimsExperiment (random access to the spectra of a .d directory)
+    // -----------------------------------------------------------------------
+    pyopenms_iter::bind_index_value_iterator<OpenMS::OnDiscBrukerTimsExperiment>(m, "_OnDiscBrukerTimsExperimentIter");
+    using ODBTE = OpenMS::OnDiscBrukerTimsExperiment;
+    nb::class_<ODBTE>(m, "OnDiscBrukerTimsExperiment",
+        R"doc(Random access to the spectra of a Bruker timsTOF .d directory (or '.d.zip' archive).
+
+openFile() lists the spectra that BrukerTimsFile.load() gives with the same configuration, in the same
+order, without reading peaks. getSpectrum(i) then builds one spectrum from the frames it needs, in any
+access order. A few MS2 spectra turn out to have no peaks only when they are built (a DDA precursor or a
+DIA window without peaks, or a DDA spectrum outside the ion mobility range); load() leaves them out, and
+getSpectrum() gives them without peaks. Config.calibrate with the linear m/z model is not supported.
+Copies share the list and read through their own handle, so a copy per thread can be used concurrently.
+
+Example::
+
+    exp = OnDiscBrukerTimsExperiment()
+    exp.openFile("run.d")
+    for i in range(exp.findFirstRT(600.0), len(exp)):
+        spectrum = exp.getSpectrum(i)
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const ODBTE&>())
+        .def("__copy__", [](const ODBTE& self) { return ODBTE(self); })
+        .def("__deepcopy__", [](const ODBTE& self, nb::dict) { return ODBTE(self); }, "memo"_a)
+        .def("openFile", [](ODBTE& self, const std::string& filename, const OpenMS::BrukerTimsFile::Config& config) {
+            nb::gil_scoped_release release;
+            self.openFile(filename, config);
+        }, "filename"_a, "config"_a = OpenMS::BrukerTimsFile::Config(), "Opens a .d directory and lists its spectra (no peaks are read)")
+        .def("isOpen", &ODBTE::isOpen, "Whether a file was opened")
+        .def("getFilename", &ODBTE::getFilename, "The opened path")
+        .def("getConfig", &ODBTE::getConfig, nb::rv_policy::copy, "The configuration given to openFile()")
+        .def("getNrSpectra", &ODBTE::getNrSpectra, "Number of spectra")
+        .def("getNrChromatograms", &ODBTE::getNrChromatograms, "Number of chromatograms (always 0)")
+        .def("size", &ODBTE::size, "Number of spectra")
+        .def("__len__", &ODBTE::size)
+        .def("getSpectrum", [](ODBTE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrum(index);
+        }, "index"_a, "Builds the spectrum with the given index, with peaks (as BrukerTimsFile.load())")
+        .def("__getitem__", [](ODBTE& self, long long index) {
+            const long long n = static_cast<long long>(self.size());
+            if (index < 0) { index += n; }
+            if (index < 0 || index >= n) { throw nb::index_error("spectrum index out of range"); }
+            nb::gil_scoped_release release;
+            return self.getSpectrum(static_cast<size_t>(index));
+        }, "index"_a)
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<ODBTE>(self); },
+             "Iterates over all spectra in index order, building one at a time")
+        .def("getSpectrumMetadata", &ODBTE::getSpectrumMetadata, "index"_a,
+             "The spectrum without peaks, from the list of spectra (no data is read; no values that come from the peaks)")
+        .def("getSpectrumByNativeId", [](ODBTE& self, const std::string& native_id) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumByNativeId(native_id);
+        }, "native_id"_a, "Builds the spectrum with the given native ID")
+        .def("getSpectrumRT", &ODBTE::getSpectrumRT, "index"_a, "Retention time (seconds) of a spectrum, from the list")
+        .def("getSpectrumMSLevel", &ODBTE::getSpectrumMSLevel, "index"_a, "MS level of a spectrum, from the list")
+        .def("getSpectrumNativeID", &ODBTE::getSpectrumNativeID, "index"_a, "Native ID of a spectrum, from the list")
+        .def("getSpectrumIndexByNativeId", &ODBTE::getSpectrumIndexByNativeId, "native_id"_a,
+             "Index of the spectrum with the given native ID (size() if there is none)")
+        .def("isSortedByRT", &ODBTE::isSortedByRT, "Whether the spectra are sorted by retention time (always true)")
+        .def("findFirstRT", &ODBTE::findFirstRT, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none)")
+        .def("getExperimentalSettings", [](const ODBTE& self) { return OpenMS::ExperimentalSettings(*self.getExperimentalSettings()); },
+             "The run metadata (a copy)")
         ;
 #endif // WITH_OPENTIMS
 

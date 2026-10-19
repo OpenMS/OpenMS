@@ -123,6 +123,10 @@ FileConverter -in sample.d -out sample.mzML -process_lowmemory
 
 This works for cachedMzML output (`-out sample.cachedMzML`) as well.
 
+In the library and in pyOpenMS, `OnDiscBrukerTimsExperiment` gives random access to the spectra
+of a `.d` run without loading it: the spectra that `BrukerTimsFile::load` gives, one at a time and
+in any order. Opening a run reads only its frame table and `analysis.tdf`.
+
 ## pyOpenMS
 
 pyOpenMS reads both formats as well; see

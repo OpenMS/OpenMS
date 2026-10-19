@@ -592,3 +592,78 @@ def test_transform_writes_mzml(tmp_path):
     assert reloaded.getNrSpectra() == exp.getNrSpectra() > 0
     assert [s.getNativeID() for s in reloaded] == [s.getNativeID() for s in exp]
     assert [s.size() for s in reloaded] == [s.size() for s in exp]
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OnDiscBrukerTimsExperiment: random access to the spectra of load()
+# ---------------------------------------------------------------------------------------------------------------------
+
+def _frames_1500_1900(**fields):
+    cfg = pyopenms.BrukerTimsFile.Config()
+    cfg.frame_id_min = 1500
+    cfg.frame_id_max = 1900
+    for name, value in fields.items():
+        setattr(cfg, name, value)
+    return cfg
+
+
+def _same_spectrum(a, b):
+    return (a == b and a.getIMPeakType() == b.getIMPeakType() and a.getName() == b.getName())
+
+
+def test_ondisc_experiment_not_open():
+    exp = pyopenms.OnDiscBrukerTimsExperiment()
+    assert not exp.isOpen()
+    assert len(exp) == 0
+    assert exp.getNrChromatograms() == 0
+    assert exp.getFilename() == ""
+    assert exp.findFirstRT(100.0) == 0
+    with pytest.raises(IndexError):
+        exp[0]
+
+
+def test_ondisc_experiment_nonexistent_path_raises():
+    with pytest.raises(Exception):
+        pyopenms.OnDiscBrukerTimsExperiment().openFile("/nonexistent/path.d")
+
+
+@needs_dda_data
+@needs_dia_data
+@pytest.mark.parametrize("which", ["OPENTIMS_DDA_TEST_DATA", "OPENTIMS_DIA_TEST_DATA"])
+def test_ondisc_experiment_equals_load(which):
+    path = os.environ[which]
+    cfg = _frames_1500_1900()
+    loaded = pyopenms.BrukerTimsFile().load(path, cfg)
+    exp = pyopenms.OnDiscBrukerTimsExperiment()
+    exp.openFile(path, cfg)
+    assert exp.isOpen()
+    assert exp.getFilename() == path
+    assert exp.getConfig().frame_id_min == 1500
+    # the spectra of load(), in order; in between only MS2 spectra without peaks, which load() leaves out
+    j = 0
+    for i, spectrum in enumerate(exp):
+        assert spectrum.getNativeID() == exp.getSpectrumNativeID(i)
+        assert spectrum.getRT() == exp.getSpectrumRT(i)
+        assert spectrum.getMSLevel() == exp.getSpectrumMSLevel(i)
+        if j < loaded.size() and _same_spectrum(loaded[j], spectrum):
+            j += 1
+        else:
+            assert spectrum.size() == 0 and spectrum.getMSLevel() == 2
+    assert j == loaded.size()
+    # reverse order and negative indices give the same spectra
+    last = exp[len(exp) - 1]
+    assert _same_spectrum(exp[-1], last)
+    assert _same_spectrum(exp.getSpectrumByNativeId(last.getNativeID()), last)
+    assert exp.getSpectrumIndexByNativeId(last.getNativeID()) == len(exp) - 1
+    assert exp.getSpectrumIndexByNativeId("frame=0") == len(exp)
+    # metadata from the list
+    meta = exp.getSpectrumMetadata(len(exp) // 2)
+    assert meta.size() == 0
+    assert meta.getNativeID() == exp.getSpectrumNativeID(len(exp) // 2)
+    assert exp.getExperimentalSettings().getInstrument().getName() == loaded.getInstrument().getName()
+    # a copy reads the same
+    copy = pyopenms.OnDiscBrukerTimsExperiment(exp)
+    assert _same_spectrum(copy[3], exp[3])
+    rt = exp.getSpectrumRT(len(exp) // 2)
+    first = exp.findFirstRT(rt)
+    assert exp.getSpectrumRT(first) == rt and (first == 0 or exp.getSpectrumRT(first - 1) < rt)
