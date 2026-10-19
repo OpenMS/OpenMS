@@ -46,6 +46,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -662,14 +663,6 @@ namespace OpenMS::WASM
 
   namespace
   {
-    /// A native ID of one input file whose spectrum is wanted: the PSM rows that refer to it, and the spectra of the
-    /// file with that native ID (ProSEResultSet::collectSpectra())
-    struct WantedSpectrum
-    {
-      std::vector<Size> rows;
-      std::vector<std::pair<int32_t, double>> spectra; ///< their index in the stored spectra, and their RT
-    };
-
     /// The progress of the collection: the MS2 spectra read, of all files
     struct CollectionProgress
     {
@@ -678,16 +671,17 @@ namespace OpenMS::WASM
       SignedSize read = 0;                    ///< the MS2 spectra read so far
     };
 
-    /// Keeps the peaks of the MS2 spectra of one input file whose native IDs are wanted, as they are read
-    /// (ProSEResultSet::collectSpectra())
+    /// Keeps the peaks of the MS2 spectra of one input file whose native IDs are wanted, as they are read, and records
+    /// where they went (readSpectraOfFile())
     class IdentifiedSpectraConsumer : public Interfaces::IMSDataConsumer
     {
     public:
-      /// Adds the spectra whose native ID is in @p wanted to @p stored, and records them there
-      IdentifiedSpectraConsumer(std::unordered_map<std::string, WantedSpectrum>& wanted, ProSEStoredSpectra& stored,
-                                CollectionProgress& progress) :
+      /// Adds the spectra whose native ID is in @p wanted to @p stored, and records them in @p read
+      IdentifiedSpectraConsumer(const std::unordered_set<std::string>& wanted, ProSEStoredSpectra& stored,
+                                ProSEResultSet::SpectraOfFile& read, CollectionProgress& progress) :
         wanted_(wanted),
         stored_(stored),
+        read_(read),
         progress_(progress)
       {
       }
@@ -699,8 +693,7 @@ namespace OpenMS::WASM
         {
           progress_.logger->setProgress(std::min(progress_.read, progress_.end));
         }
-        const auto it = wanted_.find(s.getNativeID());
-        if (it == wanted_.end()) return;
+        if (wanted_.find(s.getNativeID()) == wanted_.end()) return;
         if (!s.isSorted()) s.sortByPosition();
         const auto index = static_cast<int32_t>(stored_.precursor_mz.size());
         for (const Peak1D& peak : s)
@@ -714,7 +707,7 @@ namespace OpenMS::WASM
         // OpenMS has 0 for an energy that is not known
         const double energy = precursors.empty() ? 0.0 : precursors[0].getActivationEnergy();
         stored_.collision_energy.push_back(energy > 0.0 ? static_cast<float>(energy) : std::numeric_limits<float>::quiet_NaN());
-        it->second.spectra.emplace_back(index, s.getRT());
+        read_[s.getNativeID()].emplace_back(index, s.getRT());
       }
 
       void consumeChromatogram(MSChromatogram& /*c*/) override {}
@@ -722,13 +715,46 @@ namespace OpenMS::WASM
       void setExperimentalSettings(const ExperimentalSettings& /*settings*/) override {}
 
     private:
-      std::unordered_map<std::string, WantedSpectrum>& wanted_;
+      const std::unordered_set<std::string>& wanted_;
       ProSEStoredSpectra& stored_;
+      ProSEResultSet::SpectraOfFile& read_;
       CollectionProgress& progress_;
     };
 
-    /// Removes the stored spectra that no PSM row refers to (of a native ID that a file has more than once), and
-    /// renumbers the others
+    /// Reads the MS2 spectra of the native IDs @p wanted from the mzML file @p path into @p stored (streamed: only the
+    /// spectra kept stay in memory, and only they are sorted), and records them in @p read. A file that cannot be read:
+    /// a warning, and none of its spectra.
+    void readSpectraOfFile(const std::string& path, const std::unordered_set<std::string>& wanted, ProSEStoredSpectra& stored,
+                           ProSEResultSet::SpectraOfFile& read, CollectionProgress& progress)
+    {
+      // (Not setSkipChromatograms(): MzMLHandler then skips the contents of the spectra, too.)
+      PeakFileOptions options;
+      options.setMSLevels({2});
+      options.setSortSpectraByMZ(false);
+      MzMLFile mzml;
+      mzml.setOptions(options);
+      IdentifiedSpectraConsumer consumer(wanted, stored, read, progress);
+      try
+      {
+        mzml.transform(path, &consumer, true, true); // one pass: no counts, no metadata
+      }
+      catch (const Exception::BaseException& e) // the file was searched, but cannot be read again: its PSMs have none
+      {
+        OPENMS_LOG_WARN << "ProSE: cannot read the spectra of the PSMs of '" << path << "' again (" << e.what()
+                        << "); the PSMs whose spectra were not read have none." << std::endl;
+      }
+    }
+
+    /// Whether the spectrum of a PSM is kept: its q-value passes FDR:PSM (@p psm_fdr), decoys too; all PSMs without
+    /// q-values, and with FDR:PSM 0 (no filter)
+    bool keepsSpectrum(const PeptideIdentification& id, const PeptideHit& hit, const ScoreKeys& keys, double psm_fdr)
+    {
+      const double q = qValue(id, hit, keys);
+      return std::isnan(q) || psm_fdr <= 0.0 || q <= psm_fdr;
+    }
+
+    /// Removes the stored spectra that no PSM row refers to (of a native ID that a file has more than once, or of a PSM
+    /// that the pooling removed), and renumbers the others
     void dropUnreferencedSpectra(ProSEStoredSpectra& s)
     {
       const Size n = s.precursor_mz.size();
@@ -779,94 +805,111 @@ namespace OpenMS::WASM
   void ProSEResultSet::collectSpectra(const ProgressLogger* progress_logger)
   {
     stored_spectra = ProSEStoredSpectra{};
-    ProSEStoredSpectra& stored = stored_spectra;
-    const ScoreKeys keys;
-    const PeptideIdentificationList& ids = merged.peptide_ids;
-    const std::vector<PsmRow> rows = psmRows(ids);
-    stored.psm_spectrum.assign(rows.size(), -1);
+    read_spectra.assign(files.size(), SpectraOfFile{});
+    if (keep_spectra)
+    {
+      // the native IDs to keep the spectra of, by file
+      const ScoreKeys keys;
+      const PeptideIdentificationList& ids = merged.peptide_ids;
+      std::vector<std::unordered_set<std::string>> wanted(files.size());
+      for (const PsmRow& row : psmRows(ids))
+      {
+        const PeptideIdentification& id = ids[row.id];
+        if (!keepsSpectrum(id, *row.hit, keys, psm_fdr)) continue;
+        const Size f = psmFile(id, keys);
+        if (f < files.size()) wanted[f].insert(id.getSpectrumReference());
+      }
+      // A progress step over the MS2 spectra of the files read (as many as their searches counted)
+      CollectionProgress progress;
+      bool any_wanted = false;
+      for (Size f = 0; f < files.size(); ++f)
+      {
+        if (wanted[f].empty()) continue;
+        any_wanted = true;
+        progress.end += static_cast<SignedSize>(files[f].stats.ms2_spectra);
+      }
+      if (any_wanted && progress_logger != nullptr)
+      {
+        progress.logger = progress_logger;
+        progress_logger->startProgress(0, progress.end, "Reading the spectra of the PSMs...");
+      }
+      // one file at a time
+      for (Size f = 0; f < files.size(); ++f)
+      {
+        if (!wanted[f].empty()) readSpectraOfFile(files[f].path, wanted[f], stored_spectra, read_spectra[f], progress);
+      }
+      if (progress.logger != nullptr) progress_logger->endProgress();
+    }
+    assignSpectra();
+  }
+
+  void ProSEResultSet::collectSpectraOfFile(Size f, const std::string& path, Size ms2_spectra, const PeptideIdentificationList& ids,
+                                            const ProgressLogger* progress_logger)
+  {
+    if (read_spectra.size() <= f) read_spectra.resize(f + 1);
     if (!keep_spectra) return;
-
-    // The rows to keep the spectra of, by file and native ID: those whose q-value passes FDR:PSM, decoys too; all rows
-    // without q-values, and with FDR:PSM 0 (no filter)
-    std::vector<std::unordered_map<std::string, WantedSpectrum>> wanted(files.size());
-    for (Size r = 0; r < rows.size(); ++r)
+    const ScoreKeys keys;
+    std::unordered_set<std::string> wanted;
+    for (const PsmRow& row : psmRows(ids))
     {
-      const PeptideIdentification& id = ids[rows[r].id];
-      const double q = qValue(id, *rows[r].hit, keys);
-      if (!std::isnan(q) && psm_fdr > 0.0 && q > psm_fdr) continue;
-      const Size f = psmFile(id, keys);
-      if (f < files.size()) wanted[f][id.getSpectrumReference()].rows.push_back(r);
+      if (keepsSpectrum(ids[row.id], *row.hit, keys, psm_fdr)) wanted.insert(ids[row.id].getSpectrumReference());
     }
-
-    // A progress step over the MS2 spectra of the files read (as many as their searches counted)
+    if (wanted.empty()) return;
     CollectionProgress progress;
-    bool any_wanted = false;
-    for (Size f = 0; f < files.size(); ++f)
-    {
-      if (wanted[f].empty()) continue;
-      any_wanted = true;
-      progress.end += static_cast<SignedSize>(files[f].stats.ms2_spectra);
-    }
-    if (!any_wanted) return;
+    progress.end = static_cast<SignedSize>(ms2_spectra);
     if (progress_logger != nullptr)
     {
       progress.logger = progress_logger;
       progress_logger->startProgress(0, progress.end, "Reading the spectra of the PSMs...");
     }
+    readSpectraOfFile(path, wanted, stored_spectra, read_spectra[f], progress);
+    if (progress_logger != nullptr) progress_logger->endProgress();
+  }
 
-    // One file at a time, streamed: only the spectra kept stay in memory, and only they are sorted (by the consumer).
-    // (Not setSkipChromatograms(): MzMLHandler then skips the contents of the spectra, too.)
-    PeakFileOptions options;
-    options.setMSLevels({2});
-    options.setSortSpectraByMZ(false);
-    bool repeated_native_ids = false;
-    for (Size f = 0; f < files.size(); ++f)
+  void ProSEResultSet::assignSpectra()
+  {
+    ProSEStoredSpectra& stored = stored_spectra;
+    const ScoreKeys keys;
+    const PeptideIdentificationList& ids = merged.peptide_ids;
+    const std::vector<PsmRow> rows = psmRows(ids);
+    stored.psm_spectrum.assign(rows.size(), -1);
+    if (keep_spectra)
     {
-      if (wanted[f].empty()) continue;
-      MzMLFile mzml;
-      mzml.setOptions(options);
-      IdentifiedSpectraConsumer consumer(wanted[f], stored, progress);
-      try
-      {
-        mzml.transform(files[f].path, &consumer, true, true); // one pass: no counts, no metadata
-      }
-      catch (const Exception::BaseException& e) // the file was searched, but cannot be read again: its PSMs have none
-      {
-        OPENMS_LOG_WARN << "ProSE: cannot read the spectra of the PSMs of '" << files[f].path << "' again (" << e.what()
-                        << "); the PSMs whose spectra were not read have none." << std::endl;
-      }
       // The spectrum of each row. A native ID that the file has more than once: the spectrum at the RT of the PSM (both
       // RTs as MzMLHandler read them); none if none or several are there.
-      for (const auto& [native_id, w] : wanted[f])
+      for (Size r = 0; r < rows.size(); ++r)
       {
-        if (w.spectra.size() == 1)
+        const PeptideIdentification& id = ids[rows[r].id];
+        if (!keepsSpectrum(id, *rows[r].hit, keys, psm_fdr)) continue;
+        const Size f = psmFile(id, keys);
+        if (f >= read_spectra.size()) continue;
+        const auto it = read_spectra[f].find(id.getSpectrumReference());
+        if (it == read_spectra[f].end()) continue;
+        const std::vector<std::pair<int32_t, double>>& spectra = it->second;
+        if (spectra.size() == 1)
         {
-          for (const Size r : w.rows) stored.psm_spectrum[r] = w.spectra[0].first;
+          stored.psm_spectrum[r] = spectra[0].first;
           continue;
         }
-        repeated_native_ids = repeated_native_ids || w.spectra.size() > 1;
-        for (const Size r : w.rows)
+        int32_t match = -1;
+        Size matches = 0;
+        for (const auto& [k, rt] : spectra)
         {
-          const PeptideIdentification& id = ids[rows[r].id];
-          int32_t match = -1;
-          Size matches = 0;
-          for (const auto& [k, rt] : w.spectra)
+          if (id.hasRT() && std::fabs(rt - id.getRT()) <= 1e-6)
           {
-            if (id.hasRT() && std::fabs(rt - id.getRT()) <= 1e-6)
-            {
-              match = k;
-              ++matches;
-            }
+            match = k;
+            ++matches;
           }
-          stored.psm_spectrum[r] = matches == 1 ? match : -1;
         }
+        stored.psm_spectrum[r] = matches == 1 ? match : -1;
       }
-      wanted[f].clear();
     }
-    if (repeated_native_ids) dropUnreferencedSpectra(stored);
+    // spectra of a native ID that a file has more than once, and those of PSMs that the pooling removed (file by file)
+    dropUnreferencedSpectra(stored);
     stored.mz.shrink_to_fit();
     stored.intensity.shrink_to_fit();
-    if (progress_logger != nullptr) progress_logger->endProgress();
+    read_spectra.clear();
+    read_spectra.shrink_to_fit();
   }
 
   JS::StoredSpectra ProSEResultSet::spectra() const

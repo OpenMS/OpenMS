@@ -11,7 +11,9 @@
 // one without. Each scenario loads the module on the page or in a Web Worker and checks:
 // that it starts (a threaded module with a fixed worker pool would hang on a page that is
 // not isolated), the threads it reports, and the results of feature finding and a database
-// search. --benchmark adds a larger search at 1, 2 and 4 threads and prints the timings.
+// search; some also search two files with searchFiles() file by file (provideFile, in a Web Worker with
+// FileReaderSync), which has to give the results of the search with both files there, or 12 files at once.
+// --benchmark adds a larger search at 1, 2 and 4 threads and prints the timings.
 //
 // Environment: PLAYWRIGHT_MODULE  the playwright or playwright-core package (path or name;
 //                                 default: playwright)
@@ -75,13 +77,13 @@ function serve(isolated) {
 const expectedPeptides = ["DFASSGGYVLHLHR", "IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK", "RPGADSDIGGFGGLFDLAQAGFR"];
 
 const scenarios = [
-  { isolated: false, host: "worker", numThreads: 4 },
+  { isolated: false, host: "worker", numThreads: 4, files: true },
   { isolated: false, host: "window" },
-  { isolated: true, host: "worker" },
+  { isolated: true, host: "worker", files: true },
   { isolated: true, host: "worker", numThreads: 1 },
-  { isolated: true, host: "window", numThreads: 2 },
+  { isolated: true, host: "window", numThreads: 2, files: true },
 ];
-if (withThreads) scenarios.push({ isolated: true, host: "worker", numThreads: 4 });
+if (withThreads) scenarios.push({ isolated: true, host: "worker", numThreads: 4, manyFiles: 12 });
 if (benchmark) {
   for (const n of withThreads ? [1, 2, 4] : [1]) {
     scenarios.push({ isolated: true, host: "worker", numThreads: n, benchmark: true });
@@ -111,7 +113,8 @@ console.log(`${packageName}${assembled ? " (assembled, loader)" : ""} in ${brows
 let failures = 0;
 let reference;
 for (const s of scenarios) {
-  const name = `${s.isolated ? "isolated" : "not isolated"}, ${s.host}, numThreads ${s.numThreads ?? "default"}${s.benchmark ? ", benchmark" : ""}`;
+  const name = `${s.isolated ? "isolated" : "not isolated"}, ${s.host}, numThreads ${s.numThreads ?? "default"}${s.files ? ", files" : ""}` +
+    `${s.manyFiles ? `, ${s.manyFiles} files` : ""}${s.benchmark ? ", benchmark" : ""}`;
   const problems = [];
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -119,6 +122,8 @@ for (const s of scenarios) {
   const query = new URLSearchParams({ module: assembled ? "/pkg/index.mjs" : "/pkg/openms.mjs", host: s.host });
   if (s.numThreads) query.set("numThreads", s.numThreads);
   if (s.benchmark) query.set("benchmark", "1");
+  if (s.files) query.set("fileByFile", "1");
+  if (s.manyFiles) query.set("manyFiles", s.manyFiles);
   const port = servers[s.isolated].address().port;
   let outcome;
   try {
@@ -154,6 +159,16 @@ for (const s of scenarios) {
     if (!r.prose.progressLabels.includes("Building fragment index...")) {
       problems.push(`ProSE progress: ${JSON.stringify(r.prose.progressLabels)}`);
     }
+    if (s.files) {
+      const f = r.files;
+      if (!f || f.psms === 0 || !f.equal) problems.push(`searchFiles file by file: ${JSON.stringify(f)} (results equal to those with all files there: ${f?.equal})`);
+      if (f && JSON.stringify(f.calls) !== JSON.stringify(["provide 0", "release 0", "provide 1", "release 1"])) problems.push(`searchFiles file by file: calls ${JSON.stringify(f.calls)}`);
+      if (f && f.left.length) problems.push(`searchFiles file by file: files left ${JSON.stringify(f.left)}`);
+      if (f && f.fileReaderSync !== (s.host === "worker")) problems.push(`searchFiles file by file: FileReaderSync ${f.fileReaderSync} on the ${s.host}`);
+    }
+    if (s.manyFiles && (r.manyFiles?.files !== s.manyFiles || !(r.manyFiles.psms > 0))) {
+      problems.push(`searchFiles of ${s.manyFiles} files: ${JSON.stringify(r.manyFiles)}`);
+    }
     // in a Web Worker, OpenMS must not block the page (the window host blocks it by design)
     if (s.host === "worker" && outcome.maxStallMs > 500) problems.push(`page blocked for ${outcome.maxStallMs} ms`);
   }
@@ -161,6 +176,8 @@ for (const s of scenarios) {
   failures += problems.length ? 1 : 0;
   const t = r?.timings ?? {};
   const details = r ? `threads ${r.info.numThreads}; start ${t.start} ms, features ${t.featureFinding} ms, search ${t.search} ms, ProSE ${t.prose} ms` +
+    (r.files ? `, searchFiles file by file ${t.files} ms (${r.files.psms} PSMs)` : "") +
+    (r.manyFiles ? `, searchFiles of ${r.manyFiles.files} files ${t.manyFiles} ms (${r.manyFiles.psms} PSMs)` : "") +
     (r.benchmark ? `, benchmark search ${t.benchmarkSearch} ms (${r.benchmark.psms} PSMs)` : "") +
     `; page blocked at most ${outcome.maxStallMs} ms` : "";
   console.log(`${problems.length ? "FAIL" : "ok  "} ${name}: ${details}`);

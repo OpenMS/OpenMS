@@ -20,6 +20,8 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace OpenMS::WASM
@@ -125,15 +127,31 @@ namespace OpenMS::WASM
     /// The pooled results as typed columns (ResultTables; bind_prose_tables.cpp)
     JS::ResultTables tables() const;
 
+    /// The spectra read from the input files, per file and native ID: their index in stored_spectra and their RT (until
+    /// assignSpectra())
+    using SpectraOfFile = std::unordered_map<std::string, std::vector<std::pair<int32_t, double>>>;
+    std::vector<SpectraOfFile> read_spectra;
+
     /// Reads the peaks of the spectra of the PSM rows of tables() from the input files into stored_spectra
     /// (bind_prose_tables.cpp), at the end of searchFiles(), while the files are there. With keep_spectra: the MS2
     /// spectra of the rows whose q-value passes FDR:PSM (all rows without q-values, or with FDR:PSM 0), one per file
     /// and native ID, streamed from one file at a time; otherwise none (every row -1). A native ID that a file has more
     /// than once: the spectrum at the RT of the PSM, none if none or several are there. A file that cannot be read:
-    /// none for its rows (a warning).
+    /// none for its rows (a warning). Then assignSpectra().
     /// @p progress: reports the step "Reading the spectra of the PSMs..." over the MS2 spectra of the files read, if
     /// some row is wanted (null: none)
     void collectSpectra(const ProgressLogger* progress);
+
+    /// A search file by file (searchFiles() with provideFile): reads the spectra of the PSMs @p ids of input file @p f
+    /// (at @p path, @p ms2_spectra MS2 spectra) now, while it is there, as collectSpectra() does after the pooling;
+    /// assignSpectra() gives them to the PSM rows once the files are pooled. @p progress: the step "Reading the spectra of
+    /// the PSMs..." over the MS2 spectra of the file, if some PSM is wanted (null: none)
+    void collectSpectraOfFile(Size f, const std::string& path, Size ms2_spectra, const PeptideIdentificationList& ids,
+                              const ProgressLogger* progress);
+
+    /// Gives each PSM row of tables() its spectrum among those read (collectSpectra(), collectSpectraOfFile()), and
+    /// removes the spectra that no row refers to
+    void assignSpectra();
 
     /// The peaks of the identified spectra (StoredSpectra; bind_prose_tables.cpp), copied into JavaScript arrays.
     /// Throws Exception::Postcondition if they do not have one entry per PSM row.

@@ -837,6 +837,14 @@ Build System:
     Runtime). The progress reports carry the position of the searched file. The library gets the
     public ProSEAlgorithm::pinEnzymeName(), the enzyme name for the enzyme features of Percolator's
     .pin input that ProSE's rescoring passes (unchanged behaviour).
+  - WebAssembly: searchFiles() searches the files one at a time with the options provideFile and
+    releaseFile, which write each file when its search needs it and remove it after it: in a browser
+    only the largest input file has to fit into the module's memory, not all of them. allocateFile(),
+    writeFileChunk() and readFileChunk() write and read files in chunks. FS.writeFile(), FS.write()
+    and FS.read() throw ENOMEM where the module's memory cannot hold their buffer (Emscripten's wrote
+    from address 0 then), and FS.write() copies in one piece. ProSE joins the thread that reads the
+    next spectrum file instead of detaching it: in a browser, a search of more than six files with 4
+    threads waited for a Web Worker forever.
   - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
     directly); Node.js mounts host directories with mountHostDirectory() (working around
     emscripten#27825). The demo applications

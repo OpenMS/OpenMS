@@ -246,7 +246,11 @@ picked-protein FDR. It returns a `ProSEResultSet`, which hands the results over 
 
 ```ts
 searchFiles(files: string[], database: string, options?: ProSEFilesOptions): ProSEResultSet;
-type ProSEFilesOptions = { rescore?: boolean; keepSpectra?: boolean; removeDecoys?: boolean } | null | undefined;
+type ProSEFilesOptions = {
+  rescore?: boolean; keepSpectra?: boolean; removeDecoys?: boolean;
+  provideFile?: ((i: number, path: string) => void) | null;   // file by file (below)
+  releaseFile?: ((i: number, path: string) => void) | null;
+} | null | undefined;
 interface ProSEResultSet {
   summary(): ProSEMultiSummary;       // per file: counts and Percolator's outcome; pooled: FDR levels, flags, modification analysis
   tables(): ResultTables;             // PSMs, peptides and proteins as columns
@@ -279,6 +283,86 @@ type ProSEFileSummary = {
 - Percolator needs decoys and 100 PSMs per file. If it rescored only some of the files, their
   scores cannot be pooled with the others', and `searchFiles()` throws (`InvalidParameter`, naming the
   files that were not rescored): search with `{ rescore: false }`, or leave those files out.
+
+- `provideFile` and `releaseFile`: search the files one at a time, each while it is there (below).
+
+**Inputs larger than the memory: file by file.** The input files are searched while they are in the
+module's file system, which in a browser keeps them in the module's memory (4 GB at most, and
+WebAssembly memory never shrinks): with all files written first, two files of 733 MB already take
+the heap to 3.9 GB. With `provideFile`, `searchFiles()` searches the files one at a time:
+
+1. `provideFile(i, path)` writes file `i` (its position in `files`) at `path`, e.g. from the user's
+   `File` with `allocateFile()` and `writeFileChunk()` (above). It is called synchronously from the
+   search, so in a browser it reads the `File` with `FileReaderSync`: run the module in a Web Worker
+   (as recommended anyway).
+2. The file is searched on its own, and the spectra of its PSMs are read for `spectra()`.
+3. `releaseFile(i, path)` removes it, e.g. with `OpenMS.FS.unlink(path)`.
+
+```js
+// in a Web Worker: files are the user's File objects (from the page), the database is written already
+const paths = files.map((f, i) => `/input/${i}/${f.name}`);   // distinct paths, as always
+const chunk = 16 << 20, reader = new FileReaderSync();
+const set = prose.searchFiles(paths, "/input/database.fasta", {
+  provideFile: (i, path) => {
+    OpenMS.FS.mkdirTree(path.slice(0, path.lastIndexOf("/")));
+    OpenMS.allocateFile(path, files[i].size);
+    for (let at = 0; at < files[i].size; at += chunk) {
+      OpenMS.writeFileChunk(path, new Uint8Array(reader.readAsArrayBuffer(files[i].slice(at, at + chunk))), at);
+    }
+  },
+  releaseFile: (i, path) => { try { OpenMS.FS.unlink(path); } catch { /* not written */ } },
+});
+```
+
+Then the results of all files are pooled as without `provideFile`. Only the largest file has to fit
+into the memory, next to the results. The results are the same as with all files there (the tests
+compare them, also for open searches). What differs:
+
+- The fragment index is built for each file (from its spectra), instead of once for all files, and
+  the next file is not read while one is searched: in Chrome with 4 threads, 13.9 s instead of 14.5 s
+  for one file of 733 MB (plus 1.2 s to write it), and about 13 s for each further file.
+- Progress: each file has its step "Searching <name> (i of n)..." as before, with `file` = i - 1 for it
+  and everything in it, writing and removing the file included; "Reading the spectra of the PSMs..."
+  comes in the step of each file (depth 1, with its `file`), not once after the files.
+- What `provideFile` or `releaseFile` throws ends the search: `searchFiles()` throws an `Error` naming
+  the function, the file and its message (`SearchFilesError: searchFiles(): provideFile(1, '/input/1/run.mzML')
+  threw: ...`). `releaseFile` is also called for the file whose writing or search failed (what it throws
+  then is ignored), so a `releaseFile` that removes the file if it is there cleans up in every case.
+- `ProSEResultSet._debugSetNativeId()` reads the input files again, which are gone.
+
+Without `provideFile`, all files have to be there for the whole call: in Node.js, mount their directory
+(`mountHostDirectory()`, no copy); in a browser, write them first, which is fine for a total well below
+the memory (a few hundred MB).
+
+Measured in Chromium 141 (Playwright), 4 threads, a closed search with Percolator of copies of a 733 MB
+mzML file (48824 MS2 spectra, 10011 target PSMs each); heap is `getMemoryInfo().heapSize` after the search,
+the time that of `searchFiles()` without writing the files:
+
+| Inputs | All files written first | File by file |
+|---|---|---|
+| 1 × 733 MB | 2393 MB, 14.5 s | 2153 MB, 13.9 s (+ 1.2 s writing) |
+| 2 × 733 MB | 3969 MB¹, 23.6 s | 2269 MB, 27.0 s (+ 2.4 s) |
+| 4 × 733 MB | does not fit | 2485 MB, 52.9 s (+ 5.1 s) |
+| 12 × 733 MB | does not fit | 2969 MB, 163 s (+ 12 s) |
+
+¹ written with `FS.write()` in chunks of 16 MB, by which a file grows by doubling (`allocateFile()` first
+avoids that).
+
+The heap still grows with the number of files, by about 70 MB per file of this size (110 MB for the
+second): part of it are the results (the PSMs and the peaks of their spectra), the rest is memory the
+allocator (mimalloc, with threads) does not reuse. With many small files it is more: 12 files of 78 MB
+took the heap from 715 to 2959 MB. A file of the memory file system has less than 2 GiB.
+
+**Exporting idXML.** `storeIdXML(path)` writes into the memory file system as well, where the file
+grows by doubling and briefly takes up to three times its size. Hand it over in chunks and remove it:
+
+```js
+set.storeIdXML("/output/merged.idXML");
+const size = OpenMS.FS.stat("/output/merged.idXML").size, parts = [];
+for (let at = 0; at < size; at += 16 << 20) parts.push(OpenMS.readFileChunk("/output/merged.idXML", at, 16 << 20));
+OpenMS.FS.unlink("/output/merged.idXML");
+const blob = new Blob(parts, { type: "application/xml" });
+```
 
 Call `delete()` on the result set when done: its results, among them the heap copy of the peaks,
 stay in the module's memory until then, and WebAssembly memory never shrinks.

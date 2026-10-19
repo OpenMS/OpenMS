@@ -134,7 +134,12 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "rescore?: boolean; "
     "/** keep the peaks of the identified spectra with the results (default true) */ keepSpectra?: boolean; "
     "/** with the protein FDR, remove the decoy PSMs and proteins from the pooled results, as the ProSE tool's -out_merged "
-    "does (default false: keep those that pass) */ removeDecoys?: boolean } | null | undefined");
+    "does (default false: keep those that pass) */ removeDecoys?: boolean; "
+    "/** search the files one at a time: called before the search of file i (its position in files) to write it at path, "
+    "e.g. with allocateFile() and writeFileChunk(); only the largest file then has to fit into the module's memory */ "
+    "provideFile?: ((i: number, path: string) => void) | null; "
+    "/** with provideFile: called after the search of file i (and after reading the spectra of its PSMs), to remove it */ "
+    "releaseFile?: ((i: number, path: string) => void) | null } | null | undefined");
   register_type<ProSEFileSummary>("ProSEFileSummary",
     "{ path: string; status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
     "ms2Spectra: number; targetPSMs: number; decoyPSMs: number; "

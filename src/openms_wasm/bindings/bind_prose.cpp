@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/config.h>
 
@@ -162,6 +163,15 @@ namespace OpenMS::WASM
         steps_.clear();
         file_ = -1;
         current_ = 0;
+        nested_file_steps_hidden_ = false;
+      }
+
+      /// Whether a step of an input file ("Searching <name> (<i> of <n>)...") inside another step is left out of the
+      /// reports, with its nested steps reported one level up: searchFiles() with provideFile searches each file on its
+      /// own, inside a step of its own for the file, and the search of one file reports its step "(1 of 1)" again.
+      void hideNestedFileSteps(bool hide) const
+      {
+        nested_file_steps_hidden_ = hide;
       }
 
       // ProgressLogger's depth is not used: it is static and shared by all threads.
@@ -169,9 +179,16 @@ namespace OpenMS::WASM
       {
         if (!isOwner_()) return;
         if (!steps_.empty()) steps_.back().value = current_;
-        Step step{label, begin, end, begin, false};
+        Step step{label, begin, end, begin, false, false};
         if (const auto file = fileOfProgressStep(label))
         {
+          if (nested_file_steps_hidden_ && !steps_.empty())
+          {
+            step.hidden = true;
+            steps_.push_back(std::move(step));
+            current_ = begin;
+            return;
+          }
           file_ = file->first;
           step.last_file = file->second;
         }
@@ -181,14 +198,15 @@ namespace OpenMS::WASM
         }
         steps_.push_back(std::move(step));
         current_ = begin;
-        report_("start", steps_.back(), steps_.size() - 1, begin);
+        report_("start", steps_.back(), visibleSteps_(steps_.size() - 1), begin);
       }
 
       void setProgress(const SignedSize value, const int /*depth*/) const override
       {
         if (!isOwner_() || steps_.empty()) return;
         current_ = value;
-        report_("progress", steps_.back(), steps_.size() - 1, value);
+        if (steps_.back().hidden) return;
+        report_("progress", steps_.back(), visibleSteps_(steps_.size() - 1), value);
       }
 
       SignedSize nextProgress() const override
@@ -202,7 +220,8 @@ namespace OpenMS::WASM
         const Step step = std::move(steps_.back());
         steps_.pop_back();
         if (!steps_.empty()) current_ = steps_.back().value;
-        report_("end", step, steps_.size(), step.end);
+        if (step.hidden) return;
+        report_("end", step, visibleSteps_(steps_.size()), step.end);
         if (step.last_file) file_ = -1; // after the search of the files
       }
 
@@ -214,7 +233,14 @@ namespace OpenMS::WASM
         SignedSize begin, end;
         SignedSize value;   ///< the progress when a step inside it started
         bool last_file;     ///< the step of the last input file
+        bool hidden;        ///< not reported (hideNestedFileSteps())
       };
+
+      /// The steps of the first @p n open steps that are reported: the nesting depth of step n
+      Size visibleSteps_(Size n) const
+      {
+        return static_cast<Size>(std::count_if(steps_.begin(), steps_.begin() + n, [](const Step& s) { return !s.hidden; }));
+      }
 
       bool isOwner_() const
       {
@@ -243,6 +269,7 @@ namespace OpenMS::WASM
       /// the open steps of the owner thread, innermost last (only that thread changes them)
       mutable std::vector<Step> steps_;
       mutable int file_ = -1;
+      mutable bool nested_file_steps_hidden_ = false;
     };
 
     /// Sets the function that receives the progress reports of @p algo (null or undefined: none).
@@ -269,6 +296,26 @@ namespace OpenMS::WASM
       const auto it = jsProgressLoggers().find(&logger);
       if (it != jsProgressLoggers().end()) it->second->reset();
     }
+
+    /// Leaves the nested steps of input files out of the progress reports of @p logger (if it reports to JavaScript)
+    /// while it lives (JSProgressLogger::hideNestedFileSteps())
+    class HiddenNestedFileSteps
+    {
+    public:
+      explicit HiddenNestedFileSteps(const ProgressLogger& logger) : logger_(logger) { set_(true); }
+      ~HiddenNestedFileSteps() { set_(false); }
+      HiddenNestedFileSteps(const HiddenNestedFileSteps&) = delete;
+      HiddenNestedFileSteps& operator=(const HiddenNestedFileSteps&) = delete;
+
+    private:
+      void set_(bool hide) const
+      {
+        const std::lock_guard<std::mutex> lock(jsProgressLoggersMutex());
+        const auto it = jsProgressLoggers().find(&logger_);
+        if (it != jsProgressLoggers().end()) it->second->hideNestedFileSteps(hide);
+      }
+      const ProgressLogger& logger_;
+    };
 
     //------------------------------------------------------------------------------
     // Search
@@ -581,13 +628,115 @@ namespace OpenMS::WASM
 
   namespace
   {
+    /// Calls the JavaScript function @p f with (@p index, @p path) and returns what it threw (undefined: nothing).
+    /// A JavaScript exception must not unwind the C++ frames of a search.
+    val callCatching(const val& f, Size index, const std::string& path)
+    {
+      // (not static: a JavaScript value belongs to the thread that made it)
+      const val call = val::global("Function").new_(std::string("f"), std::string("i"), std::string("p"),
+        std::string("try { f(i, p); return undefined; } catch (e) { return e === undefined ? null : e; }"));
+      return call(f, static_cast<double>(index), path);
+    }
+
+    /// The message of a JavaScript value that was thrown
+    std::string thrownMessage(const val& e)
+    {
+      if (e.isNull()) return "undefined";
+      const val message = e["message"];
+      return message.isString() ? message.as<std::string>() : val::global("String")(e).as<std::string>();
+    }
+
+    /// Calls @p f (provideFile or releaseFile, named @p name) for input file @p index at @p path; throws what it threw as
+    /// OpenMS exception (with its message)
+    void callFileFunction(const val& f, const char* name, Size index, const std::string& path)
+    {
+      const val thrown = callCatching(f, index, path);
+      if (thrown.isUndefined()) return;
+      throw Exception::BaseException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "SearchFilesError",
+        std::string("searchFiles(): ") + name + "(" + std::to_string(index) + ", '" + path + "') threw: " + thrownMessage(thrown));
+    }
+
+    /// searchFiles() with provideFile: searches the input files one at a time, each while it is there. provideFile(i,
+    /// path) writes file i before its search; then its search, as a search of that file alone, and the spectra of its
+    /// PSMs are read (ProSEResultSet::collectSpectraOfFile()); then releaseFile(i, path), if given, which removes it.
+    /// Returns the results as the multi-file search does (one per file, and for an open search of several files the
+    /// modification analysis of their pooled PSMs).
+    ProSEAlgorithm::MultiFileSearchResult searchFileByFile(ProSEAlgorithm& algo, const std::vector<std::string>& files,
+                                                           ProSEResultSet& set, const val& provide, const val& release)
+    {
+      ProSEAlgorithm::MultiFileSearchResult combined;
+      // each file is a step of its own, as in the multi-file search: "Searching <name> (i of n)...", in which the
+      // search of the file alone would report "(1 of 1)" again
+      const HiddenNestedFileSteps hidden(algo);
+      for (Size i = 0; i < files.size(); ++i)
+      {
+        algo.startProgress(0, 1, "Searching " + File::basename(files[i]) + " (" + std::to_string(i + 1) + " of "
+                                   + std::to_string(files.size()) + ")...");
+        struct EndProgress
+        {
+          const ProgressLogger& logger;
+          ~EndProgress() { logger.endProgress(); }
+        } const end_file_progress{algo};
+        try
+        {
+          callFileFunction(provide, "provideFile", i, files[i]);
+          ProSEAlgorithm::MultiFileSearchResult one = algo.searchWithModificationAnalysis(std::vector<std::string>{files[i]},
+                                                                                         set.database, {}, "", false);
+          if (one.per_file.size() != 1)
+          {
+            throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProSE returned no result for " + files[i] + ".");
+          }
+          if (i == 0)
+          {
+            combined.decoy_string = one.decoy_string;
+            combined.decoy_is_prefix = one.decoy_is_prefix;
+            combined.have_decoys = one.have_decoys;
+            combined.shared = one.shared;
+          }
+          combined.aggregate.is_open_search = one.aggregate.is_open_search;
+          ProSEAlgorithm::SearchResult& run = one.per_file[0];
+          if (run.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+          {
+            set.collectSpectraOfFile(i, files[i], run.stats.ms2_spectra, run.peptide_ids, &algo);
+          }
+          combined.per_file.push_back(std::move(run));
+        }
+        catch (...)
+        {
+          if (!isNullish(release)) callCatching(release, i, files[i]); // what it throws is lost: the first error counts
+          throw;
+        }
+        if (!isNullish(release)) callFileFunction(release, "releaseFile", i, files[i]);
+      }
+      // the modification analysis of the pooled PSMs of an open search, as the multi-file search does (with the
+      // tolerance it takes: the tighter positive side of the precursor window)
+      if (combined.aggregate.is_open_search && files.size() > 1)
+      {
+        PeptideIdentificationList pooled;
+        for (const ProSEAlgorithm::SearchResult& run : combined.per_file)
+        {
+          if (run.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK) pooled.insert(pooled.end(), run.peptide_ids.begin(), run.peptide_ids.end());
+        }
+        if (!pooled.empty())
+        {
+          const Param& p = algo.getParameters();
+          const double lower = p.getValue("precursor:mass_tolerance_lower"), upper = p.getValue("precursor:mass_tolerance_upper");
+          const double tolerance = lower <= 0.0 ? upper : upper <= 0.0 ? lower : std::min(lower, upper);
+          combined.aggregate.modification_analysis = OpenSearchModificationAnalysis().analyzeModificationsWithStatistics(
+            pooled, tolerance, p.getValue("precursor:mass_tolerance_unit").toString() == "ppm", false, "");
+        }
+      }
+      return combined;
+    }
+
     /// Searches the spectra of @p files (mzML) against the proteins of @p database_path (FASTA) as the ProSE tool does
     /// with -out_merged: one search of all files, which by default (parameter 'rescore') rescores the PSMs of each file
     /// with Percolator before its FDR:PSM; then the PSMs of all files are pooled for the protein inference and, with
     /// FDR:protein and decoys, the picked-protein FDR (ProSEAlgorithm::mergeFileResults()). Options: {rescore} sets the
     /// parameter 'rescore' for the call; {removeDecoys} (default false) removes the decoys after the protein FDR, as
     /// the tool does; {keepSpectra} (default true) keeps the peaks of the identified spectra, which are read from the
-    /// files at the end (ProSEResultSet::collectSpectra()).
+    /// files at the end (ProSEResultSet::collectSpectra()). With {provideFile}, the files are searched one at a time,
+    /// each while it is there (searchFileByFile()): only the largest input file has to fit into the module's memory.
     std::unique_ptr<ProSEResultSet> proseSearchFilesWithOptions(ProSEAlgorithm& algo, const JS::StringArray& files_js,
                                                                 const std::string& database_path,
                                                                 const JS::ProSEFilesOptions& options)
@@ -618,6 +767,22 @@ namespace OpenMS::WASM
       const val remove_decoys_option = option(options, "removeDecoys");
       const val keep_spectra_option = option(options, "keepSpectra");
       const bool remove_decoys = !isNullish(remove_decoys_option) && remove_decoys_option.as<bool>();
+      const val provide = option(options, "provideFile");
+      const val release = option(options, "releaseFile");
+      for (const auto& [name, f] : {std::pair<const char*, const val&>{"provideFile", provide}, {"releaseFile", release}})
+      {
+        if (!isNullish(f) && f.typeOf().as<std::string>() != "function")
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           std::string("The option ") + name + " has to be a function (or null).");
+        }
+      }
+      const bool file_by_file = !isNullish(provide);
+      if (!file_by_file && !isNullish(release))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "The option releaseFile needs provideFile (the search of one file at a time).");
+      }
 
       resetProgress(algo);
       auto set = std::make_unique<ProSEResultSet>();
@@ -631,7 +796,9 @@ namespace OpenMS::WASM
       set->rescore = rescore_override.rescore();
       // No pooled copy of the PSMs (build_pooled_aggregate false): mergeFileResults() pools them by moving them out of
       // the results of the files. An open search still analyses the modifications of the pooled PSMs.
-      ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, set->database, {}, "", false);
+      ProSEAlgorithm::MultiFileSearchResult result = file_by_file
+        ? searchFileByFile(algo, files, *set, provide, release)
+        : algo.searchWithModificationAnalysis(files, set->database, {}, "", false);
       if (result.per_file.size() != files.size())
       {
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProSE returned no result for some input files.");
@@ -717,8 +884,16 @@ namespace OpenMS::WASM
           "scores of the others (not rescored: " + not_rescored + "). Search the files with { rescore: false }, or leave "
           "out those that could not be rescored.");
       }
-      // the peaks of the identified spectra (spectra()), read now, while the input files are there
-      set->collectSpectra(&algo);
+      // the peaks of the identified spectra (spectra()): read now, while the input files are there, or, file by file,
+      // read while each file was there
+      if (file_by_file)
+      {
+        set->assignSpectra();
+      }
+      else
+      {
+        set->collectSpectra(&algo);
+      }
       return set;
     }
 
