@@ -91,30 +91,52 @@ namespace OpenMS::WASM
   }
 
   //------------------------------------------------------------------------------
-  // Integers of pointer size: numbers in JavaScript
+  // Integers: numbers in JavaScript, and checked arguments
   //
   // Embind passes a 64-bit integer as BigInt. long and unsigned long (size_t, ptrdiff_t, ssize_t: Size,
   // SignedSize) are 64 bits in the wasm64 build and 32 bits in wasm32, so the guards below take and return
   // them as double in both builds: the JavaScript API and openms.d.ts are the same (number), and a result
-  // is exact up to 2^53. An argument has to be an integer within the range of its type (and of 2^53),
-  // else the call throws InvalidValue. (int64_t and uint64_t are long long in both builds and BigInt in
-  // both.) The build checks that long and unsigned long cross nowhere else, e.g. as value of a val
+  // is exact up to 2^53. Integer arguments (these and int, unsigned, short, char: Int, UInt, ...) are taken
+  // as double as well, where Embind would truncate the number silently: an argument has to be an integer
+  // within the range of its type (and of 2^53), else the call throws InvalidValue. (int64_t and uint64_t
+  // are long long in both builds and BigInt in both.) The build checks that long and unsigned long cross nowhere else, e.g. as value of a val
   // (OPENMS_WASM_CHECK_INTEGERS, src/openms_wasm/CMakeLists.txt).
 
   /// Whether @p T is long or unsigned long, which Embind passes as BigInt in the wasm64 build
   template <typename T>
   inline constexpr bool isPointerSizedInteger = std::is_same_v<T, long> || std::is_same_v<T, unsigned long>;
 
+  /// Whether @p T is an integer type whose arguments are checked: the ones Embind passes as number (in wasm64 after
+  /// the conversion of long and unsigned long), i.e. not bool and not long long (BigInt in both builds). Embind
+  /// truncates a number for them (1.5 to 1, -1 to 4294967295 for unsigned, 2^31 to -2^31 for int, NaN to 0).
   template <typename T>
-  inline constexpr bool convertsToNumber = isPointerSizedInteger<std::remove_cv_t<std::remove_reference_t<T>>>;
+  inline constexpr bool isCheckedInteger = isPointerSizedInteger<T> || std::is_same_v<T, int> || std::is_same_v<T, unsigned int>
+    || std::is_same_v<T, short> || std::is_same_v<T, unsigned short> || std::is_same_v<T, char> || std::is_same_v<T, signed char>
+    || std::is_same_v<T, unsigned char>;
 
-  /// The type Embind sees for an argument or result of type @p T: double for long and unsigned long
   template <typename T>
-  using JSFacing = std::conditional_t<convertsToNumber<T>, double, T>;
+  using Plain = std::remove_cv_t<std::remove_reference_t<T>>;
+
+  /// Whether an argument of type @p T is taken as number and checked (integers but long long and bool)
+  template <typename T>
+  inline constexpr bool checksArgument = isCheckedInteger<Plain<T>>;
+
+  /// Whether a result of type @p T is returned as double (long and unsigned long)
+  template <typename T>
+  inline constexpr bool convertsToNumber = isPointerSizedInteger<Plain<T>>;
+
+  /// The type Embind sees for an argument of type @p T: double for the integers checked
+  template <typename T>
+  using JSArgument = std::conditional_t<checksArgument<T>, double, T>;
+
+  /// The type Embind sees for a result of type @p T: double for long and unsigned long
+  template <typename T>
+  using JSResult = std::conditional_t<convertsToNumber<T>, double, T>;
 
   /// The integer of type @p I for the number @p value, an argument of a bound function: InvalidValue unless it
   /// is an integer within the range of @p I and of 2^53 (the safe integers). (The message names no position: a
-  /// function bound as method takes the object as first C++ argument, which JavaScript does not count.)
+  /// function bound as method takes the object as first C++ argument, which JavaScript does not count. Sizes and
+  /// indices, size_t, are "a size or an index", other integers "an integer argument".)
   template <typename I>
   I integerFromJS(double value)
   {
@@ -124,22 +146,22 @@ namespace OpenMS::WASM
     if (!(value >= lowest && value <= highest && std::trunc(value) == value)) // NaN fails
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string(std::is_signed_v<I> ? "an integer argument" : "a size or an index") + " has to be an integer from "
+        std::string(std::is_same_v<I, unsigned long> ? "a size or an index" : "an integer argument") + " has to be an integer from "
         + std::to_string(static_cast<long long>(lowest)) + " to " + std::to_string(static_cast<unsigned long long>(highest)),
         val(value).call<std::string>("toString")); // NaN, Infinity, 1e+21 as JavaScript writes them
     }
     return static_cast<I>(value);
   }
 
-  /// An argument of type @p A, from the value Embind passed (of type JSFacing<A>)
+  /// An argument of type @p A, from the value Embind passed (of type JSArgument<A>)
   template <typename A, typename J>
   decltype(auto) argumentFromJS(J&& value)
   {
-    if constexpr (convertsToNumber<A>)
+    if constexpr (checksArgument<A>)
     {
       static_assert(!std::is_lvalue_reference_v<A> || std::is_const_v<std::remove_reference_t<A>>,
-                    "a non-const reference to an integer of pointer size cannot be bound");
-      return integerFromJS<std::remove_cv_t<std::remove_reference_t<A>>>(value);
+                    "a non-const reference to an integer cannot be bound");
+      return integerFromJS<Plain<A>>(value);
     }
     else
     {
@@ -147,10 +169,10 @@ namespace OpenMS::WASM
     }
   }
 
-  /// Calls @p fn with @p args (of the types JSFacing<A>...) as @p A..., and returns its result (of type @p R) as
-  /// JSFacing<R>
+  /// Calls @p fn with @p args (of the types JSArgument<A>...) as @p A..., and returns its result (of type @p R) as
+  /// JSResult<R>
   template <typename R, typename... A, typename Fn, typename... J>
-  JSFacing<R> callFromJS(Fn&& fn, J&&... args)
+  JSResult<R> callFromJS(Fn&& fn, J&&... args)
   {
     if constexpr (std::is_void_v<R>)
     {
@@ -168,12 +190,12 @@ namespace OpenMS::WASM
 
   /// Whether a call with arguments of the types @p A... checks one (and so can throw)
   template <typename... A>
-  inline constexpr bool checksArguments = (convertsToNumber<A> || ...);
+  inline constexpr bool checksArguments = (checksArgument<A> || ...);
 
   /// Wraps the function (or member function) @p F so that a C++ exception thrown by it
   /// becomes a JavaScript Error. Guard<F>::call has the signature Embind expects: a member
   /// function becomes a free function taking the object as first argument. Integers of
-  /// pointer size are numbers (see above).
+  /// pointer size are numbers, and integer arguments are checked (see above).
   template <auto F, typename = decltype(F)>
   struct Guard;
 
@@ -189,8 +211,8 @@ namespace OpenMS::WASM
   }                                                     \
   throwJSError(message);
 
-/// The call of a guarded function: @p CALL (a lambda) with the arguments args... of the types JSFacing<A>...
-#define OPENMS_WASM_CALL(CALL) callFromJS<R, A...>(CALL, std::forward<JSFacing<A>>(args)...)
+/// The call of a guarded function: @p CALL (a lambda) with the arguments args... of the types JSArgument<A>...
+#define OPENMS_WASM_CALL(CALL) callFromJS<R, A...>(CALL, std::forward<JSArgument<A>>(args)...)
 
 /// The same for a noexcept function: unguarded, unless an argument is checked
 #define OPENMS_WASM_NOEXCEPT_CALL(CALL)                 \
@@ -211,37 +233,37 @@ namespace OpenMS::WASM
   template <auto F, typename R, typename... A>
   struct Guard<F, R (*)(A...)>
   {
-    static JSFacing<R> call(JSFacing<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_FREE)) }
+    static JSResult<R> call(JSArgument<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_FREE)) }
   };
 
   template <auto F, typename R, typename... A>
   struct Guard<F, R (*)(A...) noexcept>
   {
-    static JSFacing<R> call(JSFacing<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_FREE) }
+    static JSResult<R> call(JSArgument<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_FREE) }
   };
 
   template <auto F, typename R, typename C, typename... A>
   struct Guard<F, R (C::*)(A...)>
   {
-    static JSFacing<R> call(C& self, JSFacing<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
+    static JSResult<R> call(C& self, JSArgument<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
   };
 
   template <auto F, typename R, typename C, typename... A>
   struct Guard<F, R (C::*)(A...) const>
   {
-    static JSFacing<R> call(const C& self, JSFacing<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
+    static JSResult<R> call(const C& self, JSArgument<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
   };
 
   template <auto F, typename R, typename C, typename... A>
   struct Guard<F, R (C::*)(A...) noexcept>
   {
-    static JSFacing<R> call(C& self, JSFacing<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
+    static JSResult<R> call(C& self, JSArgument<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
   };
 
   template <auto F, typename R, typename C, typename... A>
   struct Guard<F, R (C::*)(A...) const noexcept>
   {
-    static JSFacing<R> call(const C& self, JSFacing<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
+    static JSResult<R> call(const C& self, JSArgument<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
   };
 
   /// Guard<> for a member function @p F of class @p Self, which may be declared in a (public)
@@ -252,34 +274,34 @@ namespace OpenMS::WASM
   template <typename Self, auto F, typename R, typename C, typename... A>
   struct MethodGuard<Self, F, R (C::*)(A...)>
   {
-    static JSFacing<R> call(Self& self, JSFacing<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
+    static JSResult<R> call(Self& self, JSArgument<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
   };
 
   template <typename Self, auto F, typename R, typename C, typename... A>
   struct MethodGuard<Self, F, R (C::*)(A...) const>
   {
-    static JSFacing<R> call(const Self& self, JSFacing<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
+    static JSResult<R> call(const Self& self, JSArgument<A>... args) { OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL(OPENMS_WASM_MEMBER)) }
   };
 
   template <typename Self, auto F, typename R, typename C, typename... A>
   struct MethodGuard<Self, F, R (C::*)(A...) noexcept>
   {
-    static JSFacing<R> call(Self& self, JSFacing<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
+    static JSResult<R> call(Self& self, JSArgument<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
   };
 
   template <typename Self, auto F, typename R, typename C, typename... A>
   struct MethodGuard<Self, F, R (C::*)(A...) const noexcept>
   {
-    static JSFacing<R> call(const Self& self, JSFacing<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
+    static JSResult<R> call(const Self& self, JSArgument<A>... args) { OPENMS_WASM_NOEXCEPT_CALL(OPENMS_WASM_MEMBER) }
   };
 
   /// A constructor of @p T taking @p A... (for class_::constructor()), guarded like the functions above: a
-  /// C++ exception becomes a JavaScript Error, and integers of pointer size are numbers.
+  /// C++ exception becomes a JavaScript Error, integers of pointer size are numbers, and integer arguments are checked.
   template <typename T, typename... A>
   struct ConstructorGuard
   {
     using R = T*;
-    static T* call(JSFacing<A>... args)
+    static T* call(JSArgument<A>... args)
     {
       OPENMS_WASM_GUARD_CALL(OPENMS_WASM_CALL([](auto&&... a) { return new T(std::forward<decltype(a)>(a)...); }))
     }

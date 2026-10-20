@@ -34,6 +34,23 @@ test("sizes and indices are numbers; an index has to be an integer within range"
   });
 });
 
+test("integer arguments (int, unsigned) have to be integers within range", () => {
+  // Embind would truncate them silently (1.5 to 1, -1 to 4294967295 for unsigned, 2^31 to -2^31 for int, NaN to 0);
+  // the bindings check them (bindings/binding_utils.h)
+  using([OpenMS.AASequence.fromString("PEPTIDEK")], (seq) => {
+    assertClose(assert, seq.getMZ(2), (seq.getMonoWeight(OpenMS.ResidueType.Full, 0) + 2 * 1.007276) / 2, 1e-6, "getMZ(2)");
+    const intArgument = /InvalidValue: the value '.*' was used but is not valid; an integer argument has to be an integer from -2147483648 to 2147483647/;
+    for (const bad of [1.5, 2 ** 31, -(2 ** 31) - 1, NaN, Infinity, undefined]) {
+      assert.throws(() => seq.getMZ(bad), intArgument, `getMZ(${bad}) (int)`);
+    }
+    using([seq.getSubsequence(1, 3)], (sub) => assert.equal(sub.toString(), "EPT"));
+    const unsignedArgument = /an integer argument has to be an integer from 0 to 4294967295/;
+    for (const bad of [-1, 1.5, 2 ** 32, NaN]) {
+      assert.throws(() => seq.getSubsequence(1, bad), unsignedArgument, `getSubsequence(1, ${bad}) (UInt)`);
+    }
+  });
+});
+
 test("AASequence masses", () => {
   using([OpenMS.AASequence.fromString("DFPIANGER")], (seq) => {
     assert.equal(seq.size(), 9);

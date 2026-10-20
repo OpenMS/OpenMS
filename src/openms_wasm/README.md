@@ -865,8 +865,11 @@ The bindings are [Embind](https://emscripten.org/docs/porting/connecting_cpp_and
 declarations in `bindings/bind_<area>.cpp`. Wrap every bound function in `OMS_FN(...)`
 (`bindings/binding_utils.h`; member functions `OMS_METHOD(...)`, constructors that take a size
 `OMS_CONSTRUCTOR(...)`): it turns C++ exceptions into JavaScript errors, and takes and returns
-`size_t` and `ptrdiff_t` (long, unsigned long) as numbers, which the 64-bit build would pass as BigInt;
-an argument that is no integer within range throws `InvalidValue`. Put such an integer into a `val`
+`size_t` and `ptrdiff_t` (long, unsigned long) as numbers, which the 64-bit build would pass as BigInt.
+It checks integer arguments (these and `int`, `unsigned`, `short`, `char`; Embind would truncate 1.5 to
+1, -1 to 4294967295 for an unsigned, 2^31 to -2^31 for an int): one that is no integer within the range
+of its type throws `InvalidValue: the value '1.5' was used but is not valid; an integer argument has to be
+an integer from -2147483648 to 2147483647` (for a `size_t`: "a size or an index"). Put a `size_t` into a `val`
 as `double` (`static_cast<double>(v.size())`): the build checks that none crosses to JavaScript
 otherwise (`OPENMS_WASM_CHECK_INTEGERS`, a compile error with the place), and the test
 `openms_wasm_typescript` that `openms.d.ts` declares no `bigint` and is the same for both builds. Return
