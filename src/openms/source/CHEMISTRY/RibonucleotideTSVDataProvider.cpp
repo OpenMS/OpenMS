@@ -8,6 +8,7 @@
 
 #include <OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <filesystem>
@@ -159,10 +160,10 @@ namespace OpenMS
 
     Size line_count = 1;
     std::string line;
-    std::getline(file, line);
+    TextFile::getLine(file, line);
     while (!line.empty() && line[0] == '#') // skip leading comments
     {
-      std::getline(file, line);
+      TextFile::getLine(file, line);
       ++line_count;
     }
     if (!StringUtils::hasPrefix(line, header)) // additional columns are allowed
@@ -184,7 +185,7 @@ namespace OpenMS
 
     std::vector<RibonucleotideEntry> result;
 
-    while (std::getline(file, line))
+    while (TextFile::getLine(file, line))
     {
       line_count++;
 

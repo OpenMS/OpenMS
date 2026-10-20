@@ -176,6 +176,41 @@ START_SECTION(RibonucleotideTSVDataProvider::loadRibonucleotides())
 END_SECTION
 
 /////////////////////////////////////////////////////////////
+// RibonucleotideTSVDataProvider line-ending regressions
+/////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] RibonucleotideTSVDataProvider accepts platform-independent line endings)
+{
+  for (const std::string& newline : {std::string("\n"), std::string("\r\n"), std::string("\r")})
+  {
+    std::string filename;
+    NEW_TMP_FILE(filename)
+    {
+      // Binary output preserves the requested bytes on Windows too.
+      std::ofstream file(filename, std::ios::binary);
+      file << "# Custom RNA modifications" << newline
+           << "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass\talternatives\tbaseloss_formula" << newline
+           << "LNA adenosine\tLNA-A\t\tA\t\t\tC11H13N5O4\t0\t0\t\tC6H10O5" << newline
+           << "inferred methyladenosine\tAm\t\tA\t\t\tC11H15N5O4\t0\t0\t\t" << newline
+           << "inferred deoxyadenosine\tdA\t\tA\t\t\tC10H13N5O3\t0\t0\t\t-" << newline
+           << "omitted optional fields\tUm\t\tU\t\t\tC10H14N2O6\t0\t0";
+    }
+
+    RibonucleotideTSVDataProvider provider(filename);
+    auto entries = provider.loadRibonucleotides();
+    TEST_EQUAL(entries.size(), 4)
+    if (entries.size() == 4)
+    {
+      TEST_EQUAL(entries[0].ribo->getBaselossFormula(), EmpiricalFormula("C6H10O5"))
+      TEST_EQUAL(entries[1].ribo->getBaselossFormula(), EmpiricalFormula("C6H12O5"))
+      TEST_EQUAL(entries[2].ribo->getBaselossFormula(), EmpiricalFormula("C5H10O4"))
+      TEST_EQUAL(entries[3].ribo->getBaselossFormula(), EmpiricalFormula("C6H12O5"))
+    }
+  }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
 // RibonucleotideDB with InMemoryRibonucleotideDataProvider
 /////////////////////////////////////////////////////////////
 
