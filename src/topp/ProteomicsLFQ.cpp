@@ -181,7 +181,9 @@ would need several times that.
 
 @b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
 FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
-The data is split by CV and processed separately for each voltage group during feature detection.
+The data is split by CV and processed separately for each voltage group: the chromatographic peak width is
+estimated from the mass traces of each CV, untargeted seeds (Seeding:algorithm multiplex or biosaur2) are found
+per CV and extracted at their CV only, and so is every identification.
 Features representing the same analyte detected at different CV values are merged automatically.
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -20,6 +21,8 @@
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <map>
 #include <vector>
@@ -27,6 +30,37 @@
 using namespace std;
 namespace OpenMS
 {
+    namespace
+    {
+        /// The MS1 spectra of each FAIMS compensation voltage, in ascending CV order. In a FAIMS run the CVs alternate
+        /// from one MS1 spectrum to the next, so mass traces and seed features must be found per CV: across CVs a trace
+        /// has a gap at every other spectrum. Empty for data with fewer than two CVs (no FAIMS, or a single CV), which
+        /// is processed as a whole.
+        std::vector<std::pair<double, MSExperiment>> ms1PerCompensationVoltage(const MSExperiment& exp)
+        {
+            std::vector<std::pair<double, MSExperiment>> result;
+            const std::set<double> cvs = FAIMSHelper::getCompensationVoltages(exp);
+            if (cvs.size() < 2) return result;
+            std::map<double, MSExperiment> by_cv;
+            for (const double cv : cvs)
+            {
+                by_cv[cv].getExperimentalSettings() = exp.getExperimentalSettings();
+            }
+            for (const MSSpectrum& s : exp)
+            {
+                if (s.getMSLevel() != 1 || s.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE) continue;
+                auto it = by_cv.find(s.getDriftTime());
+                if (it != by_cv.end()) it->second.addSpectrum(s);
+            }
+            for (auto& [cv, ms1] : by_cv)
+            {
+                ms1.updateRanges();
+                result.emplace_back(cv, std::move(ms1));
+            }
+            return result;
+        }
+    }
+
     std::map<std::string, std::string> DDAWorkflowCommons::mapId2MzMLs(const std::map<std::string, std::string>& m2i)
     {
         std::map<std::string, std::string> idfile2mzfile;
@@ -112,17 +146,30 @@ namespace OpenMS
 
         OPENMS_LOG_DEBUG << "Parameters passed to MassTraceDetection" << mtd_param << std::endl;
 
-        std::vector<MassTrace> m_traces;
-        mt_ext.run(ms_centroided, m_traces, 1000);
-
         std::vector<double> fwhm_1000;
-        for (auto &m : m_traces)
+        const auto add_fwhms = [&fwhm_1000, &mt_ext](MSExperiment& exp, Size max_traces)
         {
-        if (m.getSize() == 0) continue;
-        m.updateMeanMZ();
-        m.updateWeightedMZsd();
-        double fwhm = m.estimateFWHM(false);
-        fwhm_1000.push_back(fwhm);
+            std::vector<MassTrace> m_traces;
+            mt_ext.run(exp, m_traces, max_traces);
+            for (auto &m : m_traces)
+            {
+                if (m.getSize() == 0) continue;
+                m.updateMeanMZ();
+                m.updateWeightedMZsd();
+                fwhm_1000.push_back(m.estimateFWHM(false));
+            }
+        };
+
+        // FAIMS: the traces of each compensation voltage (the 1000 most intense traces in all)
+        auto per_cv = ms1PerCompensationVoltage(ms_centroided);
+        if (per_cv.empty())
+        {
+            add_fwhms(ms_centroided, 1000);
+        }
+        else
+        {
+            const Size per_group = std::max<Size>(1, 1000 / per_cv.size());
+            for (auto& [cv, ms1] : per_cv) add_fwhms(ms1, per_group);
         }
 
         double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
@@ -189,35 +236,62 @@ namespace OpenMS
         double rt_band
     )
     {
-        //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
-        MSExperiment e;
-        for (const auto& s : ms_centroided)
-        { 
-            if (s.getMSLevel() == 1) 
-            {              
-                e.addSpectrum(s);
-            }
-        }
-
         ThresholdMower threshold_mower_filter;
         Param tm = threshold_mower_filter.getParameters();
         tm.setValue("threshold", intensity_threshold); // TODO: derive from data
         threshold_mower_filter.setParameters(tm);
-        threshold_mower_filter.filterPeakMap(e);
 
-        FeatureFinderMultiplexAlgorithm algorithm;
-        Param p = algorithm.getParameters();
-        p.setValue("algorithm:labels", ""); // unlabeled only
-        p.setValue("algorithm:charge", charge_range);
-        p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-        p.setValue("algorithm:rt_band", rt_band); // max shift between isotopic traces
-        p.setValue("algorithm:rt_min", median_fwhm * 0.5);
-        p.setValue("algorithm:spectrum_type", "centroid");
-        algorithm.setParameters(p);
-        //FIXME progress of FFM is not printed at all
-        const bool progress(true);
-        algorithm.run(e, progress);
-        seeds = algorithm.getFeatureMap(); 
+        // Seeds of the MS1 spectra in @p e
+        const auto find_seeds = [&](MSExperiment& e)
+        {
+            threshold_mower_filter.filterPeakMap(e);
+            FeatureFinderMultiplexAlgorithm algorithm;
+            Param p = algorithm.getParameters();
+            p.setValue("algorithm:labels", ""); // unlabeled only
+            p.setValue("algorithm:charge", charge_range);
+            p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
+            p.setValue("algorithm:rt_band", rt_band); // max shift between isotopic traces
+            p.setValue("algorithm:rt_min", median_fwhm * 0.5);
+            p.setValue("algorithm:spectrum_type", "centroid");
+            algorithm.setParameters(p);
+            //FIXME progress of FFM is not printed at all
+            const bool progress(true);
+            algorithm.run(e, progress);
+            return algorithm.getFeatureMap();
+        };
+
+        // FAIMS: seeds per compensation voltage, labelled with it (FeatureFinderIdentificationAlgorithm extracts the
+        // seeds of each CV from the spectra of that CV only; unlabelled seeds would go to every CV)
+        auto per_cv = ms1PerCompensationVoltage(ms_centroided);
+        if (per_cv.empty())
+        {
+            //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
+            MSExperiment e;
+            for (const auto& s : ms_centroided)
+            {
+                if (s.getMSLevel() == 1)
+                {
+                    e.addSpectrum(s);
+                }
+            }
+            seeds = find_seeds(e);
+        }
+        else
+        {
+            seeds = FeatureMap();
+            for (auto& [cv, ms1] : per_cv)
+            {
+                FeatureMap cv_seeds = find_seeds(ms1);
+                for (Feature& f : cv_seeds)
+                {
+                    f.setMetaValue(Constants::UserParam::FAIMS_CV, cv);
+                    seeds.push_back(std::move(f));
+                }
+                OPENMS_LOG_INFO << "FAIMS CV " << cv << " V: " << cv_seeds.size() << " seeds." << std::endl;
+            }
+            seeds.ensureUniqueId();
+            seeds.updateRanges();
+        }
         OPENMS_LOG_INFO << "Using " << StringUtils::toStr(seeds.size()) << " seeds from untargeted feature extraction." << std::endl;
     }
 }
