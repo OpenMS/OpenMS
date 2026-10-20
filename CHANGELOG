@@ -1073,6 +1073,12 @@ Build System:
     system may be up to 16 GiB - 64 MiB (getMemoryInfo().maxFileSize, new in both builds). Its allocator
     is OpenMS' build of Emscripten's mimalloc on dlmalloc (OPENMS_WASM_MALLOC, cmake/emscripten_malloc.cmake),
     as emmalloc cannot allocate a block of 4 GiB or more in wasm64 (emscripten-core/emscripten#28028).
+  - WebAssembly: OpenMS' build of mimalloc is the allocator of the wasm32 builds as well (threaded, with
+    ONNX Runtime, single-threaded; OPENMS_WASM_MALLOC=openms-mimalloc, the default): as fast, 20 to 47% less
+    memory in the ProSE app's searches (Chromium), and the blocks of freed files and indexes are reused
+    (Emscripten's mimalloc let a chunked semi-tryptic search double its heap in one of three runs). An
+    existing build directory keeps the cached OPENMS_WASM_MALLOC; -DOPENMS_WASM_MALLOC=mimalloc selects
+    Emscripten's.
     The JavaScript API is the one of the 32-bit builds: sizes and indices are numbers in both (Embind
     would pass a 64-bit size_t as BigInt); the TypeScript declarations of wasm32 differ from before only
     by MemoryInfo.maxFileSize. The build checks that no size_t crosses to JavaScript and that no integer

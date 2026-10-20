@@ -166,15 +166,16 @@ three times its size. Errors, after which the module stays usable:
   an `offset` and `length` beyond their buffer, and transfer 2 GiB or more (64-bit build) in parts:
   WasmFS returns the count of one transfer as a 32-bit `int`.
 
-**Files one after the other: allocate them with a capacity.** The allocator (mimalloc) does not give the
-block of a removed file to a larger one. Files that come one at a time, each removed before the next,
-therefore grow the heap with each file that is larger than the ones before (0.9, 1.0 and 1.1 GiB took it
-to 1103, 2147 and 3295 MB, and 1.2 GiB did not fit), unless their blocks have the same size.
-`allocateFile(path, size, capacity)` gives the file a block of `capacity` bytes (at least `size`, at most
-`getMemoryInfo().maxFileSize`): allocate each file with the size of the largest as capacity, and every file takes the
-block of the one before (0.9 to 1.4 GiB in increasing order: 1615 MB throughout). Only files allocated
-this way, with the same capacity, reuse the block; the path may be the same or a new one. With a
-capacity the file is created anew: an existing file at `path` is replaced (its contents go).
+**Files one after the other: allocate them with a capacity.** Files that come one at a time, each removed
+before the next, take the heap to about the largest file and some 0.2 GB: OpenMS' allocator gives the block
+of a removed file to a larger one (files of 0.9, 1.0, 1.1, 1.2 and 1.4 GiB in this order: 1070, 1266, 1370,
+1474 and 1678 MB; Emscripten's mimalloc did not: 1103, 2147 and 3295 MB, and 1.2 GiB did not fit).
+`allocateFile(path, size, capacity)` keeps the heap flat: it gives the file a block of `capacity` bytes (at
+least `size`, at most `getMemoryInfo().maxFileSize`); allocate each file with the size of the largest as
+capacity, and every file takes the block of the one before (0.9 to 1.4 GiB in increasing order: 1582 MB
+throughout). Only files allocated this way, with the same capacity, reuse the block; the path may be the
+same or a new one. With a capacity the file is created anew: an existing file at `path` is replaced (its
+contents go).
 
 **Write within the size.** A write that goes past the size of a file makes WasmFS allocate a larger block
 (twice the capacity) inside the file system, which is not guarded: where the memory cannot hold that
@@ -274,22 +275,26 @@ build, 16 threads) on a 60-minute Orbitrap TMT run (6,103 MS2 spectra, 78 MB mzM
 4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64; the
 experimental presets `wasm64-emscripten-mt-release` and `wasm64-emscripten-mt-onnx-release`, see
 "Building") raises the limit to 16 GB (Chrome, Firefox and Node.js; Safari does not support
-Memory64). Measured the same way (October 2026; wasm32 and wasm64 of the same code):
+Memory64). Measured in Chromium 141 the way the ProSE app searches (October 2026: a Web Worker of a
+cross-origin isolated page, `searchFiles()` file by file, 16 threads; wasm32 and wasm64 of the same code):
 
 | Search | wasm32: time, memory | wasm64: time, memory |
 |---|---|---|
-| *Erwinia*, tryptic | 2.2 s, 0.9 GB | 2.5 s, 1.0 GB |
-| human, tryptic | 6.0 s, 1.4 GB | 6.8 s, 1.4 GB |
-| human, semi-tryptic, `database:chunk_size` 2000 | 23 s, 2.1 GB | 25 s, 1.7 GB |
-| human, semi-tryptic, `database:chunk_size` 8000 | does not fit: stops | 35 s, 4.7 GB |
-| human, semi-tryptic | does not fit: stops | 55 s, 8.8 GB |
+| *Erwinia*, tryptic | 3.2 s, 0.67 GB | 3.8 s, 1.0 GB |
+| human, tryptic | 5.9 s, 0.94 GB | 6.7 s, 1.4 GB |
+| human, semi-tryptic, `database:chunk_size` 2000 | 23 s, 1.7 GB | 25 s, 1.8 GB |
+| 3 × *Erwinia* file, tryptic, file by file | 7.8 s, 0.8 GB | 9.3 s, 1.2 GB |
+| human, semi-tryptic, `database:chunk_size` 8000 | does not fit: stops | 35 s, 7.2 GB |
+| human, semi-tryptic | does not fit: stops | 53 s, 8.8 GB |
 
-(Time: the search with Percolator rescoring; memory: `heapSize` after it. Less than in the table above:
-ProSE now restricts the index to the precursor masses of the spectra, e.g. 1.5 M instead of 4.0 M
-peptides of the human tryptic search.) The 64-bit module runs
-the searches that do not fit into 4 GB, with the same results, and is 10 to 15% slower. Its
-allocator is OpenMS' build of mimalloc (`OPENMS_WASM_MALLOC`, see "Building"): with Emscripten's,
-its memory grew several times beyond what the search used (12 GB with `database:chunk_size` 2000).
+(Time: `searchFiles()` with Percolator rescoring, writing the file included; memory: `heapSize` after it.
+Less than in the table above: ProSE now restricts the index to the precursor masses of the spectra, e.g.
+1.5 M instead of 4.0 M peptides of the human tryptic search, and the allocator is OpenMS' build of
+mimalloc, see "Building", which took 20 to 47% less than Emscripten's.) The 64-bit module runs the
+searches that do not fit into 4 GB, with the same results, and is 10 to 20% slower; PeptDeep (`peptdeep:enable`,
+*Erwinia*): 11.1 s and 1.2 GB in wasm32, 12.2 s and 1.3 GB in wasm64. With Emscripten's allocator the
+memory of the 64-bit module grew several times beyond what the search used (12 GB with
+`database:chunk_size` 2000).
 More threads than about
 8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
 the spectra are serial.
@@ -418,26 +423,28 @@ the memory (a few hundred MB).
 
 Measured in Chromium 141 (Playwright), 4 threads, a closed search with Percolator of copies of a 733 MB
 mzML file (48824 MS2 spectra, 10011 target PSMs each); heap is `getMemoryInfo().heapSize` after the search,
-the time that of `searchFiles()` without writing the files:
+the time that of `searchFiles()` with writing the files (file by file: in chunks of 16 MB from a Blob with
+`FileReaderSync`, as the ProSE app). The last two columns are from the module with Emscripten's mimalloc,
+before OpenMS' build of it was the allocator of wasm32:
 
-| Inputs | All files written first | File by file |
-|---|---|---|
-| 1 × 733 MB | 2393 MB², 14.5 s | 2153 MB, 13.9 s (+ 1.2 s writing) |
-| 2 × 733 MB | 3969 MB¹, 23.6 s | 2269 MB, 27.0 s (+ 2.4 s) |
-| 4 × 733 MB | does not fit | 2485 MB, 52.9 s (+ 5.1 s) |
-| 12 × 733 MB | does not fit | 2969 MB, 163 s (+ 12 s) |
+| Inputs | File by file | wasm64, file by file | Before: file by file | Before: all files written first |
+|---|---|---|---|---|
+| 1 × 733 MB | 1672 MB, 15.9 s | 1815 MB, 18.6 s | 2153 MB, 15.1 s | 2393 MB², 14.5 s |
+| 2 × 733 MB | 1856 MB, 30.0 s | 1991 MB, 36.0 s | 2269 MB, 29.4 s | 3969 MB¹, 23.6 s |
+| 4 × 733 MB | 2064 MB, 58.9 s | 2304 MB, 69.9 s | 2485 MB, 58.0 s | does not fit |
+| 12 × 733 MB | 2481 MB, 175 s | | 2969 MB, 175 s | does not fit |
 
 ¹ ² written with `FS.write()` in chunks of 16 MB, by which a file grows by doubling (`allocateFile()` first
 avoids that). ¹ is from a run before this module's `FS.write()`, which copied byte by byte (the same run
-gave 2569 MB and 13.7 s for one file); ² and the file-by-file column are from the module as it is.
+gave 2569 MB and 13.7 s for one file).
 
-The heap still grows with the number of files, by about 70 MB per file of this size (110 MB for the
-second): part of it are the results (the PSMs and the peaks of their spectra), the rest is memory the
-allocator (mimalloc, with threads) does not reuse. With many small files it is more, and it grows with
-the number of threads and with PeptDeep: 12 files of 75 MB, file by file, ended at 3007 MB with 8 threads
-and at 3971 MB with 16 (PeptDeep off), and at 3263 MB with 4 threads, 4079 MB with 8 and the 4 GB limit
-with 16 (PeptDeep on). For searches of many files, use fewer threads (4 kept 12 such files with PeptDeep
-at 3.3 GB). A file has to be smaller than 2 GiB (above; the 64-bit build: 16 GiB).
+The heap still grows with the number of files, by about 75 MB per further file of this size (180 MB for
+the second): part of it are the results (the PSMs and the peaks of their spectra), the rest is memory the
+allocator keeps. With small files it is less: 12 files of 75 MB, file by file, ended at 0.68 GB with 4 and
+8 threads and at 0.82 GB with 16 (one file: 0.47 GB at 4 threads), and with PeptDeep at 0.86, 0.87 and
+1.15 GB (with Emscripten's mimalloc: 3.0 GB with 8 threads and 4.0 GB with 16; with PeptDeep 3.3 GB with 4
+threads, 4.1 GB with 8 and the 4 GB limit with 16). A file has to be smaller than 2 GiB (above; the 64-bit
+build: 16 GiB).
 
 **Exporting idXML.** `storeIdXML(path)` writes into the memory file system as well, where the file
 grows by doubling and briefly takes up to three times its size (not guarded: see "Files in parts"). Hand
@@ -806,15 +813,18 @@ are numbers in both (Embind would pass a 64-bit `size_t` as BigInt; see "Adding 
 `openms.d.ts` is the same. Files of the memory file system may be up to 16 GiB - 64 MiB
 (`getMemoryInfo().maxFileSize`).
 
-The allocator of the 64-bit builds is OpenMS' build of mimalloc (`OPENMS_WASM_MALLOC=openms-mimalloc`,
-`cmake/emscripten_malloc.cmake`): the sources of mimalloc of the Emscripten SDK, compiled with
-`MI_FREE_USE_PAGEMAP`, without the exponential growth of its arenas, and on dlmalloc instead of emmalloc
-(`malloc/dlmalloc_system.c`). In wasm64, Emscripten's (`-sMALLOC=mimalloc`) cannot allocate a block of
-4 GiB or more, as emmalloc below it cannot, which also corrupts free regions of 4 GiB or more
-([emscripten#28028](https://github.com/emscripten-core/emscripten/issues/28028)); and it let the memory
-grow several times beyond what a search used (see the ProSE measurements above). The 32-bit builds keep
-Emscripten's; `-DOPENMS_WASM_MALLOC=openms-mimalloc` gives them OpenMS' as well (as fast in the ProSE
-searches above, with 30 to 45% less memory). The build takes these sources from the Emscripten SDK: the
+The allocator of every build, wasm32 and wasm64, is OpenMS' build of mimalloc
+(`OPENMS_WASM_MALLOC=openms-mimalloc`, `cmake/emscripten_malloc.cmake`): the sources of mimalloc of the
+Emscripten SDK, compiled with `MI_FREE_USE_PAGEMAP`, without the exponential growth of its arenas, and on
+dlmalloc instead of emmalloc (`malloc/dlmalloc_system.c`). In wasm64, Emscripten's (`-sMALLOC=mimalloc`)
+cannot allocate a block of 4 GiB or more, as emmalloc below it cannot, which also corrupts free regions of
+4 GiB or more ([emscripten#28028](https://github.com/emscripten-core/emscripten/issues/28028)); and it let
+the memory grow several times beyond what a search used (see the ProSE measurements above). In wasm32,
+OpenMS' is as fast and takes 20 to 47% less memory (Chromium, the ProSE searches above; single-threaded as
+well), and it reuses the blocks of freed files and indexes, where Emscripten's let a semi-tryptic search
+double its heap in one of three runs (3.9 instead of 1.9 GB). `-DOPENMS_WASM_MALLOC=mimalloc` selects
+Emscripten's; an existing build directory keeps the value in its cache (`-U OPENMS_WASM_MALLOC` gives it the
+default). The build takes these sources from the Emscripten SDK: the
 configuration checks that they are as `cmake/emscripten_malloc.cmake` expects them (where they are, the
 calls of mimalloc to its system allocator, the `emscripten_builtin_*` that `dlmalloc.c` exports, and the
 growth of mimalloc's arenas in `arena.c`), and fails with a hint if a new Emscripten changed them.
