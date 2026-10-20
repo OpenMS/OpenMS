@@ -9,6 +9,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <limits>
 
@@ -89,6 +90,64 @@ START_SECTION(repair missing references from MS2 metadata without reopening a fi
   TEST_EXCEPTION(Exception::MissingInformation, MS1LabeledSpectra::addMissingSpectrumReferences(metadata, ids))
 }
 END_SECTION
+
+START_SECTION(collapseIonMobility sums peaks over ion mobility)
+{
+  // two ions at m/z 500 and 600; the 500 one seen at two ion mobilities, 2 ppm apart in m/z
+  MSSpectrum spectrum;
+  spectrum.setMSLevel(1);
+  spectrum.emplace_back(600.0, 50.0f);
+  spectrum.emplace_back(500.001, 300.0f);
+  spectrum.emplace_back(500.0, 100.0f);
+  spectrum.getFloatDataArrays().resize(1);
+  spectrum.getFloatDataArrays()[0].assign({0.9f, 1.1f, 1.0f});
+  IMDataArrayUtils::setIMUnit(spectrum.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+  spectrum.setIMFormat(IMFormat::IM_PEAK);
+  TEST_TRUE(spectrum.containsIMData())
+
+  MS1LabeledSpectra::collapseIonMobility(spectrum, 5.0);
+  TEST_EQUAL(spectrum.size(), 2)
+  TEST_TRUE(spectrum.getFloatDataArrays().empty())
+  TEST_FALSE(spectrum.containsIMData())
+  TEST_TRUE(IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK)
+  TEST_REAL_SIMILAR(spectrum[0].getMZ(), (500.0 * 100.0 + 500.001 * 300.0) / 400.0)
+  TEST_REAL_SIMILAR(spectrum[0].getIntensity(), 400.0)
+  TEST_REAL_SIMILAR(spectrum[1].getMZ(), 600.0)
+  TEST_REAL_SIMILAR(spectrum[1].getIntensity(), 50.0)
+
+  // without ion mobility data the spectrum is left as it is
+  MSSpectrum plain;
+  plain.emplace_back(500.0, 1.0f);
+  plain.emplace_back(500.0001, 1.0f);
+  MS1LabeledSpectra::collapseIonMobility(plain, 5.0);
+  TEST_EQUAL(plain.size(), 2)
+}
+END_SECTION
+
+#if defined(WITH_OPENTIMS) && defined(OPENTIMS_DDA_TEST_DATA)
+START_SECTION(load Bruker timsTOF DDA: MS1 without ion mobility and MS2 metadata)
+{
+  MSExperiment metadata, ms1;
+  MS1LabeledSpectra::load(OPENTIMS_DDA_TEST_DATA, metadata, ms1, ProgressLogger::NONE);
+  TEST_FALSE(ms1.empty())
+  TEST_TRUE(metadata.size() > ms1.size())
+  for (const auto& spectrum : ms1)
+  {
+    TEST_EQUAL(spectrum.getMSLevel(), 1)
+    TEST_TRUE(spectrum.getFloatDataArrays().empty())
+    TEST_TRUE(spectrum.isSorted())
+  }
+  Size ms2 = 0;
+  for (const auto& spectrum : metadata)
+  {
+    TEST_TRUE(spectrum.empty())
+    TEST_FALSE(spectrum.getNativeID().empty())
+    if (spectrum.getMSLevel() == 2) { ++ms2; }
+  }
+  TEST_TRUE(ms2 > 0)
+}
+END_SECTION
+#endif
 
 #if defined(WITH_THERMO_RAW) && defined(THERMO_RAW_TEST_DATA)
 START_SECTION(load native Thermo RAW and repair references using its MS2 metadata)

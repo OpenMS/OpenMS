@@ -108,8 +108,11 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
 @ref TOPP_FeatureLinkerUnlabeledQT, @ref TOPP_ProteinInference and @ref TOPP_ProteinQuantifier into one run.
 
 <b>Input</b>
-  - Spectra in mzML or Thermo RAW format, one file per LC-MS run (@p in), with unique basenames. Native
-    RAW input requires a build with WITH_THERMO_RAW and a .NET 8+ runtime. MS1 peaks are used for
+  - Spectra in mzML, Thermo RAW or Bruker timsTOF (.d, .d.zip) format, one file per LC-MS run (@p in), with unique
+    basenames. Native RAW input requires a build with WITH_THERMO_RAW and a .NET 8+ runtime, .d input a build with
+    WITH_OPENTIMS. timsTOF MS1 frames are centroided in m/z and ion mobility while loading (as in
+    @ref TOPP_ProteomicsLFQ) and then summed over ion mobility, because the multiplet detection works on m/z and
+    retention time only. MS1 peaks are used for
     quantification; spectrum metadata are also read to recover identification FAIMS CVs. Profile and
     centroided data are both accepted (see @p algorithm:spectrum_type).
   - Identifications (@p ids), one file per spectra file in the same order, already filtered at PSM level
@@ -253,11 +256,15 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(),
-      "Input: spectra files (mzML, or Thermo RAW with WITH_THERMO_RAW and .NET 8+), one per LC-MS run. "
+      "Input: spectra files (mzML, Thermo RAW with WITH_THERMO_RAW and .NET 8+, or Bruker timsTOF .d / .d.zip with "
+      "WITH_OPENTIMS), one per LC-MS run. "
       "Only MS1 peaks are used; profile and centroided data are accepted.");
     setValidFormats_("in", ListUtils::create<std::string>("mzML"
 #ifdef WITH_THERMO_RAW
       ",raw"
+#endif
+#ifdef WITH_OPENTIMS
+      ",d"
 #endif
     ));
 

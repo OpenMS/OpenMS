@@ -33,3 +33,10 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     openms_thermo_bridge_copy_runtime_files(TARGET MS1LabeledSpectra_test)
   endif()
 endif()
+
+# Optional Bruker timsTOF DDA fixture for MS1LabeledSpectra::load(); the test skips without it.
+if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
+  target_compile_definitions(MS1LabeledSpectra_test PRIVATE
+    OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}")
+  set_tests_properties(MS1LabeledSpectra_test PROPERTIES TIMEOUT 1200)
+endif()

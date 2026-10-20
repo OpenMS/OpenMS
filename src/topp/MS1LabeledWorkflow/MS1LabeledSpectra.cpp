@@ -9,6 +9,9 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 #include <algorithm>
 #include <cmath>
 
@@ -19,11 +22,36 @@ void MS1LabeledSpectra::load(const std::string& filename, MSExperiment& metadata
   metadata.clear(true);
   ms1.clear(true);
   FileHandler reader;
-  if (FileHandler::getType(filename) == FileTypes::RAW)
+  const FileTypes::Type type = FileHandler::getType(filename);
+  if (type == FileTypes::RAW || type == FileTypes::BRUKER_TDF)
   {
-    // The Thermo reader decodes all scans even with PeakFileOptions filters. Read once,
+    // The Thermo and Bruker readers decode all scans even with PeakFileOptions filters. Read once,
     // retain peak-free metadata for ID/FAIMS lookup, and discard MSn peaks before quantification.
-    reader.loadExperiment(filename, ms1, {FileTypes::RAW}, log_type);
+    if (type == FileTypes::RAW)
+    {
+      reader.loadExperiment(filename, ms1, {FileTypes::RAW}, log_type);
+    }
+    else
+    {
+#ifdef WITH_OPENTIMS
+      // timsTOF MS1 frames hold one peak per (m/z, ion mobility scan). Centroid them in m/z and ion mobility
+      // as ProteomicsLFQ does (Sage defaults), then sum each m/z over ion mobility: the multiplet detection
+      // works on m/z and RT only.
+      BrukerTimsFile tdf;
+      tdf.setLogType(log_type);
+      BrukerTimsFile::Config config;
+      config.ms1_centroid_mz_ppm = 5.0f;
+      config.ms1_centroid_im_pct = 3.0f;
+      tdf.load(filename, ms1, config);
+      for (MSSpectrum& spectrum : ms1)
+      {
+        if (spectrum.getMSLevel() == 1) { collapseIonMobility(spectrum, 5.0); }
+      }
+#else
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Bruker .d input requires an OpenMS build with OpenTIMS support (WITH_OPENTIMS).", filename);
+#endif
+    }
     static_cast<ExperimentalSettings&>(metadata) = ms1;
     metadata.reserve(ms1.size());
     for (const auto& spectrum : ms1)
@@ -46,6 +74,36 @@ void MS1LabeledSpectra::load(const std::string& filename, MSExperiment& metadata
     reader.getOptions().setMSLevels({1});
     reader.loadExperiment(filename, ms1, {FileTypes::MZML}, log_type);
   }
+}
+
+void MS1LabeledSpectra::collapseIonMobility(MSSpectrum& spectrum, double mz_tolerance_ppm)
+{
+  if (!spectrum.containsIMData()) { return; }
+  spectrum.getFloatDataArrays().clear();
+  spectrum.getStringDataArrays().clear();
+  spectrum.getIntegerDataArrays().clear();
+  spectrum.setIMFormat(IMFormat::NONE);
+  spectrum.setIMPeakType(IMPeakType::UNKNOWN);
+  spectrum.sortByPosition();
+  // merge runs of peaks within the tolerance of the first peak of the run: summed intensity, intensity-weighted m/z
+  Size merged = 0; // merged peaks are written in place: their number never exceeds the number of peaks read
+  for (Size begin = 0; begin < spectrum.size();)
+  {
+    const double first_mz = spectrum[begin].getMZ();
+    const double max_mz = first_mz + first_mz * mz_tolerance_ppm * 1e-6;
+    double intensity = 0.0, weighted_mz = 0.0;
+    Size end = begin;
+    for (; end < spectrum.size() && spectrum[end].getMZ() <= max_mz; ++end)
+    {
+      intensity += spectrum[end].getIntensity();
+      weighted_mz += spectrum[end].getMZ() * spectrum[end].getIntensity();
+    }
+    spectrum[merged].setMZ(intensity > 0.0 ? weighted_mz / intensity : first_mz);
+    spectrum[merged].setIntensity(static_cast<float>(intensity));
+    ++merged;
+    begin = end;
+  }
+  spectrum.resize(merged);
 }
 
 void MS1LabeledSpectra::addMissingSpectrumReferences(const MSExperiment& metadata, PeptideIdentificationList& ids)
