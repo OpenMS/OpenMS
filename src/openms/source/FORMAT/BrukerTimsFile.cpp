@@ -4465,8 +4465,11 @@ namespace OpenMS
             {
               OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
             }
-            for (const auto& [group, frame_ids] : r.dia.group_to_frames)
+            for (const auto& group_and_frames : r.dia.group_to_frames)
             {
+              // named references, not a structured binding: clang cannot capture one in a lambda when OpenMP is enabled
+              const auto& group = group_and_frames.first;
+              const auto& frame_ids = group_and_frames.second;
               auto wit = r.dia.group_to_windows.find(group);
               if (wit == r.dia.group_to_windows.end()) continue;
               const auto add_window = [&](size_t i, const DIAWindow* win)
