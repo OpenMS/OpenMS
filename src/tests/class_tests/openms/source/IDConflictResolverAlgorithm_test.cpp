@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -101,6 +102,77 @@ START_SECTION((resolve with keep_matching and only hitless identifications))
       check_hitless(FeatureMap{}, Feature{}, higher_better, num_ids);
       check_hitless(ConsensusMap{}, ConsensusFeature{}, higher_better, num_ids);
     }
+  }
+}
+END_SECTION
+
+START_SECTION((static void annotateTransfers(ConsensusMap& features)))
+{
+  const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
+
+  // a feature of one run, identified as 'sequence' (none if empty)
+  UInt64 next_uid = 1;
+  const auto make_feature = [&next_uid](const std::string& sequence, double score)
+  {
+    Feature f;
+    f.setUniqueId(next_uid++);
+    f.setRT(100.0);
+    f.setMZ(500.0);
+    if (!sequence.empty())
+    {
+      f.setPeptideIdentifications({makePepID_("scan=" + StringUtils::toStr(next_uid), sequence, 2, score)});
+    }
+    return f;
+  };
+  // group the features of runs 0, 1, 2, ... as a feature linker does (annotates "map_index" of the IDs)
+  const auto link = [](const std::vector<Feature>& features)
+  {
+    ConsensusFeature cf;
+    for (Size map_index = 0; map_index < features.size(); ++map_index)
+    {
+      cf.insert(map_index, features[map_index]);
+    }
+    return cf;
+  };
+
+  ConsensusMap map;
+  for (Size i = 0; i < 3; ++i) { map.getColumnHeaders()[i].filename = "run" + StringUtils::toStr(i); }
+  // 0: unidentified feature of run 1 linked to identified ones -> transferred to run 1
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("", 0.0), make_feature("PEPTIDEK", 0.2)}));
+  // 1: run 1 identified as a different (worse) peptide, run 2 unidentified -> transferred to runs 1 and 2
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("PEPTIDER", 0.5), make_feature("", 0.0)}));
+  // 2: identified in every run -> no transfer
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("PEPTIDEK", 0.2), make_feature("PEPTIDEK", 0.3)}));
+  // 3: not identified at all -> no transfer
+  map.push_back(link({make_feature("", 0.0), make_feature("", 0.0)}));
+  // 4: annotated by the linker already (e.g. PIP-ECHO) -> kept as it is
+  ConsensusFeature annotated = link({make_feature("PEPTIDEK", 0.1), make_feature("", 0.0), make_feature("", 0.0)});
+  annotated.setMetaValue(key, IntList{2});
+  map.push_back(annotated);
+  // 5: an identification without "map_index" -> the identified runs are unknown, no transfer
+  ConsensusFeature unknown_runs;
+  unknown_runs.insert(0, make_feature("", 0.0), 0);
+  unknown_runs.insert(1, make_feature("", 0.0), 1);
+  unknown_runs.setPeptideIdentifications({makePepID_("scan=99", "PEPTIDEK", 2, 0.1)});
+  map.push_back(unknown_runs);
+
+  map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  IDConflictResolverAlgorithm::resolve(map, true);
+  IDConflictResolverAlgorithm::annotateTransfers(map);
+
+  ABORT_IF(map.size() != 6)
+  TEST_EQUAL(map[0].metaValueExists(key), true)
+  TEST_EQUAL(map[0].getMetaValue(key) == DataValue(IntList{1}), true)
+  TEST_EQUAL(map[1].metaValueExists(key), true)
+  TEST_EQUAL(map[1].getMetaValue(key) == DataValue(IntList{1, 2}), true)
+  TEST_EQUAL(map[2].metaValueExists(key), false)
+  TEST_EQUAL(map[3].metaValueExists(key), false)
+  TEST_EQUAL(map[4].getMetaValue(key) == DataValue(IntList{2}), true)
+  TEST_EQUAL(map[5].metaValueExists(key), false)
+  // the linker's own transfer annotations are not touched, no q-values are made up
+  for (const ConsensusFeature& cf : map)
+  {
+    TEST_EQUAL(cf.metaValueExists(Constants::UserParam::MBR_TRANSFER_QVALUES), false)
   }
 }
 END_SECTION

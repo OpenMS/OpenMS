@@ -120,6 +120,10 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
 and RT in other runs.
 
+In the consensusXML (@p -out_cxml), a consensus feature whose identification was transferred lists the runs it was
+transferred to (their map indices) in the meta value @p mbr_transfer_map_indices. With @p -pip_echo @p true, the
+meta value @p mbr_transfer_qvalues holds the q-values of these transfers, in the same order.
+
 @b Match @b between @b runs @b with @b PIP-ECHO (@p -pip_echo @p true): @n
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
@@ -2187,6 +2191,11 @@ protected:
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
+    // PIP-ECHO annotates its transfers itself; the QT linker transfers identifications without recording it.
+    if (getStringOption_("pip_echo") == "false")
+    {
+      IDConflictResolverAlgorithm::annotateTransfers(consensus_fraction);
+    }
 
     // No normalization here, deliberately. A median scaling used to run at this point unless
     // -out_msstats was requested, which meant the same input written to the same

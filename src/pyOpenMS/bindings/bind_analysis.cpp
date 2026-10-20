@@ -661,6 +661,16 @@ and also reduced to a single best hit
 
 :param keep_matching: Keeps all IDs that match the modified sequence of the best hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
 )doc")
+        .def_static("annotateTransfers", [](OpenMS::ConsensusMap& features) { OpenMS::IDConflictResolverAlgorithm::annotateTransfers(features); }, "features"_a,
+            R"doc(
+Annotates the runs a consensus feature's identification was transferred to (match-between-runs).
+
+For each consensus feature with an identification, lists the map indices of its features that are not
+identified as that peptide in their own run in the meta value "mbr_transfer_map_indices". Call after
+resolve(features, True). Consensus features that already carry the meta value are left unchanged.
+
+:param features: consensus map to annotate (modified in-place)
+)doc")
         .def_static("reduceToOnePerSpectrum", [](OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids); }, "ids"_a,
             R"doc(
 Reduce identifications a quantification workflow cannot tell apart to one per spectrum.
