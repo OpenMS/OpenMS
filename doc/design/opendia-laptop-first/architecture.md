@@ -1,189 +1,66 @@
-# Architecture: a bounded, mobility-native DIA search engine
+# OpenDIA architecture and shared invariants
 
-[Plan and assignment index](README.md) | [Measured evidence](evidence.md)
+[Master plan](README.md) · [Historical evidence](evidence.md)
 
-**Status:** proposed, 20 October 2026. None of the new interfaces below has been implemented by this design exercise. Names describe responsibilities, not frozen C++ APIs.
+**Proposed, 20 October 2026.** This is the shared contract, not an implemented engine. WP documents contain only package-specific work and merge checks.
 
-## 1. Change the unit of work
+## Placement and incremental integration
 
-Use two complementary units:
+Follow the existing tool-private layout:
 
-- **Execution unit:** a byte-budgeted acquisition-local raw tile, preserving exact RT, m/z, mobility and isolation geometry.
-- **Inference unit:** a local candidate peptidoform family at an RT/mobility region, with shared fragment evidence and explicit alternative forms.
-
-An assay must not own the entire extraction, picking, scoring and output lifetime. A raw tile must not define the scope of statistical confidence. Separate data locality from biological hypotheses.
-
-```mermaid
-flowchart TD
-    R[Raw input and acquisition geometry] --> T[Bounded raw tiles and cache]
-    L[Streamed library preparation] --> H[Disk-backed family and hypothesis index]
-    T --> C[Calibration snapshot and local queries]
-    H --> C
-    C --> E[Shared sparse RT and mobility evidence]
-    E --> F[High-recall local candidate families]
-    F --> D[Lazy discriminating evidence and joint scoring]
-    T --> D
-    D --> S[Streamed evidence and score tables]
-    S --> G[Disk-backed global confidence and export]
+```text
+src/topp/OpenDIA/
+  CMakeLists.txt
+  OpenDIA.cpp
+  include/
+  source/
+  test/
 ```
 
-These are in-process interfaces by default, not a requirement for an executable or intermediate file at every arrow. Optional checkpoints support reuse and debugging. A global resource coordinator covers every stage.
+Move the existing `src/topp/OpenDIA.cpp` without behavior changes first. Extract orchestration into a private static/OBJECT library linked by the tool and its tests, registered with `openms_add_tool_class_test`. New contracts are unstable v0, with no installed headers or pyOpenMS/API promise. Keep dependency direction tool -> private engine -> OpenMS core. Promote generic code only for a real second consumer. Fix genuine shared-core bugs directly in core.
 
-The search is hybrid: observed evidence identifies productive regions, while targeted recovery retains signals that a purely untargeted detector may miss. Do not require a full feature map before searching, a whole-run evidence graph, or full-library XIC materialization.
+Raw tiles, streamed libraries, shared extraction and compact outputs enter the current engine behind options, with identical/tolerance-equal result checks. Only retrieval and family inference require new scientific algorithms. WP-05 adapts existing mass/RT/IM calibration so data handling does not wait for WP-06.
 
-## 2. Resource contract
+## Units and contracts
 
-Proposed first acceptance platform: CPU-only laptop with 16 GiB RAM, tested at 2 and 4 worker threads, with a 4 GiB process-memory setting and a 2 GiB low-memory setting. These targets need implementation and measurement.
+The execution unit is an acquisition-local raw tile. The inference unit is a local competing peptidoform family. Neither a tile boundary nor a worker defines statistical confidence.
 
-An illustrative allocation at 4 GiB is:
-
-| Component | MiB |
-|---|---:|
-| Raw decoding and tile cache | 768 |
-| Hypothesis-index pages | 512 |
-| Shared evidence | 768 |
-| Active candidates/scoring | 256 |
-| Prediction/model workspace | 512 |
-| Writer queues/encoders | 256 |
-| Runtime/native libraries/safety reserve | 1,024 |
-| **Total** | **4,096** |
-
-These are starting estimates, not fixed partitions. Managed allocations must satisfy:
-
-`raw + index + evidence + candidates + models + writer <= process target - runtime reserve`
-
-Require reservations before allocation. Distinguish reservations from committed and resident memory. Grow pools with demand, expose minimum allocation granularity, and account for compressed/decompressed coexistence, native model scratch, memory-mapped residency, pending results and encoder buffers. Multiple workers share caches and the global budget.
-
-The accounting invariant does not prove bounded RSS. Measure process and cgroup memory, including children and relevant native allocations. Respect container limits, not just host available memory. Oversized jobs must split, spill or fail explicitly. Never silently admit them, treat a zero budget as unlimited, or discard hypotheses to fit memory. Bound temporary disk usage and detect insufficient space.
-
-Resource acquisition must not deadlock when a producer holds raw/evidence buffers while waiting for scoring or writer reservations. Define reservation ordering, cancellation and backpressure before increasing concurrency.
-
-Disk is not an unlimited substitute for RAM. Define independent byte budgets for final output, working scratch and reusable raw/library caches, plus a combined peak limit on each filesystem. Track actual encoded bytes and allocation overhead, not just row estimates. Include indexes, database WAL/journals, compression buffers, external-sort runs, staging files and old/new copies during compaction or atomic publication. Reserve finalization headroom before starting an operation that needs both copies. A requested quota below mandatory output needs must produce an explicit resource-limit failure, not a truncated success.
-
-## 3. Data contracts
-
-| Contract | Contents and ownership |
+| v0 record | Required semantics |
 |---|---|
-| `RawTile` / raw-region service | Packed numeric centroid arrays, frame/scan offsets, exact coordinate references, isolation geometry, validity and calibration identity; bounded owning buffers with leased views |
-| `HypothesisStore` | Paged family/precursor directory, ragged fragment definitions, target/decoy identity, prediction provenance and cold sequence/protein metadata |
-| `ExtractionQuery` | Full scientific query identity: run/lane, acquisition selection, RT/mz/IM bounds, units, tolerance/edge policy, aggregation, isotope and calibration versions |
-| `EvidenceBlock` | Sparse RT-by-mobility support, ragged offsets, masks and exact axes; chromatograms/mobilograms are views, not mandatory duplicated objects |
-| `CandidateFamily` | Stable family and candidate IDs, local region, competing forms, fragment incidence, null/alternative hypotheses and completeness state |
-| `ScoreBatch` | Identification/localization/quantification evidence and results, provenance and raw references, independent of transient tile lifetimes |
+| Raw tile/region | Exact RT, m/z, frame/scan and isolation geometry, optional mobility axis, bounded owning storage and leased views |
+| Hypothesis store | Stable family/precursor IDs, sparse fragments, target/decoy identity, prediction and library provenance, paged cold metadata |
+| Extraction query | Run/lane, acquisition selection, RT/mz/IM bounds and units, tolerance/edge/aggregation policy, isotope and calibration identity |
+| Evidence block | Sparse RT/mobility support, exact coordinates and missingness masks, shared immutable evidence |
+| Candidate family | Competing site forms, charge/adduct constraints, local region, shared/discriminating fragment incidence, alternatives/nulls and completeness state |
+| Score batch | Separate identification/localization/quantification results, ambiguity and provenance, independent of tile lifetime |
 
-Preparation is part of the engine: digestion, prediction, decoy creation, normalization and index construction must not rebuild the whole library in memory. Expensive detailed predictions may be deferred only when retrieval does not already require them. Include index preparation in cold-run timing.
+Mobility and families are represented from the start. Freeze family/score semantics only after WP-07's reviewed null/decoy experiment. Initial contracts can merge before that review.
 
-## 4. Mobility is native evidence
+## Scientific invariants
 
-Keep acquisition geometry by frame/scan, not a presumed static rectangular isolation window. Keep MS1 and MS2 acquisition axes distinct. Treat FAIMS compensation voltages as discrete strata, not a continuous mobility coordinate. Missing acquisition differs from measured zero. Non-IM data uses the same contract with an absent mobility axis.
+- Keep MS1/MS2 axes and frame/scan isolation geometry. FAIMS voltages are discrete strata. Missing acquisition is not measured zero. Non-IM inputs use an absent mobility axis. Lookup bins never replace measurement coordinates.
+- Share only identical complete extraction queries. Keep raw access for apex/isotope/precursor evidence. Freeze calibration per pass and invalidate dependent caches when it changes.
+- Define tolerance, edge inclusion and aggregation mathematically. Fix shared tophat first-centroid omission and beyond-last double counting in a separate develop PR, with IM/non-IM edge tests. Do not introduce a mode that preserves these bugs.
+- Preserve the current picker's complete assay domain or equivalent state for compatibility adapters. For new retrieval, define completeness and boundary reconciliation, use RT interval overlap and uncertainty-aware mobility, and retain a recovery path without requiring detectable MS1 or strong anchors. Apex ownership alone cannot restore truncated evidence.
+- Score shared and site-discriminating evidence jointly without treating shared observations as independent copies. Preserve unresolved/coexisting forms. Avoid dense forms-by-fragments-by-RT-by-mobility tensors and precomputed pairwise UIS expansion. Review pruning/approximation as a scientific change.
+- Keep required candidates, rejected targets, decoys, alternatives and distinguishing evidence until confidence is finalized. Validate target/decoy selection and held-out/entrapment calibration. Do not concatenate tile-level q-values. Separate identification, localization and protein confidence.
+- New family science is single-run in v1. Existing multi-input and matrix export stay available unchanged through the compatibility path. Cross-run alignment, experiment-level FDR and merging new artifacts need a later explicit model and retained-population contract.
 
-Preserve sparse local RT/mobility patches and multiple supported mobility components. Coarse bins are lookup accelerators, not an irreversible replacement for measurement coordinates. Use mobility during:
+## Resource and output policy
 
-1. Retrieval with calibrated uncertainty and a broad recovery path when calibration is weak.
-2. Scoring of precursor/fragment consistency, shapes, predicted mobility and interference.
-3. Quantification over explicit RT/mobility boundaries, retaining ambiguity when components cannot be separated.
+Use one byte budget, bounded queues and a fixed stage acquisition order, with cancellation and backpressure. Count decoder/index/evidence/model/writer workspace and leave runtime/native headroom. External RSS/cgroup measurements, including children, establish whether the proposed 4 GiB/2 GiB process targets are met. Split, spill or fail oversized work explicitly, never silently truncate hypotheses. WP-02 hardening runs alongside component work.
 
-## 5. Peptidoform families are the inference unit
+| v1 output | Contents and limits |
+|---|---|
+| `results` (default) | Compact identities, localization/ambiguity, quantities, confidence and provenance. No full-library/raw copies or dense traces. Not an arbitrary rescoring input. |
+| `rescore` (opt-in) | Full candidate/target/decoy/alternative population and evidence needed by explicitly named rescoring operations, including required calibration/model/library references. Test supported operations and reject unsupported ones. |
 
-Start from a backbone and modification composition with alternative sites, partitioned by relevant charge/adduct and precursor constraints. Define later evidence combination across charge states explicitly. Unrelated sequences may still compete for shared or interfering evidence.
+Use a schema version and document required dependencies. Retention does not change current-run scientific results. Derive retained columns/populations from actual consumers. Audit `FEATURE_TRANSITION` fan-out and repeated metadata before choosing a storage format. A Parquet substitution alone is not a size improvement, and compact results cannot be compared as capability-equivalent to full OSW evidence.
 
-For each local family:
+For v1, check free space, write temporary artifacts on the destination filesystem, publish by rename only after successful finalization, and report failed writes explicitly. Multi-file outputs need a final completion marker. Cleanup removes only owned intermediates, never inputs or retained dependencies. Measure actual final and peak disk use, including sidecars and publication overlap. Reuse library/index caches across compatible runs and report per-run output multiplied by run count. Per-class/per-volume quota frameworks, diagnostic profiles and richer capability manifests are deferred.
 
-1. Retrieve compatible hypotheses without requiring detectable MS1 or a strong common anchor.
-2. Extract identical shared queries once and reference their evidence from all compatible hypotheses.
-3. Generate/query site-discriminating fragments and informative loss channels lazily.
-4. Accumulate sparse fragment-to-hypothesis incidence and sufficient statistics, not a dense forms-by-fragments-by-RT-by-mobility tensor.
-5. Score identity, localization and interference without deleting weak but distinguishing evidence prematurely.
-6. Retain unresolved groups or supported coexisting forms instead of forcing a single localized winner.
+## Validation ownership
 
-Avoid precomputed pairwise UIS combinations. Large families may still be intrinsically expensive. Any beam, top-k, approximation or branch pruning changes inference and needs explicit provenance and truth-based calibration. A finite memory target is not a promise of bounded execution time for arbitrary modification spaces.
+WP-00 pins upstream/CI build and data provenance and agrees quality/runtime/size thresholds. Use the ProteoBench Astral run from #10642 plus a diaPASEF dataset, not the tiny historical fixture, to prioritize work. Include preparation, calibration and rescoring/inference/export in timing.
 
-## 6. Extraction, boundaries and numerical semantics
-
-Adopt locality-oriented extraction ideas from the referenced `okohlbacher/dia-trace-extract-prototype`, but benchmark a pinned revision. It is an extraction component, not evidence of end-to-end identification equivalence.
-
-Share evidence only for identical complete queries. Similar m/z values alone are insufficient. Batch active interval queries over resident sorted centroids. Retain raw-region access for scores needing apex spectra, dynamic merged spectra, isotopes or precursor evidence.
-
-Define tolerance units, edge inclusion, sum/max aggregation, coordinate precision and missingness before optimization. Existing extraction has a diagnosed first-centroid discrepancy on a nonzero fixture, so agreement with legacy output is not the sole correctness oracle. Keep normative numerical tests distinct from compatibility comparisons.
-
-RT halos alone do not establish unchanged candidate selection. The current picker uses whole-input XIC totals, intensity-ratio stopping, consumed peaks and overlap suppression. If retained as a reference mode, preserve its complete assay domain or equivalent state. For the new algorithm, explicitly define completeness domains, boundary reconciliation and global per-assay reporting limits. Deterministic apex ownership removes duplicates but cannot repair truncated evidence.
-
-Freeze calibration during a processing pass and invalidate dependent query/candidate caches when it changes. Retrieval must use interval overlap, not only predicted-RT centers.
-
-## 7. Confidence and durable output
-
-Keep identification, localization and protein inference confidence distinct. Do not count shared fragment observations multiple times as independent evidence. Preserve alternatives and nulls through candidate filtering.
-
-Apply equivalent target/decoy selection logic, then validate error calibration. Symmetry alone is insufficient. Never concatenate independently computed tile-level q-values. Stream compact tables into disk-backed global sorting, competition, model fitting and reduction. State when fitting is exact or sampled.
-
-The canonical working-evidence schema and optional retained rescoring artifact must support localization and their declared rescoring operations independently of storage backend. Preserve candidate/family/form IDs, discriminating and shared evidence, masks, acquisition/calibration identity and model provenance as required by those capabilities. Compact final results are a separate product and need not retain all rescoring inputs. Optional trace export must not make a whole-run feature map the normal path. Define crash-safe checkpoints and schema compatibility.
-
-### Retention profiles and bounded output size
-
-The current concern is multi-gigabyte OSW artifacts. Streaming rows solves memory lifetime, not file size. Replacing SQLite with Parquet or compressing the same expanded records is not by itself an architectural solution. Audit row cardinality, repeated metadata and materialized evidence before selecting a backend.
-
-| Artifact/profile | Retain | Default and capability boundary |
-|---|---|---|
-| Final `results` | Reported identities, localized or unresolved/coexisting forms, quantitative summaries, confidence values, run/model/search provenance and compact referenced metadata | Default. Supports result interpretation and declared exports, not arbitrary re-training or re-FDR |
-| Optional `rescore` | Shared and discriminating evidence and the complete candidate/target/decoy/alternative population required by named rescoring operations | Explicit opt-in. Declare retained fields, population, supported operations and any raw/library/model dependencies |
-| Optional `diagnostic` | Selected XICs, RT/IM patches, raw references and detailed transition records | Explicit selectors and byte cap. Never full-library dense traces by default |
-| Working scratch | Unfiltered candidate/score population, inference intermediates, sort runs, checkpoints | Retain until all required global inference and final publication are complete; cleanup by documented policy |
-| Reusable caches | Indexed raw tiles, hypothesis libraries and prediction caches | Separate quota/lifetime, not copied into each result bundle; references carry identity and availability requirements |
-
-Profiles control retention, not the scientific inputs used during the current run. Keep rejected candidates and decoys until the relevant global confidence computations are finished. Do not choose a top-k or discard weak localization evidence merely to hit a byte target. After finalization, compact results may omit intermediate rows under an explicit reporting policy, while a rescore artifact must preserve its declared population. Reported results and confidence values must agree across profiles under that policy.
-
-Store repeated sequence, protein, fragment, coordinate and calibration metadata once per appropriate scope, using stable IDs and compact dictionaries. Share identical evidence and sparse fragment-to-form incidence rather than duplicating it per localization. Avoid unrequested transition tables, zero-filled grids, raw copies, all-hypothesis metadata and redundant output formats. Use lossless encoding by default; optional lossy diagnostics need explicit precision/error validation and must not silently feed scientific rescoring.
-
-A capability manifest states whether the artifact is results-only, rescore-capable or diagnostic, its retained population, schema versions and referenced dependencies. Re-extraction from raw references is only available if the matching raw data, library, models and calibration can actually be resolved. A results-only artifact must fail unsupported rescoring requests clearly. Required localization/confidence results and ambiguity must remain understandable without opening an unavailable working cache.
-
-Full OSW or other compatibility export is an explicit capability with its own size estimate and quota, not an automatic second copy. Account all retained files and sidecars in the final-artifact budget. Checkpoint and final-output completion markers prevent interrupted or quota-exceeded jobs from looking complete. Cleanup may remove only task-owned expendable intermediates under the declared retention policy, never user inputs or required rescore dependencies.
-
-### Size acceptance protocol
-
-WP-00, WP-08 and WP-10 must agree numerical byte ceilings and reduction goals per dataset/profile before schema acceptance. Do not impose one unsupported universal file-size target: an optional complete rescoring population may legitimately be larger than compact results. Instead, test explicit user quotas and capability-matched comparisons.
-
-Measure final logical and allocated bytes across all files, per-table/column row counts, metadata/evidence amplification, bytes per reported candidate/family/quantified entity, bytes per retained transition, and peak combined disk occupancy during writing and finalization. Report raw-data/library size ratios only alongside absolute sizes and retained capabilities. A small result export cannot be presented as a like-for-like replacement for a richer OSW rescore database.
-
-Use a fixed acquisition and growing absent hypotheses/site alternatives to expose unnecessary output fan-out. Compact result size should track actual reported evidence and required metadata, not a copied absent library. Legitimate changes in candidate/result populations must be reported. Exercise real result reopening/export, supported rescoring, optional diagnostics, interrupted output, low disk and quota exhaustion. Require no current-run identification/localization/quantification changes when switching retention profile, and fail unsupported capabilities explicitly.
-
-## 8. What should make it fast
-
-These are hypotheses, not measured greenfield gains:
-
-- Decode and query acquisition-local tiles rather than rescan entire windows for every assay batch.
-- Eliminate impossible geometry/mass/RT/IM matches before detailed evidence generation.
-- Share identical extraction and family evidence, with packed arrays and numeric IDs.
-- Generate expensive predictions and discriminating fragments only when needed.
-- Adapt concurrency to locality, decoder capacity, memory bandwidth and writer throughput.
-- Allow a bounded number of sequential passes when this improves total runtime and memory.
-
-Measure preparation, decoding, retrieval, extraction, scoring, confidence and writing separately, plus the total. Report cold first-use and warm index reuse, CPU/wall time, peak RSS/cgroup usage, disk I/O/temporary space, candidate counts and evidence volume.
-
-## 9. Acceptance matrix and owners
-
-| Requirement | Concrete acceptance observation | Primary packages |
-|---|---|---|
-| Laptop memory | Complete public workflow within agreed 2/4 GiB process limits, external memory measurement and no swapping | 02, 09, 10 |
-| Speed | Cold/warm end-to-end comparisons at matched search space and quality, repeated on declared laptop/storage hardware | 00, 10 |
-| Large predicted libraries | Scale absent hypotheses and localization alternatives on a fixed acquisition, reporting preparation and search costs separately | 04, 06, 10 |
-| Native mobility | Real overlapping IM components, PASEF geometry, uncertain calibration, missing scans, discrete FAIMS and non-IM inputs | 03, 05, 06, 09 |
-| Localization | Known-site mixtures and unresolved/coexisting cases, localization error separate from sequence confidence and quantitative error | 07, 08, 10 |
-| Safe retrieval | Pre-FDR recall and entrapment/held-out calibration across abundance, modification type and ambiguity | 00, 06, 08 |
-| Stable execution | Equivalent candidate IDs/sets and tolerance-bounded scores/quantities across tiles and workers, with complete boundaries | 01, 05, 06, 09 |
-| Overload safety | Dense windows, huge families, slow writers, low disk, cancellation and undersized budgets have explicit bounded outcomes | 02, 04, 08, 09 |
-| Output usability | Localization-capable stored evidence, exported results and supported installed consumers preserve advertised capabilities | 08, 09, 10 |
-| Compact final output | Per-profile byte ceilings and capability-matched OSW reduction gates; no default full-library/trace replication, and real result consumers preserve scientific summaries | 00, 01, 04 through 10 |
-| Peak disk safety | Separate scratch/cache/final quotas and combined per-volume peaks include journals, indexes and staging/compaction overlap; explicit quota and disk-full outcomes | 02, 03, 08 through 10 |
-| Source ownership | OpenDIA policies in `ANALYSIS/OPENDIA`, reusable core modules independent of OpenDIA, thin TOPP entry point and installed-header/consumer checks | 01 through 10 |
-
-Agree numerical/quality margins and the quantitative speed gate before evaluating the new engine. The first public vertical slice must include mobility and peptidoform competition together. Passing separate legacy tests is not that slice.
-
-## 10. Implementation ownership and dependency direction
-
-Introduce paired `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and `src/openms/source/ANALYSIS/OPENDIA/` directories for OpenDIA-specific orchestration, family-search and selection policies, calibration workflow, retention profiles and result-schema policy. The uppercase directory spelling follows the existing analysis modules. These are proposed locations, not directories already present in the inspected checkout.
-
-Keep reusable data containers in `DATASTRUCTURES`, resource primitives in `SYSTEM`, generic readers/writers in `FORMAT`, chemistry in `CHEMISTRY`, numerical methods in `MATH`, and generic signal/mobility processing in `PROCESSING`/`IONMOBILITY` or an existing suitable analysis module. Existing reusable `ANALYSIS/OPENSWATH` APIs remain shared. Reuse a generic algorithm through an adapter instead of introducing two copies or pulling OpenDIA policy into a core header.
-
-`src/topp/OpenDIA.cpp` owns CLI declaration/validation and calls the OpenDIA layer. It must not become the new engine implementation. Dependency direction is CLI -> OpenDIA -> core. Core contracts cannot include OpenDIA-only headers, profiles or family-policy types. Core does not depend on the CLI or GUI.
-
-Each implementing PR declares placement of every new type, registers the appropriate source/header `sources.cmake` lists and `src/openms/includes.cmake` entries, and tests installed public headers and consumers when affected. Use existing class-test and TOPP registration conventions. This plan does not authorize a bulk move or incompatible renaming of existing public APIs. Proposed extraction/admission kernels must demonstrate a generic boundary before promotion to core.
+Component WPs close on local tests and their incremental compatibility checks. WP-09 owns the public raw-to-export integration, actual reopening/rescoring and failure/cancellation tests. WP-10 owns representative cold/warm timing, complete process memory, final/peak disk, scientific non-inferiority and the default-adoption decision. Preserve candidate identities/sets and tolerance-bounded scores across tile sizes and worker counts. The final scientific slice must exercise mobility and peptidoform competition together, even though the first runnable increment need not.

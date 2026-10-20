@@ -1,8 +1,16 @@
-# Baseline evidence and unresolved limits
+# Historical evidence and baseline selection
 
 [Plan index](README.md) | [Architecture](architecture.md)
 
-## Provenance and interpretation
+## Project baseline for WP-00
+
+Use pinned upstream/CI builds of develop with [#10642](https://github.com/OpenMS/OpenMS/pull/10642), the ProteoBench Astral entrapment run and one diaPASEF dataset. Timo's [plan review](https://github.com/OpenMS/OpenMS/issues/10661) reports approximately 33 min wall time and 8.0 GB peak RSS for 600k precursors, 300 windows and four threads: 15 min extraction/scoring, 13.5 min rescoring/inference/export, and 5 min loading/calibration. The working OSW contains 2.9M features and 17.3M `FEATURE_TRANSITION` rows. These rounded review figures motivate early WP-08 work, not a new measurement by this documentation update. WP-00 must reproduce stage time/RSS with pinned inputs and build provenance.
+
+## Historical local observations
+
+The observations below are retained for reproducibility, not adopted as the project baseline. The tiny fixture and mixed local binaries cannot establish representative performance or scientific quality.
+
+### Provenance and interpretation
 
 These observations were recorded during the 20 October 2026 design investigation. The inspected source was `6b6c341434`; available OpenMS binaries reported `e85d291`, and the installed extraction prototype reported version `0.2.14`. These are baseline experiments, **not current-source or greenfield-engine validation**. No production code or defaults were changed during that investigation.
 
@@ -86,12 +94,14 @@ An initial cross-engine comparison produced only zeros and was rejected as accur
 
 The two extractors did **not** agree with one another: the largest difference was approximately 20.042 intensity units. A raw-spectrum sum of 120.0000002682 became about 119.2002182 in existing OpenSWATH output, consistent with omitting the first centroid of intensity 0.8000000119 plus output encoding effects. Source inspection confirmed a left-walk first-centroid edge case. No fix was made. Test first/last centroids, one-element spectra and targets beyond the final centroid against explicit mathematical semantics, not only legacy output.
 
-## Build and execution blockers
+Timo additionally reports beyond-last-centroid double counting in both tophat overloads. Track the first-centroid and beyond-last fixes as a standalone core PR on develop, with hand-computed IM/non-IM tests, rather than adding a legacy-bug compatibility mode. These reports are not marked fixed by this plan update.
+
+## Historical local build limitations
 
 - The standalone picker/analyzer test selection had 24 failures out of 29, including producer aborts with `stack smashing detected`. Passing comparisons against stale outputs were not accepted as success.
 - Executables and shared libraries had different build dates. A stale ABI was suspected, not established.
 - A coherent rebuild was blocked by a configured missing Thermo/.NET `libnethost.a` under the .NET 8.0.31 host pack. The design exercise did not bypass or modify dependencies to hide this.
-- WP-00 must restore a coherent local build and rerun affected public workflows before interpreting these results as current-source evidence.
+- These are local-environment limitations, not prerequisites for WP-00. A coherent rebuild and rerun would be necessary only to promote these particular historical results to current-source evidence. Use upstream/CI provenance for the project baseline instead.
 
 ## Local investigation archive
 
@@ -111,4 +121,4 @@ The following paths document where the original investigation is stored on the o
 
 Whole-engine 2/4 GiB limits, representative large-library speed, candidate-retrieval recall, joint mobility/localization quality, localization error calibration, oversized-family behavior, and release packaging remain unverified for the proposed engine. The [work packages](README.md) turn these gaps into owned implementation and acceptance work rather than treating baseline results as proof.
 
-The later output-size requirements are also unimplemented: no compact-result/rescore/diagnostic profile, per-profile OSW size reduction or combined scratch/cache/final-artifact disk bound has been measured. The existing extraction/IPF checks do not establish these claims. WP-00/WP-08/WP-10 must set capability-matched numerical footprint targets and test real retained artifacts before claiming an improvement.
+The proposed `results` and `rescore` profiles and capability-matched output-size reductions remain unmeasured. WP-00/WP-08/WP-10 must agree numerical footprint targets and test retained artifacts before claiming improvement. Detailed disk quotas and diagnostic profiles are deferred beyond v1.

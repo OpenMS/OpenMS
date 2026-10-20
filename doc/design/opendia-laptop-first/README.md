@@ -1,113 +1,51 @@
-# Laptop-first OpenDIA implementation plan
+# OpenDIA: laptop-first implementation plan
 
-- **Status:** proposed architecture and assignable backlog, not an implemented engine.
-- **Updated:** 20 October 2026.
-- **Owner:** unassigned. Package owners should be assigned below before implementation.
-- **Suggested epic title:** `[OpenDIA] Laptop-first, mobility-native search with bounded memory and output size`.
-- **Epic issue:** not created. The user will post this plan and its work packages to OpenMS.
-- **Planning branch:** `rewrite/opendia`, separate from `develop`. Publishing the branch and issues is a separate action.
+**Status:** proposed, updated 20 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
 
-## Start here
+Build a CPU-first DIA engine for large predicted libraries on a 16 GiB laptop. Target 4 GiB process memory and a 2 GiB low-memory mode, with compact output and preserved scientific quality. These are acceptance targets, not demonstrated capabilities.
 
-- [Architecture and scientific invariants](architecture.md): the larger plan and proposed resource contract.
-- [Measured baseline and limitations](evidence.md): what was actually exercised, and what remains unverified.
-- [Issue posting guide](issue-posting.md): copy/paste workflow, stable package IDs and dependency tracking. No issues have been posted by this task.
-- The work packages below are implementation tickets. Each includes scope, dependencies, deliverables, PR-sized steps, and acceptance checks.
+## Approach and v1 scope
 
-This is the repository handoff for the earlier scratch design. It supersedes that design's migration-first priorities: **ion mobility and peptidoform inference belong in the first vertical slice**, not in later extensions. Existing algorithms are references or optional adapters, not architectural constraints.
+Replace data handling **one component at a time in the existing pipeline**, behind an option, checking identical or tolerance-equal results. Build new algorithms only for candidate retrieval and family scoring. Mobility and peptidoform families belong in contracts from day one, but do not block the first runnable increment.
 
-## Outcome
+- Tool-private code in `src/topp/OpenDIA/`, following DIAuditor/OpenSwathInfer. Move the current entry point first, then extract orchestration into a private library shared by tool and tests. Promote code to core only for a real second consumer. Shared core bugs are fixed in core directly.
+- One memory byte budget, bounded queues and fixed stage order. Harden admission in parallel rather than blocking data handling.
+- v1 output: compact `results` and optional `rescore`. Keep the statistical population until confidence is finalized. Reduce `FEATURE_TRANSITION` fan-out and measure rescoring early.
+- Disk safety: check free space, write temporary output then rename on success, fail explicitly and clean up owned intermediates. Measure final and peak disk use. Defer quota frameworks, diagnostic profiles and elaborate capability manifests.
+- **New family-search science is single-run in v1.** Preserve existing multi-input and matrix-export behavior in the compatibility path. Cross-run alignment, experiment-wide FDR and merging new per-run artifacts are deferred, not implied by “global confidence”. WP-08 must derive future retained evidence from those operations before claiming support.
 
-A CPU-first DIA search engine that is fast on a resource-limited laptop even with large predicted libraries. Execute against **byte-budgeted acquisition-local raw tiles** and infer **local competing peptidoform families**, sharing sparse RT/mobility evidence. Do not retain all library chromatograms or a whole-run feature graph in memory.
+## Five tracks, existing WP IDs
 
-Initial engineering targets are a 16 GiB laptop, a 4 GiB process-memory setting, and a 2 GiB low-memory setting. These are proposed acceptance targets, not demonstrated capabilities. End-to-end speed and scientific quality must be measured together.
+Numbers identify packages, not a serial implementation order. Local merge checks live in each WP. Whole-workflow gates live in WP-09/10.
 
-**Disk and output size are first-class requirements too.** Large SQLite OSW outputs must not be replaced by equally large columnar files, duplicated caches or unbounded temporary storage. The default result artifact should scale with reported scientific results and their necessary provenance, not a materialized library-by-transition-by-time-by-mobility product.
-
-## Output-size policy
-
-- Default **results** profile: compact identification, localization, quantification and ambiguity summaries, with stable IDs, confidence values and provenance. No full-library copy, raw-data copy, full XICs, mobilograms or all-transition diagnostic tables by default.
-- Optional **rescore** profile: preserve the explicitly supported rescoring inputs, including required rejected candidates, targets/decoys and alternatives. Results-only files must not advertise arbitrary rescoring capability.
-- Optional **diagnostic** profile: selected traces, mobility patches or detailed evidence, with explicit selectors and byte limits. Full OSW compatibility export is opt-in and size-accounted, not an additional automatic output.
-- Retention profiles do not change the current run's inference. Keep the full required statistical population in bounded working storage until global confidence is finalized. Never silently drop hypotheses or distinguishing ions to meet an output quota.
-- Budget **final artifacts**, **working scratch**, and **reusable caches** separately, with a combined peak limit per filesystem. Count sidecars, indexes, WAL/journals, atomic staging and compaction copies. Fail explicitly if mandatory output cannot fit.
-- WP-00/WP-08/WP-10 must agree per-profile byte targets and reduction goals against a capability-matched OSW baseline before acceptance. Report total bytes, peak disk, bytes per result/family/evidence row, and read/write cost. No numeric size reduction is claimed yet.
-
-## Code ownership and placement
-
-OpenDIA-specific workflow, family-search policy, run orchestration, retention profiles and result-schema policy belong in the proposed OpenDIA subtree:
-
-```text
-src/openms/include/OpenMS/ANALYSIS/OPENDIA/   # OpenDIA-specific interfaces
-src/openms/source/ANALYSIS/OPENDIA/           # OpenDIA-specific implementation
-src/topp/OpenDIA.cpp                         # thin CLI adapter only
-```
-
-`OPENDIA` follows the existing uppercase analysis-directory convention. These directories do not yet exist in this checkout and are to be introduced during implementation, not by this documentation update. Reusable primitives stay in the appropriate core OpenMS header/source trees: for example `DATASTRUCTURES`, `SYSTEM`, `FORMAT`, `PROCESSING`, `IONMOBILITY`, `CHEMISTRY` and `MATH`. Existing reusable `ANALYSIS/OPENSWATH` code stays shared.
-
-Dependency direction is **TOPP CLI -> OpenDIA -> reusable OpenMS core**, never core -> OpenDIA. Reuse means a generic contract with meaningful use outside this workflow, not simply moving OpenDIA policy into core. New modules need registration in `src/openms/includes.cmake` and their own source/header `sources.cmake` lists, plus installed-header and consumer checks. Do not bulk-move existing APIs or fork shared algorithms as part of this plan.
-
-## Assignable work packages
-
-All packages are **proposed / unassigned**. Numbers identify packages, not a requirement to implement them serially.
-
-| ID | Work package | Suggested owner expertise | Depends on | Concrete handoff |
-|---|---|---|---|---|
-| WP-00 | [Acceptance baseline and datasets](work-packages/00-acceptance-baseline.md) | Benchmarking + proteomics validation | None | Pinned build, fixtures, baseline manifest and quality gates |
-| WP-01 | [Contracts and scientific semantics](work-packages/01-contracts.md) | C++ architecture + scientific lead | 00 | Versioned records, lifetimes, query and boundary semantics |
-| WP-02 | [Global resource budget](work-packages/02-resource-budget.md) | C++ runtime/concurrency | 01 | Reservations, bounded queues, spill policy, telemetry |
-| WP-03 | [Mobility-native raw tiles](work-packages/03-raw-tiles.md) | Raw formats + acquisition geometry | 01, 02 | Bounded raw access and exact-coordinate tiles |
-| WP-04 | [Disk-backed hypothesis store](work-packages/04-hypothesis-store.md) | Library preparation + indexing | 01, 02 | Streamed preparation, family index and bounded prediction |
-| WP-05 | [Shared sparse extraction](work-packages/05-shared-extraction.md) | Extraction kernels + numerical testing | 02, 03, 04 | Query sharing and sparse evidence patches |
-| WP-06 | [Calibration, candidate retrieval and reconciliation](work-packages/06-candidate-retrieval.md) | Calibration/detection + recall evaluation | 03, 04, 05 | Calibration snapshots, high-recall families, recovery and boundaries |
-| WP-07 | [Peptidoform-family scoring](work-packages/07-family-scoring.md) | Localization + quantitative proteomics | 05, 06 | Joint local evidence, ambiguous forms and quantities |
-| WP-08 | [Compact outputs, evidence storage and global confidence](work-packages/08-storage-confidence.md) | Storage + statistical inference | 01, 02; final integration with 07 | Size-bounded result/rescore/diagnostic profiles and global inference |
-| WP-09 | [Public CLI vertical slice](work-packages/09-cli-integration.md) | TOPP/OpenDIA integration | 03 through 08 | Opt-in end-to-end IM + peptidoform workflow |
-| WP-10 | [Performance and release gates](work-packages/10-performance-release.md) | Performance + QA/release | 09 | Representative laptop validation and adoption decision |
-
-## Parallelization and milestones
-
-1. **M0: trustworthy baseline and contract.** WP-00 and WP-01 establish scientific policies, representative data, stable identity and build provenance. Benchmark tooling can continue evolving afterwards.
-2. **M1: bounded data plane.** WP-02 establishes accounting. WP-03 and WP-04 can then proceed in parallel. WP-08 schema work starts in parallel against WP-01 contracts.
-3. **M2: first scientific slice.** WP-05, WP-06 and WP-07 deliver extraction, retrieval and family scoring. WP-08 completes inference/export integration. The slice includes real mobility and localization cases.
-4. **M3: public, measured workflow.** WP-09 integrates the actual CLI. WP-10 runs the agreed laptop, correctness, quality, overflow and packaging gates. Only then decide whether to replace existing defaults.
-
-WP-09's integration skeleton can begin after contracts are agreed, but its completion depends on the upstream implementations. Synthetic producer/consumer tests unblock development, not scientific acceptance.
-
-## Assignment and completion rules
-
-- Put the responsible person and reviewer in the package's `Owner` / `Reviewer` fields. Keep its dependency list and status current.
-- Use the package's suggested issue title and checkbox acceptance criteria. Replace stable WP dependency IDs with actual issue references only after posting; do not invent issue numbers or assume project labels exist.
-- Start with the package's first PR-sized slice. Do not reinterpret a work package as a single large pull request.
-- Agree contract changes with both producer and consumer owners. Record any change to scientific behavior separately from a transport optimization.
-- For every acceptance check record the command, pinned input/build, output artifact and observed result. A proposed check is not a pass.
-- Build locally out of tree and run relevant tests before opening a PR. Follow repository header registration, bindings and package rules when public APIs change.
-- Do not introduce a new default engine until WP-10 passes. Do not claim reduced scientific scope as a performance improvement.
-- Use the real public CLI and installed package where applicable. Unit tests and synthetic fixtures supplement, but do not replace, the acceptance workflow.
-
-## Open decisions that need owners
-
-| Decision | Accountable package | Must be resolved before |
+| Track | Work packages | Start / integration dependencies |
 |---|---|---|
-| First supported acquisition formats and raw-cache format | 03 with 00 | M1 completion |
-| Candidate completeness domain and boundary reconciliation | 01 with 06/07 | M2 quality comparison |
-| Family partition and localization/null model | 07 with 01/08 | Localization acceptance |
-| Exact versus approximate retrieval/model fitting | 06/08 with 00 | Any performance claim |
-| Canonical evidence schema and supported export backends | 08 with 09 | M3 |
-| Per-profile output byte targets, OSW comparison and retained rescoring capability | 00 with 08/10 | Before schema/performance acceptance |
-| OpenDIA/core placement and one-way dependency review | 01 with every package owner | Each implementation PR |
-| Numerical tolerances and scientific non-inferiority margins | 00 with scientific reviewers | Before benchmarking the new engine |
-| Quantitative speed target and supported laptop/storage class | 10 with 00 | Before performance acceptance |
+| Baseline | [WP-00](work-packages/00-acceptance-baseline.md) | Start now. Pin develop + #10642, ProteoBench Astral and one diaPASEF dataset. |
+| Data handling | [WP-01](work-packages/01-contracts.md), [WP-02](work-packages/02-resource-budget.md), [WP-03](work-packages/03-raw-tiles.md), [WP-05](work-packages/05-shared-extraction.md) | WP-01 starts independently of baseline. Others start on v0 contracts, without waiting for hardened admission. WP-05 owns the existing-calibration adapter. |
+| Library preparation | [WP-04](work-packages/04-hypothesis-store.md) | Start on WP-01 contracts. Integrate streamed preparation into the current engine. |
+| Science | [WP-06](work-packages/06-candidate-retrieval.md), [WP-07](work-packages/07-family-scoring.md) | Start WP-07 null/decoy experiment now. Retrieval integrates WP-03/04/05. Final family scoring integrates extraction/retrieval. |
+| Output, integration and benchmarks | [WP-08](work-packages/08-storage-confidence.md), [WP-09](work-packages/09-cli-integration.md), [WP-10](work-packages/10-performance-release.md) | WP-08 and WP-09 start on v0 contracts, not after science. WP-09 completes integration, then WP-10 assesses release. |
 
-## Definition of done for the overall plan
+See [issue map](issue-posting.md) for live tickets and native dependency relationships.
 
-The public workflow, including preparation, decoding, search, scoring, confidence estimation and export, passes the requirement matrix in [architecture.md](architecture.md). It demonstrates bounded whole-process memory, bounded peak disk and compact final artifacts, useful end-to-end speed, preserved identification/localization/quantification quality, and safe overload behavior on representative data. OpenDIA policy and reusable core code respect the ownership boundary above. Until then this is a design and implementation backlog, not a performance promise.
+## Sequence
 
-## Epic acceptance checklist
+1. **Baseline and early experiments:** profile the representative current pipeline, establish tool-private v0 contracts, and test the localization null/decoy model against exhaustive and IPF references. Fix shared extractor edge bugs separately on develop.
+2. **Incremental wins:** plug raw tiles, streamed preparation, shared extraction and compact output into the existing engine. Prioritize by measured time/RSS, including rescoring/inference/export. Each component can merge with its own tests and compatibility comparison.
+3. **New science:** review the localization experiment before freezing family/score contracts. Integrate high-recall retrieval and joint family scoring with mobility, ambiguity and calibrated confidence.
+4. **Release decision:** exercise the public raw-to-export path on representative data, then decide whether to change defaults. A runnable early increment is not acceptance of the final scientific slice.
 
-- [ ] WP-00 through WP-10 are posted, linked to this epic and assigned with explicit dependencies.
-- [ ] Public raw-to-export workflows meet the agreed memory, runtime and per-profile output-size gates.
-- [ ] Compact outputs retain current-run identification, localization, ambiguity and quantification semantics; optional rescoring capabilities are verified separately.
-- [ ] Peak disk accounting covers scratch, caches, final artifacts and finalization overlap, with explicit failure and cleanup tests.
-- [ ] OpenDIA-specific code lives under `ANALYSIS/OPENDIA`, reusable core has no dependency on it, and the TOPP entry point remains thin.
-- [ ] Real-data, scientific-quality, installed-consumer and compatibility evidence is attached before default adoption.
+## Shared acceptance rules
+
+- WP-00 pins provenance, numerical tolerances, scientific margins and performance/size targets before comparisons. Local scratch experiments are historical evidence only.
+- Every implementation PR builds locally out of tree and runs relevant tests. Packages close on their local merge checks, without waiting for all end-to-end gates.
+- Scheduling/storage changes preserve results. Science changes require measured retrieval recall, separate identification/localization error, ambiguity and quantitative quality. Never truncate hypotheses to meet a resource target.
+- WP-09 owns integration, real artifact reopening/rescoring and failure paths. WP-10 owns representative cold/warm timing, whole-process memory, peak disk/output size and release compatibility. No default switch before those gates pass.
+
+## Decisions still requiring review
+
+- WP-07 with WP-01/08: family partition, localization nulls/decoys and confidence model, before freezing contracts.
+- WP-00/03/08/10: initial acquisition coverage, storage format and numerical quality/runtime/size gates, based on representative measurements.
+- Multi-run extension: experiment-level inference and its retained population must be designed before extending the new single-run path.
+
+[Shared architecture and invariants](architecture.md) · [Historical measurements](evidence.md)
