@@ -444,15 +444,22 @@ namespace OpenMS
     else
       model_->setColumnIsInteger(index, true);
 #elif defined(OPENMS_HAS_HIGHS)
-    if (type == CONTINUOUS)
-      highs_->changeColIntegrality(index, HighsVarType::kContinuous);
-    else if (type == BINARY)
+    if (index < 0 || index >= highs_->getNumCol())
     {
-      highs_->changeColIntegrality(index, HighsVarType::kInteger);
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, highs_->getNumCol());
+    }
+    // stage the change; applied in one batch by flushIntegrality_()
+    if (staged_integrality_.empty())
+    {
+      const HighsLp& lp = highs_->getLp();
+      for (HighsVarType t : lp.integrality_) staged_integrality_.push_back(static_cast<uint8_t>(t));
+    }
+    staged_integrality_.resize(highs_->getNumCol(), static_cast<uint8_t>(HighsVarType::kContinuous));
+    staged_integrality_[index] = static_cast<uint8_t>(type == CONTINUOUS ? HighsVarType::kContinuous : HighsVarType::kInteger);
+    if (type == BINARY)
+    {
       highs_->changeColBounds(index, 0.0, 1.0);
     }
-    else
-      highs_->changeColIntegrality(index, HighsVarType::kInteger);
 #else
     glp_set_col_kind(lp_problem_, index + 1, (int)type);
 #endif
@@ -469,6 +476,7 @@ namespace OpenMS
       return CONTINUOUS;
 #elif defined(OPENMS_HAS_HIGHS)
     // Get integrality from the model's integrality vector
+    flushIntegrality_();
     const HighsLp& lp = highs_->getLp();
     if (lp.integrality_.empty() || lp.integrality_[index] == HighsVarType::kContinuous)
       return CONTINUOUS;
@@ -613,6 +621,7 @@ namespace OpenMS
   void LPWrapper::readProblem(const std::string& filename, const std::string& /*format*/)
   {
     // Clear and read a new model
+    staged_integrality_.clear();
     highs_->clear();
     highs_->setOptionValue("output_flag", false);
     highs_->readModel(filename.c_str());
@@ -653,6 +662,7 @@ namespace OpenMS
     }
 #elif defined(OPENMS_HAS_HIGHS)
     (void)format;
+    flushIntegrality_();
     // HiGHS can write MPS and LP formats; it auto-detects from extension
     highs_->writeModel(filename.c_str());
 #else
@@ -775,18 +785,27 @@ namespace OpenMS
 #elif defined(OPENMS_HAS_HIGHS)
     OPENMS_LOG_INFO << "Using solver 'highs' ...\n";
     // Configure HiGHS options based on solver_param
+    flushIntegrality_();
     highs_->setOptionValue("output_flag", verbose_level > 1);
-    if (solver_param.time_limit < (std::numeric_limits<Int>::max)())
-    {
-      highs_->setOptionValue("time_limit", solver_param.time_limit / 1000.0); // convert ms to seconds
-    }
-    if (solver_param.mip_gap > 0.0)
-    {
-      highs_->setOptionValue("mip_rel_gap", solver_param.mip_gap);
-    }
+    // set (or reset) on every call, so a limit from a previous solve() does not carry over; the limit applies per
+    // solve(), since HiGHS' run clock accumulates over run() calls and is zeroed below
+    highs_->setOptionValue("time_limit", solver_param.time_limit < (std::numeric_limits<Int>::max)()
+                                           ? solver_param.time_limit / 1000.0 // convert ms to seconds
+                                           : kHighsInf);
+    // always pass the gap: HiGHS' own default (1e-4) would otherwise stop before proven optimality for mip_gap = 0
+    highs_->setOptionValue("mip_rel_gap", solver_param.mip_gap);
     highs_->setOptionValue("presolve", solver_param.enable_presolve ? std::string("on") : std::string("off"));
+    // Skip the probing and enumeration presolve rules. On the large binary set-packing ILPs OpenMS builds
+    // (e.g. decharging), they spend most of the runtime building clique tables (50k-node instance:
+    // 70 s -> 5 s, same optimum). Only switching off both helps; the remaining presolve rules stay on.
+    HighsInt presolve_rule_off = 1 << kPresolveRuleProbing;
+#if HIGHS_VERSION_MAJOR > 1 || HIGHS_VERSION_MINOR >= 13 // the enumeration rule was added in HiGHS 1.13
+    presolve_rule_off |= 1 << kPresolveRuleEnumeration;
+#endif
+    highs_->setOptionValue("presolve_rule_off", presolve_rule_off);
 
     // Solve
+    highs_->zeroAllClocks();
     HighsStatus status = highs_->run();
 
     // Store solution
@@ -1087,5 +1106,28 @@ namespace OpenMS
     }
 #endif
   }
+
+#ifdef OPENMS_HAS_HIGHS
+  void LPWrapper::flushIntegrality_() const
+  {
+    if (staged_integrality_.empty())
+    {
+      return;
+    }
+    const HighsInt num_col = highs_->getNumCol();
+    // columns added after the last setColumnType() call are continuous
+    staged_integrality_.resize(num_col, static_cast<uint8_t>(HighsVarType::kContinuous));
+    std::vector<HighsVarType> integrality(num_col);
+    for (HighsInt i = 0; i < num_col; ++i)
+    {
+      integrality[i] = static_cast<HighsVarType>(staged_integrality_[i]);
+    }
+    if (num_col > 0)
+    {
+      highs_->changeColsIntegrality(0, num_col - 1, integrality.data());
+    }
+    staged_integrality_.clear();
+  }
+#endif
 
 } // namespace

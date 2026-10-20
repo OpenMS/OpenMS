@@ -210,23 +210,16 @@ public:
 
     SignalToNoiseOpenMS(const ContainerT& chromat,
                         double sn_win_len_, unsigned int sn_bin_count_, bool write_log_messages) :
-      chromatogram_(chromat), sn_()
+      chromatogram_(chromat)
     {
-      OpenMS::Param snt_parameters = sn_.getParameters();
-      snt_parameters.setValue("win_len", sn_win_len_);
-      snt_parameters.setValue("bin_count", sn_bin_count_);
-
-      if (write_log_messages) 
-      {
-        snt_parameters.setValue("write_log_messages", "true");
-      }
-      else
-      {
-        snt_parameters.setValue("write_log_messages", "false");
-      }
-
-      sn_.setParameters(snt_parameters);
-      sn_.init(chromatogram_);
+      // Only the S/N values are kept, not an estimator: constructing a SignalToNoiseEstimatorMedian builds and
+      // checks its whole parameter set, which costs more than the estimate itself, and there is one chromatogram
+      // per transition, millions in a DIA run.
+      typename SignalToNoiseEstimatorMedian<ContainerT>::Settings settings;
+      settings.win_len = sn_win_len_;
+      settings.bin_count = static_cast<int>(sn_bin_count_);
+      settings.write_log_messages = write_log_messages;
+      SignalToNoiseEstimatorMedian<ContainerT>::estimate(chromatogram_, settings, sn_);
     }
 
     double getValueAtRT(double RT) override
@@ -252,20 +245,20 @@ public:
       if (std::fabs(prev->getPos() - RT) < std::fabs(iter->getPos() - RT) )
       {
         // prev is closer to the apex
-        return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));
+        return sn_[(Size) distance(chromatogram_.begin(),prev)];
       }
       else
       {
         // iter is closer to the apex
-        return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),iter));
+        return sn_[(Size) distance(chromatogram_.begin(),iter)];
       }
     }
 
 private:
 
     const ContainerT& chromatogram_;
-    OpenMS::SignalToNoiseEstimatorMedian< ContainerT > sn_;
-
+    /// the S/N of every data point of the chromatogram
+    std::vector<double> sn_;
   };
 
 }

@@ -114,6 +114,8 @@ START_SECTION((weight_type getWeight(size_type i) const ))
   TEST_EQUAL(ptr->getWeight(2), 102)
   TEST_EQUAL(ptr->getWeight(3), 428437);
   TEST_EQUAL(ptr->getWeight(4), 25500)
+  TEST_EXCEPTION(Exception::IndexOverflow, ptr->getWeight(5))
+  TEST_EXCEPTION(Exception::IndexOverflow, Weights().getWeight(0))
 }
 END_SECTION
 
@@ -170,6 +172,7 @@ START_SECTION((weight_type operator[](size_type i) const ))
   TEST_EQUAL((*ptr)[2], 102)
   TEST_EQUAL((*ptr)[3], 428437)
   TEST_EQUAL((*ptr)[4], 25500)
+  TEST_EXCEPTION(Exception::IndexOverflow, (*ptr)[5])
 }
 END_SECTION
 
@@ -177,6 +180,7 @@ START_SECTION((weight_type back() const ))
 {
   TEST_EQUAL((*ptr)[4], 25500);
   TEST_EQUAL(ptr->back(), 25500);
+  TEST_EXCEPTION(Exception::IndexOverflow, Weights().back())
 }
 END_SECTION
 
@@ -189,6 +193,7 @@ START_SECTION((alphabet_mass_type getAlphabetMass(size_type i) const ))
   {
     TEST_EQUAL(ptr->getAlphabetMass(i), masses[i])
   }
+  TEST_EXCEPTION(Exception::IndexOverflow, ptr->getAlphabetMass(ptr->size()))
 }
 END_SECTION
 
@@ -229,6 +234,15 @@ START_SECTION((void swap(size_type index1, size_type index2)))
   TEST_EQUAL(ptr->getWeight(0), copy_to_swap.getWeight(3))
   TEST_EQUAL(ptr->getWeight(3), copy_to_swap.getWeight(1))
 
+  // an invalid index throws and leaves the weights unchanged
+  Weights before_invalid_swap(copy_to_swap);
+  TEST_EXCEPTION(Exception::IndexOverflow, copy_to_swap.swap(0, 5))
+  TEST_EXCEPTION(Exception::IndexOverflow, copy_to_swap.swap(5, 0))
+  for (Size i = 0; i < copy_to_swap.size(); ++i)
+  {
+    TEST_EQUAL(copy_to_swap.getWeight(i), before_invalid_swap.getWeight(i))
+    TEST_EQUAL(copy_to_swap.getAlphabetMass(i), before_invalid_swap.getAlphabetMass(i))
+  }
 }
 END_SECTION
 

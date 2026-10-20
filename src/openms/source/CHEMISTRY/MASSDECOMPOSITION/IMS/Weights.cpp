@@ -38,8 +38,15 @@ namespace OpenMS::ims
     }
   }
 
+  void Weights::throwIndexOverflow_(size_type i) const
+  {
+    throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(i), weights_.size());
+  }
+
   void Weights::swap(size_type index1, size_type index2)
   {
+    checkIndex_(index1);
+    checkIndex_(index2);
     weight_type weight = weights_[index1];
     weights_[index1] = weights_[index2];
     weights_[index2] = weight;
