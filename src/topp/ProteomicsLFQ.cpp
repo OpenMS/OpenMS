@@ -135,6 +135,9 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
   - If there are fewer decoy transfers than @p PipEcho:min_decoys (default 20), or too few to resolve the
     requested FDR, no transfer is kept, and only the direct identifications remain. @p PipEcho:fdr @p 1.0 keeps
     all transfers.
+  - With @p -proteinFDR @p 1 (no protein filter), only precursors (sequence and charge) identified at q-value
+    <= 0.001 in at least one run are transferred. Otherwise a false identification in one run would be copied into
+    every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
   - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
     cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
@@ -434,6 +437,7 @@ protected:
     // For PIP-ECHO:
     Param pip_echo_defaults = PipEchoAlgorithm().getDefaults();
     pip_echo_defaults.remove("distance_RT:max_difference"); // estimated from data
+    pip_echo_defaults.remove("donor_max_q");                 // set from -proteinFDR
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default, so we export everything (important for copying back MSstats results)
@@ -755,6 +759,15 @@ protected:
       // Pass the host's raw-spectra chromatographic FWHM down for PIP-ECHO's
       // local_rt:auto window sizing (used only when local_rt:enabled+auto are set).
       pe_param.setValue("local_rt:median_fwhm", median_fwhm);
+      // Without a protein FDR filter, nothing downstream removes a false identification that PIP-ECHO copied into
+      // the other runs (decoy transfers cannot reveal it). Then only confidently identified precursors are
+      // transferred (best q-value <= 0.001, as in andes); the PSM filter alone does not catch them.
+      if (getDoubleOption_("proteinFDR") >= 1.0)
+      {
+        pe_param.setValue("donor_max_q", 0.001);
+        OPENMS_LOG_INFO << "PIP-ECHO: no protein FDR filter (-proteinFDR 1), so only precursors identified at "
+                           "q-value <= 0.001 in some run are transferred.\n";
+      }
       writeDebug_("Parameters passed to the PIP-ECHO algorithm", pe_param, 3);
 
       linker.setParameters(pe_param);

@@ -788,6 +788,9 @@ TOPP tools:
       quantification workflows. Conflicting identifications of one feature are resolved with
       IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
   Changes:
+    ProteomicsLFQ:
+      - With -pip_echo true and -proteinFDR 1 (no protein filter), PIP-ECHO transfers a precursor only if its best
+        identification over all runs has a q-value <= 0.001 (PipEchoAlgorithm parameter donor_max_q).
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter
