@@ -54,9 +54,11 @@ namespace OpenMS
             }
             for (auto& [cv, ms1] : by_cv)
             {
+                if (ms1.empty()) continue; // CV seen only on MS2: nothing to seed from
                 ms1.updateRanges();
                 result.emplace_back(cv, std::move(ms1));
             }
+            if (result.size() < 2) result.clear(); // a single usable CV needs no splitting
             return result;
         }
     }

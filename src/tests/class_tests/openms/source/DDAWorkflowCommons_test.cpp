@@ -122,11 +122,14 @@ START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFW
   TEST_TRUE(!seeds.empty())
   // every seed carries the CV it was found at, the one its peptide elutes at
   Size labelled = 0, wrong_cv = 0;
+  bool found_minus_45 = false, found_minus_60 = false;
   for (const Feature& seed : seeds)
   {
     if (!seed.metaValueExists(Constants::UserParam::FAIMS_CV)) continue;
     ++labelled;
     const double cv = seed.getMetaValue(Constants::UserParam::FAIMS_CV);
+    if (std::fabs(cv + 45.0) < 0.01) found_minus_45 = true;
+    if (std::fabs(cv + 60.0) < 0.01) found_minus_60 = true;
     for (const auto& [analyte_cv, seq] : analytes)
     {
       if (std::fabs(seed.getMZ() - seq.getMZ(charge)) < 0.05 && cv != analyte_cv) ++wrong_cv;
@@ -134,6 +137,9 @@ START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFW
   }
   TEST_EQUAL(labelled, seeds.size())
   TEST_EQUAL(wrong_cv, 0)
+  // both CV groups produced seeds
+  TEST_TRUE(found_minus_45)
+  TEST_TRUE(found_minus_60)
 }
 END_SECTION
 
