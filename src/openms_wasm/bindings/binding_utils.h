@@ -55,14 +55,23 @@ namespace OpenMS::WASM
     {
       return std::string(e.getName()) + ": " + e.what();
     }
-    // Memory: a wasm32 module addresses at most 4 GB (and its memory does not shrink again)
+    // Memory: a wasm32 module addresses at most 4 GB, a wasm64 one 16 GB (MAXIMUM_MEMORY, cmake/emscripten.cmake;
+    // and its memory does not shrink again)
     catch (const std::bad_alloc&)
     {
+#ifdef __wasm64__
+      return "OutOfMemory: an allocation failed (the memory of this 64-bit WebAssembly module can grow to at most 16 GB)";
+#else
       return "OutOfMemory: an allocation failed (a WebAssembly module can address at most 4 GB)";
+#endif
     }
     catch (const std::length_error& e)
     {
+#ifdef __wasm64__
+      return std::string("OutOfMemory: ") + e.what() + ": a container would exceed what the module's memory can hold (16 GB)";
+#else
       return std::string("OutOfMemory: ") + e.what() + ": a container would exceed what a 32-bit WebAssembly module can address";
+#endif
     }
     catch (const std::exception& e)
     {

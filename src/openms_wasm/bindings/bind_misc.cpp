@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <new>
 
@@ -109,13 +110,29 @@ namespace OpenMS::WASM
 #endif
     }
 
-    /// The size of the module's memory and the most it can grow to, in bytes. WebAssembly memory
-    /// grows but never shrinks: after a computation, heapSize is its high-water mark.
+#ifdef __wasm64__
+    /// The largest file of WasmFS' memory backend (one std::vector): in wasm64, what the module's memory can hold at
+    /// most (MAXIMUM_MEMORY, 16 GiB: cmake/emscripten.cmake) less 64 MiB. Its allocator takes blocks of 4 GiB and
+    /// more (OPENMS_WASM_MALLOC, cmake/emscripten_malloc.cmake): an allocation succeeds where the memory has room.
+    constexpr off_t MAX_FILE_SIZE = (off_t(16) << 30) - (off_t(64) << 20);
+#else
+    /// The largest file of WasmFS' memory backend: its std::vector holds less than 2 GiB in wasm32 (max_size() is
+    /// 2^31 - 1), and an allocation close to that aborts inside WasmFS (in a fresh module 1.99 GiB worked, 1.999 GiB
+    /// aborted although the memory had room). Up to 2 GiB - 64 MiB, an allocation succeeds where the memory has room.
+    constexpr off_t MAX_FILE_SIZE = (off_t(1) << 31) - (off_t(64) << 20);
+#endif
+    /// MAX_FILE_SIZE as the messages give it: "2 GiB" (wasm32), "16 GiB" (wasm64)
+    const std::string MAX_FILE_SIZE_TEXT = std::to_string((MAX_FILE_SIZE + (off_t(64) << 20)) >> 30) + " GiB";
+
+    /// The size of the module's memory and the most it can grow to, in bytes, and the largest file of its file
+    /// system (maxFileSize). WebAssembly memory grows but never shrinks: after a computation, heapSize is its
+    /// high-water mark.
     JS::MemoryInfo memoryInfo()
     {
       val info = val::object();
       info.set("heapSize", static_cast<double>(emscripten_get_heap_size()));
       info.set("heapMax", static_cast<double>(emscripten_get_heap_max()));
+      info.set("maxFileSize", static_cast<double>(MAX_FILE_SIZE));
       return info;
     }
 
@@ -157,7 +174,7 @@ namespace OpenMS::WASM
     //
     // WasmFS' memory backend keeps a file in one std::vector, and WasmFS is compiled without exceptions: an
     // allocation that fails inside it aborts (and would unwind through its locks). So the size of a file is checked
-    // first (InvalidValue at 2 GiB), then the memory a write or a resize needs is allocated once here, and an error
+    // first (InvalidValue above MAX_FILE_SIZE), then the memory a write or a resize needs is allocated once here, and an error
     // (OutOfMemory) is thrown if the module's memory cannot hold it.
 
     /// A file descriptor, closed when it goes out of scope
@@ -179,31 +196,27 @@ namespace OpenMS::WASM
       return static_cast<off_t>(value);
     }
 
-    /// The largest file of WasmFS' memory backend: its std::vector holds less than 2 GiB in wasm32 (max_size() is
-    /// 2^31 - 1), and an allocation close to that aborts inside WasmFS (in a fresh module 1.99 GiB worked, 1.999 GiB
-    /// aborted although the memory had room). Up to 2 GiB - 64 MiB, an allocation succeeds where the memory has room.
-    constexpr off_t MAX_FILE_SIZE = (off_t(1) << 31) - (off_t(64) << 20);
-
     /// Throws InvalidValue if a file of @p size bytes does not fit into the memory file system (MAX_FILE_SIZE)
     void checkFileSize(off_t size, const std::string& path)
     {
       if (size <= MAX_FILE_SIZE) return;
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "a file of the module's file system has to be smaller than 2 GiB (at most " + std::to_string(MAX_FILE_SIZE)
+        "a file of the module's file system has to be smaller than " + MAX_FILE_SIZE_TEXT + " (at most " + std::to_string(MAX_FILE_SIZE)
         + " bytes): " + path, std::to_string(size));
     }
 
     /// The block that growing a file of @p size bytes to @p end bytes allocates: its std::vector grows to twice its
     /// capacity (taken as its size; allocateFile() makes them equal), or to @p end if that is larger, and at most to
-    /// max_size(). Throws InvalidValue if that block would not fit (a file of more than 1 GiB that grows).
+    /// max_size() (PTRDIFF_MAX). Throws InvalidValue if that block would not fit (a file of more than half of
+    /// MAX_FILE_SIZE that grows).
     off_t growthAllocation(off_t size, off_t end, const std::string& path)
     {
-      const off_t block = std::min<off_t>(std::max<off_t>(end, 2 * size), (off_t(1) << 31) - 1);
+      const off_t block = std::min<off_t>(std::max<off_t>(end, 2 * size), static_cast<off_t>(std::numeric_limits<std::ptrdiff_t>::max()));
       if (block > MAX_FILE_SIZE)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "growing the file " + path + " of " + std::to_string(size) + " bytes takes a block of " + std::to_string(block)
-          + " bytes (it grows by doubling), and a block of the module's file system has to be smaller than 2 GiB: "
+          + " bytes (it grows by doubling), and a block of the module's file system has to be smaller than " + MAX_FILE_SIZE_TEXT + ": "
           "allocate the file at its final size first (allocateFile())", std::to_string(end));
       }
       return block;
