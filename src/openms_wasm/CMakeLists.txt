@@ -88,6 +88,7 @@ set(_openms_wasm_sources
 add_executable(openms_wasm ${_openms_wasm_sources})
 target_link_libraries(openms_wasm PRIVATE OpenMS)
 openms_add_compiler_flags(openms_wasm)
+openms_emscripten_link_malloc(openms_wasm) # the allocator of OPENMS_WASM_MALLOC (cmake/emscripten_malloc.cmake)
 
 ## Your own C++ code, compiled into the same module: sources with EMSCRIPTEN_BINDINGS
 ## blocks, which can use the helpers of bindings/binding_utils.h (see README.md).

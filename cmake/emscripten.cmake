@@ -166,7 +166,9 @@ endif()
 ## on 2 threads and 3.4x slower on 4 threads than on 1; with mimalloc it is 1.4x and 1.7x
 ## faster. Single-threaded it is about as fast or faster: search 1549 instead of 1601 ms,
 ## loading a 14 MB mzML file 184 instead of 238 ms. The module grows by about 0.3 MB.
-add_link_options("-sMALLOC=mimalloc")
+## Emscripten's build of it, or OpenMS' (OPENMS_WASM_MALLOC, the default of wasm64): see
+## cmake/emscripten_malloc.cmake.
+include(${CMAKE_CURRENT_LIST_DIR}/emscripten_malloc.cmake)
 
 ## The JavaScript bindings (src/openms_wasm): the module web applications load.
 option(OPENMS_WASM_BINDINGS "Build the JavaScript bindings of the OpenMS library (src/openms_wasm)" ON)
@@ -219,5 +221,6 @@ set(OPENMS_EMSCRIPTEN_NODE_PROGRAM_LINK_OPTIONS
 ## then runs like a native program, so the tests run it the same way on every platform.
 function(openms_emscripten_node_program target)
   target_link_options(${target} PRIVATE ${OPENMS_EMSCRIPTEN_NODE_PROGRAM_LINK_OPTIONS})
+  openms_emscripten_link_malloc(${target})
   set_target_properties(${target} PROPERTIES SUFFIX "")
 endfunction()
