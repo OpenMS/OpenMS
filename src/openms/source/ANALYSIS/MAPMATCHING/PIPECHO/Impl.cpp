@@ -572,8 +572,9 @@ void Impl::set_transferable_precursors(const RunMap& runs)
   {
     if (q <= donor_max_q) { transferable_.insert(key); }
   }
-  OPENMS_LOG_INFO << "PIP-ECHO donor gate (q <= " << donor_max_q << "): " << transferable_.size() << " of "
-                  << best_q.size() << " precursors may be transferred";
+  OPENMS_LOG_INFO << "PIP-ECHO donor gate (q <= " << donor_max_q << "): " << best_q.size() - transferable_.size()
+                  << " of " << best_q.size() << " precursors are not transferred (no identification at q <= "
+                  << donor_max_q << ")";
   if (unknown > 0) { OPENMS_LOG_INFO << " (" << unknown << " identifications without q-value pass)"; }
   OPENMS_LOG_INFO << '\n';
 }
