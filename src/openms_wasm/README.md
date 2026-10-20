@@ -150,11 +150,12 @@ and 3.1 GB/s reading in Node.js). Allocate the file first when its size is known
 system keeps a file in one block, which grows by doubling otherwise and then briefly takes up to
 three times its size. Errors, after which the module stays usable:
 
-- A file has to be smaller than 2 GiB (at most 2080374784 bytes, 2 GiB - 64 MiB): a larger size or end
-  of a write throws `InvalidValue: the value '<bytes>' was used but is not valid; a file of the module's
-  file system has to be smaller than 2 GiB (at most 2080374784 bytes): <path>` before anything is
-  allocated (an app can tell the user that the file is too large). A file of more than about 1 GiB
-  cannot grow by a write past its end (that takes a block of 2 GiB): `InvalidValue: ... growing the file
+- A file has to be smaller than 2 GiB (at most 2080374784 bytes, 2 GiB - 64 MiB; in the 64-bit build
+  16 GiB - 64 MiB; `getMemoryInfo().maxFileSize`): a larger size or end of a write throws
+  `InvalidValue: the value '<bytes>' was used but is not valid; a file of the module's file system has
+  to be smaller than 2 GiB (at most 2080374784 bytes): <path>` before anything is allocated (an app can
+  tell the user that the file is too large). A file of more than half of that (about 1 GiB) cannot grow
+  by a write past its end (that takes a block of twice its size): `InvalidValue: ... growing the file
   <path> of <n> bytes takes a block of ... allocate the file at its final size first (allocateFile())`.
 - Where the module's memory cannot hold the file: `OutOfMemory`.
 - `FS.writeFile()`, `FS.write()` and `FS.read()` throw an `FS.ErrnoError` of errno 48 (ENOMEM) there:
@@ -271,12 +272,23 @@ build, 16 threads) on a 60-minute Orbitrap TMT run (6,103 MS2 spectra, 78 MB mzM
 4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64; the
 experimental presets `wasm64-emscripten-mt-release` and `wasm64-emscripten-mt-onnx-release`, see
 "Building") raises the limit to 16 GB (Chrome, Firefox and Node.js; Safari does not support
-Memory64). Measured the same way (October 2026), it runs the semi-tryptic human search without
-chunking (54 s, 10 GB) and with `database:chunk_size` 8000 (36 s, 10.5 GB), which stop at 4 GB in
-wasm32, with the same results; but it is 10 to 20% slower, and with Emscripten's allocator (mimalloc)
-the module's memory grows far more there: 1.9 instead of 0.9 GB for *Erwinia*, 2.5 instead of 1.3 GB
-for human, 12 instead of 2.5 GB for the semi-tryptic human search with `database:chunk_size` 2000
-(resident: 1.1 and 1.3 GB, about as in wasm32, but 10.5 instead of 1.8 GB). More threads than about
+Memory64). Measured the same way (October 2026; wasm32 and wasm64 of the same code):
+
+| Search | wasm32: time, memory | wasm64: time, memory |
+|---|---|---|
+| *Erwinia*, tryptic | 2.2 s, 0.9 GB | 2.5 s, 1.0 GB |
+| human, tryptic | 6.0 s, 1.4 GB | 6.8 s, 1.4 GB |
+| human, semi-tryptic, `database:chunk_size` 2000 | 23 s, 2.1 GB | 25 s, 1.7 GB |
+| human, semi-tryptic, `database:chunk_size` 8000 | does not fit: stops | 35 s, 4.7 GB |
+| human, semi-tryptic | does not fit: stops | 55 s, 8.8 GB |
+
+(Time: the search with Percolator rescoring; memory: `heapSize` after it. Less than in the table above:
+ProSE now restricts the index to the precursor masses of the spectra, e.g. 1.5 M instead of 4.0 M
+peptides of the human tryptic search.) The 64-bit module runs
+the searches that do not fit into 4 GB, with the same results, and is 10 to 15% slower. Its
+allocator is OpenMS' build of mimalloc (`OPENMS_WASM_MALLOC`, see "Building"): with Emscripten's,
+its memory grew several times beyond what the search used (12 GB with `database:chunk_size` 2000).
+More threads than about
 8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
 the spectra are serial.
 
@@ -423,7 +435,7 @@ allocator (mimalloc, with threads) does not reuse. With many small files it is m
 the number of threads and with PeptDeep: 12 files of 75 MB, file by file, ended at 3007 MB with 8 threads
 and at 3971 MB with 16 (PeptDeep off), and at 3263 MB with 4 threads, 4079 MB with 8 and the 4 GB limit
 with 16 (PeptDeep on). For searches of many files, use fewer threads (4 kept 12 such files with PeptDeep
-at 3.3 GB). A file has to be smaller than 2 GiB (above).
+at 3.3 GB). A file has to be smaller than 2 GiB (above; the 64-bit build: 16 GiB).
 
 **Exporting idXML.** `storeIdXML(path)` writes into the memory file system as well, where the file
 grows by doubling and briefly takes up to three times its size (not guarded: see "Files in parts"). Hand
@@ -786,13 +798,19 @@ The presets `wasm64-emscripten-mt-release` and `wasm64-emscripten-mt-onnx-releas
 builds, without and with ONNX Runtime, for 64-bit memory (Memory64): the module's memory grows up to
 16 GB instead of 4 GB (Chrome, Firefox and Node.js; not Safari). vcpkg builds the dependencies, ONNX
 Runtime included, for the `wasm64-emscripten-mt` triplet (`-m64`; its chainloaded toolchain
-`vcpkg-overlays/toolchains/wasm64-emscripten.cmake` sets the pointer size). They are experimental:
-Embind passes a `size_t` as BigInt there, so `AASequence.size()`, `MSExperiment.size()`,
-`getNrSpectra()`, `getNrChromatograms()` and `CoarseIsotopePatternGenerator.getMaxIsotope()` return a
-`bigint`, and `openms.d.ts` declares indices and counts such as the one of `getSpectrum()` as `bigint`
-(numbers are accepted). Emscripten's allocator (mimalloc on top of emmalloc, Emscripten 6.0.12) cannot
-allocate a block of 4 GB or more in such a module, and takes more memory than in wasm32 (see the
-ProSE measurements above).
+`vcpkg-overlays/toolchains/wasm64-emscripten.cmake` sets the pointer size). They write the package
+`@openms/openms-wasm64-mt` (Node.js 24 or newer), with the API of the 32-bit builds: sizes and indices
+are numbers in both (Embind would pass a 64-bit `size_t` as BigInt; see "Adding bindings"), and
+`openms.d.ts` is the same. Files of the memory file system may be up to 16 GiB - 64 MiB
+(`getMemoryInfo().maxFileSize`).
+
+The allocator of the 64-bit builds is OpenMS' build of mimalloc (`OPENMS_WASM_MALLOC=openms-mimalloc`,
+`cmake/emscripten_malloc.cmake`): the sources of mimalloc of the Emscripten SDK, compiled with
+`MI_FREE_USE_PAGEMAP`, without the exponential growth of its arenas, and on dlmalloc instead of emmalloc
+(`malloc/dlmalloc_system.c`). In wasm64, Emscripten's (`-sMALLOC=mimalloc`) cannot allocate a block of
+4 GiB or more (emmalloc's limit) and let the memory grow several times beyond what a search used (see
+the ProSE measurements above). The 32-bit builds keep Emscripten's; `-DOPENMS_WASM_MALLOC=openms-mimalloc`
+gives them OpenMS' as well (as fast in the ProSE searches above, with 30 to 45% less memory).
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`
@@ -845,6 +863,12 @@ compiles your sources (with their `EMSCRIPTEN_BINDINGS`) into `openms.wasm`.
 
 The bindings are [Embind](https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html)
 declarations in `bindings/bind_<area>.cpp`. Wrap every bound function in `OMS_FN(...)`
-(`bindings/binding_utils.h`): it turns C++ exceptions into JavaScript errors. Return
+(`bindings/binding_utils.h`; member functions `OMS_METHOD(...)`, constructors that take a size
+`OMS_CONSTRUCTOR(...)`): it turns C++ exceptions into JavaScript errors, and takes and returns
+`size_t` and `ptrdiff_t` (long, unsigned long) as numbers, which the 64-bit build would pass as BigInt;
+an argument that is no integer within range throws `InvalidValue`. Put such an integer into a `val`
+as `double` (`static_cast<double>(v.size())`): the build checks that none crosses to JavaScript
+otherwise (`OPENMS_WASM_CHECK_INTEGERS`, a compile error with the place), and the test
+`openms_wasm_typescript` that `openms.d.ts` declares no `bigint` and is the same for both builds. Return
 small records as plain objects (`val`) and peak data as typed arrays (`toTypedArray`);
 bind classes the user creates, passes to algorithms or keeps. Add a test to `tests/`.
