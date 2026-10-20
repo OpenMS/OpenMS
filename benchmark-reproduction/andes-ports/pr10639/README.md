@@ -1,9 +1,80 @@
 # PR #10639 — ProSE `database:mass_slices` (port of bigbio/andes#77, #120–#123)
 
-The sections after "Rebuild" describe the first version (`cd287f54`) and are kept as measured.
+The section "Total peptide order" describes the current head. The tie-order caveat of the "Rebuild" section is resolved there; the sections after "Rebuild" describe the first version (`cd287f54`) and are kept as measured.
 
 Question: does the memory/speed gain andes reported for searching in precursor-mass slices also show up in OpenMS, and
 do the results stay identical?
+
+## Total peptide order (PR head `a3464870`, decided by Timo after the rebuild)
+
+`FragmentIndex::sortPeptides_()` sorted by (precursor m/z, protein) with an unstable sort, so the order of equally heavy
+peptidoforms of one protein (positional isomers, repeats) depended on the algorithm and on which other peptides were
+in the vector: a slice index could arrange them differently from the full index, and the
+`scoring:max_candidates_per_spectrum` cut (ties broken by peptide index) then kept another one. `a3464870` sorts by
+(precursor m/z, protein, start, length, mod bitmask), the order the `low_memory` path already used for its hits. This
+is a behaviour change of the default path: wherever the candidate cut runs through such a tie, another candidate can
+now be kept. `448ea1e0` (other session) moves four FragmentIndex_test sections into functions so that `main()` fits
+the 1 MB Windows stack (the test crashed there since `4522ade7`).
+
+Tests: no test reference changes. FragmentIndex_test, ProSEAlgorithm_test and all 57 TOPP_ProSE tests pass (64 ctest
+entries), and the outputs of all 23 ProSE TOPP test calls are byte-identical between `4522ade7` and `a3464870` (the
+`FuzzyDiff` tolerance therefore hides nothing); the test data has no tie at the cut.
+
+**Slices are now byte-identical** (`results/v3_identity.txt`, `scripts/identity3.sh`; sha256 of every PIN and of every
+idXML without date and database path):
+
+| search | slices compared | PIN and idXML |
+|---|---|---|
+| frozen `hfx_A2` | 1 = 4 = 16 | identical |
+| 3 files in one call | 1 = 4 = 16 | identical (and `hfx_A2` in it = `hfx_A2` alone) |
+| whole `hfx_A2` run (111,413 MS2) | 1 = 4 = 16 | identical |
+| `phos2`, `hye_E` | 4 = 16 (1 does not fit) | identical |
+| `mhc` | 4 = 16 (1 does not fit) | identical |
+
+**Default change, frozen #10364 suite** (`results/suite/`): all 20 files, re-sampled with the bundle's `prepare.py`
+(every input sha256 = `inputs.json`; the timsTOF files without `normalize_tims_metadata.py`, whose output does not have
+that hash), frozen `native_dedup:<file>:default` parameters, arms old = develop merge-base `74048ef5`
+(`/opt/openms-base`), new = `a3464870`; Percolator 3.06 `-Y -U`, seeds 1/42/137, q ≤ 0.01. z = Δ / sqrt(var_new/3 +
+var_old/3), a file is up/down at |z| ≥ 2. Entrapment: frozen paired-mass r = 1 databases for HF-X, Astral, TMTpro and
+timsTOF (sha256 `fb77e3df…` / `76d25071…`, FDP = 2·N_E/N), protein-level 1:1 shuffle for Lumos LFQ/TMT (`hy`), frozen
+Velos natural entrapment (r = 3.376) on the normal run; N and N_E summed over the files of a group.
+
+| group | files | PSMs old | PSMs new | Δ | up / down | FDP old | FDP new |
+|---|---:|---:|---:|---:|---|---:|---:|
+| Velos | 3 | 8,932.7 | 8,946.7 | +0.16 % | 0 / 0 | 1.18 % | 1.20 % |
+| HF-X | 3 | 13,792.7 | 13,801.0 | +0.06 % | 0 / 0 | 1.58 % | 1.59 % |
+| Astral | 3 | 9,149.3 | 9,128.7 | −0.23 % | 0 / 0 | 1.40 % | 1.38 % |
+| Lumos LFQ | 3 | 16,660.7 | 16,663.0 | +0.01 % | 0 / 0 | 0.96 % | 0.96 % |
+| Lumos TMT | 3 | 7,371.3 | 7,372.3 | +0.01 % | 0 / 0 | 0.84 % | 0.85 % |
+| Eclipse TMTpro | 3 | 7,866.7 | 7,859.3 | −0.09 % | 0 / 0 | 1.36 % | 1.37 % |
+| timsTOF | 2 | 2,097.0 | 2,097.7 | +0.03 % | 0 / 0 | 0.87 % | 0.87 % |
+| **total** | 20 | 65,870.3 | 65,868.7 | **−0.003 %** | **0 / 0** | | |
+
+Per file Δ −0.44 … +0.37 %, max |z| 1.82 (`hfx_A2`, +8 PSMs). Every PIN changes, in 10–190 of 29,037–79,134 rows (1,218
+of 1,104,777 rows in total); 138 spectra change their hits, and all are explained by the tie order
+(`scripts/suite/tie_partner.py`, `results/suite/tie_partner.txt`): 103 keep the same peptides (only
+`hyperscore_zscore` or the order of equal scores changes), and in the other 35 every peptide that is only in one
+version has a partner of the same protein with the same composition and number of Ox(M) (another sequence, or the
+oxidation on another M), or is the lowest-scoring of the 10 reported hits (pushed over the `report:top_hits` cut).
+
+Larger searches (`results/v3_perc.jsonl`, same Percolator protocol): whole `hfx_A2` run 63,449 → 63,391 PSMs (−0.09 %),
+FDP 1.71 → 1.68 %; `phos2`/`hye_E` (4 slices) 4,421 → 4,420, FDP 1.22 → 1.22 %; `mhc` 2,011 → 2,011.
+
+Verdict: the total order makes `mass_slices` exactly equal to one index, and its effect on the default output is
+neutral (no file up or down, total −0.003 %, entrapment FDP within ±0.04 points).
+
+Reproduce (`<root>=/home/user/bench`; suite scripts in `scripts/suite/`, which expect `<root>/suite`):
+
+```bash
+python3 -I scripts/suite/prep_inputs.py frozen/z/prose-andes-reproduction <python with pyopenms 3.6>   # 20 inputs, hash-checked
+for db in hye human; do python3 -I scripts/suite/frozen_make_entrapment.py frozen/.../data/${db}_td.fasta suite/db/${db}_frozenE_td.fasta; done
+python3 -I scripts/suite/make_entrapment_db.py frozen/.../data/hy_td.fasta suite/db/hy_entrap_td.fasta
+python3 -I scripts/suite/valid_params.py /opt/openms-base; python3 -I scripts/suite/valid_params.py /opt/openms-v3
+python3 -I scripts/suite/suite.py /opt/openms-v3          # old/new x normal/entrapment database, interleaved per file
+python3 -I scripts/suite/evaluate.py suite/results         # per_file.tsv, per_group.tsv
+python3 -I scripts/suite/tie_partner.py <file's _td.fasta> runs/<file>/old_normal/input.pin runs/<file>/new_normal/input.pin
+scripts/identity3.sh                                        # slices off / 4 / 16 with a3464870
+```
 
 ## Rebuild of the feature (PR head `4522ade7`, decided by Timo after the first benchmark)
 

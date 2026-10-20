@@ -1,0 +1,82 @@
+{
+ "velos_125_R1": {
+  "fasta": "hy_td.fasta",
+  "entrap": null
+ },
+ "velos_5000_R2": {
+  "fasta": "hy_td.fasta",
+  "entrap": null
+ },
+ "velos_25000_R3": {
+  "fasta": "hy_td.fasta",
+  "entrap": null
+ },
+ "hfx_A2": {
+  "fasta": "hye_td.fasta",
+  "entrap": "db/hye_frozenE_td.fasta"
+ },
+ "hfx_B1": {
+  "fasta": "hye_td.fasta",
+  "entrap": "db/hye_frozenE_td.fasta"
+ },
+ "hfx_B3": {
+  "fasta": "hye_td.fasta",
+  "entrap": "db/hye_frozenE_td.fasta"
+ },
+ "astral_A2": {
+  "fasta": "hye_td.fasta",
+  "entrap": "db/hye_frozenE_td.fasta"
+ },
+ "astral_B1": {
+  "fasta": "hye_td.fasta",
+  "entrap": "db/hye_frozenE_td.fasta"
+ },
+ "astral_B3": {
+  "fasta": "hye_td.fasta",
+  "entrap": "db/hye_frozenE_td.fasta"
+ },
+ "lumos_lfq_5192": {
+  "fasta": "hy_td.fasta",
+  "entrap": "db/hy_entrap_td.fasta"
+ },
+ "lumos_lfq_5194": {
+  "fasta": "hy_td.fasta",
+  "entrap": "db/hy_entrap_td.fasta"
+ },
+ "lumos_lfq_5199": {
+  "fasta": "hy_td.fasta",
+  "entrap": "db/hy_entrap_td.fasta"
+ },
+ "lumos_tmt_5058": {
+  "fasta": "hy_td.fasta",
+  "entrap": "db/hy_entrap_td.fasta"
+ },
+ "lumos_tmt_5059": {
+  "fasta": "hy_td.fasta",
+  "entrap": "db/hy_entrap_td.fasta"
+ },
+ "lumos_tmt_5066": {
+  "fasta": "hy_td.fasta",
+  "entrap": "db/hy_entrap_td.fasta"
+ },
+ "eclipse_tmtpro_10855": {
+  "fasta": "human_td.fasta",
+  "entrap": "db/human_frozenE_td.fasta"
+ },
+ "eclipse_tmtpro_10858": {
+  "fasta": "human_td.fasta",
+  "entrap": "db/human_frozenE_td.fasta"
+ },
+ "eclipse_tmtpro_10863": {
+  "fasta": "human_td.fasta",
+  "entrap": "db/human_frozenE_td.fasta"
+ },
+ "tims_plasma_30min": {
+  "fasta": "human_td.fasta",
+  "entrap": "db/human_frozenE_td.fasta"
+ },
+ "tims_plasma_50min": {
+  "fasta": "human_td.fasta",
+  "entrap": "db/human_frozenE_td.fasta"
+ }
+}

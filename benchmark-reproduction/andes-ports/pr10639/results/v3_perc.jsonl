@@ -1,0 +1,3 @@
+{"pin": "runs/v3_identity/whole/s1/hfx_A2_full.pin", "psms": [63347, 63426, 63400], "mean_psms": 63391, "entrap": [530, 529, 541], "fdp_combined_pct": 1.68}
+{"pin": "runs/v3_identity/phos2_E/s4/hfx_A2.pin", "psms": [4429, 4412, 4418], "mean_psms": 4419.7, "entrap": [28, 30, 23], "fdp_combined_pct": 1.22}
+{"pin": "runs/v3_identity/mhc/s4/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
