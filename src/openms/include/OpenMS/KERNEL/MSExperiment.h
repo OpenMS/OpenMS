@@ -682,6 +682,8 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
  * @param[in] func_mz_reduction The MzReductionFunctionType used to reduce the m/z values.
  *
  * @return A vector of MSChromatogram objects representing the extracted XICs.
+ *         Both the product and the precursor m/z of each chromatogram are set to the
+ *         centre of the corresponding m/z range.
  */
 template<class MzReductionFunctionType>
 std::vector<MSChromatogram> extractXICs(
@@ -752,8 +754,12 @@ std::vector<MSChromatogram> extractXICs(
     {        
         const auto& [start, stop] = rt_ranges_idcs[i];
         result[i].resize(stop - start);
-        result[i].getProduct().setMZ(
-          (mz_rt_ranges[i].first.getMinMZ() + mz_rt_ranges[i].first.getMaxMZ()) / 2.0);
+        // Consumers are split on where they read a chromatogram's m/z from:
+        // MSChromatogram::getMZ() reads the product, DimMapper reads the precursor.
+        // Set both so the XIC is positioned correctly either way.
+        const double mz_center = mz_rt_ranges[i].first.center();
+        result[i].getProduct().setMZ(mz_center);
+        result[i].getPrecursor().setMZ(mz_center);
         for (size_t j = start; j < stop; ++j) 
         {
           spec_idx_to_range_idx[j].push_back(i);
