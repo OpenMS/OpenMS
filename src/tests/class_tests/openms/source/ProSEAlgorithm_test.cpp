@@ -5940,6 +5940,67 @@ START_SECTION(([EXTRA] mergeFileResults keeps decoys when asked))
 }
 END_SECTION
 
+START_SECTION((static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& decoy_string, bool decoy_is_prefix, double protein_fdr, bool remove_decoys = true)))
+{
+  // One file of the merge search is a complete set on its own. With remove_decoys false the decoy PSMs and the decoy
+  // proteins that pass stay, as in mergeFileResults(); the targets and their q-values are those of the default.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  const ProSEAlgorithm::SearchResult& file = merge_search.per_file[0];
+  std::vector<ProteinIdentification> kept_proteins = file.protein_ids, removed_proteins = file.protein_ids;
+  PeptideIdentificationList kept_peptides = file.peptide_ids, removed_peptides = file.peptide_ids;
+  TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(kept_proteins, kept_peptides, "DECOY_", true, 0.05, false))
+  TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(removed_proteins, removed_peptides, "DECOY_", true, 0.05))
+  Size decoy_psms = 0;
+  for (const PeptideIdentification& id : kept_peptides)
+  {
+    for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+  }
+  TEST_TRUE(decoy_psms > 0)
+  TEST_TRUE(target_psms(kept_peptides) == target_psms(removed_peptides))
+  TEST_TRUE(target_psms(removed_peptides).size() == removed_peptides.size()) // the default removes the decoys
+  std::map<std::string, double> q_values;
+  for (const ProteinHit& hit : removed_proteins[0].getHits()) { q_values[hit.getAccession()] = hit.getScore(); }
+  Size decoy_proteins = 0, targets = 0, other_q_values = 0;
+  for (const ProteinHit& hit : kept_proteins[0].getHits())
+  {
+    if (hit.getAccession().starts_with("DECOY_")) { ++decoy_proteins; continue; }
+    ++targets;
+    const auto it = q_values.find(hit.getAccession());
+    other_q_values += it == q_values.end() || it->second != hit.getScore();
+  }
+  TEST_TRUE(decoy_proteins > 0)
+  TEST_EQUAL(targets, q_values.size())
+  TEST_EQUAL(other_q_values, 0)
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, kept_proteins, kept_peptides, {FileTypes::IDXML});
+
+  // Not applied: no decoy proteins to estimate the FDR with.
+  std::vector<ProteinIdentification> proteins = file.protein_ids;
+  PeptideIdentificationList peptides = file.peptide_ids;
+  TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(proteins, peptides, "NO_SUCH_MARKER_", true, 0.05))
+  TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(proteins, peptides, "", true, 0.05))
+}
+END_SECTION
+
+START_SECTION((static std::string renderRunSummaryYaml(const MultiFileSearchResult& mfres, const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest, Size files_failed, Size files_total)))
+{
+  // The summary reports the decoy marker, and per file the Percolator outcome and the NCE of the PeptDeep predictions
+  // (null without them).
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[1].protein_ids[0].setMetaValue("peptdeep_nce", 28.0);
+  result.per_file[1].percolator.applied = false;
+  result.per_file[1].percolator.skipped_reason = "Too few PSMs.";
+  const std::string yaml = ProSEAlgorithm::renderRunSummaryYaml(result, {}, 0, 2);
+  TEST_TRUE(yaml.find("  decoy_string: \"DECOY_\"\n  decoy_is_prefix: true\n") != std::string::npos)
+  TEST_TRUE(yaml.find("    percolator:\n      applied: true\n      skipped_reason: \"\"\n      warning: \"\"\n"
+                      "    peptdeep_nce: null\n") != std::string::npos)
+  TEST_TRUE(yaml.find("    percolator:\n      applied: false\n      skipped_reason: \"Too few PSMs.\"\n      warning: \"\"\n"
+                      "    peptdeep_nce: 28\n") != std::string::npos)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] the multi-file search reports one outer progress step per file))
 {
   // The search reports an outer step per input file, "Searching <file> (i of n)...", so that a caller can tell which

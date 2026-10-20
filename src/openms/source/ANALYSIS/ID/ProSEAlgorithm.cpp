@@ -3920,12 +3920,13 @@ namespace OpenMS
   // single-file path (the two previously held byte-identical copies).
   // =====================================================================
   // static
-  void ProSEAlgorithm::applyCompleteSetProteinFDR(
+  bool ProSEAlgorithm::applyCompleteSetProteinFDR(
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       const std::string& decoy_string,
       bool decoy_is_prefix,
-      double protein_fdr)
+      double protein_fdr,
+      bool remove_decoys)
   {
     // Defensive: an empty decoy marker would make every protein match the prefix/suffix guard
     // below (hasPrefix(x, "") is always true) and corrupt picked-protein FDR. Callers gate on
@@ -3934,7 +3935,7 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "[ProSE] applyCompleteSetProteinFDR called with an empty decoy marker; "
                       << "skipping protein FDR (cannot identify decoys)." << std::endl;
-      return;
+      return false;
     }
 
     // Aggregate the best PSM score per peptide per protein, then apply picked-protein
@@ -3957,10 +3958,18 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] Protein FDR requested but no decoy proteins remain after inference "
                       << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
                       << "target-only q-values." << std::endl;
-      return;
+      return false;
     }
 
     FalseDiscoveryRate fdr;
+    if (!remove_decoys)
+    {
+      // By default the picked-protein FDR drops the decoy proteins from the run; keep them, with q-values, so that the
+      // filter below applies to them as to the targets (as mergeFileResults() does). The targets' q-values are the same.
+      Param fdr_param = fdr.getParameters();
+      fdr_param.setValue("add_decoy_proteins", "true");
+      fdr.setParameters(fdr_param);
+    }
     fdr.applyPickedProteinFDR(protein_ids[0], decoy_string, decoy_is_prefix);
     IDFilter::filterHitsByScore(protein_ids, protein_fdr);
 
@@ -3968,9 +3977,12 @@ namespace OpenMS
     // proteins then fall out as unreferenced. Repair indistinguishable-protein and
     // protein-group references and drop peptide evidence pointing at removed proteins,
     // else idXML storage fails on dangling references.
-    IDFilter::removeDecoyHits(peptide_ids);
-    IDFilter::removeEmptyIdentifications(peptide_ids);
-    IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    if (remove_decoys)
+    {
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    }
     IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
     IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
     IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
@@ -3978,6 +3990,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
                     << protein_ids[0].getHits().size() << " proteins at "
                     << protein_fdr * 100 << "% FDR." << std::endl;
+    return true;
   }
 
   void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
@@ -6710,6 +6723,8 @@ namespace OpenMS
     y << "  indexed_fragments: " << sh.indexed_fragments << "\n";
     y << "  seconds_index_build: " << num(sh.seconds_index_build) << "\n";
     y << "  seconds_total: " << num(sh.seconds_total) << "\n";
+    y << "  decoy_string: " << q(mfres.decoy_string) << "\n";
+    y << "  decoy_is_prefix: " << bol(mfres.decoy_is_prefix) << "\n";
 
     y << "per_file:";
     if (mfres.per_file.empty()) { y << " []\n"; }
@@ -6755,6 +6770,18 @@ namespace OpenMS
         y << "      calibration: " << num(st.seconds_calibration) << "\n";
         y << "      search: " << num(st.seconds_search) << "\n";
         y << "      fdr: " << num(st.seconds_fdr) << "\n";
+        // Percolator rescoring of the file ('rescore'; with it off nothing is attempted: not applied, no reason).
+        y << "    percolator:\n";
+        y << "      applied: " << bol(pf.percolator.applied) << "\n";
+        y << "      skipped_reason: " << q(pf.percolator.skipped_reason) << "\n";
+        y << "      warning: " << q(pf.percolator.warning) << "\n";
+        // The NCE of the file's PeptDeep predictions (PeptDeepRescoring::NCE_META_VALUE on its run); null: none.
+        double nce = std::numeric_limits<double>::quiet_NaN();
+        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
+        {
+          nce = static_cast<double>(pf.protein_ids[0].getMetaValue(PeptDeepRescoring::NCE_META_VALUE));
+        }
+        y << "    peptdeep_nce: " << num(nce) << "\n";
       }
     }
 
