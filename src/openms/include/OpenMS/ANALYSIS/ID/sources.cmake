@@ -8,15 +8,6 @@ AhoCorasickAmbiguous.h
 AScore.h
 BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
-ConsensusIDAlgorithm.h
-ConsensusIDAlgorithmAverage.h
-ConsensusIDAlgorithmBest.h
-ConsensusIDAlgorithmIdentity.h
-ConsensusIDAlgorithmPEPIons.h
-ConsensusIDAlgorithmPEPMatrix.h
-ConsensusIDAlgorithmRanks.h
-ConsensusIDAlgorithmSimilarity.h
-ConsensusIDAlgorithmWorst.h
 ConsensusMapMergerAlgorithm.h
 EntrapmentEvaluation.h
 FalseDiscoveryRate.h

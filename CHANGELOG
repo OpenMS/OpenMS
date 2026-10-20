@@ -17,12 +17,6 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
-  - Added EntrapmentEvaluation: the false discovery proportion of identifications from an entrapment database search,
-    with the lower-bound, combined and paired estimates of Wen et al. (Nat. Methods 2025), for PSMs and for peptides
-    (a peptide accepted at its peptide-level q-value when present). A discovery is entrapment only if all its non-decoy
-    proteins are and, given the database, its sequence is no target peptide with I = L; T/E comes from the database by in-silico
-    digestion (I = L), and pairPeptides() pairs each entrapment peptide of a DecoyDatabase -entrapment_ratio 1 database
-    with its target peptide for the paired estimate. Optionally per class of a peptide hit meta value.
   - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
     (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
     single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
@@ -50,6 +44,16 @@ OpenMS Library:
   - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
     position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
     later files named the wrong file.
+  - FIX: OpenSearchModificationAnalysis names a delta mass cluster after the Unimod modification nearest to its mass. It
+    named the entries of lowest and highest mass within the tolerance ("A//B"), so that +15.9949 Da (oxidation) was
+    "thiocarboxylic acid//Oxidation or Hydroxylation" (thiocarboxylic acid, +15.9772 Da, is within 0.02 Da), and it annotated the
+    PSMs (meta value 'PTM') and mapped the entries of the delta mass statistics (DeltaMassEntry::mapped_modification) with
+    the lowest one alone, "thiocarboxylic acid". "A//B" now names candidates that are about equally close (distances differing
+    by at most 0.0005 Da, the width of a histogram bin). The nearest entry is also used for the modification that explains a
+    cluster of a higher mass (including the "+1Da" variant) and for the combination of two modifications, which is looked up
+    on both sides of the cluster mass (before, only at or above it, so that a cluster could be "Unknown" with a combination
+    within the tolerance below it). This changes the modification names in the output tables of ProSE's open search
+    (-out_mod_analysis_dir) and of SageAdapter.
   - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
     file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
     label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major
@@ -73,6 +77,11 @@ OpenMS Library:
   - FIX: ConsensusMapMergerAlgorithm::mergeAllIDRuns throws Exception::MissingInformation for a ConsensusMap without
     protein identification runs instead of reading past the end of the run list, on which ProteomicsLFQ,
     ProteinInference, Epifany and MS1LabeledWorkflow segfaulted (e.g. ProteomicsLFQ on FAIMS data before #10001).
+  - FIX: ims::Weights (getWeight, operator[], back, getAlphabetMass, swap) and
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator (get_noise_even/odd/value) throw Exception::IndexOverflow or
+    IndexUnderflow for an invalid index or an m/z outside the estimated windows, instead of reading out of bounds in
+    release builds. SignalToNoiseEstimatorMedianRapid::estimateNoise throws Exception::InvalidParameter for empty
+    arrays or arrays of different length.
   - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
     (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
     optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
@@ -102,6 +111,14 @@ OpenMS Library:
     PosteriorEstimator::includeNegativesInResult is atomic. It was written and read by the threads of
     the parallel cross-validation at the same time (data race, found with ThreadSanitizer); results
     do not change (#10474).
+  - HiGHS is now the default LP/MIP solver (LP_SOLVER=HIGHS; the former default AUTO is an alias for it). A HiGHS >= 1.11
+    from vcpkg or the system is used if found, otherwise HiGHS is fetched and linked statically into libOpenMS. COIN-OR and
+    GLPK (LP_SOLVER=COIN/GLPK, vcpkg features lp-coin/lp-glpk) are deprecated and will be removed in the next release (#10551).
+    The HiGHS backend of LPWrapper now solves MIPs to proven optimality by default (mip_gap was ignored when 0), resets
+    the time limit on every solve, batches integrality changes and skips the probing/enumeration presolve rules, which
+    makes large decharging ILPs about 15x faster. An ILP with several optimal solutions (e.g. in Decharger and
+    MetaboliteAdductDecharger) may now give a different one of them than COIN-OR did. HiGHS fetched by the build installs
+    its license (share/OpenMS/LICENSES/vendored/HiGHS).
   - FIX: ProteaseDB and RNaseDB also find enzyme names and synonyms ignoring case, whitespace, '-' and '_' (e.g. 'glu-c',
     'GluC' and 'Glu_C' find glutamyl endopeptidase, 'LysC/P' finds Lys-C/P); other characters such as '/' and '+' stay
     significant. pepXML files with sample_enzyme or enzymatic_search_constraint 'Glu-C' load with glutamyl endopeptidase
@@ -117,6 +134,12 @@ OpenMS Library:
   - FIX: MzTabFile reads and writes the colunit metadata as specified by mzTab 1.0 ('MTD<tab>colunit-<section><tab><value>').
     The writer emitted an upper-case 'colunit-PSM' without a tab, and the reader expected an index in the key, so
     conforming lines failed with a ConversionError (#10524).
+  - FIX: mzTab export of a consensus map (MzTabExporter, MzTab::exportConsensusMapToMzTab, the MzTabFile consensus stream)
+    fails with an error naming the maps when several maps have the same MS file and channel (e.g. all 'UNKNOWN', or
+    labeled maps of one file without 'channel_id'). They were merged silently into one assay; labeled maps of one file
+    that differ only in 'channel_id' are no longer confused. A PSM whose identification run has no primary MS run path
+    now gets an error that names the run; it was either reported as "does not map to an MS file registered in the
+    quantitative metadata" or credited to another file's score column (#5357).
   - FIX: MzMLSqliteHandler (sqMass with write_full_meta) keeps the original spectrum native IDs: the embedded mzML
     snapshot replaced them by 'spectrum=<index>', so such files could not be read back (#10525).
   - Faster SignalToNoiseEstimatorMedianRapid (1.4-2 fold) (#9782).
@@ -712,6 +735,10 @@ OpenMS Library:
     copy of the peptide list) and checks the candidate indices it was given.
     Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
     pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
+  - API: The ConsensusIDAlgorithm classes (Average, Best, Worst, Ranks, PEPMatrix, PEPIons, Identity,
+    Similarity) are removed, also from pyOpenMS, together with the TOPP tool ConsensusID (see there).
+    Identifications written by ConsensusID (search engine "OpenMS/ConsensusID_*") are still read, e.g. by
+    PosteriorErrorProbabilityModel and the mzTab export (#10619).
   - FIX: FalseDiscoveryRate::applyBasic(ConsensusMap&) and both applyBasicPeptideLevel overloads mark
     the FDRs/q-values they write as lower-is-better. They kept the orientation of the PSM scores, so after
     a higher-is-better score filtering by q-value kept the worst hits. -psmFDR below 1 therefore removed
@@ -754,20 +781,21 @@ Dependencies:
 
 TOPP tools:
   New tools:
-    - EntrapmentEvaluator: reports the entrapment FDP of PSMs and peptides at q-value thresholds (lower bound,
-      combined and, at the peptide level with -database, paired estimate), to check that a nominal FDR holds (see
-      EntrapmentEvaluation).
     - OpenDIA: high-level DIA workflow in one call: library preparation (prepared PQP/TSV/OSWPQ/TraML
       library or empirical transition list, mode chosen automatically from the presence of decoys),
       OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
+  Removed tools:
+    - BREAKING: ConsensusID removed. Its default mode grouped identifications of different spectra by
+      retention time and m/z, -per_spectrum by spectrum; no OpenMS workflow used either. OpenMS has no
+      tool to combine the results of several search engines: pass the results of one engine to the
+      quantification workflows. Conflicting identifications of one feature are resolved with
+      IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
   Changes:
-    DecoyDatabase:
-      - PARAM: New -entrapment_ratio and -entrapment_string: also write shuffled entrapment copies of every target
-        protein, each with its own decoys, for EntrapmentEvaluator. Every peptide is shuffled with its termini and
-        K, R and P in place and keeps its composition, so entrapment peptides are mass-matched to the targets (for
-        Trypsin(/P), Lys-C(/P) and Arg-C(/P); other enzymes get a warning).
+    ProteomicsLFQ:
+      - With -pip_echo true and -proteinFDR 1 (no protein filter), PIP-ECHO transfers a precursor only if its best
+        identification over all runs has a q-value <= 0.001 (PipEchoAlgorithm parameter donor_max_q).
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter
