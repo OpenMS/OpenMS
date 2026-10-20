@@ -35,7 +35,8 @@ _openms_wasm_read_package("${SINGLE}" _single_name _single_version)
 _openms_wasm_read_package("${MULTI}" _multi_name _multi_version)
 if(NOT _single_name STREQUAL "@openms/openms-wasm" OR NOT _multi_name STREQUAL "@openms/openms-wasm-mt")
   message(FATAL_ERROR "SINGLE has to be the single-threaded build (@openms/openms-wasm, is ${_single_name}), "
-                      "MULTI the multi-threaded one (@openms/openms-wasm-mt, is ${_multi_name})")
+                      "MULTI the multi-threaded one (@openms/openms-wasm-mt, is ${_multi_name}); the 64-bit build "
+                      "(@openms/openms-wasm64-mt) is a package of its own")
 endif()
 if(NOT _single_version STREQUAL _multi_version)
   message(FATAL_ERROR "The builds are of different OpenMS versions: ${_single_version}, ${_multi_version}")

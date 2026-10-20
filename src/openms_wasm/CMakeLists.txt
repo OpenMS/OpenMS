@@ -19,7 +19,9 @@
 #   openms.d.ts   TypeScript declarations
 #   package.json, README.md, LICENSE
 # The package is @openms/openms-wasm, or @openms/openms-wasm-mt when built with threads
-# (OPENMS_WASM_THREADS, preset wasm32-emscripten-mt-release): same files, same API.
+# (OPENMS_WASM_THREADS, preset wasm32-emscripten-mt-release), or @openms/openms-wasm64-mt with
+# threads and 64-bit memory (OPENMS_WASM_MEMORY64, preset wasm64-emscripten-mt-release): same
+# files, same API.
 #------------------------------------------------------------------------------
 
 project("OpenMS_wasm")
@@ -158,8 +160,16 @@ if(OPENMS_WASM_THREADS)
     # the module only reads if named here (Emscripten's default list plus that one)
     "-sINCOMING_MODULE_JS_API=ENVIRONMENT,arguments,canvas,dynamicLibraries,elementPointerLock,instantiateWasm,locateFile,monitorRunDependencies,noExitRuntime,noInitialRun,onAbort,onExit,onRuntimeInitialized,postRun,preInit,preRun,print,printErr,setStatus,statusMessage,stderr,stdin,stdout,thisProgram,wasm,websocket,mainScriptUrlOrBlob")
   set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/threads.js")
-  set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm-mt")
-  set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to multi-threaded WebAssembly (OpenMP) for web applications and Node.js")
+  ## 64-bit memory (OPENMS_WASM_MEMORY64): a package of its own, so that an application can carry both. Memory64 needs
+  ## Node.js 24 (Chrome 133, Firefox 134; not Safari).
+  if(OPENMS_WASM_MEMORY64)
+    set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm64-mt")
+    set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to multi-threaded WebAssembly (OpenMP) with 64-bit memory (Memory64, up to 16 GB) for web applications and Node.js")
+    set(OPENMS_WASM_NODE_ENGINE ">=24")
+  else()
+    set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm-mt")
+    set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to multi-threaded WebAssembly (OpenMP) for web applications and Node.js")
+  endif()
 else()
   set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm")
   set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to WebAssembly for web applications and Node.js")
@@ -215,6 +225,9 @@ endif()
 #------------------------------------------------------------------------------
 # The npm package around the module
 
+if(NOT OPENMS_WASM_NODE_ENGINE)
+  set(OPENMS_WASM_NODE_ENGINE ">=18")
+endif()
 configure_file(package.json.in "${OPENMS_WASM_PACKAGE_DIR}/package.json" @ONLY)
 add_custom_command(TARGET openms_wasm POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/README.md" "${OPENMS_WASM_PACKAGE_DIR}/README.md"
