@@ -245,22 +245,6 @@ namespace OpenMS
     static constexpr const char* ION_TYPE_ARRAY = "ion_type_array";
     static constexpr const char* ION_MOBILITY_ARRAY = "ion_mobility_array";
 
-    /// @name Spectrum columns (an OpenMS extension, not part of the QPX psm view)
-    /// Written after the QPX columns on request (QPXFile::exportPSMsToQPXArrow() with spectra, ProSE's -qpx_spectra);
-    /// see schemaWithSpectra(). All are list<float32> or list<utf8>, null where unknown.
-    ///@{
-    /// m/z of every peak of the PSM's spectrum, as read from the spectrum file, by ascending m/z
-    static constexpr const char* PEAK_MZ_ARRAY = "peak_mz_array";
-    /// intensities of the peaks of PEAK_MZ_ARRAY
-    static constexpr const char* PEAK_INTENSITY_ARRAY = "peak_intensity_array";
-    /// predicted fragment ions, named as in ION_TYPE_ARRAY ("b3+", "y5++")
-    static constexpr const char* PREDICTED_ION_TYPE_ARRAY = "predicted_ion_type_array";
-    /// theoretical m/z of the ions of PREDICTED_ION_TYPE_ARRAY
-    static constexpr const char* PREDICTED_MZ_ARRAY = "predicted_mz_array";
-    /// predicted relative intensities of the ions of PREDICTED_ION_TYPE_ARRAY
-    static constexpr const char* PREDICTED_INTENSITY_ARRAY = "predicted_intensity_array";
-    ///@}
-
     /// @brief Arrow type for modifications: list<struct{name, accession, positions: list<struct{position, amino_acid, scores}>}>
     static std::shared_ptr<arrow::DataType> modificationsType();
     /// @brief Arrow type for additional scores: list<struct{score_name, score_value, higher_better}>
@@ -271,8 +255,6 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> crossLinksType();
     /// @brief Complete Arrow schema for QPX PSM table (26 fields)
     static std::shared_ptr<arrow::Schema> schema();
-    /// @brief schema() followed by the five spectrum columns (PEAK_MZ_ARRAY to PREDICTED_INTENSITY_ARRAY)
-    static std::shared_ptr<arrow::Schema> schemaWithSpectra();
   };
 
   /// @brief Schema for QPX feature view (quantms Parquet eXchange format)

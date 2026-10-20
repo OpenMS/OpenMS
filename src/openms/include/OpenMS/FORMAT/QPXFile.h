@@ -44,24 +44,6 @@ class OPENMS_DLLAPI QPXFile
 {
 public:
   /**
-    @brief The spectrum columns of one PSM row (QPXPSMSchema::schemaWithSpectra()): its spectrum's peaks and the
-    predicted intensities of its fragment ions.
-
-    The members map one to one onto the columns of the same name. A column is null for the row when its flag is
-    false (e.g. the spectrum was not found, or nothing was predicted).
-  */
-  struct PSMSpectrum
-  {
-    bool has_peaks = false;                     ///< false: peak_mz_array and peak_intensity_array are null
-    std::vector<float> peak_mz;                 ///< peak_mz_array
-    std::vector<float> peak_intensity;          ///< peak_intensity_array (as many as peak_mz)
-    bool has_prediction = false;                ///< false: the three predicted_* columns are null
-    std::vector<std::string> predicted_ion_type;///< predicted_ion_type_array, e.g. "b3+", "y5++"
-    std::vector<float> predicted_mz;            ///< predicted_mz_array (as many as predicted_ion_type)
-    std::vector<float> predicted_intensity;     ///< predicted_intensity_array (as many as predicted_ion_type)
-  };
-
-  /**
      * @brief Export PSMs to Arrow table using PSMSchema for lossless round-trips.
      *
      * Produces a table with PSMSchema columns (score, score_type, rank, etc.)
@@ -87,19 +69,13 @@ public:
      *        same collection, collected by ConsensusMapArrowExport's @c out_links. Fills the optional
      *        @c feature_id cross-reference; without it every row's @c feature_id is null, which
      *        is the correct answer for a psm-only producer.
-     * @param[in] spectra  Optional spectrum columns, one entry per element of @p peptide_identifications
-     *        (entries of identifications without hits are ignored). With it the table gets the five spectrum
-     *        columns of QPXPSMSchema::schemaWithSpectra() after the QPX ones; it requires @p export_all_psms false.
      * @return Arrow table with QPXPSMSchema columns, or nullptr on failure
-     * @throws Exception::IllegalArgument if @p spectra is given with @p export_all_psms, or has another size than
-     *         @p peptide_identifications
      */
   static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
     bool export_all_psms = false,
-    const QPXIdentity::FeatureLinks* feature_links = nullptr,
-    const std::vector<PSMSpectrum>* spectra = nullptr);
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
 
   /**
     @brief Export PSM data to Parquet file
@@ -123,8 +99,7 @@ public:
   /**
     @brief Write a pre-built QPX PSM Arrow table to a Parquet file
 
-    The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow), or
-    QPXPSMSchema::schemaWithSpectra() (exportPSMsToQPXArrow() with spectra).
+    The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow).
     Attaches QPX file metadata (qpx_version, file_type="psm_file", UUID, creation_date,
     compression_format) before writing. Use this overload when the caller already has the
     table built (e.g., for merged output) to avoid rebuilding it.

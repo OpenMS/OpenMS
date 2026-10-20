@@ -113,8 +113,7 @@ namespace OpenMS
     /**
       @brief Validate one whole table or the next streaming batch
 
-      Checks the exact OpenMS QPX schema (for the psm view, with or without the spectrum columns of
-      QPXPSMSchema::schemaWithSpectra()), physical nulls in required columns, non-empty
+      Checks the exact OpenMS QPX schema, physical nulls in required columns, non-empty
       identity-bearing primary-key values, primary-key uniqueness, canonical quantitative labels,
       and view-specific nested invariants. For pg data this includes non-empty, duplicate-free
       @c grouped_runs and run-disjointness within one @c (anchor_protein, label).

@@ -336,13 +336,7 @@ namespace OpenMS
       return result;
     }
 
-    auto expected = schemaFor(impl_->view);
-    // A psm table may carry the spectrum columns after the QPX ones (an OpenMS extension, see
-    // QPXPSMSchema::schemaWithSpectra()); then the whole extended schema has to match.
-    if (impl_->view == View::PSM && table->schema()->GetFieldIndex(QPXPSMSchema::PEAK_MZ_ARRAY) >= 0)
-    {
-      expected = QPXPSMSchema::schemaWithSpectra();
-    }
+    const auto expected = schemaFor(impl_->view);
     const auto schema_validation = ArrowSchemaValidation::validate(
       table, expected, ArrowSchemaValidation::Mode::Strict);
     if (!schema_validation.valid)
