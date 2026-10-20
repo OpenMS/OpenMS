@@ -1,0 +1,9 @@
+file	precursors_6of6	CV_NPS	CV_OCBS	CV_median	n_vs_fragpipe	pearson_log2FC	median_abs_dlog2FC
+T_off/out_msstats.csv	73	0.3025	0.3477	0.3295	66	0.1333	0.8566
+T_on/out_msstats.csv	73	0.3193	0.3113	0.3176	66	0.0233	0.7264
+P_off/out_msstats.csv	76	0.3072	0.3303	0.3301	67	0.1108	0.9256
+P_on/out_msstats.csv	76	0.3259	0.3124	0.3205	67	-0.0069	0.6995
+T_off/norm_msstats.csv	73	0.3162	0.3082	0.3102	66	0.1623	0.5381
+T_on/norm_msstats.csv	73	0.2998	0.2812	0.2849	66	0.0764	0.5760
+P_off/norm_msstats.csv	76	0.2926	0.3241	0.3174	67	0.1371	0.5822
+P_on/norm_msstats.csv	76	0.2860	0.2698	0.2777	67	0.0395	0.6344

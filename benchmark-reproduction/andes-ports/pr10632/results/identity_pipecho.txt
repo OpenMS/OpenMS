@@ -1,0 +1,26 @@
+# P_off (PR build, detection in memory) vs P_base (baseline build, detection split over 3 processes by container restarts)
+out_msstats.csv: f49d53746d349779 ebd7296b878721d8
+norm_msstats.csv: 904fc2c18d47bba4 a13256e746bb1a01
+out.consensusXML (filtered): 6caf275a73b640fd 679e20d51a1e3bb6
+out.mzTab (filtered): 0657b8a2fb3267f8 f27276aebe7fb0fa
+# P_off vs P_off_ckpt: same PR build and detection, the second combined from the -feat_dir checkpoints
+out_msstats.csv: f49d53746d349779 f15125ea2e3705b6
+norm_msstats.csv: 904fc2c18d47bba4 f81c81a66320a250
+out.consensusXML (filtered): 6caf275a73b640fd deda3fd5efa461a8
+out.mzTab (filtered): 0657b8a2fb3267f8 3638d71d70b615e3
+# T_off vs T_off_ckpt
+out_msstats.csv: 3fa083359f9f5bcf 3fa083359f9f5bcf
+norm_msstats.csv: 0cc70de6e983a483 0cc70de6e983a483
+out.consensusXML (filtered): 7a615f3f42ac2f68 0b268d02dadbc680
+out.mzTab (filtered): e7977b46c98600ff e7977b46c98600ff
+# checkpoints, per run, PR vs baseline build
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01_fg1_f1.featureParquet: DIFFER: 77859 vs 77858 features, 62315 identical in rt/mz/charge/intensity
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02_fg2_f1.featureParquet: identical (78017 features)
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03_fg3_f1.featureParquet: identical (79130 features)
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01_fg4_f1.featureParquet: identical (77820 features)
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02_fg5_f1.featureParquet: identical (78551 features)
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03_fg6_f1.featureParquet: identical (80461 features)
+# run A_01 detected again (-detect_only) with each build
+feat_P_base vs det_A01_base: DIFFER: 77858 vs 77859 features, 62297 identical in rt/mz/charge/intensity
+feat_P_pr vs det_A01_pr: DIFFER: 77859 vs 77858 features, 62315 identical in rt/mz/charge/intensity
+det_A01_base vs det_A01_pr: DIFFER: 77859 vs 77858 features, 62297 identical in rt/mz/charge/intensity

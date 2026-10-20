@@ -61,7 +61,13 @@ ProteoBench module "DDA quantification – precursor ions", Q Exactive HF-X (PXD
 
 ## Results (`results/`)
 
-ProteoBench (min 3 runs):
+ProteoBench (min 3 runs). The off and on rows of each arm come from the same IDs and the same `-feat_dir`
+checkpoints.
+
+- **Identified only:** the off run detected and wrote the checkpoints. Combining them again (`T_off_ckpt`) gives
+  byte-identical MSstats CSVs.
+- **PIP-ECHO:** the off row is `P_off_ckpt`, combined from the checkpoints like the on row. Combining from checkpoints
+  is not lossless on the PIP-ECHO path, as described below.
 
 | ProteomicsLFQ arm | normalization | consensus width | precursors | median \|ε\| | E. coli | yeast | human | CV |
 |---|---|---|---|---|---|---|---|---|
@@ -69,10 +75,19 @@ ProteoBench (min 3 runs):
 | identified only | none | **on** | 42,253 | **0.2179** | **0.2906** | 0.2515 | 0.2068 | 0.2320 |
 | identified only | rt_local | off | 42,253 | 0.1494 | 0.2978 | 0.1823 | 0.1431 | 0.0879 |
 | identified only | rt_local | **on** | 42,253 | **0.1390** | **0.1818** | 0.1341 | 0.1390 | 0.0926 |
-| MBR (PIP-ECHO) | none | off | 46,419 | 0.2214 | 0.4090 | 0.2595 | 0.2087 | 0.2358 |
+| MBR (PIP-ECHO) | none | off | 46,415 | 0.2214 | 0.4054 | 0.2598 | 0.2087 | 0.2357 |
 | MBR (PIP-ECHO) | none | **on** | 46,415 | **0.2168** | **0.3060** | 0.2511 | 0.2065 | 0.2361 |
-| MBR (PIP-ECHO) | rt_local | off | 46,419 | 0.1572 | 0.3357 | 0.1993 | 0.1492 | 0.0951 |
+| MBR (PIP-ECHO) | rt_local | off | 46,415 | 0.1572 | 0.3363 | 0.1994 | 0.1491 | 0.0950 |
 | MBR (PIP-ECHO) | rt_local | **on** | 46,415 | **0.1466** | **0.1974** | 0.1434 | 0.1461 | 0.0985 |
+
+Other PIP-ECHO option-off runs, for reference:
+
+| Run | Build | Detection | precursors | median \|ε\| | E. coli | CV |
+|---|---|---|---|---|---|---|
+| `P_off` | PR | in memory | 46,419 | 0.2214 | 0.4090 | 0.2358 |
+| `P_base` | baseline | split over 3 processes by container restarts | 46,407 | 0.2214 | 0.4061 | 0.2357 |
+
+With rt_local normalization these two give 0.1572 / 0.3357 / 0.0951 and 0.1572 / 0.3352 / 0.0951.
 
 Per-species bias, as median log2 A/B minus expected, PIP-ECHO, no normalization → rt_local:
 
@@ -81,7 +96,8 @@ Per-species bias, as median log2 A/B minus expected, PIP-ECHO, no normalization 
 | E. coli | +0.33 → +0.25 | +0.18 → +0.06 |
 | yeast | −0.09 → −0.12 | +0.05 → −0.04 |
 
-The identified-only arm behaves the same way (`hfx_species_bias.tsv`).
+The spread around each species' median also shrinks, e.g. E. coli 0.39 → 0.32 without normalization. The
+identified-only arm behaves the same way (`hfx_species_bias.tsv`).
 
 **Width fits.** "Updated" means re-quantified at the consensus width; "kept" means the feature kept its own
 intensity.
@@ -96,24 +112,59 @@ intensity.
 - **PIP-ECHO:** 83,033 consensus features have a consensus width.
 - `fit_stats.py` produces the per-run counts.
 
-**Option off vs baseline build.** `compare_outputs.sh` compares the outputs of the two builds
-(`results/identity_*.txt`).
+**Option off vs baseline build** (`results/identity_*.txt`).
 
-- **Identified only:** the MSstats CSVs (none and rt_local) are byte-identical. consensusXML and mzTab are identical
-  once lines with paths, the version, dates and random feature ids are removed.
-- **PIP-ECHO:** not yet compared; the baseline run is in progress.
+- **Identified only:**
+  - The MSstats CSVs (none and rt_local) are byte-identical.
+  - consensusXML and mzTab are identical once lines with paths, the version, dates and random feature ids are
+    removed.
+- **PIP-ECHO:** the outputs differ, but the baseline itself causes the difference, not the PR:
+  - **Checkpoints:** 5 of 6 runs have identical checkpoints for the two builds (`compare_ckpt.py`: rt, m/z, charge,
+    intensity, quality).
+  - **Run A_01:** detection in PIP-ECHO mode (`-targeted_only false`) does not repeat. Detecting A_01 again with the
+    same baseline build gives 77,858 vs 77,859 features, and about 15,500 features differ in intensity (relative
+    difference around 1e-5). The PR build varies in the same way.
+  - **Effect on the metrics:** at most 0.0001 in median |ε| and CV, and 0.004 in E. coli |ε|.
+- **Combining from checkpoints (PIP-ECHO path).** Combining the same PIP-ECHO detection from the checkpoints
+  (`P_off_ckpt`) does not reproduce the in-memory result (`P_off`) exactly either.
+  - **Identified only:** only the formatting of `percolator_score` changes, and the quantities are identical.
+  - **Both effects** (A_01 detection and combining from checkpoints) are already on develop and are outside this PR.
 
-**PIP-ECHO, 4 fewer precursors with the option.** 87 and 73 of 265k MSstats rows differ. After linking,
-`IDConflictResolverAlgorithm::resolve` gives an identification to the most intense of several consensus features.
-New intensities change that choice in a few cases.
+The option-on run changes the PIP-ECHO MSstats rows by intensity only: 0 precursors are gained or lost against
+`P_off_ckpt`. After linking, `IDConflictResolverAlgorithm::resolve` gives an identification to the most intense of
+several consensus features, so new intensities can change that choice. In this run it changed no precursor count.
 
 ## andes reference (bigbio/andes#150, quoted in PR #10632)
 
-| ProteoBench DDA QExactive, MBR quantities (andes' raw `quantity`) | andes before → after | OpenMS PIP-ECHO, none, off → on |
-|---|---|---|
-| median \|ε\| | 0.253 → 0.225 (−0.028) | 0.2214 → 0.2168 (−0.005) |
-| E. coli \|ε\| | 0.382 → 0.276 (−0.106) | 0.4090 → 0.3060 (−0.103) |
-| CV | 0.251 → 0.240 (−0.011) | 0.2358 → 0.2361 (+0.000) |
+| ProteoBench DDA QExactive, MBR quantities (andes' raw `quantity`) | andes before → after | OpenMS PIP-ECHO, none, off → on | verdict |
+|---|---|---|---|
+| median \|ε\| | 0.253 → 0.225 (−0.028) | 0.2214 → 0.2168 (−0.005) | partly: same direction, about 1/6 of the size |
+| E. coli \|ε\| | 0.382 → 0.276 (−0.106) | 0.4054 → 0.3060 (−0.099) | reproduced |
+| CV | 0.251 → 0.240 (−0.011) | 0.2357 → 0.2361 (±0) | not reproduced |
+
+## Second dataset: Agilent 6550 Q-TOF (PXD069532)
+
+Source: `archive.openms.de/openms/testfiles/20260717-ProteomicsLFQ-Multi-Instrument/`. Broccoli, conditions NPS vs
+OCBS, 3 + 3 runs. The FASTA has decoys and contaminants.
+
+- **Search:** same recipe, with FragPipe's search settings (`run_agilent.sh`).
+- **Evaluation:** `agilent_eval.py`.
+- **Size:** only 520–760 PSMs per run at 1 % FDR, and the FragPipe reference has 670–920. 73–76 precursors are
+  quantified in all 6 runs, so this set has little power.
+
+Results:
+
+| arm | norm | width | precursors 6/6 | CV | Pearson log2FC vs FragPipe (n) |
+|---|---|---|---|---|---|
+| identified only | none | off → on | 73 | 0.330 → 0.318 | 0.13 → 0.02 (66) |
+| identified only | rt_local | off → on | 73 | 0.310 → 0.285 | 0.16 → 0.08 |
+| PIP-ECHO | none | off → on | 76 | 0.330 → 0.321 | 0.11 → −0.01 (67) |
+| PIP-ECHO | rt_local | off → on | 76 | 0.317 → 0.278 | 0.14 → 0.04 |
+
+- The CV improves slightly with the option.
+- Fold changes agree with FragPipe in neither arm: the correlation is near 0, so the conditions barely differ for
+  these precursors.
+- No conclusion on accuracy.
 
 ## Scripts
 
@@ -127,7 +178,7 @@ New intensities change that choice in a few cases.
 | `plfq.sh`, `run_arms.sh` | ProteomicsLFQ arms and normalization |
 | `pb_score.py`, `pb_diag.py` | Scoring |
 | `fit_stats.py` | Width-fit counts from the checkpoints |
-| `compare_outputs.sh` | Identity check against the baseline |
+| `compare_outputs.sh`, `compare_ckpt.py`, `determinism.sh` | Identity checks against the baseline, checkpoint comparison, repeat detection of run A_01 |
 | `make_td_fasta.py` | Byte-identical #10364 database (sha256 `efbf5ac2…`); only used for the dropped ProSE arm |
 
 Requirements:
