@@ -15,3 +15,17 @@
 {"pin": "runs/mhc/s4_r1/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
 {"pin": "runs/mhc/low_memory_r1/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
 {"pin": "runs/mhc/c16_r1/DN08_Brain_classI_techRep1.pin", "psms": [1983, 2020, 1959], "mean_psms": 1987.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/v2_frozen/s4_r1/hfx_A2.pin", "psms": [4482, 4522, 4473], "mean_psms": 4492.3, "entrap": [27, 39, 33], "fdp_combined_pct": 1.47}
+{"pin": "runs/v2_frozen/s16_r1/hfx_A2.pin", "psms": [4482, 4522, 4473], "mean_psms": 4492.3, "entrap": [27, 39, 33], "fdp_combined_pct": 1.47}
+{"pin": "runs/v2_frozen/c4_r1/hfx_A2.pin", "psms": [4496, 4534, 4500], "mean_psms": 4510, "entrap": [34, 38, 33], "fdp_combined_pct": 1.55}
+{"pin": "runs/v2_frozen/c16_r1/hfx_A2.pin", "psms": [4464, 4504, 4504], "mean_psms": 4490.7, "entrap": [30, 31, 32], "fdp_combined_pct": 1.38}
+{"pin": "runs/v2_phos2_E/s4_r1/hfx_A2.pin", "psms": [4442, 4403, 4418], "mean_psms": 4421, "entrap": [28, 29, 24], "fdp_combined_pct": 1.22}
+{"pin": "runs/v2_phos2_E/s16_r1/hfx_A2.pin", "psms": [4437, 4414, 4421], "mean_psms": 4424, "entrap": [29, 32, 22], "fdp_combined_pct": 1.25}
+{"pin": "runs/v2_phos2_E/c4_r1/hfx_A2.pin", "psms": [4463, 4393, 4401], "mean_psms": 4419, "entrap": [36, 26, 24], "fdp_combined_pct": 1.3}
+{"pin": "runs/v2_phos2_E/c16_r1/hfx_A2.pin", "psms": [4441, 4401, 4442], "mean_psms": 4428, "entrap": [32, 24, 28], "fdp_combined_pct": 1.26}
+{"pin": "runs/v2_mhc/s4_r1/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/v2_mhc/s16_r1/DN08_Brain_classI_techRep1.pin", "psms": [1950, 2127, 1957], "mean_psms": 2011.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/v2_whole/s4_r1/hfx_A2_full.pin", "psms": [63385, 63435, 63486], "mean_psms": 63435.3, "entrap": [540, 535, 550], "fdp_combined_pct": 1.71}
+{"pin": "runs/v2_whole/s16_r1/hfx_A2_full.pin", "psms": [63375, 63394, 63506], "mean_psms": 63425, "entrap": [534, 523, 553], "fdp_combined_pct": 1.69}
+{"pin": "runs/v2_whole/c16_r1/hfx_A2_full.pin", "psms": [63521, 63486, 63516], "mean_psms": 63507.7, "entrap": [560, 566, 552], "fdp_combined_pct": 1.76}
+{"pin": "runs/exp2/whole_s1/hfx_A2_full.pin", "psms": [63347, 63426, 63400], "mean_psms": 63391, "entrap": [530, 529, 541], "fdp_combined_pct": 1.68}

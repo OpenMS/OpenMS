@@ -654,5 +654,236 @@
     ]
    }
   }
+ },
+ "v2_frozen": {
+  "db": "db/hye_E.fasta",
+  "in": [
+   "/home/user/bench/frozen/z/prose-andes-reproduction/broad_benchmark/data/hfx_A2.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "base": {
+    "prefix": "/opt/openms-base",
+    "ini": "ini_base/hfx_A2.ini",
+    "args": []
+   },
+   "s1": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": []
+   },
+   "s4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "4"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "c4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "31889"
+    ]
+   },
+   "c16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "7973"
+    ]
+   }
+  }
+ },
+ "v2_multi3": {
+  "db": "db/hye_E.fasta",
+  "in": [
+   "/home/user/bench/frozen/z/prose-andes-reproduction/broad_benchmark/data/hfx_A2.mzML",
+   "/home/user/bench/frozen/z/prose-andes-reproduction/broad_benchmark/data/hfx_B1.mzML",
+   "/home/user/bench/frozen/z/prose-andes-reproduction/broad_benchmark/data/astral_B1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "base": {
+    "prefix": "/opt/openms-base",
+    "ini": "ini_base/hfx_A2.ini",
+    "args": []
+   },
+   "s1": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": []
+   },
+   "s4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "4"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "c16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "7973"
+    ]
+   }
+  }
+ },
+ "v2_whole": {
+  "db": "db/hye_E.fasta",
+  "in": [
+   "/home/user/bench/whole/hfx_A2_full.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "base": {
+    "prefix": "/opt/openms-base",
+    "ini": "ini_base/hfx_A2.ini",
+    "args": []
+   },
+   "s1": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": []
+   },
+   "s4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "4"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "c16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "7973"
+    ]
+   }
+  }
+ },
+ "v2_phos2_E": {
+  "db": "db/hye_E.fasta",
+  "in": [
+   "/home/user/bench/frozen/z/prose-andes-reproduction/broad_benchmark/data/hfx_A2.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "s1": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2_phos2.ini",
+    "args": []
+   },
+   "s4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2_phos2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "4"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2_phos2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "c4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2_phos2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "31889"
+    ]
+   },
+   "c16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/hfx_A2_phos2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "7973"
+    ]
+   }
+  }
+ },
+ "v2_mhc": {
+  "db": "mhc/human_td.fasta",
+  "in": [
+   "mhc/DN08_Brain_classI_techRep1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "s1": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/mhc.ini",
+    "args": []
+   },
+   "s4": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "4"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "low_memory": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:low_memory",
+     "true"
+    ]
+   },
+   "c16": {
+    "prefix": "/opt/openms-v2",
+    "ini": "ini/mhc.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "2554"
+    ]
+   }
+  }
  }
 }

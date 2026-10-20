@@ -1,7 +1,64 @@
 # PR #10639 — ProSE `database:mass_slices` (port of bigbio/andes#77, #120–#123)
 
+The sections after "Rebuild" describe the first version (`cd287f54`) and are kept as measured.
+
 Question: does the memory/speed gain andes reported for searching in precursor-mass slices also show up in OpenMS, and
 do the results stay identical?
+
+## Rebuild of the feature (PR head `4522ade7`, decided by Timo after the first benchmark)
+
+The first version (`cd287f54`, benchmarked below) digested the whole database and held all of its peptides in every
+slice, and cut slices by spectrum count. `4522ade7` ports what andes does:
+
+- `FragmentIndex::build(fasta, searched_spectra, bounded_generation = true)` generates only the peptides between the
+  lowest and highest bound of the slice's precursor windows; a peptide none of whose peptidoforms can reach that range is
+  skipped before its variable modifications are enumerated (andes#77, "mass-bounded form walk").
+- Slices are cut at equal numbers of the database's peptides (`FragmentIndex::countPeptidesByMass()`, 1 Da bins, one
+  pass that holds 1/slices of the database at a time). andes cuts fixed widths in Da (10–150 Da, from its memory
+  budget); equal peptide counts give equal index sizes for any database and modification set (phospho, 16 slices: the
+  largest slice holds 13 % of the indexed peptides, `results/v2_slice_balance.txt`).
+- A warning when `mass_slices` is ignored (`chunk_size > 0`, open search, `low_memory` without enzyme), and the
+  scoring time of sliced runs in the search report.
+
+Same protocol (median of 3 interleaved runs, 4 threads, `/opt/openms-v2` = `4522ade7`; `c4`/`c16` =
+`database:chunk_size` giving 4 / 16 protein chunks). Peak RSS GiB / wall s (`results/summary_v2.md`):
+
+| search | base | off | 4 slices | 16 slices | chunk_size 4 | chunk_size 16 | other |
+|---|---:|---:|---:|---:|---:|---:|---|
+| frozen `hfx_A2` | 2.69 / 10.2 | 2.69 / 9.9 | **1.29 / 11.9** | **0.68 / 15.6** | 1.41 / 13.6 | 0.73 / 14.2 | |
+| 3 files in one call | 4.64 / 25.5 | 4.66 / 25.5 | **2.03 / 25.3** | **1.18 / 28.8** | | 1.65 / 53.5 | |
+| whole `hfx_A2` run | 5.98 / 83.0 | 5.98 / 81.7 | 4.88 / 89.6 | 4.89 / 93.2 | | 4.91 / 142.8 | spectra dominate |
+| `phos2`, `hye_E` | | killed > 12.5 | **5.70 / 44.9** | **2.12 / 47.4** | 9.36 / 73.2 | 3.01 / 65.4 | andes 10/40/150 Da: 1.43 / 134 · 2.20 / 132 · 5.07 / 137 |
+| `mhc` (unspecific) | | killed > 12.5 | 5.38 / 79.4 | 2.28 / 87.6 | | 2.35 / **57.6** | `low_memory` **2.06** / 164.2 |
+
+First version for comparison: frozen 1.92 / 14.2 (4) and 1.09 / 30.6 (16); 3 files 2.87 / 30.2 and 1.90 / 46.7;
+`phos2`/`hye_E` 11.77 / 73.3 and 7.08 / 194.3; `mhc` 9.29 / 81.9 and 6.43 / 208.5.
+
+Identity: off = base (byte-identical idXML and PIN). With slices the outputs are no longer byte-identical: the peptides
+are sorted by (precursor m/z, protein) with an unstable sort, so equally heavy peptidoforms of one protein (positional
+isomers) can be arranged differently in a slice index than in the full one, and the candidate cut
+(`scoring:max_candidates_per_spectrum`, ties broken by peptide index) can keep the other isomer
+(`results/v2_pin_diff.txt`): frozen `hfx_A2` 10 / 30 of 47,986 PIN rows differ (4 / 16 slices), all only in
+`hyperscore_zscore`; 3 files 10–42 rows per file, 0–5 spectra with another peptide in their top 10; whole run 252 / 181
+of 663,269 rows, 14 spectra. A local build with a total sort order (`precursor_mz_, protein_idx, mod_bitmask_,
+sequence_`) makes 1 and 16 slices byte-identical on frozen `hfx_A2`, the 3 files and the whole run, so this is the only
+cause; it would also change the default output vs. the merge-base (frozen `hfx_A2`: 1 peptide and 20 z-scores; whole run
+63,391 vs. 63,449 PSMs), so it is not in the PR.
+
+PSMs at q ≤ 0.01 (mean of 3 seeds) and entrapment FDP (`results/percolator.jsonl`):
+
+| search | off | 4 slices | 16 slices | chunk_size 4 / 16 |
+|---|---:|---:|---:|---:|
+| frozen `hfx_A2` | 4,492 (1.48 %) | 4,492 (1.47 %) | 4,492 (1.47 %) | 4,510 (1.55 %) / 4,491 (1.38 %) |
+| whole run | 63,449 (1.71 %) | 63,435 (1.71 %) | 63,425 (1.69 %) | – / 63,508 (1.76 %) |
+| `phos2`, `hye_E` | – | 4,421 (1.22 %) | 4,424 (1.25 %) | 4,419 (1.30 %) / 4,428 (1.26 %) |
+| `mhc` | – | 2,011 | 2,011 | – / 1,987; `low_memory` 2,011 |
+
+Verdict for the rebuild: slicing now beats `chunk_size` on memory at similar or lower time on every tryptic search
+(phospho 16 slices 2.12 GiB / 47 s vs. 3.01 GiB / 65 s; 3 files 1.18 / 29 vs. 1.65 / 54) and is 2.8× faster than andes
+on the same phospho input at a memory between andes's 10 and 40 Da slices. On the unspecific `mhc` search it is close
+to `chunk_size` in memory (2.28 vs. 2.35 GiB) but 1.5× slower, and `low_memory` stays the smallest (2.06 GiB, 1.9×
+slower). Results equal those without slices up to the tie order above (PSM counts within ±0.04 %).
 
 ## Arms and builds
 
