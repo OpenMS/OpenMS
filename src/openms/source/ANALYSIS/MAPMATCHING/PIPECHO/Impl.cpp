@@ -540,7 +540,13 @@ void Impl::set_transferable_precursors(const RunMap& runs)
         {
           for (const std::string& key : {name, name + "_score"})
           {
-            if (!q && hit.metaValueExists(key)) { q = static_cast<double>(hit.getMetaValue(key)); }
+            if (q || !hit.metaValueExists(key)) { continue; }
+            const DataValue& value = hit.getMetaValue(key);
+            // a non-numeric value counts as unknown
+            if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
+            {
+              q = static_cast<double>(value);
+            }
           }
         }
       }
