@@ -1,6 +1,6 @@
 # OpenDIA WP-00 benchmarks
 
-Reusable local scripts for the WP-00 baseline. They use only Bash, Python's standard library, CMake, `/usr/bin/time`, and the tools required by OpenDIA.
+Reusable local scripts for the WP-00 baseline. The benchmark runners and metric scripts use Bash, Python's standard library, CMake, `/usr/bin/time`, and the tools required by OpenDIA. PDF rendering also uses Python `markdown` and Chrome or Chromium.
 
 ## Build
 
@@ -11,6 +11,8 @@ tools/scripts/opendia_benchmark/build.sh ../openms-build
 An existing configured build is reconfigured in place. A missing build uses `PRESET=linux-x64-release`. The script enables OpenTIMS and Thermo RAW support, builds the `OpenDIA` target, smoke-tests the executable, and records `OpenDIA.build-manifest.txt`.
 
 All runners accept `BUILD_DIR`, `OPEN_DIA`, and `THREADS` environment overrides. Output directories must be empty, so a previous baseline cannot be overwritten accidentally.
+
+Both runners use the same speed settings from `lib.sh`: `readOptions=cacheWorkingInMemory`, `batchSize=0`, `innerBatchSize=-1`, `maxConcurrentSwaths=-1`, and `outer_loop_threads=-1`. These enable automatic wave scheduling. The Astral-only limit of one SWATH map is removed. Instrument and library settings remain different because the inputs are different. These settings do not prove maximum speed, and the full Astral run can exceed this host's RAM.
 
 ## Synthetic TimSim 3x3
 
@@ -55,7 +57,18 @@ python3 tools/scripts/opendia_benchmark/make_report.py CURRENT_TIMSIM_DIR \
   --output-dir tools/scripts/opendia_benchmark
 ```
 
-The command writes `FINAL_REPORT.md`, `runtime.svg`, and `peak_memory.svg`. The report uses short sentences and simple terms.
+The command writes `FINAL_REPORT.md` and five plots: run time, peak memory, identification, quantification, and FDR diagnostics. Use fresh validator JSON files so they contain `fdr_curve`. The report uses short sentences and simple terms.
+
+FDR plots show raw entrapment shares at five q-value limits. They are not search-space-adjusted FDR estimates. Final exports exclude rejected results, so these plots cannot prove full FDR calibration. TimSim and Astral can use different score columns, which the report names. Astral quantification measures repeatability, not accuracy.
+
+Render the report and plots to PDF with the installed Python `markdown` package and Chrome or Chromium:
+
+```bash
+python3 tools/scripts/opendia_benchmark/render_report.py \
+  tools/scripts/opendia_benchmark/FINAL_REPORT.md
+```
+
+Run the small regression check with `python3 tools/scripts/opendia_benchmark/test_benchmark.py`. Its PDF failure check also needs Python `markdown`.
 
 ## Captured evidence
 
@@ -70,4 +83,4 @@ Historical values are comparison observations, not hard-coded pass thresholds. U
 
 ## Current result
 
-See [`FINAL_REPORT.md`](FINAL_REPORT.md) for the short result and plots.
+See [`FINAL_REPORT.md`](FINAL_REPORT.md) or [`FINAL_REPORT.pdf`](FINAL_REPORT.pdf) for the short result and plots. Astral values remain historical until a full run completes with the shared settings.

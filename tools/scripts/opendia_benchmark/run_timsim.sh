@@ -58,7 +58,7 @@ run_library()
     -workflow:intermediate_dir "$out/intermediates"
     -out_dir "$out/results"
     -TargetedDataExtraction:ion_mobility_mode auto
-    -TargetedDataExtraction:readOptions cacheWorkingInMemory
+    "${OPEN_DIA_SPEED_ARGS[@]}"
     -TargetedDataExtraction:write_debug_files false
     -Export:results:max_rs_peakgroup_qvalue 0.01
     -Export:matrix:peptide true

@@ -77,11 +77,7 @@ command=(
   -PeptideQueryParameters:DecoyGenerator:aim_decoy_fraction 1
   -TargetedDataExtraction:enable_ipf false
   -TargetedDataExtraction:ion_mobility_mode disabled
-  -TargetedDataExtraction:readOptions cacheWorkingInMemory
-  -TargetedDataExtraction:batchSize 0
-  -TargetedDataExtraction:innerBatchSize -1
-  -TargetedDataExtraction:maxConcurrentSwaths 1
-  -TargetedDataExtraction:outer_loop_threads -1
+  "${OPEN_DIA_SPEED_ARGS[@]}"
   -TargetedDataExtraction:tempDirectory "$OUT/tmp"
   -TargetedDataExtraction:write_debug_files false
   -TargetedDataExtraction:Scoring:stop_report_after_feature 5

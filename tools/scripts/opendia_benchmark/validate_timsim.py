@@ -61,13 +61,27 @@ def best_results(path, q_threshold, q_candidates):
         if str(row.get("decoy", "0")).lower() not in {"0", "false", ""}:
             continue
         q_value = number(row.get(q_column))
-        if math.isfinite(q_value) and q_value > q_threshold:
+        if not math.isfinite(q_value) or not 0 <= q_value <= q_threshold:
             continue
         key = (row["run_name"], row["Sequence"].strip().upper(), int(row["Charge"]))
         rank = (q_value if math.isfinite(q_value) else math.inf, -number(row.get("d_score")))
         if key not in best or rank < best[key][0]:
             best[key] = (rank, row)
     return {key: row for key, (_, row) in best.items()}, q_column
+
+
+def fdr_curve(classified, maximum):
+    """Report raw entrapment shares, not search-space-adjusted FDR estimates."""
+    points = []
+    for threshold in sorted({q for q in (0.0001, 0.0005, 0.001, 0.005, maximum) if q <= maximum}):
+        selected = [entrapment for q, entrapment in classified if q <= threshold]
+        points.append({
+            "q_threshold": threshold,
+            "rows": len(selected),
+            "entrapment_rows": sum(selected),
+            "entrapment_share": sum(selected) / len(selected) if selected else None,
+        })
+    return points
 
 
 def main():
@@ -78,6 +92,8 @@ def main():
     parser.add_argument("--q-threshold", type=float, default=0.01)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    if not math.isfinite(args.q_threshold) or not 0 <= args.q_threshold <= 1:
+        parser.error("--q-threshold must be between 0 and 1")
 
     truth_dir = args.dataset / "truth"
     manifest = json.loads((args.dataset / "metadata/fixture_manifest.json").read_text())
@@ -175,6 +191,11 @@ def main():
     unique_entrapment = len({(sequence, charge) for (_, sequence, charge) in entrapment_results if (sequence, charge) in entrapment_keys})
 
     summary = {
+        "fdr_curve": fdr_curve([
+            (number(row[entrapment_q]), (sequence, charge) in entrapment_keys)
+            for (_, sequence, charge), row in entrapment_results.items()
+            if (sequence, charge) in target_keys or (sequence, charge) in entrapment_keys
+        ], args.q_threshold),
         "q_threshold": args.q_threshold,
         "target_q_column": target_q,
         "entrapment_q_column": entrapment_q,

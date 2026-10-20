@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Make a short OpenDIA benchmark report and two SVG plots."""
+"""Make a short OpenDIA benchmark report and SVG plots."""
 
 import argparse
 import html
 import json
+import os
 import re
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -40,12 +42,24 @@ def read_resources(path):
 
 
 def read_timsim(root):
+    threads = set()
+    revisions = set()
+    binaries = set()
+    for name in ("target_only", "entrapment"):
+        meta = root / name / "meta"
+        command = shlex.split((meta / "command.sh").read_text())
+        threads.add(command[command.index("-threads") + 1])
+        revisions.add((meta / "source_revision.txt").read_text().strip())
+        binaries.add((meta / "OpenDIA.sha256").read_text().split()[0])
+    if len(threads) != 1 or len(revisions) != 1 or len(binaries) != 1:
+        raise SystemExit(f"The two TimSim searches have different provenance: {root}")
     return {
         "metrics": load_json(root / "validation.json"),
         "target": read_resources(root / "target_only/logs/resources.txt"),
         "entrapment": read_resources(root / "entrapment/logs/resources.txt"),
-        "revision": (root / "target_only/meta/source_revision.txt").read_text().strip(),
-        "binary": (root / "target_only/meta/OpenDIA.sha256").read_text().split()[0],
+        "revision": revisions.pop(),
+        "binary": binaries.pop(),
+        "threads": threads.pop(),
     }
 
 
@@ -70,42 +84,132 @@ def format_duration(seconds):
     return f"{seconds} s"
 
 
-def write_chart(path, title, unit, labels, old_values, new_values):
+def write_chart(path, title, unit, labels, series, decimals=1):
     width, height = 680, 320
     left, top, bottom = 80, 55, 55
     chart_height = height - top - bottom
-    maximum = max(old_values + new_values) * 1.15
+    finite_values = [value for _, _, values in series for value in values if value is not None]
+    maximum = max([0, *finite_values]) * 1.15 or 1
+    minimum = min([0, *finite_values]) * 1.15
+    scale = chart_height / (maximum - minimum)
+    baseline = top + maximum * scale
     group_width = (width - left - 30) / len(labels)
-    bar_width = 58
+    bar_width = min(58, group_width / (len(series) + 1))
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="white"/>',
         f'<text x="{width / 2}" y="28" text-anchor="middle" font-family="sans-serif" font-size="18">{html.escape(title)}</text>',
-        f'<line x1="{left}" y1="{top + chart_height}" x2="{width - 20}" y2="{top + chart_height}" stroke="#333"/>',
+        f'<line x1="{left}" y1="{baseline}" x2="{width - 20}" y2="{baseline}" stroke="#333"/>',
     ]
     for index, label in enumerate(labels):
         center = left + group_width * (index + 0.5)
-        for offset, value, color in (
-            (-bar_width / 2, old_values[index], "#999999"),
-            (bar_width / 2, new_values[index], "#2b6cb0"),
-        ):
-            bar_height = chart_height * value / maximum
+        for series_index, (_, color, values) in enumerate(series):
+            offset = (series_index - (len(series) - 1) / 2) * bar_width * 1.15
+            value = values[index]
             x = center + offset - bar_width / 2
-            y = top + chart_height - bar_height
+            if value is None:
+                parts.append(f'<text x="{x + bar_width / 2:.1f}" y="{baseline - 7:.1f}" text-anchor="middle" font-family="sans-serif" font-size="12">n/a</text>')
+                continue
+            bar_height = abs(value) * scale
+            y = baseline - max(value, 0) * scale
             parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_width}" height="{bar_height:.1f}" fill="{color}"/>')
-            parts.append(f'<text x="{x + bar_width / 2:.1f}" y="{y - 7:.1f}" text-anchor="middle" font-family="sans-serif" font-size="12">{value:.1f}</text>')
+            parts.append(f'<text x="{x + bar_width / 2:.1f}" y="{y - 7:.1f}" text-anchor="middle" font-family="sans-serif" font-size="12">{value:.{decimals}f}</text>')
         parts.append(f'<text x="{center:.1f}" y="{height - 28}" text-anchor="middle" font-family="sans-serif" font-size="13">{html.escape(label)}</text>')
-    parts.extend(
-        [
-            f'<text x="18" y="{top + chart_height / 2}" transform="rotate(-90 18 {top + chart_height / 2})" text-anchor="middle" font-family="sans-serif" font-size="13">{html.escape(unit)}</text>',
-            '<rect x="420" y="42" width="14" height="14" fill="#999999"/>',
-            '<text x="440" y="54" font-family="sans-serif" font-size="12">Before update</text>',
-            '<rect x="540" y="42" width="14" height="14" fill="#2b6cb0"/>',
-            '<text x="560" y="54" font-family="sans-serif" font-size="12">Current</text>',
-            "</svg>",
-        ]
-    )
+    parts.append(f'<text x="18" y="{top + chart_height / 2}" transform="rotate(-90 18 {top + chart_height / 2})" text-anchor="middle" font-family="sans-serif" font-size="13">{html.escape(unit)}</text>')
+    if len(series) > 1:
+        legend_x = width - 130 * len(series)
+        for index, (name, color, _) in enumerate(series):
+            x = legend_x + index * 130
+            parts.append(f'<rect x="{x}" y="42" width="14" height="14" fill="{color}"/>')
+            parts.append(f'<text x="{x + 20}" y="54" font-family="sans-serif" font-size="12">{html.escape(name)}</text>')
+    parts.append("</svg>")
     path.write_text("\n".join(parts) + "\n", encoding="utf-8")
+
+
+def comparison(old, new):
+    return [("Before", "#999999", old), ("Current", "#2b6cb0", new)]
+
+
+def format_match(value):
+    return f"{value:.3f}" if value is not None else "n/a"
+
+
+def quality_report(output, metrics, astral):
+    identification = metrics["target_identification"]
+    mixed = metrics["entrapment_export"]
+    quantification = metrics["quantification"]
+    id_labels = ["TimSim target", "TimSim mixed"]
+    id_values = [identification["identified_target_run_pairs"], mixed["target_rows"]]
+    quant_labels = ["TimSim precursor", "TimSim protein"]
+    quant_values = [quantification[f"{level}_realized_vs_observed_pearson"] for level in ("precursor", "protein")]
+    lines = [
+        "## Identification",
+        "",
+        "A row is one precursor in one run. TimSim has six runs. Astral has three runs. Do not compare their total counts as equal tests.",
+        f"TimSim found {identification['identified_target_run_pairs']:,} of {identification['expected_target_run_pairs']:,} expected results ({identification['overall_recovery']:.1%}).",
+        f"The mixed search found {mixed['target_rows']:,} target rows and {mixed['entrapment_rows']:,} entrapment rows.",
+    ]
+    if astral:
+        ids = astral["identification"]
+        id_labels.append("Astral reference")
+        id_values.append(ids["target_rows"])
+        lines.append(f"The older Astral run found {ids['target_rows']:,} target rows ({ids['unique_target_precursors']:,} distinct precursors) and {ids['entrapment_rows']:,} entrapment rows.")
+        for level in ("precursor", "protein"):
+            values = [item["pearson_log2"] for item in astral["quantification_repeatability"][level]["pairwise_log2_correlations"].values()]
+            values = [value for value in values if value is not None]
+            quant_labels.append(f"Astral {level}")
+            quant_values.append(sum(values) / len(values) if values else None)
+    write_chart(output / "identification.svg", "Target results", "Rows", id_labels, [("Results", "#2b6cb0", id_values)], decimals=0)
+    write_chart(output / "quantification.svg", "Quantification match", "Correlation", quant_labels, [("Match", "#2b6cb0", quant_values)], decimals=3)
+    lines.extend([
+        "",
+        "![Identification](identification.svg)",
+        "",
+        "## Quantification",
+        "",
+        "| Data | Precursor match | Protein match |",
+        "|---|---:|---:|",
+        f"| TimSim truth | {format_match(quant_values[0])} | {format_match(quant_values[1])} |",
+    ])
+    if astral:
+        lines.append(f"| Astral reference | {format_match(quant_values[2])} | {format_match(quant_values[3])} |")
+    lines.extend([
+        "",
+        "TimSim compares measured fold changes with known fold changes. A value of 1 means the same linear pattern, not exact amounts.",
+        "",
+        "![Quantification](quantification.svg)",
+    ])
+    if astral:
+        lines.extend(["", "Astral uses the mean correlation between repeat runs. This measures repeatability, not accuracy.", "", "| Astral reference | Present in all 3 runs | Median variation |", "|---|---:|---:|"])
+        for level in ("precursor", "protein"):
+            group = astral["quantification_repeatability"][level]
+            cv = f"{group['median_cv_complete']:.2%}" if group['median_cv_complete'] is not None else "n/a"
+            lines.append(f"| {level.capitalize()} | {group['complete_entities']:,} / {group['entities']:,} | {cv} |")
+    lines.extend(["", "## FDR estimate and calibration check", "", "| Data | q-value limit | Entrapment share |", "|---|---:|---:|", f"| TimSim mixed | {metrics['q_threshold']:.2%} | {mixed['pooled_empirical_fdp']:.3%} |"])
+    datasets = [("TimSim", "#2b6cb0", metrics)]
+    if astral:
+        lines.append(f"| Astral reference | {astral['q_threshold']:.2%} | {astral['identification']['empirical_fdp']:.3%} |")
+        datasets.append(("Astral reference", "#dd6b20", astral))
+    # Final exports support only a diagnostic check, not full FDR calibration.
+    curve_labels = [f"{point['q_threshold']:.2%}" for point in metrics["fdr_curve"]]
+    series = [("q limit", "#999999", [100 * point["q_threshold"] for point in metrics["fdr_curve"]])]
+    for name, color, data in datasets:
+        if [point["q_threshold"] for point in data["fdr_curve"]] != [point["q_threshold"] for point in metrics["fdr_curve"]]:
+            raise SystemExit("FDR curves must use the same q-value limits")
+        series.append((name, color, [100 * point["entrapment_share"] if point["entrapment_share"] is not None else None for point in data["fdr_curve"]]))
+    write_chart(output / "fdr.svg", "Entrapment share at each q-value limit", "Percent", curve_labels, series, decimals=3)
+    lines.extend([
+        "",
+        "![FDR check](fdr.svg)",
+        "",
+        "The q-value is the reported error estimate. The bars show the fraction of accepted rows from absent sequences.",
+        "FDR means false discovery rate: the fraction of accepted results that are wrong.",
+        "An n/a label means that no rows passed the limit.",
+        f"TimSim uses `{metrics['entrapment_q_column']}`. " + (f"Astral uses `{astral['q_column']}`." if astral else ""),
+        "These shares are not adjusted for search-space size. They do not prove that FDR is calibrated. Zero observed errors does not prove zero error risk.",
+        "The input files contain only exported results. Rejected results are not available for a full calibration test.",
+    ])
+    return lines
 
 
 def main():
@@ -146,8 +250,8 @@ def main():
     new_time = [current["target"]["seconds"], current["entrapment"]["seconds"]]
     old_memory = [previous["target"]["memory_mib"], previous["entrapment"]["memory_mib"]]
     new_memory = [current["target"]["memory_mib"], current["entrapment"]["memory_mib"]]
-    write_chart(output / "runtime.svg", "OpenDIA run time", "Seconds", labels, old_time, new_time)
-    write_chart(output / "peak_memory.svg", "OpenDIA peak memory", "MiB", labels, old_memory, new_memory)
+    write_chart(output / "runtime.svg", "OpenDIA run time", "Seconds", labels, comparison(old_time, new_time))
+    write_chart(output / "peak_memory.svg", "OpenDIA peak memory", "MiB", labels, comparison(old_memory, new_memory))
 
     metrics = current["metrics"]
     previous_metrics = previous["metrics"]
@@ -165,9 +269,11 @@ def main():
     ]
     if args.develop_revision:
         lines.append(f"This branch includes develop `{args.develop_revision[:12]}`.")
+    lines.extend(["Both runners use `batchSize 0` and `cacheWorkingInMemory`. The scheduler selects its batch sizes and concurrency automatically.", "The shared settings are not proof of the fastest possible run."])
     lines.extend(
         [
-            "Each TimSim value is from one run with four threads.",
+            f"Each TimSim value is from one run. The previous runs used {previous['threads']} threads. The current runs used {current['threads']} threads.",
+            "Run times can change with host load. Repeat these tests on an idle host before drawing a speed conclusion.",
             "",
             "## Main result",
             "",
@@ -198,6 +304,7 @@ def main():
         ]
     )
 
+    astral = None
     if args.astral_metrics and args.astral_time:
         astral = load_json(args.astral_metrics)
         astral_resources = read_resources(args.astral_time)
@@ -210,9 +317,14 @@ def main():
                 f"The reference run found {identification['target_rows']:,} target rows and {identification['entrapment_rows']:,} entrapment rows.",
                 f"The run time was {format_duration(astral_resources['seconds'])}. Peak memory was {astral_resources['memory_mib'] / 1024:.1f} GiB.",
                 "This result is from older code. This test did not run the full Astral data again.",
+                "The new shared settings have not been tested on the full Astral data.",
             ]
         )
+        host_memory = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE") / 1024**3
+        if astral_resources["memory_mib"] / 1024 > host_memory:
+            lines.append(f"The reference run used more memory than this host has ({host_memory:.1f} GiB).")
 
+    lines.extend(["", *quality_report(output, metrics, astral)])
     (output / "FINAL_REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

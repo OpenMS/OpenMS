@@ -6,6 +6,13 @@ SOURCE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BUILD_DIR="${BUILD_DIR:-$SOURCE_DIR/../OpenMS-build}"
 OPEN_DIA="${OPEN_DIA:-$BUILD_DIR/bin/OpenDIA}"
 THREADS="${THREADS:-4}"
+OPEN_DIA_SPEED_ARGS=(
+  -TargetedDataExtraction:readOptions cacheWorkingInMemory
+  -TargetedDataExtraction:batchSize 0
+  -TargetedDataExtraction:innerBatchSize -1
+  -TargetedDataExtraction:maxConcurrentSwaths -1
+  -TargetedDataExtraction:outer_loop_threads -1
+)
 
 require_file()
 {

@@ -10,6 +10,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from validate_timsim import fdr_curve
+
 
 def number(value):
     try:
@@ -64,6 +66,8 @@ def main():
     parser.add_argument("--intensity-column", default="Intensity")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    if not math.isfinite(args.q_threshold) or not 0 <= args.q_threshold <= 1:
+        parser.error("--q-threshold must be between 0 and 1")
 
     with args.results.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle, delimiter="\t")
@@ -79,7 +83,7 @@ def main():
             if str(row.get("decoy", "0")).lower() not in {"0", "false", ""}:
                 continue
             q_value = number(row.get(q_column))
-            if math.isfinite(q_value) and q_value > args.q_threshold:
+            if not math.isfinite(q_value) or not 0 <= q_value <= args.q_threshold:
                 continue
             rows.append(row)
 
@@ -122,6 +126,10 @@ def main():
         }
 
     summary = {
+        "fdr_curve": fdr_curve([
+            (number(row[q_column]), "_p_target" in row["ProteinName"])
+            for row in rows
+        ], args.q_threshold),
         "results": str(args.results.resolve()),
         "q_threshold": args.q_threshold,
         "q_column": q_column,
