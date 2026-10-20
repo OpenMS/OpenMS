@@ -54,7 +54,9 @@ namespace OpenMS
             }
             for (auto& [cv, ms1] : by_cv)
             {
-                if (ms1.empty()) continue; // CV seen only on MS2: nothing to seed from
+                // too few MS1 spectra for a mass trace (a CV seen only on MS2, or a sparse CV): MassTraceDetection
+                // rejects such input, and the CV has nothing to seed from
+                if (ms1.size() < 3) continue;
                 ms1.updateRanges();
                 result.emplace_back(cv, std::move(ms1));
             }
