@@ -10,7 +10,7 @@
 # The allocator of OpenMS' WebAssembly programs (included by cmake/emscripten.cmake).
 #
 # OPENMS_WASM_MALLOC:
-#  mimalloc          Emscripten's mimalloc (-sMALLOC=mimalloc): the default of wasm32.
+#  mimalloc          Emscripten's mimalloc (-sMALLOC=mimalloc).
 #  openms-mimalloc   the same sources of mimalloc (those of the Emscripten SDK), built here for the
 #                    programs that link the target openms_wasm_malloc (the JavaScript module, and the
 #                    Node.js programs of openms_emscripten_node_program()), with -sMALLOC=none:
@@ -25,22 +25,21 @@
 #                      block of 4 GiB or more, corrupts free regions of 4 GiB or more
 #                      (https://github.com/emscripten-core/emscripten/issues/28028), and reuses freed
 #                      huge blocks poorly.
-#                    The default of wasm64 (OPENMS_WASM_MEMORY64). ProSE (16 threads, Node.js), the
-#                    memory of the module after a search (getMemoryInfo().heapSize), as fast with both:
+#                    The default of every build, wasm32 and wasm64 (an existing build directory keeps
+#                    the value in its cache). ProSE, the memory of the module after a search
+#                    (getMemoryInfo().heapSize), as fast with both; wasm64: Node.js, wasm32: Chromium 141
+#                    (searchFiles(), file by file, as the ProSE app), 16 threads:
 #                    | search                                  | wasm64: Emscripten's, this | wasm32: Emscripten's, this |
-#                    | Erwinia, tryptic                        | 1.9 GB, 0.95 GB            | 0.91 GB, 0.52 GB           |
-#                    | human, tryptic                          | 2.5 GB, 1.35 GB            | 1.45 GB, 0.86 GB           |
-#                    | human, semi-tryptic, chunk_size 2000    | 12.2 GB, 1.75 GB           | 2.1 GB, 1.5 GB             |
+#                    | Erwinia, tryptic                        | 1.9 GB, 0.95 GB            | 1.0 GB, 0.67 GB            |
+#                    | human, tryptic                          | 2.5 GB, 1.35 GB            | 1.5 GB, 0.94 GB            |
+#                    | human, semi-tryptic, chunk_size 2000    | 12.2 GB, 1.75 GB           | 1.9-3.9 GB, 1.5-1.7 GB     |
 #                    | human, semi-tryptic, chunk_size 8000    | 10.5 GB, 4.7 GB            | (does not fit)             |
+#                    | 3 x Erwinia, tryptic, file by file      |                            | 1.5 GB, 0.8 GB             |
+#                    wasm32 single-threaded: Erwinia 0.59 and 0.39 GB, human 0.99 and 0.79 GB.
 #------------------------------------------------------------------------------
 
-if(OPENMS_WASM_MEMORY64)
-  set(_openms_wasm_malloc_default "openms-mimalloc")
-else()
-  set(_openms_wasm_malloc_default "mimalloc")
-endif()
-set(OPENMS_WASM_MALLOC "${_openms_wasm_malloc_default}" CACHE STRING
-    "Allocator of the OpenMS WebAssembly programs: mimalloc (Emscripten's) or openms-mimalloc (mimalloc built by OpenMS, see cmake/emscripten_malloc.cmake; the default of wasm64)")
+set(OPENMS_WASM_MALLOC "openms-mimalloc" CACHE STRING
+    "Allocator of the OpenMS WebAssembly programs: openms-mimalloc (mimalloc built by OpenMS, see cmake/emscripten_malloc.cmake; the default) or mimalloc (Emscripten's)")
 set_property(CACHE OPENMS_WASM_MALLOC PROPERTY STRINGS mimalloc openms-mimalloc)
 if(NOT OPENMS_WASM_MALLOC MATCHES "^(mimalloc|openms-mimalloc)$")
   message(FATAL_ERROR "OPENMS_WASM_MALLOC must be mimalloc or openms-mimalloc (is '${OPENMS_WASM_MALLOC}').")

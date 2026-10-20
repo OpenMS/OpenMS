@@ -171,7 +171,7 @@ endif()
 ## on 2 threads and 3.4x slower on 4 threads than on 1; with mimalloc it is 1.4x and 1.7x
 ## faster. Single-threaded it is about as fast or faster: search 1549 instead of 1601 ms,
 ## loading a 14 MB mzML file 184 instead of 238 ms. The module grows by about 0.3 MB.
-## Emscripten's build of it, or OpenMS' (OPENMS_WASM_MALLOC, the default of wasm64): see
+## OpenMS' build of it (OPENMS_WASM_MALLOC, the default) or Emscripten's: see
 ## cmake/emscripten_malloc.cmake.
 include(${CMAKE_CURRENT_LIST_DIR}/emscripten_malloc.cmake)
 
