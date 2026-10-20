@@ -100,12 +100,18 @@ namespace OpenMS
     /**
       @brief Classify a peptide hit by its protein accessions
 
+      Decoy proteins among the accessions are ignored: a peptide found in an entrapment protein and in a decoy protein
+      is in no original target protein, so it is an entrapment discovery.
+
       @param hit The hit; its peptide evidences carry the accessions
       @param entrapment_prefix Accession prefix of entrapment proteins (e.g. "ENTRAP_")
-      @return DECOY if the hit is annotated as decoy, ENTRAPMENT if it has accessions and all start with
+      @param decoy_string Decoy string of the database (empty: no accession is treated as decoy)
+      @param decoy_is_prefix Whether @p decoy_string is a prefix (else a suffix, as for estimateTERatio())
+      @return DECOY if the hit is annotated as decoy, ENTRAPMENT if it has non-decoy accessions and all start with
               @p entrapment_prefix, TARGET otherwise
     */
-    static Kind classify(const PeptideHit& hit, const std::string& entrapment_prefix);
+    static Kind classify(const PeptideHit& hit, const std::string& entrapment_prefix,
+                         const std::string& decoy_string = "", bool decoy_is_prefix = true);
 
     /**
       @brief Estimate T/E, the ratio of distinct searchable target to entrapment peptides, from a database
@@ -192,6 +198,8 @@ namespace OpenMS
       @param score_meta_value If not empty, a hit meta value (higher is better) that ranks discoveries with equal
              q-values for the paired comparison; without it, or at equal scores, an entrapment peptide ranks level with
              its target, which counts against the FDP
+      @param decoy_string Decoy string of the database, passed to classify()
+      @param decoy_is_prefix Whether @p decoy_string is a prefix (else a suffix)
       @return Results keyed by class; key "all" holds the overall result (a class named "all" is reported as "class:all")
     */
     static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids,
@@ -202,6 +210,8 @@ namespace OpenMS
                                                   const std::string& class_meta_value = "",
                                                   const std::unordered_set<std::string>* target_peptides = nullptr,
                                                   const PeptidePairs* pairs = nullptr,
-                                                  const std::string& score_meta_value = "");
+                                                  const std::string& score_meta_value = "",
+                                                  const std::string& decoy_string = "",
+                                                  bool decoy_is_prefix = true);
   };
 } // namespace OpenMS

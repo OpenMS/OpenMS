@@ -53,7 +53,7 @@ START_TEST(EntrapmentEvaluation, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static Kind classify(const PeptideHit& hit, const std::string& entrapment_prefix)))
+START_SECTION((static Kind classify(const PeptideHit& hit, const std::string& entrapment_prefix, const std::string& decoy_string = "", bool decoy_is_prefix = true)))
 {
   using K = EntrapmentEvaluation::Kind;
   TEST_EQUAL(EntrapmentEvaluation::classify(makeId("PEPTIDEK", 0, {"P1"}).getHits()[0], "ENTRAP_") == K::TARGET, true)
@@ -61,6 +61,14 @@ START_SECTION((static Kind classify(const PeptideHit& hit, const std::string& en
   // shared with a target protein: target
   TEST_EQUAL(EntrapmentEvaluation::classify(makeId("PEPTIDEK", 0, {"ENTRAP_P1", "P2"}).getHits()[0], "ENTRAP_") == K::TARGET, true)
   TEST_EQUAL(EntrapmentEvaluation::classify(makeId("PEPTIDEK", 0, {"DECOY_P1"}, true).getHits()[0], "ENTRAP_") == K::DECOY, true)
+  // shared with a decoy protein: decoys are in no original target protein, so it stays entrapment (given the decoy string)
+  const PeptideHit shared = makeId("PEPTIDEK", 0, {"ENTRAP_P1", "DECOY_ENTRAP_P2"}).getHits()[0];
+  TEST_EQUAL(EntrapmentEvaluation::classify(shared, "ENTRAP_") == K::TARGET, true)
+  TEST_EQUAL(EntrapmentEvaluation::classify(shared, "ENTRAP_", "DECOY_", true) == K::ENTRAPMENT, true)
+  TEST_EQUAL(EntrapmentEvaluation::classify(makeId("PEPTIDEK", 0, {"ENTRAP_P1", "P2_rev"}).getHits()[0], "ENTRAP_", "_rev", false) == K::ENTRAPMENT, true)
+  TEST_EQUAL(EntrapmentEvaluation::classify(makeId("PEPTIDEK", 0, {"P1", "DECOY_P2"}).getHits()[0], "ENTRAP_", "DECOY_", true) == K::TARGET, true)
+  // only decoy accessions on a hit not annotated as decoy: target, as before
+  TEST_EQUAL(EntrapmentEvaluation::classify(makeId("PEPTIDEK", 0, {"DECOY_ENTRAP_P2"}).getHits()[0], "ENTRAP_", "DECOY_", true) == K::TARGET, true)
 }
 END_SECTION
 
@@ -76,7 +84,7 @@ START_SECTION((static double qValue(const PeptideIdentification& pep_id, const P
 }
 END_SECTION
 
-START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix, double te_ratio, Level level = Level::PSM, const std::string& class_meta_value = "", const std::unordered_set<std::string>* target_peptides = nullptr, const PeptidePairs* pairs = nullptr, const std::string& score_meta_value = "")))
+START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix, double te_ratio, Level level = Level::PSM, const std::string& class_meta_value = "", const std::unordered_set<std::string>* target_peptides = nullptr, const PeptidePairs* pairs = nullptr, const std::string& score_meta_value = "", const std::string& decoy_string = "", bool decoy_is_prefix = true)))
 {
   using L = EntrapmentEvaluation::Level;
   PeptideIdentificationList ids;
@@ -100,6 +108,15 @@ START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdenti
   TEST_REAL_SIMILAR(res["mod"].combinedFDP(), 2.0)
   TEST_EQUAL(res["unmod"].entrapment, 0)
   TEST_EQUAL(res.count("NA"), 0)
+  {
+    // a hit shared by an entrapment and a decoy protein is entrapment once the decoy string is known
+    PeptideIdentificationList shared_ids = ids;
+    shared_ids.push_back(makeId("QQQK", 0.003, {"ENTRAP_P3", "DECOY_ENTRAP_P4"}));
+    TEST_EQUAL(EntrapmentEvaluation::evaluate(shared_ids, 0.01, "ENTRAP_", 1.0)["all"].entrapment, 2)
+    const auto with_decoys = EntrapmentEvaluation::evaluate(shared_ids, 0.01, "ENTRAP_", 1.0, L::PSM, "", nullptr, nullptr, "", "DECOY_", true)["all"];
+    TEST_EQUAL(with_decoys.accepted, 11)
+    TEST_EQUAL(with_decoys.entrapment, 3)
+  }
 
   // peptide level: AAAK once
   res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PEPTIDE, "mod_class");

@@ -97,7 +97,7 @@ protected:
     registerDoubleOption_("te_ratio", "<ratio>", 1.0, "Ratio of searchable target to entrapment peptides (used if no 'database' is given).", false);
     setMinFloat_("te_ratio", 0.0);
     registerStringOption_("entrapment_string", "<string>", "ENTRAP_", "Accession prefix of entrapment proteins.", false);
-    registerStringOption_("decoy_string", "<string>", "DECOY_", "Decoy string of the database (to skip decoys when computing T/E).", false);
+    registerStringOption_("decoy_string", "<string>", "DECOY_", "Decoy string of the database. Decoy proteins are skipped when computing T/E, and a hit counts as entrapment if all its non-decoy proteins are entrapment.", false);
     registerStringOption_("decoy_string_position", "<choice>", "prefix", "Is 'decoy_string' a prefix or a suffix?", false);
     setValidStrings_("decoy_string_position", {"prefix", "suffix"});
     registerDoubleList_("q_value", "<thresholds>", {0.01}, "q-value thresholds at which to report.", false);
@@ -123,14 +123,14 @@ protected:
     const std::string score_meta_value = getStringOption_("score_meta_value");
     double te_ratio = getDoubleOption_("te_ratio");
     const std::string database = getStringOption_("database");
+    const std::string decoy_string = getStringOption_("decoy_string");
+    const bool decoy_is_prefix = getStringOption_("decoy_string_position") == "prefix";
     std::unordered_set<std::string> target_peptides;
     EntrapmentEvaluation::PeptidePairs pairs;
     if (!database.empty())
     {
       std::vector<FASTAFile::FASTAEntry> db;
       FASTAFile().load(database, db);
-      const std::string decoy_string = getStringOption_("decoy_string");
-      const bool decoy_is_prefix = getStringOption_("decoy_string_position") == "prefix";
       const std::string enzyme = getStringOption_("enzyme");
       const Size missed_cleavages = getIntOption_("missed_cleavages");
       const Size min_length = getIntOption_("min_length");
@@ -205,7 +205,7 @@ protected:
         {
           const auto results = EntrapmentEvaluation::evaluate(peptides, q, entrapment_prefix, te_ratio, level, class_meta_value,
                                                               database.empty() ? nullptr : &target_peptides, pairs_ptr,
-                                                              score_meta_value);
+                                                              score_meta_value, decoy_string, decoy_is_prefix);
           for (const auto& [cls, r] : results)
           {
             table << name << '\t' << level_name << '\t' << cls << '\t' << q << '\t' << r.accepted << '\t' << r.entrapment << '\t'

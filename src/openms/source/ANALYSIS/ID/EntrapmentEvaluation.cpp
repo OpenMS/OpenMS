@@ -48,6 +48,11 @@ namespace OpenMS
       return std::all_of(acc.begin() + rest + 1, acc.end(), [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
     }
 
+    bool isDecoyAccession(const std::string& acc, const std::string& decoy_string, bool decoy_is_prefix)
+    {
+      return !decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string));
+    }
+
     /// I and L have the same mass: count them as one residue
     std::string toIL(std::string_view peptide)
     {
@@ -69,7 +74,7 @@ namespace OpenMS
       for (const auto& entry : db)
       {
         const std::string& acc = entry.identifier;
-        if (!decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string))) continue;
+        if (isDecoyAccession(acc, decoy_string, decoy_is_prefix)) continue;
         const bool is_entrapment = !entrapment_prefix.empty() && startsWith(acc, entrapment_prefix);
         if (is_entrapment && entrapment_peptides == nullptr) continue;
         peptides.clear();
@@ -99,16 +104,19 @@ namespace OpenMS
             2.0 * static_cast<double>(entrapment_above_target)) / static_cast<double>(accepted);
   }
 
-  EntrapmentEvaluation::Kind EntrapmentEvaluation::classify(const PeptideHit& hit, const std::string& entrapment_prefix)
+  EntrapmentEvaluation::Kind EntrapmentEvaluation::classify(const PeptideHit& hit, const std::string& entrapment_prefix,
+                                                            const std::string& decoy_string, bool decoy_is_prefix)
   {
     if (hit.isDecoy()) return Kind::DECOY;
-    const std::set<std::string> accessions = hit.extractProteinAccessionsSet();
-    if (accessions.empty() || entrapment_prefix.empty()) return Kind::TARGET;
-    for (const auto& acc : accessions)
+    if (entrapment_prefix.empty()) return Kind::TARGET;
+    bool any_entrapment = false;
+    for (const auto& acc : hit.extractProteinAccessionsSet())
     {
+      if (isDecoyAccession(acc, decoy_string, decoy_is_prefix)) continue; // in no original target protein
       if (!startsWith(acc, entrapment_prefix)) return Kind::TARGET;
+      any_entrapment = true;
     }
-    return Kind::ENTRAPMENT;
+    return any_entrapment ? Kind::ENTRAPMENT : Kind::TARGET;
   }
 
   double EntrapmentEvaluation::estimateTERatio(const std::vector<FASTAFile::FASTAEntry>& db,
@@ -171,10 +179,7 @@ namespace OpenMS
     if (mismatched != nullptr) *mismatched = 0;
     if (entrapment_prefix.empty()) return pairs;
 
-    auto isDecoy = [&](const std::string& acc)
-    {
-      return !decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string));
-    };
+    auto isDecoy = [&](const std::string& acc) { return isDecoyAccession(acc, decoy_string, decoy_is_prefix); };
     std::unordered_map<std::string, const std::string*> target_sequences;
     for (const auto& entry : db)
     {
@@ -230,7 +235,9 @@ namespace OpenMS
                                                                                     const std::string& class_meta_value,
                                                                                     const std::unordered_set<std::string>* target_peptides,
                                                                                     const PeptidePairs* pairs,
-                                                                                    const std::string& score_meta_value)
+                                                                                    const std::string& score_meta_value,
+                                                                                    const std::string& decoy_string,
+                                                                                    bool decoy_is_prefix)
   {
     const bool paired = (level == Level::PEPTIDE) && (pairs != nullptr);
     std::map<std::string, Result> results;
@@ -264,7 +271,7 @@ namespace OpenMS
       {
         if (pep_id.getHits().empty()) continue;
         const PeptideHit& hit = pep_id.getHits().front();
-        const Kind kind = classify(hit, entrapment_prefix);
+        const Kind kind = classify(hit, entrapment_prefix, decoy_string, decoy_is_prefix);
         if (kind == Kind::DECOY) continue;
         if (!accepted(qValue(pep_id, hit))) continue;
         const bool is_entrapment = isEntrapment(hit, kind);
@@ -293,7 +300,7 @@ namespace OpenMS
     {
       if (pep_id.getHits().empty()) continue;
       const PeptideHit& hit = pep_id.getHits().front();
-      const Kind kind = classify(hit, entrapment_prefix);
+      const Kind kind = classify(hit, entrapment_prefix, decoy_string, decoy_is_prefix);
       if (kind == Kind::DECOY) continue;
       const double q = hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE) ?
         static_cast<double>(hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE)) : qValue(pep_id, hit);
