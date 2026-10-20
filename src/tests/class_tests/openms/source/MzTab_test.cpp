@@ -380,22 +380,45 @@ START_SECTION([EXTRA] consensus-map assays use fraction-group/label grain and sa
 }
 END_SECTION
 
-START_SECTION([EXTRA] consensus-map export fails on maps with the same MS file and label (#5357))
+START_SECTION([EXTRA] consensus-map export fails on maps with the same MS file and channel (#5357))
 {
   // Three maps named after the same file used to be merged silently into one assay.
   ConsensusMap same_file = consensusMapForMzTabExport({"same.mzML", "same.mzML", "same.mzML"},
                                                       {"same.mzML"});
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
     MzTab::exportConsensusMapToMzTab(same_file, "test.consensusXML", false, true, false, false),
-    "Cannot export to mzTab: maps 0, 1, 2 of the consensus map have the same MS file 'same.mzML' and label '', "
+    "Cannot export to mzTab: maps 0, 1, 2 of the consensus map have the same MS file 'same.mzML' and channel 1, "
     "so they cannot be told apart and would be merged into one assay. Each map needs its own MS file name "
-    "(the 'name' of the <map> element in consensusXML). It is taken from the primary MS run path of the input "
-    "feature map, so make sure the feature maps reference their mzML files before linking.")
+    "(the 'name' of the <map> element in consensusXML), or, for labeled data, its own 'channel_id'. The file name "
+    "is taken from the primary MS run path of the input feature map, so make sure the feature maps reference "
+    "their mzML files before linking.")
 
   // Distinct files export one assay per map.
   ConsensusMap distinct_files = consensusMapForMzTabExport({"a.mzML", "b.mzML"}, {"a.mzML"});
   MzTab mz_tab = MzTab::exportConsensusMapToMzTab(distinct_files, "test.consensusXML", false, true, false, false);
   TEST_EQUAL(mz_tab.getMetaData().assay.size(), 2)
+
+  // Assays are keyed by the resolved channel (ColumnHeader::getLabelAsUInt), not by the label text.
+  // Labeled maps of one file without a channel_id all fall back to channel 1, whatever their labels say.
+  ConsensusMap no_channel_ids = consensusMapForMzTabExport({"same.mzML", "same.mzML"}, {"same.mzML"});
+  no_channel_ids.setExperimentType("labeled_MS1");
+  no_channel_ids.getColumnHeaders()[0].label = "light";
+  no_channel_ids.getColumnHeaders()[1].label = "heavy";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    MzTab::exportConsensusMapToMzTab(no_channel_ids, "test.consensusXML", false, true, false, false),
+    "Cannot export to mzTab: maps 0, 1 of the consensus map have the same MS file 'same.mzML' and channel 1, "
+    "so they cannot be told apart and would be merged into one assay. Each map needs its own MS file name "
+    "(the 'name' of the <map> element in consensusXML), or, for labeled data, its own 'channel_id'. The file name "
+    "is taken from the primary MS run path of the input feature map, so make sure the feature maps reference "
+    "their mzML files before linking.")
+
+  // Maps of one file with the same label text but different channel_ids are different assays.
+  ConsensusMap channel_ids = consensusMapForMzTabExport({"same.mzML", "same.mzML"}, {"same.mzML"});
+  channel_ids.setExperimentType("labeled_MS1");
+  channel_ids.getColumnHeaders()[0].setMetaValue("channel_id", 0);
+  channel_ids.getColumnHeaders()[1].setMetaValue("channel_id", 1);
+  MzTab labeled = MzTab::exportConsensusMapToMzTab(channel_ids, "test.consensusXML", false, true, false, false);
+  TEST_EQUAL(labeled.getMetaData().assay.size(), 2)
 }
 END_SECTION
 
@@ -405,6 +428,19 @@ START_SECTION([EXTRA] consensus-map export names the ID run that has no primary 
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,
     MzTab::exportConsensusMapToMzTab(no_run_path, "test.consensusXML", false, true, false, false),
     "PSM scan=1 belongs to identification run 'run_0', which has no primary MS run path ('spectra_data'), "
+    "so it cannot be assigned to an MS file of the consensus map. Annotate the identification runs with "
+    "their mzML files before mapping and linking.")
+
+  // A run without a path after an annotated one: its placeholder index equals the first file's ms_run,
+  // so the PSM must not be credited to that file.
+  ConsensusMap second_run_no_path = consensusMapForMzTabExport({"a.mzML", "b.mzML"}, {"a.mzML", "b.mzML"});
+  ProteinIdentification unannotated_run;
+  unannotated_run.setIdentifier("run_1");
+  second_run_no_path.getProteinIdentifications().push_back(unannotated_run);
+  second_run_no_path[0].getPeptideIdentifications()[0].setIdentifier("run_1");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,
+    MzTab::exportConsensusMapToMzTab(second_run_no_path, "test.consensusXML", false, true, false, false),
+    "PSM scan=1 belongs to identification run 'run_1', which has no primary MS run path ('spectra_data'), "
     "so it cannot be assigned to an MS file of the consensus map. Annotate the identification runs with "
     "their mzML files before mapping and linking.")
 }
