@@ -876,8 +876,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * from only the peptides in the precursor mass range of its spectra, restricted to those its spectra can reach (see
      * FragmentIndex::build(fasta_entries, searched_spectra, bounded_generation)); the slice's spectra are scored against
      * it, and it is released. Each spectrum is scored once, against the candidates the full index would give it, so the
-     * result is that of one full index (up to the order of equally heavy peptidoforms of one protein, see there), while
-     * the index takes about 1/slices of the memory.
+     * result is that of one full index, while the index takes about 1/slices of the memory.
      *
      * @param[in] files The preprocessed spectra of each file
      * @param[in] query_files Per file, the candidate-retrieval spectra aligned with @p files (or nullptr)

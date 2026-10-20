@@ -3463,13 +3463,14 @@ END_SECTION
 
 START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
 {
-  // Peptides with equal (precursor_mz_, protein_idx) differ in mod_bitmask_ / sequence_, and the order std::sort
-  // happens to give them defines the peptide indices and, through tie-breaking, the search results. sortPeptides_()
-  // must therefore return the very permutation std::sort returns - for every number of threads and every task size.
+  // The order defines the peptide indices and, through tie-breaking, the search results. sortPeptides_() sorts by
+  // (precursor_mz_, protein_idx, sequence_, mod_bitmask_), a total order, and must return the permutation std::sort
+  // returns with it - for every number of threads and every task size.
   using Peptide = FragmentIndex::Peptide;
   const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
   {
-    return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+    return std::tie(a.precursor_mz_, a.protein_idx, a.sequence_.first, a.sequence_.second, a.mod_bitmask_)
+         < std::tie(b.precursor_mz_, b.protein_idx, b.sequence_.first, b.sequence_.second, b.mod_bitmask_);
   };
 
   // M. D. McIlroy, "A Killer Adversary for Quicksort" (1999): answers the comparisons of std::sort such that its
@@ -3519,9 +3520,9 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
         case 8: mz = static_cast<float>(killer[i]); break;                                // heap sort fallback
         default: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;      // heap sort fallback, ties
       }
-      // mod_bitmask_ and sequence_ are not part of the sort key: they tell equal peptides apart
-      peptides.emplace_back(protein, static_cast<uint32_t>(i),
-                            std::make_pair(static_cast<uint16_t>(i & 0xFFFF), static_cast<uint16_t>(i >> 16)), mz);
+      // few values of sequence_ and mod_bitmask_, so that every key level has ties (and some peptides are equal)
+      peptides.emplace_back(protein, static_cast<uint32_t>(rng() % 3),
+                            std::make_pair(static_cast<uint16_t>(rng() % 3), static_cast<uint16_t>(rng() % 2)), mz);
     }
     return peptides;
   };

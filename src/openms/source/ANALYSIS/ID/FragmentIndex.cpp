@@ -1013,9 +1013,13 @@ namespace OpenMS
 
   void FragmentIndex::sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size)
   {
+    // A total order (as the peptide-mass path ranks its hits, see trimHits): the peptide indices, and through the
+    // tie-breaking of hits the search results, then do not depend on the sort algorithm or on which other peptides
+    // are in the index (e.g. one slice of database:mass_slices).
     const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
     {
-      return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+      return std::tie(a.precursor_mz_, a.protein_idx, a.sequence_.first, a.sequence_.second, a.mod_bitmask_)
+           < std::tie(b.precursor_mz_, b.protein_idx, b.sequence_.first, b.sequence_.second, b.mod_bitmask_);
     };
 #if defined(__GLIBCXX__) && defined(_OPENMP)
     // Relies on libstdc++'s std::sort algorithm (see introsortLoopLikeStdSort); FragmentIndex_test compares the two.
@@ -3602,10 +3606,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     // Cap the candidate set at `max_processed_hits_`, ranked by the number of matched fragments (same policy as
     // the fragment-index path via queryPeaks→trimHits). trimHits() breaks ties by the index of the peptide, which in peptide-mass mode
-    // hits is that of the mother. Order them by precursor m/z and protein instead, as sortPeptides_() orders the
-    // peptides of the fragment index, then by start, length and modification subset. sortPeptides_() leaves the
-    // order within a protein to the sort algorithm, so a cut through equally ranked candidates of one protein (e.g.
-    // site isomers) can keep other candidates than the fragment index.
+    // hits is that of the mother. Order them by precursor m/z, protein, start, length and modification subset
+    // instead, as sortPeptides_() orders the peptides of the fragment index (there by mod_bitmask_).
     if (first_hit > 0)
     {
       trimHits(sms); // hits of earlier queries: no keys for them

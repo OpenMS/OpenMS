@@ -291,8 +291,8 @@ namespace OpenMS
      * the peptides with a precursor mass between the lowest and the highest bound of the spectra's precursor windows are
      * generated at all (the variable modifications of a peptide are not enumerated if none of its peptidoforms can lie in
      * that range). Peak memory and time then follow that range instead of the whole database, for a search of the spectra in
-     * slices by precursor mass. The kept peptides are those of the unbounded build, sorted in the same way; among peptides
-     * with equal precursor mass and protein (e.g. positional isomers) the unstable sort can arrange them differently. If
+     * slices by precursor mass. The kept peptides are those of the unbounded build, in the same order (sortPeptides_()
+     * sorts by precursor mass, protein, start, length and variable modifications, a total order). If
      * peptide:deduplicate has to compare peptidoforms by string (see peptidoformRendering_()), all peptides are generated.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
