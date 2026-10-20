@@ -5336,8 +5336,9 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
 
     # MS1LabeledWorkflow with Bruker .d input: smoke test of loading, summing MS1 over ion mobility and
     # quantification. The HeLa run is unlabeled, so the light channels are found as partial multiplets
-    # (algorithm:knock_out, the default) and identified by the unmodified peptides.
-    add_test("TOPP_MS1LabeledWorkflow_DDA_PASEF" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+    # (algorithm:knock_out, the default) and identified by the unmodified peptides. The search has no label
+    # modifications, so -force is needed to get past the check for them.
+    add_test("TOPP_MS1LabeledWorkflow_DDA_PASEF" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test -force
       -in ${OPENTIMS_DDA_SYMLINK}
       -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
       -labels "[][Lys8,Arg10]"
