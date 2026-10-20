@@ -102,9 +102,8 @@ using namespace std;
   peptidoform or charge (a chimeric spectrum, or search engines that disagree), the spectrum is
   credited to the best-scoring identification that survives filtering, judged by the scores in the
   input; the others are moved to the unassigned peptide identifications. Both cases are reported. One
-  identification per spectrum is still expected: results from several search engines should be
-  combined - with @ref TOPP_ConsensusID (@p -algorithm best @p -keep_old_scores, which preserves
-  each engine's score) - rather than simply concatenated.
+  identification per spectrum is still expected: pass the results of one search engine rather than
+  concatenating those of several, whose scores are not comparable.
 
   At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
@@ -221,8 +220,8 @@ protected:
       "One identification per spectrum is expected. Of several identifications of one spectrum\n"
       "agreeing on peptidoform and charge, only the best-scoring one is kept. Each spectrum is\n"
       "quantified once: if its identifications differ in peptidoform or charge, it is credited to\n"
-      "the best-scoring one that survives filtering, and the others become unassigned. Combine\n"
-      "results from several search engines with ConsensusID rather than concatenating them.");
+      "the best-scoring one that survives filtering, and the others become unassigned. Pass the\n"
+      "results of one search engine rather than concatenating those of several.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
@@ -505,13 +504,14 @@ protected:
   }
 
   /**
-   * @brief Orders the identifications of one spectrum best first, by the score of their top hit.
+   * @brief Orders the identifications of one spectrum best first, by the score of their best target hit.
    *
-   * Identifications without hits go last; equal scores keep the input order. If the identifications
-   * with hits differ in score type or orientation, their scores are not comparable and the order is
-   * left unchanged.
+   * The FDR removes decoy hits, so an identification whose top hit is a decoy can only be credited
+   * with a target hit below it, and is ranked by that one. Identifications without target hits go
+   * last; equal scores keep the input order. If the identifications with hits differ in score type or
+   * orientation, their scores are not comparable and the order is left unchanged.
    *
-   * @param[in,out] peps the identifications of one spectrum
+   * @param[in,out] peps the identifications of one spectrum, each with its hits sorted best first
    * @return false if the scores were not comparable
    */
   static bool sortBestFirst_(PeptideIdentificationList& peps)
@@ -529,16 +529,22 @@ protected:
     }
     if (reference == nullptr) { return true; }
 
-    const bool higher_better = reference->isHigherScoreBetter();
-    std::stable_sort(peps.begin(), peps.end(), [higher_better](const PeptideIdentification& left, const PeptideIdentification& right)
+    const auto best_target = [](const PeptideIdentification& pep) -> const PeptideHit*
     {
-      if (left.getHits().empty() || right.getHits().empty())
+      const auto& hits = pep.getHits();
+      const auto it = std::find_if(hits.begin(), hits.end(), [](const PeptideHit& hit) { return !hit.isDecoy(); });
+      return it == hits.end() ? nullptr : &*it;
+    };
+    const bool higher_better = reference->isHigherScoreBetter();
+    std::stable_sort(peps.begin(), peps.end(), [&best_target, higher_better](const PeptideIdentification& left, const PeptideIdentification& right)
+    {
+      const PeptideHit* left_hit = best_target(left);
+      const PeptideHit* right_hit = best_target(right);
+      if (left_hit == nullptr || right_hit == nullptr)
       {
-        return !left.getHits().empty() && right.getHits().empty();
+        return left_hit != nullptr && right_hit == nullptr;
       }
-      const double left_score = left.getHits()[0].getScore();
-      const double right_score = right.getHits()[0].getScore();
-      return higher_better ? left_score > right_score : left_score < right_score;
+      return higher_better ? left_hit->getScore() > right_hit->getScore() : left_hit->getScore() < right_hit->getScore();
     });
     return true;
   }
@@ -546,14 +552,20 @@ protected:
   /**
    * @brief Credits each consensus feature to its first identification with a hit.
    *
-   * The identifications of a feature are sorted best first by their input scores (see sortBestFirst_),
-   * and filtering only removes hits, so the first one with a hit is the best-scoring survivor. Reporter
-   * intensities can only be attributed to one peptidoform at one charge: identifications that agree
-   * with it on both are kept, the others and those without hits are moved to the unassigned peptide
-   * identifications. A feature without any hit is left unchanged.
+   * The identifications of a feature are sorted best first by the input score of their best target
+   * hit (see sortBestFirst_). The FDR removes the decoy hits and filtering only removes hits, so the
+   * first identification with a hit is the best-scoring survivor and is credited with that hit.
+   * Reporter intensities can only be attributed to one peptidoform at one charge: identifications that
+   * agree with it on both are kept, the others and those without hits are moved to the unassigned
+   * peptide identifications. A feature without any hit is left unchanged.
    *
    * Scores after filtering are not compared: q-values tie heavily, and a peptide-level q-value rates
-   * the peptide's best match in any spectrum, not its match to this one.
+   * the peptide's best match in any spectrum, not its match to this one. Identifications keep more
+   * than one hit only with Bayesian inference keeping several PSMs per spectrum and a PSM-level FDR
+   * (the peptide-level FDR keeps each identification's best hit only). There, a filter that removes
+   * an identification's best target hit but keeps a worse one (removing the hits of filtered proteins
+   * with -delete_unreferenced_peptide_hits, or of shared peptides with strictly_unique_peptides) can
+   * leave that worse hit ahead of a better one of another identification.
    *
    * @param[in,out] cmap the consensus map
    * @return the number of features whose identifications differed in peptidoform or charge
@@ -775,8 +787,8 @@ protected:
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
 
-      // The reduction below and the crediting rank identifications by their first hit, which the
-      // input need not store first (protein inference sorts the hits only later).
+      // The reduction below ranks identifications by their best hit and the crediting by their best
+      // target hit, which the input need not store first (protein inference sorts the hits only later).
       for (auto& pep : pep_ids) { pep.sort(); }
 
       // Identifications of one spectrum that agree on peptidoform and charge are one match counted
@@ -790,8 +802,8 @@ protected:
                              " identification, e.g. " << report.example << ".\n"
                              "Kept the best-scoring one of each group; the others would have"
                              " counted the same match more than once. To control"
-                             " this upstream, combine search engine results with ConsensusID"
-                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                             " this upstream, pass the results of one search engine rather than"
+                             " concatenating those of several."
                           << endl;
         }
         if (report.inconsistent_score_direction > 0)
@@ -823,8 +835,9 @@ protected:
 
       // Quantify each spectrum once: all of its identifications read the same MS2/MS3 scan, so one
       // ConsensusFeature carries all of them. Spectra keep the order in which they first appear.
-      // Within a spectrum, the identifications are sorted best first by their input scores, which
-      // rate each one by its own match to the spectrum; creditBestPeptidoform_ relies on this order.
+      // Within a spectrum, the identifications are sorted best first by the input score of their best
+      // target hit, which rates each one by its own match to the spectrum; creditBestPeptidoform_
+      // relies on this order.
       std::vector<PeptideIdentificationList> ids_per_spectrum;
       std::vector<std::string> spectrum_refs;
       // Identifications that cannot be quantified are kept as unassigned ones. Shared across the
