@@ -130,26 +130,6 @@ namespace OpenMS
                   std::vector<ProteinIdentification>& protein_ids,
                   PeptideIdentificationList& peptide_ids);
 
-    /**
-      @brief Selects the normalised collision energy of each run as annotate() does, without adding features.
-
-      Runs the NCE selection of annotate() -- per run, on the same confident PSMs, or @p nce when that is set -- and
-      records the result as the meta value NCE_META_VALUE on the runs, exactly as annotate() would, so that
-      predictions made afterwards use the energy annotate() would have used. Nothing else is predicted (no retention
-      times) and @p peptide_ids are not changed, so 'rt_model' need not be set. For predictions of PSMs that were not
-      rescored with PeptDeep, e.g. the spectra that ProSE writes with -qpx_spectra.
-
-      @param[in] spectra As for annotate(): the instrument's collision energies.
-      @param[in,out] protein_ids As for annotate(), but only NCE_META_VALUE is set.
-      @param[in] peptide_ids PSMs to select the NCE on; they need peak annotations, as for annotate().
-
-      @throws Exception::FileNotFound if 'ms2_model' does not exist.
-      @throws Exception::MissingInformation if 'ms2_model' is not set, or no PSM carries peak annotations.
-    */
-    void selectNCE(const PeakMap& spectra,
-                   std::vector<ProteinIdentification>& protein_ids,
-                   const PeptideIdentificationList& peptide_ids);
-
     /// Normalised collision energy used for the run annotated last (after any scan).
     /// -1 if annotate() has not run, or returned before selecting one.
     double getUsedNCE() const;
@@ -180,27 +160,19 @@ namespace OpenMS
       bool calibration_candidate; ///< best hit of its spectrum and not a decoy
     };
 
-    /// annotate() (@p annotated: @p peptide_ids, which get the features) and selectNCE() (@p annotated: null)
-    void annotate_(const PeakMap& spectra,
-                   std::vector<ProteinIdentification>& protein_ids,
-                   const PeptideIdentificationList& peptide_ids,
-                   PeptideIdentificationList* annotated);
-
     /// Annotates the PSMs of a single identification run. Each run gets its own
     /// collision energy and its own retention-time calibration, since neither
     /// transfers across runs with different gradients or acquisition settings.
-    /// With @p annotated null (selectNCE()) it only selects the collision energy.
     void annotateRun_(const std::string& run_id,
                       const std::map<std::string, double>& collision_energies,
-                      const PeptideIdentificationList& peptide_ids,
-                      PeptideIdentificationList* annotated,
+                      PeptideIdentificationList& peptide_ids,
                       const std::vector<Row>& rows,
                       const std::vector<Size>& run_rows,
                       const std::vector<std::string>& uniq_seq,
                       const std::vector<float>& uniq_charge,
                       bool higher_score_better,
                       PeptDeepMS2Inference& ms2_inference,
-                      PeptDeepRTInference* rt_inference);
+                      PeptDeepRTInference& rt_inference);
 
     std::string ms2_model_;
     std::string rt_model_;
