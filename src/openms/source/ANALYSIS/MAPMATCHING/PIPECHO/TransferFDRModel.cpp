@@ -121,7 +121,7 @@ const TransferFDRModel::group_t& TransferFDRModel::run(double fdr_cutoff)
 
   bool pep_okay = false;
 
-  // SimpleSVM::setup/predict can throw (e.g. too few label classes).  Catch it
+  // Percolator::rescore can throw (e.g. degenerate training data).  Catch it
   // so we fall back to MBR scores instead of aborting the whole tool.
   try
   {
