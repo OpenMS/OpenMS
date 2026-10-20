@@ -77,6 +77,11 @@ OpenMS Library:
   - FIX: ConsensusMapMergerAlgorithm::mergeAllIDRuns throws Exception::MissingInformation for a ConsensusMap without
     protein identification runs instead of reading past the end of the run list, on which ProteomicsLFQ,
     ProteinInference, Epifany and MS1LabeledWorkflow segfaulted (e.g. ProteomicsLFQ on FAIMS data before #10001).
+  - FIX: ims::Weights (getWeight, operator[], back, getAlphabetMass, swap) and
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator (get_noise_even/odd/value) throw Exception::IndexOverflow or
+    IndexUnderflow for an invalid index or an m/z outside the estimated windows, instead of reading out of bounds in
+    release builds. SignalToNoiseEstimatorMedianRapid::estimateNoise throws Exception::InvalidParameter for empty
+    arrays or arrays of different length.
   - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
     (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
     optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
