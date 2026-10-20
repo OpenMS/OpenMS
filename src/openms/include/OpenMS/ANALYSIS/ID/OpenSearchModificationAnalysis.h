@@ -143,7 +143,20 @@ namespace OpenMS
 
     /**
      * @brief Map delta masses to known modifications and annotate peptides
-     * 
+     *
+     * A cluster of the histogram is named after the Unimod modification whose mass is nearest to the
+     * cluster mass, provided that it is within the mass tolerance (capped at 0.02 Da, see MAX_MOD_MAPPING_TOL_).
+     * Where candidates are about equally close, the cluster cannot be told apart and is named after all of them,
+     * joined with "//" in order of mass ("A//B"). Candidates are about equally close if their distances to the
+     * cluster mass differ by at most 0.0005 Da, the width of a delta mass histogram bin (MOD_MAPPING_AMBIGUITY_TOL_).
+     * A modification of the same mass further away is not named, even if it is within the tolerance:
+     * a cluster at +15.9949 Da is "Oxidation or Hydroxylation", and not "thiocarboxylic acid" (+15.9772 Da).
+     *
+     * Clusters without such a modification are explained by a modification that was found at a lower mass
+     * (the nearest one is used, also for the +1 Da isotope variant, "<name>+1Da"), by the nearest combination of two
+     * modifications ("A++B"), or are "Unknown". Each peptide hit is annotated (meta value "PTM") with the
+     * found modification that is nearest to its delta mass.
+     *
      * @param[in] delta_mass_histogram Histogram of delta masses
      * @param[in] charge_histogram Charge state counts for each delta mass
      * @param[in,out] peptide_ids List of peptide identifications to annotate (modified in-place)
@@ -204,6 +217,8 @@ namespace OpenMS
      *
      * Converts the raw delta mass histogram into a structured statistics table
      * with additional computed metrics like percentages and unique peptide counts.
+     * A delta mass is mapped to a known modification in the same way as in
+     * mapDeltaMassesToModifications(): to the nearest one within the tolerance, "A//B" if candidates are about equally close.
      *
      * @param histogram Delta mass histogram from analyzeDeltaMassPatterns()
      * @param charge_histogram Charge state counts per delta mass
@@ -274,6 +289,11 @@ namespace OpenMS
     /// Maximum tolerance (Da) for matching delta masses to known modification masses.
     /// Prevents overly broad matching when the precursor tolerance is large (e.g. open search).
     static constexpr double MAX_MOD_MAPPING_TOL_ = 0.02; // Da
+
+    /// Candidate modifications whose distances to a delta mass differ by at most this are not told apart and are reported
+    /// together ("A//B"). It is the width of a delta mass histogram bin (see analyzeDeltaMassPatterns()), the resolution
+    /// to which a cluster mass is known.
+    static constexpr double MOD_MAPPING_AMBIGUITY_TOL_ = 0.0005; // Da
 
     /// Delta masses within this threshold of zero are considered unmodified.
     static constexpr double DELTA_MASS_ZERO_THRESHOLD_ = 0.05; // Da
