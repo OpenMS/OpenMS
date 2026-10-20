@@ -16,8 +16,8 @@ is a behaviour change of the default path: wherever the candidate cut runs throu
 now be kept. `448ea1e0` (other session) moves four FragmentIndex_test sections into functions so that `main()` fits
 the 1 MB Windows stack (the test crashed there since `4522ade7`).
 
-Tests: no test reference changes. FragmentIndex_test, ProSEAlgorithm_test and all 57 TOPP_ProSE tests pass (64 ctest
-entries), and the outputs of all 23 ProSE TOPP test calls are byte-identical between `4522ade7` and `a3464870` (the
+Tests: no test reference changes. FragmentIndex_test, ProSEAlgorithm_test, all 59 TOPP_ProSE tests and the 3 ProSE
+INI/CTD tests pass (64 ctest entries), and the outputs of all 23 ProSE TOPP test calls are byte-identical between `4522ade7` and `a3464870` (the
 `FuzzyDiff` tolerance therefore hides nothing); the test data has no tie at the cut.
 
 **Slices are now byte-identical** (`results/v3_identity.txt`, `scripts/identity3.sh`; sha256 of every PIN and of every
