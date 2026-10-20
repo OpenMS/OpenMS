@@ -1019,6 +1019,55 @@ test("searchFiles file by file: the errors of provideFile and releaseFile", () =
   }
 });
 
+// A file that cannot be read ends the search with an exception inside the step of the file, and that step is not
+// reported as ended: a progress display takes the end of the last file's step for the pooling of the files, and would
+// name that as the stage of the error. With all files there, the search reads the next file in the background and
+// fails as the step of that file takes its spectra. File by file, the search of the file reads it in the background
+// as well, and whether the reader has failed by the time the step of the file looks at it (no step inside the file's
+// step yet) or later (inside "Building fragment index...") depends on the timing: searched several times.
+test("searchFiles: a file that cannot be read ends the search inside its step, which is not reported as ended", () => {
+  const good = new Uint8Array(fs.readFileSync(suitabilitySpectra));
+  const broken = new TextEncoder().encode('<?xml version="1.0"?><mzML><run><spectrumList count="2">not really');
+  const files = ["/unreadable/a.mzML", "/unreadable/b.mzML"];
+  const fileSteps = ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."];
+  const settings = (reports) => ({ parameters: { ...prose6, "rescore": false }, onProgress: (r) => reports.push(r) });
+  const checkReports = (reports, how) => {
+    const last = reports.at(-1);
+    assert.ok(reports.some((r) => r.event === "end" && r.label === fileSteps[0]), `${how}: the step of a.mzML ended`);
+    assert.ok(!reports.some((r) => r.event === "end" && r.label === fileSteps[1]), `${how}: the step of b.mzML is not reported as ended`);
+    assert.ok(!(last.event === "end" && fileSteps.includes(last.label)), `${how}: the last report is not the end of a file's step: ${JSON.stringify(last)}`);
+    assert.equal(last.file, 1, `${how}: the last report is one of b.mzML: ${JSON.stringify(last)}`);
+  };
+  OpenMS.FS.mkdir("/unreadable");
+  try {
+    // all files there
+    let reports = [];
+    OpenMS.FS.writeFile(files[0], good);
+    OpenMS.FS.writeFile(files[1], broken);
+    // (the message does not name the file: the progress has to)
+    assert.throws(() => searchFiles(OpenMS, files, {}, settings(reports)), /Parse Error/);
+    checkReports(reports, "all files there");
+    files.forEach((p) => OpenMS.FS.unlink(p));
+    // file by file
+    for (let run = 1; run <= 10; ++run) {
+      reports = [];
+      assert.throws(() => searchFiles(OpenMS, files, {
+        provideFile: (i, p) => OpenMS.FS.writeFile(p, [good, broken][i]),
+        releaseFile: (i, p) => OpenMS.FS.unlink(p),
+      }, settings(reports)), /Parse Error/);
+      checkReports(reports, `file by file, run ${run}`);
+    }
+    assert.deepEqual(OpenMS.FS.readdir("/unreadable").filter((f) => !f.startsWith(".")), []);
+    // the next search reports its steps from the outermost level again
+    reports = [];
+    withSpectraCopies(OpenMS, ["a.mzML"], (present) => using([searchFiles(OpenMS, present, {}, settings(reports))], () => {}));
+    assertProgressSteps(reports, ["Searching a.mzML (1 of 1)..."], [readingSpectra]);
+  } finally {
+    for (const f of OpenMS.FS.readdir("/unreadable").filter((f) => !f.startsWith("."))) OpenMS.FS.unlink(`/unreadable/${f}`);
+    OpenMS.FS.rmdir("/unreadable");
+  }
+});
+
 test("tables() is consistent with the result set", () => {
   // one file, rescored with Percolator; the decoys are kept (default)
   withSpectraCopies(OpenMS, ["a.mzML"], (files, dir) => {
@@ -2234,6 +2283,8 @@ test("annotatePeaks: options, empty and invalid input", () => {
   }
   assert.equal(OpenMS.annotatePeaks(none, none, peptide, 1, null).theoretical.length, 14, "charge 1: at least charge 1");
   assert.ok(OpenMS.annotatePeaks(none, none, peptide, 2, { maxCharge: 3 }).theoretical.some((t) => t.ion === "y5+++"));
+  assert.throws(() => OpenMS.annotatePeaks(none, none, peptide, 2, { maxCharge: 2.5 }),
+    /InvalidValue: the value '2.5' was used but is not valid; maxCharge has to be an integer/, "maxCharge, an integer option");
   assert.deepEqual([...new Set(OpenMS.annotatePeaks(none, none, peptide, 2, { ions: ["y", "a"] }).theoretical.map((t) => t.type))].sort(),
                    ["a", "y"]);
 

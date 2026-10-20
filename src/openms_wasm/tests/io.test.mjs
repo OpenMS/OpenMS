@@ -201,18 +201,21 @@ test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for b
   }
 });
 
-test("allocateFile and writeFileChunk: a file has to be smaller than 2 GiB", () => {
+test("allocateFile and writeFileChunk: a file has to be smaller than getMemoryInfo().maxFileSize", () => {
   // WasmFS' memory backend keeps a file in one std::vector: less than 2 GiB in wasm32, and a block close to that cannot
-  // be allocated. Sizes beyond the limit are rejected before any allocation, also where they exceed what a size_t of
-  // wasm32 holds (4 GiB).
-  const MiB = 1048576, limit = 2 ** 31 - 64 * MiB;
-  const tooLarge = /InvalidValue: the value '\d+' was used but is not valid; a file of the module's file system has to be smaller than 2 GiB \(at most 2080374784 bytes\): \/limit\.bin/;
+  // be allocated (at most 2 GiB - 64 MiB). In wasm64 a file may take what the memory can hold, 16 GiB, but 64 MiB. Sizes
+  // beyond the limit are rejected before any allocation, also where they exceed what a size_t of wasm32 holds (4 GiB).
+  const MiB = 1048576, GiB = 1024 * MiB;
+  const { heapMax, maxFileSize: limit } = OpenMS.getMemoryInfo();
+  assert.equal(limit, heapMax > 4 * GiB ? 16 * GiB - 64 * MiB : 2 * GiB - 64 * MiB);
+  const tooLarge = new RegExp("InvalidValue: the value '\\d+' was used but is not valid; a file of the module's file system has to be "
+    + `smaller than ${(limit + 64 * MiB) / GiB} GiB \\(at most ${limit} bytes\\): /limit\\.bin`);
   try {
-    for (const size of [limit + 1, 2 ** 31 - 1, 2 ** 31, 2 ** 32 + 5, 2 ** 40]) {
+    for (const size of [limit + 1, 2 ** 31 - 1, 2 ** 31, 2 ** 32 + 5, 2 ** 40].filter((size) => size > limit)) {
       assert.throws(() => OpenMS.allocateFile("/limit.bin", size), tooLarge, `allocateFile ${size}`);
     }
     const data = new Uint8Array(16);
-    for (const offset of [limit - 8, 2 ** 31, 2 ** 32, 2 ** 32 - 8]) {
+    for (const offset of [limit - 8, 2 ** 31, 2 ** 32, 2 ** 32 - 8, 2 ** 40].filter((offset) => offset + 16 > limit)) {
       assert.throws(() => OpenMS.writeFileChunk("/limit.bin", data, offset), tooLarge, `writeFileChunk at ${offset}`);
     }
     // up to the limit: a small file is fine
@@ -254,24 +257,40 @@ test("allocateFile with a capacity: files of increasing size, one at a time, kee
   m.FS.unlink("/slot.bin");
   // the capacity: at least the size, and smaller than 2 GiB
   assert.throws(() => m.allocateFile("/c.bin", 2 * MB, MB), /capacity has to be at least the size/);
-  assert.throws(() => m.allocateFile("/c.bin", MB, 2 ** 31), /smaller than 2 GiB/);
+  assert.throws(() => m.allocateFile("/c.bin", MB, m.getMemoryInfo().maxFileSize + 1), /has to be smaller than \d+ GiB/);
   assert.throws(() => m.allocateFile("/c.bin", MB, -1), /capacity has to be a non-negative integer/);
 });
 
-test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where the memory cannot hold their data", async () => {
+/// A reason to skip a test that touches @p bytes of host memory (and 4 GiB more for Node.js and the rest of the module),
+/// or false: wasm64 tests of the memory limit need a host with room for 16 GB. Both the host's memory and what is free
+/// of it now (os.freemem(): available memory, page cache included) count, so that a busy machine skips rather than swaps.
+function hostMemorySkip(bytes) {
+  const needed = bytes + 4 * 2 ** 30, GiB = 2 ** 30;
+  if (os.totalmem() < needed) return `needs ${Math.ceil(needed / GiB)} GiB of host memory (has ${Math.floor(os.totalmem() / GiB)} GiB)`;
+  if (os.freemem() < needed) return `needs ${Math.ceil(needed / GiB)} GiB of free host memory (${Math.floor(os.freemem() / GiB)} GiB free)`;
+  return false;
+}
+
+const { heapMax: moduleHeapMax, maxFileSize: moduleMaxFileSize } = OpenMS.getMemoryInfo();
+const memory64 = moduleHeapMax > 2 ** 32; // the wasm64 build
+
+test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where the memory cannot hold their data",
+     { skip: memory64 && hostMemorySkip(moduleHeapMax) }, async () => {
   // Emscripten's FS.writeFile/write/read took the 0 that malloc returns then for the address of their buffer, and
   // wrote over the start of the module's memory (wasmfs_fs.js). A module of its own: its memory grows to the limit.
   const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
   const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
   const MB = 1048576;
-  const { heapMax } = m.getMemoryInfo();
-  // files that take 3/4 of the memory: one of the largest size the memory file system takes (2 GiB - 64 MiB; one byte
-  // more is rejected) and one of 1 GiB; then data of 1/3 of the memory, which the memory has (it is larger), but not free
+  const { heapMax, maxFileSize } = m.getMemoryInfo();
+  // files that take 3/4 of the memory, then data of 1/3 of the memory, which the memory has (it is larger), but not free.
+  // wasm32 (4 GiB): a file of the largest size the memory file system takes (2 GiB - 64 MiB; one byte more is rejected)
+  // and one of 1 GiB. wasm64 (16 GiB): files of half the memory and 64 MiB, and of a quarter of it.
   const occupying = ["/max.bin", "/occupied.bin"];
-  m.allocateFile(occupying[0], 2 ** 31 - 64 * MB);
-  assert.equal(m.FS.stat(occupying[0]).size, 2 ** 31 - 64 * MB);
-  assert.throws(() => m.allocateFile(occupying[0], 2 ** 31 - 64 * MB + 1), /smaller than 2 GiB/);
-  m.allocateFile(occupying[1], 1024 * MB);
+  const sizes = memory64 ? [heapMax / 2 + 64 * MB, heapMax / 4] : [maxFileSize, 1024 * MB];
+  m.allocateFile(occupying[0], sizes[0]);
+  assert.equal(m.FS.stat(occupying[0]).size, sizes[0]);
+  if (sizes[0] === maxFileSize) assert.throws(() => m.allocateFile(occupying[0], maxFileSize + 1), /smaller than 2 GiB/);
+  m.allocateFile(occupying[1], sizes[1]);
   const tooLarge = Math.floor(heapMax / 3);
   const data = new Uint8Array(tooLarge); // (never written: its pages stay unallocated)
   const enomem = (e) => e?.name === "ErrnoError" && e.errno === 48;
@@ -282,9 +301,13 @@ test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where
   m.FS.close(stream);
   assert.throws(() => m.allocateFile("/z.bin", tooLarge), /OutOfMemory/, "allocateFile");
   assert.throws(() => m.writeFileChunk("/z.bin", data, 0), /OutOfMemory/, "writeFileChunk");
-  // growing a file of 1 GiB takes a block of 2 GiB (it grows by doubling), which the file system cannot take
-  assert.throws(() => m.writeFileChunk(occupying[1], data.subarray(0, 16), 1024 * MB),
-    /growing the file \/occupied\.bin of 1073741824 bytes takes a block of 2147483647 bytes.*allocate the file at its final size first/);
+  // growing a file of more than half the largest file takes a block of twice its size (it grows by doubling; wasm32: at
+  // most the 2^31 - 1 bytes of a std::vector), which the file system cannot take: in wasm32 the file of 1 GiB, in wasm64
+  // the one of half the memory
+  const [grown, grownSize] = memory64 ? [occupying[0], sizes[0]] : [occupying[1], sizes[1]];
+  const block = memory64 ? 2 * grownSize : 2 ** 31 - 1;
+  assert.throws(() => m.writeFileChunk(grown, data.subarray(0, 16), grownSize),
+    new RegExp(`growing the file ${grown.replace(".", "\\.")} of ${grownSize} bytes takes a block of ${block} bytes.*allocate the file at its final size first`));
   // FS.write() and FS.read() of a range beyond their buffer: EINVAL, before any allocation
   const einval = (e) => e?.name === "ErrnoError" && e.errno === 28;
   const small = m.FS.open("/small.bin", "w+");
@@ -304,6 +327,48 @@ test("FS.writeFile, FS.write, FS.read and the chunk functions fail cleanly where
   assert.equal(m.FS.stat("/y.bin").size, 0);
   assert.match(m.getVersion(), /^\d+\.\d+/);
   using([m.AASequence.fromString("PEPTIDEK")], (seq) => assertClose(assert, seq.getMonoWeight(m.ResidueType.Full, 0), 927.4549, 1e-3, "mono weight"));
+});
+
+test("a file of more than 4 GiB: allocateFile, writeFileChunk, readFileChunk (wasm64)",
+     { skip: (!memory64 && "the per-file limit of wasm32 is 2 GiB") || hostMemorySkip(5 * 2 ** 30) }, async () => {
+  // In wasm64 a file is one block of more than 4 GiB here (an allocator that takes such blocks: cmake/emscripten_malloc.cmake),
+  // read and written in chunks across 2 GiB and 4 GiB. A module of its own, for its memory.
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
+  const MiB = 1048576, size = 4.5 * 2 ** 30;
+  assert.ok(size <= moduleMaxFileSize);
+  m.allocateFile("/large.bin", size);
+  assert.equal(m.FS.stat("/large.bin").size, size);
+  const chunk = new Uint8Array(MiB).map((_, i) => (i * 7 + 3) & 255);
+  const offsets = [0, 2 ** 31 - MiB / 2, 2 ** 32 - MiB / 2, size - MiB];
+  for (const at of offsets) m.writeFileChunk("/large.bin", chunk, at);
+  for (const at of offsets) assert.deepEqual(m.readFileChunk("/large.bin", at, MiB), chunk, `chunk at ${at}`);
+  assert.deepEqual(m.readFileChunk("/large.bin", 2 ** 32 + MiB, 16), new Uint8Array(16), "zeros where nothing was written");
+  assert.equal(m.readFileChunk("/large.bin", size - 8, 16).length, 8, "a chunk past the end: what is there");
+  assert.equal(m.FS.stat("/large.bin").size, size);
+  m.FS.unlink("/large.bin");
+  assert.ok(m.getMemoryInfo().heapSize > size);
+});
+
+test("FS.write and FS.read of 2 GiB and more (wasm64)",
+     { skip: (!memory64 && "a wasm32 module cannot hold the buffers") || hostMemorySkip(10 * 2 ** 30) }, async () => {
+  // WasmFS returns the count of a read or write as int: wasmfs_fs.js transfers in parts (a read of 2.5 GiB failed with
+  // errno 1610612736 before). FS.write without position (_wasmfs_write), FS.read with one (_wasmfs_pread).
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
+  const size = 2.5 * 2 ** 30, marks = [0, 2 ** 30 + 7, 2 ** 31, size - 1];
+  const data = new Uint8Array(size);
+  for (const [k, at] of marks.entries()) data[at] = k + 1;
+  const stream = m.FS.open("/large.bin", "w+");
+  assert.equal(m.FS.write(stream, data, 0, size), size, "FS.write");
+  assert.equal(m.FS.stat("/large.bin").size, size);
+  const back = new Uint8Array(size);
+  assert.equal(m.FS.read(stream, back, 0, size, 0), size, "FS.read");
+  for (const [k, at] of marks.entries()) assert.equal(back[at], k + 1, `byte ${at}`);
+  assert.equal(back[12345], 0);
+  assert.equal(m.FS.read(stream, back, 0, size, size - 10), 10, "FS.read past the end: what is there");
+  m.FS.close(stream);
+  m.FS.unlink("/large.bin");
 });
 
 test("MzMLFile from the (mounted) file system", () => {
@@ -340,6 +405,13 @@ test("MzMLFile load options", () => {
     assert.deepEqual(file.getOptions().msLevels, [2]);
     file.load("/data/MzMLFile_1.mzML", exp);
     assert.deepEqual(exp.getMSLevels(), [2]);
+    // a list of integers holds integers within range (Embind would truncate them)
+    for (const bad of [1.5, NaN, 2 ** 31]) {
+      assert.throws(() => file.setOptions({ msLevels: [1, bad] }),
+        /InvalidValue: the value '.*' was used but is not valid; an element of a list of integers has to be an integer from -2147483648 to 2147483647/,
+        `msLevels [1, ${bad}]`);
+    }
+    assert.deepEqual(file.getOptions().msLevels, [2], "unchanged");
   });
 });
 

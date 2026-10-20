@@ -1,12 +1,16 @@
 # OpenMS for WebAssembly: builds the library and its JavaScript bindings with Emscripten,
-# single-threaded (CMake preset wasm32-emscripten-release, package @openms/openms-wasm) and
-# multi-threaded (preset wasm32-emscripten-mt-release, package @openms/openms-wasm-mt; see
-# src/openms_wasm/README.md), runs the tests of the bindings in Node.js and Chromium, and
-# assembles the npm package @openms/openms-wasm from both builds and the loader that picks one.
+# single-threaded (CMake preset wasm32-emscripten-release, package @openms/openms-wasm),
+# multi-threaded (preset wasm32-emscripten-mt-release, package @openms/openms-wasm-mt) and
+# multi-threaded with 64-bit memory (preset wasm64-emscripten-mt-release, package
+# @openms/openms-wasm64-mt; see src/openms_wasm/README.md), runs the tests of the bindings in
+# Node.js and Chromium, checks that the wasm32 and wasm64 builds declare the same API, and
+# assembles the npm package @openms/openms-wasm from the two wasm32 builds and the loader that
+# picks one.
 #
-# The dependencies are built by vcpkg for the wasm32-emscripten (wasm32-emscripten-mt)
-# triplet; the binary caches live on the rsync archive like the one of the native builds
-# (.github/actions/dependencies).
+# The dependencies are built by vcpkg for the wasm32-emscripten (wasm32-emscripten-mt,
+# wasm64-emscripten-mt) triplet; the binary caches live on the rsync archive like the one of
+# the native builds (.github/actions/dependencies). (Of the wasm64 tests, the one that fills the
+# 16 GB of a module needs more memory than a runner has: it is skipped, and says so.)
 #
 # Trigger: changes to the WebAssembly build in pull requests, the nightly branch, releases,
 # or manual dispatch.
@@ -25,11 +29,15 @@ on:
     paths:
       - ".github/workflows/wasm.yml"
       - "cmake/emscripten.cmake"
+      - "cmake/emscripten_malloc.cmake"
       - "src/openms_wasm/**"
+      - "src/openms_wasm/malloc/**"
       - "vcpkg-overlays/emscripten/**"
       - "vcpkg-overlays/triplets/wasm32-emscripten.cmake"
       - "vcpkg-overlays/triplets/wasm32-emscripten-mt.cmake"
+      - "vcpkg-overlays/triplets/wasm64-emscripten-mt.cmake"
       - "vcpkg-overlays/toolchains/wasm32-emscripten.cmake"
+      - "vcpkg-overlays/toolchains/wasm64-emscripten.cmake"
       - "vcpkg.json"
       - "CMakePresets.json"
 
@@ -51,11 +59,19 @@ jobs:
           - name: single-threaded
             preset: wasm32-emscripten-release
             triplet: wasm32-emscripten
+            toolchain: wasm32-emscripten
             artifact: openms-wasm
           - name: multi-threaded
             preset: wasm32-emscripten-mt-release
             triplet: wasm32-emscripten-mt
+            toolchain: wasm32-emscripten
             artifact: openms-wasm-mt
+          # 64-bit memory (Memory64): Node.js 24 of the Emscripten SDK, Chromium 133 or newer
+          - name: multi-threaded, wasm64
+            preset: wasm64-emscripten-mt-release
+            triplet: wasm64-emscripten-mt
+            toolchain: wasm64-emscripten
+            artifact: openms-wasm64-mt
 
     steps:
       - uses: actions/checkout@v6
@@ -93,7 +109,7 @@ jobs:
         with:
           name: vcpkg-cache
           path: ${{ github.workspace }}/.vcpkg-cache
-          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', format('vcpkg-overlays/triplets/{0}.cmake', matrix.variant.triplet), 'vcpkg-overlays/toolchains/wasm32-emscripten.cmake') }}
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', format('vcpkg-overlays/triplets/{0}.cmake', matrix.variant.triplet), format('vcpkg-overlays/toolchains/{0}.cmake', matrix.variant.toolchain)) }}
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
@@ -166,7 +182,33 @@ jobs:
           path: build/${{ matrix.variant.preset }}/openms-wasm
           if-no-files-found: error
 
-  # The npm package @openms/openms-wasm: both builds and the loader that picks one
+  # One JavaScript API: the TypeScript declarations of the threaded wasm32 and wasm64 builds
+  # (src/openms_wasm/tests/check_dts.mjs; each build's own test compares only with a build
+  # directory next to it).
+  declarations:
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openms-wasm-mt
+          path: builds/wasm32-mt
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openms-wasm64-mt
+          path: builds/wasm64-mt
+
+      - name: Compare the declarations
+        shell: bash
+        run: node src/openms_wasm/tests/check_dts.mjs builds/wasm64-mt/openms.d.ts builds/wasm32-mt/openms.d.ts
+
+  # The npm package @openms/openms-wasm: both wasm32 builds and the loader that picks one
   # (src/openms_wasm/assemble_package.cmake).
   package:
     needs: build-and-test

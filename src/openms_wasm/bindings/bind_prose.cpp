@@ -50,6 +50,7 @@
 #include <charconv>
 #include <cctype>
 #include <cmath>
+#include <exception>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -134,6 +135,9 @@ namespace OpenMS::WASM
     /// postMessage() its argument to the page.
     /// A search resets it before it starts (reset()): the steps of the algorithms are not ended
     /// when they throw, so a search that threw may have left steps open.
+    /// A step is not reported as ended while an exception leaves it (the guards that end a step
+    /// whichever way it is left, as that of each input file): after an error, the last report
+    /// carries the file of the step in which the search failed.
     class JSProgressLogger : public ProgressLogger::ProgressLoggerImpl
     {
     public:
@@ -220,7 +224,10 @@ namespace OpenMS::WASM
         const Step step = std::move(steps_.back());
         steps_.pop_back();
         if (!steps_.empty()) current_ = steps_.back().value;
-        if (step.hidden) return;
+        // A step that an exception leaves (ended by a guard, as the step of each input file is, whichever way it is
+        // left) did not end: not reported, so that the last report stays one of the step in which the search failed
+        // (the end of the last file's step would read as the pooling of the files).
+        if (step.hidden || std::uncaught_exceptions() > 0) return;
         report_("end", step, visibleSteps_(steps_.size()), step.end);
         if (step.last_file) file_ = -1; // after the search of the files
       }
@@ -1052,7 +1059,7 @@ namespace OpenMS::WASM
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unit has to be 'Da' or 'ppm'", unit);
       }
       result.unit = unit;
-      const int max_charge = isNullish(option("maxCharge")) ? std::max(1, precursor_charge - 1) : option("maxCharge").as<int>();
+      const int max_charge = isNullish(option("maxCharge")) ? std::max(1, precursor_charge - 1) : integerFromJS<int>(option("maxCharge").as<double>(), "maxCharge");
       std::vector<std::string> ions{"b", "y"};
       if (!isNullish(option("ions"))) ions = stringsFromJS(option("ions"));
       const bool losses = !isNullish(option("losses")) && option("losses").as<bool>();
