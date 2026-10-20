@@ -706,10 +706,19 @@ protected:
         }
         catch (const Exception::ParseError&)
         {
-          // This reader is the default on linux and mac, so name the way back to the external one
-          OPENMS_LOG_ERROR << "The in-process Thermo reader failed. It needs the .NET 8 runtime; if that is "
-                           << "missing, install it, or pass '-RawToMzML:reader external' to convert with "
-                           << "ThermoRawFileParser instead." << std::endl;
+          if (FileNameUtils::compressionType(in) != FileTypes::UNKNOWN)
+          {
+            // only the in-process reader reads archives, so there is no external reader to point to
+            OPENMS_LOG_ERROR << "The in-process Thermo reader failed. A '.raw.zip' must be a readable ZIP archive with "
+                             << "exactly one .raw file, and reading it needs the .NET 8 runtime." << std::endl;
+          }
+          else
+          {
+            // This reader is the default on linux and mac, so name the way back to the external one
+            OPENMS_LOG_ERROR << "The in-process Thermo reader failed. It needs the .NET 8 runtime; if that is "
+                             << "missing, install it, or pass '-RawToMzML:reader external' to convert with "
+                             << "ThermoRawFileParser instead." << std::endl;
+          }
           throw;
         }
         for (SourceFile& source_file : exp.getSourceFiles())
