@@ -184,11 +184,11 @@ for (const s of scenarios) {
   for (const p of problems) console.log(`       ${p}`);
 }
 
-// The ProSE application (not in the assembled package) with its service worker (examples/sw.js)
-// on the server without isolation headers: the worker has to serve the page, make it
-// cross-origin isolated (threads), and keep serving it on a second visit (the module from its store).
+// The demo application (examples/browser, not in the assembled package) with its service worker
+// (examples/sw.js) on the server without isolation headers: the worker has to serve the page, make
+// it cross-origin isolated (threads), and keep serving it on a second visit (the module from its store).
 let total = scenarios.length;
-if (fs.existsSync(path.join(packageDir, "examples/prose/index.html"))) {
+if (fs.existsSync(path.join(packageDir, "examples/browser/index.html"))) {
   ++total;
   const port = servers[false].address().port;
   const context = await browser.newContext();
@@ -198,7 +198,7 @@ if (fs.existsSync(path.join(packageDir, "examples/prose/index.html"))) {
     const page = await context.newPage();
     page.on("pageerror", (e) => problems.push(`visit ${visit}: page error: ${e.message}`));
     try {
-      await page.goto(`http://127.0.0.1:${port}/pkg/examples/prose/index.html`); // (the server serves files only)
+      await page.goto(`http://127.0.0.1:${port}/pkg/examples/browser/index.html`); // (the server serves files only)
       // (the page reloads itself once on the first visit: poll instead of waiting on one document)
       const deadline = Date.now() + 180000;
       let state = null;
@@ -209,7 +209,7 @@ if (fs.existsSync(path.join(packageDir, "examples/prose/index.html"))) {
             isolated: crossOriginIsolated,
             controlled: !!navigator.serviceWorker.controller,
           }));
-          if (/is ready|could not be loaded|failed/.test(state.status)) break;
+          if (/is ready|could not|failed/i.test(state.status)) break;
         } catch {
           // navigating
         }
@@ -218,8 +218,7 @@ if (fs.existsSync(path.join(packageDir, "examples/prose/index.html"))) {
       status = state?.status ?? "(no status)";
       if (!state?.controlled) problems.push(`visit ${visit}: the service worker does not serve the page`);
       if (!state?.isolated) problems.push(`visit ${visit}: the page is not cross-origin isolated`);
-      const expected = threadedBuild ? /: threaded build/ : /: single-threaded build/;
-      if (!expected.test(status)) problems.push(`visit ${visit}: ${status}`);
+      if (!/is ready/.test(status)) problems.push(`visit ${visit}: ${status}`);
     } catch (e) {
       problems.push(`visit ${visit}: ${e.message.split("\n")[0]}`);
     }
@@ -227,7 +226,7 @@ if (fs.existsSync(path.join(packageDir, "examples/prose/index.html"))) {
   }
   await context.close();
   failures += problems.length ? 1 : 0;
-  console.log(`${problems.length ? "FAIL" : "ok  "} ProSE application with its service worker, not isolated server: ${status}`);
+  console.log(`${problems.length ? "FAIL" : "ok  "} demo application with its service worker, not isolated server: ${status}`);
   for (const p of problems) console.log(`       ${p}`);
 }
 

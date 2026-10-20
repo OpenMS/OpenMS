@@ -249,12 +249,10 @@ peptide, charge, { tolerance, unit, ions, losses })` matches the ions of a pepti
 a spectrum as measured, for spectrum viewers. `getMemoryInfo().heapSize` after a search is its
 memory high-water mark (WebAssembly memory does not shrink).
 
-`examples/prose/` is a web application around it: settings generated from ProSE's parameters,
-progress, summary, score and mass-error distributions, delta masses of open searches, PSM and
-protein tables, and for each PSM the sequence with its fragment coverage, the annotated spectrum
-mirrored against the theoretical one and the fragment mass errors; idXML and TSV downloads. It
-runs OpenMS in a Web Worker with all cores on cross-origin isolated pages. `examples/node/prose.mjs`
-runs a search from the command line and reports time and memory.
+The ProSE app (<https://timosachsenberg.github.io/prose-web/>; source:
+<https://github.com/timosachsenberg/prose-web>, the application in `app/`) is a web application
+around it: see "Several files and the ProSE app" below. `examples/node/prose.mjs` runs a search
+from the command line and reports time and memory.
 
 Memory is the limit of a browser search: the module can address 4 GB, and a search that needs
 more stops the module (a WebAssembly trap; start a new one). Measured with Node.js (threaded
@@ -280,11 +278,12 @@ the spectra are serial.
 
 #### Several files and the ProSE app
 
-The ProSE app (a web application for experiments of several runs) is built on `searchFiles()` and
-the functions below. `searchFiles(files, database, options)` searches several mzML files against
-one FASTA file and pools the results as the ProSE tool's `-out_merged` does: the PSMs of all files,
-protein inference across the files and, with `FDR:protein` and decoys in the database, the
-picked-protein FDR. It returns a `ProSEResultSet`, which hands the results over as typed arrays:
+The ProSE app (<https://timosachsenberg.github.io/prose-web/>, a web application for experiments
+of several runs) is built on `searchFiles()` and the functions below.
+`searchFiles(files, database, options)` searches several mzML files against one FASTA file and
+pools the results as the ProSE tool's `-out_merged` does: the PSMs of all files, protein
+inference across the files and, with `FDR:protein` and decoys in the database, the picked-protein
+FDR. It returns a `ProSEResultSet`, which hands the results over as typed arrays:
 
 ```ts
 searchFiles(files: string[], database: string, options?: ProSEFilesOptions): ProSEResultSet;
@@ -637,11 +636,10 @@ for (const [parameter, name] of Object.entries(models)) {
 prose.setParameterValues(parameters);
 ```
 
-The ProSE web application offers this as an option next to Percolator and loads the models on
-first use (the service worker caches them); `examples/node/prose.mjs --peptdeep` mounts them. ONNX
-Runtime computes with WebAssembly SIMD on one pool of as many threads as OpenMP, shared by all
-sessions (ONNX Runtime's WebAssembly build uses global thread pools); `threads.js` starts their Web
-Workers with the module. The predictions are those of native OpenMS: the PeptDeep class tests,
+The ProSE app offers this as an option next to Percolator and loads the models on first use;
+`examples/node/prose.mjs --peptdeep` mounts them. ONNX Runtime computes with WebAssembly SIMD on
+one pool of as many threads as OpenMP, shared by all sessions (ONNX Runtime's WebAssembly build
+uses global thread pools); `threads.js` starts their Web Workers with the module. The predictions are those of native OpenMS: the PeptDeep class tests,
 compiled to WebAssembly, pass (largest difference from Python's ONNX Runtime: 1.2e-7 for retention
 times, 1.1e-6 for fragment intensities), and with the same NCE the five features of 896 PSMs differ
 from native ProSE's by at most 3.3e-7. Measured on the data of TOPP_ProSE_11_rescore (2,789 MS2
@@ -724,9 +722,9 @@ and the feature finding of FeatureFinderMetabo_3 (about 220 ms) took the same ti
   WebAssembly in tiers, and code that was optimized once comes back optimized. A search against
   the human proteome (16 threads) took 5.9 s on the first visit and 3.7 s on the next; natively
   2.4 s. With `Cache-Control: no-store`, every visit is the first.
-- Where the server does neither, a service worker can: the demo applications register
-  `examples/sw.js` (through `examples/sw-client.mjs`), which adds the isolation headers to the
-  page and to worker scripts, so threads work on static hosts such as GitHub Pages, and stores
+- Where the server does neither, a service worker can: the demo application (`examples/browser/`)
+  registers `examples/sw.js` (through `examples/sw-client.mjs`), which adds the isolation headers
+  to the page and to worker scripts, so threads work on static hosts such as GitHub Pages, and stores
   the module files in the Cache API, answering even the first request from the store, so that
   Chrome keeps the compiled code from the first visit on. On the first visit the page reloads
   once. The stores are named after the package version; a hard reload (Shift+Reload) bypasses

@@ -1,4 +1,4 @@
-// Registers the service worker of the demo applications (sw.js, see there) for the calling
+// Registers the service worker of the demo application (sw.js, see there) for the calling
 // page's directory. Call it before loading the module. Resolves to whether the worker serves
 // the page; the page reloads once when it needs the worker's isolation headers (threads).
 export async function registerServiceWorker() {

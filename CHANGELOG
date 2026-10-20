@@ -1032,9 +1032,9 @@ Build System:
   - WebAssembly: JavaScript bindings of the search engine ProSE (ProSEAlgorithm: search with
     statistics, modification analysis of open searches, progress reports, q-values, in-process
     Percolator rescoring) and of
-    spectrum annotation (annotateSpectrum, PeptideHit.getPeakAnnotations), and a web
-    application around ProSE (src/openms_wasm/examples/prose).
-  - WebAssembly: bindings for the ProSE app, a web application for experiments of several runs:
+    spectrum annotation (annotateSpectrum, PeptideHit.getPeakAnnotations).
+  - WebAssembly: bindings for the ProSE app (https://timosachsenberg.github.io/prose-web/), a web
+    application for experiments of several runs:
     ProSEAlgorithm.searchFiles() searches several files and pools the results as the ProSE tool's
     -out_merged does; its ProSEResultSet hands them over with summary(), tables() (PSMs, peptides
     and proteins as typed columns: Percolator's input features, ProForma with Unimod names, the
@@ -1058,14 +1058,14 @@ Build System:
     to be smaller than 2 GiB (InvalidValue).
   - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
     directly); Node.js mounts host directories with mountHostDirectory() (working around
-    emscripten#27825). The demo applications
-    register a service worker that caches the module (Chrome then keeps its compiled code) and
-    isolates the page for threads on servers without the COOP/COEP headers.
+    emscripten#27825). The demo application (examples/browser) registers a service worker that
+    caches the module (Chrome then keeps its compiled code) and isolates the page for threads on
+    servers without the COOP/COEP headers.
   - WebAssembly: ONNX Runtime in the threaded module (CMake preset wasm32-emscripten-mt-onnx-release,
     vcpkg overlay ports onnxruntime and onnx for WebAssembly): ProSE's PeptDeep rescoring features
-    (peptdeep:enable) in browsers and Node.js, hasONNXRuntime(), and a PeptDeep option in the ProSE
-    web application, which loads the models on first use. With WebAssembly threads, OpenMS creates
-    the ONNX Runtime environment with global thread pools, which ONNX Runtime's sessions use there.
+    (peptdeep:enable) in browsers and Node.js, and hasONNXRuntime(). With WebAssembly threads,
+    OpenMS creates the ONNX Runtime environment with global thread pools, which ONNX Runtime's
+    sessions use there.
   - ONNX: a model that exists but does not load reports ONNX Runtime's message (ParseError) instead
     of FileNotFound.
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and

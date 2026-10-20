@@ -1,14 +1,12 @@
-// Service worker of the demo applications (examples/browser, examples/prose): each registers it
-// with its own directory as scope (sw-client.mjs). It does two things a static web server
-// cannot:
+// Service worker of the demo application (examples/browser), which registers it through
+// sw-client.mjs. It does two things a static web server cannot:
 //
 //  1. Threads. The threaded module needs a cross-origin isolated page, i.e. the response headers
 //     Cross-Origin-Opener-Policy and Cross-Origin-Embedder-Policy on the page and on every
 //     worker script, which hosts like GitHub Pages do not send. The worker adds them to those
 //     responses (and to nothing else: see 2). On its first visit the page reloads once, so that
 //     the worker serves it (sw-client.mjs).
-//  2. Caching the module, and the models of a module with ONNX Runtime (models/*.onnx, fetched
-//     when first used). openms.wasm is 30 MB, and Chrome keeps its compiled code only for a
+//  2. Caching the module. openms.wasm is 30 MB, and Chrome keeps its compiled code only for a
 //     module it could cache. Module files are served from the Cache API: on the first request
 //     the worker stores the file and answers from the store at once, after which Chrome keeps the
 //     compiled code and the module starts and runs faster from the second visit on (a search
@@ -22,7 +20,7 @@
 
 const META_CACHE = "openms-meta";
 const APP_DIR = new URL("./", self.location.href).pathname;            // examples/
-const MODULE_FILE = /\/(openms\.(wasm|mjs|data)|index\.mjs|models\/[^/]+\.onnx)$/; // the module, the loader, its models
+const MODULE_FILE = /\/(openms\.(wasm|mjs|data)|index\.mjs)$/;              // the module, the loader
 
 async function versionFromNetwork() {
   try {
