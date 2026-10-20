@@ -1,0 +1,12 @@
+# bigbio/andes PR #172 (merged 2026-10-18, 541769e), A/B table "Base stage 1", copied from the PR description.
+# Six ProteoBench HF-X runs (HYE + 1:1 shuffled entrapment, ALL rule, entrapment factor 1.91); precursor columns:
+# precursors quantified in >= 3 runs / median |eps| / E. coli |eps| / CV (normalised), at transfer q 0.01 and 0.05.
+arm	entrap_transferred_rows_q0.01	entrap_transferred_rows_q0.05	precursors_q0.01	eps_q0.01	ecoli_q0.01	cv_q0.01	precursors_q0.05	eps_q0.05	ecoli_q0.05	cv_q0.05	wrong_peak_q0.01
+before_#167	48	537	54932	0.155	0.212	0.110	67035	0.164	0.317	0.124	1.02%
+main_(#167)	728	1199	67586	0.164	0.302	0.120	73203	0.177	0.471	0.134	1.79%
+identity_decoys_scored_only	86	1103	56022	0.152	0.209	0.106	72119	0.173	0.427	0.131	1.35%
+identity_decoys_trained	148	1044	63238	0.161	0.261	0.117	72044	0.173	0.429	0.131	1.63%
+donor_PSM_features	714	1205	67537	0.164	0.306	0.120	73176	0.177	0.462	0.134	1.79%
+donor_PSM_q<=0.001	125	229	64150	0.164	0.297	0.121	68197	0.174	0.439	0.133	1.83%
+identity_trained+donor_features	157	1048	63183	0.161	0.257	0.117	72059	0.173	0.427	0.131	1.63%
+PR172:identity_trained+donor_q<=0.001	88	222	62797	0.162	0.273	0.118	68017	0.173	0.431	0.132	1.73%

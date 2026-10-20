@@ -1,0 +1,18 @@
+pr hye q0.001 -PipEcho:donor_max_q 0.001 : 1429 s
+base hye base_off  : 2005 s
+pr hye pr_off  : 2008 s
+pr hye q0.001_fdr0.01 -PipEcho:donor_max_q 0.001 -PipEcho:fdr 0.01 : 1288 s
+pr hye q0.01 -PipEcho:donor_max_q 0.01 : 1582 s
+pr hye pr_off_fdr0.01 -PipEcho:fdr 0.01 : 2400 s
+pr entrap q0.001 -PipEcho:donor_max_q 0.001 : 793 s
+pr entrap q0.01 -PipEcho:donor_max_q 0.01 : 917 s
+base entrap base_off  : 1793 s
+pr entrap pr_off  : 1795 s
+pr entrap q0.001_fdr0.01 -PipEcho:donor_max_q 0.001 -PipEcho:fdr 0.01 : 1055 s
+pr entrap q0.001_noprotfdr -PipEcho:donor_max_q 0.001 -proteinFDR 1.0 : 860 s
+pr entrap q0.005 -PipEcho:donor_max_q 0.005 : 1358 s
+pr entrap pr_off_fdr0.01 -PipEcho:fdr 0.01 : 2053 s
+pr entrap pr_off_noprotfdr -proteinFDR 1.0 : 1861 s
+pr entrap q0.001 -PipEcho:donor_max_q 0.001 : 1 s
+pr entrap q0.01 -PipEcho:donor_max_q 0.01 : 1 s
+pr entrap pr_off  : 1 s

@@ -1,0 +1,36 @@
+file	class	q_value	accepted_psms	entrapment_psms	psm_fdp	accepted_peptides	entrapment_peptides	peptide_fdp	te_ratio
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01.idXML	all	0.001	37082	57	0.003006	26407	52	0.003851	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01.idXML	all	0.005	44633	234	0.01025	31539	216	0.01339	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01.idXML	all	0.01	47924	395	0.01612	33792	365	0.02112	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01.idXML	all	0.05	56474	1815	0.06285	40073	1688	0.08237	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01.idXML	all	0.1	61276	3650	0.1165	44218	3438	0.152	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02.idXML	all	0.001	38780	67	0.003379	27014	62	0.004488	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02.idXML	all	0.005	46129	209	0.00886	31877	192	0.01178	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02.idXML	all	0.01	49822	409	0.01605	34433	380	0.02158	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02.idXML	all	0.05	58266	1883	0.0632	40586	1753	0.08447	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02.idXML	all	0.1	62917	3657	0.1137	44571	3430	0.1505	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03.idXML	all	0.001	42097	56	0.002601	28638	51	0.003483	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03.idXML	all	0.005	49889	208	0.008153	33663	195	0.01133	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03.idXML	all	0.01	53458	417	0.01525	36053	389	0.0211	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03.idXML	all	0.05	61866	1983	0.06268	42130	1865	0.08657	0.9556
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03.idXML	all	0.1	66809	4021	0.1177	46386	3793	0.1599	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01.idXML	all	0.001	38037	59	0.003033	26659	55	0.004035	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01.idXML	all	0.005	45677	222	0.009504	31898	209	0.01281	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01.idXML	all	0.01	49236	408	0.01621	34302	386	0.02201	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01.idXML	all	0.05	57535	1856	0.06308	40441	1751	0.08467	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01.idXML	all	0.1	62225	3638	0.1143	44464	3436	0.1511	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02.idXML	all	0.001	39203	78	0.003891	27093	73	0.005269	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02.idXML	all	0.005	46041	235	0.009981	31633	214	0.01323	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02.idXML	all	0.01	49150	392	0.0156	33701	362	0.02101	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02.idXML	all	0.05	57673	1841	0.06242	39803	1713	0.08416	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02.idXML	all	0.1	62580	3730	0.1166	43897	3499	0.1559	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03.idXML	all	0.001	41891	56	0.002614	28608	49	0.00335	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03.idXML	all	0.005	49378	211	0.008356	33459	196	0.01146	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03.idXML	all	0.01	53304	421	0.01545	36033	396	0.02149	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03.idXML	all	0.05	62035	1948	0.06141	42300	1818	0.08405	0.9556
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03.idXML	all	0.1	66998	3937	0.1149	46539	3713	0.156	0.9556
+all files	all	0.001	237090	373	0.003077	45734	214	0.009151	0.9556
+all files	all	0.005	281747	1319	0.009155	53438	745	0.02726	0.9556
+all files	all	0.01	302894	2442	0.01577	57538	1418	0.04819	0.9556
+all files	all	0.05	353849	11326	0.06259	72983	7137	0.1912	0.9556
+all files	all	0.1	382805	22633	0.1156	88410	14819	0.3278	0.9556
