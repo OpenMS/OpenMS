@@ -1013,9 +1013,13 @@ namespace OpenMS
 
   void FragmentIndex::sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size)
   {
+    // A total order (as the peptide-mass path ranks its hits, see trimHits): the peptide indices, and through the
+    // tie-breaking of hits the search results, then do not depend on the sort algorithm or on which other peptides
+    // are in the index (e.g. one slice of database:mass_slices).
     const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
     {
-      return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+      return std::tie(a.precursor_mz_, a.protein_idx, a.sequence_.first, a.sequence_.second, a.mod_bitmask_)
+           < std::tie(b.precursor_mz_, b.protein_idx, b.sequence_.first, b.sequence_.second, b.mod_bitmask_);
     };
 #if defined(__GLIBCXX__) && defined(_OPENMP)
     // Relies on libstdc++'s std::sort algorithm (see introsortLoopLikeStdSort); FragmentIndex_test compares the two.
@@ -1335,6 +1339,18 @@ namespace OpenMS
       for (int t = 0; t < num_threads; ++t)
         thread_peptides[t].reserve(est_per_thread);
 
+      // build(..., bounded_generation) narrows the range to the precursor windows of the searched spectra
+      const bool bounded = generation_min_mz_ > peptide_min_mass_ || generation_max_mz_ < peptide_max_mass_;
+      const auto in_mass_range = [this](float mz)
+      {
+        return peptide_min_mass_ <= mz && mz <= peptide_max_mass_ && generation_min_mz_ <= mz && mz <= generation_max_mz_;
+      };
+      if (bounded)
+      {
+        OPENMS_LOG_INFO << "Only peptides with precursor mass (M+H) " << std::max(generation_min_mz_, peptide_min_mass_)
+                        << " to " << std::min(generation_max_mz_, peptide_max_mass_) << " Da." << std::endl;
+      }
+
       const std::array<bool, 256>& indexable = indexableResidues();
       const auto is_unindexable = [&indexable](char c) { return !indexable[static_cast<unsigned char>(c)]; };
 
@@ -1422,11 +1438,34 @@ namespace OpenMS
               capped_peptides++;
             }
 
+            if (bounded && n_slots > 0)
+            {
+              // None of the peptidoforms can reach the mass range: the variable modifications add at most the
+              // max_variable_mods_per_peptide_ largest deltas and take at most the as many most negative ones (the
+              // margin covers the float rounding of the masses compared in in_mass_range())
+              double deltas[MAX_MOD_SLOTS];
+              for (size_t s = 0; s < n_slots; ++s) deltas[s] = slots[s].delta_mass;
+              std::sort(deltas, deltas + n_slots);
+              const size_t k = std::min(n_slots, max_variable_mods_per_peptide_);
+              double most_negative = 0, most_positive = 0;
+              for (size_t s = 0; s < k; ++s)
+              {
+                most_negative += std::min(deltas[s], 0.0);
+                most_positive += std::max(deltas[n_slots - 1 - s], 0.0);
+              }
+              const double margin = 0.01;
+              if (base_mass + most_positive < std::max<double>(generation_min_mz_, peptide_min_mass_) - margin
+                  || base_mass + most_negative > std::min<double>(generation_max_mz_, peptide_max_mass_) + margin)
+              {
+                continue;
+              }
+            }
+
             if (n_slots == 0)
             {
               // No variable mod sites on this peptide — just the fixed-mod version
               float mz = static_cast<float>(base_mass);
-              if (peptide_min_mass_ <= mz && mz <= peptide_max_mass_)
+              if (in_mass_range(mz))
               {
                 thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), uint32_t(0),
                   std::make_pair(static_cast<uint16_t>(digested_peptide.first),
@@ -1482,7 +1521,7 @@ namespace OpenMS
                 }
 
                 float mz = static_cast<float>(variant_mass);
-                if (peptide_min_mass_ <= mz && mz <= peptide_max_mass_)
+                if (in_mass_range(mz))
                 {
                   thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), bitmask,
                     std::make_pair(static_cast<uint16_t>(digested_peptide.first),
@@ -1495,7 +1534,7 @@ namespace OpenMS
           {
             // Fixed mods only — no variable mods to enumerate
             float mz = static_cast<float>(base_mass);
-            if (peptide_min_mass_ <= mz && mz <= peptide_max_mass_)
+            if (in_mass_range(mz))
             {
               thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), uint32_t(0),
                 std::make_pair(static_cast<uint16_t>(digested_peptide.first),
@@ -1506,7 +1545,7 @@ namespace OpenMS
           {
             // No modifications at all
             float unmodified_mz = static_cast<float>(base_mass);
-            if (peptide_min_mass_ <= unmodified_mz && unmodified_mz <= peptide_max_mass_)
+            if (in_mass_range(unmodified_mz))
             {
               thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), uint32_t(0),
                 std::make_pair(static_cast<uint16_t>(digested_peptide.first),
@@ -1824,8 +1863,36 @@ namespace OpenMS
     build(fasta_entries, {});
   }
 
+  std::vector<Size> FragmentIndex::countPeptidesByMass(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, double bin_width,
+                                                      Size proteins_per_block)
+  {
+    if (!(bin_width > 0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "countPeptidesByMass: bin_width must be > 0");
+    }
+    clear();
+    if (proteins_per_block == 0) proteins_per_block = std::max<Size>(fasta_entries.size(), 1);
+    std::vector<Size> counts;
+    for (Size start = 0; start < fasta_entries.size(); start += proteins_per_block)
+    {
+      const std::vector<FASTAFile::FASTAEntry> block(fasta_entries.begin() + start,
+                                                     fasta_entries.begin() + std::min(start + proteins_per_block, fasta_entries.size()));
+      generatePeptides(block);
+      for (const Peptide& peptide : fi_peptides_)
+      {
+        const Size bin = static_cast<Size>(std::max(0.0, static_cast<double>(peptide.precursor_mz_)) / bin_width);
+        if (bin >= counts.size()) counts.resize(bin + 1, 0);
+        ++counts[bin];
+      }
+      std::vector<Peptide>().swap(fi_peptides_);
+    }
+    clear();
+    return counts;
+  }
+
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-                            const std::function<const MSExperiment*(Size)>& searched_spectra)
+                            const std::function<const MSExperiment*(Size)>& searched_spectra,
+                            bool bounded_generation)
   {
       // A rebuild replaces the previous database. generatePeptides() appends, so stale
       // peptides would otherwise be kept and their coordinates interpreted against the
@@ -1849,6 +1916,30 @@ namespace OpenMS
         }
         protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
       }
+
+      // bounded_generation: only the peptides in the precursor mass range of the searched spectra
+      const bool restrict_to_spectra = searched_spectra && !is_peptide_mass_mode_ && !isOpenSearchMode_();
+      const MSExperiment* bounding_spectra = nullptr;
+      if (bounded_generation && restrict_to_spectra)
+      {
+        bounding_spectra = searched_spectra(0);
+        std::vector<std::pair<float, float>> windows;
+        if (bounding_spectra != nullptr && precursorWindows_(*bounding_spectra, windows) && !windows.empty())
+        {
+          generation_min_mz_ = windows.front().first;
+          generation_max_mz_ = windows.front().second;
+          for (const auto& window : windows) generation_max_mz_ = std::max(generation_max_mz_, window.second);
+        }
+      }
+      struct ResetGenerationRange
+      {
+        FragmentIndex& fi;
+        ~ResetGenerationRange()
+        {
+          fi.generation_min_mz_ = -std::numeric_limits<float>::infinity();
+          fi.generation_max_mz_ = std::numeric_limits<float>::infinity();
+        }
+      } reset_generation_range{*this};
 
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
@@ -1903,6 +1994,15 @@ namespace OpenMS
       const bool deduplicate_requested = deduplicate_ && !is_peptide_mass_mode_;
       const PeptidoformRendering_ rendering = deduplicate_requested ? peptidoformRendering_() : PeptidoformRendering_{};
       const bool deduplicate_by_string = deduplicate_requested && !rendering.runs_hold_peptidoforms;
+      if (deduplicate_by_string && std::isfinite(generation_min_mz_))
+      {
+        // The kept entry of a peptidoform is chosen among all of its entries, which may lie outside the mass range
+        OPENMS_LOG_INFO << "peptide:deduplicate compares peptidoforms by string: generating all peptides." << std::endl;
+        std::vector<Peptide>().swap(fi_peptides_);
+        generation_min_mz_ = -std::numeric_limits<float>::infinity();
+        generation_max_mz_ = std::numeric_limits<float>::infinity();
+        generatePeptides(fasta_entries);
+      }
       if (deduplicate_by_string)
       {
         const Size removed = deduplicateByString_(fasta_entries);
@@ -1913,9 +2013,10 @@ namespace OpenMS
       // After the deduplication by strings: equal renderings may have different precursor m/z there, so the kept
       // entry of a peptidoform has to be chosen among all of its entries, not only among those in a window. The
       // deduplication in runs of equal precursor m/z below keeps or drops a run as a whole and may follow.
-      if (searched_spectra && !is_peptide_mass_mode_ && !isOpenSearchMode_())
+      if (restrict_to_spectra)
       {
-        if (const MSExperiment* spectra = searched_spectra(fi_peptides_.size())) { keepPeptidesInPrecursorWindows_(*spectra); }
+        const MSExperiment* spectra = bounded_generation ? bounding_spectra : searched_spectra(fi_peptides_.size());
+        if (spectra != nullptr) { keepPeptidesInPrecursorWindows_(*spectra); }
       }
       const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
       const size_t num_peptides = fi_peptides_.size();
@@ -2608,13 +2709,13 @@ namespace OpenMS
              static_cast<float>(precursor_mass_tolerance_upper_)};
   }
 
-  void FragmentIndex::keepPeptidesInPrecursorWindows_(const MSExperiment& spectra)
+  bool FragmentIndex::precursorWindows_(const MSExperiment& spectra, std::vector<std::pair<float, float>>& windows) const
   {
     // The windows of querySpectrum(), with its charges and isotope errors and the float arithmetic of
     // searchDifferentPrecursorRanges() and getPeptidesInMassWindow(). The margin only covers a different
     // rounding of the same expressions (e.g. fused multiply-adds in one place only); it is far smaller
     // than a window.
-    std::vector<std::pair<float, float>> windows;
+    windows.clear();
     std::vector<uint16_t> charges;
     for (const MSSpectrum& spectrum : spectra)
     {
@@ -2637,14 +2738,21 @@ namespace OpenMS
           const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
           const float lo = shifted_mass + window.first - margin;
           const float hi = shifted_mass + window.second + margin;
-          // a NaN bound gives the query an arbitrary peptide range: keep them all
-          if (std::isnan(lo) || std::isnan(hi)) { return; }
+          // a NaN bound gives the query an arbitrary peptide range
+          if (std::isnan(lo) || std::isnan(hi)) { return false; }
           windows.emplace_back(lo, hi);
         }
       }
     }
-    if (windows.empty()) { return; } // nothing will be searched
     std::sort(windows.begin(), windows.end());
+    return true;
+  }
+
+  void FragmentIndex::keepPeptidesInPrecursorWindows_(const MSExperiment& spectra)
+  {
+    std::vector<std::pair<float, float>> windows;
+    if (!precursorWindows_(spectra, windows)) { return; } // keep them all
+    if (windows.empty()) { return; } // nothing will be searched
 
     // Moves the peptides of the merged windows to the front, in their order (the windows ascend).
     const size_t num_peptides = fi_peptides_.size();
@@ -3498,10 +3606,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     // Cap the candidate set at `max_processed_hits_`, ranked by the number of matched fragments (same policy as
     // the fragment-index path via queryPeaks→trimHits). trimHits() breaks ties by the index of the peptide, which in peptide-mass mode
-    // hits is that of the mother. Order them by precursor m/z and protein instead, as sortPeptides_() orders the
-    // peptides of the fragment index, then by start, length and modification subset. sortPeptides_() leaves the
-    // order within a protein to the sort algorithm, so a cut through equally ranked candidates of one protein (e.g.
-    // site isomers) can keep other candidates than the fragment index.
+    // hits is that of the mother. Order them by precursor m/z, protein, start, length and modification subset
+    // instead, as sortPeptides_() orders the peptides of the fragment index (there by mod_bitmask_).
     if (first_hit > 0)
     {
       trimHits(sms); // hits of earlier queries: no keys for them

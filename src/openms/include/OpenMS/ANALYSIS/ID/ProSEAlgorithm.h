@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>     // std::pair (renderRunSummaryJson manifest)
+#include <array>
 #include <vector>
 
 namespace OpenMS
@@ -125,6 +126,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool calibration_enabled = false;
       bool peptide_mass_mode = false;
       bool chunked = false;
+      Size mass_slices = 1;                    ///< database:mass_slices used (1 = none)
       std::string decoy_mode;                  ///< "generated" | "external" | "none (target-only)"
       double psm_fdr_threshold = 0.0, protein_fdr_threshold = 0.0;
       Size db_target_proteins = 0;             ///< target entries in the searched (augmented) db
@@ -1009,6 +1011,49 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// calibration, which may change the precursor windows after the index is built.
     bool restrictIndexToSpectra_() const { return !calibration_enabled_; }
 
+    /// Whether the spectra are searched in slices by precursor mass (database:mass_slices > 1): not with
+    /// database:chunk_size > 0, in open search mode, or in peptide-mass mode (low_memory with no enzyme
+    /// specificity), where an index cannot be restricted to the peptides a slice can reach.
+    bool massSlicing_() const;
+
+    /// Index builds of scoreMassSlices_()
+    struct MassSliceStats_
+    {
+      double seconds_index_build{0};
+      Size indexed_peptides{0};  ///< summed over the slices
+      Size indexed_fragments{0}; ///< summed over the slices
+      std::vector<double> seconds_scoring; ///< per file: scoring time, summed over the slices
+    };
+
+    /**
+     * @brief Score the spectra of one or more files in slices by precursor mass (database:mass_slices).
+     *
+     * The searchable spectra of all files are ordered by precursor mass and split into slices that span equal numbers of
+     * the database's peptides (FragmentIndex::countPeptidesByMass()). For each slice, a fragment index of @p db is built
+     * from only the peptides in the precursor mass range of its spectra, restricted to those its spectra can reach (see
+     * FragmentIndex::build(fasta_entries, searched_spectra, bounded_generation)); the slice's spectra are scored against
+     * it, and it is released. Each spectrum is scored once, against the candidates the full index would give it, so the
+     * result is that of one full index, while the index takes about 1/slices of the memory.
+     *
+     * @param[in] files The preprocessed spectra of each file
+     * @param[in] query_files Per file, the candidate-retrieval spectra aligned with @p files (or nullptr)
+     * @param[in] db The protein database (with decoys) the slice indices are built from
+     * @param[in] electron_ions Also index c and z+1 ions, for electron-activated spectra
+     * @param[in] tolerances Per file: fragment tolerance, precursor tolerance lower and upper (after calibration)
+     * @param[in] generators Theoretical spectrum generators of the search
+     * @param[out] hits Per file, the hits of each spectrum (sized like the file)
+     * @param[out] pool_stats Per file, the candidate-pool statistics of each spectrum (sized like the file)
+     * @return Time and size of the slice index builds
+     */
+    MassSliceStats_ scoreMassSlices_(const std::vector<const PeakMap*>& files,
+                                     const std::vector<const PeakMap*>& query_files,
+                                     const std::vector<FASTAFile::FASTAEntry>& db,
+                                     bool electron_ions,
+                                     const std::vector<std::array<double, 3>>& tolerances,
+                                     const SpectrumGenerators_& generators,
+                                     const std::vector<std::vector<std::vector<AnnotatedHit_>>*>& hits,
+                                     const std::vector<std::vector<CandidatePoolStats_>*>& pool_stats) const;
+
     /**
      * @brief Build a strided protein sample for chunked calibration.
      *
@@ -1235,6 +1280,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool protein_mapping_from_index_{true}; ///< peptide:protein_mapping = index
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
+    Size database_mass_slices_{1}; ///< database:mass_slices; 1 = disabled
+    mutable bool mass_slices_ignored_logged_{false}; ///< massSlicing_() warned that database:mass_slices is ignored
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};

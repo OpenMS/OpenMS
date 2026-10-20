@@ -782,6 +782,19 @@ TOPP tools:
       quantification workflows. Conflicting identifications of one feature are resolved with
       IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
   Changes:
+    ProSE:
+      - PARAM: New database:mass_slices (default 1, off): search the spectra (of all input files) in slices by
+        precursor mass, cut at equal numbers of the database's peptides; each slice is searched against a fragment
+        index built from only the peptides in its precursor mass range that it can reach
+        (FragmentIndex::build(..., bounded_generation), FragmentIndex::countPeptidesByMass()). Without calibration,
+        the results are byte-identical to those of one full index; with calibration:enabled, calibration runs on a sample of about
+        1/slices of the database, so the tolerances and PSMs can differ. The peptides and the index take about
+        1/slices of the memory. Ignored, with a warning, with database:chunk_size > 0, in open search mode and with
+        low_memory without enzyme specificity.
+      - Behaviour change: the fragment index orders peptides of equal precursor mass and protein by start, length and
+        variable modifications (before: as the sort algorithm left them). Among equally scored candidates of one
+        protein (e.g. positional isomers), the candidate and top-hit cut can therefore keep others than before; the
+        results no longer depend on which other peptides are indexed (database:mass_slices).
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter
