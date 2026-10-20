@@ -1542,12 +1542,125 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
 
 } // anonymous namespace (QPX PSM table-range builder)
 
+namespace
+{
+  /// The five spectrum columns of QPXPSMSchema::schemaWithSpectra() for the rows of @p peptide_identifications (one
+  /// row per identification with hits, as exportPSMsToQPXArrow() without export_all_psms writes them), appended to
+  /// @p table. Null on failure (logged).
+  std::shared_ptr<arrow::Table> addSpectrumColumns(const std::shared_ptr<arrow::Table>& table,
+                                                   const PeptideIdentificationList& peptide_identifications,
+                                                   const std::vector<QPXFile::PSMSpectrum>& spectra)
+  {
+    auto peak_mz_vb = std::make_shared<arrow::FloatBuilder>();
+    arrow::ListBuilder peak_mz_b(arrow::default_memory_pool(), peak_mz_vb);
+    auto peak_intensity_vb = std::make_shared<arrow::FloatBuilder>();
+    arrow::ListBuilder peak_intensity_b(arrow::default_memory_pool(), peak_intensity_vb);
+    auto ion_vb = std::make_shared<arrow::StringBuilder>();
+    arrow::ListBuilder ion_b(arrow::default_memory_pool(), ion_vb);
+    auto mz_vb = std::make_shared<arrow::FloatBuilder>();
+    arrow::ListBuilder mz_b(arrow::default_memory_pool(), mz_vb);
+    auto intensity_vb = std::make_shared<arrow::FloatBuilder>();
+    arrow::ListBuilder intensity_b(arrow::default_memory_pool(), intensity_vb);
+
+    arrow::Status status;
+    auto check = [&status](const char* what) -> bool
+    {
+      if (status.ok()) { return true; }
+      OPENMS_LOG_ERROR << "QPXFile: building the spectrum column " << what << " failed: " << status.ToString() << std::endl;
+      return false;
+    };
+    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    {
+      if (peptide_identifications[i].getHits().empty()) { continue; } // no row
+      const QPXFile::PSMSpectrum& s = spectra[i];
+      if (s.peak_mz.size() != s.peak_intensity.size()
+          || s.predicted_mz.size() != s.predicted_ion_type.size()
+          || s.predicted_intensity.size() != s.predicted_ion_type.size())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The spectrum columns of PSM " + std::to_string(i) + " have arrays of different lengths");
+      }
+      if (s.has_peaks)
+      {
+        status = peak_mz_b.Append();
+        if (status.ok()) { status = peak_mz_vb->AppendValues(s.peak_mz); }
+        if (status.ok()) { status = peak_intensity_b.Append(); }
+        if (status.ok()) { status = peak_intensity_vb->AppendValues(s.peak_intensity); }
+      }
+      else
+      {
+        status = peak_mz_b.AppendNull();
+        if (status.ok()) { status = peak_intensity_b.AppendNull(); }
+      }
+      if (!check(QPXPSMSchema::PEAK_MZ_ARRAY)) { return nullptr; }
+      if (s.has_prediction)
+      {
+        status = ion_b.Append();
+        if (status.ok()) { status = ion_vb->AppendValues(s.predicted_ion_type); }
+        if (status.ok()) { status = mz_b.Append(); }
+        if (status.ok()) { status = mz_vb->AppendValues(s.predicted_mz); }
+        if (status.ok()) { status = intensity_b.Append(); }
+        if (status.ok()) { status = intensity_vb->AppendValues(s.predicted_intensity); }
+      }
+      else
+      {
+        status = ion_b.AppendNull();
+        if (status.ok()) { status = mz_b.AppendNull(); }
+        if (status.ok()) { status = intensity_b.AppendNull(); }
+      }
+      if (!check(QPXPSMSchema::PREDICTED_ION_TYPE_ARRAY)) { return nullptr; }
+    }
+
+    const auto with_spectra = QPXPSMSchema::schemaWithSpectra();
+    std::shared_ptr<arrow::Table> out = table;
+    const int first = table->num_columns();
+    arrow::ListBuilder* builders[] = {&peak_mz_b, &peak_intensity_b, &ion_b, &mz_b, &intensity_b};
+    for (int k = 0; k < 5; ++k)
+    {
+      std::shared_ptr<arrow::Array> array;
+      status = builders[k]->Finish(&array);
+      if (!check(with_spectra->field(first + k)->name().c_str())) { return nullptr; }
+      if (array->length() != table->num_rows())
+      {
+        OPENMS_LOG_ERROR << "QPXFile: " << array->length() << " spectrum rows for a table of " << table->num_rows()
+                         << " rows" << std::endl;
+        return nullptr;
+      }
+      auto added = out->AddColumn(first + k, with_spectra->field(first + k), std::make_shared<arrow::ChunkedArray>(array));
+      if (!added.ok())
+      {
+        OPENMS_LOG_ERROR << "QPXFile: adding the spectrum columns failed: " << added.status().ToString() << std::endl;
+        return nullptr;
+      }
+      out = *added;
+    }
+    return out;
+  }
+}
+
 std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
   bool export_all_psms,
-  const QPXIdentity::FeatureLinks* feature_links)
+  const QPXIdentity::FeatureLinks* feature_links,
+  const std::vector<PSMSpectrum>* spectra)
 {
+  if (spectra != nullptr)
+  {
+    // One row per identification is what lets an entry of spectra describe a row: with every hit exported, the hits
+    // of a spectrum would share its entry.
+    if (export_all_psms)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Spectrum columns are written for the best hit of each spectrum only (export_all_psms false)");
+    }
+    if (spectra->size() != peptide_identifications.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        std::to_string(spectra->size()) + " spectrum entries for " + std::to_string(peptide_identifications.size())
+        + " peptide identifications");
+    }
+  }
   ProteinRunReferences::check(protein_identifications, peptide_identifications);
   const IdentifierMSRunMapper mapper = buildRunMapper(protein_identifications);
   validateMergeIndices(mapper, peptide_identifications); // refuse merged input we cannot resolve
@@ -1565,6 +1678,10 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
                        "not be, and the key the psm view is joined to feature and pg on. Protein "
                        "inference commonly drops the path: set it with "
                        "ProteinIdentification::setPrimaryMSRunPath() before exporting." << std::endl;
+  }
+  if (table && spectra != nullptr)
+  {
+    table = addSpectrumColumns(table, peptide_identifications, *spectra);
   }
   return table;
 }
@@ -1668,8 +1785,13 @@ bool QPXFile::exportToParquet(
 
   // Guard: the table-taking overload attaches file_type="psm_file" metadata, so the
   // caller must actually pass a QPXPSMSchema table (not, e.g., the internal
-  // PSMSchema produced by exportToArrow).
+  // PSMSchema produced by exportToArrow), possibly with the spectrum columns.
   auto validation = ArrowSchemaValidation::validate(table, QPXPSMSchema::schema(), ArrowSchemaValidation::Mode::Strict);
+  if (!validation.valid
+      && ArrowSchemaValidation::validate(table, QPXPSMSchema::schemaWithSpectra(), ArrowSchemaValidation::Mode::Strict).valid)
+  {
+    validation = ArrowSchemaValidation::ValidationResult{};
+  }
   if (!validation.valid)
   {
     OPENMS_LOG_ERROR << "QPXFile: table schema does not match QPXPSMSchema ("

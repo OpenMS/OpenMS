@@ -499,6 +499,17 @@ namespace OpenMS
     });
   }
 
+  std::shared_ptr<arrow::Schema> QPXPSMSchema::schemaWithSpectra()
+  {
+    std::vector<std::shared_ptr<arrow::Field>> fields = schema()->fields();
+    fields.push_back(arrow::field(PEAK_MZ_ARRAY, arrow::list(arrow::float32())));
+    fields.push_back(arrow::field(PEAK_INTENSITY_ARRAY, arrow::list(arrow::float32())));
+    fields.push_back(arrow::field(PREDICTED_ION_TYPE_ARRAY, arrow::list(arrow::utf8())));
+    fields.push_back(arrow::field(PREDICTED_MZ_ARRAY, arrow::list(arrow::float32())));
+    fields.push_back(arrow::field(PREDICTED_INTENSITY_ARRAY, arrow::list(arrow::float32())));
+    return arrow::schema(fields);
+  }
+
   // -- QPXPgSchema (quantms Parquet eXchange format, protein group table) --
 
   std::shared_ptr<arrow::DataType> QPXPgSchema::groupedRunsType()
