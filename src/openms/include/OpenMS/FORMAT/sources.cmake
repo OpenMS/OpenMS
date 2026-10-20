@@ -143,6 +143,7 @@ list(APPEND sources_list_h ModificationDefinitionIO.h)
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)
   list(APPEND sources_list_h BrukerTimsImagingFile.h)
+  list(APPEND sources_list_h OnDiscBrukerTimsExperiment.h)
 endif()
 
 if (WITH_THERMO_RAW)

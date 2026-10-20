@@ -17,6 +17,17 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - OnDiscBrukerTimsExperiment (also in pyOpenMS): random access to the spectra of a Bruker timsTOF .d directory
+    or .d.zip archive, without loading the run. openFile() lists the spectra that BrukerTimsFile::load() gives
+    with the same configuration, in its order, from the frame table and analysis.tdf; getSpectrum(i) builds one
+    spectrum from the frames it needs, in any order. Copies share the list and read with their own handle, so a
+    copy per thread can read concurrently. The spectra equal those of load(), except that the few MS2 spectra that
+    only turn out to have no peaks when they are built (a DDA precursor or DIA window without peaks, a DDA spectrum
+    outside the ion mobility range) are listed and given without peaks, where load() leaves them out. Config::calibrate
+    with the linear m/z model (an OLS fit to all precursors of the run) is rejected (#10522).
+  - BrukerTimsFile: spectra aggregated over retention time (ms1_n_neighbors, dia_ms2_n_neighbors) order peaks of
+    equal m/z by scan, so that they no longer depend on the frames aggregated before. Only the order of such peaks
+    changes.
   - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
     (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
     single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's

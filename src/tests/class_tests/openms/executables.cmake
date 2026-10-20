@@ -192,6 +192,7 @@ set(format_executables_list
   BedRModFile_test
   BrukerTimsFile_test
   BrukerTimsImagingFile_test
+  OnDiscBrukerTimsExperiment_test
   PASEFHillCentroider_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
