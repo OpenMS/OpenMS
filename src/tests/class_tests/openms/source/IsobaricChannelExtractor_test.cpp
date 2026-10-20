@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -631,6 +632,62 @@ START_SECTION(([EXTRA] precursor isotope matching and isolation window boundarie
   parameters.setValue("precursor_isotope_deviation", 1.0);
   ice.setParameters(parameters);
   check_purity({{500.25, 1000.0f}, {500.7516774189, 600.0f}, {501.2533548378, 200.0f}}, 1.0, 1.1);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FAIMS: precursor purity from the MS1 spectra of the same compensation voltage))
+{
+  // CVs alternate: the MS1 of -45 V is clean, the MS1 of -65 V has an interfering peak in the isolation window.
+  // The MS2 at -45 V must use the -45 V MS1 spectra, not the last MS1 spectrum of any CV.
+  auto ms1 = [](double rt, double cv, bool interference)
+  {
+    MSSpectrum s;
+    s.setMSLevel(1);
+    s.setRT(rt);
+    s.setDriftTime(cv);
+    s.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+    s.emplace_back(500.25, 1000.0f);
+    if (interference) s.emplace_back(500.77, 1000.0f);
+    return s;
+  };
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.5);
+  ms2.setNativeID("scan=3");
+  ms2.setDriftTime(-45.0);
+  ms2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  Precursor precursor;
+  precursor.setMZ(500.25);
+  precursor.setCharge(2);
+  precursor.setIsolationWindowLowerOffset(1.0);
+  precursor.setIsolationWindowUpperOffset(1.0);
+  ms2.setPrecursors({precursor});
+  for (const auto& channel : q_method->getChannelInformation())
+  {
+    ms2.emplace_back(channel.center, 10000.0f);
+  }
+
+  PeakMap exp;
+  exp.addSpectrum(ms1(100.0, -45.0, false));
+  exp.addSpectrum(ms1(100.2, -65.0, true));
+  exp.addSpectrum(ms2);
+  exp.addSpectrum(ms1(101.0, -65.0, true));
+  exp.addSpectrum(ms1(101.2, -45.0, false));
+
+  for (const char* interpolation : {"false", "true"})
+  {
+    IsobaricChannelExtractor ice(q_method);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "any");
+    p.setValue("purity_interpolation", interpolation);
+    p.setValue("min_precursor_purity", 0.0);
+    ice.setParameters(p);
+    ConsensusMap cm_out;
+    ice.extractChannels(exp, cm_out);
+    TEST_EQUAL(cm_out.size(), 1)
+    ABORT_IF(cm_out.size() != 1)
+    TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_purity"), 1.0)
+  }
 }
 END_SECTION
 
