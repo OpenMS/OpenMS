@@ -287,6 +287,15 @@ START_SECTION((static bool supportsCompressedReading(Type type, Type compression
   TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::GZ))
   TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::BZ2))
 
+  // Thermo's '.raw.zip' is extracted by the in-process reader (ThermoRawFile); without it, nothing reads it
+#ifdef WITH_THERMO_RAW
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::RAW, FileTypes::ZIP))
+#else
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::RAW, FileTypes::ZIP))
+#endif
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::RAW, FileTypes::GZ))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::RAW, FileTypes::BZ2))
+
   // a non-compression type is never a container
   TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::MZML))
   TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::UNKNOWN))

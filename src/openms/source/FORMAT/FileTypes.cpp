@@ -296,6 +296,15 @@ namespace OpenMS
     {
       return compression == FileTypes::ZIP;
     }
+    // Thermo's '.raw.zip' is unpacked by ThermoRawFile (the in-process reader), and only for ZIP
+    if (type == FileTypes::RAW)
+    {
+#ifdef WITH_THERMO_RAW
+      return compression == FileTypes::ZIP;
+#else
+      return false;
+#endif
+    }
     for (const auto& t_info : type_with_annotation__)
     {
       if (t_info.type == type)

@@ -11,16 +11,23 @@
 #ifdef WITH_THERMO_RAW
 
   #include <OpenMS/CONCEPT/Exception.h>
+  #include <OpenMS/DATASTRUCTURES/StringUtils.h>
   #include <OpenMS/FORMAT/HANDLERS/ThermoRawScanReader.h>
   #include <OpenMS/FORMAT/ThermoRawFile.h>
+  #include <OpenMS/FORMAT/ZipArchiveFile.h>
   #include <OpenMS/KERNEL/MSChromatogram.h>
   #include <OpenMS/KERNEL/MSSpectrum.h>
   #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+  #include <OpenMS/SYSTEM/File.h>
+  #include <OpenMS/SYSTEM/PathUtils.h>
+  #include <OpenMS/SYSTEM/TempFiles.h>
   #include <algorithm>
   #include <cmath>
   #include <deque>
   #include <exception>
+  #include <filesystem>
   #include <limits>
+  #include <memory>
   #include <string>
   #include <vector>
 
@@ -62,15 +69,52 @@ namespace
     Size capacity_;
     std::deque<std::pair<int, MSSpectrum>> entries_;
   };
+
+  /// The .raw file that @p path names: @p path itself, or for a ZIP archive ('.raw.zip') the one .raw file
+  /// in it. RawFileReader opens files on disk only, so that file is extracted into @p temp_dir, which
+  /// deletes it when it goes out of scope.
+  std::string rawFilePath(const std::string& path, std::unique_ptr<TempDir>& temp_dir)
+  {
+    if (! StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip") || File::isDirectory(path)) { return path; }
+    if (! File::exists(path)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path); }
+    std::vector<std::string> entries;
+    if (! ZipArchiveFile::listEntries(path, entries))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        "Cannot read the ZIP archive (or OpenMS was built without libzip)");
+    }
+    // Files named '*.raw', nothing below '__MACOSX' (AppleDouble files of archives made on macOS)
+    std::vector<std::string> raw_entries;
+    for (const std::string& entry : entries)
+    {
+      if (entry.empty() || entry.back() == '/') { continue; }
+      const std::filesystem::path entry_path = to_path(entry);
+      if (std::find(entry_path.begin(), entry_path.end(), std::filesystem::path("__MACOSX")) != entry_path.end()) { continue; }
+      if (StringUtils::hasSuffix(StringUtils::toLowered(entry), ".raw")) { raw_entries.push_back(entry); }
+    }
+    if (raw_entries.empty())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, "ZIP archive does not contain a Thermo .raw file");
+    }
+    if (raw_entries.size() > 1)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        "ZIP archive contains " + std::to_string(raw_entries.size()) + " .raw files ('" + raw_entries[0] + "', '" + raw_entries[1]
+          + "', ...); a '.raw.zip' archive must hold exactly one run");
+    }
+    return ZipArchiveFile::extractEntryToTempFile(path, raw_entries.front(), temp_dir);
+  }
 } // namespace
 
 void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
 {
   exp = MSExperiment();
   const Selection select{options_};
+  std::unique_ptr<TempDir> unpacked; // holds the .raw file of a '.raw.zip' archive during this call
+  const std::string raw_path = rawFilePath(path, unpacked);
   try
   {
-    Internal::ThermoRawScanReader reader(path, options_);
+    Internal::ThermoRawScanReader reader(raw_path, options_);
     reader.fillSettings(exp);
     if (reader.hasMSData())
     {
@@ -170,9 +214,11 @@ void ThermoRawFile::transform(const std::string& path, Interfaces::IMSDataConsum
 {
   if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
   const Selection select{options_};
+  std::unique_ptr<TempDir> unpacked; // holds the .raw file of a '.raw.zip' archive during this call
+  const std::string raw_path = rawFilePath(path, unpacked);
   try
   {
-    Internal::ThermoRawScanReader reader(path, options_);
+    Internal::ThermoRawScanReader reader(raw_path, options_);
     ExperimentalSettings settings;
     reader.fillSettings(settings);
     const bool has_ms = reader.hasMSData();

@@ -105,7 +105,9 @@ namespace OpenMS
       spectra, retention times, MS levels, precursor information (for MSn),
       and source file metadata.
 
-      @param[in] path Path to the .raw file
+      @param[in] path Path to the .raw file, or to a ZIP archive ('.raw.zip') that holds exactly one .raw file.
+                      RawFileReader reads files on disk only, so that file is extracted into a temporary
+                      directory, which is deleted when the call returns.
       @param[out] exp The experiment to populate
 
       @throws Exception::FileNotFound if the file does not exist
@@ -134,7 +136,9 @@ namespace OpenMS
       most recent converted parent candidates are kept, and a parent that was not converted or
       is no longer kept is decoded again.
 
-      @param[in] path Path to the .raw file
+      @param[in] path Path to the .raw file, or to a ZIP archive ('.raw.zip') that holds exactly one .raw file.
+                      RawFileReader reads files on disk only, so that file is extracted into a temporary
+                      directory, which is deleted when the call returns.
       @param[in] consumer Receives the run; must not be null
 
       @throws Exception::FileNotFound if the file does not exist

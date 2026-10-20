@@ -792,6 +792,19 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   set_tests_properties("TOPP_FileConverter_RAW_lowmemory_prepare" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
   add_test("TOPP_FileConverter_RAW_lowmemory_out1" ${DIFF} -whitelist "<offset" "indexListOffset" "fileChecksum" -in1 ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory_expected.tmp.mzML)
   set_tests_properties("TOPP_FileConverter_RAW_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_lowmemory;TOPP_FileConverter_RAW_lowmemory_prepare")
+  # A zipped raw file ('.raw.zip') is extracted by the in-process reader and gives the same spectra; only the
+  # source file location (the directory of the archive) differs.
+  get_filename_component(THERMO_RAW_TEST_NAME ${THERMO_RAW_TEST_DATA} NAME)
+  get_filename_component(THERMO_RAW_TEST_DATA_DIR ${THERMO_RAW_TEST_DATA} DIRECTORY)
+  add_test("TOPP_FileConverter_RAW_zip_prepare" ${CMAKE_COMMAND} -E tar cf ${TESTS_TEMP_DIR}/FileConverter_RAW_zip.tmp.raw.zip --format=zip ${THERMO_RAW_TEST_NAME})
+  set_tests_properties("TOPP_FileConverter_RAW_zip_prepare" PROPERTIES WORKING_DIRECTORY ${THERMO_RAW_TEST_DATA_DIR})
+  add_test("TOPP_FileConverter_RAW_zip" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FileConverter_RAW_zip.tmp.raw.zip -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_zip.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_RAW_zip" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_zip_prepare")
+  add_test("TOPP_FileConverter_RAW_zip_out1" ${DIFF} -whitelist "<sourceFile " "<offset" "indexListOffset" "fileChecksum" -in1 ${TESTS_TEMP_DIR}/FileConverter_RAW_zip.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_RAW_zip_out1" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_zip;TOPP_FileConverter_RAW_1")
+  # ThermoRawFileParser cannot read the archive: the external reader refuses it instead of failing inside the parser
+  add_test("TOPP_FileConverter_RAW_zip_external" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FileConverter_RAW_zip.tmp.raw.zip -RawToMzML:reader external -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_zip_external.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_RAW_zip_external" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_zip_prepare" WILL_FAIL 1)
   if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
     # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
     # cannot open itself (#10451). The source file must keep the linked name.

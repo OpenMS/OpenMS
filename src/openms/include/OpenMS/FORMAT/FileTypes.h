@@ -161,9 +161,10 @@ namespace OpenMS
       @brief Can a reader for @p type read a file compressed with @p compression directly?
 
       Transparent decompression is provided by XMLFile through CompressedInputSource, which handles
-      all three suffixes, so it covers the XML-based formats. BRUKER_TDF is the exception: FileHandler
+      all three suffixes, so it covers the XML-based formats. BRUKER_TDF is an exception: FileHandler
       unpacks a '.d.zip' archive via ZipArchiveFile but has no gzip or bzip2 path, so it supports ZIP
-      only. A compressed filename of any other type still resolves to that type by name, but no reader
+      only. RAW is the other one: ThermoRawFile extracts the .raw file of a '.raw.zip' archive, so with
+      the in-process reader (WITH_THERMO_RAW) it supports ZIP only, and without it nothing. A compressed filename of any other type still resolves to that type by name, but no reader
       will accept it, so callers must not treat the compression suffix as proof that the file can be read.
 
       @param[in] type The format inside the compressed container

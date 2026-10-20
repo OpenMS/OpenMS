@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #endif
 
+#include <OpenMS/FORMAT/FileNameUtils.h>
+
 #ifdef WITH_THERMO_RAW
 #include <OpenMS/FORMAT/ThermoRawFile.h>
 #endif
@@ -89,6 +91,8 @@ the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can
 The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
 built-in reader, but without vendor peak picking; see
 <a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
+A zipped raw file (.raw.zip, a ZIP archive that holds one .raw file) is read by the built-in reader only, which
+extracts the .raw file into a temporary directory first.
 
 Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built-in reader when OpenMS is
 built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
@@ -717,6 +721,12 @@ protected:
       else
 #endif
       {
+      if (FileNameUtils::compressionType(in) != FileTypes::UNKNOWN)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ThermoRawFileParser cannot read a zipped .raw file. Unzip it first, or use the in-process reader "
+          "('-RawToMzML:reader inprocess', which needs an OpenMS build with WITH_THERMO_RAW).");
+      }
       if (out_type != FileTypes::MZML)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
