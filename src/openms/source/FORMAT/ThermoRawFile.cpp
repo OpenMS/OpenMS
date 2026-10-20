@@ -102,7 +102,16 @@ namespace
         "ZIP archive contains " + std::to_string(raw_entries.size()) + " .raw files ('" + raw_entries[0] + "', '" + raw_entries[1]
           + "', ...); a '.raw.zip' archive must hold exactly one run");
     }
-    return ZipArchiveFile::extractEntryToTempFile(path, raw_entries.front(), temp_dir);
+    try
+    {
+      return ZipArchiveFile::extractEntryToTempFile(path, raw_entries.front(), temp_dir);
+    }
+    catch (const Exception::InvalidValue& e)
+    {
+      // report a damaged archive like any other unreadable one (FileNotFound passes through)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        "Cannot extract '" + raw_entries.front() + "' from the ZIP archive: " + e.what());
+    }
   }
 } // namespace
 
