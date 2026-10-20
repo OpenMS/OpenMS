@@ -12,6 +12,28 @@ test("version and shared data", () => {
   assert.equal(OpenMS.getOpenMSDataPath(), "/share/OpenMS");
 });
 
+test("sizes and indices are numbers; an index has to be an integer within range", () => {
+  // size_t (Size) is 64 bits in the wasm64 build, where Embind would pass it as BigInt: the bindings take and return
+  // it as number in both builds (bindings/binding_utils.h), and check that an argument is an integer within range.
+  using([OpenMS.AASequence.fromString("PEPTIDEK"), new OpenMS.CoarseIsotopePatternGenerator(3),
+         new OpenMS.CoarseIsotopePatternGenerator(4, true)], (seq, generator, rounding) => {
+    assert.strictEqual(seq.size(), 8);
+    assert.strictEqual(generator.getMaxIsotope(), 3);
+    assert.strictEqual(rounding.getMaxIsotope(), 4);
+    generator.setMaxIsotope(5);
+    assert.strictEqual(generator.getMaxIsotope(), 5);
+    using([seq.getPrefix(3), seq.getSuffix(2)], (prefix, suffix) => {
+      assert.equal(prefix.toString(), "PEP");
+      assert.equal(suffix.toString(), "EK");
+    });
+    for (const bad of [1.5, -1, NaN, Infinity, 2 ** 53, undefined]) {
+      assert.throws(() => seq.getPrefix(bad), /InvalidValue: the value '.*' was used but is not valid; a size or an index has to be an integer from 0 to \d+/,
+                    `getPrefix(${bad})`);
+    }
+    assert.throws(() => new OpenMS.CoarseIsotopePatternGenerator(-2), /the value '-2' was used but is not valid; a size or an index has to be an integer/);
+  });
+});
+
 test("AASequence masses", () => {
   using([OpenMS.AASequence.fromString("DFPIANGER")], (seq) => {
     assert.equal(seq.size(), 9);
