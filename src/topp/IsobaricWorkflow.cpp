@@ -369,6 +369,23 @@ protected:
     if (calc_id_purity || !has_ms3)
     {
       double ms1_purity = -1.;
+      // FAIMS: the precursor spectrum must have the CV of the identified scan. Without a precursor spectrum reference,
+      // getPrecursorSpectrum() returns the preceding MS1 spectrum, which can be of another CV: then take the last MS1
+      // spectrum of the scan's CV before it (none: no purity).
+      const MSSpectrum& id_spec = exp[id_spec_idx];
+      const bool faims = id_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      const auto same_cv = [&id_spec, faims](const MSSpectrum& s)
+      {
+        if (!faims) return true;
+        return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+               && std::fabs(s.getDriftTime() - id_spec.getDriftTime()) < 0.01;
+      };
+      if (faims && ms1_spec_idx >= 0 && !same_cv(exp[ms1_spec_idx]))
+      {
+        int idx = id_spec_idx - 1;
+        while (idx >= 0 && !(exp[idx].getMSLevel() == 1 && same_cv(exp[idx]))) { --idx; }
+        ms1_spec_idx = idx;
+      }
       // An MS2 with no preceding MS1 has no survey scan to measure isolation purity against --
       // an acquisition that starts mid-cycle, or an mzML filtered down to a spectrum subset.
       // MSExperiment::getPrecursorSpectrum() reports that as -1, which is NOT a spectrum index:
@@ -387,16 +404,8 @@ protected:
       }
       else
       {
-        // The next MS1 spectrum of the same FAIMS compensation voltage as the precursor spectrum: with FAIMS, the
-        // CVs alternate from one MS1 spectrum to the next, and a survey scan of another CV holds other ions
-        const MSSpectrum& precursor_spec = exp[ms1_spec_idx];
-        const bool faims = precursor_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
-        const auto same_cv = [&precursor_spec, faims](const MSSpectrum& s)
-        {
-          if (!faims) return true;
-          return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                 && std::fabs(s.getDriftTime() - precursor_spec.getDriftTime()) < 0.01;
-        };
+        // The next MS1 spectrum of the same FAIMS compensation voltage: with FAIMS, the CVs alternate from one MS1
+        // spectrum to the next, and a survey scan of another CV holds other ions
         Size next_ms1_spec = quant_spec_idx;
         do
         {

@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 // #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
@@ -572,19 +573,22 @@ namespace OpenMS
       if ((*it).empty()) continue; // skip empty spectra
       if (!(selected_activation_ == "any" || isValidActivation(*it))) continue;
 
+      // FAIMS: precursor and follow-up spectrum of the scan's CV, in a separate state so that the RT-based selection
+      // for spectra without a CV stays as it is
+      std::optional<PurityState_> faims_state;
       if (is_faims(*it) && !last_ms1_per_cv.empty())
       {
-        // precursor and follow-up spectrum of the scan's CV
+        faims_state.emplace(pState);
         auto known = std::find_if(last_ms1_per_cv.begin(), last_ms1_per_cv.end(),
                                   [&](const PeakMap::ConstIterator& ms1) { return same_cv(*ms1, *it); });
-        pState.precursorScan = known != last_ms1_per_cv.end() ? *known : ms_exp_data.end();
-        pState.followUpScan = it;
-        while (pState.followUpScan != ms_exp_data.end()
-               && !(pState.followUpScan->getMSLevel() == 1 && same_cv(*pState.followUpScan, *it)))
+        faims_state->precursorScan = known != last_ms1_per_cv.end() ? *known : ms_exp_data.end();
+        faims_state->followUpScan = it;
+        while (faims_state->followUpScan != ms_exp_data.end()
+               && !(faims_state->followUpScan->getMSLevel() == 1 && same_cv(*faims_state->followUpScan, *it)))
         {
-          ++pState.followUpScan;
+          ++faims_state->followUpScan;
         }
-        pState.hasFollowUpScan = pState.followUpScan != ms_exp_data.end();
+        faims_state->hasFollowUpScan = faims_state->followUpScan != ms_exp_data.end();
       }
       // find following ms1 scan (needed for purity computation)
       else if (!pState.followUpValid(it->getRT()))
@@ -592,6 +596,7 @@ namespace OpenMS
         // advance iterator
         pState.advanceFollowUp(it->getRT());
       }
+      const PurityState_& purity_state = faims_state ? *faims_state : pState;
 
       // check precursor constraints
       if (!isValidPrecursor_(it->getPrecursors()[0]))
@@ -602,9 +607,9 @@ namespace OpenMS
 
       // check precursor purity if we have a valid precursor ..
       double precursor_purity = -1.0;
-      if (pState.precursorScan != ms_exp_data.end())
+      if (purity_state.precursorScan != ms_exp_data.end())
       {
-        precursor_purity = computePrecursorPurity_(it, pState);
+        precursor_purity = computePrecursorPurity_(it, purity_state);
         // check if purity is high enough
         if (precursor_purity < min_precursor_purity_)
         {
