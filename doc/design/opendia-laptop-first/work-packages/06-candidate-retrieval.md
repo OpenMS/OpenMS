@@ -1,9 +1,13 @@
 # WP-06: Mobility-native candidate retrieval
 
 - Status: proposed / not implemented.
+- Suggested issue title: `[OpenDIA][WP-06] Mobility-native candidate retrieval`.
+- Parent epic: OpenDIA laptop-first redesign (issue link pending).
+- Issue: not created. This document is a posting draft.
+- Repository source: `doc/design/opendia-laptop-first/work-packages/06-candidate-retrieval.md`.
 - Reviewer: unassigned.
 - Owner: unassigned. Suggested expertise: DIA search, calibration, indexed retrieval.
-- Context: [master plan](../README.md), [architecture](../architecture.md).
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 ## Goal
 
@@ -14,12 +18,12 @@ that later identification and localization are allowed to consider.
 
 ## Dependencies and handoff
 
-- Requires [WP-03 raw tiles](03-raw-tiles.md) for acquisition-valid raw queries.
-- Requires [WP-04 hypothesis store](04-hypothesis-store.md) for paged families.
-- Requires [WP-05 shared extraction](05-shared-extraction.md) for evidence views.
+- Requires WP-03 raw tiles for acquisition-valid raw queries.
+- Requires WP-04 hypothesis store for paged families.
+- Requires WP-05 shared extraction for evidence views.
 - Inherits contracts and reservations through these dependencies.
-- Supplies candidates to [WP-07 family scoring](07-family-scoring.md).
-- Public integration belongs to [WP-09](09-cli-integration.md).
+- Supplies candidates to WP-07 family scoring.
+- Public integration belongs to WP-09.
 
 ## Scope and non-goals
 
@@ -35,7 +39,7 @@ that later identification and localization are allowed to consider.
 
 ## Deliverables and interface ownership
 
-- Extend [WP-01 base contracts](01-contracts.md) with retrieval request/results,
+- Extend WP-01 base contracts with retrieval request/results,
   reviewed with WP-03 through WP-07, rather than independently redefining them.
 - Own run mass/RT/IM calibration fitting, bounded anchor selection and uncertainty
   validation. Anchors aid calibration but are not mandatory candidate evidence.
@@ -54,6 +58,35 @@ that later identification and localization are allowed to consider.
 - Split, spill or slow oversized regions without silently deleting alternatives.
 - If exhaustive processing cannot fit, return an explicit resource-limit result.
 
+## Code placement
+
+- Proposed NEW directories, currently absent: `src/openms/include/OpenMS/ANALYSIS/OPENDIA/`
+  and `src/openms/source/ANALYSIS/OPENDIA/` own OpenDIA retrieval workflow,
+  family/completeness domains, selection and recovery policy.
+- Reuse generic calibration/math in `MATH/STATISTICS` and reusable scoring/search
+  algorithms in `ANALYSIS/OPENSWATH` or appropriate core modules. Generic core must
+  not depend on OPENDIA types or policies. Keep serialization machinery generic.
+
+## Output-size contract
+
+- Compact results default to stable IDs/dictionaries and sparse shared evidence,
+  preserving identity, localization/quantification ambiguity and run provenance.
+  Do not duplicate the full library or retain dense retrieval traces by default.
+- Working candidate scratch through global FDR is not the final artifact or the
+  reusable raw/library cache. Reserve separate quotas and peak per-volume totals,
+  including indexes, WAL/journal, staging and compaction coexistence with WP-08.
+- Optional rescore evidence retains all declared populations needed by supported
+  global rescoring, including rejected targets, decoys and competing alternatives,
+  not just accepted candidates. Results-only must not advertise that capability.
+- Diagnostic traces are explicit, selected and capped independently of scientific
+  inputs. Retention profiles never change current-run retrieval or selection.
+- Default encoding is lossless. Never truncate hypotheses or change inputs to fit
+  output quotas. Fail explicitly before a committed final artifact if mandatory
+  output cannot fit. Streaming or Parquet alone does not establish compactness.
+- Capability manifests declare future rescoring/raw re-extraction requirements:
+  references work only with preserved matching data/models, not by themselves.
+  Discard scratch only after global inference, validated commit and retention checks.
+
 ## Small PR slices
 
 1. Define request/result contracts and fixtures for missing MS1, missing anchors,
@@ -69,27 +102,33 @@ that later identification and localization are allowed to consider.
 
 ## Requirement-to-acceptance checks
 
-- High recall: compare retrieved IDs against exhaustive small-case enumeration.
+- [ ] Review includes and build dependencies: retrieval/family/selection policy stays
+  in OPENDIA, shared algorithms stay in core, and core has no OPENDIA dependency.
+- [ ] Compare profiles against the same exhaustive fixture: identical current-run
+  candidates and science, complete declared rescore populations and capped traces.
+- [ ] Stress rejected-candidate fan-out and exhausted output/scratch/cache quotas:
+  verify separate accounting, no silent candidate loss and no committed partial result.
+- [ ] High recall: compare retrieved IDs against exhaustive small-case enumeration.
   Include low abundance, modification classes, absent hypotheses and ambiguity.
   Record pre-FDR recall by stratum with thresholds agreed in WP-00 before tuning.
-- Uncertainty fallback: perturb calibration and remove IM predictions. Verify
+- [ ] Uncertainty fallback: perturb calibration and remove IM predictions. Verify
   broad/recovery paths retain truth rather than reporting a confident empty set.
-- Calibration ownership: validate held-out mass/RT/IM residual coverage, bounded
+- [ ] Calibration ownership: validate held-out mass/RT/IM residual coverage, bounded
   anchor selection and sparse/no-anchor fallback. Snapshot changes must invalidate
   dependent queries/results while frozen snapshots reproduce the same candidates.
-- Native mobility: overlapping RT signals separated in IM remain distinct through
+- [ ] Native mobility: overlapping RT signals separated in IM remain distinct through
   retrieval, including missing scans, isolation changes and tile boundaries.
-- No mandatory anchor/MS1: recover known families with either or both absent.
-- Safe selection: apply equivalent target/decoy logic, preserve null hypotheses,
+- [ ] No mandatory anchor/MS1: recover known families with either or both absent.
+- [ ] Safe selection: apply equivalent target/decoy logic, preserve null hypotheses,
   then use held-out/entrapment checks. Symmetry alone is not proof of valid FDR.
-- Scheduling: reconcile candidate sets across tile sizes and 2/4 workers, with
+- [ ] Scheduling: reconcile candidate sets across tile sizes and 2/4 workers, with
   deterministic IDs and no duplicate boundary hypotheses or unexplained losses.
-- Completeness: peaks wider than configured halos retain full support and competing
+- [ ] Completeness: peaks wider than configured halos retain full support and competing
   forms versus an untiled oracle. Check declared domains, selection and recovery,
   not only ID equality, including peaks spanning more than two adjacent tiles.
-- Bounded work: dense regions and large families trigger bounded paging/spill
+- [ ] Bounded work: dense regions and large families trigger bounded paging/spill
   or explicit failure. Measure reserved, committed and process peak memory.
-- Public acceptance after WP-09: execute the actual opt-in OpenDIA CLI from raw
+- [ ] Public acceptance after WP-09: execute the actual opt-in OpenDIA CLI from raw
   mobility input through exported results, inspect retained truth and recovery
   diagnostics, and repeat at 2/4 GiB. Unit fixtures alone cannot close this gate.
 

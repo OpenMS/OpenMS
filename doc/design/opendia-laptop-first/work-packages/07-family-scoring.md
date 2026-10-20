@@ -1,9 +1,13 @@
 # WP-07: Shared-evidence family scoring and localization
 
 - Status: proposed / not implemented.
+- Suggested issue title: `[OpenDIA][WP-07] Shared-evidence family scoring and localization`.
+- Parent epic: OpenDIA laptop-first redesign (issue link pending).
+- Issue: not created. This document is a posting draft.
+- Repository source: `doc/design/opendia-laptop-first/work-packages/07-family-scoring.md`.
 - Reviewer: unassigned.
 - Owner: unassigned. Suggested expertise: peptidoform inference, DIA/IM scoring.
-- Context: [master plan](../README.md), [architecture](../architecture.md).
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 ## Goal
 
@@ -14,11 +18,11 @@ meaning and uncertainty while using native RT-IM evidence from the first slice.
 
 ## Dependencies and handoff
 
-- Requires [WP-05 shared extraction](05-shared-extraction.md).
-- Requires [WP-06 candidate retrieval](06-candidate-retrieval.md).
+- Requires WP-05 shared extraction.
+- Requires WP-06 candidate retrieval.
 - Consumes their bounded evidence views, complete query identities and raw access.
-- Supplies inference records to [WP-08 storage/confidence](08-storage-confidence.md).
-- Shares integrated public checks with [WP-09](09-cli-integration.md).
+- Supplies inference records to WP-08 storage/confidence.
+- Shares integrated public checks with WP-09.
 
 ## Scope and non-goals
 
@@ -37,7 +41,7 @@ meaning and uncertainty while using native RT-IM evidence from the first slice.
 
 ## Deliverables and interface ownership
 
-- Extend [WP-01 base contracts](01-contracts.md) with scoring inputs/results and
+- Extend WP-01 base contracts with scoring inputs/results and
   family-level evidence attribution, rather than independently redefining them.
 - Inputs include stable IDs, calibration/acquisition references, sparse incidence,
   optional precursor evidence and a full raw-query capability via WP-05/WP-03.
@@ -49,6 +53,36 @@ meaning and uncertainty while using native RT-IM evidence from the first slice.
   not merely the fragments or compressed summaries selected during retrieval.
 - Own bounded per-family accumulation and approximation diagnostics.
 - Coordinate serialized inference inputs with WP-08 before fixing schema versions.
+
+## Code placement
+
+- Proposed NEW directories, currently absent: `src/openms/include/OpenMS/ANALYSIS/OPENDIA/`
+  and `src/openms/source/ANALYSIS/OPENDIA/` own OpenDIA family workflow,
+  attribution/selection policy, ambiguity handling and evidence-query orchestration.
+- Reuse generic math in `MATH/STATISTICS` and reusable scoring algorithms in
+  `ANALYSIS/OPENSWATH` or appropriate core modules. Generic serialization belongs
+  in `FORMAT`/`DATASTRUCTURES`/`SYSTEM`, never dependent on OPENDIA types/policies.
+
+## Output-size contract
+
+- Compact results are the default: stable IDs, dictionaries and sparse shared
+  attribution preserve identification, localization and quantitative ambiguity,
+  confidence fields and run provenance without a full library copy or dense traces.
+- Optional rescore evidence must cover every declared candidate population required
+  by supported global rescoring, including rejected targets/decoys and alternative
+  forms. Accepted winners or sufficient statistics for one model are not automatically
+  sufficient for another. WP-08 declares exactly which future operations are supported.
+- Explicit diagnostic traces are selected/capped. Profiles change retention only,
+  not evidence requests, hypotheses, scoring or current-run scientific inputs.
+- Default storage is lossless. Share evidence rather than silently quantizing,
+  pruning or truncating to fit quotas. Streaming/Parquet alone is not a size solution.
+- Keep inference scratch until global FDR separate from final artifacts and reusable
+  raw/library caches, with explicit quotas and peak per-volume totals covering
+  WAL/journal, indexes, staging and compaction coexistence. Mandatory output overflow
+  fails before validated final commit, never by discarding scientific alternatives.
+- Scratch removal follows global inference, validated commit and declared retention
+  needs. Capability manifests distinguish results-only from supported rescore modes
+  and require preserved matching raw data/models for referenced future re-extraction.
 
 ## Small PR slices
 
@@ -63,24 +97,30 @@ meaning and uncertainty while using native RT-IM evidence from the first slice.
 
 ## Requirement-to-acceptance checks
 
-- Shared evidence: duplicating a hypothesis reference must not increase the
+- [ ] Review includes and build dependencies: family/attribution policy stays in
+  OPENDIA, reusable scoring stays in core, and core has no OPENDIA dependency.
+- [ ] Round-trip ambiguous/coexisting forms and shared attribution in compact output,
+  then rescore the declared full population, including rejected targets/decoys/alts.
+- [ ] Compare all retention profiles for identical current-run scores/quantities;
+  stress family fan-out and quotas, asserting explicit failure rather than lost forms.
+- [ ] Shared evidence: duplicating a hypothesis reference must not increase the
   statistical weight of its shared observation. Compare with a small exact oracle.
-- Lazy evidence: a weak site-discriminating ion changes the supported localization
+- [ ] Lazy evidence: a weak site-discriminating ion changes the supported localization
   when appropriate, even if another form initially ranks higher on shared ions.
-- Full raw access: request an ion/region absent from retrieval summaries and verify
+- [ ] Full raw access: request an ion/region absent from retrieval summaries and verify
   scoring receives original-resolution signal with correct acquisition eligibility.
-- Native mobility: known overlapping RT/IM components remain distinguishable,
+- [ ] Native mobility: known overlapping RT/IM components remain distinguishable,
   while unresolved support produces ambiguity rather than a fabricated winner.
-- Optional evidence: test no MS1, no common anchor, full precursor evidence and
+- [ ] Optional evidence: test no MS1, no common anchor, full precursor evidence and
   absent IM. Disabling available scientific evidence is not a memory optimization.
-- Calibration: on held-out known-site mixtures, report localization error apart
+- [ ] Calibration: on held-out known-site mixtures, report localization error apart
   from sequence-identification error and quantitative error with WP-08.
   Require predeclared WP-00 thresholds, not agreement with the highest score alone.
-- Approximation: compare any pruning with exhaustive truth, disclose missed forms
+- [ ] Approximation: compare any pruning with exhaustive truth, disclose missed forms
   and localization-error changes, and never label truncation as complete inference.
-- Resources: stress large families and slow consumers at 2/4 GiB and 2/4 workers.
+- [ ] Resources: stress large families and slow consumers at 2/4 GiB and 2/4 workers.
   Verify bounded state, reconciled boundary results and explicit overflow outcomes.
-- Public acceptance after WP-09: run actual opt-in OpenDIA raw-to-export CLI on
+- [ ] Public acceptance after WP-09: run actual opt-in OpenDIA raw-to-export CLI on
   mobility-resolved known-site and unresolved mixtures, then rescore stored inputs.
   Compare identities, ambiguity groups, quantities and separate confidence fields.
 

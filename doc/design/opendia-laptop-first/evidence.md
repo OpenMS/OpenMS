@@ -110,3 +110,5 @@ The following paths document where the original investigation is stored on the o
 ## Not yet demonstrated
 
 Whole-engine 2/4 GiB limits, representative large-library speed, candidate-retrieval recall, joint mobility/localization quality, localization error calibration, oversized-family behavior, and release packaging remain unverified for the proposed engine. The [work packages](README.md) turn these gaps into owned implementation and acceptance work rather than treating baseline results as proof.
+
+The later output-size requirements are also unimplemented: no compact-result/rescore/diagnostic profile, per-profile OSW size reduction or combined scratch/cache/final-artifact disk bound has been measured. The existing extraction/IPF checks do not establish these claims. WP-00/WP-08/WP-10 must set capability-matched numerical footprint targets and test real retained artifacts before claiming an improvement.

@@ -1,11 +1,16 @@
 # WP-01: Contracts and scientific semantics
 
-[Plan index](../README.md) | [Architecture](../architecture.md)
+- **Suggested issue title:** [OpenDIA][WP-01] Define scientific and bounded-output contracts
+- **Parent epic:** not created
+- **Issue:** not created
+- **Repository source:** `doc/design/opendia-laptop-first/work-packages/01-contracts.md`
+
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 - **Status:** proposed, not implemented.
 - **Owner:** unassigned. Suggested expertise: C++ architecture and DIA scientific semantics.
 - **Reviewer:** unassigned, with producer/consumer owner sign-off.
-- **Dependencies:** [WP-00](00-acceptance-baseline.md) for fixtures and baseline policy.
+- **Dependencies:** WP-00 for fixtures and baseline policy.
 
 ## Goal
 
@@ -39,6 +44,22 @@ Define calibration as an immutable snapshot within a pass. Cache keys include it
 - Reference compatibility versus intentional algorithm changes. Legacy whole-assay picker totals/overlap suppression must be preserved only when claiming reference semantics.
 - How unresolved localizations, coexisting forms, absent MS1 and incomplete searches appear in records and outputs.
 
+## Code placement
+
+- Provisional until implementation: generic packed records, IDs and views belong in core `DATASTRUCTURES` (serialization in `FORMAT`), with matching header/source paths.
+- OpenDIA candidate semantics and schema/profile policy belong in NEW proposed `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and `src/openms/source/ANALYSIS/OPENDIA/`, neither currently present. This plan creates no directories or code.
+- Core must not depend on OPENDIA. Existing shared `OPENSWATH` components stay shared, and `src/topp/OpenDIA.cpp` remains a thin CLI.
+
+## Output-size contract
+
+- Default results-only schema contains compact identification, localization, quantification and ambiguity provenance, not whole-library traces or transition cubes. Existing full-OSW compatibility is an opt-in export only.
+- Own a versioned byte/cardinality ledger: result rows, ambiguity links, distinct dictionary entries, sparse incidence edges and shared coordinate/evidence references, with encoded widths and variable-field lengths. Never duplicate sequence/protein strings or evidence arrays per alternative.
+- Require profile manifests to declare row counts, actual encoded bytes, mandatory fields and completeness. Growth follows reported results plus required provenance edges, not library size multiplied by scans/transitions.
+- Optional rescore profile declares and preserves all prefilter target/decoy/alternative inputs required by each supported rescoring method. Diagnostics are opt-in, explicitly selected and byte capped.
+- Working inference scratch, final deliverables and reusable caches have separate budgets plus a per-volume combined peak. Include WAL/journals, indices, atomic staging and simultaneous old/new compaction copies.
+- Preserve the full inference population until global confidence completes. Quotas never authorize silent dropping or evidence pruning. If mandatory output cannot fit, fail explicitly without a complete-looking truncated result.
+- Compression or Parquet alone does not satisfy this contract. Any CLI budget names remain proposals, not implemented options.
+
 ## PR-sized implementation steps
 
 1. Add a short reviewed contract specification and identity/units tables, with input/output examples from WP-00.
@@ -48,12 +69,18 @@ Define calibration as an immutable snapshot within a pass. Cache keys include it
 
 ## Acceptance checks
 
-- Unit tests cover query equality and inequality for every scientific field, overflow/malformed offsets, missing versus zero, and invalid lifetime use with appropriate sanitizers.
-- Round trips preserve exact IDs, coordinate references, masks and unresolved status. Stable IDs do not depend on thread scheduling or tile size.
-- Calibration updates invalidate dependent query/evidence results. Unknown units/schema versions fail explicitly.
-- A real fixture crosses the implemented producer/consumer boundaries without rebuilding full string-keyed maps or materializing the whole library.
-- After [WP-09](09-cli-integration.md), the public workflow demonstrates the same contract invariants end to end. A synthetic transport test alone does not close that gate.
+- [ ] Review header/source placement and build dependencies: reusable core has no OPENDIA dependency, shared OPENSWATH stays shared, and the CLI contains only thin orchestration.
+
+- [ ] Round-trip each profile with exact row/edge/dictionary counts and encoded-byte accounting, retaining ambiguity provenance without duplicated evidence.
+- [ ] Grow absent hypotheses on a fixed result fixture and show default output has no library-by-scan/transition growth; validate declared rescore inputs separately.
+- [ ] Exhaust mandatory-output quota and reject publication as complete; test separate and combined-volume accounting including staging/compaction.
+
+- [ ] Unit tests cover query equality and inequality for every scientific field, overflow/malformed offsets, missing versus zero, and invalid lifetime use with appropriate sanitizers.
+- [ ] Round trips preserve exact IDs, coordinate references, masks and unresolved status. Stable IDs do not depend on thread scheduling or tile size.
+- [ ] Calibration updates invalidate dependent query/evidence results. Unknown units/schema versions fail explicitly.
+- [ ] A real fixture crosses the implemented producer/consumer boundaries without rebuilding full string-keyed maps or materializing the whole library.
+- [ ] After WP-09, the public workflow demonstrates the same contract invariants end to end. A synthetic transport test alone does not close that gate.
 
 ## Risks and handoff
 
-An over-general object graph can recreate the memory problem. Prefer small packed contracts with cold metadata separated. Provide headers/specification, serialization examples, ownership diagrams and test fixtures to [WP-02](02-resource-budget.md), [WP-03](03-raw-tiles.md), [WP-04](04-hypothesis-store.md) and [WP-08](08-storage-confidence.md).
+An over-general object graph can recreate the memory problem. Prefer small packed contracts with cold metadata separated. Provide headers/specification, serialization examples, ownership diagrams and test fixtures to WP-02, WP-03, WP-04 and WP-08.

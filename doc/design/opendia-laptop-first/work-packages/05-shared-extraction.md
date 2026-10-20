@@ -1,10 +1,15 @@
 # WP-05: Exact-query shared extraction and immutable local evidence
 
+- **Suggested issue title:** [OpenDIA][WP-05] Share exact extraction without trace-output explosion
+- **Parent epic:** not created
+- **Issue:** not created
+- **Repository source:** `doc/design/opendia-laptop-first/work-packages/05-shared-extraction.md`
+
 Status: proposed/not implemented
 Owner: unassigned
 Reviewer: unassigned
 Suggested expertise: numerical extraction kernels, ion mobility, lifetime-safe C++ and regression tests.
-Index: [Laptop-first design](../README.md)
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 ## Goal
 
@@ -14,10 +19,10 @@ Establish mathematical extraction correctness separately from legacy-output comp
 
 ## Dependencies
 
-- Requires [WP-02 budgets](02-resource-budget.md), [WP-03 raw tiles](03-raw-tiles.md)
-  and [WP-04 hypothesis store](04-hypothesis-store.md), using their WP-01 contract dependencies.
-- Supplies [WP-06 retrieval](06-candidate-retrieval.md) and [WP-07 scoring](07-family-scoring.md).
-- Integrate public acceptance through [WP-09](09-cli-integration.md) and [WP-00](00-acceptance-baseline.md).
+- Requires WP-02 budgets, WP-03 raw tiles
+  and WP-04 hypothesis store, using their WP-01 contract dependencies.
+- Supplies WP-06 retrieval and WP-07 scoring.
+- Integrate public acceptance through WP-09 and WP-00.
 
 ## Scope and non-goals
 
@@ -62,6 +67,22 @@ Establish mathematical extraction correctness separately from legacy-output comp
 - Isolate its regression and reviewed fix/policy decision before accepting migration comparisons.
 - Keep in-process numeric tolerances separate from lossy exported chromatogram encoding tolerances.
 
+## Code placement
+
+- Provisional until implementation: reusable extraction kernels belong in core `PROCESSING`/`IONMOBILITY`, with matching header/source paths.
+- OpenDIA query orchestration, canonicalization policy and evidence-cache policy belong in NEW proposed `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and `src/openms/source/ANALYSIS/OPENDIA/`, neither currently present. This plan creates no directories or code.
+- Core must not depend on OPENDIA. Existing shared `OPENSWATH` components stay shared, and `src/topp/OpenDIA.cpp` remains a thin CLI.
+
+## Output-size contract
+
+- Own evidence accounting by unique complete query, stored support points, shared axes, validity masks and consumer-reference edges. Encoded payload grows with unique evidence plus sparse references, not consumers multiplied by trace length or a dense family/fragment/RT/IM cube.
+- Persist each shared evidence block once per representation and reference it by stable ID; count dictionary, axis and sparse-incidence bytes separately. Charge recomputed/overlapping representations explicitly rather than concealing duplicate storage.
+- Extracted evidence is working inference scratch or an explicitly reusable cache, not a default deliverable. Budget scratch, final deliverables and caches separately plus per-volume combined peaks, counting WAL/journals, indices, atomic staging and compaction old+new copies.
+- Default results-only output contains compact identification/localization/quantification summaries and ambiguity provenance, never whole-library traces/transition cubes. Full-OSW compatibility is an opt-in export only.
+- Optional rescore profile preserves declared prefilter target/decoy/alternative inputs required by supported rescoring, including necessary evidence or durable references. Diagnostics are opt-in by explicit query/region/ID selection and byte capped before serialization.
+- Keep full inference population and required evidence available until global confidence completes, including legacy whole-XIC state where claimed. Cache eviction may re-extract, not silently drop candidates or prune evidence to satisfy quota.
+- Fail explicitly when mandatory output cannot fit, without complete-looking truncated results. Compression or Parquet alone is insufficient, and CLI budget names remain proposals only.
+
 ## Small PR slices
 
 1. Specify canonical queries and normative boundary fixtures, including the first-centroid regression.
@@ -71,12 +92,18 @@ Establish mathematical extraction correctness separately from legacy-output comp
 
 ## Acceptance checks
 
-- Unit: normative sums/maxima and tolerance conversions pass independently of legacy output.
-- Unit: vary every query-key field and force hash collisions to prove no false evidence reuse.
-- Unit: shared queries return identical evidence and release buffers only after the last consumer.
-- Unit: non-monotone intervals, overlapping PASEF geometry, missing scans and FAIMS remain correct.
-- Unit: cancellation, oversized patches and stalled consumers obey WP-02 without partial success.
-- Integration: run the real public OpenDIA pipeline from raw/prepared inputs through final export.
+- [ ] Review header/source placement and build dependencies: reusable core has no OPENDIA dependency, shared OPENSWATH stays shared, and the CLI contains only thin orchestration.
+
+- [ ] Multiply consumers of fixed exact queries and verify payload/support-point counts stay fixed while only reference edges grow, including serialized bytes.
+- [ ] Verify results-only writes no whole-library trace payload, selected diagnostics stay byte capped, and declared rescore inputs remain complete.
+- [ ] Exhaust evidence/export quota with pinned consumers and staging/compaction overlap; verify explicit failure rather than changed inference populations or truncated successful output.
+
+- [ ] Unit: normative sums/maxima and tolerance conversions pass independently of legacy output.
+- [ ] Unit: vary every query-key field and force hash collisions to prove no false evidence reuse.
+- [ ] Unit: shared queries return identical evidence and release buffers only after the last consumer.
+- [ ] Unit: non-monotone intervals, overlapping PASEF geometry, missing scans and FAIMS remain correct.
+- [ ] Unit: cancellation, oversized patches and stalled consumers obey WP-02 without partial success.
+- [ ] Integration: run the real public OpenDIA pipeline from raw/prepared inputs through final export.
 - Use a coherent build once WP-09 is integrated, with nonzero MS1 and MS2 positive fixtures.
 - Include real IM overlap, known-site mixtures, unresolved forms and weak discriminating fragments.
 - Compare sharing on/off, tile sizes and 2/4 workers for evidence, candidates, scores and quantities.

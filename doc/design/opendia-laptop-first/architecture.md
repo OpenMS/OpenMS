@@ -58,6 +58,8 @@ The accounting invariant does not prove bounded RSS. Measure process and cgroup 
 
 Resource acquisition must not deadlock when a producer holds raw/evidence buffers while waiting for scoring or writer reservations. Define reservation ordering, cancellation and backpressure before increasing concurrency.
 
+Disk is not an unlimited substitute for RAM. Define independent byte budgets for final output, working scratch and reusable raw/library caches, plus a combined peak limit on each filesystem. Track actual encoded bytes and allocation overhead, not just row estimates. Include indexes, database WAL/journals, compression buffers, external-sort runs, staging files and old/new copies during compaction or atomic publication. Reserve finalization headroom before starting an operation that needs both copies. A requested quota below mandatory output needs must produce an explicit resource-limit failure, not a truncated success.
+
 ## 3. Data contracts
 
 | Contract | Contents and ownership |
@@ -114,7 +116,35 @@ Keep identification, localization and protein inference confidence distinct. Do 
 
 Apply equivalent target/decoy selection logic, then validate error calibration. Symmetry alone is insufficient. Never concatenate independently computed tile-level q-values. Stream compact tables into disk-backed global sorting, competition, model fitting and reduction. State when fitting is exact or sampled.
 
-The canonical stored schema must support localization and rescoring independently of export backend. Preserve candidate/family/form IDs, discriminating and shared evidence, masks, acquisition/calibration identity and model provenance. Optional trace export must not make a whole-run feature map the normal path. Define crash-safe checkpoints and schema compatibility.
+The canonical working-evidence schema and optional retained rescoring artifact must support localization and their declared rescoring operations independently of storage backend. Preserve candidate/family/form IDs, discriminating and shared evidence, masks, acquisition/calibration identity and model provenance as required by those capabilities. Compact final results are a separate product and need not retain all rescoring inputs. Optional trace export must not make a whole-run feature map the normal path. Define crash-safe checkpoints and schema compatibility.
+
+### Retention profiles and bounded output size
+
+The current concern is multi-gigabyte OSW artifacts. Streaming rows solves memory lifetime, not file size. Replacing SQLite with Parquet or compressing the same expanded records is not by itself an architectural solution. Audit row cardinality, repeated metadata and materialized evidence before selecting a backend.
+
+| Artifact/profile | Retain | Default and capability boundary |
+|---|---|---|
+| Final `results` | Reported identities, localized or unresolved/coexisting forms, quantitative summaries, confidence values, run/model/search provenance and compact referenced metadata | Default. Supports result interpretation and declared exports, not arbitrary re-training or re-FDR |
+| Optional `rescore` | Shared and discriminating evidence and the complete candidate/target/decoy/alternative population required by named rescoring operations | Explicit opt-in. Declare retained fields, population, supported operations and any raw/library/model dependencies |
+| Optional `diagnostic` | Selected XICs, RT/IM patches, raw references and detailed transition records | Explicit selectors and byte cap. Never full-library dense traces by default |
+| Working scratch | Unfiltered candidate/score population, inference intermediates, sort runs, checkpoints | Retain until all required global inference and final publication are complete; cleanup by documented policy |
+| Reusable caches | Indexed raw tiles, hypothesis libraries and prediction caches | Separate quota/lifetime, not copied into each result bundle; references carry identity and availability requirements |
+
+Profiles control retention, not the scientific inputs used during the current run. Keep rejected candidates and decoys until the relevant global confidence computations are finished. Do not choose a top-k or discard weak localization evidence merely to hit a byte target. After finalization, compact results may omit intermediate rows under an explicit reporting policy, while a rescore artifact must preserve its declared population. Reported results and confidence values must agree across profiles under that policy.
+
+Store repeated sequence, protein, fragment, coordinate and calibration metadata once per appropriate scope, using stable IDs and compact dictionaries. Share identical evidence and sparse fragment-to-form incidence rather than duplicating it per localization. Avoid unrequested transition tables, zero-filled grids, raw copies, all-hypothesis metadata and redundant output formats. Use lossless encoding by default; optional lossy diagnostics need explicit precision/error validation and must not silently feed scientific rescoring.
+
+A capability manifest states whether the artifact is results-only, rescore-capable or diagnostic, its retained population, schema versions and referenced dependencies. Re-extraction from raw references is only available if the matching raw data, library, models and calibration can actually be resolved. A results-only artifact must fail unsupported rescoring requests clearly. Required localization/confidence results and ambiguity must remain understandable without opening an unavailable working cache.
+
+Full OSW or other compatibility export is an explicit capability with its own size estimate and quota, not an automatic second copy. Account all retained files and sidecars in the final-artifact budget. Checkpoint and final-output completion markers prevent interrupted or quota-exceeded jobs from looking complete. Cleanup may remove only task-owned expendable intermediates under the declared retention policy, never user inputs or required rescore dependencies.
+
+### Size acceptance protocol
+
+WP-00, WP-08 and WP-10 must agree numerical byte ceilings and reduction goals per dataset/profile before schema acceptance. Do not impose one unsupported universal file-size target: an optional complete rescoring population may legitimately be larger than compact results. Instead, test explicit user quotas and capability-matched comparisons.
+
+Measure final logical and allocated bytes across all files, per-table/column row counts, metadata/evidence amplification, bytes per reported candidate/family/quantified entity, bytes per retained transition, and peak combined disk occupancy during writing and finalization. Report raw-data/library size ratios only alongside absolute sizes and retained capabilities. A small result export cannot be presented as a like-for-like replacement for a richer OSW rescore database.
+
+Use a fixed acquisition and growing absent hypotheses/site alternatives to expose unnecessary output fan-out. Compact result size should track actual reported evidence and required metadata, not a copied absent library. Legitimate changes in candidate/result populations must be reported. Exercise real result reopening/export, supported rescoring, optional diagnostics, interrupted output, low disk and quota exhaustion. Require no current-run identification/localization/quantification changes when switching retention profile, and fail unsupported capabilities explicitly.
 
 ## 8. What should make it fast
 
@@ -142,5 +172,18 @@ Measure preparation, decoding, retrieval, extraction, scoring, confidence and wr
 | Stable execution | Equivalent candidate IDs/sets and tolerance-bounded scores/quantities across tiles and workers, with complete boundaries | 01, 05, 06, 09 |
 | Overload safety | Dense windows, huge families, slow writers, low disk, cancellation and undersized budgets have explicit bounded outcomes | 02, 04, 08, 09 |
 | Output usability | Localization-capable stored evidence, exported results and supported installed consumers preserve advertised capabilities | 08, 09, 10 |
+| Compact final output | Per-profile byte ceilings and capability-matched OSW reduction gates; no default full-library/trace replication, and real result consumers preserve scientific summaries | 00, 01, 04 through 10 |
+| Peak disk safety | Separate scratch/cache/final quotas and combined per-volume peaks include journals, indexes and staging/compaction overlap; explicit quota and disk-full outcomes | 02, 03, 08 through 10 |
+| Source ownership | OpenDIA policies in `ANALYSIS/OPENDIA`, reusable core modules independent of OpenDIA, thin TOPP entry point and installed-header/consumer checks | 01 through 10 |
 
 Agree numerical/quality margins and the quantitative speed gate before evaluating the new engine. The first public vertical slice must include mobility and peptidoform competition together. Passing separate legacy tests is not that slice.
+
+## 10. Implementation ownership and dependency direction
+
+Introduce paired `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and `src/openms/source/ANALYSIS/OPENDIA/` directories for OpenDIA-specific orchestration, family-search and selection policies, calibration workflow, retention profiles and result-schema policy. The uppercase directory spelling follows the existing analysis modules. These are proposed locations, not directories already present in the inspected checkout.
+
+Keep reusable data containers in `DATASTRUCTURES`, resource primitives in `SYSTEM`, generic readers/writers in `FORMAT`, chemistry in `CHEMISTRY`, numerical methods in `MATH`, and generic signal/mobility processing in `PROCESSING`/`IONMOBILITY` or an existing suitable analysis module. Existing reusable `ANALYSIS/OPENSWATH` APIs remain shared. Reuse a generic algorithm through an adapter instead of introducing two copies or pulling OpenDIA policy into a core header.
+
+`src/topp/OpenDIA.cpp` owns CLI declaration/validation and calls the OpenDIA layer. It must not become the new engine implementation. Dependency direction is CLI -> OpenDIA -> core. Core contracts cannot include OpenDIA-only headers, profiles or family-policy types. Core does not depend on the CLI or GUI.
+
+Each implementing PR declares placement of every new type, registers the appropriate source/header `sources.cmake` lists and `src/openms/includes.cmake` entries, and tests installed public headers and consumers when affected. Use existing class-test and TOPP registration conventions. This plan does not authorize a bulk move or incompatible renaming of existing public APIs. Proposed extraction/admission kernels must demonstrate a generic boundary before promotion to core.

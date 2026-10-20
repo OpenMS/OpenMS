@@ -1,10 +1,15 @@
 # WP-03: Mobility-native bounded raw evidence tiles
 
+- **Suggested issue title:** [OpenDIA][WP-03] Add bounded mobility-native raw tiles
+- **Parent epic:** not created
+- **Issue:** not created
+- **Repository source:** `doc/design/opendia-laptop-first/work-packages/03-raw-tiles.md`
+
 Status: proposed/not implemented
 Owner: unassigned
 Reviewer: unassigned
 Suggested expertise: mass-spectrometry acquisition formats, ion mobility, packed storage and I/O.
-Index: [Laptop-first design](../README.md)
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 ## Goal
 
@@ -14,10 +19,10 @@ Non-IM, continuous IM, diaPASEF and FAIMS must be explicit supported or rejected
 
 ## Dependencies
 
-- Requires [WP-01 contracts](01-contracts.md) and [WP-02 budgets](02-resource-budget.md).
-- Feeds [WP-05 extraction](05-shared-extraction.md) and [WP-06 retrieval](06-candidate-retrieval.md).
-- Public acceptance is integrated by [WP-09](09-cli-integration.md).
-- Use [WP-00 baseline](00-acceptance-baseline.md) fixtures and measurement provenance.
+- Requires WP-01 contracts and WP-02 budgets.
+- Feeds WP-05 extraction and WP-06 retrieval.
+- Public acceptance is integrated by WP-09.
+- Use WP-00 baseline fixtures and measurement provenance.
 
 ## Scope and non-goals
 
@@ -49,6 +54,22 @@ Non-IM, continuous IM, diaPASEF and FAIMS must be explicit supported or rejected
 - Use WP-02 admission before decoding and bounded spill/index construction, including disk quota.
 - Oversized frames split only at valid coordinate boundaries or fail with a resource-limit result.
 
+## Code placement
+
+- Provisional until implementation: reusable readers and raw geometry belong in core `FORMAT`/`KERNEL`/`IONMOBILITY`, with matching header/source paths.
+- OpenDIA run-tile selection, ownership and cache policy belong in NEW proposed `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and `src/openms/source/ANALYSIS/OPENDIA/`, neither currently present. This plan creates no directories or code.
+- Core must not depend on OPENDIA. Existing shared `OPENSWATH` components stay shared, and `src/topp/OpenDIA.cpp` remains a thin CLI.
+
+## Output-size contract
+
+- Own a raw-cache ledger of unique centroid records, scan/frame geometry, axis entries, tile descriptors and index bytes. Store each owned raw observation once per cache representation, with halo views referencing shared coordinates rather than durable duplicates.
+- Cache growth follows raw observations plus geometry/index metadata, never hypothesis/family/transition count. Declare encoded bytes per record and measured variable metadata, and reserve any unavoidable duplicate representation explicitly.
+- Raw tiles are reusable caches or working inference scratch, not default final deliverables. Budget all three separately plus per-volume combined peaks, counting WAL/journals, indices, atomic staging and compaction old+new copies.
+- Default output remains compact identification/localization/quantification and ambiguity provenance, not whole-library traces/transition cubes. Full-OSW compatibility is opt-in export only.
+- Optional rescore profile retains declared prefilter target/decoy/alternative inputs required by supported rescoring; raw/evidence references must remain resolvable for its declared lifetime, with retained bytes charged.
+- Diagnostic raw/trace export is opt-in, explicitly region/ID selected and byte capped. Use dictionaries, sparse incidence and shared coordinate/evidence references; compression or Parquet alone is insufficient.
+- Evict only reconstructible cache data, preserving full inference population until global confidence completes. Never silently drop work or prune evidence to meet quota; fail explicitly if mandatory output cannot fit, without complete-looking truncation. CLI budget names are proposals only.
+
 ## Small PR slices
 
 1. Add packed tile/axis/validity representation and round-trip tests for ordinary DIA and IM.
@@ -58,13 +79,19 @@ Non-IM, continuous IM, diaPASEF and FAIMS must be explicit supported or rejected
 
 ## Acceptance checks
 
-- Unit: round trips preserve exact coordinates, offsets, acquisition masks and lane identities.
-- Unit: missing scans differ from acquired empty scans and zero-intensity observations.
-- Unit: overlapping PASEF windows, moving boundaries, separate FAIMS voltages and absent IM.
-- Unit: interval overlap includes long queries whose centres lie outside the requested tile.
-- Unit: cache eviction cannot invalidate a leased view, and cancellation releases pinned bytes.
-- Unit: oversized frame, truncated cache, disk exhaustion and missing metadata fail explicitly.
-- Integration: rebuild coherently and run the actual public pipeline through WP-09 after integration.
+- [ ] Review header/source placement and build dependencies: reusable core has no OPENDIA dependency, shared OPENSWATH stays shared, and the CLI contains only thin orchestration.
+
+- [ ] On fixed raw data, grow hypothesis counts and vary halos/workers: unique cached observation counts remain fixed and measured tile/index bytes match the ledger.
+- [ ] Force cache rebuild, compaction and publication under separate/shared-volume quotas, counting simultaneous old/new data and WAL/journals.
+- [ ] Verify default deliverables contain no raw-tile payloads, selected diagnostics obey byte caps, and quota failure preserves scientific work or explicitly fails.
+
+- [ ] Unit: round trips preserve exact coordinates, offsets, acquisition masks and lane identities.
+- [ ] Unit: missing scans differ from acquired empty scans and zero-intensity observations.
+- [ ] Unit: overlapping PASEF windows, moving boundaries, separate FAIMS voltages and absent IM.
+- [ ] Unit: interval overlap includes long queries whose centres lie outside the requested tile.
+- [ ] Unit: cache eviction cannot invalidate a leased view, and cancellation releases pinned bytes.
+- [ ] Unit: oversized frame, truncated cache, disk exhaustion and missing metadata fail explicitly.
+- [ ] Integration: rebuild coherently and run the actual public pipeline through WP-09 after integration.
 - Exercise real mobility-resolved acquisition with overlapping components and tile-edge signals.
 - Include non-IM, PASEF and FAIMS inputs, missing scans and multiple MS1 acquisitions.
 - Compare direct decode and disk-cache paths for evidence, candidate sets, scores and quantities.

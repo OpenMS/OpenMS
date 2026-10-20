@@ -1,10 +1,15 @@
 # WP-04: Bounded hypothesis preparation and indexed family store
 
+- **Suggested issue title:** [OpenDIA][WP-04] Bound hypothesis preparation and family indexes
+- **Parent epic:** not created
+- **Issue:** not created
+- **Repository source:** `doc/design/opendia-laptop-first/work-packages/04-hypothesis-store.md`
+
 Status: proposed/not implemented
 Owner: unassigned
 Reviewer: unassigned
 Suggested expertise: peptide chemistry, digestion/decoys, prediction and external-memory indexes.
-Index: [Laptop-first design](../README.md)
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 ## Goal
 
@@ -14,10 +19,10 @@ Preserve search coverage, stable identities and provenance independently of batc
 
 ## Dependencies
 
-- Requires [WP-01 contracts](01-contracts.md) and [WP-02 budgets](02-resource-budget.md).
-- Supplies [WP-05 extraction](05-shared-extraction.md) and [WP-06 retrieval](06-candidate-retrieval.md).
-- Coordinate evidence identity consumers with [WP-08](08-storage-confidence.md).
-- Public acceptance closes through [WP-09](09-cli-integration.md) using [WP-00](00-acceptance-baseline.md).
+- Requires WP-01 contracts and WP-02 budgets.
+- Supplies WP-05 extraction and WP-06 retrieval.
+- Coordinate evidence identity consumers with WP-08.
+- Public acceptance closes through WP-09 using WP-00.
 
 ## Scope and non-goals
 
@@ -50,6 +55,22 @@ Preserve search coverage, stable identities and provenance independently of batc
 - Reserve all preparation buffers/workspaces via WP-02 and enforce temporary/final disk quotas.
 - Publish import/digestion/decoy/prediction/index timings and peak resident/temporary/final bytes.
 
+## Code placement
+
+- Provisional until implementation: reusable digestion, modification and decoy chemistry belongs in core `CHEMISTRY`, with matching header/source paths.
+- OpenDIA family index, preparation orchestration and provenance policy belong in NEW proposed `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and `src/openms/source/ANALYSIS/OPENDIA/`, neither currently present. This plan creates no directories or code.
+- Core must not depend on OPENDIA. Existing shared `OPENSWATH` components stay shared, and `src/topp/OpenDIA.cpp` remains a thin CLI.
+
+## Output-size contract
+
+- Own a preparation ledger for distinct families/forms/precursors/fragments, dictionary entries, protein mappings, sparse incidence edges and index entries, with encoded bytes per record plus variable metadata. Store shared fragments once, never pairwise alternative/UIS expansions or scan-by-library products.
+- Prepared stores are reusable caches, not default final deliverables; sort runs and prediction intermediates are working inference scratch. Budget these classes separately plus per-volume combined peaks, including WAL/journals, indices, atomic staging and compaction old+new copies.
+- Final results-only output contains compact identification/localization/quantification summaries and ambiguity provenance using IDs/dictionaries and shared coordinate/evidence references, not a copied predicted library or whole-library traces/transition cubes. Full-OSW compatibility is opt-in export only.
+- Optional rescore profile preserves declared prefilter target/decoy/alternative inputs required by supported rescoring. Resolve referenced chemistry/provenance through a charged self-contained subset or declared durable dependency, not an assumed surviving temporary store.
+- Diagnostics are opt-in, selected and byte capped. Compression or Parquet alone is insufficient: report prepared-store and final-output bytes/cardinalities separately.
+- Preserve every supported enumerated hypothesis and the full inference population until global confidence completes. No silent top-k, dropping or evidence pruning for quota; if mandatory storage/output cannot fit, fail explicitly without complete-looking truncated results.
+- CLI budget names are proposals only; index construction must reserve peak merge/publish space before work, not infer feasibility from final compressed size.
+
 ## Small PR slices
 
 1. Add deterministic family IDs, paged imported-library access and provenance round-trip tests.
@@ -59,13 +80,19 @@ Preserve search coverage, stable identities and provenance independently of batc
 
 ## Acceptance checks
 
-- Unit: small exhaustive digestion/modification/decoy truth sets match streamed enumeration exactly.
-- Unit: IDs, protein mappings and target/decoy associations remain stable across page/worker sizes.
-- Unit: huge family pagination retains all alternatives and does not replicate shared evidence.
-- Unit: absent RT/IM predictions, broad uncertainty and calibration changes preserve recovery access.
-- Unit: prediction workspace estimates, sort spill, disk-full and cancellation never escape budgets.
-- Unit: incompatible manifests and interrupted builds cannot be reused as complete stores.
-- Integration: execute a fresh public OpenDIA preparation-to-export workflow once WP-09 is wired.
+- [ ] Review header/source placement and build dependencies: reusable core has no OPENDIA dependency, shared OPENSWATH stays shared, and the CLI contains only thin orchestration.
+
+- [ ] Grow absent hypotheses and alternatives independently: report exact store row/edge counts and bytes, with no pairwise UIS or library-by-scan expansion.
+- [ ] Verify results-only exports do not copy the prepared library, while mandatory ambiguity links and declared rescore populations/provenance remain recoverable.
+- [ ] Exhaust quota during external merge and atomic publication, measuring old/new plus journal/index bytes and rejecting incomplete stores/results as complete.
+
+- [ ] Unit: small exhaustive digestion/modification/decoy truth sets match streamed enumeration exactly.
+- [ ] Unit: IDs, protein mappings and target/decoy associations remain stable across page/worker sizes.
+- [ ] Unit: huge family pagination retains all alternatives and does not replicate shared evidence.
+- [ ] Unit: absent RT/IM predictions, broad uncertainty and calibration changes preserve recovery access.
+- [ ] Unit: prediction workspace estimates, sort spill, disk-full and cancellation never escape budgets.
+- [ ] Unit: incompatible manifests and interrupted builds cannot be reused as complete stores.
+- [ ] Integration: execute a fresh public OpenDIA preparation-to-export workflow once WP-09 is wired.
 - Exercise both imported libraries and library-free FASTA, with targets, decoys and known-site mixtures.
 - Increase absent hypotheses and site alternatives on a fixed real mobility-resolved run.
 - Compare prepared populations/IDs and downstream candidates/scores/quantities across page sizes.

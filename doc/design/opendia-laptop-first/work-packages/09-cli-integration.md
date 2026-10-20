@@ -1,9 +1,13 @@
 # WP-09: Opt-in public CLI and end-to-end integration
 
 - Status: proposed / not implemented.
+- Suggested issue title: `[OpenDIA][WP-09] Opt-in CLI with compact output profiles`.
+- Parent epic: OpenDIA laptop-first redesign (issue link pending).
+- Issue: not created. This document is a posting draft.
+- Repository source: `doc/design/opendia-laptop-first/work-packages/09-cli-integration.md`.
 - Reviewer: unassigned.
 - Owner: unassigned. Suggested expertise: TOPP integration, CTest, workflow delivery.
-- Context: [master plan](../README.md), [architecture](../architecture.md).
+Repository context: `doc/design/opendia-laptop-first/README.md` and `doc/design/opendia-laptop-first/architecture.md`.
 
 ## Goal
 
@@ -14,14 +18,14 @@ pass. A working internal harness is not completion of this work package.
 
 ## Dependencies and handoff
 
-- Requires [WP-03 raw tiles](03-raw-tiles.md).
-- Requires [WP-04 hypothesis store](04-hypothesis-store.md).
-- Requires [WP-05 shared extraction](05-shared-extraction.md).
-- Requires [WP-06 candidate retrieval](06-candidate-retrieval.md).
-- Requires [WP-07 family scoring](07-family-scoring.md).
-- Requires [WP-08 storage/confidence](08-storage-confidence.md).
-- Uses acceptance definitions in [WP-00](00-acceptance-baseline.md).
-- Hands measured integrated results to [WP-10](10-performance-release.md).
+- Requires WP-03 raw tiles.
+- Requires WP-04 hypothesis store.
+- Requires WP-05 shared extraction.
+- Requires WP-06 candidate retrieval.
+- Requires WP-07 family scoring.
+- Requires WP-08 storage/confidence.
+- Uses acceptance definitions in WP-00.
+- Hands measured integrated results to WP-10.
 
 ## Scope and non-goals
 
@@ -48,6 +52,37 @@ pass. A working internal harness is not completion of this work package.
 - Keep inference/export runnable through supported public entry points, not only
   private test helpers. Publish exact commands when executable options exist.
 
+## Code placement
+
+- Keep `src/topp/OpenDIA.cpp` a thin CLI calling OpenDIA orchestration in proposed
+  NEW, currently absent `src/openms/include/OpenMS/ANALYSIS/OPENDIA/` and
+  `src/openms/source/ANALYSIS/OPENDIA/`. Add no engine implementation in `topp`.
+- Generic math remains in `MATH/STATISTICS`, reusable scoring in `ANALYSIS/OPENSWATH`
+  or appropriate core, and generic serialization/sorting in `FORMAT`/`DATASTRUCTURES`/
+  `SYSTEM`. No reusable core may depend on OPENDIA types or policies.
+
+## Output-size contract
+
+- For the new opt-in path, expose compact results as the default retained profile,
+  preserving identification, localization/quantification ambiguity and run provenance.
+  Keep legacy defaults unchanged. Use IDs/dictionaries/sparse shared evidence, with
+  no default full-library duplicate or dense traces and no hidden lossy encoding.
+- Document optional rescore evidence covering all declared populations required by
+  supported global rescoring, including rejected targets/decoys/alternatives, and an
+  explicit selected/capped diagnostic traces profile. Profiles never alter run science.
+- Expose separate budgets/locations for inference scratch through global FDR, final
+  artifacts and reusable raw/library caches, plus peak per-volume totals including
+  WAL/journal, indexes, staging and compaction coexistence. Streaming/Parquet is not
+  itself a size guarantee. Publish WP-08 footprint audit and WP-00 size-goal checks.
+- Preflight optional full OSW compatibility export, including coexistence space.
+  Mandatory-output overflow must fail clearly before committed final output, never
+  silently dropping hypotheses, truncating or changing scientific inputs to fit.
+- Expose capability manifests and actionable errors: results-only cannot promise
+  rescore, and raw re-extraction requires preserved matching data/models behind
+  references. Document supported public reopen/rescore/export commands and prerequisites.
+- Cleanup follows global inference, validated commit and declared retention needs,
+  not CLI exit alone. Make failed versus committed artifacts unambiguous to users.
+
 ## Small PR slices
 
 1. Add opt-in parameter/help contracts, preflight checks and negative public tests.
@@ -61,26 +96,33 @@ pass. A working internal harness is not completion of this work package.
 
 ## Requirement-to-acceptance checks
 
-- Public workflow: build affected targets locally from one recorded source revision,
+- [ ] Review `src/topp/OpenDIA.cpp` for thin option/dispatch code only: engine work
+  calls OPENDIA orchestration, with no new engine code in TOPP or core-to-OPENDIA dependency.
+- [ ] Through public CLI commands, reopen every profile and compare current-run science,
+  ambiguity/provenance and declared rescore populations; reject results-only rescore
+  and missing raw/model prerequisites with actionable capability errors.
+- [ ] Exercise separate quotas, shared-volume peaks, capped diagnostics and optional
+  OSW preflight; assert no committed partial artifact or silent scientific reduction.
+- [ ] Public workflow: build affected targets locally from one recorded source revision,
   then run the actual opt-in OpenDIA executable from raw input to final exports.
   CTest must assert nonempty scientific results, not merely successful process exit.
-- Native mobility: real acquisition fixtures exercise RT-IM overlap, calibration
+- [ ] Native mobility: real acquisition fixtures exercise RT-IM overlap, calibration
   offsets/uncertainty, missing scans, tile boundaries and discrete FAIMS geometry.
   Include non-IM compatibility without reducing the mobility fixture to one axis.
-- Family science: known-site standards, unresolved/coexisting mixtures, absent
+- [ ] Family science: known-site standards, unresolved/coexisting mixtures, absent
   hypotheses and no-MS1/no-anchor cases retain expected evidence and ambiguity.
   Measure identification, localization and quantitative error separately.
-- Storage independence: repeat supported backend paths through public inference
+- [ ] Storage independence: repeat supported backend paths through public inference
   and export. Verify localization inputs/results survive and unsupported requests
   fail clearly before final output creation, without a scientific downgrade.
-- Global confidence: compare integrated results with WP-08 global-oracle fixtures
+- [ ] Global confidence: compare integrated results with WP-08 global-oracle fixtures
   and held-out calibration gates, not tilewise q-values or target/decoy symmetry only.
-- Resource/scheduling: run CPU-only 2/4 GiB settings at 2/4 workers, varied tiles,
+- [ ] Resource/scheduling: run CPU-only 2/4 GiB settings at 2/4 workers, varied tiles,
   dense families and slow writers. Record process/cgroup peak, swaps, temporary
   disk, explicit spill/failure and stable candidate/score/quantity reconciliation.
-- Compatibility: run affected existing TOPP output comparisons and opt-in outputs.
+- [ ] Compatibility: run affected existing TOPP output comparisons and opt-in outputs.
   Preserve supported field semantics and default behavior, including failure modes.
-- Reproducibility: save exact commands, hashes, logs and comparison tolerances.
+- [ ] Reproducibility: save exact commands, hashes, logs and comparison tolerances.
   Time cold construction and warm reuse end to end at matched search/quality scope.
   Passing tiny fixtures or extraction timing cannot establish greenfield speed gains.
 
