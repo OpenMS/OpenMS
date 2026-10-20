@@ -19,7 +19,7 @@
 namespace OpenMS
 {
 
-    /**
+    /*
       @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
       Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
@@ -70,6 +70,8 @@ namespace OpenMS
         */
 
         /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
+        /// @note The input MSExperiment's spectra must already be sorted by retention time (see MSExperiment::sortSpectra()).
+        ///       Unsorted input is not checked for tie-order within equal-RT spectra (e.g. ion-mobility data); see run_() precondition.
         void run(const PeakMap &, std::vector<MassTrace> &, const Size max_traces = 0);
 
         /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
