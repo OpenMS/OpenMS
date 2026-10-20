@@ -261,10 +261,14 @@ test("allocateFile with a capacity: files of increasing size, one at a time, kee
   assert.throws(() => m.allocateFile("/c.bin", MB, -1), /capacity has to be a non-negative integer/);
 });
 
-/// The memory a test of the module's memory limit touches on the host: wasm64 (16 GB) needs a host with room for it
+/// A reason to skip a test that touches @p bytes of host memory (and 4 GiB more for Node.js and the rest of the module),
+/// or false: wasm64 tests of the memory limit need a host with room for 16 GB. Both the host's memory and what is free
+/// of it now (os.freemem(): available memory, page cache included) count, so that a busy machine skips rather than swaps.
 function hostMemorySkip(bytes) {
-  const needed = bytes + 4 * 2 ** 30;
-  return os.totalmem() < needed && `needs ${Math.ceil(needed / 2 ** 30)} GiB of host memory (has ${Math.floor(os.totalmem() / 2 ** 30)} GiB)`;
+  const needed = bytes + 4 * 2 ** 30, GiB = 2 ** 30;
+  if (os.totalmem() < needed) return `needs ${Math.ceil(needed / GiB)} GiB of host memory (has ${Math.floor(os.totalmem() / GiB)} GiB)`;
+  if (os.freemem() < needed) return `needs ${Math.ceil(needed / GiB)} GiB of free host memory (${Math.floor(os.freemem() / GiB)} GiB free)`;
+  return false;
 }
 
 const { heapMax: moduleHeapMax, maxFileSize: moduleMaxFileSize } = OpenMS.getMemoryInfo();
@@ -344,6 +348,27 @@ test("a file of more than 4 GiB: allocateFile, writeFileChunk, readFileChunk (wa
   assert.equal(m.FS.stat("/large.bin").size, size);
   m.FS.unlink("/large.bin");
   assert.ok(m.getMemoryInfo().heapSize > size);
+});
+
+test("FS.write and FS.read of 2 GiB and more (wasm64)",
+     { skip: (!memory64 && "a wasm32 module cannot hold the buffers") || hostMemorySkip(10 * 2 ** 30) }, async () => {
+  // WasmFS returns the count of a read or write as int: wasmfs_fs.js transfers in parts (a read of 2.5 GiB failed with
+  // errno 1610612736 before). FS.write without position (_wasmfs_write), FS.read with one (_wasmfs_pread).
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ numThreads: 1, print: () => {}, printErr: () => {} });
+  const size = 2.5 * 2 ** 30, marks = [0, 2 ** 30 + 7, 2 ** 31, size - 1];
+  const data = new Uint8Array(size);
+  for (const [k, at] of marks.entries()) data[at] = k + 1;
+  const stream = m.FS.open("/large.bin", "w+");
+  assert.equal(m.FS.write(stream, data, 0, size), size, "FS.write");
+  assert.equal(m.FS.stat("/large.bin").size, size);
+  const back = new Uint8Array(size);
+  assert.equal(m.FS.read(stream, back, 0, size, 0), size, "FS.read");
+  for (const [k, at] of marks.entries()) assert.equal(back[at], k + 1, `byte ${at}`);
+  assert.equal(back[12345], 0);
+  assert.equal(m.FS.read(stream, back, 0, size, size - 10), 10, "FS.read past the end: what is there");
+  m.FS.close(stream);
+  m.FS.unlink("/large.bin");
 });
 
 test("MzMLFile from the (mounted) file system", () => {
