@@ -288,6 +288,16 @@
             }
         },
         {
+            "name": "wasm64-emscripten-mt-onnx-release",
+            "displayName": "WebAssembly (Emscripten) Release, multi-threaded, 64-bit memory, with ONNX Runtime",
+            "description": "wasm64-emscripten-mt-release with ONNX Runtime, as wasm32-emscripten-mt-onnx-release: ONNX Runtime is built for the wasm64-emscripten-mt triplet (vcpkg-overlays/emscripten/ports/onnxruntime).",
+            "inherits": "wasm64-emscripten-mt-release",
+            "cacheVariables": {
+                "WITH_ONNX": "ON",
+                "VCPKG_MANIFEST_FEATURES": "onnxruntime"
+            }
+        },
+        {
             "name": "linux-x64-ci",
             "displayName": "Linux x64 CI",
             "description": "OpenMS CI preset with vcpkg dependencies on Linux x64",
@@ -398,6 +408,10 @@
         {
             "name": "wasm64-emscripten-mt-release",
             "configurePreset": "wasm64-emscripten-mt-release"
+        },
+        {
+            "name": "wasm64-emscripten-mt-onnx-release",
+            "configurePreset": "wasm64-emscripten-mt-onnx-release"
         },
         {
             "name": "linux-x64-ci",
