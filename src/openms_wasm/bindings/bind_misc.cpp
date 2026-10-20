@@ -287,7 +287,7 @@ namespace OpenMS::WASM
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
       }
       const size_t n = at >= st.st_size ? 0 : static_cast<size_t>(std::min<off_t>(wanted, st.st_size - at));
-      val result = val::global("Uint8Array").new_(n);
+      val result = val::global("Uint8Array").new_(static_cast<double>(n)); // a number, not the BigInt of a wasm64 size_t
       const std::unique_ptr<uint8_t[]> buffer = copyBuffer(n);
       size_t read = 0;
       while (read < n)

@@ -186,7 +186,8 @@ namespace OpenMS::WASM
   template <typename T>
   val toTypedArray(const T* data, size_t n)
   {
-    val result = val::global(TypedArrayName<T>::value).new_(n);
+    // the length as a number: a size_t of wasm64 reaches JavaScript as BigInt, which the constructor rejects
+    val result = val::global(TypedArrayName<T>::value).new_(static_cast<double>(n));
     if (n > 0)
     {
       result.call<void>("set", val(emscripten::typed_memory_view(n, data)));
