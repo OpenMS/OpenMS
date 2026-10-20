@@ -70,6 +70,32 @@ python3 tools/scripts/opendia_benchmark/render_report.py \
 
 Run the small regression check with `python3 tools/scripts/opendia_benchmark/test_benchmark.py`. Its PDF failure check also needs Python `markdown`.
 
+Pass captured `meta/command.sh` files to check their settings. Set `OPEN_DIA` to also test parameter resolution with the real executable. This check stops at a deliberately absent library before data processing. It is not a full Astral run. Do not use `-write_ini` as a dry run: it writes defaults, not the resolved command settings.
+
+```bash
+OPEN_DIA=../openms-build/bin/OpenDIA python3 tools/scripts/opendia_benchmark/test_benchmark.py \
+  TIMSIM_DIR/target_only/meta/command.sh \
+  TIMSIM_DIR/entrapment/meta/command.sh ASTRAL_DIR/meta/command.sh
+```
+
+## Acceptance evidence
+
+The report now has five plots instead of two, plus a PDF. The checks below test the real result files and renderer. They do not establish a speed gain.
+
+| Requirement or output | Check and observed result | Status |
+|---|---|---|
+| Same scheduler and cache settings in both runners | The real OpenDIA parser resolved all five shared values in three captured commands. Both real TimSim searches logged wave scheduling with four scoring threads. | Passed for settings. Full Astral processing was not tested. |
+| Optimized speed | Removed the Astral-only one-map limit. Automatic TimSim scheduling selected four maps. The current two searches took 255.10 s versus 146.15 s before the update. | Maximum speed is unproven. This observation was 75% slower, not faster. |
+| `identification.svg` and identification statistics | The real six-run TimSim output recovered 6,000 of 6,000 expected rows. The mixed search had 5,942 target rows and 7 entrapment rows. Astral reference files had 4,304 target rows. These counts appear in the report and plot. | Passed. Astral counts are historical. |
+| `quantification.svg` and quantification statistics | Recomputed from real result and truth files. TimSim precursor/protein correlations were 0.793227/0.893671. Historical Astral mean repeat-run correlations were 0.988596/0.980433. Tables and plot use these values. | Passed. Astral repeatability is not accuracy. |
+| `fdr.svg` and FDR statistics | Checked five q-value limits. At 1%, TimSim had 7/5,949 entrapment rows (0.118%). Historical Astral had 70/4,374 (1.600%). Limits with no rows display n/a, not zero. | Diagnostic check passed. Full calibration remains unverified because exports omit rejected rows and the fractions are not search-space-adjusted. |
+| `runtime.svg` and `peak_memory.svg` | Read successful GNU time records. Target: 91.27 s and 844.6 MiB. Mixed: 163.83 s and 926.3 MiB. Parsed both SVG files and checked the values in the PDF. | Passed for this real TimSim run. |
+| Astral resource statistics | Read the historical GNU time record: 1 h 27 min 54 s and 35.9 GiB. This exceeds the host's 30.8 GiB physical RAM. | Historical evidence only. A current full run was not attempted. |
+| `FINAL_REPORT.md` and `FINAL_REPORT.pdf` | Ran the report generator on the real data, rendered with real Chrome, extracted the PDF text, and inspected a rendered page. All five plot titles, result sections, and limitations are present in the three-page PDF. | Passed. |
+| Failure handling in the public scripts | Regression checks rejected invalid q-values and failed resource records. A browser that exits without writing a PDF now fails without changing the previous PDF. | Passed. |
+
+The real TimSim run is `/home/sing/.jcode/scratch/opendia-shared-settings-timsim.49LB43`. Its source revision, binary hash, full commands, logs, and time records remain under `meta/` and `logs/`. The full Astral pipeline was not substituted by the parser check or fake-executable smoke test.
+
 ## Captured evidence
 
 Each run stores:

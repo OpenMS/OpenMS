@@ -93,7 +93,24 @@ def main():
             option = f"-TargetedDataExtraction:{name}"
             assert command.count(option) == 1, (argument, option)
             assert command[command.index(option) + 1] == value, (argument, option)
-    print(f"PASS: metrics, invalid q-values, resource failures, SVG edge cases, {len(sys.argv) - 1} captured commands")
+        if os.environ.get("OPEN_DIA"):
+            # Run the real parser, then stop at a missing library before costly I/O.
+            # -write_ini is not a dry run: it writes defaults, not resolved values.
+            with tempfile.TemporaryDirectory() as temporary:
+                command[2] = str(Path(os.environ["OPEN_DIA"]).resolve())
+                library = Path(command[command.index("-tr") + 1])
+                command[command.index("-tr") + 1] = str(Path(temporary) / ("missing" + library.suffix))
+                command.extend(["-debug", "2"])
+                accepted = subprocess.run(command, capture_output=True, text=True, timeout=30,
+                                          env=dict(os.environ, OPENMS_DISABLE_UPDATE_CHECK="ON"))
+                log = accepted.stdout + accepted.stderr
+                assert accepted.returncode != 0 and "Error: File not found" in log
+                assert "Parameters passed to" not in log and "Unknown option(s)" not in log
+                for name, value in expected.items():
+                    assert f'"TargetedDataExtraction|{name}" -> "{value}"' in log, (argument, name)
+    print(f"PASS: metrics, invalid q-values, resource failures, SVG edge cases, PDF failures, {len(sys.argv) - 1} captured commands")
+    if os.environ.get("OPEN_DIA") and len(sys.argv) > 1:
+        print("PASS: real OpenDIA resolved all five shared options for each command; full data processing was not run by this check")
 
 
 if __name__ == "__main__":
