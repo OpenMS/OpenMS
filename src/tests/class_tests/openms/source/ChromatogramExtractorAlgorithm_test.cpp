@@ -15,6 +15,11 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -575,6 +580,73 @@ END_SECTION
 START_SECTION([ChromatogramExtractorAlgorithm::ExtractionCoordinates] static bool SortExtractionCoordinatesReverseByMZ(const ChromatogramExtractorAlgorithm::ExtractionCoordinates &left, const ChromatogramExtractorAlgorithm::ExtractionCoordinates &right))    
 {
   NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION([EXTRA] extractChromatograms of many coordinates with and without ion mobility (in parallel ranges))
+{
+  // peak i has m/z 100 + i, intensity i + 1 and ion mobility i; every second coordinate has no ion mobility
+  const int nr_peaks = 600;
+  std::shared_ptr<PeakMap> exp(new PeakMap);
+  for (int scan = 0; scan < 3; ++scan)
+  {
+    MSSpectrum s;
+    s.setRT(scan);
+    DataArrays::FloatDataArray fda;
+    for (int i = 0; i < nr_peaks; ++i)
+    {
+      s.push_back(Peak1D(100.0 + i, i + 1.0));
+      fda.push_back(i);
+    }
+    fda.setName(Constants::UserParam::ION_MOBILITY);
+    s.getFloatDataArrays().push_back(fda);
+    exp->addSpectrum(s);
+  }
+  // spectra in memory: extracted in ranges of the coordinates by several threads
+  OpenSwath::SpectrumAccessPtr in_memory(new SpectrumAccessOpenMSInMemory(*SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp)));
+
+  std::vector<ChromatogramExtractorAlgorithm::ExtractionCoordinates> coordinates(nr_peaks);
+  for (int i = 0; i < nr_peaks; ++i)
+  {
+    coordinates[i].mz = 100.0 + i;
+    coordinates[i].rt_start = 0;
+    coordinates[i].rt_end = -1;
+    coordinates[i].ion_mobility = (i % 2 == 0) ? i : -1;
+    coordinates[i].id = std::to_string(i);
+  }
+
+  auto extract = [&]([[maybe_unused]] int threads)
+  {
+    std::vector<OpenSwath::ChromatogramPtr> output;
+    for (int i = 0; i < nr_peaks; ++i)
+    {
+      output.emplace_back(new OpenSwath::Chromatogram);
+    }
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    ChromatogramExtractorAlgorithm().extractChromatograms(in_memory, output, coordinates, 0.5, false, 0.5, "tophat");
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    return output;
+  };
+
+  for (int threads : {1, 4})
+  {
+    std::vector<OpenSwath::ChromatogramPtr> output = extract(threads);
+    Size wrong_chromatograms = 0;
+    for (int i = 0; i < nr_peaks; ++i)
+    {
+      const std::vector<double>& intensities = output[i]->getIntensityArray()->data;
+      if (intensities != std::vector<double>(3, i + 1.0))
+      {
+        ++wrong_chromatograms;
+      }
+    }
+    TEST_EQUAL(wrong_chromatograms, 0)
+  }
 }
 END_SECTION
 

@@ -105,6 +105,16 @@ namespace OpenSwath
         void initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
 
         /**
+          @brief Build the transition, precursor, precursor contrast and precursor combined cross-correlation matrices at once
+
+          The same matrices as initializeXCorrMatrix(mrmfeature, native_ids), initializeXCorrPrecursorMatrix(),
+          initializeXCorrPrecursorContrastMatrix() and initializeXCorrPrecursorCombinedMatrix(), but every
+          chromatogram is read and standardized once and every pair of chromatograms is correlated once: the
+          combined matrix consists of the entries of the other three.
+        */
+        void initializeXCorrPrecursorMatrices(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
+
+        /**
            @brief Calculate the cross-correlation coelution score
 
            The score is a distance where zero indicates perfect coelution.
@@ -233,6 +243,15 @@ namespace OpenSwath
 
         /// Initialize the mutual information vector with the MS1 trace
         void initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
+
+        /**
+          @brief Build the transition, precursor, precursor contrast and precursor combined MI matrices at once
+
+          The same matrices as initializeMIMatrix(), initializeMIPrecursorMatrix(), initializeMIPrecursorContrastMatrix()
+          and initializeMIPrecursorCombinedMatrix(), but every chromatogram is read and ranked once and the
+          mutual information of every pair of chromatograms is computed once.
+        */
+        void initializeMIPrecursorMatrices(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
 
         double calcMIScore();
         double calcMIWeightedScore(const std::vector<double>& normalized_library_intensity);
