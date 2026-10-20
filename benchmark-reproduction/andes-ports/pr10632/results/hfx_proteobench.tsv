@@ -1,0 +1,9 @@
+file	precursors	median_abs_eps	ecoli	yeast	human	eq_species	CV_median
+T_off/out_msstats.csv	42253	0.2223	0.4048	0.2599	0.2108	0.2918	0.2309
+T_on/out_msstats.csv	42253	0.2179	0.2906	0.2515	0.2068	0.2496	0.2320
+P_off/out_msstats.csv	46419	0.2214	0.4090	0.2595	0.2087	0.2924	0.2358
+P_on/out_msstats.csv	46415	0.2168	0.3060	0.2511	0.2065	0.2545	0.2361
+T_off/norm_msstats.csv	42253	0.1494	0.2978	0.1823	0.1431	0.2077	0.0879
+T_on/norm_msstats.csv	42253	0.1390	0.1818	0.1341	0.1390	0.1516	0.0926
+P_off/norm_msstats.csv	46419	0.1572	0.3357	0.1993	0.1492	0.2281	0.0951
+P_on/norm_msstats.csv	46415	0.1466	0.1974	0.1434	0.1461	0.1623	0.0985

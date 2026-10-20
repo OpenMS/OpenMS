@@ -1,0 +1,8 @@
+run	features	valid_fit	invalid_fit	no_fit_meta
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_01	48481	43078	5403	0
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02	49913	44410	5503	0
+LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_03	51894	45735	6159	0
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_01	49319	44031	5288	0
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_02	49027	43622	5405	0
+LFQ_Orbitrap_DDA_Condition_B_Sample_Alpha_03	52464	46373	6091	0
+total	301098	267249	33849	0
