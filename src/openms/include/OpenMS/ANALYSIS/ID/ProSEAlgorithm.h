@@ -335,9 +335,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
      * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
      * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization; default).
-     * @return Whether the picked-protein FDR was applied (false: skipped, see above).
      */
-    static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
+    static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
                                            PeptideIdentificationList& peptide_ids,
                                            const std::string& decoy_string,
                                            bool decoy_is_prefix,
@@ -1481,7 +1480,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                           std::ostream& os);
 
     /// Serialize the complete end-of-search report to a machine-readable YAML string:
-    /// shared configuration/database/index facts (with the decoy marker), per-file identification
+    /// shared configuration/database/index facts, per-file identification
     /// statistics (with the Percolator outcome and the NCE of the PeptDeep predictions,
     /// PeptDeepRescoring::NCE_META_VALUE of the file's run, null if none),
     /// the output-file @p manifest (label -> written paths) and failed/total file counts.

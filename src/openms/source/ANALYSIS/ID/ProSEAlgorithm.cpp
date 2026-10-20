@@ -3920,7 +3920,7 @@ namespace OpenMS
   // single-file path (the two previously held byte-identical copies).
   // =====================================================================
   // static
-  bool ProSEAlgorithm::applyCompleteSetProteinFDR(
+  void ProSEAlgorithm::applyCompleteSetProteinFDR(
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       const std::string& decoy_string,
@@ -3935,7 +3935,7 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "[ProSE] applyCompleteSetProteinFDR called with an empty decoy marker; "
                       << "skipping protein FDR (cannot identify decoys)." << std::endl;
-      return false;
+      return;
     }
 
     // Aggregate the best PSM score per peptide per protein, then apply picked-protein
@@ -3958,7 +3958,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] Protein FDR requested but no decoy proteins remain after inference "
                       << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
                       << "target-only q-values." << std::endl;
-      return false;
+      return;
     }
 
     FalseDiscoveryRate fdr;
@@ -3990,7 +3990,6 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
                     << protein_ids[0].getHits().size() << " proteins at "
                     << protein_fdr * 100 << "% FDR." << std::endl;
-    return true;
   }
 
   void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
@@ -6723,8 +6722,6 @@ namespace OpenMS
     y << "  indexed_fragments: " << sh.indexed_fragments << "\n";
     y << "  seconds_index_build: " << num(sh.seconds_index_build) << "\n";
     y << "  seconds_total: " << num(sh.seconds_total) << "\n";
-    y << "  decoy_string: " << q(mfres.decoy_string) << "\n";
-    y << "  decoy_is_prefix: " << bol(mfres.decoy_is_prefix) << "\n";
 
     y << "per_file:";
     if (mfres.per_file.empty()) { y << " []\n"; }
@@ -6775,11 +6772,12 @@ namespace OpenMS
         y << "      applied: " << bol(pf.percolator.applied) << "\n";
         y << "      skipped_reason: " << q(pf.percolator.skipped_reason) << "\n";
         y << "      warning: " << q(pf.percolator.warning) << "\n";
-        // The NCE of the file's PeptDeep predictions (PeptDeepRescoring::NCE_META_VALUE on its run); null: none.
+        // The NCE of the file's PeptDeep predictions: the run meta value PeptDeepRescoring::NCE_META_VALUE, spelled out
+        // because PeptDeepRescoring exists only in builds with ONNX Runtime; null: none.
         double nce = std::numeric_limits<double>::quiet_NaN();
-        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
+        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists("peptdeep_nce"))
         {
-          nce = static_cast<double>(pf.protein_ids[0].getMetaValue(PeptDeepRescoring::NCE_META_VALUE));
+          nce = static_cast<double>(pf.protein_ids[0].getMetaValue("peptdeep_nce"));
         }
         y << "    peptdeep_nce: " << num(nce) << "\n";
       }
