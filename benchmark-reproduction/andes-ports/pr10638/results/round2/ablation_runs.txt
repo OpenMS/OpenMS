@@ -1,0 +1,6 @@
+topn 1:38.78 6749212 [ProSE] Chimeric search: 91382 co-isolated precursors searched, 50969 with a PSM (120 more repeat a PSM of their spectrum and are dropped).
+iso 1:30.69 6729288 [ProSE] Chimeric search: 91382 co-isolated precursors searched, 60159 with a PSM (166 more repeat a PSM of their spectrum and are dropped).
+allpeaks 1:31.92 6735304 [ProSE] Chimeric search: 91382 co-isolated precursors searched, 50835 with a PSM (118 more repeat a PSM of their spectrum and are dropped).
+tol10 1:31.86 6746384 [ProSE] Chimeric search: 98474 co-isolated precursors searched, 54595 with a PSM (456 more repeat a PSM of their spectrum and are dropped).
+topn,iso,allpeaks,tol10 1:51.87 6801924 [ProSE] Chimeric search: 98474 co-isolated precursors searched, 63318 with a PSM (657 more repeat a PSM of their spectrum and are dropped).
+ABL_DONE

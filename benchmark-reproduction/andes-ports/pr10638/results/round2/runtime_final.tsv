@@ -1,0 +1,13 @@
+file	arm	rep	wall	peak_rss_kB
+hfx	off	1	0:54.59	6042968
+hfx	on	1	1:31.02	6747564
+astral	off	1	2:48.22	11539820
+astral	on	1	4:11.74	12951604
+hfx	off	2	0:53.81	6042516
+hfx	on	2	1:27.31	6746808
+astral	off	2	2:51.20	11557248
+astral	on	2	4:09.82	12952324
+hfx	off	3	0:56.06	6042900
+hfx	on	3	1:29.75	6746912
+astral	off	3	2:50.89	11545524
+astral	on	3	4:12.16	12945004
