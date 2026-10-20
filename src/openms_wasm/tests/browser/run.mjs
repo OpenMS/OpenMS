@@ -48,7 +48,10 @@ const roots = {
   "/data/topp/": path.join(sourceRoot, "src/tests/topp"),
   "/data/examples/": path.join(sourceRoot, "share/OpenMS/examples/TOPPAS/data"),
 };
-const types = { ".html": "text/html", ".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm" };
+const types = {
+  ".html": "text/html", ".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm",
+  ".css": "text/css", ".json": "application/json",
+};
 
 function serve(isolated) {
   const server = http.createServer((request, response) => {
@@ -187,16 +190,44 @@ for (const s of scenarios) {
 // The demo application (examples/browser, not in the assembled package) with its service worker
 // (examples/sw.js) on the server without isolation headers: the worker has to serve the page, make
 // it cross-origin isolated (threads), and keep serving it on a second visit (the module from its store).
+// Also:
+// - The worker is registered once, with its own directory (examples/) as scope, not the page's.
+// - On the first visit, the worker claims the page before navigator.serviceWorker.ready resolves
+//   (forced here; it happens by chance otherwise). The page has a controller then, but the worker
+//   did not serve it: the page has to reload all the same.
+// - The worker drops its own stores of another version, and no other stores of the origin (e.g.
+//   those of another application on the same site).
 let total = scenarios.length;
 if (fs.existsSync(path.join(packageDir, "examples/browser/index.html"))) {
   ++total;
   const port = servers[false].address().port;
+  const origin = `http://127.0.0.1:${port}`;
   const context = await browser.newContext();
   const problems = [];
   let status = "";
+  const foreignStores = ["prose-app-0123456789ab", "openms-module-0123456789ab", "another-app"];
+  const oldStore = "openms-module-0.0.1";
+  {
+    const page = await context.newPage();
+    await page.goto(`${origin}/pkg/package.json`); // any document of the origin
+    await page.evaluate((names) => Promise.all(names.map((name) => caches.open(name))), [...foreignStores, oldStore]);
+    await page.close();
+  }
   for (let visit = 1; visit <= 2; ++visit) {
     const page = await context.newPage();
     page.on("pageerror", (e) => problems.push(`visit ${visit}: page error: ${e.message}`));
+    if (visit === 1) {
+      await page.addInitScript(() => {
+        // navigator.serviceWorker.ready resolves only once the worker controls the page
+        const container = navigator.serviceWorker;
+        if (!container) return;
+        const ready = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(container), "ready").get;
+        Object.defineProperty(container, "ready", {
+          get: () => ready.call(container).then((registration) => container.controller ? registration :
+            new Promise((resolve) => container.addEventListener("controllerchange", () => resolve(registration), { once: true }))),
+        });
+      });
+    }
     try {
       await page.goto(`http://127.0.0.1:${port}/pkg/examples/browser/index.html`); // (the server serves files only)
       // (the page reloads itself once on the first visit: poll instead of waiting on one document)
@@ -219,6 +250,17 @@ if (fs.existsSync(path.join(packageDir, "examples/browser/index.html"))) {
       if (!state?.controlled) problems.push(`visit ${visit}: the service worker does not serve the page`);
       if (!state?.isolated) problems.push(`visit ${visit}: the page is not cross-origin isolated`);
       if (!/is ready/.test(status)) problems.push(`visit ${visit}: ${status}`);
+      const scopes = await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map((r) => r.scope));
+      if (JSON.stringify(scopes) !== JSON.stringify([`${origin}/pkg/examples/`])) {
+        problems.push(`visit ${visit}: service worker scopes ${JSON.stringify(scopes)}, expected one: ${origin}/pkg/examples/`);
+      }
+      const stores = await page.evaluate(() => caches.keys());
+      const missing = foreignStores.filter((name) => !stores.includes(name));
+      if (missing.length) problems.push(`visit ${visit}: the worker dropped stores not its own: ${JSON.stringify(missing)}`);
+      if (stores.includes(oldStore)) problems.push(`visit ${visit}: the worker kept its store of another version (${oldStore})`);
+      if (!stores.some((name) => /^openms-module-\d/.test(name) && name !== oldStore)) {
+        problems.push(`visit ${visit}: no module store: ${JSON.stringify(stores)}`);
+      }
     } catch (e) {
       problems.push(`visit ${visit}: ${e.message.split("\n")[0]}`);
     }

@@ -17,8 +17,15 @@
 //
 // The stores are named after the package version (../package.json, read when the worker starts;
 // an old version's stores are dropped). A hard reload (Shift+Reload) bypasses the worker.
+//
+// sw-client.mjs registers it with its own directory (examples/) as scope. Other applications on the
+// same origin may have stores of their own (the Cache API is per origin, not per scope): the worker
+// drops only its own.
 
 const META_CACHE = "openms-meta";
+/// The stores of this worker: openms-module-<version> and openms-app-<version>, where <version> is
+/// a package version (1.2.3...) or "0" (not known). Group 2 is the version.
+const OWN_STORE = /^openms-(module|app)-(\d+\.\d+\.\d+\S*|0)$/;
 const APP_DIR = new URL("./", self.location.href).pathname;            // examples/
 const MODULE_FILE = /\/(openms\.(wasm|mjs|data)|index\.mjs)$/;              // the module, the loader
 
@@ -31,7 +38,8 @@ async function versionFromNetwork() {
   }
 }
 
-/// The package version the stores are named after; drops the stores of an earlier one.
+/// The package version the stores are named after; drops this worker's stores of an earlier one,
+/// and no other stores of the origin.
 const version = (async () => {
   const meta = await caches.open(META_CACHE);
   const stored = await meta.match("version").then((r) => r?.text());
@@ -39,7 +47,8 @@ const version = (async () => {
   if (current !== stored) {
     await meta.put("version", new Response(current));
     for (const name of await caches.keys()) {
-      if (name !== META_CACHE && !name.endsWith(`-${current}`)) await caches.delete(name);
+      const own = OWN_STORE.exec(name);
+      if (own && own[2] !== current) await caches.delete(name);
     }
   }
   return current;
