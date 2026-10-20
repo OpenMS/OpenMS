@@ -1,0 +1,14 @@
+diff --git a/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp b/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
+index 2097a808..345ffc01 100644
+--- a/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
++++ b/src/openms/source/ANALYSIS/ID/FragmentIndex.cpp
+@@ -3058,6 +3058,9 @@ namespace OpenMS
+         {
+           return a.matched_intensity_ > b.matched_intensity_;
+         }
++        // BENCHMARK EMULATION (not pushed): andes' key before #116, the form id = mass order. fi_peptides_ is sorted by
++        // precursor mass, so the lighter peptide (the larger negative isotope offset) wins the tie.
++        if (a.peptide_idx_ != b.peptide_idx_) return a.peptide_idx_ < b.peptide_idx_;
+         // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
+         const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
+         const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;

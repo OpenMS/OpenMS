@@ -1,0 +1,13 @@
+group	arm	files	psms	entrapment	fdp_combined_pct	gained_vs_ref	gained_entrapment	gained_fdp_combined_pct
+HF-X HCD	massnone_E	3	13298.0	106.3	1.6	0	0	
+HF-X HCD	intmass_E	3	13297.3	107.0	1.61	217	14	12.9
+Astral HCD	massnone_E	3	8022.3	66.3	1.65	0	0	
+Astral HCD	intmass_E	3	8129.7	62.0	1.53	1145	40	7.0
+Lumos HCD LFQ	massnone_E	3	16574.7	105.0	1.27	0	0	
+Lumos HCD LFQ	intmass_E	3	16564.3	104.3	1.26	87	14	32.2
+Lumos CID TMT6plex	massnone_E	3	7071.7	38.0	1.07	0	0	
+Lumos CID TMT6plex	intmass_E	3	7082.0	39.3	1.11	341	27	15.8
+Exploris 480 TMTpro	massnone_E	3	7744.3	53.3	1.38	0	0	
+Exploris 480 TMTpro	intmass_E	3	7681.3	42.0	1.09	90	11	24.4
+timsTOF HT	massnone_E	2	1989.3	7.3	0.74	0	0	
+timsTOF HT	intmass_E	2	2036.0	10.0	0.98	210	10	9.5

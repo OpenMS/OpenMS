@@ -1,0 +1,37 @@
+massord intmass velos_125_R1
+massord intmass velos_5000_R2
+massord intmass velos_25000_R3
+massord intmass hfx_A2
+massord intmass hfx_B1
+massord intmass hfx_B3
+massord intmass astral_A2
+massord intmass astral_B1
+massord intmass astral_B3
+massord intmass lumos_lfq_5192
+massord intmass lumos_lfq_5194
+massord intmass lumos_lfq_5199
+massord intmass lumos_tmt_5058
+massord intmass lumos_tmt_5059
+massord intmass lumos_tmt_5066
+massord intmass eclipse_tmtpro_10855
+massord intmass eclipse_tmtpro_10858
+massord intmass eclipse_tmtpro_10863
+massord intmass tims_plasma_30min
+massord intmass tims_plasma_50min
+massord intmass hfx_A2 --entrap
+massord intmass hfx_B1 --entrap
+massord intmass hfx_B3 --entrap
+massord intmass astral_A2 --entrap
+massord intmass astral_B1 --entrap
+massord intmass astral_B3 --entrap
+massord intmass lumos_lfq_5192 --entrap
+massord intmass lumos_lfq_5194 --entrap
+massord intmass lumos_lfq_5199 --entrap
+massord intmass lumos_tmt_5058 --entrap
+massord intmass lumos_tmt_5059 --entrap
+massord intmass lumos_tmt_5066 --entrap
+massord intmass eclipse_tmtpro_10855 --entrap
+massord intmass eclipse_tmtpro_10858 --entrap
+massord intmass eclipse_tmtpro_10863 --entrap
+massord intmass tims_plasma_30min --entrap
+massord intmass tims_plasma_50min --entrap

@@ -1,0 +1,9 @@
+group	n	ref	arm	ref_mean	arm_mean	delta_pct	up_flat_down
+Velos CID	3	none	massnone	2977.6	2966.8	-0.36	0/3/0
+HF-X HCD	3	none	massnone	4597.6	4618.2	0.45	1/2/0
+Astral HCD	3	none	massnone	3049.8	2948.4	-3.32	0/0/3
+Lumos HCD LFQ	3	none	massnone	5553.6	5552.3	-0.02	0/3/0
+Lumos CID TMT6plex	3	none	massnone	2457.1	2442.0	-0.61	0/2/1
+Exploris 480 TMTpro	3	none	massnone	2622.2	2616.2	-0.23	0/3/0
+timsTOF HT	2	none	massnone	1048.5	1059.5	1.05	0/2/0
+All files (sum)	20	none	massnone	65870.4	65551.0	-0.48	1/15/4

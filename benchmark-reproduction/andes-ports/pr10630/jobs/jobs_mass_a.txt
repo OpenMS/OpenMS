@@ -1,0 +1,37 @@
+massord massnone velos_125_R1
+massord massnone velos_5000_R2
+massord massnone velos_25000_R3
+massord massnone hfx_A2
+massord massnone hfx_B1
+massord massnone hfx_B3
+massord massnone astral_A2
+massord massnone astral_B1
+massord massnone astral_B3
+massord massnone lumos_lfq_5192
+massord massnone lumos_lfq_5194
+massord massnone lumos_lfq_5199
+massord massnone lumos_tmt_5058
+massord massnone lumos_tmt_5059
+massord massnone lumos_tmt_5066
+massord massnone eclipse_tmtpro_10855
+massord massnone eclipse_tmtpro_10858
+massord massnone eclipse_tmtpro_10863
+massord massnone tims_plasma_30min
+massord massnone tims_plasma_50min
+massord massnone hfx_A2 --entrap
+massord massnone hfx_B1 --entrap
+massord massnone hfx_B3 --entrap
+massord massnone astral_A2 --entrap
+massord massnone astral_B1 --entrap
+massord massnone astral_B3 --entrap
+massord massnone lumos_lfq_5192 --entrap
+massord massnone lumos_lfq_5194 --entrap
+massord massnone lumos_lfq_5199 --entrap
+massord massnone lumos_tmt_5058 --entrap
+massord massnone lumos_tmt_5059 --entrap
+massord massnone lumos_tmt_5066 --entrap
+massord massnone eclipse_tmtpro_10855 --entrap
+massord massnone eclipse_tmtpro_10858 --entrap
+massord massnone eclipse_tmtpro_10863 --entrap
+massord massnone tims_plasma_30min --entrap
+massord massnone tims_plasma_50min --entrap

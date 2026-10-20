@@ -2,3 +2,5 @@ group	arm	psms_sum_3files_3seeds	entrapment	fdp_combined_pct	gained_vs_ref	gaine
 Velos CID (natural, r=3.376)	none	26798	244	1.18	0	0
 Velos CID (natural, r=3.376)	int	26687	231	1.122	274	28
 Velos CID (natural, r=3.376)	intiso	26761	234	1.133	267	22
+Velos CID (natural, r=3.376)	massnone	26701	239	1.16	0	0
+Velos CID (natural, r=3.376)	intmass	26638	223	1.085	350	31

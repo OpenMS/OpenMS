@@ -24,7 +24,8 @@ SEEDS = (1, 42, 137)
 GROUPS = [('velos', 'Velos CID'), ('hfx', 'HF-X HCD'), ('astral', 'Astral HCD'), ('lumos_lfq', 'Lumos HCD LFQ'),
           ('lumos_tmt', 'Lumos CID TMT6plex'), ('eclipse', 'Exploris 480 TMTpro'), ('tims', 'timsTOF HT')]
 DATASETS = list(json.load(open(BENCH / 'frozen/inputs.json')))
-if '--idb' in sys.argv:  # second dataset: id_bruker MHC class I (PXD058436), see README
+IDB_MODE = '--idb' in sys.argv
+if IDB_MODE:  # second dataset: id_bruker MHC class I (PXD058436), see README
     GROUPS = [('idb', 'MHC-I timsTOF Pro (id_bruker)')]
     DATASETS = ['idb_spleen', 'idb_corpus', 'idb_liver']
 
@@ -308,6 +309,15 @@ if __name__ == '__main__':
     # like-for-like andes reference: andes 695acf7, --fragment-index-intensity-tiebreak off/on, same inputs
     yields('andes_off_E', 'andes_on_E', 'andes_on_vs_off_entrapment_db')
     ae, aef = shuffled_entrapment(['andes_off_E', 'andes_on_E'])
+    # emulation of andes' tie key before #116 (local patch emulation_andes_mass_order.patch): mass order after the vote
+    # count; massnone = option off, intmass = intensity, then mass order
+    if not IDB_MODE:
+        yields('none', 'massnone', 'massnone_vs_none')
+        yields('massnone', 'intmass', 'intmass_vs_massnone')
+        yields('massnone_E', 'intmass_E', 'intmass_vs_massnone_entrapment_db')
+        me, mef = shuffled_entrapment(['massnone_E', 'intmass_E'])
+        ve += [r for r in velos_entrapment(['massnone', 'intmass'])]
+        write('entrapment_shuffled_mass_order_emulation.tsv', me); write('entrapment_shuffled_mass_order_emulation_per_file.tsv', mef)
     write('entrapment_velos_natural.tsv', ve); write('entrapment_shuffled.tsv', se + [r for r in ie if r['arm'] != 'none_E'] + ae); write('entrapment_shuffled_per_file.tsv', sef + [r for r in ief if r['arm'] != 'none_E'] + aef)
     top1_changes(); accepted_changes(); resources(); diag()
     for f in sorted(OUT.glob('*.tsv')):

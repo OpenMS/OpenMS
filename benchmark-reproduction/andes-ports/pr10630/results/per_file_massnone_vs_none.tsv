@@ -1,0 +1,21 @@
+dataset	group	ref	arm	ref_seeds	arm_seeds	ref_mean	arm_mean	delta_pct	z	call
+velos_125_R1	Velos CID	none	massnone	2953/2966/3013	2975/2923/3000	2977.3	2966	-0.38	-0.39	flat
+velos_5000_R2	Velos CID	none	massnone	3014/3091/3026	2974/3046/3044	3043.7	3021.3	-0.73	-0.66	flat
+velos_25000_R3	Velos CID	none	massnone	2900/2909/2926	2907/2909/2923	2911.7	2913	0.05	0.15	flat
+hfx_A2	HF-X HCD	none	massnone	4671/4663/4678	4702/4725/4714	4670.7	4713.7	0.92	5.42	up
+hfx_B1	HF-X HCD	none	massnone	4546/4550/4528	4535/4549/4544	4541.3	4542.7	0.03	0.17	flat
+hfx_B3	HF-X HCD	none	massnone	4577/4557/4608	4589/4570/4636	4580.7	4598.3	0.39	0.72	flat
+astral_A2	Astral HCD	none	massnone	2828/2832/2837	2734/2662/2737	2832.3	2711	-4.28	-4.92	down
+astral_B1	Astral HCD	none	massnone	3225/3167/3178	3164/3067/3117	3190	3116	-2.32	-2.23	down
+astral_B3	Astral HCD	none	massnone	3127/3109/3145	3012/3005/3038	3127	3018.3	-3.48	-7.52	down
+lumos_lfq_5192	Lumos HCD LFQ	none	massnone	5574/5569/5558	5576/5563/5546	5567	5561.7	-0.1	-0.54	flat
+lumos_lfq_5194	Lumos HCD LFQ	none	massnone	5524/5529/5522	5525/5531/5534	5525	5530	0.09	1.49	flat
+lumos_lfq_5199	Lumos HCD LFQ	none	massnone	5561/5562/5583	5565/5562/5569	5568.7	5565.3	-0.06	-0.45	flat
+lumos_tmt_5058	Lumos CID TMT6plex	none	massnone	2378/2401/2282	2356/2404/2256	2353.7	2338.7	-0.64	-0.26	flat
+lumos_tmt_5059	Lumos CID TMT6plex	none	massnone	2404/2416/2460	2419/2345/2509	2426.7	2424.3	-0.1	-0.05	flat
+lumos_tmt_5066	Lumos CID TMT6plex	none	massnone	2602/2590/2581	2577/2543/2569	2591	2563	-1.08	-2.35	down
+eclipse_tmtpro_10855	Exploris 480 TMTpro	none	massnone	2776/2765/2748	2774/2767/2760	2763	2767	0.14	0.44	flat
+eclipse_tmtpro_10858	Exploris 480 TMTpro	none	massnone	2543/2547/2573	2531/2536/2540	2554.3	2535.7	-0.73	-1.91	flat
+eclipse_tmtpro_10863	Exploris 480 TMTpro	none	massnone	2553/2568/2527	2549/2555/2534	2549.3	2546	-0.13	-0.25	flat
+tims_plasma_30min	timsTOF HT	none	massnone	1080/1094/1083	1100/1102/1065	1085.7	1089	0.31	0.26	flat
+tims_plasma_50min	timsTOF HT	none	massnone	973/1011/1050	1016/1023/1051	1011.3	1030	1.85	0.76	flat

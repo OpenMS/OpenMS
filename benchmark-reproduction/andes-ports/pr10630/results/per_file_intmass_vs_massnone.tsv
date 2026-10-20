@@ -1,0 +1,21 @@
+dataset	group	ref	arm	ref_seeds	arm_seeds	ref_mean	arm_mean	delta_pct	z	call
+velos_125_R1	Velos CID	massnone	intmass	2975/2923/3000	2925/2961/2979	2966	2955	-0.37	-0.4	flat
+velos_5000_R2	Velos CID	massnone	intmass	2974/3046/3044	2981/3054/3018	3021.3	3017.7	-0.12	-0.12	flat
+velos_25000_R3	Velos CID	massnone	intmass	2907/2909/2923	2904/2900/2916	2913	2906.7	-0.22	-0.91	flat
+hfx_A2	HF-X HCD	massnone	intmass	4702/4725/4714	4704/4690/4682	4713.7	4692	-0.46	-2.34	down
+hfx_B1	HF-X HCD	massnone	intmass	4535/4549/4544	4531/4551/4550	4542.7	4544	0.03	0.17	flat
+hfx_B3	HF-X HCD	massnone	intmass	4589/4570/4636	4586/4556/4638	4598.3	4593.3	-0.11	-0.16	flat
+astral_A2	Astral HCD	massnone	intmass	2734/2662/2737	2866/2838/2730	2711	2811.3	3.7	2.08	up
+astral_B1	Astral HCD	massnone	intmass	3164/3067/3117	3193/3053/3185	3116	3143.7	0.89	0.52	flat
+astral_B3	Astral HCD	massnone	intmass	3012/3005/3038	3067/3082/3099	3018.3	3082.7	2.13	4.71	up
+lumos_lfq_5192	Lumos HCD LFQ	massnone	intmass	5576/5563/5546	5573/5563/5560	5561.7	5565.3	0.07	0.38	flat
+lumos_lfq_5194	Lumos HCD LFQ	massnone	intmass	5525/5531/5534	5529/5532/5546	5530	5535.7	0.1	0.97	flat
+lumos_lfq_5199	Lumos HCD LFQ	massnone	intmass	5565/5562/5569	5572/5550/5580	5565.3	5567.3	0.04	0.22	flat
+lumos_tmt_5058	Lumos CID TMT6plex	massnone	intmass	2356/2404/2256	2409/2390/2264	2338.7	2354.3	0.67	0.25	flat
+lumos_tmt_5059	Lumos CID TMT6plex	massnone	intmass	2419/2345/2509	2414/2401/2436	2424.3	2417	-0.3	-0.15	flat
+lumos_tmt_5066	Lumos CID TMT6plex	massnone	intmass	2577/2543/2569	2604/2553/2561	2563	2572.7	0.38	0.51	flat
+eclipse_tmtpro_10855	Exploris 480 TMTpro	massnone	intmass	2774/2767/2760	2780/2779/2755	2767	2771.3	0.16	0.48	flat
+eclipse_tmtpro_10858	Exploris 480 TMTpro	massnone	intmass	2531/2536/2540	2534/2528/2551	2535.7	2537.7	0.08	0.27	flat
+eclipse_tmtpro_10863	Exploris 480 TMTpro	massnone	intmass	2549/2555/2534	2548/2557/2520	2546	2541.7	-0.17	-0.34	flat
+tims_plasma_30min	timsTOF HT	massnone	intmass	1100/1102/1065	1107/1088/1079	1089	1091.3	0.21	0.16	flat
+tims_plasma_50min	timsTOF HT	massnone	intmass	1016/1023/1051	937/1024/1040	1030	1000.3	-2.88	-0.88	flat
