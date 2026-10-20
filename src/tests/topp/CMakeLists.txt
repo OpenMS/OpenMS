@@ -5073,57 +5073,81 @@ else()
   set_tests_properties("TOPP_ProSE_peptdeep_requires_onnx" PROPERTIES WILL_FAIL TRUE)
 endif()
 
-# Test 14: -qpx_spectra adds to every PSM row of the QPX psm.parquet the peaks of its spectrum and PeptDeep's predicted
-# b/y intensities, without and with PeptDeep rescoring ('peptdeep:enable') and with a set NCE, on the data of Test 11. The text dump of the
-# psm.parquet (ParquetDiff -out_tsv) is checked by check_prose_qpx_spectra.cmake: every row has as many peaks as its
-# spectrum in the mzML and every row of charge 1 to 6 a prediction; and the prediction of one PSM is that of
-# PeptDeepMS2Inference at the NCE that the summary reports for the file. ProSE_14_AATAQYLSPR_2.tsv holds the model's b and
-# y intensities of AATAQYLSPR (2+, instrument QE) at NCE 20 to 40, relative to the most intense of them, without those of
-# 0.01 or less, by m/z. Without ONNX Runtime the peaks are written and the prediction columns are null.
+# Test 14: -out_psm_spectra writes per input <stem>.psm_spectra.parquet, a sidecar of the QPX psm view keyed by psm_id,
+# with the peaks of each PSM's spectrum and PeptDeep's predicted b/y intensities. Checked by check_prose_psm_spectra.cmake
+# on text dumps (ParquetDiff -out_tsv): as many rows as the psm view; every row as many peaks as its spectrum in the
+# mzML; every row of charge 1 to 6 a prediction; the prediction of one PSM that of PeptDeepMS2Inference at the NCE the
+# summary reports (ProSE_14_AATAQYLSPR_2.tsv: the model's b and y intensities of AATAQYLSPR, 2+, instrument QE, at NCE 20
+# to 40, relative to the most intense of them, without those of 0.01 or less, by m/z), and that NCE taken from where it
+# should come from: selected (PeptDeep rescoring off), PeptDeep rescoring's (on; checked against the NCE the rescoring
+# logged, so that a reselection cannot pass), or set ('peptdeep:nce'). The runs are logged by run_logged.cmake.
+# Without ONNX Runtime the peaks are written and the prediction columns are null.
 set(_prose14_common -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
-  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
+set(_prose14_mzml ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML)
+set(_prose14_check -P ${DATA_DIR_TOPP}/check_prose_psm_spectra.cmake)
+# The dumps of the sidecar, the OpenMS psm table and the QPX psm table of input <stem> of run <f> (test TOPP_<f>).
+macro(prose14_dumps _f _stem)
+  foreach(_pair "sidecar;${_f}_spectra/${_stem}.psm_spectra.parquet" "psms;${_f}_oms/${_stem}.psm.parquet"
+                "qpx;${_f}_qpx/${_stem}.psm.parquet")
+    list(GET _pair 0 _kind)
+    list(GET _pair 1 _file)
+    add_test("TOPP_${_f}_${_stem}_${_kind}_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_file}
+      -out_tsv ${TESTS_TEMP_DIR}/${_f}_${_stem}_${_kind}.tmp.tsv)
+    set_tests_properties("TOPP_${_f}_${_stem}_${_kind}_dump" PROPERTIES DEPENDS "TOPP_${_f}")
+  endforeach()
+  set(_dumps -DSIDECAR=${TESTS_TEMP_DIR}/${_f}_${_stem}_sidecar.tmp.tsv -DPSMS=${TESTS_TEMP_DIR}/${_f}_${_stem}_psms.tmp.tsv
+             -DQPX=${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv)
+  set(_dump_tests "TOPP_${_f}_${_stem}_sidecar_dump;TOPP_${_f}_${_stem}_psms_dump;TOPP_${_f}_${_stem}_qpx_dump")
+endmacro()
+# A ProSE run <f> with the outputs the checks read, logged; @p ARGN: its other options.
+macro(prose14_run _f)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_spectra
+    ${TESTS_TEMP_DIR}/${_f}_oms ${TESTS_TEMP_DIR}/${_f}_qpx)
+  add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND} -DLOG=${TESTS_TEMP_DIR}/${_f}.tmp.log
+    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;${ARGN};-out_psm_spectra;${TESTS_TEMP_DIR}/${_f}_spectra;-out_parquet;${TESTS_TEMP_DIR}/${_f}_oms;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-summary_out;${TESTS_TEMP_DIR}/${_f}.tmp.yaml"
+    -P ${DATA_DIR_TOPP}/run_logged.cmake)
+  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+endmacro()
+
 set(_prose14_variants plain)
 if(WITH_ONNX)
   list(APPEND _prose14_variants peptdeep nce30)
 endif()
 foreach(_v ${_prose14_variants})
-  set(_f ProSE_14_qpx_spectra_${_v})
+  set(_f ProSE_14_psm_spectra_${_v})
   set(_opt)
+  set(_source "selected")
+  set(_nce)
   if(_v STREQUAL "peptdeep")
     set(_opt -Search:peptdeep:enable true)
-  elseif(_v STREQUAL "nce30") # a set NCE is used as it is
+    set(_source "from PeptDeep rescoring")
+  elseif(_v STREQUAL "nce30")
     set(_opt -Search:peptdeep:nce 30)
+    set(_source "set")
+    set(_nce -DNCE=30)
   endif()
-  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f})
-  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} ${_opt} -qpx_spectra
-    -out_qpx ${TESTS_TEMP_DIR}/${_f} -summary_out ${TESTS_TEMP_DIR}/${_f}.tmp.yaml)
-  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
-  add_test("TOPP_${_f}_dump" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/${_f}/DatabaseSuitability_in_spec.psm.parquet -out_tsv ${TESTS_TEMP_DIR}/${_f}.tmp.tsv)
-  set_tests_properties("TOPP_${_f}_dump" PROPERTIES DEPENDS "TOPP_${_f}")
+  prose14_run(${_f} ${_prose14_common} -in ${_prose14_mzml} ${_opt})
+  prose14_dumps(${_f} DatabaseSuitability_in_spec)
   if(WITH_ONNX)
-    add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} -DTSV=${TESTS_TEMP_DIR}/${_f}.tmp.tsv
-      -DMZML=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -DNATIVE_ID_PREFIX=spectrum=
-      -DYAML=${TESTS_TEMP_DIR}/${_f}.tmp.yaml -DPEPTIDE=AATAQYLSPR -DCHARGE=2
-      -DREFERENCE=${DATA_DIR_TOPP}/ProSE_14_AATAQYLSPR_2.tsv
+    add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml}
+      -DYAML=${TESTS_TEMP_DIR}/${_f}.tmp.yaml ${_nce} -DLOG=${TESTS_TEMP_DIR}/${_f}.tmp.log "-DNCE_SOURCE=${_source}"
+      -DPEPTIDE=AATAQYLSPR -DCHARGE=2 -DREFERENCE=${DATA_DIR_TOPP}/ProSE_14_AATAQYLSPR_2.tsv
       -DOUT_PREDICTED=${TESTS_TEMP_DIR}/${_f}_predicted.tmp.tsv -DOUT_REFERENCE=${TESTS_TEMP_DIR}/${_f}_reference.tmp.tsv
-      -P ${DATA_DIR_TOPP}/check_prose_qpx_spectra.cmake)
-    set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "TOPP_${_f}_dump")
+      ${_prose14_check})
+    set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
     # m/z are float32 (ratio), intensities agree to 1e-5 (absdiff).
     add_test("TOPP_${_f}_prediction" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_predicted.tmp.tsv
       -in2 ${TESTS_TEMP_DIR}/${_f}_reference.tmp.tsv -ratio 1.000001 -absdiff 0.00001)
     set_tests_properties("TOPP_${_f}_prediction" PROPERTIES DEPENDS "TOPP_${_f}_check")
   else()
-    add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} -DTSV=${TESTS_TEMP_DIR}/${_f}.tmp.tsv
-      -DMZML=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -DNATIVE_ID_PREFIX=spectrum= -DPREDICTIONS=OFF
-      -P ${DATA_DIR_TOPP}/check_prose_qpx_spectra.cmake)
-    set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "TOPP_${_f}_dump")
+    add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DPREDICTIONS=OFF ${_prose14_check})
+    set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
   endif()
 endforeach()
-# The summary reports per file the Percolator outcome and the NCE of the predictions, and the protein FDR and the decoy
-# marker of the search.
-set(_prose14_summary "percolator:;applied: true;skipped_reason: \"\";decoy_string: \"DECOY_\";decoy_is_prefix: true;protein_fdr_applied: true")
+# The summary reports per file the Percolator outcome and the NCE of the predictions, and whether the protein FDR was
+# applied.
+set(_prose14_summary "percolator:;applied: true;skipped_reason: \"\";protein_fdr_applied: true")
 if(WITH_ONNX)
   string(APPEND _prose14_summary ";peptdeep_nce: ")
   set(_prose14_summary_forbidden "-DFORBIDDEN=peptdeep_nce: null")
@@ -5131,33 +5155,78 @@ else()
   string(APPEND _prose14_summary ";peptdeep_nce: null")
   set(_prose14_summary_forbidden)
 endif()
-add_test("TOPP_ProSE_14_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_qpx_spectra_plain.tmp.yaml
+add_test("TOPP_ProSE_14_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_psm_spectra_plain.tmp.yaml
   "-DEXPECTED=${_prose14_summary}" ${_prose14_summary_forbidden} -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ProSE_14_summary" PROPERTIES DEPENDS "TOPP_ProSE_14_qpx_spectra_plain")
+set_tests_properties("TOPP_ProSE_14_summary" PROPERTIES DEPENDS "TOPP_ProSE_14_psm_spectra_plain")
+
+# The desktop app's run: two inputs, one of them gzipped (a copy of the other), -out_merged, -keep_decoys and every
+# Parquet output. Each input gets its own sidecar with the rows of its psm view and an NCE in the summary; the peaks read
+# from the .mzML.gz equal those of the .mzML. The merged proteins and protein groups (with -keep_decoys, the decoys that
+# pass the protein FDR too) are written as merged.proteins.parquet and merged.pg.parquet.
+add_test(NAME "TOPP_ProSE_14_app_inputs" COMMAND ${CMAKE_COMMAND} -DMZML=${_prose14_mzml}
+  -DOUT_DIR=${TESTS_TEMP_DIR} -P ${DATA_DIR_TOPP}/ProSE_14_prepare.cmake)
+set(_f ProSE_14_app)
+prose14_run(${_f} ${_prose14_common} -keep_decoys -in ${TESTS_TEMP_DIR}/ProSE_14_a.mzML ${TESTS_TEMP_DIR}/ProSE_14_b.mzML.gz
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_14_app.tmp.idXML)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean;TOPP_ProSE_14_app_inputs")
+set(_position 0)
+foreach(_stem ProSE_14_a ProSE_14_b)
+  prose14_dumps(${_f} ${_stem})
+  set(_opt -DPREDICTIONS=OFF)
+  if(WITH_ONNX)
+    set(_opt -DYAML=${TESTS_TEMP_DIR}/${_f}.tmp.yaml -DYAML_FILE=${_position})
+  endif()
+  if(_stem STREQUAL "ProSE_14_b")
+    list(APPEND _opt -DTWIN=${TESTS_TEMP_DIR}/${_f}_ProSE_14_a_sidecar.tmp.tsv)
+    list(APPEND _dump_tests "TOPP_${_f}_ProSE_14_a_sidecar_dump")
+  endif()
+  add_test("TOPP_${_f}_${_stem}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} ${_opt} ${_prose14_check})
+  set_tests_properties("TOPP_${_f}_${_stem}_check" PROPERTIES DEPENDS "${_dump_tests}")
+  math(EXPR _position "${_position} + 1")
+endforeach()
+foreach(_t proteins pg)
+  add_test("TOPP_${_f}_merged_${_t}" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_oms/merged.${_t}.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/${_f}_merged_${_t}.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_merged_${_t}" PROPERTIES DEPENDS "TOPP_${_f}")
+endforeach()
+add_test("TOPP_${_f}_merged_proteins_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_merged_proteins.tmp.tsv
+  "-DEXPECTED=DECOY_sp" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_merged_proteins_out" PROPERTIES DEPENDS "TOPP_${_f}_merged_proteins")
+# Two inputs of the same file name in different folders: their per-input outputs would overwrite each other, so ProSE
+# refuses the run before searching (exit code 6, ILLEGAL_PARAMETERS) rather than mixing them up.
+add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_x/same.mzML;${TESTS_TEMP_DIR}/ProSE_14_y/same.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_psm_spectra;${TESTS_TEMP_DIR}/ProSE_14_same_name"
+  -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=Duplicate input basename 'same'" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
+
+# A failed re-read of the spectra (simulated with the -test hook OPENMS_PROSE_TEST_FAIL_SPECTRA_READ) does not fail the
+# input: the run succeeds and the peak columns are null; the predictions are still made.
+set(_f ProSE_14_failed_read)
+prose14_run(${_f} ${_prose14_common} -in ${_prose14_mzml})
+set_tests_properties("TOPP_${_f}" PROPERTIES ENVIRONMENT "OPENMS_PROSE_TEST_FAIL_SPECTRA_READ=1")
+prose14_dumps(${_f} DatabaseSuitability_in_spec)
+set(_opt -DPREDICTIONS=OFF)
+if(WITH_ONNX)
+  set(_opt)
+endif()
+add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DPEAKS=OFF ${_opt} ${_prose14_check})
+set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
+if(WITH_ONNX)
+  # A failed prediction (an MS2 model that ONNX Runtime cannot load) does not fail the input either: the peaks are
+  # written, the prediction columns are null.
+  set(_f ProSE_14_failed_prediction)
+  prose14_run(${_f} ${_prose14_common} -in ${_prose14_mzml} -Search:peptdeep:ms2_model ${DATA_DIR_TOPP}/ProSE_14_AATAQYLSPR_2.tsv)
+  prose14_dumps(${_f} DatabaseSuitability_in_spec)
+  add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DPREDICTIONS=OFF ${_prose14_check})
+  set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
+endif()
 # -keep_decoys: the protein FDR of one input keeps the decoy PSMs and proteins that pass (Test 11 removes them).
-add_test("TOPP_ProSE_14_keep_decoys" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} -keep_decoys
+add_test("TOPP_ProSE_14_keep_decoys" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} -in ${_prose14_mzml} -keep_decoys
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML)
 add_test("TOPP_ProSE_14_keep_decoys_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML
   "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_14_keep_decoys_out" PROPERTIES DEPENDS "TOPP_ProSE_14_keep_decoys")
-# Several inputs with -out_merged and -out_parquet: the pooled proteins and protein groups (with -keep_decoys, the decoys
-# that pass the protein FDR too) are written as merged.proteins.parquet and merged.pg.parquet.
-add_test(NAME "TOPP_ProSE_14_merged_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_14_merged)
-add_test("TOPP_ProSE_14_merged" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -keep_decoys
-  -in ${TESTS_TEMP_DIR}/ProSE_13_a.mzML ${TESTS_TEMP_DIR}/ProSE_13_b.mzML
-  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -out_merged ${TESTS_TEMP_DIR}/ProSE_14_merged.tmp.idXML -out_parquet ${TESTS_TEMP_DIR}/ProSE_14_merged)
-set_tests_properties("TOPP_ProSE_14_merged" PROPERTIES
-  DEPENDS "TOPP_ProSE_14_merged_clean;TOPP_ProSE_13_merged_input_a;TOPP_ProSE_13_merged_input_b")
-foreach(_t proteins pg)
-  add_test("TOPP_ProSE_14_merged_${_t}" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/ProSE_14_merged/merged.${_t}.parquet
-    -out_tsv ${TESTS_TEMP_DIR}/ProSE_14_merged_${_t}.tmp.tsv)
-  set_tests_properties("TOPP_ProSE_14_merged_${_t}" PROPERTIES DEPENDS "TOPP_ProSE_14_merged")
-endforeach()
-add_test("TOPP_ProSE_14_merged_proteins_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_merged_proteins.tmp.tsv
-  "-DEXPECTED=DECOY_sp" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ProSE_14_merged_proteins_out" PROPERTIES DEPENDS "TOPP_ProSE_14_merged_proteins")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
