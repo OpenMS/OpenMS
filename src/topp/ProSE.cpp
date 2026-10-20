@@ -124,8 +124,8 @@ more) 2, named as in 'ion_type_array' ("b3+", "y5++"), with their theoretical m/
 relative to the most intense of them (1); ions of 0.01 or less are left out. Only the PSMs that are written get them:
 after rescoring and the FDR filters, the spectra of the written PSMs are read again from the input file, one file at a
 time. The predictions use the PeptDeep settings of 'Search:peptdeep:*' (model, instrument) at the normalised collision
-energy of the file: the one PeptDeep rescoring used ('Search:peptdeep:enable'), or else one selected as the rescoring
-selects it (from the written PSMs), or 'Search:peptdeep:nce' if set. That NCE is stored on the file's run (meta value
+energy of the file: the one PeptDeep rescoring used ('Search:peptdeep:enable'), else 'Search:peptdeep:nce' if set,
+else one selected as the rescoring selects it (on the written PSMs). That NCE is stored on the file's run (meta value
 'peptdeep_nce') and reported per file in -summary_out. PSMs of precursor charge 1 to 6 are predicted, others get null.
 Without ONNX Runtime (or without the model) the peaks are written and the prediction columns are null.
 @note Decoys: '-keep_decoys' keeps the decoy PSMs and decoy proteins that pass the FDR thresholds where the protein FDR
