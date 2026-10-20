@@ -130,9 +130,7 @@ intensity.
   - **Identified only:** only the formatting of `percolator_score` changes, and the quantities are identical.
   - **Both effects** (A_01 detection and combining from checkpoints) are already on develop and are outside this PR.
 
-The option-on run changes the PIP-ECHO MSstats rows by intensity only: 0 precursors are gained or lost against
-`P_off_ckpt`. After linking, `IDConflictResolverAlgorithm::resolve` gives an identification to the most intense of
-several consensus features, so new intensities can change that choice. In this run it changed no precursor count.
+With the option on, the PIP-ECHO MSstats output has the same 265,768 rows as `P_off_ckpt`; only intensities change.
 
 ## andes reference (bigbio/andes#150, quoted in PR #10632)
 
