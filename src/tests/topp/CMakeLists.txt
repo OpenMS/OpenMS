@@ -5333,6 +5333,20 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" PROPERTIES
       DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA"
       TIMEOUT 300)
+
+    # MS1LabeledWorkflow with Bruker .d input: smoke test of loading, summing MS1 over ion mobility and
+    # quantification. The HeLa run is unlabeled, so the light channels are found as partial multiplets
+    # (algorithm:knock_out, the default) and identified by the unmodified peptides.
+    add_test("TOPP_MS1LabeledWorkflow_DDA_PASEF" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
+      -labels "[][Lys8,Arg10]"
+      -proteinFDR 1.0
+      -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_DDA_PASEF.tmp.consensusXML
+      -threads 4)
+    set_tests_properties("TOPP_MS1LabeledWorkflow_DDA_PASEF" PROPERTIES
+      DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA"
+      TIMEOUT 600)
   endif()
 endif()
 
