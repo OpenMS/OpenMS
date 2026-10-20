@@ -87,8 +87,28 @@ def main():
         "maxConcurrentSwaths": "-1",
         "outer_loop_threads": "-1",
     }
+    analysis_expected = {
+        "-Inference:peptide:global": "true",
+        "-Inference:protein:global": "true",
+        "-Export:results:max_rs_peakgroup_qvalue": "0.05",
+        "-Export:results:use_peptide_scores": "false",
+        "-Export:results:use_protein_scores": "false",
+        "-Export:results:exclude_decoys": "false",
+        "-Export:matrix:max_rs_peakgroup_qvalue": "0.01",
+        "-Export:matrix:use_peptide_scores": "true",
+        "-Export:matrix:use_protein_scores": "true",
+        "-Export:matrix:max_global_peptide_qvalue": "0.01",
+        "-Export:matrix:max_global_protein_qvalue": "0.01",
+    }
+    for level in ("peptide", "protein", "gene"):
+        for context in ("run_specific", "experiment_wide"):
+            analysis_expected[f"-Inference:{level}:{context}"] = "false"
+    analysis_expected["-Inference:gene:global"] = "false"
     for argument in sys.argv[1:]:
         command = shlex.split(Path(argument).read_text())
+        for option, value in analysis_expected.items():
+            assert command.count(option) == 1, (argument, option)
+            assert command[command.index(option) + 1] == value, (argument, option)
         for name, value in expected.items():
             option = f"-TargetedDataExtraction:{name}"
             assert command.count(option) == 1, (argument, option)
@@ -108,9 +128,13 @@ def main():
                 assert "Parameters passed to" not in log and "Unknown option(s)" not in log
                 for name, value in expected.items():
                     assert f'"TargetedDataExtraction|{name}" -> "{value}"' in log, (argument, name)
+                for option, value in analysis_expected.items():
+                    prefix, name = option[1:].rsplit(":", 1)
+                    key = f"{prefix}|{name}"
+                    assert f'"{key}" -> "{value}"' in log, (argument, option)
     print(f"PASS: metrics, invalid q-values, resource failures, SVG edge cases, PDF failures, {len(sys.argv) - 1} captured commands")
     if os.environ.get("OPEN_DIA") and len(sys.argv) > 1:
-        print("PASS: real OpenDIA resolved all five shared options for each command; full data processing was not run by this check")
+        print("PASS: real OpenDIA resolved shared speed, inference and export options; this parser check does not process the data")
 
 
 if __name__ == "__main__":
