@@ -9,6 +9,7 @@
 #include <boost/math/distributions/normal.hpp>
 #include "FeatureTypes.h"
 #include "Impl.h"
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -518,7 +519,7 @@ void Impl::set_transferable_precursors(const RunMap& runs)
 
   // the best q-value among a feature's identifications of its own peptide (feature IDs are not sorted by score, so
   // the first one is not necessarily the best): an identification's q-value is its score if the score type is a
-  // q-value, else its "q-value" meta value; unknown -> 0 (passes the gate)
+  // q-value (any name Scores knows for one), else its q-value meta value; unknown -> 0 (passes the gate)
   std::size_t unknown = 0;
   auto q_value = [&unknown](const Feature& feature) -> double {
     const auto sequence = PipEcho::Util::feature_hit(feature);
@@ -531,13 +532,16 @@ void Impl::set_transferable_precursors(const RunMap& runs)
       const PeptideHit& hit = pep.getHits()[0];
       if (hit.getSequence() != sequence->getSequence()) { continue; }
       std::optional<double> q;
-      if (pep.getScoreType().find("q-value") != std::string::npos) { q = hit.getScore(); }
+      if (Scores::isScoreType(pep.getScoreType(), Scores::IDType::QVAL)) { q = hit.getScore(); }
       else
       {
         // the score switchers keep a former main score as "<score type>_score" (e.g. ProteomicsLFQ switches to PEP)
-        for (const char* key : {"q-value", "q-value_score", "MS:1001491"})
+        for (const std::string& name : Scores::getIDNamesForType(Scores::IDType::QVAL))
         {
-          if (hit.metaValueExists(key)) { q = static_cast<double>(hit.getMetaValue(key)); break; }
+          for (const std::string& key : {name, name + "_score"})
+          {
+            if (!q && hit.metaValueExists(key)) { q = static_cast<double>(hit.getMetaValue(key)); }
+          }
         }
       }
       if (q) { best = std::min(best, *q); }
