@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/EntrapmentEvaluation.h>
 
+#include <cmath>
 #include <limits>
 #include <unordered_set>
 ///////////////////////////
@@ -75,8 +76,9 @@ START_SECTION((static double qValue(const PeptideIdentification& pep_id, const P
 }
 END_SECTION
 
-START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix, double te_ratio, const std::string& class_meta_value = "", const std::unordered_set<std::string>* target_peptides = nullptr)))
+START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix, double te_ratio, Level level = Level::PSM, const std::string& class_meta_value = "", const std::unordered_set<std::string>* target_peptides = nullptr, const PeptidePairs* pairs = nullptr, const std::string& score_meta_value = "")))
 {
+  using L = EntrapmentEvaluation::Level;
   PeptideIdentificationList ids;
   // 8 target PSMs (7 distinct peptides), 2 entrapment PSMs (2 peptides), 1 decoy, 1 above threshold
   for (const auto& s : {"AAAK", "CCCK", "DDDK", "EEEK", "FFFK", "GGGK", "HHHK"}) ids.push_back(makeId(s, 0.001, {"P1"}, false, "unmod"));
@@ -86,52 +88,141 @@ START_SECTION((static std::map<std::string, Result> evaluate(const PeptideIdenti
   ids.push_back(makeId("NNNK", 0.001, {"DECOY_P1"}, true));
   ids.push_back(makeId("PPPK", 0.5, {"ENTRAP_P2"}));
 
-  auto res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, "mod_class");
+  auto res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PSM, "mod_class");
   const auto& all = res["all"];
-  TEST_EQUAL(all.accepted_psms, 10)
-  TEST_EQUAL(all.entrapment_psms, 2)
-  TEST_REAL_SIMILAR(all.psmFDP(), 2.0 / 10.0 * 2.0)
-  TEST_EQUAL(all.accepted_peptides, 9)
-  TEST_EQUAL(all.entrapment_peptides, 2)
-  TEST_REAL_SIMILAR(all.peptideFDP(), 2.0 / 9.0 * 2.0)
-  TEST_EQUAL(res["mod"].accepted_psms, 2)
-  TEST_REAL_SIMILAR(res["mod"].psmFDP(), 2.0)
-  TEST_EQUAL(res["unmod"].entrapment_psms, 0)
+  TEST_EQUAL(all.accepted, 10)
+  TEST_EQUAL(all.entrapment, 2)
+  TEST_REAL_SIMILAR(all.combinedFDP(), 2.0 / 10.0 * 2.0)
+  TEST_REAL_SIMILAR(all.lowerBoundFDP(), 2.0 / 10.0)
+  TEST_EQUAL(all.paired, false)
+  TEST_EQUAL(std::isnan(all.pairedFDP()), true)
+  TEST_EQUAL(res["mod"].accepted, 2)
+  TEST_REAL_SIMILAR(res["mod"].combinedFDP(), 2.0)
+  TEST_EQUAL(res["unmod"].entrapment, 0)
   TEST_EQUAL(res.count("NA"), 0)
+
+  // peptide level: AAAK once
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PEPTIDE, "mod_class");
+  TEST_EQUAL(res["all"].accepted, 9)
+  TEST_EQUAL(res["all"].entrapment, 2)
+  TEST_REAL_SIMILAR(res["all"].combinedFDP(), 2.0 / 9.0 * 2.0)
+  TEST_EQUAL(res["unmod"].accepted, 7)
+  TEST_EQUAL(res["mod"].accepted, 2)
+  TEST_EQUAL(res["all"].paired, false) // no pairs given
 
   // a class named "all" does not add to the overall result
   PeptideIdentificationList ids_all = ids;
   for (auto& id : ids_all) if (id.getHits()[0].getMetaValue("mod_class") == "mod") id.getHits()[0].setMetaValue("mod_class", "all");
-  auto res_all = EntrapmentEvaluation::evaluate(ids_all, 0.01, "ENTRAP_", 1.0, "mod_class");
-  TEST_EQUAL(res_all["all"].accepted_psms, 10)
-  TEST_EQUAL(res_all["class:all"].accepted_psms, 2)
+  auto res_all = EntrapmentEvaluation::evaluate(ids_all, 0.01, "ENTRAP_", 1.0, L::PSM, "mod_class");
+  TEST_EQUAL(res_all["all"].accepted, 10)
+  TEST_EQUAL(res_all["class:all"].accepted, 2)
 
   // T/E = 3: entrapment hits weigh less
   res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 3.0);
-  TEST_REAL_SIMILAR(res["all"].psmFDP(), 2.0 / 10.0 * 4.0)
+  TEST_REAL_SIMILAR(res["all"].combinedFDP(), 2.0 / 10.0 * 4.0)
   TEST_EQUAL(res.size(), 1)
 
   // nothing accepted
   res = EntrapmentEvaluation::evaluate(ids, 0.0, "ENTRAP_", 1.0);
-  TEST_EQUAL(res["all"].accepted_psms, 0)
-  TEST_REAL_SIMILAR(res["all"].psmFDP(), 0.0)
+  TEST_EQUAL(res["all"].accepted, 0)
+  TEST_REAL_SIMILAR(res["all"].combinedFDP(), 0.0)
+  TEST_REAL_SIMILAR(res["all"].lowerBoundFDP(), 0.0)
 
   // a NaN or negative q-value is never accepted
   ids.push_back(makeId("QQQK", std::numeric_limits<double>::quiet_NaN(), {"P1"}));
   ids.push_back(makeId("RRRK", -0.1, {"P1"}));
   res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0);
-  TEST_EQUAL(res["all"].accepted_psms, 10)
+  TEST_EQUAL(res["all"].accepted, 10)
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PEPTIDE);
+  TEST_EQUAL(res["all"].accepted, 9)
 
   // with the target peptides of the database: KILLK (entrapment) is KLLLK with I = L, which a target protein holds,
   // so it counts as target; KMMMK stays entrapment
   ids.push_back(makeId("KILLK", 0.003, {"ENTRAP_P8"}));
   const std::unordered_set<std::string> target_peptides = {"KLLLK", "AAAK"};
-  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, "", &target_peptides);
-  TEST_EQUAL(res["all"].accepted_psms, 11)
-  TEST_EQUAL(res["all"].entrapment_psms, 1)
-  TEST_EQUAL(res["all"].entrapment_peptides, 1)
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PSM, "", &target_peptides);
+  TEST_EQUAL(res["all"].accepted, 11)
+  TEST_EQUAL(res["all"].entrapment, 1)
   res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0);
-  TEST_EQUAL(res["all"].entrapment_psms, 3)
+  TEST_EQUAL(res["all"].entrapment, 3)
+  // peptide level: KILLK and KLLLK are one peptide (I = L), a target
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PEPTIDE, "", &target_peptides);
+  TEST_EQUAL(res["all"].accepted, 9)
+  TEST_EQUAL(res["all"].entrapment, 1)
+
+  // a peptide-level q-value takes precedence at the peptide level
+  PeptideIdentificationList ids_pep;
+  ids_pep.push_back(makeId("AAAK", 0.001, {"P1"}));
+  ids_pep.back().getHits()[0].setMetaValue("peptide q-value", 0.5);
+  ids_pep.push_back(makeId("CCCK", 0.001, {"P1"}));
+  TEST_EQUAL(EntrapmentEvaluation::evaluate(ids_pep, 0.01, "ENTRAP_", 1.0, L::PSM)["all"].accepted, 2)
+  TEST_EQUAL(EntrapmentEvaluation::evaluate(ids_pep, 0.01, "ENTRAP_", 1.0, L::PEPTIDE)["all"].accepted, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] paired estimate))
+{
+  using L = EntrapmentEvaluation::Level;
+  PeptideIdentificationList ids;
+  for (const auto& s : {"AAAK", "CCCK", "DDDK", "EEEK", "FFFK", "GGGK", "HHHK"}) ids.push_back(makeId(s, 0.001, {"P1"}));
+  ids.push_back(makeId("WWWK", 0.004, {"P1"}));
+  ids.back().getHits()[0].setMetaValue("svm", 2.0);
+  ids.push_back(makeId("KLLLK", 0.005, {"ENTRAP_P1"})); // paired target AAAK ranks above: no extra count
+  ids.push_back(makeId("KMMMK", 0.009, {"ENTRAP_P1"})); // paired target not identified: N_{E>=s>T}
+  ids.push_back(makeId("KWWWK", 0.004, {"ENTRAP_P1"})); // ties with its target WWWK: N_{E>T>=s}
+  ids.back().getHits()[0].setMetaValue("svm", 1.0);
+  ids.push_back(makeId("KYYYK", 0.003, {"ENTRAP_P1"})); // no pair known: N_{E>T>=s}
+  ids.push_back(makeId("KHHHK", 0.02, {"ENTRAP_P1"}));  // not accepted
+  ids.push_back(makeId("TTTK", 0.002, {"P1"}));         // paired target of KHHHK
+
+  const EntrapmentEvaluation::PeptidePairs pairs = {{"KLLLK", "AAAK"}, {"KMMMK", "ZZZK"}, {"KWWWK", "WWWK"}, {"KHHHK", "TTTK"}};
+  auto res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PEPTIDE, "", nullptr, &pairs);
+  const auto& r = res["all"];
+  TEST_EQUAL(r.paired, true)
+  TEST_EQUAL(r.accepted, 13)
+  TEST_EQUAL(r.entrapment, 4)
+  TEST_EQUAL(r.entrapment_target_not_accepted, 1)
+  TEST_EQUAL(r.entrapment_above_target, 2)
+  TEST_REAL_SIMILAR(r.pairedFDP(), (4.0 + 1.0 + 2.0 * 2.0) / 13.0)
+  TEST_REAL_SIMILAR(r.combinedFDP(), 4.0 / 13.0 * 2.0)
+  TEST_REAL_SIMILAR(r.lowerBoundFDP(), 4.0 / 13.0)
+
+  // a score breaks the tie: WWWK (2.0) ranks above KWWWK (1.0)
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PEPTIDE, "", nullptr, &pairs, "svm");
+  TEST_EQUAL(res["all"].entrapment_above_target, 1)
+  TEST_REAL_SIMILAR(res["all"].pairedFDP(), (4.0 + 1.0 + 2.0) / 13.0)
+
+  // a target accepted only at a looser threshold does not count as accepted
+  res = EntrapmentEvaluation::evaluate(ids, 0.0035, "ENTRAP_", 1.0, L::PEPTIDE, "", nullptr, &pairs);
+  TEST_EQUAL(res["all"].entrapment, 1) // KYYYK
+  TEST_EQUAL(res["all"].entrapment_above_target, 1)
+
+  // no paired counts at the PSM level
+  res = EntrapmentEvaluation::evaluate(ids, 0.01, "ENTRAP_", 1.0, L::PSM, "", nullptr, &pairs);
+  TEST_EQUAL(res["all"].paired, false)
+}
+END_SECTION
+
+START_SECTION((static PeptidePairs pairPeptides(const std::vector<FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix, const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme = "Trypsin", Size missed_cleavages = 2, Size min_length = 7, Size max_length = 40, Size* mismatched = nullptr)))
+{
+  std::vector<FASTAFile::FASTAEntry> db;
+  db.emplace_back("P1", "", "AAAAAAAKCCCCICCK");
+  db.emplace_back("ENTRAP_P1", "", "AAAAAAAKCCICCCCK"); // AAAAAAAK cannot change: not paired
+  db.emplace_back("P2", "", "DEFGHIMK");
+  db.emplace_back("ENTRAP_P2", "", "FEDGMIHK");
+  db.emplace_back("ENTRAP_P3", "", "GGGGGGGK");        // no target P3: skipped
+  db.emplace_back("P4", "", "GGGGGGGK");
+  db.emplace_back("ENTRAP_P4", "", "GGGGGGGGK");       // other length: mismatched
+  db.emplace_back("P5", "", "AAAAAAAK");
+  db.emplace_back("ENTRAP_P5", "", "CAAAAAAK");        // other composition: mismatched
+  db.emplace_back("P6_DECOY", "", "KMIHGFED");         // suffix decoys of a target and its entrapment: skipped
+  db.emplace_back("ENTRAP_P6_DECOY", "", "KMHIGFED");
+  Size mismatched = 0;
+  const auto pairs = EntrapmentEvaluation::pairPeptides(db, "ENTRAP_", "_DECOY", false, "Trypsin", 0, 7, 40, &mismatched);
+  TEST_EQUAL(pairs.size(), 2)
+  TEST_EQUAL(mismatched, 2)
+  TEST_EQUAL(pairs.at("CCLCCCCK"), "CCCCLCCK") // I replaced by L
+  TEST_EQUAL(pairs.at("FEDGMLHK"), "DEFGHLMK")
 }
 END_SECTION
 

@@ -21,6 +21,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <regex>
+#include <set>
 
 
 using namespace OpenMS;
@@ -321,6 +322,18 @@ protected:
     ProteaseDigestion digestion;
     std::string enzyme = StringUtils::trimmed(getStringOption_("enzyme"));
     if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion.setEnzyme(enzyme); }
+    if (entrapment_ratio > 0)
+    {
+      // the entrapment shuffle keeps only K, R and P in place inside a peptide; for an enzyme with other cleavage
+      // rules a shuffle can create or remove cleavage sites, so entrapment peptides are no longer mass-matched
+      static const std::set<std::string> mass_matched_enzymes = {"Trypsin", "Trypsin/P", "Lys-C", "Lys-C/P", "Arg-C", "Arg-C/P"};
+      if (!mass_matched_enzymes.contains(enzyme))
+      {
+        OPENMS_LOG_WARN << "Warning: entrapment sequences keep only K, R and P in place, which preserves the cleavage sites of "
+                        << "Trypsin, Trypsin/P, Lys-C(/P) and Arg-C(/P). With enzyme '" << enzyme << "' the shuffle can create "
+                        << "or remove cleavage sites, so not every entrapment peptide has a target peptide of the same mass." << endl;
+      }
+    }
 
     //-------------------------------------------------------------
     // reading input

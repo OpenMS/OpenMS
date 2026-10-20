@@ -4716,6 +4716,10 @@ set_tests_properties("TOPP_DecoyDatabase_11" PROPERTIES WILL_FAIL 1)
 add_test("TOPP_EntrapmentEvaluator_1" ${TOPP_BIN_PATH}/EntrapmentEvaluator -test -in ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_input.idXML -out ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -te_ratio 1 -q_value 0.01 0.05 -class_meta_value mod_class)
 add_test("TOPP_EntrapmentEvaluator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_output.tsv )
 set_tests_properties("TOPP_EntrapmentEvaluator_1_out" PROPERTIES DEPENDS "TOPP_EntrapmentEvaluator_1")
+# ... with a DecoyDatabase entrapment database: T/E from the database and the paired estimate at the peptide level
+add_test("TOPP_EntrapmentEvaluator_2" ${TOPP_BIN_PATH}/EntrapmentEvaluator -test -in ${DATA_DIR_TOPP}/EntrapmentEvaluator_2_input.idXML -database ${DATA_DIR_TOPP}/DecoyDatabase_10_out.fasta -out ${TESTS_TEMP_DIR}/EntrapmentEvaluator_2.tmp.tsv -q_value 0.005 0.01)
+add_test("TOPP_EntrapmentEvaluator_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/EntrapmentEvaluator_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/EntrapmentEvaluator_2_output.tsv )
+set_tests_properties("TOPP_EntrapmentEvaluator_2_out" PROPERTIES DEPENDS "TOPP_EntrapmentEvaluator_2")
 
 
 # SimpleSearchEngine:
