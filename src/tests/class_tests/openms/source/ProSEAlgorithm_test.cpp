@@ -2447,6 +2447,88 @@ START_SECTION(([EXTRA] Ion mobility annotation))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] FAIMS compensation voltage annotation))
+{
+  // A FAIMS compensation voltage is the spectrum's drift time with unit FAIMS_COMPENSATION_VOLTAGE (as the
+  // Thermo and mzML readers set it). It is written as FAIMS_CV, which the FAIMS-aware tools read, not as IM.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  vector<string> test_seqs = {"VLGFHQR", "EGFVRTHQPSANLDIK"};
+  vector<double> test_cvs = {-45.0, -65.0};
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (Size i = 0; i < test_seqs.size(); ++i)
+  {
+    AASequence seq = AASequence::fromString(test_seqs[i]);
+    int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(rt);
+    rt += 1.0;
+    spec.setDriftTime(test_cvs[i]);
+    spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge));
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+  TEST_EQUAL(pep_ids.size(), 2)
+
+  bool has_45 = false, has_65 = false;
+  for (const auto& pid : pep_ids)
+  {
+    TEST_FALSE(pid.metaValueExists(Constants::UserParam::IM))
+    TEST_TRUE(pid.metaValueExists(Constants::UserParam::FAIMS_CV))
+    const double cv = pid.getMetaValue(Constants::UserParam::FAIMS_CV);
+    if (fabs(cv + 45.0) < 1e-6) has_45 = true;
+    if (fabs(cv + 65.0) < 1e-6) has_65 = true;
+  }
+  TEST_TRUE(has_45)
+  TEST_TRUE(has_65)
+
+  // No ion mobility values, so no IM unit on the run
+  TEST_FALSE(prot_ids[0].metaValueExists(Constants::UserParam::IM))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Edge cases - empty inputs))
 {
   // Empty spectra

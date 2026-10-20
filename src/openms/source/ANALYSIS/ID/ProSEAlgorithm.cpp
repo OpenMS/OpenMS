@@ -1579,9 +1579,11 @@ namespace OpenMS
       {
         MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
         mv_scan_index = registry.registerName("scan_index");
-        if (IMTypes::determineIMFormat(exp[first_with_hits - annotated_hits.begin()]) == IMFormat::IM_SPECTRUM)
+        const MSSpectrum& first_spectrum = exp[first_with_hits - annotated_hits.begin()];
+        if (IMTypes::determineIMFormat(first_spectrum) == IMFormat::IM_SPECTRUM)
         {
-          registry.registerName(Constants::UserParam::IM);
+          registry.registerName(first_spectrum.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                                  ? Constants::UserParam::FAIMS_CV : Constants::UserParam::IM);
         }
         if (annotation_fragment_error_ppm) mv_fragment_error = registry.registerName(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
         if (annotation_precursor_error_ppm) mv_precursor_error = registry.registerName(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
@@ -1642,10 +1644,13 @@ namespace OpenMS
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
-        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        // Annotate the spectrum's single drift time: a FAIMS compensation voltage as FAIMS_CV (which the
+        // FAIMS-aware tools read), an ion mobility (e.g. DDA-PASEF, 1/K0) as IM
         if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
         {
-          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+          pi.setMetaValue(spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                            ? Constants::UserParam::FAIMS_CV : Constants::UserParam::IM,
+                          spec.getDriftTime());
         }
 
         Size charge = spec.getPrecursors()[0].getCharge();
@@ -2058,7 +2063,9 @@ namespace OpenMS
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
 
-    // Annotate IM unit on ProteinIdentification if all PeptideIdentifications have IM
+    // Annotate the IM unit on the ProteinIdentification if all PeptideIdentifications have an IM value. The
+    // unit is that of the spectra the values came from (FAIMS compensation voltages are written as FAIMS_CV,
+    // so they never count here)
     if (!peptide_ids.empty())
     {
       bool all_have_im = std::all_of(
@@ -2067,8 +2074,12 @@ namespace OpenMS
 
       if (all_have_im)
       {
+        const auto with_im = std::find_if(exp.begin(), exp.end(), [](const MSSpectrum& spec) {
+          return IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM
+                 && spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+        });
         protein_ids[0].setMetaValue(Constants::UserParam::IM,
-          exp[0].getDriftTimeUnitAsString());
+          (with_im != exp.end() ? *with_im : exp[0]).getDriftTimeUnitAsString());
       }
     }
   }
