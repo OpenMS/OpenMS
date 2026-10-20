@@ -153,23 +153,25 @@ three times its size. Errors, after which the module stays usable:
 - A file has to be smaller than 2 GiB (at most 2080374784 bytes, 2 GiB - 64 MiB; in the 64-bit build
   16 GiB - 64 MiB; `getMemoryInfo().maxFileSize`): a larger size or end of a write throws
   `InvalidValue: the value '<bytes>' was used but is not valid; a file of the module's file system has
-  to be smaller than 2 GiB (at most 2080374784 bytes): <path>` before anything is allocated (an app can
-  tell the user that the file is too large). A file of more than half of that (about 1 GiB) cannot grow
-  by a write past its end (that takes a block of twice its size): `InvalidValue: ... growing the file
-  <path> of <n> bytes takes a block of ... allocate the file at its final size first (allocateFile())`.
+  to be smaller than 2 GiB (at most 2080374784 bytes): <path>` (64-bit build: `16 GiB (at most 17112760320
+  bytes)`) before anything is allocated (an app can tell the user that the file is too large). A file of
+  more than half of that (about 1 GiB; 8 GiB in the 64-bit build) cannot grow by a write past its end
+  (that takes a block of twice its size): `InvalidValue: ... growing the file <path> of <n> bytes takes a
+  block of ... allocate the file at its final size first (allocateFile())`.
 - Where the module's memory cannot hold the file: `OutOfMemory`.
 - `FS.writeFile()`, `FS.write()` and `FS.read()` throw an `FS.ErrnoError` of errno 48 (ENOMEM) there:
   Emscripten's took the 0 that `malloc` returns then for the address of their buffer and wrote over the
   start of the module's memory (`wasmfs_fs.js`, which also makes `FS.write()` copy a typed array of
   bytes in one piece instead of byte by byte). `FS.write()` and `FS.read()` throw errno 28 (EINVAL) for
-  an `offset` and `length` beyond their buffer.
+  an `offset` and `length` beyond their buffer, and transfer 2 GiB or more (64-bit build) in parts:
+  WasmFS returns the count of one transfer as a 32-bit `int`.
 
 **Files one after the other: allocate them with a capacity.** The allocator (mimalloc) does not give the
 block of a removed file to a larger one. Files that come one at a time, each removed before the next,
 therefore grow the heap with each file that is larger than the ones before (0.9, 1.0 and 1.1 GiB took it
 to 1103, 2147 and 3295 MB, and 1.2 GiB did not fit), unless their blocks have the same size.
-`allocateFile(path, size, capacity)` gives the file a block of `capacity` bytes (at least `size`, smaller
-than 2 GiB): allocate each file with the size of the largest as capacity, and every file takes the
+`allocateFile(path, size, capacity)` gives the file a block of `capacity` bytes (at least `size`, at most
+`getMemoryInfo().maxFileSize`): allocate each file with the size of the largest as capacity, and every file takes the
 block of the one before (0.9 to 1.4 GiB in increasing order: 1615 MB throughout). Only files allocated
 this way, with the same capacity, reuse the block; the path may be the same or a new one. With a
 capacity the file is created anew: an existing file at `path` is replaced (its contents go).
@@ -813,14 +815,16 @@ The allocator of the 64-bit builds is OpenMS' build of mimalloc (`OPENMS_WASM_MA
 grow several times beyond what a search used (see the ProSE measurements above). The 32-bit builds keep
 Emscripten's; `-DOPENMS_WASM_MALLOC=openms-mimalloc` gives them OpenMS' as well (as fast in the ProSE
 searches above, with 30 to 45% less memory). The build takes these sources from the Emscripten SDK: the
-configuration checks that they are where `cmake/emscripten_malloc.cmake` expects them, and fails with a
-hint if a new Emscripten moved them (or warns, and keeps mimalloc's growing arenas, if its `arena.c`
-changed).
+configuration checks that they are as `cmake/emscripten_malloc.cmake` expects them (where they are, the
+calls of mimalloc to its system allocator, the `emscripten_builtin_*` that `dlmalloc.c` exports, and the
+growth of mimalloc's arenas in `arena.c`), and fails with a hint if a new Emscripten changed them.
 
 Two tests of the 64-bit builds need memory of the host: "fail cleanly where the memory cannot hold their
 data" (`tests/io.test.mjs`) fills the 16 GB of a module (20 GiB of host memory), "a file of more than
-4 GiB" writes one of 4.5 GiB (9 GiB). With less, they are skipped and say why; in the 32-bit builds the
-first takes 4 GB, as before, and the second is skipped.
+4 GiB" writes one of 4.5 GiB (9 GiB), "FS.write and FS.read of 2 GiB and more" one of 2.5 GiB (14 GiB).
+With less, they are skipped and say why; what counts is both the host's memory and what is free of it
+when the test starts (`os.totalmem()`, `os.freemem()`), so that a busy machine skips rather than swaps.
+In the 32-bit builds the first takes 4 GB, as before, and the others are skipped.
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`

@@ -1066,6 +1066,24 @@ Build System:
     (peptdeep:enable) in browsers and Node.js, and hasONNXRuntime(). With WebAssembly threads,
     OpenMS creates the ONNX Runtime environment with global thread pools, which ONNX Runtime's
     sessions use there.
+  - WebAssembly with 64-bit memory (Memory64): CMake presets wasm64-emscripten-mt-release and
+    wasm64-emscripten-mt-onnx-release (vcpkg triplet wasm64-emscripten-mt), npm package
+    @openms/openms-wasm64-mt (Node.js 24; Chrome, Firefox, not Safari). The module grows up to 16 GB
+    instead of 4 GB, e.g. for semi-tryptic ProSE searches of the human proteome, and files of its file
+    system may be up to 16 GiB - 64 MiB (getMemoryInfo().maxFileSize, new in both builds). Its allocator
+    is OpenMS' build of Emscripten's mimalloc on dlmalloc (OPENMS_WASM_MALLOC, cmake/emscripten_malloc.cmake),
+    as emmalloc cannot allocate a block of 4 GiB or more in wasm64 (emscripten-core/emscripten#28028).
+    The JavaScript API is the one of the 32-bit builds: sizes and indices are numbers in both (Embind
+    would pass a 64-bit size_t as BigInt); the TypeScript declarations of wasm32 differ from before only
+    by MemoryInfo.maxFileSize. The build checks that no size_t crosses to JavaScript and that no integer
+    argument comes from JavaScript unchecked (OPENMS_WASM_CHECK_INTEGERS), the test
+    openms_wasm_typescript that both builds declare the same API.
+  - WebAssembly, behaviour change (wasm32 as well): an integer argument from JavaScript (int, unsigned,
+    size_t, ...; also the elements of an integer list such as msLevels, and options such as maxCharge)
+    has to be an integer within the range of its type; else the call throws InvalidValue ("the value
+    '1.5' was used but is not valid; an integer argument has to be an integer from -2147483648 to
+    2147483647"). Embind used to truncate it silently: 1.5 to 1, -1 to 4294967295 for an unsigned, 2^31
+    to -2^31 for an int, NaN and undefined to 0. new NLargest(n) also rejects n beyond 2^31 - 1.
   - ONNX: a model that exists but does not load reports ONNX Runtime's message (ParseError) instead
     of FileNotFound.
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and

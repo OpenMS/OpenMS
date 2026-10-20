@@ -247,7 +247,8 @@ namespace OpenMS::WASM
 
     /// Writes @p data (a Uint8Array) into the file @p path at byte @p offset; the file is created if missing. Writing
     /// past its end grows it: allocate the file first (allocateFile()) when its size is known, else it grows by
-    /// doubling, which can take up to three times its size while it grows (and fails beyond 1 GiB).
+    /// doubling, which can take up to three times its size while it grows (and fails for a file of more than half of
+    /// MAX_FILE_SIZE: about 1 GiB in wasm32, 8 GiB in wasm64).
     void writeFileChunk(const std::string& path, const JS::Bytes& data, double offset)
     {
       if (!data.instanceof(val::global("Uint8Array")))
