@@ -787,7 +787,7 @@ TOPP tools:
     ProSE:
       - PARAM: New chimeric:* (chimeric:enabled default false): also identify precursors co-isolated with the selected
         one, by searching what the best hit and the earlier co-isolated precursors leave of the spectrum at their m/z
-        and charge (PSM meta value chimeric_rank 2), as the andes chimeric cascade. Needs the MS1 spectra in the
+        and charge (PSM meta value chimeric_rank 2), after the andes chimeric cascade. Needs the MS1 spectra in the
         input; not with database:chunk_size > 0.
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with

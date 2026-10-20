@@ -503,6 +503,10 @@ namespace OpenMS
       "Largest Kullback-Leibler divergence of an isotope envelope in the survey scan from averagine (first four isotope "
       "peaks) to accept it as a co-isolated precursor.");
     defaults_.setMinFloat("chimeric:max_kl", 0.0);
+    defaults_.setValue("chimeric:top_hits", 3,
+      "At most this many hits of a co-isolated precursor are reported (and at most report:top_hits). Each takes about as "
+      "much memory as a hit of a spectrum.");
+    defaults_.setMinInt("chimeric:top_hits", 1);
     defaults_.setValue("chimeric:mz_tolerance", 10.0, "Tolerance (ppm) for the m/z of the isotope peaks in the survey scan.");
     defaults_.setMinFloat("chimeric:mz_tolerance", 0.0);
     defaults_.setSectionDescription("chimeric", "Search of precursors co-isolated with the selected one (chimeric spectra).");
@@ -2722,6 +2726,7 @@ namespace OpenMS
     hits.clear();
     pool_stats.clear();
     const Size max_n = static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated")));
+    const Size max_hits = std::min(report_top_hits_, static_cast<Size>(static_cast<int>(param_.getValue("chimeric:top_hits"))));
 
     // The spectra with co-isolated precursors and at least one hit: their best hit, the peaks claimed so far and
     // the winners found so far (indices into the round results below)
@@ -2822,7 +2827,7 @@ namespace OpenMS
                            candidates.end());
           if (candidates.empty()) continue;
           std::sort(candidates.begin(), candidates.end(), AnnotatedHit_::hasBetterScore);
-          if (candidates.size() > report_top_hits_) candidates.resize(report_top_hits_);
+          if (candidates.size() > max_hits) candidates.resize(max_hits);
           const auto winner = candidates.begin();
           const MSSpectrum& spectrum = spectra[scan.spectrum];
           claimPeaks(spectrum, winner->sequence, generators.forSpectrum(spectrum), scoringMaxCharge_(winner->applied_charge),

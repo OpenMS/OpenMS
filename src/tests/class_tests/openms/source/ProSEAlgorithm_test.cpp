@@ -1881,8 +1881,8 @@ START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in wh
   TEST_EQUAL(file_peptides[1].getSpectrumReference(), "scan=2")
 
   // a second co-isolated precursor, GEPTIDENWK (3+, 31.9 Th below the selected one, less intense): searched after
-  // SDDEFYYTDK, in what both other PSMs leave; a co-isolated precursor has at most report:top_hits hits, none with the
-  // best hit's peptide
+  // SDDEFYYTDK, in what both other PSMs leave; a co-isolated precursor has at most chimeric:top_hits hits, none with
+  // the best hit's peptide
   const AASequence second = AASequence::fromString("GEPTIDENWK");
   MSSpectrum ms1_two = ms1;
   add_envelope(ms1_two, second.getMZ(3), 3, 3e6);
@@ -1905,6 +1905,7 @@ START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in wh
   configure(two_algo, true);
   Param two_param = two_algo.getParameters();
   two_param.setValue("report:top_hits", 5);
+  two_param.setValue("chimeric:top_hits", 2);
   two_algo.setParameters(two_param);
   vector<ProteinIdentification> two_proteins;
   PeptideIdentificationList two_peptides;
@@ -1917,7 +1918,7 @@ START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in wh
   TEST_EQUAL(two_peptides[2].getHits()[0].getCharge(), 3)
   for (Size i = 1; i < 3; ++i)
   {
-    TEST_EQUAL(two_peptides[i].getHits().empty() || two_peptides[i].getHits().size() > 5, false)
+    TEST_EQUAL(two_peptides[i].getHits().empty() || two_peptides[i].getHits().size() > 2, false)
     for (const PeptideHit& hit : two_peptides[i].getHits())
     {
       TEST_EQUAL(int(hit.getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)

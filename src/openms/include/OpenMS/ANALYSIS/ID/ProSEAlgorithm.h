@@ -1047,7 +1047,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param fragment_tol_ppm Whether @p fragment_tol is in ppm (else Da)
      * @param open_search_mode Whether the search is an open search
      * @param[out] psms The co-isolated PSMs, in spectrum order and, within a spectrum, in detection order
-     * @param[out] hits The hits of each of @p psms (at most report:top_hits), the winner first
+     * @param[out] hits The hits of each of @p psms (at most chimeric:top_hits and report:top_hits), the winner first
      * @param[out] pool_stats The candidate-pool statistics of each of @p psms
      */
     void searchCoIsolated_(const PeakMap& spectra,
