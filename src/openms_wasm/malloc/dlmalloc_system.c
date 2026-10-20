@@ -20,9 +20,13 @@
 // dlmalloc is 64-bit clean and coalesces freed blocks; its lock costs nothing here, as mimalloc
 // calls it rarely.
 //
-// dlmalloc.c of the Emscripten SDK is compiled here as it is. Its exports emscripten_builtin_*
-// would collide with mimalloc's and are renamed; its weak aliases of malloc, free, ... lose to
-// mimalloc's definitions.
+// dlmalloc.c of the Emscripten SDK is compiled here as it is, with USE_DL_PREFIX: it then exports
+// none of its weak aliases of malloc, free, memalign, posix_memalign, realloc_in_place, bulk_free,
+// ..., which would otherwise compete with mimalloc's (also weak) definitions, so that the link order
+// decided, and those only dlmalloc defines would take mimalloc's blocks. Its functions are static
+// (DLMALLOC_EXPORT): only emmalloc_memalign() and emmalloc_free() below reach them. Its exports
+// emscripten_builtin_* (always defined) would collide with mimalloc's and are renamed; the
+// configuration checks that dlmalloc.c defines no others (cmake/emscripten_malloc.cmake).
 //
 // mimalloc asks for blocks aligned to its slices (32 KiB in wasm64), mostly large ones. dlmemalign()
 // serves such a request from a free block only if that is larger than the request by the alignment:
@@ -34,6 +38,7 @@
 // start is kept in front of the aligned address (at most the alignment and 8 bytes more per block;
 // mimalloc allocates a few hundred blocks here during a large search).
 
+#define USE_DL_PREFIX 1
 #define emscripten_builtin_malloc openms_system_builtin_malloc
 #define emscripten_builtin_realloc openms_system_builtin_realloc
 #define emscripten_builtin_calloc openms_system_builtin_calloc

@@ -46,12 +46,13 @@ if(NOT OPENMS_WASM_MALLOC MATCHES "^(mimalloc|openms-mimalloc)$")
   message(FATAL_ERROR "OPENMS_WASM_MALLOC must be mimalloc or openms-mimalloc (is '${OPENMS_WASM_MALLOC}').")
 endif()
 
-## The configuration checks that the sources are where this file expects them (mimalloc, dlmalloc, and mimalloc's calls
-## of emmalloc_memalign()/emmalloc_free()): if a new Emscripten moved them, it fails with a hint; if arena.c changed,
-## it warns and builds it unchanged (with the exponential growth of the arenas).
+## The configuration checks that the sources are as this file expects them (mimalloc, dlmalloc, mimalloc's calls of
+## emmalloc_memalign()/emmalloc_free(), the exports emscripten_builtin_* of dlmalloc.c, and the growth of the arenas in
+## mimalloc's arena.c): if a new Emscripten changed them, it fails with a hint.
 
-## Emscripten's mimalloc for every program (OPENMS_WASM_MALLOC=openms-mimalloc: but those linking openms_wasm_malloc).
-add_link_options("-sMALLOC=mimalloc")
+## Every program: Emscripten's mimalloc, or none where the program links openms_wasm_malloc (openms_emscripten_link_malloc()
+## sets the target property OPENMS_WASM_OWN_MALLOC): one -sMALLOC per link, whatever the order of the options.
+add_link_options("-sMALLOC=$<IF:$<BOOL:$<TARGET_PROPERTY:OPENMS_WASM_OWN_MALLOC>>,none,mimalloc>")
 
 if(OPENMS_WASM_MALLOC STREQUAL "openms-mimalloc")
   enable_language(C)
@@ -65,6 +66,16 @@ if(OPENMS_WASM_MALLOC STREQUAL "openms-mimalloc")
     message(FATAL_ERROR "OPENMS_WASM_MALLOC=openms-mimalloc: mimalloc of Emscripten ${EMSCRIPTEN_VERSION} no longer takes its memory "
                         "from emmalloc_memalign() and emmalloc_free(); update src/openms_wasm/malloc/dlmalloc_system.c.")
   endif()
+  ## dlmalloc.c defines these emscripten_builtin_* (whatever USE_DL_PREFIX says), which dlmalloc_system.c renames: another
+  ## one would collide with mimalloc's, or replace it
+  file(READ "${EMSCRIPTEN_ROOT_PATH}/system/lib/dlmalloc.c" _dlmalloc)
+  string(REGEX MATCHALL "emscripten_builtin_[a-z_]+" _builtins "${_dlmalloc}")
+  list(REMOVE_DUPLICATES _builtins)
+  list(SORT _builtins)
+  if(NOT _builtins STREQUAL "emscripten_builtin_calloc;emscripten_builtin_free;emscripten_builtin_malloc;emscripten_builtin_memalign;emscripten_builtin_realloc")
+    message(FATAL_ERROR "OPENMS_WASM_MALLOC=openms-mimalloc: dlmalloc.c of Emscripten ${EMSCRIPTEN_VERSION} defines ${_builtins}; "
+                        "update the renames of src/openms_wasm/malloc/dlmalloc_system.c and this check (cmake/emscripten_malloc.cmake).")
+  endif()
 
   ## The sources Emscripten builds libmimalloc from (tools/system_libs.py), but emmalloc.
   file(GLOB _mi_sources "${_mi}/src/*.c")
@@ -75,14 +86,16 @@ if(OPENMS_WASM_MALLOC STREQUAL "openms-mimalloc")
   file(READ "${_mi}/src/arena.c" _arena)
   set(_growth "  if (arena_count >= 1 && arena_count <= 128) {\n    // scale up the arena sizes exponentially every 8 entries")
   string(FIND "${_arena}" "${_growth}" _at)
+  ## (A failure, not a warning: with the growth, a wasm64 search took twice the memory; a new Emscripten's arena.c is to
+  ## be looked at anyway.)
   if(_at EQUAL -1)
-    message(WARNING "OPENMS_WASM_MALLOC=openms-mimalloc: mimalloc's arena.c of Emscripten ${EMSCRIPTEN_VERSION} has changed; "
-                    "its arenas keep growing exponentially (update cmake/emscripten_malloc.cmake).")
-  else()
-    string(REPLACE "${_growth}"
-      "  if (OPENMS_MI_ARENA_GROWTH && arena_count >= 1 && arena_count <= 128) { // OpenMS: not by default (cmake/emscripten_malloc.cmake)\n    // scale up the arena sizes exponentially every 8 entries"
-      _arena "${_arena}")
+    message(FATAL_ERROR "OPENMS_WASM_MALLOC=openms-mimalloc: mimalloc's arena.c of Emscripten ${EMSCRIPTEN_VERSION} has changed: "
+                        "update the patch of its exponential growth of arenas in cmake/emscripten_malloc.cmake, or use "
+                        "OPENMS_WASM_MALLOC=mimalloc.")
   endif()
+  string(REPLACE "${_growth}"
+    "  if (OPENMS_MI_ARENA_GROWTH && arena_count >= 1 && arena_count <= 128) { // OpenMS: not by default (cmake/emscripten_malloc.cmake)\n    // scale up the arena sizes exponentially every 8 entries"
+    _arena "${_arena}")
   file(WRITE "${CMAKE_BINARY_DIR}/openms_wasm_malloc/arena.c.new" "${_arena}")
   configure_file("${CMAKE_BINARY_DIR}/openms_wasm_malloc/arena.c.new" "${CMAKE_BINARY_DIR}/openms_wasm_malloc/arena.c" COPYONLY)
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_mi}/src/arena.c")
@@ -98,13 +111,13 @@ if(OPENMS_WASM_MALLOC STREQUAL "openms-mimalloc")
     MI_MALLOC_OVERRIDE MI_DEBUG=0 NDEBUG MI_LIBC_MUSL MI_USE_BUILTIN_THREAD_POINTER
     MI_FREE_USE_PAGEMAP=1 OPENMS_MI_ARENA_GROWTH=0)
   target_compile_options(openms_wasm_malloc PRIVATE -fno-builtin -w)
-  ## The programs that link it bring their own malloc.
-  target_link_options(openms_wasm_malloc INTERFACE "-sMALLOC=none")
 endif()
 
-## Links the allocator of OPENMS_WASM_MALLOC into the program @p target (the JavaScript module and the Node.js programs).
+## Links the allocator of OPENMS_WASM_MALLOC into the program @p target (the JavaScript module and the Node.js programs):
+## with -sMALLOC=none (OPENMS_WASM_OWN_MALLOC, above).
 function(openms_emscripten_link_malloc target)
   if(TARGET openms_wasm_malloc)
     target_link_libraries(${target} PRIVATE openms_wasm_malloc)
+    set_target_properties(${target} PROPERTIES OPENMS_WASM_OWN_MALLOC TRUE)
   endif()
 endfunction()

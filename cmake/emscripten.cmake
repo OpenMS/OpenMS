@@ -101,7 +101,12 @@ function(openms_emscripten_check_options)
                           "configure with OPENMS_WASM_THREADS=ON (CMake preset wasm32-emscripten-mt-release).")
     endif()
   endif()
-  ## Memory64: pointer size, and dependencies built for it
+  ## Memory64: with threads (the only wasm64 triplet, wasm64-emscripten-mt, and the presets), pointer size, and
+  ## dependencies built for it
+  if(OPENMS_WASM_MEMORY64 AND NOT OPENMS_WASM_THREADS)
+    message(FATAL_ERROR "OPENMS_WASM_MEMORY64 needs OPENMS_WASM_THREADS (there is no single-threaded wasm64 build): use the "
+                        "CMake preset wasm64-emscripten-mt-release.")
+  endif()
   if(OPENMS_WASM_MEMORY64 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "OPENMS_WASM_MEMORY64 needs -m64 in CMAKE_C_FLAGS and CMAKE_CXX_FLAGS "
                         "when the toolchain is loaded: use the CMake preset wasm64-emscripten-mt-release.")
