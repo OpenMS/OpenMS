@@ -296,15 +296,19 @@ class ProSE :
       const int batch_size = search_params.getValue("peptdeep:batch_size");
       const std::string instrument = search_params.getValue("peptdeep:instrument").toString();
 
-      // The NCE: as PeptDeep rescoring used it, else selected as it selects it.
+      // The NCE: as PeptDeep rescoring used it, else 'peptdeep:nce' if set, else selected as the rescoring selects it.
       ProteinIdentification& run = protein_ids[0];
+      const double fixed_nce = search_params.getValue("peptdeep:nce");
+      if (!run.metaValueExists(PeptDeepRescoring::NCE_META_VALUE) && fixed_nce > 0.0)
+      {
+        run.setMetaValue(PeptDeepRescoring::NCE_META_VALUE, fixed_nce);
+      }
       if (!run.metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
       {
         PeptDeepRescoring rescoring;
         Param p = rescoring.getParameters();
         p.setValue("ms2_model", ms2_model);
         p.setValue("instrument", instrument);
-        p.setValue("nce", search_params.getValue("peptdeep:nce"));
         p.setValue("batch_size", batch_size);
         p.setValue("threads", threads);
         rescoring.setParameters(p);

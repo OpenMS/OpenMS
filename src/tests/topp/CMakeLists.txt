@@ -5074,7 +5074,7 @@ else()
 endif()
 
 # Test 14: -qpx_spectra adds to every PSM row of the QPX psm.parquet the peaks of its spectrum and PeptDeep's predicted
-# b/y intensities, without and with PeptDeep rescoring ('peptdeep:enable'), on the data of Test 11. The text dump of the
+# b/y intensities, without and with PeptDeep rescoring ('peptdeep:enable') and with a set NCE, on the data of Test 11. The text dump of the
 # psm.parquet (ParquetDiff -out_tsv) is checked by check_prose_qpx_spectra.cmake: every row has as many peaks as its
 # spectrum in the mzML and every row of charge 1 to 6 a prediction; and the prediction of one PSM is that of
 # PeptDeepMS2Inference at the NCE that the summary reports for the file. ProSE_14_AATAQYLSPR_2.tsv holds the model's b and
@@ -5085,13 +5085,15 @@ set(_prose14_common -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
 set(_prose14_variants plain)
 if(WITH_ONNX)
-  list(APPEND _prose14_variants peptdeep)
+  list(APPEND _prose14_variants peptdeep nce30)
 endif()
 foreach(_v ${_prose14_variants})
   set(_f ProSE_14_qpx_spectra_${_v})
   set(_opt)
   if(_v STREQUAL "peptdeep")
     set(_opt -Search:peptdeep:enable true)
+  elseif(_v STREQUAL "nce30") # a set NCE is used as it is
+    set(_opt -Search:peptdeep:nce 30)
   endif()
   add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f})
   add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} ${_opt} -qpx_spectra
@@ -5124,13 +5126,13 @@ endforeach()
 set(_prose14_summary "percolator:;applied: true;skipped_reason: \"\";decoy_string: \"DECOY_\";decoy_is_prefix: true;protein_fdr_applied: true")
 if(WITH_ONNX)
   string(APPEND _prose14_summary ";peptdeep_nce: ")
-  set(_prose14_summary_forbidden "peptdeep_nce: null")
+  set(_prose14_summary_forbidden "-DFORBIDDEN=peptdeep_nce: null")
 else()
   string(APPEND _prose14_summary ";peptdeep_nce: null")
-  set(_prose14_summary_forbidden "skipped_reason: null")
+  set(_prose14_summary_forbidden)
 endif()
 add_test("TOPP_ProSE_14_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_qpx_spectra_plain.tmp.yaml
-  "-DEXPECTED=${_prose14_summary}" "-DFORBIDDEN=${_prose14_summary_forbidden}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  "-DEXPECTED=${_prose14_summary}" ${_prose14_summary_forbidden} -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_14_summary" PROPERTIES DEPENDS "TOPP_ProSE_14_qpx_spectra_plain")
 # -keep_decoys: the protein FDR of one input keeps the decoy PSMs and proteins that pass (Test 11 removes them).
 add_test("TOPP_ProSE_14_keep_decoys" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} -keep_decoys
