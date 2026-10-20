@@ -34,8 +34,6 @@ MAX_PEPTIDE_LENGTH="${MAX_PEPTIDE_LENGTH:-$(awk '
 ' "$FASTA")}"
 PREDICTION_THREADS="${PREDICTION_THREADS:-$THREADS}"
 (( PREDICTION_THREADS > 8 )) && PREDICTION_THREADS=8
-PERCOLATOR_THREADS="${PERCOLATOR_THREADS:-$THREADS}"
-(( PERCOLATOR_THREADS > 3 )) && PERCOLATOR_THREADS=3
 VARIABLE_MOD_ARGS=()
 if [[ "${OXIDATION:-true}" == "true" ]]; then
   VARIABLE_MOD_ARGS=(-PeptideQueryParameters:LibraryPrediction:variable_modifications "Oxidation (M)")
@@ -78,6 +76,7 @@ command=(
   -TargetedDataExtraction:enable_ipf false
   -TargetedDataExtraction:ion_mobility_mode disabled
   "${OPEN_DIA_SPEED_ARGS[@]}"
+  "${OPEN_DIA_ANALYSIS_ARGS[@]}"
   -TargetedDataExtraction:tempDirectory "$OUT/tmp"
   -TargetedDataExtraction:write_debug_files false
   -TargetedDataExtraction:Scoring:stop_report_after_feature 5
@@ -94,21 +93,8 @@ command=(
   -TargetedDataExtraction:Calibration:MassIMCorrection:mz_correction_function quadratic_regression_delta_ppm
   -Rescoring:level ms1ms2
   -Rescoring:percolator:subset_max_train 100000
-  -Rescoring:percolator:num_threads "$PERCOLATOR_THREADS"
-  -Inference:peptide:global false
-  -Inference:protein:global false
-  -Inference:gene:global false
   -Export:results:run true
   -Export:results:format tsv
-  -Export:results:max_rs_peakgroup_qvalue 0.01
-  -Export:results:use_peptide_scores false
-  -Export:results:use_protein_scores false
-  -Export:results:use_gene_scores false
-  -Export:results:exclude_decoys true
-  -Export:matrix:precursor false
-  -Export:matrix:peptide false
-  -Export:matrix:protein false
-  -Export:matrix:gene false
   "$@"
 )
 run_measured "$OUT" "${command[@]}"

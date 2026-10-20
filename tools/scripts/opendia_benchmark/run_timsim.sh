@@ -59,10 +59,8 @@ run_library()
     -out_dir "$out/results"
     -TargetedDataExtraction:ion_mobility_mode auto
     "${OPEN_DIA_SPEED_ARGS[@]}"
+    "${OPEN_DIA_ANALYSIS_ARGS[@]}"
     -TargetedDataExtraction:write_debug_files false
-    -Export:results:max_rs_peakgroup_qvalue 0.01
-    -Export:matrix:peptide true
-    -Export:matrix:protein true
     -threads "$THREADS"
   )
   run_measured "$out" "${command[@]}"
