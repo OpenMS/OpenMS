@@ -371,9 +371,13 @@ protected:
       double ms1_purity = -1.;
       // FAIMS: the precursor spectrum must have the CV of the identified scan. Without a precursor spectrum reference,
       // getPrecursorSpectrum() returns the preceding MS1 spectrum, which can be of another CV: then take the last MS1
-      // spectrum of the scan's CV before it (none: no purity).
+      // spectrum of the scan's CV before it (none: no purity). This applies only when that precursor MS1 spectrum
+      // carries a CV itself: files where only MS2 spectra carry the CV keep the plain preceding MS1, as in
+      // IsobaricChannelExtractor.
       const MSSpectrum& id_spec = exp[id_spec_idx];
-      const bool faims = id_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      const bool faims = id_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                         && ms1_spec_idx >= 0
+                         && exp[ms1_spec_idx].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
       const auto same_cv = [&id_spec, faims](const MSSpectrum& s)
       {
         if (!faims) return true;
