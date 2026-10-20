@@ -34,9 +34,11 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -385,6 +387,16 @@ protected:
       }
       else
       {
+        // The next MS1 spectrum of the same FAIMS compensation voltage as the precursor spectrum: with FAIMS, the
+        // CVs alternate from one MS1 spectrum to the next, and a survey scan of another CV holds other ions
+        const MSSpectrum& precursor_spec = exp[ms1_spec_idx];
+        const bool faims = precursor_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+        const auto same_cv = [&precursor_spec, faims](const MSSpectrum& s)
+        {
+          if (!faims) return true;
+          return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                 && std::fabs(s.getDriftTime() - precursor_spec.getDriftTime()) < 0.01;
+        };
         Size next_ms1_spec = quant_spec_idx;
         do
         {
@@ -395,7 +407,7 @@ protected:
             next_ms1_spec = ms1_spec_idx;
             break;
           }
-          else if (exp[next_ms1_spec].getMSLevel() == 1)          
+          else if (exp[next_ms1_spec].getMSLevel() == 1 && same_cv(exp[next_ms1_spec]))
           {
             break;
           }

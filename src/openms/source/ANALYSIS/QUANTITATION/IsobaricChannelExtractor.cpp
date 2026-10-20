@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
@@ -18,6 +19,9 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+
+#include <algorithm>
+#include <cmath>
 
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 // #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
@@ -537,6 +541,14 @@ namespace OpenMS
 
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
     bool ms3 = false;
+    // FAIMS: the CVs alternate from one MS1 spectrum to the next, so the precursor spectrum of a scan is the last MS1
+    // spectrum of its compensation voltage, and the follow-up spectrum the next one of that CV
+    const auto is_faims = [](const MSSpectrum& s) { return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE; };
+    const auto same_cv = [&is_faims](const MSSpectrum& a, const MSSpectrum& b)
+    {
+      return is_faims(a) && is_faims(b) && std::fabs(a.getDriftTime() - b.getDriftTime()) < 0.01;
+    };
+    std::vector<PeakMap::ConstIterator> last_ms1_per_cv; // the last MS1 spectrum of each CV seen so far
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
@@ -544,6 +556,13 @@ namespace OpenMS
       {
         // remember potential precursor and continue
         pState.precursorScan = it;
+        if (is_faims(*it))
+        {
+          auto known = std::find_if(last_ms1_per_cv.begin(), last_ms1_per_cv.end(),
+                                    [&](const PeakMap::ConstIterator& ms1) { return same_cv(*ms1, *it); });
+          if (known != last_ms1_per_cv.end()) *known = it;
+          else last_ms1_per_cv.push_back(it);
+        }
         // reset last MS2 -- we expect to see a new one soon and the old one should not be used for the following MS3 (if any)
         it_last_MS2 = ms_exp_data.end();
         continue;
@@ -553,8 +572,22 @@ namespace OpenMS
       if ((*it).empty()) continue; // skip empty spectra
       if (!(selected_activation_ == "any" || isValidActivation(*it))) continue;
 
+      if (is_faims(*it) && !last_ms1_per_cv.empty())
+      {
+        // precursor and follow-up spectrum of the scan's CV
+        auto known = std::find_if(last_ms1_per_cv.begin(), last_ms1_per_cv.end(),
+                                  [&](const PeakMap::ConstIterator& ms1) { return same_cv(*ms1, *it); });
+        pState.precursorScan = known != last_ms1_per_cv.end() ? *known : ms_exp_data.end();
+        pState.followUpScan = it;
+        while (pState.followUpScan != ms_exp_data.end()
+               && !(pState.followUpScan->getMSLevel() == 1 && same_cv(*pState.followUpScan, *it)))
+        {
+          ++pState.followUpScan;
+        }
+        pState.hasFollowUpScan = pState.followUpScan != ms_exp_data.end();
+      }
       // find following ms1 scan (needed for purity computation)
-      if (!pState.followUpValid(it->getRT()))
+      else if (!pState.followUpValid(it->getRT()))
       {
         // advance iterator
         pState.advanceFollowUp(it->getRT());
