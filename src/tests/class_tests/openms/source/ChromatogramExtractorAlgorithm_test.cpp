@@ -362,8 +362,8 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   // print(sum([0 + i*100.0 for i in range(10)] + 8) )
   TEST_REAL_SIMILAR( integrated_intensity, 4508.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05,  integrated_intensity, extract_window, false);
-  //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)])  )
-  TEST_REAL_SIMILAR( integrated_intensity, 8400.0);
+  //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)]) + 8 )
+  TEST_REAL_SIMILAR( integrated_intensity, 8408.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, false);
   //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(10)])  )
   TEST_REAL_SIMILAR( integrated_intensity, 9000.0);
@@ -397,9 +397,9 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,4508.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,8400.0);
+  TEST_REAL_SIMILAR( integrated_intensity,8408.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,9000.0);
+  TEST_REAL_SIMILAR( integrated_intensity,9008.0); // 500 ppm is slightly more than 0.1 Da: includes the very first value
 
 }
 END_SECTION
@@ -444,8 +444,8 @@ START_SECTION([EXTRA IM]void extract_value_tophat(const std::vector< double >::c
   // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.1]) + 8
   TEST_REAL_SIMILAR( integrated_intensity, 2008.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, im_it, 400.05,  100, integrated_intensity, extract_window, im_extract_window, false);
-  // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.15])
-  TEST_REAL_SIMILAR( integrated_intensity, 4100.0);
+  // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.15]) + 8
+  TEST_REAL_SIMILAR( integrated_intensity, 4108.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, im_it, 400.1, 100, integrated_intensity, extract_window, im_extract_window, false);
   // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.2])
   TEST_REAL_SIMILAR( integrated_intensity, 4100.0);
@@ -568,6 +568,48 @@ START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::cons
     TEST_EQUAL(im_it - ion_mobility.begin(), expected_pos)
     TEST_REAL_SIMILAR(integrated_intensity, expected_intensity)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, const double &mz_extraction_window, bool ppm))
+{
+  // The first and the last peak of a spectrum count once if they are inside the window: the first
+  // one also when the walk to the left reaches it after several steps, the last one also when the
+  // target lies beyond the end of the spectrum. Both overloads, window of 1 Th (+/- 0.5).
+  ChromatogramExtractorAlgorithm extractor;
+  auto extract = [&extractor](const std::vector<double>& mz, const std::vector<double>& intensities, const double target)
+  {
+    const std::vector<double> ion_mobility(mz.size(), 100.0);
+    std::vector<double>::const_iterator mz_it = mz.begin();
+    std::vector<double>::const_iterator int_it = intensities.begin();
+    double intensity = 0;
+    extractor.extract_value_tophat(mz.begin(), mz_it, mz.end(), int_it, target, intensity, 1.0, false);
+
+    std::vector<double>::const_iterator mz_it_im = mz.begin();
+    std::vector<double>::const_iterator int_it_im = intensities.begin();
+    std::vector<double>::const_iterator im_it = ion_mobility.begin();
+    double intensity_im = 0;
+    extractor.extract_value_tophat(mz.begin(), mz_it_im, mz.end(), int_it_im, im_it, target, 100.0, intensity_im, 1.0, 0.3, false);
+    return std::make_pair(intensity, intensity_im);
+  };
+
+  // the walk to the left passes three peaks, the last of them is the first peak of the spectrum
+  std::pair<double, double> result = extract({100.0, 100.1, 100.2, 100.3}, {1.0, 10.0, 100.0, 1000.0}, 100.25);
+  TEST_REAL_SIMILAR(result.first, 1111.0)
+  TEST_REAL_SIMILAR(result.second, 1111.0)
+
+  // target beyond the last peak
+  result = extract({100.0, 100.1, 100.2}, {1.0, 10.0, 100.0}, 100.3);
+  TEST_REAL_SIMILAR(result.first, 111.0)
+  TEST_REAL_SIMILAR(result.second, 111.0)
+
+  // a single peak, target beyond and before it
+  result = extract({100.0}, {5.0}, 100.1);
+  TEST_REAL_SIMILAR(result.first, 5.0)
+  TEST_REAL_SIMILAR(result.second, 5.0)
+  result = extract({100.0}, {5.0}, 99.9);
+  TEST_REAL_SIMILAR(result.first, 5.0)
+  TEST_REAL_SIMILAR(result.second, 5.0)
 }
 END_SECTION
 

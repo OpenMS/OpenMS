@@ -86,50 +86,26 @@ namespace OpenMS
     const std::ptrdiff_t skipped = advanceToMz_(mz_it, mz_end, mz);
     int_it += skipped;
 
-    // walk right and left and add to our intensity
+    // add the current peak if it is between right and left (past the end of
+    // the spectrum there is none: the walk to the left starts with the last peak)
+    if (mz_it != mz_end && (*mz_it) > left && (*mz_it) < right)
+    {
+      integrated_intensity += (*int_it);
+    }
+
+    // (i) Walk to the left until we go outside the window or have added the
+    // first data point
     mz_walker  = mz_it;
     int_walker = int_it;
-
-    // if we moved past the end of the spectrum, we need to try the last peak
-    // of the spectrum (it could still be within the window)
-    if (mz_it == mz_end)
+    while (mz_walker != mz_start)
     {
       --mz_walker;
       --int_walker;
-    }
-
-    // add the current peak if it is between right and left
-    if ((*mz_walker) > left && (*mz_walker) < right)
-    {
-      integrated_intensity += (*int_walker);
-    }
-
-    // (i) Walk to the left one step and then keep walking left until we go
-    // outside the window. Note for the first step to the left we have to
-    // check for the walker becoming equal to the first data point.
-    mz_walker  = mz_it;
-    int_walker = int_it;
-    if (mz_it != mz_start)
-    {
-      --mz_walker;
-      --int_walker;
-
-      // Special case: target m/z is larger than first data point but the first
-      // data point is inside the window.
-      // Then, mz_it is the second data point, mz_walker now points to the very
-      // first data point. If mz_it was the first data point, we already added
-      // it above. We still need to add this point if it is inside the window
-      // (while loop below will not catch it)
-      if (mz_walker == mz_start && (*mz_walker) > left && (*mz_walker) < right)
+      if (!((*mz_walker) > left && (*mz_walker) < right))
       {
-        integrated_intensity += (*int_walker);
+        break;
       }
-    }
-    while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
-    {
       integrated_intensity += (*int_walker);
-      --mz_walker;
-      --int_walker;
     }
 
     // (ii) Walk to the right one step and then keep walking right until we are
@@ -198,55 +174,28 @@ namespace OpenMS
     im_it += skipped;
     int_it += skipped;
 
-    // walk right and left and add to our intensity
+    // add the current peak if it is between right and left (past the end of
+    // the spectrum there is none: the walk to the left starts with the last peak)
+    if (mz_it != mz_end && (*mz_it) > left && (*mz_it) < right && (*im_it) > left_im && (*im_it) < right_im)
+    {
+      integrated_intensity += (*int_it);
+    }
+
+    // (i) Walk to the left until we go outside the m/z window or have added
+    // the first data point
     mz_walker  = mz_it;
     im_walker  = im_it;
     int_walker = int_it;
-
-    // if we moved past the end of the spectrum, we need to try the last peak
-    // of the spectrum (it could still be within the window)
-    if (mz_it == mz_end)
+    while (mz_walker != mz_start)
     {
       --mz_walker;
       --im_walker;
       --int_walker;
-    }
-
-    // add the current peak if it is between right and left
-    if ((*mz_walker) > left && (*mz_walker) < right && (*im_walker) > left_im && (*im_walker) < right_im)
-    {
-      integrated_intensity += (*int_walker);
-    }
-
-    // (i) Walk to the left one step and then keep walking left until we go
-    // outside the window. Note for the first step to the left we have to
-    // check for the walker becoming equal to the first data point.
-    mz_walker  = mz_it;
-    int_walker = int_it;
-    im_walker = im_it;
-    if (mz_it != mz_start)
-    {
-      --mz_walker;
-      --im_walker;
-      --int_walker;
-
-      // Special case: target m/z is larger than first data point but the first
-      // data point is inside the window.
-      // Then, mz_it is the second data point, mz_walker now points to the very
-      // first data point. If mz_it was the first data point, we already added
-      // it above. We still need to add this point if it is inside the window
-      // (while loop below will not catch it)
-      if (mz_walker == mz_start && (*mz_walker) > left && (*mz_walker) < right && (*im_walker) > left_im && (*im_walker) < right_im)
+      if (!((*mz_walker) > left && (*mz_walker) < right))
       {
-        integrated_intensity += (*int_walker);
+        break;
       }
-    }
-    while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
-    {
       if (*im_walker > left_im && *im_walker < right_im) integrated_intensity += (*int_walker);
-      --mz_walker;
-      --im_walker;
-      --int_walker;
     }
 
     // (ii) Walk to the right one step and then keep walking right until we are
