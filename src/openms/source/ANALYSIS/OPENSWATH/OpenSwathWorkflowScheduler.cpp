@@ -208,7 +208,16 @@ namespace OpenMS
     const Size target_jobs = std::max<Size>(active_jobs, workers * jobs_per_thread);
     Size batch_size = (total_compounds + target_jobs - 1) / target_jobs;
 
-    const Size min_batch = std::max<Size>(1, options.min_inner_batch_size);
+    // With several workers, the minimum batch size only coarsens the batches while enough jobs
+    // remain to keep every worker busy: a wave of a single SWATH (e.g. with max_concurrent_swaths = 1)
+    // has only a few thousand compounds, and flooring its batch at min_inner_batch_size would score
+    // it in one job, that is on one thread.
+    Size min_batch = std::max<Size>(1, options.min_inner_batch_size);
+    if (workers > 1)
+    {
+      const Size jobs_for_workers = workers * jobs_per_thread;
+      min_batch = std::min<Size>(min_batch, std::max<Size>(1, (total_compounds + jobs_for_workers - 1) / jobs_for_workers));
+    }
     const Size max_batch = std::max<Size>(min_batch, options.max_inner_batch_size);
     batch_size = std::clamp(batch_size, min_batch, max_batch);
 

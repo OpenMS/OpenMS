@@ -14,6 +14,7 @@
 #include <iomanip>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -502,6 +503,30 @@ START_SECTION([EXTRA] getBYSeries_test)
   bseries.clear();
   OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
 
+}
+END_SECTION
+
+START_SECTION((const IsotopeDistribution& averagineIsotopeDistribution(double average_weight, int nr_isotopes)))
+{
+  // identical to the averagine estimate it caches, for every weight (also for weights that share a
+  // composition, and when asked again)
+  for (int nr_isotopes : {2, 5})
+  {
+    for (int pass = 0; pass < 2; ++pass)
+    {
+      for (double weight = 50.0; weight < 4000.0; weight += 7.31)
+      {
+        const IsotopeDistribution expected = CoarseIsotopePatternGenerator(nr_isotopes).estimateFromPeptideWeight(weight);
+        const IsotopeDistribution& cached = OpenMS::DIAHelpers::averagineIsotopeDistribution(weight, nr_isotopes);
+        TEST_EQUAL(cached.size(), expected.size())
+        for (Size i = 0; i < std::min(cached.size(), expected.size()); ++i)
+        {
+          TEST_EQUAL(cached[i].getMZ(), expected[i].getMZ())
+          TEST_EQUAL(cached[i].getIntensity(), expected[i].getIntensity())
+        }
+      }
+    }
+  }
 }
 END_SECTION
 
