@@ -5073,6 +5073,90 @@ else()
   set_tests_properties("TOPP_ProSE_peptdeep_requires_onnx" PROPERTIES WILL_FAIL TRUE)
 endif()
 
+# Test 14: -qpx_spectra adds to every PSM row of the QPX psm.parquet the peaks of its spectrum and PeptDeep's predicted
+# b/y intensities, without and with PeptDeep rescoring ('peptdeep:enable'), on the data of Test 11. The text dump of the
+# psm.parquet (ParquetDiff -out_tsv) is checked by check_prose_qpx_spectra.cmake: every row has as many peaks as its
+# spectrum in the mzML and every row of charge 1 to 6 a prediction; and the prediction of one PSM is that of
+# PeptDeepMS2Inference at the NCE that the summary reports for the file. ProSE_14_AATAQYLSPR_2.tsv holds the model's b and
+# y intensities of AATAQYLSPR (2+, instrument QE) at NCE 20 to 40, relative to the most intense of them, without those of
+# 0.01 or less, by m/z. Without ONNX Runtime the peaks are written and the prediction columns are null.
+set(_prose14_common -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
+set(_prose14_variants plain)
+if(WITH_ONNX)
+  list(APPEND _prose14_variants peptdeep)
+endif()
+foreach(_v ${_prose14_variants})
+  set(_f ProSE_14_qpx_spectra_${_v})
+  set(_opt)
+  if(_v STREQUAL "peptdeep")
+    set(_opt -Search:peptdeep:enable true)
+  endif()
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f})
+  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} ${_opt} -qpx_spectra
+    -out_qpx ${TESTS_TEMP_DIR}/${_f} -summary_out ${TESTS_TEMP_DIR}/${_f}.tmp.yaml)
+  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+  add_test("TOPP_${_f}_dump" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/${_f}/DatabaseSuitability_in_spec.psm.parquet -out_tsv ${TESTS_TEMP_DIR}/${_f}.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_dump" PROPERTIES DEPENDS "TOPP_${_f}")
+  if(WITH_ONNX)
+    add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} -DTSV=${TESTS_TEMP_DIR}/${_f}.tmp.tsv
+      -DMZML=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -DNATIVE_ID_PREFIX=spectrum=
+      -DYAML=${TESTS_TEMP_DIR}/${_f}.tmp.yaml -DPEPTIDE=AATAQYLSPR -DCHARGE=2
+      -DREFERENCE=${DATA_DIR_TOPP}/ProSE_14_AATAQYLSPR_2.tsv
+      -DOUT_PREDICTED=${TESTS_TEMP_DIR}/${_f}_predicted.tmp.tsv -DOUT_REFERENCE=${TESTS_TEMP_DIR}/${_f}_reference.tmp.tsv
+      -P ${DATA_DIR_TOPP}/check_prose_qpx_spectra.cmake)
+    set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "TOPP_${_f}_dump")
+    # m/z are float32 (ratio), intensities agree to 1e-5 (absdiff).
+    add_test("TOPP_${_f}_prediction" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_predicted.tmp.tsv
+      -in2 ${TESTS_TEMP_DIR}/${_f}_reference.tmp.tsv -ratio 1.000001 -absdiff 0.00001)
+    set_tests_properties("TOPP_${_f}_prediction" PROPERTIES DEPENDS "TOPP_${_f}_check")
+  else()
+    add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} -DTSV=${TESTS_TEMP_DIR}/${_f}.tmp.tsv
+      -DMZML=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -DNATIVE_ID_PREFIX=spectrum= -DPREDICTIONS=OFF
+      -P ${DATA_DIR_TOPP}/check_prose_qpx_spectra.cmake)
+    set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "TOPP_${_f}_dump")
+  endif()
+endforeach()
+# The summary reports per file the Percolator outcome and the NCE of the predictions, and the protein FDR and the decoy
+# marker of the search.
+set(_prose14_summary "percolator:;applied: true;skipped_reason: \"\";decoy_string: \"DECOY_\";decoy_is_prefix: true;protein_fdr_applied: true")
+if(WITH_ONNX)
+  string(APPEND _prose14_summary ";peptdeep_nce: ")
+  set(_prose14_summary_forbidden "peptdeep_nce: null")
+else()
+  string(APPEND _prose14_summary ";peptdeep_nce: null")
+  set(_prose14_summary_forbidden "skipped_reason: null")
+endif()
+add_test("TOPP_ProSE_14_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_qpx_spectra_plain.tmp.yaml
+  "-DEXPECTED=${_prose14_summary}" "-DFORBIDDEN=${_prose14_summary_forbidden}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_14_summary" PROPERTIES DEPENDS "TOPP_ProSE_14_qpx_spectra_plain")
+# -keep_decoys: the protein FDR of one input keeps the decoy PSMs and proteins that pass (Test 11 removes them).
+add_test("TOPP_ProSE_14_keep_decoys" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} -keep_decoys
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML)
+add_test("TOPP_ProSE_14_keep_decoys_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_14_keep_decoys_out" PROPERTIES DEPENDS "TOPP_ProSE_14_keep_decoys")
+# Several inputs with -out_merged and -out_parquet: the pooled proteins and protein groups (with -keep_decoys, the decoys
+# that pass the protein FDR too) are written as merged.proteins.parquet and merged.pg.parquet.
+add_test(NAME "TOPP_ProSE_14_merged_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_14_merged)
+add_test("TOPP_ProSE_14_merged" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -keep_decoys
+  -in ${TESTS_TEMP_DIR}/ProSE_13_a.mzML ${TESTS_TEMP_DIR}/ProSE_13_b.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_14_merged.tmp.idXML -out_parquet ${TESTS_TEMP_DIR}/ProSE_14_merged)
+set_tests_properties("TOPP_ProSE_14_merged" PROPERTIES
+  DEPENDS "TOPP_ProSE_14_merged_clean;TOPP_ProSE_13_merged_input_a;TOPP_ProSE_13_merged_input_b")
+foreach(_t proteins pg)
+  add_test("TOPP_ProSE_14_merged_${_t}" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/ProSE_14_merged/merged.${_t}.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/ProSE_14_merged_${_t}.tmp.tsv)
+  set_tests_properties("TOPP_ProSE_14_merged_${_t}" PROPERTIES DEPENDS "TOPP_ProSE_14_merged")
+endforeach()
+add_test("TOPP_ProSE_14_merged_proteins_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_merged_proteins.tmp.tsv
+  "-DEXPECTED=DECOY_sp" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_14_merged_proteins_out" PROPERTIES DEPENDS "TOPP_ProSE_14_merged_proteins")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
