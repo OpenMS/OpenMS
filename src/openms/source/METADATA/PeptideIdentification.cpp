@@ -10,8 +10,7 @@
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FORMAT/FileNameUtils.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 
 
 
@@ -335,16 +334,10 @@ namespace OpenMS
 
     std::string ms_run_name = USI::extractBasename(ms_run_path);
 
-    // §3.3.4: keep extension for index: type (tells a resolver which file format
-    // the index counts into, e.g. .mgf vs .mzML).
     auto usi_index = USI::nativeIdToUSIIndex(getSpectrumReference());
     if (usi_index.has_value() && usi_index->first == USI::IndexType::INDEX)
     {
-      FileTypes::Type ft = FileNameUtils::getTypeByFileName(ms_run_path);
-      if (ft != FileTypes::UNKNOWN)
-      {
-        ms_run_name += "." + FileTypes::typeToName(ft);
-      }
+      ms_run_name = File::basename(ms_run_path);
     }
 
     return buildUSI(ms_run_name, dataset_id, include_interpretation);

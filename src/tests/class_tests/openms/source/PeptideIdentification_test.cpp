@@ -782,7 +782,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   // Create ProteinIdentifications to build a Mapping
   ProteinIdentification prot_id1;
   prot_id1.setIdentifier("run1");
-  prot_id1.setPrimaryMSRunPath(StringList{"/data/file1.mzML"});
+  prot_id1.setPrimaryMSRunPath(StringList{"/data/file1.MZML.gz"});
 
   ProteinIdentification prot_id2;
   prot_id2.setIdentifier("run2");
@@ -861,9 +861,9 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   id_idx.setSpectrumReference("index=42");
   USI usi_idx = id_idx.buildUSI(mapping, "PXD000561", false);
   TEST_EQUAL(usi_idx.isValid(), true);
-  TEST_STRING_EQUAL(usi_idx.getMSRun(), "file1.mzML");
+  TEST_STRING_EQUAL(usi_idx.getMSRun(), "file1.MZML.gz");
   TEST_EQUAL(usi_idx.getIndexType(), USI::IndexType::INDEX);
-  TEST_STRING_EQUAL(usi_idx.toString(), "mzspec:PXD000561:file1.mzML:index:42");
+  TEST_STRING_EQUAL(usi_idx.toString(), "mzspec:PXD000561:file1.MZML.gz:index:42");
 }
 END_SECTION
 

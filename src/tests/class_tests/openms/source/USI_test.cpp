@@ -396,6 +396,16 @@ START_SECTION((static std::optional<std::pair<USI::IndexType, std::string>> nati
   TEST_EQUAL(r4->first, USI::IndexType::NATIVEID);
   TEST_STRING_EQUAL(r4->second, "120,475");
 
+  // Bruker DIA adds a window-group number; it is not part of the USI tuple.
+  auto r4_dia = USI::nativeIdToUSIIndex("frame=120 windowGroup=3 scan=475");
+  TEST_EQUAL(r4_dia->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r4_dia->second, "120,475");
+
+  // DDA IDs may carry a precursor number, which is also excluded.
+  auto r4_dda = USI::nativeIdToUSIIndex("frame=120 scan=475 precursor=2");
+  TEST_EQUAL(r4_dda->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r4_dda->second, "120,475");
+
   // Waters → nativeId:
   auto r5 = USI::nativeIdToUSIIndex("function=10 process=1 scan=345");
   TEST_EQUAL(r5.has_value(), true);

@@ -314,6 +314,21 @@ namespace OpenMS
       if (idx >= 0) return std::make_pair(IndexType::INDEX, StringUtils::toStr(idx));
     }
 
+    // Bruker TDF references can include windowGroup or precursor fields, but
+    // the USI nativeId tuple is defined by frame and scan only.
+    if (StringUtils::hasPrefix(native_id, "frame="))
+    {
+      boost::regex frame_re(R"(frame=(\d+))");
+      boost::regex scan_re(R"(scan=(\d+))");
+      boost::smatch frame_match;
+      boost::smatch scan_match;
+      if (boost::regex_search(native_id, frame_match, frame_re) &&
+          boost::regex_search(native_id, scan_match, scan_re))
+      {
+        return std::make_pair(IndexType::NATIVEID, frame_match[1].str() + "," + scan_match[1].str());
+      }
+    }
+
     // All other key=value native IDs → nativeId: with comma-separated values
     if (SpectrumNativeIDParser::isNativeID(native_id))
     {
