@@ -72,7 +72,7 @@ add_custom_target(openms_wasm_share DEPENDS "${_share_stamp}")
 #------------------------------------------------------------------------------
 # The module
 
-add_executable(openms_wasm
+set(_openms_wasm_sources
   bindings/binding_utils.cpp
   bindings/bind_chemistry.cpp
   bindings/bind_features.cpp
@@ -85,6 +85,7 @@ add_executable(openms_wasm
   bindings/bind_prose_tables.cpp
   bindings/js_types.cpp
 )
+add_executable(openms_wasm ${_openms_wasm_sources})
 target_link_libraries(openms_wasm PRIVATE OpenMS)
 openms_add_compiler_flags(openms_wasm)
 
@@ -164,6 +165,53 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
+# One JavaScript API for wasm32 and wasm64: no integer of pointer size crosses to JavaScript
+#
+# long and unsigned long (size_t, ptrdiff_t) are 64 bits in the wasm64 build (OPENMS_WASM_MEMORY64), where
+# Embind passes them as BigInt; the guards of the bound functions take and return them as numbers
+# (bindings/binding_utils.h). This check compiles the bindings once more (unoptimized, objects not linked)
+# against a copy of Embind's wire.h in which their conversions are deleted: every other place where one would
+# cross, e.g. as value of a val or as argument of an unguarded constructor, is a compile error, in both
+# builds. tests/check_dts.mjs (test openms_wasm_typescript) compares the declarations of the two builds.
+option(OPENMS_WASM_CHECK_INTEGERS "Check at build time that no long or unsigned long (size_t) crosses from the OpenMS WebAssembly bindings to JavaScript, where wasm64 would pass it as BigInt" ON)
+if(OPENMS_WASM_CHECK_INTEGERS)
+  set(_wire_h "${EMSCRIPTEN_SYSROOT}/include/emscripten/wire.h")
+  set(_native_types "EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(signed long);\nEMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(unsigned long);\n")
+  set(_deleted_types [=[
+// OpenMS (src/openms_wasm/CMakeLists.txt): long and unsigned long may not cross to JavaScript, where a
+// wasm64 module passes them as BigInt. Take or return them as double (OMS_FN, OMS_METHOD, OMS_CONSTRUCTOR do).
+#define OPENMS_WASM_DELETED_BINDING_TYPE(type)                                 \
+template<>                                                                     \
+struct BindingType<type> {                                                     \
+    typedef type WireType;                                                     \
+    static WireType toWireType(const type& v, rvp::default_tag) = delete;      \
+    static type fromWireType(WireType v) = delete;                             \
+}
+OPENMS_WASM_DELETED_BINDING_TYPE(signed long);
+OPENMS_WASM_DELETED_BINDING_TYPE(unsigned long);
+]=])
+  file(READ "${_wire_h}" _wire)
+  string(FIND "${_wire}" "${_native_types}" _at)
+  if(_at EQUAL -1)
+    message(WARNING "Emscripten's ${_wire_h} does not define the binding types of long and unsigned long as expected: "
+                    "the check of OPENMS_WASM_CHECK_INTEGERS is skipped (update it in src/openms_wasm/CMakeLists.txt).")
+  else()
+    string(REPLACE "${_native_types}" "${_deleted_types}" _wire "${_wire}")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/integer_check/wire.h.new" "${_wire}")
+    configure_file("${CMAKE_CURRENT_BINARY_DIR}/integer_check/wire.h.new"
+                   "${CMAKE_CURRENT_BINARY_DIR}/integer_check/emscripten/wire.h" COPYONLY) # (rewritten if changed)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_wire_h}")
+    add_library(openms_wasm_integer_check OBJECT EXCLUDE_FROM_ALL ${_openms_wasm_sources} ${OPENMS_WASM_EXTRA_SOURCES})
+    target_link_libraries(openms_wasm_integer_check PRIVATE OpenMS)
+    openms_add_compiler_flags(openms_wasm_integer_check)
+    target_include_directories(openms_wasm_integer_check BEFORE PRIVATE
+      "${CMAKE_CURRENT_BINARY_DIR}/integer_check" "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
+    target_compile_options(openms_wasm_integer_check PRIVATE -O0 -g0)
+    add_dependencies(openms_wasm openms_wasm_integer_check)
+  endif()
+endif()
+
+#------------------------------------------------------------------------------
 # The npm package around the module
 
 configure_file(package.json.in "${OPENMS_WASM_PACKAGE_DIR}/package.json" @ONLY)
@@ -204,4 +252,27 @@ if(OPENMS_WASM_NODE_EXECUTABLE)
   set_tests_properties(openms_wasm_bindings PROPERTIES
     ENVIRONMENT "OPENMS_WASM_MODULE=${OPENMS_WASM_PACKAGE_DIR}/openms.mjs;OPENMS_TEST_DATA=${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data"
     TIMEOUT 600)
+
+  ## The TypeScript declarations (tests/check_dts.mjs): no BigInt, and the same as those of the build for the other
+  ## memory (wasm32 for wasm64 and the other way round). OPENMS_WASM_COMPARE_DTS: the openms.d.ts of that build; by
+  ## default the one of the build directory of the matching preset (build/wasm64-... for build/wasm32-...), compared
+  ## if it is there.
+  get_filename_component(_build_name "${OPENMS_HOST_BINARY_DIRECTORY}" NAME)
+  get_filename_component(_build_parent "${OPENMS_HOST_BINARY_DIRECTORY}" DIRECTORY)
+  set(_other_dts "")
+  if(_build_name MATCHES "^wasm64-(.*)$")
+    set(_other_dts "${_build_parent}/wasm32-${CMAKE_MATCH_1}/openms-wasm/openms.d.ts")
+  elseif(_build_name MATCHES "^wasm32-(.*)$")
+    set(_other_dts "${_build_parent}/wasm64-${CMAKE_MATCH_1}/openms-wasm/openms.d.ts")
+  endif()
+  set(OPENMS_WASM_COMPARE_DTS "" CACHE FILEPATH "openms.d.ts of the OpenMS WebAssembly build for the other memory (wasm32/wasm64), compared by the test openms_wasm_typescript (empty: the build directory of the matching preset, if built)")
+  if(OPENMS_WASM_COMPARE_DTS)
+    set(_compare "${OPENMS_WASM_COMPARE_DTS}")
+  elseif(_other_dts)
+    set(_compare "${_other_dts}" "--optional")
+  else()
+    set(_compare "")
+  endif()
+  add_test(NAME openms_wasm_typescript
+    COMMAND "${OPENMS_WASM_NODE_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/check_dts.mjs" "${OPENMS_WASM_PACKAGE_DIR}/openms.d.ts" ${_compare})
 endif()
