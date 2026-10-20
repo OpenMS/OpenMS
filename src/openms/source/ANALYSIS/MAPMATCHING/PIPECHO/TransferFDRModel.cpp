@@ -14,6 +14,7 @@
 #include "Util.h"
 
 #include <algorithm>
+#include <exception>
 #include <functional>
 #include <ranges>
 
@@ -130,6 +131,13 @@ const TransferFDRModel::group_t& TransferFDRModel::run(double fdr_cutoff)
   {
     OPENMS_LOG_WARN << "WARNING: PEP computation threw (" << e.getName() << ": "
                     << e.what() << ")." << std::endl;
+    pep_okay = false;
+  }
+  catch (const std::exception& e)
+  {
+    // The vendored Percolator code can also throw plain std::exceptions.
+    OPENMS_LOG_WARN << "WARNING: PEP computation threw (" << e.what() << ")."
+                    << std::endl;
     pep_okay = false;
   }
 
