@@ -51,6 +51,14 @@ set(SQLITE_OMIT_LOAD_EXTENSION ON CACHE BOOL "Enable omit load extension")
 ## page; the JavaScript module runs single-threaded elsewhere (src/openms_wasm).
 option(OPENMS_WASM_THREADS "Build OpenMS for WebAssembly with threads (OpenMP, std::thread); needs the dependencies of the wasm32-emscripten-mt vcpkg triplet" OFF)
 
+## 64-bit memory (Memory64, wasm64; CMake presets wasm64-emscripten-mt-release and
+## wasm64-emscripten-mt-onnx-release): pointers and size_t are 64 bits, and the module can address
+## more than the 4 GiB of wasm32 (browsers allow up to 16 GiB). Threaded only (the vcpkg triplet
+## wasm64-emscripten-mt). -m64 (Emscripten deprecates -sMEMORY64) has to be in CMAKE_C_FLAGS and
+## CMAKE_CXX_FLAGS when the toolchain is loaded (the presets set them), as Emscripten.cmake takes the
+## pointer size from them.
+option(OPENMS_WASM_MEMORY64 "Build OpenMS for 64-bit WebAssembly memory (Memory64); needs the dependencies of the wasm64-emscripten-mt vcpkg triplet" OFF)
+
 ## Not available in WebAssembly; openms_emscripten_check_options() rejects them.
 set(_openms_emscripten_unsupported_options
   WITH_GUI              # Qt widgets
@@ -91,6 +99,20 @@ function(openms_emscripten_check_options)
     elseif(NOT OPENMS_WASM_THREADS AND VCPKG_TARGET_TRIPLET MATCHES "-mt$")
       message(FATAL_ERROR "The vcpkg triplet ${VCPKG_TARGET_TRIPLET} builds the dependencies with threads: "
                           "configure with OPENMS_WASM_THREADS=ON (CMake preset wasm32-emscripten-mt-release).")
+    endif()
+  endif()
+  ## Memory64: pointer size, and dependencies built for it
+  if(OPENMS_WASM_MEMORY64 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "OPENMS_WASM_MEMORY64 needs -m64 in CMAKE_C_FLAGS and CMAKE_CXX_FLAGS "
+                        "when the toolchain is loaded: use the CMake preset wasm64-emscripten-mt-release.")
+  endif()
+  if(OPENMS_USE_VCPKG AND VCPKG_TARGET_TRIPLET)
+    if(OPENMS_WASM_MEMORY64 AND NOT VCPKG_TARGET_TRIPLET MATCHES "^wasm64")
+      message(FATAL_ERROR "OPENMS_WASM_MEMORY64 needs dependencies built for 64-bit memory: use the vcpkg triplet "
+                          "wasm64-emscripten-mt (CMake preset wasm64-emscripten-mt-release), not ${VCPKG_TARGET_TRIPLET}.")
+    elseif(NOT OPENMS_WASM_MEMORY64 AND VCPKG_TARGET_TRIPLET MATCHES "^wasm64")
+      message(FATAL_ERROR "The vcpkg triplet ${VCPKG_TARGET_TRIPLET} builds the dependencies for 64-bit memory: "
+                          "configure with OPENMS_WASM_MEMORY64=ON (CMake preset wasm64-emscripten-mt-release).")
     endif()
   endif()
   ## The OpenMP default of the threaded build does not override a cached MT_ENABLE_OPENMP=OFF.
@@ -163,12 +185,19 @@ option(OPENMS_WASM_SIMD "Compile OpenMS with WebAssembly SIMD (-msimd128)" ON)
 ## far smaller than the 8 MiB of a native main thread, which OpenMS (recursive
 ## algorithms, large objects on the stack, Xerces) relies on. The heap starts at
 ## 64 MiB (room for the stack and the shared data the module embeds) and grows on
-## demand up to the 4 GiB a wasm32 module can address.
+## demand up to the 4 GiB a wasm32 module can address, or with 64-bit memory up to
+## 16 GiB, the most browsers (and Node.js) give a Memory64 module.
 set(OPENMS_WASM_STACK_SIZE "8MB" CACHE STRING "Stack size of OpenMS WebAssembly executables (Emscripten STACK_SIZE)")
+if(OPENMS_WASM_MEMORY64)
+  add_link_options("-m64")
+  set(_openms_wasm_maximum_memory "16GB")
+else()
+  set(_openms_wasm_maximum_memory "4GB")
+endif()
 add_link_options(
   "-sALLOW_MEMORY_GROWTH=1"
   "-sINITIAL_MEMORY=64MB"
-  "-sMAXIMUM_MEMORY=4GB"
+  "-sMAXIMUM_MEMORY=${_openms_wasm_maximum_memory}"
   "-sSTACK_SIZE=${OPENMS_WASM_STACK_SIZE}"
 )
 

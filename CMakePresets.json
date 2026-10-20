@@ -276,6 +276,18 @@
             }
         },
         {
+            "name": "wasm64-emscripten-mt-release",
+            "displayName": "WebAssembly (Emscripten) Release, multi-threaded, 64-bit memory",
+            "description": "Like wasm32-emscripten-mt-release, with 64-bit memory (Memory64, wasm64): the module can address more than the 4 GiB of wasm32, up to 16 GiB (the limit of browsers; Safari does not support Memory64). The dependencies are built for the wasm64-emscripten-mt triplet. -m64 (64-bit memory) is in CMAKE_C_FLAGS and CMAKE_CXX_FLAGS because Emscripten's toolchain file takes the pointer size from them (cmake/emscripten.cmake).",
+            "inherits": "wasm32-emscripten-mt-release",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "wasm64-emscripten-mt",
+                "OPENMS_WASM_MEMORY64": "ON",
+                "CMAKE_C_FLAGS": "-m64",
+                "CMAKE_CXX_FLAGS": "-m64"
+            }
+        },
+        {
             "name": "linux-x64-ci",
             "displayName": "Linux x64 CI",
             "description": "OpenMS CI preset with vcpkg dependencies on Linux x64",
@@ -382,6 +394,10 @@
         {
             "name": "wasm32-emscripten-mt-onnx-release",
             "configurePreset": "wasm32-emscripten-mt-onnx-release"
+        },
+        {
+            "name": "wasm64-emscripten-mt-release",
+            "configurePreset": "wasm64-emscripten-mt-release"
         },
         {
             "name": "linux-x64-ci",
