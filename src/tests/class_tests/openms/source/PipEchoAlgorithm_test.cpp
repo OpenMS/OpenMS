@@ -372,6 +372,16 @@ START_SECTION([EXTRA] donor_max_q transfers only precursors confidently identifi
   const auto gated = transfers(0.01);
   TEST_EQUAL(gated.size(), 1)
   TEST_EQUAL(gated.count(12), 1) // PEPTIDEBBR (q 0.001) is transferred, PEPTIDECCK (q 0.2) is not
+
+  // the best of a feature's identifications counts, not the first: a second, later PSM of PEPTIDECCK at q 0.001
+  {
+    auto peps = maps[0][2].getPeptideIdentifications();
+    PeptideIdentification second = peps[0];
+    second.getHits()[0].setMetaValue("q-value", 0.001);
+    peps.push_back(second);
+    maps[0][2].setPeptideIdentifications(peps);
+  }
+  TEST_EQUAL(transfers(0.01).size(), 2)
 }
 END_SECTION
 

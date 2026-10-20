@@ -516,21 +516,35 @@ void Impl::set_transferable_precursors(const RunMap& runs)
   transferable_.clear();
   if (donor_max_q >= 1.0) { return; }
 
-  // the q-value of a feature's identification: its score if the score type is a q-value, else its "q-value" meta
-  // value; unknown -> 0 (passes the gate)
+  // the best q-value among a feature's identifications of its own peptide (feature IDs are not sorted by score, so
+  // the first one is not necessarily the best): an identification's q-value is its score if the score type is a
+  // q-value, else its "q-value" meta value; unknown -> 0 (passes the gate)
   std::size_t unknown = 0;
   auto q_value = [&unknown](const Feature& feature) -> double {
-    const auto& peps = feature.getPeptideIdentifications();
-    if (peps.empty() || peps[0].getHits().empty()) { return 1.0; }
-    const PeptideHit& hit = peps[0].getHits()[0];
-    if (peps[0].getScoreType().find("q-value") != std::string::npos) { return hit.getScore(); }
-    // the score switchers keep a former main score as "<score type>_score" (e.g. ProteomicsLFQ switches to PEP)
-    for (const char* key : {"q-value", "q-value_score", "MS:1001491"})
+    const auto sequence = PipEcho::Util::feature_hit(feature);
+    if (!sequence) { return 1.0; }
+    double best = 1.0;
+    bool has_unknown = false;
+    for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
     {
-      if (hit.metaValueExists(key)) { return static_cast<double>(hit.getMetaValue(key)); }
+      if (pep.getHits().empty()) { continue; }
+      const PeptideHit& hit = pep.getHits()[0];
+      if (hit.getSequence() != sequence->getSequence()) { continue; }
+      std::optional<double> q;
+      if (pep.getScoreType().find("q-value") != std::string::npos) { q = hit.getScore(); }
+      else
+      {
+        // the score switchers keep a former main score as "<score type>_score" (e.g. ProteomicsLFQ switches to PEP)
+        for (const char* key : {"q-value", "q-value_score", "MS:1001491"})
+        {
+          if (hit.metaValueExists(key)) { q = static_cast<double>(hit.getMetaValue(key)); break; }
+        }
+      }
+      if (q) { best = std::min(best, *q); }
+      else { has_unknown = true; }
     }
-    ++unknown;
-    return 0.0;
+    if (has_unknown) { ++unknown; return 0.0; }
+    return best;
   };
 
   std::unordered_map<std::string, double> best_q;
