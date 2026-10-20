@@ -240,6 +240,21 @@ namespace OpenMS
                                    std::vector<ProteinIdentification>& protein_ids,
                                    PeptideIdentificationList& peptide_ids)
   {
+    annotate_(spectra, protein_ids, peptide_ids, &peptide_ids);
+  }
+
+  void PeptDeepRescoring::selectNCE(const PeakMap& spectra,
+                                    std::vector<ProteinIdentification>& protein_ids,
+                                    const PeptideIdentificationList& peptide_ids)
+  {
+    annotate_(spectra, protein_ids, peptide_ids, nullptr);
+  }
+
+  void PeptDeepRescoring::annotate_(const PeakMap& spectra,
+                                    std::vector<ProteinIdentification>& protein_ids,
+                                    const PeptideIdentificationList& peptide_ids,
+                                    PeptideIdentificationList* annotated)
+  {
     // Diagnostics describe the call that is about to happen, not the previous one.
     used_nce_ = -1.0;
     rt_calibration_error_ = -1.0;
@@ -247,12 +262,14 @@ namespace OpenMS
     num_predicted_psms_ = 0;
     for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
 
-    if (ms2_model_.empty() || rt_model_.empty())
+    // Only the features need the retention-time model; selectNCE() predicts fragment intensities only.
+    if (ms2_model_.empty() || (annotated != nullptr && rt_model_.empty()))
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "PeptDeepRescoring needs both 'ms2_model' and 'rt_model' to be set.");
+        annotated != nullptr ? "PeptDeepRescoring needs both 'ms2_model' and 'rt_model' to be set."
+                             : "PeptDeepRescoring needs 'ms2_model' to be set.");
     }
-    for (const std::string& m : {ms2_model_, rt_model_})
+    for (const std::string& m : annotated != nullptr ? StringList{ms2_model_, rt_model_} : StringList{ms2_model_})
     {
       if (!File::exists(m))
       {
@@ -367,7 +384,8 @@ namespace OpenMS
     // Loading a model is expensive, so both sessions are created once and reused by
     // every run.
     PeptDeepMS2Inference ms2(ms2_model_, threads_, batch_size_);
-    PeptDeepRTInference rt(rt_model_, threads_, batch_size_);
+    std::unique_ptr<PeptDeepRTInference> rt;
+    if (annotated != nullptr) { rt = std::make_unique<PeptDeepRTInference>(rt_model_, threads_, batch_size_); }
 
     if (rows_by_run.size() > 1)
     {
@@ -383,20 +401,23 @@ namespace OpenMS
       // can hold runs from engines that disagree on it, and picking the wrong direction
       // would calibrate on the *worst* PSMs.
       const bool higher_better = peptide_ids[rows[run_rows.front()].pi].isHigherScoreBetter();
-      annotateRun_(run_id, collision_energies, peptide_ids, rows, run_rows, uniq_seq, uniq_charge,
-                   higher_better, ms2, rt);
+      annotateRun_(run_id, collision_energies, peptide_ids, annotated, rows, run_rows, uniq_seq, uniq_charge,
+                   higher_better, ms2, rt.get());
       nce_by_run[run_id] = used_nce_;
     }
 
     // ---- register the features for rescoring, per run ----
     // Each PeptideIdentification names its run, so the features belong on that run's
     // ProteinIdentification rather than unconditionally on the first one.
-    StringList names = featureNames();
+    // (selectNCE() records only the NCE.)
+    StringList names = annotated != nullptr ? featureNames() : StringList();
     bool any_matched = false;
     for (ProteinIdentification& prot : protein_ids)
     {
       if (rows_by_run.find(prot.getIdentifier()) == rows_by_run.end()) { continue; }
       any_matched = true;
+      prot.setMetaValue(NCE_META_VALUE, nce_by_run.at(prot.getIdentifier()));
+      if (annotated == nullptr) { continue; }
       ProteinIdentification::SearchParameters sp = prot.getSearchParameters();
       StringList features = sp.metaValueExists("extra_features")
         ? ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString(), ',')
@@ -407,22 +428,24 @@ namespace OpenMS
       }
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       prot.setSearchParameters(sp);
-      prot.setMetaValue(NCE_META_VALUE, nce_by_run.at(prot.getIdentifier()));
     }
     if (!any_matched && !protein_ids.empty())
     {
       // Identifiers do not line up (e.g. hand-assembled input): fall back to the first
       // run rather than silently dropping the features.
-      ProteinIdentification::SearchParameters sp = protein_ids[0].getSearchParameters();
-      StringList features = sp.metaValueExists("extra_features")
-        ? ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString(), ',')
-        : StringList();
-      for (const std::string& f : names)
+      if (annotated != nullptr)
       {
-        if (std::find(features.begin(), features.end(), f) == features.end()) { features.push_back(f); }
+        ProteinIdentification::SearchParameters sp = protein_ids[0].getSearchParameters();
+        StringList features = sp.metaValueExists("extra_features")
+          ? ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString(), ',')
+          : StringList();
+        for (const std::string& f : names)
+        {
+          if (std::find(features.begin(), features.end(), f) == features.end()) { features.push_back(f); }
+        }
+        sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
+        protein_ids[0].setSearchParameters(sp);
       }
-      sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
-      protein_ids[0].setSearchParameters(sp);
       // The runs are all folded onto this one entry, so a single NCE can only stand for
       // them if they agree (always so for a fixed 'nce'); otherwise record none rather
       // than an arbitrary run's.
@@ -434,6 +457,11 @@ namespace OpenMS
       }
     }
 
+    if (annotated == nullptr)
+    {
+      OPENMS_LOG_INFO << "[PeptDeepRescoring] NCE selected: " << used_nce_ << '\n';
+      return;
+    }
     // Stable, machine-checkable summary (pipelines such as quantms grep for it).
     OPENMS_LOG_INFO << "[PeptDeepRescoring] Predicted features added: " << num_predicted_psms_
                     << " / " << num_psms_ << " PSMs (" << ListUtils::concatenate(names, ", ")
@@ -442,14 +470,15 @@ namespace OpenMS
 
   void PeptDeepRescoring::annotateRun_(const std::string& run_id,
                                        const std::map<std::string, double>& collision_energies,
-                                       PeptideIdentificationList& peptide_ids,
+                                       const PeptideIdentificationList& peptide_ids,
+                                       PeptideIdentificationList* annotated,
                                        const std::vector<Row>& rows,
                                        const std::vector<Size>& run_rows,
                                        const std::vector<std::string>& uniq_seq,
                                        const std::vector<float>& uniq_charge,
                                        bool higher_better,
                                        PeptDeepMS2Inference& ms2,
-                                       PeptDeepRTInference& rt)
+                                       PeptDeepRTInference* rt)
   {
     if (run_rows.empty()) { return; }
 
@@ -550,6 +579,7 @@ namespace OpenMS
                       << " (median cosine " << best_median << ")" << '\n';
     }
     used_nce_ = nce;
+    if (annotated == nullptr) { return; } // selectNCE()
 
     // ---- predictions for this run's distinct peptides ----
     std::vector<Size> keys;
@@ -568,7 +598,7 @@ namespace OpenMS
     const std::vector<int64_t> instruments(seqs.size(), instrument);
     const std::vector<std::vector<float>> ms2_pred = ms2.predictMS2(seqs, charges, nces, instruments);
     setProgress(1);
-    const std::vector<float> rt_pred = rt.predictRT(seqs);
+    const std::vector<float> rt_pred = rt->predictRT(seqs);
     setProgress(2);
     endProgress();
 
@@ -690,7 +720,7 @@ namespace OpenMS
         hits[h].setMetaValue(Constants::UserParam::MS2_FRAC_PRED_FOUND, s.frac_found);
         hits[h].setMetaValue(Constants::UserParam::RT_ABS_ERROR, e);
       }
-      peptide_ids[pi].setHits(std::move(hits));
+      (*annotated)[pi].setHits(std::move(hits));
     }
   }
 
