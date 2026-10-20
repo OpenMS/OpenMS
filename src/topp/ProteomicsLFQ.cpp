@@ -124,8 +124,8 @@ and RT in other runs.
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
 PIP-ECHO links the features instead and controls the false discovery rate of the transfers. Decoy transfers, which
-look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A support vector machine
-scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
+look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A linear support vector
+machine, trained semi-supervised as in Percolator, scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
 data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are kept.
 @p -pip_echo requires @p -targeted_only @p false (the default).
   - The RT window in which a transfer is searched is local by default: for each peptide, it is predicted from
@@ -136,9 +136,8 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
     requested FDR, no transfer is kept, and only the direct identifications remain. @p PipEcho:fdr @p 1.0 keeps
     all transfers.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
-  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
-    cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
-    transfers are scored.
+  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on
+    (default 50000, 0 = no limit), which bounds the run time on large data sets. All transfers are scored.
 
 @b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
 Feature detection is the expensive part of the workflow and each MS run is detected independently
