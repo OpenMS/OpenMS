@@ -136,9 +136,9 @@ namespace OpenMS::WASM
   /// The integer of type @p I for the number @p value, an argument of a bound function: InvalidValue unless it
   /// is an integer within the range of @p I and of 2^53 (the safe integers). (The message names no position: a
   /// function bound as method takes the object as first C++ argument, which JavaScript does not count. Sizes and
-  /// indices, size_t, are "a size or an index", other integers "an integer argument".)
+  /// indices, size_t, are "a size or an index", other integers "an integer argument", unless @p what names it.)
   template <typename I>
-  I integerFromJS(double value)
+  I integerFromJS(double value, const char* what = nullptr)
   {
     constexpr double safe = 9007199254740991.0; // 2^53 - 1
     constexpr double lowest = std::is_signed_v<I> ? std::max(-safe, static_cast<double>(std::numeric_limits<I>::min())) : 0.0;
@@ -146,7 +146,7 @@ namespace OpenMS::WASM
     if (!(value >= lowest && value <= highest && std::trunc(value) == value)) // NaN fails
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string(std::is_same_v<I, unsigned long> ? "a size or an index" : "an integer argument") + " has to be an integer from "
+        std::string(what ? what : std::is_same_v<I, unsigned long> ? "a size or an index" : "an integer argument") + " has to be an integer from "
         + std::to_string(static_cast<long long>(lowest)) + " to " + std::to_string(static_cast<unsigned long long>(highest)),
         val(value).call<std::string>("toString")); // NaN, Infinity, 1e+21 as JavaScript writes them
     }
@@ -180,7 +180,17 @@ namespace OpenMS::WASM
     }
     else if constexpr (convertsToNumber<R>)
     {
-      return static_cast<double>(fn(argumentFromJS<A>(static_cast<J&&>(args))...));
+      const Plain<R> result = fn(argumentFromJS<A>(static_cast<J&&>(args))...);
+#ifdef __wasm64__
+      // A number is exact up to 2^53 (wasm32: always). Beyond, e.g. a sentinel such as std::string::npos (which is
+      // 2^32 - 1 in wasm32), the binding has to map it to a number of its own (-1): it is an error, not a rounded value.
+      if (result > static_cast<Plain<R>>(9007199254740991) || (std::is_signed_v<Plain<R>> && result < -static_cast<Plain<R>>(9007199254740991)))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "a size or an index returned to JavaScript has to be at most 2^53 - 1 (bindings/binding_utils.h)", std::to_string(result));
+      }
+#endif
+      return static_cast<double>(result);
     }
     else
     {
@@ -394,24 +404,56 @@ namespace OpenMS::WASM
     return result;
   }
 
-  /// Numbers of a JavaScript array or typed array (none for a value without length). As
-  /// emscripten::convertJSArrayToNumberVector(), which reads the length as size_t (a BigInt in wasm64).
+  /// The length of a JavaScript array (or typed array, string): 0 for a value without one. (Read as number: a
+  /// size_t would be a BigInt in wasm64, and an unsigned an unchecked conversion: OPENMS_WASM_CHECK_INTEGERS.)
+  inline std::size_t lengthOf(const val& v)
+  {
+    const double length = v["length"].as<double>();
+    return length > 0 ? static_cast<std::size_t>(length) : 0; // NaN: 0
+  }
+
+  /// Numbers of a JavaScript array or typed array (none for a value without length), as
+  /// emscripten::convertJSArrayToNumberVector() (which reads the length as size_t). Integers (@p T int, unsigned,
+  /// ...) have to be integers within the range of @p T, else InvalidValue (as arguments: integerFromJS()).
   template <typename T>
   std::vector<T> numbersFromJS(const val& v)
   {
-    const double length = v["length"].as<double>();
-    std::vector<T> result(length > 0 ? static_cast<std::size_t>(length) : 0); // NaN: none
-    if (!result.empty())
+    const std::size_t n = lengthOf(v);
+    if constexpr (std::is_integral_v<T>)
     {
-      val(emscripten::typed_memory_view(result.size(), result.data())).call<void>("set", v);
+      const std::vector<double> numbers = numbersFromJS<double>(v);
+      std::vector<T> result;
+      result.reserve(n);
+      for (const double number : numbers) result.push_back(integerFromJS<T>(number, "an element of a list of integers"));
+      return result;
     }
+    else
+    {
+      std::vector<T> result(n);
+      if (n > 0)
+      {
+        val(emscripten::typed_memory_view(result.size(), result.data())).call<void>("set", v);
+      }
+      return result;
+    }
+  }
+
+  /// The elements of a JavaScript array as @p T, e.g. strings or objects of a bound class (as
+  /// emscripten::vecFromJSArray(), which reads the length as unsigned: an unchecked conversion).
+  template <typename T>
+  std::vector<T> vectorFromJS(const val& v)
+  {
+    const std::size_t n = lengthOf(v);
+    std::vector<T> result;
+    result.reserve(n);
+    for (std::size_t i = 0; i < n; ++i) result.push_back(v[static_cast<double>(i)].as<T>());
     return result;
   }
 
   /// Strings of a JavaScript array.
   inline std::vector<std::string> stringsFromJS(const val& v)
   {
-    return emscripten::vecFromJSArray<std::string>(v);
+    return vectorFromJS<std::string>(v);
   }
 
   /// Whether @p v is undefined or null (an omitted optional argument).

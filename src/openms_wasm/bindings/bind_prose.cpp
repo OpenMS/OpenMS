@@ -1052,7 +1052,7 @@ namespace OpenMS::WASM
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unit has to be 'Da' or 'ppm'", unit);
       }
       result.unit = unit;
-      const int max_charge = isNullish(option("maxCharge")) ? std::max(1, precursor_charge - 1) : option("maxCharge").as<int>();
+      const int max_charge = isNullish(option("maxCharge")) ? std::max(1, precursor_charge - 1) : integerFromJS<int>(option("maxCharge").as<double>(), "maxCharge");
       std::vector<std::string> ions{"b", "y"};
       if (!isNullish(option("ions"))) ions = stringsFromJS(option("ions"));
       const bool losses = !isNullish(option("losses")) && option("losses").as<bool>();

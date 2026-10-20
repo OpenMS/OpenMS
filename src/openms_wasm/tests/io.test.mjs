@@ -405,6 +405,13 @@ test("MzMLFile load options", () => {
     assert.deepEqual(file.getOptions().msLevels, [2]);
     file.load("/data/MzMLFile_1.mzML", exp);
     assert.deepEqual(exp.getMSLevels(), [2]);
+    // a list of integers holds integers within range (Embind would truncate them)
+    for (const bad of [1.5, NaN, 2 ** 31]) {
+      assert.throws(() => file.setOptions({ msLevels: [1, bad] }),
+        /InvalidValue: the value '.*' was used but is not valid; an element of a list of integers has to be an integer from -2147483648 to 2147483647/,
+        `msLevels [1, ${bad}]`);
+    }
+    assert.deepEqual(file.getOptions().msLevels, [2], "unchanged");
   });
 });
 

@@ -176,21 +176,37 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# One JavaScript API for wasm32 and wasm64: no integer of pointer size crosses to JavaScript
+# One JavaScript API for wasm32 and wasm64: no integer of pointer size crosses to JavaScript, and no integer
+# argument arrives unchecked
 #
 # long and unsigned long (size_t, ptrdiff_t) are 64 bits in the wasm64 build (OPENMS_WASM_MEMORY64), where
-# Embind passes them as BigInt; the guards of the bound functions take and return them as numbers
-# (bindings/binding_utils.h). This check compiles the bindings once more (unoptimized, objects not linked)
-# against a copy of Embind's wire.h in which their conversions are deleted: every other place where one would
-# cross, e.g. as value of a val or as argument of an unguarded constructor, is a compile error, in both
-# builds. tests/check_dts.mjs (test openms_wasm_typescript) compares the declarations of the two builds.
-option(OPENMS_WASM_CHECK_INTEGERS "Check at build time that no long or unsigned long (size_t) crosses from the OpenMS WebAssembly bindings to JavaScript, where wasm64 would pass it as BigInt" ON)
+# Embind passes them as BigInt; the guards of the bound functions take and return them as numbers, and take
+# every integer argument as number and check it (bindings/binding_utils.h), where Embind would truncate it.
+# This check compiles the bindings once more (unoptimized, objects not linked) against a copy of Embind's wire.h
+# in which the conversions of long and unsigned long are deleted, the conversions of the other integers (int,
+# unsigned, short, char) from JavaScript to C++ (but not those of results), and memory views of long and
+# unsigned long data (a BigUint64Array in wasm64, a Uint32Array in wasm32). Every other place where they would
+# cross is a compile error, in both builds: e.g. a size_t as value of a val, an unguarded constructor<UInt>(),
+# val::as<int>(), typed_memory_view() of size_t data. tests/check_dts.mjs (test openms_wasm_typescript) compares
+# the declarations of the two builds.
+option(OPENMS_WASM_CHECK_INTEGERS "Check at build time that no long or unsigned long (size_t) crosses from the OpenMS WebAssembly bindings to JavaScript, where wasm64 would pass it as BigInt, and that no integer argument from JavaScript bypasses the checks of the guards" ON)
 if(OPENMS_WASM_CHECK_INTEGERS)
   set(_wire_h "${EMSCRIPTEN_SYSROOT}/include/emscripten/wire.h")
-  set(_native_types "EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(signed long);\nEMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(unsigned long);\n")
-  set(_deleted_types [=[
+  set(_native_types [=[
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(char);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(signed char);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(unsigned char);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(signed short);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(unsigned short);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(signed int);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(unsigned int);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(signed long);
+EMSCRIPTEN_DEFINE_NATIVE_BINDING_TYPE(unsigned long);
+]=])
+  set(_checked_types [=[
 // OpenMS (src/openms_wasm/CMakeLists.txt): long and unsigned long may not cross to JavaScript, where a
-// wasm64 module passes them as BigInt. Take or return them as double (OMS_FN, OMS_METHOD, OMS_CONSTRUCTOR do).
+// wasm64 module passes them as BigInt, and no integer may come from JavaScript unchecked (Embind truncates it).
+// Bind functions with OMS_FN, OMS_METHOD, OMS_CONSTRUCTOR, which take them as double and check them.
 #define OPENMS_WASM_DELETED_BINDING_TYPE(type)                                 \
 template<>                                                                     \
 struct BindingType<type> {                                                     \
@@ -198,16 +214,36 @@ struct BindingType<type> {                                                     \
     static WireType toWireType(const type& v, rvp::default_tag) = delete;      \
     static type fromWireType(WireType v) = delete;                             \
 }
+#define OPENMS_WASM_RESULT_BINDING_TYPE(type)                                  \
+template<>                                                                     \
+struct BindingType<type> {                                                     \
+    typedef type WireType;                                                     \
+    constexpr static WireType toWireType(const type& v, rvp::default_tag) {    \
+        return v;                                                              \
+    }                                                                          \
+    static type fromWireType(WireType v) = delete;                             \
+}
+OPENMS_WASM_RESULT_BINDING_TYPE(char);
+OPENMS_WASM_RESULT_BINDING_TYPE(signed char);
+OPENMS_WASM_RESULT_BINDING_TYPE(unsigned char);
+OPENMS_WASM_RESULT_BINDING_TYPE(signed short);
+OPENMS_WASM_RESULT_BINDING_TYPE(unsigned short);
+OPENMS_WASM_RESULT_BINDING_TYPE(signed int);
+OPENMS_WASM_RESULT_BINDING_TYPE(unsigned int);
 OPENMS_WASM_DELETED_BINDING_TYPE(signed long);
 OPENMS_WASM_DELETED_BINDING_TYPE(unsigned long);
 ]=])
+  set(_memory_view "constexpr bool typeSupportsMemoryView() {\n")
+  set(_checked_memory_view "constexpr bool typeSupportsMemoryView() {\n    if (std::is_same<T, long>::value || std::is_same<T, unsigned long>::value) return false; // OpenMS: not of size_t data\n")
   file(READ "${_wire_h}" _wire)
   string(FIND "${_wire}" "${_native_types}" _at)
-  if(_at EQUAL -1)
-    message(WARNING "Emscripten's ${_wire_h} does not define the binding types of long and unsigned long as expected: "
+  string(FIND "${_wire}" "${_memory_view}" _at_view)
+  if(_at EQUAL -1 OR _at_view EQUAL -1)
+    message(WARNING "Emscripten's ${_wire_h} does not define the binding types of the integers or typeSupportsMemoryView() as expected: "
                     "the check of OPENMS_WASM_CHECK_INTEGERS is skipped (update it in src/openms_wasm/CMakeLists.txt).")
   else()
-    string(REPLACE "${_native_types}" "${_deleted_types}" _wire "${_wire}")
+    string(REPLACE "${_native_types}" "${_checked_types}" _wire "${_wire}")
+    string(REPLACE "${_memory_view}" "${_checked_memory_view}" _wire "${_wire}")
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/integer_check/wire.h.new" "${_wire}")
     configure_file("${CMAKE_CURRENT_BINARY_DIR}/integer_check/wire.h.new"
                    "${CMAKE_CURRENT_BINARY_DIR}/integer_check/emscripten/wire.h" COPYONLY) # (rewritten if changed)

@@ -879,9 +879,12 @@ declarations in `bindings/bind_<area>.cpp`. Wrap every bound function in `OMS_FN
 It checks integer arguments (these and `int`, `unsigned`, `short`, `char`; Embind would truncate 1.5 to
 1, -1 to 4294967295 for an unsigned, 2^31 to -2^31 for an int): one that is no integer within the range
 of its type throws `InvalidValue: the value '1.5' was used but is not valid; an integer argument has to be
-an integer from -2147483648 to 2147483647` (for a `size_t`: "a size or an index"). Put a `size_t` into a `val`
-as `double` (`static_cast<double>(v.size())`): the build checks that none crosses to JavaScript
-otherwise (`OPENMS_WASM_CHECK_INTEGERS`, a compile error with the place), and the test
-`openms_wasm_typescript` that `openms.d.ts` declares no `bigint` and is the same for both builds. Return
+an integer from -2147483648 to 2147483647` (for a `size_t`: "a size or an index"); so does
+`numbersFromJS<int>()` for each element of a list. Put a `size_t` into a `val` as `double`
+(`static_cast<double>(v.size())`), and read an integer from a `val` as `double` and check it
+(`integerFromJS<int>(v.as<double>(), "name")`; a length with `lengthOf()`). The build checks that no
+`size_t` crosses to JavaScript otherwise, and that no integer comes from JavaScript unchecked, e.g. through
+`constructor<UInt>()` or `val::as<int>()` (`OPENMS_WASM_CHECK_INTEGERS`: a compile error with the place); and
+the test `openms_wasm_typescript` that `openms.d.ts` declares no `bigint` and is the same for both builds. Return
 small records as plain objects (`val`) and peak data as typed arrays (`toTypedArray`);
 bind classes the user creates, passes to algorithms or keeps. Add a test to `tests/`.

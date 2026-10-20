@@ -150,7 +150,7 @@ namespace OpenMS::WASM
     void spectrumSetPrecursors(MSSpectrum& s, const JS::PrecursorInputList& precursors)
     {
       std::vector<Precursor> result;
-      const unsigned n = precursors["length"].as<unsigned>();
+      const unsigned n = static_cast<unsigned>(lengthOf(precursors));
       for (unsigned i = 0; i < n; ++i)
       {
         result.push_back(precursorFromJS(precursors[i]));

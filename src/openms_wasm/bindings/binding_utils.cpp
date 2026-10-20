@@ -25,7 +25,7 @@ namespace OpenMS::WASM
     ParamValue::ValueType listTypeOf(const val& array)
     {
       bool all_integral = true;
-      const unsigned n = array["length"].as<unsigned>();
+      const unsigned n = static_cast<unsigned>(lengthOf(array));
       for (unsigned i = 0; i < n; ++i)
       {
         const val element = array[i];
@@ -177,7 +177,7 @@ namespace OpenMS::WASM
   void updateParamFromObject(Param& p, const JS::ParamValues& values)
   {
     const val keys = val::global("Object").call<val>("keys", values);
-    const unsigned n = keys["length"].as<unsigned>();
+    const unsigned n = static_cast<unsigned>(lengthOf(keys));
     for (unsigned i = 0; i < n; ++i)
     {
       const std::string key = keys[i].as<std::string>();

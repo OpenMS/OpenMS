@@ -2234,6 +2234,8 @@ test("annotatePeaks: options, empty and invalid input", () => {
   }
   assert.equal(OpenMS.annotatePeaks(none, none, peptide, 1, null).theoretical.length, 14, "charge 1: at least charge 1");
   assert.ok(OpenMS.annotatePeaks(none, none, peptide, 2, { maxCharge: 3 }).theoretical.some((t) => t.ion === "y5+++"));
+  assert.throws(() => OpenMS.annotatePeaks(none, none, peptide, 2, { maxCharge: 2.5 }),
+    /InvalidValue: the value '2.5' was used but is not valid; maxCharge has to be an integer/, "maxCharge, an integer option");
   assert.deepEqual([...new Set(OpenMS.annotatePeaks(none, none, peptide, 2, { ions: ["y", "a"] }).theoretical.map((t) => t.type))].sort(),
                    ["a", "y"]);
 
