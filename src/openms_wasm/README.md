@@ -467,7 +467,9 @@ reads the spectra from the input files again.)
 a step of its own, "Searching <name> (i of n)...", with `file` = i - 1 for it and the steps nested
 in it (<name> is the file name without its directory). After the files comes "Reading the spectra
 of the PSMs..." with `file` = -1 (with `keepSpectra`, if there are PSMs). A chunked search (`database:chunk_size`) has no
-per-file step: `file` is -1 throughout.
+per-file step: `file` is -1 throughout. A search that throws does not report the steps it leaves as ended, the step of
+the file included: the last report before the error carries the `file` of the step in which it failed (e.g. of the file
+that could not be read).
 
 **`tables()`** returns the pooled results as typed columns (copies, which JavaScript owns):
 
