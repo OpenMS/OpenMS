@@ -22,7 +22,9 @@
 #                      reserves every 8 arenas: GBs per arena in a long wasm64 search).
 #                    - dlmalloc as the system allocator below mimalloc instead of emmalloc
 #                      (src/openms_wasm/malloc/dlmalloc_system.c), which in wasm64 cannot allocate a
-#                      block of 4 GiB or more, and reuses freed huge blocks poorly.
+#                      block of 4 GiB or more, corrupts free regions of 4 GiB or more
+#                      (https://github.com/emscripten-core/emscripten/issues/28028), and reuses freed
+#                      huge blocks poorly.
 #                    The default of wasm64 (OPENMS_WASM_MEMORY64). ProSE (16 threads, Node.js), the
 #                    memory of the module after a search (getMemoryInfo().heapSize), as fast with both:
 #                    | search                                  | wasm64: Emscripten's, this | wasm32: Emscripten's, this |
@@ -43,6 +45,10 @@ set_property(CACHE OPENMS_WASM_MALLOC PROPERTY STRINGS mimalloc openms-mimalloc)
 if(NOT OPENMS_WASM_MALLOC MATCHES "^(mimalloc|openms-mimalloc)$")
   message(FATAL_ERROR "OPENMS_WASM_MALLOC must be mimalloc or openms-mimalloc (is '${OPENMS_WASM_MALLOC}').")
 endif()
+
+## The configuration checks that the sources are where this file expects them (mimalloc, dlmalloc, and mimalloc's calls
+## of emmalloc_memalign()/emmalloc_free()): if a new Emscripten moved them, it fails with a hint; if arena.c changed,
+## it warns and builds it unchanged (with the exponential growth of the arenas).
 
 ## Emscripten's mimalloc for every program (OPENMS_WASM_MALLOC=openms-mimalloc: but those linking openms_wasm_malloc).
 add_link_options("-sMALLOC=mimalloc")

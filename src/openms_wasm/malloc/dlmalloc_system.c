@@ -12,9 +12,10 @@
 // mimalloc takes its arenas and its huge blocks (beyond its arenas) from the functions
 // emmalloc_memalign() and emmalloc_free() (src/prim/emscripten/prim.c of Emscripten's mimalloc).
 // Emscripten links emmalloc there, which in a wasm64 module (Emscripten 6.0.12) cannot allocate a
-// block of 4 GiB or more (MAX_ALLOC_SIZE) and computes the free list of a free region of 4 GiB or
-// more from its size truncated to 32 bits (__builtin_clz of a size_t), and which reuses freed huge
-// blocks poorly: a search that frees and allocates blocks of hundreds of MB again and again (ProSE
+// block of 4 GiB or more (MAX_ALLOC_SIZE) and corrupts free regions of 4 GiB or more (their size is
+// masked with a 32-bit ~FREE_REGION_FLAG, their free list computed from __builtin_clz of a size_t:
+// https://github.com/emscripten-core/emscripten/issues/28028), and which reuses freed huge blocks
+// poorly: a search that frees and allocates blocks of hundreds of MB again and again (ProSE
 // with database:chunk_size) grew the memory of the wasm64 module several times beyond what it used.
 // dlmalloc is 64-bit clean and coalesces freed blocks; its lock costs nothing here, as mimalloc
 // calls it rarely.

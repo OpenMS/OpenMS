@@ -808,9 +808,19 @@ The allocator of the 64-bit builds is OpenMS' build of mimalloc (`OPENMS_WASM_MA
 `cmake/emscripten_malloc.cmake`): the sources of mimalloc of the Emscripten SDK, compiled with
 `MI_FREE_USE_PAGEMAP`, without the exponential growth of its arenas, and on dlmalloc instead of emmalloc
 (`malloc/dlmalloc_system.c`). In wasm64, Emscripten's (`-sMALLOC=mimalloc`) cannot allocate a block of
-4 GiB or more (emmalloc's limit) and let the memory grow several times beyond what a search used (see
-the ProSE measurements above). The 32-bit builds keep Emscripten's; `-DOPENMS_WASM_MALLOC=openms-mimalloc`
-gives them OpenMS' as well (as fast in the ProSE searches above, with 30 to 45% less memory).
+4 GiB or more, as emmalloc below it cannot, which also corrupts free regions of 4 GiB or more
+([emscripten#28028](https://github.com/emscripten-core/emscripten/issues/28028)); and it let the memory
+grow several times beyond what a search used (see the ProSE measurements above). The 32-bit builds keep
+Emscripten's; `-DOPENMS_WASM_MALLOC=openms-mimalloc` gives them OpenMS' as well (as fast in the ProSE
+searches above, with 30 to 45% less memory). The build takes these sources from the Emscripten SDK: the
+configuration checks that they are where `cmake/emscripten_malloc.cmake` expects them, and fails with a
+hint if a new Emscripten moved them (or warns, and keeps mimalloc's growing arenas, if its `arena.c`
+changed).
+
+Two tests of the 64-bit builds need memory of the host: "fail cleanly where the memory cannot hold their
+data" (`tests/io.test.mjs`) fills the 16 GB of a module (20 GiB of host memory), "a file of more than
+4 GiB" writes one of 4.5 GiB (9 GiB). With less, they are skipped and say why; in the 32-bit builds the
+first takes 4 GB, as before, and the second is skipped.
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`
