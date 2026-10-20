@@ -44,6 +44,19 @@ The checked dataset currently contains the 100K sampled FASTA. Set `FASTA=/path/
 
 `metrics_astral.py` reports per-run and pooled IDs, diagnostic `_p_target` entrapment FDP, precursor/protein completeness, median CV for complete entities, and pairwise log2-intensity correlations. These quantification metrics measure replicate repeatability, not accuracy, because this Astral directory has no quantitative ground truth.
 
+## Final report
+
+```bash
+python3 tools/scripts/opendia_benchmark/make_report.py CURRENT_TIMSIM_DIR \
+  --previous-timsim PREVIOUS_TIMSIM_DIR \
+  --develop-revision DEVELOP_COMMIT \
+  --astral-metrics ASTRAL_METRICS.json \
+  --astral-time ASTRAL_TIME.txt \
+  --output-dir tools/scripts/opendia_benchmark
+```
+
+The command writes `FINAL_REPORT.md`, `runtime.svg`, and `peak_memory.svg`. The report uses short sentences and simple terms.
+
 ## Captured evidence
 
 Each run stores:
@@ -55,13 +68,6 @@ Each run stores:
 
 Historical values are comparison observations, not hard-coded pass thresholds. Use a fresh output directory for each source revision and compare metrics explicitly.
 
-## First recorded baseline
+## Current result
 
-On October 20, 2026, Release binary `037f6c02b761eb9d6ed82a2a97b3fbd5c61bd70a1993190f6f09b1bcedd8dcdc` from the dirty sandbox tree at revision `8fc1874f9bc0668d48b381554f026ef2b920dce3` completed the synthetic 3x3 baseline with four threads:
-
-| Search | Wall time | Peak RSS | Peak output | Target recovery | Entrapment FDP |
-|---|---:|---:|---:|---:|---:|
-| target-only | 65.87 s | 840 MiB | 1.48 GB | 100% | n/a |
-| target+entrapment | 80.28 s | 909 MiB | 1.49 GB | n/a | 0/5,938 rows |
-
-The target-only run produced precursor and protein realized-versus-observed fold-change correlations of 0.7922 and 0.8934. The Astral metrics script was checked against the existing 100K result: 4,304 target rows, 70 diagnostic entrapment rows, 1,815 unique target precursors, and precursor pairwise log2 correlations of 0.9874 to 0.9898. A fresh Astral search was not run during this script change because it is the long-running benchmark.
+See [`FINAL_REPORT.md`](FINAL_REPORT.md) for the short result and plots.
