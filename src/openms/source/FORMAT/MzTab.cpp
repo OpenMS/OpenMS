@@ -1171,6 +1171,14 @@ namespace OpenMS
           {
             ref = StringUtils::toStr(pep.getMetaValue("spectrum_reference"));
           }
+          if (filenames.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "PSM " + ref + " belongs to identification run '" + pep.getIdentifier()
+                                                + "', which has no primary MS run path ('spectra_data'), so it cannot be "
+                                                "assigned to an MS file of the consensus map. Annotate the identification "
+                                                "runs with their mzML files before mapping and linking.");
+          }
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                               "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
                                               "Check your merging and filtering steps and/or report the issue, please.");
@@ -2796,6 +2804,26 @@ state0:
   {
     // every peptide identification needs its protein identification run
     ProteinRunReferences::check(consensus_map);
+
+    // mzTab assays are keyed by (MS file, label). Maps that share both would be merged into one assay.
+    std::map<std::pair<std::string, std::string>, std::vector<Size>> maps_by_file_and_label;
+    for (const auto& [map_index, header] : consensus_map.getColumnHeaders())
+    {
+      maps_by_file_and_label[{header.filename, header.label}].push_back(map_index);
+    }
+    for (const auto& [file_and_label, map_indices] : maps_by_file_and_label)
+    {
+      if (map_indices.size() > 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot export to mzTab: maps " + ListUtils::concatenate(map_indices, ", ")
+          + " of the consensus map have the same MS file '" + file_and_label.first
+          + "' and label '" + file_and_label.second + "', so they cannot be told apart and would be merged into one assay. "
+          "Each map needs its own MS file name (the 'name' of the <map> element in consensusXML). "
+          "It is taken from the primary MS run path of the input feature map, so make sure the feature "
+          "maps reference their mzML files before linking.");
+      }
+    }
 
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
