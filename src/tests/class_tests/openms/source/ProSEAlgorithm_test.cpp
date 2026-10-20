@@ -962,6 +962,14 @@ START_SECTION(([EXTRA] default mass tolerances))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] peptdeep:batch_size defaults to ML::PEPTDEEP_DEFAULT_BATCH_SIZE))
+{
+  ProSEAlgorithm algo;
+  TEST_EQUAL((int)algo.getParameters().getValue("peptdeep:batch_size"), ML::PEPTDEEP_DEFAULT_BATCH_SIZE)
+  TEST_EQUAL((int)algo.getDefaults().getValue("peptdeep:batch_size"), ML::PEPTDEEP_DEFAULT_BATCH_SIZE)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/generate/ignore))
 {
   // Target+decoy database (50% decoys, conventional DECOY_ prefix).
@@ -3476,6 +3484,27 @@ START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
 }
 END_SECTION
 
+START_SECTION((static double modMatchTolerance(double lower, double upper)))
+{
+  // the tighter of the two positive magnitudes
+  TEST_REAL_SIMILAR(ProSEAlgorithm::modMatchTolerance(5.0, 50.0), 5.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::modMatchTolerance(50.0, 5.0), 5.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::modMatchTolerance(0.5, 0.5), 0.5)
+  // a side of zero is a one-sided window: the other side counts
+  TEST_REAL_SIMILAR(ProSEAlgorithm::modMatchTolerance(0.0, 500.0), 500.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::modMatchTolerance(500.0, 0.0), 500.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm::modMatchTolerance(0.0, 0.0), 0.0)
+  // the same rule as the multi-file search takes from the parameters
+  ProSEAlgorithm_test algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 0.0);
+  p.setValue("precursor:mass_tolerance_upper", 300.0);
+  algo.setParameters(p);
+  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), ProSEAlgorithm::modMatchTolerance(0.0, 300.0))
+  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 300.0)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
 {
   // Pure unit test — no search, no calibration. Pins the min() reduction rule
@@ -5207,6 +5236,17 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
   // the search engine's own search parameters are kept
   TEST_EQUAL(sp.db, percolator_search_proteins[0].getSearchParameters().db)
   TEST_TRUE(sp.metaValueExists("extra_features"))
+}
+END_SECTION
+
+START_SECTION((static std::string pinEnzymeName(const std::string& enzyme)))
+{
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Trypsin"), "trypsin")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Trypsin/P"), "trypsinp")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Lys-C"), "lys-c")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("PepsinA"), "pepsin")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Proteinase K"), "proteinasek")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("unspecific cleavage"), "no_enzyme")
 }
 END_SECTION
 

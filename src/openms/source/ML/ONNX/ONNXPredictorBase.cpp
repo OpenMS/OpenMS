@@ -9,6 +9,7 @@
 #include <OpenMS/ML/ONNX/ONNXPredictorBase.h>
 #include "ONNXEnvironment.h"
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 
@@ -26,6 +27,15 @@ namespace OpenMS
             // Apply optimized thread count parameter
             session_options_->SetIntraOpNumThreads(intra_op_threads);
             session_options_->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+            // Without ONNX Runtime's memory pattern. The inputs of the PeptDeep models change shape
+            // from call to call (batch size, peptide length); for each shape, the pattern plans one
+            // block for all intermediate tensors of a Run, which every Run of that shape allocates and
+            // frees again. Allocated tensor by tensor instead, the results are the same, inference is
+            // as fast and the peak memory is lower. In WebAssembly, where ONNX Runtime has no arena
+            // (none on 32-bit platforms), these blocks were the largest allocations of
+            // PeptDeepRescoring, and mimalloc placed them in new arenas, which it never releases: the
+            // module's memory grew with every file.
+            session_options_->DisableMemPattern();
 
             memory_info_ = std::make_unique<Ort::MemoryInfo>(
                 Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)
@@ -44,7 +54,13 @@ namespace OpenMS
             session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), *session_options_);
 #endif
         } catch (const Ort::Exception& e) {
-            throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path);
+            // a model that is there but does not load: ONNX Runtime's message says why
+            if (!File::exists(model_path))
+            {
+                throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path);
+            }
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path,
+                                        std::string("ONNX Runtime cannot load the model: ") + e.what());
         }
     }
 

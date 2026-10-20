@@ -108,6 +108,8 @@ START_SECTION([EXTRA] default parameters)
   TEST_REAL_SIMILAR((double)p.getValue("nce"), -1.0)
   TEST_STRING_EQUAL(p.getValue("rt_model_type").toString(), "b_spline")
   TEST_STRING_EQUAL(p.getValue("instrument").toString(), "QE")
+  // The batch size is the one the inference classes default to (500; 128 in WebAssembly).
+  TEST_EQUAL((int)p.getValue("batch_size"), ML::PEPTDEEP_DEFAULT_BATCH_SIZE)
   // Nothing has been run yet.
   TEST_REAL_SIMILAR(r.getUsedNCE(), -1.0)
 }

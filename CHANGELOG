@@ -44,6 +44,17 @@ OpenMS Library:
   - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
     position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
     later files named the wrong file.
+  - FIX: ProSEAlgorithm: the thread that reads the next spectrum file of a search is joined instead of detached (libc++'s
+    std::async detaches it). In WebAssembly a detached thread returns its Web Worker to the pool only when the event loop of
+    the main thread runs, so a search of more than six files with 4 threads waited for a Worker forever. Natively nothing
+    changes.
+  - ProSEAlgorithm::modMatchTolerance(lower, upper): the scalar tolerance that the modification analysis of an open search
+    takes from a precursor window (the tighter positive side; the other side where one is zero), public and static now, so that
+    callers that analyse the PSMs of an open search themselves use the rule of the multi-file search. Unchanged behaviour.
+  - ML::PEPTDEEP_DEFAULT_BATCH_SIZE (PeptDeepUtils.h): the number of peptides per ONNX Runtime run by default, shared by
+    PeptDeepMS2Inference, PeptDeepRTInference, PeptDeepCCSInference, PeptDeepRescoring and ProSEAlgorithm (parameter
+    'peptdeep:batch_size'). 500 as before; 128 in WebAssembly, where ONNX Runtime has no memory arena and the memory of large
+    tensors is not reused.
   - FIX: OpenSearchModificationAnalysis names a delta mass cluster after the Unimod modification nearest to its mass. It
     named the entries of lowest and highest mass within the tolerance ("A//B"), so that +15.9949 Da (oxidation) was
     "thiocarboxylic acid//Oxidation or Hydroxylation" (thiocarboxylic acid, +15.9772 Da, is within 0.02 Da), and it annotated the
@@ -1018,6 +1029,45 @@ Build System:
     where threads are available (Node.js; browsers on cross-origin isolated pages). The
     WebAssembly build uses HiGHS as LP solver and has no network access, external programs, vendor
     formats or GUI (src/openms_wasm/README.md) (#10564).
+  - WebAssembly: JavaScript bindings of the search engine ProSE (ProSEAlgorithm: search with
+    statistics, modification analysis of open searches, progress reports, q-values, in-process
+    Percolator rescoring) and of
+    spectrum annotation (annotateSpectrum, PeptideHit.getPeakAnnotations).
+  - WebAssembly: bindings for the ProSE app (https://timosachsenberg.github.io/prose-web/), a web
+    application for experiments of several runs:
+    ProSEAlgorithm.searchFiles() searches several files and pools the results as the ProSE tool's
+    -out_merged does; its ProSEResultSet hands them over with summary(), tables() (PSMs, peptides
+    and proteins as typed columns: Percolator's input features, ProForma with Unimod names, the
+    positions of the peptides in their proteins), spectra() (the raw MS2 peaks of the identified
+    spectra) and storeIdXML(). annotatePeaks() annotates peak arrays with fragment ions, including
+    neutral losses, and predictMS2() predicts PeptDeep fragment intensities (builds with ONNX
+    Runtime). The progress reports carry the position of the searched file. The library gets the
+    public ProSEAlgorithm::pinEnzymeName(), the enzyme name for the enzyme features of Percolator's
+    .pin input that ProSE's rescoring passes (unchanged behaviour). The summary of searchFiles() has the
+    statistics of search() (the index, the decoy mode, the times; per file the recommended tolerances), the
+    PSMs get q-values also with FDR:PSM 0 and no Percolator (as FDR:PSM computes them, without filtering),
+    spectra() reads the collision energy that converters write (MS:1000045), search() reports Percolator's
+    warning, and predictMS2() accepts the charges 1 to 6 and the collision energies 10 to 60.
+  - WebAssembly: searchFiles() searches the files one at a time with the options provideFile and
+    releaseFile, which write each file when its search needs it and remove it after it: in a browser
+    only the largest input file has to fit into the module's memory, not all of them. allocateFile()
+    (with a capacity, so that files one after the other reuse one block), writeFileChunk() and
+    readFileChunk() write and read files in chunks. FS.writeFile(), FS.write()
+    and FS.read() throw ENOMEM where the module's memory cannot hold their buffer (Emscripten's wrote
+    from address 0 then), and FS.write() copies in one piece. A file of the module's file system has
+    to be smaller than 2 GiB (InvalidValue).
+  - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
+    directly); Node.js mounts host directories with mountHostDirectory() (working around
+    emscripten#27825). The demo application (examples/browser) registers a service worker that
+    caches the module (Chrome then keeps its compiled code) and isolates the page for threads on
+    servers without the COOP/COEP headers.
+  - WebAssembly: ONNX Runtime in the threaded module (CMake preset wasm32-emscripten-mt-onnx-release,
+    vcpkg overlay ports onnxruntime and onnx for WebAssembly): ProSE's PeptDeep rescoring features
+    (peptdeep:enable) in browsers and Node.js, and hasONNXRuntime(). With WebAssembly threads,
+    OpenMS creates the ONNX Runtime environment with global thread pools, which ONNX Runtime's
+    sessions use there.
+  - ONNX: a model that exists but does not load reports ONNX Runtime's message (ParseError) instead
+    of FileNotFound.
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and
     MascotRemoteQuery report an error when run, and the update check is off.
   - Installing with WITH_ONNX=ON also installs the versioned files and symlinks of ONNX Runtime

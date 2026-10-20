@@ -21,6 +21,8 @@
 #include <emscripten/val.h>
 
 #include <cstdint>
+#include <new>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -48,6 +50,15 @@ namespace OpenMS::WASM
     catch (const Exception::BaseException& e)
     {
       return std::string(e.getName()) + ": " + e.what();
+    }
+    // Memory: a wasm32 module addresses at most 4 GB (and its memory does not shrink again)
+    catch (const std::bad_alloc&)
+    {
+      return "OutOfMemory: an allocation failed (a WebAssembly module can address at most 4 GB)";
+    }
+    catch (const std::length_error& e)
+    {
+      return std::string("OutOfMemory: ") + e.what() + ": a container would exceed what a 32-bit WebAssembly module can address";
     }
     catch (const std::exception& e)
     {
@@ -165,6 +176,8 @@ namespace OpenMS::WASM
   template <> struct TypedArrayName<double> { static constexpr const char* value = "Float64Array"; };
   template <> struct TypedArrayName<float> { static constexpr const char* value = "Float32Array"; };
   template <> struct TypedArrayName<int32_t> { static constexpr const char* value = "Int32Array"; };
+  template <> struct TypedArrayName<uint16_t> { static constexpr const char* value = "Uint16Array"; };
+  template <> struct TypedArrayName<int16_t> { static constexpr const char* value = "Int16Array"; };
   template <> struct TypedArrayName<uint32_t> { static constexpr const char* value = "Uint32Array"; };
   template <> struct TypedArrayName<int8_t> { static constexpr const char* value = "Int8Array"; };
   template <> struct TypedArrayName<uint8_t> { static constexpr const char* value = "Uint8Array"; };

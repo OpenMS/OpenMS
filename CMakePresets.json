@@ -266,6 +266,16 @@
             }
         },
         {
+            "name": "wasm32-emscripten-mt-onnx-release",
+            "displayName": "WebAssembly (Emscripten) Release, multi-threaded, with ONNX Runtime",
+            "description": "Like wasm32-emscripten-mt-release, with ONNX Runtime (WITH_ONNX) in the module for machine-learning models, e.g. the PeptDeep features of ProSE (peptdeep:enable). vcpkg builds ONNX Runtime for WebAssembly (vcpkg-overlays/emscripten/ports/onnxruntime); the PeptDeep models are copied to models/ of the package (see src/openms_wasm/README.md).",
+            "inherits": "wasm32-emscripten-mt-release",
+            "cacheVariables": {
+                "WITH_ONNX": "ON",
+                "VCPKG_MANIFEST_FEATURES": "onnxruntime"
+            }
+        },
+        {
             "name": "linux-x64-ci",
             "displayName": "Linux x64 CI",
             "description": "OpenMS CI preset with vcpkg dependencies on Linux x64",
@@ -368,6 +378,10 @@
         {
             "name": "wasm32-emscripten-mt-release",
             "configurePreset": "wasm32-emscripten-mt-release"
+        },
+        {
+            "name": "wasm32-emscripten-mt-onnx-release",
+            "configurePreset": "wasm32-emscripten-mt-onnx-release"
         },
         {
             "name": "linux-x64-ci",

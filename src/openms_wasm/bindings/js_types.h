@@ -71,6 +71,8 @@ namespace OpenMS::WASM::JS
   // processing
   OPENMS_WASM_JS_TYPE(Alignment);
   OPENMS_WASM_JS_TYPE(ThreadingInfo);
+  OPENMS_WASM_JS_TYPE(MemoryInfo);
+  OPENMS_WASM_JS_TYPE(Bytes);           ///< Uint8Array
 
   // files
   OPENMS_WASM_JS_TYPE(PeakFileOptions);
@@ -85,6 +87,24 @@ namespace OpenMS::WASM::JS
   OPENMS_WASM_JS_TYPE(ProteinIdentificationObjects);
   OPENMS_WASM_JS_TYPE(PeptideHitList);
   OPENMS_WASM_JS_TYPE(ProteinHitList);
+  OPENMS_WASM_JS_TYPE(PeakAnnotations);
+
+  // ProSE
+  OPENMS_WASM_JS_TYPE(ProgressCallback);
+  OPENMS_WASM_JS_TYPE(ProSESummary);
+  OPENMS_WASM_JS_TYPE(ProSEOptions);
+  OPENMS_WASM_JS_TYPE(ProSEFilesOptions);
+  OPENMS_WASM_JS_TYPE(ProSEFileSummary);
+  OPENMS_WASM_JS_TYPE(ProSEMultiSummary);
+  OPENMS_WASM_JS_TYPE(ResultTables);
+  OPENMS_WASM_JS_TYPE(StoredSpectra);
+  OPENMS_WASM_JS_TYPE(AnnotationOptions);
+  OPENMS_WASM_JS_TYPE(SpectrumAnnotation);
+  OPENMS_WASM_JS_TYPE(PeakMatch);
+  OPENMS_WASM_JS_TYPE(PeakAnnotationResult);
+  OPENMS_WASM_JS_TYPE(PredictedIon);
+  OPENMS_WASM_JS_TYPE(PredictedIons);
+  OPENMS_WASM_JS_TYPE(ModelPathInput);
 
   // features
   OPENMS_WASM_JS_TYPE(BoundingBox);

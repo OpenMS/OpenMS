@@ -17,17 +17,14 @@ export const toppDataDir = path.resolve(testDataDir, "../../../topp");
 
 let instance;
 
-/// The module, instantiated once per test file; the test data directories are mounted
-/// (NODEFS) at /data and /topp of its virtual file system.
+/// The module, instantiated once per test file; the test data directories are mounted at
+/// /data and /topp of its virtual file system.
 export async function loadOpenMS() {
   if (!instance) {
     const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
     instance = await createOpenMS({ print: () => {}, printErr: () => {} });
-    const { FS } = instance;
-    FS.mkdir("/data");
-    FS.mount(FS.filesystems.NODEFS, { root: testDataDir }, "/data");
-    FS.mkdir("/topp");
-    FS.mount(FS.filesystems.NODEFS, { root: toppDataDir }, "/topp");
+    instance.mountHostDirectory("/data", testDataDir);
+    instance.mountHostDirectory("/topp", toppDataDir);
   }
   return instance;
 }

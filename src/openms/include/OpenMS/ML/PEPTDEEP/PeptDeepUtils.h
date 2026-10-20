@@ -36,6 +36,20 @@ namespace OpenMS {
     };
 
     /**
+     * @brief Peptides per ONNX Runtime run when the caller does not choose: the default of the PeptDeep{MS2,RT,CCS}Inference
+     * classes, of PeptDeepRescoring's and ProSEAlgorithm's parameter 'batch_size'.
+     *
+     * 500, but 128 in WebAssembly (@c __EMSCRIPTEN__): ONNX Runtime has no memory arena on 32-bit platforms, and in
+     * WebAssembly the memory of large tensors (batches of hundreds of peptides of one length) is not reused: the allocator
+     * (mimalloc) reserves new arenas for them and never releases them.
+     */
+#ifdef __EMSCRIPTEN__
+    constexpr int PEPTDEEP_DEFAULT_BATCH_SIZE = 128;
+#else
+    constexpr int PEPTDEEP_DEFAULT_BATCH_SIZE = 500;
+#endif
+
+    /**
      * @brief Width of the instrument one-hot in AlphaPeptDeep's MS2 model.
      *
      * Mirrors @p max_instrument_num in peptdeep's model_const.yaml. Valid instrument indices are

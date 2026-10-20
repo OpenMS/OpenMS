@@ -116,6 +116,15 @@ START_SECTION(AminoAcidVocabulary and Utilities)
     }
 END_SECTION
 
+START_SECTION(PEPTDEEP_DEFAULT_BATCH_SIZE)
+    // 500 peptides per ONNX run, 128 in WebAssembly (ONNX Runtime has no memory arena there)
+#ifdef __EMSCRIPTEN__
+    TEST_EQUAL(ML::PEPTDEEP_DEFAULT_BATCH_SIZE, 128);
+#else
+    TEST_EQUAL(ML::PEPTDEEP_DEFAULT_BATCH_SIZE, 500);
+#endif
+END_SECTION
+
 START_SECTION(InstrumentEncoding)
     STATUS("Testing peptdeep's instrument encoding...");
 
