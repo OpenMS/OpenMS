@@ -41,6 +41,10 @@
 ###                                         build options of this installation
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
 ###                                         directories of this installation
+###   OPENMS_SKIP_MSVC_RUNTIME_CHECK        (input, MSVC only) skip the check that a
+###                                         configuration of the consuming project uses the
+###                                         C++ runtime (/MD or /MDd) this installation was
+###                                         built against; see below
 
 # Consumers use exported header file sets and share the build's CMake minimum.
 if(CMAKE_VERSION VERSION_LESS 3.24)
@@ -194,6 +198,198 @@ if(OpenMS_CLI_FOUND AND _openms_built_with_gui
   include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_GUI_EXPORT_FILE@")
   set(OpenMS_WITH_GUI TRUE)
 endif()
+
+#------------------------------------------------------------------------------
+# MSVC: a configuration of the consuming project has to use the C++ runtime this
+# installation was built against. The Debug configuration links the debug runtime
+# (/MDd, with _ITERATOR_DEBUG_LEVEL 2) and every other configuration the release one
+# (/MD); a program that mixes the two is not supported, it links and then misbehaves
+# wherever a standard library object crosses the boundary. An installation normally
+# provides one configuration (the Windows SDK archives are per configuration), and
+# CMake links the configuration an imported target has whenever the consumer's is
+# not among them, without a word. So:
+#  - the lookup fails when no configuration of the project can use the installation
+#    (the build type of a single-configuration generator, or every entry of
+#    CMAKE_CONFIGURATION_TYPES), with a message that says which to build instead;
+#  - a configuration that cannot, next to ones that can (a Visual Studio solution
+#    with the default four, of which only Release gets built, say), configures but
+#    fails to compile: OPENMS_MSVC_RUNTIME_MISMATCH, defined through the imported
+#    targets for exactly the configurations of the other runtime, makes the export
+#    header every OpenMS header includes stop with an error that says the same. A
+#    generate-time failure would take the usable configurations down as well, since
+#    a multi-configuration generator evaluates all of them at once;
+#  - each configuration that can use the installation is mapped to the imported
+#    configurations of its own runtime (MAP_IMPORTED_CONFIG_<CONFIG>), which matters
+#    for an installation that has both.
+# A debug configuration is one named Debug, as in CMake's default
+# CMAKE_MSVC_RUNTIME_LIBRARY, MultiThreaded$<$<CONFIG:Debug>:Debug>DLL; a project that
+# gives its configurations other runtimes sets OPENMS_SKIP_MSVC_RUNTIME_CHECK and
+# matches them itself.
+#
+# The configurations of this installation are those of its core library (uppercase
+# names, as IMPORTED_CONFIGURATIONS lists them, the same for every target of an
+# installation; NOCONFIG, a build without CMAKE_BUILD_TYPE, uses the release
+# runtime). An export without them, which install(EXPORT) never writes, is not checked.
+get_target_property(_openms_imported_configs OpenMS::OpenMS IMPORTED_CONFIGURATIONS)
+if(MSVC AND NOT OPENMS_SKIP_MSVC_RUNTIME_CHECK AND _openms_imported_configs)
+  set(_openms_has_debug_runtime FALSE)
+  set(_openms_has_release_runtime FALSE)
+  foreach(_openms_config IN LISTS _openms_imported_configs)
+    if(_openms_config STREQUAL "DEBUG")
+      set(_openms_has_debug_runtime TRUE)
+    else()
+      set(_openms_has_release_runtime TRUE)
+    endif()
+  endforeach()
+
+  # the consumer's configurations, sorted by whether they can use this installation:
+  # those of a multi-configuration generator, else the build type, where none at all
+  # means the release runtime as well
+  get_property(_openms_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  set(_openms_consumer_configs "")
+  set(_openms_usable_configs "")
+  set(_openms_unusable_configs "")
+  set(_openms_no_build_type FALSE)
+  if(_openms_multi_config)
+    set(_openms_consumer_configs ${CMAKE_CONFIGURATION_TYPES})
+  elseif(CMAKE_BUILD_TYPE)
+    set(_openms_consumer_configs "${CMAKE_BUILD_TYPE}")
+  else()
+    set(_openms_no_build_type TRUE)
+  endif()
+  foreach(_openms_config IN LISTS _openms_consumer_configs)
+    string(TOUPPER "${_openms_config}" _openms_config_upper)
+    if((_openms_config_upper STREQUAL "DEBUG" AND _openms_has_debug_runtime)
+       OR (NOT _openms_config_upper STREQUAL "DEBUG" AND _openms_has_release_runtime))
+      list(APPEND _openms_usable_configs "${_openms_config}")
+    else()
+      list(APPEND _openms_unusable_configs "${_openms_config}")
+    endif()
+  endforeach()
+  unset(_openms_config_upper)
+
+  # The compile definition tests the name of the configuration being built, through
+  # $<CONFIG>: on an imported target, $<CONFIG:Debug> is also true for the imported
+  # configuration CMake selected in its place (a mapped one, or the fallback to the
+  # only one the installation has), which is exactly the case to catch here.
+  if(_openms_has_debug_runtime AND NOT _openms_has_release_runtime)
+    set(_openms_built_in "the Debug configuration, against MSVC's debug C++ runtime (/MDd)")
+    set(_openms_consumer_runtime "/MD")
+    string(CONCAT _openms_advice
+        "Build this project as Debug (CMAKE_BUILD_TYPE; with a multi-configuration "
+        "generator CMAKE_CONFIGURATION_TYPES=Debug), or use an OpenMS installation "
+        "built Release (the Windows SDK archive without the -Debug suffix).")
+    set(_openms_mismatch
+        "$<$<NOT:$<STREQUAL:$<UPPER_CASE:$<CONFIG>>,DEBUG>>:OPENMS_MSVC_RUNTIME_MISMATCH=2>")
+  elseif(NOT _openms_has_debug_runtime)
+    string(REPLACE ";" ", " _openms_imported_configs "${_openms_imported_configs}")
+    set(_openms_built_in
+        "the ${_openms_imported_configs} configuration, against MSVC's release C++ runtime (/MD)")
+    set(_openms_consumer_runtime "/MDd")
+    string(CONCAT _openms_advice
+        "Build this project in a configuration other than Debug (CMAKE_BUILD_TYPE; with a "
+        "multi-configuration generator CMAKE_CONFIGURATION_TYPES without Debug), or use an "
+        "OpenMS installation built Debug (the Windows SDK archive with the -Debug suffix).")
+    set(_openms_mismatch "$<$<STREQUAL:$<UPPER_CASE:$<CONFIG>>,DEBUG>:OPENMS_MSVC_RUNTIME_MISMATCH=1>")
+  else()
+    # both runtimes: every configuration can use the installation
+    set(_openms_mismatch "")
+  endif()
+
+  if(_openms_no_build_type AND NOT _openms_has_release_runtime)
+    set(_openms_unusable
+        "a build of this project without CMAKE_BUILD_TYPE (${_openms_consumer_runtime})")
+  elseif(_openms_unusable_configs)
+    list(LENGTH _openms_unusable_configs _openms_unusable_count)
+    if(_openms_unusable_count GREATER 1)
+      set(_openms_unusable "configurations")
+    else()
+      set(_openms_unusable "configuration")
+    endif()
+    string(REPLACE ";" ", " _openms_unusable_configs "${_openms_unusable_configs}")
+    set(_openms_unusable
+        "the ${_openms_unusable_configs} ${_openms_unusable} of this project (${_openms_consumer_runtime})")
+    unset(_openms_unusable_count)
+  else()
+    set(_openms_unusable "")
+  endif()
+
+  if(_openms_unusable AND NOT _openms_usable_configs)
+    set(OpenMS_FOUND FALSE)
+    string(CONCAT OpenMS_NOT_FOUND_MESSAGE
+        "This OpenMS installation was built in ${_openms_built_in}, which ${_openms_unusable} "
+        "cannot link: MSVC does not support mixing the two runtimes in one program. "
+        "${_openms_advice} A project that gives this configuration the other runtime itself "
+        "(CMAKE_MSVC_RUNTIME_LIBRARY) skips this check with OPENMS_SKIP_MSVC_RUNTIME_CHECK=ON.")
+    return()
+  endif()
+  if(_openms_unusable AND NOT OpenMS_FIND_QUIETLY)
+    message(STATUS
+        "OpenMS: ${_openms_unusable} cannot link this OpenMS installation, which was built in "
+        "${_openms_built_in}; compiling it fails with an error that says so. ${_openms_advice}")
+  endif()
+
+  # The mapping and the compile definition, on every imported target of this
+  # installation (the libraries and the bundled third-party targets the export files
+  # define). The mapping covers the standard configurations, the consumer's own, which
+  # may be custom (an unquoted empty build type adds nothing), and a build without
+  # CMAKE_BUILD_TYPE, whose property has the empty suffix; each lists the imported
+  # configurations of its own runtime only, the configuration's namesake first. A
+  # configuration of the other runtime gets no mapping at all: CMake then falls back
+  # to the configuration the installation has, so generation succeeds, and the compile
+  # definition stops that configuration. The targets are those this directory
+  # imported: when a parent directory found OpenMS before, the export files defined
+  # nothing here, and that directory's lookup has set all of this already.
+  get_property(_openms_imported_targets DIRECTORY PROPERTY IMPORTED_TARGETS)
+  list(FILTER _openms_imported_targets INCLUDE REGEX "^OpenMS::")
+  get_target_property(_openms_definitions OpenMS::OpenMS INTERFACE_COMPILE_DEFINITIONS)
+  if(_openms_imported_targets AND NOT _openms_definitions MATCHES "OPENMS_MSVC_RUNTIME_MISMATCH")
+    set(_openms_release_configs RELEASE RELWITHDEBINFO MINSIZEREL NOCONFIG)
+    foreach(_openms_config IN ITEMS Debug Release RelWithDebInfo MinSizeRel ${_openms_consumer_configs})
+      string(TOUPPER "${_openms_config}" _openms_config)
+      if(_openms_config STREQUAL "DEBUG")
+        if(NOT _openms_has_debug_runtime)
+          continue()
+        endif()
+        set(_openms_mapping DEBUG)
+      else()
+        if(NOT _openms_has_release_runtime)
+          continue()
+        endif()
+        set(_openms_mapping ${_openms_config} ${_openms_release_configs})
+        list(REMOVE_DUPLICATES _openms_mapping)
+      endif()
+      set_property(TARGET ${_openms_imported_targets}
+                   PROPERTY "MAP_IMPORTED_CONFIG_${_openms_config}" "${_openms_mapping}")
+    endforeach()
+    if(_openms_has_release_runtime)
+      set_property(TARGET ${_openms_imported_targets}
+                   PROPERTY MAP_IMPORTED_CONFIG_ "${_openms_release_configs}")
+    endif()
+    if(_openms_mismatch)
+      set_property(TARGET ${_openms_imported_targets} APPEND
+                   PROPERTY INTERFACE_COMPILE_DEFINITIONS "${_openms_mismatch}")
+    endif()
+    unset(_openms_mapping)
+    unset(_openms_release_configs)
+  endif()
+  unset(_openms_definitions)
+  unset(_openms_imported_targets)
+  unset(_openms_config)
+  unset(_openms_mismatch)
+  unset(_openms_advice)
+  unset(_openms_consumer_runtime)
+  unset(_openms_built_in)
+  unset(_openms_unusable)
+  unset(_openms_no_build_type)
+  unset(_openms_unusable_configs)
+  unset(_openms_usable_configs)
+  unset(_openms_consumer_configs)
+  unset(_openms_multi_config)
+  unset(_openms_has_release_runtime)
+  unset(_openms_has_debug_runtime)
+endif()
+unset(_openms_imported_configs)
 
 #------------------------------------------------------------------------------
 # Components. Core and OpenSwathAlgo are always present, CLI when the installation

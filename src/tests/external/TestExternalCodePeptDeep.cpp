@@ -17,19 +17,18 @@
 #include <OpenMS/ML/PEPTDEEP/PeptDeepRTInference.h>
 
 #include <cmath>
+#include <exception>
 #include <iostream>
 #include <string>
 #include <vector>
 
-int main(int argc, char** argv)
-{
-  if (argc != 2)
-  {
-    std::cerr << "usage: TestExternalCodePeptDeep <directory with the PeptDeep models>\n";
-    return 2;
-  }
-  const std::string models = std::string(argv[1]) + "/";
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <crtdbg.h>
+#endif
 
+// Loads the models and checks the RT prediction; throws what the library throws.
+static int run(const std::string& models)
+{
   OpenMS::PeptDeepCCSInference ccs(models + "peptdeep_ccs_dynamic.onnx");
   OpenMS::PeptDeepMS2Inference ms2(models + "peptdeep_ms2_dynamic.onnx");
   OpenMS::PeptDeepRTInference rt(models + "peptdeep_rt_dynamic.onnx");
@@ -54,4 +53,32 @@ int main(int argc, char** argv)
     }
   }
   return rc;
+}
+
+int main(int argc, char** argv)
+{
+#if defined(_MSC_VER) && defined(_DEBUG)
+  // The Debug C runtime reports a failed assertion and abort() through a dialog box
+  // and waits for a click, so an uncaught exception or an assertion in the library
+  // or the runtime would keep this program alive until the test timeout kills it.
+  // Report to stderr instead and exit.
+  _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+  _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+  _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+  _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+#endif
+  if (argc != 2)
+  {
+    std::cerr << "usage: TestExternalCodePeptDeep <directory with the PeptDeep models>\n";
+    return 2;
+  }
+  try
+  {
+    return run(std::string(argv[1]) + "/");
+  }
+  catch (const std::exception& e)
+  {
+    std::cerr << "TestExternalCodePeptDeep: " << e.what() << "\n";
+    return 1;
+  }
 }
