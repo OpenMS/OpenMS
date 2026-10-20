@@ -3925,7 +3925,8 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids,
       const std::string& decoy_string,
       bool decoy_is_prefix,
-      double protein_fdr)
+      double protein_fdr,
+      bool remove_decoys)
   {
     // Defensive: an empty decoy marker would make every protein match the prefix/suffix guard
     // below (hasPrefix(x, "") is always true) and corrupt picked-protein FDR. Callers gate on
@@ -3961,6 +3962,14 @@ namespace OpenMS
     }
 
     FalseDiscoveryRate fdr;
+    if (!remove_decoys)
+    {
+      // By default the picked-protein FDR drops the decoy proteins from the run; keep them, with q-values, so that the
+      // filter below applies to them as to the targets (as mergeFileResults() does). The targets' q-values are the same.
+      Param fdr_param = fdr.getParameters();
+      fdr_param.setValue("add_decoy_proteins", "true");
+      fdr.setParameters(fdr_param);
+    }
     fdr.applyPickedProteinFDR(protein_ids[0], decoy_string, decoy_is_prefix);
     IDFilter::filterHitsByScore(protein_ids, protein_fdr);
 
@@ -3968,9 +3977,12 @@ namespace OpenMS
     // proteins then fall out as unreferenced. Repair indistinguishable-protein and
     // protein-group references and drop peptide evidence pointing at removed proteins,
     // else idXML storage fails on dangling references.
-    IDFilter::removeDecoyHits(peptide_ids);
-    IDFilter::removeEmptyIdentifications(peptide_ids);
-    IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    if (remove_decoys)
+    {
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    }
     IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
     IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
     IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
@@ -6755,6 +6767,19 @@ namespace OpenMS
         y << "      calibration: " << num(st.seconds_calibration) << "\n";
         y << "      search: " << num(st.seconds_search) << "\n";
         y << "      fdr: " << num(st.seconds_fdr) << "\n";
+        // Percolator rescoring of the file ('rescore'; with it off nothing is attempted: not applied, no reason).
+        y << "    percolator:\n";
+        y << "      applied: " << bol(pf.percolator.applied) << "\n";
+        y << "      skipped_reason: " << q(pf.percolator.skipped_reason) << "\n";
+        y << "      warning: " << q(pf.percolator.warning) << "\n";
+        // The NCE of the file's PeptDeep predictions: the run meta value PeptDeepRescoring::NCE_META_VALUE, spelled out
+        // because PeptDeepRescoring exists only in builds with ONNX Runtime; null: none.
+        double nce = std::numeric_limits<double>::quiet_NaN();
+        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists("peptdeep_nce"))
+        {
+          nce = static_cast<double>(pf.protein_ids[0].getMetaValue("peptdeep_nce"));
+        }
+        y << "    peptdeep_nce: " << num(nce) << "\n";
       }
     }
 

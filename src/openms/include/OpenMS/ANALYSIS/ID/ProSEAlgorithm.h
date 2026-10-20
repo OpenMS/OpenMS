@@ -325,17 +325,23 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * and "FDR requested"; this helper additionally skips (with a warning) when no decoy
      * proteins survive inference, to avoid target-only q-values.
      *
+     * With @p remove_decoys false the decoys are kept, as mergeFileResults() keeps them: the picked-protein FDR keeps
+     * the decoy proteins, with q-values, the filter at @p protein_fdr applies to them as to the targets, the decoy PSMs
+     * stay, and only the references to the proteins the filter removed go.
+     *
      * @param[in,out] protein_ids Protein identifications (operates on protein_ids[0]).
-     * @param[in,out] peptide_ids PSMs feeding inference; decoy PSMs are removed.
+     * @param[in,out] peptide_ids PSMs feeding inference; decoy PSMs are removed (unless @p remove_decoys is false).
      * @param[in] decoy_string Accession marker identifying decoy proteins.
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
      * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
+     * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization; default).
      */
     static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
                                            PeptideIdentificationList& peptide_ids,
                                            const std::string& decoy_string,
                                            bool decoy_is_prefix,
-                                           double protein_fdr);
+                                           double protein_fdr,
+                                           bool remove_decoys = true);
 
     /**
      * @brief Annotate PSM q-values by target-decoy competition of the best hit of each spectrum, as FDR:PSM does.
@@ -1474,7 +1480,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                           std::ostream& os);
 
     /// Serialize the complete end-of-search report to a machine-readable YAML string:
-    /// shared configuration/database/index facts, per-file identification statistics,
+    /// shared configuration/database/index facts, per-file identification
+    /// statistics (with the Percolator outcome and the NCE of the PeptDeep predictions,
+    /// PeptDeepRescoring::NCE_META_VALUE of the file's run, null if none),
     /// the output-file @p manifest (label -> written paths) and failed/total file counts.
     /// Hand-rolled (no YAML library dependency); every string scalar is double-quoted so
     /// values containing ':' (e.g. Windows paths) or other YAML metacharacters round-trip

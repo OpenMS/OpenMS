@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -589,6 +590,98 @@ std::string qpxScanFormat(const std::vector<std::string>& native_ids)
     }
   }
   return resolved;
+}
+
+bool writeColumnsToParquet(
+  const std::vector<ParquetColumn>& columns,
+  const std::string& filename,
+  const ParquetWriteConfig& config)
+{
+  auto rowsOf = [](const ParquetColumn& c) -> size_t
+  {
+    switch (c.type)
+    {
+      case ParquetColumn::Type::INT64:      return c.int64_values.size();
+      case ParquetColumn::Type::UTF8:       return c.utf8_values.size();
+      case ParquetColumn::Type::FLOAT_LIST: return c.float_lists.size();
+      case ParquetColumn::Type::UTF8_LIST:  return c.utf8_lists.size();
+    }
+    return 0;
+  };
+  const size_t rows = columns.empty() ? 0 : rowsOf(columns.front());
+  for (const ParquetColumn& c : columns)
+  {
+    const bool list = c.type == ParquetColumn::Type::FLOAT_LIST || c.type == ParquetColumn::Type::UTF8_LIST;
+    if (rowsOf(c) != rows || (list && !c.null_rows.empty() && c.null_rows.size() != rows))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Column '" + c.name + "' has " + std::to_string(rowsOf(c)) + " rows, the first column " + std::to_string(rows));
+    }
+  }
+
+  std::vector<std::shared_ptr<arrow::Field>> fields;
+  std::vector<std::shared_ptr<arrow::Array>> arrays;
+  arrow::Status status;
+  for (const ParquetColumn& c : columns)
+  {
+    std::shared_ptr<arrow::Array> array;
+    auto isNull = [&c](size_t row) { return !c.null_rows.empty() && c.null_rows[row]; };
+    switch (c.type)
+    {
+      case ParquetColumn::Type::INT64:
+      {
+        arrow::Int64Builder b;
+        status = b.AppendValues(c.int64_values);
+        if (status.ok()) { status = b.Finish(&array); }
+        fields.push_back(arrow::field(c.name, arrow::int64()));
+        break;
+      }
+      case ParquetColumn::Type::UTF8:
+      {
+        arrow::StringBuilder b;
+        status = b.AppendValues(c.utf8_values);
+        if (status.ok()) { status = b.Finish(&array); }
+        fields.push_back(arrow::field(c.name, arrow::utf8()));
+        break;
+      }
+      case ParquetColumn::Type::FLOAT_LIST:
+      {
+        auto values = std::make_shared<arrow::FloatBuilder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        for (size_t row = 0; row < rows && status.ok(); ++row)
+        {
+          if (isNull(row)) { status = b.AppendNull(); continue; }
+          status = b.Append();
+          if (status.ok()) { status = values->AppendValues(c.float_lists[row]); }
+        }
+        if (status.ok()) { status = b.Finish(&array); }
+        fields.push_back(arrow::field(c.name, arrow::list(arrow::float32())));
+        break;
+      }
+      case ParquetColumn::Type::UTF8_LIST:
+      {
+        auto values = std::make_shared<arrow::StringBuilder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        for (size_t row = 0; row < rows && status.ok(); ++row)
+        {
+          if (isNull(row)) { status = b.AppendNull(); continue; }
+          status = b.Append();
+          if (status.ok()) { status = values->AppendValues(c.utf8_lists[row]); }
+        }
+        if (status.ok()) { status = b.Finish(&array); }
+        fields.push_back(arrow::field(c.name, arrow::list(arrow::utf8())));
+        break;
+      }
+    }
+    if (!status.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: building column '" << c.name << "' for " << filename << " failed: "
+                       << status.ToString() << std::endl;
+      return false;
+    }
+    arrays.push_back(array);
+  }
+  return writeTableToParquet(arrow::Table::Make(arrow::schema(fields), arrays, static_cast<int64_t>(rows)), filename, config);
 }
 
 bool writeTableToParquet(

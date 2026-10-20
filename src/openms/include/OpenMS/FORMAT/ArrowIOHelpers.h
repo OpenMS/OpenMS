@@ -83,6 +83,41 @@ namespace ArrowIOHelpers
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
+    @brief One column of a table for writeColumnsToParquet(), built without Arrow types
+
+    Only the vector of the column's @c type is used; it holds one entry per row. List columns can have null rows.
+  */
+  struct OPENMS_DLLAPI ParquetColumn
+  {
+    /// int64, utf8, list<float32> or list<utf8> (all nullable in the schema, as Arrow builds them)
+    enum class Type { INT64, UTF8, FLOAT_LIST, UTF8_LIST };
+    std::string name;
+    Type type = Type::INT64;
+    std::vector<Int64> int64_values;                   ///< INT64
+    std::vector<std::string> utf8_values;              ///< UTF8
+    std::vector<std::vector<float>> float_lists;       ///< FLOAT_LIST
+    std::vector<std::vector<std::string>> utf8_lists;  ///< UTF8_LIST
+    std::vector<bool> null_rows;                       ///< list columns: true marks a null row (empty: no null row)
+  };
+
+  /**
+    @brief Write a table of int64, utf8, list<float32> and list<utf8> columns to a Parquet file
+
+    For callers outside libOpenMS that cannot use Arrow themselves (TOPP tools), e.g. for a sidecar table keyed by
+    the identity column of a QPX view.
+
+    @param[in] columns The columns, in order; all of the same number of rows
+    @param[in] filename Output file path
+    @param[in] config Parquet writer configuration
+    @return true on success, false on error (errors are logged)
+    @throws Exception::IllegalArgument if the columns have different numbers of rows
+  */
+  OPENMS_DLLAPI bool writeColumnsToParquet(
+    const std::vector<ParquetColumn>& columns,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
     @brief Concatenate a vector of Arrow tables and write the result to a Parquet file
 
     All tables must share the same schema. An empty input vector is a no-op

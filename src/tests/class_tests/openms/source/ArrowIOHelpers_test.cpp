@@ -17,6 +17,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
+#include <arrow/io/api.h>
+#include <parquet/arrow/reader.h>
 
 #include <set>
 
@@ -435,6 +437,47 @@ START_SECTION((bool writeTableToParquet(const std::shared_ptr<arrow::Table>&, co
   NEW_TMP_FILE(failed_file)
   TEST_FALSE(ArrowIOHelpers::writeTableToParquet(table, failed_file, no_row_group))
   TEST_FALSE(File::exists(failed_file))
+}
+END_SECTION
+
+START_SECTION((bool writeColumnsToParquet(const std::vector<ParquetColumn>&, const std::string&, const ParquetWriteConfig&)))
+{
+  using Column = ArrowIOHelpers::ParquetColumn;
+  Column id{"id", Column::Type::INT64, {7, -3}, {}, {}, {}, {}};
+  Column name{"name", Column::Type::UTF8, {}, {"a", "b"}, {}, {}, {}};
+  Column mz{"mz", Column::Type::FLOAT_LIST, {}, {}, {{1.5f, 2.5f}, {}}, {}, {false, true}};
+  Column ion{"ion", Column::Type::UTF8_LIST, {}, {}, {}, {{"b2+"}, {"y1+", "y2++"}}, {}};
+  std::string file;
+  NEW_TMP_FILE(file)
+  TEST_TRUE(ArrowIOHelpers::writeColumnsToParquet({id, name, mz, ion}, file))
+
+  auto input = arrow::io::ReadableFile::Open(file).ValueOrDie();
+  auto reader = parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie();
+  std::shared_ptr<arrow::Table> table;
+  TEST_TRUE(reader->ReadTable(&table).ok())
+  table = table->CombineChunks().ValueOrDie();
+  TEST_EQUAL(table->num_rows(), 2)
+  // (the names of the list element fields are Parquet's)
+  TEST_EQUAL(table->num_columns(), 4)
+  TEST_EQUAL(table->schema()->field(0)->name() + table->schema()->field(1)->name() + table->schema()->field(2)->name()
+               + table->schema()->field(3)->name(), "idnamemzion")
+  TEST_TRUE(table->schema()->field(0)->type()->Equals(arrow::int64()))
+  TEST_TRUE(table->schema()->field(1)->type()->Equals(arrow::utf8()))
+  TEST_TRUE(std::static_pointer_cast<arrow::ListType>(table->schema()->field(2)->type())->value_type()->Equals(arrow::float32()))
+  TEST_TRUE(std::static_pointer_cast<arrow::ListType>(table->schema()->field(3)->type())->value_type()->Equals(arrow::utf8()))
+  TEST_EQUAL(std::static_pointer_cast<arrow::Int64Array>(table->column(0)->chunk(0))->Value(1), -3)
+  TEST_EQUAL(std::static_pointer_cast<arrow::StringArray>(table->column(1)->chunk(0))->GetString(0), "a")
+  auto mz_list = std::static_pointer_cast<arrow::ListArray>(table->column(2)->chunk(0));
+  TEST_EQUAL(mz_list->value_length(0), 2)
+  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::FloatArray>(mz_list->values())->Value(1), 2.5)
+  TEST_TRUE(mz_list->IsNull(1))
+  auto ion_list = std::static_pointer_cast<arrow::ListArray>(table->column(3)->chunk(0));
+  TEST_EQUAL(ion_list->value_length(1), 2)
+  TEST_EQUAL(std::static_pointer_cast<arrow::StringArray>(ion_list->values())->GetString(2), "y2++")
+
+  // columns of different lengths
+  Column short_name{"name", Column::Type::UTF8, {}, {"a"}, {}, {}, {}};
+  TEST_EXCEPTION(Exception::IllegalArgument, ArrowIOHelpers::writeColumnsToParquet({id, short_name}, file))
 }
 END_SECTION
 
