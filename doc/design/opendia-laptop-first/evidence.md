@@ -22,6 +22,49 @@ All fields and values were compared after row sorting against a one-thread nonze
 
 This tiny fixture is dominated partly by setup/pool initialization. It does not prove a 3x large-data throughput gain, automatic adaptation, or a whole-engine cap. A separate 1 MiB request actually created a 4 MiB pool due to minimum allocation granularity, so user settings must not be mistaken for enforced limits.
 
+## Additional public check: page and worker scheduling
+
+A follow-up on 20 October tested the hypothesis that library-page boundaries and worker scheduling can change without changing the extracted scientific evidence. The installed `DIATraceExtractor` was executed 18 times: `library_part_rows` of 1, 2 and 65,536, one/four workers, and three interleaved repetitions of each combination. The buffer stayed at 16 MiB and all scientific extraction settings and inputs matched the nonzero experiment above.
+
+| Library part rows | Workers | Median peak RSS (KiB) | Median elapsed (s) | Output |
+|---|---:|---:|---:|---|
+| 1 | 1 | 72,420 | 0.04 | Exact reference equality |
+| 1 | 4 | 72,504 | 0.03 | Exact reference equality |
+| 2 | 1 | 72,456 | 0.04 | Exact reference equality |
+| 2 | 4 | 72,576 | 0.03 | Exact reference equality |
+| 65,536 | 1 | 72,460 | 0.03 | Exact reference equality |
+| 65,536 | 4 | 72,712 | 0.03 | Exact reference equality |
+
+For every execution, the full TSV header and all 600 rows matched the previous one-thread reference exactly after row sorting, including all metadata fields and 294 nonzero intensity points. Actual CLI logs showed 6/3/1 library parts and read/plan tasks for part sizes 1/2/65,536 respectively. Part size 1 produced two extraction tasks with up to two concurrent workers; the larger settings produced one extraction task. The trace pool peaked at two versus one blocks, with no heap-fallback units.
+
+**Interpretation:** this exercises actual reader/planner/extractor/writer boundaries and supports scheduling independence for this small public workflow. It does not show a meaningful throughput improvement, many-worker scalability, bounded large-library memory, or a mobility-preserving/peptidoform-aware greenfield implementation. The design's whole-engine gates remain open. WP-04/WP-05/WP-09 should extend this check to representative data rather than assume the tiny fixture is sufficient.
+
+### Reproduction details
+
+The originating machine retains `opendia-page-experiment.sh` and `opendia-page-*.{tsv,stats.json,resources,log}` under `/home/sing/.jcode/scratch`. The per-run command below is the tested public interface. Set `EXTRACTOR` to the pinned installed executable, `OUT` to a fresh writable directory, `PAGE` to 1/2/65536, `THREADS` to 1/4 and `REP` to 1/2/3. Run from the repository root, preserving outputs for each combination:
+
+```bash
+/usr/bin/time -f 'elapsed_s=%e user_s=%U system_s=%S max_rss_kib=%M' \
+  -o "$OUT/page-${PAGE}-t${THREADS}-r${REP}.resources" \
+  "$EXTRACTOR" \
+  -in src/tests/topp/OpenSwathWorkflow_17_input.mzML \
+  -lib src/tests/topp/OpenSwathWorkflow_17_input.tsv \
+  -out_tsv "$OUT/page-${PAGE}-t${THREADS}-r${REP}.tsv" \
+  -out_stats "$OUT/page-${PAGE}-t${THREADS}-r${REP}.stats.json" \
+  -scheme B -mz_tol 250 -mz_tol_ms1 25 -rt_mode identity -rt_window -1 \
+  -threads "$THREADS" -library_part_rows "$PAGE" -buffer_mb 16
+```
+
+Captured SHA-256 identities:
+
+```text
+mzML:      d95a281e78aa440f3081d441d21094a8ba2cd8a724fb55bd0b30737e368c2d00
+TSV:       92d726b4e158b0a8c2fa4ccf2fab08230256b031ef1966cedfcd9b7532a5838a
+executable:76e14ffa4634480800808a0d5ffb4d50921488c07a4bdbce47c64d7546933033
+```
+
+The executable hash alone does not pin its dynamically linked dependencies. A portable benchmark release still needs the complete environment manifest required by WP-00.
+
 ## Public scientific and output checks
 
 | Requirement | Observed check | Result and limitation |
