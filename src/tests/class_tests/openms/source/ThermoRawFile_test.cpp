@@ -127,8 +127,11 @@ START_SECTION([EXTRA] compressed RAW files that cannot be read)
     {bzipped, "A bzip2-compressed Thermo RAW file cannot be read: decompress it first"},
     {none, "ZIP archive holds no file with the extension '.raw'"},
     {two, "ZIP archive holds 2 files with the extension '.raw' (a.raw, b.RAW)"}};
-  for (const auto& [path, expected] : cases)
+  for (const auto& c : cases)
   {
+    // named references, not a structured binding: clang cannot capture one in a lambda when OpenMP is enabled
+    const std::string& path = c.first;
+    const std::string& expected = c.second;
     TEST_EQUAL(FileHandler::getType(path), FileTypes::RAW)
     MSExperiment exp;
     std::string message = parseErrorOf([&] { ThermoRawFile().load(path, exp); });
@@ -486,8 +489,9 @@ START_SECTION([EXTRA] ThermoRawFile::Options scan selection - metadata_only - sk
   TEST_EQUAL(rt_range.getChromatograms()[0].size(), full.getChromatograms()[0].size())
 
   // MS1 spectra and spectra without precursor are kept, as by PeakFileOptions::setPrecursorMZRange
-  for (const auto& [lo, hi] : {std::pair{400.0, 500.0}, std::pair{500.0, 600.0}, std::pair{659.0, 660.0}})
+  for (const auto& range : {std::pair{400.0, 500.0}, std::pair{500.0, 600.0}, std::pair{659.0, 660.0}})
   {
+    const double lo = range.first, hi = range.second; // captured below: clang with OpenMP cannot capture a structured binding
     ThermoRawFile::Options precursor = base;
     precursor.precursor_mz_min = lo;
     precursor.precursor_mz_max = hi;
