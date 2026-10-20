@@ -14,6 +14,15 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    const MetaInfo& emptyMetaInfo()
+    {
+      static const MetaInfo empty;
+      return empty;
+    }
+  }
+
   /// Copy constructor
   MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface& rhs) :
     meta_(nullptr)
@@ -253,14 +262,12 @@ namespace OpenMS
 
   MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaBegin() const
   {
-    static const MetaInfo empty;
-    return meta_ ? meta_->begin() : empty.begin();
+    return meta_ ? meta_->begin() : emptyMetaInfo().begin();
   }
 
   MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaEnd() const
   {
-    static const MetaInfo empty;
-    return meta_ ? meta_->end() : empty.end();
+    return meta_ ? meta_->end() : emptyMetaInfo().end();
   }
 
   Size MetaInfoInterface::metaSize() const
