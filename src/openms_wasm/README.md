@@ -268,11 +268,15 @@ build, 16 threads) on a 60-minute Orbitrap TMT run (6,103 MS2 spectra, 78 MB mzM
 
 (Native: the ProSE tool of June 2026 in a container, which adds about a second of startup.)
 `database:chunk_size` builds and searches the index in parts and so keeps larger searches under
-4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64) would
-raise the limit (Chrome and Firefox allow up to 16 GB; Safari does not support Memory64 yet,
-as far as known). Measured with a local wasm64 build, it did not pay off for ProSE: 10 to 20%
-slower, 1.5 to 3 times the memory, and the semi-tryptic human search above still needed
-chunking (it needs more than 16 GB without); Embind would also pass `size_t` as BigInt. More threads than about
+4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64; the
+experimental presets `wasm64-emscripten-mt-release` and `wasm64-emscripten-mt-onnx-release`, see
+"Building") raises the limit to 16 GB (Chrome, Firefox and Node.js; Safari does not support
+Memory64). Measured the same way (October 2026), it runs the semi-tryptic human search without
+chunking (54 s, 10 GB) and with `database:chunk_size` 8000 (36 s, 10.5 GB), which stop at 4 GB in
+wasm32, with the same results; but it is 10 to 20% slower, and with Emscripten's allocator (mimalloc)
+the module's memory grows far more there: 1.9 instead of 0.9 GB for *Erwinia*, 2.5 instead of 1.3 GB
+for human, 12 instead of 2.5 GB for the semi-tryptic human search with `database:chunk_size` 2000
+(resident: 1.1 and 1.3 GB, about as in wasm32, but 10.5 instead of 1.8 GB). More threads than about
 8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
 the spectra are serial.
 
@@ -732,7 +736,8 @@ and the feature finding of FeatureFinderMetabo_3 (about 220 ms) took the same ti
 
 ### Limits
 
-The module is a 32-bit (wasm32) program: it can address up to 4 GB. It cannot start
+The module is a 32-bit (wasm32) program: it can address up to 4 GB (the experimental 64-bit
+builds up to 16 GB, see "Building"). It cannot start
 other programs (search engine adapters, R, Java), has no network access of its own
 (`NetworkGetRequest` reports an error; fetch data in JavaScript and write it to the file
 system), and cannot read vendor formats (Thermo RAW, Bruker .d): convert them to mzML
@@ -776,6 +781,18 @@ vcpkg feature `onnxruntime`; see "Machine learning" above). vcpkg builds ONNX Ru
 threads, without LTO, onnxruntime-web's JavaScript module or cpuinfo; `onnx` without static schema
 registration (ONNX Runtime registers the schemas itself). The build downloads the PeptDeep models
 and copies them to `models/` of the package.
+
+The presets `wasm64-emscripten-mt-release` and `wasm64-emscripten-mt-onnx-release` are the threaded
+builds, without and with ONNX Runtime, for 64-bit memory (Memory64): the module's memory grows up to
+16 GB instead of 4 GB (Chrome, Firefox and Node.js; not Safari). vcpkg builds the dependencies, ONNX
+Runtime included, for the `wasm64-emscripten-mt` triplet (`-m64`; its chainloaded toolchain
+`vcpkg-overlays/toolchains/wasm64-emscripten.cmake` sets the pointer size). They are experimental:
+Embind passes a `size_t` as BigInt there, so `AASequence.size()`, `MSExperiment.size()`,
+`getNrSpectra()`, `getNrChromatograms()` and `CoarseIsotopePatternGenerator.getMaxIsotope()` return a
+`bigint`, and `openms.d.ts` declares indices and counts such as the one of `getSpectrum()` as `bigint`
+(numbers are accepted). Emscripten's allocator (mimalloc on top of emmalloc, Emscripten 6.0.12) cannot
+allocate a block of 4 GB or more in such a module, and takes more memory than in wasm32 (see the
+ProSE measurements above).
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`
