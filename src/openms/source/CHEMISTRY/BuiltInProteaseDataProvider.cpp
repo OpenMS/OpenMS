@@ -470,7 +470,7 @@ namespace OpenMS
     // elastase-trypsin-chymotrypsin
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "elastase-trypsin-chymotrypsin",
-      "(?<=[ALIVKRWFYX])(?!P)",
+      "(?<=[ALIJVKRWFYX])(?!P)",
       set<std::string>(),
       "elastase-trypsin-chymotrypsin cuts after A,L,I(or J),V,K,R,W,F,Y unless followed by P.",
       EmpiricalFormula(""),

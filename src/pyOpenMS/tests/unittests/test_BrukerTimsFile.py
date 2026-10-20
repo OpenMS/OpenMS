@@ -123,6 +123,9 @@ def _header_defaults():
         "frame_id_max": 2**32 - 1,  # std::numeric_limits<uint32_t>::max()
         "rt_min_sec": 0.0,
         "rt_max_sec": math.inf,  # std::numeric_limits<double>::infinity()
+        "rt_selects_spectra": False,
+        "im_min": 0.0,
+        "im_max": math.inf,
         "ms1_centroid_algo": Config.CentroidAlgo.OFF,
         "ms2_centroid_algo": Config.CentroidAlgo.OFF,
         "ms1_centroid_mz_ppm": 10.0,
@@ -176,6 +179,9 @@ def test_config_range_and_centroiding_field_assignment():
         "frame_id_max": 4242,
         "rt_min_sec": 12.5,
         "rt_max_sec": 99.25,
+        "rt_selects_spectra": True,
+        "im_min": 0.75,
+        "im_max": 1.25,
         "ms1_centroid_algo": Config.CentroidAlgo.HILL_BASED,
         "ms2_centroid_mz_ppm": 7.5,
         "centroid_valley_factor": 2.75,
@@ -207,6 +213,7 @@ def test_config_range_and_centroiding_field_assignment():
         setattr(cfg, name, defaults[name])
     assert cfg.frame_id_max == 2**32 - 1
     assert cfg.rt_max_sec == math.inf
+    assert cfg.im_max == math.inf
     for name, value in defaults.items():
         assert getattr(cfg, name) == value, name
 

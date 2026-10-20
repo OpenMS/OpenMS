@@ -91,6 +91,12 @@ The acquisition type is detected from the file:
   one MS2 spectrum per precursor with a single ion mobility value.
 - **DIA-PASEF**: MS1 as above, and one MS2 spectrum per frame and isolation window, which
   stores the ion mobility of every peak.
+- **Without PASEF precursors or isolation windows** (e.g. MS1-only MALDI runs): MS1 as above.
+
+MALDI imaging runs (`.d` or `.d.zip`) are not read by these tools: as a list of spectra they
+would lose their pixel positions. (Only PeakPickerIM, which reads raw frames by default, reads
+their frames, without the positions.) In the library and in pyOpenMS,
+`FileHandler::loadImagingExperiment` loads them into an `MSImagingExperiment`.
 
 FileConverter, CometAdapter and PeakPickerIM have `bruker:` options to change this, for
 example `-bruker:export_mode` to force the per-precursor layout (`spectrum`) or raw frames

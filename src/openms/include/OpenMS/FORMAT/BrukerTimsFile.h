@@ -39,6 +39,11 @@ namespace OpenMS
    * files. Any call other than readDIAMetadata() removes the kept files, as does destroying the
    * object.
    *
+   * MALDI imaging runs (GlobalMetadata MaldiApplicationType "Imaging") are read by
+   * BrukerTimsImagingFile, which keeps the pixel position of every frame. This class reads them in
+   * export mode FRAME only (as BrukerTimsImagingFile does); the other modes and the DIA streaming
+   * functions throw Exception::InvalidFileType for them.
+   *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
    * but no smoothing or centroiding is performed.
@@ -114,9 +119,36 @@ namespace OpenMS
       /// frame_id_min/frame_id_max. TIMS frame IDs are monotonic in
       /// acquisition time, so an RT range maps to a contiguous frame_id
       /// sub-range. Defaults (0.0, +inf) impose no RT filter. All other
-      /// interplay caveats listed on frame_id_min apply identically.
+      /// interplay caveats listed on frame_id_min apply identically, unless
+      /// rt_selects_spectra is set.
       double rt_min_sec = 0.0;
       double rt_max_sec = std::numeric_limits<double>::infinity();
+
+      /// What the retention time range selects. false (default): frames, as
+      /// described above. true: spectra. load() and transform() then return
+      /// the spectra of a load without the range whose retention time lies in
+      /// [rt_min_sec, rt_max_sec], in the same form. A DDA MS2 spectrum (whose
+      /// retention time is the mean time of its frames) is built from all of
+      /// its frames, and aggregation over retention time (ms1_n_neighbors,
+      /// dia_ms2_n_neighbors) reads the neighboring frames outside the range
+      /// that the spectra in it need. Nothing is reconstructed partially.
+      /// frame_id_min/frame_id_max still select frames. With calibrate = true,
+      /// the OLS fit uses the selected precursors only. readDIAMetadata() and
+      /// loadDIAStreaming() select frames either way.
+      bool rt_selects_spectra = false;
+
+      /// Ion mobility range filter (inclusive, 1/K0 in V·s/cm²). load() and
+      /// transform() return the spectra of a load without it, filtered: the
+      /// peaks outside the range are removed from the spectra with an ion
+      /// mobility per peak (MS1, DIA MS2, FRAME mode), and a DDA MS2 spectrum,
+      /// which has a single ion mobility, is left out if that lies outside.
+      /// DDA precursors isolated entirely outside the range are skipped before
+      /// their frames are decoded; with calibrate = true, the OLS fit uses the
+      /// precursors isolated at least partly inside it. Defaults (0.0, +inf)
+      /// impose no filter; a NaN bound, like im_min > im_max, leaves no peaks.
+      /// readDIAMetadata() and loadDIAStreaming() ignore it.
+      double im_min = 0.0;
+      double im_max = std::numeric_limits<double>::infinity();
 
       /// Centroiding algorithms for IM-PASEF frames.
       ///   - Off:       no IM-axis centroiding (raw detector peaks pass through).
@@ -284,8 +316,11 @@ namespace OpenMS
 
     /// Load entire .d directory into MSExperiment
     /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF
-    ///         data that is not zstd-compressed (TimsCompressionType other than 2), or a '.d.zip' archive without a
-    ///         .d directory. The other read functions throw the same.
+    ///         data that is not zstd-compressed (TimsCompressionType other than 2), a '.d.zip' archive without a
+    ///         .d directory, or an analysis.tdf that lacks a table or column the reader needs. The other read
+    ///         functions throw the same.
+    /// @throws Exception::InvalidFileType for a MALDI imaging run, unless the export mode is FRAME (see above), as
+    ///         do transform() and, in every export mode, readDIAMetadata() and loadDIAStreaming()
     /// @throws Exception::FileNotReadable if opentims cannot open the directory
     void load(const std::string& path, MSExperiment& exp);
     /// @overload with explicit configuration
@@ -312,6 +347,12 @@ namespace OpenMS
   private:
     /// Receives the spectra a loader emits, one after the other. It may move from the spectrum.
     using SpectrumSink = std::function<void(MSSpectrum&)>;
+
+    // The public read functions of the same names run these and report SQLite errors as Exception::ParseError
+    DIAStreamingMetadata readDIAMetadata_(const std::string& path, ExperimentalSettings& exp_settings, const Config& config);
+    void loadDIAStreaming_(const std::string& path, FullSwathFileConsumer& consumer, const Config& config);
+    void load_(const std::string& path, MSExperiment& exp, const Config& config);
+    void transform_(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
     // The loaders emit their spectra in order of retention time, spectra of equal retention time MS1
     // first, unless the configuration is one of the two that transform() names.

@@ -9,6 +9,7 @@
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 // Files
@@ -1722,6 +1723,11 @@ protected:
 
     //// Write out data
 
+    // Write the .xic file here, so that a write error fails the run; the destructor only logs it
+    if (auto* xic_cons = dynamic_cast<MSChromatogramParquetConsumer*>(chromatogramConsumer))
+    {
+      xic_cons->finalize();
+    }
     delete chromatogramConsumer;
 
     if (write_parquet)

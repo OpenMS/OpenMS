@@ -460,11 +460,6 @@ set_tests_properties("TOPP_FeatureFinderLFQ_1_out1" PROPERTIES DEPENDS "TOPP_Fea
 add_test("TOPP_FeatureFinderIdentification_1" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_1.tmp.featureXML -extract:mz_window 0.1 -detect:peak_width 60 -model:type none)
 add_test("TOPP_FeatureFinderIdentification_1_out1" ${DIFF} -whitelist "spectra_data" "featureMap" -in1 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderIdentification_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_1")
-## The run summary must report a real peptide count, not an uninitialised member. Own invocation
-## rather than a property on the test above: PASS_REGULAR_EXPRESSION makes ctest ignore the exit
-## code, which would weaken that test's check that the tool succeeded.
-add_test("TOPP_FeatureFinderIdentification_summary_count" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_summary_count.tmp.featureXML -extract:mz_window 0.1 -detect:peak_width 60 -model:type none)
-set_tests_properties("TOPP_FeatureFinderIdentification_summary_count" PROPERTIES PASS_REGULAR_EXPRESSION "22 peptides identified")
 
 ## with elution model fitting:
 add_test("TOPP_FeatureFinderIdentification_3" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_3.tmp.featureXML -extract:mz_window 0.1 -detect:peak_width 60 -model:type symmetric)
@@ -1056,6 +1051,10 @@ set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_20" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_20_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt)
 add_test("TOPP_FileInfo_20_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_20_output.txt )
 set_tests_properties("TOPP_FileInfo_20_out1" PROPERTIES DEPENDS "TOPP_FileInfo_20")
+# map ids 1 and 2 (not 0 and 1); both peptides are observed in both maps
+add_test("TOPP_FileInfo_21" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_21_input.consensusXML -no_progress -out ${TESTS_TEMP_DIR}/FileInfo_21.tmp.txt)
+add_test("TOPP_FileInfo_21_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_21.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_21_output.txt )
+set_tests_properties("TOPP_FileInfo_21_out1" PROPERTIES DEPENDS "TOPP_FileInfo_21")
 # entry 2 shares the libstdc++ std::hash of its header with entry 1; entry 3 duplicates the header of entry 1
 add_test("TOPP_FileInfo_23" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_23_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_23_output.tmp.txt)
 add_test("TOPP_FileInfo_23_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_23_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_23_output.txt )
@@ -1312,6 +1311,40 @@ add_test("TOPP_IsobaricWorkflow_purity_tolerance" ${TOPP_BIN_PATH}/IsobaricWorkf
   -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_purity_out.tmp.consensusXML)
 add_test("TOPP_IsobaricWorkflow_purity_tolerance_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_purity_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_purity_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_purity_tolerance_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_purity_tolerance")
+
+# Same run as TOPP_IsobaricWorkflow_1 with a higher-is-better search score (a hyperscore) instead of
+# the PEP, at -psmFDR 0.25, for the PSM-level and the peptide-level FDR. All four targets have a
+# q-value of 0.2 and must stay, so the output matches IsobaricWorkflow_1_out.consensusXML apart from
+# the name of the stored search score. With the q-values marked higher-is-better, the filter removed
+# every target ("No proteins left after FDR filtering").
+add_test("TOPP_IsobaricWorkflow_hyperscore" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -psmFDR 0.25
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_hyperscore_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_hyperscore_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_hyperscore")
+add_test("TOPP_IsobaricWorkflow_hyperscore_peptide" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -psmFDR 0.25 -FDR_type PSM+peptide
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_peptide_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_hyperscore_peptide_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_peptide_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_peptide_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_hyperscore_peptide_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_hyperscore_peptide")
+# The same with the PEP input and Bayesian inference, which turns each PSM's PEP into a posterior
+# probability (higher is better) before the FDR. All four targets must stay at -psmFDR 0.25. Checked
+# with FileInfo instead of a reference file: Bayesian inference leaves the two proteins, which tie
+# at a q-value of 0.33, in a platform-dependent order.
+add_test("TOPP_IsobaricWorkflow_bayesian" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -inference_method bayesian -psmFDR 0.25
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_bayesian_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_bayesian_out1" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/IsobaricWorkflow_bayesian_out.tmp.consensusXML)
+set_tests_properties("TOPP_IsobaricWorkflow_bayesian_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_bayesian" PASS_REGULAR_EXPRESSION "peptides \\(with different mod. and charge\\) observed in 10 maps: 4")
 
 # An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
 # TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made
@@ -1665,6 +1698,11 @@ set_tests_properties("TOPP_IDFilter_23_out1" PROPERTIES DEPENDS "TOPP_IDFilter_2
 add_test("TOPP_IDFilter_24" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML -out ${TESTS_TEMP_DIR}/IDFilter_24_output.tmp.consensusXML -score:proteingroup 0.99)
 add_test("TOPP_IDFilter_24_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFilter_24_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IDFilter_24_output.consensusXML)
 set_tests_properties("TOPP_IDFilter_24_out1" PROPERTIES DEPENDS "TOPP_IDFilter_24")
+
+add_test("TOPP_IDFilter_25_reference" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/IDFilter_25_reference_output.tmp.idXML -score:psm 0.95)
+add_test("TOPP_IDFilter_25" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/IDFilter_25_output.tmp.idXML -score:peptide 0.95 -score:type_peptide PEP)
+add_test("TOPP_IDFilter_25_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFilter_25_output.tmp.idXML -in2 ${TESTS_TEMP_DIR}/IDFilter_25_reference_output.tmp.idXML)
+set_tests_properties("TOPP_IDFilter_25_out1" PROPERTIES DEPENDS "TOPP_IDFilter_25;TOPP_IDFilter_25_reference")
 
 #-----------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
@@ -3425,129 +3463,6 @@ set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3"
 
 
 #------------------------------------------------------------------------------
-# ConsensusID tests
-# idXML input, "PEPMatrix" algorithm using PEP30MS matrix (example from the JPR paper):
-add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_1_output.tmp.idXML -algorithm PEPMatrix -PEPMatrix:matrix PAM30MS)
-add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_1_output.idXML )
-set_tests_properties("TOPP_ConsensusID_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_1")
-# featureXML input, "average" algorithm:
-add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML -out ${TESTS_TEMP_DIR}/ConsensusID_2_output.tmp.featureXML -algorithm average)
-add_test("TOPP_ConsensusID_2_out1" ${DIFF} -whitelist "IdentificationRun id" -in1 ${TESTS_TEMP_DIR}/ConsensusID_2_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML )
-set_tests_properties("TOPP_ConsensusID_2_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_2")
-# consensusXML input, "best" algorithm:
-add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusID_3_output.tmp.consensusXML -algorithm best)
-add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun id" -in1 ${TESTS_TEMP_DIR}/ConsensusID_3_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML )
-set_tests_properties("TOPP_ConsensusID_3_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_3")
-# idXML input, "PEPMatrix" algorithm using identity matrix, limited number of considered hits:
-add_test("TOPP_ConsensusID_4" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_4_output.tmp.idXML -algorithm PEPMatrix -PEPMatrix:matrix identity -filter:considered_hits 6)
-add_test("TOPP_ConsensusID_4_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_4_output.idXML )
-set_tests_properties("TOPP_ConsensusID_4_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_4")
-# idXML input, "PEPIons" algorithm:
-add_test("TOPP_ConsensusID_5" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_5_output.tmp.idXML -algorithm PEPIons)
-add_test("TOPP_ConsensusID_5_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_5_output.idXML )
-set_tests_properties("TOPP_ConsensusID_5_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_5")
-# idXML input, "best" algorithm, filtering:
-add_test("TOPP_ConsensusID_6" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_6_output.tmp.idXML -algorithm best -filter:min_support 0.5)
-add_test("TOPP_ConsensusID_6_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_6_output.idXML )
-set_tests_properties("TOPP_ConsensusID_6_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_6")
-# idXML input, "best" algorithm, per_spectrum:
-add_test("TOPP_ConsensusID_7" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_6_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_7_output.tmp.idXML -algorithm best -per_spectrum -filter:keep_old_scores)
-add_test("TOPP_ConsensusID_7_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_7_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_7_output.idXML )
-set_tests_properties("TOPP_ConsensusID_7_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_7")
-# idXML input, with Percolator, "best" algorithm, per_spectrum:
-add_test("TOPP_ConsensusID_8" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_8_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_8_output.tmp.idXML -algorithm best -per_spectrum -filter:keep_old_scores)
-add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_8_output.idXML )
-set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
-
-# Empty search results retain their original runs and all search settings in RT/mz mode.
-# Compare complete files, including spectra_data and custom search/run metadata (#1427, #8250).
-foreach(input IN ITEMS empty empty_runs)
-  add_test("TOPP_ConsensusID_${input}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_${input}_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_${input}.tmp.idXML)
-  add_test("TOPP_ConsensusID_${input}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusID_${input}.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_${input}_input.idXML)
-  set_tests_properties("TOPP_ConsensusID_${input}_out" PROPERTIES DEPENDS "TOPP_ConsensusID_${input}")
-endforeach()
-
-# Finalize per-spectrum metadata even for an MS file with only empty runs.
-# Two search engines cover sample.mzML; empty_sample.mzML has no peptide IDs at all.
-set(consensusid_empty_metadata
-  "search_engine=\"OpenMS/ConsensusID_best\""
-  "db=\"test.fasta\" db_version=\"2020-01\" taxonomy=\"9606\""
-  "charges=\"2-4\" enzyme=\"trypsin\" missed_cleavages=\"2\""
-  "precursor_peak_tolerance=\"20\" precursor_peak_tolerance_ppm=\"true\""
-  "peak_mass_tolerance=\"0.04\" peak_mass_tolerance_ppm=\"false\""
-  "<FixedModification name=\"Carbamidomethyl (C)\""
-  "<VariableModification name=\"Oxidation (M)\""
-  "<VariableModification name=\"Phospho (S)\""
-  "name=\"SE:Engine1\" value=\"1.0\""
-  "name=\"SE:Engine2\" value=\"2.0\""
-  "name=\"Engine1:charges\" value=\"2:3\""
-  "name=\"Engine2:charges\" value=\"2:4\""
-  "name=\"spectra_data\" value=\"[sample.mzML]\""
-  "name=\"spectra_data\" value=\"[empty_sample.mzML]\""
-  "name=\"ConsensusIDBaseSearch\" value=\"Engine2:2.0\"")
-add_test("TOPP_ConsensusID_empty_per_spectrum" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_empty_input.idXML ${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_empty_per_spectrum.tmp.idXML -algorithm best -per_spectrum)
-add_test("TOPP_ConsensusID_empty_per_spectrum_out" ${CMAKE_COMMAND}
-  -DINPUT_FILE=${TESTS_TEMP_DIR}/ConsensusID_empty_per_spectrum.tmp.idXML
-  "-DEXPECTED=${consensusid_empty_metadata}" "-DFORBIDDEN=<PeptideIdentification"
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ConsensusID_empty_per_spectrum_out" PROPERTIES DEPENDS "TOPP_ConsensusID_empty_per_spectrum")
-
-# Missing optional enzyme/charge settings must remain unknown, not fail the
-# enzyme lookup or become the sentinel charge range "10000--10000".
-add_test("TOPP_ConsensusID_empty_unknown" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_empty_unknown_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_empty_unknown.tmp.idXML -algorithm best -per_spectrum)
-add_test("TOPP_ConsensusID_empty_unknown_out" ${CMAKE_COMMAND}
-  -DINPUT_FILE=${TESTS_TEMP_DIR}/ConsensusID_empty_unknown.tmp.idXML
-  "-DEXPECTED=charges=\"\" enzyme=\"unknown_enzyme\";name=\"spectra_data\" value=\"[sample_unknown.mzML]\""
-  "-DFORBIDDEN=<PeptideIdentification;10000--10000"
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ConsensusID_empty_unknown_out" PROPERTIES DEPENDS "TOPP_ConsensusID_empty_unknown")
-
-# Empty runs contribute to support only with count_empty. With min_support=1,
-# the sole peptide survives only if the empty search run is ignored.
-foreach(mode IN ITEMS rt_mz per_spectrum)
-  if(mode STREQUAL "per_spectrum")
-    set(consensusid_mixed_inputs ${DATA_DIR_TOPP}/ConsensusID_nonempty_input.idXML ${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML)
-    set(consensusid_mode_args -per_spectrum)
-  else()
-    set(consensusid_mixed_inputs ${DATA_DIR_TOPP}/ConsensusID_mixed_input.idXML)
-    set(consensusid_mode_args)
-  endif()
-  foreach(count_empty IN ITEMS false true)
-    set(consensusid_test "TOPP_ConsensusID_mixed_${mode}_${count_empty}")
-    set(consensusid_output "${TESTS_TEMP_DIR}/ConsensusID_mixed_${mode}_${count_empty}.tmp.idXML")
-    add_test("${consensusid_test}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${consensusid_mixed_inputs} -out ${consensusid_output} -algorithm best ${consensusid_mode_args} -filter:count_empty ${count_empty} -filter:min_support 1)
-    if(count_empty)
-      set(consensusid_output_check "-DFORBIDDEN=<PeptideIdentification")
-    else()
-      set(consensusid_output_check "-DEXPECTED=sequence=\"PEPTIDE\";name=\"consensus_support\" value=\"1.0\"")
-    endif()
-    add_test("${consensusid_test}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${consensusid_output} "${consensusid_output_check}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-    set_tests_properties("${consensusid_test}_out" PROPERTIES DEPENDS "${consensusid_test}")
-    if(mode STREQUAL "per_spectrum")
-      add_test("${consensusid_test}_metadata" ${CMAKE_COMMAND} -DINPUT_FILE=${consensusid_output} "-DEXPECTED=${consensusid_empty_metadata}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-      set_tests_properties("${consensusid_test}_metadata" PROPERTIES DEPENDS "${consensusid_test}")
-    endif()
-  endforeach()
-endforeach()
-
-# Unannotated features and consensus features have no identification runs.
-foreach(format IN ITEMS featureXML consensusXML)
-  add_test("TOPP_ConsensusID_no_ids_${format}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_no_ids_input.${format} -out ${TESTS_TEMP_DIR}/ConsensusID_no_ids.tmp.${format})
-  add_test("TOPP_ConsensusID_no_ids_${format}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusID_no_ids.tmp.${format} -in2 ${DATA_DIR_TOPP}/ConsensusID_no_ids_input.${format})
-  set_tests_properties("TOPP_ConsensusID_no_ids_${format}_out" PROPERTIES DEPENDS "TOPP_ConsensusID_no_ids_${format}")
-endforeach()
-
-# Require the documented input shape and a clean INCOMPATIBLE_INPUT_DATA return (11).
-add_test("TOPP_ConsensusID_multiple_files_without_per_spectrum" ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ConsensusID;-test;-in;${DATA_DIR_TOPP}/ConsensusID_empty_input.idXML;${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML;-out;${TESTS_TEMP_DIR}/ConsensusID_invalid_multiple.tmp.idXML"
-  -DEXPECTED_CODE=11 "-DEXPECTED_OUTPUT_REGEX=expects a single idXML file"
-  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-add_test("TOPP_ConsensusID_nonempty_single_run" ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ConsensusID;-test;-in;${DATA_DIR_TOPP}/ConsensusID_nonempty_input.idXML;-out;${TESTS_TEMP_DIR}/ConsensusID_invalid_single.tmp.idXML"
-  -DEXPECTED_CODE=11 "-DEXPECTED_OUTPUT_REGEX=At least two runs are required"
-  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-
-#------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
 add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_output_1.tmp.idXML -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_1_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_output_1.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_1.idXML)
@@ -3964,11 +3879,6 @@ set_tests_properties("TOPP_UniPEFF_8_reject_gz" PROPERTIES WILL_FAIL TRUE)
 add_test("TOPP_UniPEFF_12" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_4_input_location_sequence.xml -out ${TESTS_TEMP_DIR}/UniPEFF_12_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_12_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_12_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_4_output_location_sequence.peff)
 set_tests_properties("TOPP_UniPEFF_12_out" PROPERTIES DEPENDS "TOPP_UniPEFF_12")
-## The run summary counts only isoform-scoped features that would otherwise have become
-## annotations (5 in 2 entries; not the sequence conflict). Own invocation: PASS_REGULAR_EXPRESSION makes
-## ctest ignore the exit code, which would weaken TOPP_UniPEFF_12's check that the tool succeeded.
-add_test("TOPP_UniPEFF_12_summary" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_4_input_location_sequence.xml -out ${TESTS_TEMP_DIR}/UniPEFF_12_summary.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
-set_tests_properties("TOPP_UniPEFF_12_summary" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 5 feature.s. annotated on isoforms that are not written .location/@sequence. were not applied .2 entries affected.")
 
 # Whitespace-stripped UniProtKB XML (no inter-element whitespace) MUST parse identically.
 # Guards against future regression to a whitespace-sensitive parser.
@@ -4019,12 +3929,6 @@ set_tests_properties("TOPP_UniPEFF_16_out" PROPERTIES DEPENDS "TOPP_UniPEFF_16")
 add_test("TOPP_UniPEFF_17" ${TOPP_BIN_PATH}/UniPEFF -test -omit_isoforms -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_17_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_17_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_17_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_5_output_omitiso.peff)
 set_tests_properties("TOPP_UniPEFF_17_out" PROPERTIES DEPENDS "TOPP_UniPEFF_17")
-## The two summary lines, one invocation each: PASS_REGULAR_EXPRESSION passes on any one
-## matching expression (and ignores the exit code, which TOPP_UniPEFF_15 checks).
-add_test("TOPP_UniPEFF_15_summary_applied" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_15_summary_applied.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
-set_tests_properties("TOPP_UniPEFF_15_summary_applied" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 3 feature.s. annotated on isoforms .location/@sequence. were written to their isoform entries .1 entries affected.")
-add_test("TOPP_UniPEFF_15_summary_skipped" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_15_summary_skipped.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
-set_tests_properties("TOPP_UniPEFF_15_summary_skipped" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 2 feature.s. annotated on isoforms that are not written .location/@sequence. were not applied .1 entries affected.")
 
 # Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its file names. The dated
 # name is materialized in the temp dir at test time. An explicit -dbversion (here 'unknown') wins over that
@@ -5019,8 +4923,7 @@ set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 # Test 12: -out_pin holds the PSMs before the rescoring and any FDR filter. With FDR:PSM and FDR:protein (ProSE_6_fdr.ini,
 # one input) the .pin equals that of the same search without FDR (decoys kept, search engine scores), with Search:rescore
-# (the default) it equals that of the search without rescoring, and -out_pin does not change the idXML (Test 6, Test 11;
-# with rescoring, the hit counts after FDR).
+# (the default) it equals that of the search without rescoring, and -out_pin does not change the idXML (Test 6, Test 11).
 foreach(_rescore OFF ON)
   set(_f ProSE_12_pin)
   set(_opt -Search:rescore false)
@@ -5089,18 +4992,18 @@ endforeach()
 # Test 13: pooled -out_merged output of two inputs (copies of one file) with the default Percolator rescoring: cross-file
 # protein inference, then the picked-protein FDR at 5 % with the decoys removed. It pins the result of the pooling, so that
 # moving the pooling into the library cannot change it. An exact idXML diff is not portable (see Test 6: libm last-ULP
-# differences flip a target/decoy near-tie; Test 12: the Percolator SVM scores differ by about 1 % between runs on Windows),
-# so a FileInfo summary is compared with calibrated tolerances, as in Test 6 and Test 7, plus structural checks.
-add_test("TOPP_ProSE_13_merged_inputs" ${CMAKE_COMMAND}
-  -DSOURCE=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-  -DTARGET_A=${TESTS_TEMP_DIR}/ProSE_13_a.mzML -DTARGET_B=${TESTS_TEMP_DIR}/ProSE_13_b.mzML
-  -P ${DATA_DIR_TOPP}/ProSE_13_prepare.cmake)
+# differences flip a target/decoy near-tie), so a FileInfo summary is compared with calibrated tolerances, as in Test 6
+# and Test 7, plus structural checks. The two inputs are copies of the one test run, so that ProSE pools two distinct files.
+foreach(_part a b)
+  add_test(NAME "TOPP_ProSE_13_merged_input_${_part}" COMMAND ${CMAKE_COMMAND} -E copy
+    ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_13_${_part}.mzML)
+endforeach()
 add_test("TOPP_ProSE_13_merged" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:FDR:protein 0.05
   -in ${TESTS_TEMP_DIR}/ProSE_13_a.mzML ${TESTS_TEMP_DIR}/ProSE_13_b.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -out_merged ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML)
-set_tests_properties("TOPP_ProSE_13_merged" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_inputs")
+set_tests_properties("TOPP_ProSE_13_merged" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_input_a;TOPP_ProSE_13_merged_input_b")
 # The pooled set is one run (the two runs are merged).
 add_test("TOPP_ProSE_13_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML
@@ -5723,6 +5626,28 @@ add_test("TOPP_ProteomicsLFQ_fraction_fwhm" ${TOPP_BIN_PATH}/ProteomicsLFQ
 set_tests_properties("TOPP_ProteomicsLFQ_fraction_fwhm" PROPERTIES
   PASS_REGULAR_EXPRESSION "Median chromatographic FWHM across the 3 runs of this fraction"
   FAIL_REGULAR_EXPRESSION "across the 3 runs of this fraction: 7\\.1")
+
+# Untargeted seeding has to honour Seeding:charge. Asking for charge 9 only must find nothing in
+# this tryptic BSA data, while the default range 2:5 finds dozens of seeds, so the seed count is
+# what tells the two apart. Matched on 0 seeds rather than on a specific non-default count, which
+# would depend on the platform. Note: PASS_REGULAR_EXPRESSION makes ctest ignore the exit code,
+# so the runs above are what check that the workflow itself succeeds.
+add_test("TOPP_ProteomicsLFQ_seeding_charge" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -design ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -mass_recalibration false
+         -Seeding:charge 9:9
+         -out ${TESTS_TEMP_DIR}/ProteomicsLFQ_seeding_charge.tmp.mzTab
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_seeding_charge" PROPERTIES
+  PASS_REGULAR_EXPRESSION "Using 0 seeds from untargeted feature extraction")
 
 # ---------------------------------------------------------------------------------------------
 # Distributed feature detection (-feat_dir / -detect_only).

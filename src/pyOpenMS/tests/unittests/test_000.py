@@ -1940,8 +1940,6 @@ def testSeedListGenerator():
     assert pyopenms.SeedListGenerator().generateSeedLists is not None
     assert pyopenms.SeedListGenerator().convertSeedList is not None
 
-#     assert pyopenms.ConsensusID().apply is not None
-
 @report
 def testFalseDiscoveryRate():
     """
@@ -5202,6 +5200,11 @@ def testPeakFileOptions():
     assert not pfo.getZstdCompression()
     pfo.setZstdCompression(True)
     assert pfo.getZstdCompression()
+    assert not pfo.hasIMRange()
+    pfo.setIMRange(pyopenms.DRange1(0.8, 1.2))
+    assert pfo.hasIMRange()
+    assert pfo.getIMRange().minX() == 0.8
+    assert pfo.getIMRange().maxX() == 1.2
 
 @report
 def testMRMMapping():
@@ -6478,36 +6481,6 @@ def test_BSpline2d():
     assert spline.ok()
     assert abs(spline.eval(6.0) - 5.0 < 0.01)
 
-
-@report
-def testConsensusIDAlgorithmAverage():
-    algo = pyopenms.ConsensusIDAlgorithmAverage()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmBest():
-    algo = pyopenms.ConsensusIDAlgorithmBest()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmPEPIons():
-    algo = pyopenms.ConsensusIDAlgorithmPEPIons()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmPEPMatrix():
-    algo = pyopenms.ConsensusIDAlgorithmPEPMatrix()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmRanks():
-    algo = pyopenms.ConsensusIDAlgorithmRanks()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmWorst():
-    algo = pyopenms.ConsensusIDAlgorithmWorst()
-    assert algo.apply
 
 @report
 def testDigestionEnzymeProtein():

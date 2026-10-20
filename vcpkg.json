@@ -50,14 +50,9 @@
     "boost-unordered",
     "boost-variant",
     "bzip2",
-    { "name": "coin-or-cbc", "platform": "!emscripten" },
-    { "name": "coin-or-cgl", "platform": "!emscripten" },
-    { "name": "coin-or-clp", "platform": "!emscripten" },
-    { "name": "coin-or-osi", "platform": "!emscripten" },
-    { "name": "coinutils", "platform": "!emscripten" },
     { "name": "curl", "platform": "!emscripten" },
     "eigen3",
-    { "name": "highs", "platform": "emscripten" },
+    "highs",
     "libsvm",
     "libxml2",
     "libzip",
@@ -155,7 +150,7 @@
       ]
     },
     "lp-glpk": {
-      "description": "Select glpk as linear programming solver backend via -DLP_SOLVER=GLPK.",
+      "description": "Select GLPK (deprecated) as linear programming solver backend via -DLP_SOLVER=GLPK.",
       "dependencies": [
         {
           "name": "glpk",
@@ -164,8 +159,11 @@
       ]
     },
     "lp-highs": {
-      "description": "Select highs as linear programming solver backend via -DLP_SOLVER=HIGHS.",
-      "dependencies": ["highs"]
+      "description": "Deprecated no-op: HiGHS is now the default linear programming solver backend and a regular dependency."
+    },
+    "lp-coin": {
+      "description": "Select COIN-OR (deprecated) as linear programming solver backend via -DLP_SOLVER=COIN.",
+      "dependencies": ["coin-or-cbc", "coin-or-cgl", "coin-or-clp", "coin-or-osi", "coinutils"]
     }
   }
 }

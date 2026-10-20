@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/FORMAT/OSWParquetFile.h>
@@ -44,6 +45,9 @@
 #include <filesystem>
 #include <iterator>
 #include <limits>
+#ifdef __GLIBC__
+#include <malloc.h> // malloc_trim
+#endif
 #include <map>
 #include <memory>
 #include <optional>
@@ -2085,6 +2089,11 @@ protected:
         {
           attempt_mobilogram_consumer->finalize();
         }
+        // Write the .xic file here, so that a write error fails the run; the destructor only logs it
+        if (auto* xic_cons = dynamic_cast<MSChromatogramParquetConsumer*>(attempt_chromatogram_consumer))
+        {
+          xic_cons->finalize();
+        }
         delete attempt_chromatogram_consumer;
 
         return write_parquet ?
@@ -2499,6 +2508,13 @@ protected:
       {
         return extraction_result;
       }
+
+#ifdef __GLIBC__
+      // Extraction and scoring ran on all threads, and glibc keeps what they freed in the arenas of
+      // those threads, where the (mostly single-threaded) rescoring, inference and export do not
+      // allocate: without returning it, their memory comes on top of it.
+      malloc_trim(0);
+#endif
 
       Rescorer rescoring;
       Param rescoring_params = getParam_().copy("Rescoring:", true);
