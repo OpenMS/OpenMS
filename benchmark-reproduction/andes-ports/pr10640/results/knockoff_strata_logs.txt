@@ -1,0 +1,306 @@
+== ko4_ko_onetier_s1_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like: 378 -> 0 (41 of variants with knockoffs; knockoff PSMs 29.5, estimated false share 0.719512)
+  methyl-like: 357 -> 79 (210 of variants with knockoffs; knockoff PSMs 50.8333, estimated false share 0.242063)
+  oxidation-like: 112 -> 0 (32 of variants with knockoffs; knockoff PSMs 28.5, estimated false share 0.890625)
+  other: 3203 -> 0 (709 of variants with knockoffs; knockoff PSMs 254.583, estimated false share 0.359074)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_s1_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like: 461 -> 0 (62 of variants with knockoffs; knockoff PSMs 47.25, estimated false share 0.762097)
+  methyl-like: 480 -> 134 (289 of variants with knockoffs; knockoff PSMs 130.417, estimated false share 0.451269)
+  oxidation-like: 175 -> 8 (48 of variants with knockoffs; knockoff PSMs 51.5, estimated false share 1.07292)
+  other: 5004 -> 29 (1280 of variants with knockoffs; knockoff PSMs 751.583, estimated false share 0.587174)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_s1_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like: 546 -> 3 (83 of variants with knockoffs; knockoff PSMs 65.4167, estimated false share 0.788153)
+  methyl-like: 628 -> 167 (377 of variants with knockoffs; knockoff PSMs 225, estimated false share 0.596817)
+  oxidation-like: 230 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5, estimated false share 1.16667)
+  other: 6821 -> 216 (1976 of variants with knockoffs; knockoff PSMs 1440.92, estimated false share 0.729209)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_tiers_s1_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like/pooled: 378 -> 0 (41 of variants with knockoffs; knockoff PSMs 29.5, estimated false share 0.719512)
+  methyl-like/pooled: 43 -> 0 (18 of variants with knockoffs; knockoff PSMs 44.9167, estimated false share 2.49537)
+  methyl-like/sample: 314 -> 179 (192 of variants with knockoffs; knockoff PSMs 5.91667, estimated false share 0.030816)
+  oxidation-like/pooled: 112 -> 0 (32 of variants with knockoffs; knockoff PSMs 28.5, estimated false share 0.890625)
+  other/curated: 1993 -> 0 (251 of variants with knockoffs; knockoff PSMs 240.583, estimated false share 0.958499)
+  other/sample: 1210 -> 404 (458 of variants with knockoffs; knockoff PSMs 14, estimated false share 0.0305677)
+== ko4_ko_tiers_s1_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like/pooled: 461 -> 0 (62 of variants with knockoffs; knockoff PSMs 47.25, estimated false share 0.762097)
+  methyl-like/curated: 124 -> 0 (73 of variants with knockoffs; knockoff PSMs 112, estimated false share 1.53425)
+  methyl-like/sample: 356 -> 200 (216 of variants with knockoffs; knockoff PSMs 18.4167, estimated false share 0.0852623)
+  oxidation-like/pooled: 175 -> 8 (48 of variants with knockoffs; knockoff PSMs 51.5, estimated false share 1.07292)
+  other/curated: 3566 -> 0 (711 of variants with knockoffs; knockoff PSMs 666.083, estimated false share 0.936826)
+  other/sample: 1438 -> 472 (569 of variants with knockoffs; knockoff PSMs 85.5, estimated false share 0.150264)
+== ko4_ko_tiers_s1_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like/curated: 456 -> 0 (58 of variants with knockoffs; knockoff PSMs 56.3333, estimated false share 0.971264)
+  deamidation-like/pooled: 90 -> 10 (25 of variants with knockoffs; knockoff PSMs 9.08333, estimated false share 0.363333)
+  methyl-like/curated: 235 -> 0 (136 of variants with knockoffs; knockoff PSMs 189.333, estimated false share 1.39216)
+  methyl-like/sample: 393 -> 226 (241 of variants with knockoffs; knockoff PSMs 35.6667, estimated false share 0.147994)
+  oxidation-like/pooled: 230 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5, estimated false share 1.16667)
+  other/curated: 5117 -> 0 (1289 of variants with knockoffs; knockoff PSMs 1238.58, estimated false share 0.960887)
+== ko4_ko_onetier_fix_s1_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like: 378 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.25, estimated false share 0.737805)
+  methyl-like: 357 -> 79 (210 of variants with knockoffs; knockoff PSMs 50.8333, estimated false share 0.242063)
+  oxidation-like: 112 -> 0 (32 of variants with knockoffs; knockoff PSMs 28.5, estimated false share 0.890625)
+  other: 3203 -> 0 (709 of variants with knockoffs; knockoff PSMs 254.583, estimated false share 0.359074)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_fix_s1_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like: 461 -> 0 (62 of variants with knockoffs; knockoff PSMs 48.25, estimated false share 0.778226)
+  methyl-like: 480 -> 134 (289 of variants with knockoffs; knockoff PSMs 130.75, estimated false share 0.452422)
+  oxidation-like: 175 -> 8 (48 of variants with knockoffs; knockoff PSMs 51.5, estimated false share 1.07292)
+  other: 5007 -> 29 (1282 of variants with knockoffs; knockoff PSMs 753.083, estimated false share 0.587428)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_fix_s1_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like: 546 -> 3 (83 of variants with knockoffs; knockoff PSMs 66.4167, estimated false share 0.800201)
+  methyl-like: 628 -> 167 (377 of variants with knockoffs; knockoff PSMs 225.667, estimated false share 0.598585)
+  oxidation-like: 230 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5, estimated false share 1.16667)
+  other: 6831 -> 216 (1981 of variants with knockoffs; knockoff PSMs 1446.5, estimated false share 0.730187)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_tiers_fix_s1_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like/pooled: 378 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.25, estimated false share 0.737805)
+  methyl-like/pooled: 43 -> 0 (18 of variants with knockoffs; knockoff PSMs 44.9167, estimated false share 2.49537)
+  methyl-like/sample: 314 -> 179 (192 of variants with knockoffs; knockoff PSMs 5.91667, estimated false share 0.030816)
+  oxidation-like/pooled: 112 -> 0 (32 of variants with knockoffs; knockoff PSMs 28.5, estimated false share 0.890625)
+  other/curated: 1993 -> 0 (251 of variants with knockoffs; knockoff PSMs 240.583, estimated false share 0.958499)
+  other/sample: 1210 -> 404 (458 of variants with knockoffs; knockoff PSMs 14, estimated false share 0.0305677)
+== ko4_ko_tiers_fix_s1_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like/pooled: 461 -> 0 (62 of variants with knockoffs; knockoff PSMs 48.25, estimated false share 0.778226)
+  methyl-like/curated: 124 -> 0 (73 of variants with knockoffs; knockoff PSMs 112.333, estimated false share 1.53881)
+  methyl-like/sample: 356 -> 200 (216 of variants with knockoffs; knockoff PSMs 18.4167, estimated false share 0.0852623)
+  oxidation-like/pooled: 175 -> 8 (48 of variants with knockoffs; knockoff PSMs 51.5, estimated false share 1.07292)
+  other/curated: 3568 -> 0 (713 of variants with knockoffs; knockoff PSMs 667.583, estimated false share 0.936302)
+  other/sample: 1439 -> 472 (569 of variants with knockoffs; knockoff PSMs 85.5, estimated false share 0.150264)
+== ko4_ko_tiers_fix_s1_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like/curated: 456 -> 0 (58 of variants with knockoffs; knockoff PSMs 57.3333, estimated false share 0.988506)
+  deamidation-like/pooled: 90 -> 10 (25 of variants with knockoffs; knockoff PSMs 9.08333, estimated false share 0.363333)
+  methyl-like/curated: 235 -> 0 (136 of variants with knockoffs; knockoff PSMs 190, estimated false share 1.39706)
+  methyl-like/sample: 393 -> 226 (241 of variants with knockoffs; knockoff PSMs 35.6667, estimated false share 0.147994)
+  oxidation-like/pooled: 230 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5, estimated false share 1.16667)
+  other/curated: 5125 -> 0 (1294 of variants with knockoffs; knockoff PSMs 1243.92, estimated false share 0.961296)
+== ko4_ko_onetier_s42_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like: 375 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.1667, estimated false share 0.735772)
+  methyl-like: 356 -> 81 (212 of variants with knockoffs; knockoff PSMs 51.0833, estimated false share 0.240959)
+  oxidation-like: 112 -> 0 (31 of variants with knockoffs; knockoff PSMs 29.1667, estimated false share 0.94086)
+  other: 3199 -> 0 (712 of variants with knockoffs; knockoff PSMs 257, estimated false share 0.360955)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_s42_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like: 462 -> 0 (63 of variants with knockoffs; knockoff PSMs 48.5833, estimated false share 0.771164)
+  methyl-like: 480 -> 135 (287 of variants with knockoffs; knockoff PSMs 128.75, estimated false share 0.448606)
+  oxidation-like: 171 -> 8 (47 of variants with knockoffs; knockoff PSMs 50, estimated false share 1.06383)
+  other: 4984 -> 50 (1269 of variants with knockoffs; knockoff PSMs 746.25, estimated false share 0.588061)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_s42_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like: 548 -> 4 (85 of variants with knockoffs; knockoff PSMs 65.1667, estimated false share 0.766667)
+  methyl-like: 627 -> 167 (376 of variants with knockoffs; knockoff PSMs 226.083, estimated false share 0.601285)
+  oxidation-like: 224 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5833, estimated false share 1.16799)
+  other: 6809 -> 212 (1967 of variants with knockoffs; knockoff PSMs 1412.25, estimated false share 0.717972)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_tiers_s42_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like/pooled: 375 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.1667, estimated false share 0.735772)
+  methyl-like/pooled: 44 -> 0 (19 of variants with knockoffs; knockoff PSMs 45, estimated false share 2.36842)
+  methyl-like/sample: 312 -> 179 (193 of variants with knockoffs; knockoff PSMs 6.08333, estimated false share 0.0315199)
+  oxidation-like/pooled: 112 -> 0 (31 of variants with knockoffs; knockoff PSMs 29.1667, estimated false share 0.94086)
+  other/curated: 1989 -> 0 (253 of variants with knockoffs; knockoff PSMs 243.417, estimated false share 0.962121)
+  other/sample: 1210 -> 406 (459 of variants with knockoffs; knockoff PSMs 13.5833, estimated false share 0.0295933)
+== ko4_ko_tiers_s42_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like/pooled: 462 -> 0 (63 of variants with knockoffs; knockoff PSMs 48.5833, estimated false share 0.771164)
+  methyl-like/curated: 125 -> 0 (71 of variants with knockoffs; knockoff PSMs 110.917, estimated false share 1.56221)
+  methyl-like/sample: 355 -> 200 (216 of variants with knockoffs; knockoff PSMs 17.8333, estimated false share 0.0825617)
+  oxidation-like/pooled: 171 -> 8 (47 of variants with knockoffs; knockoff PSMs 50, estimated false share 1.06383)
+  other/curated: 3550 -> 0 (704 of variants with knockoffs; knockoff PSMs 660.333, estimated false share 0.937973)
+  other/sample: 1434 -> 470 (565 of variants with knockoffs; knockoff PSMs 85.9167, estimated false share 0.152065)
+== ko4_ko_tiers_s42_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like/curated: 460 -> 0 (59 of variants with knockoffs; knockoff PSMs 56.0833, estimated false share 0.950565)
+  deamidation-like/pooled: 88 -> 10 (26 of variants with knockoffs; knockoff PSMs 9.08333, estimated false share 0.349359)
+  methyl-like/curated: 235 -> 0 (136 of variants with knockoffs; knockoff PSMs 190.25, estimated false share 1.3989)
+  methyl-like/sample: 392 -> 224 (240 of variants with knockoffs; knockoff PSMs 35.8333, estimated false share 0.149306)
+  oxidation-like/pooled: 224 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5833, estimated false share 1.16799)
+  other/curated: 5106 -> 0 (1278 of variants with knockoffs; knockoff PSMs 1216.75, estimated false share 0.952074)
+== ko4_ko_onetier_fix_s42_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like: 375 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.9167, estimated false share 0.754065)
+  methyl-like: 356 -> 81 (212 of variants with knockoffs; knockoff PSMs 51.0833, estimated false share 0.240959)
+  oxidation-like: 112 -> 0 (31 of variants with knockoffs; knockoff PSMs 29.1667, estimated false share 0.94086)
+  other: 3199 -> 0 (712 of variants with knockoffs; knockoff PSMs 257, estimated false share 0.360955)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_fix_s42_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like: 462 -> 0 (63 of variants with knockoffs; knockoff PSMs 49.5833, estimated false share 0.787037)
+  methyl-like: 480 -> 135 (287 of variants with knockoffs; knockoff PSMs 129.083, estimated false share 0.449768)
+  oxidation-like: 171 -> 8 (47 of variants with knockoffs; knockoff PSMs 50, estimated false share 1.06383)
+  other: 4989 -> 50 (1271 of variants with knockoffs; knockoff PSMs 748, estimated false share 0.588513)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_fix_s42_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like: 548 -> 4 (85 of variants with knockoffs; knockoff PSMs 66.1667, estimated false share 0.778431)
+  methyl-like: 627 -> 167 (376 of variants with knockoffs; knockoff PSMs 226.75, estimated false share 0.603059)
+  oxidation-like: 224 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5833, estimated false share 1.16799)
+  other: 6819 -> 212 (1973 of variants with knockoffs; knockoff PSMs 1419.33, estimated false share 0.719378)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_tiers_fix_s42_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like/pooled: 375 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.9167, estimated false share 0.754065)
+  methyl-like/pooled: 44 -> 0 (19 of variants with knockoffs; knockoff PSMs 45, estimated false share 2.36842)
+  methyl-like/sample: 312 -> 179 (193 of variants with knockoffs; knockoff PSMs 6.08333, estimated false share 0.0315199)
+  oxidation-like/pooled: 112 -> 0 (31 of variants with knockoffs; knockoff PSMs 29.1667, estimated false share 0.94086)
+  other/curated: 1989 -> 0 (253 of variants with knockoffs; knockoff PSMs 243.417, estimated false share 0.962121)
+  other/sample: 1210 -> 406 (459 of variants with knockoffs; knockoff PSMs 13.5833, estimated false share 0.0295933)
+== ko4_ko_tiers_fix_s42_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like/pooled: 462 -> 0 (63 of variants with knockoffs; knockoff PSMs 49.5833, estimated false share 0.787037)
+  methyl-like/curated: 125 -> 0 (71 of variants with knockoffs; knockoff PSMs 111.25, estimated false share 1.5669)
+  methyl-like/sample: 355 -> 200 (216 of variants with knockoffs; knockoff PSMs 17.8333, estimated false share 0.0825617)
+  oxidation-like/pooled: 171 -> 8 (47 of variants with knockoffs; knockoff PSMs 50, estimated false share 1.06383)
+  other/curated: 3554 -> 0 (706 of variants with knockoffs; knockoff PSMs 661.833, estimated false share 0.937441)
+  other/sample: 1435 -> 470 (565 of variants with knockoffs; knockoff PSMs 86.1667, estimated false share 0.152507)
+== ko4_ko_tiers_fix_s42_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like/curated: 460 -> 0 (59 of variants with knockoffs; knockoff PSMs 57.0833, estimated false share 0.967514)
+  deamidation-like/pooled: 88 -> 10 (26 of variants with knockoffs; knockoff PSMs 9.08333, estimated false share 0.349359)
+  methyl-like/curated: 235 -> 0 (136 of variants with knockoffs; knockoff PSMs 190.917, estimated false share 1.4038)
+  methyl-like/sample: 392 -> 224 (240 of variants with knockoffs; knockoff PSMs 35.8333, estimated false share 0.149306)
+  oxidation-like/pooled: 224 -> 8 (63 of variants with knockoffs; knockoff PSMs 73.5833, estimated false share 1.16799)
+  other/curated: 5115 -> 0 (1284 of variants with knockoffs; knockoff PSMs 1223.58, estimated false share 0.952947)
+== ko4_ko_onetier_s137_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like: 379 -> 0 (41 of variants with knockoffs; knockoff PSMs 29.8333, estimated false share 0.727642)
+  methyl-like: 356 -> 81 (211 of variants with knockoffs; knockoff PSMs 49.8333, estimated false share 0.236177)
+  oxidation-like: 118 -> 0 (34 of variants with knockoffs; knockoff PSMs 29.25, estimated false share 0.860294)
+  other: 3209 -> 0 (712 of variants with knockoffs; knockoff PSMs 255.417, estimated false share 0.358731)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_s137_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like: 465 -> 0 (63 of variants with knockoffs; knockoff PSMs 47.0833, estimated false share 0.747354)
+  methyl-like: 486 -> 134 (289 of variants with knockoffs; knockoff PSMs 128.833, estimated false share 0.44579)
+  oxidation-like: 184 -> 8 (49 of variants with knockoffs; knockoff PSMs 51.0833, estimated false share 1.04252)
+  other: 5015 -> 29 (1270 of variants with knockoffs; knockoff PSMs 743.25, estimated false share 0.585236)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_s137_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like: 550 -> 3 (84 of variants with knockoffs; knockoff PSMs 66.3333, estimated false share 0.789683)
+  methyl-like: 636 -> 165 (382 of variants with knockoffs; knockoff PSMs 227.75, estimated false share 0.596204)
+  oxidation-like: 239 -> 8 (65 of variants with knockoffs; knockoff PSMs 73.3333, estimated false share 1.12821)
+  other: 6851 -> 208 (1970 of variants with knockoffs; knockoff PSMs 1419, estimated false share 0.720305)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_tiers_s137_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like/pooled: 379 -> 0 (41 of variants with knockoffs; knockoff PSMs 29.8333, estimated false share 0.727642)
+  methyl-like/pooled: 43 -> 0 (18 of variants with knockoffs; knockoff PSMs 43.9167, estimated false share 2.43981)
+  methyl-like/sample: 313 -> 178 (193 of variants with knockoffs; knockoff PSMs 5.91667, estimated false share 0.0306563)
+  oxidation-like/pooled: 118 -> 0 (34 of variants with knockoffs; knockoff PSMs 29.25, estimated false share 0.860294)
+  other/curated: 1997 -> 0 (253 of variants with knockoffs; knockoff PSMs 241.167, estimated false share 0.953228)
+  other/sample: 1212 -> 402 (459 of variants with knockoffs; knockoff PSMs 14.25, estimated false share 0.0310458)
+== ko4_ko_tiers_s137_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like/pooled: 465 -> 0 (63 of variants with knockoffs; knockoff PSMs 47.0833, estimated false share 0.747354)
+  methyl-like/curated: 133 -> 0 (74 of variants with knockoffs; knockoff PSMs 110.667, estimated false share 1.4955)
+  methyl-like/sample: 353 -> 201 (215 of variants with knockoffs; knockoff PSMs 18.1667, estimated false share 0.0844961)
+  oxidation-like/pooled: 184 -> 8 (49 of variants with knockoffs; knockoff PSMs 51.0833, estimated false share 1.04252)
+  other/curated: 3573 -> 0 (702 of variants with knockoffs; knockoff PSMs 657.75, estimated false share 0.936966)
+  other/sample: 1442 -> 469 (568 of variants with knockoffs; knockoff PSMs 85.5, estimated false share 0.150528)
+== ko4_ko_tiers_s137_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like/curated: 460 -> 0 (59 of variants with knockoffs; knockoff PSMs 57.5833, estimated false share 0.975989)
+  deamidation-like/pooled: 90 -> 10 (25 of variants with knockoffs; knockoff PSMs 8.75, estimated false share 0.35)
+  methyl-like/curated: 242 -> 0 (141 of variants with knockoffs; knockoff PSMs 191.167, estimated false share 1.35579)
+  methyl-like/sample: 394 -> 217 (241 of variants with knockoffs; knockoff PSMs 36.5833, estimated false share 0.151798)
+  oxidation-like/pooled: 239 -> 8 (65 of variants with knockoffs; knockoff PSMs 73.3333, estimated false share 1.12821)
+  other/curated: 5143 -> 0 (1279 of variants with knockoffs; knockoff PSMs 1222.83, estimated false share 0.956085)
+== ko4_ko_onetier_fix_s137_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like: 379 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.5833, estimated false share 0.745935)
+  methyl-like: 356 -> 81 (211 of variants with knockoffs; knockoff PSMs 49.8333, estimated false share 0.236177)
+  oxidation-like: 118 -> 0 (34 of variants with knockoffs; knockoff PSMs 29.25, estimated false share 0.860294)
+  other: 3209 -> 0 (712 of variants with knockoffs; knockoff PSMs 255.417, estimated false share 0.358731)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_fix_s137_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like: 465 -> 0 (63 of variants with knockoffs; knockoff PSMs 48.0833, estimated false share 0.763228)
+  methyl-like: 486 -> 134 (289 of variants with knockoffs; knockoff PSMs 129.167, estimated false share 0.446943)
+  oxidation-like: 184 -> 8 (49 of variants with knockoffs; knockoff PSMs 51.0833, estimated false share 1.04252)
+  other: 5019 -> 29 (1272 of variants with knockoffs; knockoff PSMs 744.75, estimated false share 0.585495)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_onetier_fix_s137_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like: 550 -> 3 (84 of variants with knockoffs; knockoff PSMs 67.3333, estimated false share 0.801587)
+  methyl-like: 636 -> 165 (382 of variants with knockoffs; knockoff PSMs 228.417, estimated false share 0.597949)
+  oxidation-like: 239 -> 8 (65 of variants with knockoffs; knockoff PSMs 73.3333, estimated false share 1.12821)
+  other: 6861 -> 208 (1976 of variants with knockoffs; knockoff PSMs 1426.08, estimated false share 0.721702)
+FDR control: Filtering PSMs...
+Before filtering:
+== ko4_ko_tiers_fix_s137_q0.01
+Variant PSMs at q-value <= 0.01 before -> after knockoff q-values:
+  deamidation-like/pooled: 379 -> 0 (41 of variants with knockoffs; knockoff PSMs 30.5833, estimated false share 0.745935)
+  methyl-like/pooled: 43 -> 0 (18 of variants with knockoffs; knockoff PSMs 43.9167, estimated false share 2.43981)
+  methyl-like/sample: 313 -> 178 (193 of variants with knockoffs; knockoff PSMs 5.91667, estimated false share 0.0306563)
+  oxidation-like/pooled: 118 -> 0 (34 of variants with knockoffs; knockoff PSMs 29.25, estimated false share 0.860294)
+  other/curated: 1997 -> 0 (253 of variants with knockoffs; knockoff PSMs 241.167, estimated false share 0.953228)
+  other/sample: 1212 -> 402 (459 of variants with knockoffs; knockoff PSMs 14.25, estimated false share 0.0310458)
+== ko4_ko_tiers_fix_s137_q0.05
+Variant PSMs at q-value <= 0.05 before -> after knockoff q-values:
+  deamidation-like/pooled: 465 -> 0 (63 of variants with knockoffs; knockoff PSMs 48.0833, estimated false share 0.763228)
+  methyl-like/curated: 133 -> 0 (74 of variants with knockoffs; knockoff PSMs 111, estimated false share 1.5)
+  methyl-like/sample: 353 -> 201 (215 of variants with knockoffs; knockoff PSMs 18.1667, estimated false share 0.0844961)
+  oxidation-like/pooled: 184 -> 8 (49 of variants with knockoffs; knockoff PSMs 51.0833, estimated false share 1.04252)
+  other/curated: 3576 -> 0 (704 of variants with knockoffs; knockoff PSMs 659.25, estimated false share 0.936435)
+  other/sample: 1443 -> 469 (568 of variants with knockoffs; knockoff PSMs 85.5, estimated false share 0.150528)
+== ko4_ko_tiers_fix_s137_q0.10
+Variant PSMs at q-value <= 0.1 before -> after knockoff q-values:
+  deamidation-like/curated: 460 -> 0 (59 of variants with knockoffs; knockoff PSMs 58.5833, estimated false share 0.992938)
+  deamidation-like/pooled: 90 -> 10 (25 of variants with knockoffs; knockoff PSMs 8.75, estimated false share 0.35)
+  methyl-like/curated: 242 -> 0 (141 of variants with knockoffs; knockoff PSMs 191.833, estimated false share 1.36052)
+  methyl-like/sample: 394 -> 217 (241 of variants with knockoffs; knockoff PSMs 36.5833, estimated false share 0.151798)
+  oxidation-like/pooled: 239 -> 8 (65 of variants with knockoffs; knockoff PSMs 73.3333, estimated false share 1.12821)
+  other/curated: 5152 -> 0 (1285 of variants with knockoffs; knockoff PSMs 1229.67, estimated false share 0.956939)
+== ko0_class_s1_q0.01
+PSM classes (variant_class):
+  canonical: 357450 targets, 49542 decoys, pooled-decoy q-values, pi0 0.169764
+  variant: 11188 targets, 5592 decoys, pooled-decoy q-values, pi0 0.575617
+Class FDR raised the q-value of 368638 PSMs.
+FDR control: Filtering PSMs...
+== ko0_class_s1_q0.05
+PSM classes (variant_class):
+  canonical: 357450 targets, 49542 decoys, pooled-decoy q-values, pi0 0.169764
+  variant: 11188 targets, 5592 decoys, pooled-decoy q-values, pi0 0.575617
+Class FDR raised the q-value of 368638 PSMs.
+FDR control: Filtering PSMs...
+== ko0_class_s1_q0.10
+PSM classes (variant_class):
+  canonical: 357450 targets, 49542 decoys, pooled-decoy q-values, pi0 0.169764
+  variant: 11188 targets, 5592 decoys, pooled-decoy q-values, pi0 0.575617
+Class FDR raised the q-value of 368638 PSMs.
+FDR control: Filtering PSMs...

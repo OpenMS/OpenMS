@@ -1,0 +1,331 @@
+{
+ "arm": "ko4_ko_onetier_fix_s42_q0.05",
+ "files": [
+  "/home/user/bench/results/fdr/ko4_ko_onetier_fix_s42_q0.05.idXML"
+ ],
+ "counts": {
+  "target": 307077,
+  "other": 306884,
+  "variant": 193,
+  "variant_carried": 183,
+  "variant_absent": 5,
+  "variant_unlabelled": 5
+ },
+ "variant_fdp": 0.026595744680851064,
+ "knockoff_fdp": null,
+ "variants": {
+  "carried": 66,
+  "absent": 3,
+  "unlabelled": 3,
+  "fdp": 0.043478260869565216
+ },
+ "strata": {
+  "methyl-like": {
+   "carried": 126,
+   "absent": 4,
+   "unlabelled": 5
+  },
+  "other": {
+   "carried": 49,
+   "absent": 1
+  },
+  "oxidation-like": {
+   "carried": 8
+  }
+ },
+ "per_file": {
+  "1Fusion_Entex10plex-RT41-5Z": {
+   "target": 989,
+   "other": 989
+  },
+  "1Fusion_Entex10plex-RT42-0Z": {
+   "target": 2313,
+   "other": 2313
+  },
+  "1Fusion_Entex10plex_P01Z": {
+   "target": 5873,
+   "other": 5867,
+   "variant": 6,
+   "variant_carried": 6
+  },
+  "1Fusion_Entex10plex_P02Z": {
+   "target": 1500,
+   "other": 1499,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P03Z": {
+   "target": 6349,
+   "other": 6348,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P04Z": {
+   "target": 4823,
+   "other": 4823
+  },
+  "1Fusion_Entex10plex_P05Z": {
+   "target": 6657,
+   "other": 6657
+  },
+  "1Fusion_Entex10plex_P06Z": {
+   "target": 6562,
+   "other": 6559,
+   "variant": 3,
+   "variant_carried": 3
+  },
+  "1Fusion_Entex10plex_P07Z": {
+   "target": 6585,
+   "other": 6583,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "1Fusion_Entex10plex_P08Z": {
+   "target": 4760,
+   "other": 4758,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "1Fusion_Entex10plex_P09Z": {
+   "target": 5105,
+   "other": 5097,
+   "variant": 8,
+   "variant_carried": 8
+  },
+  "1Fusion_Entex10plex_P10Z": {
+   "target": 5723,
+   "other": 5716,
+   "variant": 7,
+   "variant_carried": 7
+  },
+  "1Fusion_Entex10plex_P11Z": {
+   "target": 6838,
+   "other": 6834,
+   "variant": 4,
+   "variant_carried": 4
+  },
+  "1Fusion_Entex10plex_P12Z": {
+   "target": 4794,
+   "other": 4790,
+   "variant": 4,
+   "variant_carried": 4
+  },
+  "1Fusion_Entex10plex_P13Z": {
+   "target": 4812,
+   "other": 4811,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P14Z": {
+   "target": 8726,
+   "other": 8725,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P15Z": {
+   "target": 3474,
+   "other": 3470,
+   "variant": 4,
+   "variant_carried": 4
+  },
+  "1Fusion_Entex10plex_P16Z": {
+   "target": 5084,
+   "other": 5083,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P17Z": {
+   "target": 5601,
+   "other": 5600,
+   "variant": 1,
+   "variant_absent": 1
+  },
+  "1Fusion_Entex10plex_P18Z": {
+   "target": 5534,
+   "other": 5534
+  },
+  "1Fusion_Entex10plex_P19Z": {
+   "target": 8822,
+   "other": 8813,
+   "variant": 9,
+   "variant_unlabelled": 1,
+   "variant_carried": 8
+  },
+  "1Fusion_Entex10plex_P20X": {
+   "target": 8477,
+   "other": 8468,
+   "variant": 9,
+   "variant_carried": 9
+  },
+  "1Fusion_Entex10plex_P21": {
+   "target": 4179,
+   "other": 4178,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P21X": {
+   "target": 3059,
+   "other": 3059
+  },
+  "1Fusion_Entex10plex_P22": {
+   "target": 3246,
+   "other": 3244,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "1Fusion_Entex10plex_P24Z": {
+   "target": 8890,
+   "other": 8883,
+   "variant": 7,
+   "variant_carried": 7
+  },
+  "1Fusion_Entex10plex_P25Z": {
+   "target": 11504,
+   "other": 11502,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "1Fusion_Entex10plex_P26Z": {
+   "target": 6933,
+   "other": 6927,
+   "variant": 6,
+   "variant_carried": 6
+  },
+  "1Fusion_Entex10plex_P27Z": {
+   "target": 5873,
+   "other": 5872,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_P28Z": {
+   "target": 6811,
+   "other": 6809,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "1Fusion_Entex10plex_RT38-0Z": {
+   "target": 3249,
+   "other": 3249
+  },
+  "1Fusion_Entex10plex_RT38-5Z": {
+   "target": 4094,
+   "other": 4094
+  },
+  "1Fusion_Entex10plex_RT39-0Z": {
+   "target": 4630,
+   "other": 4629,
+   "variant": 1,
+   "variant_carried": 1
+  },
+  "1Fusion_Entex10plex_RT39-5Z": {
+   "target": 4426,
+   "other": 4424,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "Fusion_Entex10plex-RT41-5": {
+   "target": 652,
+   "other": 652
+  },
+  "Fusion_Entex10plex-RT42-0": {
+   "target": 2523,
+   "other": 2523
+  },
+  "Fusion_Entex10plex_P01": {
+   "target": 5579,
+   "other": 5570,
+   "variant": 9,
+   "variant_carried": 9
+  },
+  "Fusion_Entex10plex_P02": {
+   "target": 6148,
+   "other": 6144,
+   "variant": 4,
+   "variant_carried": 3,
+   "variant_unlabelled": 1
+  },
+  "Fusion_Entex10plex_P03": {
+   "target": 6388,
+   "other": 6380,
+   "variant": 8,
+   "variant_carried": 5,
+   "variant_unlabelled": 3
+  },
+  "Fusion_Entex10plex_P04": {
+   "target": 6961,
+   "other": 6957,
+   "variant": 4,
+   "variant_carried": 4
+  },
+  "Fusion_Entex10plex_P05": {
+   "target": 8034,
+   "other": 8032,
+   "variant": 2,
+   "variant_carried": 2
+  },
+  "Fusion_Entex10plex_P06": {
+   "target": 7220,
+   "other": 7214,
+   "variant": 6,
+   "variant_carried": 6
+  },
+  "Fusion_Entex10plex_P07": {
+   "target": 7812,
+   "other": 7806,
+   "variant": 6,
+   "variant_carried": 6
+  },
+  "Fusion_Entex10plex_P08": {
+   "target": 7945,
+   "other": 7937,
+   "variant": 8,
+   "variant_carried": 8
+  },
+  "Fusion_Entex10plex_P09": {
+   "target": 8229,
+   "other": 8221,
+   "variant": 8,
+   "variant_carried": 7,
+   "variant_absent": 1
+  },
+  "Fusion_Entex10plex_P10": {
+   "target": 8601,
+   "other": 8593,
+   "variant": 8,
+   "variant_carried": 8
+  },
+  "Fusion_Entex10plex_P11": {
+   "target": 8870,
+   "other": 8865,
+   "variant": 5,
+   "variant_carried": 4,
+   "variant_absent": 1
+  },
+  "Fusion_Entex10plex_P12": {
+   "target": 8866,
+   "other": 8856,
+   "variant": 10,
+   "variant_carried": 9,
+   "variant_absent": 1
+  },
+  "Fusion_Entex10plex_P13": {
+   "target": 8809,
+   "other": 8799,
+   "variant": 10,
+   "variant_carried": 10
+  },
+  "Fusion_Entex10plex_P14": {
+   "target": 8978,
+   "other": 8971,
+   "variant": 7,
+   "variant_carried": 7
+  },
+  "Fusion_Entex10plex_P15": {
+   "target": 9167,
+   "other": 9157,
+   "variant": 10,
+   "variant_carried": 9,
+   "variant_absent": 1
+  }
+ }
+}

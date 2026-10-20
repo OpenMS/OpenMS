@@ -1,0 +1,10 @@
+ko4 s1 rescoring+indexing 465 s
+ko4 off s1 q0.01 FDR 280.955400499 s
+ko4 ko_onetier s1 q0.01 FDR 297.419385736 s
+ko4 ko_tiers s1 q0.01 FDR 286.016912108 s
+ko4 off s1 q0.05 FDR 295.512197832 s
+ko4 ko_onetier s1 q0.05 FDR 299.990446422 s
+ko4 ko_tiers s1 q0.05 FDR 290.278600799 s
+ko4 off s1 q0.10 FDR 268.631948788 s
+ko4 ko_onetier s1 q0.10 FDR 280.634671155 s
+ko4 ko_tiers s1 q0.10 FDR 276.430655479 s
