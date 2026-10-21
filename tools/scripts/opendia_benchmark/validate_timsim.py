@@ -8,6 +8,8 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
+from benchmark_metrics import deduplicate, views
+
 
 def read_tsv(path):
     with path.open(newline="", encoding="utf-8") as handle:
@@ -47,27 +49,9 @@ def log2_ratio(treatment, control):
 
 def best_results(path, q_threshold, q_candidates):
     rows = read_tsv(path)
-    if not rows:
-        raise SystemExit(f"No rows in {path}")
-    required = {"run_name", "Sequence", "Charge", "Intensity", "RT", "EXP_IM"}
-    missing = required - rows[0].keys()
-    if missing:
-        raise SystemExit(f"Missing result columns: {sorted(missing)}")
-    q_column = next((name for name in q_candidates if name in rows[0]), None)
-    if q_column is None:
-        raise SystemExit(f"Missing q-value column in {path}")
-    best = {}
-    for row in rows:
-        if str(row.get("decoy", "0")).lower() not in {"0", "false", ""}:
-            continue
-        q_value = number(row.get(q_column))
-        if not math.isfinite(q_value) or not 0 <= q_value <= q_threshold:
-            continue
-        key = (row["run_name"], row["Sequence"].strip().upper(), int(row["Charge"]))
-        rank = (q_value if math.isfinite(q_value) else math.inf, -number(row.get("d_score")))
-        if key not in best or rank < best[key][0]:
-            best[key] = (rank, row)
-    return {key: row for key, (_, row) in best.items()}, q_column
+    if rows and 'm_score' not in rows[0]:
+        raise SystemExit(f"Missing m_score column in {path}")
+    return deduplicate(rows, min(q_threshold, 0.01)), 'm_score'
 
 
 def fdr_curve(classified, maximum):
@@ -94,24 +78,18 @@ def main():
     args = parser.parse_args()
     if not math.isfinite(args.q_threshold) or not 0 <= args.q_threshold <= 1:
         parser.error("--q-threshold must be between 0 and 1")
+    if args.q_threshold != 0.01:
+        parser.error("--q-threshold must be 0.01 for the fixed 1% benchmark views")
 
     truth_dir = args.dataset / "truth"
     manifest = json.loads((args.dataset / "metadata/fixture_manifest.json").read_text())
     run_names = set(manifest["runs"])
     realized = read_tsv(truth_dir / "OpenSwathTimSim.realized_truth.tsv")
     entrapment_truth = read_tsv(truth_dir / "OpenSwathTimSim.entrapment_truth.tsv")
-    target_results, target_q = best_results(
-        args.target_results,
-        args.q_threshold,
-        ("m_score", "ms2_m_score", "m_score_peptide_run_specific", "m_score_peptide_global"),
-    )
-    entrapment_results, entrapment_q = best_results(
-        args.entrapment_results,
-        args.q_threshold,
-        ("m_score_peptide_global", "m_score", "ms2_m_score", "m_score_peptide_run_specific"),
-    )
+    target_results, target_q = best_results(args.target_results, args.q_threshold, ('m_score',))
+    entrapment_results, entrapment_q = best_results(args.entrapment_results, args.q_threshold, ('m_score',))
 
-    conditions = {}
+    conditions = {run: ('control' if 'control' in run.lower() else 'treatment') for run in run_names}
     expected_keys = set()
     target_keys = set()
     precursor_expected = defaultdict(dict)
@@ -146,7 +124,7 @@ def main():
     for run in sorted(run_names):
         expected = sum(key[0] == run for key in expected_keys)
         identified = sum(key in target_results for key in expected_keys if key[0] == run)
-        per_run[run] = {"expected": expected, "identified": identified, "recovery": identified / expected}
+        per_run[run] = {"expected": expected, "identified": identified, "recovery": identified / expected if expected else None}
 
     expected_precursor_fc = []
     observed_precursor_fc = []
@@ -190,7 +168,47 @@ def main():
     unique_target = len({(sequence, charge) for (_, sequence, charge) in entrapment_results if (sequence, charge) in target_keys})
     unique_entrapment = len({(sequence, charge) for (_, sequence, charge) in entrapment_results if (sequence, charge) in entrapment_keys})
 
+    native_effects = {}
+    native_views = views(read_tsv(args.target_results), sorted(run_names), conditions, args.target_results, read_tsv)
+    if native_views['standard']['status'] == 'ok':
+        for level, suffix in [('precursor', 'precursor'), ('peptide', 'peptide'), ('protein_label', 'protein')]:
+            matrix_path = args.target_results.with_name(args.target_results.name.replace('.results.tsv', f'.{suffix}.matrix.tsv'))
+            if not matrix_path.exists() or matrix_path == args.target_results:
+                continue
+            expected = defaultdict(lambda: defaultdict(float))
+            for row in realized:
+                entity = row['ProteinId'] if level == 'protein_label' else row['PeptideSequence'].strip().upper()
+                if level == 'precursor':
+                    entity = f"{entity}/{row['PrecursorCharge']}"
+                expected[entity][row['RunName']] += number(row['RealizedInputEvents'])
+            effects = []
+            for row in read_tsv(matrix_path):
+                entity = row['ProteinName'] if level == 'protein_label' else row['FullPeptideName']
+                if level == 'precursor':
+                    entity = f"{entity}/{row['Charge']}"
+                if entity not in expected:
+                    continue
+                groups = {c: [r for r in sorted(run_names) if conditions[r] == c and math.isfinite(number(row.get(r))) and number(row[r]) > 0] for c in ('control', 'treatment')}
+                if not all(groups.values()):
+                    continue
+                observed_fc = log2_ratio(mean([number(row[r]) for r in groups['treatment']]), mean([number(row[r]) for r in groups['control']]))
+                expected_fc = log2_ratio(mean([expected[entity].get(r, 0) for r in groups['treatment']]), mean([expected[entity].get(r, 0) for r in groups['control']]))
+                if observed_fc is not None and expected_fc is not None:
+                    effects.append({'entity': entity, 'realized_log2_fc': expected_fc, 'observed_log2_fc': observed_fc})
+            native_effects[level] = {'source': 'native_matrix', 'n': len(effects), 'effects': effects,
+                'pearson': pearson([e['realized_log2_fc'] for e in effects], [e['observed_log2_fc'] for e in effects]),
+                'truth_note': 'Realized input events summed by entity, matched observed run support, not nominal fold changes'}
+
     summary = {
+        'schema_version': 2,
+        'runs': sorted(run_names),
+        'conditions': conditions,
+        'views': native_views,
+        'entrapment_views': views([row for row in read_tsv(args.entrapment_results)
+            if (row['Sequence'].strip().upper(), int(row['Charge'])) in target_keys], sorted(run_names), conditions, args.entrapment_results, read_tsv),
+        'fdr_curve_per_run': {run: fdr_curve([(number(row['m_score']), (sequence, charge) in entrapment_keys)
+             for (r, sequence, charge), row in entrapment_results.items() if r == run
+             and ((sequence, charge) in target_keys or (sequence, charge) in entrapment_keys)], .01) for run in sorted(run_names)},
         "fdr_curve": fdr_curve([
             (number(row[entrapment_q]), (sequence, charge) in entrapment_keys)
             for (_, sequence, charge), row in entrapment_results.items()
@@ -208,6 +226,10 @@ def main():
             "im_mae_1_over_k0": mean(im_errors),
         },
         "quantification": {
+            'native_standard_effects': native_effects,
+            'note': 'Legacy protein intensity is a descriptive sum, not native C++ top-N mean quantification. Use views.standard.quantification for native repeatability.',
+            'precursor_effect_values': [{'realized_log2_fc': e, 'observed_log2_fc': o} for e, o in zip(expected_precursor_fc, observed_precursor_fc)],
+            'protein_descriptive_sum_effect_values': [{'realized_log2_fc': e, 'observed_log2_fc': o} for e, o in zip(expected_protein_fc, observed_protein_fc)],
             "precursor_effect_pairs": len(expected_precursor_fc),
             "precursor_realized_vs_observed_pearson": pearson(expected_precursor_fc, observed_precursor_fc),
             "protein_effect_pairs": len(expected_protein_fc),
@@ -216,10 +238,11 @@ def main():
         "entrapment_export": {
             "target_rows": target_rows,
             "entrapment_rows": entrapment_rows,
-            "pooled_empirical_fdp": entrapment_rows / max(target_rows + entrapment_rows, 1),
+            "raw_entrapment_share": entrapment_rows / max(target_rows + entrapment_rows, 1),
+            'interpretation': 'Raw entrapment share, not calibrated FDR',
             "unique_target_precursors": unique_target,
             "unique_entrapment_precursors": unique_entrapment,
-            "unique_precursor_empirical_fdp": unique_entrapment / max(unique_target + unique_entrapment, 1),
+            "unique_precursor_raw_entrapment_share": unique_entrapment / max(unique_target + unique_entrapment, 1),
         },
     }
     text = json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n"
