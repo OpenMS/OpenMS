@@ -1382,12 +1382,12 @@ add_test("TOPP_IsobaricWorkflow_unassigned_out1" ${DIFF} -whitelist "?xml-styles
 set_tests_properties("TOPP_IsobaricWorkflow_unassigned_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_unassigned")
 # An identified spectrum that is not in the mzML: the identification and spectrum files do not belong
 # together, so the tool fails instead of quantifying what it can.
-add_test("TOPP_IsobaricWorkflow_missing_spectrum" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
-  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
-  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_missing_spectrum_input.idXML
-  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
-  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_missing_spectrum_out.tmp.consensusXML)
-set_tests_properties("TOPP_IsobaricWorkflow_missing_spectrum" PROPERTIES PASS_REGULAR_EXPRESSION "identified spectra .* are not in the spectrum file")
+add_test(NAME "TOPP_IsobaricWorkflow_missing_spectrum" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/IsobaricWorkflow;-test;-type;tmt10plex;-in;${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML;-in_id;${DATA_DIR_TOPP}/IsobaricWorkflow_missing_spectrum_input.idXML;-exp_design;${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv;-out;${TESTS_TEMP_DIR}/IsobaricWorkflow_missing_spectrum_out.tmp.consensusXML"
+  -DEXPECTED_CODE=8
+  "-DEXPECTED_OUTPUT_REGEX=identified spectra .* are not in the spectrum file"
+  -DABSENT_FILE=${TESTS_TEMP_DIR}/IsobaricWorkflow_missing_spectrum_out.tmp.consensusXML
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 
 # Same run as TOPP_IsobaricWorkflow_1 on a copy of the mzML whose MS1 carries one extra peak:
 # 0.004 Th above the strict isolation window of scan 24217, with twice the precursor's intensity.
