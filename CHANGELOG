@@ -17,13 +17,6 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
-  - FIX: Isobaric precursor purity: PrecursorPurity and IsobaricChannelExtractor centre the isolation window on the
-    isolation window target m/z (new PrecursorPurity::isolationWindowCenter()); IsobaricChannelExtractor takes the survey
-    scan of an MS2 from its spectrumRef (MSExperiment::getPrecursorSpectrum(), which now skips survey scans of another
-    FAIMS compensation voltage in its fallback); MS3 quantification reports the purity of the MS2 precursor, not of
-    the SPS fragment (which was always 1.0); reporter scans whose scan window misses a reporter ion are skipped by
-    IsobaricAnalyzer and left unassigned by IsobaricWorkflow. Only intensity inside the isolation window counts, the
-    precursor's own peaks included, and a survey scan without signal in the window is left out of the interpolation.
   - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
     (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
     single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
