@@ -41,6 +41,7 @@ namespace OpenMS
     
       /* 
           @brief reverses the protein's peptide sequences between enzymatic cutting positions. 
+          With 'unspecific cleavage' (no enzymatic termini to keep), the whole protein is reversed (reverseProtein()).
           note: modifications are discarded
       */
       AASequence reversePeptides(const AASequence& protein, const std::string& protease) const;

@@ -38,12 +38,16 @@ AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const std::string& protease) const
 {
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
+  // 'unspecific cleavage' cuts after every residue: there are no enzymatic termini to keep, and its digest is every
+  // subsequence of the protein, not a partition of it. So the whole protein is reversed, as for a non-specific search.
+  if (protease == EnzymaticDigestion::UnspecificCleavage) return reverseProtein(protein);
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
+  if (peptides.empty()) return protein; // empty protein
   std::string pseudo_reversed;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {

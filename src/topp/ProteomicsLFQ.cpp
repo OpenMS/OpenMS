@@ -102,9 +102,8 @@ Input: @n
    (spectrum, peptidoform, charge), so where several identifications of one spectrum agree on
    all three, only the best-scoring one is kept and the reduction is reported. The others would
    otherwise count the same measurement more than once, in the PSM-level FDR and in every output.
-   Results from several search engines must therefore be combined - with @ref TOPP_ConsensusID
-   (@p -algorithm best @p -keep_old_scores, which preserves each engine's score) - rather than
-   simply concatenated. Identifications of one spectrum that name *different* peptidoforms are
+   Pass the results of one search engine rather than concatenating those of several, whose
+   scores are not comparable. Identifications of one spectrum that name *different* peptidoforms are
    left alone: a chimeric spectrum yields two distinct measurements.
 
   - An experimental design file: @n
@@ -121,6 +120,10 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
 and RT in other runs.
 
+In the consensusXML (@p -out_cxml), a consensus feature whose identification was transferred lists the runs it was
+transferred to (their map indices) in the meta value @p mbr_transfer_map_indices. With @p -pip_echo @p true, the
+meta value @p mbr_transfer_qvalues holds the q-values of these transfers, in the same order.
+
 @b Match @b between @b runs @b with @b PIP-ECHO (@p -pip_echo @p true): @n
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
@@ -136,6 +139,9 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
   - If there are fewer decoy transfers than @p PipEcho:min_decoys (default 20), or too few to resolve the
     requested FDR, no transfer is kept, and only the direct identifications remain. @p PipEcho:fdr @p 1.0 keeps
     all transfers.
+  - With @p -proteinFDR @p 1 (no protein filter), only precursors (sequence and charge) identified at q-value
+    <= 0.001 in at least one run are transferred. Otherwise a false identification in one run would be copied into
+    every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
   - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
     cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
@@ -182,7 +188,9 @@ would need several times that.
 
 @b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
 FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
-The data is split by CV and processed separately for each voltage group during feature detection.
+The data is split by CV and processed separately for each voltage group: the chromatographic peak width is
+estimated from the mass traces of each CV, untargeted seeds (Seeding:algorithm multiplex or biosaur2) are found
+per CV and extracted at their CV only, and so is every identification.
 Features representing the same analyte detected at different CV values are merged automatically.
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.
@@ -268,8 +276,8 @@ protected:
       "ID files must be provided in same order as spectra files.\n"
       "One identification per spectrum is expected: where several identifications of one\n"
       "spectrum agree on peptidoform and charge, only the best-scoring one is kept, since\n"
-      "the others would count the same measurement more than once. Combine results from\n"
-      "several search engines with ConsensusID rather than concatenating them.", false);
+      "the others would count the same measurement more than once. Pass the results of one\n"
+      "search engine rather than concatenating those of several.", false);
     setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -435,6 +443,7 @@ protected:
     // For PIP-ECHO:
     Param pip_echo_defaults = PipEchoAlgorithm().getDefaults();
     pip_echo_defaults.remove("distance_RT:max_difference"); // estimated from data
+    pip_echo_defaults.remove("donor_max_q");                 // set from -proteinFDR
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default, so we export everything (important for copying back MSstats results)
@@ -756,6 +765,15 @@ protected:
       // Pass the host's raw-spectra chromatographic FWHM down for PIP-ECHO's
       // local_rt:auto window sizing (used only when local_rt:enabled+auto are set).
       pe_param.setValue("local_rt:median_fwhm", median_fwhm);
+      // Without a protein FDR filter, nothing downstream removes a false identification that PIP-ECHO copied into
+      // the other runs (decoy transfers cannot reveal it). Then only confidently identified precursors are
+      // transferred (best q-value <= 0.001, as in andes); the PSM filter alone does not catch them.
+      if (getDoubleOption_("proteinFDR") >= 1.0)
+      {
+        pe_param.setValue("donor_max_q", 0.001);
+        OPENMS_LOG_INFO << "PIP-ECHO: no protein FDR filter (-proteinFDR 1), so only precursors identified at "
+                           "q-value <= 0.001 in some run are transferred.\n";
+      }
       writeDebug_("Parameters passed to the PIP-ECHO algorithm", pe_param, 3);
 
       linker.setParameters(pe_param);
@@ -1088,8 +1106,8 @@ protected:
     @brief Reduce identifications this tool cannot tell apart to one per spectrum.
 
     ProteomicsLFQ measures one value per (spectrum, peptidoform, charge). Input that carries
-    several identifications of that same triple - two search engines concatenated rather than
-    combined, for instance - leaves it undecided which of them owns the measurement, and keeping
+    several identifications of that same triple - the concatenated results of two search engines,
+    for instance - leaves it undecided which of them owns the measurement, and keeping
     all of them counts one identification several times in the PSM-level FDR and repeats it in
     every output. Keep the best-scoring one and say what went.
   **/
@@ -1104,9 +1122,9 @@ protected:
                       << " repeat a (spectrum, peptidoform, charge) already claimed by another"
                          " identification, e.g. " << report.example << ".\n"
                          "Kept the best-scoring one of each group; the others would have counted"
-                         " the same measurement more than once. To control this upstream, combine"
-                         " search engine results with ConsensusID (-algorithm best"
-                         " -keep_old_scores) rather than concatenating them." << endl;
+                         " the same measurement more than once. To control this upstream, pass"
+                         " the results of one search engine rather than concatenating those of"
+                         " several." << endl;
     }
     if (report.inconsistent_score_direction > 0)
     {
@@ -2717,6 +2735,14 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+
+    // PIP-ECHO annotates its transfers itself; the QT linker transfers identifications without recording it.
+    // Annotate after the PSM and protein FDR filtering above, so that a run whose identification was filtered
+    // out counts as a transfer, but before the resolution below reduces the identifications to the best one.
+    if (getStringOption_("pip_echo") == "false")
+    {
+      IDConflictResolverAlgorithm::annotateTransfers(consensus);
+    }
 
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);
