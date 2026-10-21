@@ -1916,7 +1916,6 @@ START_SECTION((void testSkipChromatograms()))
 
   PeakFileOptions opts;
   opts.setSkipChromatograms(true);
-  opts.setFillData(true);
   file.setOptions(opts);
 
   PeakMap pm;
@@ -1925,13 +1924,10 @@ START_SECTION((void testSkipChromatograms()))
   TEST_EQUAL(pm.size(), expected.size())
   for (Size i = 0; i < expected.size(); ++i)
   {
-    TEST_EQUAL(pm[i].size(), expected[i].size())
-    for (Size j = 0; j < expected[i].size(); ++j)
-    {
-      TEST_REAL_SIMILAR(pm[i][j].getMZ(), expected[i][j].getMZ())
-      TEST_REAL_SIMILAR(pm[i][j].getIntensity(), expected[i][j].getIntensity())
-    }
+    TEST_EQUAL(pm[i] == expected[i], true)
   }
+  TEST_EQUAL(pm.getSourceFiles() == expected.getSourceFiles(), true)
+  TEST_EQUAL(pm.getInstrument() == expected.getInstrument(), true)
 
   std::vector<Size> transformed_spectrum_sizes;
   Size transformed_chromatogram_count = 0;
