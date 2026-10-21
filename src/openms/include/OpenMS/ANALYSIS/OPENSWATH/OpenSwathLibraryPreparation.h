@@ -127,6 +127,8 @@ namespace OpenMS
       bool enable_detection_unspecific_losses = false;
       bool switch_kr = true;
       bool separate = false;
+      /// Shuffle RNG seed: 1 gives reproducible decoys, -1 uses the current time.
+      Int shuffle_seed = 1;
     };
 
     OpenSwathLibraryPreparation();

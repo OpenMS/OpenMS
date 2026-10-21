@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 ///////////////////////////
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -484,7 +485,8 @@ START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         const std::vector<size_t>& fragment_charges,
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
-                        const int round_decPow = -4) const))
+                        const int round_decPow = -4,
+                        const Int shuffle_seed = 1) const))
 {
   std::string method = "pseudo-reverse";
   double identity_threshold = 0.7;
@@ -1281,6 +1283,78 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] library_shuffle_seed_controls_heavy_and_light_decoys)
+{
+  TargetedExperiment targets;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MRMDecoyGenerator_input.TraML"), targets);
+  OpenSwath::LightTargetedExperiment light_targets;
+  OpenSwathDataAccessHelper::convertTargetedExp(targets, light_targets);
+  MRMDecoy generator;
+
+  // Compare library generation with the existing seeded peptide RNG. No clock waits are needed.
+  for (const Int seed : {1, 42})
+  {
+    TargetedExperiment decoys;
+    generator.generateDecoys(targets, decoys, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                             0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, seed);
+    TEST_TRUE(!decoys.getPeptides().empty())
+    for (const auto& peptide : decoys.getPeptides())
+    {
+      const auto& target = targets.getPeptideByRef(peptide.id.substr(6));
+      const auto expected = generator.shufflePeptide(target, 0.7, seed, 30);
+      TEST_EQUAL(peptide.sequence, expected.sequence)
+      TEST_EQUAL(peptide.mods.size(), expected.mods.size())
+      for (Size i = 0; i < peptide.mods.size(); ++i)
+      {
+        TEST_EQUAL(peptide.mods[i].location, expected.mods[i].location)
+        TEST_EQUAL(peptide.mods[i].unimod_id, expected.mods[i].unimod_id)
+      }
+    }
+
+    OpenSwath::LightTargetedExperiment light_decoys;
+    generator.generateDecoysLight(light_targets, light_decoys, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                                  0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, seed);
+    TEST_TRUE(!light_decoys.compounds.empty())
+    for (const auto& compound : light_decoys.compounds)
+    {
+      const auto& target = light_targets.getCompoundByRef(compound.id.substr(6));
+      const auto expected = generator.shufflePeptideLight(target.sequence, target.modifications, 0.7, seed, 30);
+      TEST_EQUAL(AASequence::fromString(compound.sequence).toUnmodifiedString(), expected.first)
+      TEST_EQUAL(compound.modifications.size(), expected.second.size())
+      for (Size i = 0; i < compound.modifications.size(); ++i)
+      {
+        TEST_EQUAL(compound.modifications[i].location, expected.second[i].location)
+        TEST_EQUAL(compound.modifications[i].unimod_id, expected.second[i].unimod_id)
+      }
+    }
+  }
+
+  // Calls that omit the new argument must use the same deterministic seed.
+  TargetedExperiment default_decoys, seeded_decoys;
+  generator.generateDecoys(targets, default_decoys, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                           0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false);
+  generator.generateDecoys(targets, seeded_decoys, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                           0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, 1);
+  TEST_TRUE(default_decoys == seeded_decoys)
+  OpenSwath::LightTargetedExperiment light_default, light_seeded;
+  generator.generateDecoysLight(light_targets, light_default, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                                0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false);
+  generator.generateDecoysLight(light_targets, light_seeded, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                                0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, 1);
+  TEST_EQUAL(light_default.transitions.size(), light_seeded.transitions.size())
+  for (Size i = 0; i < light_default.transitions.size(); ++i)
+  {
+    TEST_EQUAL(light_default.transitions[i].product_mz, light_seeded.transitions[i].product_mz)
+    TEST_EQUAL(light_default.transitions[i].precursor_mz, light_seeded.transitions[i].precursor_mz)
+  }
+  TEST_EQUAL(light_default.compounds.size(), light_seeded.compounds.size())
+  for (Size i = 0; i < light_default.compounds.size(); ++i)
+  {
+    TEST_EQUAL(light_default.compounds[i].sequence, light_seeded.compounds[i].sequence)
+  }
+}
+END_SECTION
+
 END_TEST
 
 #ifdef __clang__

@@ -495,7 +495,7 @@ namespace OpenMS
                                 const std::string& decoy_tag, const int max_attempts, const double identity_threshold,
                                 const double precursor_mz_shift, const double product_mz_shift, const double product_mz_threshold,
                                 const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges,
-                                const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow) const
+                                const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow, const Int shuffle_seed) const
   {
     MRMIonSeries mrmis;
     MRMDecoy::PeptideVectorType peptides, decoy_peptides;
@@ -590,7 +590,7 @@ namespace OpenMS
       }
       else if (method == "shuffle")
       {
-        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
+        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, shuffle_seed, max_attempts);
         if (do_switchKR && MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications\n";
@@ -769,7 +769,7 @@ namespace OpenMS
                                      const std::vector<size_t>& fragment_charges,
                                      const bool enable_specific_losses,
                                      const bool enable_unspecific_losses,
-                                     const int round_decPow) const
+                                     const int round_decPow, const Int shuffle_seed) const
   {
     MRMIonSeries mrmis;
     std::vector<OpenSwath::LightCompound> decoy_compounds;
@@ -910,7 +910,7 @@ namespace OpenMS
       }
       else if (method == "shuffle")
       {
-        auto result = shufflePeptideLight(unmodified_sequence, decoy_compound.modifications, identity_threshold, -1, max_attempts);
+        auto result = shufflePeptideLight(unmodified_sequence, decoy_compound.modifications, identity_threshold, shuffle_seed, max_attempts);
         decoy_sequence = result.first;
         decoy_mods = result.second;
         if (do_switchKR && hasCNterminalModsLight_(decoy_mods, decoy_sequence.size(), do_switchKR))

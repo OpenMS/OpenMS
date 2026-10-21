@@ -520,6 +520,8 @@ protected:
     registerTOPPSubsection_("PeptideQueryParameters:DecoyGenerator", "Decoy-generation parameters used when workflow:library_mode=transition_list or predicted.");
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:method", "<type>", "shuffle", "Decoy generation method.", false);
     setValidStrings_("PeptideQueryParameters:DecoyGenerator:method", {"shuffle", "pseudo-reverse", "reverse", "shift"});
+    registerIntOption_("PeptideQueryParameters:DecoyGenerator:shuffle_seed", "<int>", 1, "Shuffle random seed (default 1 for reproducible decoys, -1 for time-based seeding).", false);
+    setMinInt_("PeptideQueryParameters:DecoyGenerator:shuffle_seed", -1);
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:decoy_tag", "<type>", "DECOY_", "Decoy tag.", false);
     registerDoubleOption_("PeptideQueryParameters:DecoyGenerator:min_decoy_fraction", "<double>", 0.8, "Minimum fraction of decoy / target peptides and proteins.", false, true);
     registerDoubleOption_("PeptideQueryParameters:DecoyGenerator:aim_decoy_fraction", "<double>", 1.0, "Requested fraction of decoys to generate.", false, true);
@@ -969,6 +971,7 @@ protected:
     parameters.decoy_tag = getStringOption_("PeptideQueryParameters:DecoyGenerator:decoy_tag");
     parameters.min_decoy_fraction = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:min_decoy_fraction");
     parameters.aim_decoy_fraction = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:aim_decoy_fraction");
+    parameters.shuffle_seed = getIntOption_("PeptideQueryParameters:DecoyGenerator:shuffle_seed");
     parameters.shuffle_max_attempts = getIntOption_("PeptideQueryParameters:DecoyGenerator:shuffle_max_attempts");
     parameters.shuffle_sequence_identity_threshold = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:shuffle_sequence_identity_threshold");
     parameters.shift_precursor_mz_shift = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:shift_precursor_mz_shift");

@@ -3285,19 +3285,21 @@ Find all residues in a sequence that should not be reversed / shuffled
                                   const std::vector<size_t>& fragment_charges,
                                   bool enable_specific_losses,
                                   bool enable_unspecific_losses,
-                                  int round_decPow) {
+                                  int round_decPow,
+                                  OpenMS::Int shuffle_seed) {
             OpenMS::TargetedExperiment dec;
             self.generateDecoys(exp, dec, method, aim_decoy_fraction, switchKR, decoy_tag,
                                 max_attempts, identity_threshold, precursor_mz_shift,
                                 product_mz_shift, product_mz_threshold, fragment_types,
                                 fragment_charges, enable_specific_losses, enable_unspecific_losses,
-                                round_decPow);
+                                round_decPow, shuffle_seed);
             return dec;
         }, "exp"_a, "method"_a, "aim_decoy_fraction"_a, "switchKR"_a, "decoy_tag"_a,
            "max_attempts"_a, "identity_threshold"_a, "precursor_mz_shift"_a,
            "product_mz_shift"_a, "product_mz_threshold"_a, "fragment_types"_a,
            "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a,
-           "round_decPow"_a = -4, "Generate decoys from a TargetedExperiment")
+           "round_decPow"_a = -4, "shuffle_seed"_a = 1,
+           "Generate decoys from a TargetedExperiment (shuffle_seed=-1 uses time-based seeding)")
         ;
     def_ProgressLogger<OpenMS::MRMDecoy>(mrmdecoy_class);
 
