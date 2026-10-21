@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <numeric>
 #include <unordered_set>
@@ -1030,7 +1031,9 @@ namespace OpenMS
       --iterator;
       if (ms_level - iterator->getMSLevel() == 1)
       {
-        if (faims && iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE && iterator->getDriftTime() != cv)
+        // same tolerance as IsobaricChannelExtractor and IsobaricWorkflow use for "same CV"
+        if (faims && (iterator->getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                      || std::fabs(iterator->getDriftTime() - cv) >= 0.01))
         {
           continue;
         }
