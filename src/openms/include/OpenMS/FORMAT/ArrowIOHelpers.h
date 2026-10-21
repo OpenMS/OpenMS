@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <unordered_set>
@@ -83,39 +84,54 @@ namespace ArrowIOHelpers
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
-    @brief One column of a table for writeColumnsToParquet(), built without Arrow types
+    @brief One column for withColumns(), built without Arrow types
 
-    Only the vector of the column's @c type is used; it holds one entry per row. List columns can have null rows.
+    Only the vector of the column's @c type is used; it holds one entry per row. Any column can have null rows.
   */
   struct OPENMS_DLLAPI ParquetColumn
   {
-    /// int64, utf8, list<float32> or list<utf8> (all nullable in the schema, as Arrow builds them)
-    enum class Type { INT64, UTF8, FLOAT_LIST, UTF8_LIST };
+    /// An entry of a SCORE_LIST row: the struct of the QPX @c additional_scores (QPXPSMSchema::additionalScoresType())
+    struct Score
+    {
+      std::string name;
+      double value = 0.0;
+      std::optional<bool> higher_better; ///< none: unknown (null)
+    };
+    /// An entry of a PROTEIN_MAPPING_LIST row: struct{accession, start, end, aa_before, aa_after}
+    struct ProteinMapping
+    {
+      std::string accession;
+      std::optional<Int32> start, end;            ///< none: null
+      std::optional<std::string> aa_before, aa_after; ///< none: null
+    };
+    /// int16, int64, utf8, list<float32>, list<utf8>, list<struct> of scores or of protein mappings (all nullable)
+    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, PROTEIN_MAPPING_LIST };
     std::string name;
     Type type = Type::INT64;
-    std::vector<Int64> int64_values;                   ///< INT64
-    std::vector<std::string> utf8_values;              ///< UTF8
-    std::vector<std::vector<float>> float_lists;       ///< FLOAT_LIST
-    std::vector<std::vector<std::string>> utf8_lists;  ///< UTF8_LIST
-    std::vector<bool> null_rows;                       ///< list columns: true marks a null row (empty: no null row)
+    std::vector<Int64> int64_values;                              ///< INT16 (narrowed) and INT64
+    std::vector<std::string> utf8_values;                         ///< UTF8
+    std::vector<std::vector<float>> float_lists;                  ///< FLOAT_LIST
+    std::vector<std::vector<std::string>> utf8_lists;             ///< UTF8_LIST
+    std::vector<std::vector<Score>> score_lists;                  ///< SCORE_LIST
+    std::vector<std::vector<ProteinMapping>> protein_mapping_lists; ///< PROTEIN_MAPPING_LIST
+    std::vector<bool> null_rows;                                  ///< true marks a null row (empty: no null row)
   };
 
   /**
-    @brief Write a table of int64, utf8, list<float32> and list<utf8> columns to a Parquet file
+    @brief The table with @p columns added: a column of the name of an existing one replaces it (in its place), any
+    other is appended. The schema metadata of @p table is kept.
 
-    For callers outside libOpenMS that cannot use Arrow themselves (TOPP tools), e.g. for a sidecar table keyed by
-    the identity column of a QPX view.
+    For callers outside libOpenMS that cannot use Arrow themselves (TOPP tools), e.g. to add optional columns to a QPX
+    view before writing it.
 
-    @param[in] columns The columns, in order; all of the same number of rows
-    @param[in] filename Output file path
-    @param[in] config Parquet writer configuration
-    @return true on success, false on error (errors are logged)
-    @throws Exception::IllegalArgument if the columns have different numbers of rows
+    @param[in] table The table (must not be null)
+    @param[in] columns The columns, each with one entry per row of @p table
+    @return the new table, or null on an Arrow error (logged)
+    @throws Exception::IllegalArgument if a column has another number of rows than @p table
   */
-  OPENMS_DLLAPI bool writeColumnsToParquet(
-    const std::vector<ParquetColumn>& columns,
-    const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+  OPENMS_DLLAPI std::shared_ptr<arrow::Table> withColumns(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::vector<ParquetColumn>& columns);
 
   /**
     @brief Concatenate a vector of Arrow tables and write the result to a Parquet file

@@ -338,7 +338,7 @@ namespace OpenMS
 
     const auto expected = schemaFor(impl_->view);
     const auto schema_validation = ArrowSchemaValidation::validate(
-      table, expected, ArrowSchemaValidation::Mode::Strict);
+      table, expected, ArrowSchemaValidation::Mode::Extensible);
     if (!schema_validation.valid)
     {
       for (const auto& error : schema_validation.errors)

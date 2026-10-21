@@ -592,96 +592,176 @@ std::string qpxScanFormat(const std::vector<std::string>& native_ids)
   return resolved;
 }
 
-bool writeColumnsToParquet(
-  const std::vector<ParquetColumn>& columns,
-  const std::string& filename,
-  const ParquetWriteConfig& config)
+namespace
 {
-  auto rowsOf = [](const ParquetColumn& c) -> size_t
+  /// The rows of @p c (the size of the vector of its type).
+  size_t parquetColumnRows(const ParquetColumn& c)
   {
     switch (c.type)
     {
-      case ParquetColumn::Type::INT64:      return c.int64_values.size();
-      case ParquetColumn::Type::UTF8:       return c.utf8_values.size();
-      case ParquetColumn::Type::FLOAT_LIST: return c.float_lists.size();
-      case ParquetColumn::Type::UTF8_LIST:  return c.utf8_lists.size();
+      case ParquetColumn::Type::INT16:
+      case ParquetColumn::Type::INT64:                return c.int64_values.size();
+      case ParquetColumn::Type::UTF8:                 return c.utf8_values.size();
+      case ParquetColumn::Type::FLOAT_LIST:           return c.float_lists.size();
+      case ParquetColumn::Type::UTF8_LIST:            return c.utf8_lists.size();
+      case ParquetColumn::Type::SCORE_LIST:           return c.score_lists.size();
+      case ParquetColumn::Type::PROTEIN_MAPPING_LIST: return c.protein_mapping_lists.size();
     }
     return 0;
-  };
-  const size_t rows = columns.empty() ? 0 : rowsOf(columns.front());
-  for (const ParquetColumn& c : columns)
-  {
-    const bool list = c.type == ParquetColumn::Type::FLOAT_LIST || c.type == ParquetColumn::Type::UTF8_LIST;
-    if (rowsOf(c) != rows || (list && !c.null_rows.empty() && c.null_rows.size() != rows))
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Column '" + c.name + "' has " + std::to_string(rowsOf(c)) + " rows, the first column " + std::to_string(rows));
-    }
   }
 
-  std::vector<std::shared_ptr<arrow::Field>> fields;
-  std::vector<std::shared_ptr<arrow::Array>> arrays;
-  arrow::Status status;
-  for (const ParquetColumn& c : columns)
+  /// The Arrow array and field of @p c (@p rows rows); a builder error is returned as its status.
+  arrow::Status buildParquetColumn(const ParquetColumn& c, size_t rows, std::shared_ptr<arrow::Field>& field,
+                                   std::shared_ptr<arrow::Array>& array)
   {
-    std::shared_ptr<arrow::Array> array;
     auto isNull = [&c](size_t row) { return !c.null_rows.empty() && c.null_rows[row]; };
+    // One row of each type: append the value of @p row (not null) to @p b.
+    auto build = [&](arrow::ArrayBuilder& b, const std::shared_ptr<arrow::DataType>& type, auto&& append) -> arrow::Status
+    {
+      for (size_t row = 0; row < rows; ++row)
+      {
+        ARROW_RETURN_NOT_OK(isNull(row) ? b.AppendNull() : append(row));
+      }
+      ARROW_RETURN_NOT_OK(b.Finish(&array));
+      field = arrow::field(c.name, type);
+      return arrow::Status::OK();
+    };
     switch (c.type)
     {
+      case ParquetColumn::Type::INT16:
+      {
+        arrow::Int16Builder b;
+        return build(b, arrow::int16(), [&](size_t row) { return b.Append(static_cast<int16_t>(c.int64_values[row])); });
+      }
       case ParquetColumn::Type::INT64:
       {
         arrow::Int64Builder b;
-        status = b.AppendValues(c.int64_values);
-        if (status.ok()) { status = b.Finish(&array); }
-        fields.push_back(arrow::field(c.name, arrow::int64()));
-        break;
+        return build(b, arrow::int64(), [&](size_t row) { return b.Append(c.int64_values[row]); });
       }
       case ParquetColumn::Type::UTF8:
       {
         arrow::StringBuilder b;
-        status = b.AppendValues(c.utf8_values);
-        if (status.ok()) { status = b.Finish(&array); }
-        fields.push_back(arrow::field(c.name, arrow::utf8()));
-        break;
+        return build(b, arrow::utf8(), [&](size_t row) { return b.Append(c.utf8_values[row]); });
       }
       case ParquetColumn::Type::FLOAT_LIST:
       {
         auto values = std::make_shared<arrow::FloatBuilder>();
         arrow::ListBuilder b(arrow::default_memory_pool(), values);
-        for (size_t row = 0; row < rows && status.ok(); ++row)
+        return build(b, arrow::list(arrow::float32()), [&](size_t row)
         {
-          if (isNull(row)) { status = b.AppendNull(); continue; }
-          status = b.Append();
-          if (status.ok()) { status = values->AppendValues(c.float_lists[row]); }
-        }
-        if (status.ok()) { status = b.Finish(&array); }
-        fields.push_back(arrow::field(c.name, arrow::list(arrow::float32())));
-        break;
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.float_lists[row]);
+        });
       }
       case ParquetColumn::Type::UTF8_LIST:
       {
         auto values = std::make_shared<arrow::StringBuilder>();
         arrow::ListBuilder b(arrow::default_memory_pool(), values);
-        for (size_t row = 0; row < rows && status.ok(); ++row)
+        return build(b, arrow::list(arrow::utf8()), [&](size_t row)
         {
-          if (isNull(row)) { status = b.AppendNull(); continue; }
-          status = b.Append();
-          if (status.ok()) { status = values->AppendValues(c.utf8_lists[row]); }
-        }
-        if (status.ok()) { status = b.Finish(&array); }
-        fields.push_back(arrow::field(c.name, arrow::list(arrow::utf8())));
-        break;
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.utf8_lists[row]);
+        });
       }
+      case ParquetColumn::Type::SCORE_LIST:
+      {
+        // the type of the QPX additional_scores, so that the column can replace that of a QPX view
+        const auto type = QPXPSMSchema::additionalScoresType();
+        auto name = std::make_shared<arrow::StringBuilder>();
+        auto value = std::make_shared<arrow::DoubleBuilder>();
+        auto higher_better = std::make_shared<arrow::BooleanBuilder>();
+        auto entry = std::make_shared<arrow::StructBuilder>(std::static_pointer_cast<arrow::ListType>(type)->value_type(),
+          arrow::default_memory_pool(), std::vector<std::shared_ptr<arrow::ArrayBuilder>>{name, value, higher_better});
+        arrow::ListBuilder b(arrow::default_memory_pool(), entry, type);
+        return build(b, type, [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          for (const ParquetColumn::Score& s : c.score_lists[row])
+          {
+            ARROW_RETURN_NOT_OK(entry->Append());
+            ARROW_RETURN_NOT_OK(name->Append(s.name));
+            ARROW_RETURN_NOT_OK(value->Append(s.value));
+            ARROW_RETURN_NOT_OK(s.higher_better ? higher_better->Append(*s.higher_better) : higher_better->AppendNull());
+          }
+          return arrow::Status::OK();
+        });
+      }
+      case ParquetColumn::Type::PROTEIN_MAPPING_LIST:
+      {
+        const auto entry_type = arrow::struct_({
+          arrow::field("accession", arrow::utf8(), /*nullable=*/false),
+          arrow::field("start", arrow::int32()),
+          arrow::field("end", arrow::int32()),
+          arrow::field("aa_before", arrow::utf8()),
+          arrow::field("aa_after", arrow::utf8())
+        });
+        auto accession = std::make_shared<arrow::StringBuilder>();
+        auto start = std::make_shared<arrow::Int32Builder>();
+        auto end = std::make_shared<arrow::Int32Builder>();
+        auto before = std::make_shared<arrow::StringBuilder>();
+        auto after = std::make_shared<arrow::StringBuilder>();
+        auto entry = std::make_shared<arrow::StructBuilder>(entry_type, arrow::default_memory_pool(),
+          std::vector<std::shared_ptr<arrow::ArrayBuilder>>{accession, start, end, before, after});
+        arrow::ListBuilder b(arrow::default_memory_pool(), entry);
+        return build(b, arrow::list(entry_type), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          for (const ParquetColumn::ProteinMapping& m : c.protein_mapping_lists[row])
+          {
+            ARROW_RETURN_NOT_OK(entry->Append());
+            ARROW_RETURN_NOT_OK(accession->Append(m.accession));
+            ARROW_RETURN_NOT_OK(m.start ? start->Append(*m.start) : start->AppendNull());
+            ARROW_RETURN_NOT_OK(m.end ? end->Append(*m.end) : end->AppendNull());
+            ARROW_RETURN_NOT_OK(m.aa_before ? before->Append(*m.aa_before) : before->AppendNull());
+            ARROW_RETURN_NOT_OK(m.aa_after ? after->Append(*m.aa_after) : after->AppendNull());
+          }
+          return arrow::Status::OK();
+        });
+      }
+    }
+    return arrow::Status::Invalid("unknown column type");
+  }
+} // namespace
+
+std::shared_ptr<arrow::Table> withColumns(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::vector<ParquetColumn>& columns)
+{
+  if (!table)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "withColumns: null table");
+  }
+  const size_t rows = static_cast<size_t>(table->num_rows());
+  for (const ParquetColumn& c : columns)
+  {
+    if (parquetColumnRows(c) != rows || (!c.null_rows.empty() && c.null_rows.size() != rows))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Column '" + c.name + "' has " + std::to_string(parquetColumnRows(c)) + " rows, the table " + std::to_string(rows));
+    }
+  }
+
+  std::shared_ptr<arrow::Table> out = table;
+  for (const ParquetColumn& c : columns)
+  {
+    std::shared_ptr<arrow::Field> field;
+    std::shared_ptr<arrow::Array> array;
+    arrow::Status status = buildParquetColumn(c, rows, field, array);
+    if (status.ok())
+    {
+      const auto chunked = std::make_shared<arrow::ChunkedArray>(array);
+      const int existing = out->schema()->GetFieldIndex(c.name);
+      auto result = existing >= 0 ? out->SetColumn(existing, field, chunked) : out->AddColumn(out->num_columns(), field, chunked);
+      status = result.status();
+      if (status.ok()) { out = result.ValueOrDie(); }
     }
     if (!status.ok())
     {
-      OPENMS_LOG_ERROR << "ArrowIOHelpers: building column '" << c.name << "' for " << filename << " failed: "
-                       << status.ToString() << std::endl;
-      return false;
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: adding column '" << c.name << "' failed: " << status.ToString() << std::endl;
+      return nullptr;
     }
-    arrays.push_back(array);
   }
-  return writeTableToParquet(arrow::Table::Make(arrow::schema(fields), arrays, static_cast<int64_t>(rows)), filename, config);
+  return out;
 }
 
 bool writeTableToParquet(

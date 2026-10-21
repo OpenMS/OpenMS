@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -18,6 +19,7 @@
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <arrow/util/key_value_metadata.h>
 #include <parquet/arrow/reader.h>
 
 #include <set>
@@ -440,44 +442,106 @@ START_SECTION((bool writeTableToParquet(const std::shared_ptr<arrow::Table>&, co
 }
 END_SECTION
 
-START_SECTION((bool writeColumnsToParquet(const std::vector<ParquetColumn>&, const std::string&, const ParquetWriteConfig&)))
+START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<arrow::Table>&, const std::vector<ParquetColumn>&)))
 {
   using Column = ArrowIOHelpers::ParquetColumn;
-  Column id{"id", Column::Type::INT64, {7, -3}, {}, {}, {}, {}};
-  Column name{"name", Column::Type::UTF8, {}, {"a", "b"}, {}, {}, {}};
-  Column mz{"mz", Column::Type::FLOAT_LIST, {}, {}, {{1.5f, 2.5f}, {}}, {}, {false, true}};
-  Column ion{"ion", Column::Type::UTF8_LIST, {}, {}, {}, {{"b2+"}, {"y1+", "y2++"}}, {}};
+  // a table of two rows with schema metadata
+  arrow::Int64Builder id_builder;
+  TEST_TRUE(id_builder.AppendValues(std::vector<int64_t>{7, -3}).ok())
+  std::shared_ptr<arrow::Array> ids;
+  TEST_TRUE(id_builder.Finish(&ids).ok())
+  arrow::StringBuilder name_builder;
+  TEST_TRUE(name_builder.AppendValues(std::vector<std::string>{"x", "y"}).ok())
+  std::shared_ptr<arrow::Array> names;
+  TEST_TRUE(name_builder.Finish(&names).ok())
+  auto table = arrow::Table::Make(arrow::schema({arrow::field("id", arrow::int64()), arrow::field("name", arrow::utf8())},
+                                                arrow::key_value_metadata({"file_type"}, {"psm_file"})), {ids, names});
+
+  Column name; // replaces the column 'name', in its place
+  name.name = "name";
+  name.type = Column::Type::UTF8;
+  name.utf8_values = {"a", ""};
+  name.null_rows = {false, true};
+  Column small;
+  small.name = "small";
+  small.type = Column::Type::INT16;
+  small.int64_values = {-2, 0};
+  small.null_rows = {false, true};
+  Column mz;
+  mz.name = "mz";
+  mz.type = Column::Type::FLOAT_LIST;
+  mz.float_lists = {{1.5f, 2.5f}, {}};
+  mz.null_rows = {false, true};
+  Column ion;
+  ion.name = "ion";
+  ion.type = Column::Type::UTF8_LIST;
+  ion.utf8_lists = {{"b2+"}, {"y1+", "y2++"}};
+  Column scores;
+  scores.name = "additional_scores";
+  scores.type = Column::Type::SCORE_LIST;
+  scores.score_lists = {{{"global_qvalue", 0.01, false}, {"delta_mass", 2.0, std::nullopt}}, {}};
+  Column mappings;
+  mappings.name = "protein_mappings";
+  mappings.type = Column::Type::PROTEIN_MAPPING_LIST;
+  mappings.protein_mapping_lists = {{{"P1", 5, 11, std::string("K"), std::string("-")}}, {{"P2", std::nullopt, std::nullopt, std::nullopt, std::nullopt}}};
+
+  auto out = ArrowIOHelpers::withColumns(table, {name, small, mz, ion, scores, mappings});
+  TEST_TRUE(out != nullptr)
+  TEST_EQUAL(out->num_rows(), 2)
+  TEST_EQUAL(out->num_columns(), 7)
+  std::string order;
+  for (const auto& f : out->schema()->fields()) { order += f->name() + ","; }
+  TEST_STRING_EQUAL(order, "id,name,small,mz,ion,additional_scores,protein_mappings,")
+  TEST_TRUE(out->schema()->metadata() != nullptr)
+  TEST_STRING_EQUAL(out->schema()->metadata()->Get("file_type").ValueOrDie(), "psm_file")
+  TEST_TRUE(out->schema()->field(2)->type()->Equals(arrow::int16()))
+  TEST_TRUE(out->schema()->field(5)->type()->Equals(QPXPSMSchema::additionalScoresType()))
+
+  auto name_out = std::static_pointer_cast<arrow::StringArray>(out->column(1)->chunk(0));
+  TEST_STRING_EQUAL(name_out->GetString(0), "a")
+  TEST_TRUE(name_out->IsNull(1))
+  auto small_out = std::static_pointer_cast<arrow::Int16Array>(out->column(2)->chunk(0));
+  TEST_EQUAL(small_out->Value(0), -2)
+  TEST_TRUE(small_out->IsNull(1))
+  auto mz_out = std::static_pointer_cast<arrow::ListArray>(out->column(3)->chunk(0));
+  TEST_EQUAL(mz_out->value_length(0), 2)
+  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::FloatArray>(mz_out->values())->Value(1), 2.5)
+  TEST_TRUE(mz_out->IsNull(1))
+  auto ion_out = std::static_pointer_cast<arrow::ListArray>(out->column(4)->chunk(0));
+  TEST_EQUAL(ion_out->value_length(1), 2)
+  TEST_STRING_EQUAL(std::static_pointer_cast<arrow::StringArray>(ion_out->values())->GetString(2), "y2++")
+  auto scores_out = std::static_pointer_cast<arrow::ListArray>(out->column(5)->chunk(0));
+  TEST_EQUAL(scores_out->value_length(0), 2)
+  TEST_EQUAL(scores_out->value_length(1), 0)
+  auto score_entries = std::static_pointer_cast<arrow::StructArray>(scores_out->values());
+  TEST_STRING_EQUAL(std::static_pointer_cast<arrow::StringArray>(score_entries->field(0))->GetString(1), "delta_mass")
+  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::DoubleArray>(score_entries->field(1))->Value(0), 0.01)
+  TEST_EQUAL(std::static_pointer_cast<arrow::BooleanArray>(score_entries->field(2))->Value(0), false)
+  TEST_TRUE(score_entries->field(2)->IsNull(1))
+  auto mappings_out = std::static_pointer_cast<arrow::ListArray>(out->column(6)->chunk(0));
+  auto mapping_entries = std::static_pointer_cast<arrow::StructArray>(mappings_out->values());
+  TEST_STRING_EQUAL(std::static_pointer_cast<arrow::StringArray>(mapping_entries->GetFieldByName("accession"))->GetString(1), "P2")
+  TEST_EQUAL(std::static_pointer_cast<arrow::Int32Array>(mapping_entries->GetFieldByName("end"))->Value(0), 11)
+  TEST_TRUE(mapping_entries->GetFieldByName("start")->IsNull(1))
+  TEST_STRING_EQUAL(std::static_pointer_cast<arrow::StringArray>(mapping_entries->GetFieldByName("aa_after"))->GetString(0), "-")
+
+  // written and read back
   std::string file;
   NEW_TMP_FILE(file)
-  TEST_TRUE(ArrowIOHelpers::writeColumnsToParquet({id, name, mz, ion}, file))
-
+  TEST_TRUE(ArrowIOHelpers::writeTableToParquet(out, file))
   auto input = arrow::io::ReadableFile::Open(file).ValueOrDie();
   auto reader = parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie();
-  std::shared_ptr<arrow::Table> table;
-  TEST_TRUE(reader->ReadTable(&table).ok())
-  table = table->CombineChunks().ValueOrDie();
-  TEST_EQUAL(table->num_rows(), 2)
-  // (the names of the list element fields are Parquet's)
-  TEST_EQUAL(table->num_columns(), 4)
-  TEST_EQUAL(table->schema()->field(0)->name() + table->schema()->field(1)->name() + table->schema()->field(2)->name()
-               + table->schema()->field(3)->name(), "idnamemzion")
-  TEST_TRUE(table->schema()->field(0)->type()->Equals(arrow::int64()))
-  TEST_TRUE(table->schema()->field(1)->type()->Equals(arrow::utf8()))
-  TEST_TRUE(std::static_pointer_cast<arrow::ListType>(table->schema()->field(2)->type())->value_type()->Equals(arrow::float32()))
-  TEST_TRUE(std::static_pointer_cast<arrow::ListType>(table->schema()->field(3)->type())->value_type()->Equals(arrow::utf8()))
-  TEST_EQUAL(std::static_pointer_cast<arrow::Int64Array>(table->column(0)->chunk(0))->Value(1), -3)
-  TEST_EQUAL(std::static_pointer_cast<arrow::StringArray>(table->column(1)->chunk(0))->GetString(0), "a")
-  auto mz_list = std::static_pointer_cast<arrow::ListArray>(table->column(2)->chunk(0));
-  TEST_EQUAL(mz_list->value_length(0), 2)
-  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::FloatArray>(mz_list->values())->Value(1), 2.5)
-  TEST_TRUE(mz_list->IsNull(1))
-  auto ion_list = std::static_pointer_cast<arrow::ListArray>(table->column(3)->chunk(0));
-  TEST_EQUAL(ion_list->value_length(1), 2)
-  TEST_EQUAL(std::static_pointer_cast<arrow::StringArray>(ion_list->values())->GetString(2), "y2++")
+  std::shared_ptr<arrow::Table> read;
+  TEST_TRUE(reader->ReadTable(&read).ok())
+  TEST_EQUAL(read->num_rows(), 2)
+  TEST_EQUAL(read->num_columns(), 7)
 
-  // columns of different lengths
-  Column short_name{"name", Column::Type::UTF8, {}, {"a"}, {}, {}, {}};
-  TEST_EXCEPTION(Exception::IllegalArgument, ArrowIOHelpers::writeColumnsToParquet({id, short_name}, file))
+  // a column of another number of rows
+  Column short_name;
+  short_name.name = "name";
+  short_name.type = Column::Type::UTF8;
+  short_name.utf8_values = {"a"};
+  TEST_EXCEPTION(Exception::IllegalArgument, ArrowIOHelpers::withColumns(table, {short_name}))
 }
 END_SECTION
 

@@ -207,6 +207,22 @@ START_SECTION((Result validate(const std::shared_ptr<arrow::Table>& table)))
   // A 0-row table is legal: the streaming writers emit one for empty input.
   QPXValueValidation empty_validator(QPXValueValidation::View::PSM);
   TEST_TRUE(empty_validator.validate(makePSMTable(0)).valid)
+
+  // Columns the view does not define, after its own ones, are allowed: QPX readers ignore unknown columns.
+  arrow::StringBuilder extra_builder;
+  TEST_TRUE(extra_builder.AppendValues(std::vector<std::string>{"spectrum=1", "spectrum=2"}).ok())
+  std::shared_ptr<arrow::Array> extra;
+  TEST_TRUE(extra_builder.Finish(&extra).ok())
+  auto extended = table->AddColumn(table->num_columns(), arrow::field("spectrum_reference", arrow::utf8()),
+                                   std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
+  QPXValueValidation extended_validator(QPXValueValidation::View::PSM);
+  TEST_TRUE(extended_validator.validate(extended).valid)
+  // but not instead of one of them
+  auto replaced = table->RemoveColumn(table->num_columns() - 1).ValueOrDie()
+                    ->AddColumn(table->num_columns() - 1, arrow::field("spectrum_reference", arrow::utf8()),
+                                std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
+  QPXValueValidation replaced_validator(QPXValueValidation::View::PSM);
+  TEST_FALSE(replaced_validator.validate(replaced).valid)
 }
 END_SECTION
 
