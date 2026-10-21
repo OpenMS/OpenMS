@@ -420,11 +420,7 @@ protected:
             next_ms1_spec = ms1_spec_idx;
             break;
           }
-          else if (exp[next_ms1_spec].getMSLevel() == 1
-                   // with FAIMS, the next survey scan at the same compensation voltage
-                   && (exp[ms1_spec_idx].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                       || (exp[next_ms1_spec].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                           && exp[next_ms1_spec].getDriftTime() == exp[ms1_spec_idx].getDriftTime())))
+          else if (exp[next_ms1_spec].getMSLevel() == 1 && same_cv(exp[next_ms1_spec]))
           {
             break;
           }

@@ -7,10 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
-
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
-
-#include <algorithm>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
@@ -23,6 +20,9 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+
+#include <algorithm>
+#include <cmath>
 
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 // #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
@@ -592,7 +592,7 @@ namespace OpenMS
         while (pState.followUpScan != ms_exp_data.end() &&
                (pState.followUpScan->getMSLevel() != 1 ||
                 (faims && (pState.followUpScan->getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                           || pState.followUpScan->getDriftTime() != pState.precursorScan->getDriftTime()))))
+                           || std::fabs(pState.followUpScan->getDriftTime() - pState.precursorScan->getDriftTime()) >= 0.01))))
         {
           ++pState.followUpScan;
         }
