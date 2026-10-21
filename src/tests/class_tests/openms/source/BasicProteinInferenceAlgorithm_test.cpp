@@ -216,7 +216,31 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 3);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(0).probability, 10);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 5.0);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);      
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);
+    }
+    END_SECTION
+
+    START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID without PSMs)
+    {
+      // No spectrum keeps a PSM (e.g. none passed an FDR filter): the graph of grouping and resolution is empty, which
+      // must give no groups instead of an exception.
+      for (const auto& [group, resolve] : {std::pair{"true", "false"}, {"true", "true"}, {"false", "true"}})
+      {
+        vector<ProteinIdentification> prots;
+        PeptideIdentificationList peps;
+        IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+        for (auto& pep : peps) pep.getHits().clear();
+        BasicProteinInferenceAlgorithm bpia;
+        Param p = bpia.getParameters();
+        p.setValue("min_peptides_per_protein", 0);
+        p.setValue("annotate_indistinguishable_groups", group);
+        p.setValue("greedy_group_resolution", resolve);
+        bpia.setParameters(p);
+        bpia.run(peps, prots);
+        // grouping alone keeps the proteins without PSMs, as it does on a non-empty run; resolution removes them
+        TEST_EQUAL(prots[0].getHits().size(), std::string(resolve) == "true" ? 0 : 6)
+        TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 0)
+      }
     }
     END_SECTION
 
