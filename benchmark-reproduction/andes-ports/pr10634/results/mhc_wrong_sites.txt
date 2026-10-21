@@ -1,0 +1,18 @@
+off_52/s1/target.tsv {'P->P': 17, 'V->L': 3, 'V->P': 18, 'V->V': 1} peptides: {'VLLAGFKPPL': 17, 'IPFSNPRVL': 11, 'SPSVSQLSVL': 4, 'FYFPTPTVL': 3, 'RLLDSVSRL': 2, 'VLYPVPLESY': 1, 'VWSDVTPLTF': 1}
+off_52/s42/target.tsv {'P->P': 17, 'V->L': 2, 'V->P': 18} peptides: {'VLLAGFKPPL': 17, 'IPFSNPRVL': 9, 'FYFPTPTVL': 4, 'FPHLPGKTFVY': 3, 'RLLDSVSRL': 2, 'SPSVSQLSVL': 2}
+off_52/s137/target.tsv {'P->P': 21, 'V->L': 2, 'V->P': 16} peptides: {'VLLAGFKPPL': 21, 'IPFSNPRVL': 10, 'FYFPTPTVL': 4, 'RLLDSVSRL': 2, 'SPSVSQLSVL': 1, 'FPHLPGKTFVY': 1}
+off_53/s1/target.tsv {'P->P': 15, 'V->P': 18, 'V->L': 4} peptides: {'VLLAGFKPPL': 15, 'IPFSNPRVL': 13, 'RLLDSVSRL': 4, 'SPSVSQLSVL': 3, 'FYFPTPTVL': 2}
+off_53/s42/target.tsv {'P->P': 20, 'V->P': 17, 'V->L': 5} peptides: {'VLLAGFKPPL': 20, 'IPFSNPRVL': 12, 'RLLDSVSRL': 5, 'FYFPTPTVL': 2, 'FPHLPGKTFVY': 2, 'SPSVSQLSVL': 1}
+off_53/s137/target.tsv {'P->P': 24, 'V->L': 4, 'V->P': 21} peptides: {'VLLAGFKPPL': 24, 'IPFSNPRVL': 14, 'RLLDSVSRL': 4, 'SPSVSQLSVL': 3, 'FYFPTPTVL': 2, 'FPHLPGKTFVY': 2}
+off_54/s1/target.tsv {'P->P': 28, 'V->L': 3, 'V->P': 25} peptides: {'VLLAGFKPPL': 28, 'IPFSNPRVL': 10, 'FYFPTPTVL': 10, 'FPHLPGKTFVY': 4, 'RLLDSVSRL': 3, 'SPSVSQLSVL': 1}
+off_54/s42/target.tsv {'P->P': 22, 'V->P': 25, 'V->L': 4, 'V->V': 1} peptides: {'VLLAGFKPPL': 22, 'IPFSNPRVL': 10, 'FYFPTPTVL': 10, 'RLLDSVSRL': 4, 'FPHLPGKTFVY': 3, 'SPSVSQLSVL': 2, 'VWSDVTPLTF': 1}
+off_54/s137/target.tsv {'P->P': 20, 'V->P': 24, 'V->L': 4} peptides: {'VLLAGFKPPL': 20, 'FYFPTPTVL': 11, 'IPFSNPRVL': 10, 'RLLDSVSRL': 4, 'FPHLPGKTFVY': 3}
+on_52/s1/target.tsv {'P->P': 34, 'V->L': 3, 'V->P': 17, 'V->V': 1} peptides: {'VLLAGFKPPL': 34, 'IPFSNPRVL': 12, 'FYFPTPTVL': 4, 'RLLDSVSRL': 2, 'VLYPVPLESY': 1, 'VWSDVTPLTF': 1, 'FPHLPGKTFVY': 1}
+on_52/s42/target.tsv {'P->P': 35, 'V->L': 2, 'V->P': 13} peptides: {'VLLAGFKPPL': 35, 'IPFSNPRVL': 8, 'FYFPTPTVL': 4, 'RLLDSVSRL': 2, 'FPHLPGKTFVY': 1}
+on_52/s137/target.tsv {'P->P': 35, 'V->L': 2, 'V->P': 15} peptides: {'VLLAGFKPPL': 35, 'IPFSNPRVL': 10, 'FYFPTPTVL': 4, 'RLLDSVSRL': 2, 'FPHLPGKTFVY': 1}
+on_53/s1/target.tsv {'P->P': 35, 'V->L': 5, 'V->P': 14} peptides: {'VLLAGFKPPL': 35, 'IPFSNPRVL': 12, 'RLLDSVSRL': 5, 'FYFPTPTVL': 1, 'FPHLPGKTFVY': 1}
+on_53/s42/target.tsv {'P->P': 34, 'V->P': 15, 'V->L': 4} peptides: {'VLLAGFKPPL': 34, 'IPFSNPRVL': 13, 'RLLDSVSRL': 4, 'FPHLPGKTFVY': 1, 'FYFPTPTVL': 1}
+on_53/s137/target.tsv {'P->P': 35, 'V->L': 4, 'V->P': 16} peptides: {'VLLAGFKPPL': 35, 'IPFSNPRVL': 15, 'RLLDSVSRL': 4, 'FPHLPGKTFVY': 1}
+on_54/s1/target.tsv {'P->P': 46, 'V->L': 3, 'V->P': 24} peptides: {'VLLAGFKPPL': 46, 'IPFSNPRVL': 11, 'FYFPTPTVL': 10, 'RLLDSVSRL': 3, 'FPHLPGKTFVY': 3}
+on_54/s42/target.tsv {'P->P': 47, 'V->P': 23, 'V->L': 3} peptides: {'VLLAGFKPPL': 47, 'IPFSNPRVL': 11, 'FYFPTPTVL': 10, 'RLLDSVSRL': 3, 'FPHLPGKTFVY': 2}
+on_54/s137/target.tsv {'P->P': 48, 'V->P': 25, 'V->L': 4} peptides: {'VLLAGFKPPL': 48, 'IPFSNPRVL': 12, 'FYFPTPTVL': 10, 'RLLDSVSRL': 4, 'FPHLPGKTFVY': 3}

@@ -84,5 +84,39 @@ scripts/timing.sh > results/timing.tsv          # 3 interleaved repetitions per 
 | `timing.tsv` | search wall time, peak RSS, Percolator wall time |
 | `inputs.sha256` | inputs |
 
+| `mhc_site.tsv` | spike-in site accuracy per arm, file and seed (see below) |
+| `mhc_wrong_sites.txt` | wrong-site PSMs per arm/file/seed: true → reported label residue, and the peptides |
+| `mhc_params.json`, `mhc_inputs.sha256` | spike-in search parameters and inputs |
+
+## Known-position test: MHCquant spike-in (PXD011628)
+
+The phospho benchmark has no ground truth for the site. The MHCquant spike-in has: 66 synthetic HLA class I peptides,
+each with exactly one heavy residue (V or P: `Label:13C(5)15N(1)`, +6.0138; L: `Label:13C(6)15N(1)`, +7.0172; table
+`spiked_peptides_labels.tsv` from https://archive.openms.de/openms/testfiles/lfq/, from Bichmann et al. 2019 Table S3),
+spiked into a JY immunopeptidome. Files: the three 100 fmol replicates `…TUMAPs_100fm_…msms52/53/54.raw` (Lumos,
+FTMS CID MS2), converted with `FileConverter -RawToMzML:reader inprocess`.
+
+Search (`results/mhc_params.json`): human Swiss-Prot `human_sp.fasta` from the same archive (20,431 entries) +
+reversed `DECOY_` decoys; unspecific cleavage, length 8–12, charge 1–4, `low_memory true`, 10 ppm precursor, 20 ppm
+fragment, no fixed mods, variable Oxidation(M), Label:13C(5)15N(1) (V), Label:13C(5)15N(1) (P), Label:13C(6)15N(1) (L),
+≤ 2 per peptide, `report:top_hits 10`; other parameters as the frozen high-res set. Same Percolator protocol.
+V and P labels have the same modification name, so the PR's key treats them as isomers of each other.
+
+Evaluation (`mhc_site.py`): accepted PSMs (q ≤ 0.01) whose residue sequence is a spiked peptide; correct = one heavy
+label at the true position; wrong site = one heavy label elsewhere. Also ProSE's own rank-1 row of the same spectrum
+(best `score` in the PIN) and, where Percolator accepted another row than ProSE's rank 1, which of the two was right.
+
+```bash
+scripts/mhc.sh                                         # off/on for msms52/53/54
+python3 -I scripts/mhc_site.py spiked_peptides_labels.tsv runs/mhc/{off,on}_5{2,3,4}
+python3 -I scripts/mhc_wrong.py spiked_peptides_labels.tsv runs/mhc/{off,on}_5{2,3,4}/s*/target.tsv
+```
+
+Result, sum over the three files of the seed means: off 4,308.7 correct / 133.0 wrong site (97.0%), on 4,248.7 /
+180.7 (95.9%); wrong-site PSMs +36%, up in all 9 file × seed pairs. All accepted PSMs 23,696.7 → 23,761.3 (+0.3%).
+With the option off, Percolator accepted 111.7 spike-in PSMs that are not ProSE's rank-1 row; 89.0 of them had the
+correct site (ProSE's rank 1: 27.7). The collapse removes those alternatives, so ProSE's rank-1 site errors stay.
+Most of the change is one peptide, VLLAGFKPPL (label on P8 next to P9): 17–22 → 34–47 wrong-site PSMs per file (seed 42).
+
 Isolation: with the option off, PIN and idXML (date/version lines removed) are byte-identical to the baseline on all 20
 suite files and on the phospho file.
