@@ -47,9 +47,9 @@ namespace OpenMS
       int actual_n = actual_schema->num_fields();
       int expected_n = expected_schema->num_fields();
 
-      if (mode == Mode::Strict)
+      if (mode == Mode::Strict || mode == Mode::Extensible)
       {
-        if (actual_n != expected_n)
+        if (actual_n < expected_n || (mode == Mode::Strict && actual_n != expected_n))
         {
           result.valid = false;
           result.errors.push_back("Field count mismatch: got " + std::to_string(actual_n) +
@@ -83,8 +83,8 @@ namespace OpenMS
           }
         }
 
-        // Check for extra fields beyond expected count
-        for (int i = expected_n; i < actual_n; ++i)
+        // Check for extra fields beyond expected count (Extensible: allowed after the expected ones)
+        for (int i = expected_n; i < actual_n && mode == Mode::Strict; ++i)
         {
           result.valid = false;
           result.errors.push_back("Unexpected field '" + actual_schema->field(i)->name() +
