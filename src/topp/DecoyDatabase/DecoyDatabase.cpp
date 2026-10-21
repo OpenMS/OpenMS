@@ -22,6 +22,8 @@
 
 #include <regex>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 
 using namespace OpenMS;
@@ -106,8 +108,11 @@ protected:
 
     registerIntOption_("entrapment_ratio", "<int>", 0,
                        "Number of entrapment proteins written per target protein (0: none). An entrapment protein is the target with every "
-                       "peptide (as defined by 'enzyme') shuffled: the peptide termini and K, R and P stay in place and the residues between them "
-                       "are permuted, never replaced, so every entrapment peptide has the mass of its target peptide. Entrapment proteins receive decoys like "
+                       "peptide (as defined by 'enzyme', no missed cleavages) shuffled as in Wen et al., Nat. Methods 2025: the C-terminal residue and "
+                       "K, R and P stay in place and the residues between them are permuted, never replaced, so every entrapment peptide has the mass "
+                       "of its target peptide. A shuffle is repeated (up to 'shuffle_max_attempts' times) until the entrapment peptide differs from "
+                       "every target peptide and every other entrapment peptide; identical target peptides get the same entrapment peptide. "
+                       "Entrapment proteins receive decoys like "
                        "targets do and are searched as targets; PSMs that only match entrapment proteins are false by construction, which lets "
                        "EntrapmentEvaluator measure the false discovery proportion at a nominal FDR.", false);
     setMinInt_("entrapment_ratio", 0);
@@ -160,23 +165,19 @@ protected:
   }
   
 
-  /// Shuffle one peptide for an entrapment sequence. K, R and P (they decide the tryptic cleavage sites) and, as configured,
-  /// the termini stay in place, and the other residues are permuted within each stretch between them, never replaced: so
-  /// the peptide, and every peptide it contains under Trypsin, Trypsin/P, Lys-C or Arg-C, keeps its composition and mass.
-  /// Of up to @p max_attempts shuffles, the first with a sequence identity to @p peptide at or below @p identity_threshold
-  /// is taken, otherwise the least similar one. The generator is reseeded for every peptide, so identical peptides are
-  /// shuffled identically.
-  static std::string shuffleEntrapmentPeptide_(const std::string& peptide, bool keepN, bool keepC, double identity_threshold,
-                                               int seed, int max_attempts, Math::RandomShuffler& shuffler)
+  /// Shuffle one peptide for an entrapment sequence, as Wen et al., Nat. Methods 2025 do: the C-terminal residue and K, R and
+  /// P (they decide the tryptic cleavage sites) stay in place, and the other residues are permuted within each stretch
+  /// between them, never replaced. So the peptide, and every peptide it contains under Trypsin, Trypsin/P, Lys-C or Arg-C,
+  /// keeps its composition and mass. Of up to @p max_attempts shuffles, the first that is not in @p taken (the target
+  /// peptides and the entrapment peptides made so far) is used and added to @p taken. If none is new, the peptide stays as
+  /// it is (a target peptide, which EntrapmentEvaluator then counts as target).
+  static std::string shuffleEntrapmentPeptide_(const std::string& peptide, int max_attempts, Math::RandomShuffler& shuffler,
+                                               std::unordered_set<std::string>& taken)
   {
-    // stretches [begin, end) of residues that may move
-    std::vector<std::pair<Size, Size>> stretches;
+    auto fixed = [&](Size k) { return k + 1 == peptide.size() || peptide[k] == 'K' || peptide[k] == 'R' || peptide[k] == 'P'; };
+    std::vector<std::pair<Size, Size>> stretches; // [begin, end) of residues that may move
     for (Size i = 0; i < peptide.size();)
     {
-      auto fixed = [&](Size k)
-      {
-        return (keepN && k == 0) || (keepC && k + 1 == peptide.size()) || peptide[k] == 'K' || peptide[k] == 'R' || peptide[k] == 'P';
-      };
       if (fixed(i)) { ++i; continue; }
       Size end = i;
       while (end < peptide.size() && !fixed(end)) ++end;
@@ -185,9 +186,6 @@ protected:
     }
     if (stretches.empty()) return peptide;
 
-    shuffler.seed(seed);
-    std::string best = peptide;
-    Size best_same = peptide.size() + 1; // the first shuffle is always taken
     for (int attempt = 0; attempt < std::max(1, max_attempts); ++attempt)
     {
       std::string shuffled = peptide;
@@ -195,25 +193,20 @@ protected:
       {
         shuffler.portable_random_shuffle(shuffled.begin() + begin, shuffled.begin() + end);
       }
-      Size same = 0;
-      for (Size i = 0; i < peptide.size(); ++i) same += (shuffled[i] == peptide[i]);
-      if (same < best_same)
-      {
-        best = std::move(shuffled);
-        best_same = same;
-      }
-      if (static_cast<double>(best_same) / static_cast<double>(peptide.size()) <= identity_threshold) break;
+      if (taken.insert(shuffled).second) return shuffled;
     }
-    return best;
+    return peptide;
   }
 
   /// Shuffle every peptide of a protein sequence (see shuffleEntrapmentPeptide_), or the whole sequence for 'no cleavage'.
-  /// Identical peptides are shuffled identically, so the entrapment database has as many distinct peptides as the target.
-  static std::string shuffleProteinPeptides_(const std::string& sequence, ProteaseDigestion& digestion,
-                                             double identity_threshold, int seed, int max_attempts, const std::string& enzyme,
-                                             bool keepN, bool keepC, Math::RandomShuffler& shuffler)
+  /// @p swapped maps each target peptide to its entrapment peptide, so a peptide that occurs in several proteins, or several
+  /// times in one, is replaced by the same entrapment peptide everywhere.
+  static std::string shuffleProteinPeptides_(const std::string& sequence, ProteaseDigestion& digestion, int seed, int max_attempts,
+                                             const std::string& enzyme, Math::RandomShuffler& shuffler,
+                                             std::unordered_set<std::string>& taken,
+                                             std::unordered_map<std::string, std::string>& swapped)
   {
-    if (enzyme == "no cleavage" || enzyme.empty() || !(keepN || keepC))
+    if (enzyme == "no cleavage" || enzyme.empty())
     {
       std::string shuffled = sequence;
       shuffler.seed(seed);
@@ -226,7 +219,9 @@ protected:
     new_sequence.reserve(sequence.size());
     for (const auto& peptide : peptides)
     {
-      new_sequence += shuffleEntrapmentPeptide_(peptide.toString(), keepN, keepC, identity_threshold, seed, max_attempts, shuffler);
+      auto [it, inserted] = swapped.try_emplace(peptide.toString());
+      if (inserted) it->second = shuffleEntrapmentPeptide_(it->first, max_attempts, shuffler, taken);
+      new_sequence += it->second;
     }
     return new_sequence;
   }
@@ -482,6 +477,30 @@ protected:
     m.setParameters(decoy_param);
 
     Math::RandomShuffler shuffler(seed);
+
+    // entrapment: the target peptides (no entrapment peptide may equal one), and per entrapment copy its own generator
+    // (seeded apart from the decoy seed, so entrapment and decoy sequences differ even with method 'shuffle') and the
+    // entrapment peptide of every target peptide
+    std::unordered_set<std::string> entrapment_taken;
+    std::vector<Math::RandomShuffler> entrapment_shufflers;
+    std::vector<std::unordered_map<std::string, std::string>> entrapment_swapped(entrapment_ratio);
+    for (int n = 0; n < entrapment_ratio; ++n) entrapment_shufflers.emplace_back(seed + 7919 * (n + 1));
+    if (entrapment_ratio > 0 && enzyme != "no cleavage" && !enzyme.empty())
+    {
+      std::vector<AASequence> peptides;
+      for (const auto& file_fasta : in)
+      {
+        std::vector<FASTAFile::FASTAEntry> entries;
+        FASTAFile().load(file_fasta, entries);
+        for (const auto& entry : entries)
+        {
+          peptides.clear();
+          digestion.digest(AASequence::fromString(entry.sequence), peptides);
+          for (const auto& peptide : peptides) entrapment_taken.insert(peptide.toString());
+        }
+      }
+    }
+
     for (const auto& file_fasta : in)
     {
       /// in neighbor-peptide mode: write relevant peptides to the output file
@@ -523,9 +542,8 @@ protected:
           }
           identifiers.insert(entrap_entry.identifier);
           entrap_entry.description = "entrapment (shuffled) of " + read_entry.identifier;
-          // a seed that differs from the decoy seeds, so entrapment and decoy sequences differ even with method 'shuffle'
-          entrap_entry.sequence = shuffleProteinPeptides_(read_entry.sequence, digestion, identity_threshold,
-                                                          seed + 7919 * (n + 1), max_attempts, enzyme, keepN, keepC, shuffler);
+          entrap_entry.sequence = shuffleProteinPeptides_(read_entry.sequence, digestion, seed + 7919 * (n + 1), max_attempts, enzyme,
+                                                          entrapment_shufflers[n], entrapment_taken, entrapment_swapped[n]);
           sources.push_back(std::move(entrap_entry));
         }
 

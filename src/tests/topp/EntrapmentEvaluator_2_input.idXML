@@ -25,17 +25,17 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1004.4" MZ="502.2" >
-			<PeptideHit score="0.004" sequence="FTQAFTSAHYDLK" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="0.004" sequence="DAASFQTHLFYTK" charge="2" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1006.6" MZ="503.3" >
-			<PeptideHit score="0.003" sequence="FDITESK" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="0.003" sequence="SEDITFK" charge="2" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1008.8" MZ="504.4" >
-			<PeptideHit score="0.001" sequence="IPTNAER" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="0.001" sequence="IPTAENR" charge="2" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
