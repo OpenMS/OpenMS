@@ -42,7 +42,6 @@
 #include <algorithm>
 #include <fstream>
 #include <cmath>
-#include <cstdlib>
 #include <iomanip>
 #include <limits>
 #include <new>
@@ -247,11 +246,6 @@ class ProSE :
       Size with_peaks = 0;
       try
       {
-        // Test hook: a re-read that fails after the search (run with -test only).
-        if (getFlag_("test") && std::getenv("OPENMS_PROSE_TEST_FAIL_SPECTRA_READ") != nullptr)
-        {
-          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in_file);
-        }
         MSDataTransformingConsumer keep;
         keep.setSpectraProcessingFunc([&](MSSpectrum& spectrum)
         {
