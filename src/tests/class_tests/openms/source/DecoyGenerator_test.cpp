@@ -84,6 +84,7 @@ START_SECTION((AASequence shufflePeptides(const AASequence& aas, const std::stri
   }
   // 5. empty protein
   TEST_EQUAL(dg->shufflePeptides(AASequence(), "Trypsin").toString(), "")
+  TEST_EQUAL(dg->shufflePeptides(AASequence(), "unspecific cleavage").toString(), "")
 END_SECTION
 
 START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const std::string& protease, int decoy_factor)))

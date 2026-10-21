@@ -111,6 +111,7 @@ AASequence DecoyGenerator::shufflePeptides(
         const int max_attempts)
 {  
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  if (protein.empty()) return protein;
 
   std::vector<AASequence> peptides;
   // 'unspecific cleavage': no enzymatic termini to keep, and its digest is every subsequence of the protein, not a
@@ -127,7 +128,6 @@ AASequence DecoyGenerator::shufflePeptides(
     ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
     ed.digest(protein, peptides);
   }
-  if (peptides.empty()) return protein; // empty protein
   std::string protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
