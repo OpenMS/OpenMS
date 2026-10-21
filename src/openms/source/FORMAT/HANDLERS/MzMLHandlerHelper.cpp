@@ -396,6 +396,13 @@ namespace OpenMS::Internal
             MSNumpressCoder().decodeNP(bindata.base64, bindata.floats_64,  bindata.compression, config);
           }
 
+          if (bindata.size != bindata.floats_64.size())
+          {
+            MzMLHandlerHelper::warning(0,std::string("Float binary data array '") + bindata.meta.getName() +
+                "' has length " + bindata.floats_64.size() + ", but should have length " + bindata.size + ".");
+            bindata.size = bindata.floats_64.size();
+          }
+
           // Next, ensure that we only look at the float array even if the
           // mzML tags say 32 bit data (I am looking at you, proteowizard)
           bindata.precision = BinaryData::PRE_64;

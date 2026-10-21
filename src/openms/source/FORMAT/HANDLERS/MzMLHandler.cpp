@@ -27,6 +27,16 @@ namespace OpenMS::Internal
 {
     namespace
     {
+      // List counts are untrusted capacity hints; reserve a bounded initial size and let
+      // the containers grow as records are actually parsed.
+      constexpr Size MAX_INITIAL_SPECTRA_OR_CHROMATOGRAM_CAPACITY = 1 << 16;
+      constexpr Size MAX_INITIAL_BINARY_ARRAY_CAPACITY = 16;
+
+      Size capacityHint_(const Int count, const Size limit)
+      {
+        return std::min(static_cast<Size>(count), limit);
+      }
+
       /**
         @brief Escape an attribute value for the mzML writer.
 
@@ -977,6 +987,10 @@ namespace OpenMS::Internal
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         scan_count_total_ = attributeAsInt_(attributes, s_count);
+        if (scan_count_total_ < 0)
+        {
+          fatalError(LOAD, "The spectrumList count must not be negative.");
+        }
         logger_.startProgress(0, scan_count_total_, "loading spectra list");
         in_spectrum_list_ = true;
         // we only want total scan count and chrom count
@@ -993,7 +1007,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          exp_->reserveSpaceSpectra(scan_count_total_);
+          exp_->reserveSpaceSpectra(capacityHint_(scan_count_total_, MAX_INITIAL_SPECTRA_OR_CHROMATOGRAM_CAPACITY));
         }
       }
       else if (tag == "chromatogramList")
@@ -1014,6 +1028,10 @@ namespace OpenMS::Internal
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         chrom_count_total_ = attributeAsInt_(attributes, s_count);
+        if (chrom_count_total_ < 0)
+        {
+          fatalError(LOAD, "The chromatogramList count must not be negative.");
+        }
         logger_.startProgress(0, chrom_count_total_, "loading chromatogram list");
         in_spectrum_list_ = false;
 
@@ -1031,12 +1049,17 @@ namespace OpenMS::Internal
         }
         else
         {
-          exp_->reserveSpaceChromatograms(chrom_count_total_);
+          exp_->reserveSpaceChromatograms(capacityHint_(chrom_count_total_, MAX_INITIAL_SPECTRA_OR_CHROMATOGRAM_CAPACITY));
         }
       }
       else if (tag == "binaryDataArrayList" /* && in_spectrum_list_*/)
       {
-        bin_data_.reserve(attributeAsInt_(attributes, s_count));
+        const Int count = attributeAsInt_(attributes, s_count);
+        if (count < 0)
+        {
+          fatalError(LOAD, "The binaryDataArrayList count must not be negative.");
+        }
+        bin_data_.reserve(capacityHint_(count, MAX_INITIAL_BINARY_ARRAY_CAPACITY));
       }
       else if (tag == "binaryDataArray" /* && in_spectrum_list_*/)
       {

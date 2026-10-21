@@ -2187,4 +2187,159 @@ START_SECTION((data array names and the fraction identifier are XML-escaped))
 }
 END_SECTION
 
+START_SECTION([EXTRA] untrusted list counts and short Numpress metadata arrays are safe)
+{
+  PeakMap original;
+  MSSpectrum spectrum;
+  spectrum.setNativeID("scan=1");
+  spectrum.setRT(1.0);
+  spectrum.setMSLevel(1);
+  for (Size i = 0; i < 100; ++i)
+  {
+    spectrum.push_back(Peak1D(100.0 + i, 100.0 + i));
+  }
+  MSSpectrum::FloatDataArray spectrum_array;
+  spectrum_array.setName("supplemental array");
+  for (Size i = 0; i < 10; ++i)
+  {
+    spectrum_array.push_back(static_cast<float>(i + 0.5));
+  }
+  spectrum.getFloatDataArrays().push_back(spectrum_array);
+  original.addSpectrum(spectrum);
+
+  MSChromatogram chromatogram;
+  chromatogram.setNativeID("chromatogram=1");
+  for (Size i = 0; i < 100; ++i)
+  {
+    chromatogram.push_back(ChromatogramPeak(i, 100.0 + i));
+  }
+  MSChromatogram::FloatDataArray chromatogram_array;
+  chromatogram_array.setName("supplemental array");
+  for (Size i = 0; i < 10; ++i)
+  {
+    chromatogram_array.push_back(static_cast<float>(i + 0.5));
+  }
+  chromatogram.getFloatDataArrays().push_back(chromatogram_array);
+  original.addChromatogram(chromatogram);
+
+  MzMLFile file;
+  MSNumpressCoder::NumpressConfig numpress;
+  numpress.setCompression("linear");
+  numpress.estimate_fixed_point = true;
+  file.getOptions().setNumpressConfigurationFloatDataArray(numpress);
+
+  std::string encoded;
+  file.storeBuffer(encoded, original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002312"))
+
+  // The arrays intentionally contain only ten values although each parent has 100 peaks.
+  // Omitting their optional arrayLength makes the reader use defaultArrayLength, as in the
+  // malformed-input case where a Numpress decoder returns fewer values than declared.
+  Size removed_array_lengths = 0;
+  Size pos = 0;
+  const std::string array_length = " arrayLength=\"10\"";
+  while ((pos = encoded.find(array_length, pos)) != std::string::npos)
+  {
+    encoded.erase(pos, array_length.size());
+    ++removed_array_lengths;
+  }
+  TEST_EQUAL(removed_array_lengths, 2)
+
+  const auto replace_once = [](std::string& text, const std::string& from, const std::string& to)
+  {
+    const Size found = text.find(from);
+    if (found == std::string::npos)
+    {
+      return false;
+    }
+    text.replace(found, from.size(), to);
+    return true;
+  };
+  const auto replace_all = [](std::string& text, const std::string& from, const std::string& to)
+  {
+    Size count = 0;
+    Size found = 0;
+    while ((found = text.find(from, found)) != std::string::npos)
+    {
+      text.replace(found, from.size(), to);
+      found += to.size();
+      ++count;
+    }
+    return count;
+  };
+
+  // Counts are allocation hints, not trustworthy requests for unbounded memory.
+  TEST_TRUE(replace_once(encoded, "spectrumList count=\"1\"",
+                         "spectrumList count=\"2000000000\""))
+  TEST_TRUE(replace_once(encoded, "chromatogramList count=\"1\"",
+                         "chromatogramList count=\"2000000000\""))
+  TEST_EQUAL(replace_all(encoded, "binaryDataArrayList count=\"3\"",
+                         "binaryDataArrayList count=\"2000000000\""), 2)
+
+  PeakMap loaded;
+  file.loadBuffer(encoded, loaded);
+  TEST_EQUAL(loaded.size(), 1)
+  ABORT_IF(loaded.size() != 1)
+  TEST_EQUAL(loaded[0].getFloatDataArrays().size(), 1)
+  ABORT_IF(loaded[0].getFloatDataArrays().size() != 1)
+  TEST_EQUAL(loaded.getSpectra()[0].getFloatDataArrays()[0].size(), 10)
+  for (Size i = 0; i < 10; ++i)
+  {
+    TEST_REAL_SIMILAR(loaded[0].getFloatDataArrays()[0][i], i + 0.5)
+  }
+  TEST_EQUAL(loaded.getChromatograms().size(), 1)
+  ABORT_IF(loaded.getChromatograms().size() != 1)
+  TEST_EQUAL(loaded.getChromatograms()[0].getFloatDataArrays().size(), 1)
+  ABORT_IF(loaded.getChromatograms()[0].getFloatDataArrays().size() != 1)
+  TEST_EQUAL(loaded.getChromatograms()[0].getFloatDataArrays()[0].size(), 10)
+  for (Size i = 0; i < 10; ++i)
+  {
+    TEST_REAL_SIMILAR(loaded.getChromatograms()[0].getFloatDataArrays()[0][i], i + 0.5)
+  }
+  TEST_TRUE(loaded.getSpectra().capacity() <= (1 << 16))
+  TEST_TRUE(loaded.getChromatograms().capacity() <= (1 << 16))
+
+  MzMLFile filtered_file;
+  filtered_file.getOptions().setMZRange(makeRange(100.0, 105.0));
+  PeakMap filtered;
+  filtered_file.loadBuffer(encoded, filtered);
+  ABORT_IF(filtered.size() != 1)
+  ABORT_IF(filtered[0].getFloatDataArrays().size() != 1)
+  TEST_EQUAL(filtered[0].size(), 5)
+  TEST_EQUAL(filtered[0].getFloatDataArrays()[0].size(), filtered[0].size())
+
+  // Negative counts are malformed mzML and should produce a parser error, not a
+  // huge reserve request or an uncaught standard-library exception.
+  std::string negative_count_filename;
+  NEW_TMP_FILE(negative_count_filename);
+  PeakMap rejected;
+  std::string negative_count = encoded;
+  TEST_TRUE(replace_once(negative_count, "spectrumList count=\"2000000000\"",
+                         "spectrumList count=\"-1\""))
+  {
+    std::ofstream output(negative_count_filename);
+    output << negative_count;
+  }
+  TEST_EXCEPTION(Exception::ParseError, file.load(negative_count_filename, rejected))
+
+  negative_count = encoded;
+  TEST_TRUE(replace_once(negative_count, "chromatogramList count=\"2000000000\"",
+                         "chromatogramList count=\"-1\""))
+  {
+    std::ofstream output(negative_count_filename);
+    output << negative_count;
+  }
+  TEST_EXCEPTION(Exception::ParseError, file.load(negative_count_filename, rejected))
+
+  negative_count = encoded;
+  TEST_TRUE(replace_once(negative_count, "binaryDataArrayList count=\"2000000000\"",
+                         "binaryDataArrayList count=\"-1\""))
+  {
+    std::ofstream output(negative_count_filename);
+    output << negative_count;
+  }
+  TEST_EXCEPTION(Exception::ParseError, file.load(negative_count_filename, rejected))
+}
+END_SECTION
+
 END_TEST
