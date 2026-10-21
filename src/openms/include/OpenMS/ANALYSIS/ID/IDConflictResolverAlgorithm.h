@@ -60,6 +60,28 @@ public:
   **/
   static void resolve(ConsensusMap& features, bool keep_matching = false);
 
+  /** @brief Annotates the runs a consensus feature's identification was transferred to (match-between-runs).
+
+    A feature linker that groups unidentified features with identified ones, e.g. FeatureGroupingAlgorithmQT,
+    transfers the identification to the runs of the unidentified features without recording it. This lists, for
+    each consensus feature with an identification, the map indices of its features that are not identified as
+    that peptide in their own run (meta value Constants::UserParam::MBR_TRANSFER_MAP_INDICES, as written by
+    PipEchoAlgorithm, but without q-values).
+
+    The identifications of a run are found by their "map_index" meta value (see ConsensusFeature::insert()).
+    Call this after resolve(features, true), which leaves the identifications of the best hit's sequence (and
+    moves those of other sequences off the feature): a run whose feature was identified as a different peptide
+    counts as a transfer, as its signal is reported for the feature's peptide. Call it after filtering the
+    identifications, too: identifications without hits do not count, so a run whose hits were filtered out
+    counts as a transfer, and a consensus feature without any hit left gets no annotation.
+
+    Consensus features are left unchanged if they have no identification with a hit, if one of their
+    identifications has no "map_index", or if they already carry transfers (e.g. from PipEchoAlgorithm).
+
+    @param[in,out] features Consensus map to annotate
+  **/
+  static void annotateTransfers(ConsensusMap& features);
+
   /** @brief Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
 
     For each feature, peptide hits across all identifications are aggregated by rank.
@@ -134,13 +156,13 @@ public:
     @brief Reduce identifications a quantification workflow cannot tell apart to one per spectrum.
 
     Quantification tools measure one value per (spectrum, peptidoform, charge). Where the input
-    carries several identifications of that same triple - e.g. two search engines that agree,
-    concatenated rather than combined - only one of them can own the measurement, and keeping
-    all of them counts one measurement several times.
+    carries several identifications of that same triple - e.g. the concatenated results of two
+    search engines that agree - only one of them can own the measurement, and keeping all of them
+    counts one measurement several times.
 
     This keeps the best-scoring identification of each such group and removes the rest. That is a
-    tie-break on scores something upstream already assigned, not a scoring decision: combining
-    scores from different engines is ConsensusIDAlgorithm's job and is deliberately not done here.
+    tie-break on the scores as given, not a rescoring: it does not make the scores of different
+    engines comparable.
 
     Identifications are keyed on the top hit as stored; hits are never re-sorted, so the key
     matches what the exporters and quantifiers read. Surviving identifications keep their

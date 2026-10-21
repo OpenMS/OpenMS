@@ -34,9 +34,11 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -100,9 +102,8 @@ using namespace std;
   spectrum read the same MS2/MS3 scan, the input is expected to carry one identification per
   spectrum. Where several of them agree on peptidoform and charge, only the best-scoring one is
   kept and the reduction is reported; the others would otherwise contribute the same reporter
-  intensities a second time to every abundance derived from them. Results from several search
-  engines must therefore be combined - with @ref TOPP_ConsensusID (@p -algorithm best
-  @p -keep_old_scores, which preserves each engine's score) - rather than simply concatenated.
+  intensities a second time to every abundance derived from them. Pass the results of one search
+  engine rather than concatenating those of several, whose scores are not comparable.
   Identifications of one spectrum naming *different* peptidoforms are left alone and each
   quantified separately.
 
@@ -221,8 +222,8 @@ protected:
       "One identification per spectrum is expected: this tool quantifies one consensus feature\n"
       "per identification, so several identifications of one spectrum agreeing on peptidoform\n"
       "and charge would contribute the same reporter intensities more than once. Only the\n"
-      "best-scoring one of such a group is kept. Combine results from several search engines\n"
-      "with ConsensusID rather than concatenating them.");
+      "best-scoring one of such a group is kept. Pass the results of one search engine rather\n"
+      "than concatenating those of several.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
@@ -368,6 +369,27 @@ protected:
     if (calc_id_purity || !has_ms3)
     {
       double ms1_purity = -1.;
+      // FAIMS: the precursor spectrum must have the CV of the identified scan. Without a precursor spectrum reference,
+      // getPrecursorSpectrum() returns the preceding MS1 spectrum, which can be of another CV: then take the last MS1
+      // spectrum of the scan's CV before it (none: no purity). This applies only when that precursor MS1 spectrum
+      // carries a CV itself: files where only MS2 spectra carry the CV keep the plain preceding MS1, as in
+      // IsobaricChannelExtractor.
+      const MSSpectrum& id_spec = exp[id_spec_idx];
+      const bool faims = id_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                         && ms1_spec_idx >= 0
+                         && exp[ms1_spec_idx].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      const auto same_cv = [&id_spec, faims](const MSSpectrum& s)
+      {
+        if (!faims) return true;
+        return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+               && std::fabs(s.getDriftTime() - id_spec.getDriftTime()) < 0.01;
+      };
+      if (faims && ms1_spec_idx >= 0 && !same_cv(exp[ms1_spec_idx]))
+      {
+        int idx = id_spec_idx - 1;
+        while (idx >= 0 && !(exp[idx].getMSLevel() == 1 && same_cv(exp[idx]))) { --idx; }
+        ms1_spec_idx = idx;
+      }
       // An MS2 with no preceding MS1 has no survey scan to measure isolation purity against --
       // an acquisition that starts mid-cycle, or an mzML filtered down to a spectrum subset.
       // MSExperiment::getPrecursorSpectrum() reports that as -1, which is NOT a spectrum index:
@@ -386,6 +408,8 @@ protected:
       }
       else
       {
+        // The next MS1 spectrum of the same FAIMS compensation voltage: with FAIMS, the CVs alternate from one MS1
+        // spectrum to the next, and a survey scan of another CV holds other ions
         Size next_ms1_spec = quant_spec_idx;
         do
         {
@@ -396,11 +420,7 @@ protected:
             next_ms1_spec = ms1_spec_idx;
             break;
           }
-          else if (exp[next_ms1_spec].getMSLevel() == 1
-                   // with FAIMS, the next survey scan at the same compensation voltage
-                   && (exp[ms1_spec_idx].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                       || (exp[next_ms1_spec].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                           && exp[next_ms1_spec].getDriftTime() == exp[ms1_spec_idx].getDriftTime())))
+          else if (exp[next_ms1_spec].getMSLevel() == 1 && same_cv(exp[next_ms1_spec]))
           {
             break;
           }
@@ -698,8 +718,8 @@ protected:
                              " identification, e.g. " << report.example << ".\n"
                              "Kept the best-scoring one of each group; the others would have"
                              " contributed the same reporter intensities a second time. To control"
-                             " this upstream, combine search engine results with ConsensusID"
-                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                             " this upstream, pass the results of one search engine rather than"
+                             " concatenating those of several."
                           << endl;
         }
         if (report.inconsistent_score_direction > 0)

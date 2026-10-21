@@ -1756,6 +1756,59 @@ START_SECTION(DDA native ID format test)
 }
 END_SECTION
 
+START_SECTION([EXTRA] DDA precursors: m/z without a monoisotopic peak and ion mobility from the Precursors table)
+{
+  // A copy of the run in which one precursor has no monoisotopic m/z and no charge (NULL), as the acquisition software
+  // writes them for precursors whose charge it could not determine. Its spectrum gets the m/z of the most intense peak
+  // (LargestPeakMz) instead of 0, and charge 0.
+  TempDir tmp;
+  const std::string path = OPENTIMS_DDA_TEST_DATA;
+  const std::string copy = tmp.getPath() + "/null_mono.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+
+  // The precursor with MS/MS spectra with the smallest Id loses its monoisotopic m/z and charge; its largest peak gets a
+  // marker m/z that no other precursor has, by which its spectrum is found below.
+  const double largest_peak_mz = 777.123456;
+  {
+    SqliteConnector conn(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("UPDATE Precursors SET MonoisotopicMz = NULL, Charge = NULL, LargestPeakMz = 777.123456 "
+                          "WHERE Id = (SELECT MIN(Precursor) FROM PasefFrameMsMsInfo)");
+  }
+
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.load_ms1 = false;
+  MSExperiment exp;
+  f.load(copy, exp, cfg);
+  const MSSpectrum* found = nullptr;
+  Size zero_mz = 0;
+  for (const MSSpectrum& spec : exp)
+  {
+    if (spec.getMSLevel() != 2 || spec.getPrecursors().empty()) continue;
+    if (spec.getPrecursors()[0].getMZ() <= 0.0) ++zero_mz;
+    if (std::fabs(spec.getPrecursors()[0].getMZ() - largest_peak_mz) < 1e-6) found = &spec;
+  }
+  TEST_EQUAL(zero_mz, 0)
+  TEST_NOT_EQUAL(found, nullptr)
+  ABORT_IF(found == nullptr)
+  const Precursor& prec = found->getPrecursors()[0];
+  TEST_REAL_SIMILAR(prec.getMZ(), largest_peak_mz)
+  TEST_EQUAL(prec.getCharge(), 0)
+
+  // The precursor's ion mobility (its ScanNumber converted to 1/K0) is the same on the spectrum and on the precursor,
+  // and a plausible timsTOF 1/K0
+  TEST_EQUAL(prec.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+  TEST_REAL_SIMILAR(found->getDriftTime(), prec.getDriftTime())
+  TEST_TRUE(prec.getDriftTime() > 0.4 && prec.getDriftTime() < 2.0)
+  STATUS("precursor without monoisotopic m/z: 1/K0 " << prec.getDriftTime());
+}
+END_SECTION
+
 START_SECTION(Bruker load_ms1=false test)
 {
   BrukerTimsFile f;
