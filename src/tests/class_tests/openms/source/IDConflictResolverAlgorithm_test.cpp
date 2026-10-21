@@ -156,11 +156,24 @@ START_SECTION((static void annotateTransfers(ConsensusMap& features)))
   unknown_runs.setPeptideIdentifications({makePepID_("scan=99", "PEPTIDEK", 2, 0.1)});
   map.push_back(unknown_runs);
 
+  // 6: identified in runs 0 and 1, but the hits of run 1 get filtered out below -> transferred to run 1
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("PEPTIDEK", 0.6)}));
+  // 7: all hits filtered out -> no identification left, no transfer
+  map.push_back(link({make_feature("PEPTIDEK", 0.7), make_feature("", 0.0)}));
+
   map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   IDConflictResolverAlgorithm::resolve(map, true);
+  // e.g. FDR filtering after the conflict resolution: keeps the identifications, removes their hits
+  for (ConsensusFeature& cf : map)
+  {
+    for (PeptideIdentification& pep : cf.getPeptideIdentifications())
+    {
+      if (!pep.getHits().empty() && pep.getHits()[0].getScore() > 0.5) { pep.setHits({}); }
+    }
+  }
   IDConflictResolverAlgorithm::annotateTransfers(map);
 
-  ABORT_IF(map.size() != 6)
+  ABORT_IF(map.size() != 8)
   TEST_EQUAL(map[0].metaValueExists(key), true)
   TEST_EQUAL(map[0].getMetaValue(key) == DataValue(IntList{1}), true)
   TEST_EQUAL(map[1].metaValueExists(key), true)
@@ -169,6 +182,9 @@ START_SECTION((static void annotateTransfers(ConsensusMap& features)))
   TEST_EQUAL(map[3].metaValueExists(key), false)
   TEST_EQUAL(map[4].getMetaValue(key) == DataValue(IntList{2}), true)
   TEST_EQUAL(map[5].metaValueExists(key), false)
+  TEST_EQUAL(map[6].metaValueExists(key), true)
+  TEST_EQUAL(map[6].getMetaValue(key) == DataValue(IntList{1}), true)
+  TEST_EQUAL(map[7].metaValueExists(key), false)
   // the linker's own transfer annotations are not touched, no q-values are made up
   for (const ConsensusFeature& cf : map)
   {

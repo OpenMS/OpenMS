@@ -71,7 +71,9 @@ public:
     The identifications of a run are found by their "map_index" meta value (see ConsensusFeature::insert()).
     Call this after resolve(features, true), which leaves the identifications of the best hit's sequence (and
     moves those of other sequences off the feature): a run whose feature was identified as a different peptide
-    counts as a transfer, as its signal is reported for the feature's peptide.
+    counts as a transfer, as its signal is reported for the feature's peptide. Call it after filtering the
+    identifications, too: identifications without hits do not count, so a run whose hits were filtered out
+    counts as a transfer, and a consensus feature without any hit left gets no annotation.
 
     Consensus features are left unchanged if they have no identification with a hit, if one of their
     identifications has no "map_index", or if they already carry transfers (e.g. from PipEchoAlgorithm).

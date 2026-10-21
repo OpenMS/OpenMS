@@ -2191,11 +2191,6 @@ protected:
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
-    // PIP-ECHO annotates its transfers itself; the QT linker transfers identifications without recording it.
-    if (getStringOption_("pip_echo") == "false")
-    {
-      IDConflictResolverAlgorithm::annotateTransfers(consensus_fraction);
-    }
 
     // No normalization here, deliberately. A median scaling used to run at this point unless
     // -out_msstats was requested, which meant the same input written to the same
@@ -2738,6 +2733,14 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+
+    // PIP-ECHO annotates its transfers itself; the QT linker transfers identifications without recording it.
+    // Annotate after the PSM and protein FDR filtering above, so that a run whose identification was filtered
+    // out counts as a transfer, but before the resolution below reduces the identifications to the best one.
+    if (getStringOption_("pip_echo") == "false")
+    {
+      IDConflictResolverAlgorithm::annotateTransfers(consensus);
+    }
 
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);
