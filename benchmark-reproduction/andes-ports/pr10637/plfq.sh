@@ -12,7 +12,7 @@ IN=(); ID=()
 for r in $RUNS; do IN+=($MZ/LFQ_Orbitrap_DDA_Condition_$r.mzML); ID+=($IDS/LFQ_Orbitrap_DDA_Condition_$r.idXML); done
 mkdir -p $OUT
 $P/bin/ProteomicsLFQ -in "${IN[@]}" -ids "${ID[@]}" -design $DESIGN -fasta $DB -feat_dir $FD \
-  -psmFDR 0.01 -proteinFDR 0.01 -picked_proteinFDR true -protein_inference aggregation \
+  -psmFDR 0.01 -proteinFDR ${PROTEIN_FDR:-0.01} -picked_proteinFDR true -protein_inference aggregation \
   -out_msstats $OUT/out_msstats.csv -out_cxml $OUT/out.consensusXML -threads 4 -no_progress "$@" > $OUT/plfq.log 2>&1
 for a in "$@"; do [ "$a" = "-detect_only" ] && exit 0; done
 $P/bin/ConsensusMapNormalizer -in $OUT/out.consensusXML -out $OUT/norm.consensusXML -algorithm_type rt_local -no_progress > $OUT/norm.log 2>&1

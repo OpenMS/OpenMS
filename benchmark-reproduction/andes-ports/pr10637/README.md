@@ -36,7 +36,8 @@ plfq.sh <prefix> <db> <ids> <feat_dir> <out> -targeted_only false -pip_echo true
 #   common: -psmFDR 0.01 -proteinFDR 0.01 -picked_proteinFDR true -protein_inference aggregation -threads 4
 master.sh / master2.sh                                       # the whole chain as run
 score_proteobench.py <msstats.csv>                           # proteobench 0.18.6, "quantms" format, min 3 runs
-transfers.py <consensusXML> 0.01 0.05                        # transfers (mbr_transfer_qvalues) and entrapment transfers
+transfer_stats.py <consensusXML> --fasta <entrap db>         # transfer FDP exactly as in ../pr10633 (reported precursors only)
+transfers.py <consensusXML> 0.01 0.05                        # all transfers incl. unreported precursors (not used for the FDP)
 compare_cxml.sh a.consensusXML.gz b.consensusXML.gz          # differences beyond process-random ids / paths
 collect.sh <runs> results/                                   # results/*.tsv
 ```
@@ -73,12 +74,14 @@ Run times (4 cores, 15 GB): Comet search 9–10 min/run (HYE), 13–14 min/run (
 
 | transfer q | arm | transfers | entrapment transfers | FDP |
 |---|---|---|---|---|
-| 0.01 | off | 14,485 | 21 | 0.29 % |
-| 0.01 | on | 24,242 | 31 | 0.26 % |
-| 0.05 | off | 43,515 | 48 | 0.22 % |
-| 0.05 | on | 41,435 | 46 | 0.22 % |
+| 0.01 | off | 11,340 | 21 | 0.37 % |
+| 0.01 | on | 17,769 | 31 | 0.35 % |
+| 0.05 | off | 27,123 | 48 | 0.35 % |
+| 0.05 | on | 26,506 | 46 | 0.35 % |
 
-Identified precursors (>= 3 runs, no transfers): 80 entrapment of 48.5k, FDP 0.33 %.
+Transfers on reported precursors only (`transfer_stats.py`). Identified precursors: FDP 0.47 %.
+The `-proteinFDR 1` arms (gate x shape_features) are in `results/transfer_stats_entrap.tsv` (`p1_*`) and
+`results/proteobench.tsv`; the tables are in the PR description.
 
 ### andes (#167 / #172, 6-run public LFQ DDA benchmark, normalised, MBR, min 3 runs)
 
@@ -86,3 +89,15 @@ Identified precursors (>= 3 runs, no transfers): 80 entrapment of 48.5k, FDP 0.3
 |---|---|---|---|---|---|
 | 0.01 | 54,932 → 67,586 (+23 %) | 0.155 → 0.164 | 0.212 → 0.302 | 0.110 → 0.120 | 48 → 728 |
 | 0.05 | 67,035 → 73,203 (+9 %) | 0.164 → 0.177 | 0.317 → 0.471 | 0.124 → 0.134 | 537 → 1,199 |
+
+Transfer FDP numbers in the PR come from `transfer_stats.py` (copied from `../pr10633/scripts/`): the denominator holds only
+transfers on precursors ProteomicsLFQ reports (consensus features with protein references); results in
+`results/transfer_stats_entrap.tsv`. (`transfers.py` also counts transfers on unreported precursors, which lowers the FDP.)
+
+## Combined with #10633 (donor gate)
+
+#10633 (merged) sets `PipEcho:donor_max_q 0.001` when `-proteinFDR 1`; with a protein filter the gate is off, so with
+`-proteinFDR 0.01` the arms above already are the combination. The 2 x 2 (gate x shape_features) therefore runs at
+`-proteinFDR 1`: `/opt/openms-fix` = PR, `/opt/openms-gate` = PR + `combined_10633.patch` (the #10633 merge commit
+33abd187 applied to ce6eb11b, conflicts resolved by keeping both additions; built with the same build stamp so that the
+same checkpoints are reused). `master3.sh` runs the arms (`PROTEIN_FDR=1 plfq.sh ...`).

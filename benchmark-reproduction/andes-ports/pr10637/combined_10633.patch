@@ -1,0 +1,223 @@
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+index 0370d510..7075e140 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+@@ -9,6 +9,7 @@
+ #include <boost/math/distributions/normal.hpp>
+ #include "FeatureTypes.h"
+ #include "Impl.h"
++#include <OpenMS/ANALYSIS/ID/Scores.h>
+ #include <OpenMS/CONCEPT/Exception.h>
+ #include <OpenMS/CONCEPT/LogStream.h>
+ #include <OpenMS/CONCEPT/ProgressLogger.h>
+@@ -16,6 +17,7 @@
+ #include "TransferFDRModel.h"
+ #include "Score.h"
+ #include "Util.h"
++#include <unordered_map>
+ 
+ #include <algorithm>
+ #include <array>
+@@ -334,6 +336,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
+     max_training_points(static_cast<std::size_t>(
+       static_cast<int>(params.getValue("max_training_points")))),
+     shape_features(params.exists("shape_features") && params.getValue("shape_features").toString() == "true"),
++    donor_max_q(params.exists("donor_max_q") ? static_cast<double>(params.getValue("donor_max_q")) : 1.0),
+     rng_seed_(static_cast<std::mt19937::result_type>(
+       static_cast<int>(params.getValue("random_seed")))),
+     rng_(rng_seed_)
+@@ -638,6 +641,74 @@ void Impl::annotate_shape_features(const RunMap& runs, const std::vector<std::sh
+                   << " by isotope envelope." << '\n';
+ }
+ 
++/******************************************************************************/
++void Impl::set_transferable_precursors(const RunMap& runs)
++{
++  transferable_.clear();
++  if (donor_max_q >= 1.0) { return; }
++
++  // the best q-value among a feature's identifications of its own peptide (feature IDs are not sorted by score, so
++  // the first one is not necessarily the best): an identification's q-value is its score if the score type is a
++  // q-value (any name Scores knows for one), else its q-value meta value; unknown -> 0 (passes the gate)
++  std::size_t unknown = 0;
++  auto q_value = [&unknown](const Feature& feature) -> double {
++    const auto sequence = PipEcho::Util::feature_hit(feature);
++    if (!sequence) { return 1.0; }
++    double best = 1.0;
++    bool has_unknown = false;
++    for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
++    {
++      if (pep.getHits().empty()) { continue; }
++      const PeptideHit& hit = pep.getHits()[0];
++      if (hit.getSequence() != sequence->getSequence()) { continue; }
++      std::optional<double> q;
++      if (Scores::isScoreType(pep.getScoreType(), Scores::IDType::QVAL)) { q = hit.getScore(); }
++      else
++      {
++        // the score switchers keep a former main score as "<score type>_score" (e.g. ProteomicsLFQ switches to PEP)
++        for (const std::string& name : Scores::getIDNamesForType(Scores::IDType::QVAL))
++        {
++          for (const std::string& key : {name, name + "_score"})
++          {
++            if (q || !hit.metaValueExists(key)) { continue; }
++            const DataValue& value = hit.getMetaValue(key);
++            // a non-numeric value counts as unknown
++            if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
++            {
++              q = static_cast<double>(value);
++            }
++          }
++        }
++      }
++      if (q) { best = std::min(best, *q); }
++      else { has_unknown = true; }
++    }
++    if (has_unknown) { ++unknown; return 0.0; }
++    return best;
++  };
++
++  std::unordered_map<std::string, double> best_q;
++  for (const auto& run : runs)
++  {
++    for (const auto& donor : run.second.donors.storage)
++    {
++      const std::string key = feature_sequence_key(donor->feature);
++      const double q = q_value(donor->feature);
++      auto [it, inserted] = best_q.emplace(key, q);
++      if (!inserted) { it->second = std::min(it->second, q); }
++    }
++  }
++  for (const auto& [key, q] : best_q)
++  {
++    if (q <= donor_max_q) { transferable_.insert(key); }
++  }
++  OPENMS_LOG_INFO << "PIP-ECHO donor gate (q <= " << donor_max_q << "): " << best_q.size() - transferable_.size()
++                  << " of " << best_q.size() << " precursors are not transferred (no identification at q <= "
++                  << donor_max_q << ")";
++  if (unknown > 0) { OPENMS_LOG_INFO << " (" << unknown << " identifications without q-value pass)"; }
++  OPENMS_LOG_INFO << '\n';
++}
++
+ /******************************************************************************/
+ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+                                      const DonorMap& donors,
+@@ -645,6 +716,10 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+ {
+   for (auto& donor : donors.storage)
+   {
++    if (donor_max_q < 1.0 && ! transferable_.contains(feature_sequence_key(donor->feature)))
++    {
++      continue; // [donor_max_q] not confidently identified anywhere: not transferred
++    }
+     for (auto window = initial_window(*donor); window.has_value();
+          window = next_window(window))
+     {
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.h b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.h
+index 19f9c972..4b790f9b 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.h
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.h
+@@ -8,6 +8,8 @@
+ 
+ #pragma once
+ 
++#include <unordered_set>
++
+ #include "FeatureTypes.h"
+ #include "GridWithStorage.h"
+ #include "MzDiff.h"
+@@ -108,6 +110,9 @@ public:
+   /// envelope) with the identified features of its precursor in the other runs, and store the result in its
+   /// Score (shape_width, shape_tailing, shape_isotope). A decoy transfer is compared with its donor's precursor.
+   void annotate_shape_features(const RunMap&, const std::vector<std::shared_ptr<Acceptor>>&) const;
++  /// With 'donor_max_q' < 1: record the precursors (sequence and charge) whose best identification over all runs
++  /// has a q-value <= donor_max_q; link_donors_and_acceptors() transfers only those.
++  void set_transferable_precursors(const RunMap&);
+ 
+ public:
+   /// Max allowed m/z difference between donor and acceptor.
+@@ -134,6 +139,8 @@ public:
+ 
+   /// Use the peak-shape agreement of a transfer with its precursor's identified features as transfer FDR features.
+   bool shape_features = false;
++  /// Transfer only precursors whose best identification has q <= this (1 = all).
++  double donor_max_q = 1.0;
+ 
+ private:
+   std::string path_from_feature_map(const FeatureMap&);
+@@ -149,6 +156,8 @@ private:
+   /// must not be advanced concurrently -- give each thread its own generator
+   /// before parallelizing the donor loop.  Mutable because the (logically
+   /// const) decoy search advances its state.
++  /// [donor_max_q] precursors that may be transferred (only consulted with donor_max_q < 1)
++  std::unordered_set<std::string> transferable_;
+   std::mt19937::result_type rng_seed_ = 0;  ///< decoy RNG seed (for per-pass reseed)
+   mutable std::mt19937 rng_;
+ 
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.cpp
+index 230b3507..c9bfa2eb 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.cpp
+@@ -81,6 +81,17 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
+                      " size. ProteomicsLFQ provides the meta values.");
+   defaults_.setValidStrings("shape_features", {"true", "false"});
+ 
++  defaults_.setValue("donor_max_q", 1.0,
++                     "Transfer a precursor (sequence and charge) to other runs only if its best"
++                     " identification over all runs has a q-value at or below this value (e.g."
++                     " 0.001). Its own identified features are kept either way. Identifications"
++                     " whose q-value is unknown (score type without 'q-value' and no 'q-value'"
++                     " meta value) pass. 1.0 disables the gate. A false identification in one run"
++                     " is otherwise copied into every other run, where no decoy transfer can"
++                     " reveal it, since the transfer itself may well be to the right peak.");
++  defaults_.setMinFloat("donor_max_q", 0.0);
++  defaults_.setMaxFloat("donor_max_q", 1.0);
++
+   defaults_.setValue("random_seed", 0,
+                      "Seed for the random number generator used to select decoy"
+                      " donors. A fixed seed makes results reproducible.");
+@@ -195,6 +206,7 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
+   PipEcho::RunMap runs;
+ 
+   impl.partition_features(feature_maps, runs);
++  impl.set_transferable_precursors(runs);
+ 
+   // Ion mobility is used as a scoring feature only when EVERY run can build an
+   // IM tolerance (>= 2 identified features carrying an IM width). The decision
+diff --git a/src/topp/ProteomicsLFQ.cpp b/src/topp/ProteomicsLFQ.cpp
+index fbe4699e..ba178a49 100644
+--- a/src/topp/ProteomicsLFQ.cpp
++++ b/src/topp/ProteomicsLFQ.cpp
+@@ -137,6 +137,9 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
+   - If there are fewer decoy transfers than @p PipEcho:min_decoys (default 20), or too few to resolve the
+     requested FDR, no transfer is kept, and only the direct identifications remain. @p PipEcho:fdr @p 1.0 keeps
+     all transfers.
++  - With @p -proteinFDR @p 1 (no protein filter), only precursors (sequence and charge) identified at q-value
++    <= 0.001 in at least one run are transferred. Otherwise a false identification in one run would be copied into
++    every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
+   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
+   - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
+     cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
+@@ -439,6 +442,7 @@ protected:
+     // For PIP-ECHO:
+     Param pip_echo_defaults = PipEchoAlgorithm().getDefaults();
+     pip_echo_defaults.remove("distance_RT:max_difference"); // estimated from data
++    pip_echo_defaults.remove("donor_max_q");                 // set from -proteinFDR
+ 
+     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
+     // overwrite algorithm default, so we export everything (important for copying back MSstats results)
+@@ -760,6 +764,15 @@ protected:
+       // Pass the host's raw-spectra chromatographic FWHM down for PIP-ECHO's
+       // local_rt:auto window sizing (used only when local_rt:enabled+auto are set).
+       pe_param.setValue("local_rt:median_fwhm", median_fwhm);
++      // Without a protein FDR filter, nothing downstream removes a false identification that PIP-ECHO copied into
++      // the other runs (decoy transfers cannot reveal it). Then only confidently identified precursors are
++      // transferred (best q-value <= 0.001, as in andes); the PSM filter alone does not catch them.
++      if (getDoubleOption_("proteinFDR") >= 1.0)
++      {
++        pe_param.setValue("donor_max_q", 0.001);
++        OPENMS_LOG_INFO << "PIP-ECHO: no protein FDR filter (-proteinFDR 1), so only precursors identified at "
++                           "q-value <= 0.001 in some run are transferred.\n";
++      }
+       writeDebug_("Parameters passed to the PIP-ECHO algorithm", pe_param, 3);
+ 
+       linker.setParameters(pe_param);
