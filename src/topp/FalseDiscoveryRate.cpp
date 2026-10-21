@@ -64,6 +64,12 @@ the two, so @p FDR:PSM holds within every class, not only overall. Without this,
 modification) can pass at a much higher error rate than the overall FDR, because its decoys are diluted among the
 targets of the large class. See ClassFDR for the estimator. Only available for PSM-level FDR (@p -peptide false).
 
+Since the class q-value can only raise a PSM's q-value, the class FDR only removes PSMs; it never adds any. It is
+conservative in small classes and in classes whose targets are mostly false: there the null-fraction estimate is clipped
+at 1, and PSMs of a class that is already calibrated are lost too (in a semi-specific search, about 40% of the
+semi-specific PSMs at 1%). It cannot correct a large class whose own error rate is too high; that is up to the overall
+FDR estimate.
+
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
@@ -105,7 +111,7 @@ protected:
     registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
     registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
     setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<std::string>("higher_better, lower_better"));
-    registerStringOption_("PSM_class", "<class>", "", "Also control the PSM FDR within classes of PSMs: 'modification' (by the variable modifications of a PSM), or the name of a peptide hit meta value whose values are the classes. A PSM's q-value becomes the larger of its overall and its class q-value. Empty: off.", false);
+    registerStringOption_("PSM_class", "<class>", "", "Also control the PSM FDR within classes of PSMs: 'modification' (by the variable modifications of a PSM), or the name of a peptide hit meta value whose values are the classes. A PSM's q-value becomes the larger of its overall and its class q-value, so this only removes PSMs: conservative in small or mostly false classes, and it cannot correct a large class that is itself miscalibrated. Empty: off.", false);
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
     setValidStrings_("protein", ListUtils::create<std::string>("true,false"));
     registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
