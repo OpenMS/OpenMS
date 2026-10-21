@@ -5355,7 +5355,10 @@ static void scoreXLIons_(
         FASTAFile::FASTAEntry e = fasta_db[i];
 
         std::vector<AASequence> output;
-        digestor.digest(AASequence::fromString(e.sequence), output);
+        // 'unspecific cleavage': its digest is every subsequence of the protein, not a partition of it,
+        // so the whole protein is shuffled as one sequence
+        if (enzyme == EnzymaticDigestion::UnspecificCleavage) output.push_back(AASequence::fromString(e.sequence));
+        else digestor.digest(AASequence::fromString(e.sequence), output);
 
         // generate decoy peptides from current digest
         e.sequence = "";

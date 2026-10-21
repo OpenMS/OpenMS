@@ -10,6 +10,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/test_config.h>
 
+#include <algorithm>
+
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
@@ -64,6 +66,24 @@ START_SECTION((AASequence shufflePeptides(const AASequence& aas, const std::stri
   TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"ETTSRTPEPRIED")
   // 3. cutting site after "TESTRPEPTR", "IDE" (each peptide is shuffled to minimize sequence identity)
   TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(), "SPERTETTPRIED")
+  // 4. no enzymatic termini: the whole protein is shuffled as one sequence, as with 'no cleavage'
+  //    (its digest would be every subsequence of it, and the decoy their concatenation)
+  {
+    DecoyGenerator dg_unspecific, dg_no_cleavage;
+    dg_unspecific.setSeed(4711);
+    dg_no_cleavage.setSeed(4711);
+    const AASequence protein = AASequence::fromString("TESTRPEPTRIDE");
+    const std::string decoy = dg_unspecific.shufflePeptides(protein, "unspecific cleavage").toString();
+    TEST_EQUAL(decoy.size(), protein.size())
+    TEST_EQUAL(decoy, dg_no_cleavage.shufflePeptides(protein, "no cleavage").toString())
+    TEST_NOT_EQUAL(decoy, protein.toString())
+    std::string sorted_decoy = decoy, sorted_target = protein.toString();
+    std::sort(sorted_decoy.begin(), sorted_decoy.end());
+    std::sort(sorted_target.begin(), sorted_target.end());
+    TEST_EQUAL(sorted_decoy, sorted_target) // same residues
+  }
+  // 5. empty protein
+  TEST_EQUAL(dg->shufflePeptides(AASequence(), "Trypsin").toString(), "")
 END_SECTION
 
 START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const std::string& protease, int decoy_factor)))
@@ -102,6 +122,17 @@ START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const 
   TEST_EQUAL(result6.size(), 2)
   TEST_EQUAL(result6[0].toString(), "UPTECWLFREONNNORNOOEOESQEIDRGPT")
   TEST_EQUAL(result6[1].toString(), "FEIRPNEEDOROERNNCNETQGLOWOOPTUS")
+
+  // 7. unspecific cleavage: no enzymatic termini, the entire protein is shuffled as one peptide (as with 'no cleavage')
+  auto result7 = dg->shuffle(AASequence::fromString("LONGERPROTEINSEQUENCEFORTOPDOWN"), "unspecific cleavage", 2);
+  TEST_EQUAL(result7.size(), 2)
+  TEST_EQUAL(result7[0].toString(), result6[0].toString())
+  TEST_EQUAL(result7[1].toString(), result6[1].toString())
+
+  // 8. empty protein
+  auto result8 = dg->shuffle(AASequence(), "Trypsin");
+  TEST_EQUAL(result8.size(), 1)
+  TEST_EQUAL(result8[0].toString(), "")
 END_SECTION
 
 delete dg;
