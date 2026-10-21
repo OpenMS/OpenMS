@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/NativeIdentificationTest.h>
 
 using namespace OpenMS;
@@ -122,6 +123,87 @@ START_SECTION((resolve with keep_matching and only hitless identifications))
       check_hitless(FeatureMap{}, Feature{}, higher_better, num_ids);
       check_hitless(ConsensusMap{}, ConsensusFeature{}, higher_better, num_ids);
     }
+  }
+}
+END_SECTION
+
+START_SECTION((static void annotateTransfers(ConsensusMap& features)))
+{
+  const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
+
+  ConsensusMap map;
+  MapPeptideIdentifications view;
+  view.proteins = {makeSearch_()};
+  UInt64 next_uid = 1;
+  // a consensus feature of the features of runs 0, 1, 2, ..., each identified as its sequence (none if empty) with
+  // its score; its identifications carry the run as "map_index", as a feature linker annotates them
+  const auto link = [&](const std::vector<std::pair<std::string, double>>& runs) -> ConsensusFeature&
+  {
+    ConsensusFeature cf;
+    PeptideIdentificationList ids;
+    for (Size map_index = 0; map_index < runs.size(); ++map_index)
+    {
+      BaseFeature f;
+      f.setUniqueId(next_uid++);
+      f.setRT(100.0);
+      f.setMZ(500.0);
+      cf.insert(map_index, f);
+      if (runs[map_index].first.empty()) { continue; }
+      auto id = makePepID_("scan=" + StringUtils::toStr(next_uid), runs[map_index].first, 2, runs[map_index].second);
+      id.setIdentifier("search");
+      id.setMetaValue("map_index", map_index);
+      ids.push_back(id);
+    }
+    if (!ids.empty()) { view.features[{map.size()}] = ids; }
+    map.push_back(cf);
+    return map.back();
+  };
+
+  for (Size i = 0; i < 3; ++i) { map.getColumnHeaders()[i].filename = "run" + StringUtils::toStr(i); }
+  // 0: unidentified feature of run 1 linked to identified ones -> transferred to run 1
+  link({{"PEPTIDEK", 0.1}, {"", 0.0}, {"PEPTIDEK", 0.2}});
+  // 1: run 1 identified as a different (worse) peptide, run 2 unidentified -> transferred to runs 1 and 2
+  link({{"PEPTIDEK", 0.1}, {"PEPTIDER", 0.5}, {"", 0.0}});
+  // 2: identified in every run -> no transfer
+  link({{"PEPTIDEK", 0.1}, {"PEPTIDEK", 0.2}, {"PEPTIDEK", 0.3}});
+  // 3: not identified at all -> no transfer
+  link({{"", 0.0}, {"", 0.0}});
+  // 4: annotated by the linker already (e.g. PIP-ECHO) -> kept as it is
+  link({{"PEPTIDEK", 0.1}, {"", 0.0}, {"", 0.0}}).setMetaValue(key, IntList{2});
+  // 5: an identification without "map_index" -> the identified runs are unknown, no transfer
+  link({{"", 0.0}, {"", 0.0}});
+  auto unknown_run = makePepID_("scan=99", "PEPTIDEK", 2, 0.1);
+  unknown_run.setIdentifier("search");
+  view.features[{map.size() - 1}] = {unknown_run};
+  // 6: identified in runs 0 and 1, but the hits of run 1 get filtered out below -> transferred to run 1
+  link({{"PEPTIDEK", 0.1}, {"PEPTIDEK", 0.6}});
+  // 7: all hits filtered out -> no identification left, no transfer
+  link({{"PEPTIDEK", 0.7}, {"", 0.0}});
+
+  map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  setIdentifications(map, view);
+  IDConflictResolverAlgorithm::resolve(map, true);
+  // e.g. FDR filtering after the conflict resolution: keeps the identifications, removes their hits
+  map.eraseMatches([](const IdentificationData::Run& run, const IdentificationData::Identification&,
+                      const IdentificationData::Match& match) { return *run.getScore(match.getId(), *run.getPrimaryScore()) > 0.5; });
+  IDConflictResolverAlgorithm::annotateTransfers(map);
+
+  ABORT_IF(map.size() != 8)
+  TEST_EQUAL(map[0].metaValueExists(key), true)
+  TEST_EQUAL(map[0].getMetaValue(key) == DataValue(IntList{1}), true)
+  TEST_EQUAL(map[1].metaValueExists(key), true)
+  TEST_EQUAL(map[1].getMetaValue(key) == DataValue(IntList{1, 2}), true)
+  TEST_EQUAL(map[2].metaValueExists(key), false)
+  TEST_EQUAL(map[3].metaValueExists(key), false)
+  TEST_EQUAL(map[4].getMetaValue(key) == DataValue(IntList{2}), true)
+  TEST_EQUAL(map[5].metaValueExists(key), false)
+  TEST_EQUAL(map[6].metaValueExists(key), true)
+  TEST_EQUAL(map[6].getMetaValue(key) == DataValue(IntList{1}), true)
+  TEST_EQUAL(map[7].metaValueExists(key), false)
+  // the linker's own transfer annotations are not touched, no q-values are made up
+  for (const ConsensusFeature& cf : map)
+  {
+    TEST_EQUAL(cf.metaValueExists(Constants::UserParam::MBR_TRANSFER_QVALUES), false)
   }
 }
 END_SECTION

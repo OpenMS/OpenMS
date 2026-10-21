@@ -391,7 +391,7 @@ protected:
       bool in_spectrum_list_{ false };
       /// Flag that indicates whether this spectrum should be skipped (e.g. due to options)
       bool skip_spectrum_{ false };
-      /// Flag that indicates whether this chromatogram should be skipped (e.g. due to options)
+      /// Flag that indicates whether the parser is inside a chromatogram being skipped
       bool skip_chromatogram_{ false };
       /// Remember whether the RT of the spectrum was set or not
       bool rt_set_{ false };

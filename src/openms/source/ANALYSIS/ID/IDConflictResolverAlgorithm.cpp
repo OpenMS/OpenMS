@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <algorithm>
 #include <limits>    // for std::numeric_limits
@@ -368,6 +369,48 @@ namespace OpenMS
   void IDConflictResolverAlgorithm::resolve(ConsensusMap & features, bool keep_matching)
   {
     resolveMap(features, keep_matching ? Mode::KEEP_MATCHING : Mode::BEST);
+  }
+
+  void IDConflictResolverAlgorithm::annotateTransfers(ConsensusMap& features)
+  {
+    const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
+    const auto& data = features.getIdentificationData();
+    for (ConsensusFeature& cf : features)
+    {
+      if (cf.metaValueExists(key)) { continue; } // annotated by the linker itself (e.g. PIP-ECHO)
+
+      set<UInt64> identified_maps;
+      bool has_unknown_map = false;
+      for (const auto& identification : cf.getLinkedIdentifications(data))
+      {
+        if (identification.matches.empty()) { continue; }
+        if (! identification.query->metaValueExists("map_index"))
+        {
+          has_unknown_map = true;
+          break;
+        }
+        identified_maps.insert(static_cast<UInt64>(identification.query->getMetaValue("map_index")));
+      }
+      if (identified_maps.empty() || has_unknown_map) { continue; }
+
+      set<UInt64> transfer_maps;
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        if (identified_maps.count(handle.getMapIndex()) == 0)
+        {
+          transfer_maps.insert(handle.getMapIndex());
+        }
+      }
+      if (transfer_maps.empty()) { continue; }
+
+      IntList transfer_map_indices;
+      transfer_map_indices.reserve(transfer_maps.size());
+      for (UInt64 map_index : transfer_maps)
+      {
+        transfer_map_indices.push_back(static_cast<Int>(map_index));
+      }
+      cf.setMetaValue(key, transfer_map_indices);
+    }
   }
 
   void IDConflictResolverAlgorithm::resolveAllHitRankAggregation(FeatureMap& features)

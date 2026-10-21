@@ -9,6 +9,8 @@
 #include <boost/math/distributions/normal.hpp>
 #include "FeatureTypes.h"
 #include "Impl.h"
+#include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -52,6 +54,44 @@ std::string feature_sequence_key(const std::string& ident,
 std::string feature_sequence_key(const Donor& donor)
 {
   return feature_sequence_key(donor.ident(), donor.feature.getCharge());
+}
+
+/******************************************************************************/
+/**
+ * The q-value of a match, as legacy export gives it to the peptide hit: its primary score if that is a q-value
+ * (any name Scores knows for one), else a q-value meta value or supplementary score (the score switchers keep a
+ * former main score as "<score type>_score", e.g. ProteomicsLFQ switches to PEP). A non-numeric meta value counts
+ * as unknown.
+ */
+std::optional<double> match_q_value(const IdentificationData::Run& run, const IdentificationData::Match& match)
+{
+  const auto primary = run.getPrimaryScore();
+  if (primary && Scores::isScoreType(run.getScoreDefinition(*primary).name, Scores::IDType::QVAL))
+  {
+    return run.getScore(match.getId(), *primary);
+  }
+  const auto& definitions = run.getScoreDefinitions();
+  const auto scores = run.getScores(match);
+  for (const std::string& name : Scores::getIDNamesForType(Scores::IDType::QVAL))
+  {
+    for (const std::string& key : {name, name + "_score"})
+    {
+      if (match.metaValueExists(key))
+      {
+        const DataValue& value = match.getMetaValue(key);
+        if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
+        {
+          return static_cast<double>(value);
+        }
+        continue;
+      }
+      for (Size score = 0; score < definitions.size(); ++score)
+      {
+        if (definitions[score].name == key && scores[score]) { return scores[score]; }
+      }
+    }
+  }
+  return std::nullopt;
 }
 
 } // namespace
@@ -309,6 +349,7 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     // setMinInt("max_training_points", 0) guarantees a non-negative value.
     max_training_points(static_cast<std::size_t>(
       static_cast<int>(params.getValue("max_training_points")))),
+    donor_max_q(params.exists("donor_max_q") ? static_cast<double>(params.getValue("donor_max_q")) : 1.0),
     rng_seed_(static_cast<std::mt19937::result_type>(
       static_cast<int>(params.getValue("random_seed")))),
     rng_(rng_seed_)
@@ -480,12 +521,67 @@ void Impl::partition_features(const std::vector<FeatureMap>& maps, RunMap& runs)
 }
 
 /******************************************************************************/
+void Impl::set_transferable_precursors(const std::vector<FeatureMap>& maps, const RunMap& runs)
+{
+  transferable_.clear();
+  if (donor_max_q >= 1.0) { return; }
+
+  // the best q-value among a feature's identifications of its own peptide (by the first match of each, as feature IDs
+  // are not sorted by score, so the first one is not necessarily the best): an identification's q-value is its
+  // score if the score type is a q-value (any name Scores knows for one), else its q-value; unknown -> 0 (passes the
+  // gate)
+  std::size_t unknown = 0;
+  auto q_value = [&unknown, &maps](const Donor& donor) -> double {
+    if (!donor.hit) { return 1.0; }
+    double best = 1.0;
+    bool has_unknown = false;
+    for (const auto& identification : donor.feature.getLinkedIdentifications(maps[donor.map_index].getIdentificationData()))
+    {
+      if (identification.matches.empty()) { continue; }
+      const auto& match = *identification.matches.front();
+      if (match.encoding != IdentificationData::Encoding::AA_SEQUENCE
+          || AASequence::fromString(match.representation) != donor.hit->sequence) { continue; }
+      const std::optional<double> q = match_q_value(*identification.run, match);
+      if (q) { best = std::min(best, *q); }
+      else { has_unknown = true; }
+    }
+    if (has_unknown) { ++unknown; return 0.0; }
+    return best;
+  };
+
+  std::unordered_map<std::string, double> best_q;
+  for (const auto& run : runs)
+  {
+    for (const auto& donor : run.second.donors.storage)
+    {
+      const std::string key = feature_sequence_key(*donor);
+      const double q = q_value(*donor);
+      auto [it, inserted] = best_q.emplace(key, q);
+      if (!inserted) { it->second = std::min(it->second, q); }
+    }
+  }
+  for (const auto& [key, q] : best_q)
+  {
+    if (q <= donor_max_q) { transferable_.insert(key); }
+  }
+  OPENMS_LOG_INFO << "PIP-ECHO donor gate (q <= " << donor_max_q << "): " << best_q.size() - transferable_.size()
+                  << " of " << best_q.size() << " precursors are not transferred (no identification at q <= "
+                  << donor_max_q << ")";
+  if (unknown > 0) { OPENMS_LOG_INFO << " (" << unknown << " identifications without q-value pass)"; }
+  OPENMS_LOG_INFO << '\n';
+}
+
+/******************************************************************************/
 void Impl::link_donors_and_acceptors(const RunStatistics& stats,
                                      const DonorMap& donors,
                                      AcceptorMap& acceptors)
 {
   for (auto& donor : donors.storage)
   {
+    if (donor_max_q < 1.0 && ! transferable_.contains(feature_sequence_key(*donor)))
+    {
+      continue; // [donor_max_q] not confidently identified anywhere: not transferred
+    }
     for (auto window = initial_window(*donor); window.has_value();
          window = next_window(window))
     {
@@ -790,9 +886,9 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     auto transfer = transfer_map.find(group.first);
     if (transfer != transfer_map.end())
     {
-      consensus_feature.setMetaValue("mbr_transfer_map_indices",
+      consensus_feature.setMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES,
                                      transfer->second.map_indices);
-      consensus_feature.setMetaValue("mbr_transfer_qvalues",
+      consensus_feature.setMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES,
                                      transfer->second.q_values);
     }
 

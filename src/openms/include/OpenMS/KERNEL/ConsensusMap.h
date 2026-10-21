@@ -145,9 +145,10 @@ public:
     /**
       @brief Add consensus map entries as new columns.
 
-      The number of columns (maximum map index) is the sum of both maps. The map indices of the
-      identifications of @p rhs (meta value @c map_index of peptide identifications and of
-      identifications in the identification data) are shifted like its columns.
+      The number of columns (maximum map index) is the sum of both maps. The map indices of @p rhs are shifted
+      by the number of columns of this map: those of the features, of the identifications (meta value @c map_index
+      of peptide identifications and of identifications in the identification data) and of the match-between-runs
+      transfers (meta value Constants::UserParam::MBR_TRANSFER_MAP_INDICES).
 
       @exception Exception::InvalidValue if both maps contain the same identification run and its
       identifications have map indices

@@ -29,8 +29,10 @@ using namespace std;
 
 namespace
 {
-  // Test-only meta value of a feature: the sequence of its peptide ID (see makeRun())
+  // Test-only meta values of a feature: the sequence of its peptide ID and its q-value (see makeRun())
   const std::string DONOR_SEQUENCE = "test:donor_sequence";
+  const std::string DONOR_Q = "test:donor_q";
+  const std::string DONOR_Q2 = "test:donor_q2"; // a second peptide ID of the same sequence with this q-value
 
   // Build a feature; a non-empty sequence gives it a peptide ID (in makeRun()), turning the
   // feature into a PIP-ECHO "donor" (identified). Empty sequence -> "acceptor".
@@ -51,8 +53,9 @@ namespace
   }
 
   // A run with the given features; the peptide IDs of the donors become
-  // identification data that the features link.
-  FeatureMap makeRun(const std::string& path, const vector<Feature>& feats)
+  // identification data that the features link. Their score is the q-value (0.01 unless given), or with another
+  // score type, a hyperscore with the q-value as meta value.
+  FeatureMap makeRun(const std::string& path, const vector<Feature>& feats, const std::string& score_type = "q-value")
   {
     FeatureMap fm;
     MapPeptideIdentifications ids;
@@ -60,17 +63,28 @@ namespace
     {
       if (f.metaValueExists(DONOR_SEQUENCE))
       {
+        const double q = f.metaValueExists(DONOR_Q) ? double(f.getMetaValue(DONOR_Q)) : 0.01;
         PeptideHit hit;
         hit.setSequence(AASequence::fromString(f.getMetaValue(DONOR_SEQUENCE).toString()));
         hit.setCharge(f.getCharge());
-        hit.setScore(0.01);
+        hit.setScore(score_type == "q-value" ? q : 50.0);
+        if (score_type != "q-value") hit.setMetaValue("q-value", q);
         PeptideIdentification pid;
         pid.setIdentifier("search");
-        pid.setScoreType("q-value");
-        pid.setHigherScoreBetter(false);
+        pid.setScoreType(score_type);
+        pid.setHigherScoreBetter(score_type != "q-value");
         pid.setHits({hit});
         ids.features[{fm.size()}] = {pid};
+        if (f.metaValueExists(DONOR_Q2))
+        {
+          const double q2 = f.getMetaValue(DONOR_Q2);
+          pid.getHits()[0].setScore(score_type == "q-value" ? q2 : 50.0);
+          if (score_type != "q-value") pid.getHits()[0].setMetaValue("q-value", q2);
+          ids.features[{fm.size()}].push_back(pid);
+        }
         f.removeMetaValue(DONOR_SEQUENCE);
+        f.removeMetaValue(DONOR_Q);
+        f.removeMetaValue(DONOR_Q2);
       }
       fm.push_back(f);
     }
@@ -344,6 +358,71 @@ START_SECTION([EXTRA] ion mobility disambiguates competing acceptors when presen
     }
   }
   TEST_EQUAL(mismatch_anywhere, false)
+}
+END_SECTION
+
+START_SECTION([EXTRA] donor_max_q transfers only precursors confidently identified somewhere)
+{
+  // As in the group() test, but PEPTIDEBBR is identified at q 0.001 and PEPTIDECCK only at q 0.2.
+  auto withQ = [](Feature f, double q)
+  {
+    f.setMetaValue(DONOR_Q, q);
+    return f;
+  };
+  vector<Feature> runA = {
+    withQ(makeFeature(50.0, 500.00, 2, 1.0e6, "PEPTIDEAAK", 1), 0.001),
+    withQ(makeFeature(80.0, 600.00, 2, 2.0e6, "PEPTIDEBBR", 2), 0.001),
+    withQ(makeFeature(110.0, 700.00, 2, 3.0e6, "PEPTIDECCK", 3), 0.2),
+    makeFeature(80.0, 600.00, 2, 1.5e6, "", 4)
+  };
+  vector<Feature> runB = {
+    withQ(makeFeature(51.0, 500.00, 2, 1.1e6, "PEPTIDEAAK", 11), 0.001),
+    makeFeature(80.5, 600.00, 2, 1.9e6, "", 12),
+    makeFeature(110.5, 700.00, 2, 2.9e6, "", 13)
+  };
+  // the q-value as meta value of a hyperscore hit, as in the develop version of this test
+  vector<FeatureMap> maps = {makeRun("runA.mzML", runA, "hyperscore"), makeRun("runB.mzML", runB, "hyperscore")};
+
+  auto transfers = [&maps](double donor_max_q)
+  {
+    PipEchoAlgorithm algo;
+    Param param = algo.getParameters();
+    param.setValue("fdr", 1.0);
+    param.setValue("local_rt:enabled", "false");
+    param.setValue("donor_max_q", donor_max_q);
+    algo.setParameters(param);
+    ConsensusMap consensus;
+    algo.group(maps, consensus);
+    std::set<UInt64> transferred;
+    for (const ConsensusFeature& cf : consensus)
+    {
+      if (!cf.metaValueExists("mbr_transfer_map_indices")) continue;
+      for (const FeatureHandle& h : cf)
+      {
+        if (h.getMapIndex() == 1 && (h.getUniqueId() == 12 || h.getUniqueId() == 13)) transferred.insert(h.getUniqueId());
+      }
+    }
+    return transferred;
+  };
+
+  TEST_REAL_SIMILAR(double(PipEchoAlgorithm().getParameters().getValue("donor_max_q")), 1.0)
+  TEST_EQUAL(transfers(1.0).size(), 2)
+  const auto gated = transfers(0.01);
+  TEST_EQUAL(gated.size(), 1)
+  TEST_EQUAL(gated.count(12), 1) // PEPTIDEBBR (q 0.001) is transferred, PEPTIDECCK (q 0.2) is not
+
+  // the best of a feature's identifications counts, not the first: a second, later PSM of PEPTIDECCK at q 0.001
+  runA[2].setMetaValue(DONOR_Q2, 0.001);
+  maps = {makeRun("runA.mzML", runA, "hyperscore"), makeRun("runB.mzML", runB, "hyperscore")};
+  TEST_EQUAL(transfers(0.01).size(), 2)
+
+  // the q-value as the score of the hits
+  runA[2].removeMetaValue(DONOR_Q2);
+  maps = {makeRun("runA.mzML", runA), makeRun("runB.mzML", runB)};
+  TEST_EQUAL(transfers(1.0).size(), 2)
+  const auto gated_by_score = transfers(0.01);
+  TEST_EQUAL(gated_by_score.size(), 1)
+  TEST_EQUAL(gated_by_score.count(12), 1)
 }
 END_SECTION
 
