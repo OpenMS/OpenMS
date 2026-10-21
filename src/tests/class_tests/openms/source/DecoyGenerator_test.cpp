@@ -51,6 +51,10 @@ START_SECTION((AASequence reversePeptides(const AASequence& protein, const std::
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")
+  // no enzymatic termini: the whole protein is reversed (its digest would be every subsequence of it)
+  TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "unspecific cleavage").toString(),"EDIRTPEPRTSET")
+  TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "no cleavage").toString(),"EDIRTPEPRTSET")
+  TEST_EQUAL(dg->reversePeptides(AASequence(), "Trypsin").toString(), "")
 END_SECTION
 
 START_SECTION((AASequence shufflePeptides(const AASequence& aas, const std::string& protease, const int max_atempts, int seed)))
