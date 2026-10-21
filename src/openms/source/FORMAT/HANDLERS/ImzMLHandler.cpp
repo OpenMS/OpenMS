@@ -694,8 +694,32 @@ void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& 
   if (acc == "IMS:1000031") { meta_.imaging_mode        = "processed";   return; }
   if (acc == "IMS:1000091") { meta_.ibd_sha1            = val;           return; }
   if (acc == "IMS:1000090") { meta_.ibd_md5             = val;           return; }
-  if (acc == "IMS:1000046") { meta_.pixel_size_x  = parseImsDouble_(file_, acc, val); return; }
-  if (acc == "IMS:1000047") { meta_.pixel_size_y  = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "IMS:1000046" || acc == "IMS:1000047")
+  {
+    const bool is_x = (acc == "IMS:1000046");
+    // IMS:1000046/47 only require a UO length unit; files without one are taken as micrometer
+    std::string unit = "micrometer";
+    if (!unit_accession.empty())
+    {
+      if (cv_.exists(unit_accession) && cv_.isChildOf(unit_accession, "UO:0000001"))
+      {
+        unit = cv_.getTerm(unit_accession).name;
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "imzML: unit '" << unit_accession << "' of " << acc
+                        << " is not a length unit; assuming micrometer." << std::endl;
+      }
+    }
+    if ((is_x ? meta_.pixel_size_y : meta_.pixel_size_x) > 0 && unit != meta_.pixel_size_unit)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size x and y use different units ('" << meta_.pixel_size_unit
+                      << "', '" << unit << "'); using '" << unit << "' for both." << std::endl;
+    }
+    (is_x ? meta_.pixel_size_x : meta_.pixel_size_y) = parseImsDouble_(file_, acc, val);
+    meta_.pixel_size_unit = unit;
+    return;
+  }
   if (acc == "IMS:1000080") { if (!val.empty()) meta_.uuid = val;        return; }
   if (acc == "IMS:1000044") { meta_.max_dim_x     = parseImsDouble_(file_, acc, val); return; }
   if (acc == "IMS:1000045") { meta_.max_dim_y     = parseImsDouble_(file_, acc, val); return; }

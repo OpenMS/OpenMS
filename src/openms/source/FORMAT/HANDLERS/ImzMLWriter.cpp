@@ -391,6 +391,24 @@ namespace
     {
       meta.polarity = exp.getMetaValue("imzml:polarity").toString();
     }
+    if (exp.metaValueExists("imzml:pixel_size_unit"))
+    {
+      meta.pixel_size_unit = exp.getMetaValue("imzml:pixel_size_unit").toString();
+    }
+    // IMS:1000046/47 need a UO length unit; drop a pixel size whose unit cannot be written
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    if (!cv.hasTermWithName(meta.pixel_size_unit)
+        || !cv.isChildOf(cv.getTermByName(meta.pixel_size_unit).id, "UO:0000001"))
+    {
+      if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+      {
+        OPENMS_LOG_WARN << "imzML: pixel size unit '" << meta.pixel_size_unit
+                        << "' is not a UO length unit; pixel size not written." << std::endl;
+      }
+      meta.pixel_size_x = -1;
+      meta.pixel_size_y = -1;
+      meta.pixel_size_unit = "micrometer";
+    }
     return meta;
   }
 
@@ -1274,6 +1292,11 @@ namespace
     os << "\t</softwareList>\n";
     os << "\t<scanSettingsList count=\"1\">\n";
     os << "\t\t<scanSettings id=\"scanSettings1\">\n";
+    // max dimension x/y is derived from the pixel size (updateGridFromPixels_), so both share its
+    // unit; extractMeta_ guarantees pixel_size_unit is a UO length unit
+    const ControlledVocabulary::CVTerm& length_unit = ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit);
+    const std::string length_unit_attrs = "unitCvRef=\"UO\" unitAccession=\"" + length_unit.id
+                                          + "\" unitName=\"" + XMLHandler::writeXMLEscape(length_unit.name) + "\"";
     if (meta.max_count_x > 0)
     {
       os << "\t\t\t";
@@ -1290,28 +1313,28 @@ namespace
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(meta.max_dim_x),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     if (meta.max_dim_y > 0)
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(meta.max_dim_y),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     if (meta.pixel_size_x > 0)
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000046", "pixel size x", OpenMS::StringConversions::toString(meta.pixel_size_x),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     if (meta.pixel_size_y > 0)
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000047", "pixel size y", OpenMS::StringConversions::toString(meta.pixel_size_y),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     writeImsGeometryCvParams_(os, meta);
