@@ -156,9 +156,9 @@ namespace OpenMS::Internal
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
 
-      // Reserve memory for chromatogram data based on the maximum data pool size if chromatograms are to be skipped.
-      skip_chromatogram_ = options_.getSkipChromatograms();
-      if (!skip_chromatogram_)
+      // The skip flag tracks whether the parser is inside a chromatogram being skipped.
+      skip_chromatogram_ = false;
+      if (!options_.getSkipChromatograms())
       {
         chromatogram_data_.reserve(options_.getMaxDataPoolSize());
       }
@@ -937,10 +937,14 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogram")
       {
-        if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
-        { //, but we only want to count
-          skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
-          ++chromatogram_count_;
+        if (options_.getSkipChromatograms() || load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
+        {
+          skip_chromatogram_ = true;
+          if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
+          {
+            ++chromatogram_count_;
+          }
+          return;
         }
 
         chromatogram_ = ChromatogramType();
@@ -998,12 +1002,6 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
-        // return if skip_chromatogram_ true
-        if (skip_chromatogram_)
-        {
-          return;
-        }
-
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
 
@@ -1029,7 +1027,7 @@ namespace OpenMS::Internal
           // or skip the remaining chroms until </chromatogramList>
           skip_chromatogram_ = true;
         }
-        else
+        else if (!options_.getSkipChromatograms())
         {
           exp_->reserveSpaceChromatograms(chrom_count_total_);
         }
@@ -1493,10 +1491,7 @@ namespace OpenMS::Internal
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            if (!options_.getSkipChromatograms())
-            {
-              skip_chromatogram_ = false;  // don't skip the next chrom
-            }
+            skip_chromatogram_ = false; // don't skip the next chrom
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
