@@ -43,10 +43,10 @@
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<!-- Two identifications that cannot be quantified: a target whose spectrum (scan=99999) is not
-		     in TMTTenPlexMethod_test.mzML, and a decoy without a spectrum reference. The decoy's PEP
-		     lies below the -psmFDR threshold of the test, so filtering by the raw score would keep it. -->
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="317.6610" RT="4881.10000" spectrum_reference="controllerType=0 controllerNumber=1 scan=99999" >
+		<!-- Two identifications that cannot be quantified: a target and a decoy without a spectrum
+		     reference. The decoy's PEP lies below the -psmFDR threshold of the test, so filtering by the
+		     raw score would keep it. -->
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="317.6610" RT="4881.10000" >
 			<PeptideHit score="0.05" sequence="SNAKEK" charge="2" aa_before="K" aa_after="[" start="26" end="31" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>

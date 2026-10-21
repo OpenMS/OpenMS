@@ -45,14 +45,14 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[PROTB]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="317.661" RT="4881.2" >
-		<UserParam type="int" name="id_merge_index" value="0"/>
-	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="317.661" RT="4881.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=99999" >
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="317.661" RT="4881.1" >
 		<PeptideHit score="0.166666666666667" sequence="SNAKEK" charge="2" aa_before="K" aa_after="[" start="26" end="31" protein_refs="PH_0">
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.05"/>
 		</PeptideHit>
+		<UserParam type="int" name="id_merge_index" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="317.661" RT="4881.2" >
 		<UserParam type="int" name="id_merge_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="10">

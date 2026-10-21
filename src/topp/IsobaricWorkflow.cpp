@@ -918,6 +918,8 @@ protected:
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
 
+      Size missing_spectra = 0;
+      std::string first_missing_spectrum;
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t spec_idx = 0; spec_idx < static_cast<int64_t>(ids_per_spectrum.size()); ++spec_idx)
       {
@@ -1022,16 +1024,22 @@ protected:
         }
         else
         {
-          // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
-          // pruned before the merge below. Should not normally happen: an identified spectrum is
-          // expected to exist in the mzML.
+          // An identified spectrum missing from the mzML means that the identifications and the
+          // spectra do not belong together (wrong file pairing, or a filtered mzML). Reported after
+          // the loop, since an exception must not leave an OpenMP region.
           #pragma omp critical(unassigned_pep_ids_collection)
           {
-            OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in spectrum file " << mz_file
-                            << ". Skipping quantification and adding to unassigned." << std::endl;
-            for (auto& pep : peps) { keep_unassigned(pep); }
+            if (missing_spectra == 0) { first_missing_spectrum = spec_ref; }
+            ++missing_spectra;
           }
         }
+      }
+      if (missing_spectra > 0)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          std::to_string(missing_spectra) + " identified spectra (e.g. '" + first_missing_spectrum + "') of " + id_file
+          + " are not in the spectrum file " + mz_file + ". Check that the identification and spectrum files"
+            " are given in matching order and that the mzML is the one that was searched.");
       }
       channel_extractor.printStatsWithMissing(qc);
 
