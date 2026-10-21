@@ -3107,11 +3107,10 @@ namespace OpenMS
       if (!std::isfinite(e.scan_number) || e.scan_number < 0.0) return fragment_im;
       const uint32_t frame = (e.parent_frame > 0 && handle.has_frame(static_cast<uint32_t>(e.parent_frame)))
                                ? static_cast<uint32_t>(e.parent_frame) : e.frame_id;
-      const uint32_t lower = static_cast<uint32_t>(std::floor(e.scan_number));
-      const uint32_t scans[2] = {lower, lower + 1};
-      double ims[2] = {0.0, 0.0};
-      handle.scan2inv_ion_mobility_converter->convert(frame, ims, scans, 2);
-      return ims[0] + (e.scan_number - static_cast<double>(lower)) * (ims[1] - ims[0]);
+      // the converter takes the fractional scan number directly (no interpolation between integer scans)
+      double im = 0.0;
+      handle.scan2inv_ion_mobility_converter->convert(frame, &im, &e.scan_number, 1);
+      return im;
     };
 
     // Config::rt_selects_spectra: keep the precursors whose spectra lie in the retention time range, with all of their
