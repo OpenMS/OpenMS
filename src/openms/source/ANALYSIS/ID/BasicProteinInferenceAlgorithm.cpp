@@ -627,17 +627,23 @@ namespace OpenMS
       IDBoostGraph ibg{prot_run, pep_ids, 1, false, false};
 
       ibg.computeConnectedComponents();
+      // No PSM of the run maps to one of its proteins (e.g. none passed an FDR filter): the graph is empty, there is
+      // nothing to group or resolve, and IDBoostGraph refuses to work on an empty graph.
+      const bool empty_graph = ibg.getNrConnectedComponents() == 0;
       if (resolve)
       {
-        ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
-        //Note: the above does not add singleton groups to graph
-        ibg.resolveGraphPeptideCentric(true);
-        ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
+        if (!empty_graph)
+        {
+          ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+          //Note: the above does not add singleton groups to graph
+          ibg.resolveGraphPeptideCentric(true);
+          ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
+        }
         IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
         IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         prot_run.fillIndistinguishableGroupsWithSingletons();
       }
-      else
+      else if (!empty_graph)
       {
         ibg.calculateAndAnnotateIndistProteins(true);
       }
@@ -652,9 +658,12 @@ namespace OpenMS
         IDBoostGraph ibg{prot_run, pep_ids, 1, false, false};
 
         ibg.computeConnectedComponents();
-        ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
-        //Note: the above does not add singleton groups to graph
-        ibg.resolveGraphPeptideCentric(true);
+        if (ibg.getNrConnectedComponents() > 0) // an empty graph has nothing to resolve (see above)
+        {
+          ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+          //Note: the above does not add singleton groups to graph
+          ibg.resolveGraphPeptideCentric(true);
+        }
         prot_run.getIndistinguishableProteins().clear();
         IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
       }
