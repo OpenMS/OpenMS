@@ -398,13 +398,20 @@ START_SECTION((static std::optional<std::pair<USI::IndexType, std::string>> nati
 
   // Bruker DIA adds a window-group number; it is not part of the USI tuple.
   auto r4_dia = USI::nativeIdToUSIIndex("frame=120 windowGroup=3 scan=475");
+  TEST_EQUAL(r4_dia.has_value(), true);
   TEST_EQUAL(r4_dia->first, USI::IndexType::NATIVEID);
   TEST_STRING_EQUAL(r4_dia->second, "120,475");
 
-  // DDA IDs may carry a precursor number, which is also excluded.
-  auto r4_dda = USI::nativeIdToUSIIndex("frame=120 scan=475 precursor=2");
-  TEST_EQUAL(r4_dda->first, USI::IndexType::NATIVEID);
-  TEST_STRING_EQUAL(r4_dda->second, "120,475");
+  // Bruker DDA must retain precursor to distinguish spectra sharing frame and scan.
+  auto r4_dda1 = USI::nativeIdToUSIIndex("frame=120 scan=475 precursor=2");
+  auto r4_dda2 = USI::nativeIdToUSIIndex("frame=120 scan=475 precursor=3");
+  TEST_EQUAL(r4_dda1.has_value(), true);
+  TEST_EQUAL(r4_dda2.has_value(), true);
+  TEST_EQUAL(r4_dda1->first, USI::IndexType::NATIVEID);
+  TEST_EQUAL(r4_dda2->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r4_dda1->second, "120,475,2");
+  TEST_STRING_EQUAL(r4_dda2->second, "120,475,3");
+  TEST_NOT_EQUAL(r4_dda1->second, r4_dda2->second);
 
   // Waters → nativeId:
   auto r5 = USI::nativeIdToUSIIndex("function=10 process=1 scan=345");

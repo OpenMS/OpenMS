@@ -314,18 +314,25 @@ namespace OpenMS
       if (idx >= 0) return std::make_pair(IndexType::INDEX, StringUtils::toStr(idx));
     }
 
-    // Bruker TDF references can include windowGroup or precursor fields, but
-    // the USI nativeId tuple is defined by frame and scan only.
+    // Bruker TDF uses frame and scan for DIA. DDA can have multiple spectra at
+    // the same frame and scan, so retain precursor as an OpenMS extension.
     if (StringUtils::hasPrefix(native_id, "frame="))
     {
       boost::regex frame_re(R"(frame=(\d+))");
       boost::regex scan_re(R"(scan=(\d+))");
+      boost::regex precursor_re(R"(precursor=(\d+))");
       boost::smatch frame_match;
       boost::smatch scan_match;
       if (boost::regex_search(native_id, frame_match, frame_re) &&
           boost::regex_search(native_id, scan_match, scan_re))
       {
-        return std::make_pair(IndexType::NATIVEID, frame_match[1].str() + "," + scan_match[1].str());
+        std::string index = frame_match[1].str() + "," + scan_match[1].str();
+        boost::smatch precursor_match;
+        if (boost::regex_search(native_id, precursor_match, precursor_re))
+        {
+          index += "," + precursor_match[1].str();
+        }
+        return std::make_pair(IndexType::NATIVEID, index);
       }
     }
 

@@ -276,6 +276,7 @@ namespace OpenMS
       - `index=X` → (INDEX, "X")
       - `controllerType=5 controllerNumber=1 scan=7` → (NATIVEID, "5,1,7")
       - `frame=120 scan=475` → (NATIVEID, "120,475")
+      - `frame=120 scan=475 precursor=2` → (NATIVEID, "120,475,2") (OpenMS DDA extension)
       - `function=10 process=1 scan=345` → (NATIVEID, "10,1,345")
       - `sample=1 period=1 cycle=2740 experiment=10` → (NATIVEID, "1,1,2740,10")
 

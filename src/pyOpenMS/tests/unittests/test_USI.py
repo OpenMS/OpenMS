@@ -51,11 +51,18 @@ class TestUSIBindings(unittest.TestCase):
         self.assertEqual(result[0], p.USI.IndexType.NATIVEID)
         self.assertEqual(str(result[1]), "0,2,7")
 
-        # Bruker TDF -> nativeId with comma-separated values
-        result = p.USI.nativeIdToUSIIndex("frame=120 scan=475")
+        # Bruker DIA -> nativeId with frame and scan (window group is not in the tuple)
+        result = p.USI.nativeIdToUSIIndex("frame=120 windowGroup=3 scan=475")
         self.assertIsNotNone(result)
         self.assertEqual(result[0], p.USI.IndexType.NATIVEID)
         self.assertEqual(str(result[1]), "120,475")
+
+        # Bruker DDA must retain precursor to distinguish spectra sharing frame and scan
+        dda_1 = p.USI.nativeIdToUSIIndex("frame=120 scan=475 precursor=2")
+        dda_2 = p.USI.nativeIdToUSIIndex("frame=120 scan=475 precursor=3")
+        self.assertEqual(str(dda_1[1]), "120,475,2")
+        self.assertEqual(str(dda_2[1]), "120,475,3")
+        self.assertNotEqual(dda_1[1], dda_2[1])
 
         # index= -> index
         result = p.USI.nativeIdToUSIIndex("index=2074")
