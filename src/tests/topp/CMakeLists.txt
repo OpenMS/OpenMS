@@ -5377,10 +5377,11 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF_ProSE" PROPERTIES
     DEPENDS "TOPP_ProSE_DDA_rescored;TOPP_DecoyDatabase_DDA"
     TIMEOUT 600)
-  # Floor on the quantified PSMs (PeptideHits in the consensusXML): 7381 current (4975 consensus features); guard ~0.5% below.
+  # Floor on the quantified PSMs, i.e. the consensus features (each with its PSM; the unassigned PSMs are not counted):
+  # 4974 current; guard ~0.5% below.
   add_test(NAME "TOPP_ProteomicsLFQ_DDA_PASEF_ProSE_psm_count"
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
-      ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_ProSE.tmp.consensusXML 7340)
+      ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_ProSE.tmp.consensusXML 4950 "<consensusElement ")
   set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF_ProSE_psm_count"
     PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_DDA_PASEF_ProSE")
 
