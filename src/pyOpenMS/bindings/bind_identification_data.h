@@ -7,6 +7,7 @@
 #pragma once
 
 #include "all_casters.h"
+#include "bind_identification_callbacks.h"
 
 #include <OpenMS/ANALYSIS/ID/IdentificationDataInference.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
@@ -87,14 +88,6 @@ inline void setMetadata(OpenMS::MetaInfoInterface& metadata, nb::handle values, 
       throw nb::type_error(("invalid value for metadata '" + name + "' in '" + keyword + "'").c_str());
     }
   }
-}
-
-/// Python truthiness of a callback result (accepts numpy.bool_, 0/1, None, ...).
-inline bool truthy(const nb::object& value)
-{
-  const int result = PyObject_IsTrue(value.ptr());
-  if (result < 0) throw nb::python_error();
-  return result != 0;
 }
 
 /// Hash for a std::string plus integer identity, consistent with the bound __eq__.
@@ -306,20 +299,6 @@ inline std::string runSummary(const std::string& type, const ID::Run& run)
   return type + "('" + run.getIdentifier() + "', uuid='" + run.getUuid() + "', kind=MoleculeKind." + moleculeKindName(run.getMoleculeKind())
          + ", queries=" + std::to_string(run.getNumberOfIdentifications()) + ", matches=" + std::to_string(run.getNumberOfMatches()) + ")";
 }
-
-/// A run inside a dataset, addressed by UUID: it cannot dangle when the dataset's runs change,
-/// and every edit goes to the live run, so IDs are only ever allocated in one place.
-struct RunView
-{
-  nb::object owner; // the IdentificationData (an owned object or a view into a feature/consensus map)
-  std::string uuid;
-  ID::Run& run() const
-  {
-    auto* found = nb::cast<ID&>(owner).findRunByUuid(uuid);
-    if (! found) throw nb::key_error(("The run " + uuid + " is no longer part of the dataset").c_str());
-    return *found;
-  }
-};
 
 /// Run methods shared by owned runs (Run) and live runs (RunView); names follow the C++ API.
 template<typename Class, typename Get>

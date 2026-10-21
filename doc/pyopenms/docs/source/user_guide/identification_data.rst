@@ -314,6 +314,19 @@ and keeps all candidates and scores; each filter changes the whole dataset or no
     oms.IDFilter.removeDecoys(data)
     oms.MzTabFile().store("search.mzTab", oms.IdentificationDataConverter.exportMzTab(data))
 
+The filters of ``IDFilter`` for peptide identifications have counterparts with the same names for
+a dataset and for the identifications of a feature or consensus map (whose feature links stay
+consistent). A match stands for a peptide hit, an identification for a peptide identification.
+Any other filter is a predicate: ``removeMatches`` gets the run (a view), the identification and
+the match, ``removeIdentifications`` the run and the identification, and nothing is removed until
+the predicate has seen every record::
+
+    oms.IDFilter.filterPeptidesByCharge(data, 2, 4)
+    oms.IDFilter.sortMatchesByScore(data)  # best first, as the counterparts that sort hits do
+    oms.IDFilter.keepNBestPeptideHits(data, 1)
+    oms.IDFilter.removeMatches(consensus_map, lambda run, identification, match: run.getScores(match)[0] > 0.01)
+    oms.IDFilter.removeIdentifications(data, lambda run, identification: identification.rt is None)
+
 ``MapAlignmentAlgorithmIdentification.align`` takes a list of datasets (one per run), and
 ``MapAlignmentTransformer.transformRetentionTimes`` applies the result to a dataset.
 

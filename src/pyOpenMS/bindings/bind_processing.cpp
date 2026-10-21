@@ -2,6 +2,11 @@
 // Domain: processing
 
 #include "all_casters.h"
+#include "bind_identification_callbacks.h"
+#include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -63,6 +68,157 @@ namespace
     check_noise_window((mz - e.mz_start + e.window_length / 2.0) / e.window_length, e.result_windows_odd.size());
   }
 }
+
+namespace // native IDFilter functions
+{
+  using ID = OpenMS::IdentificationData;
+  using pyopenms_identification::RunView;
+  using pyopenms_identification::truthy;
+
+  /// The Python object of the identification data of a filter target, for the RunViews that predicates get
+  nb::object identificationData(ID& data)
+  {
+    return nb::find(&data);
+  }
+
+  template<class Map>
+  nb::object identificationData(Map& map)
+  {
+    return nb::find(&map).attr("identification_data_view")();
+  }
+
+  /// The arguments of Python predicates of IDFilter.removeMatches() and removeIdentifications(): the live run (a
+  /// RunView) and copies of the identification and the match, each made once
+  class PredicateArguments
+  {
+  public:
+    explicit PredicateArguments(nb::object data) : data_(std::move(data)) {}
+
+    nb::object run(const ID::Run& run)
+    {
+      auto& view = runs_[run.getUuid()];
+      if (!view.is_valid()) view = nb::cast(RunView {data_, run.getUuid()});
+      return view;
+    }
+
+    nb::object identification(const ID::Run& run, const ID::Identification& query)
+    {
+      auto& copy = queries_[{run.getUuid(), query.getId().value}];
+      if (!copy.is_valid()) copy = nb::cast(query, nb::rv_policy::copy);
+      return copy;
+    }
+
+  private:
+    nb::object data_;
+    std::map<std::string, nb::object> runs_;
+    std::map<std::pair<std::string, OpenMS::UInt64>, nb::object> queries_;
+  };
+
+  /**
+    The filters of identification data and of the identifications of maps (IdentificationData, FeatureMap,
+    ConsensusMap; @p target names the argument), with the names of their counterparts for peptide identifications
+  */
+  template<class Target>
+  void bindNativeIDFilters(nb::class_<OpenMS::IDFilter>& cls, const char* target)
+  {
+    using F = OpenMS::IDFilter;
+    cls.def_static(
+         "removeMatches",
+         [](Target& filtered, nb::callable remove) {
+           PredicateArguments arguments(identificationData(filtered));
+           return F::removeMatches(filtered, [&](const ID::Run& run, const ID::Identification& query, const ID::Match& match) {
+             return truthy(remove(arguments.run(run), arguments.identification(run, query), nb::cast(match, nb::rv_policy::copy)));
+           });
+         },
+         nb::arg(target), "remove"_a,
+         "Removes the matches for which remove(run, identification, match) is true (run: IdentificationData.RunView; "
+         "identification and match: copies) and returns their number. All calls happen before anything is removed. The "
+         "links of the features of a map stay consistent.")
+      .def_static(
+        "removeIdentifications",
+        [](Target& filtered, nb::callable remove) {
+          PredicateArguments arguments(identificationData(filtered));
+          return F::removeIdentifications(filtered, [&](const ID::Run& run, const ID::Identification& query) {
+            return truthy(remove(arguments.run(run), arguments.identification(run, query)));
+          });
+        },
+        nb::arg(target), "remove"_a,
+        "Removes the identifications (with their matches) for which remove(run, identification) is true and returns their number")
+      .def_static("filterPeptidesByRT", [](Target& filtered, double min_rt, double max_rt) { F::filterPeptidesByRT(filtered, min_rt, max_rt); },
+                  nb::arg(target), "min_rt"_a, "max_rt"_a, "Keeps the identifications with an RT in the range (both inclusive)")
+      .def_static("filterPeptidesByMZ", [](Target& filtered, double min_mz, double max_mz) { F::filterPeptidesByMZ(filtered, min_mz, max_mz); },
+                  nb::arg(target), "min_mz"_a, "max_mz"_a, "Keeps the identifications with an m/z in the range (both inclusive)")
+      .def_static("removeDuplicatePeptideHits", [](Target& filtered) { F::removeDuplicatePeptideHits(filtered); }, nb::arg(target),
+                  "Removes the matches of an identification that equal an earlier one (data and scores)")
+      .def_static(
+        "filterPeptidesByRTPredictPValue",
+        [](Target& filtered, const std::string& metavalue_key, double threshold) { F::filterPeptidesByRTPredictPValue(filtered, metavalue_key, threshold); },
+        nb::arg(target), "metavalue_key"_a, "threshold"_a = 0.05, "Filters the matches by the p-values of RTPredict")
+      .def_static(
+        "keepHitsMatchingProteins", [](Target& filtered, const std::set<std::string>& accessions) { F::keepHitsMatchingProteins(filtered, accessions); },
+        nb::arg(target), "accessions"_a, "Keeps the peptide matches and the proteins that refer to (or are) one of the accessions")
+      .def_static(
+        "removeHitsMatchingProteins", [](Target& filtered, const std::set<std::string>& accessions) { F::removeHitsMatchingProteins(filtered, accessions); },
+        nb::arg(target), "accessions"_a, "Removes the peptide matches and the proteins that refer to (or are) one of the accessions")
+      .def_static(
+        "keepPeptidesWithMatchingSequences",
+        [](Target& filtered, const std::set<std::string>& sequences, bool ignore_mods) { F::keepPeptidesWithMatchingSequences(filtered, sequences, ignore_mods); },
+        nb::arg(target), "sequences"_a, "ignore_mods"_a = false, "Keeps the peptide matches whose sequence is one of the sequences")
+      .def_static(
+        "removePeptidesWithMatchingSequences",
+        [](Target& filtered, const std::set<std::string>& sequences, bool ignore_mods) { F::removePeptidesWithMatchingSequences(filtered, sequences, ignore_mods); },
+        nb::arg(target), "sequences"_a, "ignore_mods"_a = false, "Removes the peptide matches whose sequence is one of the sequences")
+      .def_static(
+        "keepPeptidesWithMatchingModifications",
+        [](Target& filtered, const std::set<std::string>& modifications) { F::keepPeptidesWithMatchingModifications(filtered, modifications); },
+        nb::arg(target), "modifications"_a, "Keeps the peptide matches with one of the modifications (with any modification if none are given)")
+      .def_static(
+        "removePeptidesWithMatchingModifications",
+        [](Target& filtered, const std::set<std::string>& modifications) { F::removePeptidesWithMatchingModifications(filtered, modifications); },
+        nb::arg(target), "modifications"_a, "Removes the peptide matches with one of the modifications")
+      .def_static(
+        "removePeptidesWithMatchingRegEx", [](Target& filtered, const std::string& regex) { F::removePeptidesWithMatchingRegEx(filtered, regex); },
+        nb::arg(target), "regex"_a, "Removes the peptide matches whose unmodified sequence the regular expression matches")
+      .def_static("keepBestPeptideHits", [](Target& filtered, bool strict) { F::keepBestPeptideHits(filtered, strict); }, nb::arg(target),
+                  "strict"_a = false, "Keeps the best matches of each identification (strict: only a single best one)")
+      .def_static(
+        "filterPeptidesByLength", [](Target& filtered, size_t min_length, size_t max_length) { F::filterPeptidesByLength(filtered, min_length, max_length); },
+        nb::arg(target), "min_length"_a, "max_length"_a = size_t(UINT_MAX), "Keeps the peptide matches with a sequence length in the range (both inclusive)")
+      .def_static(
+        "filterPeptidesByCharge", [](Target& filtered, int min_charge, int max_charge) { F::filterPeptidesByCharge(filtered, min_charge, max_charge); },
+        nb::arg(target), "min_charge"_a, "max_charge"_a, "Keeps the peptide matches with a charge in the range (both inclusive)")
+      .def_static(
+        "filterHitsByScore",
+        [](Target& filtered, double threshold_score, OpenMS::Scores::IDType score_type) { F::filterHitsByScore(filtered, threshold_score, score_type); },
+        nb::arg(target), "threshold_score"_a, "score_type"_a,
+        "Keeps the matches with a score of the type at least as good as the threshold (the primary score or a supplementary "
+        "score or meta value of that type)")
+      .def_static("keepNBestSpectra", [](Target& filtered, size_t n) { F::keepNBestSpectra(filtered, n); }, nb::arg(target), "n"_a,
+                  "Keeps the n identifications with the best matches, in their order")
+      .def_static(
+        "keepBestPerPeptide",
+        [](Target& filtered, bool ignore_mods, bool ignore_charges, size_t nr_best_spectrum) {
+          F::keepBestPerPeptide(filtered, ignore_mods, ignore_charges, nr_best_spectrum);
+        },
+        nb::arg(target), "ignore_mods"_a, "ignore_charges"_a, "nr_best_spectrum"_a, "Keeps the best match for every peptide sequence")
+      .def_static("filterHitsByRank", [](Target& filtered, size_t min_rank, size_t max_rank) { F::filterHitsByRank(filtered, min_rank, max_rank); },
+                  nb::arg(target), "min_rank"_a, "max_rank"_a,
+                  "Keeps the matches with a rank in the range (both inclusive), counting distinct scores in the order of the matches")
+      .def_static(
+        "filterPeptidesByMZError", [](Target& filtered, double mass_error, bool unit_ppm) { F::filterPeptidesByMZError(filtered, mass_error, unit_ppm); },
+        nb::arg(target), "mass_error"_a, "unit_ppm"_a, "Keeps the peptide matches whose m/z deviates from the precursor m/z by at most the mass error")
+      .def_static("removeDecoyHits", [](Target& filtered) { F::removeDecoyHits(filtered); }, nb::arg(target),
+                  "Removes the decoy peptide matches and proteins")
+      .def_static("keepNBestPeptideHits", [](Target& filtered, size_t n) { F::keepNBestPeptideHits(filtered, n); }, nb::arg(target), "n"_a,
+                  "Keeps the n best matches of each identification")
+      .def_static("filterHitsByScore", [](Target& filtered, double threshold_score) { F::filterHitsByScore(filtered, threshold_score); }, nb::arg(target),
+                  "threshold_score"_a, "Keeps the matches with a primary score at least as good as the threshold")
+      .def_static("keepUniquePeptidesPerProtein", [](Target& filtered) { F::keepUniquePeptidesPerProtein(filtered); }, nb::arg(target),
+                  "Keeps the peptide matches annotated as unique to a protein (by PeptideIndexer)")
+      .def_static("removeEmptyIdentifications", [](Target& filtered) { F::removeEmptyIdentifications(filtered); }, nb::arg(target),
+                  "Removes the identifications without matches");
+  }
+} // namespace
 
 NB_MODULE(_pyopenms_processing, m) {
     m.doc() = "pyOpenMS processing bindings";
@@ -271,7 +427,7 @@ and centroid-based distance thresholds.
     // -----------------------------------------------------------------------
     // IDFilter
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IDFilter>(m, "IDFilter", 
+    auto idfilter = nb::class_<OpenMS::IDFilter>(m, "IDFilter", 
         R"doc(
 Finds the best-scoring hit in a vector of peptide or protein identifications
 
@@ -470,6 +626,57 @@ Removes hits annotated as decoys from peptide or protein identifications. Checks
       .def_static(
         "countHits", [](const OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::countHits(ids); }, "ids"_a,
         "Counts the number of peptide hits in the given identifications");
+    // the filters of identification data and of the identifications of maps
+    bindNativeIDFilters<OpenMS::IdentificationData>(idfilter, "data");
+    bindNativeIDFilters<OpenMS::FeatureMap>(idfilter, "map");
+    bindNativeIDFilters<OpenMS::ConsensusMap>(idfilter, "map");
+    idfilter
+      .def_static(
+        "legacyMetaValue",
+        [](const OpenMS::IdentificationData::Run& run, const OpenMS::IdentificationData::Match& match, const std::string& key) {
+          return OpenMS::IDFilter::legacyMetaValue(run, match, key);
+        },
+        "run"_a, "match"_a, "key"_a,
+        "The value that the peptide hit of a match has as meta value in export: its metadata, else a supplementary score of "
+        "that name, else (for 'target_decoy') its target/decoy state")
+      .def_static(
+        "legacyMetaValue",
+        [](const pyopenms_identification::RunView& run, const OpenMS::IdentificationData::Match& match, const std::string& key) {
+          return OpenMS::IDFilter::legacyMetaValue(run.run(), match, key);
+        },
+        "run"_a, "match"_a, "key"_a)
+      .def_static("sortMatchesByScore", [](OpenMS::IdentificationData& data) { OpenMS::IDFilter::sortMatchesByScore(data); }, "data"_a,
+                  "Orders the matches of every identification best first by the primary score (for a map: its identification_data_view())")
+      .def_static(
+        "editProteinRuns",
+        [](OpenMS::IdentificationData& data, nb::callable edit) {
+          OpenMS::IDFilter::editProteinRuns(data, [&](std::vector<OpenMS::ProteinIdentification>& proteins) {
+            nb::list items;
+            for (const auto& run : proteins) items.append(nb::cast(run, nb::rv_policy::copy));
+            nb::object result = edit(items);
+            proteins = nb::cast<std::vector<OpenMS::ProteinIdentification>>(result.is_none() ? nb::object(items) : result);
+          });
+        },
+        "data"_a, "edit"_a,
+        "Edits the protein runs as export writes them: edit(proteins) gets a list of ProteinIdentification, which it edits in "
+        "place or returns edited. Removed and reordered proteins and edited groups are taken; proteins cannot be added.")
+      .def_static(
+        "extractPeptideSequences",
+        [](const OpenMS::IdentificationData& data, bool ignore_mods) {
+          std::set<std::string> sequences;
+          OpenMS::IDFilter::extractPeptideSequences(data, sequences, ignore_mods);
+          return sequences;
+        },
+        "data"_a, "ignore_mods"_a = false, "The sequences of the peptide matches")
+      .def_static("removeUnreferencedProteins", [](OpenMS::IdentificationData& data) { OpenMS::IDFilter::removeUnreferencedProteins(data); }, "data"_a,
+                  "Removes the proteins that no peptide match refers to")
+      .def_static(
+        "removeDanglingProteinReferences",
+        [](OpenMS::IdentificationData& data, bool remove_peptides_without_reference) {
+          OpenMS::IDFilter::removeDanglingProteinReferences(data, remove_peptides_without_reference);
+        },
+        "data"_a, "remove_peptides_without_reference"_a = false,
+        "Removes the sequence evidence that refers to no protein of its protein run, and optionally the matches left without any");
 
     // -----------------------------------------------------------------------
     // InternalCalibration_LockMass

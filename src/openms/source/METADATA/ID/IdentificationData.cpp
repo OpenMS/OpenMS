@@ -1486,11 +1486,18 @@ std::map<ID::MatchReference, ID::QueryReference> ID::eraseMatches(const std::fun
 {
   checkMutation_();
   std::map<MatchReference, QueryReference> erased;
-  for (const auto& run : runs_)
-    for (const auto& source : run.getSources())
-      for (const auto& query : source.identifications)
-        for (const auto& match : query.getMatches())
-          if (remove(run, query, match)) erased.emplace(MatchReference {run.getUuid(), match.getId()}, QueryReference {run.getUuid(), query.getId()});
+  {
+    // the callback cannot edit the records it gets
+    CallbackGuard guard(callback_active_);
+    std::vector<std::unique_ptr<CallbackGuard>> guards;
+    for (auto& run : runs_)
+      guards.push_back(std::make_unique<CallbackGuard>(run.callback_active_));
+    for (const auto& run : runs_)
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+            if (remove(run, query, match)) erased.emplace(MatchReference {run.getUuid(), match.getId()}, QueryReference {run.getUuid(), query.getId()});
+  }
   if (erased.empty()) return erased;
   for (auto& run : runs_)
     run.eraseMatches([&](const Match& match) { return erased.contains({run.getUuid(), match.getId()}); }, true);
@@ -1500,15 +1507,22 @@ std::pair<std::set<ID::QueryReference>, std::set<ID::MatchReference>> ID::eraseI
 {
   checkMutation_();
   std::pair<std::set<QueryReference>, std::set<MatchReference>> erased;
-  for (const auto& run : runs_)
-    for (const auto& source : run.getSources())
-      for (const auto& query : source.identifications)
-        if (remove(run, query))
-        {
-          erased.first.insert({run.getUuid(), query.getId()});
-          for (const auto& match : query.getMatches())
-            erased.second.insert({run.getUuid(), match.getId()});
-        }
+  {
+    // the callback cannot edit the records it gets
+    CallbackGuard guard(callback_active_);
+    std::vector<std::unique_ptr<CallbackGuard>> guards;
+    for (auto& run : runs_)
+      guards.push_back(std::make_unique<CallbackGuard>(run.callback_active_));
+    for (const auto& run : runs_)
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          if (remove(run, query))
+          {
+            erased.first.insert({run.getUuid(), query.getId()});
+            for (const auto& match : query.getMatches())
+              erased.second.insert({run.getUuid(), match.getId()});
+          }
+  }
   if (erased.first.empty()) return erased;
   for (auto& run : runs_)
     run.eraseIdentifications([&](const Identification& query) { return erased.first.contains({run.getUuid(), query.getId()}); });

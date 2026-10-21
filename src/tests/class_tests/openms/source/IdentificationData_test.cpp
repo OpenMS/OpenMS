@@ -648,6 +648,23 @@ START_SECTION((std::map<MatchReference, QueryReference> eraseMatches(...) and er
   TEST_EQUAL(run.getNumberOfIdentifications(), 1)
   TEST_EQUAL(run.getNumberOfMatches(), 0)
   data.validate();
+
+  // The callbacks cannot edit the dataset or its runs, whose records they get; nothing changes then.
+  run.addMatch(second, peptide("PEPTIDEK"), {3.0});
+  const auto revision = run.getRevision();
+  TEST_EXCEPTION(Exception::InvalidValue, data.eraseMatches([&](const ID::Run&, const ID::Identification& query, const ID::Match&) {
+    run.addMatch(query.getId(), peptide("PEPTIDEC"), {4.0});
+    return true;
+  }))
+  TEST_EXCEPTION(Exception::InvalidValue, data.eraseIdentifications([&](const ID::Run&, const ID::Identification&) {
+    data.addRun("B");
+    return true;
+  }))
+  TEST_EQUAL(run.getRevision(), revision)
+  TEST_EQUAL(run.getNumberOfMatches(), 1)
+  TEST_EQUAL(data.getRuns().size(), 1)
+  // and the dataset can be edited again afterwards
+  TEST_EQUAL(data.eraseMatches([](const ID::Run&, const ID::Identification&, const ID::Match&) { return true; }).size(), 1)
 }
 END_SECTION
 
