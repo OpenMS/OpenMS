@@ -21,6 +21,7 @@
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <algorithm>
+#include <limits>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -856,6 +857,21 @@ START_SECTION(correctIM keeps paired calibration points and exact fits independe
       }
     }
   }
+  // An infinite peak intensity produces a NaN intensity-weighted mobility (inf / inf).
+  // It passes the old im <= 0 check, but must not reach the calibration-pair sort.
+  auto invalid_exp = std::make_shared<PeakMap>(*ms2_exp);
+  (*invalid_exp)[0][0].setIntensity(std::numeric_limits<float>::infinity());
+  OpenSwath::SwathMap invalid_map = ms2_map;
+  invalid_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(invalid_exp);
+  SwathMapMassCorrection invalid_correction;
+  Param invalid_parameters = invalid_correction.getDefaults();
+  invalid_parameters.setValue("mz_extraction_window", 0.1);
+  invalid_parameters.setValue("im_extraction_window", 10.0);
+  invalid_correction.setParameters(invalid_parameters);
+  TransformationDescription invalid_result;
+  const std::vector<OpenSwath::SwathMap> invalid_maps{invalid_map};
+  TEST_EXCEPTION(Exception::InvalidValue,
+    invalid_correction.correctIM(ordered_groups, targeted_exp, invalid_maps, false, invalid_result))
 #ifdef _OPENMP
   omp_set_num_threads(saved_threads);
   omp_set_dynamic(saved_dynamic);

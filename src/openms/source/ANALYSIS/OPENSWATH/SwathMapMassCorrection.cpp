@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -20,6 +21,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -391,6 +393,17 @@ namespace OpenMS
     if (data_im.empty())
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression",std::string("Could not fit a linear model to the data (0 points)."));
+    }
+
+    // Reject non-finite coordinates before sorting: NaNs do not define a strict weak order.
+    for (const auto& point : data_im)
+    {
+      if (!std::isfinite(point.first) || !std::isfinite(point.second))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Ion mobility calibration requires finite experimental and theoretical mobilities.",
+          StringUtils::toStr(point.first) + ", " + StringUtils::toStr(point.second));
+      }
     }
 
     // Parallel extraction appends in completion order. Fit both regressions to the same
