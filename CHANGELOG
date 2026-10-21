@@ -762,6 +762,43 @@ OpenMS Library:
     keeps only the best one and the hits tied with it whose peptide has a peptide FDR/q-value. The other
     hits had no FDR/q-value: they kept their search score under the new score type and were kept or
     dropped at random by a filter on it.
+  - FIX: DecoyGenerator::reversePeptides reverses the whole protein for unspecific cleavage. The digest of
+    'unspecific cleavage' is every subsequence of the protein, so the pseudo-reversed decoy was their concatenation
+    (7.9 million residues for 363 residues) and ProSE or SimpleSearchEngine with generated decoys failed in the fragment
+    index (more than 65535 residues per protein). An empty protein no longer reads out of bounds (#10686).
+  - FIX: ProSE: a search in which no PSM passes the FDR no longer aborts on an empty protein-inference graph (#10677).
+  - FIX: ProSEAlgorithm writes the compensation voltage of a FAIMS spectrum as the meta value 'FAIMS_CV' (a drift time with
+    unit FAIMS_COMPENSATION_VOLTAGE), not as 'IM', so that the FAIMS-aware code (FAIMSHelper, FeatureFinderIdentification,
+    MS1LabeledWorkflow, FeatureOverlapFilter) sees it (#10654).
+  - FIX: ProteomicsLFQ on FAIMS data with two or more CVs: seeding (DDAWorkflowCommons::calculateSeeds) and the
+    chromatographic peak width estimation work per CV, the seeds are labelled with FAIMS_CV, and
+    FeatureFinderIdentificationAlgorithm gives each CV group only the seeds of its CV (also Biosaur2 seeds) (#10656).
+  - FIX: IsobaricWorkflow (purity interpolation) and IsobaricChannelExtractor (IsobaricAnalyzer) take the precursor and
+    follow-up MS1 spectra of the scan's own FAIMS CV. Data without FAIMS is unchanged (#10657).
+  - FIX: BrukerTimsFile: a DDA precursor without MonoisotopicMz and Charge (charge not determined) gets the m/z of its
+    largest peak and charge 0 instead of m/z 0. The ion mobility of a DDA MS2 spectrum and its precursor is the position of
+    the precursor (Precursors.ScanNumber, mobility calibration of the parent frame) instead of the mean 1/K0 of the
+    fragment peaks, which remains the fallback; the im_min/im_max precursor selection uses the same value (#10655).
+  - Thermo .raw files in ZIP archives (.raw.zip) are read by ThermoRawFile (load() and transform()), FileHandler and the
+    TOPP tools; the archive's single .raw file is extracted to a temporary directory, as for a Bruker .d.zip. Archives
+    without or with more than one .raw file, and gzip or bzip2 compressed RAW files, are rejected with a ParseError.
+    New ZipArchiveFile::findSingleEntry() (#10647).
+  - FIX: MzMLFile with skipped chromatograms (PeakFileOptions) keeps the binary data arrays of the spectra in load() and
+    transform() (#10679).
+  - FIX: ChromatogramExtractorAlgorithm::extract_value_tophat (with and without ion mobility) counts the first and last peak
+    of a spectrum exactly once: the first peak was dropped when the walk to the left reached it after more than one step,
+    and the last peak was added twice when the target m/z lay beyond it. Extracted intensities at the edges of a spectrum
+    change (#10673).
+  - FIX: ConsensusMap::appendColumns() shifts the meta value 'mbr_transfer_map_indices' (PIP-ECHO) as well; ProteomicsLFQ
+    merges fractions with it, and these indices pointed at the wrong runs for every fraction after the first.
+    IDConflictResolverAlgorithm::annotateTransfers() (new) lists, per identified consensus feature, the runs to which the
+    identification was transferred by match-between-runs without PIP-ECHO ('mbr_transfer_map_indices' without q-values),
+    which ProteomicsLFQ writes (#10672).
+  - FIX: FeatureGroupingAlgorithm (FeatureLinker tools, ProteomicsLFQ, MS1LabeledWorkflow) sorts the consensus features by
+    position (RT, m/z), so the output order no longer depends on the randomly assigned unique ids of the input features
+    (#10660).
+  - FIX: FileInfo counts the occurrences of a peptide in a consensusXML per map id, not per column header index; map ids
+    outside 0..n-1 wrote out of bounds and gave wrong counts (#10612).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
