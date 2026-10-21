@@ -1387,7 +1387,7 @@ add_test("TOPP_IsobaricWorkflow_missing_spectrum" ${TOPP_BIN_PATH}/IsobaricWorkf
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_missing_spectrum_input.idXML
   -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
   -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_missing_spectrum_out.tmp.consensusXML)
-set_tests_properties("TOPP_IsobaricWorkflow_missing_spectrum" PROPERTIES WILL_FAIL 1)
+set_tests_properties("TOPP_IsobaricWorkflow_missing_spectrum" PROPERTIES PASS_REGULAR_EXPRESSION "identified spectra .* are not in the spectrum file")
 
 # Same run as TOPP_IsobaricWorkflow_1 on a copy of the mzML whose MS1 carries one extra peak:
 # 0.004 Th above the strict isolation window of scan 24217, with twice the precursor's intensity.
