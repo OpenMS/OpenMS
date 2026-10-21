@@ -5065,6 +5065,60 @@ add_test("TOPP_ProSE_13_merged_structure" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_13_merged_structure" PROPERTIES DEPENDS "TOPP_ProSE_13_merged")
 
+# Test 15: a search in which no PSM passes the PSM FDR ends with exit code 0 and valid, empty outputs (the protein FDR
+# aborted it with "Graph empty. Build it first."). The database swaps target and decoy: its targets are the reversed
+# proteins of the DatabaseSuitability database, its decoys (DECOY_, reused by decoys=auto) the real ones, so the spectra
+# match decoys only. One input with the protein FDR, and two inputs with -out_merged. The rows of every psm, proteins and
+# pg table name a _HUMAN protein, so an empty table has no _HUMAN.
+set(_prose15_common -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:rescore false -Search:decoys auto
+  -database ${DATA_DIR_TOPP}/ProSE_empty.fasta)
+add_test(NAME "TOPP_ProSE_15_empty_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
+  ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx ${TESTS_TEMP_DIR}/ProSE_15_empty_oms)
+add_test("TOPP_ProSE_15_empty" ${TOPP_BIN_PATH}/ProSE ${_prose15_common}
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_15_empty.tmp.idXML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx -out_parquet ${TESTS_TEMP_DIR}/ProSE_15_empty_oms
+  -summary_out ${TESTS_TEMP_DIR}/ProSE_15_empty.tmp.yaml)
+set_tests_properties("TOPP_ProSE_15_empty" PROPERTIES DEPENDS "TOPP_ProSE_15_empty_clean")
+add_test("TOPP_ProSE_15_empty_idXML" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/ProSE_15_empty.tmp.idXML)
+set_tests_properties("TOPP_ProSE_15_empty_idXML" PROPERTIES DEPENDS "TOPP_ProSE_15_empty"
+  PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
+add_test("TOPP_ProSE_15_empty_qpx_schema" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx/DatabaseSuitability_in_spec.psm.parquet -schema psm -min_rows 0)
+set_tests_properties("TOPP_ProSE_15_empty_qpx_schema" PROPERTIES DEPENDS "TOPP_ProSE_15_empty")
+foreach(_table qpx/DatabaseSuitability_in_spec.psm qpx/quantms.psm oms/DatabaseSuitability_in_spec.psm
+               oms/DatabaseSuitability_in_spec.proteins oms/openms.psm)
+  string(REPLACE "/" "_" _name ${_table})
+  add_test("TOPP_ProSE_15_empty_${_name}" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_${_table}.parquet -out_tsv ${TESTS_TEMP_DIR}/ProSE_15_empty_${_name}.tmp.tsv)
+  set_tests_properties("TOPP_ProSE_15_empty_${_name}" PROPERTIES DEPENDS "TOPP_ProSE_15_empty")
+  add_test("TOPP_ProSE_15_empty_${_name}_rows" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_15_empty_${_name}.tmp.tsv -DFORBIDDEN=_HUMAN
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_ProSE_15_empty_${_name}_rows" PROPERTIES DEPENDS "TOPP_ProSE_15_empty_${_name}")
+endforeach()
+add_test("TOPP_ProSE_15_empty_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_15_empty.tmp.yaml
+  "-DEXPECTED=exit_code: 0;matched_spectra: 0;target_psms: 0;files_failed: 0" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_15_empty_summary" PROPERTIES DEPENDS "TOPP_ProSE_15_empty")
+foreach(_part a b)
+  add_test(NAME "TOPP_ProSE_15_empty_input_${_part}" COMMAND ${CMAKE_COMMAND} -E copy
+    ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_15_${_part}.mzML)
+endforeach()
+add_test("TOPP_ProSE_15_empty_merged" ${TOPP_BIN_PATH}/ProSE ${_prose15_common}
+  -in ${TESTS_TEMP_DIR}/ProSE_15_a.mzML ${TESTS_TEMP_DIR}/ProSE_15_b.mzML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_15_empty_merged.tmp.idXML
+  -summary_out ${TESTS_TEMP_DIR}/ProSE_15_empty_merged.tmp.yaml)
+set_tests_properties("TOPP_ProSE_15_empty_merged" PROPERTIES
+  DEPENDS "TOPP_ProSE_15_empty_input_a;TOPP_ProSE_15_empty_input_b")
+add_test("TOPP_ProSE_15_empty_merged_idXML" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_15_empty_merged.tmp.idXML)
+set_tests_properties("TOPP_ProSE_15_empty_merged_idXML" PROPERTIES DEPENDS "TOPP_ProSE_15_empty_merged"
+  PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
+add_test("TOPP_ProSE_15_empty_merged_summary" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_15_empty_merged.tmp.yaml
+  "-DEXPECTED=files_failed: 0;files_total: 2;type: \"merged idXML\"" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_15_empty_merged_summary" PROPERTIES DEPENDS "TOPP_ProSE_15_empty_merged")
+
 # PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
 # how many PSMs received predicted features or fail -- never continue silently without them.
 if(WITH_ONNX)
