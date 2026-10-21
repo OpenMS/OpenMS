@@ -244,6 +244,38 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     }
     END_SECTION
 
+    START_SECTION(BasicProteinInferenceAlgorithm on ConsensusMap without PSMs)
+    {
+      // As above, for the features of a consensus map and its unassigned peptide identifications.
+      for (const auto& [group, resolve] : {std::pair{"true", "false"}, {"true", "true"}, {"false", "true"}})
+      {
+        vector<ProteinIdentification> prots;
+        PeptideIdentificationList peps;
+        IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+        ConsensusMap cmap;
+        cmap.setProteinIdentifications(prots);
+        for (auto& pep : peps)
+        {
+          pep.getHits().clear();
+          ConsensusFeature feature;
+          feature.getPeptideIdentifications().push_back(pep);
+          cmap.push_back(feature);
+          cmap.getUnassignedPeptideIdentifications().push_back(pep);
+        }
+        BasicProteinInferenceAlgorithm bpia;
+        Param p = bpia.getParameters();
+        p.setValue("min_peptides_per_protein", 0);
+        p.setValue("annotate_indistinguishable_groups", group);
+        p.setValue("greedy_group_resolution", resolve);
+        bpia.setParameters(p);
+        bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
+        const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
+        TEST_EQUAL(run.getHits().size(), std::string(resolve) == "true" ? 0 : 6)
+        TEST_EQUAL(run.getIndistinguishableProteins().size(), 0)
+      }
+    }
+    END_SECTION
+
     START_SECTION(static void annotateIndistinguishableGroups(ProteinIdentification& proteins, const PeptideIdentificationList& peptides, Size use_top_psms = 1, bool add_singletons = true))
     {
       // P1 and P2 share every top hit; P3 has its own. The second-ranked hit of the fourth
