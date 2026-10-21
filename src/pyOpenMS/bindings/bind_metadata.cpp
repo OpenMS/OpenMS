@@ -806,6 +806,7 @@ The optional interpretation part uses ProForma proteoform-ion notation.
         .def_static("indexTypeToString", [](OpenMS::USI::IndexType index_type) { return OpenMS::USI::indexTypeToString(index_type); }, "index_type"_a, "Convert index type enum to string")
         .def_static("indexTypeFromString", [](const std::string& type_string) { return OpenMS::USI::indexTypeFromString(type_string); }, "type_string"_a, "Parse index type from string")
         .def_static("extractBasename", [](const std::string& filepath) { return OpenMS::USI::extractBasename(filepath); }, "filepath"_a, "Extract basename from file path/URI for use as ms_run")
+        .def_static("extractMSRunName", [](const std::string& filepath) { return OpenMS::USI::extractMSRunName(filepath); }, "filepath"_a, "Extract the msRun name (basename minus a recognized MS file extension) from a file path/URI, per USI spec section 3.3.4")
         .def_static("getCVAccession", []() { return OpenMS::USI::getCVAccession(); }, "Get PSI-MS CV accession for USI (MS:1003063)")
         .def_static("getCVName", []() { return OpenMS::USI::getCVName(); }, "Get PSI-MS CV name for USI")
         ;

@@ -347,8 +347,8 @@ namespace OpenMS
       return USI(); // Invalid USI if mapping not found
     }
 
-    // Extract basename from the resolved path
-    std::string ms_run_name = USI::extractBasename(ms_run_path);
+    // Extract the msRun name (basename, minus a recognized MS file extension) from the resolved path
+    std::string ms_run_name = USI::extractMSRunName(ms_run_path);
 
     return buildUSI(ms_run_name, dataset_id, include_interpretation);
   }

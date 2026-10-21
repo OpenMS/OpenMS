@@ -289,6 +289,21 @@ namespace OpenMS
       @return Basename without path component
     */
     static std::string extractBasename(const std::string& filepath);
+
+    /**
+      @brief Extract the msRun name to use in a USI, following USI spec section 3.3.4.
+
+      Like extractBasename(), but also drops a recognized MS file extension (anything
+      FileTypes::nameToType() resolves, e.g. mzML, mzXML, raw, mgf), since the spec defines
+      the msRun as the root name of a .RAW or .mzML file and keeping the extension "would
+      reduce the universality of the USI". An unrecognized or missing extension is left as-is.
+      Example: "/path/to/sample.mzML" -> "sample"
+      Example: "file:///C:/data/sample.raw" -> "sample"
+
+      @param filepath Full file path or URI
+      @return msRun name without path component or recognized extension
+    */
+    static std::string extractMSRunName(const std::string& filepath);
     //@}
 
     /// @name CV term information
