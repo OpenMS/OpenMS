@@ -1,0 +1,6 @@
+# Track reusable scripts and this README, not generated benchmark data or reports.
+/*
+!/.gitignore
+!/*.sh
+!/*.py
+!/README.md

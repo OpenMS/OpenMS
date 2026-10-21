@@ -2,6 +2,8 @@
 
 Build, run and check the two local datasets. Keep each run in a new folder. The scripts do not overwrite a previous baseline.
 
+The `plan/opendia_rewrite` branch is for planning and exploration, not for merging. Commit only reusable scripts and documentation. Keep datasets, run results, plots and PDF reports local. This folder ignores generated files, and the repository ignores the `opendia-benchmark/` output folder used below.
+
 ## Build and run
 
 ```bash
@@ -83,4 +85,4 @@ python3 tools/scripts/opendia_benchmark/test_monitor_host.py
 
 Pass captured `meta/command.sh` files to `test_benchmark.py` to check the shared speed, inference and filter settings. The test always sources the current `lib.sh` arrays to check score annotation with `1.01` raw limits. Captured older commands with both raw score flags disabled are explicitly reported as historical raw-export mode, not claimed to use the current settings. Set `OPEN_DIA` to also check the current sourced settings and captured command modes with the real executable. This parameter check deliberately stops before data processing. It does not replace a full dataset run. Do not use `-write_ini` as a parameter-resolution test: it writes defaults.
 
-See `FINAL_REPORT.md` and `FINAL_REPORT.pdf` for measured results. Keep the original result folders and JSON files when making a new comparison.
+Generate `FINAL_REPORT.md`, its plots and `FINAL_REPORT.pdf` in your local `REPORT_DIR`. These outputs are not tracked in Git. Keep the original result folders and JSON files when making a new comparison.

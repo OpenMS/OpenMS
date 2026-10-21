@@ -34,6 +34,7 @@ _deps
 /OpenMS-build/*
 /openms-build
 /openms_build
+/opendia-benchmark/
 
 DartConfiguration.tcl
 install_manifest.txt
