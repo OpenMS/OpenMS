@@ -15,6 +15,7 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/NativeIdentificationTest.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -944,6 +945,23 @@ START_SECTION([EXTRA] split() of a map with identification data)
     TEST_EQUAL(parts[0].getIdentificationData().empty(), false)
     TEST_EQUAL(content(parts[0]), isobaric ? "AAA | WWW | LLL KKK | run_0| run_1" : "AAA | | LLL | run_0")
     TEST_EQUAL(content(parts[1]), isobaric ? "| | " : "| WWW | KKK | run_1")
+  }
+
+  // runs that an inference result pools: each part takes both runs and the result, so that its identifications
+  // refer to the pooled protein run of the map
+  cm.getDataProcessing().clear();
+  ConsensusMapMergerAlgorithm().mergeAllIDRuns(cm);
+  const auto pooled = IdentificationDataConverter::proteinIdentifications(cm);
+  ABORT_IF(pooled.size() != 1)
+  const vector<FeatureMap> pooled_parts = cm.split(ConsensusMap::SplitMeta::DISCARD);
+  ABORT_IF(pooled_parts.size() != 2)
+  TEST_EQUAL(content(pooled_parts[0]), "AAA | | LLL | " + pooled[0].getIdentifier())
+  TEST_EQUAL(content(pooled_parts[1]), "| WWW | KKK | " + pooled[0].getIdentifier())
+  for (const auto& part : pooled_parts)
+  {
+    TEST_TRUE(IdentificationDataConverter::proteinIdentifications(part) == pooled)
+    TEST_EQUAL(part.getIdentificationData().getRuns().size(), 2)
+    TEST_EQUAL(part.getIdentificationData().getInferenceResults().size(), 1)
   }
 }
 END_SECTION

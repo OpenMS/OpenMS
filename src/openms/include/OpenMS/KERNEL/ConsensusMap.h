@@ -299,12 +299,12 @@ public:
 
      If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
      provided by the map index.
-     The identifications are split as peptide identifications (see IdentificationDataConverter::exportMapIdentifications()):
-     those of a consensus feature go to its feature of the map index they are annotated with ('map_index'), unassigned
-     ones to the FeatureMap of their map index, and each FeatureMap gets the protein identification runs its
+     The identifications of a consensus feature (with the matches it links) go to its feature of the map index they
+     are annotated with ('map_index'), unassigned ones to the FeatureMap of their map index. Each FeatureMap holds its
+     identifications as identification data: the runs of its identifications (with only those) and the runs that an
+     inference result pools with them, with that inference result, so that its protein run is the one its
      identifications refer to. If the ConsensusMap originated from the IsobaricAnalyzer, only Features are separated:
-     all identifications (assigned and unassigned) and all protein identification runs go to the first FeatureMap.
-     Each FeatureMap holds its identifications as identification data.
+     all identifications (assigned and unassigned) and all runs go to the first FeatureMap.
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
 
@@ -315,12 +315,12 @@ public:
 
      @param[in] mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
      @return FeatureMaps, one per column header, in key order of the column headers
-     @throws Exception::ElementNotFound if a FeatureHandle or the 'map_index' meta value of a PeptideIdentification
+     @throws Exception::ElementNotFound if a FeatureHandle or the 'map_index' meta value of an identification
              refers to a map index which is not a column header of this ConsensusMap (see isMapConsistent()).
              Also thrown if there is no feature (or no column) with map index 0 although the data was processed by
              the IsobaricAnalyzer or @p mode is SplitMeta::COPY_FIRST.
-     @throws Exception::MissingInformation if the data was not processed by the IsobaricAnalyzer and a
-             PeptideIdentification has no 'map_index' meta value
+     @throws Exception::MissingInformation if the data was not processed by the IsobaricAnalyzer and an
+             identification has no 'map_index' meta value
     */
     std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 

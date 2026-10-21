@@ -13,10 +13,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessingUtils.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -648,20 +645,25 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       }
       return pos->second;
     };
-    auto mapIndexOf = [](const PeptideIdentification& pep_id) -> UInt64
+    auto mapIndexOf = [](const IdentificationData::Identification& query) -> UInt64
     {
-      if (!pep_id.metaValueExists("map_index"))
+      if (!query.metaValueExists("map_index"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
       }
-      return static_cast<UInt64>(pep_id.getMetaValue("map_index"));
+      return static_cast<UInt64>(query.getMetaValue("map_index"));
     };
 
     std::vector<FeatureMap> fmaps(index_to_position.size());
-    // The identifications are split as peptide identifications; each FeatureMap imports its share at the end.
-    const MapPeptideIdentifications identifications = IdentificationDataConverter::exportMapIdentifications(*this);
-    std::vector<MapPeptideIdentifications> parts(fmaps.size());
+    // The identifications of each FeatureMap with the matches it takes of them: those that its features link and the
+    // unassigned ones (an identification without matches, e.g. a peptide identification without hits, as such).
+    std::vector<std::map<IdentificationData::QueryReference, std::set<IdentificationData::MatchId>>> parts(fmaps.size());
+    auto assign = [&parts](Size part, const IdentificationData::QueryMatches& identification)
+    {
+      auto& matches = parts[part][{identification.run->getUuid(), identification.query->getId()}];
+      for (const auto* match : identification.matches) matches.insert(match->getId());
+    };
 
     // Check for Isobaric Analyzer
     bool iso_analyze = DataProcessingUtils::hasIsobaricAnalyzer(getDataProcessing());
@@ -672,7 +674,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       UInt64 min_index = std::numeric_limits<UInt64>::max();
       // Create new Features from FeatureHandles
       std::map<UInt64, BaseFeature> new_feats;
-      std::map<UInt64, PeptideIdentificationList> new_peptides;
+      std::map<UInt64, std::vector<IdentificationData::QueryMatches>> new_identifications;
       for (const FeatureHandle& fh : cf.getFeatures())
       {
         UInt64 index = fh.getMapIndex();
@@ -691,13 +693,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         }
       }
 
-      // Add PeptideIdentifications to ...
-      for (const PeptideIdentification& pep_id : identifications.at({cf_index}))
+      // Add the identifications to ...
+      for (auto& identification : cf.getLinkedIdentifications(id_data_))
       {
         // ... the first Feature, or the corresponding Feature by map_index.
-        const UInt64 index = iso_analyze ? new_feats.begin()->first : mapIndexOf(pep_id);
+        const UInt64 index = iso_analyze ? new_feats.begin()->first : mapIndexOf(*identification.query);
         if (!new_feats.contains(index)) new_feats[index] = BaseFeature();
-        new_peptides[index].push_back(pep_id);
+        new_identifications[index].push_back(std::move(identification));
       }
 
       // handle MetaValues of current CF
@@ -723,50 +725,75 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           break;
       }
 
-      // Add new Features (and their identifications) to corresponding FeatureMap.
+      // Add new Features (linking their identifications) to corresponding FeatureMap.
       for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
       {
         const Size part = positionOf(it->first);
-        if (auto peptides = new_peptides.find(it->first); peptides != new_peptides.end())
+        if (auto identifications = new_identifications.find(it->first); identifications != new_identifications.end())
         {
-          parts[part].features[{fmaps[part].size()}] = std::move(peptides->second);
+          for (const auto& identification : identifications->second)
+          {
+            assign(part, identification);
+            const auto& uuid = identification.run->getUuid();
+            it->second.addIDQuery({uuid, identification.query->getId()});
+            for (const auto* match : identification.matches) it->second.addIDMatch({uuid, match->getId()});
+          }
         }
         fmaps[part].emplace_back(std::move(it->second));
       }
     }
 
-    // Add unassigned PeptideIdentifications to ...
-    if (iso_analyze)
+    // Add unassigned identifications to the first FeatureMap, i.e. the one of map index 0 (resolved like any other map
+    // index, so a missing column 0 is reported), or to the corresponding FeatureMap by map_index.
+    const std::optional<Size> first = iso_analyze ? std::optional<Size>(positionOf(0)) : std::nullopt;
+    for (const auto& identification : getUnassignedIdentifications())
     {
-      // ... the first FeatureMap, i.e. the one of map index 0. It is resolved like any other map
-      // index, so a missing column 0 (or no column at all) is reported instead of written out of bounds.
-      const Size first = positionOf(0);
-      parts[first].unassigned = identifications.unassigned;
-      parts[first].proteins = identifications.proteins; // wrong! improve: only copy the ProtID which belongs to this FMap!
-    }
-    else
-    {
-      // ... the corresponding FeatureMap by map_index.
-      for (const PeptideIdentification& upep_id : identifications.unassigned)
-      {
-        parts[positionOf(mapIndexOf(upep_id))].unassigned.push_back(upep_id);
-      }
-
-      // every peptide identification needs its protein identification run: copy the runs each FeatureMap refers to
-      for (auto& part : parts)
-      {
-        std::set<std::string> identifiers;
-        for (const PeptideIdentification* pep_id : part.peptides()) identifiers.insert(pep_id->getIdentifier());
-        for (const ProteinIdentification& run : identifications.proteins)
-        {
-          if (identifiers.contains(run.getIdentifier())) part.proteins.push_back(run);
-        }
-      }
+      assign(first ? *first : positionOf(mapIndexOf(*identification.query)), identification);
     }
 
     for (Size i = 0; i < fmaps.size(); ++i)
     {
-      if (!parts[i].empty()) IdentificationDataConverter::importMapIdentifications(fmaps[i], parts[i]);
+      // The runs of its identifications and those that an inference result pools with them (their protein run);
+      // for the IsobaricAnalyzer, the first FeatureMap takes all runs.
+      std::set<std::string> runs;
+      for (const auto& entry : parts[i]) runs.insert(entry.first.run_uuid);
+      if (first == i)
+      {
+        for (const auto& run : id_data_.getRuns()) runs.insert(run.getUuid());
+      }
+      std::vector<const IdentificationData::InferenceResult*> results;
+      for (bool grown = true; grown;)
+      {
+        grown = false;
+        results.clear();
+        for (const auto& result : id_data_.getInferenceResults())
+        {
+          if (std::none_of(result.inputs.begin(), result.inputs.end(), [&runs](const auto& input) { return runs.contains(input.run_uuid); })) continue;
+          results.push_back(&result);
+          for (const auto& input : result.inputs) grown = runs.insert(input.run_uuid).second || grown;
+        }
+      }
+      if (!runs.empty())
+      {
+        IdentificationData data;
+        for (const auto& run : id_data_.getRuns())
+        {
+          if (!runs.contains(run.getUuid())) continue;
+          IdentificationData::Run copy(run);
+          std::set<IdentificationData::MatchId> matches;
+          copy.eraseIdentifications([&](const IdentificationData::Identification& query)
+          {
+            const auto entry = parts[i].find({run.getUuid(), query.getId()});
+            if (entry == parts[i].end()) return true;
+            matches.insert(entry->second.begin(), entry->second.end());
+            return false;
+          });
+          copy.eraseMatches([&matches](const IdentificationData::Match& match) { return !matches.contains(match.getId()); }, true);
+          data.addRun(std::move(copy));
+        }
+        for (const auto* result : results) data.addInferenceResult(*result);
+        fmaps[i].getIdentificationData() = std::move(data);
+      }
       fmaps[i].getDataProcessing() = this->getDataProcessing();
     }
 
