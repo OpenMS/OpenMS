@@ -587,16 +587,7 @@ namespace OpenMS
 
       // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
       // without a CV are tried at every CV, like identifications without one
-      FeatureMap seeds_cv;
-      static_cast<DocumentIdentifier&>(seeds_cv) = seeds;
-      for (const Feature& seed : seeds)
-      {
-        if (!seed.metaValueExists(Constants::UserParam::FAIMS_CV)
-            || std::abs(static_cast<double>(seed.getMetaValue(Constants::UserParam::FAIMS_CV)) - group_cv) < 0.01)
-        {
-          seeds_cv.push_back(seed);
-        }
-      }
+      const FeatureMap seeds_cv = FAIMSHelper::filterFeaturesByFAIMSCV(seeds, group_cv);
 
       // Run feature detection
       FeatureMap features_cv;
