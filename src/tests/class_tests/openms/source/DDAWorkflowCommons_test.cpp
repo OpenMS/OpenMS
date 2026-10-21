@@ -17,12 +17,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
-
 #include <map>
+#include <set>
 #include <string>
 
 ///////////////////////////
@@ -83,9 +82,14 @@ START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFW
   // Two peptides, each eluting at one of two interleaved FAIMS compensation voltages: MS1 spectra alternate between
   // -45 V and -60 V, one per second. Each peptide's isotope pattern (2+) has a Gaussian elution profile (sigma 6 s) in
   // the spectra of its CV only.
-  const std::vector<std::pair<double, AASequence>> analytes = {
-    {-45.0, AASequence::fromString("LVNELTEFAK")}, {-60.0, AASequence::fromString("YLYEIARR")}};
+  struct Analyte { double cv; double mz; IsotopeDistribution pattern; };
   const int charge = 2;
+  std::vector<Analyte> analytes;
+  for (const auto& [cv, seq] : std::vector<std::pair<double, std::string>>{{-45.0, "LVNELTEFAK"}, {-60.0, "YLYEIARR"}})
+  {
+    const AASequence peptide = AASequence::fromString(seq);
+    analytes.push_back({cv, peptide.getMZ(charge), CoarseIsotopePatternGenerator(4).estimateFromPeptideWeight(peptide.getMonoWeight())});
+  }
   const double apex = 60.0, sigma = 6.0;
   MSExperiment exp;
   for (int t = 0; t < 120; ++t)
@@ -97,14 +101,13 @@ START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFW
     spec.setDriftTime(cv);
     spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
     spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-    for (const auto& [analyte_cv, seq] : analytes)
+    const double elution = 1e7 * std::exp(-0.5 * std::pow((t - apex) / sigma, 2));
+    for (const Analyte& a : analytes)
     {
-      if (analyte_cv != cv) continue;
-      const double elution = 1e7 * std::exp(-0.5 * std::pow((t - apex) / sigma, 2));
-      const IsotopeDistribution dist = CoarseIsotopePatternGenerator(4).estimateFromPeptideWeight(seq.getMonoWeight());
-      for (Size i = 0; i < dist.size(); ++i)
+      if (a.cv != cv) continue;
+      for (Size i = 0; i < a.pattern.size(); ++i)
       {
-        spec.emplace_back(seq.getMZ(charge) + i * Constants::C13C12_MASSDIFF_U / charge, elution * dist[i].getIntensity());
+        spec.emplace_back(a.mz + i * Constants::C13C12_MASSDIFF_U / charge, elution * a.pattern[i].getIntensity());
       }
     }
     spec.sortByPosition();
@@ -120,26 +123,19 @@ START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFW
   FeatureMap seeds;
   DDAWorkflowCommons::calculateSeeds(exp, 0.0, seeds, 2.355 * sigma, "2:2", 3.0);
   TEST_TRUE(!seeds.empty())
-  // every seed carries the CV it was found at, the one its peptide elutes at
-  Size labelled = 0, wrong_cv = 0;
-  bool found_minus_45 = false, found_minus_60 = false;
+  // every seed carries the CV it was found at, the one its peptide elutes at, and both CV groups produced seeds
+  std::set<double> seed_cvs;
   for (const Feature& seed : seeds)
   {
-    if (!seed.metaValueExists(Constants::UserParam::FAIMS_CV)) continue;
-    ++labelled;
-    const double cv = seed.getMetaValue(Constants::UserParam::FAIMS_CV);
-    if (std::fabs(cv + 45.0) < 0.01) found_minus_45 = true;
-    if (std::fabs(cv + 60.0) < 0.01) found_minus_60 = true;
-    for (const auto& [analyte_cv, seq] : analytes)
+    TEST_TRUE(seed.metaValueExists(Constants::UserParam::FAIMS_CV))
+    const double cv = seed.getMetaValue(Constants::UserParam::FAIMS_CV, 0.0);
+    seed_cvs.insert(cv);
+    for (const Analyte& a : analytes)
     {
-      if (std::fabs(seed.getMZ() - seq.getMZ(charge)) < 0.05 && cv != analyte_cv) ++wrong_cv;
+      if (std::fabs(seed.getMZ() - a.mz) < 0.05) { TEST_EQUAL(cv, a.cv) }
     }
   }
-  TEST_EQUAL(labelled, seeds.size())
-  TEST_EQUAL(wrong_cv, 0)
-  // both CV groups produced seeds
-  TEST_TRUE(found_minus_45)
-  TEST_TRUE(found_minus_60)
+  TEST_TRUE(seed_cvs == (std::set<double>{-60.0, -45.0}))
 }
 END_SECTION
 
