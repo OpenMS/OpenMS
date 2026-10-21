@@ -18,6 +18,11 @@ the installation page for [Linux](/about/installation/installation-on-gnu-linux.
 RawFileReader reading tool. Copyright © 2016 by Thermo Fisher Scientific, Inc. All rights
 reserved.
 
+A `.raw` file packed into a ZIP archive (`.raw.zip`) can be given instead, by FileConverter and
+by the tools below. The archive must hold exactly one `.raw` file, which is unpacked into a
+temporary directory while the tool runs, so that directory needs space for the unpacked file.
+Gzip- or bzip2-compressed `.raw` files are not supported.
+
 ### Converting with FileConverter
 
 [FileConverter](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_FileConverter.html)

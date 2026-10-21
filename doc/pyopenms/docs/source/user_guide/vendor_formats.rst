@@ -26,7 +26,9 @@ directory that contains the ``dotnet`` executable and the ``shared`` sub-directo
 else the reader needs comes with the wheel.
 
 :py:class:`~.FileHandler` reads ``.raw`` files like any other format. It applies Thermo's peak
-picking, as the TOPP tool FileConverter does by default, so it returns centroided spectra:
+picking, as the TOPP tool FileConverter does by default, so it returns centroided spectra. A
+``.raw`` file packed into a ZIP archive (``.raw.zip``) works the same way; the archive must hold
+exactly one ``.raw`` file, which is unpacked into a temporary directory:
 
 .. code-block:: python
     :linenos:
