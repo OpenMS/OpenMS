@@ -5227,6 +5227,16 @@ add_test("TOPP_ProSE_14_keep_decoys_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_T
   "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_14_keep_decoys_out" PROPERTIES DEPENDS "TOPP_ProSE_14_keep_decoys")
+# An empty result: no PSM passes the PSM FDR, and the sidecar is written with its columns and no rows, as the psm views.
+# ProSE_empty.fasta swaps target and decoy: its decoys (DECOY_, reused by decoys=auto) are the proteins of the
+# DatabaseSuitability database, its targets their reversed sequences, so the spectra match decoys only. The protein FDR
+# is off, so that no protein inference runs on the empty result.
+set(_f ProSE_14_empty)
+prose14_run(${_f} -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:rescore false -Search:decoys auto
+  -Search:FDR:protein 0 -database ${DATA_DIR_TOPP}/ProSE_empty.fasta -in ${_prose14_mzml})
+prose14_dumps(${_f} DatabaseSuitability_in_spec)
+add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DROWS=0 ${_prose14_check})
+set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)

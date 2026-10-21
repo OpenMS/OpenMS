@@ -3,7 +3,7 @@
 #
 #   cmake -DSIDECAR=<sidecar dump> -DPSMS=<dump of the OpenMS psm.parquet of the same input (-out_parquet)>
 #         -DMZML=<the searched mzML, uncompressed> [-DQPX=<dump of the QPX psm.parquet of the same input>]
-#         [-DPEAKS=ON|OFF] [-DPREDICTIONS=ON|OFF] [-DTWIN=<sidecar dump whose peaks must be the same>]
+#         [-DPEAKS=ON|OFF] [-DPREDICTIONS=ON|OFF] [-DTWIN=<sidecar dump whose peaks must be the same>] [-DROWS=<n>]
 #         [-DYAML=<-summary_out> [-DYAML_FILE=<position of the input, default 0>] [-DNCE=<expected NCE>]
 #          [-DLOG=<output of the run> -DNCE_SOURCE=<"from PeptDeep rescoring", "selected" or "set">]
 #          [-DPEPTIDE=<peptidoform> -DCHARGE=<z> -DREFERENCE=<tsv: nce, ion, mz, intensity>
@@ -17,6 +17,8 @@
 # - PREDICTIONS ON (default): every row of precursor charge 1 to 6 has a non-empty prediction, with as many ions as m/z
 #   and intensities. OFF: every prediction column is null.
 # - TWIN: the peak columns equal those of TWIN, row by row (the same spectra read from another copy of the file).
+# - ROWS: the sidecar has exactly that many rows; 0 checks only the columns and the row counts. Without ROWS, at least
+#   one row.
 # - YAML: the summary reports a number as the NCE of the input (equal to NCE if given). With LOG, the run logged that
 #   NCE with its source NCE_SOURCE, and for "from PeptDeep rescoring" PeptDeep rescoring logged the same NCE ("NCE=").
 # - PEPTIDE: the predicted ions of the first row of that peptidoform and CHARGE go to OUT_PREDICTED, the rows of
@@ -121,6 +123,16 @@ if (DEFINED TWIN)
   read_dump("${TWIN}" twin)
   if (NOT sc_rows EQUAL twin_rows)
     message(FATAL_ERROR "${SIDECAR}: ${sc_rows} rows, the twin ${TWIN} has ${twin_rows}")
+  endif()
+endif()
+
+if (DEFINED ROWS)
+  if (NOT sc_rows EQUAL ROWS)
+    message(FATAL_ERROR "${SIDECAR}: ${sc_rows} rows, expected ${ROWS}")
+  endif()
+  if (ROWS EQUAL 0)
+    message(STATUS "${SIDECAR}: no rows, as expected")
+    return()
   endif()
 endif()
 
