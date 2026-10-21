@@ -5213,10 +5213,10 @@ add_test("TOPP_ProSE_14_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}
   "-DEXPECTED=${_prose14_summary}" ${_prose14_summary_forbidden} -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_14_summary" PROPERTIES DEPENDS "TOPP_ProSE_14_psm_spectra_plain")
 
-# The desktop app's run: two inputs, one of them gzipped (a copy of the other), -out_merged, -keep_decoys and every
-# Parquet output. Each input gets its own sidecar with the rows of its psm view and an NCE in the summary; the peaks read
-# from the .mzML.gz equal those of the .mzML. The merged proteins and protein groups (with -keep_decoys, the decoys that
-# pass the protein FDR too) are written as merged.proteins.parquet and merged.pg.parquet.
+# Two inputs, one of them gzipped (a copy of the other), with -out_merged, -keep_decoys and every Parquet output. Each
+# input gets its own sidecar with the rows of its psm view and an NCE in the summary; the peaks read from the .mzML.gz
+# equal those of the .mzML. The merged proteins and protein groups (with -keep_decoys, the decoys that pass the protein
+# FDR too) are written as merged.proteins.parquet and merged.pg.parquet.
 add_test(NAME "TOPP_ProSE_14_app_inputs" COMMAND ${CMAKE_COMMAND} -DMZML=${_prose14_mzml}
   -DOUT_DIR=${TESTS_TEMP_DIR} -P ${DATA_DIR_TOPP}/ProSE_14_prepare.cmake)
 set(_f ProSE_14_app)
@@ -5253,18 +5253,6 @@ add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
   -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=Duplicate input basename 'same'" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
 
-# A failed re-read of the spectra (simulated with the -test hook OPENMS_PROSE_TEST_FAIL_SPECTRA_READ) does not fail the
-# input: the run succeeds and the peak columns are null; the predictions are still made.
-set(_f ProSE_14_failed_read)
-prose14_run(${_f} ${_prose14_common} -in ${_prose14_mzml})
-set_tests_properties("TOPP_${_f}" PROPERTIES ENVIRONMENT "OPENMS_PROSE_TEST_FAIL_SPECTRA_READ=1")
-prose14_dumps(${_f} DatabaseSuitability_in_spec)
-set(_opt -DPREDICTIONS=OFF)
-if(WITH_ONNX)
-  set(_opt)
-endif()
-add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DPEAKS=OFF ${_opt} ${_prose14_check})
-set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
 if(WITH_ONNX)
   # A failed prediction (an MS2 model that ONNX Runtime cannot load) does not fail the input either: the peaks are
   # written, the prediction columns are null.

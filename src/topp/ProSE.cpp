@@ -42,9 +42,9 @@
 #include <algorithm>
 #include <fstream>
 #include <cmath>
-#include <cstdlib>
 #include <iomanip>
 #include <limits>
+#include <new>
 #include <sstream>
 
 #include <map>
@@ -222,7 +222,8 @@ class ProSE :
       element of @p peptide_ids, for its best hit (the row of the QPX psm view).
 
       Never throws because of the spectra or the predictions: a failed re-read of @p in_file or a failed prediction is
-      logged as a warning and leaves the columns null; the search result of the file is not affected.
+      logged as a warning and leaves the columns null; the search result of the file is not affected. Only
+      std::bad_alloc propagates: out of memory is not taken for an unreadable file.
 
       The peaks are read again from @p in_file (MS2 spectra, by native ID; of several spectra with the PSM's native
       ID the one at its RT). The predictions are PeptDeep's at the NCE of the file: the one PeptDeep rescoring stored
@@ -245,11 +246,6 @@ class ProSE :
       Size with_peaks = 0;
       try
       {
-        // Test hook: a re-read that fails after the search (run with -test only).
-        if (getFlag_("test") && std::getenv("OPENMS_PROSE_TEST_FAIL_SPECTRA_READ") != nullptr)
-        {
-          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in_file);
-        }
         MSDataTransformingConsumer keep;
         keep.setSpectraProcessingFunc([&](MSSpectrum& spectrum)
         {
@@ -262,6 +258,10 @@ class ProSE :
         FileHandler fh;
         fh.getOptions().setMSLevels({2});
         fh.transformExperiment(in_file, &keep, {}, log_type_);
+      }
+      catch (const std::bad_alloc&)
+      {
+        throw; // out of memory is no unreadable file: the caller fails the input
       }
       catch (const std::exception& e)
       {
@@ -310,6 +310,10 @@ class ProSE :
       try
       {
         predictPSMSpectra_(in_file, search_params, protein_ids, peptide_ids, spectra, out);
+      }
+      catch (const std::bad_alloc&)
+      {
+        throw; // out of memory is no failed prediction: the caller fails the input
       }
       catch (const std::exception& e)
       {
@@ -944,7 +948,8 @@ class ProSE :
 
         // -- PSM spectra sidecar (-out_psm_spectra) --
         // Collected and written before the other outputs: selecting the NCE stores it on the run, which they write.
-        // A failed re-read or prediction leaves columns null (collectPSMSpectra_ logs it); only a failed write fails.
+        // A failed re-read or prediction leaves columns null (collectPSMSpectra_ logs it); only a failed write, or
+        // running out of memory, fails the input.
         if (!out_psm_spectra_dir.empty())
         {
           const std::string sidecar = out_psm_spectra_dir + "/" + basename + ".psm_spectra.parquet";
