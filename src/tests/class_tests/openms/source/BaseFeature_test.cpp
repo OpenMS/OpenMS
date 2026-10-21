@@ -401,6 +401,25 @@ START_SECTION((AnnotationState getAnnotationState(const IdentificationData& data
   // a link to a match that the data does not have
   feature.addIDMatch({run.getUuid(), IdentificationData::MatchId{1000}});
   TEST_EXCEPTION(Exception::MissingInformation, feature.getAnnotationState(data));
+
+  // as the peptide identifications of the links: by the best linked match of each identification
+  const auto query = run.addIdentification(source, {});
+  IdentificationData::MatchData top, second;
+  top.representation = "ABCDE";
+  second.representation = "KRGH";
+  const auto top_id = run.addMatch(query, top, {2.0}), second_id = run.addMatch(query, second, {1.0});
+  BaseFeature linked;
+  linked.addIDQuery({run.getUuid(), query}); // a peptide identification without hits
+  TEST_EQUAL(linked.getAnnotationState(data), BaseFeature::AnnotationState::FEATURE_ID_NONE);
+  linked.addIDMatch({run.getUuid(), top_id});
+  linked.addIDMatch({run.getUuid(), second_id});
+  TEST_EQUAL(linked.getAnnotationState(data), BaseFeature::AnnotationState::FEATURE_ID_SINGLE);
+  linked.addIDMatch({run.getUuid(), same});
+  TEST_EQUAL(linked.getAnnotationState(data), BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME);
+  linked.addIDMatch({run.getUuid(), other});
+  TEST_EQUAL(linked.getAnnotationState(data), BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT);
+  linked.addIDQuery({run.getUuid(), IdentificationData::QueryId{1000}});
+  TEST_EXCEPTION(Exception::MissingInformation, linked.getAnnotationState(data));
 }
 END_SECTION
 

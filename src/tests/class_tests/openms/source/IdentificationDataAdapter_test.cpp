@@ -169,6 +169,14 @@ START_SECTION((static LegacyResult toLegacy(const IdentificationData&, const Exp
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(unsupported))
   options.loss_policy = Adapter::LossPolicy::ALLOW;
   TEST_EQUAL(Adapter::toLegacy(unsupported, options).losses.size(), 1)
+  // only the protein runs: what the peptide identifications lose does not matter
+  Adapter::ExportOptions proteins_only;
+  proteins_only.include_peptides = false;
+  const auto proteins = Adapter::toLegacy(unsupported, proteins_only);
+  TEST_EQUAL(proteins.peptides.size(), 0)
+  TEST_EQUAL(proteins.queries.size(), 0)
+  TEST_EQUAL(proteins.losses.size(), 0)
+  TEST_TRUE(proteins.proteins == Adapter::toLegacy(unsupported, options).proteins)
 }
 END_SECTION
 

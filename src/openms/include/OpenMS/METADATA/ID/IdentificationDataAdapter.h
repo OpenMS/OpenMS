@@ -42,6 +42,8 @@ public:
     LossPolicy loss_policy = LossPolicy::STRICT;
     bool include_inference = true;
     std::optional<std::string> inference_result;
+    /// false: only the protein runs, e.g. for protein-level steps (the losses of the peptide identifications are not reported)
+    bool include_peptides = true;
   };
   using QueryReference = IdentificationData::QueryReference;
   struct OPENMS_DLLAPI ImportResult

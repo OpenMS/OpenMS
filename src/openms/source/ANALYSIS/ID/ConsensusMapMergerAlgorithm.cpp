@@ -120,6 +120,7 @@ namespace OpenMS
     {
       IdentificationDataAdapter::ExportOptions options;
       options.loss_policy = IdentificationDataAdapter::LossPolicy::ALLOW;
+      options.include_peptides = false;
       return IdentificationDataAdapter::toLegacy(data, options).proteins;
     }
 

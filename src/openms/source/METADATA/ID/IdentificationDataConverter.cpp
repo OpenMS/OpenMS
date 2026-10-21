@@ -593,15 +593,24 @@ void IdentificationDataConverter::importMapIdentifications(FeatureMap& map, cons
 void IdentificationDataConverter::importMapIdentifications(ConsensusMap& map, const MapPeptideIdentifications& identifications)
 { importIdentifications(map, identifications); }
 
+namespace
+{
+  /// The protein runs of @p data as export writes them, without exporting its peptide identifications
+  std::vector<ProteinIdentification> proteinRuns(const IdentificationData& data)
+  {
+    if (data.empty()) return {};
+    auto options = legacyOptions();
+    options.include_peptides = false;
+    return Adapter::toLegacy(data, options).proteins;
+  }
+}
 std::vector<ProteinIdentification> IdentificationDataConverter::proteinIdentifications(const FeatureMap& map)
 {
-  if (map.getIdentificationData().empty()) return {};
-  return Adapter::toLegacy(map.getIdentificationData(), legacyOptions()).proteins;
+  return proteinRuns(map.getIdentificationData());
 }
 std::vector<ProteinIdentification> IdentificationDataConverter::proteinIdentifications(const ConsensusMap& map)
 {
-  if (map.getIdentificationData().empty()) return {};
-  return Adapter::toLegacy(map.getIdentificationData(), legacyOptions()).proteins;
+  return proteinRuns(map.getIdentificationData());
 }
 namespace
 {

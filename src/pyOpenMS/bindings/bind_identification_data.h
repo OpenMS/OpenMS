@@ -831,6 +831,7 @@ inline void bind(nb::module_& m)
   field(adapter_exportoptions, "loss_policy", &Adapter::ExportOptions::loss_policy);
   field(adapter_exportoptions, "include_inference", &Adapter::ExportOptions::include_inference);
   field(adapter_exportoptions, "inference_result", &Adapter::ExportOptions::inference_result);
+  field(adapter_exportoptions, "include_peptides", &Adapter::ExportOptions::include_peptides);
   adapter.attr("QueryReference") = data.attr("QueryReference");
   auto adapter_importresult = valueClass<Adapter::ImportResult>(adapter, "ImportResult");
   field(adapter_importresult, "data", &Adapter::ImportResult::data);

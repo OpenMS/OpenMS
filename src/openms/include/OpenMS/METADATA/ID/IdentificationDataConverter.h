@@ -71,7 +71,7 @@ public:
   ///@{
   /**
     @brief The protein identifications of a map, as export writes them (exportMapIdentifications()), e.g. the protein
-    run of an inference result
+    run of an inference result; its peptide identifications are not exported
   */
   static std::vector<ProteinIdentification> proteinIdentifications(const FeatureMap& map);
   static std::vector<ProteinIdentification> proteinIdentifications(const ConsensusMap& map);

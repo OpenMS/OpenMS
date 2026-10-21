@@ -1197,7 +1197,8 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     exports[run_index] = std::move(exported);
   }
   // The identifications in the order of their IDs, which is their legacy order after an import (see queryOrder()).
-  for (const auto& position : queryOrder(data))
+  const auto order = options.include_peptides ? queryOrder(data) : std::vector<QueryPosition> {};
+  for (const auto& position : order)
   {
     if (! exports[position.run]) continue;
     const auto& run = data.getRuns()[position.run];

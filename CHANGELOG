@@ -123,6 +123,15 @@ OpenMS Library:
     posteriors and the protein references that group resolution keeps back to the matches.
     BasicProteinInferenceAlgorithm::run(ConsensusMap&, ProteinIdentification&, bool) runs as
     run(ConsensusMap&, bool) and gives the protein run the proteins of the result.
+  - ProteinQuantifier reads feature and consensus maps without exporting their peptide
+    identifications: the features whose identifications disagree on the top sequence are found with
+    BaseFeature::getAnnotationState(), and only mzTab and QPX outputs export the identifications.
+    BaseFeature::getAnnotationState() evaluates the identifications a feature links as
+    annotationState() does their peptide identifications, by the best linked match of each (it
+    compared all linked matches, so an identification with hits of several sequences counted as
+    divergent). IdentificationDataAdapter::ExportOptions::include_peptides = false exports only the
+    protein runs, as IdentificationDataConverter::proteinIdentifications() and
+    ConsensusMapMergerAlgorithm now do.
   - Map alignment works on identification data: MapAlignmentAlgorithmIdentification collects the
     RTs of feature and consensus maps from the identifications that features link (and the
     unassigned ones), skipping identifications without RT and keying compounds by adduct if

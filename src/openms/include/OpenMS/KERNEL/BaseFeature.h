@@ -153,10 +153,11 @@ public:
     */
     static AnnotationState annotationState(const PeptideIdentificationList& peptides);
     /**
-      @brief State of the matches this feature links in @p data (see annotationState()): none, one, several of the same
-      molecule or of different molecules
+      @brief State of the identifications this feature links in @p data, as annotationState() gives it for their
+      peptide identifications: none, one, several of the same molecule or of different molecules (by the best linked
+      match of each identification)
 
-      @throws Exception::MissingInformation if a link refers to a match that @p data does not have
+      @throws Exception::MissingInformation if a link refers to an identification or match that @p data does not have
     */
     AnnotationState getAnnotationState(const IdentificationData& data) const;
 

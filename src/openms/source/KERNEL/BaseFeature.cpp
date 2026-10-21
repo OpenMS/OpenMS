@@ -125,20 +125,18 @@ namespace OpenMS
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState(const IdentificationData& data) const
   {
-    if (id_matches_.empty()) return AnnotationState::FEATURE_ID_NONE;
-    std::optional<IdentificationData::MoleculeIdentity> molecule;
-    bool divergent = false;
-    for (const auto& reference : id_matches_)
+    // as annotationState() for the peptide identifications that export gives the linked identifications
+    const auto identifications = getLinkedIdentifications(data);
+    std::set<IdentificationData::MoleculeIdentity> molecules;
+    for (const auto& identification : identifications)
     {
-      const auto* run = data.findRunByUuid(reference.run_uuid);
-      const auto* match = run ? run->findMatch(reference.match) : nullptr;
-      if (! match) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature association refers to a missing match");
-      IdentificationData::MoleculeIdentity identity {match->encoding, match->representation};
-      if (molecule && *molecule != identity) divergent = true;
-      molecule = std::move(identity);
+      const auto* best = identification.getBestMatch();
+      if (! best && ! identification.matches.empty()) best = identification.matches.front(); // none has a primary score
+      if (best) molecules.insert({best->encoding, best->representation});
     }
-    if (id_matches_.size() == 1) return AnnotationState::FEATURE_ID_SINGLE;
-    return divergent ? AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT : AnnotationState::FEATURE_ID_MULTIPLE_SAME;
+    if (molecules.empty()) return AnnotationState::FEATURE_ID_NONE;
+    if (identifications.size() == 1) return AnnotationState::FEATURE_ID_SINGLE;
+    return molecules.size() == 1 ? AnnotationState::FEATURE_ID_MULTIPLE_SAME : AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
   }
 
   std::set<IdentificationData::QueryReference> BaseFeature::getLinkedIDQueries(const IdentificationData& data) const

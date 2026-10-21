@@ -975,13 +975,11 @@ protected:
     // Identifications agreeing on the same modified sequence are unambiguous and kept.
     {
       const Size before = consensus.size();
-      // by the top hits of the peptide identifications of each feature
-      const auto feature_ids = IdentificationDataConverter::exportMapIdentifications(consensus);
-      Size index = 0; // the features are visited in order
-      consensus.eraseFeatures([&feature_ids, &index](const ConsensusFeature&)
+      // by the best match of each identification of a feature
+      const auto& data = consensus.getIdentificationData();
+      consensus.eraseFeatures([&data](const ConsensusFeature& feature)
       {
-        return BaseFeature::annotationState(feature_ids.at({index++})) ==
-               BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
+        return feature.getAnnotationState(data) == BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
       });
       if (const Size removed = before - consensus.size(); removed > 0)
       {
@@ -998,27 +996,29 @@ protected:
 
     ExperimentalDesign ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
-    // the identifications as the exports below write them: their protein runs hold the inference results and get the
-    // quantified protein run
-    auto ids = IdentificationDataConverter::exportMapIdentifications(consensus);
     bool inference_in_cxml = false;
     // protein inference results in the consensusXML or from external ID-only file?
-    if (getStringOption_("protein_groups").empty() &&
-        (ids.proteins.size() == 1) &&
-        ids.proteins[0].hasInferenceData())
+    if (getStringOption_("protein_groups").empty())
     {
-      proteins_ = ids.proteins[0];
-      inference_in_cxml = true;
+      auto proteins = IdentificationDataConverter::proteinIdentifications(consensus);
+      if ((proteins.size() == 1) && proteins[0].hasInferenceData())
+      {
+        proteins_ = std::move(proteins[0]);
+        inference_in_cxml = true;
+      }
     }
 
     quantifier.readQuantData(consensus, ed);
     quantifier.quantifyPeptides(peptides_);
     quantifier.quantifyProteins(proteins_);
 
-    // write mzTab file
-    if (!mztab.empty())
+    // the identifications as the exports below write them, with the quantified protein run: in place of the protein
+    // run of the inference results, or as the first protein identification
+    MapPeptideIdentifications ids;
+    if (!mztab.empty() || !out_qpx.empty())
     {
-      // annotate quants to protein(groups) for easier export in mzTab
+      ids = IdentificationDataConverter::exportMapIdentifications(consensus);
+      // annotate quants to protein(groups) for easier export
       auto const & protein_quants = quantifier.getProteinResults();
       quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
       if (!inference_in_cxml)
@@ -1029,7 +1029,11 @@ protected:
       {
         std::swap(ids.proteins[0], proteins_);
       }
+    }
 
+    // write mzTab file
+    if (!mztab.empty())
+    {
       // fill MzTab with meta data and quants annotated in identification data structure
       const bool report_unmapped(true);
       const bool report_unidentified_features(false);
@@ -1046,21 +1050,6 @@ protected:
     if (!out_qpx.empty())
     {
       OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
-
-      // Ensure protein quants are annotated (if not already done for mzTab)
-      if (mztab.empty())
-      {
-        auto const& protein_quants = quantifier.getProteinResults();
-        quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
-        if (!inference_in_cxml)
-        {
-          ids.proteins.insert(ids.proteins.begin(), proteins_);
-        }
-        else
-        {
-          std::swap(ids.proteins[0], proteins_);
-        }
-      }
 
       // Validate the whole collection before the first write. Each view refuses input it
       // cannot represent, but only before its OWN file, so a refusal in the psm or pg view
