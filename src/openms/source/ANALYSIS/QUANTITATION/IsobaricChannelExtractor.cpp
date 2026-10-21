@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 
 #include <algorithm>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>

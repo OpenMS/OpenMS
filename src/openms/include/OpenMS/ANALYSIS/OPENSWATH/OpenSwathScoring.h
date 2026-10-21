@@ -72,6 +72,22 @@ namespace OpenMS
 
   public:
 
+    /**
+      @brief Which of the enabled scores calculateChromatographicScores() and calculateDIAScores() compute
+
+      RANKING computes the scores that rank the peak groups of a transition group by their SWATH prescore
+      (OpenSwath_Scores::calculate_swath_lda_prescore()), REMAINDER the others: the MI scores, the MS1
+      cross-correlation scores, the DIA dot product and Manhattan scores and the MS1 DIA scores (including the
+      MS1 ion mobility scores). Together they compute the same as ALL, so that only the peak groups that are
+      reported need the remaining scores.
+    */
+    enum class ScoreSubset
+    {
+      ALL,
+      RANKING,
+      REMAINDER
+    };
+
     /// Constructor
     OpenSwathScoring();
 
@@ -121,6 +137,7 @@ namespace OpenMS
      * @param[in] normalized_library_intensity The weights to be used for each transition (e.g. normalized library intensities)
      * @param[in] signal_noise_estimators The signal-to-noise estimators for each transition
      * @param[out] scores The object to store the result
+     * @param[in] subset Which of the scores to compute (see ScoreSubset)
      *
     */
     void calculateChromatographicScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -128,7 +145,8 @@ namespace OpenMS
                                         const std::vector<std::string>& precursor_ids,
                                         const std::vector<double>& normalized_library_intensity,
                                         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-                                        OpenSwath_Scores & scores) const;
+                                        OpenSwath_Scores & scores,
+                                        ScoreSubset subset = ScoreSubset::ALL) const;
 
     /** @brief Score identification transitions against detection transitions of a single peakgroup
      * in a chromatogram using only chromatographic properties.
@@ -192,6 +210,7 @@ namespace OpenMS
      * @param[in] range_im drift time lower and upper bounds
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
+     * @param[in] subset Which of the scores to compute (see ScoreSubset); @p mzerror_ppm is only filled by ALL and RANKING
      *
     */
   void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -206,7 +225,8 @@ namespace OpenMS
               const double drift_target,
               const RangeMobility& range_im,
               MobilogramParquetConsumer* mobilogram_consumer = nullptr,
-              Int64 feature_id = -1);
+              Int64 feature_id = -1,
+              ScoreSubset subset = ScoreSubset::ALL);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
