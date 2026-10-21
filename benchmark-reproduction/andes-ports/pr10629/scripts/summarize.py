@@ -40,6 +40,9 @@ ARMS = {  # arm: (database for hye group, for human group, for hy group, label)
     "wenE1s3rev": ("dd/hye_wen_s3_rev.fasta", "dd/human_wen_s3_rev.fasta", None, "DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 3, full-reversal decoys"),
     "andesE1s3": ("andes/hye_andes_s3.fasta", "andes/human_andes_s3.fasta", None, "andes build_shuffled_entrap.py seed 3 (whole-protein shuffle), full-reversal decoys"),
     "foreignE": ("foreign/hye_arath_td.fasta", "foreign/human_arath_td.fasta", None, "foreign entrapment: reviewed Arabidopsis (UP000006548), full-reversal decoys"),
+    "v3E1s1rev": ("dd/hye_v3_s1_rev.fasta", "dd/human_v3_s1_rev.fasta", None, "DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 1, full-reversal decoys"),
+    "v3E1s2rev": ("dd/hye_v3_s2_rev.fasta", "dd/human_v3_s2_rev.fasta", None, "DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 2, full-reversal decoys"),
+    "v3E1s3rev": ("dd/hye_v3_s3_rev.fasta", "dd/human_v3_s3_rev.fasta", None, "DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 3, full-reversal decoys"),
     "ddfixE2": ("dd/hye_ddfix_r2.fasta", None, None, "DecoyDatabase -entrapment_ratio 2, with fix"),
 }
 

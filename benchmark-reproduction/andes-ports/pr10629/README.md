@@ -89,3 +89,23 @@ python3 -I scripts/andes_te.py <target+entrapment fasta without decoys>         
 - Wen et al. 2025 (Methods) fix only the C-terminal residue and retry up to 20 shuffles until the entrapment peptide differs from every target peptide. Identical peptides are swapped consistently.
 - FDRBench's code default fixes both termini, but its README example uses `-fix_nc c`. FDRBench classifies by peptide sequence (with `-I2L`); decoys are removed beforehand.
 - The paired estimator is defined at peptide, precursor and protein level only.
+
+## Follow-up 2: shuffle design against a foreign-proteome entrapment (2026-10-21)
+
+The reference is a foreign-proteome entrapment: reviewed *Arabidopsis* (UP000006548, 16,345 proteins, sha256 in `results/arath_sp.fasta.sha256`), the reference Wen et al. use. `make_foreign.py` builds it; `results/foreign_per_group.tsv` has the numbers.
+
+`results/realisations.tsv` holds three realisations per shuffle design. The table gives the mean FDP (combined estimator, T/E from the database), HF-X / Astral / TMTpro:
+
+| Design | FDP |
+|---|---|
+| Foreign entrapment (Arabidopsis) | 1.49 / 1.28 / 1.11% |
+| #10364 `make_entrapment.py` | 1.64 / 1.67 / 1.05% |
+| DecoyDatabase f0bddcb3 (N-terminus fixed, identity threshold) | 1.39 / 1.52 / 0.81% |
+| DecoyDatabase f0bddcb3 with `keepPeptideNTerm false` | 1.40 / 1.69 / 0.98% |
+| DecoyDatabase b0ea4828 (strict uniqueness as in Wen et al.) | **2.00 / 2.17 / 1.12%** |
+| DecoyDatabase ccdfa8a1 (C-terminus, K, R and P fixed, identity threshold, no target collisions) | 1.34 / 1.73 / 0.93% (SD 0.06–0.10) |
+| andes `build_shuffled_entrap.py` (whole protein shuffled; `andes_style_db.sh`) | **1.05 / 1.07 / 0.74%** |
+
+**Strict uniqueness (b0ea4828).** It leaves short peptides unchanged when their few permutations are taken. As a result, 4.8% of the entrapment peptides equal their target and 20.7% are at least 60% identical to it (`identity_dist.py`). These near-copies attract the targets' spectra (`twin_check.py`), which inflates the estimate.
+
+**andes whole-protein shuffle.** It underestimates the FDP. 92% of its entrapment peptides have no mass-matched target peptide, and it is not 1:1 (T/E 0.90). Reported as bigbio/andes#225.

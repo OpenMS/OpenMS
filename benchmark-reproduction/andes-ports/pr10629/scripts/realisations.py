@@ -7,6 +7,7 @@ DESIGNS = {"#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)": ["froz
            "DecoyDatabase fix, keepPeptideNTerm true (default)": ["ddfixE1rev", "ddfixE1s2rev", "ddfixE1s3rev"],
            "DecoyDatabase fix, keepPeptideNTerm false": ["ddfixE1noNrev", "ddfixE1noNs2rev", "ddfixE1noNs3rev"],
            "DecoyDatabase b0ea4828 (Wen et al.: C-term + K/R/P fixed, unique)": ["wenE1s1rev", "wenE1s2rev", "wenE1s3rev"],
+           "DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions)": ["v3E1s1rev", "v3E1s2rev", "v3E1s3rev"],
            "andes build_shuffled_entrap.py (whole protein shuffled)": ["andesE1s1", "andesE1s2", "andesE1s3"]}
 GROUPS = {"hfx": ["hfx_A2", "hfx_B1", "hfx_B3"], "astral": ["astral_A2", "astral_B1", "astral_B3"],
           "tmtpro": ["eclipse_tmtpro_10855", "eclipse_tmtpro_10858", "eclipse_tmtpro_10863"]}

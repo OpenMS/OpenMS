@@ -1,0 +1,10 @@
+group	arm	database	psms_per_file	entrapment_per_file	te_ratio	fdp_pct	fdp_te1_pct	peptides_pooled	peptide_fdp_pct	inproc_psms_per_file	inproc_fdp_pct
+hfx	v3E1s1rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 1, full-reversal decoys	4455.2	27.4	1.002	1.23	1.23	11354	2.03	4398.0	1.27
+hfx	v3E1s2rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 2, full-reversal decoys	4447.9	30.7	1.002	1.38	1.38	11297	2.2	4378.3	1.28
+hfx	v3E1s3rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 3, full-reversal decoys	4411.0	31.3	1.002	1.42	1.42	11233	2.14	4375.3	1.51
+astral	v3E1s1rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 1, full-reversal decoys	2765.1	23.4	1.002	1.7	1.7	7286	2.64	2809.7	1.76
+astral	v3E1s2rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 2, full-reversal decoys	2770.0	23.3	1.002	1.69	1.68	7269	2.37	2854.7	1.94
+astral	v3E1s3rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 3, full-reversal decoys	2788.1	25.0	1.002	1.8	1.79	7292	2.77	2751.3	1.62
+tmtpro	v3E1s1rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 1, full-reversal decoys	2564.0	13.0	1.002	1.01	1.01	7058	1.59	2525.3	1.0
+tmtpro	v3E1s2rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 2, full-reversal decoys	2575.7	11.7	1.002	0.91	0.91	7076	1.41	2566.7	0.91
+tmtpro	v3E1s3rev	DecoyDatabase final (C-term + K/R/P fixed, identity threshold, no target collisions), -seed 3, full-reversal decoys	2568.8	11.1	1.002	0.87	0.87	7084	1.53	2567.0	0.88
