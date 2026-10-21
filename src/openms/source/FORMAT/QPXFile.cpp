@@ -680,7 +680,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           // everything else -> psm_metavalues
           (void)pmv_struct_b->Append();
           (void)pmv_name_b->Append(key);
-          (void)pmv_value_b->Append(val.toString());
+          (void)pmv_value_b->Append(ArrowIOHelpers::metaValueString(val));
           switch (vt)
           {
             case DataValue::INT_VALUE: (void)pmv_type_b->Append("int"); break;
@@ -705,7 +705,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           const DataValue& val = mv_it->second;
           (void)smv_struct_b->Append();
           (void)smv_name_b->Append(key);
-          (void)smv_value_b->Append(val.toString());
+          (void)smv_value_b->Append(ArrowIOHelpers::metaValueString(val));
 
           switch (val.valueType())
           {
