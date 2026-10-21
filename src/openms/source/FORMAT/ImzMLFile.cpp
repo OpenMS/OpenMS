@@ -527,8 +527,19 @@ void ImzMLFile::store(const std::string& filename, const MSImagingExperiment& ex
 
   if (geom.getWidth() > 0)  { out.setMetaValue("imzml:max_count_x", static_cast<UInt>(geom.getWidth())); }
   if (geom.getHeight() > 0) { out.setMetaValue("imzml:max_count_y", static_cast<UInt>(geom.getHeight())); }
-  if (geom.getPixelSizeX() > 0) { out.setMetaValue("imzml:pixel_size_x", geom.getPixelSizeX()); }
-  if (geom.getPixelSizeY() > 0) { out.setMetaValue("imzml:pixel_size_y", geom.getPixelSizeY()); }
+  // imzML pixel size (IMS:1000046/47) is defined in micrometer; other units are not converted
+  if (geom.getPixelSizeUnit() == "micrometer")
+  {
+    if (geom.getPixelSizeX() > 0) { out.setMetaValue("imzml:pixel_size_x", geom.getPixelSizeX()); }
+    if (geom.getPixelSizeY() > 0) { out.setMetaValue("imzml:pixel_size_y", geom.getPixelSizeY()); }
+  }
+  else if (geom.getPixelSizeX() > 0 || geom.getPixelSizeY() > 0)
+  {
+    OPENMS_LOG_WARN << "imzML: pixel size unit '" << geom.getPixelSizeUnit()
+                    << "' is not micrometer; pixel size not written." << std::endl;
+    out.removeMetaValue("imzml:pixel_size_x");
+    out.removeMetaValue("imzml:pixel_size_y");
+  }
 
   store(filename, out);
 }
