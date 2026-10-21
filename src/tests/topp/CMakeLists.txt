@@ -5039,7 +5039,7 @@ set_tests_properties("TOPP_ProSE_13_merged_structure" PROPERTIES DEPENDS "TOPP_P
 # match decoys only. One input with the protein FDR, and two inputs with -out_merged. The rows of every psm, proteins and
 # pg table name a _HUMAN protein, so an empty table has no _HUMAN.
 set(_prose15_common -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:rescore false -Search:decoys auto
-  -database ${DATA_DIR_TOPP}/ProSE_15_empty.fasta)
+  -database ${DATA_DIR_TOPP}/ProSE_empty.fasta)
 add_test(NAME "TOPP_ProSE_15_empty_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
   ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx ${TESTS_TEMP_DIR}/ProSE_15_empty_oms)
 add_test("TOPP_ProSE_15_empty" ${TOPP_BIN_PATH}/ProSE ${_prose15_common}
