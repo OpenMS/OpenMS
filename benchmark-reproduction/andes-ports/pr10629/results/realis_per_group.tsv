@@ -1,0 +1,46 @@
+group	arm	database	psms_per_file	entrapment_per_file	te_ratio	fdp_pct	fdp_te1_pct	peptides_pooled	peptide_fdp_pct	inproc_psms_per_file	inproc_fdp_pct
+hfx	frozenE	#10364 make_entrapment.py, 1:1	4430.8	33.9	0.9551	1.49	1.53	11286	2.39	4386.7	1.4
+hfx	frozenEs2	make_entrapment_salted.py salt s2	4464.8	41.9	0.9551	1.83	1.88	11355	2.82	4408.0	1.55
+hfx	frozenEs3	make_entrapment_salted.py salt s3	4452.8	36.6	0.9551	1.6	1.64	11332	2.48	4399.3	1.7
+hfx	ddfixE1rev	DecoyDatabase -entrapment_ratio 1, with fix, decoys replaced by full reversals as in #10364	4449.2	26.7	1.016	1.21	1.2	11340	2.01	4378.0	1.2
+hfx	ddfixE1s2rev	as ddfixE1rev, DecoyDatabase -seed 2	4470.8	29.6	1.016	1.33	1.32	11355	2.1	4406.3	1.1
+hfx	ddfixE1s3rev	as ddfixE1rev, DecoyDatabase -seed 3	4447.2	35.9	1.016	1.63	1.61	11307	2.53	4413.0	1.66
+hfx	ddfixE1noNs2rev	as ddfixE1noNrev, -seed 2	4421.6	28.8	1.004	1.3	1.3	11267	2.1	4325.7	1.28
+hfx	ddfixE1noNs3rev	as ddfixE1noNrev, -seed 3	4434.9	29.2	1.004	1.32	1.32	11305	2.29	4400.7	1.55
+hfx	ddfixE1noNrev	as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)	4456.0	35.3	1.004	1.59	1.59	11301	2.45	4396.7	1.41
+hfx	wenE1s1rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 1, full-reversal decoys	4443.6	41.0	1.049	1.89	1.85	11342	2.96	4370.3	1.72
+hfx	andesE1s1	andes build_shuffled_entrap.py seed 1 (whole-protein shuffle), full-reversal decoys	4414.9	21.3	0.9039	0.92	0.97	11251	1.51	4356.7	0.7
+hfx	wenE1s2rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 2, full-reversal decoys	4449.1	41.3	1.049	1.9	1.86	11313	2.9	4388.0	1.85
+hfx	andesE1s2	andes build_shuffled_entrap.py seed 2 (whole-protein shuffle), full-reversal decoys	4469.4	27.4	0.9042	1.17	1.23	11319	1.72	4394.3	1.05
+hfx	wenE1s3rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 3, full-reversal decoys	4505.9	48.9	1.049	2.22	2.17	11451	3.27	4413.0	2.01
+hfx	andesE1s3	andes build_shuffled_entrap.py seed 3 (whole-protein shuffle), full-reversal decoys	4407.2	24.2	0.9038	1.05	1.1	11217	1.75	4359.7	0.98
+astral	frozenE	#10364 make_entrapment.py, 1:1	2727.8	19.4	0.9551	1.39	1.43	7234	2.03	2786.0	1.38
+astral	frozenEs2	make_entrapment_salted.py salt s2	2760.6	26.7	0.9551	1.89	1.93	7280	2.9	2781.3	2.18
+astral	frozenEs3	make_entrapment_salted.py salt s3	2735.8	24.1	0.9551	1.72	1.76	7274	2.66	2797.3	1.91
+astral	ddfixE1rev	DecoyDatabase -entrapment_ratio 1, with fix, decoys replaced by full reversals as in #10364	2797.1	19.6	1.016	1.41	1.4	7302	2.18	2824.3	1.59
+astral	ddfixE1s2rev	as ddfixE1rev, DecoyDatabase -seed 2	2773.2	19.1	1.016	1.39	1.38	7286	2.21	2819.0	1.43
+astral	ddfixE1s3rev	as ddfixE1rev, DecoyDatabase -seed 3	2770.1	24.3	1.016	1.77	1.76	7342	2.88	2774.0	1.84
+astral	ddfixE1noNs2rev	as ddfixE1noNrev, -seed 2	2754.3	20.8	1.004	1.51	1.51	7252	2.27	2767.0	1.59
+astral	ddfixE1noNs3rev	as ddfixE1noNrev, -seed 3	2748.4	26.3	1.004	1.92	1.92	7297	2.55	2830.0	2.08
+astral	ddfixE1noNrev	as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)	2767.1	22.7	1.004	1.64	1.64	7294	2.39	2773.7	1.66
+astral	wenE1s1rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 1, full-reversal decoys	2752.2	29.7	1.049	2.21	2.16	7242	3.06	2699.0	1.97
+astral	andesE1s1	andes build_shuffled_entrap.py seed 1 (whole-protein shuffle), full-reversal decoys	2725.9	13.3	0.9039	0.93	0.98	7210	1.66	2823.0	1.06
+astral	wenE1s2rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 2, full-reversal decoys	2770.1	28.0	1.049	2.07	2.02	7305	3.42	2710.7	2.32
+astral	andesE1s2	andes build_shuffled_entrap.py seed 2 (whole-protein shuffle), full-reversal decoys	2778.0	15.2	0.9042	1.04	1.1	7308	1.8	2761.0	0.9
+astral	wenE1s3rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 3, full-reversal decoys	2745.6	30.0	1.049	2.24	2.19	7322	3.39	2828.7	2.63
+astral	andesE1s3	andes build_shuffled_entrap.py seed 3 (whole-protein shuffle), full-reversal decoys	2774.7	18.0	0.9038	1.23	1.3	7328	1.95	2793.7	1.16
+tmtpro	frozenE	#10364 make_entrapment.py, 1:1	2576.1	16.2	0.9538	1.23	1.26	7101	1.95	2547.3	1.28
+tmtpro	frozenEs2	make_entrapment_salted.py salt s2	2572.7	10.3	0.9539	0.78	0.8	7055	1.33	2525.0	0.8
+tmtpro	frozenEs3	make_entrapment_salted.py salt s3	2577.0	15.2	0.9538	1.15	1.18	7112	1.92	2507.0	0.94
+tmtpro	ddfixE1rev	DecoyDatabase -entrapment_ratio 1, with fix, decoys replaced by full reversals as in #10364	2580.1	12.1	1.017	0.95	0.94	7087	1.59	2559.3	0.84
+tmtpro	ddfixE1s2rev	as ddfixE1rev, DecoyDatabase -seed 2	2569.3	9.4	1.017	0.74	0.74	7053	1.4	2565.3	1.0
+tmtpro	ddfixE1s3rev	as ddfixE1rev, DecoyDatabase -seed 3	2558.9	9.2	1.017	0.73	0.72	7034	1.18	2552.0	1.03
+tmtpro	ddfixE1noNs2rev	as ddfixE1noNrev, -seed 2	2570.3	11.2	1.004	0.88	0.87	7059	1.39	2546.7	0.97
+tmtpro	ddfixE1noNs3rev	as ddfixE1noNrev, -seed 3	2568.2	13.9	1.004	1.08	1.08	7070	1.67	2555.7	1.15
+tmtpro	ddfixE1noNrev	as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)	2575.9	12.4	1.004	0.97	0.97	7083	1.64	2578.7	0.88
+tmtpro	wenE1s1rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 1, full-reversal decoys	2582.8	13.1	1.046	1.04	1.02	7065	1.48	2553.3	1.07
+tmtpro	andesE1s1	andes build_shuffled_entrap.py seed 1 (whole-protein shuffle), full-reversal decoys	2552.8	8.3	0.8987	0.62	0.65	7032	1.16	2558.0	0.72
+tmtpro	wenE1s2rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 2, full-reversal decoys	2579.4	15.3	1.046	1.22	1.19	7102	1.93	2548.0	1.07
+tmtpro	andesE1s2	andes build_shuffled_entrap.py seed 2 (whole-protein shuffle), full-reversal decoys	2575.6	10.1	0.8996	0.75	0.79	7054	1.24	2578.7	0.81
+tmtpro	wenE1s3rev	DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 3, full-reversal decoys	2585.0	13.8	1.046	1.09	1.07	7089	1.62	2562.0	1.14
+tmtpro	andesE1s3	andes build_shuffled_entrap.py seed 3 (whole-protein shuffle), full-reversal decoys	2566.2	11.6	0.8993	0.86	0.9	7057	1.43	2536.3	0.82

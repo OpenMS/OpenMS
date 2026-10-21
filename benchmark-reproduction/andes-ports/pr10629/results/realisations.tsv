@@ -1,10 +1,16 @@
 group	design	FDP % per realisation	mean	sd	FDP % ignoring decoy accessions (mean)	PSMs per file (mean)
-hfx	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.48 / 1.82 / 1.59	1.63	0.17	1.70	4449
+hfx	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.49 / 1.83 / 1.60	1.64	0.17	1.70	4449
 hfx	DecoyDatabase fix, keepPeptideNTerm true (default)	1.21 / 1.33 / 1.63	1.39	0.22	1.47	4456
-hfx	DecoyDatabase fix, keepPeptideNTerm false	1.58 / 1.29 / 1.29	1.39	0.17	1.45	4438
-astral	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.37 / 1.89 / 1.72	1.66	0.27	1.67	2741
+hfx	DecoyDatabase fix, keepPeptideNTerm false	1.59 / 1.30 / 1.32	1.40	0.16	1.45	4438
+hfx	DecoyDatabase b0ea4828 (Wen et al.: C-term + K/R/P fixed, unique)	1.89 / 1.90 / 2.22	2.00	0.19	2.12	4466
+hfx	andes build_shuffled_entrap.py (whole protein shuffled)	0.92 / 1.17 / 1.05	1.05	0.13	1.07	4430
+astral	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.39 / 1.89 / 1.72	1.67	0.25	1.67	2741
 astral	DecoyDatabase fix, keepPeptideNTerm true (default)	1.41 / 1.39 / 1.77	1.52	0.21	1.61	2780
-astral	DecoyDatabase fix, keepPeptideNTerm false	1.64 / 1.49 / 1.92	1.68	0.22	1.74	2757
+astral	DecoyDatabase fix, keepPeptideNTerm false	1.64 / 1.51 / 1.92	1.69	0.21	1.74	2757
+astral	DecoyDatabase b0ea4828 (Wen et al.: C-term + K/R/P fixed, unique)	2.21 / 2.07 / 2.24	2.17	0.09	2.25	2756
+astral	andes build_shuffled_entrap.py (whole protein shuffled)	0.93 / 1.04 / 1.23	1.07	0.15	1.10	2760
 tmtpro	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.23 / 0.78 / 1.15	1.05	0.24	1.15	2575
-tmtpro	DecoyDatabase fix, keepPeptideNTerm true (default)	0.92 / 0.74 / 0.73	0.80	0.11	0.89	2569
-tmtpro	DecoyDatabase fix, keepPeptideNTerm false	0.94 / 0.88 / 1.08	0.97	0.10	1.05	2571
+tmtpro	DecoyDatabase fix, keepPeptideNTerm true (default)	0.95 / 0.74 / 0.73	0.81	0.12	0.89	2569
+tmtpro	DecoyDatabase fix, keepPeptideNTerm false	0.97 / 0.88 / 1.08	0.98	0.10	1.05	2571
+tmtpro	DecoyDatabase b0ea4828 (Wen et al.: C-term + K/R/P fixed, unique)	1.04 / 1.22 / 1.09	1.12	0.09	1.26	2582
+tmtpro	andes build_shuffled_entrap.py (whole protein shuffled)	0.62 / 0.75 / 0.86	0.74	0.12	0.79	2565

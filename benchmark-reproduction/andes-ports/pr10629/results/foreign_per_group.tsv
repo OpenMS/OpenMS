@@ -1,0 +1,4 @@
+group	arm	database	psms_per_file	entrapment_per_file	te_ratio	fdp_pct	fdp_te1_pct	peptides_pooled	peptide_fdp_pct	inproc_psms_per_file	inproc_fdp_pct
+hfx	foreignE	foreign entrapment: reviewed Arabidopsis (UP000006548), full-reversal decoys	4530.1	22.0	2.076	1.49	0.97	11503	2.06	4508.3	1.57
+astral	foreignE	foreign entrapment: reviewed Arabidopsis (UP000006548), full-reversal decoys	2881.3	12.0	2.076	1.28	0.83	7521	2.04	2884.7	1.17
+tmtpro	foreignE	foreign entrapment: reviewed Arabidopsis (UP000006548), full-reversal decoys	2590.0	11.4	1.503	1.11	0.88	7125	1.86	2592.0	1.48

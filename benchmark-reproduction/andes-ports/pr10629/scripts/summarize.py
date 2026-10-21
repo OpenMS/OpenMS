@@ -1,6 +1,6 @@
 """Entrapment FDP per instrument group and database arm, with EntrapmentEvaluator.
 
-  summarize.py <bin_dir> <runs_dir> <databases_dir> <out_prefix>
+  summarize.py <bin_dir> <runs_dir> <databases_dir> <out_prefix> [arm ...]
 
 For each group/arm: EntrapmentEvaluator on the 3 files x 3 Percolator seeds (s*/target.idXML) with -database (T/E from
 the searched database, Trypsin/P as searched, I = L) and on the ProSE in-process Percolator output (inproc.idXML).
@@ -11,6 +11,7 @@ import os, statistics, subprocess, sys, tempfile
 from pathlib import Path
 
 bin_dir, runs, dbs, out = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4]
+ONLY = set(sys.argv[5:])  # optional: only these arms
 GROUPS = {"velos": ["velos_125_R1", "velos_5000_R2", "velos_25000_R3"], "hfx": ["hfx_A2", "hfx_B1", "hfx_B3"],
           "astral": ["astral_A2", "astral_B1", "astral_B3"], "tmtpro": ["eclipse_tmtpro_10855", "eclipse_tmtpro_10858", "eclipse_tmtpro_10863"]}
 ARMS = {  # arm: (database for hye group, for human group, for hy group, label)
@@ -32,6 +33,13 @@ ARMS = {  # arm: (database for hye group, for human group, for hy group, label)
                         "as ddfixE1noNrev, -seed 3"),
     "ddfixE1noNrev": ("dd/hye_ddfix_r1_noN_rev.fasta", "dd/human_ddfix_r1_noN_rev.fasta", None,
                       "as ddfixE1rev, -Decoy:keepPeptideNTerm false (N-terminus shuffled too, as in #10364)"),
+    "wenE1s1rev": ("dd/hye_wen_s1_rev.fasta", "dd/human_wen_s1_rev.fasta", None, "DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 1, full-reversal decoys"),
+    "andesE1s1": ("andes/hye_andes_s1.fasta", "andes/human_andes_s1.fasta", None, "andes build_shuffled_entrap.py seed 1 (whole-protein shuffle), full-reversal decoys"),
+    "wenE1s2rev": ("dd/hye_wen_s2_rev.fasta", "dd/human_wen_s2_rev.fasta", None, "DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 2, full-reversal decoys"),
+    "andesE1s2": ("andes/hye_andes_s2.fasta", "andes/human_andes_s2.fasta", None, "andes build_shuffled_entrap.py seed 2 (whole-protein shuffle), full-reversal decoys"),
+    "wenE1s3rev": ("dd/hye_wen_s3_rev.fasta", "dd/human_wen_s3_rev.fasta", None, "DecoyDatabase b0ea4828 (Wen et al. shuffle), -seed 3, full-reversal decoys"),
+    "andesE1s3": ("andes/hye_andes_s3.fasta", "andes/human_andes_s3.fasta", None, "andes build_shuffled_entrap.py seed 3 (whole-protein shuffle), full-reversal decoys"),
+    "foreignE": ("foreign/hye_arath_td.fasta", "foreign/human_arath_td.fasta", None, "foreign entrapment: reviewed Arabidopsis (UP000006548), full-reversal decoys"),
     "ddfixE2": ("dd/hye_ddfix_r2.fasta", None, None, "DecoyDatabase -entrapment_ratio 2, with fix"),
 }
 
@@ -42,9 +50,20 @@ def ee(files, db):
                         "-no_progress"], check=True, capture_output=True,
                    env=dict(os.environ, LD_LIBRARY_PATH=str(Path(bin_dir).parent / "lib"), OPENMS_DATA_PATH=str(Path(bin_dir).parent / "share/OpenMS")))
         rows = {}
-        for line in open(t.name).read().splitlines()[1:]:
-            f = line.split("\t")
-            if f[1] == "all": rows[f[0]] = dict(n=int(f[3]), ne=int(f[4]), fdp=float(f[5]), pep=int(f[6]), pep_e=int(f[7]), te=float(f[9]))
+        lines = open(t.name).read().splitlines()
+        head = lines[0].split("\t")
+        for line in lines[1:]:
+            f = dict(zip(head, line.split("\t")))
+            if "level" in f:  # EntrapmentEvaluator since e1f3d743: one row per level
+                if f["class"] != "all": continue
+                key = f["file"]; r = rows.setdefault(key, {})
+                if f["level"] == "psm":
+                    r.update(n=int(f["accepted"]), ne=int(f["entrapment"]), fdp=float(f["combined_fdp"]), te=float(f["te_ratio"]))
+                else:
+                    r.update(pep=int(f["accepted"]), pep_e=int(f["entrapment"]), pep_paired=f["paired_fdp"])
+            elif f["class"] == "all":
+                rows[f["file"]] = dict(n=int(f["accepted_psms"]), ne=int(f["entrapment_psms"]), fdp=float(f["psm_fdp"]),
+                                       pep=int(f["accepted_peptides"]), pep_e=int(f["entrapment_peptides"]), te=float(f["te_ratio"]))
         return rows
 
 
@@ -52,6 +71,7 @@ per_file, per_group = [], []
 for group, datasets in GROUPS.items():
     for arm, (hye, human, hy, label) in ARMS.items():
         db = {"velos": hy, "hfx": hye, "astral": hye, "tmtpro": human}[group]
+        if ONLY and arm not in ONLY: continue
         if db is None or not all((runs / d / arm / "s137/target.idXML").exists() for d in datasets): continue
         db = dbs / db
         seeds = [runs / d / arm / f"s{s}/target.idXML" for d in datasets for s in (1, 42, 137)]
