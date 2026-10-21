@@ -7,6 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
+
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+
+#include <algorithm>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
@@ -202,9 +206,11 @@ namespace OpenMS
     // compute distance between isotopic peaks based on the precursor charge.
     const double charge_dist = Constants::C13C12_MASSDIFF_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
 
-    // the actual boundary values
-    const double strict_lower_mz = ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset();
-    const double strict_upper_mz = ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset();
+    // the actual boundary values: the isolation window offsets are relative to its target m/z, which differs from the
+    // selected ion's m/z when the instrument re-centred the window (or picked a different isotope peak)
+    const double window_center = PrecursorPurity::isolationWindowCenter(ms2_spec->getPrecursors()[0]);
+    const double strict_lower_mz = window_center - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset();
+    const double strict_upper_mz = window_center + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset();
 
     const double fuzzy_lower_mz = strict_lower_mz - (strict_lower_mz * max_precursor_isotope_deviation_ / 1000000);
     const double fuzzy_upper_mz = strict_upper_mz + (strict_upper_mz * max_precursor_isotope_deviation_ / 1000000);
@@ -217,8 +223,18 @@ namespace OpenMS
     const_spec_iterator lower_bound = precursor_spec.MZBegin(fuzzy_lower_mz);
     const_spec_iterator upper_bound = precursor_spec.MZEnd(ms2_spec->getPrecursors()[0].getMZ());
 
-    Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
-    Peak1D::IntensityType total_intensity = precursor_peak.getIntensity();
+    // Only intensity inside the isolation window counts, the precursor's own peaks included: when the window is not
+    // centred on the precursor (see isolationWindowCenter()), the precursor peak or some of its isotopes lie outside it.
+    // Weight 1 inside the window, 0.5 in its fuzzy border (its borders are not sharp), 0 outside.
+    auto window_weight = [&](double mz)
+    {
+      if (mz > strict_lower_mz && mz < strict_upper_mz) return 1.0;
+      if (mz > fuzzy_lower_mz && mz < fuzzy_upper_mz) return 0.5;
+      return 0.0;
+    };
+
+    Peak1D::IntensityType precursor_intensity = window_weight(precursor_peak.getMZ()) * precursor_peak.getIntensity();
+    Peak1D::IntensityType total_intensity = 0;
 
     // ------------------------------------------------------------------------------
     // try to find a match for our isotopic peak on the left side
@@ -254,16 +270,7 @@ namespace OpenMS
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
         std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")\n";
 #endif
-        if (np_it->getMZ() > strict_lower_mz)
-        {
-          precursor_intensity += np_it->getIntensity();
-        }
-        else
-        {
-          // we're in the fuzzy area, so we will take only 50% of the given intensity
-          // since we assume that the isolation window borders are not sharp
-          precursor_intensity += 0.5 * np_it->getIntensity();
-        }
+        precursor_intensity += window_weight(np_it->getMZ()) * np_it->getIntensity();
 
         // update expected_next_mz
         expected_next_mz = np_it->getMZ() - charge_dist;
@@ -316,16 +323,7 @@ namespace OpenMS
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
         std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")\n";
 #endif
-        if (np_it->getMZ() < strict_upper_mz)
-        {
-          precursor_intensity += np_it->getIntensity();
-        }
-        else
-        {
-          // we're in the fuzzy area, so we will take only 50% of the given intensity
-          // since we assume that the isolation window borders are not sharp
-          precursor_intensity += 0.5 * np_it->getIntensity();
-        }
+        precursor_intensity += window_weight(np_it->getMZ()) * np_it->getIntensity();
 
         // update expected_next_mz
         expected_next_mz = np_it->getMZ() + charge_dist;
@@ -341,40 +339,32 @@ namespace OpenMS
     }
 
     // ------------------------------------------------------------------------------
-    // compute total intensity
-    int idx = static_cast<int>(precursor_peak_idx) - 1;
-    while (idx >= 0 && precursor_spec[idx].getMZ() > fuzzy_lower_mz)
+    // compute total intensity in the isolation window
+    for (auto it = precursor_spec.MZBegin(fuzzy_lower_mz); it != precursor_spec.end() && it->getMZ() < fuzzy_upper_mz; ++it)
     {
-      if (precursor_spec[idx].getMZ() > strict_lower_mz)
-      {
-        total_intensity += precursor_spec[idx].getIntensity();
-      }
-      else
-      {
-        // we're in the fuzzy area, so we will take only 50% of the given intensity
-        // since we assume that the isolation window borders are not sharp
-        total_intensity += 0.5 * precursor_spec[idx].getIntensity();
-      }
-      --idx;
+      total_intensity += window_weight(it->getMZ()) * it->getIntensity();
     }
 
-    idx = static_cast<int>(precursor_peak_idx) + 1;
-    while (idx < static_cast<int>(precursor_spec.size()) && precursor_spec[idx].getMZ() < fuzzy_upper_mz)
-    {
-      if (precursor_spec[idx].getMZ() < strict_upper_mz)
-      {
-        total_intensity += precursor_spec[idx].getIntensity();
-      }
-      else
-      {
-        // we're in the fuzzy area, so we will take only 50% of the given intensity
-        // since we assume that the isolation window borders are not sharp
-        total_intensity += 0.5 * precursor_spec[idx].getIntensity();
-      }
-      ++idx;
-    }
+    // a window without signal tells nothing about the purity (see computePrecursorPurity_())
+    return total_intensity > 0 ? precursor_intensity / total_intensity : -1.0;
+  }
 
-    return precursor_intensity / total_intensity;
+  bool IsobaricChannelExtractor::scanWindowCoversChannels(const MSSpectrum& spec, const IsobaricQuantitationMethod& method, double tolerance)
+  {
+    const auto& windows = spec.getInstrumentSettings().getScanWindows();
+    if (windows.empty() || method.getChannelInformation().empty()) return true; // nothing known: assume it does
+    auto is_set = [](const ScanWindow& w) { return !(w.begin == 0.0 && w.end == 0.0); };
+    if (std::none_of(windows.begin(), windows.end(), is_set)) return true;
+    // every reporter m/z must lie in one of the (possibly disjoint) windows
+    for (const auto& channel : method.getChannelInformation())
+    {
+      const bool covered = std::any_of(windows.begin(), windows.end(), [&](const ScanWindow& w)
+      {
+        return is_set(w) && channel.center >= w.begin - tolerance && channel.center <= w.end + tolerance;
+      });
+      if (!covered) return false;
+    }
+    return true;
   }
 
   double IsobaricChannelExtractor::computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PurityState_& pState) const
@@ -390,12 +380,18 @@ namespace OpenMS
       std::cerr << "------------------ analyzing " << ms2_spec->getNativeID() << '\n';
 #endif
 
-      // compute purity of preceding ms1 scan
+      // compute purity of preceding ms1 scan (negative: no signal in the window)
       double early_scan_purity = computeSingleScanPrecursorPurity_(ms2_spec, *(pState.precursorScan));
 
       if (pState.hasFollowUpScan && interpolate_precursor_purity_)
       {
         double late_scan_purity = computeSingleScanPrecursorPurity_(ms2_spec, *(pState.followUpScan));
+        // a survey scan without signal in the window (e.g. the precursor eluted before the next one) tells nothing
+        // about the purity: take the other scan's
+        if (early_scan_purity < 0 || late_scan_purity < 0)
+        {
+          return std::max(0.0, std::max(early_scan_purity, late_scan_purity));
+        }
 
         // calculating the extrapolated, S2I value as a time weighted linear combination of the two scans
         // see: Savitski MM, Sweetman G, Askenazi M, Marto JA, Lang M, Zinn N, et al. (2011).
@@ -407,7 +403,7 @@ namespace OpenMS
       }
       else
       {
-        return early_scan_purity;
+        return std::max(0.0, early_scan_purity);
       }
     }
   }
@@ -532,32 +528,25 @@ namespace OpenMS
     // --> assign peaks to channels
     UInt64 element_index(0);
 
-    // remember the current precursor spectrum
+    // the survey scans of the precursors are looked up per spectrum (see below)
     PurityState_ pState(ms_exp_data);
 
-    PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
+    PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // the MS2 spec whose precursor was isolated from MS1 (also if quant is in MS3)
     bool ms3 = false;
+    Size skipped_scan_window = 0;
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
-      // remember the last MS1 spectra as we assume it to be the precursor spectrum
-      if (it->getMSLevel() ==  1)
-      {
-        // remember potential precursor and continue
-        pState.precursorScan = it;
-        // reset last MS2 -- we expect to see a new one soon and the old one should not be used for the following MS3 (if any)
-        it_last_MS2 = ms_exp_data.end();
-        continue;
-      }
-
+      if (it->getMSLevel() == 1) continue;
       if (it->getMSLevel() != quant_ms_level) continue;
       if ((*it).empty()) continue; // skip empty spectra
       if (!(selected_activation_ == "any" || isValidActivation(*it))) continue;
 
-      // find following ms1 scan (needed for purity computation)
-      if (!pState.followUpValid(it->getRT()))
+      // a reporter scan that does not reach every reporter m/z would report zeros for the channels it misses
+      if (!scanWindowCoversChannels(*it, *quant_method_, reporter_mass_shift_))
       {
-        // advance iterator
-        pState.advanceFollowUp(it->getRT());
+        OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": its scan window does not cover all reporter ions.\n";
+        ++skipped_scan_window;
+        continue;
       }
 
       // check precursor constraints
@@ -565,23 +554,6 @@ namespace OpenMS
       {
         OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints.\n";
         continue;
-      }
-
-      // check precursor purity if we have a valid precursor ..
-      double precursor_purity = -1.0;
-      if (pState.precursorScan != ms_exp_data.end())
-      {
-        precursor_purity = computePrecursorPurity_(it, pState);
-        // check if purity is high enough
-        if (precursor_purity < min_precursor_purity_)
-        {
-          OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]\n";
-          continue;
-        }
-      }
-      else
-      {
-        OPENMS_LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << '\n';
       }
 
       if (it->getMSLevel() == 3)
@@ -604,6 +576,43 @@ namespace OpenMS
       if (it_last_MS2->getPrecursors().empty())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
+      }
+
+      // The precursor purity is that of the MS2 precursor in its survey scan, for MS3 quantification too: the MS3
+      // precursors are fragments of the MS2 (SPS ions), which are not in the survey scan. The survey scan is the one
+      // the MS2 references (spectrumRef), else the last MS1 before it (at the same FAIMS compensation voltage).
+      pState.precursorScan = ms_exp_data.getPrecursorSpectrum(it_last_MS2);
+      if (pState.precursorScan != ms_exp_data.end() && pState.precursorScan->getMSLevel() != 1) pState.precursorScan = ms_exp_data.end();
+      if (pState.precursorScan != ms_exp_data.end())
+      {
+        // the next MS1 at the same FAIMS compensation voltage, for the interpolation
+        const bool faims = pState.precursorScan->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+        pState.followUpScan = it_last_MS2;
+        while (pState.followUpScan != ms_exp_data.end() &&
+               (pState.followUpScan->getMSLevel() != 1 ||
+                (faims && (pState.followUpScan->getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                           || pState.followUpScan->getDriftTime() != pState.precursorScan->getDriftTime()))))
+        {
+          ++pState.followUpScan;
+        }
+        pState.hasFollowUpScan = pState.followUpScan != ms_exp_data.end();
+      }
+
+      // check precursor purity if we have a valid precursor ..
+      double precursor_purity = -1.0;
+      if (pState.precursorScan != ms_exp_data.end())
+      {
+        precursor_purity = computePrecursorPurity_(it_last_MS2, pState);
+        // check if purity is high enough
+        if (precursor_purity < min_precursor_purity_)
+        {
+          OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]\n";
+          continue;
+        }
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << '\n';
       }
 
       // store RT of MS2 scan and MZ of MS1 precursor ion as centroid of ConsensusFeature
@@ -708,6 +717,11 @@ namespace OpenMS
       ++element_index;
     } // ! Experiment iterator
 
+    if (skipped_scan_window > 0)
+    {
+      OPENMS_LOG_WARN << "Skipped " << skipped_scan_window << " MS" << quant_ms_level
+                      << " scans whose scan window does not cover all reporter ions (they would report zero for the channels outside it).\n";
+    }
     printStats();
     /// add meta information to the map
     registerChannelsInOutputMap(consensus_map);

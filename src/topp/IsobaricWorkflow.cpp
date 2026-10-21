@@ -395,7 +395,11 @@ protected:
             next_ms1_spec = ms1_spec_idx;
             break;
           }
-          else if (exp[next_ms1_spec].getMSLevel() == 1)          
+          else if (exp[next_ms1_spec].getMSLevel() == 1
+                   // with FAIMS, the next survey scan at the same compensation voltage
+                   && (exp[ms1_spec_idx].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                       || (exp[next_ms1_spec].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                           && exp[next_ms1_spec].getDriftTime() == exp[ms1_spec_idx].getDriftTime())))
           {
             break;
           }
@@ -908,6 +912,19 @@ protected:
             {
               OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second
                               << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned.\n";
+              for (auto& pep : peps) { keep_unassigned(pep); }
+            }
+            continue;
+          }
+
+          // A reporter scan that does not reach every reporter m/z would report zero for the channels it misses.
+          if (!IsobaricChannelExtractor::scanWindowCoversChannels(exp[quant_spec_idx], *quant_method,
+                                                                  channel_extractor.getParameters().getValue("reporter_mass_shift")))
+          {
+            #pragma omp critical(unassigned_pep_ids_collection)
+            {
+              OPENMS_LOG_WARN << "The scan window of spectrum " << exp[quant_spec_idx].getNativeID()
+                              << " does not cover all reporter ions. Skipping quantification and adding to unassigned.\n";
               for (auto& pep : peps) { keep_unassigned(pep); }
             }
             continue;

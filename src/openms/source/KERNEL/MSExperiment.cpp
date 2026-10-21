@@ -1021,12 +1021,19 @@ namespace OpenMS
     }
 
     // if no precursor annotation was found or it did not have a spectrum reference,
-    // just
+    // just take the closest preceding spectrum of the level above. With FAIMS, that spectrum must have been
+    // acquired at the same compensation voltage: the scans of the other voltages hold other ions.
+    const bool faims = iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+    const double cv = iterator->getDriftTime();
     do
     {
       --iterator;
       if (ms_level - iterator->getMSLevel() == 1)
       {
+        if (faims && iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE && iterator->getDriftTime() != cv)
+        {
+          continue;
+        }
         return iterator;
       }
     } while (iterator != spectra_.begin());
