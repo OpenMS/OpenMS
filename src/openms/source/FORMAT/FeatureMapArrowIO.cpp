@@ -1762,8 +1762,9 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     // psm_metavalues -> PeptideHit metavalues (exclude keys that have dedicated columns)
     if (col_psm_metavalues)
     {
+      // 'target_decoy' is read from is_decoy above, and is only here if that cannot express it (e.g. "target+decoy")
       static const std::unordered_set<std::string> psm_excluded_mvs =
-        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+        {"predicted_RT", "predicted_rt", "ion_mobility", "IM",
          "scan", "reference_file_name"};
       ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }

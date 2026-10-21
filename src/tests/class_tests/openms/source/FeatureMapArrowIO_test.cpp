@@ -1955,10 +1955,11 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
 }
 END_SECTION
 
-START_SECTION([EXTRA] exportToParquet / importFromParquet - double meta values come back as the same double)
+START_SECTION([EXTRA] exportToParquet / importFromParquet - meta values come back exactly)
 {
   // ProteomicsLFQ -feat_dir combines runs from these files, so every value has to read back exactly as it was
-  // written, including doubles that 15 decimals do not represent (e.g. a mass error of -3.6414734172058556 ppm).
+  // written, including doubles that 15 decimals do not represent (e.g. a mass error of -3.6414734172058556 ppm)
+  // and target_decoy values other than "target" and "decoy".
   const double a = -3.6414734172058556, b = 0.30000000000000004, c = 7.3296492739417545, d = 0.012345678901234567;
   const DoubleList list = {0.75226820063371558, -0.0073793547922970121, 1234.5678901234567, 1e-300, -2.5e20};
 
@@ -1983,7 +1984,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - double meta values c
   hit.setSequence(AASequence::fromString("PEPTIDEK"));
   hit.setCharge(2);
   hit.setScore(0.0123456789012345678);
-  hit.setMetaValue("target_decoy", "target");
+  hit.setMetaValue("target_decoy", "target+decoy"); // more than the is_decoy column holds
   hit.setMetaValue("psm_double", d);
   hit.setMetaValue("psm_double_list", list);
   PeptideIdentification pid;
@@ -2035,6 +2036,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - double meta values c
   TEST_EQUAL(double(in_pid.getMetaValue("spectrum_double")) == a, true)
   const PeptideHit& in_hit = in_pid.getHits()[0];
   TEST_EQUAL(in_hit.getScore() == hit.getScore(), true)
+  TEST_EQUAL(in_hit.getMetaValue("target_decoy").toString(), "target+decoy")
   TEST_EQUAL(double(in_hit.getMetaValue("psm_double")) == d, true)
   TEST_EQUAL(in_hit.getMetaValue("psm_double_list").toDoubleList() == list, true)
   File::removeDirRecursively(dir);
