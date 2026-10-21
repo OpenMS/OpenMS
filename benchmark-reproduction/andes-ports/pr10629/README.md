@@ -72,3 +72,20 @@ python3 -I scripts/andes_te.py <target+entrapment fasta without decoys>         
 | `andes_rule.tsv`, `andes_te.tsv` | Question 3. |
 | `default_off_sha256.txt` | DecoyDatabase without `-entrapment_ratio`, for baseline, PR head and fix (`-method reverse` and `shuffle`): byte-identical. |
 | `runtime.tsv` | Runtime and peak RSS. |
+
+## Follow-up: what the right entrapment construction is (2026-10-21)
+
+`results/realisations.tsv` holds three database realisations per design (HF-X, Astral, TMTpro; same full-reversal decoys). The designs are #10364 `make_entrapment.py` (`make_entrapment_salted.py`, salts "", s2, s3), and DecoyDatabase with the fix at `-seed` 1, 2 and 3, once with `Decoy:keepPeptideNTerm` true and once false.
+
+**Findings**
+- A single realisation scatters by 0.1–0.27 pp (SD) on 3 files × 8,000 spectra. The TMTpro gap was one high draw of the frozen database: its three realisations give 1.23, 0.78 and 1.15%.
+- Keeping the N-terminus fixed gives the lowest estimates. Mean FDP, frozen design / keepN true / keepN false:
+  - HF-X: 1.63 / 1.39 / 1.39%
+  - Astral: 1.66 / 1.52 / 1.68%
+  - TMTpro: 1.05 / 0.80 / 0.97%
+- Ignoring decoy accessions when classifying adds 0.05–0.1 pp. With DecoyDatabase's own peptide-reversal decoys, 5% of the entrapment PSMs are also mapped to a decoy protein; with full-reversal decoys, 0.6–1%.
+
+**References**
+- Wen et al. 2025 (Methods) fix only the C-terminal residue and retry up to 20 shuffles until the entrapment peptide differs from every target peptide. Identical peptides are swapped consistently.
+- FDRBench's code default fixes both termini, but its README example uses `-fix_nc c`. FDRBench classifies by peptide sequence (with `-I2L`); decoys are removed beforehand.
+- The paired estimator is defined at peptide, precursor and protein level only.

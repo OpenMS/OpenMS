@@ -1,0 +1,10 @@
+group	design	FDP % per realisation	mean	sd	FDP % ignoring decoy accessions (mean)	PSMs per file (mean)
+hfx	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.48 / 1.82 / 1.59	1.63	0.17	1.70	4449
+hfx	DecoyDatabase fix, keepPeptideNTerm true (default)	1.21 / 1.33 / 1.63	1.39	0.22	1.47	4456
+hfx	DecoyDatabase fix, keepPeptideNTerm false	1.58 / 1.29 / 1.29	1.39	0.17	1.45	4438
+astral	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.37 / 1.89 / 1.72	1.66	0.27	1.67	2741
+astral	DecoyDatabase fix, keepPeptideNTerm true (default)	1.41 / 1.39 / 1.77	1.52	0.21	1.61	2780
+astral	DecoyDatabase fix, keepPeptideNTerm false	1.64 / 1.49 / 1.92	1.68	0.22	1.74	2757
+tmtpro	#10364 make_entrapment.py (C-term K/R/P fixed, N-term free)	1.23 / 0.78 / 1.15	1.05	0.24	1.15	2575
+tmtpro	DecoyDatabase fix, keepPeptideNTerm true (default)	0.92 / 0.74 / 0.73	0.80	0.11	0.89	2569
+tmtpro	DecoyDatabase fix, keepPeptideNTerm false	0.94 / 0.88 / 1.08	0.97	0.10	1.05	2571
