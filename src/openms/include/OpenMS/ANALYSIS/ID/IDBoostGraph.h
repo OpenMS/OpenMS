@@ -15,11 +15,13 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <deque>
+#include <optional>
 #include <vector>
 #include <unordered_map>
 #include <queue>
@@ -37,6 +39,7 @@
 
 namespace OpenMS
 {
+  class ConsensusMap;
   struct ScoreToTgtDecLabelPairs;
 
   namespace Internal
@@ -90,10 +93,29 @@ namespace OpenMS
     #pragma clang diagnostic pop
     #endif
 
+    /**
+      @brief A PSM of the graph: the values that inference reads and changes, and the hit or match it stands for
+
+      Inference changes the score (to a posterior) and, during group resolution, the protein accessions. The peptide hit
+      of a graph on peptide identifications gets these changes right away; the match of a graph on identification data
+      gets them with applyToIdentificationData().
+    */
+    struct PSM
+    {
+      double score = 0.0;              ///< the main score, e.g. a posterior (error) probability
+      std::optional<bool> target;      ///< whether it counts as target (also target+decoy); none if not annotated
+      std::string sequence;            ///< the (modified) peptide sequence
+      std::string unmodified_sequence; ///< the peptide sequence without modifications
+      int charge = 0;
+      std::vector<std::string> accessions; ///< the protein accession of each of its sequence evidences
+      PeptideHit* hit = nullptr;       ///< the peptide hit it stands for, if any
+      std::optional<IdentificationData::MatchReference> match; ///< the match it stands for, if any
+    };
+
     //typedefs
     //TODO rename ProteinGroup type since it collides with the actual OpenMS ProteinGroup
-    typedef boost::variant<ProteinHit*, ProteinGroup, PeptideCluster, Peptide, RunIndex, Charge, PeptideHit*> IDPointer;
-    typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, const Peptide, const RunIndex, const Charge, const PeptideHit*> IDPointerConst;
+    typedef boost::variant<ProteinHit*, ProteinGroup, PeptideCluster, Peptide, RunIndex, Charge, PSM*> IDPointer;
+    typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, const Peptide, const RunIndex, const Charge, const PSM*> IDPointerConst;
     //TODO check the impact of different data structures to store nodes/edges
     // Directed graphs would make the internal computations much easier (less in/out edge checking) but boost
     // does not allow computation of "non-strongly" connected components for directed graphs, which is what we would
@@ -161,9 +183,9 @@ namespace OpenMS
     {
     public:
 
-      std::string operator()(const PeptideHit* pep) const
+      std::string operator()(const PSM* pep) const
       {
-        return pep->getSequence().toString() + "_" + pep->getCharge();
+        return pep->sequence + "_" + pep->charge;
       }
 
       std::string operator()(const ProteinHit* prot) const
@@ -210,9 +232,9 @@ namespace OpenMS
           stream_(stream)
       {}
 
-      void operator()(PeptideHit* pep) const
+      void operator()(PSM* pep) const
       {
-        stream_ << pep->getSequence().toUnmodifiedString() << ": " << pep << std::endl;
+        stream_ << pep->unmodified_sequence << ": " << pep << std::endl;
       }
 
       void operator()(ProteinHit* prot) const
@@ -256,9 +278,10 @@ namespace OpenMS
     {
     public:
 
-      void operator()(PeptideHit* pep, double posterior) const
+      void operator()(PSM* pep, double posterior) const
       {
-        pep->setScore(posterior);
+        pep->score = posterior;
+        if (pep->hit) pep->hit->setScore(posterior);
       }
 
       void operator()(ProteinHit* prot, double posterior) const
@@ -287,9 +310,9 @@ namespace OpenMS
     {
     public:
 
-      double operator()(PeptideHit* pep) const
+      double operator()(PSM* pep) const
       {
-        return pep->getScore();
+        return pep->score;
       }
 
       double operator()(ProteinHit* prot) const
@@ -321,16 +344,15 @@ namespace OpenMS
         {
         public:
 
-          std::pair<double,bool> operator()(PeptideHit* pep) const
+          std::pair<double,bool> operator()(PSM* pep) const
           {
-            const PeptideHit::TargetDecoyType td = pep->getTargetDecoyType();
-            if (td == PeptideHit::TargetDecoyType::UNKNOWN)
+            if (! pep->target)
             {
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "PeptideHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
             }
             // TARGET_DECOY counts as target, consistent with FalseDiscoveryRate
-            return {pep->getScore(), td != PeptideHit::TargetDecoyType::DECOY};
+            return {pep->score, *pep->target};
           }
 
           std::pair<double,bool> operator()(ProteinHit* prot) const
@@ -366,21 +388,36 @@ namespace OpenMS
                 const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
     /**
-      @brief Graph of @p proteins and the peptide identifications @p identifications of the consensus features of
-      @p cmap (and the unassigned ones, with @p use_unassigned_ids), e.g. those that
-      IdentificationDataConverter::exportWithMatchReferences() gives
+      @brief Graph of @p proteins and the identifications of @p cmap: those that its consensus features link (once per
+      feature, in the order of the features) and, with @p use_unassigned_ids, the unassigned ones
 
-      The graph refers to the peptide identifications and hits of @p identifications (and edits them), so it must
-      not outlive them.
+      The identifications of @p cmap must be in one protein run (see IdentificationDataAdapter::pooledInferenceResult()),
+      whose proteins @p proteins are. A PSM stands for a match of an identification: of each, its first @p use_top_psms
+      matches (0: all), with @p best_psms_annotated only those whose meta value "best_per_peptide" is set. The scores
+      are those of the primary score of the runs. applyToIdentificationData() takes what inference changed back to the
+      matches.
+      @throws Exception::MissingInformation with @p use_run_info, if a source of an identification has no file
     */
     IDBoostGraph(ProteinIdentification& proteins,
                 const ConsensusMap& cmap,
-                MapPeptideIdentifications& identifications,
                 Size use_top_psms,
                 bool use_run_info,
                 bool use_unassigned_ids,
                 bool best_psms_annotated,
                 const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
+
+    /// The PSMs refer to the graph's own records, so a graph is not copied
+    IDBoostGraph(const IDBoostGraph&) = delete;
+    IDBoostGraph& operator=(const IDBoostGraph&) = delete;
+
+    /**
+      @brief Take what inference changed in the PSMs of a graph on identification data back to their matches in @p data
+
+      A match keeps the sequence evidence of the proteins that one of its PSMs still refers to (see
+      resolveGraphPeptideCentric()), and with @p scores, the primary score of its run takes the score of its first PSM.
+      PSMs that stand for peptide hits are skipped: those already have the changes.
+    */
+    void applyToIdentificationData(IdentificationData& data, bool scores) const;
 
 
     //TODO think about templating to avoid wrapping to std::function
@@ -484,6 +521,9 @@ namespace OpenMS
 
     ProteinIdentification& protIDs_;
 
+    /// the PSMs that the vertices refer to (a deque, so that they stay in place)
+    std::deque<PSM> psms_;
+
     struct SequenceToReplicateChargeVariantHierarchy;
 
 
@@ -563,11 +603,14 @@ namespace OpenMS
                     Size use_top_psms,
                     bool best_psms_annotated = false);
 
+    /// The graph on the identifications of @p cmap (see the constructor); with @p index_to_group, the run of a PSM is
+    /// the prefractionation group of the legacy file index of its source
     void buildGraph_(ProteinIdentification& proteins,
-                    MapPeptideIdentifications& identifications,
+                    const ConsensusMap& cmap,
                     Size use_top_psms,
                     bool use_unassigned_ids,
-                    bool best_psms_annotated = false);
+                    bool best_psms_annotated,
+                    const std::unordered_map<unsigned, unsigned>* index_to_group = nullptr);
 
     /// Used during building
     void addPeptideIDWithAssociatedProteins_(
@@ -585,6 +628,13 @@ namespace OpenMS
         Size use_top_psms
         );
 
+    /// Add @p psm as a vertex (in the run @p run, if given) with edges to the proteins of its accessions
+    void addPSMWithAssociatedProteins_(
+        PSM&& psm,
+        std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
+        const std::unordered_map<std::string, ProteinHit*>& accession_map,
+        std::optional<Size> run);
+
     /// Initialize and store the graph. Also stores run information to later group
     /// peptides more efficiently.
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
@@ -594,7 +644,6 @@ namespace OpenMS
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,
                                const ConsensusMap& cmap,
-                               MapPeptideIdentifications& identifications,
                                Size use_top_psms,
                                bool use_unassigned_ids,
                                const ExperimentalDesign& ed);

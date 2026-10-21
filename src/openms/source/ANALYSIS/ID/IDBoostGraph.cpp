@@ -10,10 +10,13 @@
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -50,6 +53,60 @@ namespace OpenMS
           "ProteinHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
       }
       return td == ProteinHit::TargetDecoyType::TARGET;
+    }
+
+    /// The PSM of a peptide hit
+    IDBoostGraph::PSM psmOfHit(PeptideHit& hit)
+    {
+      IDBoostGraph::PSM psm;
+      psm.score = hit.getScore();
+      const PeptideHit::TargetDecoyType td = hit.getTargetDecoyType();
+      if (td != PeptideHit::TargetDecoyType::UNKNOWN) psm.target = td != PeptideHit::TargetDecoyType::DECOY;
+      psm.sequence = hit.getSequence().toString();
+      psm.unmodified_sequence = hit.getSequence().toUnmodifiedString();
+      psm.charge = hit.getCharge();
+      for (const auto& evidence : hit.getPeptideEvidences()) psm.accessions.push_back(evidence.getProteinAccession());
+      psm.hit = &hit;
+      return psm;
+    }
+
+    /// The PSM of a match, with the value of the primary score of its run
+    IDBoostGraph::PSM psmOfMatch(const IdentificationData::Run& run, const IdentificationData::Match& match)
+    {
+      IDBoostGraph::PSM psm;
+      psm.score = *run.getScore(match.getId(), *run.getPrimaryScore());
+      if (match.target_decoy != IdentificationData::TargetDecoy::UNKNOWN) psm.target = match.target_decoy != IdentificationData::TargetDecoy::DECOY;
+      const AASequence sequence = AASequence::fromString(match.representation);
+      psm.sequence = sequence.toString();
+      psm.unmodified_sequence = sequence.toUnmodifiedString();
+      psm.charge = match.charge;
+      for (const auto& evidence : match.sequence_evidence) psm.accessions.push_back(evidence.accession);
+      psm.match = IdentificationData::MatchReference {run.getUuid(), match.getId()};
+      return psm;
+    }
+
+    /// The legacy file index of the identifications of the runs that the protein run of @p data pools (see
+    /// IdentificationDataAdapter::toLegacy(), id_merge_index): the files of the runs follow each other in the order
+    /// of the runs; an identification of a source without a file has none
+    std::map<IdentificationData::QueryReference, std::optional<Size>> legacyFileIndices(const IdentificationData& data)
+    {
+      std::map<IdentificationData::QueryReference, std::optional<Size>> indices;
+      const auto pooled = IdentificationDataAdapter::pooledInferenceResult(data);
+      if (!pooled) return indices;
+      std::set<std::string> seen;
+      Size offset = 0;
+      for (const auto& input : pooled->inputs)
+      {
+        const auto* run = data.findRunByUuid(input.run_uuid);
+        if (run == nullptr || !seen.insert(run->getUuid()).second) continue;
+        for (const auto& source : run->getSources())
+        {
+          const std::optional<Size> file = source.file.path.empty() ? std::nullopt : std::optional<Size>(offset++);
+          for (const auto& query : source.identifications)
+            indices.emplace(IdentificationData::QueryReference {run->getUuid(), query.getId()}, file);
+        }
+      }
+      return indices;
     }
 
     /// Validate target/decoy annotations before entering code that may run in an OpenMP region,
@@ -166,7 +223,6 @@ namespace OpenMS
 
   IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins,
                              const ConsensusMap& cmap,
-                             MapPeptideIdentifications& identifications,
                              Size use_top_psms,
                              bool use_run_info,
                              bool use_unassigned_ids,
@@ -174,15 +230,53 @@ namespace OpenMS
                              const std::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
-    OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << identifications.unassigned.size() <<
+    OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedIdentifications().size() <<
     " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, cmap, identifications, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
+      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
     }
     else
     {
-      buildGraph_(proteins, identifications, use_top_psms, use_unassigned_ids, best_psms_annotated);
+      buildGraph_(proteins, cmap, use_top_psms, use_unassigned_ids, best_psms_annotated);
+    }
+  }
+
+  void IDBoostGraph::applyToIdentificationData(IdentificationData& data, bool scores) const
+  {
+    struct Update
+    {
+      std::set<std::string> accessions; // of all PSMs of the match
+      double score = 0.0;               // of its first PSM
+    };
+    std::map<IdentificationData::MatchReference, Update> updates;
+    for (const auto& psm : psms_)
+    {
+      if (!psm.match) continue;
+      const auto [update, added] = updates.try_emplace(*psm.match);
+      if (added) update->second.score = psm.score;
+      update->second.accessions.insert(psm.accessions.begin(), psm.accessions.end());
+    }
+    if (updates.empty()) return;
+    for (const auto& current : data.getRuns())
+    {
+      std::vector<std::pair<IdentificationData::MatchId, IdentificationData::MatchData>> edits;
+      std::vector<std::pair<IdentificationData::MatchId, double>> scored;
+      for (const auto& source : current.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+          {
+            const auto found = updates.find({current.getUuid(), match.getId()});
+            if (found == updates.end()) continue;
+            if (scores) scored.emplace_back(match.getId(), found->second.score);
+            IdentificationData::MatchData edited = match.getData();
+            std::erase_if(edited.sequence_evidence, [&](const IdentificationData::SequenceEvidence& evidence) { return !found->second.accessions.contains(evidence.accession); });
+            if (edited.sequence_evidence.size() != match.sequence_evidence.size()) edits.emplace_back(match.getId(), std::move(edited));
+          }
+      if (edits.empty() && scored.empty()) continue;
+      auto& run = data.getRun(current.getIdentifier());
+      for (const auto& [id, edited] : edits) run.replaceMatch(id, edited);
+      for (const auto& [id, score] : scored) run.setScore(id, *run.getPrimaryScore(), score);
     }
   }
 
@@ -230,27 +324,38 @@ namespace OpenMS
     {
       if (!best_psms_annotated || static_cast<int>(pepIt->getMetaValue("best_per_peptide")))
       {
-        IDPointer pepPtr(&(*pepIt));
-        vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
-
-        for (auto const &proteinAcc : pepIt->extractProteinAccessionsSet())
-        {
-          // assumes protein is present
-          auto accToPHit = accession_map.find(std::string(proteinAcc));
-          if (accToPHit == accession_map.end())
-          {
-            OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
-            continue;
-          }
-          //TODO consider/calculate missing digests. Probably not here though!
-          //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-          //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
-
-          IDPointer prot(accToPHit->second);
-          vertex_t protV = addVertexWithLookup_(prot, vertex_map);
-          boost::add_edge(protV, pepV, g);
-        }
+        addPSMWithAssociatedProteins_(psmOfHit(*pepIt), vertex_map, accession_map, std::nullopt);
       }
+    }
+  }
+
+  void IDBoostGraph::addPSMWithAssociatedProteins_(
+      PSM&& psm,
+      unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
+      const unordered_map<string, ProteinHit*>& accession_map,
+      std::optional<Size> run)
+  {
+    PSM& added = psms_.emplace_back(std::move(psm));
+    IDPointer pepPtr(&added);
+    vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
+    if (run) pepHitVtx_to_run_[pepV] = *run;
+
+    for (auto const &proteinAcc : std::set<std::string>(added.accessions.begin(), added.accessions.end()))
+    {
+      // assumes protein is present
+      auto accToPHit = accession_map.find(proteinAcc);
+      if (accToPHit == accession_map.end())
+      {
+        OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
+        continue;
+      }
+      //TODO consider/calculate missing digests. Probably not here though!
+      //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
+      //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
+
+      IDPointer prot(accToPHit->second);
+      vertex_t protV = addVertexWithLookup_(prot, vertex_map);
+      boost::add_edge(protV, pepV, g);
     }
   }
 
@@ -289,36 +394,12 @@ namespace OpenMS
     auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
     for (auto pepIt = spectrum.getHits().begin(); pepIt != pepItEnd; ++pepIt)
     {
-      IDPointer pepPtr(&(*pepIt));
-      vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
-
-      //------- Only difference to the function without run info -----//
-      pepHitVtx_to_run_[pepV] = pfg;
-      //------- Only difference to the function without run info -----//
-
-      for (auto const & proteinAcc : pepIt->extractProteinAccessionsSet())
-      {
-        // assumes protein is present
-        auto accToPHit = accession_map.find(std::string(proteinAcc));
-        if (accToPHit == accession_map.end())
-        {
-         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
-          continue;
-        }
-        //TODO consider/calculate missing digests. Probably not here though!
-        //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-        //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
-
-        IDPointer prot(accToPHit->second);
-        vertex_t protV = addVertexWithLookup_(prot, vertex_map);
-        boost::add_edge(protV, pepV, g);
-      }
+      addPSMWithAssociatedProteins_(psmOfHit(*pepIt), vertex_map, accession_map, pfg);
     }
   }
 
   void IDBoostGraph::buildGraphWithRunInfo_(ProteinIdentification& proteins,
                                            const ConsensusMap& cmap,
-                                           MapPeptideIdentifications& identifications,
                                            Size use_top_psms,
                                            bool use_unassigned_ids,
                                            const ExperimentalDesign& ed)
@@ -336,49 +417,7 @@ namespace OpenMS
       indexToPrefractionationGroup = convertMap_(fileLabelToPrefractionationGroup, colHeaders, cmap.getExperimentType()); // convert to index in the peptide ids
     }
 
-    //TODO is this vertex_map really necessary. I think PSMs are always unique in our datastructures and could be
-    // added without lookup.
-    // And for the proteins we could add the vertex ID to the accession_map here and use that for lookup
-    unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
-    unordered_map<std::string, ProteinHit*> accession_map{};
-
-    for (auto& prot : proteins.getHits())
-    {
-      accession_map[prot.getAccession()] = &prot;
-    }
-
-    ProgressLogger pl;
-    Size roughNrIds = identifications.features.size();
-    if (use_unassigned_ids) roughNrIds += identifications.unassigned.size();
-    pl.setLogType(ProgressLogger::CMD);
-    pl.startProgress(0, roughNrIds, "Building graph with run information...");
-    const std::string& protRun = proteins.getIdentifier();
-    for (auto& [path, peptides] : identifications.features)
-    {
-      for (auto& spectrum : peptides)
-      {
-        if (spectrum.getIdentifier() == protRun)
-        {
-          addPeptideAndAssociatedProteinsWithRunInfo_(spectrum, indexToPrefractionationGroup,
-                                                      vertex_map, accession_map, use_top_psms);
-        }
-      }
-      pl.nextProgress();
-    }
-
-    if (use_unassigned_ids)
-    {
-      for (auto& id : identifications.unassigned)
-      {
-        if (id.getIdentifier() == protRun)
-        {
-          addPeptideAndAssociatedProteinsWithRunInfo_(id, indexToPrefractionationGroup,
-                                                      vertex_map, accession_map, use_top_psms);
-        }
-        pl.nextProgress();
-      }
-    }
-    pl.endProgress();
+    buildGraph_(proteins, cmap, use_top_psms, use_unassigned_ids, false, &indexToPrefractionationGroup);
   }
 
   void IDBoostGraph::buildGraphWithRunInfo_(ProteinIdentification& proteins,
@@ -458,14 +497,12 @@ namespace OpenMS
 
 
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
-                                 MapPeptideIdentifications& identifications,
+                                 const ConsensusMap& cmap,
                                  Size use_top_psms,
                                  bool use_unassigned_ids,
-                                 bool best_psms_annotated)
+                                 bool best_psms_annotated,
+                                 const unordered_map<unsigned, unsigned>* index_to_group)
   {
-    StringList runs;
-    proteins.getPrimaryMSRunPath(runs);
-
     unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
 
     unordered_map<string, ProteinHit*> accession_map{};
@@ -475,32 +512,58 @@ namespace OpenMS
       accession_map[prot.getAccession()] = &prot;
     }
 
-    ProgressLogger pl;
-    Size roughNrIds = identifications.features.size();
-    if (use_unassigned_ids) roughNrIds += identifications.unassigned.size();
-    pl.setLogType(ProgressLogger::CMD);
-    pl.startProgress(0, roughNrIds, "Building graph...");
-    const std::string& protRun = proteins.getIdentifier();
-    for (auto& [path, peptides] : identifications.features)
+    const IdentificationData& data = cmap.getIdentificationData();
+    std::map<IdentificationData::QueryReference, std::optional<Size>> file_indices;
+    if (index_to_group) file_indices = legacyFileIndices(data);
+    // the PSMs of an identification: its first use_top_psms matches (the best ones, if annotated) in the run of its file
+    const auto addIdentification = [&](const IdentificationData::QueryMatches& identification)
     {
-      for (auto& id : peptides)
+      const IdentificationData::Run& run = *identification.run;
+      if (run.getMoleculeKind() != IdentificationData::MoleculeKind::PEPTIDE) return;
+      std::optional<Size> group;
+      if (index_to_group)
       {
-        if (id.getIdentifier() == protRun)
+        const auto file_index = file_indices.find({run.getUuid(), identification.query->getId()});
+        if (file_index == file_indices.end() || !file_index->second)
         {
-          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms, best_psms_annotated);
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Trying to read run information (id_merge_index) but none present at peptide ID."
+            " Did you annotate runs during merging? Aborting.");
         }
+        const auto found = index_to_group->find(static_cast<unsigned>(*file_index->second));
+        if (found == index_to_group->end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Reference (id_merge_index) to non-existing run found at peptide ID."
+            " Sth went wrong during merging. Aborting.");
+        }
+        group = found->second;
+      }
+      Size n = 0;
+      for (const auto* match : identification.matches)
+      {
+        if (use_top_psms != 0 && n++ >= use_top_psms) break;
+        if (best_psms_annotated && !static_cast<int>(match->getMetaValue("best_per_peptide"))) continue;
+        addPSMWithAssociatedProteins_(psmOfMatch(run, *match), vertex_map, accession_map, group);
+      }
+    };
+
+    ProgressLogger pl;
+    pl.setLogType(ProgressLogger::CMD);
+    pl.startProgress(0, cmap.size(), "Building graph...");
+    for (const auto& feature : cmap)
+    {
+      for (const auto& identification : feature.getLinkedIdentifications(data))
+      {
+        addIdentification(identification);
       }
       pl.nextProgress();
     }
     if (use_unassigned_ids)
     {
-      for (auto& id : identifications.unassigned)
+      for (const auto& identification : cmap.getUnassignedIdentifications())
       {
-        if (id.getIdentifier() == protRun)
-        {
-          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms, best_psms_annotated);
-        }
-        pl.nextProgress();
+        addIdentification(identification);
       }
     }
     pl.endProgress();
@@ -1139,23 +1202,26 @@ namespace OpenMS
 
           for (const auto& pep : singles)
           {
-            PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
-            auto& ev = peptidePtr->getPeptideEvidences();
-            for (const auto& e : ev)
-            {
-              if (!accs_to_remove.contains(e.getProteinAccession()))
-              {
-                newev.emplace_back(e);
-              }
-            }
-            if (newev.empty())
+            PSM *psm = boost::get<PSM*>(fg[pep]);
+            std::erase_if(psm->accessions, [&accs_to_remove](const std::string& acc) { return accs_to_remove.contains(acc); });
+            if (psm->accessions.empty())
             {
               OPENMS_LOG_ERROR << "No evidences left for peptide " <<
-              peptidePtr->getSequence().toString() << " This should not happen. Please report an issue on GitHub."
+              psm->sequence << " This should not happen. Please report an issue on GitHub."
               << std::endl;
             }
-            peptidePtr->setPeptideEvidences(std::move(newev));
-            newev.clear();
+            if (psm->hit)
+            {
+              for (const auto& e : psm->hit->getPeptideEvidences())
+              {
+                if (!accs_to_remove.contains(e.getProteinAccession()))
+                {
+                  newev.emplace_back(e);
+                }
+              }
+              psm->hit->setPeptideEvidences(std::move(newev));
+              newev.clear();
+            }
           }
           singles.clear();
         }
@@ -1226,15 +1292,15 @@ namespace OpenMS
               //pepHit, this also makes sure that pepHits already in hierarchy are masked
               if (curr_cc[*adjIt].which() == 6)
               {
-                PeptideHit *phitp = boost::get<PeptideHit *>(curr_cc[*adjIt]);
-                std::string seq = phitp->getSequence().toUnmodifiedString();
+                const PSM *psm = boost::get<PSM *>(curr_cc[*adjIt]);
+                std::string seq = psm->unmodified_sequence;
 
                 //TODO I think it is also best to completely focus on the extended Model here and assume that
                 // this information is present. If we allow mixtures of graphical models it gets complex
                 // with a lot of if-cases, also/especially during translation to the factor graph.
                 Size rep = 0; //In case no replicate info was read.
                 if (!pepHitVtx_to_run_.empty()) rep = pepHitVtx_to_run_[*adjIt];
-                int chg = phitp->getCharge();
+                int chg = psm->charge;
 
                 hierarchy.insert(seq, rep, chg, *adjIt);
               }

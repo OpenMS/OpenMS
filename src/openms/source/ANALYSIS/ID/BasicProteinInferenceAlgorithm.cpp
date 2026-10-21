@@ -12,8 +12,8 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <algorithm>
 #include <iostream>
@@ -72,7 +72,7 @@ namespace OpenMS
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
 
-    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
+    SequenceToChargeToPSM best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
     std::string requested_score_type_as_string = param_.getValue("score_type").toString();
@@ -149,30 +149,72 @@ namespace OpenMS
     // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
     std::string requested_score_type_as_string = param_.getValue("score_type").toString();
 
-    // The identifications as peptide identifications (of the features, then the unassigned ones if requested), whose
-    // hits name their matches, with the requested score type as their main score (e.g., "RAW" = a search engine score,
-    // "PEP", "q-value"); the results also contain name, score orientation and type before and after switching.
-    const auto materialize = [&]() {
-      MapPeptideIdentifications legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
-      PeptideIdentificationList peptides;
-      for (auto& [path, feature_peptides] : legacy.features)
+    // The PSMs are scored with the requested score type (e.g., "RAW" = a search engine score, "PEP", "q-value"): the
+    // main score, else that of a copy of the map whose main score is switched to it. The result also contains name,
+    // score orientation and type before and after switching.
+    std::optional<ConsensusMap> switched;
+    {
+      std::string main_score_name;
+      bool main_higher_better = true;
+      IDScoreSwitcherAlgorithm::ScoreType main_score_type;
+      IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(cmap, main_score_name, main_higher_better, main_score_type, include_unassigned);
+      if (!requested_score_type_as_string.empty() && IDScoreSwitcherAlgorithm::toScoreTypeEnum(requested_score_type_as_string) != main_score_type)
       {
-        for (auto& peptide : feature_peptides) peptides.push_back(std::move(peptide));
+        switched = cmap;
       }
-      if (include_unassigned)
+    }
+    const ConsensusMap& scored = switched ? *switched : cmap;
+    const auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(switched ? *switched : cmap, requested_score_type_as_string, include_unassigned);
+
+    // The best match of each identification (of the features, then the unassigned ones if requested), the first of the
+    // best score as sorting peptide hits makes it
+    std::vector<PeptideCandidate> candidates;
+    const auto addCandidate = [&](const IdentificationData::QueryMatches& identification)
+    {
+      const auto& run = *identification.run;
+      if (identification.matches.empty() || run.getMoleculeKind() != IdentificationData::MoleculeKind::PEPTIDE) return;
+      const auto primary = *run.getPrimaryScore();
+      const IdentificationData::Match* best = nullptr;
+      double best_score = 0.0;
+      for (const auto* match : identification.matches)
       {
-        for (auto& peptide : legacy.unassigned) peptides.push_back(std::move(peptide));
+        const double score = *run.getScore(match->getId(), primary);
+        if (best == nullptr || (isr.requested_score_higher_better ? score > best_score : score < best_score))
+        {
+          best = match;
+          best_score = score;
+        }
       }
-      auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(peptides, requested_score_type_as_string);
-      return std::make_pair(std::move(peptides), isr);
+      PeptideCandidate candidate;
+      candidate.score = best_score;
+      const AASequence sequence = AASequence::fromString(best->representation);
+      candidate.sequence = sequence.toString();
+      candidate.unmodified_sequence = sequence.toUnmodifiedString();
+      candidate.charge = best->charge;
+      if (best->metaValueExists("protein_references")) candidate.protein_references = best->getMetaValue("protein_references").toString();
+      for (const auto& evidence : best->sequence_evidence) candidate.accessions.insert(evidence.accession);
+      candidates.push_back(std::move(candidate));
     };
-    auto [peptides, isr] = materialize();
+    for (const auto& feature : scored)
+    {
+      for (const auto& identification : feature.getLinkedIdentifications(scored.getIdentificationData()))
+      {
+        addCandidate(identification);
+      }
+    }
+    if (include_unassigned)
+    {
+      for (const auto& identification : scored.getUnassignedIdentifications())
+      {
+        addCandidate(identification);
+      }
+    }
 
     // determine inital values for protein scores based on score type
     bool pep_scores = (isr.requested_score_type == IDScoreSwitcherAlgorithm::ScoreType::PEP);
     double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || isr.requested_score_higher_better); // if we have pep scores, we will complement to pp during aggregation
 
-    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
+    SequenceToChargeToPSM best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
     for (auto& prothit : prot_hits)
     {
@@ -182,11 +224,7 @@ namespace OpenMS
 
     checkCompat_(isr.requested_score_name, aggregation_method);
 
-    aggregatePeptideScores_(best_pep,
-      peptides,
-      isr.requested_score_name,
-      isr.requested_score_higher_better,
-      "");
+    aggregatePeptideScores_(best_pep, candidates, isr.requested_score_higher_better);
 
     updateProteinScores_(
         acc_to_protein_hitP_and_count,
@@ -219,9 +257,8 @@ namespace OpenMS
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure.
       // Groups would be clustered already. Saving some time.
       // But it is quite fast right now already.
-      auto graph_peptides = std::move(materialize().first);
       {
-        IDBoostGraph ibg{prot_run, graph_peptides, 1, false, false};
+        IDBoostGraph ibg{prot_run, cmap, 1, false, include_unassigned, false};
         ibg.computeConnectedComponents();
         if (resolve)
         {
@@ -229,6 +266,8 @@ namespace OpenMS
           //Note: the above does not add singleton groups to graph
           ibg.resolveGraphPeptideCentric(true);
           if (group) ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
+          // resolution removed protein references of the PSMs
+          ibg.applyToIdentificationData(data, false);
         }
         else
         {
@@ -237,8 +276,6 @@ namespace OpenMS
       }
       if (resolve)
       {
-        // resolution removed protein references of the peptide hits
-        IdentificationDataConverter::updateReferencedMatches(data, graph_peptides, false);
         IdentificationDataAdapter::storeInferenceResult(data, result);
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
         result = *IdentificationDataAdapter::pooledInferenceResult(data);
@@ -284,7 +321,7 @@ namespace OpenMS
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
     IDFilter::keepNBestHits(pep_ids,1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
-    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
+    SequenceToChargeToPSM best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
     // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
@@ -309,17 +346,12 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm::switchBackScoreType(pep_ids, isr); // NOP if no switch was performed
   }
 
-  void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
-      std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+  std::vector<BasicProteinInferenceAlgorithm::PeptideCandidate> BasicProteinInferenceAlgorithm::candidates_(
       PeptideIdentificationList& pep_ids,
       const std::string& overall_score_type,
-      bool higher_better,
-      const std::string& run_id) const
+      const std::string& run_id)
   {
-    bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
-    bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
-    bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
-
+    std::vector<PeptideCandidate> candidates;
     for (auto &pep : pep_ids)
     {
       if (pep.getScoreType() != overall_score_type)
@@ -340,31 +372,44 @@ namespace OpenMS
       pep.sort();
 
       //TODO think about if using any but the best PSM per spectrum makes sense in such a simple aggregation scheme
-      //for (auto& hit : pep.getHits())
-      //{
-      PeptideHit &hit = pep.getHits()[0];
+      const PeptideHit &hit = pep.getHits()[0];
+      PeptideCandidate candidate;
+      candidate.score = hit.getScore();
+      candidate.sequence = hit.getSequence().toString();
+      candidate.unmodified_sequence = hit.getSequence().toUnmodifiedString();
+      candidate.charge = hit.getCharge();
+      if (hit.metaValueExists("protein_references")) candidate.protein_references = hit.getMetaValue("protein_references").toString();
+      candidate.accessions = hit.extractProteinAccessionsSet();
+      candidates.push_back(std::move(candidate));
+    }
+    return candidates;
+  }
+
+  void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
+      SequenceToChargeToPSM& best_pep,
+      const std::vector<PeptideCandidate>& candidates,
+      bool higher_better) const
+  {
+    bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
+    bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
+    bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
+
+    for (const auto &hit : candidates)
+    {
       //skip if shared and option not enabled
       //TODO warn if not present but requested?
       //TODO use nr of evidences to re-calculate sharedness?
       if (!use_shared_peptides &&
-      (!hit.metaValueExists("protein_references") || (hit.getMetaValue("protein_references") == "non-unique")))
+      (hit.protein_references.empty() || (hit.protein_references == "non-unique")))
         continue;
 
       //TODO refactor: this is very similar to IDFilter best per peptide functionality
-      std::string lookup_seq;
-      if (!treat_modification_variants_separately)
-      {
-        lookup_seq = hit.getSequence().toUnmodifiedString();
-      }
-      else
-      {
-        lookup_seq = hit.getSequence().toString();
-      }
+      const std::string& lookup_seq = treat_modification_variants_separately ? hit.sequence : hit.unmodified_sequence;
 
       int lookup_charge = 0;
       if (treat_charge_variants_separately)
       {
-        lookup_charge = hit.getCharge();
+        lookup_charge = hit.charge;
       }
 
       if (auto current_best_pep_it = best_pep.find(lookup_seq); current_best_pep_it == best_pep.end())
@@ -378,20 +423,19 @@ namespace OpenMS
           current_best_pep_it->second[lookup_charge] = &hit;
         }
         else if (
-            (higher_better && (hit.getScore() > current_best_pep_charge_it->second->getScore())) ||
-            (!higher_better && (hit.getScore() < current_best_pep_charge_it->second->getScore())))
+            (higher_better && (hit.score > current_best_pep_charge_it->second->score)) ||
+            (!higher_better && (hit.score < current_best_pep_charge_it->second->score)))
         { // seq with charge already exists? replace if new value has better score
           current_best_pep_charge_it->second = &hit;
         }
       }
-      //}
     }
   }
 
 
   void BasicProteinInferenceAlgorithm::updateProteinScores_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
-      const std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+      const SequenceToChargeToPSM& best_pep,
       bool pep_scores,
       bool higher_better) const
   {
@@ -415,17 +459,17 @@ namespace OpenMS
       // The next line assumes that PeptideHits of different charge states necessarily share the same
       // protein accessions (might not be the case if we ever allow modified protein databases e.g. in PEF format)
       // TODO this could be done for mods, too (first hashing AASeq, then the mods)
-      const std::map<Int, PeptideHit*>& charge_to_peptide_hit = seq_to_map_from_charge_to_pep_hit.second;
-      const PeptideHit& first_peptide_hit = *charge_to_peptide_hit.begin()->second;
-      for (const auto &acc : first_peptide_hit.extractProteinAccessionsSet())
+      const std::map<Int, const PeptideCandidate*>& charge_to_peptide_hit = seq_to_map_from_charge_to_pep_hit.second;
+      const PeptideCandidate& first_peptide_hit = *charge_to_peptide_hit.begin()->second;
+      for (const auto &acc : first_peptide_hit.accessions)
       {
         for (const auto &charge_pep_hit_pair : charge_to_peptide_hit)
         {
-          auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(std::string(acc));
+          auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(acc);
           if (prot_count_pair_it == acc_to_protein_hitP_and_count.end())
           {
             OPENMS_LOG_WARN << "Warning, skipping pep that maps to a non existent protein accession. "
-            << first_peptide_hit.getSequence().toUnmodifiedString() << std::endl;
+            << first_peptide_hit.unmodified_sequence << std::endl;
             continue; // very weird, has an accession that was not in the proteins loaded in the beginning
             //TODO error? Suppress log?
           }
@@ -433,8 +477,7 @@ namespace OpenMS
           ProteinHit *protein = prot_count_pair_it->second.first;
           prot_count_pair_it->second.second++;
 
-          const PeptideHit& pep_hit = *charge_pep_hit_pair.second;
-          double new_score = pep_hit.getScore();
+          double new_score = charge_pep_hit_pair.second->score;
 
           if (pep_scores) // convert PEP to PP
             new_score = 1. - new_score;
@@ -569,7 +612,7 @@ namespace OpenMS
 
   void BasicProteinInferenceAlgorithm::processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
-      std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+      SequenceToChargeToPSM& best_pep,
       ProteinIdentification& prot_run,
       PeptideIdentificationList& pep_ids) const
   {
@@ -618,7 +661,8 @@ namespace OpenMS
 
     checkCompat_(main_score_name, aggregation_method);
 
-    aggregatePeptideScores_(best_pep, pep_ids, main_score_name, main_higher_better, prot_run.getIdentifier());
+    const auto candidates = candidates_(pep_ids, main_score_name, prot_run.getIdentifier());
+    aggregatePeptideScores_(best_pep, candidates, main_higher_better);
 
     updateProteinScores_(acc_to_protein_hitP_and_count, best_pep, pep_scores, main_higher_better);
 

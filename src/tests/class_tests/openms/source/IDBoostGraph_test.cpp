@@ -12,6 +12,9 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/test_config.h>
 
 using namespace OpenMS;
@@ -34,6 +37,45 @@ static void runIBGResolve(vector<ProteinIdentification>& inferred_protein_ids,
   inferred_protein_ids[0].fillIndistinguishableGroupsWithSingletons();
   auto & ipg = inferred_protein_ids[0].getIndistinguishableProteins();
   std::sort(std::begin(ipg), std::end(ipg));
+}
+
+/// A consensus map with the identifications @p peps of the protein runs @p prots: each linked by a feature of its own,
+/// or all unassigned
+static ConsensusMap nativeMap(const vector<ProteinIdentification>& prots, const PeptideIdentificationList& peps, bool features)
+{
+  ConsensusMap cmap;
+  MapPeptideIdentifications ids;
+  ids.proteins = prots;
+  for (const auto& pep : peps)
+  {
+    if (!features)
+    {
+      ids.unassigned.push_back(pep);
+      continue;
+    }
+    ConsensusFeature feature;
+    feature.setUniqueId(cmap.size() + 1);
+    ids.features[{cmap.size()}].push_back(pep);
+    cmap.push_back(feature);
+  }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
+  return cmap;
+}
+
+/// The protein accessions of the hits of each peptide identification, as "sequence:accession,..." in their order
+static std::vector<std::string> evidence(const PeptideIdentificationList& peps)
+{
+  std::vector<std::string> result;
+  for (const auto& pep : peps)
+  {
+    for (const auto& hit : pep.getHits())
+    {
+      std::string entry = hit.getSequence().toString() + ":";
+      for (const auto& acc : hit.extractProteinAccessionsSet()) entry += acc + ",";
+      result.push_back(entry);
+    }
+  }
+  return result;
 }
 
 START_TEST(IDBoostGraph, "$Id$")
@@ -171,6 +213,67 @@ START_TEST(IDBoostGraph, "$Id$")
         }
     END_SECTION
 
+
+    START_SECTION((IDBoostGraph(ProteinIdentification& proteins, const ConsensusMap& cmap, Size use_top_psms, bool use_run_info, bool use_unassigned_ids, bool best_psms_annotated, const std::optional<const ExperimentalDesign>& ed)))
+    {
+      // the same graph as on the peptide identifications (see the first section), from the identification data of a map
+      vector<ProteinIdentification> prots;
+      PeptideIdentificationList peps;
+      IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+      for (bool features : {true, false})
+      {
+        const ConsensusMap cmap = nativeMap(prots, peps, features);
+        ProteinIdentification proteins = IdentificationDataAdapter::pooledInferenceResult(cmap.getIdentificationData())->proteins;
+        IDBoostGraph idb{proteins, cmap, 1, false, true, false};
+        TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 9)
+        idb.computeConnectedComponents();
+        TEST_EQUAL(idb.getNrConnectedComponents(), 3)
+        TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 3)
+        TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 4)
+        TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
+
+        // all matches of each identification
+        IDBoostGraph all{proteins, cmap, 0, false, true, false};
+        TEST_EQUAL(boost::num_vertices(all.getComponent(0)), 14)
+
+        // without the unassigned identifications
+        IDBoostGraph assigned{proteins, cmap, 1, false, false, false};
+        assigned.computeConnectedComponents();
+        TEST_EQUAL(assigned.getNrConnectedComponents(), features ? 3 : 0)
+      }
+    }
+    END_SECTION
+
+    START_SECTION((void applyToIdentificationData(IdentificationData& data, bool scores) const))
+    {
+      // group resolution removes the same protein references from the matches as from the peptide hits
+      vector<ProteinIdentification> prots;
+      PeptideIdentificationList peps;
+      IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);
+      ConsensusMap cmap = nativeMap(prots, peps, true);
+      {
+        IDBoostGraph ibg(prots[0], peps, 1, false, false);
+        ibg.computeConnectedComponents();
+        ibg.clusterIndistProteinsAndPeptides();
+        ibg.resolveGraphPeptideCentric(true);
+      }
+      ProteinIdentification proteins = IdentificationDataAdapter::pooledInferenceResult(cmap.getIdentificationData())->proteins;
+      {
+        IDBoostGraph ibg(proteins, cmap, 1, false, false, false);
+        ibg.computeConnectedComponents();
+        ibg.clusterIndistProteinsAndPeptides();
+        ibg.resolveGraphPeptideCentric(true);
+        ibg.applyToIdentificationData(cmap.getIdentificationData(), false);
+      }
+      PeptideIdentificationList native;
+      for (const auto& [path, feature_peps] : IdentificationDataConverter::exportMapIdentifications(cmap).features)
+      {
+        native.insert(native.end(), feature_peps.begin(), feature_peps.end());
+      }
+      TEST_EQUAL(evidence(native) == evidence(peps), true)
+      TEST_EQUAL(evidence(native).size(), evidence(peps).size())
+    }
+    END_SECTION
 
     START_SECTION(Resolution)
     {

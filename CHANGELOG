@@ -117,9 +117,10 @@ OpenMS Library:
     they add an inference result that pools them, which export writes as the merged protein run.
     BasicProteinInferenceAlgorithm::run(ConsensusMap&, bool) and Epifany's consensus map
     inference store their result as an inference result over those runs; PSM edits (score
-    conversion, filtering, group resolution) apply to the matches, and the IDBoostGraph core runs
-    on a copy whose peptide hits name their matches
-    (IdentificationDataConverter::exportWithMatchReferences(), updateReferencedMatches()).
+    conversion, filtering, group resolution) apply to the matches. IDBoostGraph builds the graph of
+    a consensus map from its identification data: a PSM node (IDBoostGraph::PSM, which replaces
+    PeptideHit* in the node variant) stands for a match, and applyToIdentificationData() takes the
+    posteriors and the protein references that group resolution keeps back to the matches.
     BasicProteinInferenceAlgorithm::run(ConsensusMap&, ProteinIdentification&, bool) runs as
     run(ConsensusMap&, bool) and gives the protein run the proteins of the result.
   - Map alignment works on identification data: MapAlignmentAlgorithmIdentification collects the
@@ -271,8 +272,7 @@ OpenMS Library:
     exportToParquetStreaming(), QPXFile::exportToParquet(), ProteinGroupArrowExport::exportToArrow()/
     exportToParquet(), MzTabFile::store() and the CMMzTabStream constructor have overloads for
     MapPeptideIdentifications. FeatureMapArrowIO/ConsensusMapArrowIO::exportPSMsToArrow() and
-    importPSMsFromArrow() read and write MapPeptideIdentifications; IDBoostGraph's consensus map constructor and
-    IdentificationDataConverter::exportWithMatchReferences() use them as well. pyOpenMS: the removed accessors and
+    importPSMsFromArrow() read and write MapPeptideIdentifications. pyOpenMS: the removed accessors and
     converter functions are no longer bound; MapPeptideIdentifications and
     IdentificationDataConverter.exportMapIdentifications()/importMapIdentifications()/proteinIdentifications()
     replace them. ProteomicsLFQ's feature checkpoints no longer store the canonical run identifier

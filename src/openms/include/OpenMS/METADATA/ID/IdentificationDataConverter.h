@@ -108,21 +108,6 @@ public:
   */
   static const std::vector<FeatureMap>& withDistinctRuns(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted);
   static const std::vector<ConsensusMap>& withDistinctRuns(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted);
-  /**
-    @brief The identifications of @p map as peptide identifications (see exportMapIdentifications()) whose peptide hits
-    name their match (see matchReference()), for algorithms that work on peptide hits, e.g. protein inference
-  */
-  static MapPeptideIdentifications exportWithMatchReferences(const ConsensusMap& map);
-  /// The match that a peptide hit of exportWithMatchReferences() stands for, if it names one
-  static std::optional<IdentificationData::MatchReference> matchReference(const PeptideHit& hit);
-  /**
-    @brief Take what an algorithm changed in the peptide hits of exportWithMatchReferences() back to their matches in
-    @p data
-
-    The sequence evidence of a match keeps the proteins that its hits still refer to. With @p scores, the primary
-    score of a match becomes the score of its (first) hit. Matches without hits in @p peptides stay as they are.
-  */
-  static void updateReferencedMatches(IdentificationData& data, const PeptideIdentificationList& peptides, bool scores);
   ///@}
 };
 }

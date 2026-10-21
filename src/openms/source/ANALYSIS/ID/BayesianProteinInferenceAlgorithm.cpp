@@ -15,7 +15,6 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -125,17 +124,17 @@ namespace OpenMS
             {
               if (regularize)
               {
-                bigb.insert_dependency(mpf.createRegularizingSumEvidenceFactor(boost::get<PeptideHit *>(fg[*ui])
-                                                                                   ->getPeptideEvidences().size(), in[0], *ui));
+                bigb.insert_dependency(mpf.createRegularizingSumEvidenceFactor(boost::get<IDBoostGraph::PSM *>(fg[*ui])
+                                                                                   ->accessions.size(), in[0], *ui));
               }
               else
               {
-                bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit *>(fg[*ui])
-                                                                                   ->getPeptideEvidences().size(), in[0], *ui));
+                bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<IDBoostGraph::PSM *>(fg[*ui])
+                                                                                   ->accessions.size(), in[0], *ui));
               }
 
               bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui,
-                                                                     boost::get<PeptideHit *>(fg[*ui])->getScore()));
+                                                                     boost::get<IDBoostGraph::PSM *>(fg[*ui])->score));
               if (update_PSM_probabilities)
               {
                 posteriorVars.push_back({*ui});
@@ -385,8 +384,8 @@ namespace OpenMS
 
             if (fg[*ui].which() == 6) // pep hit = psm
             {
-              bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
-              bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
+              bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<IDBoostGraph::PSM*>(fg[*ui])->accessions.size(), in[0], *ui));
+              bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<IDBoostGraph::PSM*>(fg[*ui])->score));
             }
             else if (fg[*ui].which() == 2) // pep group
             {
@@ -904,22 +903,15 @@ namespace OpenMS
     if (!keep_all_psms)
       OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
 
-    // The graph is built on the identifications as peptide identifications whose hits name their matches. The
-    // posteriors of the PSMs and the evidence that group resolution keeps go back to the matches.
-    MapPeptideIdentifications legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
+    // The graph is built on the identifications; the posteriors of the PSMs and the evidence that group resolution
+    // keeps go back to the matches.
     setScoreTypeAndSettings_(proteins);
     {
-      IDBoostGraph ibg(proteins, cmap, legacy, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
+      IDBoostGraph ibg(proteins, cmap, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
       inferPosteriorProbabilities_(ibg);
       if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
+      ibg.applyToIdentificationData(data, param_.getValue("update_PSM_probabilities").toBool());
     }
-    PeptideIdentificationList peptides;
-    for (auto& [path, feature_peptides] : legacy.features)
-    {
-      for (auto& peptide : feature_peptides) peptides.push_back(std::move(peptide));
-    }
-    for (auto& peptide : legacy.unassigned) peptides.push_back(std::move(peptide));
-    IdentificationDataConverter::updateReferencedMatches(data, peptides, param_.getValue("update_PSM_probabilities").toBool());
 
     if (!keep_all_psms)
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << '\n';

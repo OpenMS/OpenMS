@@ -15,6 +15,9 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <set>
+#include <vector>
+
 namespace OpenMS
 {
 
@@ -62,7 +65,18 @@ namespace OpenMS
   {
     public:
 
-    typedef std::unordered_map<std::string, std::map<Int, PeptideHit*>> SequenceToChargeToPSM;
+    /// The best PSM of a spectrum, with what aggregation reads of it
+    struct PeptideCandidate
+    {
+      double score = 0.0;
+      std::string sequence;            ///< the (modified) sequence
+      std::string unmodified_sequence; ///< the sequence without modifications
+      Int charge = 0;
+      std::string protein_references;  ///< the meta value "protein_references" of PeptideIndexer, empty if not set
+      std::set<std::string> accessions;
+    };
+
+    typedef std::unordered_map<std::string, std::map<Int, const PeptideCandidate*>> SequenceToChargeToPSM;
 
     /**
      * @brief The aggregation method
@@ -170,7 +184,7 @@ namespace OpenMS
      * @param[in,out] acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
      *  and number of peptidoforms encountered
      * @param[in,out] best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
-     *  best PeptideHit pointer
+     *  best PSM
      * @param[in,out] prot_run The current run to process
      * @param[in,out] pep_ids Peptides for the current run to process
      */
@@ -181,19 +195,26 @@ namespace OpenMS
       PeptideIdentificationList& pep_ids) const;
 
     /**
-     * @brief fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
-     * @param[in,out] best_pep (mod.) sequence to charge to pointer of best PSM (PeptideHit*)
+     * @brief The best PSM of each spectrum of @p pep_ids (sorted to be the first hit)
      * @param[in,out] pep_ids the spectra with PSMs
      * @param[in] overall_score_type the pre-determined type name to raise an error if mixed types occur
-     * @param[in] higher_better if for this score type higher is better
      * @param[in] run_id only process peptides associated with this run_id (e.g. proteinID run getIdentifier())
+     */
+    static std::vector<PeptideCandidate> candidates_(
+        PeptideIdentificationList& pep_ids,
+        const std::string& overall_score_type,
+        const std::string& run_id);
+
+    /**
+     * @brief fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
+     * @param[in,out] best_pep (mod.) sequence to charge to pointer of best PSM
+     * @param[in] candidates the best PSM of each spectrum; must outlive @p best_pep
+     * @param[in] higher_better if for this score type higher is better
      */
     void aggregatePeptideScores_(
         SequenceToChargeToPSM& best_pep,
-        PeptideIdentificationList& pep_ids,
-        const std::string& overall_score_type,
-        bool higher_better,
-        const std::string& run_id) const;
+        const std::vector<PeptideCandidate>& candidates,
+        bool higher_better) const;
 
     /**
      * @brief aggregates and updates protein scores based on aggregation settings and aggregated peptide level results in
