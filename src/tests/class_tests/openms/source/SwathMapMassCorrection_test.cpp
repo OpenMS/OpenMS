@@ -20,6 +20,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
+#include <algorithm>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace OpenMS;
 
 typedef OpenSwath::LightTransition TransitionType;
@@ -732,6 +738,128 @@ START_SECTION( void correctIM(const std::map<std::string, OpenMS::MRMFeatureFind
       TEST_REAL_SIMILAR(trafo_result.apply(30), 19.3432835820896)
   }
 
+}
+END_SECTION
+
+START_SECTION(correctIM keeps paired calibration points and exact fits independent of extraction order)
+{
+  // Equal experimental mobilities with different targets exercise paired sorting,
+  // while the small nonlinear residuals make regression rounding observable.
+  constexpr Size n_calibrants = 64;
+  std::vector<MRMFeatureFinderScoring::MRMTransitionGroupType> groups(n_calibrants);
+  OpenSwath::LightTargetedExperiment targeted_exp;
+  auto ms2_exp = std::make_shared<PeakMap>();
+  auto ms1_exp = std::make_shared<PeakMap>();
+  MSSpectrum ms2_spec, ms1_spec;
+  DataArrays::FloatDataArray ms2_im, ms1_im;
+  TransitionGroupMapPtrType ordered_groups, permuted_groups;
+  for (Size i = 0; i < n_calibrants; ++i)
+  {
+    const std::string id = "calibrant_" + std::to_string(1000 + i);
+    const float fragment_im = static_cast<float>(0.62 + 0.013 * (i / 2));
+    const float precursor_im = static_cast<float>(0.65 + 0.012 * (i / 2));
+    const double target_im = 0.7 + 1.03 * fragment_im + 0.0007 * ((i * 7) % 11);
+    OpenSwath::LightCompound compound;
+    compound.id = id;
+    compound.drift_time = target_im;
+    targeted_exp.compounds.push_back(compound);
+
+    TransitionType transition;
+    transition.product_mz = 500.0 + i;
+    transition.precursor_mz = 700.0 + i;
+    transition.precursor_im = target_im;
+    transition.peptide_ref = id;
+    transition.transition_name = id;
+    groups[i].addTransition(transition, id);
+    MRMFeature feature;
+    feature.setRT(100.0);
+    feature.setOverallQuality(1.0);
+    groups[i].addFeature(feature);
+    targeted_exp.transitions.push_back(transition);
+    ordered_groups[id] = &groups[i];
+    permuted_groups[id] = &groups[(i * 17 + 13) % n_calibrants];
+
+    Peak1D peak;
+    peak.setIntensity(128.0);
+    peak.setMZ(transition.product_mz);
+    ms2_spec.push_back(peak);
+    peak.setMZ(transition.precursor_mz);
+    ms1_spec.push_back(peak);
+    ms2_im.push_back(fragment_im);
+    ms1_im.push_back(precursor_im);
+  }
+  for (auto* im : {&ms2_im, &ms1_im})
+  {
+    IMDataConverter::setIMUnit(*im, DriftTimeUnit::MILLISECOND);
+    im->setName(Constants::UserParam::ION_MOBILITY);
+  }
+  ms2_spec.setRT(100.0);
+  ms1_spec.setRT(100.0);
+  ms2_spec.getFloatDataArrays().push_back(ms2_im);
+  ms1_spec.getFloatDataArrays().push_back(ms1_im);
+  ms2_exp->addSpectrum(ms2_spec);
+  ms1_exp->addSpectrum(ms1_spec);
+  OpenSwath::SwathMap ms2_map, ms1_map;
+  ms2_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(ms2_exp);
+  ms2_map.lower = 400.0;
+  ms2_map.upper = 800.0;
+  ms2_map.ms1 = false;
+  ms1_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(ms1_exp);
+  ms1_map.ms1 = true;
+  const std::vector<OpenSwath::SwathMap> swath_maps{ms2_map, ms1_map};
+
+#ifdef _OPENMP
+  const int saved_threads = omp_get_max_threads();
+  const int saved_dynamic = omp_get_dynamic();
+  omp_set_dynamic(0);
+#endif
+  for (const std::string ms1_calibration : {"false", "true"})
+  {
+    SwathMapMassCorrection correction;
+    Param parameters = correction.getDefaults();
+    parameters.setValue("mz_extraction_window", 0.1);
+    parameters.setValue("im_extraction_window", 10.0);
+    parameters.setValue("ms1_im_calibration", ms1_calibration);
+    correction.setParameters(parameters);
+#ifdef _OPENMP
+    omp_set_num_threads(1);
+#endif
+    TransformationDescription reference;
+    correction.correctIM(ordered_groups, targeted_exp, swath_maps, false, reference);
+    const auto& points = reference.getDataPoints();
+    TEST_EQUAL(points.size(), n_calibrants)
+    TEST_TRUE(std::is_sorted(points.begin(), points.end()))
+    const double fragment_window = correction.getFragmentImWindow();
+    const double precursor_window = correction.getPrecursorImWindow();
+    TEST_TRUE(fragment_window > 0.0)
+    TEST_TRUE(precursor_window > 0.0)
+
+    // Reordering the same calibrants gives a deterministic negative control even
+    // without OpenMP. Repeated 11-thread fits also exercise completion-order changes.
+    for ([[maybe_unused]] const int threads : {1, 3, 11, 11, 11})
+    {
+#ifdef _OPENMP
+      omp_set_num_threads(threads);
+#endif
+      for (const auto* input_groups : {&ordered_groups, &permuted_groups})
+      {
+        TransformationDescription result;
+        correction.correctIM(*input_groups, targeted_exp, swath_maps, false, result);
+        TEST_TRUE(result.getDataPoints() == points)
+        TEST_TRUE(result.getModelParameters() == reference.getModelParameters())
+        for (const double probe : {0.5, 0.83, 1.2})
+        {
+          TEST_TRUE(result.apply(probe) == reference.apply(probe))
+        }
+        TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+        TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+      }
+    }
+  }
+#ifdef _OPENMP
+  omp_set_num_threads(saved_threads);
+  omp_set_dynamic(saved_dynamic);
+#endif
 }
 END_SECTION
 

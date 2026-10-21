@@ -185,8 +185,6 @@ namespace OpenMS
     }
 
     TransformationDescription::DataPoints data_im;
-    std::vector<double> exp_im;
-    std::vector<double> theo_im;
 
     // Collect MS1 IM pairs across all transition groups
     std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
@@ -286,8 +284,6 @@ namespace OpenMS
         {
           // store result drift time
           data_im.push_back(std::make_pair(im, drift_target));
-          exp_im.push_back(im);
-          theo_im.push_back(drift_target);
           if (!debug_im_file_.empty())
           {
             os_im << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << '\n';
@@ -373,8 +369,6 @@ namespace OpenMS
         {
           // store result drift time
           data_im.push_back(std::make_pair(im, drift_target));
-          exp_im.push_back(im);
-          theo_im.push_back(drift_target);
           if (!debug_im_file_.empty())
           {
             os_im << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << '\n';
@@ -394,9 +388,21 @@ namespace OpenMS
 
     if (!debug_im_file_.empty()) {os_im.close();}
 
-    if (exp_im.empty())
+    if (data_im.empty())
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression",std::string("Could not fit a linear model to the data (0 points)."));
+    }
+
+    // Parallel extraction appends in completion order. Fit both regressions to the same
+    // canonically ordered pairs so floating-point sums do not depend on thread scheduling.
+    std::sort(data_im.begin(), data_im.end());
+    std::vector<double> exp_im, theo_im;
+    exp_im.reserve(data_im.size());
+    theo_im.reserve(data_im.size());
+    for (const auto& point : data_im)
+    {
+      exp_im.push_back(point.first);
+      theo_im.push_back(point.second);
     }
 
     // linear correction is default (none returns in the beginning of the function)
