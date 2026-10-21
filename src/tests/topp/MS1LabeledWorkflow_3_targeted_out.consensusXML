@@ -11,7 +11,7 @@
 			<VariableModification name="Label:13C(6)15N(2) (K)" />
 			<VariableModification name="Label:13C(6)15N(4) (R)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="3.6.0-pre-feature-ms1-labeled-workflow-2026-09-02"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.7.0-pre-exported-20261020"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -133,7 +133,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="11106716189850669289"/>
+		<UserParam type="string" name="feature_id" value="11221884879889731173"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="4">
@@ -200,7 +200,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 3.531428592114963e-03, 1.0, 7.038002979277515e-03]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1, 1, 1]"/>
 		</consensusElement>
-		<consensusElement id="e_11221884879889731173" quality="0.0" charge="2">
+		<consensusElement id="e_11106716189850669289" quality="0.0" charge="2">
 			<centroid rt="1791.326770525531401" mz="827.402216566652669" it="1.3987197e07"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="1791.326770525531401" mz="827.402216566652669" it="1.3987197e07" charge="2"/>
@@ -215,10 +215,10 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="11221884879889731173"/>
+				<UserParam type="string" name="feature_id" value="11106716189850669289"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="11221884879889731173"/>
+			<UserParam type="string" name="feature_id" value="11106716189850669289"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="EYNVTIDAAESTVNK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
@@ -231,7 +231,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.090102030269206]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
 		</consensusElement>
-		<consensusElement id="e_11106716189850669289" quality="1.0" charge="2">
+		<consensusElement id="e_11221884879889731173" quality="1.0" charge="2">
 			<centroid rt="1791.336810474282629" mz="815.90784285666598" it="2.195857e07"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="1791.336810474282629" mz="815.90784285666598" it="2.195857e07" charge="2"/>
@@ -248,10 +248,10 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="11106716189850669289"/>
+				<UserParam type="string" name="feature_id" value="11221884879889731173"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="11106716189850669289"/>
+			<UserParam type="string" name="feature_id" value="11221884879889731173"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>

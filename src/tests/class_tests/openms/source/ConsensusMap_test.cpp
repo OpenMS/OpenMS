@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
@@ -305,6 +306,55 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
       TEST_EQUAL(h.getMapIndex(), 2);
     }
     ++element;
+  }
+
+  // match-between-runs transfers (as written by PipEchoAlgorithm) are shifted like the features,
+  // e.g. when ProteomicsLFQ merges the consensus maps of its fractions
+  {
+    const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
+    ConsensusMap lhs, rhs;
+    lhs.getColumnHeaders()[0].filename = "fraction1_run1";
+    lhs.getColumnHeaders()[1].filename = "fraction1_run2";
+    rhs.getColumnHeaders()[0].filename = "fraction2_run1";
+    rhs.getColumnHeaders()[1].filename = "fraction2_run2";
+
+    ConsensusFeature lhs_cf;
+    lhs_cf.insert(0, f1, 0);
+    lhs_cf.insert(1, f2, 1);
+    lhs_cf.setMetaValue(key, IntList{1});
+    lhs.push_back(lhs_cf);
+
+    ConsensusFeature rhs_cf_transfer, rhs_cf_no_transfer;
+    rhs_cf_transfer.insert(0, f1, 0);
+    rhs_cf_transfer.insert(1, f2, 1);
+    rhs_cf_transfer.setMetaValue(key, IntList{0, 1});
+    rhs_cf_transfer.setMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES, DoubleList{0.01, 0.02});
+    rhs_cf_no_transfer.insert(1, f3, 2);
+    rhs.push_back(rhs_cf_transfer);
+    rhs.push_back(rhs_cf_no_transfer);
+
+    lhs.appendColumns(rhs);
+
+    TEST_EQUAL(lhs.size(), 3);
+    TEST_EQUAL(lhs.getColumnHeaders().size(), 4);
+    // the features of lhs keep their map indices
+    TEST_EQUAL(lhs[0].getMetaValue(key) == DataValue(IntList{1}), true);
+    // those of rhs now reference the third and fourth map, as their features do
+    IntList shifted = lhs[1].getMetaValue(key);
+    TEST_EQUAL(shifted.size(), 2);
+    TEST_EQUAL(shifted[0], 2);
+    TEST_EQUAL(shifted[1], 3);
+    for (const FeatureHandle& h : lhs[1].getFeatures())
+    {
+      TEST_EQUAL(std::find(shifted.begin(), shifted.end(), static_cast<Int>(h.getMapIndex())) != shifted.end(), true);
+    }
+    // the q-values do not reference maps and stay as they are
+    DoubleList q_values = lhs[1].getMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES);
+    TEST_EQUAL(q_values.size(), 2);
+    TEST_REAL_SIMILAR(q_values[0], 0.01);
+    TEST_REAL_SIMILAR(q_values[1], 0.02);
+    // a feature without transfers does not get any
+    TEST_EQUAL(lhs[2].metaValueExists(key), false);
   }
 }
 END_SECTION

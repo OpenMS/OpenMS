@@ -108,7 +108,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
+    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::COMPRESSED_READABLE}), // .raw.zip via ZipArchiveFile
     // Removed format: recognized by extension only, so loading reports how to convert existing files.
     TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file (no longer supported; convert with OpenMS 3.6)", {}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
@@ -292,8 +292,9 @@ namespace OpenMS
     {
       return false;
     }
-    // Bruker's '.d.zip' is unpacked by BrukerTimsFile, not by XMLFile, and only for ZIP
-    if (type == FileTypes::BRUKER_TDF)
+    // Bruker's '.d.zip' and Thermo's '.raw.zip' are unpacked by their readers (BrukerTimsFile, ThermoRawFile), not by
+    // XMLFile, and only for ZIP
+    if (type == FileTypes::BRUKER_TDF || type == FileTypes::RAW)
     {
       return compression == FileTypes::ZIP;
     }

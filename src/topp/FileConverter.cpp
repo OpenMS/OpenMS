@@ -34,6 +34,8 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -85,6 +87,8 @@ provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to 
 mac, the mono runtime, which the OpenMS packages there do not include, needs to be present and accessible via
 the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can be set via the
 -RawToMzML:ThermoRaw_executable option.
+Both readers also read a ZIP archive that holds one .raw file (e.g. run.raw.zip): the .raw file is extracted
+into the temporary directory first. gzip- or bzip2-compressed raw files (.raw.gz, .raw.bz2) cannot be read.
 The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
 built-in reader, but without vendor peak picking; see
 <a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
@@ -627,6 +631,14 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
+      // A ZIP archive must hold one .raw file (ThermoRawFile extracts it itself, ThermoRawFileParser gets it extracted
+      // below; TOPPBase has rejected other compression). Checked here for both readers, so that a bad archive is not
+      // reported as a failure of the in-process reader (whose error message points to the .NET runtime).
+      std::string raw_entry; // the .raw file in a ZIP archive
+      if (FileNameUtils::compressionType(in) == FileTypes::ZIP)
+      {
+        raw_entry = ZipArchiveFile::findSingleEntry(in, ".raw");
+      }
       std::string raw_reader = getStringOption_("RawToMzML:reader");
 #ifdef WITH_THERMO_RAW
       if (raw_reader == "inprocess")
@@ -739,7 +751,10 @@ protected:
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments.push_back(getStringOption_("RawToMzML:ThermoRaw_executable"));
 #endif
-      arguments.push_back("--input=" + in);
+      // ThermoRawFileParser reads plain RAW files only; the extracted file is removed after the conversion
+      std::unique_ptr<TempDir> unpacked;
+      const std::string raw_in = raw_entry.empty() ? in : ZipArchiveFile::extractEntryToTempFile(in, raw_entry, unpacked);
+      arguments.push_back("--input=" + raw_in);
       arguments.push_back("--output=" + out);
       arguments.push_back("-f=2"); // indexedMzML
       arguments.push_back("-e"); // ignore instrument errors

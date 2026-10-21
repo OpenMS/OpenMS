@@ -585,9 +585,22 @@ namespace OpenMS
       ffid_group.setParameters(this->getParameters());
       ffid_group.setMSData(std::move(faims_group));
 
+      // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
+      // without a CV are tried at every CV, like identifications without one
+      FeatureMap seeds_cv;
+      static_cast<DocumentIdentifier&>(seeds_cv) = seeds;
+      for (const Feature& seed : seeds)
+      {
+        if (!seed.metaValueExists(Constants::UserParam::FAIMS_CV)
+            || std::abs(static_cast<double>(seed.getMetaValue(Constants::UserParam::FAIMS_CV)) - group_cv) < 0.01)
+        {
+          seeds_cv.push_back(seed);
+        }
+      }
+
       // Run feature detection
       FeatureMap features_cv;
-      ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds, spectra_file);
+      ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds_cv, spectra_file);
 
       // Annotate features with FAIMS CV and add to results
       for (auto& feat : features_cv)

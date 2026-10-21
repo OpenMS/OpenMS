@@ -164,8 +164,7 @@ namespace OpenMS
         isotope_cache.clear();
       }
 
-      CoarseIsotopePatternGenerator solver(nr_isotopes);
-      return isotope_cache.emplace(key, solver.estimateFromPeptideWeight(neutral_mass)).first->second;
+      return isotope_cache.emplace(key, DIAHelpers::averagineIsotopeDistribution(neutral_mass, nr_isotopes)).first->second;
     }
   }
 
@@ -543,8 +542,25 @@ namespace OpenMS
   double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                           const EmpiricalFormula& empf) const
   {
-    return scoreIsotopePattern_(isotopes_int,
-                                empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_ + 1)));
+    // The peak groups of a precursor are scored one after the other: keep the isotope distribution
+    // of the last formula.
+    struct FormulaIsotopeDistribution
+    {
+      EmpiricalFormula formula;
+      Size nr_isotopes = 0;
+      bool valid = false;
+      IsotopeDistribution distribution;
+    };
+    static thread_local FormulaIsotopeDistribution cache;
+    const Size nr_isotopes = static_cast<Size>(dia_nr_isotopes_ + 1);
+    if (!cache.valid || cache.nr_isotopes != nr_isotopes || !(cache.formula == empf))
+    {
+      cache.distribution = empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(nr_isotopes));
+      cache.formula = empf;
+      cache.nr_isotopes = nr_isotopes;
+      cache.valid = true;
+    }
+    return scoreIsotopePattern_(isotopes_int, cache.distribution);
   }
 
   double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,
