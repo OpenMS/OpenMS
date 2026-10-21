@@ -1515,7 +1515,7 @@ Loads a MsInspect file into the given FeatureMap
         R"doc(
 A class to decode input strings that contain an mzML chromatogram or spectrum tag
 
-It uses xercesc to parse a string containing either a exactly one mzML
+It uses libxml2 to parse a string containing either a exactly one mzML
 spectrum or chromatogram (from <chromatogram> to </chromatogram> or
 <spectrum> to </spectrum> tag). It returns the data contained in the
 binaryDataArray for Intensity / mass-to-charge or Intensity / time

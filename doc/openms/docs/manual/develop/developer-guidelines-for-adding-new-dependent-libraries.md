@@ -10,7 +10,7 @@ In short, requirements for adding a new library are:
 
 ## Indispensable functionality
 
-In general, adding a new dependency library (of which we currently have more than a handful, e.g. Xerces-C or ZLib)
+In general, adding a new dependency library (of which we currently have more than a handful, e.g. libxml2 or ZLib)
 imposes a significant integration and maintenance effort. Thus, the new library should add 
 **indispensable functionality**. If the added value does not compensate for the overhead, alternative solutions 
 encompass:

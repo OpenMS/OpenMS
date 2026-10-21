@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <bit>
@@ -46,13 +47,16 @@ namespace OpenMS::Internal
         error_message =std::string("While loading '") + file_ + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
-	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-        if (ft_name != ft_content)
+        if (File::exists(file_))
         {
-          error_message +=std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
-                          + "Rename the file to fix this.";
+          const FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+          const FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+          if (ft_name != ft_content)
+          {
+            error_message += std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                            + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
+                            + "Rename the file to fix this.";
+          }
         }
       }
       else if (mode == STORE)
@@ -122,6 +126,11 @@ namespace OpenMS::Internal
 
     void XMLHandler::onCharacters(const char16_t * /*chars*/, Size /*length*/)
     {
+    }
+
+    bool XMLHandler::tryOnCharactersUTF8(const char* /*chars*/, Size /*length*/)
+    {
+      return false;
     }
 
     void XMLHandler::writeTo(std::ostream & /*os*/)

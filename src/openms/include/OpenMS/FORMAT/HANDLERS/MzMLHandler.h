@@ -121,6 +121,9 @@ public:
       /// Docu in base class XMLHandler::characters
       void onCharacters(const char16_t* chars, Size length) override;
 
+      /// Consume ASCII character data directly; preserve derived UTF-16 overrides.
+      bool tryOnCharactersUTF8(const char* chars, Size length) override;
+
       /// Docu in base class XMLHandler::writeTo
       void writeTo(std::ostream& os) override;
 

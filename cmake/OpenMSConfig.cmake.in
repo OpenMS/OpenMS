@@ -81,7 +81,7 @@ set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 # Dependencies that are part of the public link interface of the imported targets.
 # Everything else OpenMS links is PRIVATE: the installed shared library resolves it
 # through its own RPATH/soname, and consumers need neither the CMake packages nor
-# the development files of those libraries (CURL, Xerces-C, libsvm, SQLite,
+# the development files of those libraries (CURL, libxml2, libsvm, SQLite,
 # HDF5, Arrow, ...).
 
 include(CMakeFindDependencyMacro)
@@ -97,6 +97,7 @@ if(NOT "@BUILD_SHARED_LIBS@")
     set(_openms_boost_version 1.81.0)
   endif()
   find_dependency(Boost ${_openms_boost_version})
+  find_dependency(LibXml2 2.13)
   unset(_openms_boost_version)
 endif()
 

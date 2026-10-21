@@ -133,13 +133,6 @@ endif()
 # 2 - add link dependencies
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
-# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
-# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
-# themselves.
-target_link_libraries(ZipInputStream_test XercesC::XercesC)
-target_link_libraries(GzipInputStream_test XercesC::XercesC)
-target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
-target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test ${LPTARGET})
 target_link_libraries(UniqueIdGenerator_test Threads::Threads)

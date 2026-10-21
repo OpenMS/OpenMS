@@ -21,7 +21,8 @@
 #include <algorithm>
 #include <atomic>
 #include <map>
-#include <xercesc/util/XMLString.hpp>
+
+#include <typeinfo>
 
 namespace OpenMS::Internal
 {
@@ -242,8 +243,11 @@ namespace OpenMS::Internal
           }
           catch (...)
           {
-            ++errCount;
-            error_message = "Unknown exception during spectrum data population";
+            #pragma omp critical(MZMLErrorHandling)
+            {
+              ++errCount;
+              error_message = "Unknown exception during spectrum data population";
+            }
           }
         }
         }
@@ -809,9 +813,29 @@ namespace OpenMS::Internal
     }
 
 
+    bool MzMLHandler::tryOnCharactersUTF8(const char* chars, Size length)
+    {
+      // A subclass may override only onCharacters. Leave that dispatch intact
+      // unless the subclass explicitly opts in by overriding this new hook.
+      if (typeid(*this) != typeid(MzMLHandler)) { return false; }
+      if (length == 0) { return true; }
+      if (std::any_of(chars, chars + length,
+          [](unsigned char value) { return value >= 0x80; })) { return false; }
+      if (skip_spectrum_ || skip_chromatogram_ || !options_.getFillData() || open_tags_.empty()) { return true; }
+      if (open_tags_.back() == "binary")
+      {
+        // XML parsers have normalized entities/line endings. Valid base64 is
+        // ASCII, so no UTF-8 -> UTF-16 -> ASCII round trip is needed here.
+        bin_data_.back().base64.append(chars, length);
+      }
+      return true;
+    }
+
     void MzMLHandler::onCharacters(const char16_t* chars, Size length)
     {
-      if (skip_spectrum_ || skip_chromatogram_)
+      // Metadata reads discard binary arrays on closing the spectrum. Avoid
+      // constructing their encoded payloads in the first place.
+      if (skip_spectrum_ || skip_chromatogram_ || !options_.getFillData())
       {
         return;
       }
@@ -846,32 +870,32 @@ namespace OpenMS::Internal
 
     void MzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
-      constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
-      constexpr XMLCh s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
-      constexpr XMLCh s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
-      constexpr XMLCh s_name[] = { 'n','a','m','e' , 0};
-      constexpr XMLCh s_type[] = { 't','y','p','e' , 0};
-      constexpr XMLCh s_value[] = { 'v','a','l','u','e' , 0};
-      constexpr XMLCh s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
-      constexpr XMLCh s_id[] = { 'i','d' , 0};
-      constexpr XMLCh s_ref[] = { 'r','e','f' , 0};
-      constexpr XMLCh s_version[] = { 'v','e','r','s','i','o','n' , 0};
-      constexpr XMLCh s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
-      constexpr XMLCh s_order[] = { 'o','r','d','e','r' , 0};
-      constexpr XMLCh s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
-      constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
-      constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
-      constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
-      constexpr XMLCh s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
-      constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
-      constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
-      constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
-      constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
-      constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
-      constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
-      // constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
-      constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
+      constexpr char16_t s_count[] = {'c','o','u','n','t', 0};
+      constexpr char16_t s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr char16_t s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr char16_t s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
+      constexpr char16_t s_name[] = { 'n','a','m','e' , 0};
+      constexpr char16_t s_type[] = { 't','y','p','e' , 0};
+      constexpr char16_t s_value[] = { 'v','a','l','u','e' , 0};
+      constexpr char16_t s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
+      constexpr char16_t s_id[] = { 'i','d' , 0};
+      constexpr char16_t s_ref[] = { 'r','e','f' , 0};
+      constexpr char16_t s_version[] = { 'v','e','r','s','i','o','n' , 0};
+      constexpr char16_t s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
+      constexpr char16_t s_order[] = { 'o','r','d','e','r' , 0};
+      constexpr char16_t s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
+      constexpr char16_t s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
+      constexpr char16_t s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
+      constexpr char16_t s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr char16_t s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
+      constexpr char16_t s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr char16_t s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr char16_t s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr char16_t s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr char16_t s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
+      constexpr char16_t s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
+      // constexpr char16_t s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr char16_t s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
 
 
       open_tags_.push_back(sm_.convert(qname));
@@ -898,7 +922,7 @@ namespace OpenMS::Internal
       if (tag == "spectrum")
       {
         // for cppcheck
-        constexpr XMLCh s_spot_id[] = { 's','p','o','t','I','D', 0 };
+        constexpr char16_t s_spot_id[] = { 's','p','o','t','I','D', 0 };
 
         //number of peaks
         spec_ = SpectrumType();
@@ -1405,12 +1429,12 @@ namespace OpenMS::Internal
 
     void MzMLHandler::onEndElement(const char16_t* qname)
     {
-      constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
-      constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
-      constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
-      constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
-      constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
-      constexpr XMLCh s_sourceFileList[] = { 's','o','u','r','c','e','F','i','l','e','L','i','s','t', 0};
+      constexpr char16_t s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
+      constexpr char16_t s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
+      constexpr char16_t s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
+      constexpr char16_t s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
+      constexpr char16_t s_mzml[] = { 'm','z','M','L' , 0};
+      constexpr char16_t s_sourceFileList[] = { 's','o','u','r','c','e','F','i','l','e','L','i','s','t', 0};
 
       open_tags_.pop_back();
 
@@ -1539,7 +1563,7 @@ namespace OpenMS::Internal
         // Flush the remaining data
         populateSpectraWithData_();
         populateChromatogramsWithData_();
-        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
+        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it
                                                      // , so we can only report I/O at the very end
       }
     }

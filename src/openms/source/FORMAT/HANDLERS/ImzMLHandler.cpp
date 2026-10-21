@@ -14,7 +14,6 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <xercesc/util/XMLString.hpp>
 
 #include <algorithm>
 #include <cstring>
@@ -452,7 +451,7 @@ void ImzMLHandler::openIBD(const std::string& ibd_path)
 }
 
 // ===========================================================================
-// SAX2 overrides
+// XML event callbacks
 // ===========================================================================
 
 void ImzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attrs)

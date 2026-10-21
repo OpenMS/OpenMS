@@ -8,9 +8,7 @@
 
 #include <OpenMS/FORMAT/ImzMLFile.h>
 
-#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -20,13 +18,6 @@
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/XMLException.hpp>
-#include <xercesc/sax/SAXException.hpp>
 
 #include <algorithm>
 #include <cstdio>
@@ -185,26 +176,6 @@ namespace
     }
   }
 
-  /// Ensure Xerces is initialized before parsing.
-  ///
-  /// OpenMS initializes Xerces exactly once, process-wide, via the global guard in
-  /// CONCEPT/Init.cpp (see ticket #352); XMLPlatformUtils::Initialize() is reference
-  /// counted and idempotent, so this defensive call (matching Internal::XMLFile) is a
-  /// no-op when the global guard already ran.
-  ///
-  /// We deliberately do NOT call XMLPlatformUtils::Terminate() here. Terminate() is not
-  /// noexcept and may throw; running it from this (implicitly noexcept) destructor would
-  /// invoke std::terminate() (observed on Windows/MSVC as a __fastfail with exit code
-  /// 0xC0000409). It would also tear down the global Xerces state shared with every other
-  /// OpenMS XML reader. No other OpenMS parser pairs Initialize() with a per-operation
-  /// Terminate(); the process-global guard owns teardown at exit.
-  struct XercesPlatformGuard
-  {
-    XercesPlatformGuard()
-    {
-      Internal::xercesInitialize();
-    }
-  };
 } // namespace
 
 ImzMLFile::ImzMLFile() :
@@ -541,7 +512,6 @@ void ImzMLFile::loadImpl_(const std::string& filename,
                           bool index_only,
                           const std::string& ibd_path_override)
 {
-  XercesPlatformGuard xerces_guard;
 
   PeakMap& peak_map = static_cast<PeakMap&>(meta_exp);
   ProgressLogger logger;
@@ -571,36 +541,10 @@ void ImzMLFile::loadImpl_(const std::string& filename,
   handler.openIBD(ibd_path);
   handler.getImzMLMeta().ibd_file_path = ibd_path;
 
-  Internal::StringManager sm;
-  xercesc::LocalFileInputSource src(sm.convert(filename).c_str());
-
-  std::unique_ptr<xercesc::SAX2XMLReader> reader{xercesc::XMLReaderFactory::createXMLReader()};
-  reader->setFeature(xercesc::XMLUni::fgSAX2CoreValidation, false);
-  reader->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, true);
-  reader->setFeature(xercesc::XMLUni::fgXercesLoadExternalDTD, false);
-  reader->setFeature(xercesc::XMLUni::fgXercesDisableDefaultEntityResolution, true);
-  reader->setFeature(xercesc::XMLUni::fgXercesSchema, false);
-  reader->setFeature(xercesc::XMLUni::fgXercesSchemaFullChecking, false);
-  Internal::SAX2HandlerAdapter adapter(handler);
-  reader->setContentHandler(&adapter);
-  reader->setErrorHandler(&adapter);
-
   try
   {
-    reader->parse(src);
-  }
-  catch (const Internal::XMLHandler::EndParsingSoftly&)
-  {
-  }
-  catch (const xercesc::XMLException& e)
-  {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-      std::string("XML error: ") + Internal::StringManager::convert(e.getMessage()));
-  }
-  catch (const xercesc::SAXException& e)
-  {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-      std::string("SAX error: ") + Internal::StringManager::convert(e.getMessage()));
+    // imzML historically used namespace-aware parsing, unlike generic XML readers.
+    parse_(filename, &handler, true);
   }
   catch (const Exception::BaseException&)
   {

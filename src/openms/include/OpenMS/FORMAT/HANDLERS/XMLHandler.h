@@ -32,8 +32,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    // XMLCh string handling lives in StringManager (Xerces-free public API);
-    // shared_xerces_ptr / unique_xerces_ptr / CONST_XMLCH are declared there.
+    // UTF-16 string handling lives in StringManager.
 
     /**
         @brief Base class for XML handlers.
@@ -85,12 +84,11 @@ public:
       void warning(ActionMode mode, const std::string & msg, UInt line = 0, UInt column = 0) const;
 
       /**
-          @name Native (Xerces-free) SAX callbacks
+          @name Native SAX callbacks
 
           Subclasses override these. @c qname / @c chars are UTF-16 code units (as
-          delivered by the parser); attributes are exposed through the Xerces-free
-          @ref XMLAttributes view. The Xerces SAX parser is bridged to these
-          callbacks by the internal SAX2HandlerAdapter.
+          delivered by the parser); attributes are exposed through the native
+          @ref XMLAttributes view. The XML parser adapter dispatches these callbacks.
       */
       //@{
       /// Parsing method for opening tags
@@ -99,6 +97,16 @@ public:
       virtual void onEndElement(const char16_t * qname);
       /// Parsing method for character data
       virtual void onCharacters(const char16_t * chars, Size length);
+      /**
+        @brief Try to consume UTF-8 character data without UTF-16 conversion.
+
+        Length is in bytes; the input is borrowed for this call only. Return
+        false without side effects to request the adapter's existing UTF-16
+        conversion and onCharacters dispatch. The default always returns false.
+        Derived handlers opt in explicitly; existing UTF-16 overrides stay valid.
+      */
+      virtual bool tryOnCharactersUTF8(const char* chars, Size length);
+
       //@}
 
       /// Writes the contents to a stream.
@@ -114,7 +122,7 @@ public:
         @brief Escapes a string and returns the escaped string
 
         Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-        need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
+        need to be escaped. Parsing those escaped strings from file again is automatically done by the XML parser.
         Escaped characters are: & < > " ' 
       */
       static std::string writeXMLEscape(const std::string& to_escape)
@@ -227,7 +235,7 @@ protected:
       LOADDETAIL load_detail_; 
 
 
-      /// Returns if two Xerces strings are equal
+      /// Returns if two UTF-16 strings are equal
       inline bool equal_(const char16_t * a, const char16_t * b) const
       {
         // Guard null pointers before constructing views: u16string_view(nullptr)
@@ -291,7 +299,7 @@ protected:
         return res;
       }
 
-      /// Conversion of a Xerces string to an integer value
+      /// Conversion of a UTF-16 string to an integer value
       inline Int asInt_(const char16_t * in) const
       {
         return sm_.parseInt(in);
