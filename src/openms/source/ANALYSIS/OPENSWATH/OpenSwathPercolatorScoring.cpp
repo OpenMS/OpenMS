@@ -225,9 +225,74 @@ namespace OpenMS
       return {mean, std::sqrt(std::max(0.0, variance))};
     }
 
+    using ScientificPrecursor = std::tuple<std::vector<String>, Int64, bool>;
+
+    struct ScientificKeys
+    {
+      std::map<Int64, String> runs;
+      std::map<Int64, ScientificPrecursor> precursors;
+    };
+
+    ScientificKeys scientificKeysSqlite_(SqliteConnector& conn)
+    {
+      ScientificKeys keys;
+      sqlite3_stmt* stmt = nullptr;
+      Sql::prepareStatement(conn, &stmt, "SELECT ID, FILENAME FROM RUN;");
+      for (auto state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      {
+        keys.runs.emplace(Sql::extractInt64(stmt, 0), Sql::extractString(stmt, 1));
+      }
+      sqlite3_finalize(stmt);
+      Sql::prepareStatement(conn, &stmt,
+        "SELECT PRECURSOR.ID, PEPTIDE.MODIFIED_SEQUENCE, PRECURSOR.CHARGE, PRECURSOR.DECOY "
+        "FROM PRECURSOR JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_ID "
+        "JOIN PEPTIDE ON PEPTIDE.ID = PEPTIDE_ID;");
+      for (auto state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      {
+        auto& key = keys.precursors[Sql::extractInt64(stmt, 0)];
+        std::get<0>(key).push_back(Sql::extractString(stmt, 1));
+        std::get<1>(key) = Sql::extractInt64(stmt, 2);
+        std::get<2>(key) = Sql::extractInt(stmt, 3) != 0;
+      }
+      sqlite3_finalize(stmt);
+      // Mapping row order and peptide IDs must not affect precursor identity.
+      for (auto& [id, key] : keys.precursors)
+      {
+        auto& sequences = std::get<0>(key);
+        std::sort(sequences.begin(), sequences.end());
+        sequences.erase(std::unique(sequences.begin(), sequences.end()), sequences.end());
+      }
+      return keys;
+    }
+
+    ScientificKeys scientificKeysParquet_(const String& path)
+    {
+      ScientificKeys keys;
+      const auto runs = ParquetFile::readTable(path + "/runs/runs.parquet");
+      const auto run_ids = ParquetFile::getColumn(runs, "run_id");
+      const auto filenames = ParquetFile::getOptionalColumn(runs, "filename");
+      for (int64_t i = 0; i < runs->num_rows(); ++i)
+      {
+        keys.runs.emplace(ParquetFile::getInt64(run_ids, i, 0, false), ParquetFile::getString(filenames, i));
+      }
+      const auto precursors = ParquetFile::readTable(path + "/library/precursors.parquet");
+      const auto ids = ParquetFile::getColumn(precursors, "precursor_id");
+      const auto sequences = ParquetFile::getOptionalColumn(precursors, "modified_sequence");
+      const auto charges = ParquetFile::getColumn(precursors, "charge");
+      const auto decoys = ParquetFile::getOptionalColumn(precursors, "decoy");
+      for (int64_t i = 0; i < precursors->num_rows(); ++i)
+      {
+        keys.precursors.emplace(ParquetFile::getInt64(ids, i, 0, false),
+          ScientificPrecursor{{ParquetFile::getString(sequences, i)}, ParquetFile::getInt64(charges, i, 0, false),
+                              ParquetFile::getBool(decoys, i, false, true)});
+      }
+      return keys;
+    }
+
     PreparedInput finalizeInput_(std::vector<ScoreRow>&& rows,
                                  std::vector<String>&& feature_names,
-                                 const bool transition_level)
+                                 const bool transition_level,
+                                 const ScientificKeys& keys)
     {
       if (rows.empty())
       {
@@ -238,6 +303,24 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "No feature columns available for OpenSWATH Percolator scoring.", "");
+      }
+
+      // Do not fall back to generated IDs when scientific identity is absent.
+      for (const auto& row : rows)
+      {
+        if (!std::isfinite(row.exp_rt))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Deterministic OpenSWATH Percolator scoring requires finite retention times.", StringUtils::toStr(row.exp_rt));
+        }
+        if (!keys.runs.contains(row.run_id) || keys.runs.at(row.run_id).empty() ||
+            !keys.precursors.contains(row.precursor_id) || std::get<0>(keys.precursors.at(row.precursor_id)).empty() ||
+            std::get<0>(keys.precursors.at(row.precursor_id)).front().empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Deterministic OpenSWATH Percolator scoring requires a run filename and modified peptide sequence "
+            "for run " + StringUtils::toStr(row.run_id) + ", precursor " + StringUtils::toStr(row.precursor_id) + ".");
+        }
       }
 
       const Size n_rows = rows.size();
@@ -329,13 +412,22 @@ namespace OpenMS
       prepared.input.feature_names = kept_names;
 
       std::stable_sort(prepared.rows.begin(), prepared.rows.end(),
-                       [](const ScoreRow& lhs, const ScoreRow& rhs)
+                       [&keys, &keep_column](const ScoreRow& lhs, const ScoreRow& rhs)
                        {
-                         if (lhs.run_id != rhs.run_id) return lhs.run_id < rhs.run_id;
-                         if (lhs.precursor_id != rhs.precursor_id) return lhs.precursor_id < rhs.precursor_id;
+                         const auto left = std::tie(keys.runs.at(lhs.run_id), keys.precursors.at(lhs.precursor_id));
+                         const auto right = std::tie(keys.runs.at(rhs.run_id), keys.precursors.at(rhs.precursor_id));
+                         if (left != right) return left < right;
                          if (lhs.exp_rt != rhs.exp_rt) return lhs.exp_rt < rhs.exp_rt;
-                         if (lhs.feature_id != rhs.feature_id) return lhs.feature_id < rhs.feature_id;
-                         return lhs.transition_id.value_or(-1) < rhs.transition_id.value_or(-1);
+                         if (lhs.decoy != rhs.decoy) return lhs.decoy < rhs.decoy;
+                         // Only finite active scores participate. Generated feature/transition IDs do not.
+                         for (Size col = 0; col < lhs.feature_values.size(); ++col)
+                         {
+                           if (keep_column[col] && lhs.feature_values[col] != rhs.feature_values[col])
+                           {
+                             return lhs.feature_values[col] < rhs.feature_values[col];
+                           }
+                         }
+                         return false;
                        });
 
       if (transition_level)
@@ -347,18 +439,15 @@ namespace OpenMS
       }
       else
       {
-        int current_group = -1;
-        Int64 current_run = std::numeric_limits<Int64>::min();
-        Int64 current_precursor = std::numeric_limits<Int64>::min();
+        // Keep the original one-run/one-precursor partition. Scientific aliases must not merge.
+        // ponytail: distinct assay aliases with identical scientific sort keys keep their partitions,
+        // but alias-specific CV assignment is not guaranteed invariant without a stable assay identity.
+        std::map<std::pair<Int64, Int64>, int> group_to_key;
         for (auto& row : prepared.rows)
         {
-          if (row.run_id != current_run || row.precursor_id != current_precursor)
-          {
-            current_run = row.run_id;
-            current_precursor = row.precursor_id;
-            ++current_group;
-          }
-          row.cv_group_key = current_group;
+          const auto group = std::make_pair(row.run_id, row.precursor_id);
+          const auto [it, inserted] = group_to_key.emplace(group, static_cast<int>(group_to_key.size()));
+          row.cv_group_key = it->second;
         }
       }
 
@@ -611,6 +700,7 @@ namespace OpenMS
                                      const double transition_min_log_sn)
     {
       SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READ_ONLY);
+      const auto keys = scientificKeysSqlite_(conn);
       sqlite3_stmt* stmt = nullptr;
       std::vector<ScoreRow> rows;
       std::vector<String> feature_names;
@@ -652,7 +742,7 @@ namespace OpenMS
 
         if (readFeatureRowsByScans_(conn, level, ms2_cols, ms1_cols, rows))
         {
-          return finalizeInput_(std::move(rows), std::move(feature_names), false);
+          return finalizeInput_(std::move(rows), std::move(feature_names), false, keys);
         }
         rows.clear(); // fall back to the query below
 
@@ -718,7 +808,7 @@ namespace OpenMS
           state = Sql::nextRow(stmt, state);
         }
         sqlite3_finalize(stmt);
-        return finalizeInput_(std::move(rows), std::move(feature_names), false);
+        return finalizeInput_(std::move(rows), std::move(feature_names), false, keys);
       }
 
       if (!conn.tableExists("SCORE_MS2"))
@@ -850,7 +940,7 @@ namespace OpenMS
                                       "Run ms2/ms1ms2 scoring first and check the transition candidate filters.");
       }
 
-      return finalizeInput_(std::move(rows), std::move(feature_names), true);
+      return finalizeInput_(std::move(rows), std::move(feature_names), true, keys);
     }
 
     PreparedInput extractParquetRows_(const String& oswpq_path,
@@ -860,6 +950,7 @@ namespace OpenMS
                                       const double transition_max_isotope_overlap,
                                       const double transition_min_log_sn)
     {
+      const auto keys = scientificKeysParquet_(oswpq_path);
       OpenSwathOSWParquetReader reader;
       std::vector<ScoreRow> rows;
       std::vector<String> feature_names;
@@ -902,7 +993,7 @@ namespace OpenMS
           row.cv_group_key = it->second;
           rows.push_back(std::move(row));
         }
-        return finalizeInput_(std::move(rows), std::move(feature_names), false);
+        return finalizeInput_(std::move(rows), std::move(feature_names), false, keys);
       }
 
       if (level == Level::MS1 || level == Level::MS1MS2)
@@ -973,7 +1064,7 @@ namespace OpenMS
           row.cv_group_key = it->second;
           rows.push_back(std::move(row));
         }
-        return finalizeInput_(std::move(rows), std::move(feature_names), false);
+        return finalizeInput_(std::move(rows), std::move(feature_names), false, keys);
       }
 
       const auto transition_result = reader.fetchTransitionFeatures(oswpq_path);
@@ -1137,7 +1228,7 @@ namespace OpenMS
                                       "Run ms2/ms1ms2 scoring first and check the transition candidate filters.");
       }
 
-      return finalizeInput_(std::move(rows), std::move(feature_names), true);
+      return finalizeInput_(std::move(rows), std::move(feature_names), true, keys);
     }
 
     std::vector<ScoreResult> computePeakGroupResults_(const PreparedInput& prepared,

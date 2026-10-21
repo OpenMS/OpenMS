@@ -18,6 +18,7 @@
 #include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <arrow/api.h>
+#include <arrow/array/concatenate.h>
 #include <sqlite3.h>
 
 #include <algorithm>
@@ -25,7 +26,9 @@
 #include <memory>
 #include <numeric>
 #include <random>
+#include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using namespace OpenMS;
@@ -77,6 +80,71 @@ namespace
       sqlite3_free(error_message);
     }
     sqlite3_close(db);
+  }
+
+  // Reverse every row and remap all generated identifiers without changing scientific values.
+  void permuteParquet_(const std::string& path)
+  {
+    const auto table = ParquetFile::readTable(path);
+    if (table->num_rows() == 0)
+    {
+      return;
+    }
+    std::vector<std::shared_ptr<arrow::Array>> columns;
+    for (int col = 0; col < table->num_columns(); ++col)
+    {
+      const auto array = ParquetFile::getColumn(table, table->field(col)->name());
+      const auto& name = table->field(col)->name();
+      if (name == "run_id" || name == "precursor_id" || name == "feature_id")
+      {
+        arrow::Int64Builder builder;
+        for (int64_t row = table->num_rows(); row-- > 0;)
+        {
+          ParquetFile::appendOrThrow(builder.Append(-1 - ParquetFile::getInt64(array, row, 0, false)), name);
+        }
+        columns.push_back(ParquetFile::finishArray(builder, name));
+      }
+      else
+      {
+        arrow::ArrayVector slices;
+        for (int64_t row = table->num_rows(); row-- > 0;)
+        {
+          slices.push_back(array->Slice(row, 1));
+        }
+        const auto result = arrow::Concatenate(slices);
+        TEST_TRUE(result.ok())
+        columns.push_back(result.ValueOrDie());
+      }
+    }
+    ParquetFile::writeTable(arrow::Table::Make(table->schema(), columns), path);
+  }
+
+  using ScientificScores = std::map<std::tuple<std::string, std::string, Int64, bool, double, double>, std::multiset<std::vector<double>>>;
+
+  ScientificScores sqliteScientificScores_(const std::string& path)
+  {
+    ScientificScores scores;
+    sqlite3* db = nullptr;
+    TEST_EQUAL(sqlite3_open_v2(path.c_str(), &db, SQLITE_OPEN_READONLY, nullptr), SQLITE_OK)
+    sqlite3_stmt* stmt = nullptr;
+    const char* query = "SELECT RUN.FILENAME, PEPTIDE.MODIFIED_SEQUENCE, PRECURSOR.CHARGE, PRECURSOR.DECOY, "
+      "FEATURE.EXP_RT, SCORE_MS2.SCORE, SCORE_MS2.RANK, SCORE_MS2.QVALUE, SCORE_MS2.PEP, FEATURE_MS2.VAR_XCORR_SHAPE "
+      "FROM FEATURE JOIN RUN ON RUN.ID = FEATURE.RUN_ID JOIN PRECURSOR ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
+      "JOIN PEPTIDE ON PEPTIDE.ID = PEPTIDE_ID JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+      "JOIN FEATURE_MS2 ON FEATURE.ID = FEATURE_MS2.FEATURE_ID;";
+    TEST_EQUAL(sqlite3_prepare_v2(db, query, -1, &stmt, nullptr), SQLITE_OK)
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+      const auto text = [&](int col) { return std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, col))); };
+      const auto key = std::make_tuple(text(0), text(1), sqlite3_column_int64(stmt, 2), sqlite3_column_int(stmt, 3) != 0,
+                                       sqlite3_column_double(stmt, 4), sqlite3_column_double(stmt, 9));
+      scores[key].insert({sqlite3_column_double(stmt, 5), sqlite3_column_double(stmt, 6),
+                          sqlite3_column_double(stmt, 7), sqlite3_column_double(stmt, 8)});
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return scores;
   }
 
   struct ExtractedArchive
@@ -324,6 +392,90 @@ START_SECTION([EXTRA] training on the best peak group per precursor plus a sampl
   capped.setParameters(p);
   const auto unknown_summary = capped.score(unknown_score_osw, OpenSwathPercolatorScoring::Level::MS2);
   TEST_EQUAL(static_cast<Int64>(unknown_summary.total_rows), n_features)
+}
+END_SECTION
+
+START_SECTION([EXTRA] scientific input is invariant to generated IDs and row order)
+{
+  std::string original;
+  NEW_TMP_FILE(original);
+  original += ".osw";
+  std::string permuted;
+  NEW_TMP_FILE(permuted);
+  permuted += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", original);
+  copyFixture_("PyProphet_inference_test.osw", permuted);
+  // Force equal retention times. Distinct score vectors, not feature IDs, must break these ties.
+  executeSqlite_(original, "UPDATE FEATURE SET EXP_RT = 100;");
+  executeSqlite_(permuted, "UPDATE FEATURE SET EXP_RT = 100;");
+  // Reverse identifier order and physical score-table order. Preserve all scientific input.
+  executeSqlite_(permuted,
+    "PRAGMA foreign_keys=OFF; UPDATE RUN SET ID=-1-ID; UPDATE FEATURE SET RUN_ID=-1-RUN_ID; "
+    "UPDATE PRECURSOR SET ID=-1-ID; UPDATE FEATURE SET PRECURSOR_ID=-1-PRECURSOR_ID; "
+    "UPDATE PRECURSOR_PEPTIDE_MAPPING SET PRECURSOR_ID=-1-PRECURSOR_ID; "
+    "UPDATE FEATURE SET ID=-1-ID; UPDATE FEATURE_MS1 SET FEATURE_ID=-1-FEATURE_ID; "
+    "UPDATE FEATURE_MS2 SET FEATURE_ID=-1-FEATURE_ID; "
+    "CREATE TABLE reversed AS SELECT * FROM FEATURE_MS2 ORDER BY FEATURE_ID; "
+    "DELETE FROM FEATURE_MS2; INSERT INTO FEATURE_MS2 SELECT * FROM reversed; DROP TABLE reversed;");
+  for (const int cap : {0, 5})
+  {
+    OpenSwathPercolatorScoring scorer;
+    Param p = scorer.getParameters();
+    p.setValue("percolator:subset_max_train", cap);
+    scorer.setParameters(p);
+    const auto first = scorer.score(original, OpenSwathPercolatorScoring::Level::MS2);
+    const auto second = scorer.score(permuted, OpenSwathPercolatorScoring::Level::MS2);
+    TEST_EQUAL(first.total_rows, second.total_rows)
+    const auto expected = sqliteScientificScores_(original);
+    const auto actual = sqliteScientificScores_(permuted);
+    TEST_TRUE(!expected.empty())
+    TEST_EQUAL(expected.size(), actual.size())
+    TEST_TRUE(expected == actual)
+    TEST_EQUAL(querySqliteInt64_(original, "SELECT COUNT(*) FROM SCORE_MS2 WHERE RANK=1;"),
+               querySqliteInt64_(original, "SELECT COUNT(*) FROM (SELECT DISTINCT RUN_ID, PRECURSOR_ID FROM FEATURE);"))
+  }
+  executeSqlite_(permuted, "DELETE FROM PRECURSOR_PEPTIDE_MAPPING;");
+  OpenSwathPercolatorScoring scorer;
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(permuted, OpenSwathPercolatorScoring::Level::MS2))
+  executeSqlite_(original, "UPDATE FEATURE SET EXP_RT = 1e999;");
+  TEST_EXCEPTION(Exception::InvalidValue, scorer.score(original, OpenSwathPercolatorScoring::Level::MS2))
+}
+END_SECTION
+
+START_SECTION([EXTRA] Parquet scientific input is invariant to generated IDs and row order)
+{
+  const auto original = unzipArchive_(OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq"));
+  const auto permuted = unzipArchive_(OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq"));
+  const auto run_ids = readRunIds_(original.base_dir);
+  permuteParquet_(permuted.base_dir + "/runs/runs.parquet");
+  permuteParquet_(permuted.base_dir + "/library/precursors.parquet");
+  for (const Int64 id : run_ids)
+  {
+    const auto old_dir = permuted.base_dir + "/runs/run_id=" + StringUtils::toStr(id);
+    const auto new_dir = permuted.base_dir + "/runs/run_id=" + StringUtils::toStr(-1 - id);
+    permuteParquet_(old_dir + "/features.parquet");
+    TEST_TRUE(File::rename(old_dir, new_dir))
+  }
+  OpenSwathPercolatorScoring scorer;
+  const auto first = scorer.score(original.base_dir, OpenSwathPercolatorScoring::Level::MS2);
+  const auto second = scorer.score(permuted.base_dir, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_EQUAL(first.total_rows, second.total_rows)
+  for (const Int64 id : run_ids)
+  {
+    const auto expected = ParquetFile::readTable(original.base_dir + "/runs/run_id=" + StringUtils::toStr(id) + "/features.parquet");
+    const auto actual = ParquetFile::readTable(permuted.base_dir + "/runs/run_id=" + StringUtils::toStr(-1 - id) + "/features.parquet");
+    TEST_EQUAL(expected->num_rows(), actual->num_rows())
+    for (const std::string column : {"score_ms2_score", "score_ms2_peak_group_rank", "score_ms2_qvalue", "score_ms2_pep"})
+    {
+      const auto left = ParquetFile::getColumn(expected, column);
+      const auto right = ParquetFile::getColumn(actual, column);
+      for (int64_t row = 0; row < expected->num_rows(); ++row)
+      {
+        // The permutation reversed every row. Null score rows must also remain null.
+        TEST_TRUE(left->Slice(row, 1)->Equals(right->Slice(actual->num_rows() - 1 - row, 1)))
+      }
+    }
+  }
 }
 END_SECTION
 
