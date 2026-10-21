@@ -56,6 +56,11 @@ Cross-check: `EntrapmentEvaluator -class_meta_value bench_mc` gives the same N, 
   isoform-specific: the andes setting.
 - `semi`: `peptide:enzyme_specificity semi`, HF-X, Astral, Velos (9 files). Class specific vs semi-tryptic.
 - `immuno` (second dataset, see below): id_bruker MHC class I, unspecific, 1 file.
+- Follow-up `ext`: `std` with external Percolator (OpenMS THIRDPARTY 3.06, `PercolatorAdapter -use_subprocess true`;
+  3.09 is not downloadable here), all 20 files. This route is above nominal overall, like the frozen protocol.
+- Follow-up `isofull`: `iso` on whole runs instead of the 8,000-spectrum subsets (`fetch_full.sh`, archive `.mzML.gz`
+  sha256 = `inputs.json`): `hfx_A2` (111,413 MS2), `astral_A2` (123,621), `eclipse_tmtpro_10855` (33,013, against
+  human + isoforms, `humaniso_entrap_td.fasta`).
 
 ## Results
 
@@ -84,8 +89,26 @@ Target PSMs at q ≤ 0.01 (seed means summed over files), entrapment hits, entra
 | **semi, 9 files, all PSMs** | 28,730.7, 108.0, 0.75% | 27,980.0, 101.3, 0.72% | −2.61% (0/3/6) |
 | semi, semi-tryptic | 1,892.7, 7.0, 0.74% | 1,142.0, 0.3, 0.06% | −40% |
 | semi, semi-tryptic, Velos | 105.7, 2.3, 4.4% | 0 | −100% |
+| **ext (external Percolator), 20 files, all** (`modification`) | 63,875.3, 447.3, **1.40%** | 63,424.3, 405.3, 1.28% | −0.71% (0/15/5) |
+| ext, Oxidation | 4,542.0, 44.7, 1.97% | 4,211.7, 11.0, 0.52% | −7.3% |
+| ext, unmodified | 59,333.3, 402.7, 1.36% | 59,212.7, 394.3, 1.33% | −0.20% |
+| ext, all (`bench_mc`) | 63,875.3, 447.3, 1.40% | 63,079.7, 395.0, 1.25% | −1.25% (0/11/9) |
+| ext, 2 missed cleavages | 691.0, 17.3, 5.0% | 552.3, 3.7, 1.3% | −20% |
+| ext, 1 missed cleavage | 7,629.0, 80.7, 2.1% | 7,033.3, 44.0, 1.25% | −7.8% |
+| ext, all (`bench_z`) | 63,875.3, 447.3, 1.40% | 62,951.0, 385.7, 1.23% | −1.45% (0/13/7) |
+| ext, charge 4+ | 2,867.3, 42.7, 3.0% | 2,470.0, 10.7, 0.86% | −14% |
+| **isofull, 3 whole runs, all** | 112,602.7, 525.0, 0.93% | 112,540.3, 518.7, 0.92% | −0.06% (0/3/0) |
+| isofull, isoform-specific | 310.3, 6.3, **4.1%** (decoys 3.0%) | 248.0, 0, 0% | −20% |
+| isofull, isoform-specific, Astral | 100.0, 3.7, 7.3% | 69.0, 0, 0% | −31% |
+| isofull, isoform-specific, HF-X | 140.3, 1.7, 2.4% | 117.0, 0, 0% | −17% |
+| isofull, isoform-specific, TMTpro | 70.0, 1.0, 2.9% | 62.0, 0, 0% | −11% |
 
-This route (in-process Percolator, FalseDiscoveryRate TDC on the SVM score, entrapment database) is calibrated below
+With external Percolator (`ext`) the global FDR is above nominal (1.40%), and 63,875 PSMs match the frozen develop
+reference (63,754, no entrapment). Class FDR fixes the small classes (Oxidation 1.97 → 0.52%, 2 MC 5.0 → 1.3%, charge
+4+ 3.0 → 0.86%) but not the large one: unmodified PSMs stay at 1.33%, so the overall FDP only falls to 1.23–1.28%.
+That excess is in Percolator / the global estimate, which a class FDR cannot correct.
+
+The in-process route (in-process Percolator, FalseDiscoveryRate TDC on the SVM score, entrapment database) is calibrated below
 nominal overall (0.61% FDP on `std`; the #10629 session measured 1.37–1.41% on Astral with external Percolator 3.09 on
 the frozen PINs), and gives 59,719 PSMs on the 20 files against 63,754 for the frozen develop reference (no entrapment,
 external Percolator). The comparison here is between the two FDR arms on identical Percolator output.
@@ -118,6 +141,10 @@ FalseDiscoveryRate of `77cccda7` and of the PR without `-PSM_class` give byte-id
   class FDR brings them to 2.1% at −39% of that class (andes: 183 → 92, −50%, 5.5% → 0%) and −0.4% overall (andes
   +0.4%, see above). Class calibration: same direction, similar size (reproduced, on far fewer PSMs). Total: OpenMS
   loses PSMs, as the max rule implies; andes's +0.4% is not a class-FDR effect.
+- OpenMS, `isofull` (3 whole runs, 6.3 entrapment hits in the class): isoform-specific PSMs at global 1% have 4.1%
+  entrapment FDP and 3.0% decoys (Astral 7.3%); with `-PSM_class` 248 of 310 remain with no entrapment hit (−20%;
+  andes −50%, 5.5% → 0%), −0.06% overall. This is the closest match to andes's experiment, and the clearest
+  reproduction.
 - andes itself on the same spectra (`scripts/run_andes.sh`, andes `fa0195a`, UniProt human reference proteome XML with
   `--uniprot-isoforms`, Percolator 3.06, `results/andes_reference.txt`): 9–18 isoform-specific PSMs per file at
   global 1% with no decoys among them, on 3 Astral (HYE mix, human-only database) and 3 TMTpro files; andes keeps 0–13
@@ -141,11 +168,12 @@ FalseDiscoveryRate of `77cccda7` and of the PR without `-PSM_class` give byte-id
 ## Verdict
 
 - Calibration inside hard classes: **reproduced**. Classes that a global 1% lets through at 2–56% FDP (phospho and
-  deamidation in a search with more modifications, 2 missed cleavages, oxidised PSMs on Astral/Velos, semi-tryptic PSMs
-  on Velos, isoform-specific PSMs) come down to ≤ 1.3% with `-PSM_class` (isoform-specific: 2.1%, from 0.3 entrapment
-  hits); overall FDP drops too (0.87 → 0.50% in
-  `hardmods`).
-- Cost: −0.3 to −1.1% PSMs on the standard suite, −2.4% with more variable modifications, −2.6% semi-specific.
+  deamidation in a search with more modifications, 2 missed cleavages, charge 4+, oxidised PSMs on Astral/Velos,
+  semi-tryptic PSMs on Velos, isoform-specific PSMs) come down to ≤ 1.3% with `-PSM_class`; overall FDP drops too
+  (0.87 → 0.50% in `hardmods`, 1.40 → 1.23–1.28% with external Percolator). Isoform-specific PSMs on whole runs:
+  4.1% → 0% at −20% of the class, matching andes (5.5% → 0%).
+- A class FDR does not fix a miscalibrated large class: with external Percolator the unmodified PSMs stay at 1.33%.
+- Cost: −0.3 to −1.1% PSMs on the standard suite (−0.7 to −1.45% with external Percolator), −2.4% with more variable modifications, −2.6% semi-specific.
 - The estimator is conservative where a class is already calibrated: semi-tryptic PSMs at 0.74% FDP lose 40% (to
   0.06%). In classes whose targets are mostly false (Velos Oxidation: ~510 targets against ~450 decoys per file), the
   Storey null fraction is clipped at 1, the class q-values become Benjamini–Hochberg over all class targets, and few

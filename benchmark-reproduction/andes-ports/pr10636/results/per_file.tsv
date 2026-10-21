@@ -1,4 +1,224 @@
 setting	dataset	group	class_def	cls	global_N	global_N_var	global_NE	global_D	class_N	class_N_var	class_NE	class_D	z
+ext	astral_A2	Astral HCD	bench_mc	0	2276	3601	6.333	21.667	2243	4809	6.333	21.667	-0.623
+ext	astral_A2	Astral HCD	bench_mc	1	233	21	2.667	2	212.333	37.333	2	2	-4.687
+ext	astral_A2	Astral HCD	bench_mc	2	23.667	1.333	0.667	1.667	13	127	0	1.667	-1.631
+ext	astral_A2	Astral HCD	bench_mc	ALL	2532.667	4129.333	9.667	25.333	2468.333	5425.333	8.333	25.333	-1.140
+ext	astral_A2	Astral HCD	bench_z	2	1765	2428	5.333	17.667	1654.333	1102.333	3.667	17.667	-3.226
+ext	astral_A2	Astral HCD	bench_z	3	709.667	201.333	4.333	7	709.667	201.333	4.333	7	0.000
+ext	astral_A2	Astral HCD	bench_z	4+	58	4	0	0.667	38	1084	0	0.667	-1.050
+ext	astral_A2	Astral HCD	bench_z	ALL	2532.667	4129.333	9.667	25.333	2402	513	8	25.333	-3.322
+ext	astral_A2	Astral HCD	mod	ALL	2532.667	4129.333	9.667	25.333	2464.333	6884.333	8	25.333	-1.128
+ext	astral_A2	Astral HCD	mod	Oxidation	39.667	2.333	1	4	7	147	0	4	-4.630
+ext	astral_A2	Astral HCD	mod	unmodified	2493	3943	8.667	21.333	2457.333	5022.333	8	21.333	-0.652
+ext	astral_B1	Astral HCD	bench_mc	0	2751	2887	28	26	2751	2887	28	26	0.000
+ext	astral_B1	Astral HCD	bench_mc	1	306.667	5.333	3	4	278.667	6.333	1.667	4	-14.199
+ext	astral_B1	Astral HCD	bench_mc	2	10	1	2.667	0.667	1.667	8.333	0.333	0.667	-4.725
+ext	astral_B1	Astral HCD	bench_mc	ALL	3067.667	2926.333	33.667	30.667	3031.333	2946.333	30	30.667	-0.821
+ext	astral_B1	Astral HCD	bench_z	2	2082.333	1941.333	17.667	18	1974.333	681.333	11.667	18	-3.653
+ext	astral_B1	Astral HCD	bench_z	3	932.667	114.333	13.333	11.333	918.333	974.333	11.667	11.333	-0.752
+ext	astral_B1	Astral HCD	bench_z	4+	52.667	0.333	2.667	1.333	34.667	901.333	1.667	1.333	-1.038
+ext	astral_B1	Astral HCD	bench_z	ALL	3067.667	2926.333	33.667	30.667	2927.333	4560.333	25	30.667	-2.809
+ext	astral_B1	Astral HCD	mod	ALL	3067.667	2926.333	33.667	30.667	3048.667	2830.333	33	30.667	-0.434
+ext	astral_B1	Astral HCD	mod	Oxidation	78.333	2.333	0.667	2.333	59.333	1.333	0	2.333	-17.186
+ext	astral_B1	Astral HCD	mod	unmodified	2989.333	2776.333	33	28.333	2989.333	2776.333	33	28.333	0.000
+ext	astral_B3	Astral HCD	bench_mc	0	2590	2143	17	28.333	2571.333	1161.333	15.333	28.333	-0.562
+ext	astral_B3	Astral HCD	bench_mc	1	254	4	2.667	0.667	233.333	9.333	1	0.667	-9.803
+ext	astral_B3	Astral HCD	bench_mc	2	14.667	0.333	0.333	0	10	1	0	0	-7.000
+ext	astral_B3	Astral HCD	bench_mc	ALL	2858.667	2217.333	20	29	2814.667	1302.333	16.333	29	-1.285
+ext	astral_B3	Astral HCD	bench_z	2	1950	1447	12.333	22	1895.667	822.333	8.667	22	-1.976
+ext	astral_B3	Astral HCD	bench_z	3	839	91	7.667	6.667	839	91	7.667	6.667	0.000
+ext	astral_B3	Astral HCD	bench_z	4+	69.667	0.333	0	0.333	69.667	0.333	0	0.333	0.000
+ext	astral_B3	Astral HCD	bench_z	ALL	2858.667	2217.333	20	29	2804.333	1410.333	16.333	29	-1.562
+ext	astral_B3	Astral HCD	mod	ALL	2858.667	2217.333	20	29	2811.333	604.333	14	29	-1.543
+ext	astral_B3	Astral HCD	mod	Oxidation	69.667	26.333	4.667	3.333	50	7	0	3.333	-5.900
+ext	astral_B3	Astral HCD	mod	unmodified	2789	1893	15.333	25.667	2761.333	702.333	14	25.667	-0.941
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_mc	0	2399.667	226.333	14.333	22	2399.667	226.333	14.333	22	0.000
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_mc	1	321	25	7	5	299	19	3.333	5	-5.745
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_mc	2	23.333	0.333	0	0.333	22.333	0.333	0	0.333	-2.121
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_mc	ALL	2744	421	21.333	27.333	2721	327	17.667	27.333	-1.457
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_z	2	991	111	10.333	6.333	983.333	229.333	8.667	6.333	-0.720
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_z	3	1442.333	36.333	7.667	13	1442.333	36.333	7.667	13	0.000
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_z	4+	310.667	17.333	3.333	8	303	31	1.667	8	-1.910
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	bench_z	ALL	2744	421	21.333	27.333	2728.667	617.333	18	27.333	-0.824
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	mod	ALL	2744	421	21.333	27.333	2736.333	380.333	19.667	27.333	-0.469
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	mod	Oxidation	229.333	1.333	1.667	3.333	221.667	0.333	0	3.333	-10.286
+ext	eclipse_tmtpro_10855	Exploris 480 TMTpro	mod	unmodified	2514.667	380.333	19.667	24	2514.667	380.333	19.667	24	0.000
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_mc	0	2201.667	200.333	12.333	22.667	2201.667	200.333	12.333	22.667	0.000
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_mc	1	273.667	12.333	2	2.667	257	7	0.333	2.667	-6.565
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_mc	2	19	1	0.333	0	14	1	0	0	-6.124
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_mc	ALL	2494.333	196.333	14.667	25.333	2472.667	226.333	12.667	25.333	-1.825
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_z	2	935.333	142.333	6.333	8	932.333	142.333	6	8	-0.308
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_z	3	1315.667	14.333	6.333	13.333	1315.667	14.333	6.333	13.333	0.000
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_z	4+	243.333	6.333	2	4	231	3	0	4	-6.992
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	bench_z	ALL	2494.333	196.333	14.667	25.333	2479	271	12.333	25.333	-1.229
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	mod	ALL	2494.333	196.333	14.667	25.333	2475.667	20.333	13	25.333	-2.197
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	mod	Oxidation	295.667	0.333	1.333	1	291.667	4.333	1	1	-3.207
+ext	eclipse_tmtpro_10858	Exploris 480 TMTpro	mod	unmodified	2198.667	192.333	13.333	24.333	2184	39	12	24.333	-1.670
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_mc	0	2230	508	16.667	19.333	2230	508	16.667	19.333	0.000
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_mc	1	296	13	2	5	277.667	1.333	0.333	5	-8.387
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_mc	2	15.667	2.333	0	0.667	13	3	0	0.667	-2.000
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_mc	ALL	2541.667	754.333	18.667	25	2520.667	534.333	17	25	-1.013
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_z	2	921.333	154.333	9.333	7.333	901.333	37.333	7.667	7.333	-2.502
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_z	3	1338.667	102.333	5	10.333	1338.667	102.333	5	10.333	0.000
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_z	4+	281.667	26.333	4.333	7.333	271.667	4.333	1.333	7.333	-3.128
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	bench_z	ALL	2541.667	754.333	18.667	25	2511.667	264.333	14	25	-1.628
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	mod	ALL	2541.667	754.333	18.667	25	2516.667	190.333	16.333	25	-1.409
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	mod	Oxidation	253	13	0.333	0.667	242.333	4.333	0	0.667	-4.438
+ext	eclipse_tmtpro_10863	Exploris 480 TMTpro	mod	unmodified	2288.667	574.333	18.333	24.333	2274.333	142.333	16.333	24.333	-0.927
+ext	hfx_A2	HF-X HCD	bench_mc	0	3995	3	30.667	41.333	3995	3	30.667	41.333	0.000
+ext	hfx_A2	HF-X HCD	bench_mc	1	510.667	42.333	3.333	3.667	466.667	12.333	2.333	3.667	-10.307
+ext	hfx_A2	HF-X HCD	bench_mc	2	42.333	0.333	1	0	31	3	0	0	-10.752
+ext	hfx_A2	HF-X HCD	bench_mc	ALL	4548	73	35	45	4492.667	42.333	33	45	-8.924
+ext	hfx_A2	HF-X HCD	bench_z	2	2833.333	6.333	22.333	30.667	2820.667	165.333	20.667	30.667	-1.674
+ext	hfx_A2	HF-X HCD	bench_z	3	1506	49	12.333	10.333	1506	49	12.333	10.333	0.000
+ext	hfx_A2	HF-X HCD	bench_z	4+	208.667	0.333	0.333	4	202.667	26.333	0	4	-2.012
+ext	hfx_A2	HF-X HCD	bench_z	ALL	4548	73	35	45	4529.333	604.333	33	45	-1.242
+ext	hfx_A2	HF-X HCD	mod	ALL	4548	73	35	45	4523.333	206.333	32.667	45	-2.556
+ext	hfx_A2	HF-X HCD	mod	Oxidation	389.667	4.333	4.667	3.667	368.667	2.333	2.333	3.667	-14.087
+ext	hfx_A2	HF-X HCD	mod	unmodified	4158.333	44.333	30.333	41.333	4154.667	165.333	30.333	41.333	-0.439
+ext	hfx_B1	HF-X HCD	bench_mc	0	3911.667	26.333	28.333	39.667	3911.667	26.333	28.333	39.667	0.000
+ext	hfx_B1	HF-X HCD	bench_mc	1	461	64	5.333	3.667	413.667	34.333	2	3.667	-8.268
+ext	hfx_B1	HF-X HCD	bench_mc	2	35	0	1	0.667	29.333	2.333	0.667	0.667	-6.425
+ext	hfx_B1	HF-X HCD	bench_mc	ALL	4407.667	170.333	34.667	44	4354.667	58.333	31	44	-6.071
+ext	hfx_B1	HF-X HCD	bench_z	2	2731.333	26.333	20	26	2725.333	212.333	19.667	26	-0.673
+ext	hfx_B1	HF-X HCD	bench_z	3	1461	139	13.333	11.667	1461	139	13.333	11.667	0.000
+ext	hfx_B1	HF-X HCD	bench_z	4+	215.333	10.333	1.333	6.333	213	4	1.333	6.333	-1.067
+ext	hfx_B1	HF-X HCD	bench_z	ALL	4407.667	170.333	34.667	44	4399.333	37.333	34.333	44	-1.002
+ext	hfx_B1	HF-X HCD	mod	ALL	4407.667	170.333	34.667	44	4393	39	32	44	-1.756
+ext	hfx_B1	HF-X HCD	mod	Oxidation	357.667	2.333	3	6.333	343	39	0.333	6.333	-3.951
+ext	hfx_B1	HF-X HCD	mod	unmodified	4050	144	31.667	37.667	4050	144	31.667	37.667	0.000
+ext	hfx_B3	HF-X HCD	bench_mc	0	3984.333	1336.333	31	42	3984.333	1336.333	31	42	0.000
+ext	hfx_B3	HF-X HCD	bench_mc	1	478	73	5.667	2.333	424	109	2	2.333	-6.933
+ext	hfx_B3	HF-X HCD	bench_mc	2	41	4	1.667	0.667	32	1	0	0.667	-6.971
+ext	hfx_B3	HF-X HCD	bench_mc	ALL	4503.333	2150.333	38.333	45	4440.333	2026.333	33	45	-1.688
+ext	hfx_B3	HF-X HCD	bench_z	2	2896.333	1336.333	22.333	25.667	2880.667	2601.333	21.333	25.667	-0.432
+ext	hfx_B3	HF-X HCD	bench_z	3	1418.333	44.333	14	15	1418.333	44.333	14	15	0.000
+ext	hfx_B3	HF-X HCD	bench_z	4+	188.667	12.333	2	4.333	176	21	0	4.333	-3.800
+ext	hfx_B3	HF-X HCD	bench_z	ALL	4503.333	2150.333	38.333	45	4475	3789	35.333	45	-0.637
+ext	hfx_B3	HF-X HCD	mod	ALL	4503.333	2150.333	38.333	45	4490.667	2264.333	37.667	45	-0.330
+ext	hfx_B3	HF-X HCD	mod	Oxidation	485	16	2.333	4.667	474.667	33.333	2	4.667	-2.548
+ext	hfx_B3	HF-X HCD	mod	unmodified	4018.333	1802.333	36	40.333	4016	1891	35.667	40.333	-0.067
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_mc	0	4951	19	28	45.667	4951	19	28	45.667	0.000
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_mc	1	518	43	3.667	10	485.333	21.333	2.333	10	-7.054
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_mc	2	35	0	0.333	0	31.667	0.333	0.333	0	-10.000
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_mc	ALL	5504	111	32	55.667	5468	73	30.667	55.667	-4.597
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_z	2	3805.667	52.333	19.667	36.667	3805.667	52.333	19.667	36.667	0.000
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_z	3	1512.333	14.333	9.333	16.333	1512.333	14.333	9.333	16.333	0.000
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_z	4+	186	1	3	2.667	180.667	0.333	1.333	2.667	-8.000
+ext	lumos_lfq_5192	Lumos HCD LFQ	bench_z	ALL	5504	111	32	55.667	5498.667	112.333	30.333	55.667	-0.618
+ext	lumos_lfq_5192	Lumos HCD LFQ	mod	ALL	5504	111	32	55.667	5475.333	57.333	26	55.667	-3.827
+ext	lumos_lfq_5192	Lumos HCD LFQ	mod	Oxidation	348.667	10.333	7.333	7.333	320	1	1.333	7.333	-14.749
+ext	lumos_lfq_5192	Lumos HCD LFQ	mod	unmodified	5155.333	60.333	24.667	48.333	5155.333	60.333	24.667	48.333	0.000
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_mc	0	4993	201	35.333	48.333	4993	201	35.333	48.333	0.000
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_mc	1	525.333	10.333	5.333	6	501	4	0.667	6	-11.132
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_mc	2	31.667	2.333	1	1	28.667	0.333	0	1	-3.182
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_mc	ALL	5550	217	41.667	55.333	5522.667	186.333	36	55.333	-2.357
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_z	2	3825	175	26.667	34.333	3825	175	26.667	34.333	0.000
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_z	3	1531.667	2.333	12.667	17.667	1527	1	11.333	17.667	-4.427
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_z	4+	193.333	2.333	2.333	3.333	189	0	0.333	3.333	-4.914
+ext	lumos_lfq_5194	Lumos HCD LFQ	bench_z	ALL	5550	217	41.667	55.333	5541	156	38.333	55.333	-0.807
+ext	lumos_lfq_5194	Lumos HCD LFQ	mod	ALL	5550	217	41.667	55.333	5531.667	108.333	37.667	55.333	-1.761
+ext	lumos_lfq_5194	Lumos HCD LFQ	mod	Oxidation	273	9	4	12	254.667	17.333	0	12	-6.188
+ext	lumos_lfq_5194	Lumos HCD LFQ	mod	unmodified	5277	169	37.667	43.333	5277	169	37.667	43.333	0.000
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_mc	0	4908	43	27	45	4908	43	27	45	0.000
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_mc	1	581	4	3.333	7.667	541.333	49.333	0.333	7.667	-9.408
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_mc	2	39.333	0.333	0	2.333	37.667	0.333	0	2.333	-3.536
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_mc	ALL	5528.333	66.333	30.333	55	5487	169	27.333	55	-4.667
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_z	2	3837.333	69.333	22.667	35.667	3837.333	69.333	22.667	35.667	0.000
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_z	3	1503.667	1.333	7.667	16.667	1498.333	14.333	6.333	16.667	-2.334
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_z	4+	187.333	0.333	0	2.667	185	1	0	2.667	-3.500
+ext	lumos_lfq_5199	Lumos HCD LFQ	bench_z	ALL	5528.333	66.333	30.333	55	5520.667	69.333	29	55	-1.140
+ext	lumos_lfq_5199	Lumos HCD LFQ	mod	ALL	5528.333	66.333	30.333	55	5509.333	66.333	27	55	-2.857
+ext	lumos_lfq_5199	Lumos HCD LFQ	mod	Oxidation	291.333	1.333	4.333	10.667	272.333	5.333	1	10.667	-12.746
+ext	lumos_lfq_5199	Lumos HCD LFQ	mod	unmodified	5237	49	26	44.333	5237	49	26	44.333	0.000
+ext	lumos_tmt_5058	Lumos CID TMT	bench_mc	0	2029	2109	10.333	18	2029	2109	10.333	18	0.000
+ext	lumos_tmt_5058	Lumos CID TMT	bench_mc	1	204	63	2.667	4	184.333	32.333	2.333	4	-3.489
+ext	lumos_tmt_5058	Lumos CID TMT	bench_mc	2	5.333	0.333	0	0.333	0	0	0	0.333	-16.000
+ext	lumos_tmt_5058	Lumos CID TMT	bench_mc	ALL	2238.333	2920.333	13	22.333	2213.333	2649.333	12.667	22.333	-0.580
+ext	lumos_tmt_5058	Lumos CID TMT	bench_z	2	1314.667	632.333	3.333	9.667	1313	589	3.333	9.667	-0.083
+ext	lumos_tmt_5058	Lumos CID TMT	bench_z	3	827.667	534.333	6.333	7	827.667	534.333	6.333	7	0.000
+ext	lumos_tmt_5058	Lumos CID TMT	bench_z	4+	96	37	3.333	5.667	25	1875	0	5.667	-2.812
+ext	lumos_tmt_5058	Lumos CID TMT	bench_z	ALL	2238.333	2920.333	13	22.333	2165.667	40.333	9.667	22.333	-2.313
+ext	lumos_tmt_5058	Lumos CID TMT	mod	ALL	2238.333	2920.333	13	22.333	2231.667	3052.333	12	22.333	-0.149
+ext	lumos_tmt_5058	Lumos CID TMT	mod	Oxidation	358.667	34.333	2.333	3	353	76	1.333	3	-0.934
+ext	lumos_tmt_5058	Lumos CID TMT	mod	unmodified	1879.667	2336.333	10.667	19.333	1878.667	2506.333	10.667	19.333	-0.025
+ext	lumos_tmt_5059	Lumos CID TMT	bench_mc	0	2175.667	102.333	12	20.333	2175.667	102.333	12	20.333	0.000
+ext	lumos_tmt_5059	Lumos CID TMT	bench_mc	1	218.667	9.333	4.667	3	195.333	4.333	3	3	-10.932
+ext	lumos_tmt_5059	Lumos CID TMT	bench_mc	2	3.667	0.333	0	0.667	0	0	0	0.667	-11.000
+ext	lumos_tmt_5059	Lumos CID TMT	bench_mc	ALL	2398	48	16.667	24	2371	76	15	24	-4.200
+ext	lumos_tmt_5059	Lumos CID TMT	bench_z	2	1494.333	25.333	4.333	7	1471.333	264.333	4	7	-2.341
+ext	lumos_tmt_5059	Lumos CID TMT	bench_z	3	840	57	9.333	12.333	809	703	6.667	12.333	-1.948
+ext	lumos_tmt_5059	Lumos CID TMT	bench_z	4+	63.667	22.333	3	4.667	34.333	904.333	0	4.667	-1.669
+ext	lumos_tmt_5059	Lumos CID TMT	bench_z	ALL	2398	48	16.667	24	2314.667	1310.333	10.667	24	-3.916
+ext	lumos_tmt_5059	Lumos CID TMT	mod	ALL	2398	48	16.667	24	2379	417	15	24	-1.526
+ext	lumos_tmt_5059	Lumos CID TMT	mod	Oxidation	287.333	6.333	0.667	1.333	282.667	2.333	0.667	1.333	-2.746
+ext	lumos_tmt_5059	Lumos CID TMT	mod	unmodified	2110.667	86.333	16	22.667	2096.333	456.333	14.333	22.667	-1.066
+ext	lumos_tmt_5066	Lumos CID TMT	bench_mc	0	2253.667	1062.333	10.333	17.333	2253.667	1062.333	10.333	17.333	0.000
+ext	lumos_tmt_5066	Lumos CID TMT	bench_mc	1	219.667	20.333	1.333	6	185	43	0	6	-7.545
+ext	lumos_tmt_5066	Lumos CID TMT	bench_mc	2	11.667	2.333	0	0.667	8.667	0.333	0	0.667	-3.182
+ext	lumos_tmt_5066	Lumos CID TMT	bench_mc	ALL	2485	1417	11.667	24	2447.333	905.333	10.333	24	-1.354
+ext	lumos_tmt_5066	Lumos CID TMT	bench_z	2	1435	427	3.333	6.333	1435	427	3.333	6.333	0.000
+ext	lumos_tmt_5066	Lumos CID TMT	bench_z	3	922	169	7.667	11	922	169	7.667	11	0.000
+ext	lumos_tmt_5066	Lumos CID TMT	bench_z	4+	128	28	0.667	6.667	101	64	0	6.667	-4.876
+ext	lumos_tmt_5066	Lumos CID TMT	bench_z	ALL	2485	1417	11.667	24	2458	787	11	24	-0.996
+ext	lumos_tmt_5066	Lumos CID TMT	mod	ALL	2485	1417	11.667	24	2452.333	306.333	9.667	24	-1.363
+ext	lumos_tmt_5066	Lumos CID TMT	mod	Oxidation	340.333	89.333	1	5	314.667	5.333	0	5	-4.569
+ext	lumos_tmt_5066	Lumos CID TMT	mod	unmodified	2144.667	800.333	10.667	19	2137.667	310.333	9.667	19	-0.364
+ext	tims_plasma_30min	timsTOF HT	bench_mc	0	697.333	134.333	4	4.333	697.333	134.333	4	4.333	0.000
+ext	tims_plasma_30min	timsTOF HT	bench_mc	1	296	25	0.667	5	277	171	0.667	5	-2.351
+ext	tims_plasma_30min	timsTOF HT	bench_mc	2	50	1	1	0.333	41	9	0.333	0.333	-4.930
+ext	tims_plasma_30min	timsTOF HT	bench_mc	ALL	1043.333	229.333	5.667	9.667	1015.333	344.333	5	9.667	-2.025
+ext	tims_plasma_30min	timsTOF HT	bench_z	2	644	93	3.667	4.333	644	93	3.667	4.333	0.000
+ext	tims_plasma_30min	timsTOF HT	bench_z	3	322.333	21.333	0	3	316	37	0	3	-1.436
+ext	tims_plasma_30min	timsTOF HT	bench_z	4+	77	13	2	2.333	62.667	10.333	1	2.333	-5.139
+ext	tims_plasma_30min	timsTOF HT	bench_z	ALL	1043.333	229.333	5.667	9.667	1022.667	121.333	4.667	9.667	-1.912
+ext	tims_plasma_30min	timsTOF HT	mod	ALL	1043.333	229.333	5.667	9.667	1031.667	124.333	5.333	9.667	-1.075
+ext	tims_plasma_30min	timsTOF HT	mod	Oxidation	165.667	50.333	1.333	1.667	154	13	1	1.667	-2.539
+ext	tims_plasma_30min	timsTOF HT	mod	unmodified	877.667	70.333	4.333	8	877.667	70.333	4.333	8	0.000
+ext	tims_plasma_50min	timsTOF HT	bench_mc	0	695.667	985.333	1	7.667	695.667	985.333	1	7.667	0.000
+ext	tims_plasma_50min	timsTOF HT	bench_mc	1	265	103	1.333	0.667	254	129	0.667	0.667	-1.251
+ext	tims_plasma_50min	timsTOF HT	bench_mc	2	29	3	0.333	1.333	23.667	2.333	0	1.333	-4.000
+ext	tims_plasma_50min	timsTOF HT	bench_mc	ALL	989.667	1862.333	2.667	9.667	973.333	1825.333	1.667	9.667	-0.466
+ext	tims_plasma_50min	timsTOF HT	bench_z	2	650	973	1	5	650	973	1	5	0.000
+ext	tims_plasma_50min	timsTOF HT	bench_z	3	267.667	54.333	1	2.667	267.667	54.333	1	2.667	0.000
+ext	tims_plasma_50min	timsTOF HT	bench_z	4+	72	37	0.667	2	65.333	8.333	0	2	-1.715
+ext	tims_plasma_50min	timsTOF HT	bench_z	ALL	989.667	1862.333	2.667	9.667	983	1459	2	9.667	-0.200
+ext	tims_plasma_50min	timsTOF HT	mod	ALL	989.667	1862.333	2.667	9.667	979.667	1590.333	2.333	9.667	-0.295
+ext	tims_plasma_50min	timsTOF HT	mod	Oxidation	191.667	65.333	0.333	4	181.667	42.333	0	4	-1.669
+ext	tims_plasma_50min	timsTOF HT	mod	unmodified	798	1251	2.333	5.667	798	1251	2.333	5.667	0.000
+ext	velos_125_R1	Velos CID	bench_mc	0	2152.333	826.333	13	19	2152.333	826.333	13	19	0.000
+ext	velos_125_R1	Velos CID	bench_mc	1	625	208	11	7.667	585.333	186.333	9	7.667	-3.460
+ext	velos_125_R1	Velos CID	bench_mc	2	119	3	3.667	2.667	102.333	32.333	1	2.667	-4.856
+ext	velos_125_R1	Velos CID	bench_mc	ALL	2896.333	2010.333	27.667	29.333	2840	1807	23	29.333	-1.579
+ext	velos_125_R1	Velos CID	bench_z	2	1732.667	706.333	9	13	1685.333	1158.333	6.667	13	-1.899
+ext	velos_125_R1	Velos CID	bench_z	3	1059.667	310.333	11.333	13	1059.667	310.333	11.333	13	0.000
+ext	velos_125_R1	Velos CID	bench_z	4+	104	7	7.333	3.333	0	0	0	3.333	-68.084
+ext	velos_125_R1	Velos CID	bench_z	ALL	2896.333	2010.333	27.667	29.333	2745	2437	18	29.333	-3.930
+ext	velos_125_R1	Velos CID	mod	ALL	2896.333	2010.333	27.667	29.333	2873	1975	25.667	29.333	-0.640
+ext	velos_125_R1	Velos CID	mod	Oxidation	23.333	0.333	2	4.667	0	0	0	4.667	-70.000
+ext	velos_125_R1	Velos CID	mod	unmodified	2873	1975	25.667	24.667	2873	1975	25.667	24.667	0.000
+ext	velos_25000_R3	Velos CID	bench_mc	0	2152.333	12.333	12	24.333	2142.667	389.333	11.667	24.333	-0.835
+ext	velos_25000_R3	Velos CID	bench_mc	1	534.667	74.333	3	1.333	495	13	2	1.333	-7.352
+ext	velos_25000_R3	Velos CID	bench_mc	2	83	1	3	1.333	61.667	16.333	1	1.333	-8.875
+ext	velos_25000_R3	Velos CID	bench_mc	ALL	2770	37	18	27	2699.333	654.333	14.667	27	-4.655
+ext	velos_25000_R3	Velos CID	bench_z	2	1798.667	16.333	10.333	12	1786	7	9.667	12	-4.542
+ext	velos_25000_R3	Velos CID	bench_z	3	902.667	96.333	5	11.667	891.667	64.333	5	11.667	-1.503
+ext	velos_25000_R3	Velos CID	bench_z	4+	68.667	0.333	2.667	3.333	38.667	1125.333	1.333	3.333	-1.549
+ext	velos_25000_R3	Velos CID	bench_z	ALL	2770	37	18	27	2716.333	1297.333	16	27	-2.545
+ext	velos_25000_R3	Velos CID	mod	ALL	2770	37	18	27	2745.667	25.333	17.333	27	-5.338
+ext	velos_25000_R3	Velos CID	mod	Oxidation	44.667	1.333	0.667	2.667	20.333	6.333	0	2.667	-15.222
+ext	velos_25000_R3	Velos CID	mod	unmodified	2725.333	24.333	17.333	24.333	2725.333	24.333	17.333	24.333	0.000
+ext	velos_5000_R2	Velos CID	bench_mc	0	2208	199	11.667	24.667	2208	199	11.667	24.667	0.000
+ext	velos_5000_R2	Velos CID	bench_mc	1	507.667	72.333	10	3.333	467.333	114.333	8	3.333	-5.113
+ext	velos_5000_R2	Velos CID	bench_mc	2	58.667	0.333	0.333	0	50.667	0.333	0	0	-16.971
+ext	velos_5000_R2	Velos CID	bench_mc	ALL	2774.333	184.333	22	28	2726	244	19.667	28	-4.045
+ext	velos_5000_R2	Velos CID	bench_z	2	1798.667	134.333	8.333	8.667	1767	12	7	8.667	-4.534
+ext	velos_5000_R2	Velos CID	bench_z	3	913	13	12	16	913	13	12	16	0.000
+ext	velos_5000_R2	Velos CID	bench_z	4+	62.667	17.333	1.667	3.333	48.667	10.333	0.667	3.333	-4.610
+ext	velos_5000_R2	Velos CID	bench_z	ALL	2774.333	184.333	22	28	2728.667	22.333	19.667	28	-5.502
+ext	velos_5000_R2	Velos CID	mod	ALL	2774.333	184.333	22	28	2755	169	21	28	-1.781
+ext	velos_5000_R2	Velos CID	mod	Oxidation	19.333	0.333	1	6.667	0	0	0	6.667	-58.000
+ext	velos_5000_R2	Velos CID	mod	unmodified	2755	169	21	21.333	2755	169	21	21.333	0.000
 hardmods	astral_A2	Astral HCD	mod	ALL	1942	3511	1.333	8.333	1904	2487	1	8.333	-0.850
 hardmods	astral_A2	Astral HCD	mod	Deamidated	222	28	1	1	197	541	0.667	1	-1.815
 hardmods	astral_A2	Astral HCD	mod	Deamidated+Oxidation	2.333	2.333	0	0	1	3	0	0	-1.000
@@ -140,6 +360,24 @@ iso	hfx_B3	HF-X HCD	bench_iso	isoform	8.667	0.333	0.333	0	0	0	0	0	-26.000
 iso	hfx_B3	HF-X HCD	mod	ALL	4165.667	626.333	18.333	13	4158	703	17.667	13	-0.364
 iso	hfx_B3	HF-X HCD	mod	Oxidation	445.667	25.333	2	0.333	438	48	1.333	0.333	-1.551
 iso	hfx_B3	HF-X HCD	mod	unmodified	3720	403	16.333	12.667	3720	403	16.333	12.667	0.000
+isofull	astral_A2_full	Astral HCD	bench_iso	ALL	40914.667	4600.333	232.667	180	40883.667	4389.333	229	180	-0.566
+isofull	astral_A2_full	Astral HCD	bench_iso	canonical	40814.667	4389.333	229	178.667	40814.667	4389.333	229	178.667	0.000
+isofull	astral_A2_full	Astral HCD	bench_iso	isoform	100	3	3.667	1.333	69	0	0	1.333	-31.000
+isofull	astral_A2_full	Astral HCD	mod	ALL	40914.667	4600.333	232.667	180	40756.667	4300.333	224	180	-2.901
+isofull	astral_A2_full	Astral HCD	mod	Oxidation	700.333	1.333	9.667	9.667	542.333	17.333	1	9.667	-63.341
+isofull	astral_A2_full	Astral HCD	mod	unmodified	40214.333	4474.333	223	170.333	40214.333	4474.333	223	170.333	0.000
+isofull	eclipse_tmtpro_10855_full	Exploris 480 TMTpro	bench_iso	ALL	10836	388	21	27.667	10828	457	20	27.667	-0.477
+isofull	eclipse_tmtpro_10855_full	Exploris 480 TMTpro	bench_iso	canonical	10766	427	20	23.667	10766	427	20	23.667	0.000
+isofull	eclipse_tmtpro_10855_full	Exploris 480 TMTpro	bench_iso	isoform	70	1	1	4	62	1	0	4	-9.798
+isofull	eclipse_tmtpro_10855_full	Exploris 480 TMTpro	mod	ALL	10836	388	21	27.667	10836	388	21	27.667	0.000
+isofull	eclipse_tmtpro_10855_full	Exploris 480 TMTpro	mod	Oxidation	920.333	24.333	1.667	2	920.333	24.333	1.667	2	0.000
+isofull	eclipse_tmtpro_10855_full	Exploris 480 TMTpro	mod	unmodified	9915.667	230.333	19.333	25.667	9915.667	230.333	19.333	25.667	0.000
+isofull	hfx_A2_full	HF-X HCD	bench_iso	ALL	60852	2979	271.333	239	60828.667	3008.333	269.667	239	-0.522
+isofull	hfx_A2_full	HF-X HCD	bench_iso	canonical	60711.667	3202.333	269.667	235	60711.667	3202.333	269.667	235	0.000
+isofull	hfx_A2_full	HF-X HCD	bench_iso	isoform	140.333	4.333	1.667	4	117	4	0	4	-14.000
+isofull	hfx_A2_full	HF-X HCD	mod	ALL	60852	2979	271.333	239	60632	1651	264	239	-5.600
+isofull	hfx_A2_full	HF-X HCD	mod	Oxidation	4758.333	58.333	20.333	19.667	4538.333	160.333	13	19.667	-25.769
+isofull	hfx_A2_full	HF-X HCD	mod	unmodified	56093.667	2392.333	251	219.333	56093.667	2392.333	251	219.333	0.000
 semi	astral_A2	Astral HCD	bench_term	ALL	2470	1147	7.667	7.667	2370.333	1289.333	7.333	7.667	-3.497
 semi	astral_A2	Astral HCD	bench_term	semi	239.667	74.333	0.333	0	140	252	0	0	-9.556
 semi	astral_A2	Astral HCD	bench_term	specific	2230.333	641.333	7.333	7.667	2230.333	641.333	7.333	7.667	0.000

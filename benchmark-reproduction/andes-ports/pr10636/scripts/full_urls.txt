@@ -1,0 +1,3 @@
+hfx_A2 https://archive.openms.de/openms/benchmarks/pride-benchmarks/lfq/QExactiveHF/ProteoBench_Module_2/LFQ_Orbitrap_DDA_Condition_A_Sample_Alpha_02.mzML.gz
+astral_A2 https://archive.openms.de/openms/benchmarks/pride-benchmarks/lfq/OrbitrapAstral/ProteoBench_Module_8/LFQ_Astral_DDA_15min_50ng_Condition_A_REP2.mzML.gz
+eclipse_tmtpro_10855 https://archive.openms.de/openms/benchmarks/pride-benchmarks/tmt/OrbitrapEclipse/PXD054559/xb10855.mzML.gz

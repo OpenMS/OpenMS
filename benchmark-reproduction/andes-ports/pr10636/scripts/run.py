@@ -33,6 +33,12 @@ IMMUNO = {"liver_classI_r1": dict(mzml="/home/user/bench/dl/immuno/liver_classI_
     "precursor:mass_tolerance_upper": 20.0, "precursor:mass_tolerance_unit": "ppm", "fragment:mass_tolerance": 30.0,
     "fragment:mass_tolerance_unit": "ppm", "modifications:fixed": [], "modifications:variable": ["Oxidation (M)"],
     "modifications:variable_max_per_peptide": 1, "report:top_hits": 10, "scoring:max_candidates_per_spectrum": 50})}
+# external Percolator (OpenMS THIRDPARTY 3.06; 3.09 is not downloadable here) instead of the in-process backend
+PERCOLATOR = os.environ.get("PERCOLATOR", "/home/user/bench/dl/THIRDPARTY/Linux/x86_64/Percolator/percolator")
+SETTINGS["ext"] = dict(db=None, over={}, arms=["mod", "bench_mc", "bench_z"], external=True)
+# isoforms on whole runs (not the 8,000-spectrum subsets), for more isoform-specific PSMs
+SETTINGS["isofull"] = dict(db="hyeiso", over={}, arms=["bench_iso", "mod"])
+FULL = Path(os.environ.get("FULLDIR", "/home/user/bench/dl/full"))
 SETTINGS["immuno"] = dict(db=None, over={}, arms=["bench_len", "bench_z", "mod"])
 FIXED_RE = "Carbamidomethyl|TMT6plex|TMTpro"
 
@@ -49,14 +55,18 @@ def prose_cmd(ds, setting, out):
         for k, v in im["params"].items():
             cmd.append(f"-Search:{k}"); cmd.extend(v if isinstance(v, list) else [v])
         return cmd
+    base = ds[:-5] if ds.endswith("_full") else ds
     job = next(j for j in json.load(open(PROTO / "jobs.json"))
-               if j["stage"] == "broad_benchmark" and j["arm"] == "prose_auto" and j["dataset"] == ds)
-    man = next(m for m in json.load(open(PROTO / "broad_benchmark/manifest.json")) if m["id"] == ds)
+               if j["stage"] == "broad_benchmark" and j["arm"] == "prose_auto" and j["dataset"] == base)
+    man = next(m for m in json.load(open(PROTO / "broad_benchmark/manifest.json")) if m["id"] == base)
     params = dict(job["parameters"]); params.update(SETTINGS[setting]["over"])
     params["rescore"] = "false"  # rescoring done below with PercolatorAdapter and explicit seeds
     skip = {"precursor:isotopes", "snes_enabled"}  # not ProSE TOPP parameters (frozen harness only)
-    db = DB / f"{SETTINGS[setting]['db'] or man['database']}_entrap_td.fasta"
-    cmd = [BIN / "ProSE", "-in", PROTO / "broad_benchmark/data" / f"{ds}.mzML", "-database", db, "-out_idxml", out,
+    dbname = SETTINGS[setting]["db"] or man["database"]
+    if dbname == "hyeiso" and man["database"] == "human": dbname = "humaniso"
+    db = DB / f"{dbname}_entrap_td.fasta"
+    mzml = FULL / f"{base}.mzML" if ds.endswith("_full") else PROTO / "broad_benchmark/data" / f"{ds}.mzML"
+    cmd = [BIN / "ProSE", "-in", mzml, "-database", db, "-out_idxml", out,
            "-threads", 4, "-no_progress"]
     for k, v in params.items():
         if k in skip: continue
@@ -76,8 +86,10 @@ def run(setting, ds):
     for s in SEEDS:
         sd = d / f"s{s}"; sd.mkdir(exist_ok=True)
         perc, ann = sd / "perc.idXML", sd / "perc_annot.idXML"
-        sh([BIN / "PercolatorAdapter", "-in", search, "-out", perc, "-seed", s, "-score_type", "svm",
-            "-post_processing_tdc", "-threads", 4], log)
+        pa = [BIN / "PercolatorAdapter", "-in", search, "-out", perc, "-seed", s, "-score_type", "svm",
+              "-post_processing_tdc", "-threads", 4]
+        if SETTINGS[setting].get("external"): pa += ["-use_subprocess", "true", "-percolator_executable", PERCOLATOR]
+        sh(pa, log)
         sh(["python3", "-I", HERE / "annotate.py", perc, ann], log); perc.unlink()
         for arm in ["global"] + SETTINGS[setting]["arms"]:
             out = sd / f"{arm}.idXML"
@@ -95,7 +107,8 @@ if __name__ == "__main__":
     setting = sys.argv[1]
     dss = sys.argv[2:] or [m["id"] for m in json.load(open(PROTO / "broad_benchmark/manifest.json"))]
     for ds in dss:
-        if ds not in IMMUNO and not (PROTO / "broad_benchmark/data" / f"{ds}.mzML").exists():
+        src = FULL / f"{ds[:-5]}.mzML" if ds.endswith("_full") else PROTO / "broad_benchmark/data" / f"{ds}.mzML"
+        if ds not in IMMUNO and not src.exists():
             print("missing input", ds, flush=True); continue
         print(time.strftime("%H:%M:%S"), setting, ds, flush=True)
         try: run(setting, ds)

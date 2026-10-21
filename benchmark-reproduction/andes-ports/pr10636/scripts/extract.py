@@ -1,5 +1,5 @@
 """Best hit per spectrum of a FalseDiscoveryRate output idXML -> TSV
-(spectrum, q, decoy, entrapment, modification class, bench_mc, bench_z, bench_iso, bench_term, bench_len, class_q).
+(spectrum, q, decoy, entrapment, modification class, bench_mc, bench_z, bench_iso, bench_term, bench_len, class_q, Percolator q-value MS:1001491).
 
 entrapment: every protein of the hit is ENTRAP_* (as EntrapmentEvaluator and evaluate_entrap_d.py count it).
 modification class: as ClassFDR::classFromModifications - sorted names of non-fixed modifications, or "unmodified".
@@ -10,7 +10,7 @@ from lxml import etree as ET
 
 fixed = re.compile(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3] else None
 out = gzip.open(sys.argv[2], "wt") if sys.argv[2].endswith(".gz") else open(sys.argv[2], "w")
-out.write("spectrum\tq\tdecoy\tentrap\tmodclass\tmc\tz\tiso\tclass_q\tterm\tlen\n")
+out.write("spectrum\tq\tdecoy\tentrap\tmodclass\tmc\tz\tiso\tclass_q\tterm\tlen\tperc_q\n")
 acc = {}
 ctx = ET.iterparse(sys.argv[1], events=("end",), huge_tree=True)
 for ev, el in ctx:
@@ -31,6 +31,6 @@ for ev, el in ctx:
             mc = "+".join(mods) if mods else "unmodified"
             out.write("\t".join([el.get("spectrum_reference", ""), h.get("score"), str(int(decoy)), str(int(entrap)), mc,
                                  up.get("bench_mc", ""), up.get("bench_z", ""), up.get("bench_iso", ""),
-                                 up.get("class_q-value", ""), up.get("bench_term", ""), up.get("bench_len", "")]) + "\n")
+                                 up.get("class_q-value", ""), up.get("bench_term", ""), up.get("bench_len", ""), up.get("MS:1001491", "")]) + "\n")
         el.clear()
 out.close()
