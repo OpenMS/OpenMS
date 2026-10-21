@@ -745,7 +745,7 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
 
   MSImagingGeometry geom;
   geom.setDimensions(2, 2);
-  geom.setPixelSize(25.0, 25.0, "micrometer");
+  geom.setPixelSize(25.0, 30.0, "nanometer"); // non-default unit must round-trip via unitAccession
   geom.addPixel(0, 0, 0);
   geom.addPixel(1, 0, 1);
   geom.addPixel(0, 1, 2);
@@ -767,6 +767,9 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
   TEST_EQUAL(reloaded.getGeometry().getHeight(), 2)
   TEST_EQUAL(reloaded.getGeometry().hasPixel(0, 0), true)
   TEST_EQUAL(reloaded.getGeometry().hasPixel(1, 1), true)
+  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeX(), 25.0)
+  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeY(), 30.0)
+  TEST_EQUAL(reloaded.getGeometry().getPixelSizeUnit(), "nanometer")
 }
 END_SECTION
 
