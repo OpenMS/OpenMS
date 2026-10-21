@@ -440,6 +440,8 @@ OpenMS Library:
     FRAME, which BrukerTimsImagingFile uses; readDIAMetadata() and loadDIAStreaming() reject them in any case.
     The tools that read .d with BrukerTimsFile directly instead of FileHandler read them as DDA or DIA data,
     without their pixel positions (#10596).
+  - FIX: imzML/MSImagingGeometry: unknown pixel size is -1 / "unknown" instead of a 1 µm default; imzML reads and writes the
+    pixel size unit (UO length unit) instead of assuming micrometer, and pixel size x alone also sets y (IMS:1000046).
   - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
     without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
     invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
