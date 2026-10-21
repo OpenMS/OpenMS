@@ -28,11 +28,12 @@ def main():
 <style>
 @page {{ size: A4; margin: 14mm; }}
 body {{ font: 10pt Arial, sans-serif; color: #222; }}
-h1 {{ font-size: 20pt; }} h2 {{ font-size: 14pt; break-after: avoid; }}
+h1 {{ font-size: 20pt; }} h2 {{ font-size: 14pt; }}
+h1, h2, h3, h4 {{ break-after: avoid; }}
 p {{ line-height: 1.35; }} table {{ border-collapse: collapse; width: 100%; }}
 th, td {{ border-bottom: 1px solid #ccc; padding: 5px; text-align: left; }}
 img {{ width: 100%; max-height: 65mm; object-fit: contain; }}
-table, img {{ break-inside: avoid; }} code {{ font-size: 8pt; }}
+table, img {{ break-inside: avoid; }} code {{ font-size: 8pt; overflow-wrap: anywhere; }}
 </style><body>{body}</body></html>"""
     # A private temporary profile avoids changes to the user's browser profile.
     with tempfile.TemporaryDirectory(prefix=".opendia-pdf-", dir=output.parent) as temporary:

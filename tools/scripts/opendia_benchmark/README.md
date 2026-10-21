@@ -28,7 +28,7 @@ An existing configured build is reconfigured. A new build uses `PRESET=linux-x64
 
 Both runners use `cacheWorkingInMemory`, `batchSize=0`, `innerBatchSize=-1`, `maxConcurrentSwaths=-1` and `outer_loop_threads=-1`. The scheduler selects waves automatically. Instrument and library settings differ because the inputs differ. These settings are not proof of the fastest possible run.
 
-Both runners compute global peptide and protein scores. Run-specific and experiment-wide peptide and protein inference are off. Gene inference is off. The standard analysis uses all three filters:
+The analysis threshold is fixed at 1%. Both runners compute global peptide and protein scores. Run-specific and experiment-wide peptide and protein inference are off. Gene inference is off. The standard analysis uses all three filters:
 
 - Precursor peak-group q-value: `m_score <= 0.01`.
 - Global peptide q-value: `m_score_peptide_global <= 0.01`.
@@ -48,9 +48,11 @@ python3 tools/scripts/opendia_benchmark/metrics_astral.py \
   ASTRAL_DIR/results/OpenDIA.results.tsv --output ASTRAL_DIR/metrics.json
 ```
 
-Use `make_report.py --help` for report inputs. Render its Markdown and plots to PDF:
+Generate the report from completed jobs. A previous baseline is optional:
 
 ```bash
+python3 tools/scripts/opendia_benchmark/make_report.py TIMSIM_DIR \
+  --astral ASTRAL_DIR --previous-timsim PREVIOUS_TIMSIM_DIR --output-dir REPORT_DIR
 python3 tools/scripts/opendia_benchmark/render_report.py REPORT_DIR/FINAL_REPORT.md
 ```
 
@@ -60,7 +62,7 @@ Entrapment plots use `m_score` at each precursor q-value limit. They show absent
 
 ## Time, memory and host load
 
-Each search saves its command, source revision/status, binary hash and input hashes under `meta/`. `logs/resources.txt` records GNU time elapsed time and peak process memory. Time covers OpenDIA, including prediction when used. Input checksum checks, archive extraction and metric generation are outside that time. A complete multi-file search is one timing observation, not three or six independent measurements. The two TimSim searches are not timing replicates.
+Each search saves its command, source revision/status, binary hash and input hashes under `meta/`. `logs/resources.txt` records GNU time elapsed time and peak resident process memory. This does not add the memory of simultaneous child processes. Time covers OpenDIA, including prediction when used. Input checksum checks, archive extraction and metric generation are outside that time. A complete multi-file search is one timing observation, not three or six independent measurements. The two TimSim searches are not timing replicates.
 
 The Linux monitor saves `logs/host_workload.jsonl` and a summary in `logs/host_workload.json`. Samples contain CPU use, estimated CPU use by other processes, available RAM, swap, load, pressure and free disk space. Host CPU includes the benchmark. Other-process CPU is an estimate. These observations show contention but do not correct elapsed time. The monitor stops only the measured job if free disk falls below `MIN_FREE_DISK_GIB` (default 3 GiB).
 
@@ -72,6 +74,8 @@ The runners use Bash, Python's standard library, CMake, GNU time and the depende
 
 ```bash
 python3 tools/scripts/opendia_benchmark/test_benchmark.py
+python3 tools/scripts/opendia_benchmark/test_metrics.py
+python3 tools/scripts/opendia_benchmark/test_make_report.py
 python3 tools/scripts/opendia_benchmark/test_monitor_host.py
 ```
 
