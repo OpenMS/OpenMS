@@ -120,6 +120,10 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
 and RT in other runs.
 
+In the consensusXML (@p -out_cxml), a consensus feature whose identification was transferred lists the runs it was
+transferred to (their map indices) in the meta value @p mbr_transfer_map_indices. With @p -pip_echo @p true, the
+meta value @p mbr_transfer_qvalues holds the q-values of these transfers, in the same order.
+
 @b Match @b between @b runs @b with @b PIP-ECHO (@p -pip_echo @p true): @n
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
@@ -2731,6 +2735,14 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+
+    // PIP-ECHO annotates its transfers itself; the QT linker transfers identifications without recording it.
+    // Annotate after the PSM and protein FDR filtering above, so that a run whose identification was filtered
+    // out counts as a transfer, but before the resolution below reduces the identifications to the best one.
+    if (getStringOption_("pip_echo") == "false")
+    {
+      IDConflictResolverAlgorithm::annotateTransfers(consensus);
+    }
 
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);

@@ -1224,6 +1224,7 @@
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="818439930984489717"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[1]"/>
 		</consensusElement>
 		<consensusElement id="e_7486966008988960842" quality="0.0" charge="4">
 			<centroid rt="1718.71130142492143" mz="419.198150789287354" it="3.520766e06"/>
@@ -1250,6 +1251,7 @@
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="12360334549628810498"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[1]"/>
 		</consensusElement>
 		<consensusElement id="e_8745764399366235124" quality="0.946155" charge="2">
 			<centroid rt="1721.995873722813712" mz="569.752618393021066" it="1.1766809e07"/>
@@ -1380,6 +1382,7 @@
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="12636007160609913114"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[2]"/>
 		</consensusElement>
 		<consensusElement id="e_5249747956369544476" quality="0.956725" charge="2">
 			<centroid rt="1761.985083410382003" mz="722.324660331071186" it="2.3772132e07"/>
@@ -1501,6 +1504,7 @@
 				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="5355972035142942268"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[0, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_1254049432817454963" quality="0.0" charge="2">
 			<centroid rt="1799.167097002195987" mz="495.72950231508014" it="1.9267372e06"/>
@@ -1569,6 +1573,7 @@
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="16129524495887029964"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[2]"/>
 		</consensusElement>
 		<consensusElement id="e_16834006445076217569" quality="0.0" charge="3">
 			<centroid rt="1808.389268907250198" mz="481.870877750208876" it="2.448421e06"/>
@@ -1613,6 +1618,7 @@
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14608965608248846145"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[0]"/>
 		</consensusElement>
 		<consensusElement id="e_698105887036715197" quality="0.0" charge="3">
 			<centroid rt="1834.721484236108154" mz="674.2851509018044" it="1.7242998e05"/>
@@ -1730,6 +1736,7 @@
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="7190230537628435446"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[1, 2]"/>
 		</consensusElement>
 		<consensusElement id="e_14193228934668381923" quality="0.941693" charge="3">
 			<centroid rt="1902.119898302891443" mz="535.252835187222786" it="2.343292e06"/>
@@ -1758,6 +1765,7 @@
 				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="16039209827259233012"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[1]"/>
 		</consensusElement>
 		<consensusElement id="e_15275608655084682259" quality="0.465455" charge="2">
 			<centroid rt="1909.644985044731129" mz="755.752082069024823" it="2.2348992e06"/>
@@ -1854,6 +1862,7 @@
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="7222355164805439695"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[0]"/>
 		</consensusElement>
 		<consensusElement id="e_8245851094476261382" quality="0.961663" charge="2">
 			<centroid rt="1950.998440463365796" mz="798.323563789977811" it="3.6632195e06"/>
@@ -2055,6 +2064,7 @@
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="7999426048411570440"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[4, 5]"/>
 		</consensusElement>
 		<consensusElement id="e_2863029107717772299" quality="0.950266" charge="2">
 			<centroid rt="2034.902438743813036" mz="421.758411292532571" it="1.1552953e07"/>
@@ -2075,6 +2085,7 @@
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="2863029107717772299"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[4, 5]"/>
 		</consensusElement>
 		<consensusElement id="e_3565630505052714618" quality="0.493619" charge="2">
 			<centroid rt="2035.384035672388336" mz="455.713348849595263" it="5.04727e06"/>
@@ -2329,6 +2340,7 @@
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="15187230992990221756"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[3]"/>
 		</consensusElement>
 		<consensusElement id="e_2742545641495139477" quality="0.0" charge="4">
 			<centroid rt="2174.447989967244212" mz="728.602320252291065" it="1.3635589e06"/>
@@ -2377,6 +2389,7 @@
 				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="9228260894849295208"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[4]"/>
 		</consensusElement>
 		<consensusElement id="e_6517115342062092805" quality="0.0" charge="2">
 			<centroid rt="2198.359640060543825" mz="630.259191392135563" it="7.3856935e06"/>
@@ -2527,6 +2540,7 @@
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="15332648256293592549"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[3]"/>
 		</consensusElement>
 		<consensusElement id="e_18008731432298156607" quality="0.955134" charge="3">
 			<centroid rt="2260.934848913252608" mz="435.910228820904251" it="1.6767071e07"/>
@@ -2759,6 +2773,7 @@
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14445360326002014178"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[5]"/>
 		</consensusElement>
 		<consensusElement id="e_16722848773443303817" quality="0.0" charge="2">
 			<centroid rt="2370.15710571029922" mz="742.938333461228012" it="9.0893794e05"/>
@@ -2892,6 +2907,7 @@
 				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="16250328456922169096"/>
+			<UserParam type="intList" name="mbr_transfer_map_indices" value="[4]"/>
 		</consensusElement>
 		<consensusElement id="e_3173408939375746456" quality="0.492057" charge="2">
 			<centroid rt="2428.971596565266736" mz="756.425347771874613" it="1.7639546e07"/>

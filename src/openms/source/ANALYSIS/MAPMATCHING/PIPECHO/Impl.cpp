@@ -10,6 +10,7 @@
 #include "FeatureTypes.h"
 #include "Impl.h"
 #include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -894,9 +895,9 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     auto transfer = transfer_map.find(group.first);
     if (transfer != transfer_map.end())
     {
-      consensus_feature.setMetaValue("mbr_transfer_map_indices",
+      consensus_feature.setMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES,
                                      transfer->second.map_indices);
-      consensus_feature.setMetaValue("mbr_transfer_qvalues",
+      consensus_feature.setMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES,
                                      transfer->second.q_values);
     }
 

@@ -151,6 +151,9 @@ public:
       @brief Add consensus map entries as new columns.
 
       The number of columns (maximum map index) is the sum of both maps.
+      The map indices of @p rhs are shifted by the number of columns of this map: those of the
+      features, of the peptide identifications (meta value "map_index") and of the match-between-runs
+      transfers (meta value Constants::UserParam::MBR_TRANSFER_MAP_INDICES).
 
       @param[in] rhs The consensus map to be merged.
     */
