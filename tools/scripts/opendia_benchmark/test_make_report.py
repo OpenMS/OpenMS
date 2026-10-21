@@ -178,6 +178,7 @@ class ReportTests(unittest.TestCase):
                     job(root / name / search)
                 (root / name / "validation.json").write_text(json.dumps(metrics()))
             job(root / "astral")
+            (root / "astral/meta/global_score_export_note.txt").write_text("Native score export is outside the reported time.\n")
             (root / "astral/metrics.json").write_text(json.dumps(metrics(True)))
             (root / "build-manifest.txt").write_text("source_dirty=true\nCMAKE_BUILD_TYPE:STRING=Release\n")
             output = root / "output"
@@ -193,6 +194,8 @@ class ReportTests(unittest.TestCase):
             self.assertIn("These times do not measure an isolated code speed gain", text)
             self.assertIn("not search-space adjusted or calibrated FDR", text)
             self.assertIn("20G / 6G", text)
+            self.assertIn("Astral / Current: Native score export is outside the reported time.", text)
+            self.assertIn("Precursor IDs | Entrapment IDs", text)
             self.assertNotIn("CMAKE_BUILD_TYPE:STRING=Release", text)
             self.assertIn("f" * 12, text)
             self.assertNotIn("f" * 64, text)

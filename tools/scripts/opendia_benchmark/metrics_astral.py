@@ -34,7 +34,7 @@ def main():
             columns = next(csv.reader(handle, delimiter='\t'), [])
         runs.update(c for c in columns if c not in {'transition_group_id', 'Sequence', 'FullPeptideName', 'Charge', 'ProteinName', 'GeneName'})
     runs = sorted(runs)
-    conditions = {run: 'astral' for run in runs}
+    conditions = {run: 'repeat' for run in runs}
     rows = list(deduplicate(raw).values())
     per_run = {}
     for run in runs:

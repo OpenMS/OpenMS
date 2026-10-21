@@ -272,7 +272,7 @@ def mean_sd_text(values):
 
 def identification_report(output, datasets):
     lines = ["## Identification", "", "Counts are distinct target precursor IDs, not rows. TimSim has three control and three treatment runs. Astral has three repeat runs.", "Precursor-only uses m_score <= 1%. Standard also requires global peptide and protein q <= 1%.", "Dots show individual runs. Error bars show sample SD, the run-to-run spread.", ""]
-    for view_name, title in (("precursor_only", "Precursor-only 1% FDR"), ("standard", "Standard all-three-filter 1% view")):
+    for view_name, title in (("precursor_only", "Precursor-only 1% FDR"), ("standard", "IDs with all three 1% filters")):
         header = "| Search / condition | n | Precursor mean ± SD | Peptide mean ± SD | Protein / FASTA groups mean ± SD |" if view_name == "standard" else "| Search / condition | Runs | Mean precursor IDs | Sample SD | Individual run counts |"
         lines.extend([f"### {title}", "", header, "|---|---:|---:|---:|---|"])
         groups = []
@@ -370,7 +370,7 @@ def short_run_name(run):
 def fdr_report(output, datasets):
     lines = ["## Per-run entrapment diagnostic", "", "Tables use m_score <= 1%. Plots and JSON retain all cutoffs. Full run names remain in JSON.", "Raw share counts absent entrapment sequences among accepted non-decoy precursor IDs. It is not search-space adjusted or calibrated FDR.", "Dots are runs. Mean and sample SD show descriptive spread across the study, not replicate uncertainty. TimSim combines both conditions here.", "No accepted IDs means n/a, not zero share. Zero entrapment does not prove zero error risk. Export limits bound the curves."]
     for dataset_index, (name, metrics) in enumerate(datasets):
-        lines.extend(["", f"### {name}", "", "| Search | Run | m_score cutoff | Accepted | Entrapment | Raw share |", "|---|---|---:|---:|---:|---:|"])
+        lines.extend(["", f"### {name}", "", "| Search | Run | m_score cutoff | Precursor IDs | Entrapment IDs | Raw share |", "|---|---|---:|---:|---:|---:|"])
         curves = metrics.get("fdr_curve_per_run", {})
         if not curves:
             lines.append(f"| {name} | n/a | n/a | n/a | n/a | n/a |")
@@ -441,6 +441,10 @@ def resource_report(output, timsim, previous, astral_jobs):
         limits_text = f"{limits.get('memory_max', 'n/a')} / {limits.get('memory_swap_max', 'n/a')}"
         lines.append(f"| {label} | {revision} | {binary_hash} | {job['threads']} | {limits_text} |")
     lines.append("")
+    for label, job in all_jobs:
+        note = job["root"] / "meta/global_score_export_note.txt"
+        if note.exists():
+            lines.extend([f"{label}: {note.read_text(encoding='utf-8').strip()}", ""])
     for stem, title, jobs in datasets:
         paths = dict.fromkeys(str(job["root"].parent if stem == "timsim" else job["root"]) for _, job in jobs)
         lines.append(f"{title} data: " + ", ".join(f"`{path}`" for path in paths) + ".")
@@ -501,7 +505,7 @@ def main():
     lines.extend(quantification_report(output, datasets))
     fdr_datasets = [("TimSim mixed", current["metrics"]), *[(name, metrics) for name, metrics in datasets if name.startswith("Astral")]]
     lines.extend(fdr_report(output, fdr_datasets))
-    (output / "FINAL_REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (output / "FINAL_REPORT.md").write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

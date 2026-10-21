@@ -28,8 +28,11 @@ OPEN_DIA_ANALYSIS_ARGS=(
   -Inference:gene:run_specific false
   -Inference:gene:experiment_wide false
   -Export:results:max_rs_peakgroup_qvalue 0.05
-  -Export:results:use_peptide_scores false
-  -Export:results:use_protein_scores false
+  # Native OSW annotation also filters with >=, so 1.01 retains every valid q-value.
+  -Export:results:use_peptide_scores true
+  -Export:results:use_protein_scores true
+  -Export:results:max_global_peptide_qvalue 1.01
+  -Export:results:max_global_protein_qvalue 1.01
   -Export:results:use_gene_scores false
   -Export:results:exclude_decoys false
   -Export:matrix:precursor true

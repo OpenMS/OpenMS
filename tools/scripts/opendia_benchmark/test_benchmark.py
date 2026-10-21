@@ -91,8 +91,10 @@ def main():
         "-Inference:peptide:global": "true",
         "-Inference:protein:global": "true",
         "-Export:results:max_rs_peakgroup_qvalue": "0.05",
-        "-Export:results:use_peptide_scores": "false",
-        "-Export:results:use_protein_scores": "false",
+        "-Export:results:use_peptide_scores": "true",
+        "-Export:results:use_protein_scores": "true",
+        "-Export:results:max_global_peptide_qvalue": "1.01",
+        "-Export:results:max_global_protein_qvalue": "1.01",
         "-Export:results:exclude_decoys": "false",
         "-Export:matrix:max_rs_peakgroup_qvalue": "0.01",
         "-Export:matrix:use_peptide_scores": "true",
@@ -104,9 +106,27 @@ def main():
         for context in ("run_specific", "experiment_wide"):
             analysis_expected[f"-Inference:{level}:{context}"] = "false"
     analysis_expected["-Inference:gene:global"] = "false"
-    for argument in sys.argv[1:]:
-        command = shlex.split(Path(argument).read_text())
-        for option, value in analysis_expected.items():
+    # Source the live shared arrays, independent of immutable historical captures.
+    sourced = subprocess.run(['bash', '-c', 'source "$1"; printf "%s\\0" "${OPEN_DIA_SPEED_ARGS[@]}" "${OPEN_DIA_ANALYSIS_ARGS[@]}"',
+                              'bash', str(Path(__file__).with_name('lib.sh').resolve())],
+                             capture_output=True, check=True)
+    current_args = sourced.stdout.decode().rstrip('\0').split('\0')
+    current_command = ['env', f"LD_LIBRARY_PATH={os.environ.get('LD_LIBRARY_PATH', '')}",
+                       os.environ.get('OPEN_DIA', 'OpenDIA'), '-in', 'missing.mzML', '-tr', 'missing.tsv', *current_args]
+    commands = [('current sourced lib.sh', current_command)]
+    commands.extend((argument, shlex.split(Path(argument).read_text())) for argument in sys.argv[1:])
+    historical = 0
+    for argument, command in commands:
+        command_expected = dict(analysis_expected)
+        score_flags = [command[command.index(f'-Export:results:use_{level}_scores') + 1] for level in ('peptide', 'protein')]
+        if score_flags == ['false', 'false'] and argument != 'current sourced lib.sh':
+            # Historical raw exports disabled annotation, not inference or 1% matrices.
+            historical += 1
+            for level in ('peptide', 'protein'):
+                command_expected[f'-Export:results:use_{level}_scores'] = 'false'
+                del command_expected[f'-Export:results:max_global_{level}_qvalue']
+            print(f'Historical raw export mode (global annotation disabled): {argument}')
+        for option, value in command_expected.items():
             assert command.count(option) == 1, (argument, option)
             assert command[command.index(option) + 1] == value, (argument, option)
         for name, value in expected.items():
@@ -128,13 +148,13 @@ def main():
                 assert "Parameters passed to" not in log and "Unknown option(s)" not in log
                 for name, value in expected.items():
                     assert f'"TargetedDataExtraction|{name}" -> "{value}"' in log, (argument, name)
-                for option, value in analysis_expected.items():
+                for option, value in command_expected.items():
                     prefix, name = option[1:].rsplit(":", 1)
                     key = f"{prefix}|{name}"
                     assert f'"{key}" -> "{value}"' in log, (argument, option)
-    print(f"PASS: metrics, invalid q-values, resource failures, SVG edge cases, PDF failures, {len(sys.argv) - 1} captured commands")
-    if os.environ.get("OPEN_DIA") and len(sys.argv) > 1:
-        print("PASS: real OpenDIA resolved shared speed, inference and export options; this parser check does not process the data")
+    print(f"PASS: current sourced export settings, {historical} historical raw-export captures, metrics, invalid q-values, resource failures, SVG edge cases, PDF failures, {len(sys.argv) - 1} captured commands")
+    if os.environ.get("OPEN_DIA"):
+        print("PASS: real OpenDIA resolved current shared settings and captured command modes; this parser check does not process the data")
 
 
 if __name__ == "__main__":
