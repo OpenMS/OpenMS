@@ -1910,17 +1910,45 @@ END_SECTION
 START_SECTION((void testSkipChromatograms()))
 {
   MzMLFile file;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  PeakMap expected;
+  file.load(filename, expected);
+
   PeakFileOptions opts;
   opts.setSkipChromatograms(true);
+  opts.setFillData(true);
   file.setOptions(opts);
 
   PeakMap pm;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_EQUAL(pm.getChromatograms().size(), 0)
+  TEST_EQUAL(pm.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(pm[i].size(), expected[i].size())
+    for (Size j = 0; j < expected[i].size(); ++j)
+    {
+      TEST_REAL_SIMILAR(pm[i][j].getMZ(), expected[i][j].getMZ())
+      TEST_REAL_SIMILAR(pm[i][j].getIntensity(), expected[i][j].getIntensity())
+    }
+  }
+
+  std::vector<Size> transformed_spectrum_sizes;
+  Size transformed_chromatogram_count = 0;
+  MSDataTransformingConsumer consumer;
+  consumer.setSpectraProcessingFunc([&](MSSpectrum& spectrum) { transformed_spectrum_sizes.push_back(spectrum.size()); });
+  consumer.setChromatogramProcessingFunc([&](MSChromatogram&) { ++transformed_chromatogram_count; });
+  file.transform(filename, &consumer);
+  TEST_EQUAL(transformed_chromatogram_count, 0)
+  TEST_EQUAL(transformed_spectrum_sizes.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(transformed_spectrum_sizes[i], expected[i].size())
+  }
 
   opts.setSkipChromatograms(false);
   file.setOptions(opts);
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
 }
 END_SECTION
