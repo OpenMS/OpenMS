@@ -1,7 +1,7 @@
 # PR #10636 — FalseDiscoveryRate `-PSM_class` (port of bigbio/andes#164)
 
-Question: andes reported that one global 1% PSM FDR lets small classes through at a much higher error rate (isoform-
-specific PSMs carried 4–6% decoys of their own class on an Astral file) and that a class FDR keeps them at the nominal
+Question: andes reported that one global 1% PSM FDR lets small classes through at a much higher error rate (on an Astral
+file, isoform-specific PSMs at 5.5% class FDR, variants at 5.1%) and that a class FDR keeps them at the nominal
 level. Does the OpenMS port show this, measured with an entrapment database, and what does it cost in IDs?
 
 ## Builds and arms
@@ -99,12 +99,25 @@ FalseDiscoveryRate of `77cccda7` and of the PR without `-PSM_class` give byte-id
 
 ## andes reference
 
-- andes#164 (`fabb9e0`, `97ee4d6`): on one Astral file with UniProt isoforms, variants and chains, isoform-specific
-  PSMs accepted at global 1% carried 4–6% decoys of their own class (the PR description quotes 5.5–6.7%); with
-  target-decoy competition inside a class, 85 chain PSMs with no decoy above them still got q = 1.2%, which is why the
-  pooled-null Storey estimator was added. No ID counts or entrapment FDP were reported.
+- andes#164 (PR description; one Astral file, UniProt isoforms, variants and chains, Percolator; class FDR = class
+  decoys above the lowest accepted score / accepted class targets, from andes's decoy output; no entrapment):
+
+  | accepted at 1% | total | canonical | isoform-specific | chain | variant |
+  |---|---:|---:|---:|---:|---:|
+  | global q-value only | 46,927 | 46,561 | 183 (5.5%) | 85 | 99 (5.1%) |
+  | class FDR (#164) | 47,108 | 46,884 (0.97%) | 92 (0%) | 72 (0%) | 60 (1.7%) |
+
+  (The rendered table has one column fewer in its header than in its rows; read as above, totals add up.) The text
+  also gives isoform-specific 5.5–6.7% and variant 2.9–5.1% at global 1%; the commit message `fabb9e0` says 4–6%.
+  With target-decoy competition inside a class, 85 chain PSMs with no decoy above them still got q ≈ 1.2%, hence the
+  pooled-null Storey estimator. On that file the guard sent the canonical class to target-decoy inside the class.
+  The total rose by 0.4% (canonical +323), which q = max(global, class) cannot do by itself: the two rows must come
+  from runs with different global q-values (e.g. separate Percolator runs), so the total change is not attributable
+  to the class step.
 - OpenMS, `iso`: isoform-specific PSMs at global 1% have 3.75% decoys / 5.0% entrapment FDP over 6 files (Astral 7.8%),
-  class FDR brings them to 2.1% at −39% of that class and −0.4% overall. Same direction and a similar size.
+  class FDR brings them to 2.1% at −39% of that class (andes: 183 → 92, −50%, 5.5% → 0%) and −0.4% overall (andes
+  +0.4%, see above). Class calibration: same direction, similar size (reproduced, on far fewer PSMs). Total: OpenMS
+  loses PSMs, as the max rule implies; andes's +0.4% is not a class-FDR effect.
 - andes itself on the same spectra (`scripts/run_andes.sh`, andes `fa0195a`, UniProt human reference proteome XML with
   `--uniprot-isoforms`, Percolator 3.06, `results/andes_reference.txt`): 9–18 isoform-specific PSMs per file at
   global 1% with no decoys among them, on 3 Astral (HYE mix, human-only database) and 3 TMTpro files; andes keeps 0–13
