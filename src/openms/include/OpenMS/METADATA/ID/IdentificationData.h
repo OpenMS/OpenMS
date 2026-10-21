@@ -466,6 +466,13 @@ public:
     /// Evaluates all predicates before committing, like filterMatches().
     Size eraseIdentifications(const std::function<bool(const Identification&)>& remove);
     /**
+      @brief Order the matches of each identification by @p before (a strict weak ordering), stably
+
+      The matches keep their IDs and scores, so links to them stay valid; export writes them in this order (e.g. best
+      first, as PeptideIdentification::sort()). Evaluates all comparisons before committing, like filterMatches().
+    */
+    void sortMatches(const std::function<bool(const Match&, const Match&)>& before);
+    /**
       @brief Keep the matches with the best value of @p score per identification
 
       Matches without a value of @p score are removed. Without @p keep_ties, one of equally good matches stays: the first

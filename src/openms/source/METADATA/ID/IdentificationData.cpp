@@ -8,6 +8,7 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <unordered_set>
 #include <algorithm>
+#include <numeric>
 #include <atomic>
 #include <cmath>
 #include <limits>
@@ -899,6 +900,56 @@ Size ID::Run::eraseIdentifications(const std::function<bool(const Identification
   invalidateIndexes_();
   ++revision_;
   return erased;
+}
+void ID::Run::sortMatches(const std::function<bool(const Match&, const Match&)>& before)
+{
+  checkMutation_();
+  // The order of every identification is decided first: exceptions and attempted reentrant edits change nothing.
+  std::vector<std::vector<Size>> orders;
+  orders.reserve(query_count_);
+  {
+    CallbackGuard guard(callback_active_);
+    for (const auto& source : sources_)
+      for (const auto& query : source.identifications)
+      {
+        std::vector<Size> order(query.matches_.size());
+        std::iota(order.begin(), order.end(), Size(0));
+        std::stable_sort(order.begin(), order.end(), [&](Size a, Size b) { return before(query.matches_[a], query.matches_[b]); });
+        orders.push_back(std::move(order));
+      }
+  }
+  // The score columns and the match vectors in the new order are built before anything changes.
+  std::vector<std::vector<double>> columns(score_table_->columns.size());
+  for (auto& column : columns)
+    column.reserve(match_count_);
+  std::vector<std::vector<Match>> sorted;
+  sorted.reserve(orders.size());
+  {
+    Size at = 0;
+    for (const auto& source : sources_)
+      for (const auto& query : source.identifications)
+      {
+        for (Size index : orders[at])
+          for (Size i = 0; i < columns.size(); ++i)
+            columns[i].push_back(score_table_->columns[i][query.matches_[index].slot_]);
+        sorted.emplace_back().reserve(query.matches_.size());
+        ++at;
+      }
+  }
+  // Commit: matches move without throwing; swapping vectors cannot throw.
+  Size at = 0;
+  for (auto& source : sources_)
+    for (auto& query : source.identifications)
+    {
+      for (Size index : orders[at])
+        sorted[at].push_back(std::move(query.matches_[index]));
+      query.matches_.swap(sorted[at]);
+      ++at;
+    }
+  score_table_->columns.swap(columns);
+  renumberRows_();
+  invalidateIndexes_();
+  ++revision_;
 }
 Size ID::Run::retainBest(ScoreId score, bool keep_ties, bool keep_empty_queries)
 {

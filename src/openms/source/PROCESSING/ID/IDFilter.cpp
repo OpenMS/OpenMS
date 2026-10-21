@@ -6,6 +6,7 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
@@ -14,8 +15,8 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <cmath>
+#include <deque>
 #include <regex>
-#include <cmath>
 
 using namespace std;
 
@@ -139,6 +140,18 @@ namespace OpenMS
       return linked;
     }
 
+    /// Remove the aliases of proteins of @p result that are neither hits nor group members (they are not used)
+    void pruneAliases(ID::InferenceResult& result)
+    {
+      std::set<std::string> used;
+      for (const auto& hit : result.proteins.getHits()) used.insert(hit.getAccession());
+      for (const auto* groups : {&result.proteins.getProteinGroups(), &result.proteins.getIndistinguishableProteins()})
+      {
+        for (const auto& group : *groups) used.insert(group.accessions.begin(), group.accessions.end());
+      }
+      std::erase_if(result.qualified_accessions, [&](const auto& alias) { return !used.contains(alias.first); });
+    }
+
     /**
       Keep the proteins for which @p keep (protein run key, accession) returns true: the hits of inference results,
       and the database sequences of runs without one. The hits that @p removed gets are those of an inference result
@@ -173,14 +186,7 @@ namespace OpenMS
         }
         if (kept.size() == hits.size()) continue;
         result.proteins.setHits(kept);
-        // aliases of proteins that are neither hits nor group members are not used
-        std::set<std::string> used;
-        for (const auto& hit : kept) used.insert(hit.getAccession());
-        for (const auto* groups : {&result.proteins.getProteinGroups(), &result.proteins.getIndistinguishableProteins()})
-        {
-          for (const auto& group : *groups) used.insert(group.accessions.begin(), group.accessions.end());
-        }
-        std::erase_if(result.qualified_accessions, [&](const auto& alias) { return !used.contains(alias.first); });
+        pruneAliases(result);
         changed = true;
       }
       for (const auto& current : data.getRuns())
@@ -225,7 +231,9 @@ namespace OpenMS
             for (const auto& match : query.getMatches())
             {
               if (linked != nullptr && !linked->contains({run.getUuid(), match.getId()})) continue;
-              for (const auto& evidence : match.sequence_evidence) accessions.insert(evidence.accession);
+              // (as PeptideHit::extractProteinAccessionsSet(): evidence of an unknown entry refers to no protein)
+              const auto referenced = match.extractProteinAccessionsSet();
+              accessions.insert(referenced.begin(), referenced.end());
             }
           }
         }
@@ -348,16 +356,16 @@ namespace OpenMS
     /// See IDFilter::annotateBestPerPeptideWithData(): the best matches per peptide sequence (and charge) of each
     /// protein run get "best_per_peptide" 1, the others of the top @p nr_best_spectrum of their identification 0
     template<class MapType>
-    void annotateBestNative(MapType& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    void annotateBestNative(MapType& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum, bool per_run = true)
     {
       auto& data = map.getIdentificationData();
       std::map<ID::MatchReference, int> annotations;
-      // per protein run: sequence -> charge -> best match (with its score)
+      // per protein run (or over all): sequence -> charge -> best match (with its score)
       std::map<std::string, std::map<std::string, std::map<int, std::pair<ID::MatchReference, double>>>> best;
       for (const auto& entry : legacyEntries(map))
       {
         const auto& run = *entry.run;
-        auto& best_pep = best[proteinRunKey(data, run)];
+        auto& best_pep = best[per_run ? proteinRunKey(data, run) : std::string()];
         const bool higher_better = higherBetter(run);
         const auto sorted = sortedMatches(run, entry.matches);
         const Size n = nr_best_spectrum == 0 ? sorted.size() : std::min(nr_best_spectrum, sorted.size());
@@ -407,9 +415,9 @@ namespace OpenMS
     }
 
     template<class MapType>
-    void keepBestNative(MapType& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    void keepBestNative(MapType& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum, bool per_run = true)
     {
-      annotateBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum);
+      annotateBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum, per_run);
       map.eraseMatches([](const ID::Run&, const ID::Identification&, const ID::Match& match) {
         return !match.metaValueExists("best_per_peptide") || int(match.getMetaValue("best_per_peptide")) != 1;
       });
@@ -446,6 +454,376 @@ namespace OpenMS
         OPENMS_LOG_WARN << "Filtering peptides by unique match to a protein removed " << n_missing << " of " << n_initial
                         << " hits (total) that were missing the required meta value ('protein_references', added by PeptideIndexer)." << endl;
       }
+    }
+
+    /// Identification data as a map without features (all identifications are unassigned), for the filters of maps
+    class DataView
+    {
+    public:
+      explicit DataView(ID& data) : data_(data) {}
+      ID& getIdentificationData() { return data_; }
+      const ID& getIdentificationData() const { return data_; }
+      vector<Feature>::iterator begin() { return features_.begin(); }
+      vector<Feature>::iterator end() { return features_.end(); }
+      vector<Feature>::const_iterator begin() const { return features_.begin(); }
+      vector<Feature>::const_iterator end() const { return features_.end(); }
+      vector<ID::QueryMatches> getUnassignedIdentifications() const { return data_.getUnlinked({}, {}); }
+      Size eraseMatches(const IDFilter::MatchPredicate& remove) { return data_.eraseMatches(remove).size(); }
+      Size eraseIdentifications(const IDFilter::IdentificationPredicate& remove) { return data_.eraseIdentifications(remove).first.size(); }
+
+    private:
+      ID& data_;
+      vector<Feature> features_;
+    };
+
+    /// A value of each identification, computed once, for predicates on matches (identifications do not change while
+    /// the predicates are evaluated)
+    template<class Value>
+    class PerIdentification
+    {
+    public:
+      explicit PerIdentification(std::function<Value(const ID::Run&, const ID::Identification&)> compute) : compute_(std::move(compute)) {}
+      const Value& operator()(const ID::Run& run, const ID::Identification& query)
+      {
+        auto found = values_.find(&query);
+        if (found == values_.end()) found = values_.emplace(&query, compute_(run, query)).first;
+        return found->second;
+      }
+
+    private:
+      std::function<Value(const ID::Run&, const ID::Identification&)> compute_;
+      std::unordered_map<const ID::Identification*, Value> values_;
+    };
+
+    /// Whether @p score is at least as good as @p threshold (as HasGoodScore; a missing score is not)
+    bool goodScore(double score, double threshold, bool higher_better)
+    {
+      return higher_better ? score >= threshold : score <= threshold;
+    }
+
+    /// The peptide sequence of a match
+    AASequence sequenceOf(const ID::Match& match)
+    {
+      return AASequence::fromString(match.representation);
+    }
+
+    /// The best primary score of @p matches (NaN if none has one)
+    double bestScore(const ID::Run& run, const vector<const ID::Match*>& matches)
+    {
+      const bool higher_better = higherBetter(run);
+      double best = std::numeric_limits<double>::quiet_NaN();
+      for (const auto* match : matches)
+      {
+        const double score = primaryScore(run, *match);
+        if (std::isnan(best) || (higher_better ? score > best : score < best)) best = score;
+      }
+      return best;
+    }
+
+    /// The matches of @p query
+    vector<const ID::Match*> allMatches(const ID::Identification& query)
+    {
+      vector<const ID::Match*> matches;
+      for (const auto& match : query.getMatches()) matches.push_back(&match);
+      return matches;
+    }
+
+    template<class MapType>
+    void filterByScoreType(MapType& map, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
+    {
+      IDScoreSwitcherAlgorithm switcher;
+      const bool type_higher_better = switcher.isScoreTypeHigherBetter(score_type);
+      bool missing = false;
+      // per identification: the meta value of the requested score type that its first match has (empty: none)
+      PerIdentification<std::string> keys([&](const ID::Run& run, const ID::Identification& query) {
+        for (const auto& name : Scores::getIDNamesForType(score_type))
+        {
+          for (const auto& key : {name, name + "_score"})
+          {
+            if (!IDFilter::legacyMetaValue(run, query.getMatches().front(), key).isEmpty()) return key;
+          }
+        }
+        missing = true;
+        return std::string();
+      });
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification& query, const ID::Match& match) {
+        const auto primary = run.getPrimaryScore();
+        if (primary && switcher.isScoreType(run.getScoreDefinition(*primary).name, score_type))
+        {
+          return !goodScore(primaryScore(run, match), threshold_score, run.getScoreDefinition(*primary).higher_better);
+        }
+        const auto& key = keys(run, query);
+        if (key.empty()) return true; // the identification lacks the score type: all its matches go
+        const auto value = IDFilter::legacyMetaValue(run, match, key);
+        return value.isEmpty() || !goodScore(double(value), threshold_score, type_higher_better);
+      });
+      if (missing)
+      {
+        OPENMS_LOG_WARN << "Warning: At least one identification did not contain the given score_type; all hits of those identifications were removed." << endl;
+      }
+    }
+
+    template<class MapType>
+    void keepNBestSpectraNative(MapType& map, Size n)
+    {
+      // the identifications in the order of the legacy peptide identifications, with their best scores
+      struct Candidate
+      {
+        ID::QueryReference reference;
+        double best;
+        bool higher_better;
+      };
+      vector<Candidate> candidates;
+      std::set<ID::QueryReference> seen;
+      for (const auto& entry : legacyEntries(map))
+      {
+        ID::QueryReference reference {entry.run->getUuid(), entry.query->getId()};
+        if (!seen.insert(reference).second) continue;
+        candidates.push_back({std::move(reference), bestScore(*entry.run, entry.matches), higherBetter(*entry.run)});
+      }
+      // as keepNBestSpectra() for peptide identifications: better best matches first, identifications without matches last
+      std::stable_sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
+        if (std::isnan(b.best)) return !std::isnan(a.best);
+        if (std::isnan(a.best)) return false;
+        return a.higher_better ? a.best > b.best : a.best < b.best;
+      });
+      std::set<ID::QueryReference> keep;
+      for (Size i = 0; i < std::min(n, candidates.size()); ++i) keep.insert(candidates[i].reference);
+      map.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) {
+        return !keep.contains({run.getUuid(), query.getId()});
+      });
+    }
+
+    template<class MapType>
+    void removeDuplicates(MapType& map)
+    {
+      // per identification: the matches equal to an earlier one (data and scores)
+      PerIdentification<std::set<ID::MatchId>> duplicates([](const ID::Run& run, const ID::Identification& query) {
+        std::set<ID::MatchId> result;
+        const auto& matches = query.getMatches();
+        for (Size i = 0; i < matches.size(); ++i)
+        {
+          const auto scores = run.getScores(matches[i]);
+          for (Size j = 0; j < i; ++j)
+          {
+            if (!result.contains(matches[j].getId()) && matches[j].getData() == matches[i].getData() && run.getScores(matches[j]) == scores)
+            {
+              result.insert(matches[i].getId());
+              break;
+            }
+          }
+        }
+        return result;
+      });
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification& query, const ID::Match& match) {
+        return duplicates(run, query).contains(match.getId());
+      });
+    }
+
+    template<class MapType>
+    void keepBestHits(MapType& map, bool strict)
+    {
+      // per identification of several matches: the best score and how many matches have it
+      PerIdentification<std::pair<double, Size>> best([](const ID::Run& run, const ID::Identification& query) {
+        const double top = bestScore(run, allMatches(query));
+        const bool higher_better = higherBetter(run);
+        const auto n_best = std::count_if(query.getMatches().begin(), query.getMatches().end(), [&](const ID::Match& match) {
+          return goodScore(primaryScore(run, match), top, higher_better);
+        });
+        return std::make_pair(top, Size(n_best));
+      });
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification& query, const ID::Match& match) {
+        if (query.getMatches().size() < 2) return false;
+        const auto& [top, n_best] = best(run, query);
+        if (strict && n_best > 1) return true; // two (or more) best-scoring matches
+        return !goodScore(primaryScore(run, match), top, higherBetter(run));
+      });
+    }
+
+    template<class MapType>
+    void filterByRank(MapType& map, Size min_rank, Size max_rank)
+    {
+      // per identification: the rank of each match, counting distinct scores in the order of the matches (best first,
+      // see sortMatchesByScore())
+      PerIdentification<std::map<ID::MatchId, Size>> ranks([](const ID::Run& run, const ID::Identification& query) {
+        std::map<ID::MatchId, Size> result;
+        Size rank = 1;
+        double last = query.getMatches().empty() ? 0.0 : primaryScore(run, query.getMatches().front());
+        for (const auto& match : query.getMatches())
+        {
+          const double score = primaryScore(run, match);
+          if (score != last)
+          {
+            ++rank;
+            last = score;
+          }
+          result[match.getId()] = rank;
+        }
+        return result;
+      });
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification& query, const ID::Match& match) {
+        const Size rank = ranks(run, query).at(match.getId());
+        return rank < min_rank || (max_rank >= min_rank && rank > max_rank);
+      });
+    }
+
+    template<class MapType>
+    void filterByRTPredictPValue(MapType& map, const std::string& metavalue_key, double threshold)
+    {
+      Size n_initial = 0, n_missing = 0; // keep track of numbers of matches
+      const double cutoff = 1 - threshold;
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+        ++n_initial;
+        const auto value = IDFilter::legacyMetaValue(run, match, metavalue_key);
+        if (value.isEmpty())
+        {
+          ++n_missing;
+          return true;
+        }
+        return !(double(value) <= cutoff);
+      });
+      if (n_missing > 0)
+      {
+        OPENMS_LOG_WARN << "Filtering peptides by RTPredict p-value removed " << n_missing << " of " << n_initial
+                        << " hits (total) that were missing the required meta value ('" << metavalue_key << "', added by RTPredict)." << endl;
+      }
+    }
+
+    /// Whether a match refers to one of @p accessions (as HasMatchingAccession)
+    bool refersTo(const ID::Match& match, const std::set<std::string>& accessions)
+    {
+      const auto referenced = match.extractProteinAccessionsSet();
+      return std::any_of(referenced.begin(), referenced.end(), [&](const std::string& accession) { return accessions.contains(accession); });
+    }
+
+    /// The sequence of a match as extractPeptideSequences() gives it
+    std::string sequenceKey(const ID::Match& match, bool ignore_mods)
+    {
+      return ignore_mods ? sequenceOf(match).toUnmodifiedString() : match.representation;
+    }
+
+    /// Whether the peptide hit of a match is a decoy (as HasDecoyAnnotation)
+    bool isDecoy(const ID::Run& run, const ID::Match& match)
+    {
+      return IDFilter::legacyMetaValue(run, match, "target_decoy") == DataValue("decoy") || IDFilter::legacyMetaValue(run, match, "isDecoy") == DataValue("true");
+    }
+
+    /// The proteins of @p data that matches refer to
+    void keepReferencedProteins(ID& data)
+    {
+      const auto referenced = referencedAccessions(data, nullptr);
+      keepProteins(data, [&](const std::string& key, const std::string& accession) {
+        const auto found = referenced.find(key);
+        return found != referenced.end() && found->second.contains(accession);
+      });
+    }
+
+    template<class MapType>
+    void filterByRT(MapType& map, double min_rt, double max_rt)
+    {
+      // as HasRTInRange: an identification without RT is not in the range
+      map.eraseIdentifications([&](const ID::Run&, const ID::Identification& query) { return !(query.rt && *query.rt >= min_rt && *query.rt <= max_rt); });
+    }
+
+    template<class MapType>
+    void filterByMZ(MapType& map, double min_mz, double max_mz)
+    {
+      // as HasMZInRange: an identification without m/z is not in the range
+      map.eraseIdentifications([&](const ID::Run&, const ID::Identification& query) { return !(query.mz && *query.mz >= min_mz && *query.mz <= max_mz); });
+    }
+
+    /// Keep (@p keep) or remove the peptide matches and proteins that refer to (or are) one of @p accessions
+    template<class MapType>
+    void filterByProteins(MapType& map, const std::set<std::string>& accessions, bool keep)
+    {
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return refersTo(match, accessions) != keep; });
+      keepProteins(map.getIdentificationData(), [&](const std::string&, const std::string& accession) { return accessions.contains(accession) == keep; });
+    }
+
+    template<class MapType>
+    void filterBySequences(MapType& map, const std::set<std::string>& sequences, bool ignore_mods, bool keep)
+    {
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+        return sequences.contains(sequenceKey(match, ignore_mods)) != keep;
+      });
+    }
+
+    /// Keep (@p keep) or remove the peptide matches whose sequence @p has_modification accepts (HasMatchingModification)
+    template<class MapType, class Predicate>
+    void filterByModifications(MapType& map, const Predicate& has_modification, bool keep)
+    {
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return has_modification(sequenceOf(match)) != keep; });
+    }
+
+    template<class MapType>
+    void removeByRegEx(MapType& map, const std::string& regex)
+    {
+      const std::regex re(regex);
+      // true if the regex matches part or all of the unmodified sequence
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+        return std::regex_search(sequenceOf(match).toUnmodifiedString(), re);
+      });
+    }
+
+    template<class MapType>
+    void filterByLength(MapType& map, Size min_length, Size max_length)
+    {
+      // inclusive bounds; max_length is ignored if it is smaller than min_length
+      const bool upper = max_length != std::numeric_limits<Size>::max() && max_length >= min_length;
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+        const Size length = sequenceOf(match).size();
+        return length < min_length || (upper && length > max_length);
+      });
+    }
+
+    template<class MapType>
+    void filterByCharge(MapType& map, Int min_charge, Int max_charge)
+    {
+      // inclusive bounds; max_charge is ignored if it is smaller than min_charge
+      const bool upper = max_charge != std::numeric_limits<Int>::max() && max_charge >= min_charge;
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+        return match.charge < min_charge || (upper && match.charge > max_charge);
+      });
+    }
+
+    template<class MapType>
+    void filterByMZError(MapType& map, double mass_error, bool unit_ppm)
+    {
+      map.eraseMatches([&](const ID::Run&, const ID::Identification& query, const ID::Match& match) {
+        // as HasLowMZError (an identification without m/z keeps no match)
+        const double precursor_mz = query.mz.value_or(std::numeric_limits<double>::quiet_NaN());
+        const double tolerance = unit_ppm ? mass_error * precursor_mz / 1.0e6 : mass_error;
+        const double peptide_mz = sequenceOf(match).getMZ(match.charge == 0 ? 1 : match.charge);
+        return !(fabs(precursor_mz - peptide_mz) <= tolerance);
+      });
+    }
+
+    template<class MapType>
+    void removeDecoyMatches(MapType& map)
+    {
+      map.eraseMatches([](const ID::Run& run, const ID::Identification&, const ID::Match& match) { return isDecoy(run, match); });
+      IDFilter::editProteinRuns(map.getIdentificationData(), [](vector<ProteinIdentification>& proteins) { IDFilter::removeDecoyHits(proteins); });
+    }
+
+    /// The records of @p items whose accessions the edited protein hits have, in the order of the hits
+    template<class Item>
+    vector<Item> editedOrder(const vector<ProteinHit>& edited, const vector<Item>& items, const std::function<std::string(const Item&)>& accession)
+    {
+      std::map<std::string, std::deque<Size>> positions;
+      for (Size i = 0; i < items.size(); ++i) positions[accession(items[i])].push_back(i);
+      vector<Item> result;
+      for (const auto& hit : edited)
+      {
+        auto found = positions.find(hit.getAccession());
+        if (found == positions.end() || found->second.empty())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Editing protein runs added protein '" + hit.getAccession() + "'; proteins can only be removed or reordered");
+        }
+        result.push_back(items[found->second.front()]);
+        found->second.pop_front();
+      }
+      return result;
     }
   } // namespace
 
@@ -515,7 +893,11 @@ namespace OpenMS
 
     bool operator()(const PeptideHit& hit) const
     {
-      const AASequence& seq = hit.getSequence();
+      return (*this)(hit.getSequence());
+    }
+
+    bool operator()(const AASequence& seq) const
+    {
       if (mods_.empty())
       {
         return seq.isModified();
@@ -1263,6 +1645,535 @@ namespace OpenMS
       });
     }
     data.swap(replacement);
+  }
+
+  Size IDFilter::removeMatches(IdentificationData& data, const MatchPredicate& remove)
+  {
+    return DataView(data).eraseMatches(remove);
+  }
+
+  Size IDFilter::removeMatches(FeatureMap& map, const MatchPredicate& remove)
+  {
+    return map.eraseMatches(remove);
+  }
+
+  Size IDFilter::removeMatches(ConsensusMap& map, const MatchPredicate& remove)
+  {
+    return map.eraseMatches(remove);
+  }
+
+  Size IDFilter::removeIdentifications(IdentificationData& data, const IdentificationPredicate& remove)
+  {
+    return DataView(data).eraseIdentifications(remove);
+  }
+
+  Size IDFilter::removeIdentifications(FeatureMap& map, const IdentificationPredicate& remove)
+  {
+    return map.eraseIdentifications(remove);
+  }
+
+  Size IDFilter::removeIdentifications(ConsensusMap& map, const IdentificationPredicate& remove)
+  {
+    return map.eraseIdentifications(remove);
+  }
+
+  DataValue IDFilter::legacyMetaValue(const IdentificationData::Run& run, const IdentificationData::Match& match, const std::string& key)
+  {
+    if (match.metaValueExists(key)) return match.getMetaValue(key);
+    // export writes the supplementary scores as meta values of their names
+    const auto& definitions = run.getScoreDefinitions();
+    const auto primary = run.getPrimaryScore();
+    for (Size i = 0; i < definitions.size(); ++i)
+    {
+      if (definitions[i].name != key || (primary && primary->value == i)) continue;
+      if (const auto value = run.getScore(match.getId(), run.getScoreId(UInt32(i)))) return *value;
+    }
+    if (key == "target_decoy")
+    {
+      switch (match.target_decoy)
+      {
+        case ID::TargetDecoy::TARGET: return DataValue("target");
+        case ID::TargetDecoy::DECOY: return DataValue("decoy");
+        case ID::TargetDecoy::BOTH: return DataValue("target+decoy");
+        default: break;
+      }
+    }
+    return DataValue::EMPTY;
+  }
+
+  void IDFilter::sortMatchesByScore(IdentificationData& data)
+  {
+    for (const auto& current : data.getRuns())
+    {
+      const auto primary = current.getPrimaryScore();
+      if (!primary) continue;
+      auto& run = data.getRun(current.getIdentifier());
+      const auto score = run.bindScore(*primary);
+      const bool higher_better = score.getDefinition().higher_better;
+      // as PeptideIdentification::sort()
+      run.sortMatches([&](const ID::Match& a, const ID::Match& b) {
+        const double score_a = score(a).value_or(std::numeric_limits<double>::quiet_NaN());
+        const double score_b = score(b).value_or(std::numeric_limits<double>::quiet_NaN());
+        return higher_better ? score_a > score_b : score_a < score_b;
+      });
+    }
+  }
+
+  void IDFilter::editProteinRuns(IdentificationData& data, const std::function<void(std::vector<ProteinIdentification>&)>& edit)
+  {
+    // the protein runs as export writes them: those of the inference results, then those of the runs without one
+    auto results = data.getInferenceResults();
+    vector<const ID::Run*> runs;
+    for (const auto& run : data.getRuns())
+    {
+      if (proteinResult(data, run) == nullptr) runs.push_back(&run);
+    }
+    vector<ProteinIdentification> proteins;
+    for (const auto& result : results)
+    {
+      proteins.push_back(result.proteins);
+      proteins.back().setHits(IdentificationDataAdapter::proteinHits(data, result));
+    }
+    for (const auto* run : runs) proteins.push_back(IdentificationDataAdapter::proteinRun(*run));
+    edit(proteins);
+    if (proteins.size() != results.size() + runs.size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Editing protein runs must not add or remove protein runs");
+    }
+    bool changed = false;
+    for (Size i = 0; i < results.size(); ++i)
+    {
+      auto& result = results[i];
+      const auto& edited = proteins[i];
+      auto hits = editedOrder<ProteinHit>(edited.getHits(), result.proteins.getHits(), [](const ProteinHit& hit) { return hit.getAccession(); });
+      if (hits == result.proteins.getHits() && edited.getProteinGroups() == result.proteins.getProteinGroups()
+          && edited.getIndistinguishableProteins() == result.proteins.getIndistinguishableProteins())
+      {
+        continue;
+      }
+      result.proteins.setHits(std::move(hits));
+      result.proteins.getProteinGroups() = edited.getProteinGroups();
+      result.proteins.getIndistinguishableProteins() = edited.getIndistinguishableProteins();
+      pruneAliases(result);
+      changed = true;
+    }
+    // (all edits are checked before any is applied)
+    vector<std::pair<std::string, vector<ID::DatabaseSequence>>> catalogues;
+    for (Size i = 0; i < runs.size(); ++i)
+    {
+      static const vector<ID::DatabaseSequence> none;
+      const auto& sequences = runs[i]->getDatabaseSequences() ? *runs[i]->getDatabaseSequences() : none;
+      auto kept = editedOrder<ID::DatabaseSequence>(proteins[results.size() + i].getHits(), sequences,
+                                                    [](const ID::DatabaseSequence& sequence) { return sequence.accession; });
+      if (kept != sequences) catalogues.emplace_back(runs[i]->getIdentifier(), std::move(kept));
+    }
+    for (auto& [identifier, sequences] : catalogues) data.getRun(identifier).setDatabaseSequences(std::move(sequences));
+    if (changed)
+    {
+      data.clearInferenceResults();
+      for (auto& result : results) data.addInferenceResult(std::move(result));
+    }
+  }
+
+  void IDFilter::filterPeptidesByRT(IdentificationData& data, double min_rt, double max_rt)
+  {
+    DataView view(data);
+    filterByRT(view, min_rt, max_rt);
+  }
+
+  void IDFilter::filterPeptidesByRT(FeatureMap& map, double min_rt, double max_rt)
+  {
+    filterByRT(map, min_rt, max_rt);
+  }
+
+  void IDFilter::filterPeptidesByRT(ConsensusMap& map, double min_rt, double max_rt)
+  {
+    filterByRT(map, min_rt, max_rt);
+  }
+
+  void IDFilter::filterPeptidesByMZ(IdentificationData& data, double min_mz, double max_mz)
+  {
+    DataView view(data);
+    filterByMZ(view, min_mz, max_mz);
+  }
+
+  void IDFilter::filterPeptidesByMZ(FeatureMap& map, double min_mz, double max_mz)
+  {
+    filterByMZ(map, min_mz, max_mz);
+  }
+
+  void IDFilter::filterPeptidesByMZ(ConsensusMap& map, double min_mz, double max_mz)
+  {
+    filterByMZ(map, min_mz, max_mz);
+  }
+
+  void IDFilter::removeDuplicatePeptideHits(IdentificationData& data)
+  {
+    DataView view(data);
+    removeDuplicates(view);
+  }
+
+  void IDFilter::removeDuplicatePeptideHits(FeatureMap& map)
+  {
+    removeDuplicates(map);
+  }
+
+  void IDFilter::removeDuplicatePeptideHits(ConsensusMap& map)
+  {
+    removeDuplicates(map);
+  }
+
+  void IDFilter::filterPeptidesByRTPredictPValue(IdentificationData& data, const std::string& metavalue_key, double threshold)
+  {
+    DataView view(data);
+    filterByRTPredictPValue(view, metavalue_key, threshold);
+  }
+
+  void IDFilter::filterPeptidesByRTPredictPValue(FeatureMap& map, const std::string& metavalue_key, double threshold)
+  {
+    filterByRTPredictPValue(map, metavalue_key, threshold);
+  }
+
+  void IDFilter::filterPeptidesByRTPredictPValue(ConsensusMap& map, const std::string& metavalue_key, double threshold)
+  {
+    filterByRTPredictPValue(map, metavalue_key, threshold);
+  }
+
+  void IDFilter::keepHitsMatchingProteins(IdentificationData& data, const std::set<std::string>& accessions)
+  {
+    DataView view(data);
+    filterByProteins(view, accessions, true);
+  }
+
+  void IDFilter::keepHitsMatchingProteins(FeatureMap& map, const std::set<std::string>& accessions)
+  {
+    filterByProteins(map, accessions, true);
+  }
+
+  void IDFilter::keepHitsMatchingProteins(ConsensusMap& map, const std::set<std::string>& accessions)
+  {
+    filterByProteins(map, accessions, true);
+  }
+
+  void IDFilter::removeHitsMatchingProteins(IdentificationData& data, const std::set<std::string>& accessions)
+  {
+    DataView view(data);
+    filterByProteins(view, accessions, false);
+  }
+
+  void IDFilter::removeHitsMatchingProteins(FeatureMap& map, const std::set<std::string>& accessions)
+  {
+    filterByProteins(map, accessions, false);
+  }
+
+  void IDFilter::removeHitsMatchingProteins(ConsensusMap& map, const std::set<std::string>& accessions)
+  {
+    filterByProteins(map, accessions, false);
+  }
+
+  void IDFilter::keepPeptidesWithMatchingSequences(IdentificationData& data, const std::set<std::string>& sequences, bool ignore_mods)
+  {
+    DataView view(data);
+    filterBySequences(view, sequences, ignore_mods, true);
+  }
+
+  void IDFilter::keepPeptidesWithMatchingSequences(FeatureMap& map, const std::set<std::string>& sequences, bool ignore_mods)
+  {
+    filterBySequences(map, sequences, ignore_mods, true);
+  }
+
+  void IDFilter::keepPeptidesWithMatchingSequences(ConsensusMap& map, const std::set<std::string>& sequences, bool ignore_mods)
+  {
+    filterBySequences(map, sequences, ignore_mods, true);
+  }
+
+  void IDFilter::removePeptidesWithMatchingSequences(IdentificationData& data, const std::set<std::string>& sequences, bool ignore_mods)
+  {
+    DataView view(data);
+    filterBySequences(view, sequences, ignore_mods, false);
+  }
+
+  void IDFilter::removePeptidesWithMatchingSequences(FeatureMap& map, const std::set<std::string>& sequences, bool ignore_mods)
+  {
+    filterBySequences(map, sequences, ignore_mods, false);
+  }
+
+  void IDFilter::removePeptidesWithMatchingSequences(ConsensusMap& map, const std::set<std::string>& sequences, bool ignore_mods)
+  {
+    filterBySequences(map, sequences, ignore_mods, false);
+  }
+
+  void IDFilter::keepPeptidesWithMatchingModifications(IdentificationData& data, const std::set<std::string>& modifications)
+  {
+    DataView view(data);
+    filterByModifications(view, HasMatchingModification(modifications), true);
+  }
+
+  void IDFilter::keepPeptidesWithMatchingModifications(FeatureMap& map, const std::set<std::string>& modifications)
+  {
+    filterByModifications(map, HasMatchingModification(modifications), true);
+  }
+
+  void IDFilter::keepPeptidesWithMatchingModifications(ConsensusMap& map, const std::set<std::string>& modifications)
+  {
+    filterByModifications(map, HasMatchingModification(modifications), true);
+  }
+
+  void IDFilter::removePeptidesWithMatchingModifications(IdentificationData& data, const std::set<std::string>& modifications)
+  {
+    DataView view(data);
+    filterByModifications(view, HasMatchingModification(modifications), false);
+  }
+
+  void IDFilter::removePeptidesWithMatchingModifications(FeatureMap& map, const std::set<std::string>& modifications)
+  {
+    filterByModifications(map, HasMatchingModification(modifications), false);
+  }
+
+  void IDFilter::removePeptidesWithMatchingModifications(ConsensusMap& map, const std::set<std::string>& modifications)
+  {
+    filterByModifications(map, HasMatchingModification(modifications), false);
+  }
+
+  void IDFilter::removePeptidesWithMatchingRegEx(IdentificationData& data, const std::string& regex)
+  {
+    DataView view(data);
+    removeByRegEx(view, regex);
+  }
+
+  void IDFilter::removePeptidesWithMatchingRegEx(FeatureMap& map, const std::string& regex)
+  {
+    removeByRegEx(map, regex);
+  }
+
+  void IDFilter::removePeptidesWithMatchingRegEx(ConsensusMap& map, const std::string& regex)
+  {
+    removeByRegEx(map, regex);
+  }
+
+  void IDFilter::keepBestPeptideHits(IdentificationData& data, bool strict)
+  {
+    DataView view(data);
+    keepBestHits(view, strict);
+  }
+
+  void IDFilter::keepBestPeptideHits(FeatureMap& map, bool strict)
+  {
+    keepBestHits(map, strict);
+  }
+
+  void IDFilter::keepBestPeptideHits(ConsensusMap& map, bool strict)
+  {
+    keepBestHits(map, strict);
+  }
+
+  void IDFilter::filterPeptidesByLength(IdentificationData& data, Size min_length, Size max_length)
+  {
+    DataView view(data);
+    filterByLength(view, min_length, max_length);
+  }
+
+  void IDFilter::filterPeptidesByLength(FeatureMap& map, Size min_length, Size max_length)
+  {
+    filterByLength(map, min_length, max_length);
+  }
+
+  void IDFilter::filterPeptidesByLength(ConsensusMap& map, Size min_length, Size max_length)
+  {
+    filterByLength(map, min_length, max_length);
+  }
+
+  void IDFilter::filterPeptidesByCharge(IdentificationData& data, Int min_charge, Int max_charge)
+  {
+    DataView view(data);
+    filterByCharge(view, min_charge, max_charge);
+  }
+
+  void IDFilter::filterPeptidesByCharge(FeatureMap& map, Int min_charge, Int max_charge)
+  {
+    filterByCharge(map, min_charge, max_charge);
+  }
+
+  void IDFilter::filterPeptidesByCharge(ConsensusMap& map, Int min_charge, Int max_charge)
+  {
+    filterByCharge(map, min_charge, max_charge);
+  }
+
+  void IDFilter::filterHitsByScore(IdentificationData& data, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
+  {
+    DataView view(data);
+    filterByScoreType(view, threshold_score, score_type);
+  }
+
+  void IDFilter::filterHitsByScore(FeatureMap& map, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
+  {
+    filterByScoreType(map, threshold_score, score_type);
+  }
+
+  void IDFilter::filterHitsByScore(ConsensusMap& map, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
+  {
+    filterByScoreType(map, threshold_score, score_type);
+  }
+
+  void IDFilter::keepNBestSpectra(IdentificationData& data, Size n)
+  {
+    DataView view(data);
+    keepNBestSpectraNative(view, n);
+  }
+
+  void IDFilter::keepNBestSpectra(FeatureMap& map, Size n)
+  {
+    keepNBestSpectraNative(map, n);
+  }
+
+  void IDFilter::keepNBestSpectra(ConsensusMap& map, Size n)
+  {
+    keepNBestSpectraNative(map, n);
+  }
+
+  void IDFilter::keepBestPerPeptide(IdentificationData& data, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    DataView view(data);
+    keepBestNative(view, ignore_mods, ignore_charges, nr_best_spectrum, false);
+  }
+
+  void IDFilter::keepBestPerPeptide(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    keepBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum, false);
+  }
+
+  void IDFilter::keepBestPerPeptide(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    keepBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum, false);
+  }
+
+  void IDFilter::filterHitsByRank(IdentificationData& data, Size min_rank, Size max_rank)
+  {
+    DataView view(data);
+    filterByRank(view, min_rank, max_rank);
+  }
+
+  void IDFilter::filterHitsByRank(FeatureMap& map, Size min_rank, Size max_rank)
+  {
+    filterByRank(map, min_rank, max_rank);
+  }
+
+  void IDFilter::filterHitsByRank(ConsensusMap& map, Size min_rank, Size max_rank)
+  {
+    filterByRank(map, min_rank, max_rank);
+  }
+
+  void IDFilter::filterPeptidesByMZError(IdentificationData& data, double mass_error, bool unit_ppm)
+  {
+    DataView view(data);
+    filterByMZError(view, mass_error, unit_ppm);
+  }
+
+  void IDFilter::filterPeptidesByMZError(FeatureMap& map, double mass_error, bool unit_ppm)
+  {
+    filterByMZError(map, mass_error, unit_ppm);
+  }
+
+  void IDFilter::filterPeptidesByMZError(ConsensusMap& map, double mass_error, bool unit_ppm)
+  {
+    filterByMZError(map, mass_error, unit_ppm);
+  }
+
+  void IDFilter::removeDecoyHits(IdentificationData& data)
+  {
+    DataView view(data);
+    removeDecoyMatches(view);
+  }
+
+  void IDFilter::removeDecoyHits(FeatureMap& map)
+  {
+    removeDecoyMatches(map);
+  }
+
+  void IDFilter::removeDecoyHits(ConsensusMap& map)
+  {
+    removeDecoyMatches(map);
+  }
+
+  void IDFilter::filterHitsByScore(IdentificationData& data, double threshold_score)
+  {
+    DataView view(data);
+    filterByScore(view, threshold_score);
+  }
+
+  void IDFilter::keepNBestPeptideHits(IdentificationData& data, Size n)
+  {
+    DataView view(data);
+    keepNBest(view, n);
+  }
+
+  void IDFilter::keepUniquePeptidesPerProtein(IdentificationData& data)
+  {
+    DataView view(data);
+    keepUnique(view);
+  }
+
+  void IDFilter::removeEmptyIdentifications(IdentificationData& data)
+  {
+    DataView view(data);
+    removeEmpty(view);
+  }
+
+  void IDFilter::removeDanglingProteinReferences(IdentificationData& data, bool remove_peptides_without_reference)
+  {
+    DataView view(data);
+    filterReferences(view, [&](const ID::Run& run) { return proteinAccessions(data, run); }, remove_peptides_without_reference);
+  }
+
+  void IDFilter::removeUnreferencedProteins(IdentificationData& data)
+  {
+    keepReferencedProteins(data);
+  }
+
+  void IDFilter::extractPeptideSequences(const IdentificationData& data, set<std::string>& sequences, bool ignore_mods)
+  {
+    for (const auto& run : data.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          for (const auto& match : query.getMatches()) sequences.insert(sequenceKey(match, ignore_mods));
+        }
+      }
+    }
+  }
+
+  void IDFilter::PeptideDigestionFilter::filterPeptideSequences(IdentificationData& data)
+  {
+    IDFilter::removeMatches(data, [&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return (*this)(sequenceOf(match)); });
+  }
+
+  void IDFilter::PeptideDigestionFilter::filterPeptideSequences(FeatureMap& map)
+  {
+    IDFilter::removeMatches(map, [&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return (*this)(sequenceOf(match)); });
+  }
+
+  void IDFilter::PeptideDigestionFilter::filterPeptideSequences(ConsensusMap& map)
+  {
+    IDFilter::removeMatches(map, [&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return (*this)(sequenceOf(match)); });
+  }
+
+  void IDFilter::DigestionFilter::filterPeptideEvidences(IdentificationData& data)
+  {
+    for (const auto& current : data.getRuns())
+    {
+      data.getRun(current.getIdentifier()).transformMatches([&](ID::MatchData& match) {
+        std::erase_if(match.sequence_evidence, [&](const ID::SequenceEvidence& evidence) {
+          // as the peptide evidence that export writes
+          const PeptideEvidence legacy(evidence.accession, evidence.start ? Int(*evidence.start) : PeptideEvidence::UNKNOWN_POSITION,
+                                       evidence.end ? Int(*evidence.end) : PeptideEvidence::UNKNOWN_POSITION,
+                                       evidence.before ? evidence.before : PeptideEvidence::UNKNOWN_AA,
+                                       evidence.after ? evidence.after : PeptideEvidence::UNKNOWN_AA);
+          return !(*this)(legacy);
+        });
+      });
+    }
   }
 
 } // namespace OpenMS

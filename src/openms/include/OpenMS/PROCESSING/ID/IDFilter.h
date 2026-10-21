@@ -412,18 +412,29 @@ namespace OpenMS
       /// returns true if peptide should be removed (does not pass filter)
       bool operator()(PeptideHit& p) const
       {
+        return (*this)(p.getSequence());
+      }
+
+      /// Whether a peptide of @p sequence should be removed (does not pass the filter)
+      bool operator()(const AASequence& sequence) const
+      {
         const auto& fun = [&](const Int missed_cleavages) {
           bool max_filter = max_cleavages_ != disabledValue() ? missed_cleavages > max_cleavages_ : false;
           bool min_filter = min_cleavages_ != disabledValue() ? missed_cleavages < min_cleavages_ : false;
           return max_filter || min_filter;
         };
-        return digestion_.filterByMissedCleavages(p.getSequence().toUnmodifiedString(), fun);
+        return digestion_.filterByMissedCleavages(sequence.toUnmodifiedString(), fun);
       }
 
       void filterPeptideSequences(std::vector<PeptideHit>& hits)
       {
         hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)), hits.end());
       }
+
+      /// Remove the peptide matches that do not pass the filter (the map overloads keep the links of the features)
+      void filterPeptideSequences(IdentificationData& data);
+      void filterPeptideSequences(FeatureMap& map);
+      void filterPeptideSequences(ConsensusMap& map);
     };
 
 
@@ -477,6 +488,9 @@ namespace OpenMS
       {
         IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(*this, peptides);
       }
+
+      /// Remove the sequence evidence of peptide matches that does not pass the filter (matches stay, also without evidence)
+      void filterPeptideEvidences(IdentificationData& data);
     };
 
     ///@}
@@ -1398,6 +1412,150 @@ namespace OpenMS
     static void filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff);
     /// Remove decoy-only matches, decoy database sequences and the evidence that refers to them; preserve inference.
     static void removeDecoys(IdentificationData& data);
+
+    /**
+      @name Filters of identification data and of the identifications of feature and consensus maps
+
+      The filters of peptide identifications for identification data (e.g. of an identification file) and for the
+      identifications of maps, with the semantics of their counterparts for peptide identifications: a match stands for
+      a peptide hit, an identification for a peptide identification, and the protein runs are those that export writes
+      (see IdentificationDataAdapter::toLegacy()). The map overloads keep the links of the features consistent (see
+      FeatureMap::eraseMatches()). Identifications stay, also without matches, unless a filter removes identifications
+      (see removeEmptyIdentifications()). The filters keep the order of the matches; sortMatchesByScore() orders them
+      best first, as the counterparts that sort the hits do (e.g. keepNBestHits()).
+    */
+    ///@{
+    /// Decides on a match of an identification of a run
+    using MatchPredicate = std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&,
+                                              const IdentificationData::Match&)>;
+    /// Decides on an identification of a run
+    using IdentificationPredicate = std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&)>;
+
+    /// Remove the matches for which @p remove returns true (evaluated for every match first); returns the number removed
+    static Size removeMatches(IdentificationData& data, const MatchPredicate& remove);
+    static Size removeMatches(FeatureMap& map, const MatchPredicate& remove);
+    static Size removeMatches(ConsensusMap& map, const MatchPredicate& remove);
+    /// Remove the identifications (with their matches) for which @p remove returns true; returns the number removed
+    static Size removeIdentifications(IdentificationData& data, const IdentificationPredicate& remove);
+    static Size removeIdentifications(FeatureMap& map, const IdentificationPredicate& remove);
+    static Size removeIdentifications(ConsensusMap& map, const IdentificationPredicate& remove);
+
+    /**
+      @brief The value that the peptide hit of @p match has as meta value @p key in export: the metadata of the match,
+      else a supplementary score of that name, else (for "target_decoy") its target/decoy state; empty if none
+    */
+    static DataValue legacyMetaValue(const IdentificationData::Run& run, const IdentificationData::Match& match, const std::string& key);
+
+    /// Order the matches of every identification best first by the primary score of the run, as PeptideIdentification::sort()
+    static void sortMatchesByScore(IdentificationData& data);
+
+    /**
+      @brief Edit the protein runs of @p data as export writes them, with complete protein hits
+
+      @p edit gets the protein run of every inference result and of every run without one (its database sequences as
+      protein hits). The identification data takes removed and reordered protein hits and edited protein groups: of an
+      inference result its hits and groups, of a run its database sequences.
+
+      @throw Exception::InvalidParameter if @p edit added protein runs or hits (the data is unchanged)
+    */
+    static void editProteinRuns(IdentificationData& data, const std::function<void(std::vector<ProteinIdentification>&)>& edit);
+
+    /// See filterPeptidesByRT(PeptideIdentificationList&, double, double): removes identifications without RT
+    static void filterPeptidesByRT(IdentificationData& data, double min_rt, double max_rt);
+    static void filterPeptidesByRT(FeatureMap& map, double min_rt, double max_rt);
+    static void filterPeptidesByRT(ConsensusMap& map, double min_rt, double max_rt);
+    /// See filterPeptidesByMZ(PeptideIdentificationList&, double, double): removes identifications without m/z
+    static void filterPeptidesByMZ(IdentificationData& data, double min_mz, double max_mz);
+    static void filterPeptidesByMZ(FeatureMap& map, double min_mz, double max_mz);
+    static void filterPeptidesByMZ(ConsensusMap& map, double min_mz, double max_mz);
+    /// See removeDuplicatePeptideHits(PeptideIdentificationList&): of equal matches (data and scores) of an identification, the first stays
+    static void removeDuplicatePeptideHits(IdentificationData& data);
+    static void removeDuplicatePeptideHits(FeatureMap& map);
+    static void removeDuplicatePeptideHits(ConsensusMap& map);
+    /// See filterPeptidesByRTPredictPValue(PeptideIdentificationList&, const std::string&, double)
+    static void filterPeptidesByRTPredictPValue(IdentificationData& data, const std::string& metavalue_key, double threshold = 0.05);
+    static void filterPeptidesByRTPredictPValue(FeatureMap& map, const std::string& metavalue_key, double threshold = 0.05);
+    static void filterPeptidesByRTPredictPValue(ConsensusMap& map, const std::string& metavalue_key, double threshold = 0.05);
+    /// Keep the peptide matches and the proteins that refer to (or are) one of @p accessions (see keepHitsMatchingProteins())
+    static void keepHitsMatchingProteins(IdentificationData& data, const std::set<std::string>& accessions);
+    static void keepHitsMatchingProteins(FeatureMap& map, const std::set<std::string>& accessions);
+    static void keepHitsMatchingProteins(ConsensusMap& map, const std::set<std::string>& accessions);
+    /// Remove the peptide matches and the proteins that refer to (or are) one of @p accessions (see removeHitsMatchingProteins())
+    static void removeHitsMatchingProteins(IdentificationData& data, const std::set<std::string>& accessions);
+    static void removeHitsMatchingProteins(FeatureMap& map, const std::set<std::string>& accessions);
+    static void removeHitsMatchingProteins(ConsensusMap& map, const std::set<std::string>& accessions);
+    /// The sequences of the peptide matches of @p data (see extractPeptideSequences())
+    static void extractPeptideSequences(const IdentificationData& data, std::set<std::string>& sequences, bool ignore_mods = false);
+    /// Keep the peptide matches whose sequence is one of @p sequences (see extractPeptideSequences(), keepPeptidesWithMatchingSequences())
+    static void keepPeptidesWithMatchingSequences(IdentificationData& data, const std::set<std::string>& sequences, bool ignore_mods = false);
+    static void keepPeptidesWithMatchingSequences(FeatureMap& map, const std::set<std::string>& sequences, bool ignore_mods = false);
+    static void keepPeptidesWithMatchingSequences(ConsensusMap& map, const std::set<std::string>& sequences, bool ignore_mods = false);
+    /// Remove the peptide matches whose sequence is one of @p sequences (see removePeptidesWithMatchingSequences())
+    static void removePeptidesWithMatchingSequences(IdentificationData& data, const std::set<std::string>& sequences, bool ignore_mods = false);
+    static void removePeptidesWithMatchingSequences(FeatureMap& map, const std::set<std::string>& sequences, bool ignore_mods = false);
+    static void removePeptidesWithMatchingSequences(ConsensusMap& map, const std::set<std::string>& sequences, bool ignore_mods = false);
+    /// See keepPeptidesWithMatchingModifications(PeptideIdentificationList&, const std::set<std::string>&)
+    static void keepPeptidesWithMatchingModifications(IdentificationData& data, const std::set<std::string>& modifications);
+    static void keepPeptidesWithMatchingModifications(FeatureMap& map, const std::set<std::string>& modifications);
+    static void keepPeptidesWithMatchingModifications(ConsensusMap& map, const std::set<std::string>& modifications);
+    /// See removePeptidesWithMatchingModifications(PeptideIdentificationList&, const std::set<std::string>&)
+    static void removePeptidesWithMatchingModifications(IdentificationData& data, const std::set<std::string>& modifications);
+    static void removePeptidesWithMatchingModifications(FeatureMap& map, const std::set<std::string>& modifications);
+    static void removePeptidesWithMatchingModifications(ConsensusMap& map, const std::set<std::string>& modifications);
+    /// See removePeptidesWithMatchingRegEx(PeptideIdentificationList&, const std::string&)
+    static void removePeptidesWithMatchingRegEx(IdentificationData& data, const std::string& regex);
+    static void removePeptidesWithMatchingRegEx(FeatureMap& map, const std::string& regex);
+    static void removePeptidesWithMatchingRegEx(ConsensusMap& map, const std::string& regex);
+    /// See keepBestPeptideHits(PeptideIdentificationList&, bool): the best match of each identification (by the primary score)
+    static void keepBestPeptideHits(IdentificationData& data, bool strict = false);
+    static void keepBestPeptideHits(FeatureMap& map, bool strict = false);
+    static void keepBestPeptideHits(ConsensusMap& map, bool strict = false);
+    /// See filterPeptidesByLength(PeptideIdentificationList&, Size, Size)
+    static void filterPeptidesByLength(IdentificationData& data, Size min_length, Size max_length = UINT_MAX);
+    static void filterPeptidesByLength(FeatureMap& map, Size min_length, Size max_length = UINT_MAX);
+    static void filterPeptidesByLength(ConsensusMap& map, Size min_length, Size max_length = UINT_MAX);
+    /// See filterPeptidesByCharge(PeptideIdentificationList&, Int, Int)
+    static void filterPeptidesByCharge(IdentificationData& data, Int min_charge, Int max_charge);
+    static void filterPeptidesByCharge(FeatureMap& map, Int min_charge, Int max_charge);
+    static void filterPeptidesByCharge(ConsensusMap& map, Int min_charge, Int max_charge);
+    /// See filterHitsByScore(PeptideIdentificationList&, double): the primary score of the run
+    static void filterHitsByScore(IdentificationData& data, double threshold_score);
+    /// See filterHitsByScore(std::vector<IdentificationType>&, double, IDScoreSwitcherAlgorithm::ScoreType)
+    static void filterHitsByScore(IdentificationData& data, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type);
+    static void filterHitsByScore(FeatureMap& map, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type);
+    static void filterHitsByScore(ConsensusMap& map, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type);
+    /// See keepNBestSpectra(PeptideIdentificationList&, Size): the identifications with the best matches (by the primary
+    /// score) stay, in their order (of equally good ones, the first; identifications without matches last)
+    static void keepNBestSpectra(IdentificationData& data, Size n);
+    static void keepNBestSpectra(FeatureMap& map, Size n);
+    static void keepNBestSpectra(ConsensusMap& map, Size n);
+    /// See keepNBestHits(PeptideIdentificationList&, Size) and keepNBestPeptideHits() of maps
+    static void keepNBestPeptideHits(IdentificationData& data, Size n);
+    /// See keepBestPerPeptide(PeptideIdentificationList&, bool, bool, Size): over all runs
+    static void keepBestPerPeptide(IdentificationData& data, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
+    static void keepBestPerPeptide(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
+    static void keepBestPerPeptide(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
+    /// See filterHitsByRank(PeptideIdentificationList&, Size, Size)
+    static void filterHitsByRank(IdentificationData& data, Size min_rank, Size max_rank);
+    static void filterHitsByRank(FeatureMap& map, Size min_rank, Size max_rank);
+    static void filterHitsByRank(ConsensusMap& map, Size min_rank, Size max_rank);
+    /// See filterPeptidesByMZError(PeptideIdentificationList&, double, bool)
+    static void filterPeptidesByMZError(IdentificationData& data, double mass_error, bool unit_ppm);
+    static void filterPeptidesByMZError(FeatureMap& map, double mass_error, bool unit_ppm);
+    static void filterPeptidesByMZError(ConsensusMap& map, double mass_error, bool unit_ppm);
+    /// See removeDecoyHits(): the decoy peptide matches and proteins
+    static void removeDecoyHits(IdentificationData& data);
+    static void removeDecoyHits(FeatureMap& map);
+    static void removeDecoyHits(ConsensusMap& map);
+    /// See keepUniquePeptidesPerProtein(PeptideIdentificationList&)
+    static void keepUniquePeptidesPerProtein(IdentificationData& data);
+    /// Remove the proteins that no peptide match refers to (see removeUnreferencedProteins())
+    static void removeUnreferencedProteins(IdentificationData& data);
+    /// Remove the sequence evidence of peptide matches that refers to no protein of their protein run, and optionally the matches left without any
+    static void removeDanglingProteinReferences(IdentificationData& data, bool remove_peptides_without_reference = false);
+    /// Remove the identifications without matches
+    static void removeEmptyIdentifications(IdentificationData& data);
+    ///@}
 
     // Specific overloads for PeptideIdentificationList to ensure correct template resolution
     static void removeDecoyHits(PeptideIdentificationList& ids)

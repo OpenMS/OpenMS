@@ -20,6 +20,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -115,6 +116,48 @@ namespace
     std::vector<std::string> accessions;
     for (const auto& sequence : *map.getIdentificationData().getRuns()[0].getDatabaseSequences()) accessions.push_back(sequence.accession);
     return accessions;
+  }
+
+  /**
+    Peptide identifications for comparing the filters of identification data with their counterparts: those of
+    IDFilter_test5.idXML with RTs, m/z values (of the first hit), charges, target/decoy states, a duplicate hit, meta
+    values, a decoy protein and protein groups
+  */
+  void legacyInput(std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
+  {
+    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test5.idXML"), proteins, peptides);
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      auto& hits = peptides[i].getHits();
+      for (Size j = 0; j < hits.size(); ++j)
+      {
+        hits[j].setCharge(Int(1 + (i + j) % 3));
+        hits[j].setMetaValue("predicted_RT_p_value", 0.1 * double(i + j));
+        hits[j].setMetaValue("target_decoy", (i + j) % 2 == 1 ? "decoy" : "target");
+        if (j == 0) hits[j].setMetaValue("protein_references", "unique");
+      }
+      peptides[i].setRT(100.0 * double(i));
+      peptides[i].setMZ(hits[0].getSequence().getMZ(hits[0].getCharge()) * (1.0 + 0.5e-6));
+    }
+    peptides[2].getHits().push_back(peptides[2].getHits()[0]);
+    proteins[0].getHits()[1].setMetaValue("target_decoy", "decoy");
+    ProteinIdentification::ProteinGroup group;
+    group.accessions = {"Q824A5", "S53854"};
+    group.probability = 0.9;
+    proteins[0].getIndistinguishableProteins().push_back(group);
+    group.accessions = {"AAD30739"};
+    group.probability = 0.5;
+    proteins[0].getProteinGroups().push_back(group);
+  }
+
+  /// Peptide identifications with hits of @p sequences (e.g. a whitelist)
+  PeptideIdentificationList withSequences(const std::vector<std::string>& sequences)
+  {
+    PeptideIdentification peptide;
+    for (const auto& sequence : sequences) peptide.insertHit(PeptideHit(0, 0, 2, AASequence::fromString(sequence)));
+    PeptideIdentificationList peptides;
+    peptides.push_back(peptide);
+    return peptides;
   }
 } // namespace
 
@@ -1620,6 +1663,304 @@ START_SECTION(([EXTRA] AnnotatedMSRun: filterHitsByScore, keepNBestHits, keepHit
   TEST_EQUAL(representations(annotated, 0), "PEPA,PEPC")
   TEST_EQUAL(annotated.getSpectrumIDQueries(1).empty(), true)
   TEST_EQUAL(representations(annotated, 2), "PEPG") // MS1
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] filters of identification data: as their counterparts for peptide identifications))
+{
+  using Native = std::function<void(IdentificationData&)>;
+  using Legacy = std::function<void(vector<ProteinIdentification>&, PeptideIdentificationList&)>;
+  struct Case
+  {
+    std::string name;
+    Native native;
+    Legacy legacy;
+    bool any_order = false; ///< the counterpart reorders the peptide identifications
+  };
+  const std::set<std::string> accessions {"S53854"};
+  const std::set<std::string> oxidation {"Oxidation (M)"};
+  const std::vector<std::string> sequences {"DLEPGTDYEVTVSTLFGR", "MSLLSNMISIVKVGYNAR"};
+  ProteaseDigestion trypsin;
+  trypsin.setEnzyme("Trypsin");
+  const std::vector<Case> cases {
+    {"RT", [](auto& data) { IDFilter::filterPeptidesByRT(data, 100.0, 300.0); },
+           [](auto&, auto& peptides) { IDFilter::filterPeptidesByRT(peptides, 100.0, 300.0); }},
+    {"m/z", [](auto& data) { IDFilter::filterPeptidesByMZ(data, 900.0, 1000.0); },
+            [](auto&, auto& peptides) { IDFilter::filterPeptidesByMZ(peptides, 900.0, 1000.0); }},
+    {"duplicates", [](auto& data) { IDFilter::removeDuplicatePeptideHits(data); },
+                   [](auto&, auto& peptides) { IDFilter::removeDuplicatePeptideHits(peptides); }},
+    {"RT p-value", [](auto& data) { IDFilter::filterPeptidesByRTPredictPValue(data, "predicted_RT_p_value", 0.75); },
+                   [](auto&, auto& peptides) { IDFilter::filterPeptidesByRTPredictPValue(peptides, "predicted_RT_p_value", 0.75); }},
+    {"whitelist proteins", [&](auto& data) { IDFilter::keepHitsMatchingProteins(data, accessions); },
+                           [&](auto& proteins, auto& peptides) {
+                             IDFilter::keepHitsMatchingProteins(peptides, accessions);
+                             IDFilter::keepHitsMatchingProteins(proteins, accessions);
+                           }},
+    {"blacklist proteins", [&](auto& data) { IDFilter::removeHitsMatchingProteins(data, accessions); },
+                           [&](auto& proteins, auto& peptides) {
+                             IDFilter::removeHitsMatchingProteins(peptides, accessions);
+                             IDFilter::removeHitsMatchingProteins(proteins, accessions);
+                           }},
+    {"whitelist peptides", [&](auto& data) { IDFilter::keepPeptidesWithMatchingSequences(data, {sequences.begin(), sequences.end()}, true); },
+                           [&](auto&, auto& peptides) { IDFilter::keepPeptidesWithMatchingSequences(peptides, withSequences(sequences), true); }},
+    {"blacklist peptides", [&](auto& data) { IDFilter::removePeptidesWithMatchingSequences(data, {sequences.begin(), sequences.end()}, false); },
+                           [&](auto&, auto& peptides) { IDFilter::removePeptidesWithMatchingSequences(peptides, withSequences(sequences), false); }},
+    {"whitelist modifications", [&](auto& data) { IDFilter::keepPeptidesWithMatchingModifications(data, oxidation); },
+                                [&](auto&, auto& peptides) { IDFilter::keepPeptidesWithMatchingModifications(peptides, oxidation); }},
+    {"modified", [](auto& data) { IDFilter::keepPeptidesWithMatchingModifications(data, {}); },
+                 [](auto&, auto& peptides) { IDFilter::keepPeptidesWithMatchingModifications(peptides, {}); }},
+    {"blacklist modifications", [&](auto& data) { IDFilter::removePeptidesWithMatchingModifications(data, oxidation); },
+                                [&](auto&, auto& peptides) { IDFilter::removePeptidesWithMatchingModifications(peptides, oxidation); }},
+    {"regex", [](auto& data) { IDFilter::removePeptidesWithMatchingRegEx(data, "^MS"); },
+              [](auto&, auto& peptides) { IDFilter::removePeptidesWithMatchingRegEx(peptides, "^MS"); }},
+    {"best", [](auto& data) {
+               IDFilter::sortMatchesByScore(data);
+               IDFilter::keepBestPeptideHits(data, false);
+             },
+             [](auto&, auto& peptides) { IDFilter::keepBestPeptideHits(peptides, false); }},
+    {"best (strict)", [](auto& data) {
+                        IDFilter::sortMatchesByScore(data);
+                        IDFilter::keepBestPeptideHits(data, true);
+                      },
+                      [](auto&, auto& peptides) { IDFilter::keepBestPeptideHits(peptides, true); }},
+    {"length", [](auto& data) { IDFilter::filterPeptidesByLength(data, 18, 18); },
+               [](auto&, auto& peptides) { IDFilter::filterPeptidesByLength(peptides, 18, 18); }},
+    {"minimum length", [](auto& data) { IDFilter::filterPeptidesByLength(data, 19); },
+                       [](auto&, auto& peptides) { IDFilter::filterPeptidesByLength(peptides, 19); }},
+    {"charge", [](auto& data) { IDFilter::filterPeptidesByCharge(data, 2, 3); },
+               [](auto&, auto& peptides) { IDFilter::filterPeptidesByCharge(peptides, 2, 3); }},
+    {"score", [](auto& data) { IDFilter::filterHitsByScore(data, 30.0); },
+              [](auto&, auto& peptides) { IDFilter::filterHitsByScore(peptides, 30.0); }},
+    {"score type (main score)", [](auto& data) { IDFilter::filterHitsByScore(data, 30.0, IDScoreSwitcherAlgorithm::ScoreType::RAW); },
+                                [](auto&, auto& peptides) { IDFilter::filterHitsByScore(peptides.getData(), 30.0, IDScoreSwitcherAlgorithm::ScoreType::RAW); }},
+    {"score type (missing)", [](auto& data) { IDFilter::filterHitsByScore(data, 0.05, IDScoreSwitcherAlgorithm::ScoreType::PEP); },
+                             [](auto&, auto& peptides) { IDFilter::filterHitsByScore(peptides.getData(), 0.05, IDScoreSwitcherAlgorithm::ScoreType::PEP); }},
+    {"N best spectra", [](auto& data) {
+                         IDFilter::sortMatchesByScore(data);
+                         IDFilter::keepNBestSpectra(data, 3);
+                       },
+                       [](auto&, auto& peptides) { IDFilter::keepNBestSpectra(peptides, 3); }, true},
+    {"N best hits", [](auto& data) {
+                      IDFilter::sortMatchesByScore(data);
+                      IDFilter::keepNBestPeptideHits(data, 1);
+                    },
+                    [](auto&, auto& peptides) { IDFilter::keepNBestHits(peptides, 1); }},
+    {"best per peptide", [](auto& data) {
+                           IDFilter::sortMatchesByScore(data);
+                           IDFilter::keepBestPerPeptide(data, true, true, 1);
+                         },
+                         [](auto&, auto& peptides) { IDFilter::keepBestPerPeptide(peptides, true, true, 1); }},
+    {"best per modified peptide and charge", [](auto& data) {
+                                               IDFilter::sortMatchesByScore(data);
+                                               IDFilter::keepBestPerPeptide(data, false, false, 0);
+                                             },
+                                             [](auto&, auto& peptides) { IDFilter::keepBestPerPeptide(peptides, false, false, 0); }},
+    {"rank", [](auto& data) {
+               IDFilter::sortMatchesByScore(data);
+               IDFilter::filterHitsByRank(data, 2, 2);
+             },
+             [](auto&, auto& peptides) { IDFilter::filterHitsByRank(peptides, 2, 2); }},
+    {"m/z error", [](auto& data) { IDFilter::filterPeptidesByMZError(data, 1.0, true); },
+                  [](auto&, auto& peptides) { IDFilter::filterPeptidesByMZError(peptides, 1.0, true); }},
+    {"decoys", [](auto& data) { IDFilter::removeDecoyHits(data); },
+               [](auto& proteins, auto& peptides) {
+                 IDFilter::removeDecoyHits(peptides);
+                 IDFilter::removeDecoyHits(proteins);
+               }},
+    {"unique peptides", [](auto& data) { IDFilter::keepUniquePeptidesPerProtein(data); },
+                        [](auto&, auto& peptides) { IDFilter::keepUniquePeptidesPerProtein(peptides); }},
+    {"unreferenced proteins", [](auto& data) { IDFilter::removeUnreferencedProteins(data); },
+                              [](auto& proteins, auto& peptides) { IDFilter::removeUnreferencedProteins(proteins, peptides); }},
+    {"dangling references", [&](auto& data) {
+                              IDFilter::editProteinRuns(data, [&](auto& proteins) { IDFilter::removeHitsMatchingProteins(proteins, accessions); });
+                              IDFilter::removeDanglingProteinReferences(data, true);
+                            },
+                            [&](auto& proteins, auto& peptides) {
+                              IDFilter::removeHitsMatchingProteins(proteins, accessions);
+                              IDFilter::removeDanglingProteinReferences(peptides, proteins, true);
+                            }},
+    {"empty identifications", [](auto& data) {
+                                IDFilter::filterHitsByScore(data, 39.0);
+                                IDFilter::removeEmptyIdentifications(data);
+                              },
+                              [](auto&, auto& peptides) {
+                                IDFilter::filterHitsByScore(peptides, 39.0);
+                                IDFilter::removeEmptyIdentifications(peptides);
+                              }},
+    {"missed cleavages", [&](auto& data) { IDFilter::PeptideDigestionFilter(trypsin, 0, 0).filterPeptideSequences(data); },
+                         [&](auto&, auto& peptides) {
+                           IDFilter::PeptideDigestionFilter filter(trypsin, 0, 0);
+                           for (auto& peptide : peptides) filter.filterPeptideSequences(peptide.getHits());
+                         }},
+    {"protein runs", [](auto& data) {
+                       IDFilter::editProteinRuns(data, [](auto& proteins) {
+                         IDFilter::keepNBestHits(proteins, 2);
+                         for (auto& run : proteins)
+                         {
+                           IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
+                           IDFilter::updateProteinGroups(run.getProteinGroups(), run.getHits());
+                         }
+                       });
+                     },
+                     [](auto& proteins, auto&) {
+                       IDFilter::keepNBestHits(proteins, 2);
+                       for (auto& run : proteins)
+                       {
+                         IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
+                         IDFilter::updateProteinGroups(run.getProteinGroups(), run.getHits());
+                       }
+                     }},
+  };
+
+  // both are compared as export writes them after importing them
+  const auto normalized = [](const vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides) {
+    return IdentificationDataAdapter::toLegacy(IdentificationDataAdapter::fromLegacy(proteins, peptides));
+  };
+  const auto byRT = [](PeptideIdentificationList peptides) {
+    std::stable_sort(peptides.begin(), peptides.end(), [](const auto& a, const auto& b) { return a.getRT() < b.getRT(); });
+    return peptides;
+  };
+  vector<ProteinIdentification> input_proteins;
+  PeptideIdentificationList input_peptides;
+  legacyInput(input_proteins, input_peptides);
+  const auto unfiltered = normalized(input_proteins, input_peptides);
+  for (const auto& test : cases)
+  {
+    STATUS(test.name)
+    auto proteins = input_proteins;
+    auto peptides = input_peptides;
+    auto data = IdentificationDataAdapter::fromLegacy(proteins, peptides);
+    test.native(data);
+    test.legacy(proteins, peptides);
+    const auto expected = normalized(proteins, peptides);
+    const auto actual = IdentificationDataAdapter::toLegacy(data);
+    TEST_EQUAL(IDFilter::countHits(actual.peptides), IDFilter::countHits(expected.peptides))
+    TEST_EQUAL(IDFilter::countHits(actual.proteins), IDFilter::countHits(expected.proteins))
+    TEST_TRUE(test.any_order ? byRT(actual.peptides) == byRT(expected.peptides) : actual.peptides == expected.peptides)
+    TEST_TRUE(actual.proteins == expected.proteins)
+    // the filter does something
+    TEST_FALSE(expected.peptides == unfiltered.peptides && expected.proteins == unfiltered.proteins)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static Size removeMatches(ConsensusMap& map, const MatchPredicate& remove) and removeIdentifications()))
+{
+  // the links of the features stay consistent
+  auto map = nativeMap();
+  TEST_EQUAL(IDFilter::removeMatches(map, [](const ID::Run&, const ID::Identification&, const ID::Match& match) { return match.representation == "PEPTIDEB"; }), 1)
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEA,PEPTIDEC")
+  TEST_EQUAL(map[0].getIDMatches().size(), 1)
+  // feature 1 linked identification 5 (without matches), which goes
+  TEST_EQUAL(IDFilter::removeIdentifications(map, [](const ID::Run&, const ID::Identification& query) { return query.getMatches().empty(); }), 2)
+  TEST_EQUAL(map[1].getIDQueries().empty(), true)
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 3)
+
+  // identification data without a map
+  auto data = nativeMap().getIdentificationData();
+  TEST_EQUAL(IDFilter::removeMatches(data, [](const ID::Run&, const ID::Identification&, const ID::Match& match) { return match.representation == "PEPTIDEA"; }), 2)
+  // identification 2 is left without matches, 4 and 5 have none
+  TEST_EQUAL(IDFilter::removeIdentifications(data, [](const ID::Run&, const ID::Identification& query) { return query.getMatches().empty(); }), 3)
+  TEST_EQUAL(data.getRuns()[0].getNumberOfMatches(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static DataValue legacyMetaValue(const IdentificationData::Run& run, const IdentificationData::Match& match, const std::string& key)))
+{
+  ID data;
+  auto& run = data.addRun("search");
+  ID::ScoreDefinition primary, pep;
+  primary.name = "q-value";
+  primary.higher_better = false;
+  pep.name = "Posterior Error Probability";
+  pep.higher_better = false;
+  run.setPrimaryScore(run.addScore(primary));
+  run.addScore(pep);
+  const auto query = run.addIdentification(run.addSource({}), ID::Observation {});
+  ID::MatchData match_data;
+  match_data.representation = "PEPTIDEK";
+  match_data.target_decoy = ID::TargetDecoy::DECOY;
+  match_data.setMetaValue("protein_references", "unique");
+  const auto& match = run.getMatch(run.addMatch(query, match_data, {0.01, 0.2}));
+  // the meta values of the peptide hit that export writes (the definition of the supplementary score is not kept)
+  IdentificationDataAdapter::ExportOptions options;
+  options.loss_policy = IdentificationDataAdapter::LossPolicy::ALLOW;
+  const auto hit = IdentificationDataAdapter::toLegacy(data, options).peptides[0].getHits()[0];
+  for (const std::string key : {"protein_references", "Posterior Error Probability", "target_decoy"})
+  {
+    TEST_EQUAL(IDFilter::legacyMetaValue(run, match, key), hit.getMetaValue(key))
+  }
+  // the primary score is the score of the hit, not a meta value
+  TEST_EQUAL(IDFilter::legacyMetaValue(run, match, "q-value").isEmpty(), true)
+  TEST_EQUAL(IDFilter::legacyMetaValue(run, match, "missing").isEmpty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static void sortMatchesByScore(IdentificationData& data)))
+{
+  // q-values: lower is better; equal ones keep their order
+  auto data = nativeMap().getIdentificationData();
+  auto& run = data.getRun("search");
+  const auto query = run.getSources()[0].identifications[0].getId();
+  ID::MatchData match;
+  match.representation = "PEPTIDED";
+  run.addMatch(query, match, {0.001});
+  match.representation = "PEPTIDEE";
+  run.addMatch(query, match, {0.05});
+  IDFilter::sortMatchesByScore(data);
+  std::vector<std::string> order;
+  for (const auto& item : data.getRuns()[0].getIdentification(query).getMatches()) order.push_back(item.representation);
+  TEST_EQUAL(ListUtils::concatenate(order, ","), "PEPTIDED,PEPTIDEA,PEPTIDEB,PEPTIDEE")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static void editProteinRuns(IdentificationData& data, const std::function<void(std::vector<ProteinIdentification>&)>& edit)))
+{
+  // a run without an inference result: its database sequences are the protein hits
+  auto data = nativeMap().getIdentificationData();
+  IDFilter::editProteinRuns(data, [](vector<ProteinIdentification>& proteins) {
+    TEST_EQUAL(proteins.size(), 1)
+    auto& hits = proteins[0].getHits();
+    TEST_EQUAL(hits.size(), 3)
+    std::reverse(hits.begin(), hits.end());
+    hits.pop_back();
+  });
+  std::vector<std::string> accessions;
+  for (const auto& sequence : *data.getRuns()[0].getDatabaseSequences()) accessions.push_back(sequence.accession);
+  TEST_EQUAL(ListUtils::concatenate(accessions, ","), "PROT3,PROT2")
+  // proteins cannot be added
+  TEST_EXCEPTION(Exception::InvalidParameter, IDFilter::editProteinRuns(data, [](vector<ProteinIdentification>& proteins) {
+    proteins[0].insertHit(ProteinHit(0.0, 1, "PROT4", ""));
+  }))
+  TEST_EXCEPTION(Exception::InvalidParameter, IDFilter::editProteinRuns(data, [](vector<ProteinIdentification>& proteins) { proteins.emplace_back(); }))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void DigestionFilter::filterPeptideEvidences(IdentificationData& data)))
+{
+  std::vector<FASTAFile::FASTAEntry> proteins(1, FASTAFile::FASTAEntry("P02769", "", "MKWVTFISLLLLFSSAYSRGVFRR"));
+  ProteaseDigestion digestion;
+  digestion.setEnzyme("Trypsin");
+  IDFilter::DigestionFilter filter(proteins, digestion, true, false);
+  ID data;
+  auto& run = data.addRun("search");
+  ID::ScoreDefinition score;
+  score.name = "score";
+  run.setPrimaryScore(run.addScore(score));
+  ID::Database database;
+  database.path = "proteins.fasta";
+  const auto db = run.addDatabase(database);
+  ID::MatchData match;
+  match.representation = "WVTFISLLLLFSSAYSR";
+  // a tryptic product (2..18) and none (2..19, see DigestionFilter::operator())
+  match.sequence_evidence.push_back({db, "P02769", 2u, 18u, 'K', 'G'});
+  match.sequence_evidence.push_back({db, "P02769", 2u, 19u, 'K', 'V'});
+  run.addMatch(run.addIdentification(run.addSource({}), ID::Observation {}), match, {1.0});
+  filter.filterPeptideEvidences(data);
+  const auto& evidence = data.getRuns()[0].getSources()[0].identifications[0].getMatches()[0].sequence_evidence;
+  TEST_EQUAL(evidence.size(), 1)
+  TEST_EQUAL(*evidence[0].end, 18)
 }
 END_SECTION
 

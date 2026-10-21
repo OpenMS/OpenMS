@@ -14,17 +14,14 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/SYSTEM/File.h>
 
+#include <array>
 #include <limits>
 
 using namespace OpenMS;
@@ -230,53 +227,50 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**) override
+  /// The identification data of a filter target
+  static IdentificationData& dataOf_(IdentificationData& data)
   {
-    const std::string tmp_feature_id_metaval_ = "tmp_feature_id";
-    std::string inputfile_name = getStringOption_("in");
-    std::string outputfile_name = getStringOption_("out");
+    return data;
+  }
 
-    vector<ProteinIdentification> proteins;
-    PeptideIdentificationList peptides;
+  static IdentificationData& dataOf_(ConsensusMap& map)
+  {
+    return map.getIdentificationData();
+  }
 
-    //only used for cxml
-    ConsensusMap cmap;
-    unordered_map<UInt64, Size> id_to_feature_index;
-
-    const auto& infiletype = FileHandler::getType(inputfile_name);
-    if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
+  /// The number of protein runs and proteins, identifications and matches of @p data (as export writes them)
+  static std::array<Size, 4> count_(IdentificationData& data)
+  {
+    std::array<Size, 4> counts {0, 0, 0, 0};
+    IDFilter::editProteinRuns(data, [&](vector<ProteinIdentification>& proteins) {
+      counts[0] = proteins.size();
+      counts[1] = IDFilter::countHits(proteins);
+    });
+    for (const auto& run : data.getRuns())
     {
-      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
+      counts[2] += run.getNumberOfIdentifications();
+      counts[3] += run.getNumberOfMatches();
     }
-    else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
-    {
-      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
-      // the filters work on peptide identifications (identification data, e.g. of a consensusparquet bundle, is exported);
-      // the filtered ones are the identifications of the map in the end
-      MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(cmap);
-      cmap.clearIdentifications();
-      for (auto& [path, feature_peptides] : ids.features)
-      {
-        UInt64 id = cmap[path[0]].getUniqueId();
-        id_to_feature_index[id] = path[0];
-        for (auto& p : feature_peptides)
-        {
-          p.setMetaValue(tmp_feature_id_metaval_,StringUtils::toStr(id));
-          peptides.push_back(std::move(p));
-        }
-      }
-      peptides.reserve(peptides.size() + ids.unassigned.size());
-      std::move(std::begin(ids.unassigned),std::end(ids.unassigned),
-          std::back_inserter(peptides));
+    return counts;
+  }
 
-      proteins = std::move(ids.proteins);
-    }
+  /// The peptide sequences of an identification file
+  std::set<std::string> loadSequences_(const std::string& filename, bool ignore_mods) const
+  {
+    IdentificationData data;
+    FileHandler().loadIdentifications(filename, data, {FileTypes::IDXML, FileTypes::IDPARQUET});
+    std::set<std::string> sequences;
+    IDFilter::extractPeptideSequences(data, sequences, ignore_mods);
+    return sequences;
+  }
 
-
-    Size n_prot_ids = proteins.size();
-    Size n_prot_hits = IDFilter::countHits(proteins);
-    Size n_pep_ids = peptides.size();
-    Size n_pep_hits = IDFilter::countHits(peptides);
+  /// Apply the active filters to the identifications of @p target (identification data or a consensus map): one path
+  /// for every input
+  template<class Target>
+  ExitCodes filter_(Target& target)
+  {
+    IdentificationData& data = dataOf_(target);
+    const auto before = count_(data);
 
     // handle remove_meta
     StringList meta_info = getStringList_("remove_peptide_hits_by_metavalue");
@@ -300,14 +294,14 @@ protected:
     if (parseRange_(getStringOption_("precursor:rt"), rt_low, rt_high))
     {
       OPENMS_LOG_INFO << "Filtering peptide IDs by precursor RT..." << endl;
-      IDFilter::filterPeptidesByRT(peptides, rt_low, rt_high);
+      IDFilter::filterPeptidesByRT(target, rt_low, rt_high);
     }
 
     double mz_high = numeric_limits<double>::infinity(), mz_low = -mz_high;
     if (parseRange_(getStringOption_("precursor:mz"), mz_low, mz_high))
     {
       OPENMS_LOG_INFO << "Filtering peptide IDs by precursor m/z...";
-      IDFilter::filterPeptidesByMZ(peptides, mz_low, mz_high);
+      IDFilter::filterPeptidesByMZ(target, mz_low, mz_high);
     }
 
 
@@ -316,29 +310,27 @@ protected:
     if (getFlag_("remove_duplicate_psm"))
     {
       OPENMS_LOG_INFO << "Removing duplicated psms..." << endl;
-      IDFilter::removeDuplicatePeptideHits(peptides);
+      IDFilter::removeDuplicatePeptideHits(target);
     }
 
     if (getFlag_("remove_shared_peptides"))
     {
       OPENMS_LOG_INFO << "Filtering peptides by unique match to a protein..." << endl;
-      IDFilter::keepUniquePeptidesPerProtein(peptides);
+      IDFilter::keepUniquePeptidesPerProtein(target);
     }
 
     double pred_rt_pv = getDoubleOption_("rt:p_value");
     if (pred_rt_pv > 0)
     {
       OPENMS_LOG_INFO << "Filtering by RT prediction p-value..." << endl;
-      IDFilter::filterPeptidesByRTPredictPValue(
-        peptides, "predicted_RT_p_value", pred_rt_pv);
+      IDFilter::filterPeptidesByRTPredictPValue(target, "predicted_RT_p_value", pred_rt_pv);
     }
 
     double pred_rt_pv_1d = getDoubleOption_("rt:p_value_1st_dim");
     if (pred_rt_pv_1d > 0)
     {
       OPENMS_LOG_INFO << "Filtering by RT prediction p-value (first dim.)..." << endl;
-      IDFilter::filterPeptidesByRTPredictPValue(
-        peptides, "predicted_RT_p_value_first_dim", pred_rt_pv_1d);
+      IDFilter::filterPeptidesByRTPredictPValue(target, "predicted_RT_p_value_first_dim", pred_rt_pv_1d);
     }
 
     std::string whitelist_fasta = StringUtils::trimmed(getStringOption_("whitelist:proteins"));
@@ -349,47 +341,35 @@ protected:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(whitelist_fasta, fasta);
       set<std::string> accessions;
-      for (vector<FASTAFile::FASTAEntry>::iterator it = fasta.begin();
-           it != fasta.end(); ++it)
+      for (const FASTAFile::FASTAEntry& entry : fasta)
       {
-        accessions.insert(it->identifier);
+        accessions.insert(entry.identifier);
       }
-      IDFilter::keepHitsMatchingProteins(peptides, accessions);
-      IDFilter::keepHitsMatchingProteins(proteins, accessions);
+      IDFilter::keepHitsMatchingProteins(target, accessions);
     }
 
-    vector<std::string> whitelist_accessions =
-      getStringList_("whitelist:protein_accessions");
+    vector<std::string> whitelist_accessions = getStringList_("whitelist:protein_accessions");
     if (!whitelist_accessions.empty())
     {
-      OPENMS_LOG_INFO << "Filtering by protein whitelisting (accessions input)..."
-               << endl;
-      set<std::string> accessions(whitelist_accessions.begin(),
-                             whitelist_accessions.end());
-      IDFilter::keepHitsMatchingProteins(peptides, accessions);
-      IDFilter::keepHitsMatchingProteins(proteins, accessions);
+      OPENMS_LOG_INFO << "Filtering by protein whitelisting (accessions input)..." << endl;
+      set<std::string> accessions(whitelist_accessions.begin(), whitelist_accessions.end());
+      IDFilter::keepHitsMatchingProteins(target, accessions);
     }
 
     std::string whitelist_peptides = StringUtils::trimmed(getStringOption_("whitelist:peptides"));
     if (!whitelist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
-      PeptideIdentificationList inclusion_peptides;
-      vector<ProteinIdentification> inclusion_proteins; // ignored
-      FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
-                       inclusion_peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       bool ignore_mods = getFlag_("whitelist:ignore_modifications");
-      IDFilter::keepPeptidesWithMatchingSequences(peptides, inclusion_peptides,
-                                                  ignore_mods);
+      IDFilter::keepPeptidesWithMatchingSequences(target, loadSequences_(whitelist_peptides, ignore_mods), ignore_mods);
     }
 
     vector<std::string> whitelist_mods = getStringList_("whitelist:modifications");
     if (!whitelist_mods.empty())
     {
-      OPENMS_LOG_INFO << "Filtering peptide IDs by modification whitelisting..."
-               << endl;
+      OPENMS_LOG_INFO << "Filtering peptide IDs by modification whitelisting..." << endl;
       set<std::string> good_mods(whitelist_mods.begin(), whitelist_mods.end());
-      IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
+      IDFilter::keepPeptidesWithMatchingModifications(target, good_mods);
     }
 
     std::string blacklist_fasta = StringUtils::trimmed(getStringOption_("blacklist:proteins"));
@@ -400,58 +380,49 @@ protected:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(blacklist_fasta, fasta);
       set<std::string> accessions;
-      for (FASTAFile::FASTAEntry& ft : fasta)
+      for (const FASTAFile::FASTAEntry& entry : fasta)
       {
-        accessions.insert(ft.identifier);
+        accessions.insert(entry.identifier);
       }
-      IDFilter::removeHitsMatchingProteins(peptides, accessions);
-      IDFilter::removeHitsMatchingProteins(proteins, accessions);
+      IDFilter::removeHitsMatchingProteins(target, accessions);
     }
 
-    vector<std::string> blacklist_accessions =
-      getStringList_("blacklist:protein_accessions");
+    vector<std::string> blacklist_accessions = getStringList_("blacklist:protein_accessions");
     if (!blacklist_accessions.empty())
     {
-      OPENMS_LOG_INFO << "Filtering by protein blacklisting (accessions input)..."
-               << endl;
-      set<std::string> accessions(blacklist_accessions.begin(),
-                             blacklist_accessions.end());
-      IDFilter::removeHitsMatchingProteins(peptides, accessions);
-      IDFilter::removeHitsMatchingProteins(proteins, accessions);
+      OPENMS_LOG_INFO << "Filtering by protein blacklisting (accessions input)..." << endl;
+      set<std::string> accessions(blacklist_accessions.begin(), blacklist_accessions.end());
+      IDFilter::removeHitsMatchingProteins(target, accessions);
     }
 
     std::string blacklist_peptides = StringUtils::trimmed(getStringOption_("blacklist:peptides"));
     if (!blacklist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
-      PeptideIdentificationList exclusion_peptides;
-      vector<ProteinIdentification> exclusion_proteins; // ignored
-      FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
-                       exclusion_peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       bool ignore_mods = getFlag_("blacklist:ignore_modifications");
-      IDFilter::removePeptidesWithMatchingSequences(
-        peptides, exclusion_peptides, ignore_mods);
+      IDFilter::removePeptidesWithMatchingSequences(target, loadSequences_(blacklist_peptides, ignore_mods), ignore_mods);
     }
 
     vector<std::string> blacklist_mods = getStringList_("blacklist:modifications");
     if (!blacklist_mods.empty())
     {
-      OPENMS_LOG_INFO << "Filtering peptide IDs by modification blacklisting..."
-               << endl;
+      OPENMS_LOG_INFO << "Filtering peptide IDs by modification blacklisting..." << endl;
       set<std::string> bad_mods(blacklist_mods.begin(), blacklist_mods.end());
-      IDFilter::removePeptidesWithMatchingModifications(peptides, bad_mods);
+      IDFilter::removePeptidesWithMatchingModifications(target, bad_mods);
     }
 
     std::string blacklist_regex = getStringOption_("blacklist:RegEx");
     if (!blacklist_regex.empty())
     {
-      IDFilter::removePeptidesWithMatchingRegEx(peptides, blacklist_regex);
+      IDFilter::removePeptidesWithMatchingRegEx(target, blacklist_regex);
     }
 
+    // the filters that select the best hits order them best first
     if (getFlag_("best:strict"))
     {
       OPENMS_LOG_INFO << "Filtering by best peptide hits..." << endl;
-      IDFilter::keepBestPeptideHits(peptides, true);
+      IDFilter::sortMatchesByScore(data);
+      IDFilter::keepBestPeptideHits(target, true);
     }
 
 
@@ -464,8 +435,7 @@ protected:
         OPENMS_LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'precursor:length'" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      IDFilter::filterPeptidesByLength(peptides, Size(min_length),
-                                       Size(max_length));
+      IDFilter::filterPeptidesByLength(target, Size(min_length), Size(max_length));
     }
 
     // Filter by digestion enzyme product
@@ -504,19 +474,12 @@ protected:
         digestion.setMissedCleavages(missed_cleavages);
       }
 
-      bool methionine_cleavage = false;
-      if (getFlag_("in_silico_digestion:methionine_cleavage"))
-      {
-        methionine_cleavage = true;
-      }
+      bool methionine_cleavage = getFlag_("in_silico_digestion:methionine_cleavage");
 
       // Build the digest filter function
-      IDFilter::DigestionFilter filter(fasta,
-                                       digestion,
-                                       ignore_missed_cleavages,
-                                       methionine_cleavage);
-      // Filter peptides
-      filter.filterPeptideEvidences(peptides);
+      IDFilter::DigestionFilter filter(fasta, digestion, ignore_missed_cleavages, methionine_cleavage);
+      // Filter the protein references of the peptides
+      filter.filterPeptideEvidences(data);
     }
 
     // Filter peptide hits by missing cleavages
@@ -540,10 +503,7 @@ protected:
       IDFilter::PeptideDigestionFilter filter(digestion, min_cleavages, max_cleavages);
 
       // Filter peptide hits
-      for (auto& peptide : peptides)
-      {
-        filter.filterPeptideSequences(peptide.getHits());
-      }
+      filter.filterPeptideSequences(target);
     }
 
     if (getFlag_("var_mods"))
@@ -551,25 +511,19 @@ protected:
       OPENMS_LOG_INFO << "Filtering for variable modifications..." << endl;
       // gather possible variable modifications from search parameters:
       set<std::string> var_mods;
-      for (ProteinIdentification& prot : proteins)
+      for (const auto& run : data.getRuns())
       {
-        const ProteinIdentification::SearchParameters& params =
-          prot.getSearchParameters();
-        for (vector<std::string>::const_iterator mod_it =
-               params.variable_modifications.begin(); mod_it !=
-               params.variable_modifications.end(); ++mod_it)
-        {
-          var_mods.insert(*mod_it);
-        }
+        const auto& mods = run.getSettings().search.variable_modifications;
+        var_mods.insert(mods.begin(), mods.end());
       }
-      IDFilter::keepPeptidesWithMatchingModifications(peptides, var_mods);
+      IDFilter::keepPeptidesWithMatchingModifications(target, var_mods);
     }
 
     double psm_score = getDoubleOption_("score:psm");
     if (!std::isnan(psm_score))
     {
       OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
-      IDFilter::filterHitsByScore(peptides, psm_score);
+      IDFilter::filterHitsByScore(target, psm_score);
     }
     else
     {
@@ -585,12 +539,11 @@ protected:
 
       if (!score_type.empty())
       {
-        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type);
-        IDFilter::filterHitsByScore(peptides.getData(), pep_score, score_type_enum);
+        IDFilter::filterHitsByScore(target, pep_score, IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type));
       }
       else
       {
-        IDFilter::filterHitsByScore(peptides, pep_score);
+        IDFilter::filterHitsByScore(target, pep_score);
       }
     }
     else
@@ -599,50 +552,42 @@ protected:
     }
 
 
-    Int min_charge = numeric_limits<Int>::min(), max_charge =
-      numeric_limits<Int>::max();
+    Int min_charge = numeric_limits<Int>::min(), max_charge = numeric_limits<Int>::max();
     if (parseRange_(getStringOption_("precursor:charge"), min_charge, max_charge))
     {
       OPENMS_LOG_INFO << "Filtering by peptide charge..." << endl;
-      IDFilter::filterPeptidesByCharge(peptides, min_charge, max_charge);
+      IDFilter::filterPeptidesByCharge(target, min_charge, max_charge);
     }
 
     const Size best_n_spectra = getIntOption_("best:n_spectra");
     if (best_n_spectra > 0)
     {
       OPENMS_LOG_INFO << "Filtering by best n spectra..." << endl;
-      IDFilter::keepNBestSpectra(peptides, best_n_spectra);
+      IDFilter::sortMatchesByScore(data);
+      IDFilter::keepNBestSpectra(target, best_n_spectra);
     }
 
     Size best_n_pep = getIntOption_("best:n_peptide_hits");
     if (best_n_pep > 0)
     {
       OPENMS_LOG_INFO << "Filtering by best n peptide hits..." << endl;
-      IDFilter::keepNBestHits(peptides, best_n_pep);
+      IDFilter::sortMatchesByScore(data);
+      IDFilter::keepNBestPeptideHits(target, best_n_pep);
     }
 
     std::string spectrum_per_peptide = getStringOption_("best:spectrum_per_peptide");
     if (spectrum_per_peptide != "false")
     {
       OPENMS_LOG_INFO << "Keeping best spectrum per " << spectrum_per_peptide << endl;
-      if (spectrum_per_peptide == "sequence") // group by sequence and return best spectrum (->smallest number of spectra)
-      {
-        IDFilter::keepBestPerPeptide(peptides, true, true, 1);
-      } else if (spectrum_per_peptide == "sequence+modification")
-      {
-        IDFilter::keepBestPerPeptide(peptides, false, true, 1);
-      } else if (spectrum_per_peptide == "sequence+charge")
-      {
-        IDFilter::keepBestPerPeptide(peptides, true, false, 1);
-      } else if (spectrum_per_peptide == "sequence+charge+modification") // group by sequence, modificationm, charge combination and return best spectrum (->largest number of spectra)
-      {
-        IDFilter::keepBestPerPeptide(peptides, false, false, 1);
-      }
+      // group by sequence (with or without modifications, with or without charge) and keep the best spectrum
+      const bool ignore_mods = spectrum_per_peptide.find("modification") == std::string::npos;
+      const bool ignore_charges = spectrum_per_peptide.find("charge") == std::string::npos;
+      IDFilter::sortMatchesByScore(data);
+      IDFilter::keepBestPerPeptide(target, ignore_mods, ignore_charges, 1);
     }
 
     Int min_rank = 0, max_rank = 0;
-    if (parseRange_(getStringOption_("best:n_to_m_peptide_hits"), min_rank,
-                    max_rank))
+    if (parseRange_(getStringOption_("best:n_to_m_peptide_hits"), min_rank, max_rank))
     {
       OPENMS_LOG_INFO << "Filtering by peptide hit ranks..." << endl;
       if ((min_rank < 0) || (max_rank < 0))
@@ -650,7 +595,8 @@ protected:
         OPENMS_LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'best:n_to_m_peptide_hits'" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      IDFilter::filterHitsByRank(peptides, Size(min_rank), Size(max_rank));
+      IDFilter::sortMatchesByScore(data);
+      IDFilter::filterHitsByRank(target, Size(min_rank), Size(max_rank));
     }
 
     double mz_error = getDoubleOption_("mz:error");
@@ -658,26 +604,26 @@ protected:
     {
       OPENMS_LOG_INFO << "Filtering by mass error..." << endl;
       bool unit_ppm = (getStringOption_("mz:unit") == "ppm");
-      IDFilter::filterPeptidesByMZError(peptides, mz_error, unit_ppm);
+      IDFilter::filterPeptidesByMZError(target, mz_error, unit_ppm);
     }
 
 
     // Filtering protein identifications according to set criteria
     double prot_score = getDoubleOption_("score:protein");
     std::string score_type_prot = getStringOption_("score:type_protein");
-
     if (!std::isnan(prot_score))
     {
       OPENMS_LOG_INFO << "Filtering by protein score  (better than " << prot_score << ") ..." << endl;
-      if (!score_type_prot.empty())
-      {
-        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type_prot);
-        IDFilter::filterHitsByScore(proteins, prot_score, score_type_prot_enum);
-      }
-      else
-      {
-        IDFilter::filterHitsByScore(proteins, prot_score);
-      }
+      IDFilter::editProteinRuns(data, [&](vector<ProteinIdentification>& proteins) {
+        if (!score_type_prot.empty())
+        {
+          IDFilter::filterHitsByScore(proteins, prot_score, IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type_prot));
+        }
+        else
+        {
+          IDFilter::filterHitsByScore(proteins, prot_score);
+        }
+      });
     }
     else
     {
@@ -689,26 +635,27 @@ protected:
     if (best_n_prot > 0)
     {
       OPENMS_LOG_INFO << "Filtering by best n protein hits (" << best_n_prot << ") ... " << endl;
-      IDFilter::keepNBestHits(proteins, best_n_prot);
+      IDFilter::editProteinRuns(data, [&](vector<ProteinIdentification>& proteins) { IDFilter::keepNBestHits(proteins, best_n_prot); });
     }
 
     if (getFlag_("remove_decoys"))
     {
       OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
-      IDFilter::removeDecoyHits(peptides);
-      IDFilter::removeDecoyHits(proteins);
+      IDFilter::removeDecoyHits(target);
     }
 
     // Filtering protein identifications according to set criteria
     double prot_grp_score = getDoubleOption_("score:proteingroup");
     if (!std::isnan(prot_grp_score))
     {
-      for (auto& proteinid : proteins)
-      {
-        OPENMS_LOG_INFO << "Filtering by protein group score..." << endl;
-        IDFilter::filterGroupsByScore(proteinid.getIndistinguishableProteins(), prot_grp_score, proteinid.isHigherScoreBetter());
-        IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
-      }
+      OPENMS_LOG_INFO << "Filtering by protein group score..." << endl;
+      IDFilter::editProteinRuns(data, [&](vector<ProteinIdentification>& proteins) {
+        for (auto& proteinid : proteins)
+        {
+          IDFilter::filterGroupsByScore(proteinid.getIndistinguishableProteins(), prot_grp_score, proteinid.isHigherScoreBetter());
+          IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
+        }
+      });
     }
     else
     {
@@ -719,10 +666,12 @@ protected:
     // remove peptide hits with meta values:
     if (remove_meta_enabled)
     {
-      auto checkMVs = [this, &meta_info](PeptideHit& ph)->bool
+      // a hit without the meta value is removed, too
+      auto checkMVs = [this, &meta_info](const IdentificationData::Run& run, const IdentificationData::Identification&,
+                                         const IdentificationData::Match& match) -> bool
       {
-        if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
-        DataValue v_data = ph.getMetaValue(meta_info[0]);
+        const DataValue v_data = IDFilter::legacyMetaValue(run, match, meta_info[0]);
+        if (v_data.isEmpty()) return true;
         DataValue v_user;
         switch (v_data.valueType())
         {
@@ -758,19 +707,7 @@ protected:
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
         }
       }; // of lambda
-
-      for (auto & pid : peptides)
-      {
-        vector<PeptideHit>& phs = pid.getHits();
-        phs.erase(remove_if(phs.begin(), phs.end(), checkMVs), phs.end());
-      }
-    }
-
-    if (getFlag_("remove_decoys"))
-    {
-      OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
-      IDFilter::removeDecoyHits(peptides);
-      IDFilter::removeDecoyHits(proteins);
+      IDFilter::removeMatches(target, checkMVs);
     }
 
     // Clean-up:
@@ -779,32 +716,32 @@ protected:
     if (!getFlag_("keep_unreferenced_protein_hits"))
     {
       OPENMS_LOG_INFO << "Removing unreferenced protein hits..." << endl;
-      IDFilter::removeUnreferencedProteins(proteins, peptides);
+      IDFilter::removeUnreferencedProteins(data);
     }
 
     // propagate filter from protein level to protein group level
-    for (ProteinIdentification& prot : proteins)
-    {
-      bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
-                                                 prot.getHits());
-      if (!valid)
+    IDFilter::editProteinRuns(data, [&](vector<ProteinIdentification>& proteins) {
+      for (ProteinIdentification& prot : proteins)
       {
-        OPENMS_LOG_WARN << "Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
-      }
+        bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(), prot.getHits());
+        if (!valid)
+        {
+          OPENMS_LOG_WARN << "Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+        }
 
-      valid = IDFilter::updateProteinGroups(
-          prot.getIndistinguishableProteins(), prot.getHits());
-      if (!valid)
-      {
-        OPENMS_LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
-      }
+        valid = IDFilter::updateProteinGroups(prot.getIndistinguishableProteins(), prot.getHits());
+        if (!valid)
+        {
+          OPENMS_LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+        }
 
-      if (!std::isnan(prot_grp_score))
-      {
-        // Pass potential filtering on group level down to proteins
-        IDFilter::removeUngroupedProteins(prot.getIndistinguishableProteins(), prot.getHits());
+        if (!std::isnan(prot_grp_score))
+        {
+          // Pass potential filtering on group level down to proteins
+          IDFilter::removeUngroupedProteins(prot.getIndistinguishableProteins(), prot.getHits());
+        }
       }
-    }
+    });
 
     // remove non-existant protein references from peptides (and optionally:
     // remove peptides with no proteins):
@@ -813,47 +750,56 @@ protected:
     {
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
-    IDFilter::removeDanglingProteinReferences(peptides, proteins, rm_pep);
+    IDFilter::removeDanglingProteinReferences(target, rm_pep);
 
-    IDFilter::removeEmptyIdentifications(peptides);
+    IDFilter::removeEmptyIdentifications(target);
     // we want to keep "empty" protein IDs because they contain search meta data
 
     // some stats
+    const auto after = count_(data);
     OPENMS_LOG_INFO << "Before filtering:\n"
-             << n_prot_ids << " identification runs with "
-             << n_prot_hits << " proteins,\n"
-             << n_pep_ids << " spectra identified with "
-             << n_pep_hits << " spectrum matches.\n"
+             << before[0] << " identification runs with "
+             << before[1] << " proteins,\n"
+             << before[2] << " spectra identified with "
+             << before[3] << " spectrum matches.\n"
              << "After filtering:\n"
-             << proteins.size() << " identification runs with "
-             << IDFilter::countHits(proteins) << " proteins,\n"
-             << peptides.size() << " spectra identified with "
-             << IDFilter::countHits(peptides) << " spectrum matches." << endl;
+             << after[0] << " identification runs with "
+             << after[1] << " proteins,\n"
+             << after[2] << " spectra identified with "
+             << after[3] << " spectrum matches." << endl;
 
+    return EXECUTION_OK;
+  }
+
+  ExitCodes main_(int, const char**) override
+  {
+    std::string inputfile_name = getStringOption_("in");
+    std::string outputfile_name = getStringOption_("out");
+
+    const auto& infiletype = FileHandler::getType(inputfile_name);
     if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
     {
-      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {infiletype});
+      IdentificationData data;
+      try
+      {
+        FileHandler().loadIdentifications(inputfile_name, data, {FileTypes::IDXML, FileTypes::IDPARQUET});
+      }
+      catch (const Exception::InvalidValue& e)
+      {
+        // e.g. the runs of several search engines, whose scores the filters cannot compare
+        writeLogError_("Error: The identifications of '" + inputfile_name + "' cannot be filtered together: " + e.what());
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      const auto result = filter_(data);
+      if (result != EXECUTION_OK) return result;
+      FileHandler().storeIdentifications(outputfile_name, data, {infiletype});
     }
     else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
-      MapPeptideIdentifications filtered;
-      for (auto& p : peptides)
-      {
-        if (p.metaValueExists(tmp_feature_id_metaval_))
-        {
-          UInt64 id(0);
-          std::stringstream(p.getMetaValue(tmp_feature_id_metaval_).toString()) >> id;
-          p.removeMetaValue(tmp_feature_id_metaval_);
-          filtered.features[{id_to_feature_index.at(id)}].push_back(std::move(p));
-        }
-        else
-        {
-          filtered.unassigned.push_back(std::move(p));
-        }
-      }
-      peptides.clear();
-      filtered.proteins = std::move(proteins);
-      IdentificationDataConverter::importMapIdentifications(cmap, filtered);
+      ConsensusMap cmap;
+      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
+      const auto result = filter_(cmap);
+      if (result != EXECUTION_OK) return result;
       FileHandler().storeConsensusFeatures(outputfile_name, cmap, {infiletype});
     }
 

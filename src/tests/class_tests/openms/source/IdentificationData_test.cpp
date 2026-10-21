@@ -285,6 +285,41 @@ START_SECTION((Size Run::retainBest(ScoreId score, bool keep_ties = true, bool k
 }
 END_SECTION
 
+START_SECTION((void Run::sortMatches(const std::function<bool(const Match&, const Match&)>& before)))
+{
+  ID::Run run("search");
+  auto source = run.addSource({});
+  auto value = run.addScore(score("test", true));
+  auto second = run.addScore(score("second", true));
+  auto query = run.addIdentification(source, {});
+  auto other = run.addIdentification(source, {});
+  const auto low = run.addMatch(query, peptide("AAG"), {1.0, 10.0});
+  const auto high = run.addMatch(query, peptide("AGG"), {3.0, 30.0});
+  const auto tie = run.addMatch(query, peptide("GGA"), {1.0, std::nullopt});
+  const auto single = run.addMatch(other, peptide("GAG"), {2.0, 20.0});
+  const auto revision = run.getRevision();
+  // best first; equal matches keep their order
+  run.sortMatches([&](const ID::Match& a, const ID::Match& b) { return *run.getScore(a.getId(), value) > *run.getScore(b.getId(), value); });
+  std::vector<ID::MatchId> order;
+  for (const auto& match : run.getIdentification(query).getMatches()) order.push_back(match.getId());
+  TEST_TRUE(order == (std::vector<ID::MatchId> {high, low, tie}))
+  TEST_EQUAL(run.getIdentification(other).getMatches()[0].getId() == single, true)
+  // the matches keep their IDs and scores (also through bound score access), and the run its counts
+  TEST_EQUAL(*run.getScore(high, second), 30.0)
+  TEST_EQUAL(*run.getScore(low, second), 10.0)
+  TEST_EQUAL(run.getScore(tie, second).has_value(), false)
+  TEST_EQUAL(*run.bindScore(value)(run.getMatch(single)), 2.0)
+  TEST_EQUAL(run.getIdentificationForMatch(tie).getId() == query, true)
+  TEST_EQUAL(run.getNumberOfMatches(), 4)
+  TEST_EQUAL(run.getRevision() > revision, true)
+  run.validate();
+  // a throwing comparison changes nothing
+  const ID::Run before_throw(run);
+  TEST_EXCEPTION(std::runtime_error, run.sortMatches([](const ID::Match&, const ID::Match&) -> bool { throw std::runtime_error("comparison"); }))
+  TEST_TRUE(run == before_throw)
+}
+END_SECTION
+
 START_SECTION((Size Run::eraseIdentifications(const std::function<bool(const Identification&)>& remove)))
 {
   ID::Run run("search");
