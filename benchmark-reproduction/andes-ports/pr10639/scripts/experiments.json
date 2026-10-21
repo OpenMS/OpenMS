@@ -885,5 +885,129 @@
     ]
    }
   }
+ },
+ "mhc2": {
+  "db": "mhc/human_td.fasta",
+  "in": [
+   "mhc2/DN09_Pancreas_classII_techRep1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "s1": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": []
+   },
+   "low_memory": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:low_memory",
+     "true"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "s32": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "32"
+    ]
+   },
+   "s64": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "64"
+    ]
+   },
+   "c64": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "639"
+    ]
+   }
+  }
+ },
+ "mhc2_deam": {
+  "db": "mhc/human_td.fasta",
+  "in": [
+   "mhc2/DN09_Pancreas_classII_techRep1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "s1": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": []
+   },
+   "low_memory": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:low_memory",
+     "true"
+    ]
+   },
+   "s16": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "16"
+    ]
+   },
+   "s32": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "32"
+    ]
+   },
+   "s64": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "64"
+    ]
+   },
+   "c64": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "639"
+    ]
+   },
+   "s128": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:database:mass_slices",
+     "128"
+    ]
+   },
+   "c128": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:database:chunk_size",
+     "320"
+    ]
+   }
+  }
  }
 }

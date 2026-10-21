@@ -29,3 +29,6 @@
 {"pin": "runs/v2_whole/s16_r1/hfx_A2_full.pin", "psms": [63375, 63394, 63506], "mean_psms": 63425, "entrap": [534, 523, 553], "fdp_combined_pct": 1.69}
 {"pin": "runs/v2_whole/c16_r1/hfx_A2_full.pin", "psms": [63521, 63486, 63516], "mean_psms": 63507.7, "entrap": [560, 566, 552], "fdp_combined_pct": 1.76}
 {"pin": "runs/exp2/whole_s1/hfx_A2_full.pin", "psms": [63347, 63426, 63400], "mean_psms": 63391, "entrap": [530, 529, 541], "fdp_combined_pct": 1.68}
+{"pin": "runs/mhc2/low_memory_r1/DN09_Pancreas_classII_techRep1.pin", "psms": [8385, 8373, 8439], "mean_psms": 8399, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/mhc2/c64_r1/DN09_Pancreas_classII_techRep1.pin", "psms": [8187, 8133, 8224], "mean_psms": 8181.3, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}
+{"pin": "runs/mhc2_deam/low_memory_r1/DN09_Pancreas_classII_techRep1.pin", "psms": [7729, 7701, 7679], "mean_psms": 7703, "entrap": [0, 0, 0], "fdp_combined_pct": 0.0}

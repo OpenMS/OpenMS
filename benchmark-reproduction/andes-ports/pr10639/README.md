@@ -5,6 +5,31 @@ The section "Total peptide order" describes the current head. The tie-order cave
 Question: does the memory/speed gain andes reported for searching in precursor-mass slices also show up in OpenMS, and
 do the results stay identical?
 
+## `low_memory` vs. `mass_slices`, MHC class II (head `448ea1e0`, build `/opt/openms-v3` = `a3464870` code)
+
+Question: is `low_memory` (peptide-mass mode, the only option that works there; `mass_slices` is ignored with it) still
+needed for unspecific searches, or do mass slices cover it? Data: MHCquant2 timsTOF Pro class II
+`DN09_Pancreas_classII_techRep1.mzML` (PXD058436, archive `testfiles/id_bruker/classII/middle/`, 1,990,908,088 bytes as
+in its `manifest.tsv`; 120,442 MS2, z 1–5) against `human_sp.fasta` + reversed decoys. `ini/mhc2.ini` = the class I
+`mhc` parameters with length 8–25, z 1–5, max mass 3500, ≤1 Ox(M) (529 M peptides); `ini/mhc2_deam.ini` = + Deamidated
+(N), (Q), ≤2 variable mods (1.74 G peptides). One run per arm (4 threads, watchdog at 12.5 GiB), `results/mhc2*.tsv`.
+Peak RSS GiB / wall min:
+
+| search | off | `low_memory` | 16 slices | 32 slices | 64 slices | 128 slices | `chunk_size` 64 / 128 chunks |
+|---|---|---:|---:|---:|---:|---:|---|
+| class II, ≤1 Ox(M) | killed | 6.29 / 23.6 | 10.99 / 9.4 | 7.13 / 10.8 | **5.26 / 15.1** | | 11.28 / 15.9 · – |
+| + Deamidated (N, Q), ≤2 mods | killed | **7.03 / 87.4** | killed | killed | 10.35 / 38.5 | **7.17 / 51.5** | killed · killed |
+
+- `low_memory` and every slice count give byte-identical idXML and PIN (with the total peptide order, the peptide-mass
+  path and the fragment index now keep the same candidates here); `chunk_size` gives other results.
+- PSMs at q ≤ 0.01 (Percolator 3.06, seeds 1/42/137): ≤1 Ox(M) 8,399 for `low_memory` / all slices vs. 8,181 (−2.6 %)
+  for `chunk_size` 64 chunks; with deamidation 7,703.
+
+Verdict: without extra modifications, 64 slices beat `low_memory` on both memory (−16 %) and time (1.6× faster). With
+deamidation the slices need 128 to reach `low_memory`'s memory (+2 %) and are then still 1.7× faster; with fewer slices
+they are faster but need more memory. `low_memory` remains the option with the lowest memory at a given setting and
+needs no slice count to be chosen, but on these searches it is never the fastest way to fit into a memory budget.
+
 ## Total peptide order (PR head `a3464870`, decided by Timo after the rebuild)
 
 `FragmentIndex::sortPeptides_()` sorted by (precursor m/z, protein) with an unstable sort, so the order of equally heavy
