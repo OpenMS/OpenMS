@@ -6035,17 +6035,37 @@ namespace OpenMS
     std::vector<Size> run_offsets;
     Size total_psms = 0;
 
-    for (SearchResult& file_res : per_file)
+    for (Size i = 0; i < per_file.size(); ++i)
     {
+      SearchResult& file_res = per_file[i];
       run_offsets.push_back(total_psms);
       if (file_res.exit_code == ExitCodes::EXECUTION_OK)
       {
-        if (keep_pre_fdr_psms_) { file_res.pre_fdr_peptide_ids = file_res.peptide_ids; }
+        if (keep_pre_fdr_psms_ && file_res.pre_fdr_peptide_ids.empty())
+        {
+          file_res.pre_fdr_peptide_ids = file_res.peptide_ids;
+        }
         if (!file_res.protein_ids.empty())
         {
           pooled_prot_ids.push_back(file_res.protein_ids[0]);
           total_psms += file_res.peptide_ids.size();
-          pooled_peptides.insert(pooled_peptides.end(), file_res.peptide_ids.begin(), file_res.peptide_ids.end());
+          if (keep_pre_fdr_psms_)
+          {
+            pooled_peptides.insert(pooled_peptides.end(),
+                                   std::make_move_iterator(file_res.peptide_ids.begin()),
+                                   std::make_move_iterator(file_res.peptide_ids.end()));
+          }
+          else
+          {
+            pooled_peptides.insert(pooled_peptides.end(),
+                                   file_res.peptide_ids.begin(),
+                                   file_res.peptide_ids.end());
+          }
+          // Stamp temporary per-run identity so Percolator's TDC groups PSMs per run
+          for (Size j = run_offsets.back(); j < total_psms; ++j)
+          {
+            pooled_peptides[j].setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<unsigned int>(i));
+          }
         }
       }
     }
@@ -6068,7 +6088,10 @@ namespace OpenMS
       {
         if (file_res.exit_code != ExitCodes::EXECUTION_OK) continue;
         file_res.percolator = joint_rescoring;
-        if (keep_pre_fdr_psms_) { file_res.pre_fdr_peptide_ids = file_res.peptide_ids; }
+        if (keep_pre_fdr_psms_ && !file_res.protein_ids.empty())
+        {
+          file_res.peptide_ids = file_res.pre_fdr_peptide_ids;
+        }
         if (fdr_psm_ > 0.0)
         {
           StopWatch sw_fdr; sw_fdr.start();
@@ -6103,6 +6126,11 @@ namespace OpenMS
       file_res.peptide_ids.assign(
         std::make_move_iterator(pooled_peptides.begin() + run_offsets[i]),
         std::make_move_iterator(pooled_peptides.begin() + run_offsets[i + 1]));
+
+      for (PeptideIdentification& pid : file_res.peptide_ids)
+      {
+        pid.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      }
 
       // Recompute per-run q-values from the joint Percolator SVM scores ("MS:1001492")
       struct SvmRow { double svm; bool decoy; Size pid_idx; };
