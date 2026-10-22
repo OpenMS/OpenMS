@@ -240,12 +240,19 @@ namespace
     return true;
   }
 
-  /// True if @p a and @p b describe the same annotation (type, description, coordinates, variation).
+  /// True if @p a and @p b become the same annotation (see classifyAndAppend()): same type, coordinates
+  /// and variation and, for modifications, the same cleaned description. Other descriptions (e.g. of a
+  /// sequence variant or a chain) are not written, so features differing only in them are the same.
   bool sameAnnotationFeature(const UniProtFeature& a, const UniProtFeature& b)
   {
-    return a.type == b.type && a.description == b.description && a.has_position == b.has_position
-           && a.has_range == b.has_range && a.position == b.position && a.begin == b.begin && a.end == b.end
-           && a.variation == b.variation;
+    if (a.type != b.type || a.has_position != b.has_position || a.has_range != b.has_range
+        || a.position != b.position || a.begin != b.begin || a.end != b.end || a.variation != b.variation)
+    {
+      return false;
+    }
+    const bool description_written = a.type == "modified residue" || a.type == "cross-link"
+                                     || a.type == "glycosylation site" || a.type == "lipid moiety-binding region";
+    return !description_written || cleanPtmDescription(a.description) == cleanPtmDescription(b.description);
   }
 
   // ──────────────────────────────────────────────────────────────────

@@ -269,6 +269,24 @@ START_SECTION(([EXTRA] map_canonical_features: canonical annotations in isoform 
   TEST_EQUAL(iso.simple_variants[1].new_aa, 'V')
   TEST_EQUAL(iso.complex_variants.size(), 0)
 
+  // a copy of an isoform annotation is recognized by what is written: a variant's description is not written,
+  // a modification's is (after cleaning, so "; by PKA" does not matter); a different modification is kept
+  UniProtEntry described = canonicalFeatures();
+  described.features = {position("sequence variant", "In dbSNP:rs1.", 13, "", "K"),
+                        position("sequence variant", "In dbSNP:rs2.", 9, "P66666-2", "K"),
+                        position("modified residue", "Phosphoserine", 14),
+                        position("modified residue", "Phosphoserine; by PKA", 10, "P66666-2"),
+                        position("modified residue", "Phosphothreonine", 15),
+                        position("modified residue", "Phosphoserine", 11, "P66666-2"),
+                        splice("VSP_A", 3, 6), splice("VSP_B", 20, 20, "L", "LIV")};
+  pe = prepare(described, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 1)
+  TEST_EQUAL(pe.isoform_scoped_applied, 3)
+  TEST_EQUAL(pe.canonical_mapped, 1)
+  TEST_EQUAL(pe.canonical_unmapped, 0)
+  TEST_EQUAL(pe.isoforms[0].annotations.simple_variants.size(), 1)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({10, 11, 11}))
+
   // the disulfide bond survives when both half-cystines do, whatever lies between them
   UniProtEntry bonded = canonicalFeatures();
   bonded.features = {range("disulfide bond", "", 2, 25), splice("VSP_A", 3, 6), splice("VSP_B", 20, 20, "L", "LIV")};
