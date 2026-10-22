@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 925f5b965d..373b39d2e1 100644
+index 925f5b965d..ac1c244d83 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -126,6 +126,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
@@ -40,7 +40,71 @@ index 925f5b965d..373b39d2e1 100644
      trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
                                           skipDecoysPlusOne);
    }
-@@ -519,11 +528,17 @@ int CrossValidation::mergeCpCnPairs(
+@@ -321,9 +330,12 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   // ////
+ 
+   // Create SVM input data for parallelization
+-  std::vector<AlgIn*> svmInputsVec;
+-  std::vector<std::vector<Scores> > nestedTestScoresVec;
+-  for (std::size_t set = 0; set < numFolds_; ++set) {
++  // OpenMS: the folds in parallel (each fills its own SVM inputs from its own training set),
++  // unless nested cross-validation draws the nested sets at random
++  std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
++  std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_)) if(nestedXvalBins_ <= 1)
++  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
+         nestedTestScores(nestedXvalBins_, usePi0_);
+     if (nestedXvalBins_ > 1) {
+@@ -335,7 +347,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+       nestedTrainScores[0] = trainScores_[set];
+       nestedTestScores[0] = trainScores_[set];
+     }
+-    nestedTestScoresVec.push_back(nestedTestScores);
++    nestedTestScoresVec[set] = nestedTestScores;
+     // Set SVM input data for L2-SVM-MFN
+     for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
+          ++nestedFold) {
+@@ -353,7 +365,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+              << ": Training with " << svmInput->positives << " positives and "
+              << svmInput->negatives << " negatives" << std::endl;
+       }
+-      svmInputsVec.push_back(svmInput);
++      svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
+     }
+   }
+ 
+@@ -440,6 +452,18 @@ int CrossValidation::mergeCpCnPairs(
+   //       scoring calculation in calcScores.
+   unsigned int numCpCnPairsPerSet =
+       static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
++  // OpenMS: the positives of all (cpos, cneg) pairs in parallel, each pair on its own copy of
++  // its test set (sorting a shared one would serialize the pairs of a fold). The count does not
++  // depend on the order of the test set (PSMs that compare equal have the same label), and the
++  // test sets are not used afterwards. The pairs are then merged in their order, as before.
++  vector<int> pairTruePoses(classWeightsPerFold_.size());
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
++  for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); ++pairIdx) {
++    CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
++    Scores testScores = nestedTestScoresVec[cpCnPair.set][static_cast<std::size_t>(cpCnPair.nestedSet)];
++    pairTruePoses[pairIdx] =
++        testScores.calcScoresAndQvals(cpCnPair.ww, testFdr_, skipDecoysPlusOne);
++  }
+ #pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     unsigned int a = set * numCpCnPairsPerSet;
+@@ -449,9 +473,7 @@ int CrossValidation::mergeCpCnPairs(
+     std::map<std::pair<double, double>, int> intermediateResults;
+     for (itCpCnPair = classWeightsPerFold_.begin() + a;
+          itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
+-      tp = nestedTestScoresVec[set][static_cast<std::size_t>(
+-                                        itCpCnPair->nestedSet)]
+-               .calcScoresAndQvals(itCpCnPair->ww, testFdr_, skipDecoysPlusOne);
++      tp = pairTruePoses[static_cast<std::size_t>(itCpCnPair - classWeightsPerFold_.begin())];
+       intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
+                                                    itCpCnPair->cfrac}] += tp;
+       itCpCnPair->tp = tp;
+@@ -519,11 +541,17 @@ int CrossValidation::mergeCpCnPairs(
      }
    }
  

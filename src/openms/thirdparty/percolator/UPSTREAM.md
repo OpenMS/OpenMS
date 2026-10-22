@@ -85,6 +85,12 @@ hand-editing sources and committing them, to keep sync self-healing.
   "Selected feature" reports (`Scores::getInitDirection` writes them to a stream
   it is given) are printed afterwards in fold order. None of these loops draws
   random numbers, so the results do not depend on the number of threads.
+  In `doStep`, the folds also fill their SVM inputs in parallel (not with nested
+  cross-validation, which draws the nested sets at random), and
+  `mergeCpCnPairs` counts the positives of all (Cpos, Cneg) pairs in parallel,
+  each on its own copy of its test set: the count does not depend on the order
+  of the set (PSMs that compare equal have the same label), and the test sets
+  are discarded afterwards.
 - `patches/06-spline-pep-sparse.patch` — speeds up the spline PEP (`BaseSpline`,
   `pep_method` `nonparametric`) without changing its result.
   `PackedMatrix::packedMultiply` computes, per row, only the dot products with
