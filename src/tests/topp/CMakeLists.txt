@@ -5626,16 +5626,21 @@ if(WITH_ONNX)
 endif()
 # The protein FDR of one input skipped: with five hits per spectrum and no PSM FDR, the decoys of ProSE_14_duplicate_ids
 # are only among the hits after the first, and the inference uses the first hit of each PSM, so no decoy protein is left
-# for the picked-protein FDR. The provenance says that it was not applied.
+# for the picked-protein FDR. The provenance says that it was not applied. The precondition is checked on the run's
+# -out_pin (all reported hits with ProSE's scores, what the protein FDR gets here): the best hit of every spectrum a
+# target, some later hit a decoy; if the fixture's ranking changes, _precondition says so.
 set(_f ProSE_14_protein_fdr_skipped)
 prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML -Search:report:top_hits 5
-  -Search:FDR:PSM 0 -Search:rescore false)
+  -Search:FDR:PSM 0 -Search:rescore false -out_pin ${TESTS_TEMP_DIR}/${_f}.tmp.tsv)
+add_test("TOPP_${_f}_precondition" ${CMAKE_COMMAND} -DPIN=${TESTS_TEMP_DIR}/${_f}.tmp.tsv -DDECOY=DECOY_
+  -P ${DATA_DIR_TOPP}/check_pin_later_decoys.cmake)
+set_tests_properties("TOPP_${_f}_precondition" PROPERTIES DEPENDS "TOPP_${_f}")
 add_test("TOPP_${_f}_log" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}.tmp.log
   "-DEXPECTED=no decoy proteins remain after inference" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_${_f}_log" PROPERTIES DEPENDS "TOPP_${_f}")
+set_tests_properties("TOPP_${_f}_log" PROPERTIES DEPENDS "TOPP_${_f}_precondition")
 add_test("TOPP_${_f}_provenance" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.provenance.parquet
   -out_tsv ${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv)
-set_tests_properties("TOPP_${_f}_provenance" PROPERTIES DEPENDS "TOPP_${_f}")
+set_tests_properties("TOPP_${_f}_provenance" PROPERTIES DEPENDS "TOPP_${_f}_precondition")
 add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv
   "-DEXPECTED=key:string = protein_fdr_applied, value:string = false"
   "-DFORBIDDEN=key:string = protein_fdr_applied, value:string = true" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
