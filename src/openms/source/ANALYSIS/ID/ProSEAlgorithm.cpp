@@ -2114,9 +2114,38 @@ namespace OpenMS
 
       At most 8 threads: the step (about 60 ms serially for 50,000 entries) gains little beyond 4 threads, and a
       larger team costs CPU time (measured at 64 threads: 2-4 CPU-s per run for no shorter wall time).
+
+      Most accessions cannot match a pattern, and searching for the suffix pattern tries every position: an accession
+      is searched only if mayMatchDecoyPattern() says it can match.
     */
     DecoyHelper::Result findDecoyStringInParallel(const std::vector<FASTAFile::FASTAEntry>& db)
     {
+      // Whether DecoyHelper's prefix (or suffix) pattern can match the lower-case accession: "^(decoy_*|dec_*|...)"
+      // matches exactly the accessions that start with an affix, "(_decoy*|_dec*|...)$" exactly those that end with
+      // '_', an affix without its last character and this character any number of times. Boost's ^ and $ also match
+      // at the line breaks inside a text: such an accession is always searched.
+      const auto mayMatchDecoyPattern = [](const std::string& lower, bool suffix)
+      {
+        if (lower.find_first_of("\n\r\f") != std::string::npos) { return true; }
+        for (const std::string& affix : DecoyHelper::affixes)
+        {
+          if (!suffix)
+          {
+            if (StringUtils::hasPrefix(lower, affix)) { return true; }
+            continue;
+          }
+          const std::string_view stem(affix.data(), affix.size() - 1);
+          for (std::string_view head(lower); ; head.remove_suffix(1))
+          {
+            if (head.size() > stem.size() && head.substr(head.size() - stem.size()) == stem && head[head.size() - stem.size() - 1] == '_')
+            {
+              return true;
+            }
+            if (head.empty() || head.back() != affix.back()) { break; }
+          }
+        }
+        return false;
+      };
 #ifdef _OPENMP
       constexpr int max_threads = 8;
       const int threads = omp_in_parallel() ? 1 : std::min(omp_get_max_threads(), max_threads);
@@ -2151,13 +2180,13 @@ namespace OpenMS
             const std::string& identifier = db[i].identifier;
             lower = identifier;
             StringUtils::toLower(lower);
-            if (prefix_pattern.search(lower, &match))
+            if (mayMatchDecoyPattern(lower, false) && prefix_pattern.search(lower, &match))
             {
               ++chunk.prefixes;
               ++chunk.count[match].first;
               chunk.spelling[match] = StringUtils::prefix(identifier, match.length());
             }
-            if (suffix_pattern.search(lower, &match))
+            if (mayMatchDecoyPattern(lower, true) && suffix_pattern.search(lower, &match))
             {
               ++chunk.suffixes;
               ++chunk.count[match].second;
@@ -5017,6 +5046,14 @@ namespace OpenMS
       }
     };
     read_next(0);
+    // Whether the first file names an electron-based activation early on, if build_index_while_first_file_is_read()
+    // below asks: looked up meanwhile, from here on.
+    std::future<bool> first_file_names_electron_activation;
+    if (next_spectra.valid() && ions_by_activation_)
+    {
+      first_file_names_electron_activation = std::async(std::launch::async | std::launch::deferred,
+        [&in_spectra_files]() { return mzMLHeadNamesElectronActivation(in_spectra_files[0]); });
+    }
 
     // Resolve decoy handling once from the shared input FASTA; reused for the
     // chunk-major path, the single-context path, and the downstream FDR steps.
@@ -5500,7 +5537,7 @@ namespace OpenMS
       const auto build_index_while_first_file_is_read = [&]()
       {
         if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
-            && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
+            && !(ions_by_activation_ && first_file_names_electron_activation.get()))
         {
           std::function<const PeakMap*(Size)> searched_spectra;
           if (restrict_index)
