@@ -6206,6 +6206,93 @@ foreach(view feature psm pg)
                        DEPENDS "TOPP_ProteomicsLFQ_feat_dir_strict_ref;TOPP_ProteomicsLFQ_feat_dir_strict_combine")
 endforeach()
 
+# Match between runs with PIP-ECHO. A combine has to reproduce exactly the run that wrote its checkpoints: the
+# same process detected both, so this is compared without tolerance. PIP-ECHO scores the transfers from feature
+# meta values (masserror_ppm, pipecho_obs_envelope, IM_*) and derives its RT window from the runs' FWHM, so a
+# checkpoint has to give back every double as it was written. -PipEcho:fdr 1.0 keeps the transfers, for which
+# this small data set has too few decoys.
+set(PLFQ_PIPECHO_INPUTS
+    -in
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+    -ids
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+    ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML)
+set(PLFQ_PIPECHO_OPTIONS
+    -design ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+    -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+    -targeted_only false
+    -pip_echo true
+    -PipEcho:fdr 1.0
+    -PipEcho:min_decoys 1
+    -mass_recalibration false
+    -proteinFDR 0.3
+    -test)
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_pipecho_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
+         ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt_t4
+         ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_ref ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_split)
+add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_ref" ${TOPP_BIN_PATH}/ProteomicsLFQ ${PLFQ_PIPECHO_INPUTS} ${PLFQ_PIPECHO_OPTIONS}
+         -threads 1
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_pipecho_ref.tmp.csv
+         -out ${TESTS_TEMP_DIR}/BSA_pipecho_ref.tmp.mzTab
+         -out_qpx ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_ref)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_ref" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_clean"
+                     PASS_REGULAR_EXPRESSION "PIP-ECHO: added [1-9][0-9]* acceptors")
+add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_combine" ${TOPP_BIN_PATH}/ProteomicsLFQ ${PLFQ_PIPECHO_OPTIONS}
+         -threads 1
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_pipecho_split.tmp.csv
+         -out_qpx ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_split)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_combine" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_ref"
+                     PASS_REGULAR_EXPRESSION "Feature checkpoints: 6 reused, 0 detected")
+add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_msstats" COMMAND ${CMAKE_COMMAND} -E compare_files
+         ${TESTS_TEMP_DIR}/BSA_pipecho_ref.tmp.csv ${TESTS_TEMP_DIR}/BSA_pipecho_split.tmp.csv)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_msstats" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_combine")
+foreach(view feature psm pg)
+  add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_${view}" ${TOPP_BIN_PATH}/ParquetDiff
+           -in1 ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_ref/quantms.${view}.parquet
+           -in2 ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_split/quantms.${view}.parquet
+           -ratio 1 -absdiff 0 -min_rows 1)
+  set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_${view}" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_combine")
+endforeach()
+
+# The same run with 4 threads gives the same checkpoints and the same results. Seed detection filters the peaks
+# of a spectrum in parallel (MultiplexFiltering) and used to accept them in whatever order the threads finished.
+# Compared exactly, but between two processes, which MSVC does not reproduce bit for bit (see above).
+if (NOT MSVC)
+  add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_t4" ${TOPP_BIN_PATH}/ProteomicsLFQ ${PLFQ_PIPECHO_INPUTS} ${PLFQ_PIPECHO_OPTIONS}
+           -threads 4
+           -feat_dir ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt_t4
+           -out_msstats ${TESTS_TEMP_DIR}/BSA_pipecho_t4.tmp.csv
+           -out ${TESTS_TEMP_DIR}/BSA_pipecho_t4.tmp.mzTab)
+  set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_t4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_clean")
+  foreach(out csv mzTab)
+    add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_pipecho_t4_eq_${out}" COMMAND ${CMAKE_COMMAND} -E compare_files
+             ${TESTS_TEMP_DIR}/BSA_pipecho_ref.tmp.${out} ${TESTS_TEMP_DIR}/BSA_pipecho_t4.tmp.${out})
+    set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_t4_eq_${out}" PROPERTIES
+                         DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_ref;TOPP_ProteomicsLFQ_feat_dir_pipecho_t4")
+  endforeach()
+  foreach(run BSA1_F1_fg1_f2 BSA1_F2_fg4_f3 BSA2_F1_fg2_f2 BSA2_F2_fg2_f3 BSA3_F1_fg3_f2 BSA3_F2_fg3_f3)
+    add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_t4_eq_${run}" ${TOPP_BIN_PATH}/ParquetDiff
+             -in1 ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt/${run}.featureParquet/features.parquet
+             -in2 ${TESTS_TEMP_DIR}/BSA_pipecho_ckpt_t4/${run}.featureParquet/features.parquet
+             -pk unique_id -ratio 1 -absdiff 0 -min_rows 1)
+    set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_t4_eq_${run}" PROPERTIES
+                         DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_ref;TOPP_ProteomicsLFQ_feat_dir_pipecho_t4")
+  endforeach()
+endif()
+
 # An incomplete checkpoint directory is refused rather than half-read. Checkpoints are renamed into
 # place only once written, so this state cannot arise from an interrupted run -- but it can from a
 # truncated copy, and the reader must not accept it.

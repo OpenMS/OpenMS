@@ -1208,8 +1208,10 @@ namespace OpenMS
             double rt = rt_pep.second->getRT();
             std::string uid = StringUtils::toStr(rt_pep.second->getMetaValue("SeedFeatureID"));
 
-            // UID should be enough, but let's add the seed count to be sure.
-            std::string peptide_id = peptide.sequence + "[" + uid + "][" + StringUtils::toStr(seedcount) + "]/" + StringUtils::toStr(charge);
+            // The seed count makes it unique. It comes first because the features are sorted by this reference,
+            // and the UID is drawn at random (from a time-dependent seed, unless in test mode): a reference that
+            // started with it would put the seed features in a different order in every process.
+            std::string peptide_id = peptide.sequence + "[" + StringUtils::toStr(seedcount) + "][" + uid + "]/" + StringUtils::toStr(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};

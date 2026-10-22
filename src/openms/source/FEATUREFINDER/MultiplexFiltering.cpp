@@ -19,6 +19,10 @@
 
 #include <utility>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -125,10 +129,11 @@ namespace OpenMS
     return -1;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak, std::vector<BlacklistEntry>* blacklist_reads) const
   {    
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
+    if (blacklist_reads) { blacklist_reads->push_back({peak.getRTidx(), peak.getMZidx(), blacklist_[peak.getRTidx()][peak.getMZidx()]}); }
     if (blacklist_[peak.getRTidx()][peak.getMZidx()] > 0)
     {
       return false;
@@ -181,6 +186,7 @@ namespace OpenMS
             size_t mz_idx = exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i);
             
             // Check that the peak has not been blacklisted and is not already in the satellite set.
+            if (blacklist_reads) { blacklist_reads->push_back({rt_idx, mz_idx, blacklist_[rt_idx][mz_idx]}); }
             if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (!(peak.checkSatellite(rt_idx, mz_idx))))
             {
               found = true;
@@ -299,7 +305,82 @@ namespace OpenMS
     return true;
   }
   
+  void MultiplexFiltering::filterSpectrum_(size_t idx_rt, unsigned pattern_idx, const PeakFilter& filter_peak, MultiplexFilteredMSExperiment& result)
+  {
+    const SignedSize n_peaks = static_cast<SignedSize>(exp_centroided_white_[idx_rt].size());
+
+#ifdef _OPENMP
+    const bool parallel = omp_get_max_threads() > 1;
+#else
+    const bool parallel = false;
+#endif
+    if (!parallel)
+    {
+      for (SignedSize s = 0; s < n_peaks; ++s)
+      {
+        if (std::optional<MultiplexFilteredPeak> peak = filter_peak(s, nullptr))
+        {
+          result.addPeak(*peak);
+          blacklistPeak_(*peak, pattern_idx);
+        }
+      }
+      return;
+    }
+
+    // Filter every peak against the blacklist as it is now, and find the entries each one that passes would
+    // blacklist. Nothing writes to the blacklist meanwhile.
+    std::vector<std::optional<MultiplexFilteredPeak>> passed(n_peaks);
+    if (blacklist_reads_.size() < static_cast<Size>(n_peaks))
+    {
+      blacklist_reads_.resize(n_peaks);
+      blacklist_writes_.resize(n_peaks);
+    }
+    #pragma omp parallel for
+    for (SignedSize s = 0; s < n_peaks; ++s)
+    {
+      blacklist_reads_[s].clear();
+      blacklist_writes_[s].clear();
+      passed[s] = filter_peak(s, &blacklist_reads_[s]);
+      if (passed[s]) { blacklistEntries_(*passed[s], pattern_idx, blacklist_writes_[s]); }
+    }
+
+    // Accept the peaks in order of m/z. A peak is filtered again if a peak accepted before it in this spectrum has
+    // changed an entry its decision read, so that every decision sees the blacklist a serial loop would.
+    bool blacklisted = false;
+    for (SignedSize s = 0; s < n_peaks; ++s)
+    {
+      const std::vector<BlacklistEntry>& reads = blacklist_reads_[s];
+      if (blacklisted
+          && std::any_of(reads.begin(), reads.end(),
+                         [this](const BlacklistEntry& read) { return blacklist_[read.rt_idx][read.mz_idx] != read.value; }))
+      {
+        passed[s] = filter_peak(s, nullptr);
+        blacklist_writes_[s].clear();
+        if (passed[s]) { blacklistEntries_(*passed[s], pattern_idx, blacklist_writes_[s]); }
+      }
+      if (passed[s])
+      {
+        result.addPeak(*passed[s]);
+        for (const BlacklistEntry& write : blacklist_writes_[s])
+        {
+          blacklist_[write.rt_idx][write.mz_idx] = write.value;
+        }
+        blacklisted = true;
+      }
+    }
+  }
+
   void MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx)
+  {
+    std::vector<BlacklistEntry> entries;
+    blacklistEntries_(peak, pattern_idx, entries);
+    for (const BlacklistEntry& entry : entries)
+    {
+      blacklist_[entry.rt_idx][entry.mz_idx] = entry.value;
+    }
+  }
+
+  void MultiplexFiltering::blacklistEntries_(const MultiplexFilteredPeak& peak, unsigned pattern_idx, std::vector<BlacklistEntry>& entries) const
   {
     // determine absolute m/z tolerance in Th
     double mz_tolerance;
@@ -317,7 +398,7 @@ namespace OpenMS
     }
     
     // Determine the RT boundaries for each of the mass traces.
-    std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
+    const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites = peak.getSatellites();
     // <rt_boundaries> is a map from the mass trace index to the spectrum indices for beginning and end of the mass trace.
     std::map<size_t, std::pair<size_t, size_t> > rt_boundaries;
     // loop over satellites
@@ -367,7 +448,7 @@ namespace OpenMS
         if (idx_mz != -1)
         {
           // blacklist entries: -1 = white, any isotope pattern index (it.first) = black
-          blacklist_[it_rt - exp_centroided_.begin()][idx_mz] = it.first;
+          entries.push_back({static_cast<size_t>(it_rt - exp_centroided_.begin()), static_cast<size_t>(idx_mz), static_cast<int>(it.first)});
         }
       }
       
