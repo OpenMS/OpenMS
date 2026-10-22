@@ -231,6 +231,7 @@ namespace OpenMS
 
     fixed_mod_deltas_.fill(0.0);
     fixed_mod_ptrs_.fill(nullptr);
+    fixed_mod_residues_.fill(nullptr);
     for (auto& v : variable_mod_table_) v.clear();
     variable_nterm_mods_.clear();
     variable_cterm_mods_.clear();
@@ -238,6 +239,22 @@ namespace OpenMS
     fixed_cterm_delta_ = 0.0;
     fixed_nterm_mod_ptr_ = nullptr;
     fixed_cterm_mod_ptr_ = nullptr;
+
+    // The residue that AASequence::setModification(index, mod) puts at an unmodified residue @p origin of a sequence made by
+    // AASequence::fromString(): looked up once, here. nullptr where that fails; reconstruction then calls setModification().
+    auto modified_residue = [](char origin, const ResidueModification* mod) -> const Residue*
+    {
+      try
+      {
+        const AASequence residue = AASequence::fromString(std::string(1, origin));
+        if (residue.size() != 1 || residue[0].isModified()) return nullptr;
+        return ResidueDB::getInstance()->getModifiedResidue(&residue[0], mod);
+      }
+      catch (const Exception::BaseException&)
+      {
+        return nullptr;
+      }
+    };
 
     // Build fixed modification lookup
     if (!modifications_fixed_.empty())
@@ -271,6 +288,7 @@ namespace OpenMS
           {
             fixed_mod_deltas_[static_cast<unsigned char>(origin)] = delta;
             fixed_mod_ptrs_[static_cast<unsigned char>(origin)] = mod_ptr;
+            fixed_mod_residues_[static_cast<unsigned char>(origin)] = modified_residue(origin, mod_ptr);
           }
           else if (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM)
           {
@@ -314,6 +332,7 @@ namespace OpenMS
         else
         {
           // Residue-specific variable mod — add to the table for this AA
+          if (term_spec == ResidueModification::ANYWHERE) entry.residue = modified_residue(origin, mod_ptr);
           variable_mod_table_[static_cast<unsigned char>(origin)].push_back(entry);
         }
       }
@@ -479,7 +498,7 @@ namespace OpenMS
         // PROTEIN_C_TERM: only last position AND peptide is at protein end
         if (entry.term_spec == ResidueModification::ANYWHERE)
         {
-          if (!fixed_residue) out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr};
+          if (!fixed_residue) out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr, entry.residue};
         }
         else if ((entry.term_spec == ResidueModification::N_TERM && i == 0)
                  || (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0 && is_protein_nterm))
@@ -779,7 +798,11 @@ namespace OpenMS
     for (size_t i = 0; i < seq.size(); ++i)
     {
       unsigned char aa = static_cast<unsigned char>(protein_seq[peptide.sequence_.first + i]);
-      if (fixed_mod_ptrs_[aa] != nullptr)
+      if (fixed_mod_residues_[aa] != nullptr)
+      {
+        seq.setModification(i, fixed_mod_residues_[aa]);
+      }
+      else if (fixed_mod_ptrs_[aa] != nullptr)
       {
         seq.setModification(i, fixed_mod_ptrs_[aa]);
       }
@@ -816,6 +839,10 @@ namespace OpenMS
         else if (slots[s].position == ModSlot::CTERM_SLOT)
         {
           seq.setCTerminalModification(slots[s].mod_ptr);
+        }
+        else if (slots[s].residue != nullptr)
+        {
+          seq.setModification(slots[s].position, slots[s].residue);
         }
         else
         {
@@ -884,7 +911,11 @@ namespace OpenMS
     for (size_t i = 0; i < seq.size(); ++i)
     {
       const unsigned char aa = static_cast<unsigned char>(protein_seq[realized_start + i]);
-      if (fixed_mod_ptrs_[aa] != nullptr)
+      if (fixed_mod_residues_[aa] != nullptr)
+      {
+        seq.setModification(i, fixed_mod_residues_[aa]);
+      }
+      else if (fixed_mod_ptrs_[aa] != nullptr)
       {
         seq.setModification(i, fixed_mod_ptrs_[aa]);
       }
@@ -911,6 +942,10 @@ namespace OpenMS
         else if (slots[s].position == ModSlot::CTERM_SLOT)
         {
           seq.setCTerminalModification(slots[s].mod_ptr);
+        }
+        else if (slots[s].residue != nullptr)
+        {
+          seq.setModification(slots[s].position, slots[s].residue);
         }
         else
         {

@@ -628,6 +628,7 @@ protected:
       double delta_mass;                    ///< mass delta from this modification
       const ResidueModification* mod_ptr;   ///< pointer to the modification (for AASequence reconstruction)
       ResidueModification::TermSpecificity term_spec; ///< where this mod can be applied
+      const Residue* residue{nullptr};      ///< ANYWHERE mods: the modified residue (ResidueDB), nullptr if not resolved
     };
 
     /** @brief A candidate modification slot for a specific peptide.
@@ -640,6 +641,7 @@ protected:
       uint16_t position;                    ///< residue index, or NTERM_SLOT/CTERM_SLOT
       double delta_mass;                    ///< mass delta
       const ResidueModification* mod_ptr;   ///< for AASequence reconstruction
+      const Residue* residue{nullptr};      ///< residue slots: the modified residue (VarModEntry::residue)
 
       static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1; ///< sentinel for an N-terminal mod slot (pure or residue-specific)
       static constexpr uint16_t CTERM_SLOT = UINT16_MAX;      ///< sentinel for a C-terminal mod slot (pure or residue-specific)
@@ -717,6 +719,9 @@ protected:
     std::array<double, 128> fixed_mod_deltas_{};
     /// Per-AA fixed modification pointer (nullptr if none)
     std::array<const ResidueModification*, 128> fixed_mod_ptrs_{};
+    /// Per-AA residue with its fixed modification, as AASequence::setModification() resolves it in ResidueDB (nullptr if
+    /// none or not resolved). Resolved once here, so that reconstructing a candidate takes no ResidueDB lock.
+    std::array<const Residue*, 128> fixed_mod_residues_{};
     double fixed_nterm_delta_{0.0};   ///< Fixed N-terminal mod delta (0 if none)
     double fixed_cterm_delta_{0.0};   ///< Fixed C-terminal mod delta (0 if none)
     const ResidueModification* fixed_nterm_mod_ptr_{nullptr};
