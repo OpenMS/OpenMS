@@ -12,6 +12,13 @@ if(NOT length_one EQUAL 9 OR NOT length_two EQUAL 9)
   message(FATAL_ERROR "De Bruijn decoys must retain target lengths; got ${length_one} and ${length_two}")
 endif()
 
+string(SUBSTRING "${decoy_one}" 8 1 terminal_one)
+string(SUBSTRING "${decoy_two}" 0 1 initial_two)
+string(SUBSTRING "${decoy_two}" 8 1 terminal_two)
+if(NOT terminal_one STREQUAL "K" OR NOT initial_two STREQUAL "K" OR NOT terminal_two STREQUAL "R")
+  message(FATAL_ERROR "Expected comma-separated K,R keep residues to remain in place: '${decoy_one}', '${decoy_two}'")
+endif()
+
 # The targets share "PEPTIDE" (length 7); for k=2 the decoys must share L-k=5 residues.
 string(SUBSTRING "${decoy_one}" 3 5 repeat_one)
 string(SUBSTRING "${decoy_two}" 3 5 repeat_two)

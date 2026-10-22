@@ -374,7 +374,15 @@ protected:
     DecoyGenerator debruijn_generator;
     if (debruijn)
     {
-      debruijn_generator.startDeBruijn(getIntOption_("debruijn_k"), static_cast<UInt64>(seed), keep_const_pattern);
+      StringList keep_const_residues;
+      StringUtils::split(keep_const_pattern, ',', keep_const_residues);
+      std::string keep_residues;
+      for (auto residue : keep_const_residues)
+      {
+        StringUtils::trim(residue);
+        keep_residues += residue;
+      }
+      debruijn_generator.startDeBruijn(getIntOption_("debruijn_k"), static_cast<UInt64>(seed), keep_residues);
       for (const auto& file_fasta : in)
       {
         FASTAFile fasta_in;
