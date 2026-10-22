@@ -72,6 +72,8 @@ namespace OpenMS
       double exp_rt = 0.0;
       std::optional<Int64> transition_id;
       bool decoy = false;
+      Size run_rank = 0;
+      Size precursor_rank = 0;
       int cv_group_key = 0;
       std::vector<double> feature_values;
     };
@@ -225,36 +227,78 @@ namespace OpenMS
       return {mean, std::sqrt(std::max(0.0, variance))};
     }
 
-    using ScientificPrecursor = std::tuple<std::vector<String>, Int64, bool>;
+    using ScientificPrecursor = std::tuple<std::vector<std::vector<String>>, Int64, bool>;
 
     struct ScientificKeys
     {
       std::map<Int64, String> runs;
       std::map<Int64, ScientificPrecursor> precursors;
+      std::unordered_map<Int64, bool> precursor_decoys;
     };
 
     ScientificKeys scientificKeysSqlite_(SqliteConnector& conn)
     {
       ScientificKeys keys;
       sqlite3_stmt* stmt = nullptr;
+      if (!conn.tableExists("RUN") || !conn.tableExists("PRECURSOR")) return keys;
       Sql::prepareStatement(conn, &stmt, "SELECT ID, FILENAME FROM RUN;");
       for (auto state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
       {
-        keys.runs.emplace(Sql::extractInt64(stmt, 0), Sql::extractString(stmt, 1));
+        if (sqlite3_column_type(stmt, 1) != SQLITE_NULL)
+        {
+          keys.runs.emplace(Sql::extractInt64(stmt, 0), Sql::extractString(stmt, 1));
+        }
       }
       sqlite3_finalize(stmt);
-      Sql::prepareStatement(conn, &stmt,
-        "SELECT PRECURSOR.ID, PEPTIDE.MODIFIED_SEQUENCE, PRECURSOR.CHARGE, PRECURSOR.DECOY "
-        "FROM PRECURSOR JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_ID "
-        "JOIN PEPTIDE ON PEPTIDE.ID = PEPTIDE_ID;");
-      for (auto state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+      std::set<Int64> incomplete_precursors;
+      auto readIdentities = [&](const String& query, const int identity_columns)
       {
-        auto& key = keys.precursors[Sql::extractInt64(stmt, 0)];
-        std::get<0>(key).push_back(Sql::extractString(stmt, 1));
-        std::get<1>(key) = Sql::extractInt64(stmt, 2);
-        std::get<2>(key) = Sql::extractInt(stmt, 3) != 0;
+        Sql::prepareStatement(conn, &stmt, query);
+        for (auto state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
+        {
+          // NULL metadata is irrelevant until a retained feature needs this identity.
+          if ((identity_columns == 1 && sqlite3_column_type(stmt, 1) == SQLITE_NULL) ||
+              sqlite3_column_type(stmt, identity_columns + 1) == SQLITE_NULL ||
+              sqlite3_column_type(stmt, identity_columns + 2) == SQLITE_NULL)
+          {
+            incomplete_precursors.insert(Sql::extractInt64(stmt, 0));
+            continue;
+          }
+          std::vector<String> identity;
+          for (int col = 1; col <= identity_columns; ++col)
+          {
+            identity.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ? "" : Sql::extractString(stmt, col));
+          }
+          if (std::all_of(identity.begin(), identity.end(), [](const String& value) { return value.empty(); }))
+          {
+            incomplete_precursors.insert(Sql::extractInt64(stmt, 0));
+            continue;
+          }
+          identity.insert(identity.begin(), identity_columns == 1 ? "peptide" : "compound");
+          auto& key = keys.precursors[Sql::extractInt64(stmt, 0)];
+          std::get<0>(key).push_back(std::move(identity));
+          std::get<1>(key) = Sql::extractInt64(stmt, identity_columns + 1);
+          std::get<2>(key) = sqlite3_column_int(stmt, identity_columns + 2) != 0;
+        }
+        sqlite3_finalize(stmt);
+      };
+      if (conn.tableExists("PEPTIDE") && conn.tableExists("PRECURSOR_PEPTIDE_MAPPING"))
+      {
+        readIdentities("SELECT PRECURSOR.ID, PEPTIDE.MODIFIED_SEQUENCE, PRECURSOR.CHARGE, PRECURSOR.DECOY "
+          "FROM PRECURSOR JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_ID "
+          "JOIN PEPTIDE ON PEPTIDE.ID = PEPTIDE_ID;", 1);
       }
-      sqlite3_finalize(stmt);
+      if (conn.tableExists("COMPOUND") && conn.tableExists("PRECURSOR_COMPOUND_MAPPING"))
+      {
+        // Older native OSW libraries omit ADDUCTS, as supported by TransitionPQPFile.
+        const String adducts = Sql::columnExists(Sql::getNativeHandle(conn), "COMPOUND", "ADDUCTS") ?
+          "COMPOUND.ADDUCTS" : "''";
+        readIdentities("SELECT PRECURSOR.ID, COMPOUND.COMPOUND_NAME, COMPOUND.SUM_FORMULA, COMPOUND.SMILES, " +
+          adducts + ", PRECURSOR.CHARGE, PRECURSOR.DECOY "
+          "FROM PRECURSOR JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_ID "
+          "JOIN COMPOUND ON COMPOUND.ID = COMPOUND_ID;", 4);
+      }
+      for (const auto id : incomplete_precursors) keys.precursors.erase(id);
       // Mapping row order and peptide IDs must not affect precursor identity.
       for (auto& [id, key] : keys.precursors)
       {
@@ -278,13 +322,33 @@ namespace OpenMS
       const auto precursors = ParquetFile::readTable(path + "/library/precursors.parquet");
       const auto ids = ParquetFile::getColumn(precursors, "precursor_id");
       const auto sequences = ParquetFile::getOptionalColumn(precursors, "modified_sequence");
-      const auto charges = ParquetFile::getColumn(precursors, "charge");
+      const auto charges = ParquetFile::getOptionalColumn(precursors, "charge");
       const auto decoys = ParquetFile::getOptionalColumn(precursors, "decoy");
+      const auto names = ParquetFile::getOptionalColumn(precursors, "traml_id");
+      const auto masses = ParquetFile::getOptionalColumn(precursors, "precursor_mz");
       for (int64_t i = 0; i < precursors->num_rows(); ++i)
       {
-        keys.precursors.emplace(ParquetFile::getInt64(ids, i, 0, false),
-          ScientificPrecursor{{ParquetFile::getString(sequences, i)}, ParquetFile::getInt64(charges, i, 0, false),
-                              ParquetFile::getBool(decoys, i, false, true)});
+        const Int64 id = ParquetFile::getInt64(ids, i, 0, false);
+        const bool decoy = ParquetFile::getBool(decoys, i, false, true);
+        // Keep labels available for transition filtering even when identity is missing.
+        keys.precursor_decoys.emplace(id, decoy);
+        if (!charges || charges->IsNull(i) || (decoys && decoys->IsNull(i))) continue;
+        const String sequence = ParquetFile::getString(sequences, i);
+        std::vector<String> identity;
+        if (!sequence.empty())
+        {
+          identity = {"peptide", sequence};
+        }
+        else
+        {
+          const String name = ParquetFile::getString(names, i);
+          const double mz = ParquetFile::getDouble(masses, i, std::numeric_limits<double>::quiet_NaN(), true);
+          if (name.empty() || !std::isfinite(mz)) continue;
+          // Native molecule libraries carry the source compound name in traml_id, not a sequence.
+          identity = {"compound", name, StringUtils::toStr(mz)};
+        }
+        keys.precursors.emplace(id, ScientificPrecursor{{std::move(identity)},
+          ParquetFile::getInt64(charges, i, 0, false), decoy});
       }
       return keys;
     }
@@ -303,24 +367,6 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "No feature columns available for OpenSWATH Percolator scoring.", "");
-      }
-
-      // Do not fall back to generated IDs when scientific identity is absent.
-      for (const auto& row : rows)
-      {
-        if (!std::isfinite(row.exp_rt))
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Deterministic OpenSWATH Percolator scoring requires finite retention times.", StringUtils::toStr(row.exp_rt));
-        }
-        if (!keys.runs.contains(row.run_id) || keys.runs.at(row.run_id).empty() ||
-            !keys.precursors.contains(row.precursor_id) || std::get<0>(keys.precursors.at(row.precursor_id)).empty() ||
-            std::get<0>(keys.precursors.at(row.precursor_id)).front().empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Deterministic OpenSWATH Percolator scoring requires a run filename and modified peptide sequence "
-            "for run " + StringUtils::toStr(row.run_id) + ", precursor " + StringUtils::toStr(row.precursor_id) + ".");
-        }
       }
 
       const Size n_rows = rows.size();
@@ -372,6 +418,36 @@ namespace OpenMS
                                       "No OpenSWATH rows remained after dropping rows with missing active feature values.", "");
       }
 
+      // Assign equal integer ranks to equal scientific identities once, outside the row comparator.
+      std::map<String, Size> run_ranks;
+      std::map<ScientificPrecursor, Size> precursor_ranks;
+      for (const auto& row : filtered_rows)
+      {
+        if (!keys.runs.contains(row.run_id) || keys.runs.at(row.run_id).empty() ||
+            !keys.precursors.contains(row.precursor_id) || std::get<0>(keys.precursors.at(row.precursor_id)).empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Deterministic OpenSWATH Percolator scoring requires a run filename and peptide or compound identity "
+            "for run " + StringUtils::toStr(row.run_id) + ", precursor " + StringUtils::toStr(row.precursor_id) + ".");
+        }
+        if (!std::isfinite(row.exp_rt))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Deterministic OpenSWATH Percolator scoring requires finite retention times.", StringUtils::toStr(row.exp_rt));
+        }
+        run_ranks.emplace(keys.runs.at(row.run_id), 0);
+        precursor_ranks.emplace(keys.precursors.at(row.precursor_id), 0);
+      }
+      Size rank = 0;
+      for (auto& [key, value] : run_ranks) value = rank++;
+      rank = 0;
+      for (auto& [key, value] : precursor_ranks) value = rank++;
+      for (auto& row : filtered_rows)
+      {
+        row.run_rank = run_ranks.at(keys.runs.at(row.run_id));
+        row.precursor_rank = precursor_ranks.at(keys.precursors.at(row.precursor_id));
+      }
+
       std::vector<bool> keep_column(n_cols, false);
       for (Size col = 0; col < n_cols; ++col)
       {
@@ -412,10 +488,10 @@ namespace OpenMS
       prepared.input.feature_names = kept_names;
 
       std::stable_sort(prepared.rows.begin(), prepared.rows.end(),
-                       [&keys, &keep_column](const ScoreRow& lhs, const ScoreRow& rhs)
+                       [&keep_column](const ScoreRow& lhs, const ScoreRow& rhs)
                        {
-                         const auto left = std::tie(keys.runs.at(lhs.run_id), keys.precursors.at(lhs.precursor_id));
-                         const auto right = std::tie(keys.runs.at(rhs.run_id), keys.precursors.at(rhs.precursor_id));
+                         const auto left = std::tie(lhs.run_rank, lhs.precursor_rank);
+                         const auto right = std::tie(rhs.run_rank, rhs.precursor_rank);
                          if (left != right) return left < right;
                          if (lhs.exp_rt != rhs.exp_rt) return lhs.exp_rt < rhs.exp_rt;
                          if (lhs.decoy != rhs.decoy) return lhs.decoy < rhs.decoy;
@@ -577,7 +653,7 @@ namespace OpenMS
       Sql::prepareStatement(conn, &stmt, "SELECT ID, DECOY FROM PRECURSOR;");
       for (Sql::SqlState state = Sql::nextRow(stmt); state == Sql::SqlState::SQL_ROW; state = Sql::nextRow(stmt, state))
       {
-        precursor_decoy[Sql::extractInt64(stmt, 0)] = Sql::extractInt(stmt, 1) != 0;
+        precursor_decoy[Sql::extractInt64(stmt, 0)] = sqlite3_column_int(stmt, 1) != 0;
       }
       sqlite3_finalize(stmt);
 
@@ -590,7 +666,7 @@ namespace OpenMS
         row.feature_id = Sql::extractInt64(stmt, 0);
         row.run_id = Sql::extractInt64(stmt, 1);
         row.precursor_id = Sql::extractInt64(stmt, 2);
-        row.exp_rt = Sql::extractDouble(stmt, 3);
+        row.exp_rt = sqlite3_column_type(stmt, 3) == SQLITE_NULL ? nan : sqlite3_column_double(stmt, 3);
         const auto precursor = precursor_decoy.find(row.precursor_id);
         if (precursor == precursor_decoy.end())
         {
@@ -670,11 +746,7 @@ namespace OpenMS
           joined.push_back(std::move(rows[i]));
         }
       }
-      std::sort(joined.begin(), joined.end(), [](const ScoreRow& lhs, const ScoreRow& rhs)
-      {
-        return std::tie(lhs.run_id, lhs.precursor_id, lhs.exp_rt, lhs.feature_id) <
-               std::tie(rhs.run_id, rhs.precursor_id, rhs.exp_rt, rhs.feature_id);
-      });
+      // finalizeInput_ establishes scientific order after discarding incomplete score rows.
 
       std::unordered_map<std::pair<Int64, Int64>, int, PairHash<std::pair<Int64, Int64>>> group_to_key;
       int next_group_key = 0;
@@ -700,6 +772,20 @@ namespace OpenMS
                                      const double transition_min_log_sn)
     {
       SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READ_ONLY);
+      for (const String& table : {String("FEATURE"), level == Level::MS1 ? String("FEATURE_MS1") :
+           level == Level::TRANSITION ? String("FEATURE_TRANSITION") : String("FEATURE_MS2")})
+      {
+        if (!conn.tableExists(table))
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "OpenSWATH Percolator scoring requires " + table + ".");
+        }
+      }
+      if (level == Level::MS1MS2 && !conn.tableExists("FEATURE_MS1"))
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "OpenSWATH Percolator scoring requires FEATURE_MS1.");
+      }
       const auto keys = scientificKeysSqlite_(conn);
       sqlite3_stmt* stmt = nullptr;
       std::vector<ScoreRow> rows;
@@ -784,8 +870,9 @@ namespace OpenMS
           row.feature_id = Sql::extractInt64(stmt, col++);
           row.run_id = Sql::extractInt64(stmt, col++);
           row.precursor_id = Sql::extractInt64(stmt, col++);
-          row.exp_rt = Sql::extractDouble(stmt, col++);
-          row.decoy = Sql::extractInt(stmt, col++) != 0;
+          row.exp_rt = sqlite3_column_type(stmt, col) == SQLITE_NULL ? std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col);
+          ++col;
+          row.decoy = sqlite3_column_int(stmt, col++) != 0;
           row.feature_values.reserve(feature_names.size());
           for (Size i = 0; i < ms2_cols.size(); ++i, ++col)
           {
@@ -865,9 +952,10 @@ namespace OpenMS
         row.run_id = Sql::extractInt64(stmt, col++);
         row.feature_id = Sql::extractInt64(stmt, col++);
         row.precursor_id = Sql::extractInt64(stmt, col++);
-        row.exp_rt = Sql::extractDouble(stmt, col++);
+        row.exp_rt = sqlite3_column_type(stmt, col) == SQLITE_NULL ? std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col);
+        ++col;
         row.transition_id = Sql::extractInt64(stmt, col++);
-        row.decoy = Sql::extractInt(stmt, col++) != 0;
+        row.decoy = sqlite3_column_int(stmt, col++) != 0;
         (void)Sql::extractInt(stmt, col++);
         const double peakgroup_pep = sqlite3_column_type(stmt, col) == SQLITE_NULL ?
           std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col);
@@ -1074,27 +1162,12 @@ namespace OpenMS
         feature_names.push_back(StringUtils::toLowered(feature_name));
       }
 
-      const auto precursors_table = ParquetFile::readTable(oswpq_path + "/library/precursors.parquet");
-      const auto precursor_id_array = ParquetFile::getColumn(precursors_table, "precursor_id");
-      const auto precursor_decoy_array = ParquetFile::getOptionalColumn(precursors_table, "decoy");
-      std::unordered_map<Int64, bool> precursor_decoy;
-      precursor_decoy.reserve(precursors_table->num_rows());
-      for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
-      {
-        precursor_decoy.emplace(
-          ParquetFile::getInt64(precursor_id_array, row, 0, false),
-          ParquetFile::getBool(precursor_decoy_array, row, false, true));
-      }
-
       using FeatureKey = std::pair<Int64, Int64>;
       std::unordered_map<FeatureKey, std::tuple<Int64, Int32, double>, PairHash<FeatureKey>> feature_to_score;
       feature_to_score.reserve(transition_result.feature_id.size());
 
-      const auto runs_table = ParquetFile::readTable(oswpq_path + "/runs/runs.parquet");
-      const auto run_id_array = ParquetFile::getColumn(runs_table, "run_id");
-      for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
+      for (const auto& [run_id, filename] : keys.runs)
       {
-        const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
         const String run_dir = oswpq_path + "/runs/run_id=" + StringUtils::toStr(run_id);
         const auto features_table = ParquetFile::readTable(run_dir + "/features.parquet");
         const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
@@ -1156,8 +1229,8 @@ namespace OpenMS
         {
           continue;
         }
-        const auto precursor_it = precursor_decoy.find(precursor_id);
-        if (precursor_it != precursor_decoy.end() && precursor_it->second)
+        const auto precursor_it = keys.precursor_decoys.find(precursor_id);
+        if (precursor_it != keys.precursor_decoys.end() && precursor_it->second)
         {
           continue;
         }

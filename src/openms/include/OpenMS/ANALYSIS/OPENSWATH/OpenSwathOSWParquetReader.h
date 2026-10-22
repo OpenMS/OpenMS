@@ -38,6 +38,7 @@ namespace OpenMS
       double ms2_area_intensity = 0.0;
       double ms2_total_area_intensity = 0.0;
       double ms2_apex_intensity = 0.0;
+      /// Auxiliary precursor charge, with NULL represented by 0.
       int precursor_charge = 0;
       bool decoy = false;
       int64_t transition_count = 0;
@@ -53,6 +54,7 @@ namespace OpenMS
       std::vector<int64_t> run_id;
       std::vector<int64_t> precursor_id;
       std::vector<double> exp_rt;
+      /// Auxiliary precursor charge, with NULL represented by 0. Scientific identity validation is caller-owned.
       std::vector<int> precursor_charge;
       std::vector<bool> decoy;
       std::vector<int64_t> transition_count;
@@ -76,6 +78,7 @@ namespace OpenMS
       std::vector<int64_t> run_id;
       std::vector<int64_t> precursor_id;
       std::vector<double> exp_rt;
+      /// Auxiliary precursor charge, with NULL represented by 0. Scientific identity validation is caller-owned.
       std::vector<int> precursor_charge;
 
       std::vector<int64_t> transition_id;

@@ -11,6 +11,8 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
@@ -476,6 +478,148 @@ START_SECTION([EXTRA] Parquet scientific input is invariant to generated IDs and
       }
     }
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] native SQL molecules and retained metadata validation)
+{
+  std::string path;
+  NEW_TMP_FILE(path);
+  path += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", path);
+  // Actual native PQP/OSW molecule tables, with no peptide mapping at all.
+  executeSqlite_(path,
+    "DROP TABLE IF EXISTS PRECURSOR_COMPOUND_MAPPING; DROP TABLE IF EXISTS COMPOUND; "
+    "CREATE TABLE COMPOUND(ID INT PRIMARY KEY NOT NULL, COMPOUND_NAME TEXT NOT NULL, "
+    "SUM_FORMULA TEXT NOT NULL, SMILES TEXT NOT NULL, ADDUCTS TEXT NOT NULL, DECOY INT NOT NULL); "
+    "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(PRECURSOR_ID INT NOT NULL, COMPOUND_ID INT NOT NULL); "
+    "INSERT INTO COMPOUND SELECT ID, MODIFIED_SEQUENCE, 'C6H12O6', 'C(O)C', '[M+H]+', 0 FROM PEPTIDE; "
+    "INSERT INTO PRECURSOR_COMPOUND_MAPPING SELECT PRECURSOR_ID, PEPTIDE_ID FROM PRECURSOR_PEPTIDE_MAPPING; "
+    "DROP TABLE PRECURSOR_PEPTIDE_MAPPING; DROP TABLE PEPTIDE;");
+  OpenSwathPercolatorScoring scorer;
+  const auto summary = scorer.score(path, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_TRUE(summary.total_rows > 0)
+  TEST_EQUAL(querySqliteInt64_(path, "SELECT COUNT(*) FROM SCORE_MS2;"), summary.total_rows)
+  // The bundled legacy native OSW schema predates the optional ADDUCTS column.
+  executeSqlite_(path,
+    "CREATE TABLE legacy_compound AS SELECT ID,COMPOUND_NAME,SUM_FORMULA,SMILES,DECOY FROM COMPOUND; "
+    "DROP TABLE COMPOUND; ALTER TABLE legacy_compound RENAME TO COMPOUND;");
+  TEST_EQUAL(scorer.score(path, OpenSwathPercolatorScoring::Level::MS2).total_rows, summary.total_rows)
+  executeSqlite_(path, "DELETE FROM PRECURSOR_COMPOUND_MAPPING;");
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(path, OpenSwathPercolatorScoring::Level::MS2))
+}
+END_SECTION
+
+START_SECTION([EXTRA] incomplete SQL rows and unused NULL metadata do not abort)
+{
+  std::string path;
+  NEW_TMP_FILE(path);
+  path += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", path);
+  // Recreate only metadata tables to permit explicit NULLs in this regression fixture.
+  executeSqlite_(path,
+    "CREATE TABLE nullable_run AS SELECT * FROM RUN; DROP TABLE RUN; ALTER TABLE nullable_run RENAME TO RUN; "
+    "CREATE TABLE nullable_precursor AS SELECT * FROM PRECURSOR; DROP TABLE PRECURSOR; ALTER TABLE nullable_precursor RENAME TO PRECURSOR; "
+    "CREATE TABLE nullable_peptide AS SELECT * FROM PEPTIDE; DROP TABLE PEPTIDE; ALTER TABLE nullable_peptide RENAME TO PEPTIDE; "
+    "CREATE TABLE nullable_ms2 AS SELECT * FROM FEATURE_MS2; DROP TABLE FEATURE_MS2; ALTER TABLE nullable_ms2 RENAME TO FEATURE_MS2; "
+    "INSERT INTO RUN(ID,FILENAME) VALUES(-999,NULL); "
+    "INSERT INTO PRECURSOR(ID,CHARGE,DECOY) VALUES(-999,NULL,NULL); "
+    "INSERT INTO PEPTIDE(ID,MODIFIED_SEQUENCE) VALUES(-999,NULL); "
+    "INSERT INTO PRECURSOR_PEPTIDE_MAPPING VALUES(-999,-999); "
+    "INSERT INTO FEATURE(ID,RUN_ID,PRECURSOR_ID,EXP_RT,NORM_RT,DELTA_RT,LEFT_WIDTH,RIGHT_WIDTH) "
+    "VALUES(-999,-999,-999,1e999,0,0,0,0); "
+    "INSERT INTO FEATURE_MS2(FEATURE_ID) VALUES(-999);");
+  OpenSwathPercolatorScoring scorer;
+  const auto summary = scorer.score(path, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_TRUE(summary.total_rows > 0)
+  TEST_EQUAL(querySqliteInt64_(path, "SELECT COUNT(*) FROM SCORE_MS2 WHERE FEATURE_ID=-999;"), 0)
+  // Retained missing metadata must report MissingInformation, not a raw SQL extraction error.
+  executeSqlite_(path, "UPDATE PRECURSOR SET CHARGE=NULL WHERE ID=(SELECT PRECURSOR_ID FROM FEATURE WHERE ID<>-999 LIMIT 1);");
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(path, OpenSwathPercolatorScoring::Level::MS2))
+  executeSqlite_(path, "UPDATE PRECURSOR SET CHARGE=2, DECOY=NULL WHERE ID=(SELECT PRECURSOR_ID FROM FEATURE WHERE ID<>-999 LIMIT 1);");
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(path, OpenSwathPercolatorScoring::Level::MS2))
+}
+END_SECTION
+
+START_SECTION([EXTRA] missing SQL feature tables precede metadata reads)
+{
+  for (const auto level : {OpenSwathPercolatorScoring::Level::MS1, OpenSwathPercolatorScoring::Level::MS2,
+                           OpenSwathPercolatorScoring::Level::MS1MS2, OpenSwathPercolatorScoring::Level::TRANSITION})
+  {
+    std::string path;
+    NEW_TMP_FILE(path);
+    path += ".osw";
+    copyFixture_("PyProphet_inference_test.osw", path);
+    executeSqlite_(path, "DROP TABLE FEATURE; DROP TABLE RUN; DROP TABLE PEPTIDE;");
+    OpenSwathPercolatorScoring scorer;
+    TEST_EXCEPTION(Exception::Precondition, scorer.score(path, level))
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] native Parquet molecules with empty modified sequence)
+{
+  const auto archive = unzipArchive_(OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq"));
+  TransitionParquetFile library;
+  OpenSwath::LightTargetedExperiment experiment;
+  OpenSwathLibraryIDNormalizer::SourceIDMapping source_ids;
+  library.convertParquetToTargetedExperiment(archive.base_dir, experiment, &source_ids);
+  // The workflow archive includes unused library precursors with no transitions. Native library
+  // writing requires a transition carrying precursor_mz for every compound being written.
+  std::set<std::string> referenced_precursors;
+  for (const auto& transition : experiment.transitions)
+  {
+    referenced_precursors.insert(transition.peptide_ref);
+  }
+  std::erase_if(experiment.compounds, [&](const auto& compound)
+  {
+    return !referenced_precursors.contains(compound.id);
+  });
+  TEST_TRUE(!experiment.compounds.empty())
+  for (auto& compound : experiment.compounds)
+  {
+    compound.sequence.clear();
+  }
+  // Exercise the native writer rather than inventing compound columns in Parquet.
+  library.convertLightTargetedExperimentToParquet(archive.base_dir, experiment, &source_ids);
+  const auto precursors = ParquetFile::readTable(archive.base_dir + "/library/precursors.parquet");
+  const auto sequences = ParquetFile::getColumn(precursors, "modified_sequence");
+  for (int64_t row = 0; row < precursors->num_rows(); ++row)
+  {
+    TEST_TRUE(ParquetFile::getString(sequences, row).empty())
+  }
+  // An unused native library row with NULL metadata must not abort shared feature readers.
+  std::vector<std::shared_ptr<arrow::Array>> with_unused;
+  for (const auto& field : precursors->schema()->fields())
+  {
+    const auto values = ParquetFile::getColumn(precursors, field->name());
+    std::shared_ptr<arrow::Array> extra;
+    if (field->name() == "precursor_id")
+    {
+      arrow::Int64Builder builder;
+      ParquetFile::appendOrThrow(builder.Append(-999), "precursor_id");
+      extra = ParquetFile::finishArray(builder, "precursor_id");
+    }
+    else
+    {
+      const auto null_array = arrow::MakeArrayOfNull(field->type(), 1);
+      TEST_TRUE(null_array.ok())
+      extra = null_array.ValueOrDie();
+    }
+    const auto combined = arrow::Concatenate({values, extra});
+    TEST_TRUE(combined.ok())
+    with_unused.push_back(combined.ValueOrDie());
+  }
+  ParquetFile::writeTable(arrow::Table::Make(precursors->schema(), with_unused), archive.base_dir + "/library/precursors.parquet");
+  OpenSwathPercolatorScoring scorer;
+  TEST_TRUE(scorer.score(archive.base_dir, OpenSwathPercolatorScoring::Level::MS2).total_rows > 0)
+  // A retained NULL charge is missing scientific identity, not an eager reader error.
+  const int charge_index = precursors->schema()->GetFieldIndex("charge");
+  const auto null_charges = arrow::MakeArrayOfNull(precursors->field(charge_index)->type(), precursors->num_rows() + 1);
+  TEST_TRUE(null_charges.ok())
+  with_unused[charge_index] = null_charges.ValueOrDie();
+  ParquetFile::writeTable(arrow::Table::Make(precursors->schema(), with_unused), archive.base_dir + "/library/precursors.parquet");
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(archive.base_dir, OpenSwathPercolatorScoring::Level::MS2))
 }
 END_SECTION
 

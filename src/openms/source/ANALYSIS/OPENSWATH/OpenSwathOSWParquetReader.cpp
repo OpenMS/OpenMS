@@ -66,7 +66,7 @@ void OpenSwathOSWParquetReader::load(const std::string& oswpq_dir)
   for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
   {
     const int64_t pid = ParquetFile::getInt64(precursor_id_col, row, 0, false);
-    const int charge = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, false));
+    const int charge = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, true));
     const bool decoy = ParquetFile::getBool(decoy_col, row, false, true);
     precursor_info.emplace(pid, std::make_pair(charge, decoy));
   }
@@ -174,7 +174,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
   {
     const int64_t pid = ParquetFile::getInt64(precursor_id_col, row, 0, false);
-    const int charge = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, false));
+    const int charge = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, true));
     const bool decoy = ParquetFile::getBool(decoy_col, row, false, true);
     precursor_info.emplace(pid, std::make_pair(charge, decoy));
   }
@@ -434,7 +434,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
   {
     const int64_t pid = ParquetFile::getInt64(precursor_id_col, row, 0, false);
-    const int charge = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, false));
+    const int charge = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, true));
     precursor_charge.emplace(pid, charge);
   }
 
@@ -692,7 +692,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
   {
     const int64_t pid = ParquetFile::getInt64(precursor_id_col, row, 0, false);
-    if (charge_col) precursor_charge[pid] = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, false));
+    if (charge_col) precursor_charge[pid] = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, true));
     if (decoy_col) precursor_decoy[pid] = ParquetFile::getBool(decoy_col, row, false, true);
     if (precursor_mz_col) precursor_mz[pid] = ParquetFile::getDouble(precursor_mz_col, row, std::numeric_limits<double>::quiet_NaN(), true);
     if (library_rt_col) precursor_library_rt[pid] = ParquetFile::getDouble(library_rt_col, row, std::numeric_limits<double>::quiet_NaN(), true);
