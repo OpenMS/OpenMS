@@ -2,7 +2,7 @@
 # -out_tsv) and, for the footer, the Parquet file itself. Usage:
 #
 #   cmake -DQPX=<dump of the QPX psm.parquet> -DMZML=<the searched mzML, uncompressed>
-#         [-DMZ=<dump of the input's mz.parquet> [-DMZ_PARQUET=<the mz.parquet>]] [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DPREDICTIONS=ON|OFF]
+#         [-DMZ=<dump of the input's mz.parquet> [-DMZ_PARQUET=<the mz.parquet>] [-DSHARED_ID=ON]] [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DPREDICTIONS=ON|OFF]
 #         [-DTWIN=<dump whose peaks must be the same>] [-DISOTOPE_TWIN=<dump whose isotope errors must be the same>]
 #         [-DISOTOPE_VALUES=<the isotope errors allowed, comma-separated, e.g. 0,1>]
 #         [-DROWS=<n>] [-DSUM_OF=<dumps, comma-separated, whose rows the dump has together>]
@@ -26,6 +26,8 @@
 #   and intensities. OFF: every prediction column is null.
 # - MZ (with PEAKS ALL or FILTERED): the mz view has one row per spectrum of the PSMs (a dump is sorted, so its order
 #   is not checked), with the QPX columns; a PSM's peaks are those of the row whose id is its spectrum_reference.
+#   A PSM whose spectrum shares its native ID with another one (at another RT: the row's scan_start_time is not the
+#   PSM's rt) has no spectrum of its own there; SHARED_ID ON: some PSM is such.
 # - TWIN: a dump of another mz view with the same rows (the same spectra read from another copy of the file).
 #   ISOTOPE_TWIN: the isotope_error column equals that of ISOTOPE_TWIN, row by row, and some row has one other than 0.
 #   ISOTOPE_VALUES: every isotope_error is one of these.
@@ -118,6 +120,7 @@ endfunction()
 read_dump("${QPX}" q)
 column(q peptidoform _c_peptidoform)
 column(q charge _c_charge)
+column(q rt _c_rt)
 column(q mz_array _c_annotated)
 column(q spectrum_reference _c_ref)
 column(q isotope_error _c_isotope)
@@ -292,6 +295,20 @@ if (DEFINED ROWS)
   endif()
 endif()
 
+# A number of the dump (e.g. "-1", "120", "-0.016666668") as an integer in millionths (truncated)
+function(to_micro value out)
+  if (NOT value MATCHES "^(-?)([0-9]+)(\\.([0-9]*))?$")
+    message(FATAL_ERROR "not a plain number: '${value}'")
+  endif()
+  set(_frac "${CMAKE_MATCH_4}000000")
+  string(SUBSTRING "${_frac}" 0 6 _frac)
+  math(EXPR _milli "${CMAKE_MATCH_2} * 1000000 + 1${_frac} - 1000000")
+  if (CMAKE_MATCH_1 STREQUAL "-")
+    math(EXPR _milli "0 - ${_milli}")
+  endif()
+  set(${out} ${_milli} PARENT_SCOPE)
+endfunction()
+
 # An m/z of the dump as an integer in 1e-4 Th (truncated)
 function(to_units value out)
   if (NOT value MATCHES "^([0-9]+)(\\.([0-9]*))?$")
@@ -308,7 +325,8 @@ set(_fewer_rows 0)
 set(_converted 0)
 set(_nonzero_isotope OFF)
 set(_found_peptide OFF)
-set(_cols ref peptidoform charge annotated isotope mappings scores)
+set(_no_own_spectrum 0)
+set(_cols ref peptidoform charge annotated isotope mappings scores rt)
 if (NOT MERGED)
   list(APPEND _cols ions mz intensity)
 endif()
@@ -336,6 +354,18 @@ foreach(_row RANGE 0 ${_last})
     string(REPLACE "\t" ";" _mz_cells "${_mz_line}")
     list(GET _mz_cells ${_c_m_mz} _peak_mz)
     list(GET _mz_cells ${_c_m_intensity} _peak_intensity)
+    # the row of its native ID is another spectrum's (one of several of that native ID, at another RT): it has none
+    list(GET _mz_cells ${_c_m_scan_start_time} _minutes)
+    # (in microseconds: minutes * 60 against seconds, within 50 ms)
+    to_micro("${_minutes}" _start)
+    math(EXPR _start "${_start} * 60")
+    to_micro("${_rt}" _rt_micro)
+    math(EXPR _rt_diff "${_start} - ${_rt_micro}")
+    if (_rt_diff GREATER 50000 OR _rt_diff LESS -50000)
+      math(EXPR _no_own_spectrum "${_no_own_spectrum} + 1")
+      set(_peak_mz null)
+      set(_peak_intensity null)
+    endif()
   endif()
 
   # the spectrum, the isotope error and the proteins
@@ -372,7 +402,9 @@ foreach(_row RANGE 0 ${_last})
   # peaks
   list_items("${_peak_mz}" _peak_mz_items _n_mz)
   list_items("${_peak_intensity}" _unused _n_intensity)
-  if (PEAKS STREQUAL "OFF")
+  if (NOT MERGED AND NOT PEAKS STREQUAL "OFF" AND _n_mz EQUAL -1)
+    # (no spectrum of its own in the mz view, see above)
+  elseif (PEAKS STREQUAL "OFF")
     if (NOT _n_mz EQUAL -1 OR NOT _n_intensity EQUAL -1)
       message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): peaks, expected none")
     endif()
@@ -461,6 +493,9 @@ if (PREDICTIONS AND _predicted_rows EQUAL 0)
 endif()
 if (PEAKS STREQUAL "FILTERED" AND SOME_FEWER AND _fewer_rows EQUAL 0)
   message(FATAL_ERROR "${QPX}: the filter kept every peak of every spectrum")
+endif()
+if (SHARED_ID AND _no_own_spectrum EQUAL 0)
+  message(FATAL_ERROR "${QPX}: every PSM has a spectrum of its own in the mz view; expected some whose native ID another spectrum has")
 endif()
 if (CONVERTED AND _converted EQUAL 0)
   message(FATAL_ERROR "${QPX}: every annotated m/z is a peak of the file: no fragment was moved by deisotoping")

@@ -5527,6 +5527,18 @@ prose14_dumps(${_f} quantms)
 add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_deisotope} -DMERGED=ON
   -DSUM_OF=${TESTS_TEMP_DIR}/${_f}_ProSE_14_deisotope_qpx.tmp.tsv ${_prose14_check})
 set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_ProSE_14_deisotope_dump")
+# Two spectra of one native ID (ProSE_14_duplicate_ids.mzML: 20 spectra of DatabaseSuitability_in_spec.mzML and the
+# second once more under the native ID of the first, at another RT): the mz view has one row per native ID (its key),
+# the first spectrum's; the PSM of the other spectrum has no spectrum there.
+set(_f ProSE_14_duplicate_ids)
+prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML -qpx_peak_top 1)
+prose14_dumps(${_f} ProSE_14_duplicate_ids)
+set(_opt -DPEAKS=FILTERED -DSHARED_ID=ON)
+if(NOT WITH_ONNX)
+  list(APPEND _opt -DPREDICTIONS=OFF)
+endif()
+add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML ${_opt} ${_prose14_check})
+set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
 # Two inputs of the same file name in different folders: their per-input outputs would overwrite each other, so ProSE
 # refuses the run before searching (exit code 6, ILLEGAL_PARAMETERS) rather than mixing them up.
 add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
