@@ -799,6 +799,31 @@ OpenMS Library:
     (#10660).
   - FIX: FileInfo counts the occurrences of a peptide in a consensusXML per map id, not per column header index; map ids
     outside 0..n-1 wrote out of bounds and gave wrong counts (#10612).
+  - FIX: DecoyGenerator::shuffle and shufflePeptides shuffle the whole protein for unspecific cleavage, as reversePeptides
+    does (#10686). The digest of 'unspecific cleavage' is every subsequence of the protein, so the shuffled decoy was their
+    concatenation (millions of residues for a typical protein). OpenNuXL's decoy loop gets the same guard. An empty protein
+    no longer crashes shufflePeptides() (#10694).
+  - FIX: MultiplexFiltering (FeatureFinderMultiplex, and with it the untargeted seeds of ProteomicsLFQ) gives the same
+    result for any number of threads, that of a single thread; with several threads it depended on scheduling. The seed
+    features of FeatureFinderIdentification are ordered independently of their random unique ids. The Arrow writers of
+    the internal Parquet formats (FeatureMapArrowIO, ConsensusMapArrowIO, ProteinIdentificationArrowIO, QPXFile) write double
+    meta values so that they read back exactly (ArrowIOHelpers::metaValueString()); ProteomicsLFQ -feat_dir checkpoints
+    were read back with slightly different values, which changed PIP-ECHO's transfer decisions (#10692).
+  - FIX: IsobaricChannelExtractor, IsobaricAnalyzer and IsobaricWorkflow centre the precursor purity window on the isolation
+    window target m/z (PrecursorPurity::isolationWindowCenter()); a survey scan without signal in the window is left out
+    of the interpolation. IsobaricAnalyzer takes the survey scan from the MS2's spectrumRef. SPS-MS3 quantification reports
+    the purity of the MS2 precursor, not of the SPS fragment (always 1.0). Reporter scans whose scan window misses a reporter
+    ion are skipped (IsobaricAnalyzer) or left unassigned (IsobaricWorkflow); see
+    IsobaricChannelExtractor::scanWindowCoversChannels() (#10631).
+  - FIX: MSExperiment::getPrecursorSpectrum() treats FAIMS CVs within 0.01 as equal; survey scans without a CV are still
+    accepted (#10620).
+  - FIX: ProteinGroupArrowExport (QPX protein groups) writes a null global_qvalue for a group without a q-value (NaN, e.g.
+    no protein inference) instead of NaN (#10700).
+  - FIX: The USI of a spectrum (UniversalSpectrumIdentifier) names the run by its root name without file extension
+    ('sample', not 'sample.mzML'), and maps the native ID to the index type the USI specification defines: scan only for
+    Thermo controllerType=0 and plain scan=X, index=X to index, other vendor formats (e.g. Bruker 'frame=... scan=...',
+    Waters 'function=... process=... scan=...', SCIEX 'sample=... period=... cycle=... experiment=...') to nativeId. USIs
+    of TextExporter output change (#10593).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -938,6 +963,10 @@ TOPP tools:
         experimental design names the runs with their extension (e.g. run1.raw).
       - FIX: no longer crashes while printing reporter statistics when a channel has no
         reporter signal at all.
+      - FIX: each spectrum is quantified once (#10616); identifications without a spectrum reference are kept as
+        unassigned identifications instead of being dropped, an identified spectrum missing from the mzML fails the tool
+        (wrong file pairing or a filtered mzML), and unassigned identifications take part in the PSM FDR (-psmFDR no
+        longer filters them by their raw search score) (#10620).
     MapAlignerPoseClustering:
       - PARAM: new algorithm:peak_selection:* parameters for mzML input. The new default
         'algorithm:peak_selection:method' 'spread' aligns one MS1 peak per analyte, spread over RT and
