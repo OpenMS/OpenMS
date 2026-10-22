@@ -240,13 +240,21 @@ namespace
     return true;
   }
 
-  /// True if @p a and @p b become the same annotation (see classifyAndAppend()): same type, coordinates
-  /// and variation and, for modifications, the same cleaned description. Other descriptions (e.g. of a
-  /// sequence variant or a chain) are not written, so features differing only in them are the same.
+  /// First and last residue of @p f: a position p is p..p, so it equals a one-residue range; unknown is 0..0.
+  std::pair<int, int> residueSpan(const UniProtFeature& f)
+  {
+    if (f.has_position) return {f.position, f.position};
+    if (f.has_range) return {f.begin, f.end};
+    return {0, 0};
+  }
+
+  /// True if @p a and @p b become the same annotation (see classifyAndAppend()): same type, residues
+  /// (a position and a one-residue range at it are the same) and variation and, for modifications, the
+  /// same cleaned description. Other descriptions (e.g. of a sequence variant or a chain) are not
+  /// written, so features differing only in them are the same.
   bool sameAnnotationFeature(const UniProtFeature& a, const UniProtFeature& b)
   {
-    if (a.type != b.type || a.has_position != b.has_position || a.has_range != b.has_range
-        || a.position != b.position || a.begin != b.begin || a.end != b.end || a.variation != b.variation)
+    if (a.type != b.type || residueSpan(a) != residueSpan(b) || a.variation != b.variation)
     {
       return false;
     }
