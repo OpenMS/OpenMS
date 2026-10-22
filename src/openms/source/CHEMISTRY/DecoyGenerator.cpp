@@ -38,12 +38,16 @@ AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const std::string& protease) const
 {
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
+  // 'unspecific cleavage' cuts after every residue: there are no enzymatic termini to keep, and its digest is every
+  // subsequence of the protein, not a partition of it. So the whole protein is reversed, as for a non-specific search.
+  if (protease == EnzymaticDigestion::UnspecificCleavage) return reverseProtein(protein);
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
+  if (peptides.empty()) return protein; // empty protein
   std::string pseudo_reversed;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
@@ -70,7 +74,10 @@ std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const
   digestor.setSpecificity(EnzymaticDigestion::SPEC_FULL);
 
   std::vector<AASequence> output;
-  digestor.digest(protein, output);
+  // 'unspecific cleavage': its digest is every subsequence of the protein, not a partition of it, so the whole
+  // protein is shuffled as one sequence (as with 'no cleavage')
+  if (protease == EnzymaticDigestion::UnspecificCleavage) output.push_back(protein);
+  else digestor.digest(protein, output);
 
   // generate decoy_factor number of complete decoy proteins
   std::vector<AASequence> decoy_proteins;
@@ -104,13 +111,23 @@ AASequence DecoyGenerator::shufflePeptides(
         const int max_attempts)
 {  
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  if (protein.empty()) return protein;
 
   std::vector<AASequence> peptides;
-  ProteaseDigestion ed;
-  ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
-  ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
-  ed.digest(protein, peptides);    
+  // 'unspecific cleavage': no enzymatic termini to keep, and its digest is every subsequence of the protein, not a
+  // partition of it. So the whole protein is shuffled as one sequence, as for a non-specific search.
+  if (protease == EnzymaticDigestion::UnspecificCleavage)
+  {
+    peptides.push_back(protein);
+  }
+  else
+  {
+    ProteaseDigestion ed;
+    ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
+    ed.setEnzyme(protease);
+    ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+    ed.digest(protein, peptides);
+  }
   std::string protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {

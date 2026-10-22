@@ -62,7 +62,7 @@ namespace // anonymous
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
-      (void)value_b->Append(val.toString());
+      (void)value_b->Append(ArrowIOHelpers::metaValueString(val));
       switch (val.valueType())
       {
         case DataValue::INT_VALUE: (void)type_b->Append("int"); break;
@@ -217,7 +217,7 @@ namespace // anonymous
           default: type_str = "string"; break;
         }
         json += "{\"name\":\"" + escapeJsonString_(std::string(key))
-              + "\",\"value\":\"" + escapeJsonString_(val.toString())
+              + "\",\"value\":\"" + escapeJsonString_(ArrowIOHelpers::metaValueString(val))
               + "\",\"type\":\"" + type_str + "\"}";
         first_mv = false;
       }
@@ -468,7 +468,7 @@ namespace // anonymous
         default: type_str = "string"; break;
       }
       json += "{\"name\":\"" + escapeJsonString_(std::string(key))
-            + "\",\"value\":\"" + escapeJsonString_(val.toString())
+            + "\",\"value\":\"" + escapeJsonString_(ArrowIOHelpers::metaValueString(val))
             + "\",\"type\":\"" + type_str + "\"}";
       first = false;
     }
