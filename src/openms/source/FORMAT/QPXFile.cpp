@@ -335,9 +335,10 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   const IdentifierMSRunMapper mapper = buildRunMapper(protein_identifications);
   validateMergeIndices(mapper, peptide_identifications);
 
-  // Metavalue keys excluded from psm_metavalues (they have dedicated columns)
+  // Metavalue keys excluded from psm_metavalues (they have dedicated columns). 'target_decoy' has one too,
+  // is_decoy, but that restores only "target" and "decoy"; other values (e.g. "target+decoy") are kept below.
   static const std::unordered_set<std::string> excluded_hit_mvs_psm = {
-    "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+    "predicted_RT", "predicted_rt", "ion_mobility", "IM",
     "scan", "reference_file_name",
     Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM  // dedicated mz/intensity/charge/ion_type arrays
   };
@@ -658,6 +659,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
           if (excluded_hit_mvs_psm.contains(key)) continue;
           const DataValue& val = mv_it->second;
+          if (key == "target_decoy" && (val == DataValue("target") || val == DataValue("decoy"))) continue;
           const auto vt = val.valueType();
           if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
@@ -680,7 +682,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           // everything else -> psm_metavalues
           (void)pmv_struct_b->Append();
           (void)pmv_name_b->Append(key);
-          (void)pmv_value_b->Append(val.toString());
+          (void)pmv_value_b->Append(ArrowIOHelpers::metaValueString(val));
           switch (vt)
           {
             case DataValue::INT_VALUE: (void)pmv_type_b->Append("int"); break;
@@ -705,7 +707,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           const DataValue& val = mv_it->second;
           (void)smv_struct_b->Append();
           (void)smv_name_b->Append(key);
-          (void)smv_value_b->Append(val.toString());
+          (void)smv_value_b->Append(ArrowIOHelpers::metaValueString(val));
 
           switch (val.valueType())
           {
@@ -2158,8 +2160,9 @@ bool QPXFile::importFromArrow(
 
     if (col_psm_metavalues)
     {
+      // 'target_decoy' is read from is_decoy above, and is only here if that cannot express it (e.g. "target+decoy")
       static const std::unordered_set<std::string> psm_excluded_mvs =
-        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+        {"predicted_RT", "predicted_rt", "ion_mobility", "IM",
          "scan", "reference_file_name"};
       ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
