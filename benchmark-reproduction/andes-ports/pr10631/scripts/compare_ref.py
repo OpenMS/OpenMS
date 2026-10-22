@@ -11,7 +11,7 @@ for run in sys.argv[3:]:
     sc = {r['native_id']: r for r in csv.DictReader(open(f'{d}/{sub}/{run}.scans.tsv'), delimiter='\t')}
     ref = {r['ms2_id']: float(r['ref_purity']) for r in csv.DictReader(open(f'{d}/{sub}/{run}.refpurity.tsv'), delimiter='\t') if r['ref_purity'] != ''}
     arms = {}
-    for arm in ('base', 'pr', 'fix'):
+    for arm in os.environ.get('ARMS', 'base pr fix').split():
         a = {}
         for r in csv.DictReader(open(f'{d}/quant/{arm}_noint/{run}.IW.tsv'), delimiter='\t'):
             if r['target_decoy'] != 'target': continue
@@ -21,7 +21,7 @@ for run in sys.argv[3:]:
     def inside(s):
         t, x = float(s['iso_target']), float(s['selected_mz']); return t - float(s['iso_lo']) <= x <= t + float(s['iso_hi'])
     for name, cond in (('selected ion inside window', inside), ('selected ion outside window', lambda s: not inside(s))):
-        ks = [k for k in arms['base'] if all(k in arms[a] for a in arms) and k in ref and cond(sc[k])]
+        ks = [k for k in next(iter(arms.values())) if all(k in arms[a] for a in arms) and k in ref and cond(sc[k])]
         for arm, a in arms.items():
             diff = [a[k] - ref[k] for k in ks]
             w.writerow([run, name, arm, len(ks), round(statistics.median(abs(x) for x in diff), 4) if ks else '',

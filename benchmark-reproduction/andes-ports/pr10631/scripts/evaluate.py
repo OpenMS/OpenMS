@@ -7,7 +7,8 @@ For each run, tool (IA = IsobaricAnalyzer + PSMs joined by scan, IW = IsobaricWo
   and for the TKO design (PXD017803, TMTpro16) the knockout-channel interference:
   median over PSMs of the knockout proteins of mean(KO channels)/mean(other channels),
   overall, on scans whose scan window covers 126 Th, and at purity >= 0.9 (as in andes docs/benchmarks).
-Arms: base (merge-base), pr (PR head), fix (PR head + in-window fix). "changed" counts values that differ from base.
+Arms: $ARMS (default "base pr fix"; base = merge-base, pr = PR head, fix = PR head + in-window fix). "changed" counts
+values that differ from the first arm.
 Runs given as name[:tko][@group]; runs sharing a group are also pooled (KO medians over the pooled PSMs).
 usage: evaluate.py <data_dir> <out_tsv> run1[:tko][@group] ...
 """
@@ -88,11 +89,11 @@ def main():
             loaded = {arm: load(data, run, tool, arm, scans, ids) for arm in ARMS}
             for arm in ARMS:
                 feats, nall = loaded[arm]
-                rows_out.append(summarize(run, tool, arm, feats, nall, loaded['base'][0], tko))
+                rows_out.append(summarize(run, tool, arm, feats, nall, loaded[ARMS[0]][0], tko))
                 if group:
                     g = groups.setdefault((group, tool, arm), [{}, 0, {}, tko])
                     g[0].update({run + '|' + k: v for k, v in feats.items()}); g[1] += nall
-                    g[2].update({run + '|' + k: v for k, v in loaded['base'][0].items()})
+                    g[2].update({run + '|' + k: v for k, v in loaded[ARMS[0]][0].items()})
     for (group, tool, arm), (feats, nall, base, tko) in groups.items():
         rows_out.append(summarize(group, tool, arm, feats, nall, base, tko))
     keys = []

@@ -126,3 +126,21 @@ value, so this design does not separate accuracy from expansion.
 - andes itself was not re-run; its numbers come from `docs/benchmarks/README.md` on the same PXD017803 files (other
   database version, impurity sheet and extraction).
 - Timing was not measured (not what the PR changes); IsobaricWorkflow took 5–12 s per TKO run in every arm.
+
+## Re-run against develop with #10657 (2026-10-22)
+
+Arms: `dev` = develop `6173e497` (contains #10657, same-CV MS1 selection), `pr2` = PR head `6d3443c9` merged with that
+develop (`28cd15fa`, the tree a merge produces). Same inputs and identifications; `ARMS="dev pr2"` for
+the evaluation scripts. Tables: `results/*_vs_develop.tsv`.
+
+| PXD017803, pooled | develop IA | develop IW | PR (both tools) |
+|---|---:|---:|---:|
+| SPS-MS3: PSMs at purity ≥ 0.9 | 7,897 (90%) | 6,369 (73%) | 6,460 (74%) |
+| SPS-MS3: KO interference at purity ≥ 0.9 (PSMs) | 0.067 (72) | 0.036 (51) | 0.036 (51) |
+| hrMS2: PSMs quantified with reporter channels outside the scan window | 1,514 | 1,514 | 0 |
+| hrMS2: KO interference all / purity ≥ 0.9 | 0.160 / 0.157 | 0.160 / 0.157 | 0.178 / 0.152 |
+
+With #10657, IsobaricWorkflow already uses the survey scan of the same CV, so for SPS-MS3 it gives the same interference
+as the PR. The PR still changes IsobaricAnalyzer (MS2 instead of SPS-fragment purity), the reporter scan-window check and the
+window centre (selected ion outside the window, single scan, within ±0.05 of the reference: a05058 1,661 → 2,935 of 2,962;
+xb10855 1,902 → 2,446 of 2,609; m23145 126 → 181 of 181; m23142 14 → 28 of 28).

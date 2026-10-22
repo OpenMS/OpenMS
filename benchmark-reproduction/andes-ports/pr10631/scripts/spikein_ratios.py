@@ -4,7 +4,7 @@ the data and the project description (3-, 2- and 1.5-fold changes): yeast at 3x 
 128N-129C (ch3-6), 1x in 130N-131C (ch7-10); human 1:1. Reports, per arm/tool and purity cut-off, the median
 observed yeast fold change for each pair (expected 3, 2, 1.5) and the PSMs behind it.
 usage: spikein_ratios.py <data_dir> <out_tsv>"""
-import sys, csv, statistics, math
+import sys, csv, statistics, math, os
 d, out = sys.argv[1:3]
 G = [range(0, 3), range(3, 7), range(7, 11)]
 PAIRS = [((0, 2), 3.0), ((0, 1), 2.0), ((1, 2), 1.5)]
@@ -15,7 +15,7 @@ def species(acc):
 w = csv.writer(open(out, 'w', newline=''), delimiter='\t')
 w.writerow(['tool', 'arm', 'min_purity', 'yeast_psms', 'fc_3x_expected_3', 'fc_2x_expected_2', 'fc_1.5x_expected_1.5', 'human_psms', 'human_fc_3x_vs_1x_expected_1'])
 for tool in ('IA', 'IW'):
-    for arm in ('base', 'pr', 'fix'):
+    for arm in os.environ.get('ARMS', 'base pr fix').split():
         rows = []
         for r in csv.DictReader(open(f'{d}/quant/{arm}/a05058.{tool}.tsv'), delimiter='\t'):
             if tool == 'IA':
