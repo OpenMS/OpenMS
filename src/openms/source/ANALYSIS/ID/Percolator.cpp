@@ -1407,21 +1407,22 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   struct PinMetaValueCleanup
   {
     PeptideIdentificationList& ids;
-    const PercolatorInfile::PinFeatureMetaValueMap& added;
+    PercolatorInfile::PinFeatureMetaValueMap& added;
     ~PinMetaValueCleanup()
     {
       // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the
-      // registry, which the threads would contend for); the stamped names are registered.
-      std::vector<const PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
+      // registry, which the threads would contend for); the stamped names are registered. The key sets are
+      // released in the loop as well.
+      std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
       entries.reserve(added.size());
-      for (const auto& entry : added) entries.push_back(&entry);
+      for (auto& entry : added) entries.push_back(&entry);
 #pragma omp parallel
       {
         std::unordered_map<std::string, UInt> name_index;
 #pragma omp for schedule(dynamic, 256)
         for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
         {
-          const auto& [hit_location, keys] = *entries[e];
+          auto& [hit_location, keys] = *entries[e];
           PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
           for (const std::string& key : keys)
           {
@@ -1432,6 +1433,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
             }
             hit.removeMetaValue(it->second);
           }
+          keys.clear();
         }
       }
     }

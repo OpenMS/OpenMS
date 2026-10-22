@@ -4210,7 +4210,15 @@ namespace OpenMS
       outcome.skipped_reason = std::string("Percolator failed: ") + e.what();
       return outcome;
     }
-    IDFilter::keepNBestHits(peptide_ids, 1);
+    // The best hit per spectrum, as IDFilter::keepNBestHits(peptide_ids, 1), with the spectra in parallel: releasing
+    // the other hits (and their meta values) takes most of the time.
+#pragma omp parallel for schedule(dynamic, 256) num_threads(std::max(threads, 1))
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      PeptideIdentification& pid = peptide_ids[i];
+      pid.sort();
+      if (pid.getHits().size() > 1) pid.getHits().resize(1);
+    }
     if (perc.usedDefaultDirection())
     {
       outcome.warning = "Percolator's sanity check rejected the learned model (on the held-out folds it found no target "
