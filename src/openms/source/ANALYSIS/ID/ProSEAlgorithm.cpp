@@ -4358,6 +4358,11 @@ namespace OpenMS
     // read that is short against the build (the read is serial, the build parallel): at most
     // MAX_SPECTRA_BYTES_PER_PEPTIDE / threads bytes of spectra file per peptide (measured with 9 M peptides: faster
     // with 11, 27 and 41 bytes per peptide at 2 threads and with 11 at 4 threads, even with 27, slower with 41).
+    // With more threads, the single-file search reads its file with as many threads as a read in the foreground
+    // (instead of a quarter of them) and always waits: the read then mostly ends while the peptides are generated
+    // and sorted, and the fragment passes over the third or so of the peptides that no spectrum reaches take longer
+    // than the wait (measured at 16 threads on Orbitrap, Astral, timsTOF and TMT files of 8,000 spectra: 0.1-0.2 s
+    // shorter per file; waiting for a read with a quarter of the threads was up to 0.1 s slower for some).
     constexpr Size MAX_THREADS_WAITING_FOR_SPECTRA = 4;
     constexpr UInt64 MAX_SPECTRA_BYTES_PER_PEPTIDE = 100;
 
@@ -4752,9 +4757,8 @@ namespace OpenMS
     // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads(true) of
     // this thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores),
     // not with what was set for this one (e.g. by TOPPBase from -threads).
-    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
+    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename, const int threads = readerThreads(true))
     {
-      const int threads = readerThreads(true);
       return std::async(std::launch::async, [&filename, threads]()
       {
 #ifdef _OPENMP
@@ -5055,11 +5059,18 @@ namespace OpenMS
     const bool read_in_background = threads_started > 1;
     const auto is_mzml = [&in_spectra_files](Size i) { return FileHandler::getTypeByFileName(in_spectra_files[i]) == FileTypes::MZML; };
     std::future<PeakMap> next_spectra; // the spectra of the next file to search, if read in the background
+    // A single file is the only search of the context (r3 merge of WP7 and WP10): as in search(file), the index
+    // holds only the peptides its spectra can reach if they are read by the time the peptides are generated, or
+    // if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA); the spectra taken for that are searched.
+    const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
+    // With more threads than MAX_THREADS_WAITING_FOR_SPECTRA, the index build waits for the spectra of such a file,
+    // which are read with the threads of a read in the foreground.
+    const bool wait_for_first_spectra = restrict_index && threads_started > MAX_THREADS_WAITING_FOR_SPECTRA;
     const auto read_next = [&](Size i)
     {
       if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
       {
-        next_spectra = loadMS2SpectraAsync(in_spectra_files[i]);
+        next_spectra = loadMS2SpectraAsync(in_spectra_files[i], i == 0 && wait_for_first_spectra ? readerThreads(false) : readerThreads(true));
       }
     };
     read_next(0);
@@ -5551,10 +5562,7 @@ namespace OpenMS
       // While the first file is read: build the index, as search(file) does without c and z+1 ions
       // unless the spectra are read already or the file names an electron-based activation early on.
       // prepare_context() below adds them if the spectra need them after all.
-      // A single file is the only search of the context (r3 merge of WP7 and WP10): as in search(file), the index
-      // holds only the peptides its spectra can reach if they are read by the time the peptides are generated, or
-      // if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA); the spectra taken for that are searched.
-      const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
+      // With restrict_index (see above), the spectra taken for the index are searched.
       PeakMap first_spectra;
       bool first_spectra_taken = false;
       // Called for the first file, inside its progress step (the build overlaps with reading it), if its spectra are
@@ -5572,8 +5580,8 @@ namespace OpenMS
             {
               if (!first_spectra_taken)
               {
-                const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
-                                  && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
+                const bool wait = wait_for_first_spectra || (threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
+                                  && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started);
                 if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
                 {
                   return nullptr;
