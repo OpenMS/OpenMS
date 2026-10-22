@@ -19,7 +19,7 @@ In OpenMS 3.6, mzIdentML files (`.mzid`) cannot be read compressed. Unpack them 
 ```
 
 Other formats, for example MGF or text files, have to be unpacked before a tool can read them; a tool refuses a
-compressed file of such a format. A Bruker `.d` directory packed into a ZIP archive (`.d.zip`) is described in
+compressed file of such a format. A Thermo `.raw` file or a Bruker `.d` directory packed into a ZIP archive (`.raw.zip`, `.d.zip`) is described in
 [Vendor formats](vendor-formats.md).
 
 ### Writing
