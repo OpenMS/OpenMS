@@ -128,6 +128,20 @@ START_SECTION(validate - Extensible mode - further fields after the expected one
   });
   auto missing = arrow::Table::Make(expected, {makeUtf8Array({"x"})});
   TEST_EQUAL(ArrowSchemaValidation::validate(missing, two, ArrowSchemaValidation::Mode::Extensible).valid, false)
+  // a further field under the name of an expected one, or of another further field
+  auto again = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+    arrow::field("a", arrow::utf8(), false),
+  });
+  auto duplicate = arrow::Table::Make(again, {makeUtf8Array({"x"}), makeUtf8Array({"y"})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(duplicate, expected, ArrowSchemaValidation::Mode::Extensible).valid, false)
+  auto twice = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+    arrow::field("b", arrow::float64(), true),
+    arrow::field("b", arrow::float64(), true),
+  });
+  auto duplicate_extra = arrow::Table::Make(twice, {makeUtf8Array({"x"}), makeFloat64Array({1.0}), makeFloat64Array({2.0})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(duplicate_extra, expected, ArrowSchemaValidation::Mode::Extensible).valid, false)
 }
 END_SECTION
 

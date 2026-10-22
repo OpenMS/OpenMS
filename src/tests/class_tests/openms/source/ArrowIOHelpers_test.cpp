@@ -535,6 +535,22 @@ START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<a
   TEST_TRUE(reader->ReadTable(&read).ok())
   TEST_EQUAL(read->num_rows(), 2)
   TEST_EQUAL(read->num_columns(), 7)
+  // a column of plain_columns is written without a dictionary, the others with one
+  auto hasDictionary = [](const std::string& f, int leaf)
+  {
+    auto in = arrow::io::ReadableFile::Open(f).ValueOrDie();
+    auto r = parquet::arrow::OpenFile(in, arrow::default_memory_pool()).ValueOrDie();
+    return r->parquet_reader()->metadata()->RowGroup(0)->ColumnChunk(leaf)->has_dictionary_page();
+  };
+  // (leaves: id, name, small, mz.list.element, ...)
+  TEST_TRUE(hasDictionary(file, 3))
+  ParquetWriteConfig plain;
+  plain.plain_columns = {"mz", "not_a_column"};
+  std::string plain_file;
+  NEW_TMP_FILE(plain_file)
+  TEST_TRUE(ArrowIOHelpers::writeTableToParquet(out, plain_file, plain))
+  TEST_FALSE(hasDictionary(plain_file, 3))
+  TEST_TRUE(hasDictionary(plain_file, 1))
 
   // a column of another number of rows
   Column short_name;
@@ -542,6 +558,15 @@ START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<a
   short_name.type = Column::Type::UTF8;
   short_name.utf8_values = {"a"};
   TEST_EXCEPTION(Exception::IllegalArgument, ArrowIOHelpers::withColumns(table, {short_name}))
+
+  // an int16 column refuses values outside its range rather than wrapping them
+  Column wide;
+  wide.name = "small";
+  wide.type = Column::Type::INT16;
+  wide.int64_values = {1, 40000};
+  TEST_TRUE(ArrowIOHelpers::withColumns(table, {wide}) == nullptr)
+  wide.int64_values = {1, -32768};
+  TEST_TRUE(ArrowIOHelpers::withColumns(table, {wide}) != nullptr)
 }
 END_SECTION
 

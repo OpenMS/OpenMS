@@ -104,16 +104,31 @@ namespace ArrowIOHelpers
       std::optional<Int32> start, end;            ///< none: null
       std::optional<std::string> aa_before, aa_after; ///< none: null
     };
-    /// int16, int64, utf8, list<float32>, list<utf8>, list<struct> of scores or of protein mappings (all nullable)
-    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, PROTEIN_MAPPING_LIST };
+    /// int16, int32, int64, bool, float64, utf8, list<float32>, list<utf8>, list<struct> of scores, of protein
+    /// mappings or of the fields @c struct_fields
+    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, PROTEIN_MAPPING_LIST, INT32, BOOL, DOUBLE, STRUCT_LIST };
+    /// A field of the struct of a STRUCT_LIST column: of type UTF8, INT32 or BOOL
+    struct StructField
+    {
+      std::string name;
+      Type type = Type::UTF8;
+      bool nullable = true;
+    };
     std::string name;
     Type type = Type::INT64;
-    std::vector<Int64> int64_values;                              ///< INT16 (narrowed) and INT64
+    /// false: the field is non-null (a null row is then an error)
+    bool nullable = true;
+    std::vector<Int64> int64_values;                              ///< INT16 and INT32 (narrowed, range-checked), INT64, BOOL (0: false)
+    std::vector<double> double_values;                            ///< DOUBLE
     std::vector<std::string> utf8_values;                         ///< UTF8
     std::vector<std::vector<float>> float_lists;                  ///< FLOAT_LIST
     std::vector<std::vector<std::string>> utf8_lists;             ///< UTF8_LIST
     std::vector<std::vector<Score>> score_lists;                  ///< SCORE_LIST
     std::vector<std::vector<ProteinMapping>> protein_mapping_lists; ///< PROTEIN_MAPPING_LIST
+    std::vector<StructField> struct_fields;                       ///< STRUCT_LIST: the fields of its struct
+    /// STRUCT_LIST: per row its entries, per entry one value per field of @c struct_fields (none: null) as text: the
+    /// string (UTF8), a decimal integer (INT32), "true" or "false" (BOOL)
+    std::vector<std::vector<std::vector<std::optional<std::string>>>> struct_lists;
     std::vector<bool> null_rows;                                  ///< true marks a null row (empty: no null row)
   };
 
@@ -132,6 +147,19 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI std::shared_ptr<arrow::Table> withColumns(
     const std::shared_ptr<arrow::Table>& table,
     const std::vector<ParquetColumn>& columns);
+
+  /**
+    @brief A table of @p columns (in their order, without schema metadata), for callers outside libOpenMS that cannot
+    use Arrow themselves (TOPP tools), e.g. a QPX metadata view (run, provenance)
+
+    @param[in] columns The columns, each with @p rows entries
+    @param[in] rows The number of rows
+    @return the table, or null on an Arrow error (logged)
+    @throws Exception::IllegalArgument if a column has another number of rows
+  */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Table> tableOfColumns(
+    const std::vector<ParquetColumn>& columns,
+    Size rows);
 
   /**
     @brief Concatenate a vector of Arrow tables and write the result to a Parquet file
