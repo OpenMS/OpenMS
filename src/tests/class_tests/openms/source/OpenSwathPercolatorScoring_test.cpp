@@ -24,6 +24,7 @@
 #include <sqlite3.h>
 
 #include <algorithm>
+#include <limits>
 #include <map>
 #include <memory>
 #include <numeric>
@@ -37,6 +38,65 @@ using namespace OpenMS;
 
 namespace
 {
+  template <typename Builder, typename Value>
+  std::shared_ptr<arrow::Array> testArray_(const std::vector<Value>& values)
+  {
+    Builder builder;
+    for (const auto& value : values) ParquetFile::appendOrThrow(builder.Append(value), "test array");
+    return ParquetFile::finishArray(builder, "test array");
+  }
+
+  void writeTestTable_(const std::string& path,
+                       const std::vector<std::pair<std::string, std::shared_ptr<arrow::Array>>>& columns)
+  {
+    arrow::FieldVector fields;
+    std::vector<std::shared_ptr<arrow::Array>> arrays;
+    for (const auto& [name, values] : columns)
+    {
+      fields.push_back(arrow::field(name, values->type()));
+      arrays.push_back(values);
+    }
+    ParquetFile::writeTable(arrow::Table::Make(arrow::schema(fields), arrays), path);
+  }
+
+  // Native transition scoring fixture with both labels and one unused NULL library label.
+  void writeTransitionFixture_(const std::string& base)
+  {
+    File::makeDir(base + "/library");
+    File::makeDir(base + "/runs");
+    File::makeDir(base + "/runs/run_id=1");
+    const auto one = testArray_<arrow::Int64Builder>(std::vector<Int64>{1});
+    const auto zero = testArray_<arrow::Int64Builder>(std::vector<Int64>{0});
+    writeTestTable_(base + "/runs/runs.parquet", {{"run_id", one},
+      {"filename", testArray_<arrow::StringBuilder>(std::vector<std::string>{"run.mzML"})}});
+    writeTestTable_(base + "/library/precursors.parquet", {{"precursor_id", one}, {"charge", one}, {"decoy", zero},
+      {"modified_sequence", testArray_<arrow::StringBuilder>(std::vector<std::string>{"PEPTIDE"})}});
+    std::vector<Int64> ids(200), ones(200, 1), labels(200);
+    std::vector<double> rt(200), values(200), pep(200, 0.01);
+    for (Size i = 0; i < ids.size(); ++i)
+    {
+      ids[i] = static_cast<Int64>(i);
+      labels[i] = i % 2;
+      rt[i] = static_cast<double>(i);
+      values[i] = (labels[i] ? -3.0 : 3.0) + static_cast<double>(i) / 1000.0;
+    }
+    const auto id_array = testArray_<arrow::Int64Builder>(ids);
+    const auto ones_array = testArray_<arrow::Int64Builder>(ones);
+    arrow::Int64Builder decoys;
+    for (const auto label : labels) ParquetFile::appendOrThrow(decoys.Append(label), "decoy");
+    ParquetFile::appendOrThrow(decoys.AppendNull(), "decoy");
+    ids.push_back(-999);
+    ones.push_back(1);
+    writeTestTable_(base + "/library/transitions.parquet", {
+      {"transition_id", testArray_<arrow::Int64Builder>(ids)}, {"charge", testArray_<arrow::Int64Builder>(ones)},
+      {"decoy", ParquetFile::finishArray(decoys, "decoy")}});
+    writeTestTable_(base + "/runs/run_id=1/features.parquet", {{"feature_id", id_array}, {"precursor_id", ones_array},
+      {"exp_rt", testArray_<arrow::DoubleBuilder>(rt)}, {"score_ms2_peak_group_rank", ones_array},
+      {"score_ms2_pep", testArray_<arrow::DoubleBuilder>(pep)}});
+    writeTestTable_(base + "/runs/run_id=1/feature_transition.parquet", {{"feature_id", id_array}, {"transition_id", id_array},
+      {"var_xcorr_shape", testArray_<arrow::DoubleBuilder>(values)}});
+  }
+
   void copyFixture_(const std::string& fixture_name, const std::string& target_path)
   {
     File::remove(target_path);
@@ -553,6 +613,171 @@ START_SECTION([EXTRA] missing SQL feature tables precede metadata reads)
     executeSqlite_(path, "DROP TABLE FEATURE; DROP TABLE RUN; DROP TABLE PEPTIDE;");
     OpenSwathPercolatorScoring scorer;
     TEST_EXCEPTION(Exception::Precondition, scorer.score(path, level))
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] SQL transition labels are validated only for retained rows)
+{
+  std::string path;
+  NEW_TMP_FILE(path);
+  path += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", path);
+  OpenSwathPercolatorScoring scorer;
+  scorer.score(path, OpenSwathPercolatorScoring::Level::MS2);
+  const auto baseline = scorer.score(path, OpenSwathPercolatorScoring::Level::TRANSITION);
+  const Int64 id = querySqliteInt64_(path, "SELECT TRANSITION_ID FROM SCORE_TRANSITION LIMIT 1;");
+  const std::string selected = StringUtils::toStr(id);
+  const auto original_label = querySqliteInt64_(path, "SELECT DECOY FROM TRANSITION WHERE ID=" + selected);
+  executeSqlite_(path,
+    "CREATE TABLE nullable_transition AS SELECT * FROM TRANSITION; DROP TABLE TRANSITION; "
+    "ALTER TABLE nullable_transition RENAME TO TRANSITION; "
+    "ALTER TABLE FEATURE_TRANSITION ADD COLUMN VAR_LABEL_FILTER REAL; "
+    "UPDATE FEATURE_TRANSITION SET VAR_LABEL_FILTER=1;");
+  for (const std::string invalid : {"NULL", "'not-an-integer'", "0.5"})
+  {
+    executeSqlite_(path, "UPDATE TRANSITION SET DECOY=" + invalid + " WHERE ID=" + selected);
+    TEST_EXCEPTION(Exception::MissingInformation, scorer.score(path, OpenSwathPercolatorScoring::Level::TRANSITION))
+    // The same unknown label must not abort after its rows lose an active feature.
+    executeSqlite_(path, "UPDATE FEATURE_TRANSITION SET VAR_LABEL_FILTER=NULL WHERE TRANSITION_ID=" + selected);
+    const auto filtered = scorer.score(path, OpenSwathPercolatorScoring::Level::TRANSITION);
+    TEST_TRUE(filtered.total_rows > 0)
+    TEST_TRUE(filtered.total_rows < baseline.total_rows)
+    TEST_EQUAL(querySqliteInt64_(path, "SELECT COUNT(*) FROM SCORE_TRANSITION WHERE TRANSITION_ID=" + selected), 0)
+    executeSqlite_(path, "UPDATE FEATURE_TRANSITION SET VAR_LABEL_FILTER=1;");
+  }
+  executeSqlite_(path, "UPDATE TRANSITION SET DECOY=" + StringUtils::toStr(original_label) + " WHERE ID=" + selected);
+}
+END_SECTION
+
+START_SECTION([EXTRA] native Parquet transition labels preserve unknown until retained validation)
+{
+  TempDir directory;
+  const auto& base = directory.getPath();
+  writeTransitionFixture_(base);
+  OpenSwathPercolatorScoring scorer;
+  const auto level = OpenSwathPercolatorScoring::Level::TRANSITION;
+  const auto baseline = scorer.score(base, level);
+  TEST_EQUAL(baseline.total_rows, 200)
+  TEST_EQUAL(baseline.target_rows, 100)
+  TEST_EQUAL(baseline.decoy_rows, 100)
+  const auto library_path = base + "/library/transitions.parquet";
+  const auto library = ParquetFile::readTable(library_path);
+  const int decoy_col = library->schema()->GetFieldIndex("decoy");
+  const auto replace_labels = [&](const std::shared_ptr<arrow::Array>& labels)
+  {
+    const auto replaced = library->SetColumn(decoy_col, arrow::field("decoy", labels->type()),
+      std::make_shared<arrow::ChunkedArray>(labels));
+    TEST_TRUE(replaced.ok())
+    ParquetFile::writeTable(replaced.ValueOrDie(), library_path);
+  };
+  arrow::BooleanBuilder bool_labels;
+  arrow::Int64Builder null_labels;
+  for (int64_t i = 0; i < library->num_rows(); ++i)
+  {
+    ParquetFile::appendOrThrow(bool_labels.Append(i % 2 != 0), "decoy");
+    if (i == 0 || i == 200) ParquetFile::appendOrThrow(null_labels.AppendNull(), "decoy");
+    else ParquetFile::appendOrThrow(null_labels.Append(i % 2), "decoy");
+  }
+  replace_labels(ParquetFile::finishArray(bool_labels, "decoy"));
+  TEST_EQUAL(scorer.score(base, level).total_rows, 200)
+  replace_labels(ParquetFile::finishArray(null_labels, "decoy"));
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(base, level))
+  // Drop the unknown row at the final active-feature filter, not at library read time.
+  const auto ft_path = base + "/runs/run_id=1/feature_transition.parquet";
+  const auto ft = ParquetFile::readTable(ft_path);
+  arrow::DoubleBuilder active;
+  ParquetFile::appendOrThrow(active.AppendNull(), "var_label_filter");
+  for (int i = 1; i < 200; ++i) ParquetFile::appendOrThrow(active.Append(1.0), "var_label_filter");
+  const auto filtered = ft->AddColumn(ft->num_columns(), arrow::field("var_label_filter", arrow::float64()),
+    std::make_shared<arrow::ChunkedArray>(ParquetFile::finishArray(active, "var_label_filter")));
+  TEST_TRUE(filtered.ok())
+  ParquetFile::writeTable(filtered.ValueOrDie(), ft_path);
+  TEST_EQUAL(scorer.score(base, level).total_rows, 199)
+  // Noninteger schemas must produce MissingInformation, not eager Arrow conversion errors.
+  replace_labels(testArray_<arrow::StringBuilder>(std::vector<std::string>(201, "0")));
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(base, level))
+  replace_labels(testArray_<arrow::DoubleBuilder>(std::vector<double>(201, 0.5)));
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(base, level))
+  const auto absent = library->RemoveColumn(decoy_col);
+  TEST_TRUE(absent.ok())
+  ParquetFile::writeTable(absent.ValueOrDie(), library_path);
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(base, level))
+}
+END_SECTION
+
+START_SECTION([EXTRA] native Parquet NULL and NaN RT are validated only after missing-feature filtering)
+{
+  for (const bool null_rt : {false, true})
+  {
+  TempDir directory;
+  const auto& base = directory.getPath();
+  writeTransitionFixture_(base);
+  const auto features_path = base + "/runs/run_id=1/features.parquet";
+  const auto features = ParquetFile::readTable(features_path);
+  arrow::DoubleBuilder times;
+  for (int i = 0; i < 200; ++i)
+  {
+    if (i == 0 && null_rt) ParquetFile::appendOrThrow(times.AppendNull(), "exp_rt");
+    else ParquetFile::appendOrThrow(times.Append(i == 0 ? std::numeric_limits<double>::quiet_NaN() : static_cast<double>(i)), "exp_rt");
+  }
+  const auto changed = features->SetColumn(features->schema()->GetFieldIndex("exp_rt"),
+    arrow::field("exp_rt", arrow::float64()),
+    std::make_shared<arrow::ChunkedArray>(ParquetFile::finishArray(times, "exp_rt")));
+  TEST_TRUE(changed.ok())
+  ParquetFile::writeTable(changed.ValueOrDie(), features_path);
+  OpenSwathPercolatorScoring scorer;
+  const auto level = OpenSwathPercolatorScoring::Level::TRANSITION;
+  TEST_EXCEPTION(Exception::InvalidValue, scorer.score(base, level))
+
+  const auto transitions_path = base + "/runs/run_id=1/feature_transition.parquet";
+  const auto transitions = ParquetFile::readTable(transitions_path);
+  arrow::DoubleBuilder active;
+  ParquetFile::appendOrThrow(active.AppendNull(), "var_label_filter");
+  for (int i = 1; i < 200; ++i) ParquetFile::appendOrThrow(active.Append(1.0), "var_label_filter");
+  const auto filtered = transitions->AddColumn(transitions->num_columns(),
+    arrow::field("var_label_filter", arrow::float64()),
+    std::make_shared<arrow::ChunkedArray>(ParquetFile::finishArray(active, "var_label_filter")));
+  TEST_TRUE(filtered.ok())
+  ParquetFile::writeTable(filtered.ValueOrDie(), transitions_path);
+  TEST_EQUAL(scorer.score(base, level).total_rows, 199)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] native Parquet near-constant feature selection is independent of first RT row)
+{
+  for (const bool negative_first : {false, true})
+  {
+    TempDir directory;
+    const auto& base = directory.getPath();
+    writeTransitionFixture_(base);
+    const auto features_path = base + "/runs/run_id=1/features.parquet";
+    const auto features = ParquetFile::readTable(features_path);
+    std::vector<double> times(200), values(200);
+    for (Size i = 0; i < times.size(); ++i)
+    {
+      times[i] = static_cast<double>(i);
+      values[i] = i % 3 == 0 ? 0.0 : (i % 3 == 1 ? -7.5e-13 : 7.5e-13);
+    }
+    // Change only RT order, so the first row anchors at zero or at the minimum.
+    // The full column range exceeds 1e-12 in either ordering and must be retained.
+    if (negative_first) std::swap(times[0], times[1]);
+    const auto changed = features->SetColumn(features->schema()->GetFieldIndex("exp_rt"),
+      arrow::field("exp_rt", arrow::float64()),
+      std::make_shared<arrow::ChunkedArray>(testArray_<arrow::DoubleBuilder>(times)));
+    TEST_TRUE(changed.ok())
+    ParquetFile::writeTable(changed.ValueOrDie(), features_path);
+    const auto transitions_path = base + "/runs/run_id=1/feature_transition.parquet";
+    const auto transitions = ParquetFile::readTable(transitions_path);
+    const auto changed_values = transitions->SetColumn(transitions->schema()->GetFieldIndex("var_xcorr_shape"),
+      arrow::field("var_xcorr_shape", arrow::float64()),
+      std::make_shared<arrow::ChunkedArray>(testArray_<arrow::DoubleBuilder>(values)));
+    TEST_TRUE(changed_values.ok())
+    ParquetFile::writeTable(changed_values.ValueOrDie(), transitions_path);
+    OpenSwathPercolatorScoring scorer;
+    const auto result = scorer.score(base, OpenSwathPercolatorScoring::Level::TRANSITION);
+    TEST_EQUAL(result.total_rows, 200)
   }
 }
 END_SECTION

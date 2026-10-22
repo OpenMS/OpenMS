@@ -113,7 +113,7 @@ namespace OpenMS
 
       @throws Exception::FileNotFound if the input file does not exist
       @throws Exception::Precondition if required prerequisite scores are missing
-      @throws Exception::MissingInformation if a retained row has no run filename or scientific precursor identity
+      @throws Exception::MissingInformation if a retained row has no run filename, scientific precursor identity, or valid transition decoy label
       @throws Exception::InvalidValue if no usable feature columns are available or a retention time is not finite
     */
     ScoreSummary score(const std::string& input_path,
