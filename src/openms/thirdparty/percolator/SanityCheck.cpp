@@ -32,6 +32,14 @@ using namespace std;
 // Class doing the sanity check for non SQT file condition
 // In most sence a place holder as very little logic is build-in in this case
 
+// OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
+// parallel loop (an exception must not leave an OpenMP region).
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors) {
+  for (const std::exception_ptr& error : errors) {
+    if (error) std::rethrow_exception(error);
+  }
+}
+
 SanityCheck::SanityCheck() :
   initPositives_(0), pTestset_(NULL), pTrainset_(NULL), concatenatedSearch_(true),
   test_fdr_(0.01), initial_train_fdr_(0.01) {
@@ -105,10 +113,16 @@ int SanityCheck::getInitDirection(vector<Scores>& testset,
   }
   // OpenMS: the folds in parallel; each scores and sorts only its own test set
   vector<int> positives(w.size());
+  vector<std::exception_ptr> errors(w.size());
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
-    positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
+    try {
+      positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
+    } catch (...) {
+      errors[set] = std::current_exception();
+    }
   }
+  rethrowFirstError(errors);
   initPositives_ = 0;
   for (size_t set = 0; set < w.size(); ++set) {
     initPositives_ += positives[set];
@@ -172,10 +186,16 @@ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
   }
   // OpenMS: the folds in parallel, as in getInitDirection
   vector<int> positives(w.size());
+  vector<std::exception_ptr> errors(w.size());
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
-    positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
+    try {
+      positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
+    } catch (...) {
+      errors[set] = std::current_exception();
+    }
   }
+  rethrowFirstError(errors);
   int overFDR = 0;
   for (size_t set = 0; set < w.size(); ++set) {
     overFDR += positives[set];

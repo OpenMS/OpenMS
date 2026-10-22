@@ -4211,13 +4211,31 @@ namespace OpenMS
       return outcome;
     }
     // The best hit per spectrum, as IDFilter::keepNBestHits(peptide_ids, 1), with the spectra in parallel: releasing
-    // the other hits (and their meta values) takes most of the time.
-#pragma omp parallel for schedule(dynamic, 256) num_threads(std::max(threads, 1))
+    // the other hits (and their meta values) takes most of the time. As many threads as Percolator may use.
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+#else
+    const int max_threads = 1;
+#endif
+    [[maybe_unused]] const int trim_threads = std::max(1, std::min({threads <= 0 ? 3 : threads, 9, max_threads}));
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
+#pragma omp parallel for schedule(dynamic, 256) num_threads(trim_threads)
     for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
     {
-      PeptideIdentification& pid = peptide_ids[i];
-      pid.sort();
-      if (pid.getHits().size() > 1) pid.getHits().resize(1);
+      try
+      {
+        PeptideIdentification& pid = peptide_ids[i];
+        pid.sort();
+        if (pid.getHits().size() > 1) pid.getHits().resize(1);
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors)
+    {
+      if (error) std::rethrow_exception(error);
     }
     if (perc.usedDefaultDirection())
     {

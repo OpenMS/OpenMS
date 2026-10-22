@@ -23,6 +23,7 @@
 #include <functional>
 #include <limits>
 #include <optional>
+#include <tuple>
 #include <regex>
 #include <unordered_map>
 #include <unordered_set>
@@ -436,10 +437,12 @@ namespace OpenMS
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
     RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
-    // Per spectrum (PeptideIdentification): the meta values it added (hit index, keys), the hits it skipped (hit index,
-    // reason) and the error it stopped at, collected in spectrum order below.
+    // Per spectrum (PeptideIdentification): the meta values it added (hit index, keys), the values it overwrote (hit
+    // index, key, previous value), the hits it skipped (hit index, reason) and the error it stopped at, collected in
+    // spectrum order below. On an error, the spectra after the failing one are restored, as if the loop had stopped there.
     enum SkipReason { NO_EVIDENCE, UNKNOWN_TARGET_DECOY };
     std::vector<std::vector<std::pair<size_t, std::set<std::string>>>> added(peptide_ids.size());
+    std::vector<std::vector<std::tuple<size_t, std::string, DataValue>>> overwritten(peptide_ids.size());
     std::vector<std::vector<std::pair<size_t, SkipReason>>> skipped_hits(peptide_ids.size());
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 
@@ -487,100 +490,113 @@ namespace OpenMS
           {
             added_keys.insert(key);
           }
+          else
+          {
+            overwritten[pid_index].emplace_back(hit_index, key, get(hit, key));
+          }
           const auto it = name_index.find(key);
           if (it == name_index.end()) hit.setMetaValue(key, value);
           else hit.setMetaValue(it->second, value);
         };
 
-        if (hit.getPeptideEvidences().empty())
+        try
         {
-          skipped_hits[pid_index].emplace_back(hit_index, NO_EVIDENCE);
-          continue;
+          if (hit.getPeptideEvidences().empty())
+          {
+            skipped_hits[pid_index].emplace_back(hit_index, NO_EVIDENCE);
+            continue;
+          }
+          if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+          {
+            skipped_hits[pid_index].emplace_back(hit_index, UNKNOWN_TARGET_DECOY);
+            continue;
+          }
+          stamp_meta_value("SpecId", file_identifier + scan_identifier);
+          stamp_meta_value("ScanNr", scan_number);
+          stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
+
+          const int charge = hit.getCharge();
+          const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
+
+          double calc_mass;
+          if (!exists(hit, "CalcMass"))
+          {
+            calc_mass = hit.getSequence().getMZ(charge);
+            stamp_meta_value("CalcMass", calc_mass);
+          }
+          else
+          {
+            calc_mass = getFeatureValue(get(hit, "CalcMass"), "CalcMass");
+          }
+
+          // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
+          // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
+          // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
+          // different isotope errors would not compete with each other.
+          double isotope_corrected_mass = exp_mass;
+          if (exists(hit, "IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
+          {
+            const float isoErr = StringUtils::toFloat(get(hit, "IsotopeError").toString());
+            isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          }
+          else if (exists(hit, Constants::UserParam::ISOTOPE_ERROR))
+          {
+            const float isoErr = StringUtils::toFloat(get(hit, Constants::UserParam::ISOTOPE_ERROR).toString());
+            isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          }
+
+          stamp_meta_value("ExpMass", exp_mass);
+
+          const double delta_mass = isotope_corrected_mass - calc_mass;
+          stamp_meta_value("deltamass", delta_mass);
+          stamp_meta_value("retentiontime", retention_time);
+          stamp_meta_value("mass", exp_mass);
+
+          stamp_meta_value("score", hit.getScore());
+          stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
+
+          for (int i = min_charge; i <= max_charge; ++i)
+          {
+            stamp_meta_value("charge" + StringUtils::toStr(i), charge == i);
+          }
+
+          // use first peptide evidence for flanking AAs
+          char aa_before = hit.getPeptideEvidences().front().getAABefore();
+          char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
+
+          const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+          stamp_meta_value("enzN", enzN);
+          const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
+          stamp_meta_value("enzC", enzC);
+          stamp_meta_value("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
+
+          stamp_meta_value("dm", delta_mass);
+          stamp_meta_value("absdm", std::abs(delta_mass));
+
+          // Percolator-formatted peptide string with PTM brackets
+          aa_before = aa_before == '[' ? '-' : aa_before;
+          aa_after  = aa_after  == ']' ? '-' : aa_after;
+          std::string sequence;
+          sequence += aa_before;
+          sequence += ".";
+          sequence += hit.getSequence().toBracketString(false, true);
+          sequence += ".";
+          sequence += aa_after;
+          stamp_meta_value("Peptide", sequence);
+
+          StringList proteins;
+          for (const PeptideEvidence& pep : hit.getPeptideEvidences())
+          {
+            proteins.push_back(pep.getProteinAccession());
+          }
+          stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
         }
-        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+        catch (...)
         {
-          skipped_hits[pid_index].emplace_back(hit_index, UNKNOWN_TARGET_DECOY);
-          continue;
+          // the keys added before the error are cleanup candidates as well
+          if (!added_keys.empty()) added[pid_index].emplace_back(hit_index, std::move(added_keys));
+          throw;
         }
-        stamp_meta_value("SpecId", file_identifier + scan_identifier);
-        stamp_meta_value("ScanNr", scan_number);
-        stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
-
-        const int charge = hit.getCharge();
-        const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
-
-        double calc_mass;
-        if (!exists(hit, "CalcMass"))
-        {
-          calc_mass = hit.getSequence().getMZ(charge);
-          stamp_meta_value("CalcMass", calc_mass);
-        }
-        else
-        {
-          calc_mass = getFeatureValue(get(hit, "CalcMass"), "CalcMass");
-        }
-
-        // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
-        // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
-        // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
-        // different isotope errors would not compete with each other.
-        double isotope_corrected_mass = exp_mass;
-        if (exists(hit, "IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
-        {
-          const float isoErr = StringUtils::toFloat(get(hit, "IsotopeError").toString());
-          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
-        }
-        else if (exists(hit, Constants::UserParam::ISOTOPE_ERROR))
-        {
-          const float isoErr = StringUtils::toFloat(get(hit, Constants::UserParam::ISOTOPE_ERROR).toString());
-          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
-        }
-
-        stamp_meta_value("ExpMass", exp_mass);
-
-        const double delta_mass = isotope_corrected_mass - calc_mass;
-        stamp_meta_value("deltamass", delta_mass);
-        stamp_meta_value("retentiontime", retention_time);
-        stamp_meta_value("mass", exp_mass);
-
-        stamp_meta_value("score", hit.getScore());
-        stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
-
-        for (int i = min_charge; i <= max_charge; ++i)
-        {
-          stamp_meta_value("charge" + StringUtils::toStr(i), charge == i);
-        }
-
-        // use first peptide evidence for flanking AAs
-        char aa_before = hit.getPeptideEvidences().front().getAABefore();
-        char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
-
-        const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
-        stamp_meta_value("enzN", enzN);
-        const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
-        stamp_meta_value("enzC", enzC);
-        stamp_meta_value("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
-
-        stamp_meta_value("dm", delta_mass);
-        stamp_meta_value("absdm", std::abs(delta_mass));
-
-        // Percolator-formatted peptide string with PTM brackets
-        aa_before = aa_before == '[' ? '-' : aa_before;
-        aa_after  = aa_after  == ']' ? '-' : aa_after;
-        std::string sequence;
-        sequence += aa_before;
-        sequence += ".";
-        sequence += hit.getSequence().toBracketString(false, true);
-        sequence += ".";
-        sequence += aa_after;
-        stamp_meta_value("Peptide", sequence);
-
-        StringList proteins;
-        for (const PeptideEvidence& pep : hit.getPeptideEvidences())
-        {
-          proteins.push_back(pep.getProteinAccession());
-        }
-        stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
         if (!added_keys.empty())
         {
           added[pid_index].emplace_back(hit_index, std::move(added_keys));
@@ -649,7 +665,23 @@ namespace OpenMS
         }
         skipped.emplace_hint(skipped.end(), pid_index, hit_index);
       }
-      if (errors[pid_index]) std::rethrow_exception(errors[pid_index]);
+      if (errors[pid_index])
+      {
+        // restore the spectra stamped after the failing one
+        for (size_t later = pid_index + 1; later < peptide_ids.size(); ++later)
+        {
+          auto& hits = peptide_ids[later].getHits();
+          for (const auto& [hit_index, keys] : added[later])
+          {
+            for (const std::string& key : keys) hits[hit_index].removeMetaValue(key);
+          }
+          for (const auto& [hit_index, key, value] : overwritten[later])
+          {
+            hits[hit_index].setMetaValue(key, value);
+          }
+        }
+        std::rethrow_exception(errors[pid_index]);
+      }
     }
     return skipped;
   }

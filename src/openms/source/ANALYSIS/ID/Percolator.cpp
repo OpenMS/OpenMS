@@ -256,6 +256,15 @@ struct RowKeys
 
 // Populate a single PSMDescription from one row of RescoreInput. The row's
 // feature pointer comes from SetHandler's FeatureMemoryPool.
+// Rethrows the first error, in iteration order, caught in the iterations of a parallel loop.
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
+{
+  for (const std::exception_ptr& error : errors)
+  {
+    if (error) std::rethrow_exception(error);
+  }
+}
+
 static P::PSMDescription* makePSMFromRow(
   const std::vector<double>& feats,
   const RowKeys& keys,
@@ -1412,28 +1421,52 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     {
       // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the
       // registry, which the threads would contend for); the stamped names are registered. The key sets are
-      // released in the loop as well.
-      std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
-      entries.reserve(added.size());
-      for (auto& entry : added) entries.push_back(&entry);
-#pragma omp parallel
+      // released in the loop as well. A destructor must not throw: if the parallel removal cannot allocate,
+      // the remaining values are removed serially by name, which allocates nothing.
+      bool failed = false;
+      try
       {
-        std::unordered_map<std::string, UInt> name_index;
-#pragma omp for schedule(dynamic, 256)
-        for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
+        std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
+        entries.reserve(added.size());
+        for (auto& entry : added) entries.push_back(&entry);
+#pragma omp parallel reduction(||: failed)
         {
-          auto& [hit_location, keys] = *entries[e];
-          PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-          for (const std::string& key : keys)
+          try
           {
-            auto it = name_index.find(key);
-            if (it == name_index.end())
+            std::unordered_map<std::string, UInt> name_index;
+#pragma omp for schedule(dynamic, 256)
+            for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
             {
-              it = name_index.emplace(key, MetaInfoInterface::metaRegistry().getIndex(key)).first;
+              auto& [hit_location, keys] = *entries[e];
+              PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
+              for (const std::string& key : keys)
+              {
+                auto it = name_index.find(key);
+                if (it == name_index.end())
+                {
+                  it = name_index.emplace(key, MetaInfoInterface::metaRegistry().getIndex(key)).first;
+                }
+                hit.removeMetaValue(it->second);
+              }
+              keys.clear();
             }
-            hit.removeMetaValue(it->second);
           }
-          keys.clear();
+          catch (...)
+          {
+            failed = true;
+          }
+        }
+      }
+      catch (...)
+      {
+        failed = true;
+      }
+      if (failed)
+      {
+        for (const auto& [hit_location, keys] : added)
+        {
+          PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
+          for (const std::string& key : keys) hit.removeMetaValue(key);
         }
       }
     }
@@ -1568,11 +1601,20 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     store_row(0, "percolator_score", "percolator_q_value", "percolator_pep");
     const UInt score_index = index_of("percolator_score"), q_value_index = index_of("percolator_q_value"),
                pep_index = index_of("percolator_pep");
+    std::vector<std::exception_ptr> errors(ro.scores.size());
 #pragma omp parallel for schedule(dynamic, 256)
     for (SignedSize row = 1; row < static_cast<SignedSize>(ro.scores.size()); ++row)
     {
-      store_row(static_cast<size_t>(row), score_index, q_value_index, pep_index);
+      try
+      {
+        store_row(static_cast<size_t>(row), score_index, q_value_index, pep_index);
+      }
+      catch (...)
+      {
+        errors[row] = std::current_exception();
+      }
     }
+    rethrowFirstError(errors);
   }
 
   // Canonical score fields and PSI-MS CV terms, as PercolatorAdapter writes them for the executable.
@@ -1659,11 +1701,20 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
         index.push_back(index_of(name));
       }
     }
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 256) if(one_score_type)
     for (SignedSize i = static_cast<SignedSize>(first_parallel); i < static_cast<SignedSize>(peptide_ids.size()); ++i)
     {
-      store_canonical(static_cast<size_t>(i), index);
+      try
+      {
+        store_canonical(static_cast<size_t>(i), index);
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
+      }
     }
+    rethrowFirstError(errors);
   }
   return ro.scores.size();
 }

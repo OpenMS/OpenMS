@@ -266,6 +266,53 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the isotope error corrects dm/abs
 }
 END_SECTION
 
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: an error stops at the failing hit, as in a serial loop))
+{
+  // 300 spectra (stamped in parallel); the hit of spectrum 150 carries a CalcMass that is not a number. Every hit has
+  // a 'score' meta value before, which stamping overwrites.
+  PeptideIdentificationList pids;
+  for (int i = 0; i < 300; ++i)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("SAMPLER"));
+    hit.setCharge(2);
+    hit.setScore(1.0 + i);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore('K');
+    ev.setAAAfter('S');
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    hit.setMetaValue("score", 42.0);
+    if (i == 150) hit.setMetaValue("CalcMass", "bad");
+    PeptideIdentification pid;
+    pid.setMZ(400.0);
+    pid.setRT(10.0 + i);
+    pid.setSpectrumReference("scan=" + std::to_string(i + 1));
+    pid.setHits(std::vector<PeptideHit>{hit});
+    pids.push_back(pid);
+  }
+  PercolatorInfile::PinFeatureMetaValueMap added;
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3, added))
+  // stamped and recorded up to the failing hit, including the keys it added before the error
+  TEST_EQUAL(added.size(), 151)
+  TEST_EQUAL(added.count({149, 0}), 1)
+  TEST_EQUAL(static_cast<double>(pids[149].getHits()[0].getMetaValue("score")), 150.0)
+  ABORT_IF(added.count({150, 0}) != 1)
+  TEST_EQUAL(added.at({150, 0}).size(), 3)  // SpecId, ScanNr, Label
+  TEST_EQUAL(pids[150].getHits()[0].metaValueExists("SpecId"), true)
+  // the spectra after it are as before
+  bool untouched = true;
+  for (Size i = 151; i < pids.size(); ++i)
+  {
+    const PeptideHit& hit = pids[i].getHits()[0];
+    untouched = untouched && !hit.metaValueExists("SpecId") && !hit.metaValueExists("CalcMass")
+                && static_cast<double>(hit.getMetaValue("score")) == 42.0;
+  }
+  TEST_EQUAL(untouched, true)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] isotope correction preserves spectrum identity in stamped features and exported PIN rows))
 {
   const AASequence sequence = AASequence::fromString(".(Acetyl)SAM(Oxidation)PLER");

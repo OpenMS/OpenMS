@@ -90,7 +90,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   `mergeCpCnPairs` counts the positives of all (Cpos, Cneg) pairs in parallel,
   each on its own copy of its test set: the count does not depend on the order
   of the set (PSMs that compare equal have the same label), and the test sets
-  are discarded afterwards.
+  are discarded afterwards. Each of these loops catches the exceptions of its
+  iterations and rethrows the first one, in iteration order, after the loop.
 - `patches/06-spline-pep-sparse.patch` — speeds up the spline PEP (`BaseSpline`,
   `pep_method` `nonparametric`) without changing its result.
   `PackedMatrix::packedMultiply` computes, per row, only the dot products with

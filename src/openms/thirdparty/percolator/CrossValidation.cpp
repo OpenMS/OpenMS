@@ -17,6 +17,8 @@
 
 #include "CrossValidation.h"
 
+#include <exception>
+
 #ifdef _OPENMP
 #include <omp.h>
 #include <algorithm>
@@ -39,6 +41,14 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 #else
   return 1;
 #endif
+}
+
+// OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
+// parallel loop (an exception must not leave an OpenMP region).
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors) {
+  for (const std::exception_ptr& error : errors) {
+    if (error) std::rethrow_exception(error);
+  }
 }
 
 CrossValidation::CrossValidation(bool quickValidation,
@@ -273,11 +283,17 @@ void CrossValidation::train(const Normalizer* pNorm) {
   }
   // OpenMS: the folds in parallel; the counts are added up in fold order
   vector<int> testPositives(numFolds_);
+  vector<std::exception_ptr> testErrors(numFolds_);
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    testPositives[set] =
-        testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    try {
+      testPositives[set] =
+          testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    } catch (...) {
+      testErrors[set] = std::current_exception();
+    }
   }
+  rethrowFirstError(testErrors);
   foundPositives = 0;
   for (size_t set = 0; set < numFolds_; ++set) {
     foundPositives += testPositives[set];
@@ -308,11 +324,17 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   // FDR estimates is too restrictive for small datasets
   bool skipDecoysPlusOne = true;
   // OpenMS: the folds in parallel; each scores and sorts only its own training set
+  vector<std::exception_ptr> trainErrors(numFolds_);
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
-                                         skipDecoysPlusOne);
+    try {
+      trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
+                                           skipDecoysPlusOne);
+    } catch (...) {
+      trainErrors[set] = std::current_exception();
+    }
   }
+  rethrowFirstError(trainErrors);
 
   // Below implements the series of speedups detailed in the following:
   // ////////////////////////////////
@@ -334,40 +356,46 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   // unless nested cross-validation draws the nested sets at random
   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
+  vector<std::exception_ptr> setupErrors(numFolds_);
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_)) if(nestedXvalBins_ <= 1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
-        nestedTestScores(nestedXvalBins_, usePi0_);
-    if (nestedXvalBins_ > 1) {
-      FeatureMemoryPool featurePool;
-      trainScores_[set].createXvalSetsBySpectrum(
-          nestedTrainScores, nestedTestScores, nestedXvalBins_, featurePool);
-    } else {
-      // sub-optimal cross validation
-      nestedTrainScores[0] = trainScores_[set];
-      nestedTestScores[0] = trainScores_[set];
-    }
-    nestedTestScoresVec[set] = nestedTestScores;
-    // Set SVM input data for L2-SVM-MFN
-    for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
-         ++nestedFold) {
-      AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
-      if ((VERB > 2) && (nestedFold == 0)) {
-        cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
-             << " positives and " << svmInput->negatives << " negatives"
-             << std::endl;
+    try {
+      std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
+          nestedTestScores(nestedXvalBins_, usePi0_);
+      if (nestedXvalBins_ > 1) {
+        FeatureMemoryPool featurePool;
+        trainScores_[set].createXvalSetsBySpectrum(
+            nestedTrainScores, nestedTestScores, nestedXvalBins_, featurePool);
+      } else {
+        // sub-optimal cross validation
+        nestedTrainScores[0] = trainScores_[set];
+        nestedTestScores[0] = trainScores_[set];
       }
-      nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
-      nestedTrainScores[nestedFold].generatePositiveTrainingSet(
-          *svmInput, selectionFdr, 1.0, trainBestPositive_);
-      if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
-        cerr << "Split " << set + 1 << " nested fold " << nestedFold
-             << ": Training with " << svmInput->positives << " positives and "
-             << svmInput->negatives << " negatives" << std::endl;
+      nestedTestScoresVec[set] = nestedTestScores;
+      // Set SVM input data for L2-SVM-MFN
+      for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
+           ++nestedFold) {
+        AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
+        if ((VERB > 2) && (nestedFold == 0)) {
+          cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
+               << " positives and " << svmInput->negatives << " negatives"
+               << std::endl;
+        }
+        nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
+        nestedTrainScores[nestedFold].generatePositiveTrainingSet(
+            *svmInput, selectionFdr, 1.0, trainBestPositive_);
+        if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
+          cerr << "Split " << set + 1 << " nested fold " << nestedFold
+               << ": Training with " << svmInput->positives << " positives and "
+               << svmInput->negatives << " negatives" << std::endl;
+        }
+        svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
       }
-      svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
+    } catch (...) {
+      setupErrors[set] = std::current_exception();
     }
   }
+  rethrowFirstError(setupErrors);
 
 #pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
   for (int pairIdx = 0; pairIdx < classWeightsPerFold_.size(); pairIdx++) {
@@ -456,14 +484,21 @@ int CrossValidation::mergeCpCnPairs(
   // its test set (sorting a shared one would serialize the pairs of a fold). The count does not
   // depend on the order of the test set (PSMs that compare equal have the same label), and the
   // test sets are not used afterwards. The pairs are then merged in their order, as before.
+  // At most one copy per thread exists at a time (num_threads, at most 9 in ProSE).
   vector<int> pairTruePoses(classWeightsPerFold_.size());
+  vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
   for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); ++pairIdx) {
-    CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
-    Scores testScores = nestedTestScoresVec[cpCnPair.set][static_cast<std::size_t>(cpCnPair.nestedSet)];
-    pairTruePoses[pairIdx] =
-        testScores.calcScoresAndQvals(cpCnPair.ww, testFdr_, skipDecoysPlusOne);
+    try {
+      CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
+      Scores testScores = nestedTestScoresVec[cpCnPair.set][static_cast<std::size_t>(cpCnPair.nestedSet)];
+      pairTruePoses[pairIdx] =
+          testScores.calcScoresAndQvals(cpCnPair.ww, testFdr_, skipDecoysPlusOne);
+    } catch (...) {
+      pairErrors[pairIdx] = std::current_exception();
+    }
   }
+  rethrowFirstError(pairErrors);
 #pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     unsigned int a = set * numCpCnPairsPerSet;
@@ -543,11 +578,17 @@ int CrossValidation::mergeCpCnPairs(
 
   // OpenMS: the folds in parallel; the counts are added up in fold order
   vector<int> truePoses(numFolds_);
+  vector<std::exception_ptr> foldErrors(numFolds_);
 #pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    truePoses[set] =
-        trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    try {
+      truePoses[set] =
+          trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    } catch (...) {
+      foldErrors[set] = std::current_exception();
+    }
   }
+  rethrowFirstError(foldErrors);
   double bestTruePos = 0;
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     bestTruePos += truePoses[set];
