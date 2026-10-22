@@ -73,6 +73,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   allows (a TOPP tool's `-threads`). Upstream sets the count with
   `omp_set_num_threads()` in its caller, which this tree does not include, so
   `numThreads_` was stored but unused.
+  `numLoopThreads` is defined without OpenMP as well (it returns 1): Clang's
+  `-fopenmp-simd` parses the `num_threads` clauses without defining `_OPENMP`.
 
 ### Regenerating the patch
 

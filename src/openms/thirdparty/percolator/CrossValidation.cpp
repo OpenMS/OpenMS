@@ -27,16 +27,19 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 // checks cross validation convergence in case of quickValidation_
 const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 
-#ifdef _OPENMP
 // OpenMS: the cross-validation loops run on at most numThreads threads, and never on
 // more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
 // omp_set_num_threads() instead, which would change the count for the whole process.
-static int numLoopThreads(unsigned int numThreads) {
+// Without an OpenMP runtime (e.g. -fopenmp-simd, which still parses the clauses) 1.
+[[maybe_unused]] static int numLoopThreads(unsigned int numThreads) {
+#ifdef _OPENMP
   return static_cast<int>(
       std::min(std::max(numThreads, 1u),
                static_cast<unsigned int>(omp_get_max_threads())));
-}
+#else
+  return 1;
 #endif
+}
 
 CrossValidation::CrossValidation(bool quickValidation,
                                  bool reportPerformanceEachIteration,
