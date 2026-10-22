@@ -245,6 +245,105 @@ namespace OpenMS
     spectrum.getPrecursors().push_back(prec);
   }
 
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                          const AASequence& peptide, Int min_charge, Int max_charge) const
+  {
+    if (add_isotopes_ || add_losses_ || add_internal_fragments_ || add_precursor_peaks_ || add_abundant_immonium_ions_
+        || !sort_by_position_ || peptide.size() < 2)
+    {
+      return false;
+    }
+    // the ion series of getSpectrum(), in its order: per charge b, y, a, c, x, z, z+1, z+2 (one sorted chunk each)
+    struct Series
+    {
+      bool active;
+      bool prefix;
+      double offset;
+      double intensity;
+    };
+    static const double stat_a = Residue::getInternalToAIon().getMonoWeight();
+    static const double stat_b = Residue::getInternalToBIon().getMonoWeight();
+    static const double stat_c = Residue::getInternalToCIon().getMonoWeight();
+    static const double stat_x = Residue::getInternalToXIon().getMonoWeight();
+    static const double stat_y = Residue::getInternalToYIon().getMonoWeight();
+    static const double stat_z = Residue::getInternalToZIon().getMonoWeight();
+    static const double stat_zp1 = Residue::getInternalToZp1Ion().getMonoWeight();
+    static const double stat_zp2 = Residue::getInternalToZp2Ion().getMonoWeight();
+    const Series series[] = {
+      {add_b_ions_, true, stat_b, b_intensity_},     {add_y_ions_, false, stat_y, y_intensity_},
+      {add_a_ions_, true, stat_a, a_intensity_},     {add_c_ions_, true, stat_c, c_intensity_},
+      {add_x_ions_, false, stat_x, x_intensity_},    {add_z_ions_, false, stat_z, z_intensity_},
+      {add_zp1_ions_, false, stat_zp1, z_intensity_}, {add_zp2_ions_, false, stat_zp2, z_intensity_}};
+
+    const Size n = peptide.size();
+    thread_local std::vector<double> residue_weights;
+    residue_weights.resize(n);
+    for (Size i = 0; i < n; ++i) residue_weights[i] = peptide[i].getMonoWeight(Residue::Internal);
+    const double n_term_diff = peptide.hasNTerminalModification() ? peptide.getNTerminalModification()->getDiffMonoMass() : 0.0;
+    const double c_term_diff = peptide.hasCTerminalModification() ? peptide.getCTerminalModification()->getDiffMonoMass() : 0.0;
+
+    // The peaks of each series are appended as addPeaks_() computes them (same operations in the same order), then
+    // the ascending chunks are merged stably, which is the order sortByPositionPresorted() gives them.
+    thread_local std::vector<std::pair<Peak1D, uint8_t>> merged, chunk, scratch;
+    merged.clear();
+    for (Int charge = min_charge; charge <= max_charge; ++charge)
+    {
+      for (const Series& s : series)
+      {
+        if (!s.active) continue;
+        chunk.clear();
+        const float intensity = static_cast<float>(s.intensity);
+        double mono_weight(Constants::PROTON_MASS_U * charge);
+        if (s.prefix)
+        {
+          mono_weight += n_term_diff;
+          Size i = Size(!add_first_prefix_ion_);
+          if (i == 1) mono_weight += residue_weights[0];
+          for (; i < n - 1; ++i)
+          {
+            mono_weight += residue_weights[i];
+            chunk.emplace_back(Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(0));
+          }
+        }
+        else
+        {
+          mono_weight += c_term_diff;
+          for (Size i = n - 1; i > 0; --i)
+          {
+            mono_weight += residue_weights[i];
+            chunk.emplace_back(Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(1));
+          }
+        }
+        for (Size k = 1; k < chunk.size(); ++k)
+        {
+          if (chunk[k].first.getMZ() < chunk[k - 1].first.getMZ()) return false; // not a sorted chunk
+        }
+        // stable merge: on equal m/z, the peak of the earlier chunk comes first
+        scratch.clear();
+        auto left = merged.cbegin();
+        auto right = chunk.cbegin();
+        while (left != merged.cend() && right != chunk.cend())
+        {
+          if (right->first.getMZ() < left->first.getMZ()) scratch.push_back(*right++);
+          else scratch.push_back(*left++);
+        }
+        scratch.insert(scratch.end(), left, merged.cend());
+        scratch.insert(scratch.end(), right, chunk.cend());
+        merged.swap(scratch);
+      }
+    }
+
+    spectrum.clear(false);
+    spectrum.reserve(merged.size());
+    ion_series.resize(merged.size());
+    for (Size k = 0; k < merged.size(); ++k)
+    {
+      spectrum.push_back(merged[k].first);
+      ion_series[k] = merged[k].second;
+    }
+    return true;
+  }
+
   MSSpectrum TheoreticalSpectrumGenerator::generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge)
   {
     if (precursor_charge == 0)

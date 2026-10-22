@@ -85,6 +85,23 @@ namespace OpenMS
     /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCID', 'ECD' or 'ETD'.
     static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);
 
+    /**
+      @brief The peaks of getSpectrum() for scoring: same positions, intensities and order, but no ion names, charges or precursor
+
+      Only for a configuration of plain ion series (no isotopes, losses, internal fragments, precursor or immonium ions;
+      sorted output). Instead of the ion names, @p ion_series receives per peak 0 for an N-terminal (a, b, c) and 1 for a
+      C-terminal (x, y, z, z+1, z+2) ion, which is what HyperScore reads from the names.
+
+      @param[out] spectrum Its peaks and data arrays are replaced (the meta data is kept)
+      @param[out] ion_series One entry per peak of @p spectrum
+      @param[in] peptide The input peptide
+      @param[in] min_charge Lowest fragment charge
+      @param[in] max_charge Highest fragment charge
+      @return false (outputs unspecified) if the configuration is not supported, the peptide has fewer than two residues,
+              or an ion series is not ascending in m/z; getSpectrum() is then the way to generate the spectrum
+    */
+    bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
 
     /// overwrite
     void updateMembers_() override;

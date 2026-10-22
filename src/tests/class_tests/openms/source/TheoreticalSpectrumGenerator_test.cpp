@@ -21,6 +21,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <map>
+#include <cstring>
+#include <algorithm>
 
 ///////////////////////////
 
@@ -1052,6 +1054,71 @@ START_SECTION([EXTRA] add_internal_fragments on very short peptides does not han
   t_gen.getSpectrum(spec_on, AASequence::fromString("PEPTIDEK"), 1, 1);
 
   TEST_TRUE(spec_on.size() > spec_off.size())
+}
+END_SECTION
+
+START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, const AASequence& peptide, Int min_charge, Int max_charge) const)
+{
+  // the peaks of getSpectrum() bit for bit, in its order, with the terminal series of the ion names
+  const std::vector<std::string> peptides = {"PEPTIDEK", "AC", "GG", "IFSQVGK", "C(Carbamidomethyl)PEPM(Oxidation)TIDEK",
+    ".(Acetyl)SAMPLER", "PEPTIDE.(Amidated)", "M(Oxidation)M(Oxidation)GGGGGGGGGGGGGK", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAK",
+    "Q(Gln->pyro-Glu)VNPSTWDKSNSTK", "LGLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLR", "N(Deamidated)EQ(Deamidated)AK", "WWWWWWWWWWWWWWWWWWWW"};
+  const std::vector<std::vector<std::string>> configurations = {{"add_b_ions", "add_y_ions"}, {"add_b_ions", "add_y_ions", "add_c_ions", "add_zp1_ions"},
+    {"add_a_ions", "add_b_ions", "add_c_ions", "add_x_ions", "add_y_ions", "add_z_ions", "add_zp1_ions", "add_zp2_ions"}, {"add_y_ions"}};
+  for (const auto& on : configurations)
+  {
+    for (const bool first_prefix_ion : {true, false})
+    {
+      TheoreticalSpectrumGenerator generator;
+      Param p(generator.getParameters());
+      for (const std::string ion : {"a", "b", "c", "x", "y", "z", "zp1", "zp2"})
+      {
+        const std::string name = "add_" + ion + "_ions";
+        p.setValue(name, std::find(on.begin(), on.end(), name) != on.end() ? "true" : "false");
+      }
+      p.setValue("add_first_prefix_ion", first_prefix_ion ? "true" : "false");
+      p.setValue("add_metainfo", "true");
+      p.setValue("b_intensity", 0.75);
+      p.setValue("z_intensity", 0.5);
+      generator.setParameters(p);
+      for (const std::string& sequence : peptides)
+      {
+        const AASequence peptide = AASequence::fromString(sequence);
+        for (Int max_charge = 1; max_charge <= 4; ++max_charge)
+        {
+          PeakSpectrum expected;
+          generator.getSpectrum(expected, peptide, 1, max_charge);
+          PeakSpectrum spectrum;
+          std::vector<uint8_t> series;
+          TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, peptide, 1, max_charge), true)
+          TEST_EQUAL(spectrum.size(), expected.size())
+          TEST_EQUAL(series.size(), expected.size())
+          bool same = spectrum.size() == expected.size() && series.size() == expected.size();
+          for (Size i = 0; same && i < expected.size(); ++i)
+          {
+            const char letter = expected.getStringDataArrays()[0][i][0];
+            const uint8_t expected_series = (letter == 'a' || letter == 'b' || letter == 'c') ? 0 : 1;
+            const double mz = spectrum[i].getMZ(), expected_mz = expected[i].getMZ();
+            const float intensity = spectrum[i].getIntensity(), expected_intensity = expected[i].getIntensity();
+            same = std::memcmp(&mz, &expected_mz, sizeof(double)) == 0 && std::memcmp(&intensity, &expected_intensity, sizeof(float)) == 0
+                   && series[i] == expected_series;
+          }
+          TEST_EQUAL(same, true)
+          TEST_EQUAL(spectrum.getStringDataArrays().empty() && spectrum.getIntegerDataArrays().empty(), true)
+        }
+      }
+    }
+  }
+
+  // unsupported: the caller falls back to getSpectrum()
+  TheoreticalSpectrumGenerator generator;
+  PeakSpectrum spectrum;
+  std::vector<uint8_t> series;
+  TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, AASequence::fromString("K"), 1, 2), false)
+  Param p(generator.getParameters());
+  p.setValue("add_losses", "true");
+  generator.setParameters(p);
+  TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, AASequence::fromString("PEPTIDEK"), 1, 2), false)
 }
 END_SECTION
 

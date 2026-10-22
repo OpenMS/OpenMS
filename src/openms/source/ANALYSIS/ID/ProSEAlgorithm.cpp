@@ -2572,6 +2572,7 @@ namespace OpenMS
       // StringDataArrays with ion names — these are a notable allocation hot spot
       // when the candidate count per spectrum is in the tens/hundreds).
       PeakSpectrum theo_spectrum;
+      std::vector<uint8_t> theo_ion_series;
 
       for (const auto& sms : top_sms.hits_)
       {
@@ -2593,19 +2594,32 @@ namespace OpenMS
           if (! pool_stats[scan_index].seen_candidates.insert(std::move(key)).second) { continue; }
         }
 
-        // Clear peaks + data arrays (ion names / charges) before refilling for the
-        // next candidate; getSpectrum appends to whatever is there.
-        theo_spectrum.clear(true);
-        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
-        // Note: TSG emits sorted output when add_metainfo=true (see the
-        // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
-        // sortByPosition() pass here was a redundant O(N) scan per candidate.
-
         HyperScore::PSMDetail detail;
-        const double score = mass_accuracy_score_
-          ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
-                                            mass_error_sd_ppm_, detail)
-          : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        double score;
+        // The peaks of getSpectrum() with the ion series per peak instead of the ion names (no strings, no data arrays):
+        // the same scores
+        if (spectrum_generator.getIonSeriesSpectrum(theo_spectrum, theo_ion_series, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_)))
+        {
+          score = mass_accuracy_score_
+            ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                              theo_ion_series, mass_error_sd_ppm_, detail)
+            : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                            theo_ion_series, detail);
+        }
+        else
+        {
+          // Clear peaks + data arrays (ion names / charges) before refilling for the
+          // next candidate; getSpectrum appends to whatever is there.
+          theo_spectrum.clear(true);
+          spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
+          // Note: TSG emits sorted output when add_metainfo=true (see the
+          // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
+          // sortByPosition() pass here was a redundant O(N) scan per candidate.
+          score = mass_accuracy_score_
+            ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                              mass_error_sd_ppm_, detail)
+            : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        }
 
         // Summarise the candidate before it can be dropped below or pruned at the
         // end of the loop: the pool-derived PSM features describe the whole search
