@@ -1,0 +1,96 @@
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+index 0370d510..55b6bf44 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+@@ -18,6 +18,8 @@
+ #include "Util.h"
+ 
+ #include <algorithm>
++#include <cstdlib>
++#include <fstream>
+ #include <array>
+ #include <cmath>
+ #include <limits>
+@@ -643,8 +645,30 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+                                      const DonorMap& donors,
+                                      AcceptorMap& acceptors)
+ {
++  // [DIAG, local investigation only] PIPECHO_DIAG=<file>: one line per donor and acceptor run
++  static std::ofstream* diag = nullptr;
++  static bool diag_init = false;
++  if (! diag_init)
++  {
++    diag_init = true;
++    if (const char* p = std::getenv("PIPECHO_DIAG"))
++    {
++      diag = new std::ofstream(p);
++      *diag << "widen\tdonor_map\tacceptor_map\tkey\tcharge\tmz\tdonor_rt\tcenter\tgate\tglobal_tol\tfound\tn_mz\tn_in_window\tbest_dt\tbest_ppm\n";
++    }
++  }
++  std::vector<std::pair<double, const Acceptor*>> by_mz;
++  long acceptor_map = -1;
++  if (diag)
++  {
++    for (const auto& a : acceptors.storage) { by_mz.emplace_back(a->feature.getMZ(), a.get()); }
++    std::sort(by_mz.begin(), by_mz.end(), [](const auto& l, const auto& r) { return l.first < r.first; });
++    if (! acceptors.storage.empty()) { acceptor_map = static_cast<long>((*acceptors.storage.begin())->map_index); }
++  }
++
+   for (auto& donor : donors.storage)
+   {
++    bool diag_found = false;
+     for (auto window = initial_window(*donor); window.has_value();
+          window = next_window(window))
+     {
+@@ -654,6 +678,7 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+       {
+         auto acceptor = target->second;
+         acceptor->push_back(target->first, donor, DonorType::Target);
++        diag_found = true;
+       }
+ 
+       const auto random_donor = find_random_donor(donors, *donor, *window);
+@@ -676,7 +701,43 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+         break; // We can stop searching.
+       }
+     }
++
++    if (diag)
++    {
++      const double mz = donor->feature.getMZ();
++      const double rt = donor->feature.getRT();
++      double center = rt, gate = std::numeric_limits<double>::infinity();
++      if (use_local_rt_ && local_rt_)
++      {
++        const LocalRtModel::Pred p = local_rt_->predict(rt);
++        center = p.center;
++        gate = p.half_window;
++      }
++      const double tol = mz_max_diff.mz_diff(mz);
++      const double win = std::min(gate, rt_sec_max_window);
++      std::size_t n_mz = 0, n_in = 0;
++      double best_dt = std::numeric_limits<double>::quiet_NaN(), best_ppm = best_dt;
++      auto it = std::lower_bound(by_mz.begin(), by_mz.end(), mz - tol,
++                                 [](const auto& e, double v) { return e.first < v; });
++      for (; it != by_mz.end() && it->first <= mz + tol; ++it)
++      {
++        const Feature& f = it->second->feature;
++        if (f.getCharge() != donor->feature.getCharge()) { continue; }
++        ++n_mz;
++        const double dt = f.getRT() - center;
++        if (std::fabs(dt) <= win) { ++n_in; }
++        if (std::isnan(best_dt) || std::fabs(dt) < std::fabs(best_dt))
++        {
++          best_dt = dt;
++          best_ppm = (f.getMZ() - mz) / mz * 1e6;
++        }
++      }
++      *diag << lrt_widen_ << '\t' << donor->map_index << '\t' << acceptor_map << '\t' << feature_sequence_key(donor->feature)
++            << '\t' << donor->feature.getCharge() << '\t' << mz << '\t' << rt << '\t' << center << '\t' << gate << '\t'
++            << rt_sec_max_window << '\t' << diag_found << '\t' << n_mz << '\t' << n_in << '\t' << best_dt << '\t' << best_ppm << '\n';
++    }
+   }
++  if (diag) { diag->flush(); }
+ }
+ 
+ /******************************************************************************/
