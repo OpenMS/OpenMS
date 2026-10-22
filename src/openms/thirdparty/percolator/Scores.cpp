@@ -644,7 +644,8 @@ void Scores::weedOutRedundantMixMax() {
 }
 
 int Scores::getInitDirection(const double initialSelectionFdr,
-                             std::vector<double>& direction) {
+                             std::vector<double>& direction,
+                             std::ostream& report) {
   int bestPositives = -1;
   int bestFeature = -1;
   bool lowBest = false;
@@ -704,7 +705,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
   }
 
   if (VERB > 1) {
-    cerr << "Selected feature " << bestFeature + 1
+    report << "Selected feature " << bestFeature + 1
          << " as initial direction. Could separate " << bestPositives
          << " training set positives with q<" << initialSelectionFdr
          << " in that direction." << endl;

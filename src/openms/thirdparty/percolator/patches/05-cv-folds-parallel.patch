@@ -1,0 +1,213 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 925f5b965d..373b39d2e1 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -126,6 +126,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   // initialize weights vector for all folds
+   weights_ = vector<vector<double> >(
+       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
++  pCheck->setNumThreads(static_cast<unsigned int>(numLoopThreads(numThreads_)));
+   int numPositive =
+       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
+                                testFdr_, initialSelectionFdr_);
+@@ -270,10 +271,16 @@ void CrossValidation::train(const Normalizer* pNorm) {
+   if (VERB == 3) {
+     printAllRawWeightsColumns(cerr, pNorm);
+   }
++  // OpenMS: the folds in parallel; the counts are added up in fold order
++  vector<int> testPositives(numFolds_);
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
++  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++    testPositives[set] =
++        testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
++  }
+   foundPositives = 0;
+   for (size_t set = 0; set < numFolds_; ++set) {
+-    foundPositives +=
+-        testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
++    foundPositives += testPositives[set];
+   }
+   if (VERB > 0) {
+     std::cerr << "Found " << foundPositives << " test set PSMs with q<"
+@@ -300,7 +307,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   // for determining an appropriate positive training set, the decoys+1 in the
+   // FDR estimates is too restrictive for small datasets
+   bool skipDecoysPlusOne = true;
+-  for (std::size_t set = 0; set < numFolds_; ++set) {
++  // OpenMS: the folds in parallel; each scores and sorts only its own training set
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
++  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
+                                          skipDecoysPlusOne);
+   }
+@@ -519,11 +528,17 @@ int CrossValidation::mergeCpCnPairs(
+     }
+   }
+ 
+-  double bestTruePos = 0;
++  // OpenMS: the folds in parallel; the counts are added up in fold order
++  vector<int> truePoses(numFolds_);
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+-    bestTruePos +=
++    truePoses[set] =
+         trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+   }
++  double bestTruePos = 0;
++  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++    bestTruePos += truePoses[set];
++  }
+   return static_cast<int>(bestTruePos / (numFolds_ - 1));
+ }
+ 
+diff --git a/src/openms/thirdparty/percolator/SanityCheck.cpp b/src/openms/thirdparty/percolator/SanityCheck.cpp
+index af716f769e..e7da02adbe 100644
+--- a/src/openms/thirdparty/percolator/SanityCheck.cpp
++++ b/src/openms/thirdparty/percolator/SanityCheck.cpp
+@@ -17,6 +17,8 @@
+ #include <string>
+ #include <fstream>
+ #include <iostream>
++#include <exception>
++#include <sstream>
+ #include "DataSet.h"
+ #include "Scores.h"
+ #include "Normalizer.h"
+@@ -101,9 +103,15 @@ int SanityCheck::getInitDirection(vector<Scores>& testset,
+   } else {
+     getDefaultDirection(w);
+   }
++  // OpenMS: the folds in parallel; each scores and sorts only its own test set
++  vector<int> positives(w.size());
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
++  for (int set = 0; set < static_cast<int>(w.size()); ++set) {
++    positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
++  }
+   initPositives_ = 0;
+   for (size_t set = 0; set < w.size(); ++set) {
+-    initPositives_ += (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
++    initPositives_ += positives[set];
+   }
+   return initPositives_;
+ }
+@@ -115,9 +123,21 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
+     //if the default_weights from pin.xml are not present
+     if (default_weights.size() == 0) {
+       // Set init direction to be the most discriminative direction
++      // OpenMS: the folds in parallel, each on its own training set; their
++      // reports are printed afterwards, in fold order
++      vector<ostringstream> reports(w.size());
++      vector<std::exception_ptr> errors(w.size());
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
++      for (int set = 0; set < static_cast<int>(w.size()); ++set) {
++        try {
++          calcInitDirection(w[set], static_cast<size_t>(set), reports[set]);
++        } catch (...) {
++          errors[set] = std::current_exception();
++        }
++      }
+       for (size_t set = 0; set < w.size(); ++set) {
+-        if (VERB > 1) std::cerr << "Split " << set + 1 << ":\t";
+-        calcInitDirection(w[set], set);
++        if (VERB > 1) std::cerr << "Split " << set + 1 << ":\t" << reports[set].str();
++        if (errors[set]) std::rethrow_exception(errors[set]);
+       }
+     } else {
+       // I want to assign the default vector that is present in the input file
+@@ -140,8 +160,9 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
+   }
+ }
+ 
+-void SanityCheck::calcInitDirection(vector<double>& wSet, size_t set) {
+-  (*pTrainset_)[set].getInitDirection(initial_train_fdr_, wSet);
++void SanityCheck::calcInitDirection(vector<double>& wSet, size_t set,
++                                    std::ostream& report) {
++  (*pTrainset_)[set].getInitDirection(initial_train_fdr_, wSet, report);
+ }
+ 
+ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
+@@ -149,9 +170,15 @@ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
+     cerr << "SanityCheck wrongly configured" << endl;
+     return false;
+   }
++  // OpenMS: the folds in parallel, as in getInitDirection
++  vector<int> positives(w.size());
++#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
++  for (int set = 0; set < static_cast<int>(w.size()); ++set) {
++    positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
++  }
+   int overFDR = 0;
+   for (size_t set = 0; set < w.size(); ++set) {
+-    overFDR += (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
++    overFDR += positives[set];
+   }
+   if (overFDR <= 0) {
+     cerr << "No targets found with q<" << test_fdr_ << endl;
+diff --git a/src/openms/thirdparty/percolator/SanityCheck.h b/src/openms/thirdparty/percolator/SanityCheck.h
+index 82b98a5321..08e74da2eb 100644
+--- a/src/openms/thirdparty/percolator/SanityCheck.h
++++ b/src/openms/thirdparty/percolator/SanityCheck.h
+@@ -65,10 +65,16 @@ class SanityCheck {
+   void setConcatenatedSearch(const bool s) {
+     concatenatedSearch_ = s;
+   }
++
++  // OpenMS: the number of threads for the loops over the cross-validation folds
++  void setNumThreads(const unsigned int n) {
++    numThreads_ = n;
++  }
+   
+  protected:
+   virtual void getDefaultDirection(vector<vector<double> >& w);
+-  virtual void calcInitDirection(vector<double>& wSet, size_t set);
++  virtual void calcInitDirection(vector<double>& wSet, size_t set,
++                                 std::ostream& report);
+   
+   int initPositives_;
+   double test_fdr_, initial_train_fdr_;
+@@ -87,6 +93,8 @@ class SanityCheck {
+   
+   // input from concatenated search, i.e. not separate target and decoy searches
+   bool concatenatedSearch_;
++
++  unsigned int numThreads_ = 1;
+ };
+ 
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index bb20e1b0c9..cc9698aa39 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -644,7 +644,8 @@ void Scores::weedOutRedundantMixMax() {
+ }
+ 
+ int Scores::getInitDirection(const double initialSelectionFdr,
+-                             std::vector<double>& direction) {
++                             std::vector<double>& direction,
++                             std::ostream& report) {
+   int bestPositives = -1;
+   int bestFeature = -1;
+   bool lowBest = false;
+@@ -704,7 +705,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+   }
+ 
+   if (VERB > 1) {
+-    cerr << "Selected feature " << bestFeature + 1
++    report << "Selected feature " << bestFeature + 1
+          << " as initial direction. Could separate " << bestPositives
+          << " training set positives with q<" << initialSelectionFdr
+          << " in that direction." << endl;
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index e69eeb8b54..423faf6d64 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -91,7 +91,8 @@ class Scores {
+   void populateWithPSMs(SetHandler& setHandler);
+ 
+   int getInitDirection(const double initialSelectionFdr,
+-                       std::vector<double>& direction);
++                       std::vector<double>& direction,
++                       std::ostream& report = std::cerr);
+   void createXvalSetsBySpectrum(std::vector<Scores>& train,
+                                 std::vector<Scores>& test,
+                                 unsigned int xval_fold,

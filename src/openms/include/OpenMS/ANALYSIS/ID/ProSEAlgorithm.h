@@ -378,8 +378,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                            the PSMs were rescored.
      * @param[in,out] peptide_ids Target and decoy PSMs of the run (with 'target_decoy' annotations
      *                            and peptide evidences, as from PeptideIndexing).
-     * @param[in] threads Threads Percolator may use: it trains one model per cross-validation fold,
-     *                    so more than 3 do not help (values above 3 use 3, values <= 0 use 3).
+     * @param[in] threads Threads Percolator may use (values above 9 use 9, values <= 0 use 3); never
+     *                    more than OpenMP allows. Cross-validation trains 9 models at a time (3 folds x
+     *                    3 Cneg values), so more than 9 do not help. The results do not depend on it.
      *
      * @return Whether the PSMs were rescored, and if not, why.
      */

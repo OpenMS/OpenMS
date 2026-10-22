@@ -126,6 +126,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
   // initialize weights vector for all folds
   weights_ = vector<vector<double> >(
       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
+  pCheck->setNumThreads(static_cast<unsigned int>(numLoopThreads(numThreads_)));
   int numPositive =
       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
                                testFdr_, initialSelectionFdr_);
@@ -270,10 +271,16 @@ void CrossValidation::train(const Normalizer* pNorm) {
   if (VERB == 3) {
     printAllRawWeightsColumns(cerr, pNorm);
   }
+  // OpenMS: the folds in parallel; the counts are added up in fold order
+  vector<int> testPositives(numFolds_);
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+    testPositives[set] =
+        testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+  }
   foundPositives = 0;
   for (size_t set = 0; set < numFolds_; ++set) {
-    foundPositives +=
-        testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    foundPositives += testPositives[set];
   }
   if (VERB > 0) {
     std::cerr << "Found " << foundPositives << " test set PSMs with q<"
@@ -300,7 +307,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   // for determining an appropriate positive training set, the decoys+1 in the
   // FDR estimates is too restrictive for small datasets
   bool skipDecoysPlusOne = true;
-  for (std::size_t set = 0; set < numFolds_; ++set) {
+  // OpenMS: the folds in parallel; each scores and sorts only its own training set
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
                                          skipDecoysPlusOne);
   }
@@ -519,10 +528,16 @@ int CrossValidation::mergeCpCnPairs(
     }
   }
 
+  // OpenMS: the folds in parallel; the counts are added up in fold order
+  vector<int> truePoses(numFolds_);
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+    truePoses[set] =
+        trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+  }
   double bestTruePos = 0;
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    bestTruePos +=
-        trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    bestTruePos += truePoses[set];
   }
   return static_cast<int>(bestTruePos / (numFolds_ - 1));
 }

@@ -75,6 +75,16 @@ hand-editing sources and committing them, to keep sync self-healing.
   `numThreads_` was stored but unused.
   `numLoopThreads` is defined without OpenMP as well (it returns 1): Clang's
   `-fopenmp-simd` parses the `num_threads` clauses without defining `_OPENMP`.
+- `patches/05-cv-folds-parallel.patch` — runs the remaining per-fold loops of
+  cross-validation in parallel, on at most `numThreads_` threads like the loops of
+  patch 04: the initial direction (`SanityCheck::getDefaultDirection`, which sorts
+  each training set once per feature), the scoring of the test sets
+  (`SanityCheck::getInitDirection`, `validateDirection`, `CrossValidation::train`)
+  and of the training sets (`CrossValidation::doStep`, `mergeCpCnPairs`). Each fold
+  works on its own `Scores`; the counts are added up in fold order, and the
+  "Selected feature" reports (`Scores::getInitDirection` writes them to a stream
+  it is given) are printed afterwards in fold order. None of these loops draws
+  random numbers, so the results do not depend on the number of threads.
 
 ### Regenerating the patch
 

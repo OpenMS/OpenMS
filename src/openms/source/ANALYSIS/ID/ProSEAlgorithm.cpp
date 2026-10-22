@@ -4196,8 +4196,8 @@ namespace OpenMS
     pp.setValue("post_processing_tdc", "true");
     pp.setValue("subset_max_train", 0);  // train on all PSMs
     pp.setValue("pep_method", "nonparametric");  // as the percolator executable
-    // one model per cross-validation fold: more than 3 threads do not help
-    pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 3));
+    // cross-validation trains 9 models at a time (3 folds x 3 Cneg values); the results do not depend on the threads
+    pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 9));
     perc.setParameters(pp);
 
     try
