@@ -19,10 +19,42 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/unordered_map.hpp>
+#include <chrono>
+#include <cstdint>
 #include <unordered_set>
 
 namespace OpenMS
 {
+  namespace
+  {
+    int resolveShuffleSeed(const int seed)
+    {
+      // Resolve the time opt-in once for both subset selection and all peptides.
+      if (seed != -1)
+      {
+        return seed;
+      }
+      return static_cast<int>(static_cast<std::uint64_t>(
+        std::chrono::system_clock::now().time_since_epoch().count()) & 0x7fffffffU);
+    }
+
+    int peptideShuffleSeed(const int seed, const std::string& sequence)
+    {
+      // FNV-1a over explicitly ordered bytes, independent of std::hash and IDs.
+      std::uint32_t hash = 2166136261U;
+      const auto base = static_cast<std::uint32_t>(seed);
+      for (unsigned int shift = 0; shift < 32; shift += 8)
+      {
+        hash = (hash ^ ((base >> shift) & 0xffU)) * 16777619U;
+      }
+      for (const unsigned char residue : sequence)
+      {
+        hash = (hash ^ residue) * 16777619U;
+      }
+      // Keep the result representable as int and distinct from the -1 sentinel.
+      return static_cast<int>(hash & 0x7fffffffU);
+    }
+  }
 
   MRMDecoy::MRMDecoy() :
     DefaultParamHandler("MRMDecoy"),
@@ -497,6 +529,7 @@ namespace OpenMS
                                 const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges,
                                 const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow, const Int shuffle_seed) const
   {
+    const int resolved_seed = resolveShuffleSeed(shuffle_seed);
     MRMIonSeries mrmis;
     MRMDecoy::PeptideVectorType peptides, decoy_peptides;
     MRMDecoy::ProteinVectorType proteins, decoy_proteins;
@@ -518,7 +551,7 @@ namespace OpenMS
     }
     else if (aim_decoy_fraction < 1.0)
     {
-      Math::RandomShuffler shuffler;
+      Math::RandomShuffler shuffler(resolved_seed);
       shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
       selection_list.reserve(aim_decoy_fraction * exp.getPeptides().size());
       Size k = 0;
@@ -590,7 +623,7 @@ namespace OpenMS
       }
       else if (method == "shuffle")
       {
-        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, shuffle_seed, max_attempts);
+        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, peptideShuffleSeed(resolved_seed, peptide.sequence), max_attempts);
         if (do_switchKR && MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications\n";
@@ -771,6 +804,7 @@ namespace OpenMS
                                      const bool enable_unspecific_losses,
                                      const int round_decPow, const Int shuffle_seed) const
   {
+    const int resolved_seed = resolveShuffleSeed(shuffle_seed);
     MRMIonSeries mrmis;
     std::vector<OpenSwath::LightCompound> decoy_compounds;
     std::vector<OpenSwath::LightProtein> decoy_proteins;
@@ -795,7 +829,7 @@ namespace OpenMS
     }
     else if (aim_decoy_fraction < 1.0)
     {
-      Math::RandomShuffler shuffler;
+      Math::RandomShuffler shuffler(resolved_seed);
       shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
       selection_list.reserve(aim_decoy_fraction * exp.compounds.size());
       Size k = 0;
@@ -910,7 +944,7 @@ namespace OpenMS
       }
       else if (method == "shuffle")
       {
-        auto result = shufflePeptideLight(unmodified_sequence, decoy_compound.modifications, identity_threshold, shuffle_seed, max_attempts);
+        auto result = shufflePeptideLight(unmodified_sequence, decoy_compound.modifications, identity_threshold, peptideShuffleSeed(resolved_seed, unmodified_sequence), max_attempts);
         decoy_sequence = result.first;
         decoy_mods = result.second;
         if (do_switchKR && hasCNterminalModsLight_(decoy_mods, decoy_sequence.size(), do_switchKR))

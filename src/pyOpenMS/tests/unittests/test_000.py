@@ -6533,6 +6533,8 @@ def testDigestionEnzymeProtein():
 def testMRMAssay():
     e = pyopenms.MRMAssay()
     assert e
+    assert "default 1 for reproducible results" in e.uisTransitions.__doc__
+    assert "-1 selects a time-based seed" in e.uisTransitions.__doc__
 
 @report
 def testMRMIonSeries():

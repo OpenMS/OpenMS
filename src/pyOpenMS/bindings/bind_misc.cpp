@@ -3244,7 +3244,7 @@ peptidoforms to which they map.
 :param swathes: The swath window settings (to exclude fragment ions falling
 :param round_decPow: Round product m/z values to decimal power (default: -4)
 :param max_num_alternative_localizations: Maximum number of allowed peptide sequence permutations
-:param shuffle_seed: Set seed for shuffle (-1: select seed based on time)
+:param shuffle_seed: Shuffle seed (default 1 for reproducible results; -1 selects a time-based seed)
 :param disable_decoy_transitions: Whether to disable generation of decoy UIS transitions
 )doc")
         ;

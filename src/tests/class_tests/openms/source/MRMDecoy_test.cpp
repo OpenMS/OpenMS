@@ -17,6 +17,10 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/MATH/MathFunctions.h>
+
+#include <algorithm>
+#include <set>
 
 #include <boost/assign/std/vector.hpp>
 
@@ -1291,40 +1295,32 @@ START_SECTION([EXTRA] library_shuffle_seed_controls_heavy_and_light_decoys)
   OpenSwathDataAccessHelper::convertTargetedExp(targets, light_targets);
   MRMDecoy generator;
 
-  // Compare library generation with the existing seeded peptide RNG. No clock waits are needed.
+  // Repeated calls and heavy/light paths agree without prescribing internal RNG seeds.
   for (const Int seed : {1, 42})
   {
     TargetedExperiment decoys;
     generator.generateDecoys(targets, decoys, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
                              0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, seed);
     TEST_TRUE(!decoys.getPeptides().empty())
-    for (const auto& peptide : decoys.getPeptides())
-    {
-      const auto& target = targets.getPeptideByRef(peptide.id.substr(6));
-      const auto expected = generator.shufflePeptide(target, 0.7, seed, 30);
-      TEST_EQUAL(peptide.sequence, expected.sequence)
-      TEST_EQUAL(peptide.mods.size(), expected.mods.size())
-      for (Size i = 0; i < peptide.mods.size(); ++i)
-      {
-        TEST_EQUAL(peptide.mods[i].location, expected.mods[i].location)
-        TEST_EQUAL(peptide.mods[i].unimod_id, expected.mods[i].unimod_id)
-      }
-    }
+    TargetedExperiment repeated;
+    generator.generateDecoys(targets, repeated, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
+                             0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, seed);
+    TEST_TRUE(decoys == repeated)
 
     OpenSwath::LightTargetedExperiment light_decoys;
     generator.generateDecoysLight(light_targets, light_decoys, "shuffle", 1.0, false, "DECOY_", 30, 0.7,
                                   0.0, 20.0, 0.8, {"b", "y"}, {1, 2}, true, false, -4, seed);
     TEST_TRUE(!light_decoys.compounds.empty())
+    TEST_EQUAL(light_decoys.compounds.size(), decoys.getPeptides().size())
     for (const auto& compound : light_decoys.compounds)
     {
-      const auto& target = light_targets.getCompoundByRef(compound.id.substr(6));
-      const auto expected = generator.shufflePeptideLight(target.sequence, target.modifications, 0.7, seed, 30);
-      TEST_EQUAL(AASequence::fromString(compound.sequence).toUnmodifiedString(), expected.first)
-      TEST_EQUAL(compound.modifications.size(), expected.second.size())
+      const auto& expected = decoys.getPeptideByRef(compound.id);
+      TEST_EQUAL(AASequence::fromString(compound.sequence).toUnmodifiedString(), expected.sequence)
+      TEST_EQUAL(compound.modifications.size(), expected.mods.size())
       for (Size i = 0; i < compound.modifications.size(); ++i)
       {
-        TEST_EQUAL(compound.modifications[i].location, expected.second[i].location)
-        TEST_EQUAL(compound.modifications[i].unimod_id, expected.second[i].unimod_id)
+        TEST_EQUAL(compound.modifications[i].location, expected.mods[i].location)
+        TEST_EQUAL(compound.modifications[i].unimod_id, expected.mods[i].unimod_id)
       }
     }
   }
@@ -1351,6 +1347,137 @@ START_SECTION([EXTRA] library_shuffle_seed_controls_heavy_and_light_decoys)
   for (Size i = 0; i < light_default.compounds.size(); ++i)
   {
     TEST_EQUAL(light_default.compounds[i].sequence, light_seeded.compounds[i].sequence)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] library_shuffle_seed_varies_per_sequence_not_id_or_order)
+{
+  // Unique residues expose the index permutation. All peptides have the same fixed positions.
+  const std::vector<std::string> sequences = {"ACDEFGHIK", "LMNQSTVWK", "CDEFGHILK", "DEFGHILMK"};
+  TargetedExperiment targets;
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    TargetedExperiment::Peptide peptide;
+    peptide.id = std::to_string(i);
+    peptide.sequence = sequences[i];
+    peptide.setChargeState(2);
+    targets.addPeptide(peptide);
+  }
+  MRMDecoy generator;
+  const auto generate = [&](const TargetedExperiment& input)
+  {
+    TargetedExperiment result;
+    generator.generateDecoys(input, result, "shuffle", 1.0, false, "DECOY_", 1, 0.99,
+                             0.0, 20.0, 0.8, {"b", "y"}, {1}, false, false, -4, 1);
+    return result;
+  };
+  const auto decoys = generate(targets);
+  TEST_EQUAL(decoys.getPeptides().size(), sequences.size())
+  std::set<std::vector<Size>> permutations;
+  for (const auto& peptide : decoys.getPeptides())
+  {
+    const auto& target = targets.getPeptideByRef(peptide.id.substr(6));
+    std::vector<Size> permutation;
+    for (const char residue : peptide.sequence)
+    {
+      permutation.push_back(target.sequence.find(residue));
+    }
+    permutations.insert(permutation);
+  }
+  TEST_TRUE(permutations.size() > 1)
+
+  auto reordered = targets.getPeptides();
+  std::reverse(reordered.begin(), reordered.end());
+  for (auto& peptide : reordered) peptide.id = "renamed_" + peptide.id;
+  targets.setPeptides(reordered);
+  const auto renamed_decoys = generate(targets);
+  TEST_EQUAL(renamed_decoys.getPeptides().size(), sequences.size())
+  for (const auto& peptide : renamed_decoys.getPeptides())
+  {
+    TEST_EQUAL(peptide.sequence, decoys.getPeptideByRef("DECOY_" + peptide.id.substr(14)).sequence)
+  }
+  OpenSwath::LightTargetedExperiment light_targets, light_decoys;
+  OpenSwathDataAccessHelper::convertTargetedExp(targets, light_targets);
+  generator.generateDecoysLight(light_targets, light_decoys, "shuffle", 1.0, false, "DECOY_", 1, 0.99,
+                                0.0, 20.0, 0.8, {"b", "y"}, {1}, false, false, -4, 1);
+  TEST_EQUAL(light_decoys.compounds.size(), sequences.size())
+  for (const auto& compound : light_decoys.compounds)
+  {
+    TEST_EQUAL(compound.sequence, renamed_decoys.getPeptideByRef(compound.id).sequence)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] library_subset_selection_uses_seed_for_both_paths)
+{
+  // No transitions are needed to test peptide selection independently of ion annotation.
+  TargetedExperiment targets;
+  for (Size i = 0; i < 12; ++i)
+  {
+    TargetedExperiment::Peptide peptide;
+    peptide.id = std::to_string(i);
+    peptide.sequence = "ACDEFGHIK";
+    peptide.setChargeState(static_cast<Int>(i + 1)); // Distinct scientific precursors.
+    targets.addPeptide(peptide);
+  }
+  OpenSwath::LightTargetedExperiment light_targets;
+  OpenSwathDataAccessHelper::convertTargetedExp(targets, light_targets);
+  MRMDecoy generator;
+  std::set<std::string> first_selection;
+  for (const Int seed : {1, 42})
+  {
+    std::vector<Size> indices;
+    for (Size i = 0; i < 12; ++i) indices.push_back(i);
+    Math::RandomShuffler shuffler(seed);
+    shuffler.portable_random_shuffle(indices.begin(), indices.end());
+    std::set<std::string> expected;
+    for (Size i = 0; i < 6; ++i) expected.insert("DECOY_" + std::to_string(indices[i]));
+
+    TargetedExperiment decoys, repeated;
+    for (auto* output : {&decoys, &repeated})
+    {
+      generator.generateDecoys(targets, *output, "reverse", 0.5, false, "DECOY_", 10, 0.7,
+                               0.0, 20.0, 0.8, {"b", "y"}, {1}, false, false, -4, seed);
+    }
+    TEST_TRUE(decoys == repeated)
+    std::set<std::string> actual;
+    for (const auto& peptide : decoys.getPeptides()) actual.insert(peptide.id);
+    TEST_TRUE(actual == expected)
+    if (seed == 1)
+    {
+      first_selection = actual;
+    }
+    else
+    {
+      TEST_TRUE(actual != first_selection)
+    }
+
+    OpenSwath::LightTargetedExperiment light_decoys;
+    generator.generateDecoysLight(light_targets, light_decoys, "reverse", 0.5, false, "DECOY_", 10, 0.7,
+                                  0.0, 20.0, 0.8, {"b", "y"}, {1}, false, false, -4, seed);
+    actual.clear();
+    for (const auto& compound : light_decoys.compounds) actual.insert(compound.id);
+    TEST_TRUE(actual == expected)
+  }
+
+  // Time opt-in need not produce a different seed on every call. Within one call,
+  // identical backbones must share the same resolved seed, even across charges.
+  TargetedExperiment time_decoys;
+  generator.generateDecoys(targets, time_decoys, "shuffle", 0.5, false, "DECOY_", 30, 0.7,
+                           0.0, 20.0, 0.8, {"b", "y"}, {1}, false, false, -4, -1);
+  TEST_EQUAL(time_decoys.getPeptides().size(), 6)
+  for (const auto& peptide : time_decoys.getPeptides())
+  {
+    TEST_EQUAL(peptide.sequence, time_decoys.getPeptides().front().sequence)
+  }
+  OpenSwath::LightTargetedExperiment light_time_decoys;
+  generator.generateDecoysLight(light_targets, light_time_decoys, "shuffle", 0.5, false, "DECOY_", 30, 0.7,
+                                0.0, 20.0, 0.8, {"b", "y"}, {1}, false, false, -4, -1);
+  TEST_EQUAL(light_time_decoys.compounds.size(), 6)
+  for (const auto& compound : light_time_decoys.compounds)
+  {
+    TEST_EQUAL(compound.sequence, light_time_decoys.compounds.front().sequence)
   }
 }
 END_SECTION

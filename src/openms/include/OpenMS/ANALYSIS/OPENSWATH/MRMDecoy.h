@@ -102,7 +102,10 @@ public:
       @param[in] enable_specific_losses Enable specific neutral losses
       @param[in] enable_unspecific_losses Enable unspecific neutral losses
       @param[in] round_decPow Round product m/z values to decimal power
-      @param[in] shuffle_seed Shuffle RNG seed (default 1 for reproducibility, -1 for time-based seeding)
+      @param[in] shuffle_seed Base seed for subset selection and sequence-derived peptide shuffles (default 1 for reproducibility, -1 resolves the clock once per call)
+
+      @note Peptide shuffle seeds use the unmodified amino-acid sequence, not precursor IDs or input order.
+      Time-based seeds are not guaranteed to be unique between calls.
 
     */
     void generateDecoys(const OpenMS::TargetedExperiment& exp,
@@ -144,7 +147,10 @@ public:
       @param[in] enable_specific_losses Enable specific neutral losses
       @param[in] enable_unspecific_losses Enable unspecific neutral losses
       @param[in] round_decPow Round product m/z values to decimal power
-      @param[in] shuffle_seed Shuffle RNG seed (default 1 for reproducibility, -1 for time-based seeding)
+      @param[in] shuffle_seed Base seed for subset selection and sequence-derived peptide shuffles (default 1 for reproducibility, -1 resolves the clock once per call)
+
+      @note Peptide shuffle seeds use the unmodified amino-acid sequence, not precursor IDs or input order.
+      Time-based seeds are not guaranteed to be unique between calls.
 
     */
     void generateDecoysLight(const OpenSwath::LightTargetedExperiment& exp,
