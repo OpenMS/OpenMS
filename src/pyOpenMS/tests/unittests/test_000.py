@@ -4367,6 +4367,9 @@ def testMRMDecoyShuffleSeed():
     default_decoys = generator.generateDecoys(**arguments)
     seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=1)
     other_decoys = generator.generateDecoys(**arguments, shuffle_seed=42)
+    # Explicit -1 remains accepted for callers requesting time-based shuffling.
+    time_seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=-1)
+    assert time_seeded_decoys.getPeptides()
     assert default_decoys.getPeptides()
     assert default_decoys == seeded_decoys
     assert [p.sequence for p in seeded_decoys.getPeptides()] != [

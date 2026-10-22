@@ -478,7 +478,8 @@ protected:
     registerFlag_("PeptideQueryParameters:AssayGenerator:enable_identification_unspecific_losses", "IPF: allow unspecific neutral losses for identification transitions.", true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:enable_swath_specifity", "IPF: use precursor-isolation windows instead of precursor m/z-specific identification transitions.", true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_decoy_transitions", "IPF: disable generation of decoy UIS transitions.", true);
-    registerIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", "<int>", -1, "IPF: random seed for decoy shuffle (-1 = time-based).", false, true);
+    registerIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", "<int>", 1, "IPF: random seed for decoy shuffle (default 1 for reproducibility, -1 = time-based).", false, true);
+    setMinInt_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", -1);
 
     registerTOPPSubsection_("PeptideQueryParameters:LibraryPrediction", "FASTA digestion and native PeptDeep prediction parameters used when workflow:library_mode=predicted.");
     registerStringOption_("PeptideQueryParameters:LibraryPrediction:enzyme", "<name>", "Trypsin", "Protease used for in-silico FASTA digestion.", false);

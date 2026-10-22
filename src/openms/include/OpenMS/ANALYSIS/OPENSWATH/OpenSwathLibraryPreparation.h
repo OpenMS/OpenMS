@@ -83,7 +83,7 @@ namespace OpenMS
       bool enable_identification_unspecific_losses = false;
       bool enable_swath_specifity = false;
       bool disable_decoy_transitions = false;
-      int ipf_decoy_seed = -1;
+      int ipf_decoy_seed = 1;
       bool test_mode = false;
       std::string unimod_file;
       bool reuse_existing_modifications_db = false;
