@@ -370,7 +370,15 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
   {
     const double px = static_cast<double>(exp.getMetaValue("imzml:pixel_size_x"));
     const double py = static_cast<double>(exp.getMetaValue("imzml:pixel_size_y"));
-    geom.setPixelSize(px, py, exp.getMetaValue("imzml:pixel_size_unit", "micrometer").toString());
+    if (exp.metaValueExists("imzml:pixel_size_unit"))
+    {
+      geom.setPixelSize(px, py, exp.getMetaValue("imzml:pixel_size_unit").toString());
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size without imzml:pixel_size_unit; assuming micrometer." << std::endl;
+      geom.setPixelSize(px, py, "micrometer");
+    }
   }
 }
 
@@ -627,7 +635,7 @@ void ImzMLFile::loadImpl_(const std::string& filename,
 
   // IMS:1000046: without an explicit pixel size y, pixel size x also describes y
   ImzMLMeta& meta = handler.getImzMLMeta();
-  if (meta.pixel_size_x > 0 && meta.pixel_size_y <= 0)
+  if (meta.pixel_size_x > 0 && !handler.hasPixelSizeY())
   {
     meta.pixel_size_y = meta.pixel_size_x;
   }

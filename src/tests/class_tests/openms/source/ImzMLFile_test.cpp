@@ -759,6 +759,25 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   ImzMLFile().store(tmp_imzml, img); // must NOT throw despite missing imzml:x/y MetaValues
 
+  // rewrite the stored file with the unit of one pixel size cvParam replaced (both are written in nanometer)
+  std::string stored;
+  {
+    std::ifstream in(tmp_imzml.c_str());
+    stored.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+  }
+  auto storeWithUnit = [&](const std::string& pixel_size_acc, const std::string& unit_attrs)
+  {
+    std::string content = stored;
+    const std::string nm_attrs = "unitAccession=\"UO:0000018\" unitName=\"nanometer\"";
+    const std::string::size_type pos = content.find(nm_attrs, content.find("accession=\"" + pixel_size_acc + "\""));
+    TEST_NOT_EQUAL(pos, std::string::npos)
+    if (pos != std::string::npos) { content.replace(pos, nm_attrs.size(), unit_attrs); }
+    std::ofstream out(tmp_imzml.c_str(), std::ios::trunc);
+    out << content;
+  };
+
+  // x and y in different units: y (read after x) is converted into the unit of x
+  storeWithUnit("IMS:1000047", "unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
   MSImagingExperiment reloaded;
   ImzMLFile().load(tmp_imzml, reloaded);
   TEST_EQUAL(reloaded.getMSExperiment().getNrSpectra(), 4)
@@ -768,8 +787,24 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
   TEST_EQUAL(reloaded.getGeometry().hasPixel(0, 0), true)
   TEST_EQUAL(reloaded.getGeometry().hasPixel(1, 1), true)
   TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeX(), 25.0)
-  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeY(), 30.0)
+  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeY(), 30000.0) // 30 micrometer
   TEST_EQUAL(reloaded.getGeometry().getPixelSizeUnit(), "nanometer")
+
+  // unsupported unit: pixel size x is left unknown, so the geometry gets no pixel size
+  storeWithUnit("IMS:1000046", "unitAccession=\"UO:0000010\" unitName=\"second\"");
+  MSImagingExperiment reloaded_unknown;
+  ImzMLFile().load(tmp_imzml, reloaded_unknown);
+  TEST_REAL_SIMILAR(reloaded_unknown.getGeometry().getPixelSizeX(), -1.0)
+  TEST_REAL_SIMILAR(reloaded_unknown.getGeometry().getPixelSizeY(), -1.0)
+  TEST_EQUAL(reloaded_unknown.getGeometry().getPixelSizeUnit(), "unknown")
+
+  // pixel size y given in an unsupported unit stays unknown; x is only used for y if IMS:1000047 is absent
+  storeWithUnit("IMS:1000047", "unitAccession=\"UO:0000010\" unitName=\"second\"");
+  ImzMLMeta meta_unknown_y;
+  std::vector<ImzMLSpectrumIndex> index_unknown_y;
+  ImzMLFile().loadSpectraIndex(tmp_imzml, meta_unknown_y, index_unknown_y);
+  TEST_REAL_SIMILAR(meta_unknown_y.pixel_size_x, 25.0)
+  TEST_REAL_SIMILAR(meta_unknown_y.pixel_size_y, -1.0)
 }
 END_SECTION
 

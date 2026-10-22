@@ -17,6 +17,7 @@
 #include <xercesc/util/XMLString.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <stdexcept>
@@ -697,27 +698,27 @@ void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& 
   if (acc == "IMS:1000046" || acc == "IMS:1000047")
   {
     const bool is_x = (acc == "IMS:1000046");
+    if (!is_x) { pixel_size_y_given_ = true; }
     // IMS:1000046/47 only require a UO length unit; files without one are taken as micrometer
-    std::string unit = "micrometer";
-    if (!unit_accession.empty())
+    const std::string unit_acc = unit_accession.empty() ? "UO:0000017" : unit_accession;
+    const std::optional<int> exponent = lengthUnitExponent(unit_acc);
+    if (!exponent)
     {
-      if (cv_.exists(unit_accession) && cv_.isChildOf(unit_accession, "UO:0000001"))
-      {
-        unit = cv_.getTerm(unit_accession).name;
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "imzML: unit '" << unit_accession << "' of " << acc
-                        << " is not a length unit; assuming micrometer." << std::endl;
-      }
+      OPENMS_LOG_WARN << "imzML: unit '" << unit_accession << "' of " << acc
+                      << " is not a supported length unit; pixel size left unknown." << std::endl;
+      return;
     }
-    if ((is_x ? meta_.pixel_size_y : meta_.pixel_size_x) > 0 && unit != meta_.pixel_size_unit)
+    double& size = is_x ? meta_.pixel_size_x : meta_.pixel_size_y;
+    size = parseImsDouble_(file_, acc, val);
+    if ((is_x ? meta_.pixel_size_y : meta_.pixel_size_x) > 0)
     {
-      OPENMS_LOG_WARN << "imzML: pixel size x and y use different units ('" << meta_.pixel_size_unit
-                      << "', '" << unit << "'); using '" << unit << "' for both." << std::endl;
+      // the other axis was read first: convert this value into its unit
+      size *= std::pow(10.0, *exponent - *lengthUnitExponent(cv_.getTermByName(meta_.pixel_size_unit).id));
     }
-    (is_x ? meta_.pixel_size_x : meta_.pixel_size_y) = parseImsDouble_(file_, acc, val);
-    meta_.pixel_size_unit = unit;
+    else
+    {
+      meta_.pixel_size_unit = cv_.getTerm(unit_acc).name;
+    }
     return;
   }
   if (acc == "IMS:1000080") { if (!val.empty()) meta_.uuid = val;        return; }

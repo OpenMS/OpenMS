@@ -21,6 +21,7 @@
 #include <sqlite3.h>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <iterator>
 #include <limits>
@@ -296,10 +297,14 @@ namespace OpenMS
     {
       try
       {
-        spot_size = StringUtils::toDouble(spot_size_str);
-        spot_unit = "micrometer";
+        const double parsed = StringUtils::toDouble(spot_size_str);
+        if (std::isfinite(parsed) && parsed > 0)
+        {
+          spot_size = parsed;
+          spot_unit = "micrometer";
+        }
       }
-      catch (...) { spot_size = -1.0; }
+      catch (...) {}
     }
     geometry.setPixelSize(spot_size, spot_size, spot_unit);
 

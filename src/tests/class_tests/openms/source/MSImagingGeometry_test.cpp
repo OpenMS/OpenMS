@@ -133,7 +133,7 @@ START_SECTION((void clear()))
 {
   MSImagingGeometry g;
   g.setDimensions(4, 4);
-  g.setPixelSize(10, 10);
+  g.setPixelSize(10, 10, "micrometer");
   g.addPixel(0, 0, 1);
   g.addPixel(1, 1, 2);
   g.clear();

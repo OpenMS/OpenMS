@@ -1040,6 +1040,7 @@ Writes the contents of the ConsensusMap cm into the file named by filename
         .def_ro("max_count_z", &OpenMS::ImzMLMeta::max_count_z)
         .def_ro("pixel_size_x", &OpenMS::ImzMLMeta::pixel_size_x)
         .def_ro("pixel_size_y", &OpenMS::ImzMLMeta::pixel_size_y)
+        .def_ro("pixel_size_unit", &OpenMS::ImzMLMeta::pixel_size_unit)
         .def_ro("max_dim_x", &OpenMS::ImzMLMeta::max_dim_x)
         .def_ro("max_dim_y", &OpenMS::ImzMLMeta::max_dim_y)
         .def_ro("imaging_mode", &OpenMS::ImzMLMeta::imaging_mode)

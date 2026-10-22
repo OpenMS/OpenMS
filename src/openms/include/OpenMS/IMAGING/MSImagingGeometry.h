@@ -59,9 +59,9 @@ public:
       @brief Records the physical pixel size and its unit.
       @param[in] x    Pixel size along x.
       @param[in] y    Pixel size along y.
-      @param[in] unit Length unit (default "micrometer").
+      @param[in] unit Length unit, e.g. "micrometer".
     */
-    void setPixelSize(double x, double y, const std::string& unit = "micrometer");
+    void setPixelSize(double x, double y, const std::string& unit);
 
   /// @brief Physical pixel size along x.
   /// @return Stored x pixel size. -1 if unknown.

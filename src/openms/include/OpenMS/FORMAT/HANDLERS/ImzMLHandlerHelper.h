@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -43,7 +44,7 @@ namespace OpenMS
     uint32_t max_count_z  {1};  ///< Max depth slice  (usually 1 for 2-D datasets)
     double   pixel_size_x {-1}; ///< Physical pixel width  in @p pixel_size_unit (IMS:1000046), -1 if unknown
     double   pixel_size_y {-1}; ///< Physical pixel height in @p pixel_size_unit (IMS:1000047), -1 if unknown
-    std::string pixel_size_unit {"micrometer"}; ///< UO length unit name of the pixel size
+    std::string pixel_size_unit {"unknown"}; ///< UO length unit name of the pixel size, "unknown" if no pixel size
     double   max_dim_x    {0};  ///< Physical x extent in µm (IMS:1000044)
     double   max_dim_y    {0};  ///< Physical y extent in µm (IMS:1000045)
 
@@ -79,6 +80,19 @@ namespace OpenMS
     std::string line_scan_direction; ///< "left-right" | "right-left" (IMS:1000491/492)
     std::string polarity;            ///< "positive" | "negative"  (MS:1000130/129)
   };
+
+  /**
+    @brief SI exponent of the UO length unit @p unit_accession, i.e. its power of ten relative to meter.
+
+    The imzML pixel size (IMS:1000046/47) may use a UO length unit, while the max
+    dimension (IMS:1000044/45) is fixed to micrometer. Only meter, centimeter, millimeter,
+    micrometer, nanometer, angstrom and picometer are known; this also serves as the
+    check which pixel size units are supported.
+
+    @param[in] unit_accession UO accession of the length unit, e.g. "UO:0000018" (nanometer)
+    @return SI exponent, e.g. -9 for nanometer, or std::nullopt if the unit is not known
+  */
+  OPENMS_DLLAPI std::optional<int> lengthUnitExponent(const std::string& unit_accession);
 
 
   /**

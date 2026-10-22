@@ -10,10 +10,13 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <string_view>
+#include <utility>
 
 #ifndef OPENMS_IS_BIG_ENDIAN
 #if defined(OPENMS_BIG_ENDIAN)
@@ -373,6 +376,25 @@ void ImzMLBinaryIO::writeMzAsFloat64(FILE* ibd,
     return;
   }
   writeFloat64Array(ibd, mz.data(), mz.size(), ibd_path);
+}
+
+std::optional<int> lengthUnitExponent(const std::string& unit_accession)
+{
+  // UO length units with their SI exponent (power of ten relative to meter)
+  static constexpr std::array<std::pair<std::string_view, int>, 7> units{{
+    {"UO:0000008",   0}, // meter
+    {"UO:0000015",  -2}, // centimeter
+    {"UO:0000016",  -3}, // millimeter
+    {"UO:0000017",  -6}, // micrometer
+    {"UO:0000018",  -9}, // nanometer
+    {"UO:0000019", -10}, // angstrom
+    {"UO:0000020", -12}, // picometer
+  }};
+  for (const auto& [acc, exp] : units)
+  {
+    if (acc == unit_accession) return exp;
+  }
+  return std::nullopt;
 }
 
 } // namespace OpenMS
