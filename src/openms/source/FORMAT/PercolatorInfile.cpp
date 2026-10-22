@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -18,10 +19,12 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <exception>
 #include <functional>
 #include <limits>
 #include <optional>
 #include <regex>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace OpenMS
@@ -433,13 +436,32 @@ namespace OpenMS
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
     RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
-    size_t pid_index_1based = 0;
-    size_t pid_index_0based = 0;
-    for (auto& pep_id : peptide_ids)
+    // Per spectrum (PeptideIdentification): the meta values it added (hit index, keys), the hits it skipped (hit index,
+    // reason) and the error it stopped at, collected in spectrum order below.
+    enum SkipReason { NO_EVIDENCE, UNKNOWN_TARGET_DECOY };
+    std::vector<std::vector<std::pair<size_t, std::set<std::string>>>> added(peptide_ids.size());
+    std::vector<std::vector<std::pair<size_t, SkipReason>>> skipped_hits(peptide_ids.size());
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
+
+    // The meta values by name index once all names below are registered (by the first stamped hit): looking names up
+    // takes a lock on the registry, which the threads would contend for. Unregistered names are looked up by name.
+    std::unordered_map<std::string, UInt> name_index;
+    auto exists = [&](const PeptideHit& hit, const std::string& key)
     {
-      const size_t pid_index = pid_index_0based;
-      ++pid_index_0based;
-      ++pid_index_1based;
+      const auto it = name_index.find(key);
+      return it == name_index.end() ? hit.metaValueExists(key) : hit.metaValueExists(it->second);
+    };
+    auto get = [&](const PeptideHit& hit, const std::string& key) -> const DataValue&
+    {
+      const auto it = name_index.find(key);
+      return it == name_index.end() ? hit.getMetaValue(key) : hit.getMetaValue(it->second);
+    };
+
+    // Stamps the hits of one spectrum; returns whether it stamped any.
+    auto stamp_spectrum = [&](size_t pid_index)
+    {
+      PeptideIdentification& pep_id = peptide_ids[pid_index];
+      const size_t pid_index_1based = pid_index + 1;
 
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
       const std::string file_identifier = getFileIdentifier(pep_id);
@@ -450,40 +472,36 @@ namespace OpenMS
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
 
+      bool stamped = false;
       auto& hits = pep_id.getHits();
       for (size_t hit_index = 0; hit_index < hits.size(); ++hit_index)
       {
         PeptideHit& hit = hits[hit_index];
-        const std::pair<size_t, size_t> hit_location{pid_index, hit_index};
+        std::set<std::string> added_keys;
 
         // Remember only keys introduced by this call. Existing values are not
         // cleanup candidates, even when the PIN calculation refreshes them.
         auto stamp_meta_value = [&](const std::string& key, const auto& value)
         {
-          if (!hit.metaValueExists(key))
+          if (!exists(hit, key))
           {
-            added_meta_values[hit_location].insert(key);
+            added_keys.insert(key);
           }
-          hit.setMetaValue(key, value);
+          const auto it = name_index.find(key);
+          if (it == name_index.end()) hit.setMetaValue(key, value);
+          else hit.setMetaValue(it->second, value);
         };
 
         if (hit.getPeptideEvidences().empty())
         {
-          OPENMS_LOG_WARN << "PSM (PeptideHit) without protein reference found. "
-                  << "This may indicate incomplete mapping during PeptideIndexing "
-                     "(e.g., wrong enzyme settings). Will skip this PSM." << endl;
-          skipped.insert({pid_index, hit_index});
+          skipped_hits[pid_index].emplace_back(hit_index, NO_EVIDENCE);
           continue;
         }
         if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
-                  << "This may indicate incomplete mapping during PeptideIndexing "
-                     "(e.g., wrong decoy prefix settings). Will skip this PSM." << endl;
-          skipped.insert({pid_index, hit_index});
+          skipped_hits[pid_index].emplace_back(hit_index, UNKNOWN_TARGET_DECOY);
           continue;
         }
-
         stamp_meta_value("SpecId", file_identifier + scan_identifier);
         stamp_meta_value("ScanNr", scan_number);
         stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
@@ -492,14 +510,14 @@ namespace OpenMS
         const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
 
         double calc_mass;
-        if (!hit.metaValueExists("CalcMass"))
+        if (!exists(hit, "CalcMass"))
         {
           calc_mass = hit.getSequence().getMZ(charge);
           stamp_meta_value("CalcMass", calc_mass);
         }
         else
         {
-          calc_mass = getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass");
+          calc_mass = getFeatureValue(get(hit, "CalcMass"), "CalcMass");
         }
 
         // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
@@ -507,14 +525,14 @@ namespace OpenMS
         // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
         // different isotope errors would not compete with each other.
         double isotope_corrected_mass = exp_mass;
-        if (hit.metaValueExists("IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
+        if (exists(hit, "IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
         {
-          const float isoErr = StringUtils::toFloat(hit.getMetaValue("IsotopeError").toString());
+          const float isoErr = StringUtils::toFloat(get(hit, "IsotopeError").toString());
           isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
-        else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
+        else if (exists(hit, Constants::UserParam::ISOTOPE_ERROR))
         {
-          const float isoErr = StringUtils::toFloat(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString());
+          const float isoErr = StringUtils::toFloat(get(hit, Constants::UserParam::ISOTOPE_ERROR).toString());
           isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
 
@@ -563,7 +581,75 @@ namespace OpenMS
           proteins.push_back(pep.getProteinAccession());
         }
         stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
+        if (!added_keys.empty())
+        {
+          added[pid_index].emplace_back(hit_index, std::move(added_keys));
+        }
+        stamped = true;
       }
+      return stamped;
+    };
+
+    // Up to the first stamped hit serially: it registers the new meta value names in the order of a serial loop, and
+    // MetaInfo keeps meta values in the order of their name indices. The other spectra in parallel.
+    size_t first_parallel = 0;
+    try
+    {
+      while (first_parallel < peptide_ids.size() && !stamp_spectrum(first_parallel++)) {}
+    }
+    catch (...)
+    {
+      errors[first_parallel - 1] = std::current_exception();
+      first_parallel = peptide_ids.size();
+    }
+    std::vector<std::string> names{"SpecId", "ScanNr", "Label", "CalcMass", "IsotopeError", Constants::UserParam::ISOTOPE_ERROR,
+                                   "ExpMass", "deltamass", "retentiontime", "mass", "score", "peplen", "enzN", "enzC",
+                                   "enzInt", "dm", "absdm", "Peptide", "Proteins"};
+    for (int i = min_charge; i <= max_charge; ++i)
+    {
+      names.push_back("charge" + StringUtils::toStr(i));
+    }
+    for (const std::string& name : names)
+    {
+      const UInt index = MetaInfoInterface::metaRegistry().getIndex(name);
+      if (index != UInt(-1)) name_index.emplace(name, index);
+    }
+#pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize pid_index = static_cast<SignedSize>(first_parallel); pid_index < static_cast<SignedSize>(peptide_ids.size()); ++pid_index)
+    {
+      try
+      {
+        stamp_spectrum(static_cast<size_t>(pid_index));
+      }
+      catch (...)
+      {
+        errors[pid_index] = std::current_exception();
+      }
+    }
+
+    for (size_t pid_index = 0; pid_index < peptide_ids.size(); ++pid_index)
+    {
+      for (auto& [hit_index, keys] : added[pid_index])
+      {
+        added_meta_values.emplace_hint(added_meta_values.end(), std::make_pair(pid_index, hit_index), std::move(keys));
+      }
+      for (const auto& [hit_index, reason] : skipped_hits[pid_index])
+      {
+        if (reason == NO_EVIDENCE)
+        {
+          OPENMS_LOG_WARN << "PSM (PeptideHit) without protein reference found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing "
+                     "(e.g., wrong enzyme settings). Will skip this PSM." << endl;
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing "
+                     "(e.g., wrong decoy prefix settings). Will skip this PSM." << endl;
+        }
+        skipped.emplace_hint(skipped.end(), pid_index, hit_index);
+      }
+      if (errors[pid_index]) std::rethrow_exception(errors[pid_index]);
     }
     return skipped;
   }
