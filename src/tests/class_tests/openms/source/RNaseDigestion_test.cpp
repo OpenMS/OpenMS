@@ -33,6 +33,25 @@ START_SECTION(([EXTRA] RNaseDigestion()))
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] RNOME stage 8 cleavage-sensitive digestion is available separately))
+{
+  RNaseDigestion digestion;
+  digestion.setEnzyme("RNase_T1");
+  const auto* mod = RibonucleotideDB::getInstance()->getRibonucleotide("m2,2G");
+  const auto groups = digestion.inferCleavageSensitiveMods({mod});
+  vector<RNaseDigestion::DigestionProduct> products;
+  digestion.digestWithCleavageSensitiveModsLegacy(
+    NASequence::fromString("GGA"), groups, 1, products);
+  set<string> sequences;
+  for (const auto& product : products) sequences.insert(product.fragment.toString());
+  TEST_EQUAL(sequences.count("Gp"), 1);
+  TEST_EQUAL(sequences.count("A"), 1);
+  TEST_EQUAL(sequences.count("[m2,2G]Gp"), 1);
+  TEST_EQUAL(sequences.count("[m2,2G]A"), 1);
+}
+END_SECTION
+
 START_SECTION([EXTRA] ~RNaseDigestion())
 {
   delete rd_ptr;

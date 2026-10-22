@@ -287,7 +287,7 @@ namespace OpenMS
     return avg_;
   }
 
-  void SpectralDeconvolution::calculateAveragine(const bool use_RNA_averagine)
+  void SpectralDeconvolution::calculateAveragine(const bool use_RNA_averagine, const bool legacy_trim)
   {
     CoarseIsotopePatternGenerator generator(300);
 
@@ -297,7 +297,8 @@ namespace OpenMS
 
     generator.setMaxIsotope(max_isotope);
     avg_ = FLASHHelperClasses::PrecalculatedAveragine(50, current_max_mass_, 25, generator, use_RNA_averagine,
-                                                      target_decoy_type_ == PeakGroup::noise_decoy ? Constants::ISOTOPE_MASSDIFF_55K_U * noise_iso_delta_ : -1);
+                                                      target_decoy_type_ == PeakGroup::noise_decoy ? Constants::ISOTOPE_MASSDIFF_55K_U * noise_iso_delta_ : -1,
+                                                      legacy_trim);
     avg_.setMaxIsotopeIndex((int)(max_isotope - 1));
   }
 

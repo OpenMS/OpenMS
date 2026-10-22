@@ -13,7 +13,8 @@
 namespace OpenMS
 {
   FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator& generator,
-                                                                     const bool use_RNA_averagine, const double decoy_iso_distance) :
+                                                                     const bool use_RNA_averagine, const double decoy_iso_distance,
+                                                                     const bool legacy_trim) :
       mass_interval_(delta),
       min_mass_(min_mass)
   {
@@ -82,10 +83,10 @@ namespace OpenMS
         const double candidate_pwr = trim_left ? lint * lint : rint * rint;
         if (total_pwr - (pwr + candidate_pwr) < total_pwr * min_pwr)
         {
+          if (legacy_trim) pwr += candidate_pwr;
           break;
         }
 
-        // Subtract power only for isotopes actually removed from the pattern.
         pwr += candidate_pwr;
         trim_count++;
         if (trim_left)

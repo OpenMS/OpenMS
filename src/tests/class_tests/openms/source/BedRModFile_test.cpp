@@ -674,6 +674,57 @@ START_SECTION(([EXTRA] custom modification names require an honest mapping witho
 }
 END_SECTION
 
+START_SECTION(([EXTRA] legacy RNOME export retains observation rows, canonical bases, and decoys))
+{
+  IdentificationData data;
+  const auto target = data.registerParentSequence(ID::ParentSequence("rna", ID::MoleculeType::RNA, "AC"));
+  ID::ParentSequence decoy_parent("DECOY_rna", ID::MoleculeType::RNA, "AC");
+  decoy_parent.is_decoy = true;
+  const auto decoy = data.registerParentSequence(decoy_parent);
+  ID::IdentifiedOligo oligo(NASequence::fromString("A[m5C]"));
+  oligo.parent_matches[target].insert(ID::ParentMatch(0, 1));
+  oligo.parent_matches[decoy].insert(ID::ParentMatch(0, 1));
+  const auto oligo_ref = data.registerIdentifiedOligo(oligo);
+  const auto input = data.registerInputFile(ID::InputFile("test.mzML"));
+  const auto observation = data.registerObservation(ID::Observation("scan", input));
+  data.setMetaValue(observation, "precursor_intensity", 42.0);
+  const auto qvalue = data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
+  ID::ObservationMatch match(oligo_ref, observation, 2);
+  match.addScore(qvalue, 0.01);
+  data.registerObservationMatch(match);
+
+  std::string output_file, mapping_file;
+  NEW_TMP_FILE(output_file)
+  NEW_TMP_FILE(mapping_file)
+  {
+    std::ofstream mapping(mapping_file);
+    mapping << "mod,chebi_id\nA,16335\nm5C,99991\n";
+  }
+  BedRModFile().storeLegacy(output_file, data, mapping_file);
+  TextFile output(output_file);
+  TEST_TRUE(std::find(output.begin(), output.end(),
+    "#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency unique_mapping frag_start frag_end") != output.end())
+  Size rows = 0, canonical_rows = 0, decoy_rows = 0;
+  for (const auto& line : output)
+  {
+    if (line.empty() || line[0] == '#') continue;
+    std::vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
+    TEST_EQUAL(fields.size(), 14)
+    if (fields.size() != 14) continue;
+    ++rows;
+    canonical_rows += fields[3] == "16335";
+    decoy_rows += fields[0] == "DECOY_rna";
+    TEST_EQUAL(fields[4], "0.01")
+    TEST_EQUAL(fields[9], "42")
+    TEST_EQUAL(fields[11], "1")
+  }
+  TEST_EQUAL(rows, 4)
+  TEST_EQUAL(canonical_rows, 2)
+  TEST_EQUAL(decoy_rows, 2)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

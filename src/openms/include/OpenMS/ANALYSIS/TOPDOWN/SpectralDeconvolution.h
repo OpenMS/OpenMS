@@ -81,8 +81,9 @@ namespace OpenMS
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param[in] use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
+        @param[in] legacy_trim Reproduce stage 8's RNA averagine trimming when explicitly requested.
        */
-    void calculateAveragine(bool use_RNA_averagine);
+    void calculateAveragine(bool use_RNA_averagine, bool legacy_trim = false);
 
     /// when estimating tolerance, max_mass_dalton_tolerance_ should be large
     void setToleranceEstimation()

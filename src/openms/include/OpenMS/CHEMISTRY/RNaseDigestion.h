@@ -128,6 +128,16 @@ namespace OpenMS
       Size min_length = 0,
       Size max_length = 0) const;
 
+    /// Reproduce the boundary-extension enumeration used in the RNOME stage 8 search.
+    /// This is intentionally separate from the current, more complete digestion algorithm.
+    void digestWithCleavageSensitiveModsLegacy(
+      const NASequence& rna,
+      const CleavageSensitiveModGroups& cleavage_sensitive_mods,
+      Size max_sensitive_mods_per_fragment,
+      std::vector<DigestionProduct>& output,
+      Size min_length = 0,
+      Size max_length = 0) const;
+
     /**
        @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
 

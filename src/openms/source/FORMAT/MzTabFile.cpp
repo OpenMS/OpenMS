@@ -2831,16 +2831,17 @@ namespace OpenMS
   std::string MzTabFile::generateMzTabSectionRow_(
       const MzTabOSMSectionRow& row,
       const vector<std::string>& optional_columns,
-      const MzTabMetaData& /*meta*/, size_t& n_columns) const
+      const MzTabMetaData& meta, size_t& n_columns) const
   {
     StringList s;
     s.push_back("OSM");
     s.push_back(row.sequence.toCellString());
     s.push_back(row.search_engine.toCellString());
 
-    for (map<Size, MzTabDouble>::const_iterator it = row.search_engine_score.begin(); it != row.search_engine_score.end(); ++it)
+    for (Size score_index = 1; score_index <= meta.osm_search_engine_score.size(); ++score_index)
     {
-      s.push_back(it->second.toCellString());
+      const auto score_it = row.search_engine_score.find(score_index);
+      s.push_back(score_it == row.search_engine_score.end() ? "null" : score_it->second.toCellString());
     }
 
     if (store_osm_reliability_)

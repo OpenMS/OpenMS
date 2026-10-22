@@ -67,5 +67,17 @@ namespace OpenMS
                const IdentificationData& id_data,
                const std::string& chebi_mapping_file = "",
                const std::map<std::string, std::string>& reference_metadata = {}) const;
+
+    /**
+      @brief Write the observation-level bedRMod layout used by the RNOME stage-8 pipeline.
+
+      Includes canonical and decoy rows and preserves the historical column names,
+      coverage, frequency, mapping, and fragment conventions. This is a compatibility
+      format for existing RNOME downstream tooling; @ref store writes site-level calls.
+    */
+    void storeLegacy(const std::string& out_file,
+                     const IdentificationData& id_data,
+                     const std::string& chebi_mapping_file = "",
+                     const std::map<std::string, std::string>& reference_metadata = {}) const;
   };
 }

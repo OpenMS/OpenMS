@@ -113,8 +113,9 @@ namespace OpenMS
         @param[in,out] generator           Isotope-pattern generator used to compute each per-mass distribution.
         @param[in]     use_RNA_averagine   If @c true, use the RNA-mass averagine; otherwise use peptide averagine.
         @param[in]     decoy_iso_distance  @c > @c 0 enables decoy mode (per-peak m/z multiplied by this value); @c <= @c 0 disables it. Default @c -1.
+        @param[in]     legacy_trim        Reproduce stage 8's RNA averagine trimming when explicitly requested.
       */
-      PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1);
+      PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1, bool legacy_trim = false);
 
       /// Copy constructor.
       PrecalculatedAveragine(const PrecalculatedAveragine&) = default;

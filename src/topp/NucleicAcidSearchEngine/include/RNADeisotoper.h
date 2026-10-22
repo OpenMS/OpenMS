@@ -26,9 +26,11 @@ namespace OpenMS
       min_cos or min_snr is non-finite, or max_mass is non-finite or below the FLASH minimum mass (50 Da).
       @param[in] min_cos Minimum charge-specific isotope cosine.
       @param[in] min_snr Minimum charge-specific envelope SNR.
+      @param[in] legacy_trim Reproduce stage 8's RNA averagine trimming.
     */
     RNADeisotoper(double tolerance_ppm, int max_abs_charge, bool positive,
-                  double max_mass = 1000.0, double min_cos = 0.85, double min_snr = 0.25);
+                  double max_mass = 1000.0, double min_cos = 0.85, double min_snr = 0.25,
+                  bool legacy_trim = false);
     /**
       @brief Remove confidently assigned isotope samples while preserving observed intensities.
 
@@ -41,6 +43,10 @@ namespace OpenMS
       @param[in] decharge Convert uniquely assigned monoisotopes to single charge.
     */
     void filter(MSSpectrum& spectrum, int scan_number, bool decharge);
+
+    /// Preserve stage 8's normalized-input FLASH detection for RNOME reproduction.
+    void filterLegacy(MSSpectrum& spectrum, int scan_number, bool decharge,
+                      double intensity_scale);
 
   private:
     SpectralDeconvolution detector_;

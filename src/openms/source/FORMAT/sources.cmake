@@ -7,6 +7,7 @@ AbsoluteQuantitationMethodFile.cpp
 AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
 BedRModFile.cpp
+BedRModFileLegacy.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
 CachedMzML.cpp

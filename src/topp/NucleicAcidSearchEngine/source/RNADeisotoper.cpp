@@ -17,7 +17,7 @@
 namespace OpenMS
 {
   RNADeisotoper::RNADeisotoper(double tolerance_ppm, int max_abs_charge, bool positive,
-                             double max_mass, double min_cos, double min_snr) :
+                             double max_mass, double min_cos, double min_snr, bool legacy_trim) :
     positive_(positive), max_abs_charge_(max_abs_charge), min_cos_(min_cos), min_snr_(min_snr)
   {
     if (!std::isfinite(tolerance_ppm) || tolerance_ppm <= 0)
@@ -53,9 +53,98 @@ namespace OpenMS
     p.setValue("min_cos", DoubleList{min_cos, min_cos});
     p.setValue("min_snr", DoubleList{min_snr, min_snr});
     detector_.setParameters(p);
-    detector_.calculateAveragine(true);
+    detector_.calculateAveragine(true, legacy_trim);
   }
 
+  void RNADeisotoper::filterLegacy(MSSpectrum& spectrum, int scan_number, bool decharge, double intensity_scale)
+  {
+    if (spectrum.empty()) return;
+    PeakGroup precursor;
+    const double carrier = positive_ ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U;
+    if (!spectrum.getPrecursors().empty())
+    {
+      const auto& p = spectrum.getPrecursors().front();
+      const int z = std::abs(p.getCharge());
+      if (z > 0)
+      {
+        precursor = PeakGroup(1, z, positive_);
+        precursor.setRepAbsCharge(z);
+        precursor.setMonoisotopicMass((p.getMZ() - carrier) * z);
+        precursor.push_back(FLASHHelperClasses::LogMzPeak(Peak1D(p.getMZ(), 1.0), positive_));
+      }
+    }
+    MSSpectrum detection_input = spectrum;
+    for (auto& peak : detection_input) peak.setIntensity(peak.getIntensity() * intensity_scale);
+    detector_.performSpectrumDeconvolution(detection_input, scan_number, precursor);
+    std::vector<bool> consumed(spectrum.size(), false);
+    std::vector<std::set<int>> mono_charges(spectrum.size());
+    Size missing_mono = 0, accepted_envelopes = 0;
+    // Match the original samples recruited by FLASH. For profile data, an isotope
+    // consists of several samples; retain every sample assigned to isotope zero.
+    const auto index_of = [&spectrum](double mz)
+    {
+      const auto it = std::lower_bound(spectrum.begin(), spectrum.end(), mz,
+        [](const Peak1D& peak, double value) { return peak.getMZ() < value; });
+      return (it != spectrum.end() && it->getMZ() == mz) ? Size(it - spectrum.begin()) : spectrum.size();
+    };
+    for (const auto& group : detector_.getDeconvolvedSpectrum())
+    {
+      std::map<int, std::vector<Size>> by_charge;
+      std::map<int, std::vector<Size>> monoisotopes;
+      for (const auto& peak : group)
+      {
+        const int z = peak.abs_charge;
+        if (z < 1 || z > max_abs_charge_ || peak.isotopeIndex < 0 ||
+            group.getChargeIsotopeCosine(z) < min_cos_ || group.getChargeSNR(z) <= min_snr_) continue;
+        const Size index = index_of(peak.mz);
+        if (index == spectrum.size()) continue;
+        by_charge[z].push_back(index);
+        if (peak.isotopeIndex == 0) monoisotopes[z].push_back(index);
+      }
+      for (const auto& [z, indices] : by_charge)
+      {
+        if (!monoisotopes.contains(z))
+        {
+          ++missing_mono;
+          continue;
+        }
+        ++accepted_envelopes;
+        for (Size index : monoisotopes.at(z)) mono_charges[index].insert(z);
+        for (Size index : indices) consumed[index] = true;
+      }
+    }
+    std::vector<Size> retained;
+    MSSpectrum::IntegerDataArray charges;
+    charges.setName("flash_charge");
+    Size ambiguous = 0, retained_mono_samples = 0;
+    for (Size i = 0; i < spectrum.size(); ++i)
+    {
+      if (consumed[i] && mono_charges[i].empty()) continue;
+      retained.push_back(i);
+      const auto& zs = mono_charges[i];
+      const int z = zs.size() == 1 ? *zs.begin() : 0;
+      if (!zs.empty()) ++retained_mono_samples;
+      if (zs.size() > 1) ++ambiguous;
+      charges.push_back(positive_ ? z : -z);
+      if (decharge && z > 0)
+      {
+        spectrum[i].setMZ((spectrum[i].getMZ() - carrier) * z + carrier);
+      }
+    }
+    const Size removed = spectrum.size() - retained.size();
+    spectrum.select(retained); // Preserve every existing per-peak data array.
+    auto& arrays = spectrum.getIntegerDataArrays();
+    arrays.erase(std::remove_if(arrays.begin(), arrays.end(), [](const auto& a)
+      { return a.getName() == "flash_charge"; }), arrays.end());
+    arrays.push_back(std::move(charges));
+    spectrum.setMetaValue("flash_detected_peak_groups", detector_.getDeconvolvedSpectrum().size());
+    spectrum.setMetaValue("flash_isotope_peaks_removed", removed);
+    spectrum.setMetaValue("flash_accepted_envelopes", accepted_envelopes);
+    spectrum.setMetaValue("flash_missing_mono_envelopes", missing_mono);
+    spectrum.setMetaValue("flash_ambiguous_mono_peaks", ambiguous);
+    spectrum.setMetaValue("flash_retained_mono_samples", retained_mono_samples);
+    spectrum.sortByPosition();
+  }
   void RNADeisotoper::filter(MSSpectrum& spectrum, int scan_number, bool decharge)
   {
     if (spectrum.empty()) return;

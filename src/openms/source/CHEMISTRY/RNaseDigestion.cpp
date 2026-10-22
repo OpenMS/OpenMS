@@ -261,6 +261,154 @@ namespace OpenMS
   }
 
 
+  void RNaseDigestion::digestWithCleavageSensitiveModsLegacy(
+    const NASequence& rna,
+    const CleavageSensitiveModGroups& cleavage_sensitive_mods,
+    Size max_sensitive_mods_per_fragment,
+    vector<DigestionProduct>& output,
+    Size min_length,
+    Size max_length) const
+  {
+    output.clear();
+    if (rna.empty())
+    {
+      return;
+    }
+    if (cleavage_sensitive_mods.combined().empty())
+    {
+      digest(rna, output, min_length, max_length);
+      return;
+    }
+
+    vector<pair<Size, Size>> base_positions =
+      getFragmentPositions_(rna, 1, 0);
+
+    vector<vector<ConstRibonucleotidePtr>> before_mods_by_pos(rna.size());
+    vector<vector<ConstRibonucleotidePtr>> after_mods_by_pos(rna.size());
+    for (Size i = 0; i < rna.size(); ++i)
+    {
+      const auto& residue = rna[i];
+      if (residue->isModified())
+      {
+        continue;
+      }
+
+      const std::string& code = residue->getCode();
+      if (code.size() != 1)
+      {
+        continue;
+      }
+
+      for (ConstRibonucleotidePtr mod : cleavage_sensitive_mods.cuts_before_sensitive)
+      {
+        if ((mod->getTermSpecificity() == Ribonucleotide::ANYWHERE) &&
+            (code[0] == mod->getOrigin()))
+        {
+          before_mods_by_pos[i].push_back(mod);
+        }
+      }
+      for (ConstRibonucleotidePtr mod : cleavage_sensitive_mods.cuts_after_sensitive)
+      {
+        if ((mod->getTermSpecificity() == Ribonucleotide::ANYWHERE) &&
+            (code[0] == mod->getOrigin()))
+        {
+          after_mods_by_pos[i].push_back(mod);
+        }
+      }
+    }
+
+    RNaseDigestion digestor_nomissed = *this;
+    digestor_nomissed.setMissedCleavages(0);
+    vector<pair<Size, Size>> cut_fragments =
+      digestor_nomissed.getFragmentPositions_(rna, 1, 0);
+    set<Size> cut_points_set = {0, rna.size()};
+    for (const auto& pos : cut_fragments)
+    {
+      cut_points_set.insert(pos.first);
+      cut_points_set.insert(pos.first + pos.second);
+    }
+    vector<Size> cut_points(cut_points_set.begin(), cut_points_set.end());
+
+    set<std::string> emitted;
+    std::function<void(NASequence&, Size, Size, Size)> recurse =
+      [&](NASequence& current_parent, Size start, Size end, Size used_mods)
+    {
+      const Size length = end - start;
+      if ((length >= std::max<Size>(min_length, 1)) &&
+          ((max_length == 0) || (length <= max_length)))
+      {
+        NASequence fragment = current_parent.getSubsequence(start, length);
+        applyTerminalGains_(fragment, make_pair(start, length), rna.size());
+        std::string key = std::to_string(start);
+        key += ":";
+        key += std::to_string(end);
+        key += ":";
+        key += fragment.toString();
+        if (emitted.insert(key).second)
+        {
+          output.push_back({fragment, make_pair(start, length)});
+        }
+      }
+
+      if (used_mods >= max_sensitive_mods_per_fragment)
+      {
+        return;
+      }
+
+      if (start > 0)
+      {
+        auto cut_it = lower_bound(cut_points.begin(), cut_points.end(), start);
+        if (cut_it != cut_points.begin())
+        {
+          const Size left_cut = *(cut_it - 1);
+          if (left_cut < start)
+          {
+            ConstRibonucleotidePtr original = current_parent[start];
+            if (!original->isModified())
+            {
+              for (ConstRibonucleotidePtr mod : before_mods_by_pos[start])
+              {
+                current_parent.set(start, mod);
+                recurse(current_parent, left_cut, end, used_mods + 1);
+              }
+              current_parent.set(start, original);
+            }
+          }
+        }
+      }
+
+      if ((end > 0) && (end < rna.size()))
+      {
+        auto cut_it = upper_bound(cut_points.begin(), cut_points.end(), end);
+        if (cut_it != cut_points.end())
+        {
+          const Size right_cut = *cut_it;
+          if (right_cut > end)
+          {
+            const Size boundary_pos = end - 1;
+            ConstRibonucleotidePtr original = current_parent[boundary_pos];
+            if (!original->isModified())
+            {
+              for (ConstRibonucleotidePtr mod : after_mods_by_pos[boundary_pos])
+              {
+                current_parent.set(boundary_pos, mod);
+                recurse(current_parent, start, right_cut, used_mods + 1);
+              }
+              current_parent.set(boundary_pos, original);
+            }
+          }
+        }
+      }
+    };
+
+    for (const auto& pos : base_positions)
+    {
+      NASequence current_parent = rna;
+      recurse(current_parent, pos.first, pos.first + pos.second, 0);
+    }
+  }
+
+
   void RNaseDigestion::digestWithCleavageSensitiveMods(
     const NASequence& rna,
     const CleavageSensitiveModGroups& cleavage_sensitive_mods,

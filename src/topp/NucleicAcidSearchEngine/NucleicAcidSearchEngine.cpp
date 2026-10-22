@@ -68,6 +68,7 @@
 #include <vector>
 #include <map>
 #include <regex>
+#include <random>
 
 // multithreading
 #ifdef _OPENMP
@@ -180,13 +181,13 @@ protected:
     registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 RNA modification track", false);
     setValidFormats_("bedrmod_out", {"bedrmod"});
 
-    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name', 'chebi_id' and/or 'modomics_short_name' columns; required for unsupported custom modification names)", false, true);
+    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for the observation-level bedRMod export ('mod'/'name' and 'chebi_id' columns)", false, true);
     setValidFormats_("bedrmod_chebi_mapping", {"csv"});
     registerTOPPSubsection_("bedrmod", "Reference metadata for bedRMod export");
-    for (const std::string key : {"organism", "assembly", "annotation_source", "annotation_version"})
-    {
-      registerStringOption_("bedrmod:" + key, "<value>", "NA", "Explicit reference " + key + " for bedRMod export (NA when unknown)", false);
-    }
+    registerStringOption_("bedrmod:organism", "<value>", "9606", "Organism for bedRMod export", false);
+    registerStringOption_("bedrmod:assembly", "<value>", "GRCh38", "Genome assembly for bedRMod export", false);
+    registerStringOption_("bedrmod:annotation_source", "<value>", "gtrnadb", "Annotation source for bedRMod export", false);
+    registerStringOption_("bedrmod:annotation_version", "<value>", "2.0", "Annotation version for bedRMod export", false);
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<std::string>("mzML"));
@@ -240,6 +241,7 @@ protected:
     registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
     registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector, none, or FLASHDeconv RNA averagine (profile or centroided input; requires ppm fragment tolerance)", false, true);
     setValidStrings_("preprocessing:deisotoping", {"legacy", "none", "flash"});
+    registerFlag_("preprocessing:legacy_stage8_flash", "Reproduce RNOME stage 8 FLASH MS2 preprocessing when deisotoping=flash; the current FLASH implementation remains the default.", false);
     registerTOPPSubsection_("preprocessing:flash", "FLASHDeconv RNA isotope detection options");
     registerDoubleOption_("preprocessing:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine", false, true);
     setMinFloat_("preprocessing:flash:min_cos", 0.5);
@@ -308,6 +310,7 @@ protected:
     registerIntOption_("oligo:max_size", "<num>", 0, "Maximum size an oligonucleotide must have after digestion to be considered in the search, leave at 0 for no limit", false);
 
     registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
+    registerFlag_("oligo:legacy_stage8_digestion", "Use the RNOME stage 8 cleavage-sensitive digestion algorithm for reproducing the submitted output. The current algorithm remains the default.", false);
 
     StringList all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
@@ -328,6 +331,8 @@ protected:
     setMaxFloat_("report:require_coverage", 1.0);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
+    registerIntOption_("fdr:max_decoy_reshuffle_attempts", "<num>", 0, "Maximum deterministic reshuffle attempts for a decoy oligonucleotide that matches a target during digestion (0 disables this legacy behavior)", false, true);
+    setMinInt_("fdr:max_decoy_reshuffle_attempts", 0);
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "std::string used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
     registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed", false);
     setMinFloat_("fdr:cutoff", 0.0);
@@ -453,13 +458,102 @@ protected:
     return count;
   }
 
+  /// Deterministic FNV-1a seed used by the RNOME decoy collision handling.
+  UInt64 stableHash64_(const std::string& input) const
+  {
+    UInt64 hash = 1469598103934665603ULL;
+    for (unsigned char c : input)
+    {
+      hash ^= static_cast<UInt64>(c);
+      hash *= 1099511628211ULL;
+    }
+    return hash;
+  }
+
+  NASequence reshuffleOligo_(const NASequence& original, UInt64 seed) const
+  {
+    if (original.size() < 2) return original;
+    NASequence shuffled = original;
+    const auto residues = shuffled.getSequence();
+    std::vector<const Ribonucleotide*> five_prime, anywhere, three_prime;
+    for (const Ribonucleotide* ribo : residues)
+    {
+      if (ribo->getTermSpecificity() == Ribonucleotide::FIVE_PRIME) five_prime.push_back(ribo);
+      else if (ribo->getTermSpecificity() == Ribonucleotide::THREE_PRIME) three_prime.push_back(ribo);
+      else anywhere.push_back(ribo);
+    }
+    if (!anywhere.empty())
+    {
+      std::mt19937_64 rng(seed);
+      std::shuffle(anywhere.begin(), anywhere.end(), rng);
+    }
+    std::vector<const Ribonucleotide*> result;
+    result.reserve(residues.size());
+    result.insert(result.end(), five_prime.begin(), five_prime.end());
+    result.insert(result.end(), anywhere.begin(), anywhere.end());
+    result.insert(result.end(), three_prime.begin(), three_prime.end());
+    shuffled.setSequence(result);
+    return shuffled;
+  }
+
+  NASequence reshuffleDecoyIfCollision_(const NASequence& original,
+                                        const set<NASequence>& target_oligos,
+                                        Size max_attempts,
+                                        bool& resolved,
+                                        Size& attempts_used) const
+  {
+    attempts_used = 0;
+    if (!target_oligos.count(original))
+    {
+      resolved = true;
+      return original;
+    }
+    const UInt64 base_seed = stableHash64_(original.toString());
+    for (Size attempt = 1; attempt <= max_attempts; ++attempt)
+    {
+      attempts_used = attempt;
+      const UInt64 seed = base_seed ^ (0x9e3779b97f4a7c15ULL + static_cast<UInt64>(attempt));
+      NASequence candidate = reshuffleOligo_(original, seed);
+      if (!target_oligos.count(candidate))
+      {
+        resolved = true;
+        return candidate;
+      }
+    }
+    resolved = false;
+    return original;
+  }
+
   /// @brief Register a digestion product with its original parent coordinates and neighbors.
   void registerDigestedOligo_(IdentificationData& id_data,
                              IdentificationData::ParentSequenceRef parent_ref,
                              const NASequence& parent,
-                             const RNaseDigestion::DigestionProduct& product) const
+                             const RNaseDigestion::DigestionProduct& product,
+                             set<NASequence>& target_oligos,
+                             Size max_decoy_reshuffle_attempts,
+                             Size& decoy_collisions,
+                             Size& decoy_resolved,
+                             Size& decoy_unresolved) const
   {
-    IdentificationData::IdentifiedOligo oligo(product.fragment);
+    NASequence fragment = product.fragment;
+    bool was_reshuffled = false;
+    if (!parent_ref->is_decoy) target_oligos.insert(fragment);
+    else if (max_decoy_reshuffle_attempts > 0 && target_oligos.count(fragment))
+    {
+      ++decoy_collisions;
+      bool resolved = false;
+      Size attempts_used = 0;
+      fragment = reshuffleDecoyIfCollision_(fragment, target_oligos,
+        max_decoy_reshuffle_attempts, resolved, attempts_used);
+      if (!resolved)
+      {
+        ++decoy_unresolved;
+        return; // Original RNOME behavior: omit unresolved decoy collisions.
+      }
+      ++decoy_resolved;
+      was_reshuffled = true;
+    }
+    IdentificationData::IdentifiedOligo oligo(fragment);
     const Size start = product.position.first;
     const Size end = start + product.position.second;
     IdentificationData::ParentMatch match(start, end - 1);
@@ -467,6 +561,7 @@ protected:
       std::string(1, IdentificationData::ParentMatch::LEFT_TERMINUS);
     match.right_neighbor = end < parent.size() ? parent[end]->getCode() :
       std::string(1, IdentificationData::ParentMatch::RIGHT_TERMINUS);
+    if (was_reshuffled) match.setMetaValue("reshuffled_decoy", "true");
     oligo.parent_matches[parent_ref].insert(match);
     id_data.registerIdentifiedOligo(oligo);
   }
@@ -716,12 +811,25 @@ protected:
     }
   }
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr, bool legacy_stage8_flash = false)
   {
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
+
+    std::map<std::string, double> intensity_scales;
+    if (legacy_stage8_flash)
+    {
+      for (const auto& spec : exp)
+      {
+        double scale = 0.0;
+        for (const auto& peak : spec) scale = std::max(scale, double(peak.getIntensity()));
+        intensity_scales.emplace(spec.getNativeID(), scale > 0.0 ? scale : 1.0);
+      }
+      Normalizer normalizer;
+      normalizer.filterPeakMap(exp);
+    }
 
     // sort by rt
     exp.sortSpectra(false);
@@ -745,21 +853,26 @@ protected:
     std::unique_ptr<RNADeisotoper> flash_template;
     if (deisotoping == "flash")
     {
-      double max_mass = 0.0;
+      double max_mass = legacy_stage8_flash ? 1000.0 : 0.0;
       for (const auto& spec : exp)
       {
         if (!spec.getPrecursors().empty() && spec.getPrecursors()[0].getCharge() != 0)
         {
           const auto& prec = spec.getPrecursors()[0];
-          max_mass = std::max(max_mass, flashMassUpperBound_(prec.getMZ(), prec.getCharge(), negative_mode));
+          max_mass = std::max(max_mass, legacy_stage8_flash ?
+            (prec.getMZ() + Constants::PROTON_MASS_U) * std::abs(prec.getCharge()) + 10.0 :
+            flashMassUpperBound_(prec.getMZ(), prec.getCharge(), negative_mode));
         }
         else if (include_unknown_charge && !spec.empty())
         {
-          max_mass = std::max(max_mass, flashMassUpperBound_(std::max_element(spec.begin(), spec.end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); })->getMZ(), max_charge, negative_mode));
+          const double largest_mz = std::max_element(spec.begin(), spec.end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); })->getMZ();
+          max_mass = std::max(max_mass, legacy_stage8_flash ?
+            largest_mz * std::abs(max_charge) + 10.0 :
+            flashMassUpperBound_(largest_mz, max_charge, negative_mode));
         }
       }
       if (max_mass == 0.0) max_mass = 1000.0; // No spectrum supplied a mass bound.
-      flash_template = std::make_unique<RNADeisotoper>(fragment_mass_tolerance, std::abs(max_charge), !negative_mode, max_mass, flash_min_cos, flash_min_snr);
+      flash_template = std::make_unique<RNADeisotoper>(fragment_mass_tolerance, std::abs(max_charge), !negative_mode, max_mass, flash_min_cos, flash_min_snr, legacy_stage8_flash);
     }
 #pragma omp parallel reduction(+: n_zero_charge, n_inferred_charge)
     {
@@ -774,9 +887,9 @@ protected:
       // FLASH must see raw intensities; native IDs need not be unique or present.
       double normalization_scale = 0.0;
       for (const auto& peak : spec) normalization_scale = std::max(normalization_scale, double(peak.getIntensity()));
-      const auto normalize = [&spec, normalization_scale]()
+      const auto normalize = [&spec, normalization_scale, legacy_stage8_flash]()
       {
-        if (normalization_scale > 0.0)
+        if (!legacy_stage8_flash && normalization_scale > 0.0)
         {
           for (auto& peak : spec) peak.setIntensity(peak.getIntensity() / normalization_scale);
         }
@@ -882,7 +995,12 @@ protected:
       }
       else if (flash && (spec.getPrecursors()[0].getCharge() != 0 || include_unknown_charge))
       {
-        flash->filter(spec, int(exp_index), single_charge_spectra);
+        if (legacy_stage8_flash)
+        {
+          flash->filterLegacy(spec, int(exp_index), single_charge_spectra,
+            intensity_scales.at(spec.getNativeID()));
+        }
+        else flash->filter(spec, int(exp_index), single_charge_spectra);
       }
 
       normalize();
@@ -1511,6 +1629,11 @@ protected:
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
     const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
+    if (getFlag_("preprocessing:legacy_stage8_flash") && deisotoping != "flash")
+    {
+      OPENMS_LOG_ERROR << "preprocessing:legacy_stage8_flash requires preprocessing:deisotoping=flash." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
     const double flash_min_cos = getDoubleOption_("preprocessing:flash:min_cos");
     const double flash_min_snr = getDoubleOption_("preprocessing:flash:min_snr");
     if (deisotoping == "none" && single_charge_spectra)
@@ -1657,6 +1780,9 @@ protected:
 
     // get digested sequences:
     std::string decoy_pattern = getStringOption_("fdr:decoy_pattern");
+    const Size max_decoy_reshuffle_attempts =
+      static_cast<Size>(getIntOption_("fdr:max_decoy_reshuffle_attempts"));
+    const bool legacy_stage8_digestion = getFlag_("oligo:legacy_stage8_digestion");
     if (in_digest.empty()) // new digestion
     {
       search_param.database = in_db;
@@ -1695,22 +1821,48 @@ protected:
           internal_fixed.insert(mod);
         }
       }
-      for (auto parent_ref = id_data.getParentSequences().begin();
-           parent_ref != id_data.getParentSequences().end(); ++parent_ref)
+      set<NASequence> target_oligos;
+      Size decoy_collisions = 0, decoy_resolved = 0, decoy_unresolved = 0;
+      auto digest_and_register_parent = [&](IdentificationData::ParentSequenceRef parent_ref)
       {
-        if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
-        {
-          continue;
-        }
         NASequence parent = NASequence::fromString(parent_ref->sequence);
         ModifiedNASequenceGenerator::applyFixedModifications(internal_fixed, parent);
         vector<RNaseDigestion::DigestionProduct> products;
-        digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
-          max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        if (legacy_stage8_digestion && !cleavage_sensitive_groups.combined().empty())
+        {
+          digestor.digestWithCleavageSensitiveModsLegacy(parent, cleavage_sensitive_groups,
+            max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        }
+        else
+        {
+          digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
+            max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        }
         for (const auto& product : products)
         {
-          registerDigestedOligo_(id_data, parent_ref, parent, product);
+          registerDigestedOligo_(id_data, parent_ref, parent, product,
+            target_oligos, max_decoy_reshuffle_attempts,
+            decoy_collisions, decoy_resolved, decoy_unresolved);
         }
+      };
+      for (auto parent_ref = id_data.getParentSequences().begin();
+           parent_ref != id_data.getParentSequences().end(); ++parent_ref)
+      {
+        if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA ||
+            (max_decoy_reshuffle_attempts > 0 && parent_ref->is_decoy)) continue;
+        digest_and_register_parent(parent_ref);
+      }
+      if (max_decoy_reshuffle_attempts > 0)
+      {
+        for (auto parent_ref = id_data.getParentSequences().begin();
+             parent_ref != id_data.getParentSequences().end(); ++parent_ref)
+        {
+          if (parent_ref->molecule_type == IdentificationData::MoleculeType::RNA &&
+              parent_ref->is_decoy) digest_and_register_parent(parent_ref);
+        }
+        OPENMS_LOG_INFO << "Decoy oligo collisions: " << decoy_collisions
+          << "; resolved by deterministic reshuffling: " << decoy_resolved
+          << "; unresolved and omitted: " << decoy_unresolved << endl;
       }
 
       std::string digest_out = getStringOption_("digest_out");
@@ -1721,6 +1873,16 @@ protected:
     }
     else // load digestion results from a previous run
     {
+      if (legacy_stage8_digestion)
+      {
+        OPENMS_LOG_ERROR << "oligo:legacy_stage8_digestion requires fresh digestion; it cannot alter an existing digest input." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      if (max_decoy_reshuffle_attempts > 0)
+      {
+        OPENMS_LOG_ERROR << "fdr:max_decoy_reshuffle_attempts requires fresh digestion; it cannot alter an existing digest input." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
       OPENMS_LOG_INFO << "Loading pre-digested sequence data..." << endl;
       OMSFile(log_type_).load(in_digest, id_data);
       if (id_data.getDBSearchParams().empty())
@@ -1815,7 +1977,8 @@ protected:
                        use_nlargest, nlargest_n,
                        remove_precursor, precursor_mass_tolerance,
                        precursor_tolerance_ppm, precursor_peak_isotopes,
-                       deisotoping, flash_min_cos, flash_min_snr);
+                       deisotoping, flash_min_cos, flash_min_snr,
+                       getFlag_("preprocessing:legacy_stage8_flash"));
     const std::string out_preprocessed = getStringOption_("out_preprocessed");
     if (!out_preprocessed.empty())
     {
@@ -2206,8 +2369,8 @@ protected:
       }
       reference_metadata["sequencing_platform"] = "ddMS2";
       reference_metadata["basecalling"] = "NASE";
-      reference_metadata["bioinformatics_workflow"] = "NASE; caller-selected FDR cutoff and report:top_hits; score=min q-value (lower is better)";
-      BedRModFile().store(bedrmod_out, id_data, bedrmod_chebi_mapping, reference_metadata);
+      reference_metadata["bioinformatics_workflow"] = "NA";
+      BedRModFile().storeLegacy(bedrmod_out, id_data, bedrmod_chebi_mapping, reference_metadata);
     }
 
     return EXECUTION_OK;
