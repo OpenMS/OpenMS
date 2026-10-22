@@ -10,6 +10,8 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -174,6 +176,55 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
       if (result_dc[i].size() == 2) ++pairs_dc;
     }
     TEST_EQUAL(pairs_dc, 1)
+  }
+
+  // decharge_mz with the 'dc_charge_adduct_mass' MetaValue (a *neutral* adduct mass, as stored by
+  // MetaboliteFeatureDeconvolution): the electrons missing on the observed cation must be added back,
+  // otherwise the projected [M+H]+ m/z is z electron masses (~3.6 ppm at m/z 300, z=2) too low
+  {
+    const double M = 300.0; // neutral mass
+    const double mz_z2 = (M + 2.0 * Constants::PROTON_MASS_U) / 2.0; // [M+2H]2+
+    const double mz_z1 = M + Constants::PROTON_MASS_U;               // [M+H]+
+
+    vector<FeatureMap> mv_maps(2);
+
+    Feature f2;
+    f2.setUniqueId(21);
+    f2.setMZ(mz_z2);
+    f2.setRT(100.0);
+    f2.setIntensity(1000.0f);
+    f2.setCharge(2);
+    f2.setMetaValue("dc_charge_adduct_mass", EmpiricalFormula("H2").getMonoWeight());
+    mv_maps[0].push_back(f2);
+
+    Feature f1;
+    f1.setUniqueId(22);
+    f1.setMZ(mz_z1);
+    f1.setRT(100.0);
+    f1.setIntensity(900.0f);
+    f1.setCharge(1);
+    mv_maps[1].push_back(f1);
+
+    for (auto& m : mv_maps) m.updateRanges();
+
+    FeatureGroupingAlgorithmWNet algo_mv;
+    Param pmv = algo_mv.getParameters();
+    pmv.setValue("mz_unit", "ppm");
+    pmv.setValue("max_mz_shift_ppm", 2.0); // tighter than the 3.6 ppm error a missing electron term causes
+    pmv.setValue("decharge_mz", "true");
+    algo_mv.setParameters(pmv);
+
+    ConsensusMap result_mv;
+    algo_mv.group(mv_maps, result_mv);
+
+    // with the electron correction the projection matches the z=1 partner up to the H binding
+    // energy (~1e-10 relative); without it, no pair forms at the 2 ppm threshold
+    Size pairs_mv = 0;
+    for (Size i = 0; i < result_mv.size(); ++i)
+    {
+      if (result_mv[i].size() == 2) ++pairs_mv;
+    }
+    TEST_EQUAL(pairs_mv, 1)
   }
 }
 END_SECTION
