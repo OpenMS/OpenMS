@@ -5594,6 +5594,22 @@ foreach(_name _case IN ZIP_LISTS _reserved_names _reserved_cases)
   set_tests_properties("TOPP_ProSE_14_reserved_stem_${_case}" PROPERTIES
     DEPENDS "TOPP_ProSE_14_app_inputs;TOPP_ProSE_14_reserved_stem_${_case}_clean")
 endforeach()
+# An input of basename merged (here Merged.mzML) with -out_parquet, -out_merged and several inputs: the -out_parquet
+# directory gets the pooled proteins as merged.proteins.parquet and merged.pg.parquet, which would overwrite its own, so
+# ProSE refuses the run (exit code 6) and writes nothing (no merged idXML either). Alone (no pooled files) it is searched.
+set(_dir ${TESTS_TEMP_DIR}/ProSE_14_reserved_merged)
+add_test(NAME "TOPP_ProSE_14_reserved_stem_merged_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${_dir} ${_dir}_alone)
+add_test("TOPP_ProSE_14_reserved_stem_merged" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_a.mzML;${TESTS_TEMP_DIR}/ProSE_14_reserved/Merged.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_parquet;${_dir};-out_merged;${_dir}.tmp.idXML"
+  -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename 'Merged', the name of the pooled proteins of -out_merged in the -out_parquet directory"
+  -DEMPTY_DIR=${_dir} -DABSENT_FILE=${_dir}.tmp.idXML -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_ProSE_14_reserved_stem_merged_alone" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/Merged.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_parquet;${_dir}_alone"
+  -DEXPECTED_CODE=0 -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+foreach(_t merged merged_alone)
+  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_t}" PROPERTIES
+    DEPENDS "TOPP_ProSE_14_app_inputs;TOPP_ProSE_14_reserved_stem_merged_clean")
+endforeach()
 # -qpx_extended extends -out_qpx: without it, ProSE refuses the run (exit code 6).
 add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${_prose14_mzml};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_14_needs_qpx.tmp.idXML;-qpx_extended"
