@@ -350,7 +350,8 @@ namespace OpenMS
           if (key == skip_a || key == skip_b) continue;
           if (key >= scratch.names.size()) scratch.names.resize(static_cast<Size>(key) + 1);
           std::string& name = scratch.names[key];
-          if (name.empty()) name = MetaInfoInterface::metaRegistry().getName(key);
+          // throws Exception::InvalidValue for an unregistered index
+          if (name.empty()) call_serialized([&] { name = MetaInfoInterface::metaRegistry().getName(key); });
           const DataValue& value = meta_info.getMetaValue(key);
           if (value.valueType() == DataValue::EMPTY_VALUE)
           {

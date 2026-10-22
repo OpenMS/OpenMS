@@ -6029,8 +6029,10 @@ namespace OpenMS
       num_parts = static_cast<int>(std::clamp<SignedSize>(n / 512, 1, omp_get_max_threads()));
 #endif
       std::vector<TopHitSummary> parts(num_parts);
+      std::vector<std::exception_ptr> errors(num_parts); // an exception must not leave the parallel region
 #pragma omp parallel for schedule(static, 1) num_threads(num_parts)
       for (int part = 0; part < num_parts; ++part)
+      try
       {
         TopHitSummary& s = parts[part];
         EnzymaticDigestion digestor;
@@ -6065,6 +6067,14 @@ namespace OpenMS
             else if (!td.empty()) { ++s.n_target; }
           }
         }
+      }
+      catch (...)
+      {
+        errors[part] = std::current_exception();
+      }
+      for (const std::exception_ptr& error : errors)
+      {
+        if (error) { std::rethrow_exception(error); }
       }
       TopHitSummary& all = parts.front();
       for (int part = 1; part < num_parts; ++part)
