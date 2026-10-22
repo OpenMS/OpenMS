@@ -124,7 +124,7 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Extended QPX output: '-qpx_extended' (with '-out_qpx') adds optional columns to the QPX psm view and the
 statistics of the run to the footer of its Parquet files, so that a viewer can show a search from the QPX files alone.
 QPX readers ignore columns and keys they do not know; the names are those proposed in bigbio/qpx#355 and #259. Each
-row of the per-input <basename>.psm.parquet and of quantms.psm.parquet gets: 'additional_scores' with every numeric
+row of the per-input psm.parquet files and of quantms.psm.parquet gets: 'additional_scores' with every numeric
 score and meta value of the PSM in snake_case instead of the known scores only ('global_qvalue': the PSM q-value of its
 input file, from target-decoy competition or Percolator; 'ln_hyperscore'; Percolator's 'percolator_score',
 'percolator_qvalue', 'percolator_pep'; 'precursor_mz_error_ppm' (corrected for the isotope error), 'delta_mass' (open
