@@ -16,6 +16,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -100,6 +102,37 @@ START_SECTION((std::set<double> getCompensationVoltages() returns empty for non-
 
   const std::set<double> cvs3 = FAIMSHelper::getCompensationVoltages(exp3);
   TEST_EQUAL(cvs3.empty(), true)
+}
+END_SECTION
+
+START_SECTION((static FeatureMap filterFeaturesByFAIMSCV(const FeatureMap& features, double target_cv, double cv_tolerance = 0.01)))
+{
+  FeatureMap features;
+  features.setIdentifier("seeds");
+  for (const double cv : {-45.0, -60.0, -45.004})
+  {
+    Feature f;
+    f.setMetaValue(Constants::UserParam::FAIMS_CV, cv);
+    features.push_back(f);
+  }
+  features.push_back(Feature()); // no CV: kept at every CV
+
+  const FeatureMap at_45 = FAIMSHelper::filterFeaturesByFAIMSCV(features, -45.0);
+  TEST_EQUAL(at_45.size(), 3)
+  TEST_EQUAL(at_45.getIdentifier(), "seeds")
+  TEST_EQUAL(FAIMSHelper::filterFeaturesByFAIMSCV(features, -60.0).size(), 2)
+  TEST_EQUAL(FAIMSHelper::filterFeaturesByFAIMSCV(features, -70.0).size(), 1)
+
+  // a kept feature still links its identification
+  auto& run = features.getIdentificationData().addRun("search");
+  IdentificationData::Observation observation;
+  observation.data_id = "scan=1";
+  features[1].addIDQuery({run.getUuid(), run.addIdentification(run.addSource({}), observation)});
+  const FeatureMap at_60 = FAIMSHelper::filterFeaturesByFAIMSCV(features, -60.0);
+  ABORT_IF(at_60.size() != 2)
+  const auto linked = at_60[0].getLinkedIdentifications(at_60.getIdentificationData());
+  ABORT_IF(linked.size() != 1)
+  TEST_EQUAL(linked[0].query->data_id, "scan=1")
 }
 END_SECTION
 

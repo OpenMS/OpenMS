@@ -188,7 +188,9 @@ START_SECTION(([EXTRA] idXML outputs of IDMerger, PercolatorAdapter, ProteomicsL
                                  "THIRDPARTY/PercolatorAdapter_1.idXML", "THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML",
                                  "THIRDPARTY/PercolatorAdapter_1_subprocess_out.idXML", "THIRDPARTY/PercolatorAdapter_idparquet_out.idXML",
                                  "IsobaricWorkflow_1_input.idXML", "IsobaricWorkflow_2_input.idXML", "IsobaricWorkflow_duplicate_psm_input.idXML",
-                                 "IsobaricWorkflow_strictly_unique_input.idXML", "ProteomicsLFQ_duplicate_psm_1.idXML",
+                                 "IsobaricWorkflow_strictly_unique_input.idXML", "IsobaricWorkflow_decoy_top_hit_input.idXML",
+                                 "IsobaricWorkflow_missing_spectrum_input.idXML", "IsobaricWorkflow_multi_id_input.idXML",
+                                 "IsobaricWorkflow_unassigned_input.idXML", "ProteomicsLFQ_duplicate_psm_1.idXML",
                                  "ProteomicsLFQ_empty_fraction_BSA1_F2.idXML"})
   {
     STATUS(name)
@@ -217,6 +219,7 @@ START_SECTION(([EXTRA] consensusXML outputs of ProteomicsLFQ, IsobaricWorkflow a
                                  "ProteomicsLFQ_5_out.consensusXML", "ProteomicsLFQ_6_out.consensusXML", "ProteomicsLFQ_7_out.consensusXML",
                                  "ProteomicsLFQ_8_out.consensusXML", "ProteomicsLFQ_9_out.consensusXML", "ProteomicsLFQ_9_seedRT_out.consensusXML",
                                  "IsobaricWorkflow_1_out.consensusXML", "IsobaricWorkflow_strictly_unique_out.consensusXML",
+                                 "IsobaricWorkflow_multi_id_out.consensusXML", "IsobaricWorkflow_unassigned_out.consensusXML",
                                  "IDMerger_6_output.consensusXML"})
   {
     STATUS(name)

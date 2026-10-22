@@ -64,7 +64,7 @@ namespace // anonymous
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
-      (void)value_b->Append(val.toString());
+      (void)value_b->Append(ArrowIOHelpers::metaValueString(val));
       switch (val.valueType())
       {
         case DataValue::INT_VALUE: (void)type_b->Append("int"); break;
@@ -226,7 +226,7 @@ namespace // anonymous
           default: type_str = "string"; break;
         }
         json += "{\"name\":\"" + escapeJsonString_(std::string(key))
-              + "\",\"value\":\"" + escapeJsonString_(val.toString())
+              + "\",\"value\":\"" + escapeJsonString_(ArrowIOHelpers::metaValueString(val))
               + "\",\"type\":\"" + type_str + "\"}";
         first_mv = false;
       }
@@ -486,7 +486,7 @@ namespace // anonymous
         default: type_str = "string"; break;
       }
       json += "{\"name\":\"" + escapeJsonString_(std::string(key))
-            + "\",\"value\":\"" + escapeJsonString_(val.toString())
+            + "\",\"value\":\"" + escapeJsonString_(ArrowIOHelpers::metaValueString(val))
             + "\",\"type\":\"" + type_str + "\"}";
       first = false;
     }
@@ -1804,8 +1804,9 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     // psm_metavalues -> PeptideHit metavalues (exclude keys that have dedicated columns)
     if (col_psm_metavalues)
     {
+      // 'target_decoy' is read from is_decoy above, and is only here if that cannot express it (e.g. "target+decoy")
       static const std::unordered_set<std::string> psm_excluded_mvs =
-        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+        {"predicted_RT", "predicted_rt", "ion_mobility", "IM",
          "scan", "reference_file_name"};
       ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
