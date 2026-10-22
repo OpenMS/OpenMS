@@ -30,8 +30,10 @@
 #   is not checked), with the QPX columns; a PSM's peaks are those of the row whose id is its spectrum_reference, which
 #   must be its own spectrum: the row's scan_start_time is the PSM's rt (within 50 ms), else the join gives another
 #   spectrum of that native ID and the check fails.
-# - SHARED_ID ON: some PSM has a null spectrum_reference (unresolved: another spectrum of its native ID has the mz row of
-#   that native ID); without it, a null spectrum_reference fails. Also with MERGED.
+# - SHARED_ID ON (requires MZ, also with MERGED: the input's mz view): some PSM has a null spectrum_reference, and every
+#   such PSM is of the later spectrum of a shared native ID: the mz row of its run and scan is another spectrum's, of an
+#   earlier scan_start_time than its rt (by more than 50 ms), and its native ID has several spectra in the mzML. Without
+#   SHARED_ID, a null spectrum_reference fails.
 # - TWIN: a dump of another mz view with the same rows (the same spectra read from another copy of the file).
 #   ISOTOPE_TWIN: the isotope_error column equals that of ISOTOPE_TWIN, row by row, and some row has one other than 0.
 #   ISOTOPE_VALUES: every isotope_error is one of these.
@@ -71,7 +73,7 @@ if (MERGED)
   set(PREDICTIONS OFF)
 endif()
 
-# Peak counts of the spectra, by native ID.
+# Peak counts of the spectra, and the number of spectra, by native ID.
 file(STRINGS "${MZML}" _spectra REGEX "<spectrum [^>]*defaultArrayLength=")
 foreach(_s IN LISTS _spectra)
   if (_s MATCHES "id=\"([^\"]*)\"")
@@ -79,6 +81,12 @@ foreach(_s IN LISTS _spectra)
     if (_s MATCHES "defaultArrayLength=\"([0-9]+)\"")
       string(MAKE_C_IDENTIFIER "${_id}" _key)
       set(_peaks_${_key} "${CMAKE_MATCH_1}")
+      # the spectra of that native ID
+      if (DEFINED _copies_${_key})
+        math(EXPR _copies_${_key} "${_copies_${_key}} + 1")
+      else()
+        set(_copies_${_key} 1)
+      endif()
     endif()
   endif()
 endforeach()
@@ -123,6 +131,8 @@ endfunction()
 
 read_dump("${QPX}" q)
 column(q peptidoform _c_peptidoform)
+column(q run_file_name _c_run)
+column(q scan _c_scan)
 column(q charge _c_charge)
 column(q rt _c_rt)
 column(q mz_array _c_annotated)
@@ -156,11 +166,11 @@ if (DEFINED ISOTOPE_TWIN)
     message(FATAL_ERROR "${QPX}: ${q_rows} rows, the isotope twin ${ISOTOPE_TWIN} has ${itwin_rows}")
   endif()
 endif()
-# The mz view: its rows by id; one row per spectrum of the PSMs, in the order of its first PSM
-if (NOT MERGED AND NOT PEAKS STREQUAL "OFF")
-  if (NOT DEFINED MZ)
-    message(FATAL_ERROR "MZ (the dump of the mz view) is required for the peaks")
-  endif()
+# The mz view: its rows by id (and by run and scan); one row per spectrum of the PSMs, in the order of its first PSM
+if (NOT DEFINED MZ AND (SHARED_ID OR (NOT MERGED AND NOT PEAKS STREQUAL "OFF")))
+  message(FATAL_ERROR "MZ (the dump of the mz view) is required for the peaks and with SHARED_ID")
+endif()
+if (DEFINED MZ)
   read_dump("${MZ}" m)
   foreach(_name id run_file_name scan ms_level centroid scan_start_time inverse_ion_mobility ion_injection_time
           total_ion_current precursors mz intensity cv_params)
@@ -179,12 +189,18 @@ if (NOT MERGED AND NOT PEAKS STREQUAL "OFF")
       endif()
       set(_mz_row_${_key} ${_k})
       list(APPEND _m_ids "${_key}")
+      list(GET _cells ${_c_m_run_file_name} _run)
+      list(GET _cells ${_c_m_scan} _scan)
+      string(MAKE_C_IDENTIFIER "${_run}_${_scan}" _key)
+      set(_mz_scan_row_${_key} ${_k})
       list(GET _cells ${_c_m_ms_level} _level)
       if (NOT _level STREQUAL "2")
         message(FATAL_ERROR "${MZ}: row ${_k}: ms_level ${_level}")
       endif()
     endforeach()
   endif()
+endif()
+if (NOT MERGED AND NOT PEAKS STREQUAL "OFF")
   # the spectra of the PSMs, each once (ParquetDiff's dumps are sorted: the order, that of each spectrum's first PSM,
   # is checked by the app's reader tests)
   set(_psm_ids)
@@ -334,7 +350,7 @@ set(_nonzero_isotope OFF)
 set(_found_peptide OFF)
 set(_unresolved 0)
 set(_converted_unknown_charge 0)
-set(_cols ref peptidoform charge annotated isotope mappings scores rt)
+set(_cols ref peptidoform charge annotated isotope mappings scores rt run scan)
 if (NOT MERGED)
   list(APPEND _cols ions mz intensity)
 endif()
@@ -350,11 +366,31 @@ foreach(_row RANGE 0 ${_last})
       set(_${_c} null)
     endif()
   endforeach()
-  # unresolved: no spectrum_reference, as another spectrum of its native ID has the mz row of that native ID
+  # unresolved: no spectrum_reference, as another spectrum of its native ID has the mz row of that native ID; the PSM is
+  # of the later spectrum: the mz row of its run and scan is another spectrum's, of an earlier RT, of a shared native ID
   set(_unresolved_row OFF)
   if (_ref STREQUAL "null")
     if (NOT SHARED_ID)
       message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): no spectrum_reference")
+    endif()
+    string(MAKE_C_IDENTIFIER "${_run}_${_scan}" _key)
+    if (NOT DEFINED _mz_scan_row_${_key})
+      message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): no spectrum_reference, and the mz view has no row of its"
+                          " scan ${_run} ${_scan}")
+    endif()
+    list(GET m_lines ${_mz_scan_row_${_key}} _mz_line)
+    string(REPLACE "\t" ";" _mz_cells "${_mz_line}")
+    list(GET _mz_cells ${_c_m_id} _id)
+    list(GET _mz_cells ${_c_m_scan_start_time} _minutes)
+    to_micro("${_minutes}" _start)
+    math(EXPR _start "${_start} * 60")
+    to_micro("${_rt}" _rt_micro)
+    math(EXPR _rt_diff "${_rt_micro} - ${_start}")
+    string(MAKE_C_IDENTIFIER "${_id}" _key)
+    if (_rt_diff LESS_EQUAL 50000 OR NOT _copies_${_key} GREATER 1)
+      message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}, rt ${_rt} s): no spectrum_reference, but it is not the PSM of"
+                          " a later spectrum of a shared native ID: the mz row of its scan, '${_id}' (${_copies_${_key}}"
+                          " spectra in ${MZML}), is at ${_minutes} min")
     endif()
     set(_unresolved_row ON)
     math(EXPR _unresolved "${_unresolved} + 1")

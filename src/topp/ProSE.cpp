@@ -136,7 +136,7 @@ PSM in snake_case instead of the known scores only ('global_qvalue': the PSM-lev
 competition or Percolator, computed over the PSMs of the input file; 'ln_hyperscore'; Percolator's 'percolator_score',
 'percolator_qvalue', 'percolator_pep'; 'precursor_mz_error_ppm' (corrected for the isotope error), 'isotope_error' (as
 the column), 'delta_mass' (open search) and the Percolator features), with 'higher_better' where it is known;
-'spectrum_reference' (string, the native ID of the spectrum; null if unresolved, see the mz view below); 'isotope_error'
+'spectrum_reference' (string, the native ID of the spectrum; null if the mz view has no row of it, see below); 'isotope_error'
 (int16: the 13C peaks from the monoisotopic to the selected precursor peak, i.e. observed minus theoretical, whatever
 'Search:report:isotope_error_convention' says); 'protein_mappings' (list of struct accession, start, end, aa_before,
 aa_after: each protein of the peptide with the peptide's 1-based first and last position and the residues before and
@@ -147,8 +147,8 @@ intense of them; ions of 0.01 or less are left out. The predictions use the sett
 instrument) at the normalised collision energy of the file: the one PeptDeep rescoring used ('Search:peptdeep:enable';
 predicted again at that NCE), else 'Search:peptdeep:nce' if set, else the one PeptDeep rescoring selects, run on a
 copy of the written PSMs; PSMs of precursor charge 1 to 6 are predicted, others get null. Each input is read once more
-after its search for the spectra; a failed re-read is a warning and leaves out its mz view, a failed prediction a
-warning and null prediction columns; without ONNX
+after its search for the spectra; a failed re-read is a warning and leaves out its mz view (and the
+'spectrum_reference' of its PSMs null), a failed prediction a warning and null prediction columns; without ONNX
 Runtime the prediction columns are null. Each input gets the QPX mz view (the input's basename with .mz.parquet) of the MS2 spectra of
 its written PSMs only (one row per spectrum, in the order of its first PSM; of several spectra of one native ID only
 the first, as 'id' is the view's key, so the PSMs of the others have no spectrum there and a null 'spectrum_reference':
@@ -163,7 +163,8 @@ the peak of the fragment at its own charge 2 or 3, so that every annotated fragm
 search's deisotoping tried: up to 3, and with 'Search:fragment:deisotope_charge_cap precursor' at most the spectrum's
 recorded precursor charge, whatever the charge of the PSM; up to 3 if that is unknown). Its footer records the filter:
 'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz row whose 'id' is its
-'spectrum_reference' (none if that is null). A per-input psm file and its mz view are written as soon as the input is
+'spectrum_reference'. That is null exactly if the mz view has no row of the PSM's spectrum (null: no stored spectrum):
+the re-read failed, the spectrum was not found again, or another spectrum of its native ID has the row. A per-input psm file and its mz view are written as soon as the input is
 done (neither is kept for the rest of the run), in row groups of 256 rows, so that a viewer can read the spectrum and
 the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
@@ -283,15 +284,16 @@ class ProSE :
     }
 
     /// The spectrum of one PSM row of -qpx_extended: its prediction columns (null when @p has_prediction is false), and
-    /// whether its 'spectrum_reference' is null because its native ID has the mz row of another spectrum
+    /// whether the mz view has the row of its spectrum (else its 'spectrum_reference' is null)
     struct PSMSpectrum_
     {
       bool has_prediction = false;
       std::vector<std::string> ion_type;
       std::vector<float> mz, intensity;
-      /// another spectrum of its native ID (at another RT) has the mz row of that native ID: its 'spectrum_reference'
-      /// is null (unresolved), as a join on its native ID would give that spectrum
-      bool spectrum_unresolved = false;
+      /// the mz view has a row of its spectrum, under its native ID; if not (the re-read failed, the spectrum was not
+      /// found again, or another spectrum of its native ID has the row), its 'spectrum_reference' is null: no stored
+      /// spectrum, as a join on its native ID would give nothing or another spectrum's peaks
+      bool has_mz_row = false;
     };
 
     /// The rows per row group of the per-input psm and mz files of -qpx_extended: a viewer reads the peaks and the
@@ -406,8 +408,8 @@ class ProSE :
       the one at its RT). The mz view has one row per spectrum, in the order of the first PSM of each (in the order of
       @p peptide_ids), its peaks filtered with @p filter (keeping the annotated peaks of every PSM of the spectrum); a
       PSM whose spectrum is not found has none, nor has one whose spectrum shares its native ID with an earlier spectrum
-      (the view's key is the native ID). A PSM whose native ID has the row of another spectrum is marked
-      PSMSpectrum_::spectrum_unresolved: its spectrum_reference is null, so that no join gives it that spectrum. The
+      (the view's key is the native ID). Only a PSM whose spectrum has the row of its native ID is marked
+      PSMSpectrum_::has_mz_row; the others (also all after a failed re-read) get a null spectrum_reference. The
       predictions are PeptDeep's at the NCE of the file: the one PeptDeep rescoring stored on the run ('peptdeep_nce'),
       else 'peptdeep:nce' if set, else the one PeptDeepRescoring::annotate() selects on a copy of @p peptide_ids; the
       NCE is then stored on the run.
@@ -450,7 +452,7 @@ class ProSE :
       catch (const std::exception& e)
       {
         OPENMS_LOG_WARN << "-qpx_extended: cannot read the spectra of " << in_file << " again (" << e.what()
-                        << "); no mz view is written for it." << endl;
+                        << "); no mz view is written for it, and the spectrum_reference of its PSMs is null." << endl;
         spectra.clear(true);
         read = false;
       }
@@ -561,38 +563,36 @@ class ProSE :
         cv_params.struct_lists.emplace_back();
         cv_params.null_rows.push_back(true);
       }
-      // Each PSM against the rows, once all are made (a later PSM may make the row of a native ID): of a spectrum whose
-      // native ID has the row of another spectrum (several spectra of one native ID, or none at its RT), its
-      // spectrum_reference becomes null -- a join on its native ID would give that other spectrum's peaks
+      const Size mz_rows = id.utf8_values.size();
+      if (read)
+      {
+        result.mz = ArrowIOHelpers::tableOfColumns({id, run_file, scan, ms_level, centroid, start_time, mobility, injection, tic,
+                                                    precursors, mz, intensity, cv_params}, mz_rows);
+      }
+      // Each PSM against the rows, once all are made (a later PSM may make the row of a native ID): a PSM has its
+      // spectrum's row only if the row of its native ID is that spectrum's. Otherwise (no spectrum of its native ID and RT,
+      // no mz view, or another spectrum of its native ID has the row) its spectrum_reference becomes null: a join on its
+      // native ID would give no peaks or another spectrum's
       Size without_spectrum = 0, unresolved = 0;
       for (Size i = 0; i < peptide_ids.size(); ++i)
       {
         if (peptide_ids[i].getHits().empty()) { continue; }
         const auto row = written.find(peptide_ids[i].getSpectrumReference());
         if (row == written.end()) { ++without_spectrum; } // no spectrum of its native ID (and RT), and no row to join
-        else if (row->second != spectrumOf(i))
-        {
-          out[i].spectrum_unresolved = true;
-          ++unresolved;
-        }
+        else if (row->second != spectrumOf(i)) { ++unresolved; }
+        else { out[i].has_mz_row = result.mz != nullptr; }
       }
-      if (without_spectrum > 0 && !spectra.empty())
+      if (without_spectrum > 0 && read)
       {
         OPENMS_LOG_WARN << "-qpx_extended: " << without_spectrum << " PSM(s) of " << in_file
-                        << " have no MS2 spectrum of their native ID (and RT) in the file; the mz view has none for them."
-                        << endl;
+                        << " have no MS2 spectrum of their native ID (and RT) in the file; the mz view has none for them,"
+                        << " and their spectrum_reference is null." << endl;
       }
       if (unresolved > 0)
       {
         OPENMS_LOG_WARN << "-qpx_extended: " << unresolved << " PSM(s) of " << in_file << " are of a spectrum that shares its"
                         << " native ID with another spectrum (at another RT), which has the mz row of that native ID: the mz"
                         << " view has none for them, and their spectrum_reference is null (unresolved)." << endl;
-      }
-      const Size mz_rows = id.utf8_values.size();
-      if (read)
-      {
-        result.mz = ArrowIOHelpers::tableOfColumns({id, run_file, scan, ms_level, centroid, start_time, mobility, injection, tic,
-                                                    precursors, mz, intensity, cv_params}, mz_rows);
       }
 
       // -- predictions --
@@ -880,7 +880,7 @@ class ProSE :
     /**
       @brief The columns -qpx_extended adds to the QPX psm view of a file, one entry per row of the view (the best hit
       of each element of @p peptide_ids with hits): 'additional_scores' (replaced: every numeric score and meta value
-      of the PSM in snake_case), 'spectrum_reference' (null if PSMSpectrum_::spectrum_unresolved), 'isotope_error',
+      of the PSM in snake_case), 'spectrum_reference' (null without PSMSpectrum_::has_mz_row), 'isotope_error',
       'protein_mappings' (ExtendedColumns_::rows);
       the peaks and the predictions of @p spectra (ExtendedColumns_::spectra), which are moved out of @p spectra.
     */
@@ -949,10 +949,10 @@ class ProSE :
         }
         scores.score_lists.push_back(std::move(row_scores));
 
-        // (null: unresolved, its native ID has the mz row of another spectrum; see collectPSMSpectra_())
+        // (null: the mz view has no row of its spectrum, no stored spectrum; see collectPSMSpectra_())
         PSMSpectrum_& s = spectra[i];
-        reference.utf8_values.push_back(s.spectrum_unresolved ? std::string() : id.getSpectrumReference());
-        reference.null_rows.push_back(s.spectrum_unresolved || id.getSpectrumReference().empty());
+        reference.utf8_values.push_back(s.has_mz_row ? id.getSpectrumReference() : std::string());
+        reference.null_rows.push_back(!s.has_mz_row || id.getSpectrumReference().empty());
 
         const std::string isotope_key = hit.metaValueExists("isotope_error") ? "isotope_error" : "IsotopeError";
         isotope.int64_values.push_back(hit.metaValueExists(isotope_key) ? isotope_sign * static_cast<int>(hit.getMetaValue(isotope_key)) : 0);
