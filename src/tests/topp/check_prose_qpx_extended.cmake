@@ -2,28 +2,36 @@
 # -out_tsv) and, for the footer, the Parquet file itself. Usage:
 #
 #   cmake -DQPX=<dump of the QPX psm.parquet> -DMZML=<the searched mzML, uncompressed>
-#         [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DPREDICTIONS=ON|OFF] [-DTWIN=<dump whose peaks must be the same>] [-DROWS=<n>]
-#         [-DSUM_OF=<dumps, comma-separated, whose rows the dump has together>]
-#         [-DPARQUET=<the psm.parquet> [-DFILES=<inputs in its footer>] [-DFILE_INDEX=<position of the input, default 0>]
-#          [-DNCE=<expected NCE>] [-DLOG=<output of the run> -DNCE_SOURCE=<"from PeptDeep rescoring", "selected" or "set">]
+#         [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DPREDICTIONS=ON|OFF]
+#         [-DTWIN=<dump whose peaks must be the same>] [-DISOTOPE_TWIN=<dump whose isotope errors must be the same>]
+#         [-DROWS=<n>] [-DSUM_OF=<dumps, comma-separated, whose rows the dump has together>]
+#         [-DPARQUET=<the psm.parquet>] [-DRUN=<dump of quantms.run.parquet> [-DFILES=<inputs, default 1>]
+#          [-DFILE_INDEX=<position of the input, default 0>] [-DNCE=<expected NCE>] [-DLOG=<output of the run> -DNCE_SOURCE=<"from PeptDeep rescoring", "selected" or "set">]
 #          [-DPEPTIDE=<peptidoform> -DCHARGE=<z> -DREFERENCE=<tsv: nce, ion, mz, intensity>
 #           -DOUT_PREDICTED=<file> -DOUT_REFERENCE=<file>]]
 #         -P check_prose_qpx_extended.cmake
 #
-# - The dump has the columns of -qpx_extended (spectrum_reference, isotope_error, protein_mappings, peak_mz_array,
-#   peak_intensity_array, predicted_ion_type_array, predicted_mz_array, predicted_intensity_array); every row a
-#   spectrum_reference of a spectrum of the mzML and as many peak intensities as peak m/z.
-# - PEAKS ALL (default): every row has all peaks of its spectrum (defaultArrayLength). FILTERED: at most as many, every
-#   m/z of the fragment annotation (mz_array) among them (with SOME_FEWER ON, some row has fewer than its spectrum).
+# - The dump has the columns of -qpx_extended (spectrum_reference, isotope_error, protein_mappings and, unless MERGED,
+#   peak_mz_array, peak_intensity_array, predicted_ion_type_array, predicted_mz_array, predicted_intensity_array; with
+#   MERGED, quantms.psm.parquet, none of these five); every row a spectrum_reference of a spectrum of the mzML, an
+#   integer isotope_error equal to the 'isotope_error' of its additional_scores, and (not MERGED) as many peak
+#   intensities as peak m/z.
+# - PEAKS ALL (default): every row has all peaks of its spectrum (defaultArrayLength). FILTERED: at most as many, and
+#   for every m/z of the fragment annotation (mz_array) the peak at that m/z or, for a fragment that deisotoping moved
+#   to its 1+ m/z, its monoisotopic peak at charge 2 or 3 (within 0.01 Th) among them (with SOME_FEWER ON, some row has
+#   fewer than its spectrum; with CONVERTED ON, some annotated m/z is no peak and was found at charge 2 or 3).
 #   OFF: every peak column is null.
 # - PREDICTIONS ON (default): every row of precursor charge 1 to 6 has a non-empty prediction, with as many ions as m/z
 #   and intensities. OFF: every prediction column is null.
 # - TWIN: the peak columns equal those of TWIN, row by row (the same spectra read from another copy of the file).
+#   ISOTOPE_TWIN: the isotope_error column equals that of ISOTOPE_TWIN, row by row, and some row has one other than 0.
 # - ROWS: the dump has exactly that many rows; 0 checks only the columns (and the footer). Without ROWS, at least one.
 #   SUM_OF: as many rows as these dumps together (a merged file).
-# - PARQUET: the footer has the 'prose_' keys and the JSON array 'prose_files' with FILES entries (default 1); with
-#   PREDICTIONS, the entry FILE_INDEX reports a number as the NCE (equal to NCE if given). With LOG, the run logged
-#   that NCE with its source NCE_SOURCE, and for "from PeptDeep rescoring" PeptDeep rescoring logged the same NCE.
+# - PARQUET: the footer has the 'prose_' keys of the peak filter and of the prediction model. RUN: the run view has
+#   FILES rows with the columns of -qpx_extended and one LFQ sample each; with MERGED their psm_rows add up to the rows
+#   of the dump. With PREDICTIONS, the input FILE_INDEX reports a number as the NCE (prediction_nce; equal to NCE if
+#   given). With LOG, the run logged that NCE with its source NCE_SOURCE, and for "from PeptDeep rescoring" PeptDeep
+#   rescoring logged the same NCE.
 # - PEPTIDE: the predicted ions of the first row of that peptidoform and CHARGE go to OUT_PREDICTED, the rows of
 #   REFERENCE of the reported NCE to OUT_REFERENCE, as "ion<TAB>m/z<TAB>intensity" lines, for FuzzyDiff.
 foreach(_required QPX MZML)
@@ -42,6 +50,10 @@ if (NOT DEFINED FILE_INDEX)
 endif()
 if (NOT DEFINED FILES)
   set(FILES 1)
+endif()
+if (MERGED)
+  set(PEAKS OFF)
+  set(PREDICTIONS OFF)
 endif()
 
 # Peak counts of the spectra, by native ID.
@@ -101,11 +113,28 @@ column(q mz_array _c_annotated)
 column(q spectrum_reference _c_ref)
 column(q isotope_error _c_isotope)
 column(q protein_mappings _c_mappings)
-column(q peak_mz_array _c_peak_mz)
-column(q peak_intensity_array _c_peak_intensity)
-column(q predicted_ion_type_array _c_ions)
-column(q predicted_mz_array _c_mz)
-column(q predicted_intensity_array _c_intensity)
+column(q additional_scores _c_scores)
+set(_spectrum_columns peak_mz_array peak_intensity_array predicted_ion_type_array predicted_mz_array predicted_intensity_array)
+if (MERGED)
+  foreach(_name IN LISTS _spectrum_columns)
+    list(FIND q_header "${_name}" _at)
+    if (NOT _at EQUAL -1)
+      message(FATAL_ERROR "${QPX}: the column '${_name}' is in the merged file")
+    endif()
+  endforeach()
+else()
+  column(q peak_mz_array _c_peak_mz)
+  column(q peak_intensity_array _c_peak_intensity)
+  column(q predicted_ion_type_array _c_ions)
+  column(q predicted_mz_array _c_mz)
+  column(q predicted_intensity_array _c_intensity)
+endif()
+if (DEFINED ISOTOPE_TWIN)
+  read_dump("${ISOTOPE_TWIN}" itwin)
+  if (NOT q_rows EQUAL itwin_rows)
+    message(FATAL_ERROR "${QPX}: ${q_rows} rows, the isotope twin ${ISOTOPE_TWIN} has ${itwin_rows}")
+  endif()
+endif()
 if (DEFINED TWIN)
   read_dump("${TWIN}" twin)
   if (NOT q_rows EQUAL twin_rows)
@@ -113,32 +142,44 @@ if (DEFINED TWIN)
   endif()
 endif()
 
-# The footer: the 'prose_' keys, and the entry of the input in 'prose_files'.
+# The footer: the 'prose_' keys of the columns of -qpx_extended (the peak filter, the prediction model).
 if (DEFINED PARQUET)
   file(STRINGS "${PARQUET}" _footer REGEX "prose_")
-  foreach(_key database_file enzyme enzyme_specificity clip_nterm_methionine decoy_mode decoy_string decoy_position
-          open_search calibration chunked db_target_proteins db_decoy_proteins indexed_peptides indexed_fragments
-          seconds_index_build seconds_total min_charge max_charge psm_fdr protein_fdr protein_fdr_applied extra_features
-          peak_window peak_top files)
+  foreach(_key peak_window peak_top prediction_ms2_model prediction_instrument)
     if (NOT _footer MATCHES "prose_${_key}")
       message(FATAL_ERROR "${PARQUET}: no footer key prose_${_key}")
     endif()
   endforeach()
-  file(STRINGS "${PARQUET}" _json REGEX "\\[{\"input_file\":")
-  list(GET _json 0 _json)
-  string(REGEX MATCH "\\[{\"input_file\":.*}\\]" _json "${_json}")
-  string(JSON _n_files ERROR_VARIABLE _error LENGTH "${_json}")
-  if (_error OR NOT _n_files EQUAL FILES)
-    message(FATAL_ERROR "${PARQUET}: prose_files is not a JSON array of ${FILES} inputs (${_error}): ${_json}")
+endif()
+# The run view: FILES rows; with MERGED their psm_rows add up to the rows of the dump; the NCE of input FILE_INDEX.
+if (DEFINED RUN)
+  read_dump("${RUN}" run)
+  if (NOT run_rows EQUAL FILES)
+    message(FATAL_ERROR "${RUN}: ${run_rows} runs, expected ${FILES}")
   endif()
-  foreach(_field input_file exit_code ms2_spectra target_psms decoy_psms percolator peptdeep_nce precursor_error
-          fragment_error seconds_search)
-    string(JSON _value ERROR_VARIABLE _error GET "${_json}" ${FILE_INDEX} ${_field})
-    if (_error)
-      message(FATAL_ERROR "${PARQUET}: prose_files[${FILE_INDEX}] has no ${_field}: ${_json}")
+  foreach(_name run_accession run_file_name file_name samples enzymes modification_parameters search_status
+          ms2_spectra_count identified_spectra_count decoy_psm_count psm_rows rescoring_applied rescoring_skipped_reason
+          rescoring_warning prediction_nce precursor_error_median_ppm fragment_tolerance_recommended_ppm search_seconds)
+    column(run "${_name}" _c_run_${_name})
+  endforeach()
+  set(_psm_rows 0)
+  math(EXPR _last_run "${run_rows} - 1")
+  foreach(_k RANGE 0 ${_last_run})
+    list(GET run_lines ${_k} _line)
+    string(REPLACE "\t" ";" _cells "${_line}")
+    list(GET _cells ${_c_run_psm_rows} _n)
+    math(EXPR _psm_rows "${_psm_rows} + ${_n}")
+    list(GET _cells ${_c_run_samples} _samples)
+    if (NOT _samples MATCHES "^<{sample_accession:string = [^,]+, label:string = LFQ, ")
+      message(FATAL_ERROR "${RUN}: run ${_k}: samples '${_samples}'")
+    endif()
+    if (_k EQUAL FILE_INDEX)
+      list(GET _cells ${_c_run_prediction_nce} _nce)
     endif()
   endforeach()
-  string(JSON _nce GET "${_json}" ${FILE_INDEX} peptdeep_nce)
+  if (NOT MERGED)
+    unset(_psm_rows)
+  endif()
 endif()
 
 if (DEFINED SUM_OF)
@@ -148,6 +189,9 @@ if (DEFINED SUM_OF)
     read_dump("${_part}" part)
     math(EXPR ROWS "${ROWS} + ${part_rows}")
   endforeach()
+endif()
+if (DEFINED _psm_rows AND NOT q_rows EQUAL _psm_rows)
+  message(FATAL_ERROR "${QPX}: ${q_rows} rows, the run view says ${_psm_rows}")
 endif()
 if (DEFINED ROWS)
   if (NOT q_rows EQUAL ROWS)
@@ -159,15 +203,37 @@ if (DEFINED ROWS)
   endif()
 endif()
 
+# An m/z of the dump as an integer in 1e-4 Th (truncated)
+function(to_units value out)
+  if (NOT value MATCHES "^([0-9]+)(\\.([0-9]*))?$")
+    message(FATAL_ERROR "not an m/z: '${value}'")
+  endif()
+  set(_frac "${CMAKE_MATCH_3}0000")
+  string(SUBSTRING "${_frac}" 0 4 _frac)
+  math(EXPR _units "${CMAKE_MATCH_1} * 10000 + 1${_frac} - 10000")
+  set(${out} ${_units} PARENT_SCOPE)
+endfunction()
+
 set(_predicted_rows 0)
 set(_fewer_rows 0)
+set(_converted 0)
+set(_nonzero_isotope OFF)
 set(_found_peptide OFF)
+set(_cols ref peptidoform charge annotated isotope mappings scores)
+if (NOT MERGED)
+  list(APPEND _cols peak_mz peak_intensity ions mz intensity)
+endif()
 math(EXPR _last "${q_rows} - 1")
 foreach(_row RANGE 0 ${_last})
   list(GET q_lines ${_row} _line)
   string(REPLACE "\t" ";" _cells "${_line}")
-  foreach(_c ref peptidoform charge annotated isotope mappings peak_mz peak_intensity ions mz intensity)
+  foreach(_c IN LISTS _cols)
     list(GET _cells ${_c_${_c}} _${_c})
+  endforeach()
+  foreach(_c peak_mz peak_intensity ions mz intensity)
+    if (MERGED)
+      set(_${_c} null)
+    endif()
   endforeach()
 
   # the spectrum, the isotope error and the proteins
@@ -177,6 +243,22 @@ foreach(_row RANGE 0 ${_last})
   endif()
   if (NOT _isotope MATCHES "^-?[0-9]+$")
     message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): isotope_error '${_isotope}'")
+  endif()
+  if (NOT _isotope STREQUAL "0")
+    set(_nonzero_isotope ON)
+  endif()
+  if (_scores MATCHES "score_name:string = isotope_error, score_value:double = ([^,]*),")
+    if (NOT CMAKE_MATCH_1 STREQUAL _isotope)
+      message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): isotope_error ${_isotope}, in additional_scores ${CMAKE_MATCH_1}")
+    endif()
+  endif()
+  if (DEFINED ISOTOPE_TWIN)
+    list(GET itwin_lines ${_row} _twin)
+    string(REPLACE "\t" ";" _twin "${_twin}")
+    list(GET _twin ${_c_isotope} _twin_isotope)
+    if (NOT _twin_isotope STREQUAL _isotope)
+      message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): isotope_error ${_isotope}, in ${ISOTOPE_TWIN} ${_twin_isotope}")
+    endif()
   endif()
   if (NOT _mappings MATCHES "^<{accession:string = [^,]+, start:int32 = [0-9]+, end:int32 = [0-9]+, aa_before:string = [A-Z-], aa_after:string = [A-Z-]}")
     message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): protein_mappings '${_mappings}'")
@@ -203,13 +285,39 @@ foreach(_row RANGE 0 ${_last})
       if (_n_mz LESS _peaks_${_key})
         math(EXPR _fewer_rows "${_fewer_rows} + 1")
       endif()
-      # the filter keeps every annotated peak
+      # the filter keeps the peak of every annotated fragment: at its m/z, or (deisotoped spectra) at charge 2 or 3
       list_items("${_annotated}" _annotated_items _n_annotated)
+      set(_peak_units)
       foreach(_m IN LISTS _annotated_items)
         list(FIND _peak_mz_items "${_m}" _at)
-        if (_at EQUAL -1)
-          message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): the annotated peak ${_m} is not among the peaks")
+        if (NOT _at EQUAL -1)
+          continue()
         endif()
+        if (NOT _peak_units)
+          foreach(_p IN LISTS _peak_mz_items)
+            to_units("${_p}" _u)
+            list(APPEND _peak_units ${_u})
+          endforeach()
+        endif()
+        to_units("${_m}" _mu)
+        set(_found OFF)
+        foreach(_z 2 3)
+          math(EXPR _target "(${_mu} + (${_z} - 1) * 10073) / ${_z}")
+          foreach(_u IN LISTS _peak_units)
+            math(EXPR _d "${_u} - ${_target}")
+            if (_d LESS_EQUAL 100 AND _d GREATER_EQUAL -100)
+              set(_found ON)
+              break()
+            endif()
+          endforeach()
+          if (_found)
+            break()
+          endif()
+        endforeach()
+        if (NOT _found)
+          message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): the annotated peak ${_m} is not among the peaks (at charge 1 to 3)")
+        endif()
+        math(EXPR _converted "${_converted} + 1")
       endforeach()
     endif()
   endif()
@@ -258,13 +366,19 @@ endif()
 if (PEAKS STREQUAL "FILTERED" AND SOME_FEWER AND _fewer_rows EQUAL 0)
   message(FATAL_ERROR "${QPX}: the filter kept every peak of every spectrum")
 endif()
+if (CONVERTED AND _converted EQUAL 0)
+  message(FATAL_ERROR "${QPX}: every annotated m/z is a peak of the file: no fragment was moved by deisotoping")
+endif()
+if (DEFINED ISOTOPE_TWIN AND NOT _nonzero_isotope)
+  message(FATAL_ERROR "${QPX}: every isotope_error is 0")
+endif()
 
-if (DEFINED PARQUET AND PREDICTIONS)
+if (DEFINED RUN AND PREDICTIONS)
   if (NOT _nce MATCHES "^[0-9.]+$")
-    message(FATAL_ERROR "${PARQUET}: the NCE of input ${FILE_INDEX} is '${_nce}'")
+    message(FATAL_ERROR "${RUN}: the NCE of input ${FILE_INDEX} is '${_nce}'")
   endif()
   if (DEFINED NCE AND NOT _nce EQUAL NCE)
-    message(FATAL_ERROR "${PARQUET}: the NCE of input ${FILE_INDEX} is ${_nce}, expected ${NCE}")
+    message(FATAL_ERROR "${RUN}: the NCE of input ${FILE_INDEX} is ${_nce}, expected ${NCE}")
   endif()
   if (DEFINED LOG)
     file(READ "${LOG}" _log)
@@ -303,4 +417,4 @@ if (DEFINED PARQUET AND PREDICTIONS)
   endif()
 endif()
 
-message(STATUS "${QPX}: ${q_rows} rows, ${_predicted_rows} with a prediction, ${_fewer_rows} with filtered peaks")
+message(STATUS "${QPX}: ${q_rows} rows, ${_predicted_rows} with a prediction, ${_fewer_rows} with filtered peaks, ${_converted} annotated peaks found at charge 2 or 3")
