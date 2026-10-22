@@ -34,6 +34,7 @@ namespace arrow
 namespace OpenMS
 {
 class ConsensusMap;
+class DataValue;
 class MetaInfoInterface;
 namespace MS1LabelState { struct Keys; }
 
@@ -466,6 +467,15 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI bool isNull(
     const std::shared_ptr<arrow::Array>& array,
     int64_t row);
+
+  /**
+    @brief The text a metavalue is written as in a list<struct{name,value,value_type}> column
+
+    The same as DataValue::toString(), except for doubles (also in lists): they are written in their shortest
+    form that reads back as the same double, so that readMetaValues() restores them exactly. DataValue::toString()
+    rounds values between 0.01 and 10000 to 15 decimals, which loses the last digits of e.g. 1.2345678901234567.
+  */
+  OPENMS_DLLAPI std::string metaValueString(const DataValue& value);
 
   /**
     @brief Read metavalues from a list<struct{name,value,value_type}> column
