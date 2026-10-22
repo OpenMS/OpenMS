@@ -5608,6 +5608,22 @@ prose14_run(${_f} ${_prose14_common} -Search:FDR:protein 0 -in ${_prose14_mzml})
 add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/DatabaseSuitability_in_spec.pg.parquet
   -out_tsv ${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv)
 set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}")
+# The protein FDR of one input skipped: with five hits per spectrum and no PSM FDR, the decoys of ProSE_14_duplicate_ids
+# are only among the hits after the first, and the inference uses the first hit of each PSM, so no decoy protein is left
+# for the picked-protein FDR. The provenance says that it was not applied.
+set(_f ProSE_14_protein_fdr_skipped)
+prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML -Search:report:top_hits 5
+  -Search:FDR:PSM 0 -Search:rescore false)
+add_test("TOPP_${_f}_log" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}.tmp.log
+  "-DEXPECTED=no decoy proteins remain after inference" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_log" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_provenance" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.provenance.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv)
+set_tests_properties("TOPP_${_f}_provenance" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv
+  "-DEXPECTED=key:string = protein_fdr_applied, value:string = false"
+  "-DFORBIDDEN=key:string = protein_fdr_applied, value:string = true" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
 add_test("TOPP_${_f}_pg_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv
   "-DEXPECTED=[sp|P15336|ATF2_HUMAN]" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_pg_out" PROPERTIES DEPENDS "TOPP_${_f}_pg")

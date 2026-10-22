@@ -1707,23 +1707,9 @@ class ProSE :
               // finalization (inference + picked FDR + decoy removal + ref cleanup) lives in
               // ProSEAlgorithm so this and the library search() path can't drift; it uses the
               // resolved decoy marker (prefix or suffix) and skips internally if no decoy proteins
-              // survived inference.
-              // The picked-protein FDR is applied unless no decoy protein is left for it, i.e. no PSM refers to one (the
-              // inference keeps the proteins the PSMs refer to). The protein score type cannot tell: the inference
-              // already scores the proteins with the PSMs' q-values.
-              for (const PeptideIdentification& id : result.peptide_ids)
-              {
-                for (const PeptideHit& hit : id.getHits())
-                {
-                  for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
-                  {
-                    const std::string& accession = evidence.getProteinAccession();
-                    protein_fdr_applied = protein_fdr_applied || (mfres.decoy_is_prefix
-                      ? StringUtils::hasPrefix(accession, mfres.decoy_string) : StringUtils::hasSuffix(accession, mfres.decoy_string));
-                  }
-                }
-              }
-              ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
+              // survived inference, which it reports (the protein score type cannot tell: the inference already
+              // scores the proteins with the PSMs' q-values).
+              protein_fdr_applied = ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
                 mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr, /*remove_decoys=*/ !keep_decoys);
             }
             else

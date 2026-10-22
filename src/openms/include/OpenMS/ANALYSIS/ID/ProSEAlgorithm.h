@@ -335,8 +335,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
      * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
      * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization; default).
+     * @return Whether the picked-protein FDR was applied: false if it was skipped (an empty @p decoy_string, or no decoy
+     *         protein left after the inference, which uses the best hit of each PSM only).
      */
-    static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
+    static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
                                            PeptideIdentificationList& peptide_ids,
                                            const std::string& decoy_string,
                                            bool decoy_is_prefix,
