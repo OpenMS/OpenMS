@@ -712,19 +712,26 @@ namespace OpenMS
 
     // Asks Linux to back a large buffer with transparent huge pages (with THP in "madvise" mode, only buffers advised so
     // get them): writing it then takes a 512th of the page faults, and releasing it a fraction of the time. Only the
-    // 2 MB pages inside the buffer are advised, and the caller writes all of it right after, so this backs no memory the
-    // buffer would not take anyway.
+    // 2 MB pages inside the first @p count elements are advised (default: the size), and the caller writes them in order
+    // from the start, so this backs at most one 2 MB page the buffer would not take anyway.
     template <typename T>
-    void adviseHugePages(std::vector<T>& buffer)
+    void adviseHugePages(std::vector<T>& buffer, size_t count)
     {
 #if defined(__linux__) && defined(MADV_HUGEPAGE)
       constexpr std::uintptr_t huge_page = std::uintptr_t(2) << 20;
       const std::uintptr_t begin = (reinterpret_cast<std::uintptr_t>(buffer.data()) + huge_page - 1) / huge_page * huge_page;
-      const std::uintptr_t end = (reinterpret_cast<std::uintptr_t>(buffer.data()) + buffer.size() * sizeof(T)) / huge_page * huge_page;
+      const std::uintptr_t end = (reinterpret_cast<std::uintptr_t>(buffer.data()) + count * sizeof(T)) / huge_page * huge_page;
       if (end > begin) { madvise(reinterpret_cast<void*>(begin), end - begin, MADV_HUGEPAGE); }
 #else
       (void) buffer;
+      (void) count;
 #endif
+    }
+
+    template <typename T>
+    void adviseHugePages(std::vector<T>& buffer)
+    {
+      adviseHugePages(buffer, buffer.size());
     }
   }
 
@@ -1448,7 +1455,10 @@ namespace OpenMS
       for (const FASTAFile::FASTAEntry& entry : fasta_entries) total_residues += entry.sequence.size();
       const size_t est_per_thread = std::max(fasta_entries.size() * 5, total_residues / 2) / num_threads + 1;
       for (int t = 0; t < num_threads; ++t)
+      {
         thread_peptides[t].reserve(est_per_thread);
+        adviseHugePages(thread_peptides[t], thread_peptides[t].capacity()); // filled from the start by emplace_back()
+      }
 
       const std::array<bool, 256>& indexable = indexableResidues();
       const auto is_unindexable = [&indexable](char c) { return !indexable[static_cast<unsigned char>(c)]; };
@@ -1649,6 +1659,7 @@ namespace OpenMS
       std::vector<size_t> merge_offsets(num_threads + 1, fi_peptides_.size());
       for (int t = 0; t < num_threads; ++t) merge_offsets[t + 1] = merge_offsets[t] + thread_peptides[t].size();
       fi_peptides_.resize(merge_offsets[num_threads]);
+      adviseHugePages(fi_peptides_);
       #pragma omp parallel for schedule(static, 1)
       for (int t = 0; t < num_threads; ++t)
       {
