@@ -35,6 +35,7 @@
 #include <set>
 #include <stdexcept>
 #include <unordered_set>
+#include <variant>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -608,15 +609,99 @@ namespace
       case ParquetColumn::Type::INT32:
       case ParquetColumn::Type::BOOL:
       case ParquetColumn::Type::INT64:                return c.int64_values.size();
-      case ParquetColumn::Type::DOUBLE:               return c.double_values.size();
+      case ParquetColumn::Type::DOUBLE:
+      case ParquetColumn::Type::FLOAT:                return c.double_values.size();
+      case ParquetColumn::Type::INT32_LIST:           return c.int32_lists.size();
       case ParquetColumn::Type::STRUCT_LIST:          return c.struct_lists.size();
       case ParquetColumn::Type::UTF8:                 return c.utf8_values.size();
       case ParquetColumn::Type::FLOAT_LIST:           return c.float_lists.size();
       case ParquetColumn::Type::UTF8_LIST:            return c.utf8_lists.size();
       case ParquetColumn::Type::SCORE_LIST:           return c.score_lists.size();
-      case ParquetColumn::Type::PROTEIN_MAPPING_LIST: return c.protein_mapping_lists.size();
     }
     return 0;
+  }
+
+  /// The Arrow type of a STRUCT_LIST of @p fields (null for a field of another type)
+  std::shared_ptr<arrow::DataType> structListType(const std::vector<ParquetColumn::StructField>& fields)
+  {
+    std::vector<std::shared_ptr<arrow::Field>> out;
+    for (const ParquetColumn::StructField& f : fields)
+    {
+      std::shared_ptr<arrow::DataType> type;
+      switch (f.type)
+      {
+        case ParquetColumn::Type::UTF8:        type = arrow::utf8(); break;
+        case ParquetColumn::Type::INT32:       type = arrow::int32(); break;
+        case ParquetColumn::Type::BOOL:        type = arrow::boolean(); break;
+        case ParquetColumn::Type::DOUBLE:      type = arrow::float64(); break;
+        case ParquetColumn::Type::FLOAT:       type = arrow::float32(); break;
+        case ParquetColumn::Type::STRUCT_LIST: type = structListType(f.fields); break;
+        default: break;
+      }
+      if (!type) { return nullptr; }
+      out.push_back(arrow::field(f.name, type, f.nullable));
+    }
+    return arrow::list(arrow::struct_(out));
+  }
+
+  /// Appends a list of @p entries of the structs of @p fields to @p b (whose type is structListType(@p fields))
+  arrow::Status appendStructEntries(arrow::ListBuilder& b, const std::vector<ParquetColumn::StructField>& fields,
+                                    const std::vector<ParquetColumn::StructEntry>& entries, const std::string& column)
+  {
+    ARROW_RETURN_NOT_OK(b.Append());
+    auto& entry_builder = static_cast<arrow::StructBuilder&>(*b.value_builder());
+    for (const ParquetColumn::StructEntry& entry : entries)
+    {
+      if (entry.size() != fields.size())
+      {
+        return arrow::Status::Invalid("column '", column, "': an entry of ", entry.size(), " values for ", fields.size(), " fields");
+      }
+      ARROW_RETURN_NOT_OK(entry_builder.Append());
+      for (size_t k = 0; k < fields.size(); ++k)
+      {
+        const ParquetColumn::StructField& f = fields[k];
+        const auto& v = entry[k].value;
+        arrow::ArrayBuilder& fb = *entry_builder.field_builder(static_cast<int>(k));
+        if (std::holds_alternative<std::monostate>(v))
+        {
+          if (!f.nullable) { return arrow::Status::Invalid("column '", column, "': the field '", f.name, "' is non-null"); }
+          ARROW_RETURN_NOT_OK(fb.AppendNull());
+          continue;
+        }
+        const auto mismatch = [&]() { return arrow::Status::Invalid("column '", column, "': a value of another type for the field '", f.name, "'"); };
+        switch (f.type)
+        {
+          case ParquetColumn::Type::UTF8:
+            if (!std::holds_alternative<std::string>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::StringBuilder&>(fb).Append(std::get<std::string>(v)));
+            break;
+          case ParquetColumn::Type::INT32:
+            if (!std::holds_alternative<Int32>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::Int32Builder&>(fb).Append(std::get<Int32>(v)));
+            break;
+          case ParquetColumn::Type::BOOL:
+            if (!std::holds_alternative<bool>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::BooleanBuilder&>(fb).Append(std::get<bool>(v)));
+            break;
+          case ParquetColumn::Type::DOUBLE:
+            if (!std::holds_alternative<double>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::DoubleBuilder&>(fb).Append(std::get<double>(v)));
+            break;
+          case ParquetColumn::Type::FLOAT:
+            if (!std::holds_alternative<double>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::FloatBuilder&>(fb).Append(static_cast<float>(std::get<double>(v))));
+            break;
+          case ParquetColumn::Type::STRUCT_LIST:
+            if (!std::holds_alternative<std::vector<ParquetColumn::StructEntry>>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(appendStructEntries(static_cast<arrow::ListBuilder&>(fb), f.fields,
+                                                    std::get<std::vector<ParquetColumn::StructEntry>>(v), column));
+            break;
+          default:
+            return mismatch();
+        }
+      }
+    }
+    return arrow::Status::OK();
   }
 
   /// The Arrow array and field of @p c (@p rows rows); a builder error is returned as its status.
@@ -688,86 +773,29 @@ namespace
         arrow::DoubleBuilder b;
         return build(b, arrow::float64(), [&](size_t row) { return b.Append(c.double_values[row]); });
       }
-      case ParquetColumn::Type::STRUCT_LIST:
+      case ParquetColumn::Type::FLOAT:
       {
-        std::vector<std::shared_ptr<arrow::Field>> fields;
-        std::vector<std::shared_ptr<arrow::ArrayBuilder>> builders;
-        for (const ParquetColumn::StructField& f : c.struct_fields)
-        {
-          switch (f.type)
-          {
-            case ParquetColumn::Type::UTF8:
-              fields.push_back(arrow::field(f.name, arrow::utf8(), f.nullable));
-              builders.push_back(std::make_shared<arrow::StringBuilder>());
-              break;
-            case ParquetColumn::Type::INT32:
-              fields.push_back(arrow::field(f.name, arrow::int32(), f.nullable));
-              builders.push_back(std::make_shared<arrow::Int32Builder>());
-              break;
-            case ParquetColumn::Type::BOOL:
-              fields.push_back(arrow::field(f.name, arrow::boolean(), f.nullable));
-              builders.push_back(std::make_shared<arrow::BooleanBuilder>());
-              break;
-            default:
-              return arrow::Status::Invalid("column '", c.name, "': the struct field '", f.name, "' is not of type UTF8, INT32 or BOOL");
-          }
-        }
-        const auto entry_type = arrow::struct_(fields);
-        auto entry = std::make_shared<arrow::StructBuilder>(entry_type, arrow::default_memory_pool(), builders);
-        arrow::ListBuilder b(arrow::default_memory_pool(), entry);
-        return build(b, arrow::list(entry_type), [&](size_t row)
+        arrow::FloatBuilder b;
+        return build(b, arrow::float32(), [&](size_t row) { return b.Append(static_cast<float>(c.double_values[row])); });
+      }
+      case ParquetColumn::Type::INT32_LIST:
+      {
+        auto values = std::make_shared<arrow::Int32Builder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        return build(b, arrow::list(arrow::int32()), [&](size_t row)
         {
           ARROW_RETURN_NOT_OK(b.Append());
-          for (const auto& values : c.struct_lists[row])
-          {
-            if (values.size() != c.struct_fields.size())
-            {
-              return arrow::Status::Invalid("column '", c.name, "' row ", row, ": ", values.size(), " values for ",
-                                            c.struct_fields.size(), " fields");
-            }
-            ARROW_RETURN_NOT_OK(entry->Append());
-            for (size_t k = 0; k < values.size(); ++k)
-            {
-              const ParquetColumn::StructField& f = c.struct_fields[k];
-              arrow::ArrayBuilder* fb = builders[k].get();
-              if (!values[k])
-              {
-                if (!f.nullable)
-                {
-                  return arrow::Status::Invalid("column '", c.name, "' row ", row, ": the field '", f.name, "' is non-null");
-                }
-                ARROW_RETURN_NOT_OK(fb->AppendNull());
-                continue;
-              }
-              const std::string& text = *values[k];
-              if (f.type == ParquetColumn::Type::UTF8)
-              {
-                ARROW_RETURN_NOT_OK(static_cast<arrow::StringBuilder*>(fb)->Append(text));
-              }
-              else if (f.type == ParquetColumn::Type::INT32)
-              {
-                int64_t v = 0;
-                try { size_t used = 0; v = std::stoll(text, &used); if (used != text.size()) { throw std::invalid_argument(text); } }
-                catch (const std::exception&)
-                {
-                  return arrow::Status::Invalid("column '", c.name, "' row ", row, ": '", text, "' is no integer");
-                }
-                int32_t i = 0;
-                ARROW_RETURN_NOT_OK(int32Of(v, row, i));
-                ARROW_RETURN_NOT_OK(static_cast<arrow::Int32Builder*>(fb)->Append(i));
-              }
-              else
-              {
-                if (text != "true" && text != "false")
-                {
-                  return arrow::Status::Invalid("column '", c.name, "' row ", row, ": '", text, "' is no boolean");
-                }
-                ARROW_RETURN_NOT_OK(static_cast<arrow::BooleanBuilder*>(fb)->Append(text == "true"));
-              }
-            }
-          }
-          return arrow::Status::OK();
+          return values->AppendValues(c.int32_lists[row]);
         });
+      }
+      case ParquetColumn::Type::STRUCT_LIST:
+      {
+        const auto type = structListType(c.struct_fields);
+        if (!type) { return arrow::Status::Invalid("column '", c.name, "': a struct field of an unsupported type"); }
+        std::unique_ptr<arrow::ArrayBuilder> made;
+        ARROW_RETURN_NOT_OK(arrow::MakeBuilder(arrow::default_memory_pool(), type, &made));
+        auto& b = static_cast<arrow::ListBuilder&>(*made);
+        return build(b, type, [&](size_t row) { return appendStructEntries(b, c.struct_fields, c.struct_lists[row], c.name); });
       }
       case ParquetColumn::Type::UTF8:
       {
@@ -813,38 +841,6 @@ namespace
             ARROW_RETURN_NOT_OK(name->Append(s.name));
             ARROW_RETURN_NOT_OK(value->Append(s.value));
             ARROW_RETURN_NOT_OK(s.higher_better ? higher_better->Append(*s.higher_better) : higher_better->AppendNull());
-          }
-          return arrow::Status::OK();
-        });
-      }
-      case ParquetColumn::Type::PROTEIN_MAPPING_LIST:
-      {
-        const auto entry_type = arrow::struct_({
-          arrow::field("accession", arrow::utf8(), /*nullable=*/false),
-          arrow::field("start", arrow::int32()),
-          arrow::field("end", arrow::int32()),
-          arrow::field("aa_before", arrow::utf8()),
-          arrow::field("aa_after", arrow::utf8())
-        });
-        auto accession = std::make_shared<arrow::StringBuilder>();
-        auto start = std::make_shared<arrow::Int32Builder>();
-        auto end = std::make_shared<arrow::Int32Builder>();
-        auto before = std::make_shared<arrow::StringBuilder>();
-        auto after = std::make_shared<arrow::StringBuilder>();
-        auto entry = std::make_shared<arrow::StructBuilder>(entry_type, arrow::default_memory_pool(),
-          std::vector<std::shared_ptr<arrow::ArrayBuilder>>{accession, start, end, before, after});
-        arrow::ListBuilder b(arrow::default_memory_pool(), entry);
-        return build(b, arrow::list(entry_type), [&](size_t row)
-        {
-          ARROW_RETURN_NOT_OK(b.Append());
-          for (const ParquetColumn::ProteinMapping& m : c.protein_mapping_lists[row])
-          {
-            ARROW_RETURN_NOT_OK(entry->Append());
-            ARROW_RETURN_NOT_OK(accession->Append(m.accession));
-            ARROW_RETURN_NOT_OK(m.start ? start->Append(*m.start) : start->AppendNull());
-            ARROW_RETURN_NOT_OK(m.end ? end->Append(*m.end) : end->AppendNull());
-            ARROW_RETURN_NOT_OK(m.aa_before ? before->Append(*m.aa_before) : before->AppendNull());
-            ARROW_RETURN_NOT_OK(m.aa_after ? after->Append(*m.aa_after) : after->AppendNull());
           }
           return arrow::Status::OK();
         });

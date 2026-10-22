@@ -5980,22 +5980,6 @@ START_SECTION((static void applyCompleteSetProteinFDR(std::vector<ProteinIdentif
 }
 END_SECTION
 
-START_SECTION((static std::string renderRunSummaryYaml(const MultiFileSearchResult& mfres, const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest, Size files_failed, Size files_total)))
-{
-  // The summary reports per file the Percolator outcome and the NCE of the PeptDeep predictions (null without them).
-  ABORT_IF(merge_search.per_file.size() != 2)
-  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
-  result.per_file[1].protein_ids[0].setMetaValue("peptdeep_nce", 28.0);
-  result.per_file[1].percolator.applied = false;
-  result.per_file[1].percolator.skipped_reason = "Too few PSMs.";
-  const std::string yaml = ProSEAlgorithm::renderRunSummaryYaml(result, {}, 0, 2);
-  TEST_TRUE(yaml.find("    percolator:\n      applied: true\n      skipped_reason: \"\"\n      warning: \"\"\n"
-                      "    peptdeep_nce: null\n") != std::string::npos)
-  TEST_TRUE(yaml.find("    percolator:\n      applied: false\n      skipped_reason: \"Too few PSMs.\"\n      warning: \"\"\n"
-                      "    peptdeep_nce: 28\n") != std::string::npos)
-}
-END_SECTION
-
 START_SECTION(([EXTRA] the multi-file search reports one outer progress step per file))
 {
   // The search reports an outer step per input file, "Searching <file> (i of n)...", so that a caller can tell which

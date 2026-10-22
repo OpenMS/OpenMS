@@ -30,7 +30,6 @@
 #include <arrow/builder.h>
 
 #include <algorithm>
-#include <cmath>
 #include <functional>
 #include <map>
 #include <optional>
@@ -571,9 +570,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)gg_qvalue_builder.AppendNull();
 
     // global_qvalue
-    // (no q-value, e.g. a group without inference: null, not NaN)
-    if (std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
-    else { (void)global_qvalue_builder.AppendNull(); }
+    (void)global_qvalue_builder.Append(group.probability);
 
     // pg_qvalue - not per-run in OpenMS
     (void)pg_qvalue_builder.AppendNull();
@@ -1343,9 +1340,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         (void)gg_qvalue_builder.AppendNull();
 
         // global_qvalue — use group probability
-        // (no q-value, e.g. a group without inference: null, not NaN)
-    if (std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
-    else { (void)global_qvalue_builder.AppendNull(); }
+        (void)global_qvalue_builder.Append(group.probability);
 
         // pg_qvalue - not available for id-only
         (void)pg_qvalue_builder.AppendNull();
