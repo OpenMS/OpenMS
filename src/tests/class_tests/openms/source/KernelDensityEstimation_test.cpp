@@ -9,6 +9,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/test_config.h>
 
@@ -180,6 +181,76 @@ START_SECTION(std::vector<double> revRt(const std::vector<double>&, std::size_t)
   {
     TEST_REAL_SIMILAR(reconstructed[i], small[i])
   }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Large transforms must not exceed Evergreen's template dispatch range.
+/////////////////////////////////////////////////////////////
+
+START_SECTION((FFT boundary and large-grid analytic round trips))
+{
+  for (const std::size_t size : {std::size_t{65536}, std::size_t{131072}, std::size_t{524288}})
+  {
+    std::vector<double> signal(size);
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      const double phase = 2.0 * Constants::PI * 3.0 * static_cast<double>(i) / static_cast<double>(size);
+      signal[i] = 2.0 + std::cos(phase) + 0.5 * std::sin(phase);
+    }
+    const auto spectrum = KernelDensityEstimation::forRt(signal);
+    TEST_EQUAL(spectrum.size(), size)
+    // Check amplitude and imaginary sign independently of the inverse transform.
+    TEST_REAL_SIMILAR(spectrum[0], 2.0 * size)
+    TEST_REAL_SIMILAR(spectrum[3], 0.5 * size)
+    TEST_REAL_SIMILAR(spectrum[size / 2 + 3], -0.25 * size)
+    std::vector<double> analytic_spectrum(size, 0.0);
+    analytic_spectrum[0] = 2.0 * size;
+    analytic_spectrum[3] = 0.5 * size;
+    analytic_spectrum[size / 2 + 3] = -0.25 * size;
+    const auto analytic_recovered = KernelDensityEstimation::revRt(analytic_spectrum);
+    const auto recovered = KernelDensityEstimation::revRt(spectrum);
+    TEST_EQUAL(recovered.size(), size)
+    TEST_EQUAL(analytic_recovered.size(), size)
+    double max_error = 0.0;
+    double max_inverse_error = 0.0;
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      max_error = std::max(max_error, std::abs(recovered[i] - signal[i]));
+      max_inverse_error = std::max(max_inverse_error, std::abs(analytic_recovered[i] - signal[i]));
+    }
+    TEST_TRUE(max_error < 1e-9)
+    TEST_TRUE(max_inverse_error < 1e-9)
+  }
+}
+END_SECTION
+
+START_SECTION((KDE sample count above FFT template limit))
+{
+  // The sample count, not just an explicit gridsize, must select a large FFT.
+  const std::vector<double> samples(265290, 0.0);
+  const auto result = KernelDensityEstimation::gridKdeFFT(samples, 1.0, 512, 6.0);
+  TEST_EQUAL(result.first.size(), 524288)
+  TEST_EQUAL(result.second.size(), 524288)
+  const double delta = result.second[1] - result.second[0];
+  double integral = 0.0;
+  double max_error = 0.0;
+  bool finite = true;
+  bool positive = true;
+  for (std::size_t i = 0; i < result.first.size(); ++i)
+  {
+    const double density = result.first[i];
+    const double position = result.second[i];
+    const double expected = std::exp(-0.5 * position * position) / std::sqrt(2.0 * Constants::PI);
+    finite = finite && std::isfinite(density);
+    positive = positive && density > 0.0;
+    integral += density * delta;
+    max_error = std::max(max_error, std::abs(density - expected));
+  }
+  TEST_TRUE(finite)
+  TEST_TRUE(positive)
+  TEST_REAL_SIMILAR(integral, 1.0)
+  TEST_TRUE(max_error < 1e-5)
 }
 END_SECTION
 

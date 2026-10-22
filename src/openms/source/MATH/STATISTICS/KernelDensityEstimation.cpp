@@ -11,8 +11,10 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <complex>
 #include <limits>
 #include <stdexcept>
+#include <unsupported/Eigen/FFT>
 
 // Use the evergreen umbrella header so the vendor headers are included
 // consistently inside the `evergreen` namespace and their helper
@@ -147,6 +149,27 @@ namespace OpenMS
       if (M == 0) M = X.size();
       if (M == 0) return std::vector<double>();
 
+      // Evergreen only instantiates transforms through 2^16. Keep its existing
+      // numerical path for small grids and use Eigen for larger datasets.
+      if (M > (std::size_t{1} << evergreen::FFT1D_MAX_LOG_N))
+      {
+        if (!std::has_single_bit(M)) throw std::invalid_argument("forRt: M must be a power of two");
+        std::vector<double> input(M, 0.0);
+        for (std::size_t i = 0; i < std::min(M, X.size()); ++i)
+        {
+          if (std::isfinite(X[i])) input[i] = X[i];
+        }
+        Eigen::FFT<double> fft;
+        fft.SetFlag(Eigen::FFT<double>::HalfSpectrum);
+        std::vector<std::complex<double>> spectrum;
+        fft.fwd(spectrum, input);
+        const std::size_t half = M / 2;
+        std::vector<double> out(M, 0.0);
+        for (std::size_t k = 0; k <= half; ++k) out[k] = spectrum[k].real();
+        for (std::size_t k = 1; k < half; ++k) out[half + k] = spectrum[k].imag();
+        return out;
+      }
+
       // create a 1-D tensor with zero-padding to size M
       evergreen::Tensor<double> t(evergreen::Vector<unsigned long>{static_cast<unsigned long>(M)});
       for (std::size_t i = 0; i < M; ++i)
@@ -184,6 +207,22 @@ namespace OpenMS
       const std::size_t ny = half + 1;
 
       if (Xp.size() < M) throw std::invalid_argument("revRt: input length must equal M");
+
+      if (M > (std::size_t{1} << evergreen::FFT1D_MAX_LOG_N))
+      {
+        if (!std::has_single_bit(M)) throw std::invalid_argument("revRt: M must be a power of two");
+        std::vector<std::complex<double>> spectrum(ny);
+        for (std::size_t k = 0; k < ny; ++k)
+        {
+          spectrum[k] = {Xp[k], k > 0 && k < half ? Xp[half + k] : 0.0};
+        }
+        Eigen::FFT<double> fft;
+        fft.SetFlag(Eigen::FFT<double>::HalfSpectrum);
+        std::vector<double> out;
+        // Eigen's default inverse includes 1/M, matching the existing round trip.
+        fft.inv(out, spectrum, static_cast<Eigen::Index>(M));
+        return out;
+      }
 
       // Unpack Munro-packed format: [real_0, real_1, ..., real_M/2, imag_1, ..., imag_(M/2-1)]
       // into complex tensor for inverse FFT
