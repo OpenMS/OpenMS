@@ -175,16 +175,21 @@ namespace OpenMS
     }
 
     std::vector<std::string> trgr_ids;
-    std::map<std::string, double> pep_im_map;
     trgr_ids.reserve(transition_group_map.size());
     for (const auto& trgroup_it : transition_group_map)
     {
       trgr_ids.push_back(trgroup_it.first);
     }
-    for (const auto& cmp : targeted_exp.getCompounds())
+    // Build once, then keep all lookups read-only during parallel extraction.
+    const auto pep_im_map = [&targeted_exp]()
     {
-      pep_im_map[cmp.id] = cmp.drift_time;
-    }
+      std::map<std::string, double> result;
+      for (const auto& cmp : targeted_exp.getCompounds())
+      {
+        result[cmp.id] = cmp.drift_time;
+      }
+      return result;
+    }();
 
     TransformationDescription::DataPoints data_im;
 
@@ -255,7 +260,9 @@ namespace OpenMS
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        const auto drift_it = pep_im_map.find(pepref);
+        if (drift_it == pep_im_map.end()) {continue;}
+        const double drift_target = drift_it->second;
         RangeMobility im_range;
         if (im_extraction_win != -1 ) // im_extraction_win is set
         {
@@ -300,7 +307,9 @@ namespace OpenMS
       {
         const auto& tr0 = transition_group->getTransitions()[0];
         const auto pepref0 = tr0.getPeptideRef();
-        const double drift_target0 = pep_im_map[pepref0];
+        const auto drift_it = pep_im_map.find(pepref0);
+        if (drift_it == pep_im_map.end()) {continue;}
+        const double drift_target0 = drift_it->second;
 
         // Define an IM window centered on the theoretical drift time of this peptide
         RangeMobility im_range_ms1(drift_target0);
@@ -342,7 +351,9 @@ namespace OpenMS
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        const auto drift_it = pep_im_map.find(pepref);
+        if (drift_it == pep_im_map.end()) {continue;}
+        const double drift_target = drift_it->second;
 
         // do not need to check for IM because we are correcting IM
         RangeMobility im_range(drift_target);

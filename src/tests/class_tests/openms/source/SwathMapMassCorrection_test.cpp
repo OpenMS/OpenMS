@@ -857,6 +857,71 @@ START_SECTION(correctIM keeps paired calibration points and exact fits independe
       }
     }
   }
+  // Missing compound references must never become theoretical zeroes. The wide
+  // extraction window includes the measured peaks even around a fabricated zero.
+  auto missing_ref_exp = targeted_exp;
+  std::erase_if(missing_ref_exp.compounds, [](const auto& compound)
+  {
+    return compound.id == "calibrant_1000" || compound.id == "calibrant_1007";
+  });
+  auto known_ref_groups = ordered_groups;
+  known_ref_groups.erase("calibrant_1000");
+  known_ref_groups.erase("calibrant_1007");
+  auto all_missing_exp = targeted_exp;
+  all_missing_exp.compounds.clear();
+  for (const std::string ms1_calibration : {"false", "true"})
+  {
+    SwathMapMassCorrection correction;
+    Param parameters = correction.getDefaults();
+    parameters.setValue("mz_extraction_window", 0.1);
+    parameters.setValue("im_extraction_window", 10.0);
+    parameters.setValue("ms1_im_calibration", ms1_calibration);
+    correction.setParameters(parameters);
+#ifdef _OPENMP
+    omp_set_num_threads(1);
+#endif
+    TransformationDescription reference;
+    correction.correctIM(known_ref_groups, missing_ref_exp, swath_maps, false, reference);
+    const double fragment_window = correction.getFragmentImWindow();
+    const double precursor_window = correction.getPrecursorImWindow();
+    for ([[maybe_unused]] const int threads : {1, 3, 11})
+    {
+#ifdef _OPENMP
+      omp_set_num_threads(threads);
+#endif
+      for (const auto* input_groups : {&ordered_groups, &permuted_groups})
+      {
+        TransformationDescription result;
+        correction.correctIM(*input_groups, missing_ref_exp, swath_maps, false, result);
+        TEST_EQUAL(result.getDataPoints().size(), n_calibrants - 2)
+        TEST_TRUE(result.getDataPoints() == reference.getDataPoints())
+        TEST_TRUE(result.getModelParameters() == reference.getModelParameters())
+        for (const auto& point : result.getDataPoints())
+        {
+          TEST_TRUE(point.second > 0.0)
+        }
+        for (const double probe : {0.5, 0.83, 1.2})
+        {
+          TEST_TRUE(result.apply(probe) == reference.apply(probe))
+        }
+        TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+        TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+
+        TransformationDescription unchanged = reference;
+        TEST_EXCEPTION(Exception::UnableToFit,
+          correction.correctIM(*input_groups, all_missing_exp, swath_maps, false, unchanged))
+        TEST_TRUE(unchanged.getDataPoints() == reference.getDataPoints())
+        TEST_TRUE(unchanged.getModelParameters() == reference.getModelParameters())
+        for (const double probe : {0.5, 0.83, 1.2})
+        {
+          TEST_TRUE(unchanged.apply(probe) == reference.apply(probe))
+        }
+        TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+        TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+      }
+    }
+  }
+
   // Infinite intensities produce NaN intensity-weighted mobilities (inf / inf).
   // Mixed inputs must behave exactly like extracting only the valid calibrants,
   // including the auxiliary MS1 window and either choice of fitting spectrum.
