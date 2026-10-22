@@ -33,6 +33,19 @@ namespace OpenMS::Internal
 
   const char16_t* XMLAttributes::value(const char* qname) const
   {
+    // An attribute name in ASCII (all names the handlers ask for) has the same UTF-16 code units under every
+    // ASCII-compatible local code page, which XMLString::transcode() converts with: widen it on the stack instead.
+    ::XMLCh name[64];
+    Size n = 0;
+    for (; n < sizeof(name) / sizeof(name[0]) - 1 && qname[n] != '\0' && static_cast<unsigned char>(qname[n]) < 0x80; ++n)
+    {
+      name[n] = static_cast<::XMLCh>(qname[n]);
+    }
+    if (qname[n] == '\0')
+    {
+      name[n] = 0;
+      return reinterpret_cast<const char16_t*>(attrs(attributes_)->getValue(name));
+    }
     ::XMLCh* transcoded = xercesc::XMLString::transcode(qname);
     const ::XMLCh* val = attrs(attributes_)->getValue(transcoded);
     xercesc::XMLString::release(&transcoded);

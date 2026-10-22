@@ -81,14 +81,30 @@ namespace OpenMS::Internal
     return toNative_(str.get());
   }
 
+  namespace
+  {
+    // Text in ASCII has the same UTF-16 code units under every ASCII-compatible local code page, which
+    // XMLString::transcode() (fromNative_()) converts with: such text is widened directly.
+    bool isASCIINative(const char* str, Size& length)
+    {
+      for (length = 0; str[length] != '\0'; ++length)
+      {
+        if (static_cast<unsigned char>(str[length]) >= 0x80) { return false; }
+      }
+      return true;
+    }
+  }
+
   StringManager::XercesString StringManager::convert(const char* str)
   {
+    Size length;
+    if (str != nullptr && isASCIINative(str, length)) { return XercesString(str, str + length); }
     return fromNative_(str).get();
   }
 
   StringManager::XercesString StringManager::convert(const std::string& str)
   {
-    return fromNative_(str.c_str()).get();
+    return convert(str.c_str());
   }
 
   unique_xerces_ptr<char16_t> StringManager::convertPtr(const char* str)
