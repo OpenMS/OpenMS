@@ -5529,7 +5529,9 @@ add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14
 set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_ProSE_14_deisotope_dump")
 # Two spectra of one native ID (ProSE_14_duplicate_ids.mzML: 20 spectra of DatabaseSuitability_in_spec.mzML and the
 # second once more under the native ID of the first, at another RT): the mz view has one row per native ID (its key),
-# the first spectrum's; the PSM of the other spectrum has no spectrum there.
+# the first spectrum's; the PSM of the other spectrum has no spectrum there and a null spectrum_reference (unresolved),
+# in its psm file and in quantms.psm.parquet. The check joins every other PSM to the mz row of its spectrum_reference and
+# fails if that row is a spectrum of another RT.
 set(_f ProSE_14_duplicate_ids)
 prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML -qpx_peak_top 1)
 prose14_dumps(${_f} ProSE_14_duplicate_ids)
@@ -5539,6 +5541,10 @@ if(NOT WITH_ONNX)
 endif()
 add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML ${_opt} ${_prose14_check})
 set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
+prose14_dumps(${_f} quantms)
+add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML
+  -DMERGED=ON -DSHARED_ID=ON -DSUM_OF=${TESTS_TEMP_DIR}/${_f}_ProSE_14_duplicate_ids_qpx.tmp.tsv ${_prose14_check})
+set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_ProSE_14_duplicate_ids_dump")
 # Spectra of unknown precursor charge (ProSE_14_unknown_charge.mzML: 40 spectra of DatabaseSuitability_in_spec.mzML
 # without their precursor charge, in which every fragment peak of m/z 600 or more is replaced by the 3+ isotope envelope
 # of that fragment, its monoisotopic peak at (m/z + 2 * proton) / 3 and its 13C peak at half the intensity): the search's
