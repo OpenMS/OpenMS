@@ -31,6 +31,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <limits>
+
 #include <arrow/api.h>
 
 #include <tuple>
@@ -421,6 +423,24 @@ START_SECTION(([EXTRA] exportToArrow - a single-file run keeps its group without
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exportToArrow - a group without a q-value has a null global_qvalue, not NaN))
+{
+  // e.g. the groups of a run without protein inference: the column is nullable, and null is "no q-value"
+  auto prot_id = makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"});
+  prot_id.getIndistinguishableProteins()[0].probability = std::numeric_limits<double>::quiet_NaN();
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, PeptideIdentificationList{});
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  auto qvalue = table->GetColumnByName("global_qvalue")->chunk(0);
+  TEST_TRUE(qvalue->IsNull(0))
+  // a q-value stays one
+  auto with_q = ProteinGroupArrowExport::exportToArrow({makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"})}, PeptideIdentificationList{});
+  auto values = std::static_pointer_cast<arrow::DoubleArray>(with_q->GetColumnByName("global_qvalue")->chunk(0));
+  TEST_FALSE(values->IsNull(0))
+  TEST_REAL_SIMILAR(values->Value(0), 0.01)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] exportToArrow - peptide_counts counts sequences, not peptidoforms))
 {
   // QPX splits the two: peptide_counts.unique_sequences counts SEQUENCES, while distinguishing
@@ -772,6 +792,15 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   TEST_NOT_EQUAL(t_derived, nullptr)
   TEST_EQUAL(t_derived->num_rows(), 2)
   TEST_TRUE(groupedRuns(t_derived) == runs)
+
+  // a group without a q-value: null global_qvalue, not NaN
+  ConsensusMap no_q = cmap;
+  no_q.getProteinIdentifications()[0].getIndistinguishableProteins()[0].probability = std::numeric_limits<double>::quiet_NaN();
+  auto t_no_q = ProteinGroupArrowExport::exportToArrow(no_q, design);
+  TEST_NOT_EQUAL(t_no_q, nullptr)
+  auto q_no_q = t_no_q->GetColumnByName("global_qvalue")->chunk(0);
+  TEST_TRUE(q_no_q->IsNull(0) && q_no_q->IsNull(1))
+  TEST_FALSE(t->GetColumnByName("global_qvalue")->chunk(0)->IsNull(0))
 }
 END_SECTION
 
