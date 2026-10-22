@@ -14,6 +14,7 @@
 
 namespace OpenMS
 {
+    class FeatureMap;
 
     /**
       @brief Helper functions for FAIMS data
@@ -53,6 +54,22 @@ namespace OpenMS
       */
       static PeptideIdentificationList filterPeptidesByFAIMSCV(
         const PeptideIdentificationList& peptides,
+        double target_cv,
+        double cv_tolerance = 0.01);
+
+      /**
+        @brief Filter features by FAIMS compensation voltage
+
+        Same rule as filterPeptidesByFAIMSCV: features whose FAIMS_CV matches @p target_cv are kept, and features
+        without FAIMS_CV annotation are kept in every group. The document identifier of @p features is copied.
+
+        @param[in] features Input features (e.g. untargeted seeds)
+        @param[in] target_cv Target FAIMS compensation voltage to filter for
+        @param[in] cv_tolerance Tolerance for floating point comparison (default: 0.01)
+        @return Filtered features
+      */
+      static FeatureMap filterFeaturesByFAIMSCV(
+        const FeatureMap& features,
         double target_cv,
         double cv_tolerance = 0.01);
     };
