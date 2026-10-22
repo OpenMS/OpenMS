@@ -463,6 +463,27 @@ START_SECTION([EXTRA] MzTabParameter round-trips a name with a comma not followe
 }
 END_SECTION
 
+START_SECTION([EXTRA] MzTabModification round-trips a CHEMMOD identifier with a negative mass)
+{
+  // getModificationIdentifier_ writes "CHEMMOD:" + the (possibly negative)
+  // diff mono mass for any modification without a UNIMOD accession, with no
+  // position prefix when the modification carries no site information.
+  MzTabModification no_position;
+  no_position.fromCellString("CHEMMOD:-18.010565");
+  TEST_EQUAL(no_position.getModOrSubstIdentifier().toCellString(), "CHEMMOD:-18.010565")
+  TEST_EQUAL(no_position.getPositionsAndParameters().size(), 0)
+
+  // A positioned modification whose identifier is also a negative-mass
+  // CHEMMOD: the position must split off before the identifier's own dash.
+  MzTabModification with_position;
+  with_position.fromCellString("3-CHEMMOD:-18.010565");
+  TEST_EQUAL(with_position.getModOrSubstIdentifier().toCellString(), "CHEMMOD:-18.010565")
+  std::vector<std::pair<Size, MzTabParameter> > pos = with_position.getPositionsAndParameters();
+  TEST_EQUAL(pos.size(), 1)
+  TEST_EQUAL(pos[0].first, 3)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION([EXTRA] exportIdentificationsToMzTab with first_run_inference_only and PSMs of the first run)
