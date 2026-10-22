@@ -150,7 +150,8 @@ copy of the written PSMs; PSMs of precursor charge 1 to 6 are predicted, others 
 after its search for the spectra; a failed re-read is a warning and leaves out its mz view, a failed prediction a
 warning and null prediction columns; without ONNX
 Runtime the prediction columns are null. Each input gets the QPX mz view (the input's basename with .mz.parquet) of the MS2 spectra of
-its written PSMs only (one row per spectrum, in the order of its first PSM; 'id' the native ID, 'run_file_name',
+its written PSMs only (one row per spectrum, in the order of its first PSM; of several spectra of one native ID only
+the first, as 'id' is the view's key, so the PSMs of the others have no spectrum there; 'id' the native ID, 'run_file_name',
 'scan', 'ms_level', 'centroid', 'scan_start_time' (minutes), 'inverse_ion_mobility', 'ion_injection_time' (null if
 unknown), 'total_ion_current' (of all its peaks), 'precursors', 'cv_params' (null)), whose 'mz' and 'intensity' are
 filtered: the '-qpx_peak_top' most intense peaks of each '-qpx_peak_window' Th window (jumping windows: each starts at
@@ -393,7 +394,8 @@ class ProSE :
       The spectra are read again from @p in_file (MS2 spectra, by native ID; of several spectra with a PSM's native ID
       the one at its RT). The mz view has one row per spectrum, in the order of the first PSM of each (in the order of
       @p peptide_ids), its peaks filtered with @p filter (keeping the annotated peaks of every PSM of the spectrum); a
-      PSM whose spectrum is not found has none. The predictions are PeptDeep's at the NCE of the file: the one PeptDeep
+      PSM whose spectrum is not found has none, nor has one whose spectrum shares its native ID with an earlier spectrum
+      (the view's key is the native ID). The predictions are PeptDeep's at the NCE of the file: the one PeptDeep
       rescoring stored on the run ('peptdeep_nce'), else 'peptdeep:nce' if set, else the one
       PeptDeepRescoring::annotate() selects on a copy of @p peptide_ids; the NCE is then stored on the run.
     */
@@ -485,14 +487,21 @@ class ProSE :
         c.double_values.push_back(valid ? v : 0.0);
         c.null_rows.push_back(!valid);
       };
-      std::set<const MSSpectrum*> written;
+      // the spectrum with a row of each native ID: one row per native ID ('id' is the mz view's primary key), of
+      // several spectra of one native ID (at other RTs) the first's; the PSMs of the others have none
+      std::map<std::string, const MSSpectrum*> written;
       Size without_spectrum = 0, peaks_read = 0, peaks_kept = 0;
       for (Size i = 0; i < peptide_ids.size(); ++i)
       {
         if (peptide_ids[i].getHits().empty()) { continue; }
         const MSSpectrum* spectrum = spectrumOf(i);
         if (spectrum == nullptr) { ++without_spectrum; continue; }
-        if (!written.insert(spectrum).second) { continue; } // a later PSM of a spectrum with a row
+        const auto [row_of_id, first] = written.emplace(spectrum->getNativeID(), spectrum);
+        if (!first)
+        {
+          if (row_of_id->second != spectrum) { ++without_spectrum; } // another spectrum of this native ID has the row
+          continue; // (else a later PSM of a spectrum with a row)
+        }
         // its peaks: those the filter keeps for any of its PSMs (each keeps its own annotated peaks)
         std::vector<bool> keep(spectrum->size(), false);
         for (Size j : psms_of_spectrum[peptide_ids[i].getSpectrumReference()])
@@ -543,7 +552,8 @@ class ProSE :
       if (without_spectrum > 0 && !spectra.empty())
       {
         OPENMS_LOG_WARN << "-qpx_extended: " << without_spectrum << " PSM(s) of " << in_file
-                        << " have no MS2 spectrum of their native ID (and RT) in the file; the mz view has none for them." << endl;
+                        << " have no MS2 spectrum of their native ID (and RT) in the file, or one that shares its native ID with"
+                        << " an earlier spectrum; the mz view has none for them." << endl;
       }
       const Size mz_rows = id.utf8_values.size();
       if (read)
