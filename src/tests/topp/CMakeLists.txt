@@ -5016,6 +5016,7 @@ add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
+  -Search:rescore_model per_run
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
