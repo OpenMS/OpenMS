@@ -19,6 +19,8 @@
 ///////////////////////////
 
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <vector>
 
 using namespace OpenMS;
@@ -180,7 +182,41 @@ END_SECTION
 
 START_SECTION((void store(const std::string &filename) const ))
 {
-	NOT_TESTABLE
+  // store() must tag a set member's quality parameter with the same CV
+  // accession load() looks for inside a setQuality element ("MS:1000577",
+  // the same one already used, consistently, for a run's own name) -- not
+  // "QC:0000005", which load() never recognizes as a member at all. [EXTRA]
+  QcMLFile qcml;
+  qcml.registerRun("run1_id", "run1_name");
+
+  QcMLFile::QualityParameter run_name_qp;
+  run_name_qp.name = "mzML file";
+  run_name_qp.id = "run1_run_name";
+  run_name_qp.cvRef = "MS";
+  run_name_qp.cvAcc = "MS:1000577";
+  run_name_qp.value = "run1_name";
+  qcml.addRunQualityParameter("run1_id", run_name_qp);
+
+  std::set<std::string> members;
+  members.insert("run1_id");
+  qcml.registerSet("set1_id", "set1_name", members);
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  qcml.store(filename);
+
+  ifstream is(filename.c_str());
+  std::stringstream contents;
+  contents << is.rdbuf();
+  std::string written = contents.str();
+
+  // The embedded qcML report stylesheet carries its own unrelated
+  // "MS:1000577" occurrences, so check the member entry's exact
+  // serialized form rather than a whole-file accession count.
+  bool member_tagged_correctly =
+      written.find("ID=\"run1_id\" cvRef=\"MS\" accession=\"MS:1000577\"") != std::string::npos;
+  TEST_EQUAL(member_tagged_correctly, true)
+  TEST_EQUAL(written.find("QC:0000005") == std::string::npos, true)
 }
 END_SECTION
 
