@@ -95,6 +95,30 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Destroys the elements of a large container with the OpenMP threads, then the container itself. Destroying the
+    // spectra, hits and identifications of a search one after the other is a serial step of 10 - 100 ms each at the
+    // end of a search; the elements own their memory, so they can be destroyed in any order.
+    template <typename Container>
+    void freeInParallel(Container& container)
+    {
+      const SignedSize n = static_cast<SignedSize>(container.size());
+#pragma omp parallel for schedule(dynamic, 64) if (n >= 256)
+      for (SignedSize i = 0; i < n; ++i)
+      {
+        [[maybe_unused]] const auto released = std::move(container[i]);
+      }
+      Container().swap(container);
+    }
+
+    void freeInParallel(PeakMap& spectra)
+    {
+      freeInParallel(spectra.getSpectra());
+      spectra.clear(true);
+    }
+  }
+
   ProSEAlgorithm::ProSEAlgorithm() :
     DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
@@ -2901,7 +2925,10 @@ namespace OpenMS
       "", // no database filename for in-memory search
       evidence_ptr
       );
-    evidence_spectra.clear(true); // Release the additional peak list before PeptideIndexing.
+    // Release the hits and the additional peak list before PeptideIndexing.
+    freeInParallel(annotated_hits);
+    freeInParallel(pool_stats);
+    freeInParallel(evidence_spectra);
     endProgress();
 
     annotatePeptDeepFeatures_(spectra, protein_ids, peptide_ids);
@@ -3777,7 +3804,7 @@ namespace OpenMS
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits, pool_stats,
                               "Scoring peptide models against spectra...", query_ptr);
-    query_spectra.clear(true);
+    freeInParallel(query_spectra);
 
     // The PeptideIndexing that maps the hits to their proteins below.
     // The PeptideIndexer drops peptides whose termini do not match the configured
@@ -3842,7 +3869,10 @@ namespace OpenMS
       "", // no database filename for in-memory search
       evidence_ptr
       );
-    evidence_spectra.clear(true); // Release the additional peak list before PeptideIndexing.
+    // Release the hits and the additional peak list before PeptideIndexing.
+    freeInParallel(annotated_hits);
+    freeInParallel(pool_stats);
+    freeInParallel(evidence_spectra);
     endProgress();
 
     annotatePeptDeepFeatures_(spectra, protein_ids, peptide_ids);
@@ -5548,6 +5578,9 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "[ProSE] Closed search mode - per-file modification analysis skipped" << std::endl;
         }
+        freeInParallel(spectra);
+        // after the last file, the database the index was built from
+        if (i + 1 == in_spectra_files.size()) { freeInParallel(ctx.db); }
 
         mfres.per_file.push_back(std::move(result));
       }
@@ -5968,6 +6001,89 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    // What collectRunStatistics_() and updateFinalStats() count over the top hits
+    struct TopHitSummary
+    {
+      Size matched = 0, n_target = 0, n_decoy = 0;
+      std::map<Int, Size> charges;
+      std::map<Size, Size> missed_cleavages;
+      std::set<std::string> peptides, proteins;
+      std::vector<double> precursor_errors, fragment_errors; // top hits in input order (with_errors only)
+    };
+
+    // One pass over the top hits, in parallel: each thread takes a contiguous range of the identifications, and the
+    // ranges are merged in order, so the error lists come out in input order as from a single pass. The regular
+    // expression of the missed-cleavage count and the sequence strings made this a serial step of 20 - 40 ms per file.
+    TopHitSummary summarizeTopHits(const PeptideIdentificationList& peptide_ids, const std::string& enzyme, bool with_errors)
+    {
+      const DigestionEnzymeProtein* protease = ProteaseDB::getInstance()->getEnzyme(enzyme);
+      const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      const UInt target_decoy_index = registry.getIndex(Constants::UserParam::TARGET_DECOY); // UInt(-1): exists nowhere
+      const UInt fragment_error_index = registry.getIndex(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+      const SignedSize n = static_cast<SignedSize>(peptide_ids.size());
+      // Declared without OpenMP, too: with the -fopenmp-simd fallback the compiler still parses the clauses below.
+      int num_parts = 1;
+#ifdef _OPENMP
+      num_parts = static_cast<int>(std::clamp<SignedSize>(n / 512, 1, omp_get_max_threads()));
+#endif
+      std::vector<TopHitSummary> parts(num_parts);
+#pragma omp parallel for schedule(static, 1) num_threads(num_parts)
+      for (int part = 0; part < num_parts; ++part)
+      {
+        TopHitSummary& s = parts[part];
+        EnzymaticDigestion digestor;
+        digestor.setEnzyme(protease);
+        for (SignedSize i = n * part / num_parts; i < n * (part + 1) / num_parts; ++i)
+        {
+          const PeptideIdentification& pid = peptide_ids[i];
+          if (pid.getHits().empty()) { continue; }
+          ++s.matched;
+          const PeptideHit& top = pid.getHits().front();
+          s.peptides.insert(top.getSequence().toString());
+          for (const auto& ev : top.getPeptideEvidences()) { s.proteins.insert(ev.getProteinAccession()); }
+          if (top.getCharge() > 0) { ++s.charges[top.getCharge()]; }
+          if (with_errors)
+          {
+            // Precursor error: skip hits with unresolved charge (0) - getMZ() would throw.
+            if (top.getCharge() > 0)
+            {
+              s.precursor_errors.push_back(fabs(Math::getPPM(pid.getMZ(), top.getSequence().getMZ(top.getCharge()))));
+            }
+            // Fragment error: from the annotation (computing it here would need the spectrum alignment).
+            if (top.metaValueExists(fragment_error_index))
+            {
+              s.fragment_errors.push_back(static_cast<double>(top.getMetaValue(fragment_error_index)));
+            }
+          }
+          ++s.missed_cleavages[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
+          if (top.metaValueExists(target_decoy_index))
+          {
+            const std::string td = top.getMetaValue(target_decoy_index).toString();
+            if (td == "decoy") { ++s.n_decoy; }
+            else if (!td.empty()) { ++s.n_target; }
+          }
+        }
+      }
+      TopHitSummary& all = parts.front();
+      for (int part = 1; part < num_parts; ++part)
+      {
+        TopHitSummary& s = parts[part];
+        all.matched += s.matched;
+        all.n_target += s.n_target;
+        all.n_decoy += s.n_decoy;
+        for (const auto& [charge, count] : s.charges) { all.charges[charge] += count; }
+        for (const auto& [cleavages, count] : s.missed_cleavages) { all.missed_cleavages[cleavages] += count; }
+        all.peptides.merge(s.peptides);
+        all.proteins.merge(s.proteins);
+        all.precursor_errors.insert(all.precursor_errors.end(), s.precursor_errors.begin(), s.precursor_errors.end());
+        all.fragment_errors.insert(all.fragment_errors.end(), s.fragment_errors.begin(), s.fragment_errors.end());
+      }
+      return std::move(all);
+    }
+  }
+
   // =====================================================================
   // Recompute result-level stats from a FINAL (post-rescoring/post-FDR) PSM list.
   // =====================================================================
@@ -5979,37 +6095,24 @@ namespace OpenMS
     // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
     // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
     // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
-    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
-      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
-    stats.charge_histogram.clear();
-    stats.missed_cleavage_histogram.clear();
-    Size n_target = 0, n_decoy = 0;
-
-    EnzymaticDigestion digestor;
-    digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme));
-
-    set<std::string> unique_peptides, unique_proteins;
-    for (const auto& pid : peptide_ids)
-    {
-      if (pid.getHits().empty()) { continue; }
-      const PeptideHit& top = pid.getHits().front();
-      unique_peptides.insert(top.getSequence().toString());
-      for (const auto& ev : top.getPeptideEvidences()) { unique_proteins.insert(ev.getProteinAccession()); }
-      if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
-      ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
-      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
-      {
-        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
-        if (td == "decoy") { ++n_decoy; }
-        else if (!td.empty()) { ++n_target; }
-      }
-    }
-    stats.unique_peptides = unique_peptides.size();
-    stats.unique_proteins = unique_proteins.size();
-    stats.target_psms = n_target;
-    stats.decoy_psms = n_decoy;
+    const TopHitSummary summary = summarizeTopHits(peptide_ids, enzyme, false);
+    stats.matched_spectra = summary.matched;
+    stats.charge_histogram = summary.charges;
+    stats.missed_cleavage_histogram = summary.missed_cleavages;
+    stats.unique_peptides = summary.peptides.size();
+    stats.unique_proteins = summary.proteins.size();
+    stats.target_psms = summary.n_target;
+    stats.decoy_psms = summary.n_decoy;
     stats.fdr_applied = fdr_applied;
     stats.achieved_psm_fdr = fdr_applied ? maxRetainedScore_(peptide_ids) : -1.0;
+  }
+
+  void ProSEAlgorithm::releaseInParallel(SearchResult& result)
+  {
+    for (auto& protein_id : result.protein_ids) { freeInParallel(protein_id.getHits()); }
+    std::vector<ProteinIdentification>().swap(result.protein_ids);
+    freeInParallel(result.peptide_ids);
+    freeInParallel(result.pre_fdr_peptide_ids);
   }
 
   // =====================================================================
@@ -6044,65 +6147,19 @@ namespace OpenMS
     // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
     // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
     // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
-    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
-      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
-
-    set<std::string> unique_peptides;
-    set<std::string> unique_proteins;
-    Size n_target = 0, n_decoy = 0;
-
+    // Target/decoy of the FINAL (post-FDR) hits, so SearchResult::stats stays consistent
+    // for library callers that read it without calling updateFinalStats().
+    TopHitSummary summary = summarizeTopHits(peptide_ids, enzyme_, true);
+    stats.matched_spectra = summary.matched;
+    for (const auto& [charge, count] : summary.charges) { stats.charge_histogram[charge] += count; }
+    for (const auto& [cleavages, count] : summary.missed_cleavages) { stats.missed_cleavage_histogram[cleavages] += count; }
+    stats.unique_peptides = summary.peptides.size();
+    stats.unique_proteins = summary.proteins.size();
+    stats.target_psms = summary.n_target;
+    stats.decoy_psms = summary.n_decoy;
     // Per-PSM error values for tolerance estimation (top-ranked hits only)
-    vector<double> precursor_errors;
-    vector<double> fragment_errors;
-
-    EnzymaticDigestion digestor;
-    digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme_));
-
-    for (const auto& pid : peptide_ids)
-    {
-      if (pid.getHits().empty()) { continue; }
-      const PeptideHit& top = pid.getHits().front();
-      unique_peptides.insert(top.getSequence().toString());
-
-      for (const auto& ev : top.getPeptideEvidences())
-      {
-        unique_proteins.insert(ev.getProteinAccession());
-      }
-
-      if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
-
-      // Precursor error: always compute inline (cheap), independent of annotate:PSM.
-      // Skip hits with unresolved charge (0) — getMZ() would throw.
-      if (top.getCharge() > 0)
-      {
-        double theo_mz = top.getSequence().getMZ(top.getCharge());
-        double prec_error_ppm = Math::getPPM(pid.getMZ(), theo_mz);
-        precursor_errors.push_back(fabs(prec_error_ppm));
-      }
-
-      // Fragment error: use annotation metavalue if available (computing it
-      // inline would require spectrum alignment which is expensive).
-      if (top.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
-      {
-        fragment_errors.push_back(static_cast<double>(top.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
-      }
-
-      ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
-
-      // Target/decoy of the FINAL (post-FDR) hits, so SearchResult::stats stays consistent
-      // for library callers that read it without calling updateFinalStats().
-      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
-      {
-        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
-        if (td == "decoy") { ++n_decoy; }
-        else if (!td.empty()) { ++n_target; }
-      }
-    }
-
-    stats.unique_peptides = unique_peptides.size();
-    stats.unique_proteins = unique_proteins.size();
-    stats.target_psms = n_target;
-    stats.decoy_psms = n_decoy;
+    vector<double>& precursor_errors = summary.precursor_errors;
+    vector<double>& fragment_errors = summary.fragment_errors;
 
     // -- Per-run tolerance estimation (median + 3*MAD, matching prior behaviour) --
     const Size min_psms_for_estimation = 10;

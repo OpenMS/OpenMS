@@ -949,6 +949,10 @@ class ProSE :
         }
       }
 
+      // All outputs are written: free the identifications with the threads, not one by one when mfres goes out of scope
+      for (auto& result : mfres.per_file) { ProSEAlgorithm::releaseInParallel(result); }
+      ProSEAlgorithm::releaseInParallel(mfres.aggregate);
+
       if (failed_count > 0)
       {
         OPENMS_LOG_ERROR << "ProSE finished with " << failed_count

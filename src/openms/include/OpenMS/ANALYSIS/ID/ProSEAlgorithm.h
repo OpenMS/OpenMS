@@ -1458,6 +1458,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                  const std::string& enzyme,
                                  bool fdr_applied);
 
+    /// Free the protein and peptide identifications of @p result with the OpenMP threads (destroyed one after the
+    /// other, the hits of a file take tens of ms at the end of a run). Leaves them empty; the statistics are kept.
+    static void releaseInParallel(SearchResult& result);
+
     /// Render a human-readable single-run summary block (configuration recap,
     /// database/index stats, identification results, tolerance estimate, timing
     /// and — for open searches — modification discovery) to @p os.
