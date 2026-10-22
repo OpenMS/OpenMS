@@ -19,6 +19,8 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <limits>
+#include <stdexcept>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -141,7 +143,7 @@ START_SECTION(std::vector<double> forRt(const std::vector<double>&, std::size_t)
   auto fft_result = KernelDensityEstimation::forRt(signal, 4);
   TEST_EQUAL(fft_result.size(), 4)
   
-  // DC component (note: implementation scales by 1/M, so result is sum not mean)
+  // The forward transform is unscaled, so DC is the sum rather than the mean.
   TEST_EQUAL(fft_result[0] > 0.0, true) // DC component should be positive
   
   // Test with zero padding (M > signal.size())
@@ -185,12 +187,12 @@ START_SECTION(std::vector<double> revRt(const std::vector<double>&, std::size_t)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
-// Large transforms must not exceed Evergreen's template dispatch range.
+// Check the same analytic spectrum at small and large transform sizes.
 /////////////////////////////////////////////////////////////
 
 START_SECTION((FFT boundary and large-grid analytic round trips))
 {
-  for (const std::size_t size : {std::size_t{65536}, std::size_t{131072}, std::size_t{524288}})
+  for (const std::size_t size : {std::size_t{8}, std::size_t{512}, std::size_t{65536}, std::size_t{131072}, std::size_t{524288}})
   {
     std::vector<double> signal(size);
     for (std::size_t i = 0; i < size; ++i)
@@ -222,6 +224,52 @@ START_SECTION((FFT boundary and large-grid analytic round trips))
     TEST_TRUE(max_error < 1e-9)
     TEST_TRUE(max_inverse_error < 1e-9)
   }
+}
+END_SECTION
+
+START_SECTION((FFT empty, singleton, padding, truncation and invalid-length semantics))
+{
+  TEST_TRUE(KernelDensityEstimation::forRt({}).empty())
+  TEST_TRUE(KernelDensityEstimation::revRt({}).empty())
+  TEST_TRUE(KernelDensityEstimation::forRt({7.0}) == std::vector<double>{7.0})
+  TEST_TRUE(KernelDensityEstimation::revRt({7.0}) == std::vector<double>{7.0})
+  TEST_TRUE(KernelDensityEstimation::forRt({}, 1) == std::vector<double>{0.0})
+  TEST_TRUE(KernelDensityEstimation::forRt({std::numeric_limits<double>::quiet_NaN()}) == std::vector<double>{0.0})
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt({}, 1))
+  for (const std::size_t size : {std::size_t{3}, std::size_t{6}, std::size_t{65537}})
+  {
+    TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::forRt({}, size))
+    TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt(std::vector<double>(size), size))
+  }
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::forRt(std::vector<double>(3)))
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt(std::vector<double>(3)))
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt({1.0}, 2))
+
+  const std::vector<double> dirty{2.0, std::numeric_limits<double>::quiet_NaN(),
+    std::numeric_limits<double>::infinity(), -3.0, 99.0};
+  const auto packed = KernelDensityEstimation::forRt(dirty, 4);
+  auto recovered = KernelDensityEstimation::revRt(packed);
+  const std::vector<double> sanitized{2.0, 0.0, 0.0, -3.0};
+  for (std::size_t i = 0; i < sanitized.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(recovered[i], sanitized[i])
+  }
+  auto extended = packed;
+  extended.push_back(99.0);
+  TEST_TRUE(KernelDensityEstimation::revRt(extended, 4) == recovered)
+  recovered = KernelDensityEstimation::revRt(KernelDensityEstimation::forRt({2.0, -3.0}, 4));
+  const std::vector<double> padded{2.0, -3.0, 0.0, 0.0};
+  for (std::size_t i = 0; i < padded.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(recovered[i], padded[i])
+  }
+  // The smallest nontrivial transform has DC and Nyquist, but no imaginary slots.
+  const auto pair_packed = KernelDensityEstimation::forRt({2.0, -3.0});
+  TEST_REAL_SIMILAR(pair_packed[0], -1.0)
+  TEST_REAL_SIMILAR(pair_packed[1], 5.0)
+  const auto pair_recovered = KernelDensityEstimation::revRt(pair_packed);
+  TEST_REAL_SIMILAR(pair_recovered[0], 2.0)
+  TEST_REAL_SIMILAR(pair_recovered[1], -3.0)
 }
 END_SECTION
 

@@ -67,7 +67,7 @@ namespace OpenMS
       }
     }
 
-    bool extractMetaDouble_(const Feature& feature, const std::string& key, double& value)
+    bool extractMetaDouble_(const BaseFeature& feature, const std::string& key, double& value)
     {
       if (!feature.metaValueExists(key)) return false;
       const DataValue& meta = feature.getMetaValue(key);
@@ -102,22 +102,6 @@ namespace OpenMS
       else
       {
         ParquetFile::appendOrThrow(builder.AppendNull(), column);
-      }
-    }
-
-    bool extractMetaDouble_(const BaseFeature& feature, const std::string& key, double& value)
-    {
-      if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = feature.getMetaValue(key);
-      if (meta.isEmpty()) return false;
-      try
-      {
-        value = StringUtils::toDouble(meta.toString());
-        return true;
-      }
-      catch (Exception::ConversionError&)
-      {
-        return false;
       }
     }
 

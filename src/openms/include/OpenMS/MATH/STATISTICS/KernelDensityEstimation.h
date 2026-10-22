@@ -122,12 +122,15 @@ namespace OpenMS
         Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
         Also described in: Press WH et al. (2007) "Numerical Recipes" 3rd Ed. Section 12.3
 
-        Transforms above 65536 points use Eigen FFT instead of Evergreen's bounded
-        template dispatch, preserving the same packing and normalization.
+        All nontrivial transforms use Eigen FFT with the same packing and normalization.
+        Input is zero-padded or truncated to M and non-finite input values become zero.
+        An empty input with M=0 returns an empty vector. M=1 returns the single
+        (sanitized) value. Other nonzero lengths must be powers of two.
 
         @param[in] X Real-valued input vector
         @param[in] M Power-of-two length of FFT (if 0, uses X.size())
         @return Real-valued Munro-packed FFT coefficients of length M (unscaled)
+        @throws std::invalid_argument if the effective M is not zero or a power of two
 
         @see revRt() for the normalized inverse transform
 
@@ -149,9 +152,15 @@ namespace OpenMS
         Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
         Also described in: Press WH et al. (2007) "Numerical Recipes" 3rd Ed. Section 12.3
 
+        The input must contain at least M coefficients; any trailing values are ignored.
+        Empty input with M=0 returns an empty vector, and M=1 returns Xp[0].
+        Other nonzero lengths must be powers of two.
+
         @param[in] Xp Munro-packed real-valued frequency coefficients
         @param[in] M Power-of-two length of output (if 0, uses Xp.size())
         @return Real-valued reconstructed signal of length M
+        @throws std::invalid_argument if the effective M is not zero or a power of two,
+        or Xp contains fewer than M coefficients
 
         @see forRt() for the forward transform (which returns unscaled coefficients)
 
@@ -205,7 +214,7 @@ namespace OpenMS
 
         Implementation steps:
         1. Bin data onto a regular grid using linear binning
-        2. Compute FFT of binned data using real FFT (Evergreen or Eigen for large grids)
+        2. Compute FFT of binned data using Eigen real FFT
         3. Compute Silverman's analytical Gaussian kernel in frequency domain
         4. Multiply FFT(data) pointwise by kernel in frequency domain
         5. Inverse FFT to obtain density estimates

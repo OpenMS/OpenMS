@@ -324,7 +324,7 @@ namespace OpenMS
 
           DIAHelpers::integrateWindow(sp_ms1_collect, mz, im, intensity, dummy, im_range_ms1);
 
-          if (im > 0.0)
+          if (im > 0.0 && std::isfinite(im) && std::isfinite(drift_target0))
           {
             exp_im_ms1_local.push_back(im);
             theo_im_ms1_local.push_back(drift_target0);
@@ -390,20 +390,15 @@ namespace OpenMS
 
     if (!debug_im_file_.empty()) {os_im.close();}
 
+    // Discard whole pairs before sorting: NaNs do not define a strict weak order.
+    // Missing or invalid calibrants must not prevent fitting the remaining valid ones.
+    std::erase_if(data_im, [](const auto& point)
+    {
+      return !std::isfinite(point.first) || !std::isfinite(point.second);
+    });
     if (data_im.empty())
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression",std::string("Could not fit a linear model to the data (0 points)."));
-    }
-
-    // Reject non-finite coordinates before sorting: NaNs do not define a strict weak order.
-    for (const auto& point : data_im)
-    {
-      if (!std::isfinite(point.first) || !std::isfinite(point.second))
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Ion mobility calibration requires finite experimental and theoretical mobilities.",
-          StringUtils::toStr(point.first) + ", " + StringUtils::toStr(point.second));
-      }
     }
 
     // Parallel extraction appends in completion order. Fit both regressions to the same
@@ -451,6 +446,7 @@ namespace OpenMS
         // (x, y) = (experimental IM, theoretical IM)
         ms1_points.emplace_back(exp_im_ms1_all[i], theo_im_ms1_all[i]);
       }
+      std::sort(ms1_points.begin(), ms1_points.end());
 
       // Copy the fitted model; don't mutate im_trafo's datapoints
       TransformationDescription im_trafo_inv = im_trafo;
@@ -836,4 +832,3 @@ namespace OpenMS
   }
 
   }
-

@@ -857,21 +857,90 @@ START_SECTION(correctIM keeps paired calibration points and exact fits independe
       }
     }
   }
-  // An infinite peak intensity produces a NaN intensity-weighted mobility (inf / inf).
-  // It passes the old im <= 0 check, but must not reach the calibration-pair sort.
-  auto invalid_exp = std::make_shared<PeakMap>(*ms2_exp);
-  (*invalid_exp)[0][0].setIntensity(std::numeric_limits<float>::infinity());
-  OpenSwath::SwathMap invalid_map = ms2_map;
-  invalid_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(invalid_exp);
-  SwathMapMassCorrection invalid_correction;
-  Param invalid_parameters = invalid_correction.getDefaults();
-  invalid_parameters.setValue("mz_extraction_window", 0.1);
-  invalid_parameters.setValue("im_extraction_window", 10.0);
-  invalid_correction.setParameters(invalid_parameters);
-  TransformationDescription invalid_result;
-  const std::vector<OpenSwath::SwathMap> invalid_maps{invalid_map};
-  TEST_EXCEPTION(Exception::InvalidValue,
-    invalid_correction.correctIM(ordered_groups, targeted_exp, invalid_maps, false, invalid_result))
+  // Infinite intensities produce NaN intensity-weighted mobilities (inf / inf).
+  // Mixed inputs must behave exactly like extracting only the valid calibrants,
+  // including the auxiliary MS1 window and either choice of fitting spectrum.
+  auto mixed_ms2_exp = std::make_shared<PeakMap>(*ms2_exp);
+  auto mixed_ms1_exp = std::make_shared<PeakMap>(*ms1_exp);
+  (*mixed_ms2_exp)[0][0].setIntensity(std::numeric_limits<float>::infinity());
+  (*mixed_ms1_exp)[0][0].setIntensity(std::numeric_limits<float>::infinity());
+  OpenSwath::SwathMap mixed_ms2_map = ms2_map, mixed_ms1_map = ms1_map;
+  mixed_ms2_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(mixed_ms2_exp);
+  mixed_ms1_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(mixed_ms1_exp);
+  const std::vector<OpenSwath::SwathMap> mixed_maps{mixed_ms2_map, mixed_ms1_map};
+  auto valid_groups = ordered_groups;
+  valid_groups.erase("calibrant_1000");
+
+  auto invalid_ms2_exp = std::make_shared<PeakMap>(*ms2_exp);
+  auto invalid_ms1_exp = std::make_shared<PeakMap>(*ms1_exp);
+  for (auto* experiment : {invalid_ms2_exp.get(), invalid_ms1_exp.get()})
+  {
+    for (auto& peak : (*experiment)[0])
+    {
+      peak.setIntensity(std::numeric_limits<float>::infinity());
+    }
+  }
+  OpenSwath::SwathMap invalid_ms2_map = ms2_map, invalid_ms1_map = ms1_map;
+  invalid_ms2_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(invalid_ms2_exp);
+  invalid_ms1_map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(invalid_ms1_exp);
+  const std::vector<OpenSwath::SwathMap> invalid_maps{invalid_ms2_map, invalid_ms1_map};
+
+  for (const std::string ms1_calibration : {"false", "true"})
+  {
+    SwathMapMassCorrection correction;
+    Param parameters = correction.getDefaults();
+    parameters.setValue("mz_extraction_window", 0.1);
+    parameters.setValue("im_extraction_window", 10.0);
+    parameters.setValue("ms1_im_calibration", ms1_calibration);
+    correction.setParameters(parameters);
+    TransformationDescription reference;
+    correction.correctIM(valid_groups, targeted_exp, swath_maps, false, reference);
+    const double fragment_window = correction.getFragmentImWindow();
+    const double precursor_window = correction.getPrecursorImWindow();
+    TEST_TRUE(std::isfinite(fragment_window))
+    TEST_TRUE(std::isfinite(precursor_window))
+    for (const auto* input_groups : {&ordered_groups, &permuted_groups})
+    {
+      TransformationDescription result;
+      correction.correctIM(*input_groups, targeted_exp, mixed_maps, false, result);
+      TEST_EQUAL(result.getDataPoints().size(), n_calibrants - 1)
+      TEST_TRUE(result.getDataPoints() == reference.getDataPoints())
+      TEST_TRUE(result.getModelParameters() == reference.getModelParameters())
+      TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+      TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+    }
+
+    // Preserve the established empty-fit failure, without replacing an existing
+    // transformation or window estimates with non-finite results.
+    TransformationDescription unchanged = reference;
+    TEST_EXCEPTION(Exception::UnableToFit,
+      correction.correctIM(ordered_groups, targeted_exp, invalid_maps, false, unchanged))
+    TEST_TRUE(unchanged.getDataPoints() == reference.getDataPoints())
+    TEST_TRUE(unchanged.getModelParameters() == reference.getModelParameters())
+    TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+    TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+
+    // Explicitly disabled correction and a negative extraction window are no-ops,
+    // even when all available measurements are invalid.
+    for (const bool disable_function : {false, true})
+    {
+      auto disabled_parameters = parameters;
+      if (disable_function)
+      {
+        disabled_parameters.setValue("im_correction_function", "none");
+      }
+      else
+      {
+        disabled_parameters.setValue("im_extraction_window", -1.0);
+      }
+      correction.setParameters(disabled_parameters);
+      correction.correctIM(ordered_groups, targeted_exp, invalid_maps, false, unchanged);
+      TEST_TRUE(unchanged.getDataPoints() == reference.getDataPoints())
+      TEST_TRUE(unchanged.getModelParameters() == reference.getModelParameters())
+      TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+      TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+    }
+  }
 #ifdef _OPENMP
   omp_set_num_threads(saved_threads);
   omp_set_dynamic(saved_dynamic);
