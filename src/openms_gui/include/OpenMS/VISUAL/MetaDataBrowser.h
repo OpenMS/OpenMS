@@ -15,10 +15,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
+#include <OpenMS/VISUAL/IdentificationDataEdits.h>
 
-#include <functional>
 #include <list>
+#include <vector>
 
 //QT
 #include <QtWidgets/QDialog>
@@ -120,18 +120,20 @@ public:
     /**
       @brief Adds a feature map
 
-      Its identifications are shown (and edited) as peptide and protein identifications (see MapPeptideIdentifications);
-      saving writes edited ones back to the map.
+      Its identification data is shown: the runs with their settings and database sequences, the protein runs of the
+      inference results, and the unassigned identifications with their matches. The settings of runs, the score
+      types of protein runs and the metadata of all records can be edited; saving writes the edited records back to
+      the map at once (they keep their IDs, so the links of the features stay valid), or none if one is not valid.
     */
     void add(FeatureMap& map);
 
-    /// Adds the feature at @p index of @p map, with its identifications as in add(FeatureMap&)
+    /// Adds the feature at @p index of @p map, with the identifications it links (see add(FeatureMap&))
     void add(FeatureMap& map, Size index);
 
     /// Adds a consensus map, with its identifications as in add(FeatureMap&)
     void add(ConsensusMap& map);
 
-    /// Adds the consensus feature at @p index of @p map, with its identifications as in add(FeatureMap&)
+    /// Adds the consensus feature at @p index of @p map, with the identifications it links (see add(FeatureMap&))
     void add(ConsensusMap& map, Size index);
 
     /**
@@ -152,6 +154,8 @@ public:
     /// Defines friend classes that can use the functionality of the subclasses.
     friend class ProteinIdentificationVisualizer;
     friend class PeptideIdentificationVisualizer;
+    friend class IdentificationVisualizer;
+    friend class InferenceResultVisualizer;
 
 public slots:
 
@@ -216,17 +220,25 @@ protected:
     /// Shows hits.
     void showAllHits_(int tree_item_id);
 
-    /// The peptide and protein identifications of an added map, to show and edit them (written back by saveAll_())
-    template <class MapType>
-    MapPeptideIdentifications& addMapIdentifications_(MapType& map);
+    ///@name Identification data (of maps), shown and edited as copies of its records (see IdentificationDataEdits)
+    //@{
+    /// The edits of @p data (one per dataset, e.g. for a map and for one of its features)
+    IdentificationDataEdits& editsOf_(IdentificationData& data);
+    /// Adds the runs and inference results of @p data and @p identifications (e.g. the unassigned ones of a map)
+    void visualizeIdentificationData_(IdentificationData& data, const std::vector<IdentificationData::QueryMatches>& identifications);
+    /// Adds a run with its settings and database sequences
+    void visualizeRun_(IdentificationDataEdits& edits, const IdentificationData::Run& run);
+    /// Adds the protein run of an inference result (a copy that @p edits holds)
+    void visualizeInferenceResult_(IdentificationData::InferenceResult& result);
+    /// Adds an identification with the given matches (best first by the primary score)
+    void visualizeIdentification_(IdentificationDataEdits& edits, const IdentificationData::QueryMatches& identification, QTreeWidgetItem * parent = nullptr);
+    //@}
 
     /// A list of setting errors due to invalid formats.
     std::string status_list_;
 
-    /// The identifications of the added maps (stable addresses: the visualizers edit them)
-    std::list<MapPeptideIdentifications> map_identifications_;
-    /// Writes the edited identifications back to their maps
-    std::vector<std::function<void()>> write_back_;
+    /// The edits of the identification data of the added maps (stable addresses: the visualizers edit their copies)
+    std::list<IdentificationDataEdits> identification_edits_;
 
     /// Indicates the mode
     bool editable_;

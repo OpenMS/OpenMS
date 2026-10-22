@@ -8,11 +8,16 @@ AcquisitionVisualizer.h
 BaseVisualizer.h               ### not a QObject -- should not be autoMOC'd
 BaseVisualizerGUI.h
 ContactPersonVisualizer.h
+DatabaseSequenceVisualizer.h
 DataProcessingVisualizer.h
 DocumentIdentifierVisualizer.h
 ExperimentalSettingsVisualizer.h
 GradientVisualizer.h
 HPLCVisualizer.h
+IdentificationMatchVisualizer.h
+IdentificationRunVisualizer.h
+IdentificationVisualizer.h
+InferenceResultVisualizer.h
 InstrumentSettingsVisualizer.h
 InstrumentVisualizer.h
 IonDetectorVisualizer.h

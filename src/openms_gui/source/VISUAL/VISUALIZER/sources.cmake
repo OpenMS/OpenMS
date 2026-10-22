@@ -8,11 +8,16 @@ AcquisitionVisualizer.cpp
 BaseVisualizer.cpp
 BaseVisualizerGUI.cpp
 ContactPersonVisualizer.cpp
+DatabaseSequenceVisualizer.cpp
 DataProcessingVisualizer.cpp
 DocumentIdentifierVisualizer.cpp
 ExperimentalSettingsVisualizer.cpp
 GradientVisualizer.cpp
 HPLCVisualizer.cpp
+IdentificationMatchVisualizer.cpp
+IdentificationRunVisualizer.cpp
+IdentificationVisualizer.cpp
+InferenceResultVisualizer.cpp
 InstrumentSettingsVisualizer.cpp
 InstrumentVisualizer.cpp
 IonDetectorVisualizer.cpp

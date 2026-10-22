@@ -17,6 +17,7 @@ FilterList.cpp
 FilterList.ui
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
+IdentificationDataEdits.cpp
 InputFile.cpp
 InputFile.ui
 InputFileList.cpp

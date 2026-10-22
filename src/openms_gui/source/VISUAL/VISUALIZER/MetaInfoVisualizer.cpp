@@ -232,6 +232,8 @@ namespace OpenMS
     {
       UInt index = (*iter2).first;
       std::string value(fromQString(((*iter2).second)->text()));
+      // an unchanged value keeps its type (a number stays a number)
+      if (value == temp_.getMetaValue(index).toString()) continue;
       temp_.setMetaValue(index, value);
     }
     //copy temporary stored data into metainfo object

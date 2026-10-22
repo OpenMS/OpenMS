@@ -14,6 +14,7 @@ set(visual_executables_list
   AxisTickCalculator_test
   FileWatcher_test
   GUIHelpers_test
+  IdentificationDataEdits_test
   MultiGradient_test
   SpectraTreeTab_test
 )
@@ -51,6 +52,7 @@ endforeach(_class_test)
 # we only want to run those tests if we have a running XServer
 if(HAS_XSERVER)
   set(GUI_executables_list
+    MetaDataBrowser_test
     TOPPView_test
     TSGDialog_test
   )

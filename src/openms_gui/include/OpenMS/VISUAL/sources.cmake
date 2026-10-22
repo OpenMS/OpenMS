@@ -16,6 +16,7 @@ FileWatcher.h
 FilterList.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
+IdentificationDataEdits.h
 InputFile.h
 InputFileList.h
 LayerListView.h

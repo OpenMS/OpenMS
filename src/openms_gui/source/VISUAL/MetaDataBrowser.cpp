@@ -9,7 +9,6 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
@@ -34,6 +33,11 @@
 #include <OpenMS/VISUAL/VISUALIZER/ProductVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentSettingsVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/DatabaseSequenceVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/IdentificationMatchVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/IdentificationRunVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/IdentificationVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/InferenceResultVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ScanWindowVisualizer.h>
@@ -143,9 +147,17 @@ namespace OpenMS
       {
         dynamic_cast<BaseVisualizerGUI *>(ws_->widget(i))->store();
       }
-      for (const auto& write_back : write_back_)
+      // the edited identification data (each dataset completely or not at all)
+      for (auto& edits : identification_edits_)
       {
-        write_back();
+        try
+        {
+          edits.commit();
+        }
+        catch (const std::exception& e)
+        {
+          setStatus(std::string("The identification data was not changed: ") + e.what());
+        }
       }
       if (status_list_.length() != 0)
       {
@@ -913,19 +925,139 @@ namespace OpenMS
     treeview_->expandItem(item);
   }
 
-  template <class MapType>
-  MapPeptideIdentifications& MetaDataBrowser::addMapIdentifications_(MapType& map)
+  IdentificationDataEdits& MetaDataBrowser::editsOf_(IdentificationData& data)
   {
-    auto& ids = map_identifications_.emplace_back(IdentificationDataConverter::exportMapIdentifications(map));
-    // an edited view replaces the identifications of the map; an unchanged one leaves them as they are
-    write_back_.emplace_back([&map, &ids, original = ids]
+    for (auto& edits : identification_edits_)
     {
-      if (ids.proteins != original.proteins || ids.features != original.features || ids.unassigned != original.unassigned)
+      if (&edits.getData() == &data) return edits;
+    }
+    return identification_edits_.emplace_back(data);
+  }
+
+  void MetaDataBrowser::visualizeIdentificationData_(IdentificationData& data, const std::vector<IdentificationData::QueryMatches>& identifications)
+  {
+    auto& edits = editsOf_(data);
+    for (const auto& run : data.getRuns())
+    {
+      visualizeRun_(edits, run);
+    }
+    for (auto& result : edits.inferenceResults())
+    {
+      visualizeInferenceResult_(result);
+    }
+    for (const auto& identification : identifications)
+    {
+      visualizeIdentification_(edits, identification);
+    }
+  }
+
+  //Visualizing a run of identification data
+  void MetaDataBrowser::visualizeRun_(IdentificationDataEdits& edits, const IdentificationData::Run& run)
+  {
+    IdentificationRunVisualizer * visualizer = new IdentificationRunVisualizer(isEditable(), this);
+    auto& settings = edits.settings(run);
+    visualizer->load(settings);
+    visualizer->setRun(run);
+
+    QStringList labels;
+    labels << QString("Run %1").arg(run.getIdentifier().c_str()) << QString::number(ws_->addWidget(visualizer));
+    QTreeWidgetItem * item = new QTreeWidgetItem(treeview_, labels);
+
+    // the database sequences of the run (its proteins, unless an inference result has them)
+    if (run.getDatabaseSequences())
+    {
+      for (auto& sequence : edits.databaseSequences(run))
       {
-        IdentificationDataConverter::importMapIdentifications(map, ids);
+        DatabaseSequenceVisualizer * sequence_visualizer = new DatabaseSequenceVisualizer(isEditable(), this);
+        sequence_visualizer->load(sequence, run);
+        QStringList sequence_labels;
+        sequence_labels << QString("Prot %1").arg(sequence.accession.c_str()) << QString::number(ws_->addWidget(sequence_visualizer));
+        QTreeWidgetItem * sequence_item = new QTreeWidgetItem(item, sequence_labels);
+        visualize_(static_cast<MetaInfoInterface &>(sequence), sequence_item);
+        connectVisualizer_(sequence_visualizer);
       }
+    }
+
+    visualize_(static_cast<MetaInfoInterface &>(settings), item);
+
+    connectVisualizer_(visualizer);
+  }
+
+  //Visualizing the protein run of an inference result
+  void MetaDataBrowser::visualizeInferenceResult_(IdentificationData::InferenceResult& result)
+  {
+    InferenceResultVisualizer * visualizer = new InferenceResultVisualizer(isEditable(), this, this);
+
+    QStringList labels;
+    int id = ws_->addWidget(visualizer);
+    labels << QString("Proteins %1").arg(result.identifier.c_str()) << QString::number(id);
+
+    visualizer->load(result, id);
+
+    QTreeWidgetItem * item = new QTreeWidgetItem(treeview_, labels);
+
+    for (auto& hit : result.proteins.getHits())
+    {
+      visualize_(hit, item);
+    }
+
+    visualize_(static_cast<MetaInfoInterface &>(result.proteins), item);
+
+    connectVisualizer_(visualizer);
+  }
+
+  //Visualizing an identification of identification data
+  void MetaDataBrowser::visualizeIdentification_(IdentificationDataEdits& edits, const IdentificationData::QueryMatches& identification, QTreeWidgetItem * parent)
+  {
+    const auto& run = *identification.run;
+    IdentificationVisualizer * visualizer = new IdentificationVisualizer(isEditable(), this, this);
+    auto& observation = edits.observation(run, *identification.query);
+
+    QStringList labels;
+    int id = ws_->addWidget(visualizer);
+    const QString name = !observation.data_id.empty() ? QString(observation.data_id.c_str())
+                         : observation.rt ? QString("RT %1").arg(*observation.rt) : QString("%1").arg(identification.query->getId().value);
+    labels << QString("Identification %1").arg(name) << QString::number(id);
+
+    visualizer->load(observation, run, id);
+
+    QTreeWidgetItem * item;
+    if (parent == nullptr)
+    {
+      item = new QTreeWidgetItem(treeview_, labels);
+    }
+    else
+    {
+      item = new QTreeWidgetItem(parent, labels);
+    }
+
+    // the matches, best first (by the primary score of the run)
+    const auto primary = run.getPrimaryScore();
+    const auto score = [&](const IdentificationData::Match& match) {
+      return primary ? run.getScore(match.getId(), *primary).value_or(std::numeric_limits<double>::quiet_NaN()) : std::numeric_limits<double>::quiet_NaN();
+    };
+    const bool higher_better = !primary || run.getScoreDefinition(*primary).higher_better;
+    auto matches = identification.matches;
+    std::stable_sort(matches.begin(), matches.end(), [&](const IdentificationData::Match* a, const IdentificationData::Match* b) {
+      return higher_better ? score(*a) > score(*b) : score(*a) < score(*b);
     });
-    return ids;
+    for (const auto* match : matches)
+    {
+      IdentificationMatchVisualizer * match_visualizer = new IdentificationMatchVisualizer(isEditable(), this);
+      auto& data = edits.match(run, *match);
+      match_visualizer->load(data, run, *match);
+
+      QStringList match_labels;
+      match_labels << QString("%1 (%2)").arg(data.representation.c_str()).arg(score(*match)) << QString::number(ws_->addWidget(match_visualizer))
+                   << QString::number(score(*match));
+      QTreeWidgetItem * match_item = new QTreeWidgetItem(item, match_labels);
+      visualize_(static_cast<MetaInfoInterface &>(data), match_item);
+      connectVisualizer_(match_visualizer);
+    }
+
+    visualize_(static_cast<MetaInfoInterface &>(observation), item);
+
+    connectVisualizer_(visualizer);
   }
 
   void MetaDataBrowser::add(FeatureMap& map)
@@ -933,29 +1065,18 @@ namespace OpenMS
     //identifier
     add(static_cast<DocumentIdentifier &>(map));
 
-    auto& ids = addMapIdentifications_(map);
-    for (auto& protein : ids.proteins)
-    {
-      add(protein);
-    }
-    // unassigned peptide ids
-    for (auto& peptide : ids.unassigned)
-    {
-      add(peptide);
-    }
+    // runs, inference results and unassigned identifications
+    visualizeIdentificationData_(map.getIdentificationData(), map.getUnassignedIdentifications());
 
     treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
   }
 
   void MetaDataBrowser::add(FeatureMap& map, Size index)
   {
-    auto& ids = addMapIdentifications_(map);
-    if (auto it = ids.features.find({index}); it != ids.features.end())
+    auto& edits = editsOf_(map.getIdentificationData());
+    for (const auto& identification : map[index].getLinkedIdentifications(map.getIdentificationData()))
     {
-      for (auto& peptide : it->second)
-      {
-        add(peptide);
-      }
+      visualizeIdentification_(edits, identification);
     }
 
     add(static_cast<MetaInfoInterface &>(map[index]));
@@ -968,16 +1089,8 @@ namespace OpenMS
     //identifier
     add(static_cast<DocumentIdentifier &>(map));
 
-    auto& ids = addMapIdentifications_(map);
-    for (auto& protein : ids.proteins)
-    {
-      add(protein);
-    }
-    // unassigned peptide ids
-    for (auto& peptide : ids.unassigned)
-    {
-      add(peptide);
-    }
+    // runs, inference results and unassigned identifications
+    visualizeIdentificationData_(map.getIdentificationData(), map.getUnassignedIdentifications());
 
     add(static_cast<MetaInfoInterface &>(map));
 
@@ -986,13 +1099,10 @@ namespace OpenMS
 
   void MetaDataBrowser::add(ConsensusMap& map, Size index)
   {
-    auto& ids = addMapIdentifications_(map);
-    if (auto it = ids.features.find({index}); it != ids.features.end())
+    auto& edits = editsOf_(map.getIdentificationData());
+    for (const auto& identification : map[index].getLinkedIdentifications(map.getIdentificationData()))
     {
-      for (auto& peptide : it->second)
-      {
-        add(peptide);
-      }
+      visualizeIdentification_(edits, identification);
     }
 
     add(static_cast<MetaInfoInterface &>(map[index]));
