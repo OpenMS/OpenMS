@@ -414,6 +414,11 @@ namespace
       meta.pixel_size_y = -1;
       meta.pixel_size_unit = "unknown";
     }
+    if (meta.pixel_size_x > 0 && meta.pixel_size_y <= 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size y is unknown; only pixel size x is written, which readers "
+                         "also use for y (IMS:1000046)." << std::endl;
+    }
     return meta;
   }
 
