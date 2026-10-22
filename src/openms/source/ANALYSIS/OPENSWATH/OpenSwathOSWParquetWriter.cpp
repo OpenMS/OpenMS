@@ -622,7 +622,6 @@ namespace OpenMS
       ParquetFile::appendOrThrow(precursor_id_builder.Append(precursor_it->second), "precursor_id");
       appendOptionalFloat_(exp_rt_builder, true, feature.getRT(), "exp_rt");
 
-      double value = 0.0;
       appendFeatureScore_(exp_im_builder, feature, "im_drift", "exp_im");
       appendFeatureScore_(norm_rt_builder, feature, "norm_RT", "norm_rt", -1.0, true);
       appendFeatureScore_(delta_rt_builder, feature, "delta_rt", "delta_rt", -1.0, true);
@@ -634,23 +633,23 @@ namespace OpenMS
       const bool has_ms1 = feature.metaValueExists("var_ms1_ppm_diff");
       if (has_ms1)
       {
-        appendOptionalFloat_(ms1_area_builder, extractMetaDouble_(feature, "ms1_area_intensity", value), value, "ms1_area_intensity");
-        appendOptionalFloat_(ms1_apex_builder, extractMetaDouble_(feature, "ms1_apex_intensity", value), value, "ms1_apex_intensity");
-        appendOptionalFloat_(ms1_exp_im_builder, extractMetaDouble_(feature, "im_ms1_drift", value), value, "ms1_exp_im");
-        appendOptionalFloat_(ms1_delta_im_builder, extractMetaDouble_(feature, "im_ms1_delta", value), value, "ms1_delta_im");
-        appendOptionalFloat_(var_ms1_massdev_builder, extractMetaDouble_(feature, "var_ms1_ppm_diff", value), value, "var_ms1_massdev_score");
-        appendOptionalFloat_(var_ms1_im_ms1_delta_builder, extractMetaDouble_(feature, "var_im_ms1_delta_score", value), value, "var_ms1_im_ms1_delta_score");
-        appendOptionalFloat_(var_ms1_mi_builder, extractMetaDouble_(feature, "var_ms1_mi_score", value), value, "var_ms1_mi_score");
-        appendOptionalFloat_(var_ms1_mi_contrast_builder, extractMetaDouble_(feature, "var_ms1_mi_contrast_score", value), value, "var_ms1_mi_contrast_score");
-        appendOptionalFloat_(var_ms1_mi_combined_builder, extractMetaDouble_(feature, "var_ms1_mi_combined_score", value), value, "var_ms1_mi_combined_score");
-        appendOptionalFloat_(var_ms1_iso_corr_builder, extractMetaDouble_(feature, "var_ms1_isotope_correlation", value), value, "var_ms1_isotope_correlation_score");
-        appendOptionalFloat_(var_ms1_iso_overlap_builder, extractMetaDouble_(feature, "var_ms1_isotope_overlap", value), value, "var_ms1_isotope_overlap_score");
-        appendOptionalFloat_(var_ms1_xcorr_coelution_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution", value), value, "var_ms1_xcorr_coelution");
-        appendOptionalFloat_(var_ms1_xcorr_coelution_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_contrast", value), value, "var_ms1_xcorr_coelution_contrast");
-        appendOptionalFloat_(var_ms1_xcorr_coelution_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_combined", value), value, "var_ms1_xcorr_coelution_combined");
-        appendOptionalFloat_(var_ms1_xcorr_shape_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape", value), value, "var_ms1_xcorr_shape");
-        appendOptionalFloat_(var_ms1_xcorr_shape_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_contrast", value), value, "var_ms1_xcorr_shape_contrast");
-        appendOptionalFloat_(var_ms1_xcorr_shape_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_combined", value), value, "var_ms1_xcorr_shape_combined");
+        appendFeatureScore_(ms1_area_builder, feature, "ms1_area_intensity", "ms1_area_intensity");
+        appendFeatureScore_(ms1_apex_builder, feature, "ms1_apex_intensity", "ms1_apex_intensity");
+        appendFeatureScore_(ms1_exp_im_builder, feature, "im_ms1_drift", "ms1_exp_im");
+        appendFeatureScore_(ms1_delta_im_builder, feature, "im_ms1_delta", "ms1_delta_im");
+        appendFeatureScore_(var_ms1_massdev_builder, feature, "var_ms1_ppm_diff", "var_ms1_massdev_score");
+        appendFeatureScore_(var_ms1_im_ms1_delta_builder, feature, "var_im_ms1_delta_score", "var_ms1_im_ms1_delta_score");
+        appendFeatureScore_(var_ms1_mi_builder, feature, "var_ms1_mi_score", "var_ms1_mi_score");
+        appendFeatureScore_(var_ms1_mi_contrast_builder, feature, "var_ms1_mi_contrast_score", "var_ms1_mi_contrast_score");
+        appendFeatureScore_(var_ms1_mi_combined_builder, feature, "var_ms1_mi_combined_score", "var_ms1_mi_combined_score");
+        appendFeatureScore_(var_ms1_iso_corr_builder, feature, "var_ms1_isotope_correlation", "var_ms1_isotope_correlation_score");
+        appendFeatureScore_(var_ms1_iso_overlap_builder, feature, "var_ms1_isotope_overlap", "var_ms1_isotope_overlap_score");
+        appendFeatureScore_(var_ms1_xcorr_coelution_builder, feature, "var_ms1_xcorr_coelution", "var_ms1_xcorr_coelution");
+        appendFeatureScore_(var_ms1_xcorr_coelution_contrast_builder, feature, "var_ms1_xcorr_coelution_contrast", "var_ms1_xcorr_coelution_contrast");
+        appendFeatureScore_(var_ms1_xcorr_coelution_combined_builder, feature, "var_ms1_xcorr_coelution_combined", "var_ms1_xcorr_coelution_combined");
+        appendFeatureScore_(var_ms1_xcorr_shape_builder, feature, "var_ms1_xcorr_shape", "var_ms1_xcorr_shape");
+        appendFeatureScore_(var_ms1_xcorr_shape_contrast_builder, feature, "var_ms1_xcorr_shape_contrast", "var_ms1_xcorr_shape_contrast");
+        appendFeatureScore_(var_ms1_xcorr_shape_combined_builder, feature, "var_ms1_xcorr_shape_combined", "var_ms1_xcorr_shape_combined");
       }
       else
       {
@@ -674,42 +673,42 @@ namespace OpenMS
       }
 
       appendOptionalFloat_(ms2_area_builder, true, feature.getIntensity(), "ms2_area_intensity");
-      appendOptionalFloat_(ms2_total_area_builder, extractMetaDouble_(feature, "total_xic", value), value, "ms2_total_area_intensity");
-      appendOptionalFloat_(ms2_apex_builder, extractMetaDouble_(feature, "peak_apices_sum", value), value, "ms2_apex_intensity");
-      appendOptionalFloat_(ms2_exp_im_builder, extractMetaDouble_(feature, "im_drift", value), value, "ms2_exp_im");
-      appendOptionalFloat_(ms2_exp_im_left_builder, extractMetaDouble_(feature, "im_drift_left", value), value, "ms2_exp_im_leftwidth");
-      appendOptionalFloat_(ms2_exp_im_right_builder, extractMetaDouble_(feature, "im_drift_right", value), value, "ms2_exp_im_rightwidth");
-      appendOptionalFloat_(ms2_delta_im_builder, extractMetaDouble_(feature, "im_delta", value), value, "ms2_delta_im");
-      appendOptionalFloat_(ms2_total_mi_builder, extractMetaDouble_(feature, "total_mi", value), value, "ms2_total_mi");
-      appendOptionalFloat_(var_ms2_bseries_builder, extractMetaDouble_(feature, "var_bseries_score", value), value, "var_ms2_bseries_score");
-      appendOptionalFloat_(var_ms2_dotprod_builder, extractMetaDouble_(feature, "var_dotprod_score", value), value, "var_ms2_dotprod_score");
-      appendOptionalFloat_(var_ms2_intensity_builder, extractMetaDouble_(feature, "var_intensity_score", value), value, "var_ms2_intensity_score");
-      appendOptionalFloat_(var_ms2_iso_corr_builder, extractMetaDouble_(feature, "var_isotope_correlation_score", value), value, "var_ms2_isotope_correlation_score");
-      appendOptionalFloat_(var_ms2_iso_overlap_builder, extractMetaDouble_(feature, "var_isotope_overlap_score", value), value, "var_ms2_isotope_overlap_score");
-      appendOptionalFloat_(var_ms2_library_corr_builder, extractMetaDouble_(feature, "var_library_corr", value), value, "var_ms2_library_corr");
-      appendOptionalFloat_(var_ms2_library_dotprod_builder, extractMetaDouble_(feature, "var_library_dotprod", value), value, "var_ms2_library_dotprod");
-      appendOptionalFloat_(var_ms2_library_manhattan_builder, extractMetaDouble_(feature, "var_library_manhattan", value), value, "var_ms2_library_manhattan");
-      appendOptionalFloat_(var_ms2_library_rmsd_builder, extractMetaDouble_(feature, "var_library_rmsd", value), value, "var_ms2_library_rmsd");
-      appendOptionalFloat_(var_ms2_library_rootmeansquare_builder, extractMetaDouble_(feature, "var_library_rootmeansquare", value), value, "var_ms2_library_rootmeansquare");
-      appendOptionalFloat_(var_ms2_library_sangle_builder, extractMetaDouble_(feature, "var_library_sangle", value), value, "var_ms2_library_sangle");
-      appendOptionalFloat_(var_ms2_log_sn_builder, extractMetaDouble_(feature, "var_log_sn_score", value), value, "var_ms2_log_sn_score");
-      appendOptionalFloat_(var_ms2_manhattan_builder, extractMetaDouble_(feature, "var_manhatt_score", value), value, "var_ms2_manhattan_score");
-      appendOptionalFloat_(var_ms2_massdev_builder, extractMetaDouble_(feature, "var_massdev_score", value), value, "var_ms2_massdev_score");
-      appendOptionalFloat_(var_ms2_massdev_weighted_builder, extractMetaDouble_(feature, "var_massdev_score_weighted", value), value, "var_ms2_massdev_score_weighted");
-      appendOptionalFloat_(var_ms2_mi_builder, extractMetaDouble_(feature, "var_mi_score", value), value, "var_ms2_mi_score");
-      appendOptionalFloat_(var_ms2_mi_weighted_builder, extractMetaDouble_(feature, "var_mi_weighted_score", value), value, "var_ms2_mi_weighted_score");
-      appendOptionalFloat_(var_ms2_mi_ratio_builder, extractMetaDouble_(feature, "var_mi_ratio_score", value), value, "var_ms2_mi_ratio_score");
-      appendOptionalFloat_(var_ms2_norm_rt_builder, extractMetaDouble_(feature, "var_norm_rt_score", value), value, "var_ms2_norm_rt_score");
-      appendOptionalFloat_(var_ms2_xcorr_coelution_builder, extractMetaDouble_(feature, "var_xcorr_coelution", value), value, "var_ms2_xcorr_coelution");
-      appendOptionalFloat_(var_ms2_xcorr_coelution_weighted_builder, extractMetaDouble_(feature, "var_xcorr_coelution_weighted", value), value, "var_ms2_xcorr_coelution_weighted");
-      appendOptionalFloat_(var_ms2_xcorr_shape_builder, extractMetaDouble_(feature, "var_xcorr_shape", value), value, "var_ms2_xcorr_shape");
-      appendOptionalFloat_(var_ms2_xcorr_shape_weighted_builder, extractMetaDouble_(feature, "var_xcorr_shape_weighted", value), value, "var_ms2_xcorr_shape_weighted");
-      appendOptionalFloat_(var_ms2_yseries_builder, extractMetaDouble_(feature, "var_yseries_score", value), value, "var_ms2_yseries_score");
-      appendOptionalFloat_(var_ms2_elution_model_fit_builder, extractMetaDouble_(feature, "var_elution_model_fit_score", value), value, "var_ms2_elution_model_fit_score");
-      appendOptionalFloat_(var_ms2_im_xcorr_shape_builder, extractMetaDouble_(feature, "var_im_xcorr_shape", value), value, "var_ms2_im_xcorr_shape");
-      appendOptionalFloat_(var_ms2_im_xcorr_coelution_builder, extractMetaDouble_(feature, "var_im_xcorr_coelution", value), value, "var_ms2_im_xcorr_coelution");
-      appendOptionalFloat_(var_ms2_im_delta_builder, extractMetaDouble_(feature, "var_im_delta_score", value), value, "var_ms2_im_delta_score");
-      appendOptionalFloat_(var_ms2_im_log_intensity_builder, extractMetaDouble_(feature, "im_log_intensity", value), value, "var_ms2_im_log_intensity");
+      appendFeatureScore_(ms2_total_area_builder, feature, "total_xic", "ms2_total_area_intensity");
+      appendFeatureScore_(ms2_apex_builder, feature, "peak_apices_sum", "ms2_apex_intensity");
+      appendFeatureScore_(ms2_exp_im_builder, feature, "im_drift", "ms2_exp_im");
+      appendFeatureScore_(ms2_exp_im_left_builder, feature, "im_drift_left", "ms2_exp_im_leftwidth");
+      appendFeatureScore_(ms2_exp_im_right_builder, feature, "im_drift_right", "ms2_exp_im_rightwidth");
+      appendFeatureScore_(ms2_delta_im_builder, feature, "im_delta", "ms2_delta_im");
+      appendFeatureScore_(ms2_total_mi_builder, feature, "total_mi", "ms2_total_mi");
+      appendFeatureScore_(var_ms2_bseries_builder, feature, "var_bseries_score", "var_ms2_bseries_score");
+      appendFeatureScore_(var_ms2_dotprod_builder, feature, "var_dotprod_score", "var_ms2_dotprod_score");
+      appendFeatureScore_(var_ms2_intensity_builder, feature, "var_intensity_score", "var_ms2_intensity_score");
+      appendFeatureScore_(var_ms2_iso_corr_builder, feature, "var_isotope_correlation_score", "var_ms2_isotope_correlation_score");
+      appendFeatureScore_(var_ms2_iso_overlap_builder, feature, "var_isotope_overlap_score", "var_ms2_isotope_overlap_score");
+      appendFeatureScore_(var_ms2_library_corr_builder, feature, "var_library_corr", "var_ms2_library_corr");
+      appendFeatureScore_(var_ms2_library_dotprod_builder, feature, "var_library_dotprod", "var_ms2_library_dotprod");
+      appendFeatureScore_(var_ms2_library_manhattan_builder, feature, "var_library_manhattan", "var_ms2_library_manhattan");
+      appendFeatureScore_(var_ms2_library_rmsd_builder, feature, "var_library_rmsd", "var_ms2_library_rmsd");
+      appendFeatureScore_(var_ms2_library_rootmeansquare_builder, feature, "var_library_rootmeansquare", "var_ms2_library_rootmeansquare");
+      appendFeatureScore_(var_ms2_library_sangle_builder, feature, "var_library_sangle", "var_ms2_library_sangle");
+      appendFeatureScore_(var_ms2_log_sn_builder, feature, "var_log_sn_score", "var_ms2_log_sn_score");
+      appendFeatureScore_(var_ms2_manhattan_builder, feature, "var_manhatt_score", "var_ms2_manhattan_score");
+      appendFeatureScore_(var_ms2_massdev_builder, feature, "var_massdev_score", "var_ms2_massdev_score");
+      appendFeatureScore_(var_ms2_massdev_weighted_builder, feature, "var_massdev_score_weighted", "var_ms2_massdev_score_weighted");
+      appendFeatureScore_(var_ms2_mi_builder, feature, "var_mi_score", "var_ms2_mi_score");
+      appendFeatureScore_(var_ms2_mi_weighted_builder, feature, "var_mi_weighted_score", "var_ms2_mi_weighted_score");
+      appendFeatureScore_(var_ms2_mi_ratio_builder, feature, "var_mi_ratio_score", "var_ms2_mi_ratio_score");
+      appendFeatureScore_(var_ms2_norm_rt_builder, feature, "var_norm_rt_score", "var_ms2_norm_rt_score");
+      appendFeatureScore_(var_ms2_xcorr_coelution_builder, feature, "var_xcorr_coelution", "var_ms2_xcorr_coelution");
+      appendFeatureScore_(var_ms2_xcorr_coelution_weighted_builder, feature, "var_xcorr_coelution_weighted", "var_ms2_xcorr_coelution_weighted");
+      appendFeatureScore_(var_ms2_xcorr_shape_builder, feature, "var_xcorr_shape", "var_ms2_xcorr_shape");
+      appendFeatureScore_(var_ms2_xcorr_shape_weighted_builder, feature, "var_xcorr_shape_weighted", "var_ms2_xcorr_shape_weighted");
+      appendFeatureScore_(var_ms2_yseries_builder, feature, "var_yseries_score", "var_ms2_yseries_score");
+      appendFeatureScore_(var_ms2_elution_model_fit_builder, feature, "var_elution_model_fit_score", "var_ms2_elution_model_fit_score");
+      appendFeatureScore_(var_ms2_im_xcorr_shape_builder, feature, "var_im_xcorr_shape", "var_ms2_im_xcorr_shape");
+      appendFeatureScore_(var_ms2_im_xcorr_coelution_builder, feature, "var_im_xcorr_coelution", "var_ms2_im_xcorr_coelution");
+      appendFeatureScore_(var_ms2_im_delta_builder, feature, "var_im_delta_score", "var_ms2_im_delta_score");
+      appendFeatureScore_(var_ms2_im_log_intensity_builder, feature, "im_log_intensity", "var_ms2_im_log_intensity");
 
       auto masserror_ppm = getSeparateScore_(feature, "masserror_ppm");
       const auto& subordinates = feature.getSubordinates();
@@ -755,13 +754,13 @@ namespace OpenMS
           ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
           ParquetFile::appendOrThrow(ft_transition_id_builder.Append(transition_id_value), "transition_id");
           appendOptionalFloat_(ft_area_builder, true, sub_it.getIntensity(), "area_intensity");
-          appendOptionalFloat_(ft_total_area_builder, extractMetaDouble_(sub_it, "total_xic", value), value, "total_area_intensity");
-          appendOptionalFloat_(ft_apex_int_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
-          appendOptionalFloat_(ft_apex_rt_builder, extractMetaDouble_(sub_it, "peak_apex_position", value), value, "apex_rt");
-          appendOptionalFloat_(ft_rt_fwhm_builder, extractMetaDouble_(sub_it, "width_at_50", value), value, "rt_fwhm");
+          appendFeatureScore_(ft_total_area_builder, sub_it, "total_xic", "total_area_intensity");
+          appendFeatureScore_(ft_apex_int_builder, sub_it, "peak_apex_int", "apex_intensity");
+          appendFeatureScore_(ft_apex_rt_builder, sub_it, "peak_apex_position", "apex_rt");
+          appendFeatureScore_(ft_rt_fwhm_builder, sub_it, "width_at_50", "rt_fwhm");
           appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, static_cast<Size>(ms2_index), "masserror_ppm");
           ++ms2_index;
-          appendOptionalFloat_(ft_total_mi_builder, extractMetaDouble_(sub_it, "total_mi", value), value, "total_mi");
+          appendFeatureScore_(ft_total_mi_builder, sub_it, "total_mi", "total_mi");
           ParquetFile::appendOrThrow(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
           ParquetFile::appendOrThrow(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
           ParquetFile::appendOrThrow(ft_var_log_intensity_builder.AppendNull(), "var_log_intensity");
@@ -784,20 +783,38 @@ namespace OpenMS
           ParquetFile::appendOrThrow(ft_var_im_xcorr_coelution_combined_builder.AppendNull(), "var_im_xcorr_coelution_combined");
           ParquetFile::appendOrThrow(ft_var_im_xcorr_shape_combined_builder.AppendNull(), "var_im_xcorr_shape_combined");
 
-          const bool has_peak_shape = sub_it.metaValueExists("start_position_at_5");
-          appendOptionalFloat_(ft_start_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_5", value), value, "start_position_at_5");
-          appendOptionalFloat_(ft_end_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_5", value), value, "end_position_at_5");
-          appendOptionalFloat_(ft_start_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_10", value), value, "start_position_at_10");
-          appendOptionalFloat_(ft_end_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_10", value), value, "end_position_at_10");
-          appendOptionalFloat_(ft_start_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_50", value), value, "start_position_at_50");
-          appendOptionalFloat_(ft_end_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_50", value), value, "end_position_at_50");
-          appendOptionalFloat_(ft_total_width_builder, has_peak_shape && extractMetaDouble_(sub_it, "total_width", value), value, "total_width");
-          appendOptionalFloat_(ft_tailing_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "tailing_factor", value), value, "tailing_factor");
-          appendOptionalFloat_(ft_asymmetry_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "asymmetry_factor", value), value, "asymmetry_factor");
-          appendOptionalFloat_(ft_slope_of_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "slope_of_baseline", value), value, "slope_of_baseline");
-          appendOptionalFloat_(ft_baseline_delta_2_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "baseline_delta_2_height", value), value, "baseline_delta_2_height");
-          appendOptionalFloat_(ft_points_across_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_baseline", value), value, "points_across_baseline");
-          appendOptionalFloat_(ft_points_across_half_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_half_height", value), value, "points_across_half_height");
+          if (sub_it.metaValueExists("start_position_at_5"))
+          {
+            appendFeatureScore_(ft_start_position_at_5_builder, sub_it, "start_position_at_5", "start_position_at_5");
+            appendFeatureScore_(ft_end_position_at_5_builder, sub_it, "end_position_at_5", "end_position_at_5");
+            appendFeatureScore_(ft_start_position_at_10_builder, sub_it, "start_position_at_10", "start_position_at_10");
+            appendFeatureScore_(ft_end_position_at_10_builder, sub_it, "end_position_at_10", "end_position_at_10");
+            appendFeatureScore_(ft_start_position_at_50_builder, sub_it, "start_position_at_50", "start_position_at_50");
+            appendFeatureScore_(ft_end_position_at_50_builder, sub_it, "end_position_at_50", "end_position_at_50");
+            appendFeatureScore_(ft_total_width_builder, sub_it, "total_width", "total_width");
+            appendFeatureScore_(ft_tailing_factor_builder, sub_it, "tailing_factor", "tailing_factor");
+            appendFeatureScore_(ft_asymmetry_factor_builder, sub_it, "asymmetry_factor", "asymmetry_factor");
+            appendFeatureScore_(ft_slope_of_baseline_builder, sub_it, "slope_of_baseline", "slope_of_baseline");
+            appendFeatureScore_(ft_baseline_delta_2_height_builder, sub_it, "baseline_delta_2_height", "baseline_delta_2_height");
+            appendFeatureScore_(ft_points_across_baseline_builder, sub_it, "points_across_baseline", "points_across_baseline");
+            appendFeatureScore_(ft_points_across_half_height_builder, sub_it, "points_across_half_height", "points_across_half_height");
+          }
+          else
+          {
+            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
+            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
+            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
+            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
+            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
+            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
+            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
+            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
+            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
+            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
+            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
+            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
+            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
+          }
         }
         else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
@@ -816,7 +833,7 @@ namespace OpenMS
           ParquetFile::appendOrThrow(fp_run_id_builder.Append(run_id_clean), "run_id");
           ParquetFile::appendOrThrow(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "precursor_isotope");
           appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "precursor_area_intensity");
-          appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "precursor_apex_intensity");
+          appendFeatureScore_(fp_apex_builder, sub_it, "peak_apex_int", "precursor_apex_intensity");
         }
       }
 
