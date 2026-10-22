@@ -28,6 +28,8 @@
 
 #include <algorithm>
 #include <cctype>
+#include <charconv>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -1109,6 +1111,42 @@ bool getBoolValue(const std::shared_ptr<arrow::Array>& array, int64_t row, bool 
 bool isNull(const std::shared_ptr<arrow::Array>& array, int64_t row)
 {
   return !array || array->IsNull(row);
+}
+
+std::string metaValueString(const DataValue& value)
+{
+  // Shortest decimal that reads back as the same double. NaN as DataValue::toString() writes it, since
+  // StringUtils::toDouble() reads "NaN" and "inf"/"-inf" but std::to_chars writes "nan".
+  const auto append_double = [](double d, std::string& target)
+  {
+    if (std::isnan(d)) { target += "NaN"; return; }
+    char buf[32];
+    const auto result = std::to_chars(buf, buf + sizeof(buf), d);
+    target.append(buf, result.ptr);
+  };
+
+  std::string s;
+  if (value.valueType() == DataValue::DOUBLE_VALUE)
+  {
+    append_double(static_cast<double>(value), s);
+  }
+  else if (value.valueType() == DataValue::DOUBLE_LIST)
+  {
+    // the list format of DataValue::toString(), "[a, b, c]"
+    s += '[';
+    const DoubleList list = value.toDoubleList();
+    for (Size i = 0; i < list.size(); ++i)
+    {
+      if (i > 0) s += ", ";
+      append_double(list[i], s);
+    }
+    s += ']';
+  }
+  else
+  {
+    s = value.toString();
+  }
+  return s;
 }
 
 void readMetaValues(

@@ -76,39 +76,31 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over m/z
-        //for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
-        #pragma omp parallel for
-        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
+        filterSpectrum_(idx_rt, pattern_idx, [&](SignedSize s, std::vector<BlacklistEntry>* blacklist_reads) -> std::optional<MultiplexFilteredPeak>
         {
-          auto& it_mz = it_rt[s];
-          double mz = it_mz.getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][s], idx_rt);
+          double mz = it_rt[s].getMZ();
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt].at(s), idx_rt);
           
-          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak, blacklist_reads)))
           {
-            continue;
+            return std::nullopt;
           }
           
           if (!(filterAveragineModel_(pattern, peak)))
           {
-            continue;
+            return std::nullopt;
           }
 
           if (!(filterPeptideCorrelation_(pattern, peak)))
           {
-            continue;
+            return std::nullopt;
           }
           
           /**
            * All filters passed.
            */
-
-          #pragma omp critical
-          {
-            result.addPeak(peak);
-            blacklistPeak_(peak, pattern_idx);
-          };
-        }
+          return peak;
+        }, result);
       }
       
       // add results of this pattern to list

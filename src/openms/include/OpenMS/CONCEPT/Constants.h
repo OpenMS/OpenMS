@@ -455,6 +455,19 @@ namespace OpenMS
       */
       inline const std::string   PEPTIDE_Q_VALUE = "peptide q-value";
 
+      /** User parameter name for the map indices of the runs a ConsensusFeature's identification was
+          transferred to by match-between-runs (written by PipEchoAlgorithm). ConsensusMap::appendColumns()
+          shifts them together with the map indices of the features.
+              IntList
+      */
+      inline const std::string   MBR_TRANSFER_MAP_INDICES = "mbr_transfer_map_indices";
+
+      /** User parameter name for the q-values of the match-between-runs transfers of a ConsensusFeature,
+          in the order of MBR_TRANSFER_MAP_INDICES (written by PipEchoAlgorithm)
+              DoubleList
+      */
+      inline const std::string   MBR_TRANSFER_QVALUES = "mbr_transfer_qvalues";
+
       // Cross-Linking Mass Spectrometry user parameters
       /** Name of OpenPepXL main score (PSI CV term)
               String
