@@ -5566,6 +5566,18 @@ add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_x/same.mzML;${TESTS_TEMP_DIR}/ProSE_14_y/same.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_qpx;${TESTS_TEMP_DIR}/ProSE_14_same_name"
   -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=Duplicate input basename 'same'" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
+# An input of basename quantms (in any letter case): its own files in the -out_qpx directory would be overwritten by the
+# QPX files of the whole run (quantms.psm.parquet, ...), so ProSE refuses the run before searching (exit code 6,
+# ILLEGAL_PARAMETERS) and writes none.
+set(_reserved_names quantms QuantMS)
+set(_reserved_cases lower mixed)
+foreach(_name _case IN ZIP_LISTS _reserved_names _reserved_cases)
+  add_test("TOPP_ProSE_14_reserved_stem_${_case}" ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/${_name}.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_qpx;${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case}"
+    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename '${_name}', the name of the QPX files of the whole run"
+    -DABSENT_FILE=${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case}/quantms.psm.parquet -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_case}" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
+endforeach()
 # -qpx_extended extends -out_qpx: without it, ProSE refuses the run (exit code 6).
 add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${_prose14_mzml};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_14_needs_qpx.tmp.idXML;-qpx_extended"

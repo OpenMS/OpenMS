@@ -169,6 +169,8 @@ the prediction of one PSM alone; the psm file's footer has the keys of its predi
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
 files were written, in input order, without the prediction columns (and no rows if there are none). The output
 directory holds the per-input files next to the quantms.* ones: open it as a QPX dataset with the prefix 'quantms'.
+(An input with the basename 'quantms', in any letter case, is refused with -out_qpx: its own files would be overwritten
+by the quantms.* files of the run.)
 At the end of the run three QPX metadata views describe it:
 quantms.run.parquet (one row per input, in input order): 'run_accession' and 'run_file_name' (the input's stem),
 'file_name', 'samples' (one sample per run: the stem, label 'LFQ'; ProSE knows no design), 'fraction', 'instrument',
@@ -1461,6 +1463,9 @@ class ProSE :
         return ILLEGAL_PARAMETERS;
       }
 
+      // The stem of the files of the whole run in the -out_qpx directory (quantms.psm.parquet, ...), next to the
+      // per-input files <stem>.psm.parquet, ...: reserved, as an input of that stem would have its files overwritten
+      static const std::string QPX_AGGREGATE_STEM = "quantms";
       // Validate basenames are unique (for parquet directory output)
       if (!out_qpx_dir.empty() || !out_parquet_dir.empty())
       {
@@ -1468,6 +1473,14 @@ class ProSE :
         for (const auto& in_file : in_list)
         {
           std::string bn = File::stemName(in_file);
+          // (in any letter case: the file systems of Windows and macOS do not tell quantms.* from Quantms.*)
+          if (!out_qpx_dir.empty() && StringUtils::toLowered(bn) == QPX_AGGREGATE_STEM)
+          {
+            OPENMS_LOG_ERROR << "Input file '" << in_file << "' has basename '" << bn << "', the name of the QPX files of"
+                             << " the whole run in the -out_qpx directory (" << QPX_AGGREGATE_STEM << ".psm.parquet, ...),"
+                             << " which would overwrite its own. Rename the file." << endl;
+            return ILLEGAL_PARAMETERS;
+          }
           if (!basenames.insert(bn).second)
           {
             OPENMS_LOG_ERROR << "Duplicate input basename '" << bn
@@ -2088,7 +2101,7 @@ class ProSE :
         if (psm_meta)
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", psm_config, psm_meta) && merged_ok;
+            qpx_psm_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet", psm_config, psm_meta) && merged_ok;
         }
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.
@@ -2097,13 +2110,13 @@ class ProSE :
           if (pg_meta && pooled_pg_table && ArrowIOHelpers::tableRowCount(pooled_pg_table) > 0)
           {
             merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-              {pooled_pg_table}, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+              {pooled_pg_table}, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
           }
         }
         else if (pg_meta && !qpx_pg_tables.empty())
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+            qpx_pg_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
         }
       };
 
@@ -2217,7 +2230,7 @@ class ProSE :
                                                              pooled_pg, mod_delta_masses, mod_ptms))}};
           for (const auto& [view, table] : views)
           {
-            const std::string file = out_qpx_dir + "/quantms." + view + ".parquet";
+            const std::string file = out_qpx_dir + "/" + QPX_AGGREGATE_STEM + "." + view + ".parquet";
             const auto meta = ArrowIOHelpers::qpxFileMetadata(view + "_file");
             if (!table || !meta || !ArrowIOHelpers::concatenateAndWriteToParquet({table}, file, ParquetWriteConfig{}, meta))
             {
