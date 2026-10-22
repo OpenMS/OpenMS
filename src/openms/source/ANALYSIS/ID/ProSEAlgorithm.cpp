@@ -6767,19 +6767,6 @@ namespace OpenMS
         y << "      calibration: " << num(st.seconds_calibration) << "\n";
         y << "      search: " << num(st.seconds_search) << "\n";
         y << "      fdr: " << num(st.seconds_fdr) << "\n";
-        // Percolator rescoring of the file ('rescore'; with it off nothing is attempted: not applied, no reason).
-        y << "    percolator:\n";
-        y << "      applied: " << bol(pf.percolator.applied) << "\n";
-        y << "      skipped_reason: " << q(pf.percolator.skipped_reason) << "\n";
-        y << "      warning: " << q(pf.percolator.warning) << "\n";
-        // The NCE of the file's PeptDeep predictions: the run meta value PeptDeepRescoring::NCE_META_VALUE, spelled out
-        // because PeptDeepRescoring exists only in builds with ONNX Runtime; null: none.
-        double nce = std::numeric_limits<double>::quiet_NaN();
-        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists("peptdeep_nce"))
-        {
-          nce = static_cast<double>(pf.protein_ids[0].getMetaValue("peptdeep_nce"));
-        }
-        y << "    peptdeep_nce: " << num(nce) << "\n";
       }
     }
 

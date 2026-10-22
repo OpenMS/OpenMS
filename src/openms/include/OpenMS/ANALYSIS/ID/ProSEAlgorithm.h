@@ -1480,9 +1480,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                           std::ostream& os);
 
     /// Serialize the complete end-of-search report to a machine-readable YAML string:
-    /// shared configuration/database/index facts, per-file identification
-    /// statistics (with the Percolator outcome and the NCE of the PeptDeep predictions,
-    /// PeptDeepRescoring::NCE_META_VALUE of the file's run, null if none),
+    /// shared configuration/database/index facts, per-file identification statistics,
     /// the output-file @p manifest (label -> written paths) and failed/total file counts.
     /// Hand-rolled (no YAML library dependency); every string scalar is double-quoted so
     /// values containing ':' (e.g. Windows paths) or other YAML metacharacters round-trip
