@@ -1031,9 +1031,11 @@ namespace OpenMS
       --iterator;
       if (ms_level - iterator->getMSLevel() == 1)
       {
-        // same tolerance as IsobaricChannelExtractor and IsobaricWorkflow use for "same CV"
-        if (faims && (iterator->getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
-                      || std::fabs(iterator->getDriftTime() - cv) >= 0.01))
+        // A survey scan of another CV is skipped (same tolerance as IsobaricChannelExtractor and IsobaricWorkflow use for
+        // "same CV"). One without a CV is accepted: some converters annotate the CV on MS2 spectra only, and requiring it
+        // on the survey scans would leave such files without any precursor spectrum.
+        if (faims && iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+            && std::fabs(iterator->getDriftTime() - cv) >= 0.01)
         {
           continue;
         }
