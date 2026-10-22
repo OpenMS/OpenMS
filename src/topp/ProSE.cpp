@@ -9,10 +9,15 @@
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/openms_data_path.h>
 #ifdef WITH_ONNX
 #include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>
@@ -48,6 +53,7 @@
 #include <iomanip>
 #include <limits>
 #include <new>
+#include <numeric>
 #include <optional>
 #include <sstream>
 
@@ -124,17 +130,21 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Extended QPX output: '-qpx_extended' (with '-out_qpx') adds optional columns to the QPX psm view and the
 statistics of the run to the footer of its Parquet files, so that a viewer can show a search from the QPX files alone.
 QPX readers ignore columns and keys they do not know; the names are those proposed in bigbio/qpx#355 and #259. Each
-row of the per-input <basename>.psm.parquet and of quantms.psm.parquet gets: 'additional_scores' with every numeric
-score and meta value of the PSM in snake_case instead of the known scores only ('global_qvalue': the PSM q-value of its
-input file, from target-decoy competition or Percolator; 'ln_hyperscore'; Percolator's 'percolator_score',
-'percolator_qvalue', 'percolator_pep'; 'precursor_mz_error_ppm' (corrected for the isotope error), 'delta_mass' (open
-search) and the Percolator features), with 'higher_better' where it is known; 'spectrum_reference' (string, the native
-ID of the spectrum); 'isotope_error' (int16: the 13C peaks from the monoisotopic to the selected precursor peak, i.e.
-observed minus theoretical); 'protein_mappings' (list of struct accession, start, end, aa_before, aa_after: each protein
-of the peptide with the peptide's 1-based first and last position and the residues before and after it, '-' at a
-protein terminus); 'peak_mz_array' and 'peak_intensity_array' (float32, by m/z: the peaks of the spectrum as the input
-file has them, filtered: the '-qpx_peak_top' most intense peaks of each '-qpx_peak_window' Th window (WindowMower,
-jumping windows) and every peak of the fragment annotation 'mz_array'; '-qpx_peak_top 0' keeps all); and
+row of the per-input psm.parquet files and of quantms.psm.parquet gets: 'additional_scores' with every numeric
+score and meta value of the PSM in snake_case instead of the known scores only ('global_qvalue': the PSM-level q-value,
+from target-decoy competition or Percolator, computed over the PSMs of the input file; 'ln_hyperscore'; Percolator's
+'percolator_score', 'percolator_qvalue', 'percolator_pep'; 'precursor_mz_error_ppm' (corrected for the isotope error),
+'isotope_error' (as the column), 'delta_mass' (open search) and the Percolator features), with 'higher_better' where it
+is known; 'spectrum_reference' (string, the native ID of the spectrum); 'isotope_error' (int16: the 13C peaks from the
+monoisotopic to the selected precursor peak, i.e. observed minus theoretical, whatever
+'Search:report:isotope_error_convention' says); 'protein_mappings' (list of struct accession, start, end, aa_before,
+aa_after: each protein of the peptide with the peptide's 1-based first and last position and the residues before and
+after it, '-' at a protein terminus). The per-input files also get 'peak_mz_array' and 'peak_intensity_array'
+(float32, by m/z: the peaks of the spectrum as the input file has them, filtered: the '-qpx_peak_top' most intense
+peaks of each '-qpx_peak_window' Th window (jumping windows: each starts at its first peak; the last one too keeps
+'-qpx_peak_top' peaks) and the peaks of the fragment annotation
+'mz_array' ('-qpx_peak_top 0' keeps all); of deisotoped spectra, whose annotation has every fragment at its 1+ m/z, also
+the peak of the fragment at its own charge 2 or 3, so that every annotated fragment keeps its peak); and
 'predicted_ion_type_array', 'predicted_mz_array', 'predicted_intensity_array': the b and y ions of charge 1 and (for
 precursors of charge 2 or more) 2, named as in 'ion_type_array' ("b3+", "y5++"), with their theoretical m/z and the
 intensity PeptDeep predicts, relative to the most intense of them; ions of 0.01 or less are left out. The predictions
@@ -142,22 +152,28 @@ use the settings of 'Search:peptdeep:*' (models, instrument) at the normalised c
 PeptDeep rescoring used ('Search:peptdeep:enable'; predicted again at that NCE), else 'Search:peptdeep:nce' if set,
 else the one PeptDeep rescoring selects, run on a copy of the written PSMs; PSMs of precursor charge 1 to 6 are
 predicted, others get null. Each input is read once more after its search for the peaks; a failed re-read or
-prediction is a warning and leaves the columns null; without ONNX Runtime the prediction columns are null. The footer
-of every psm.parquet of the run (they are written at its end) has the same keys about the whole run:
-'prose_database_file', 'prose_enzyme', 'prose_enzyme_specificity' (none, semi, full), 'prose_clip_nterm_methionine',
-'prose_decoy_mode', 'prose_decoy_string', 'prose_decoy_position' (prefix, suffix), 'prose_open_search',
-'prose_calibration', 'prose_chunked' (true, false), 'prose_db_target_proteins', 'prose_db_decoy_proteins',
-'prose_indexed_peptides', 'prose_indexed_fragments', 'prose_seconds_index_build', 'prose_seconds_total',
-'prose_min_charge', 'prose_max_charge', 'prose_psm_fdr', 'prose_protein_fdr', 'prose_protein_fdr_applied' (the protein
-FDR was applied to a complete protein set: one input, or the pooled set of -out_merged), 'prose_extra_features' (the
-Percolator features beyond the standard ones, by their names in 'additional_scores', comma-separated),
-'prose_peak_window', 'prose_peak_top' (the peak filter), 'prose_mod_analysis_delta_masses' and 'prose_mod_analysis_ptms'
-(open search with -out_mod_analysis_dir: the file names of the tables of the run in that directory, of one input its
-own, of several the aggregate), and 'prose_files', a JSON array with an object per input in input order: input_file,
-exit_code, ms2_spectra, target_psms, decoy_psms, percolator (applied, skipped_reason, warning), peptdeep_nce (null:
-none), precursor_error and fragment_error (median_ppm, mad_ppm, recommended_ppm; null: no estimate), seconds_search.
+prediction is a warning and leaves the columns null; without ONNX Runtime the prediction columns are null. A per-input
+psm file is written as soon as its input is done (its peaks are not kept for the rest of the run), in row groups of 256
+rows, so that a viewer can read the peaks of one PSM alone; quantms.psm.parquet has the rows of the inputs whose file
+was written, without the peak and prediction columns (and no rows if there are none). The footer of every psm file has
+the keys of the search: 'prose_database_file', 'prose_enzyme', 'prose_enzyme_specificity' (none, semi, full),
+'prose_clip_nterm_methionine', 'prose_decoy_mode', 'prose_decoy_string', 'prose_decoy_position' (prefix, suffix),
+'prose_open_search', 'prose_calibration', 'prose_chunked' (true, false), 'prose_db_target_proteins',
+'prose_db_decoy_proteins', 'prose_indexed_peptides', 'prose_indexed_fragments', 'prose_seconds_index_build',
+'prose_min_charge', 'prose_max_charge', 'prose_psm_fdr', 'prose_protein_fdr', 'prose_extra_features' (the Percolator
+features beyond the standard ones, by their names in 'additional_scores', comma-separated),
+'prose_isotope_error_convention' (the sign of ProSE's own isotope_error meta value, which Percolator saw:
+observed_minus_theoretical or theoretical_minus_observed), 'prose_peak_window', 'prose_peak_top' (the peak filter). A
+per-input file adds 'prose_file', a JSON object about its input: input_file, exit_code, ms2_spectra, target_psms,
+decoy_psms, percolator (applied, skipped_reason, warning), peptdeep_nce (null: none), precursor_error and
+fragment_error (median_ppm, mad_ppm, recommended_ppm; null: no estimate), seconds_search. quantms.psm.parquet adds the
+keys about the whole run: 'prose_seconds_total', 'prose_protein_fdr_applied' (the protein FDR was applied to a complete
+protein set: one input, or the pooled set of -out_merged), 'prose_mod_analysis_delta_masses' and
+'prose_mod_analysis_ptms' (open search with -out_mod_analysis_dir: the file names of the tables of the run in that
+directory, of one input its own, of several the aggregate), and 'prose_files', a JSON array of the objects of
+'prose_file' of every input in input order, each with 'psm_rows', its rows in quantms.psm.parquet (0: none).
 Protein groups: with '-qpx_extended' a run without protein inference gets one group per protein in its pg.parquet
-(global_qvalue NaN), and with '-out_merged' and several inputs quantms.pg.parquet holds the groups of the pooled
+(global_qvalue null), and with '-out_merged' and several inputs quantms.pg.parquet holds the groups of the pooled
 inference (with its protein FDR) instead of the concatenated groups of the inputs.
 @note Decoys: '-keep_decoys' keeps the decoy PSMs and decoy proteins that pass the FDR thresholds where the protein FDR
 would remove them (a single input, and -out_merged), e.g. for showing target and decoy score distributions. With
@@ -223,10 +239,10 @@ class ProSE :
 
       registerFlag_("no_summary", "Suppress the end-of-search report printed to the command line. The -summary_out YAML file (if requested) is still written.", true);
 
-      registerFlag_("qpx_extended", "With -out_qpx: add optional columns to the QPX psm view (all scores in 'additional_scores', 'spectrum_reference', 'isotope_error', 'protein_mappings', the filtered peaks of the spectrum and PeptDeep's predicted b/y intensities) and the statistics of the run to the footer of its psm.parquet files ('prose_' keys); a run without protein inference gets one protein group per protein. See the tool documentation.", true);
+      registerFlag_("qpx_extended", "With -out_qpx: add optional columns to the QPX psm view (all scores in 'additional_scores', 'spectrum_reference', 'isotope_error', 'protein_mappings'; in the per-input files also the filtered peaks of the spectrum and PeptDeep's predicted b/y intensities) and the statistics of the run to the footer of its psm.parquet files ('prose_' keys); a run without protein inference gets one protein group per protein. See the tool documentation.", true);
       registerDoubleOption_("qpx_peak_window", "<Th>", 100.0, "-qpx_extended: the m/z window of the peak filter.", false, true);
       setMinFloat_("qpx_peak_window", 1.0);
-      registerIntOption_("qpx_peak_top", "<n>", 300, "-qpx_extended: the most intense peaks kept per -qpx_peak_window (with every annotated peak); 0 keeps all peaks.", false, true);
+      registerIntOption_("qpx_peak_top", "<n>", 100, "-qpx_extended: the most intense peaks kept per -qpx_peak_window (with every annotated peak); 0 keeps all peaks.", false, true);
       setMinInt_("qpx_peak_top", 0);
       registerFlag_("keep_decoys", "Keep the decoy PSMs and proteins that pass the FDR thresholds in the outputs; the protein FDR (one input, or -out_merged) otherwise removes them.", true);
 
@@ -247,20 +263,51 @@ class ProSE :
       std::vector<float> mz, intensity;
     };
 
+    /// The rows per row group of the per-input psm files of -qpx_extended: a viewer reads the peaks of one PSM by
+    /// decoding its row group (with ~1,000 peaks per spectrum about 2 MB of peaks)
+    static constexpr Int64 QPX_SPECTRA_ROW_GROUP = 256;
+
     /// The peak filter of -qpx_extended: the @p top most intense peaks per @p window Th (0: all), and the annotated ones
     struct PeakFilter_
     {
       double window = 100.0;
-      Size top = 300;
+      Size top = 100;
+      /// The fragment annotation is of deisotoped spectra ('Search:fragment:deisotope', a high-resolution fragment
+      /// tolerance): the deisotoper moved each fragment of charge z (up to @p max_charge, or the precursor's charge with
+      /// @p cap_at_precursor) to its 1+ m/z, which is no peak of the spectrum as the file has it.
+      bool deisotoped = false;
+      int max_charge = 3;
+      bool cap_at_precursor = true;
     };
+
+    /// The deisotoping of ProSE's search for PeakFilter_ (as ProSEAlgorithm decides it, from its parameters @p search_params)
+    static void setDeisotoping_(const Param& search_params, PeakFilter_& filter)
+    {
+      const auto value = [&](const std::string& key, const std::string& fallback)
+      {
+        return search_params.exists(key) ? search_params.getValue(key).toString() : fallback;
+      };
+      const double tolerance = search_params.exists("fragment:mass_tolerance")
+                                 ? static_cast<double>(search_params.getValue("fragment:mass_tolerance")) : 20.0;
+      filter.deisotoped = value("fragment:deisotope", "auto") != "false"
+                          && Deisotoper::isToleranceSupported(tolerance, value("fragment:mass_tolerance_unit", "ppm") == "ppm");
+      filter.cap_at_precursor = value("fragment:deisotope_charge_cap", "precursor") == "precursor";
+    }
 
     /**
       @brief The indices of the peaks of @p spectrum (sorted by m/z) that the filter keeps: the most intense ones per
-      window (WindowMower, jumping windows) and those nearest to the m/z of the fragment annotation @p annotations
-      (within 0.01 Th). All peaks if @p filter.top is 0.
+      window (jumping windows, as WindowMower's but with the full quota in the last one) and those of the fragment
+      annotation @p annotations. All peaks if @p filter.top is 0.
+
+      An annotated m/z keeps the peak nearest to it (within 0.01 Th). Of deisotoped spectra (@p filter.deisotoped) it
+      also keeps, for each charge z from 2 to the deisotoper's maximum (3, or @p precursor_charge if lower and
+      @p filter.cap_at_precursor), the peak nearest to (m/z + (z - 1) * proton) / z (within 0.01 Th): the monoisotopic
+      peak of a fragment of charge z, which the deisotoper moved to the annotated 1+ m/z. (That conversion is exact, so
+      the raw peak lies at that m/z.) Every annotated fragment thus keeps its peak in the spectrum as the file has it; a
+      1+ fragment may keep an unrelated peak at its 2+ or 3+ position too.
     */
     static std::vector<Size> keptPeaks_(const MSSpectrum& spectrum, const std::vector<PeptideHit::PeakAnnotation>& annotations,
-                                        const PeakFilter_& filter)
+                                        int precursor_charge, const PeakFilter_& filter)
     {
       std::vector<bool> keep(spectrum.size(), filter.top == 0);
       auto indexOf = [&spectrum](double mz) -> Size // the peak nearest to mz
@@ -273,19 +320,32 @@ class ProSE :
       };
       if (filter.top > 0 && !spectrum.empty())
       {
-        MSSpectrum mowed = spectrum;
-        WindowMower mower;
-        Param p = mower.getParameters();
-        p.setValue("windowsize", filter.window);
-        p.setValue("peakcount", static_cast<int>(filter.top));
-        p.setValue("movetype", "jump");
-        mower.setParameters(p);
-        mower.filterPeakSpectrum(mowed);
-        for (const Peak1D& peak : mowed) { keep[indexOf(peak.getMZ())] = true; }
+        // Jumping windows as WindowMower's (a window starts at its first peak; the next at the first peak past it),
+        // but the last window keeps the full quota too: WindowMower scales it by the window's width, which would
+        // drop the highest-m/z peaks of nearly every spectrum.
+        std::vector<Size> order;
+        for (Size begin = 0, end = 0; begin < spectrum.size(); begin = end)
+        {
+          while (end < spectrum.size() && spectrum[end].getMZ() - spectrum[begin].getMZ() < filter.window) { ++end; }
+          order.resize(end - begin);
+          std::iota(order.begin(), order.end(), begin);
+          const Size n = std::min(filter.top, order.size());
+          std::partial_sort(order.begin(), order.begin() + n, order.end(), [&spectrum](Size a, Size b)
+          {
+            return spectrum[a].getIntensity() > spectrum[b].getIntensity() || (spectrum[a].getIntensity() == spectrum[b].getIntensity() && a < b);
+          });
+          for (Size k = 0; k < n; ++k) { keep[order[k]] = true; }
+        }
+        int max_charge = filter.deisotoped ? filter.max_charge : 1;
+        if (filter.deisotoped && filter.cap_at_precursor && precursor_charge > 0) { max_charge = std::min(max_charge, precursor_charge); }
         for (const PeptideHit::PeakAnnotation& a : annotations)
         {
-          const Size i = indexOf(a.mz);
-          if (std::fabs(spectrum[i].getMZ() - a.mz) <= 0.01) { keep[i] = true; }
+          for (int z = 1; z <= std::max(1, max_charge); ++z)
+          {
+            const double mz = (a.mz + (z - 1) * Constants::PROTON_MASS_U) / z;
+            const Size i = indexOf(mz);
+            if (std::fabs(spectrum[i].getMZ() - mz) <= 0.01) { keep[i] = true; }
+          }
         }
       }
       std::vector<Size> kept;
@@ -366,7 +426,8 @@ class ProSE :
           PSMSpectrum_& entry = out[i];
           entry.has_peaks = true;
           ++with_peaks;
-          const std::vector<Size> kept = keptPeaks_(*spectrum, peptide_ids[i].getHits()[0].getPeakAnnotations(), filter);
+          const PeptideHit& hit = peptide_ids[i].getHits()[0];
+          const std::vector<Size> kept = keptPeaks_(*spectrum, hit.getPeakAnnotations(), hit.getCharge(), filter);
           peaks_read += spectrum->size();
           peaks_kept += kept.size();
           entry.peak_mz.reserve(kept.size());
@@ -648,15 +709,33 @@ class ProSE :
       return std::nullopt;
     }
 
+    /// Whether ProSE's 'isotope_error' meta values of the run @p protein_ids are observed minus theoretical (the record
+    /// 'isotope_error_convention' of its search parameters; without it they are theoretical minus observed)
+    static bool isotopeObservedMinusTheoretical_(const std::vector<ProteinIdentification>& protein_ids)
+    {
+      if (protein_ids.empty()) { return true; } // no PSMs: no isotope errors
+      const ProteinIdentification::SearchParameters& sp = protein_ids[0].getSearchParameters();
+      return sp.metaValueExists("isotope_error_convention")
+             && sp.getMetaValue("isotope_error_convention").toString() == "observed_minus_theoretical";
+    }
+
+    /// The columns -qpx_extended adds to the QPX psm view of a file (extendedColumns_()): those of every QPX file of
+    /// the run, and the spectrum columns of the per-input files only
+    struct ExtendedColumns_
+    {
+      std::vector<ArrowIOHelpers::ParquetColumn> rows;
+      std::vector<ArrowIOHelpers::ParquetColumn> spectra;
+    };
+
     /**
       @brief The columns -qpx_extended adds to the QPX psm view of a file, one entry per row of the view (the best hit
       of each element of @p peptide_ids with hits): 'additional_scores' (replaced: every numeric score and meta value
-      of the PSM in snake_case), 'spectrum_reference', 'isotope_error', 'protein_mappings', the peaks and the
-      predictions of @p spectra.
+      of the PSM in snake_case), 'spectrum_reference', 'isotope_error', 'protein_mappings' (ExtendedColumns_::rows);
+      the peaks and the predictions of @p spectra (ExtendedColumns_::spectra), which are moved out of @p spectra.
     */
-    static std::vector<ArrowIOHelpers::ParquetColumn> extendedColumns_(const std::vector<ProteinIdentification>& protein_ids,
-                                                                       const PeptideIdentificationList& peptide_ids,
-                                                                       const std::vector<PSMSpectrum_>& spectra)
+    static ExtendedColumns_ extendedColumns_(const std::vector<ProteinIdentification>& protein_ids,
+                                             const PeptideIdentificationList& peptide_ids,
+                                             std::vector<PSMSpectrum_>& spectra)
     {
       using Column = ArrowIOHelpers::ParquetColumn;
       auto column = [](const std::string& name, Column::Type type) { Column c; c.name = name; c.type = type; return c; };
@@ -671,13 +750,9 @@ class ProSE :
       Column intensity = column("predicted_intensity_array", Column::Type::FLOAT_LIST);
 
       // The isotope error as QPX has it (bigbio/qpx#355: the 13C peaks from the monoisotopic to the selected peak, i.e.
-      // observed minus theoretical); ProSE's meta value follows 'report:isotope_error_convention'.
-      int isotope_sign = 1;
-      if (!protein_ids.empty() && protein_ids[0].getSearchParameters().metaValueExists("isotope_error_convention")
-          && protein_ids[0].getSearchParameters().getMetaValue("isotope_error_convention").toString() == "theoretical_minus_observed")
-      {
-        isotope_sign = -1;
-      }
+      // observed minus theoretical), in the column and in 'additional_scores'; ProSE's meta value follows
+      // 'report:isotope_error_convention' (the footer key 'prose_isotope_error_convention' says which).
+      const int isotope_sign = isotopeObservedMinusTheoretical_(protein_ids) ? 1 : -1;
       // meta values that are no scores (columns of their own, or attributes of the spectrum)
       static const std::set<std::string> not_scores = {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
                                                        "FAIMS_CV", "scan", "reference_file_name", "id_merge_index"};
@@ -706,6 +781,7 @@ class ProSE :
           const std::string name = qpxScoreName_(key);
           if (name.empty() || !seen.insert(name).second) { return; }
           const std::optional<bool> known = higherBetter_(name);
+          if (name == "isotope_error" && value != 0.0) { value *= isotope_sign; } // (no -0)
           row_scores.push_back({name, value, known ? known : higher_better});
         };
         add(id.getScoreType(), hit.getScore(), id.isHigherScoreBetter());
@@ -737,19 +813,24 @@ class ProSE :
         }
         mappings.protein_mapping_lists.push_back(std::move(row_mappings));
 
-        const PSMSpectrum_& s = spectra[i];
-        peak_mz.float_lists.push_back(s.peak_mz);
+        PSMSpectrum_& s = spectra[i];
+        peak_mz.float_lists.push_back(std::move(s.peak_mz));
         peak_mz.null_rows.push_back(!s.has_peaks);
-        peak_intensity.float_lists.push_back(s.peak_intensity);
+        peak_intensity.float_lists.push_back(std::move(s.peak_intensity));
         peak_intensity.null_rows.push_back(!s.has_peaks);
-        ion_type.utf8_lists.push_back(s.ion_type);
+        ion_type.utf8_lists.push_back(std::move(s.ion_type));
         ion_type.null_rows.push_back(!s.has_prediction);
-        mz.float_lists.push_back(s.mz);
+        mz.float_lists.push_back(std::move(s.mz));
         mz.null_rows.push_back(!s.has_prediction);
-        intensity.float_lists.push_back(s.intensity);
+        intensity.float_lists.push_back(std::move(s.intensity));
         intensity.null_rows.push_back(!s.has_prediction);
       }
-      return {scores, reference, isotope, mappings, peak_mz, peak_intensity, ion_type, mz, intensity};
+      spectra.clear();
+      spectra.shrink_to_fit();
+      ExtendedColumns_ out;
+      out.rows = {std::move(scores), std::move(reference), std::move(isotope), std::move(mappings)};
+      out.spectra = {std::move(peak_mz), std::move(peak_intensity), std::move(ion_type), std::move(mz), std::move(intensity)};
+      return out;
     }
 
     /// @p value as a JSON string literal
@@ -790,50 +871,302 @@ class ProSE :
       return text;
     }
 
+    /// The footer keys of the psm.parquet files of -qpx_extended: what describes the columns -qpx_extended adds (the
+    /// peak filter of 'peak_*_array', the model of 'predicted_*_array'); the rest is in the run and provenance views
+    static std::map<std::string, std::string> spectraMetadata_(const PeakFilter_& filter, const Param& search_params)
+    {
+      std::map<std::string, std::string> meta;
+      meta["prose_peak_window"] = number_(filter.window, "0");
+      meta["prose_peak_top"] = std::to_string(filter.top);
+      if (search_params.exists("peptdeep:ms2_model"))
+      {
+        meta["prose_prediction_ms2_model"] = File::basename(search_params.getValue("peptdeep:ms2_model").toString());
+      }
+      if (search_params.exists("peptdeep:instrument"))
+      {
+        meta["prose_prediction_instrument"] = search_params.getValue("peptdeep:instrument").toString();
+      }
+      return meta;
+    }
+
+    /// @p value (a Param value) as JSON
+    static std::string jsonOfValue_(const ParamValue& value)
+    {
+      auto list = [](const auto& items, auto&& one)
+      {
+        std::string out = "[";
+        for (Size k = 0; k < items.size(); ++k) { out += (k > 0 ? "," : "") + one(items[k]); }
+        return out + "]";
+      };
+      switch (value.valueType())
+      {
+        case ParamValue::INT_VALUE: return std::to_string(static_cast<int>(value));
+        case ParamValue::DOUBLE_VALUE: return number_(static_cast<double>(value));
+        case ParamValue::STRING_LIST: return list(value.toStringVector(), [](const std::string& s) { return jsonString_(s); });
+        case ParamValue::INT_LIST: return list(value.toIntVector(), [](int i) { return std::to_string(i); });
+        case ParamValue::DOUBLE_LIST: return list(value.toDoubleVector(), [](double d) { return number_(d); });
+        case ParamValue::EMPTY_VALUE: return "null";
+        default: return jsonString_(value.toString());
+      }
+    }
+
+    /// @p param as one JSON object of its full parameter names ("Search:precursor:mass_tolerance_lower") and values
+    static std::string jsonOfParam_(const Param& param)
+    {
+      std::string out = "{";
+      bool first = true;
+      for (auto it = param.begin(); it != param.end(); ++it)
+      {
+        out += (first ? "" : ",") + jsonString_(it.getName()) + ":" + jsonOfValue_(it->value);
+        first = false;
+      }
+      return out + "}";
+    }
+
+    /// The QPX MODIFICATION struct fields (run view: modification_parameters)
+    static std::vector<ArrowIOHelpers::ParquetColumn::StructField> modificationFields_()
+    {
+      using Column = ArrowIOHelpers::ParquetColumn;
+      return {{"accession", Column::Type::UTF8, false}, {"name", Column::Type::UTF8, true}, {"fixed", Column::Type::BOOL, true},
+              {"position", Column::Type::UTF8, true}, {"target_amino_acid", Column::Type::UTF8, true}};
+    }
+
+    /// The modifications of the search (OpenMS names, e.g. "Carbamidomethyl (C)") as QPX MODIFICATION structs
+    static std::vector<std::vector<std::optional<std::string>>> modificationParameters_(const std::vector<std::string>& fixed,
+                                                                                         const std::vector<std::string>& variable)
+    {
+      static const std::map<ResidueModification::TermSpecificity, std::string> positions = {
+        {ResidueModification::ANYWHERE, "Anywhere"}, {ResidueModification::N_TERM, "Any N-term"},
+        {ResidueModification::C_TERM, "Any C-term"}, {ResidueModification::PROTEIN_N_TERM, "Protein N-term"},
+        {ResidueModification::PROTEIN_C_TERM, "Protein C-term"}};
+      std::vector<std::vector<std::optional<std::string>>> out;
+      for (const auto& [names, is_fixed] : {std::make_pair(&fixed, true), std::make_pair(&variable, false)})
+      {
+        for (const std::string& name : *names)
+        {
+          const ResidueModification* mod = nullptr;
+          try { mod = ModificationsDB::getInstance()->getModification(name); }
+          catch (const Exception::BaseException&) { mod = nullptr; }
+          if (mod == nullptr)
+          {
+            out.push_back({name, name, std::string(is_fixed ? "true" : "false"), std::nullopt, std::nullopt});
+            continue;
+          }
+          std::string accession = mod->getUniModAccession(); // "UniMod:4"
+          if (StringUtils::hasPrefix(accession, "UniMod:")) { accession = "UNIMOD:" + accession.substr(7); }
+          if (accession.empty()) { accession = mod->getFullId(); }
+          const auto position = positions.find(mod->getTermSpecificity());
+          const char origin = mod->getOrigin();
+          out.push_back({accession, mod->getId(), std::string(is_fixed ? "true" : "false"),
+                         position != positions.end() ? std::optional<std::string>(position->second) : std::nullopt,
+                         std::isupper(static_cast<unsigned char>(origin)) && origin != 'X'
+                           ? std::optional<std::string>(std::string(1, origin)) : std::nullopt});
+        }
+      }
+      return out;
+    }
+
+    /// The names of ProSE's exit codes (ProSEAlgorithm::ExitCodes), the run view's 'search_status'
+    static std::string searchStatus_(ProSEAlgorithm::ExitCodes code)
+    {
+      switch (code)
+      {
+        case ProSEAlgorithm::ExitCodes::EXECUTION_OK: return "EXECUTION_OK";
+        case ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY: return "INPUT_FILE_EMPTY";
+        case ProSEAlgorithm::ExitCodes::UNEXPECTED_RESULT: return "UNEXPECTED_RESULT";
+        case ProSEAlgorithm::ExitCodes::ILLEGAL_PARAMETERS: return "ILLEGAL_PARAMETERS";
+        default: return "UNKNOWN_ERROR";
+      }
+    }
+
     /**
-      @brief The footer metadata of the psm.parquet files of -qpx_extended: the 'prose_' keys about the whole run (see
-      the tool documentation)
+      @brief The QPX run view of -qpx_extended (quantms.run.parquet): one row per input, in input order, with the
+      columns of the spec (run_accession = run_file_name: the input's stem, file_name, samples: one sample of the
+      stem with label LFQ, enzymes, modification_parameters) and ProSE's optional ones (see the tool documentation)
     */
-    static std::map<std::string, std::string> runMetadata_(const ProSEAlgorithm::MultiFileSearchResult& mfres,
-                                                           const PeakFilter_& filter, bool protein_fdr_applied,
-                                                           const std::string& mod_delta_masses, const std::string& mod_ptms)
+    static std::shared_ptr<arrow::Table> runTable_(const ProSEAlgorithm::MultiFileSearchResult& mfres,
+                                                   const StringList& in_list, const std::vector<Int64>& psm_rows, bool rescore)
+    {
+      using Column = ArrowIOHelpers::ParquetColumn;
+      auto column = [](const std::string& name, Column::Type type, bool nullable = true)
+      {
+        Column c; c.name = name; c.type = type; c.nullable = nullable; return c;
+      };
+      Column accession = column("run_accession", Column::Type::UTF8, false);
+      Column run_file = column("run_file_name", Column::Type::UTF8, false);
+      Column file_name = column("file_name", Column::Type::UTF8);
+      Column samples = column("samples", Column::Type::STRUCT_LIST, false);
+      samples.struct_fields = {{"sample_accession", Column::Type::UTF8, false}, {"label", Column::Type::UTF8, false},
+                               {"biological_replicate", Column::Type::INT32, true}, {"technical_replicate", Column::Type::INT32, true}};
+      Column enzymes = column("enzymes", Column::Type::UTF8_LIST);
+      Column mods = column("modification_parameters", Column::Type::STRUCT_LIST);
+      mods.struct_fields = modificationFields_();
+      Column status = column("search_status", Column::Type::UTF8);
+      Column ms2 = column("ms2_spectra_count", Column::Type::INT64);
+      Column identified = column("identified_spectra_count", Column::Type::INT64);
+      Column decoys = column("decoy_psm_count", Column::Type::INT64);
+      Column rows = column("psm_rows", Column::Type::INT64);
+      Column applied = column("rescoring_applied", Column::Type::BOOL);
+      Column skipped = column("rescoring_skipped_reason", Column::Type::UTF8);
+      Column warning = column("rescoring_warning", Column::Type::UTF8);
+      Column nce = column("prediction_nce", Column::Type::DOUBLE);
+      Column seconds = column("search_seconds", Column::Type::DOUBLE);
+      std::vector<Column> errors;
+      for (const char* name : {"precursor_error_median_ppm", "precursor_error_mad_ppm", "precursor_tolerance_recommended_ppm",
+                                      "fragment_error_median_ppm", "fragment_error_mad_ppm", "fragment_tolerance_recommended_ppm"})
+      {
+        errors.push_back(column(name, Column::Type::DOUBLE));
+      }
+      const ProSEAlgorithm::SharedSearchStats& sh = mfres.shared;
+      auto optional_text = [](Column& c, const std::string& s) { c.utf8_values.push_back(s); c.null_rows.push_back(s.empty()); };
+      auto optional_number = [](Column& c, bool valid, double v)
+      {
+        c.double_values.push_back(valid && std::isfinite(v) ? v : 0.0);
+        c.null_rows.push_back(!(valid && std::isfinite(v)));
+      };
+      for (Size i = 0; i < in_list.size(); ++i)
+      {
+        const std::string stem = File::stemName(in_list[i]);
+        accession.utf8_values.push_back(stem);
+        run_file.utf8_values.push_back(stem);
+        file_name.utf8_values.push_back(File::basename(in_list[i]));
+        samples.struct_lists.push_back({{stem, std::string("LFQ"), std::nullopt, std::nullopt}});
+        enzymes.utf8_lists.push_back({sh.enzyme});
+        enzymes.null_rows.push_back(sh.enzyme.empty());
+        mods.struct_lists.push_back(modificationParameters_(sh.fixed_mods, sh.variable_mods));
+        const bool searched = i < mfres.per_file.size();
+        const ProSEAlgorithm::SearchResult* pf = searched ? &mfres.per_file[i] : nullptr;
+        status.utf8_values.push_back(pf ? searchStatus_(pf->exit_code) : "UNKNOWN_ERROR");
+        ms2.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.ms2_spectra) : 0);
+        identified.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.target_psms) : 0);
+        decoys.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.decoy_psms) : 0);
+        rows.int64_values.push_back(i < psm_rows.size() ? psm_rows[i] : 0);
+        // the rescoring outcome: null without rescoring ('Search:rescore' off)
+        applied.int64_values.push_back(pf && pf->percolator.applied ? 1 : 0);
+        applied.null_rows.push_back(!rescore);
+        optional_text(skipped, pf ? pf->percolator.skipped_reason : std::string());
+        optional_text(warning, pf ? pf->percolator.warning : std::string());
+        double run_nce = std::numeric_limits<double>::quiet_NaN();
+        if (pf && !pf->protein_ids.empty() && pf->protein_ids[0].metaValueExists("peptdeep_nce"))
+        {
+          run_nce = static_cast<double>(pf->protein_ids[0].getMetaValue("peptdeep_nce"));
+        }
+        optional_number(nce, true, run_nce);
+        seconds.double_values.push_back(pf ? pf->stats.seconds_search : 0.0);
+        const ProSEAlgorithm::RunStatistics empty_stats;
+        const ProSEAlgorithm::RunStatistics& st = pf ? pf->stats : empty_stats;
+        optional_number(errors[0], st.prec_tol_valid, st.prec_err_median);
+        optional_number(errors[1], st.prec_tol_valid, st.prec_err_mad);
+        optional_number(errors[2], st.prec_tol_valid, st.prec_err_recommended);
+        optional_number(errors[3], st.frag_tol_valid, st.frag_err_median);
+        optional_number(errors[4], st.frag_tol_valid, st.frag_err_mad);
+        optional_number(errors[5], st.frag_tol_valid, st.frag_err_recommended);
+      }
+      std::vector<Column> columns = {accession, run_file, file_name, samples, enzymes, mods, status, ms2, identified, decoys,
+                                     rows, applied, skipped, warning, nce};
+      columns.insert(columns.end(), errors.begin(), errors.end());
+      columns.push_back(seconds);
+      return ArrowIOHelpers::tableOfColumns(columns, in_list.size());
+    }
+
+    /// The QPX sample view of -qpx_extended (quantms.sample.parquet): the sample of each run (its stem), whose
+    /// organism and organism part ProSE does not know ("not available", as SDRF has it)
+    static std::shared_ptr<arrow::Table> sampleTable_(const StringList& in_list)
+    {
+      using Column = ArrowIOHelpers::ParquetColumn;
+      std::vector<Column> columns(3);
+      const char* names[] = {"sample_accession", "organism", "organism_part"};
+      for (Size k = 0; k < 3; ++k) { columns[k].name = names[k]; columns[k].type = Column::Type::UTF8; columns[k].nullable = false; }
+      for (const std::string& in : in_list)
+      {
+        columns[0].utf8_values.push_back(File::stemName(in));
+        columns[1].utf8_values.push_back("not available");
+        columns[2].utf8_values.push_back("not available");
+      }
+      return ArrowIOHelpers::tableOfColumns(columns, in_list.size());
+    }
+
+    /// A step of the QPX provenance view (provenanceTable_())
+    struct ProvenanceStep_
+    {
+      std::string category, name, tool;
+      std::vector<std::pair<std::string, std::string>> parameters;
+      std::string config;
+      std::vector<std::string> output_views;
+    };
+
+    /**
+      @brief The QPX provenance view of -qpx_extended (quantms.provenance.parquet): one row per step of the run --
+      database_search (ProSE, with the complete parameters of the tool as JSON in 'config'), PeptDeep's predictions
+      (category rescoring, step 'spectrum_prediction'), rescoring (Percolator), fdr_filtering, protein_inference --
+      with the parameters a viewer shows (see the tool documentation)
+    */
+    static std::shared_ptr<arrow::Table> provenanceTable_(const std::vector<ProvenanceStep_>& steps)
+    {
+      using Column = ArrowIOHelpers::ParquetColumn;
+      auto column = [](const std::string& name, Column::Type type, bool nullable = true)
+      {
+        Column c; c.name = name; c.type = type; c.nullable = nullable; return c;
+      };
+      Column order = column("step_order", Column::Type::INT32, false);
+      Column category = column("step_category", Column::Type::UTF8, false);
+      Column name = column("step_name", Column::Type::UTF8, false);
+      Column tool = column("tool_name", Column::Type::UTF8, false);
+      Column version = column("tool_version", Column::Type::UTF8);
+      Column uri = column("tool_uri", Column::Type::UTF8);
+      Column parameters = column("parameters", Column::Type::STRUCT_LIST);
+      parameters.struct_fields = {{"key", Column::Type::UTF8, false}, {"value", Column::Type::UTF8, false}};
+      Column config = column("config", Column::Type::UTF8);
+      Column views = column("output_views", Column::Type::UTF8_LIST);
+      for (Size k = 0; k < steps.size(); ++k)
+      {
+        const ProvenanceStep_& s = steps[k];
+        order.int64_values.push_back(static_cast<Int64>(k + 1));
+        category.utf8_values.push_back(s.category);
+        name.utf8_values.push_back(s.name);
+        tool.utf8_values.push_back(s.tool);
+        version.utf8_values.push_back(VersionInfo::getVersion());
+        uri.utf8_values.push_back("");
+        uri.null_rows.push_back(true);
+        std::vector<std::vector<std::optional<std::string>>> entries;
+        for (const auto& [key, value] : s.parameters) { entries.push_back({key, value}); }
+        parameters.struct_lists.push_back(std::move(entries));
+        config.utf8_values.push_back(s.config);
+        config.null_rows.push_back(s.config.empty());
+        views.utf8_lists.push_back(s.output_views);
+        views.null_rows.push_back(s.output_views.empty());
+      }
+      return ArrowIOHelpers::tableOfColumns({order, category, name, tool, version, uri, parameters, config, views}, steps.size());
+    }
+
+    /// The steps of the run for provenanceTable_()
+    std::vector<ProvenanceStep_> provenanceSteps_(const ProSEAlgorithm::MultiFileSearchResult& mfres, const Param& search_params,
+                                                  bool rescore, bool protein_fdr_applied, bool pooled,
+                                                  const std::string& mod_delta_masses, const std::string& mod_ptms) const
     {
       const ProSEAlgorithm::SharedSearchStats& sh = mfres.shared;
       auto flag = [](bool b) -> std::string { return b ? "true" : "false"; };
-      std::map<std::string, std::string> meta;
-      meta["prose_database_file"] = sh.database_file;
-      meta["prose_enzyme"] = sh.enzyme;
-      meta["prose_decoy_mode"] = sh.decoy_mode;
-      meta["prose_decoy_string"] = mfres.decoy_string;
-      meta["prose_decoy_position"] = mfres.decoy_is_prefix ? "prefix" : "suffix";
-      meta["prose_open_search"] = flag(sh.open_search);
-      meta["prose_calibration"] = flag(sh.calibration_enabled);
-      meta["prose_chunked"] = flag(sh.chunked);
-      meta["prose_db_target_proteins"] = std::to_string(sh.db_target_proteins);
-      meta["prose_db_decoy_proteins"] = std::to_string(sh.db_decoy_proteins);
-      meta["prose_indexed_peptides"] = std::to_string(sh.indexed_peptides);
-      meta["prose_indexed_fragments"] = std::to_string(sh.indexed_fragments);
-      meta["prose_seconds_index_build"] = number_(sh.seconds_index_build, "0");
-      meta["prose_seconds_total"] = number_(sh.seconds_total, "0");
-      meta["prose_min_charge"] = std::to_string(sh.min_charge);
-      meta["prose_max_charge"] = std::to_string(sh.max_charge);
-      meta["prose_psm_fdr"] = number_(sh.psm_fdr_threshold, "0");
-      meta["prose_protein_fdr"] = number_(sh.protein_fdr_threshold, "0");
-      meta["prose_protein_fdr_applied"] = flag(protein_fdr_applied);
-      meta["prose_peak_window"] = number_(filter.window, "0");
-      meta["prose_peak_top"] = std::to_string(filter.top);
-      if (!mod_delta_masses.empty()) { meta["prose_mod_analysis_delta_masses"] = mod_delta_masses; }
-      if (!mod_ptms.empty()) { meta["prose_mod_analysis_ptms"] = mod_ptms; }
+      auto value = [&](const std::string& key) -> std::string
+      {
+        return search_params.exists(key) ? search_params.getValue(key).toString() : std::string();
+      };
+      std::vector<ProvenanceStep_> steps;
 
-      // the search settings of the first searched file's run (all files share them)
+      ProvenanceStep_ search{"database_search", "peptide_search", "ProSE", {}, jsonOfParam_(getParam_()), {"psm"}};
+      auto& p = search.parameters;
+      p.emplace_back("database_file", sh.database_file);
+      p.emplace_back("enzyme", sh.enzyme);
+      std::string specificity = value("peptide:enzyme_specificity");
+      bool clip = false;
+      std::vector<std::string> features;
+      bool observed_minus_theoretical = true;
       for (const auto& pf : mfres.per_file)
       {
         if (pf.protein_ids.empty()) { continue; }
         const ProteinIdentification::SearchParameters& sp = pf.protein_ids[0].getSearchParameters();
-        meta["prose_enzyme_specificity"] = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
-        meta["prose_clip_nterm_methionine"] =
-          sp.metaValueExists("peptide:clip_nterm_methionine") ? sp.getMetaValue("peptide:clip_nterm_methionine").toString() : "false";
-        std::vector<std::string> features;
+        specificity = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
+        clip = sp.metaValueExists("peptide:clip_nterm_methionine") && sp.getMetaValue("peptide:clip_nterm_methionine").toString() == "true";
+        observed_minus_theoretical = isotopeObservedMinusTheoretical_(pf.protein_ids);
         if (sp.metaValueExists("extra_features"))
         {
           for (const std::string& feature : ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString()))
@@ -842,42 +1175,68 @@ class ProSE :
             if (!name.empty() && feature != "score") { features.push_back(name); }
           }
         }
-        meta["prose_extra_features"] = ListUtils::concatenate(features, ",");
         break;
       }
+      p.emplace_back("enzyme_specificity", specificity);
+      p.emplace_back("missed_cleavages", std::to_string(sh.missed_cleavages));
+      p.emplace_back("peptide_min_length", value("peptide:min_size"));
+      p.emplace_back("peptide_max_length", value("peptide:max_size"));
+      p.emplace_back("precursor_mass_tolerance_lower", number_(sh.precursor_tol_lower, "0"));
+      p.emplace_back("precursor_mass_tolerance_upper", number_(sh.precursor_tol_upper, "0"));
+      p.emplace_back("precursor_mass_tolerance_unit", sh.precursor_tol_unit);
+      p.emplace_back("fragment_mass_tolerance", number_(sh.fragment_tol, "0"));
+      p.emplace_back("fragment_mass_tolerance_unit", sh.fragment_tol_unit);
+      p.emplace_back("min_charge", std::to_string(sh.min_charge));
+      p.emplace_back("max_charge", std::to_string(sh.max_charge));
+      p.emplace_back("fixed_modifications", ListUtils::concatenate(sh.fixed_mods, ","));
+      p.emplace_back("variable_modifications", ListUtils::concatenate(sh.variable_mods, ","));
+      p.emplace_back("clip_nterm_methionine", flag(clip));
+      p.emplace_back("decoy_mode", sh.decoy_mode);
+      p.emplace_back("decoy_string", mfres.decoy_string);
+      p.emplace_back("decoy_position", mfres.decoy_is_prefix ? "prefix" : "suffix");
+      p.emplace_back("open_search", flag(sh.open_search));
+      p.emplace_back("calibration", flag(sh.calibration_enabled));
+      p.emplace_back("chunked", flag(sh.chunked));
+      p.emplace_back("isotope_error_convention", observed_minus_theoretical ? "observed_minus_theoretical" : "theoretical_minus_observed");
+      p.emplace_back("extra_features", ListUtils::concatenate(features, ","));
+      p.emplace_back("db_target_proteins", std::to_string(sh.db_target_proteins));
+      p.emplace_back("db_decoy_proteins", std::to_string(sh.db_decoy_proteins));
+      p.emplace_back("indexed_peptides", std::to_string(sh.indexed_peptides));
+      p.emplace_back("indexed_fragments", std::to_string(sh.indexed_fragments));
+      p.emplace_back("seconds_index_build", number_(sh.seconds_index_build, "0"));
+      p.emplace_back("seconds_total", number_(sh.seconds_total, "0"));
+      if (!mod_delta_masses.empty()) { p.emplace_back("mod_analysis_delta_masses", mod_delta_masses); }
+      if (!mod_ptms.empty()) { p.emplace_back("mod_analysis_ptms", mod_ptms); }
+      steps.push_back(std::move(search));
 
-      // per input file, in input order
-      auto error = [&](bool valid, double median, double mad, double recommended) -> std::string
+      // PeptDeep: its features for the rescoring ('Search:peptdeep:enable') and the predicted spectra of the psm files
+      // (-qpx_extended), at the NCE of each run (run view: prediction_nce); category 'rescoring', as the closest one
+      bool predicted = false;
+      for (const auto& pf : mfres.per_file)
       {
-        if (!valid) { return "null"; }
-        return "{\"median_ppm\":" + number_(median) + ",\"mad_ppm\":" + number_(mad) + ",\"recommended_ppm\":" + number_(recommended) + "}";
-      };
-      std::string files = "[";
-      for (Size i = 0; i < mfres.per_file.size(); ++i)
-      {
-        const auto& pf = mfres.per_file[i];
-        const auto& st = pf.stats;
-        double nce = std::numeric_limits<double>::quiet_NaN();
-        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists("peptdeep_nce"))
-        {
-          nce = static_cast<double>(pf.protein_ids[0].getMetaValue("peptdeep_nce"));
-        }
-        files += (i > 0 ? "," : "");
-        files += "{\"input_file\":" + jsonString_(st.input_file)
-               + ",\"exit_code\":" + std::to_string(static_cast<int>(pf.exit_code))
-               + ",\"ms2_spectra\":" + std::to_string(st.ms2_spectra)
-               + ",\"target_psms\":" + std::to_string(st.target_psms)
-               + ",\"decoy_psms\":" + std::to_string(st.decoy_psms)
-               + ",\"percolator\":{\"applied\":" + flag(pf.percolator.applied)
-               + ",\"skipped_reason\":" + jsonString_(pf.percolator.skipped_reason)
-               + ",\"warning\":" + jsonString_(pf.percolator.warning) + "}"
-               + ",\"peptdeep_nce\":" + number_(nce)
-               + ",\"precursor_error\":" + error(st.prec_tol_valid, st.prec_err_median, st.prec_err_mad, st.prec_err_recommended)
-               + ",\"fragment_error\":" + error(st.frag_tol_valid, st.frag_err_median, st.frag_err_mad, st.frag_err_recommended)
-               + ",\"seconds_search\":" + number_(st.seconds_search, "0") + "}";
+        if (!pf.protein_ids.empty() && pf.protein_ids[0].metaValueExists("peptdeep_nce")) { predicted = true; }
       }
-      meta["prose_files"] = files + "]";
-      return meta;
+      if (predicted)
+      {
+        ProvenanceStep_ prediction{"rescoring", "spectrum_prediction", "PeptDeep", {}, "", {"psm"}};
+        prediction.parameters = {{"method", "peptdeep_ms2"},
+                                 {"ms2_model", File::basename(value("peptdeep:ms2_model"))},
+                                 {"instrument", value("peptdeep:instrument")},
+                                 {"rescoring_features", value("peptdeep:enable")}};
+        steps.push_back(std::move(prediction));
+      }
+      if (rescore)
+      {
+        steps.push_back({"rescoring", "psm_rescoring", "Percolator", {{"method", "percolator"}}, "", {"psm"}});
+      }
+      steps.push_back({"fdr_filtering", "target_decoy_fdr", "ProSE",
+                       {{"psm_fdr", number_(sh.psm_fdr_threshold, "0")}, {"protein_fdr", number_(sh.protein_fdr_threshold, "0")},
+                        {"psm_fdr_method", "target_decoy_competition"}, {"protein_fdr_method", "picked_protein"},
+                        {"protein_fdr_applied", flag(protein_fdr_applied)}},
+                       "", {"psm", "pg"}});
+      steps.push_back({"protein_inference", "protein_grouping", "ProSE",
+                       {{"algorithm", "basic_protein_inference"}, {"pooled", flag(pooled)}}, "", {"pg"}});
+      return steps;
     }
 
     ExitCodes main_(int, const char**) override
@@ -951,6 +1310,7 @@ class ProSE :
       progresslogger.setLogType(log_type_);
 
       Param search_params = getParam_().copy("Search:", true);
+      setDeisotoping_(search_params, peak_filter);
       // Percolator rescoring (Search:rescore) runs inside the search, per input file, before its
       // PSM-level FDR; the protein FDR below then works on the rescored PSMs as well.
       const bool rescore = search_params.getValue("rescore").toString() == "true";
@@ -1233,11 +1593,18 @@ class ProSE :
       Size failed_count = 0;
       // Paths actually written, for an accurate output manifest in the report.
       std::vector<std::string> written_idxml;
-      // -qpx_extended: the per-input QPX psm files, written at the end of the run with the run's statistics in their
-      // footer (the merged file needs the tables anyway, so they are in memory either way)
-      struct PendingPSMFile { Size input; std::string file; std::string scan_format; std::shared_ptr<arrow::Table> table; };
-      std::vector<PendingPSMFile> pending_psm_files;
-      std::vector<bool> input_counted_failed(in_list.size(), false);
+      // -qpx_extended: the rows of each input in quantms.psm.parquet (its footer says), the footer keys of the per-input
+      // psm files, and how they are written: optional columns allowed, and small row groups, so that a viewer can read
+      // the peaks of one PSM without decoding those of the whole file
+      std::vector<Int64> qpx_psm_rows(in_list.size(), 0);
+      const std::map<std::string, std::string> qpx_spectra_keys =
+        qpx_extended ? spectraMetadata_(peak_filter, search_params) : std::map<std::string, std::string>{};
+      ParquetWriteConfig qpx_extended_config;
+      qpx_extended_config.qpx_extra_columns = true;
+      ParquetWriteConfig qpx_spectra_config = qpx_extended_config;
+      qpx_spectra_config.row_group_size = QPX_SPECTRA_ROW_GROUP;
+      // m/z and intensities are mostly distinct: a dictionary per row group would make the file 40 % larger
+      qpx_spectra_config.plain_columns = {"peak_mz_array", "peak_intensity_array", "predicted_mz_array", "predicted_intensity_array"};
       for (Size i = 0; i < in_list.size(); ++i)
       {
         const std::string& in_file = in_list[i];
@@ -1309,32 +1676,47 @@ class ProSE :
           // PSM — build table once, write to file, accumulate same table for merge.
           const std::string qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
           auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
+          std::vector<std::string> spec_refs;
+          spec_refs.reserve(result.peptide_ids.size());
+          for (const auto& pid : result.peptide_ids)
+          {
+            if (!pid.getSpectrumReference().empty()) { spec_refs.push_back(pid.getSpectrumReference()); }
+          }
+          const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spec_refs);
           if (qpx_psm_table && qpx_extended)
           {
-            qpx_psm_table = ArrowIOHelpers::withColumns(qpx_psm_table,
-                              extendedColumns_(result.protein_ids, result.peptide_ids, spectra_of_file));
-            if (!qpx_psm_table)
+            // The per-input file gets the spectrum columns and is written now (its peaks are not kept for the rest of
+            // the run); quantms.psm.parquet gets the rows without them, and only of the inputs whose file was written.
+            ExtendedColumns_ columns = extendedColumns_(result.protein_ids, result.peptide_ids, spectra_of_file);
+            auto rows_table = ArrowIOHelpers::withColumns(qpx_psm_table, columns.rows);
+            columns.rows.clear();
+            auto file_table = rows_table ? ArrowIOHelpers::withColumns(rows_table, columns.spectra) : nullptr;
+            columns.spectra.clear();
+            std::map<std::string, std::string> keys = qpx_spectra_keys;
+            if (!psm_scan_format.empty()) { keys["scan_format"] = psm_scan_format; }
+            const auto meta = ArrowIOHelpers::qpxFileMetadata("psm_file", qpx_spectra_config, keys);
+            if (!file_table)
             {
               OPENMS_LOG_ERROR << "Failed to add the -qpx_extended columns for " << in_file << endl;
               input_failed = true;
             }
+            else if (!meta || !ArrowIOHelpers::concatenateAndWriteToParquet({file_table}, qpx_psm_file, qpx_spectra_config, meta))
+            {
+              OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
+              input_failed = true;
+            }
+            else
+            {
+              qpx_psm_tables.push_back(rows_table);
+              qpx_psm_scan_formats.push_back(psm_scan_format);
+              qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(rows_table);
+            }
           }
-          if (qpx_psm_table)
+          else if (qpx_psm_table)
           {
             qpx_psm_tables.push_back(qpx_psm_table);
-            std::vector<std::string> spec_refs;
-            spec_refs.reserve(result.peptide_ids.size());
-            for (const auto& pid : result.peptide_ids)
-            {
-              if (!pid.getSpectrumReference().empty()) { spec_refs.push_back(pid.getSpectrumReference()); }
-            }
-            const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spec_refs);
             qpx_psm_scan_formats.push_back(psm_scan_format);
-            if (qpx_extended)
-            {
-              pending_psm_files.push_back({i, qpx_psm_file, psm_scan_format, qpx_psm_table});
-            }
-            else if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file, ParquetWriteConfig{}, psm_scan_format))
+            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file, ParquetWriteConfig{}, psm_scan_format))
             {
               OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
               input_failed = true;
@@ -1487,7 +1869,7 @@ class ProSE :
           }
         }
 
-        if (input_failed) { ++failed_count; input_counted_failed[i] = true; }
+        if (input_failed) { ++failed_count; }
       }
 
       // -- Write merged Parquet files --
@@ -1509,13 +1891,14 @@ class ProSE :
         {
           psm_extra["scan_format"] = *distinct_formats.begin();
         }
-        auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, psm_extra);
+        const ParquetWriteConfig psm_config = qpx_extended ? qpx_extended_config : ParquetWriteConfig{};
+        auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", psm_config, psm_extra);
         auto pg_meta  = ArrowIOHelpers::qpxFileMetadata("pg_file");
         merged_ok = psm_meta && pg_meta && merged_ok;
         if (psm_meta)
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", ParquetWriteConfig{}, psm_meta) && merged_ok;
+            qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", psm_config, psm_meta) && merged_ok;
         }
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.
@@ -1613,8 +1996,7 @@ class ProSE :
         OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
       }
 
-      // -- QPX: the per-input psm files of -qpx_extended, with the statistics of the run in their footer, and the
-      //    merged files --
+      // -- QPX: the merged files; with -qpx_extended also the run, sample and provenance views --
       if (!out_qpx_dir.empty())
       {
         std::map<std::string, std::string> footer;
@@ -1628,24 +2010,32 @@ class ProSE :
             mod_delta_masses = stem + "_ModificationAnalysis_DeltaMassStats.tsv";
             mod_ptms = stem + "_ModificationAnalysis_PTMStats.tsv";
           }
-          footer = runMetadata_(mfres, peak_filter, protein_fdr_applied, mod_delta_masses, mod_ptms);
-        }
-        for (const PendingPSMFile& pending : pending_psm_files)
-        {
-          std::map<std::string, std::string> keys = footer;
-          if (!pending.scan_format.empty()) { keys["scan_format"] = pending.scan_format; }
-          const auto meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, keys);
-          if (!meta || !ArrowIOHelpers::concatenateAndWriteToParquet({pending.table}, pending.file, ParquetWriteConfig{}, meta))
+          footer = qpx_spectra_keys;
+          if (qpx_psm_tables.empty())
           {
-            OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_list[pending.input] << " -> " << pending.file << endl;
-            if (!input_counted_failed[pending.input])
+            // no input has rows: quantms.psm.parquet is written anyway, without rows
+            std::vector<PSMSpectrum_> none;
+            auto empty = QPXFile::exportPSMsToQPXArrow({}, {}, /*export_all_psms=*/false);
+            if (empty) { empty = ArrowIOHelpers::withColumns(empty, extendedColumns_({}, {}, none).rows); }
+            if (empty) { qpx_psm_tables.push_back(empty); }
+          }
+          // the run, sample and provenance views: the inputs and the steps of the run
+          const std::vector<std::pair<std::string, std::shared_ptr<arrow::Table>>> views = {
+            {"run", runTable_(mfres, in_list, qpx_psm_rows, rescore)},
+            {"sample", sampleTable_(in_list)},
+            {"provenance", provenanceTable_(provenanceSteps_(mfres, search_params, rescore, protein_fdr_applied,
+                                                             pooled_pg, mod_delta_masses, mod_ptms))}};
+          for (const auto& [view, table] : views)
+          {
+            const std::string file = out_qpx_dir + "/quantms." + view + ".parquet";
+            const auto meta = ArrowIOHelpers::qpxFileMetadata(view + "_file");
+            if (!table || !meta || !ArrowIOHelpers::concatenateAndWriteToParquet({table}, file, ParquetWriteConfig{}, meta))
             {
-              ++failed_count;
-              input_counted_failed[pending.input] = true;
+              OPENMS_LOG_ERROR << "Failed to write the QPX " << view << " view -> " << file << endl;
+              merged_ok = false;
             }
           }
         }
-        pending_psm_files.clear();
         write_merged_qpx(footer);
       }
 

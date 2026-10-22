@@ -216,12 +216,22 @@ START_SECTION((Result validate(const std::shared_ptr<arrow::Table>& table)))
   auto extended = table->AddColumn(table->num_columns(), arrow::field("spectrum_reference", arrow::utf8()),
                                    std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
   QPXValueValidation extended_validator(QPXValueValidation::View::PSM);
+  // only if the writer allows them (setExtraColumnsAllowed); by default the view's columns exactly
+  TEST_FALSE(extended_validator.validate(extended).valid)
+  extended_validator.setExtraColumnsAllowed(true);
   TEST_TRUE(extended_validator.validate(extended).valid)
+  // under a name of their own
+  auto twice = extended->AddColumn(extended->num_columns(), arrow::field("spectrum_reference", arrow::utf8()),
+                                   std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
+  QPXValueValidation twice_validator(QPXValueValidation::View::PSM);
+  twice_validator.setExtraColumnsAllowed(true);
+  TEST_FALSE(twice_validator.validate(twice).valid)
   // but not instead of one of them
   auto replaced = table->RemoveColumn(table->num_columns() - 1).ValueOrDie()
                     ->AddColumn(table->num_columns() - 1, arrow::field("spectrum_reference", arrow::utf8()),
                                 std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
   QPXValueValidation replaced_validator(QPXValueValidation::View::PSM);
+  replaced_validator.setExtraColumnsAllowed(true);
   TEST_FALSE(replaced_validator.validate(replaced).valid)
 }
 END_SECTION

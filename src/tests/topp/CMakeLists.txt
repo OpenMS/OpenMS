@@ -5147,8 +5147,9 @@ macro(prose14_dumps _f _stem)
   add_test("TOPP_${_f}_${_stem}_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.psm.parquet
     -out_tsv ${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv)
   set_tests_properties("TOPP_${_f}_${_stem}_dump" PROPERTIES DEPENDS "TOPP_${_f}")
-  set(_dumps -DQPX=${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv -DPARQUET=${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.psm.parquet)
-  set(_dump_tests "TOPP_${_f}_${_stem}_dump")
+  set(_dumps -DQPX=${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv -DPARQUET=${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.psm.parquet
+    -DRUN=${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
+  set(_dump_tests "TOPP_${_f}_${_stem}_dump;TOPP_${_f}_run_dump")
 endmacro()
 # A ProSE run <f> with -out_qpx -qpx_extended and the summary, logged; @p ARGN: its other options.
 macro(prose14_run _f)
@@ -5157,6 +5158,9 @@ macro(prose14_run _f)
     "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;${ARGN};-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended;-summary_out;${TESTS_TEMP_DIR}/${_f}.tmp.yaml"
     -P ${DATA_DIR_TOPP}/run_logged.cmake)
   set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+  add_test("TOPP_${_f}_run_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.run.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_run_dump" PROPERTIES DEPENDS "TOPP_${_f}")
 endmacro()
 
 # plain: all peaks (-qpx_peak_top 0), the NCE selected; peptdeep: the default filter, PeptDeep rescoring's NCE; nce30:
@@ -5213,15 +5217,31 @@ endif()
 add_test("TOPP_ProSE_14_summary" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_qpx_plain.tmp.yaml
   "-DEXPECTED=${_prose14_summary}" ${_prose14_summary_forbidden} -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_14_summary" PROPERTIES DEPENDS "TOPP_ProSE_14_qpx_plain")
+# The provenance view: the steps of the run with their parameters, the complete parameters of ProSE on the search; the
+# sample view: one sample per input.
+set(_f ProSE_14_qpx_plain)
+add_test("TOPP_${_f}_provenance" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.provenance.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv)
+set_tests_properties("TOPP_${_f}_provenance" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv
+  "-DEXPECTED=1\tdatabase_search\tpeptide_search\tProSE\t;rescoring\tpsm_rescoring\tPercolator;fdr_filtering;protein_inference;key:string = psm_fdr, value:string = 0.05;key:string = enzyme, value:string = Trypsin;key:string = isotope_error_convention, value:string = observed_minus_theoretical;\"Search:precursor:mass_tolerance_lower\":20"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
+add_test("TOPP_${_f}_sample" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.sample.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_sample.tmp.tsv)
+set_tests_properties("TOPP_${_f}_sample" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_sample_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_sample.tmp.tsv
+  "-DEXPECTED=DatabaseSuitability_in_spec\tnot available\tnot available" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_sample_out" PROPERTIES DEPENDS "TOPP_${_f}_sample")
 # The protein groups of one input with protein inference (FDR:protein in ProSE_6_fdr.ini), with their q-values.
 add_test("TOPP_ProSE_14_qpx_plain_pg" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/ProSE_14_qpx_plain_qpx/DatabaseSuitability_in_spec.pg.parquet -schema pg -min_rows 1)
 set_tests_properties("TOPP_ProSE_14_qpx_plain_pg" PROPERTIES DEPENDS "TOPP_ProSE_14_qpx_plain")
 
 # Two inputs, one of them gzipped (a copy of the other), with -out_merged and -keep_decoys. Each input gets the columns
-# and the footer with both inputs; the peaks read from the .mzML.gz equal those of the .mzML. quantms.psm.parquet has the
-# rows of both and the same footer; quantms.pg.parquet the groups of the pooled inference (with -keep_decoys, the decoys
-# that pass the protein FDR too).
+# and the footer with its own entry; the peaks read from the .mzML.gz equal those of the .mzML. quantms.psm.parquet has
+# the rows of both without the peak and prediction columns, and the footer of the run; quantms.pg.parquet the groups of
+# the pooled inference (with -keep_decoys, the decoys that pass the protein FDR too).
 add_test(NAME "TOPP_ProSE_14_app_inputs" COMMAND ${CMAKE_COMMAND} -DMZML=${_prose14_mzml}
   -DOUT_DIR=${TESTS_TEMP_DIR} -P ${DATA_DIR_TOPP}/ProSE_14_prepare.cmake)
 set(_f ProSE_14_app)
@@ -5236,7 +5256,7 @@ foreach(_stem ProSE_14_a ProSE_14_b quantms)
     list(APPEND _opt -DPREDICTIONS=OFF)
   endif()
   if(_stem STREQUAL "quantms")
-    list(APPEND _opt "-DSUM_OF=${TESTS_TEMP_DIR}/${_f}_ProSE_14_a_qpx.tmp.tsv,${TESTS_TEMP_DIR}/${_f}_ProSE_14_b_qpx.tmp.tsv")
+    list(APPEND _opt -DMERGED=ON "-DSUM_OF=${TESTS_TEMP_DIR}/${_f}_ProSE_14_a_qpx.tmp.tsv,${TESTS_TEMP_DIR}/${_f}_ProSE_14_b_qpx.tmp.tsv")
     list(APPEND _dump_tests "TOPP_${_f}_ProSE_14_a_dump" "TOPP_${_f}_ProSE_14_b_dump")
   else()
     list(APPEND _opt -DFILE_INDEX=${_position})
@@ -5255,6 +5275,41 @@ set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}")
 add_test("TOPP_${_f}_pg_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv
   "-DEXPECTED=DECOY_sp;ProSE_14_a;ProSE_14_b;score_name:string = q-value" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_pg_out" PROPERTIES DEPENDS "TOPP_${_f}_pg")
+# Deisotoped spectra: ProSE_14_deisotope.mzML has 80 spectra of DatabaseSuitability_in_spec.mzML in which every fragment
+# peak of m/z 600 or more is replaced by the 2+ isotope envelope of that fragment (its monoisotopic peak at
+# (m/z + proton) / 2 and its 13C peak at half the intensity), and every third spectrum's precursor m/z by that of its
+# 13C peak (isotope error +1). Deisotoping moves the 2+ fragments back to their 1+ m/z, which the annotation has and
+# which are no peaks of the file: the filter (one peak per 100 Th) keeps their 2+ peaks. The isotope_error column (and
+# its additional_scores entry) is observed minus theoretical with either 'report:isotope_error_convention'; the
+# provenance view says the convention. quantms.psm.parquet of one input has its rows without the peak and prediction columns.
+set(_prose14_deisotope ${DATA_DIR_TOPP}/ProSE_14_deisotope.mzML)
+foreach(_v observed_minus_theoretical theoretical_minus_observed)
+  set(_f ProSE_14_deisotope_${_v})
+  prose14_run(${_f} ${_prose14_common} -in ${_prose14_deisotope} -qpx_peak_top 1
+    -Search:report:isotope_error_convention ${_v})
+  set(_opt -DPEAKS=FILTERED -DSOME_FEWER=ON -DCONVERTED=ON)
+  if(NOT WITH_ONNX)
+    list(APPEND _opt -DPREDICTIONS=OFF)
+  endif()
+  prose14_dumps(${_f} ProSE_14_deisotope)
+  if(_v STREQUAL "theoretical_minus_observed")
+    list(APPEND _opt -DISOTOPE_TWIN=${TESTS_TEMP_DIR}/ProSE_14_deisotope_observed_minus_theoretical_ProSE_14_deisotope_qpx.tmp.tsv)
+    list(APPEND _dump_tests "TOPP_ProSE_14_deisotope_observed_minus_theoretical_ProSE_14_deisotope_dump")
+  endif()
+  add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_deisotope} ${_opt} ${_prose14_check})
+  set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
+  add_test("TOPP_${_f}_provenance" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.provenance.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_provenance" PROPERTIES DEPENDS "TOPP_${_f}")
+  add_test("TOPP_${_f}_convention" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv
+    "-DEXPECTED=key:string = isotope_error_convention, value:string = ${_v}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_${_f}_convention" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
+endforeach()
+set(_f ProSE_14_deisotope_observed_minus_theoretical)
+prose14_dumps(${_f} quantms)
+add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_deisotope} -DMERGED=ON
+  -DSUM_OF=${TESTS_TEMP_DIR}/${_f}_ProSE_14_deisotope_qpx.tmp.tsv ${_prose14_check})
+set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_ProSE_14_deisotope_dump")
 # Two inputs of the same file name in different folders: their per-input outputs would overwrite each other, so ProSE
 # refuses the run before searching (exit code 6, ILLEGAL_PARAMETERS) rather than mixing them up.
 add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
