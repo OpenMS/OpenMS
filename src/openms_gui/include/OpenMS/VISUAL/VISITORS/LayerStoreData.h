@@ -9,6 +9,7 @@
 #pragma once
 
 // OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -16,7 +17,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 
 namespace OpenMS
@@ -209,10 +210,11 @@ namespace OpenMS
     // docu in base class
     void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
-    void storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& layer_filters);
+    /// Store the identifications of @p ids within @p visible_range (by their RT and m/z)
+    void storeVisibleIdent(const IdentificationData& ids, const RangeAllType& visible_range, const DataFilters& layer_filters);
 
   private:
-    IPeptideIds::PepIds ids_; ///< the filtered data; used when saveToFile() is called
+    IdentificationData ids_; ///< the filtered data; used when saveToFile() is called
   };
 
   /**
@@ -230,10 +232,10 @@ namespace OpenMS
     // docu in base class
     void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
-    void storeFullIdent(const IPeptideIds::PepIds& ids);
+    void storeFullIdent(const IdentificationData& ids);
 
   private:
-    const IPeptideIds::PepIds* full_ids_ = nullptr; ///< pointer to the full data, when storeFullExperiment() was called
+    const IdentificationData* full_ids_ = nullptr; ///< pointer to the full data, when storeFullIdent() was called
   };
 
 } // namespace OpenMS

@@ -14,7 +14,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <array>
 #include <map>
@@ -210,20 +210,20 @@ namespace OpenMS
   };
 
   /**
-    @brief Computes statistics and distributions for a vector<PeptideIdentifications>
+    @brief Computes statistics and distributions of the metadata of identifications (IdentificationData::Observation)
   */
   class OPENMS_GUI_DLLAPI LayerStatisticsIdent : public LayerStatistics
   {
   public:
-    LayerStatisticsIdent(const IPeptideIds::PepIds& cm);
+    LayerStatisticsIdent(const IdentificationData& ids);
 
     Math::Histogram<> getDistribution(const RangeStatsType& which,
                                       const UInt number_of_bins) const override;
 
   private:
     void computeStatistics_() override;
-    const IPeptideIds::PepIds* ids_; ///< internal reference to a PeptideIds -- make sure it does not
-                                     ///< go out of scope while using this class
+    const IdentificationData* ids_; ///< internal reference to identifications -- make sure they do not
+                                    ///< go out of scope while using this class
   };
   
 } // namespace OpenMS

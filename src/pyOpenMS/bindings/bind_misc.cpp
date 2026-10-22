@@ -1023,6 +1023,20 @@ corresponding spectrum
 :param clear_ids: Reset peptide and protein identifications of each scan before annotating
 :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 )doc")
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::AnnotatedMSRun& map, const OpenMS::IdentificationData& ids, bool clear_ids, bool map_ms1) { self.annotate(map, ids, clear_ids, map_ms1); }, "map"_a, "ids"_a, "clear_ids"_a = false, "map_ms1"_a = false,
+            R"doc(
+Mapping method for peak maps with identification data
+
+The runs of 'ids' are added to the identification data of 'map' with the identifications that map to a spectrum, which links them
+(by the spectrum that an identification refers to, else by RT and precursor m/z).
+
+:param map: AnnotatedMSRun to receive the identifications
+:param ids: Identifications to map
+:param clear_ids: Remove the identifications of 'map' before annotating
+:param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+:raises:
+  Exception: MissingInformation is thrown if an identification of 'ids' has no RT or m/z
+)doc")
         .def("annotate", [](OpenMS::IDMapper& self, OpenMS::AnnotatedMSRun& map, const OpenMS::FeatureMap& fmap, bool clear_ids, bool map_ms1) { return self.annotate(map, fmap, clear_ids, map_ms1); }, "map"_a, "fmap"_a, "clear_ids"_a = false, "map_ms1"_a = false, 
             R"doc(
 Mapping method for peak maps

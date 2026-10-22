@@ -181,7 +181,7 @@ public:
 
       @param[in] feature_map The feature data (empty if not feature data)
       @param[in] consensus_map The consensus feature data (empty if not consensus feature data)
-      @param[in] peptides The peptide identifications (empty if not ID data)
+      @param[in] identifications The identifications (empty if not ID data; moved to the layer)
       @param[in] peak_map The peak data (empty if not peak data)
       @param[in] on_disc_peak_map The peak data managed on disc (empty if not peak data)
       @param[in] data_type Type of the data
@@ -195,7 +195,7 @@ public:
     */
     void addData(const FeatureMapSharedPtrType& feature_map,
                  const ConsensusMapSharedPtrType& consensus_map,
-                 PeptideIdentificationList& peptides,
+                 IdentificationData& identifications,
                  const ExperimentSharedPtrType& peak_map,
                  const ODExperimentSharedPtrType& on_disc_peak_map,
                  LayerDataBase::DataType data_type,

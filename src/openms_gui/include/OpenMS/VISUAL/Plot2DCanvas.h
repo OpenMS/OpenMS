@@ -59,14 +59,17 @@ public:
     // Docu in base class
     void showCurrentLayerPreferences() override;
 
-    /// Merges the features in @p map into the features layer @p i
+    /// Merges the features in @p map (with their identification data) into the features layer @p i
+    /// @throw Exception::BaseException if the identification data cannot be merged (see IdentificationData::merge()); the layer is unchanged then
     void mergeIntoLayer(Size i, const FeatureMapSharedPtrType& map);
 
-    /// Merges the consensus features in @p map into the features layer @p i
+    /// Merges the consensus features in @p map (with their identification data) into the features layer @p i
+    /// @throw Exception::BaseException if the identification data cannot be merged (see IdentificationData::merge()); the layer is unchanged then
     void mergeIntoLayer(Size i, const ConsensusMapSharedPtrType& map);
 
-    /// Merges the peptide identifications in @p peptides into the peptide layer @p i
-    void mergeIntoLayer(Size i, PeptideIdentificationList& peptides);
+    /// Merges @p identifications into the identification layer @p i
+    /// @throw Exception::BaseException if the identifications cannot be merged (see IdentificationData::merge()); the layer is unchanged then
+    void mergeIntoLayer(Size i, const IdentificationData& identifications);
 
     /// recalculates the dot gradient of the active layer
     void recalculateCurrentLayerDotGradient();

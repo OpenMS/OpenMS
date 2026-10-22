@@ -13,7 +13,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/PainterBase.h>
 
 #include <string>
@@ -85,9 +84,12 @@ namespace OpenMS
     */
     static void paintConvexHulls_(QPainter& painter, Plot2DCanvas* canvas, const std::vector<ConvexHull2D>& hulls, bool has_identifications);
 
-    static void paintPeptideIDs_(QPainter* painter, Plot2DCanvas* canvas, const IPeptideIds::PepIds& ids, int layer_index);
+    /**
+      @brief Paints identifications at their RT and m/z (by their first match, or their label if the layer shows labels)
 
-    /// Paints identifications with their matches (as paintPeptideIDs_() the peptide identifications with their hits)
+      Identifications without RT or m/z, and without matches (unless the layer shows labels), are not painted.
+      With LayerDataBase::I_PEPTIDEMZ, the m/z is that of the peptide of the first match.
+    */
     static void paintIdentifications_(QPainter* painter, Plot2DCanvas* canvas, const std::vector<IdentificationData::QueryMatches>& ids, int layer_index);
   };
 

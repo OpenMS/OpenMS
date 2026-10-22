@@ -452,15 +452,15 @@ namespace OpenMS
     /**
         @brief Add an identification data layer
 
-        @param[in] peptides Input list of peptides, which has to be mutable and will be empty after adding. 
-               Swapping is used to insert the data. It can be performed in constant time and does not double
+        @param[in] identifications Input identifications, which have to be mutable and will be empty after adding.
+               Moving is used to insert the data. It can be performed in constant time and does not double
                the required memory.
         @param[in] filename This @em absolute filename is used to monitor changes in the file and reload the data
         @param[in] caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(PeptideIdentificationList& peptides, const std::string& filename = "", const std::string& caption = "");
+    bool addLayer(IdentificationData& identifications, const std::string& filename = "", const std::string& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
@@ -703,10 +703,6 @@ protected:
 
     /// Draws several lines of text to the upper right corner of the widget
     void drawText_(QPainter & painter, const QStringList& text);
-
-    /// Returns the m/z value of an identification depending on the m/z source of the layer (precursor mass/theoretical peptide mass)
-    double getIdentificationMZ_(const Size layer_index,
-                                    const PeptideIdentification & peptide) const;
 
     /// Method that is called when a new layer has been added
     virtual bool finishAdding_() = 0;

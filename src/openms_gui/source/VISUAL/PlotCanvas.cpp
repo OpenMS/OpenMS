@@ -509,10 +509,11 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(PeptideIdentificationList& peptides, const std::string& filename, const std::string& caption)
+  bool PlotCanvas::addLayer(IdentificationData& identifications, const std::string& filename, const std::string& caption)
   {
     LayerDataIdent* new_layer(new LayerDataIdent); // ownership will be transferred to unique_ptr below; no need to delete
-    new_layer->setPeptideIds(std::move(peptides));
+    new_layer->setIdentificationData(std::move(identifications));
+    identifications = IdentificationData();
     setBaseLayerParameters(new_layer, param_, filename, caption);
     layers_.addLayer(LayerDataBaseUPtr(new_layer));
     return finishAdding_();
@@ -575,8 +576,13 @@ namespace OpenMS
     {
       layer_range.extend(getLayer(layer_index).getRange());
     }
+    if (layer_range.RangeIntensity::isEmpty())
+    { // no layer has intensities (e.g. only identifications): the intensity range of the canvas is still defined
+      layer_range.extendIntensity(0);
+      layer_range.extendIntensity(1);
+    }
     // set minimum intensity to 0 (avoid negative intensities!)
-    if (layer_range.getMinIntensity() < 0) layer_range.setMinIntensity(0);
+    else if (layer_range.getMinIntensity() < 0) layer_range.setMinIntensity(0);
 
     // add 4% margin (2% left, 2% right) to RT, m/z, IM and intensity
     layer_range.scaleBy(1.04);
@@ -839,20 +845,6 @@ namespace OpenMS
   void PlotCanvas::drawText_(QPainter& painter, const QStringList& text)
   {
     GUIHelpers::drawText(painter, text, {2, 3}, Qt::black, QColor(255, 255, 255, 200));
-  }
-
-  double PlotCanvas::getIdentificationMZ_(const Size layer_index, const PeptideIdentification& peptide) const
-  {
-    if (getLayerFlag(layer_index, LayerDataBase::I_PEPTIDEMZ))
-    {
-      const PeptideHit& hit = peptide.getHits().front();
-      Int charge = hit.getCharge();
-      return hit.getSequence().getMZ(charge);
-    }
-    else
-    {
-      return peptide.getMZ();
-    }
   }
 
   void LayerStack::addLayer(LayerDataBaseUPtr new_layer)

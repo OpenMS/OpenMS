@@ -26,14 +26,14 @@ namespace OpenMS
   std::unique_ptr<LayerStoreData> LayerDataIdent::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataIdentVisible>();
-    ret->storeVisibleIdent(peptides_, visible_range, layer_filters);
+    ret->storeVisibleIdent(identifications_, visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataIdent::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataIdentAll>();
-    ret->storeFullIdent(peptides_);
+    ret->storeFullIdent(identifications_);
     return ret;
   }
 
@@ -48,8 +48,25 @@ namespace OpenMS
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
+  LayerDataIdent::RangeAllType LayerDataIdent::getRange() const
+  {
+    RangeAllType r;
+    for (const auto& run : identifications_.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          if (query.rt) r.extendRT(*query.rt);
+          if (query.mz) r.extendMZ(*query.mz);
+        }
+      }
+    }
+    return r;
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
   {
-    return make_unique<LayerStatisticsIdent>(peptides_);
+    return make_unique<LayerStatisticsIdent>(identifications_);
   }
 } // namespace OpenMS

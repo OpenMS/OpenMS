@@ -18,8 +18,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
@@ -266,11 +264,16 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    /// add peptide identifications to the layer
-    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
-    /// Will return false otherwise.
-    virtual bool annotate(const PeptideIdentificationList& identifications,
-                          const std::vector<ProteinIdentification>& protein_identifications);
+    /**
+      @brief Add @p identifications to the data of the layer, mapped by RT and m/z (see IDMapper::annotate())
+
+      Only supported for DT_PEAK (whose identifications they replace), DT_FEATURE and DT_CONSENSUS.
+
+      @return false if the layer does not support identifications
+      @throw Exception::BaseException if the identifications cannot be mapped (e.g. without RT or m/z, or with another
+      score schema than the identifications of the layer)
+    */
+    virtual bool annotate(const IdentificationData& identifications);
 
 
     /**
@@ -404,7 +407,7 @@ namespace OpenMS
     QWidget* gui_lock_ = nullptr;///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };
 
-  /// Annotate a layer with PeptideIdentifications using Layer::annotate(pepIDs, protIDs).
+  /// Annotate a layer with identifications using LayerDataBase::annotate().
   /// The ID data is loaded from a file selected by the user via a file-dialog.
   class LayerAnnotatorPeptideID : public LayerAnnotatorBase
   {
@@ -416,8 +419,8 @@ namespace OpenMS
     }
 
   protected:
-    /// loads the ID data from @p filename and calls Layer::annotate.
-    /// Always returns true (unless an exception is thrown from internal sub-functions)
+    /// loads the ID data from @p filename and calls LayerDataBase::annotate().
+    /// Returns whether the layer was annotated; errors (e.g. of loading or mapping) go to @p log
     virtual bool annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const;
   };
 

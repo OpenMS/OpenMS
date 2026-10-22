@@ -10,12 +10,20 @@
 
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QTemporaryDir>
+#include <QSplashScreen>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
+#include <OpenMS/VISUAL/LayerDataIdent.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
+
+#include <fstream>
 
 using namespace OpenMS;
 
@@ -122,6 +130,100 @@ void TestTOPPView::testGui()
 
   // compare the name of the opened tab
   QCOMPARE(tv.tab_bar_.tabText(tv.tab_bar_.currentIndex()), QString("peakpicker_tutorial_1 (1D)"));
+}
+
+void TestTOPPView::testIdentifications()
+{
+  using ID = IdentificationData;
+  // identifications at RT 100/200 and m/z 500/600, and (with @p without_rt) one without RT
+  const auto makeIdentifications = [](bool without_rt) {
+    ID data;
+    auto& run = data.addRun("search");
+    ID::ScoreDefinition score;
+    score.name = "q-value";
+    score.higher_better = false;
+    run.setPrimaryScore(run.addScore(score));
+    const auto source = run.addSource({});
+    const auto add = [&](std::optional<double> rt, double mz, const std::string& sequence) {
+      ID::Observation observation;
+      observation.rt = rt;
+      observation.mz = mz;
+      ID::MatchData match;
+      match.representation = sequence;
+      match.charge = 2;
+      run.addMatch(run.addIdentification(source, observation), match, {0.01});
+    };
+    add(100.0, 500.0, "PEPTIDE");
+    add(200.0, 600.0, "SAMPLER");
+    if (without_rt) add(std::nullopt, 700.0, "PEPTIDER");
+    return data;
+  };
+  const auto count = [](const ID& data) { return data.getUnlinked({}, {}).size(); };
+  QTemporaryDir dir;
+  const std::string path = dir.filePath("identifications.idXML").toStdString();
+  FileHandler().storeIdentifications(path, makeIdentifications(true), {FileTypes::IDXML});
+  const std::string path_with_rt = dir.filePath("identifications_with_rt.idXML").toStdString();
+  FileHandler().storeIdentifications(path_with_rt, makeIdentifications(false), {FileTypes::IDXML});
+
+  TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
+  tv.show();
+  QApplication::processEvents();
+
+  // the identification layer (without the identification without RT)
+  QCOMPARE(tv.addDataFile(path, false, false), TOPPViewBase::LOAD_RESULT::OK);
+  auto* layer = dynamic_cast<LayerDataIdent*>(tv.getCurrentLayer());
+  QVERIFY(layer != nullptr);
+  QCOMPARE(count(layer->getIdentificationData()), Size(2));
+  QCOMPARE(layer->getRange().getMinRT(), 100.0);
+  QCOMPARE(layer->getRange().getMaxMZ(), 600.0);
+  // merged identifications keep their runs
+  auto* canvas = qobject_cast<Plot2DCanvas*>(tv.getActiveCanvas());
+  QVERIFY(canvas != nullptr);
+  canvas->mergeIntoLayer(0, makeIdentifications(true)); // the only layer of the window
+  QCOMPARE(layer->getIdentificationData().getRuns().size(), Size(2));
+  QCOMPARE(count(layer->getIdentificationData()), Size(5));
+  QCOMPARE(layer->getRange().getMinRT(), 100.0);
+
+  // a peak layer with MS2 spectra at the identifications
+  auto run = std::make_shared<AnnotatedMSRun>();
+  for (const auto& [rt, mz] : std::vector<std::pair<double, double>> {{100.0, 500.0}, {200.0, 600.0}})
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(rt);
+    spectrum.setMSLevel(2);
+    Precursor precursor;
+    precursor.setMZ(mz);
+    spectrum.getPrecursors().push_back(precursor);
+    spectrum.push_back(Peak1D(mz, 100.0f));
+    run->getMSExperiment().addSpectrum(spectrum);
+  }
+  run->getMSExperiment().updateRanges();
+  LayerDataBase::FeatureMapSharedPtrType features(new FeatureMap());
+  LayerDataBase::ConsensusMapSharedPtrType consensus(new ConsensusMap());
+  LayerDataBase::ODExperimentSharedPtrType on_disc(new OnDiscMSExperiment());
+  ID none;
+  tv.addData(features, consensus, none, run, on_disc, LayerDataBase::DT_PEAK, false, false, true, "", "spectra");
+  QVERIFY(dynamic_cast<LayerDataPeak*>(tv.getCurrentLayer()) != nullptr);
+
+  // annotated with the identifications of a file
+  QSplashScreen splash;
+  tv.loadFiles({"!", path_with_rt}, &splash);
+  QCOMPARE(run->getSpectrumIdentifications(0).size(), Size(1));
+  QCOMPARE(run->getSpectrumIdentifications(1).size(), Size(1));
+  QCOMPARE(run->getSpectrumIdentifications(0)[0].matches[0]->representation, std::string("PEPTIDE"));
+
+  // identifications without RT cannot be mapped, and a file that cannot be loaded leaves the spectra as they are (the
+  // errors go to the log)
+  tv.loadFiles({"!", path}, &splash);
+  QCOMPARE(run->getSpectrumIdentifications(0).size(), Size(1));
+  const std::string broken = dir.filePath("broken.idXML").toStdString();
+  {
+    std::ofstream out(broken);
+    out << "not an idXML file";
+  }
+  tv.loadFiles({"!", broken}, &splash);
+  QCOMPARE(run->getSpectrumIdentifications(0).size(), Size(1));
+  QCOMPARE(run->getSpectrumIdentifications(0)[0].matches[0]->representation, std::string("PEPTIDE"));
 }
 
 // expands to a simple main() method that runs all the test functions

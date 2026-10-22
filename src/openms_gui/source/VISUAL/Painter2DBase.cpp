@@ -64,56 +64,6 @@ namespace OpenMS
     }
   }
 
-  void Painter2DBase::paintPeptideIDs_(QPainter* painter, Plot2DCanvas* canvas, const IPeptideIds::PepIds& ids, int layer_index)
-  {
-    painter->setPen(Qt::darkRed);
-    bool show_labels = canvas->getLayerFlag(layer_index, LayerDataBase::I_LABELS);
-
-    for (const auto& id : ids)
-    {
-      if (!id.getHits().empty() || show_labels)
-      {
-        if (!id.hasRT() || !id.hasMZ())
-        {
-          // TODO: show error message here
-          continue;
-        }
-        double rt = id.getRT();
-        if (!canvas->visible_area_.getAreaUnit().containsRT(rt))
-        {
-          continue;
-        }
-        double mz = canvas->getIdentificationMZ_(layer_index, id);
-        if (!canvas->visible_area_.getAreaUnit().containsMZ(mz))
-        {
-          continue;
-        }
-        // draw dot
-        QPoint pos = canvas->dataToWidget_(canvas->unit_mapper_.map(id));
-        painter->drawLine(pos.x(), pos.y() - 1.0, pos.x(), pos.y() + 1.0);
-        painter->drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
-
-        // draw sequence
-        std::string sequence;
-        if (show_labels)
-        {
-          sequence = StringUtils::toStr(id.getMetaValue("label"));
-        }
-        else
-        {
-          sequence = id.getHits()[0].getSequence().toString();
-        }
-        if (sequence.empty() && !id.getHits().empty())
-        {
-          sequence = StringUtils::toStr(id.getHits()[0].getMetaValue("label"));
-        }
-        if (id.getHits().size() > 1)
-          sequence += "...";
-        painter->drawText(pos.x() + 10, pos.y() + 10, toQString(sequence));
-      }
-    }
-  }
-
   void Painter2DBase::paintIdentifications_(QPainter* painter, Plot2DCanvas* canvas, const std::vector<IdentificationData::QueryMatches>& ids, int layer_index)
   {
     painter->setPen(Qt::darkRed);
@@ -134,7 +84,7 @@ namespace OpenMS
       {
         continue;
       }
-      // as PlotCanvas::getIdentificationMZ_(): the m/z of the first peptide if requested
+      // the m/z of the peptide of the first match if requested
       double mz = *id.query->mz;
       if (canvas->getLayerFlag(layer_index, LayerDataBase::I_PEPTIDEMZ) && !id.matches.empty()
           && id.matches.front()->encoding == IdentificationData::Encoding::AA_SEQUENCE)
@@ -836,6 +786,6 @@ namespace OpenMS
 
   void Painter2DIdent::paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index)
   {
-    paintPeptideIDs_(painter, canvas, layer_->getPeptideIds(), layer_index);
+    paintIdentifications_(painter, canvas, layer_->getIdentificationData().getUnlinked({}, {}), layer_index);
   }
 } // namespace OpenMS

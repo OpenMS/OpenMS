@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -359,6 +360,90 @@ START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationLis
 
 END_SECTION
 
+
+START_SECTION((void annotate(AnnotatedMSRun& map, const IdentificationData& ids, bool clear_ids = false, bool map_ms1 = false)))
+{
+  // the spectra of the section above: by RT and precursor m/z (IDMapper_1) and by native ID (IDMapper_7)
+  const auto makeRun = [](bool native_ids) {
+    AnnotatedMSRun run;
+    const std::vector<std::tuple<double, double, std::string>> spectra {{60, 0, "spectrum=1234"}, {181, 20, "spectrum=6666"}, {120.0001, 11, "spectrum=4321"}};
+    for (const auto& [rt, mz, native_id] : spectra)
+    {
+      MSSpectrum spectrum;
+      spectrum.setRT(rt);
+      if (native_ids) spectrum.setNativeID(native_id);
+      Precursor precursor;
+      precursor.setMZ(mz);
+      spectrum.getPrecursors().push_back(precursor);
+      run.getMSExperiment().addSpectrum(spectrum);
+    }
+    return run;
+  };
+  IDMapper mapper;
+  Param p = mapper.getParameters();
+  p.setValue("rt_tolerance", 0.5);
+  p.setValue("mz_tolerance", 0.05);
+  p.setValue("mz_measure", "Da");
+  p.setValue("ignore_charge", "true");
+  mapper.setParameters(p);
+
+  for (const auto& [file, native_ids] : std::vector<std::pair<std::string, bool>> {{"IDMapper_1.idXML", false}, {"IDMapper_7.idXML", true}})
+  {
+    IdentificationData ids;
+    FileHandler().loadIdentifications(OPENMS_GET_TEST_DATA_PATH(file), ids);
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH(file), proteins, peptides);
+
+    auto annotated = makeRun(native_ids);
+    mapper.annotate(annotated, ids);
+    auto legacy_annotated = makeRun(native_ids);
+    mapper.annotate(legacy_annotated, peptides, proteins);
+
+    // the spectra link the same identifications as with peptide identifications
+    for (Size i = 0; i < 3; ++i)
+    {
+      const auto linked = annotated.getSpectrumIdentifications(i);
+      const auto legacy_linked = legacy_annotated.getSpectrumIdentifications(i);
+      ABORT_IF(linked.size() != legacy_linked.size())
+      for (Size j = 0; j < linked.size(); ++j)
+      {
+        TEST_EQUAL(linked[j].query->data_id, legacy_linked[j].query->data_id)
+        ABORT_IF(linked[j].matches.size() != legacy_linked[j].matches.size())
+        for (Size k = 0; k < linked[j].matches.size(); ++k)
+        {
+          TEST_EQUAL(linked[j].matches[k]->representation, legacy_linked[j].matches[k]->representation)
+        }
+      }
+    }
+    TEST_EQUAL(annotated.getSpectrumIdentifications(0).size(), 1)
+    TEST_EQUAL(annotated.getSpectrumIdentifications(1).size(), 0)
+    TEST_EQUAL(annotated.getSpectrumIdentifications(2).size(), 1)
+    // the identification that maps to no spectrum is not added; the run keeps its proteins
+    const auto legacy = IdentificationDataAdapter::toLegacy(annotated.getIdentificationData());
+    TEST_EQUAL(legacy.peptides.size(), 2)
+    ABORT_IF(legacy.proteins.size() != 1)
+    TEST_EQUAL(legacy.proteins[0].getHits().size(), 2)
+
+    // the same identifications again add nothing (it is the same run), also after clearing
+    mapper.annotate(annotated, ids);
+    TEST_EQUAL(annotated.getIdentificationData().getRuns().size(), 1)
+    TEST_EQUAL(annotated.getSpectrumIdentifications(0).size(), 1)
+    mapper.annotate(annotated, ids, true);
+    TEST_EQUAL(annotated.getSpectrumIdentifications(0).size(), 1)
+    TEST_EQUAL(IdentificationDataAdapter::toLegacy(annotated.getIdentificationData()).peptides.size(), 2)
+  }
+
+  // identifications need RT and m/z
+  IdentificationData ids;
+  auto& run = ids.addRun("search");
+  IdentificationData::Observation observation;
+  observation.mz = 500.0;
+  run.addIdentification(run.addSource({}), observation);
+  AnnotatedMSRun annotated = makeRun(false);
+  TEST_EXCEPTION(Exception::MissingInformation, mapper.annotate(annotated, ids))
+}
+END_SECTION
 
 START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const PeptideIdentificationList &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
 {

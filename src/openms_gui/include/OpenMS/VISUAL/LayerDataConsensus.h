@@ -65,7 +65,7 @@ namespace OpenMS
 
     std::unique_ptr<LayerStatistics> getStats() const override;
 
-    bool annotate(const PeptideIdentificationList& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
+    bool annotate(const IdentificationData& identifications) override;
   
     /// Returns a const reference to the consensus feature data
     const ConsensusMapSharedPtrType& getConsensusMap() const

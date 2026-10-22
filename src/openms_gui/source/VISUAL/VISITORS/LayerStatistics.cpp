@@ -150,6 +150,25 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    /// Calls @p f for every identification of @p ids
+    template<typename F>
+    void forEachIdentification(const IdentificationData& ids, F&& f)
+    {
+      for (const auto& run : ids.getRuns())
+      {
+        for (const auto& source : run.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            f(query);
+          }
+        }
+      }
+    }
+  } // namespace
+
   Math::Histogram<> LayerStatisticsFeatureMap::getDistribution(const RangeStatsType& which,
                                                                const UInt number_of_bins) const
   {
@@ -236,7 +255,7 @@ namespace OpenMS
 
   // IDENT
 
-  LayerStatisticsIdent::LayerStatisticsIdent(const IPeptideIds::PepIds& ids) : ids_(&ids)
+  LayerStatisticsIdent::LayerStatisticsIdent(const IdentificationData& ids) : ids_(&ids)
   {
     computeStatistics_();
   }
@@ -245,13 +264,12 @@ namespace OpenMS
                                                           const UInt number_of_bins) const
   {
     auto mm =
-      getMinMax(overview_range_data_, which, "vector<PepIDs>"); // may throw if unknown statistic
+      getMinMax(overview_range_data_, which, "IdentificationData"); // may throw if unknown statistic
     Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::METAINFO)
     {
-      for (const auto& pep : *ids_)
-        addMetaDistributionValue(result, which.name, pep);
+      forEachIdentification(*ids_, [&](const IdentificationData::Identification& query) { addMetaDistributionValue(result, which.name, query); });
     }
 
     return result;
@@ -259,10 +277,7 @@ namespace OpenMS
 
   void LayerStatisticsIdent::computeStatistics_()
   {
-    for (const auto& pep : *ids_)
-    {
-      bringInMetaStats_(&pep);
-    }
+    forEachIdentification(*ids_, [&](const IdentificationData::Identification& query) { bringInMetaStats_(&query); });
   }
 
   void LayerStatistics::bringInMetaStats_(const MetaInfoInterface* meta_interface)

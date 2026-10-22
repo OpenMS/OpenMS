@@ -9,17 +9,17 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
 
   /**
-  @brief Class that stores the data for one layer of type PeptideIdentifications
+  @brief Class that stores the data for one layer of identifications (shown at their RT and m/z)
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase, public IPeptideIds
+  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase
   {
   public:
     /// Default constructor
@@ -56,40 +56,29 @@ namespace OpenMS
       // nothing to do...
     }
 
-    RangeAllType getRange() const override
-    {
-      RangeAllType r;
-      for (const PeptideIdentification& pep : peptides_)
-      {
-        r.extendRT(pep.getRT());
-        r.extendMZ(pep.getMZ());
-      }
-      return r;
-    }
+    RangeAllType getRange() const override;
 
     std::unique_ptr<LayerStatistics> getStats() const override;
 
-    virtual const PepIds& getPeptideIds() const override
+    /// The identifications of the layer
+    const IdentificationData& getIdentificationData() const
     {
-      return peptides_;
+      return identifications_;
     }
-    virtual PepIds& getPeptideIds() override
+    IdentificationData& getIdentificationData()
     {
-      return peptides_;
+      return identifications_;
     }
 
-    virtual void setPeptideIds(const PepIds& ids) override
+    /// Replace the identifications of the layer
+    void setIdentificationData(IdentificationData&& identifications)
     {
-      peptides_ = ids;
-    }
-    virtual void setPeptideIds(PepIds&& ids) override
-    {
-      peptides_ = std::move(ids);
+      identifications_ = std::move(identifications);
     }
 
   private:
-    /// peptide identifications
-    PeptideIdentificationList peptides_;
+    /// the identifications
+    IdentificationData identifications_;
   };
 
 }// namespace OpenMS

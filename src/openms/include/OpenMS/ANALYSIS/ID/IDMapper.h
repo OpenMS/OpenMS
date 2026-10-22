@@ -72,6 +72,23 @@ public:
     void annotate(AnnotatedMSRun& map, const PeptideIdentificationList& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
+      @brief Mapping method for peak maps with identification data
+
+      As the overload for peptide identifications: the runs of @p ids are added to the identification data of @p map
+      (IdentificationData::merge()) with the identifications that map to a spectrum, which links them (by the spectrum that
+      an identification refers to (IdentificationData::Observation::data_id), else by RT and precursor m/z).
+
+      @param[in,out] map MSExperiment to receive the identifications
+      @param[in] ids Identifications for the MSExperiment
+      @param[in] clear_ids Remove the identifications of @p map before annotating
+      @param[in] map_ms1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+
+      @exception Exception::MissingInformation is thrown if an identification of @p ids has no RT or m/z
+      @exception Exception::InvalidParameter if the identifications do not share the score schema of the identifications of @p map
+    */
+    void annotate(AnnotatedMSRun& map, const IdentificationData& ids, bool clear_ids = false, bool map_ms1 = false);
+
+    /**
       @brief Mapping method for peak maps
 
       Add the identifications that the features of a feature map link (with the matches they link) to their

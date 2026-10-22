@@ -13,8 +13,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -34,11 +33,11 @@
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
 #include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
@@ -537,9 +536,7 @@ namespace OpenMS
     ConsensusMapType* consensus_map = new ConsensusMapType();
     ConsensusMapSharedPtrType consensus_map_sptr(consensus_map);
 
-    PeptideIdentificationList peptides;
-    // not needed in data but for auto annotation
-    vector<ProteinIdentification> proteins;
+    IdentificationData identifications;
     std::string annotate_path;
 
     LayerDataBase::DataType data_type(LayerDataBase::DT_UNKNOWN);
@@ -566,42 +563,45 @@ namespace OpenMS
       }
       else if (file_type == FileTypes::IDXML || file_type == FileTypes::MZIDENTML)
       {
-        FileHandler().loadIdentifications(abs_filename, proteins, peptides, {FileTypes::IDXML, FileTypes::MZIDENTML});
-        if (peptides.empty())
+        FileHandler().loadIdentifications(abs_filename, identifications, {FileTypes::IDXML, FileTypes::MZIDENTML});
+        const auto count = [&identifications]() {
+          Size n = 0;
+          for (const auto& run : identifications.getRuns())
+          {
+            for (const auto& source : run.getSources())
+            {
+              n += source.identifications.size();
+            }
+          }
+          return n;
+        };
+        if (count() == 0)
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
         }
-        // check if RT (and sequence) information is present:
-        PeptideIdentificationList peptides_with_rt;
-        for (PeptideIdentificationList::const_iterator it =
-               peptides.begin(); it != peptides.end(); ++it)
+        // the layer shows identifications with a match at their RT and m/z
+        const Size removed = identifications.eraseIdentifications([](const IdentificationData::Run&, const IdentificationData::Identification& query) {
+          return query.getMatches().empty() || !query.rt || !query.mz;
+        }).first.size();
+        const Size remaining = count();
+        if (removed)
         {
-          if (!it->getHits().empty() && it->hasRT())
-          {
-            peptides_with_rt.push_back(*it);
-          }
-        }
-        Size diff = peptides.size() - peptides_with_rt.size();
-        if (diff)
-        {
-          std::string msg =StringUtils::toStr(diff) + " peptide identification(s) without"
-                                      " sequence and/or retention time information were removed.\n" +
-                       StringUtils::toStr(peptides_with_rt.size()) + " peptide identification(s) remaining.";
+          std::string msg =StringUtils::toStr(removed) + " peptide identification(s) without"
+                                      " sequence, retention time and/or m/z information were removed.\n" +
+                       StringUtils::toStr(remaining) + " peptide identification(s) remaining.";
           log_->appendNewHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
         }
-        if (peptides_with_rt.empty())
+        if (remaining == 0)
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
-        peptides.swap(peptides_with_rt);
 
-        if (!proteins.empty())
+        if (!identifications.getRuns().empty())
         {
-          StringList paths;
-          proteins[0].getPrimaryMSRunPath(paths);
-
-          for (const std::string &path : paths)
+          // the spectra files of the first run
+          for (const auto& source : identifications.getRuns().front().getSources())
           {
+            const std::string& path = source.file.path;
             if (File::exists(path) && fh.getType(path) == FileTypes::MZML)
             {
               annotate_path = path;
@@ -747,14 +747,20 @@ namespace OpenMS
         auto l = getCurrentLayer();
         if (l)
         {
-          bool success = l->annotate(peptides, proteins);
-          if (success)
+          try
           {
-            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+            if (l->annotate(identifications))
+            {
+              log_->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+            }
+            else
+            {
+              log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
+            }
           }
-          else
+          catch (const Exception::BaseException& e)
           {
-            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
+            log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Annotation failed", e.what());
           }
         }
         window_id = getActivePlotWidget()->getWindowId(); // add ids on top of raw data
@@ -763,7 +769,7 @@ namespace OpenMS
 
     addData(feature_map_sptr, 
       consensus_map_sptr, 
-      peptides, 
+      identifications, 
       peak_map_sptr, 
       on_disc_peaks, 
       data_type, 
@@ -789,7 +795,7 @@ namespace OpenMS
 
   void TOPPViewBase::addData(const FeatureMapSharedPtrType& feature_map,
                              const ConsensusMapSharedPtrType& consensus_map,
-                             PeptideIdentificationList& peptides,
+                             IdentificationData& identifications,
                              const ExperimentSharedPtrType& peak_map,
                              const ODExperimentSharedPtrType& on_disc_peak_map,
                              LayerDataBase::DataType data_type,
@@ -920,7 +926,7 @@ namespace OpenMS
       }
       else if (data_type == LayerDataBase::DT_IDENT)
       {
-        if (! target_window->canvas()->addLayer(peptides, filename, caption))
+        if (! target_window->canvas()->addLayer(identifications, filename, caption))
           return;
       }
       else // peaks or chrom
@@ -946,17 +952,26 @@ namespace OpenMS
     else // merge feature/ID data into feature layer
     {
       Plot2DCanvas* canvas = qobject_cast<Plot2DCanvas*>(target_window->canvas());
-      if (data_type == LayerDataBase::DT_CONSENSUS)
+      try
       {
-        canvas->mergeIntoLayer(merge_layer, consensus_map);
+        if (data_type == LayerDataBase::DT_CONSENSUS)
+        {
+          canvas->mergeIntoLayer(merge_layer, consensus_map);
+        }
+        else if (data_type == LayerDataBase::DT_FEATURE)
+        {
+          canvas->mergeIntoLayer(merge_layer, feature_map);
+        }
+        else if (data_type == LayerDataBase::DT_IDENT)
+        {
+          canvas->mergeIntoLayer(merge_layer, identifications);
+        }
       }
-      else if (data_type == LayerDataBase::DT_FEATURE)
+      catch (const Exception::BaseException& e)
       {
-        canvas->mergeIntoLayer(merge_layer, feature_map);
-      }
-      else if (data_type == LayerDataBase::DT_IDENT)
-      {
-        canvas->mergeIntoLayer(merge_layer, peptides);
+        // e.g. identifications with another score schema than those of the layer
+        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Error while merging into layer:", e.what());
+        return;
       }
       // combine layer names
       canvas->setLayerName(merge_layer, canvas->getLayerName(merge_layer) + " + " + caption);
@@ -1932,9 +1947,9 @@ namespace OpenMS
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-      PeptideIdentificationList p_dummy;
+      IdentificationData i_dummy;
       // open as 1D (since its a single spectrum); 3D view does not support MS2 (yet)
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, true, false, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
+      addData(f_dummy, c_dummy, i_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, true, false, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2398,14 +2413,14 @@ namespace OpenMS
           on_disc_peaks = lp->getOnDiscPeakData();
         }
         // if the layer provides identification data -> retrieve it
-        PeptideIdentificationList peptides;
-        if (auto p = dynamic_cast<IPeptideIds*>(&layer); p != nullptr)
+        IdentificationData identifications;
+        if (auto* lp = dynamic_cast<LayerDataIdent*>(&layer))
         {
-          peptides = p->getPeptideIds();
+          identifications = lp->getIdentificationData();
         }
 
         // add the data
-        addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.getName(), new_id);
+        addData(features, consensus, identifications, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.getName(), new_id);
       }
       else if (spec_view != nullptr)
       {
@@ -2415,9 +2430,9 @@ namespace OpenMS
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-          PeptideIdentificationList p_dummy;
+          IdentificationData i_dummy;
           const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
+          addData(f_dummy, c_dummy, i_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)

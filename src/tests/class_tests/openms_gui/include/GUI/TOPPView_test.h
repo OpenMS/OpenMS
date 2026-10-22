@@ -65,6 +65,9 @@ class TestTOPPView: public QObject
   private slots:
     void testGui();
 
+    /// an identification layer from an idXML file, and a peak layer annotated with it
+    void testIdentifications();
+
   private:
     /**
       @brief Schedule a keyboard input using a QTimer signal to direct input to a modal window.

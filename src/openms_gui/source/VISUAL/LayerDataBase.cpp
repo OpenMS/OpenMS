@@ -14,14 +14,11 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/LayerDataConsensus.h>
-#include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -95,32 +92,8 @@ namespace OpenMS
     chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
 */
-  bool LayerDataBase::annotate(const PeptideIdentificationList& identifications,
-                           const vector<ProteinIdentification>& protein_identifications)
+  bool LayerDataBase::annotate(const IdentificationData& /*identifications*/)
   {
-    IDMapper mapper;
-    if (auto* lp = dynamic_cast<LayerDataPeak*>(this))
-    {
-      Param p = mapper.getDefaults();
-      p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
-      p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
-      p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
-      mapper.setParameters(p);
-      mapper.annotate(*lp->getPeakDataMuteable(), identifications, protein_identifications, true);
-    }
-    if (auto* lp = dynamic_cast<LayerDataFeature*>(this))
-    {
-      mapper.annotate(*lp->getFeatureMap(), identifications, protein_identifications);
-    }
-    else if (auto* lp = dynamic_cast<LayerDataConsensus*>(this))
-    {
-      mapper.annotate(*lp->getConsensusMap(), identifications, protein_identifications);
-    }
-    else
-    {
-      return false;
-    }
-
     return false;
   }
 
@@ -227,15 +200,25 @@ namespace OpenMS
     return getAnnotatorWhichSupports(FileHandler::getType(filename));
   }
 
-  bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& /*log*/) const
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const
   {
-    FileTypes::Type type = FileHandler::getType(filename);
-    PeptideIdentificationList identifications;
-    vector<ProteinIdentification> protein_identifications;
-    FileHandler().loadIdentifications(filename, protein_identifications, identifications, {type});
-
-    layer.annotate(identifications, protein_identifications);
-    return true;
+    try
+    {
+      IdentificationData identifications;
+      FileHandler().loadIdentifications(filename, identifications, {FileHandler::getType(filename)});
+      if (!layer.annotate(identifications))
+      {
+        log.appendNewHeader(LogWindow::LogState::CRITICAL, "Error", "This layer cannot be annotated with identifications.");
+        return false;
+      }
+      return true;
+    }
+    catch (const Exception::BaseException& e)
+    {
+      // e.g. identifications without RT, or with another score schema than those of the layer
+      log.appendNewHeader(LogWindow::LogState::CRITICAL, "Annotating with identifications failed", e.what());
+      return false;
+    }
   }
 
   bool LayerAnnotatorAMS::annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const

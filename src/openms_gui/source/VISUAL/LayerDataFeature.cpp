@@ -74,10 +74,10 @@ namespace OpenMS
     return make_unique<LayerStatisticsFeatureMap>(*getFeatureMap());
   }
 
-  bool LayerDataFeature::annotate(const PeptideIdentificationList& identifications, const vector<ProteinIdentification>& protein_identifications)
+  bool LayerDataFeature::annotate(const IdentificationData& identifications)
   {
     IDMapper mapper;
-    mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
+    mapper.annotate(*getFeatureMap(), identifications);
 
     return true;
   }

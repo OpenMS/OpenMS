@@ -11,7 +11,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -21,7 +20,7 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
@@ -1621,6 +1620,8 @@ namespace OpenMS
   void Plot2DCanvas::mergeIntoLayer(Size i, const FeatureMapSharedPtrType& map)
   {
     auto& layer = dynamic_cast<LayerDataFeature&>(layers_.getLayer(i));
+    // the features link the identifications of their map
+    layer.getFeatureMap()->getIdentificationData().merge(map->getIdentificationData());
 
     //reserve enough space
     layer.getFeatureMap()->reserve(layer.getFeatureMap()->size() + map->size());
@@ -1649,6 +1650,8 @@ namespace OpenMS
   {
     auto& layer = dynamic_cast<LayerDataConsensus&>(layers_.getLayer(i));
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_CONSENSUS, "Plot2DCanvas::mergeIntoLayer(i, map) non-consensus-feature layer selected");
+    // the consensus features link the identifications of their map
+    layer.getConsensusMap()->getIdentificationData().merge(map->getIdentificationData());
     //reserve enough space
     layer.getConsensusMap()->reserve(layer.getConsensusMap()->size() + map->size());
     //add features
@@ -1672,17 +1675,10 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mergeIntoLayer(Size i, PeptideIdentificationList & peptides)
+  void Plot2DCanvas::mergeIntoLayer(Size i, const IdentificationData& identifications)
   {
-    LayerDataBase& layer = layers_.getLayer(i);
-    OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_IDENT, "Plot2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");
-    
-    auto& layer_peptides = dynamic_cast<IPeptideIds*>(&layer)->getPeptideIds();
-    // reserve enough space
-    layer_peptides.reserve(layer_peptides.size() + peptides.size());
-    // insert peptides
-    layer_peptides.insert(layer_peptides.end(), peptides.begin(),
-                               peptides.end());
+    auto& layer = dynamic_cast<LayerDataIdent&>(layers_.getLayer(i));
+    layer.getIdentificationData().merge(identifications);
     // update the layer and overall ranges
     recalculateRanges_();
     resetZoom(true);

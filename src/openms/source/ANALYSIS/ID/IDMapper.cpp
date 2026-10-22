@@ -282,6 +282,34 @@ namespace OpenMS
     addToSpectra_(map, std::move(imported.data), imported.queries, mapToSpectra_(map.getMSExperiment(), candidates, map_ms1));
   }
 
+  void IDMapper::annotate(AnnotatedMSRun& map, const IdentificationData& ids, bool clear_ids, bool map_ms1)
+  {
+    checkHits_(ids);
+
+    if (clear_ids)
+    { // start with empty IDs
+      map.clearIdentifications();
+    }
+
+    std::vector<SpectrumCandidate_> candidates;
+    std::vector<IdentificationData::QueryReference> queries;
+    for (const auto& run : ids.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          // mapping is done by either native id or by comparing the identification RT with experiment RT
+          candidates.push_back({query.data_id, *query.rt, *query.mz});
+          queries.push_back({run.getUuid(), query.getId()});
+        }
+      }
+    }
+    if (candidates.empty()) return;
+
+    addToSpectra_(map, IdentificationData(ids), queries, mapToSpectra_(map.getMSExperiment(), candidates, map_ms1));
+  }
+
   void IDMapper::annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids, const bool map_ms1)
   {
     if (clear_ids)

@@ -284,7 +284,7 @@ namespace OpenMS
     return make_unique<LayerStatisticsPeakMap>(peak_map_->getMSExperiment());
   }
 
-  bool LayerDataPeak::annotate(const PeptideIdentificationList& identifications, const vector<ProteinIdentification>& protein_identifications)
+  bool LayerDataPeak::annotate(const IdentificationData& identifications)
   {
     IDMapper mapper;
     Param p = mapper.getDefaults();
@@ -292,17 +292,7 @@ namespace OpenMS
     p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
     p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
     mapper.setParameters(p);
-    try
-    {
-      mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
-    }
-    catch (const Exception::BaseException& e)
-    {
-      // e.g. identifications without their protein run, or with another score schema
-      OPENMS_LOG_ERROR << "Annotating the spectra with identifications failed: " << e.what() << std::endl;
-      return false;
-    }
-
+    mapper.annotate(*getPeakDataMuteable(), identifications, true);
     return true;
   }
   

@@ -243,40 +243,33 @@ namespace OpenMS
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // helper for saving a PepIDs to a file
-  void savePepIdsToFile(const std::string& path, const IPeptideIds::PepIds& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
+  // helper for saving identifications to a file
+  void saveIdentificationsToFile(const std::string& path, const IdentificationData& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
-    FileHandler().storeIdentifications(path, {}, ids, {FileTypes::IDXML}, lt);
+    FileHandler().storeIdentifications(path, ids, {FileTypes::IDXML}, lt);
   }
 
   void LayerStoreDataIdentVisible::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
-    return savePepIdsToFile(path, ids_, lt, this->getSupportedExtension_(path));
+    return saveIdentificationsToFile(path, ids_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerStoreDataIdentVisible::storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& /*layer_filters*/)
+  void LayerStoreDataIdentVisible::storeVisibleIdent(const IdentificationData& ids, const RangeAllType& visible_range, const DataFilters& /*layer_filters*/)
   {
-    ids_.clear();
-
-    // copy peptides, if visible
-    for (const auto& p : ids)
-    {
-      double rt = p.getRT();
-      double mz = p.getMZ();
-      // TODO: if (layer.filters.passes(*it) && ...)
-      if (visible_range.containsRT(rt) && visible_range.containsMZ(mz))
-      {
-        ids_.push_back(p);
-      }
-    }
+    // keep the identifications that are visible (with their runs)
+    ids_ = ids;
+    // TODO: if (layer.filters.passes(*it) && ...)
+    ids_.eraseIdentifications([&](const IdentificationData::Run&, const IdentificationData::Identification& query) {
+      return !query.rt || !query.mz || !visible_range.containsRT(*query.rt) || !visible_range.containsMZ(*query.mz);
+    });
   }
 
   void LayerStoreDataIdentAll::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
-    return savePepIdsToFile(path, *full_ids_, lt, this->getSupportedExtension_(path));
+    return saveIdentificationsToFile(path, *full_ids_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerStoreDataIdentAll::storeFullIdent(const IPeptideIds::PepIds& ids)
+  void LayerStoreDataIdentAll::storeFullIdent(const IdentificationData& ids)
   {
     full_ids_ = &ids;
   }
