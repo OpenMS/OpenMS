@@ -564,10 +564,12 @@ protected:
      * search results. With libstdc++ and OpenMP, inputs of more than @p min_task_size peptides are sorted by a
      * multi-threaded reproduction of libstdc++'s std::sort; everything else calls std::sort.
      *
-     * @param[in,out] peptides       Peptides to sort
-     * @param[in]     min_task_size  Parts of at most this many peptides are sorted by the thread that created them
+     * @param[in,out] peptides               Peptides to sort
+     * @param[in]     min_task_size          Parts of at most this many peptides are sorted by the thread that created them
+     * @param[in]     min_parallel_partition Parts of more than this many peptides are partitioned by all threads
      */
-    static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192);
+    static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192,
+                              size_t min_parallel_partition = size_t(1) << 18);
 
     /// Rendering classes of the configured modifications, for samePeptidoform_() (peptide:deduplicate)
     struct PeptidoformRendering_

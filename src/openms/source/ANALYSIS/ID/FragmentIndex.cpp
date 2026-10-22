@@ -949,8 +949,114 @@ namespace OpenMS
     // Both points need what std::sort needs anyway: a comparison that is a strict weak ordering and has no state.
     constexpr std::ptrdiff_t STD_SORT_LEAF_SIZE = 16; // _S_threshold
 
+    // std::__unguarded_partition(first + 1, last, first) with the tasks of the OpenMP team, for large ranges, where its
+    // sequential scans are the critical path of the sort. The scans swap the k-th element from the left that is not
+    // less than the pivot (a_k) with the k-th element from the right that the pivot is not less than (b_k), for
+    // k = 0, 1, ... while a_k < b_k, and stop at K, the first k with a_k >= b_k: the scan from the left stops at a_K or,
+    // if that lies beyond, at b_{K-1}, which holds a_{K-1}'s element by then. (Each scan only passes elements it would
+    // not stop at, which no swap has touched, up to the place of the last swap.) So the same swaps are found from the
+    // counts of both kinds of elements: K is the largest k for which some position m has at least k of the first kind
+    // left of it and k of the second kind from m on. Returns where the scan from the left stops.
     template <typename T, typename Less>
-    void introsortLoopLikeStdSort(T* first, T* last, int depth_limit, Less less, std::ptrdiff_t min_task_size)
+    T* partitionLikeStdSortInParallel(T* first, T* last, Less less)
+    {
+      const T& pivot = *first; // not moved: the scans cover [first + 1, last)
+      T* const begin = first + 1;
+      const auto stops_left = [&](const T& x) { return !less(x, pivot); }; // a scan from the left stops here
+      const auto stops_right = [&](const T& x) { return !less(pivot, x); }; // a scan from the right stops here
+      constexpr std::ptrdiff_t chunk = std::ptrdiff_t(1) << 14;
+      const std::ptrdiff_t n = last - begin;
+      const std::ptrdiff_t num_chunks = (n + chunk - 1) / chunk;
+      const auto chunk_begin = [&](std::ptrdiff_t c) { return begin + std::min(n, c * chunk); };
+      // left[c]: elements of the first kind in chunks [0, c); right[c]: of the second kind in chunks [c, num_chunks)
+      std::vector<std::ptrdiff_t> left(num_chunks + 1, 0), right(num_chunks + 1, 0);
+      #pragma omp taskloop grainsize(1) default(none) shared(left, right, stops_left, stops_right, chunk_begin, num_chunks)
+      for (std::ptrdiff_t c = 0; c < num_chunks; ++c)
+      {
+        std::ptrdiff_t l = 0, r = 0;
+        for (T* x = chunk_begin(c); x != chunk_begin(c + 1); ++x)
+        {
+          l += stops_left(*x);
+          r += stops_right(*x);
+        }
+        left[c + 1] = l;
+        right[c] = r;
+      }
+      for (std::ptrdiff_t c = 0; c < num_chunks; ++c) left[c + 1] += left[c];
+      for (std::ptrdiff_t c = num_chunks; c-- > 0;) right[c] += right[c + 1];
+
+      // K = max over m of min(#first kind in [begin, m), #second kind in [m, last)); the first count grows with m, the
+      // second shrinks, so the maximum lies where they cross: in the chunk where the first passes the second, or at
+      // one of its ends
+      std::ptrdiff_t cross = 0; // first chunk boundary with left >= right
+      while (cross < num_chunks && left[cross] < right[cross]) ++cross;
+      std::ptrdiff_t K = std::min(left[cross], right[cross]);
+      if (cross > 0)
+      {
+        std::ptrdiff_t l = left[cross - 1], r = right[cross - 1];
+        K = std::max(K, std::min(l, r));
+        for (T* x = chunk_begin(cross - 1); x != chunk_begin(cross); ++x)
+        {
+          l += stops_left(*x);
+          r -= stops_right(*x);
+          K = std::max(K, std::min(l, r));
+        }
+      }
+
+      // a_k and b_k, found from the chunk counts (k < number of such elements; otherwise last, and first: no such element)
+      const auto a_at = [&](std::ptrdiff_t k) -> T*
+      {
+        if (k >= left[num_chunks]) return last;
+        const std::ptrdiff_t c = std::upper_bound(left.begin(), left.end(), k) - left.begin() - 1;
+        std::ptrdiff_t seen = left[c];
+        for (T* x = chunk_begin(c);; ++x)
+        {
+          if (stops_left(*x) && seen++ == k) return x;
+        }
+      };
+      const auto b_at = [&](std::ptrdiff_t k) -> T*
+      {
+        if (k >= right[0]) return first;
+        // the chunk c with right[c + 1] <= k < right[c]
+        const std::ptrdiff_t c = std::lower_bound(right.begin(), right.end(), k, std::greater<std::ptrdiff_t>()) - right.begin() - 1;
+        std::ptrdiff_t seen = right[c + 1];
+        for (T* x = chunk_begin(c + 1) - 1;; --x)
+        {
+          if (stops_right(*x) && seen++ == k) return x;
+        }
+      };
+      T* const cut = (K == 0) ? a_at(0) : std::min(a_at(K), b_at(K - 1));
+
+      // the swaps, in blocks of consecutive k: the blocks' starts are looked up before any element moves
+      const std::ptrdiff_t block = std::max<std::ptrdiff_t>(chunk, (K + 255) / 256);
+      const std::ptrdiff_t num_blocks = (K + block - 1) / block;
+      std::vector<std::pair<T*, T*>> starts(num_blocks);
+      #pragma omp taskloop grainsize(1) default(none) shared(starts, a_at, b_at, num_blocks, block)
+      for (std::ptrdiff_t j = 0; j < num_blocks; ++j)
+      {
+        starts[j] = {a_at(j * block), b_at(j * block)};
+      }
+      #pragma omp taskloop grainsize(1) default(none) shared(starts, stops_left, stops_right, num_blocks, block, K)
+      for (std::ptrdiff_t j = 0; j < num_blocks; ++j)
+      {
+        T* a = starts[j].first;
+        T* b = starts[j].second;
+        for (std::ptrdiff_t k = j * block; k < std::min(K, (j + 1) * block); ++k)
+        {
+          if (k > j * block)
+          {
+            while (!stops_left(*++a)) {}
+            while (!stops_right(*--b)) {}
+          }
+          std::iter_swap(a, b);
+        }
+      }
+      return cut;
+    }
+
+    template <typename T, typename Less>
+    void introsortLoopLikeStdSort(T* first, T* last, int depth_limit, Less less, std::ptrdiff_t min_task_size,
+                                  std::ptrdiff_t min_parallel_partition)
     {
       while (last - first > STD_SORT_LEAF_SIZE)
       {
@@ -977,25 +1083,32 @@ namespace OpenMS
         else std::iter_swap(first, b);
         // ... and __unguarded_partition(first + 1, last, pivot = first)
         T* cut = first + 1;
-        T* hi = last;
-        while (true)
+        if (last - first > min_parallel_partition)
         {
-          while (less(*cut, *first)) ++cut;
-          --hi;
-          while (less(*first, *hi)) --hi;
-          if (!(cut < hi)) break;
-          std::iter_swap(cut, hi);
-          ++cut;
+          cut = partitionLikeStdSortInParallel(first, last, less);
+        }
+        else
+        {
+          T* hi = last;
+          while (true)
+          {
+            while (less(*cut, *first)) ++cut;
+            --hi;
+            while (less(*first, *hi)) --hi;
+            if (!(cut < hi)) break;
+            std::iter_swap(cut, hi);
+            ++cut;
+          }
         }
         // right part [cut, last): recursion in std::sort, a task here if it is large enough to be worth one
         if (last - cut > min_task_size)
         {
-          #pragma omp task default(none) firstprivate(cut, last, depth_limit, less, min_task_size)
-          introsortLoopLikeStdSort(cut, last, depth_limit, less, min_task_size);
+          #pragma omp task default(none) firstprivate(cut, last, depth_limit, less, min_task_size, min_parallel_partition)
+          introsortLoopLikeStdSort(cut, last, depth_limit, less, min_task_size, min_parallel_partition);
         }
         else
         {
-          introsortLoopLikeStdSort(cut, last, depth_limit, less, min_task_size);
+          introsortLoopLikeStdSort(cut, last, depth_limit, less, min_task_size, min_parallel_partition);
         }
         last = cut; // left part [first, cut): next iteration
       }
@@ -1011,7 +1124,7 @@ namespace OpenMS
   } // namespace
 #endif
 
-  void FragmentIndex::sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size)
+  void FragmentIndex::sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size, size_t min_parallel_partition)
   {
     const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
     {
@@ -1026,13 +1139,15 @@ namespace OpenMS
       Peptide* const last = first + peptides.size();
       const int depth_limit = 2 * (static_cast<int>(std::bit_width(peptides.size())) - 1); // std::__lg(n) * 2
       const std::ptrdiff_t min_size = static_cast<std::ptrdiff_t>(min_task_size);
+      const std::ptrdiff_t min_parallel = static_cast<std::ptrdiff_t>(std::min<size_t>(min_parallel_partition, PTRDIFF_MAX));
       #pragma omp parallel
       #pragma omp single nowait
-      introsortLoopLikeStdSort(first, last, depth_limit, by_mz_then_protein, min_size);
+      introsortLoopLikeStdSort(first, last, depth_limit, by_mz_then_protein, min_size, min_parallel);
       return;
     }
 #else
     (void)min_task_size;
+    (void)min_parallel_partition;
 #endif
     std::sort(peptides.begin(), peptides.end(), by_mz_then_protein);
   }

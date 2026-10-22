@@ -175,6 +175,10 @@ public:
 
   static void sortPeptides(std::vector<Peptide>& peptides) { sortPeptides_(peptides); }
   static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size) { sortPeptides_(peptides, min_task_size); }
+  static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size, size_t min_parallel_partition)
+  {
+    sortPeptides_(peptides, min_task_size, min_parallel_partition);
+  }
 
   std::vector<double> exposeComputeSigmaDeltaSet(bool include_prot_nterm_mods,
                                                 bool include_prot_cterm_mods) const
@@ -3559,18 +3563,25 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
 #endif
         if (n < 1000000)
         {
-          // every partitioning step hands its right part to another task / only the larger parts
+          // every partitioning step hands its right part to another task / only the larger parts; every partitioning
+          // step / those of more than 1000 peptides / none is done by all threads
           for (const size_t min_task_size : {size_t(0), size_t(100)})
           {
-            std::vector<Peptide> sorted = input;
-            FragmentIndex_test::sortPeptides(sorted, min_task_size);
-            differences += countDifferences(sorted, expected);
+            for (const size_t min_parallel_partition : {size_t(0), size_t(1000), std::numeric_limits<size_t>::max()})
+            {
+              std::vector<Peptide> sorted = input;
+              FragmentIndex_test::sortPeptides(sorted, min_task_size, min_parallel_partition);
+              differences += countDifferences(sorted, expected);
+            }
           }
         }
         else
         {
           std::vector<Peptide> sorted = input;
           FragmentIndex_test::sortPeptides(sorted); // as build() calls it
+          differences += countDifferences(sorted, expected);
+          sorted = input;
+          FragmentIndex_test::sortPeptides(sorted, 8192, 20000); // partitioning by all threads down to 20000 peptides
           differences += countDifferences(sorted, expected);
         }
         (void)threads;
