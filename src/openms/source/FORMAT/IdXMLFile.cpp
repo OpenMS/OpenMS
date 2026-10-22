@@ -301,57 +301,13 @@ namespace OpenMS
       double significance_threshold = protein_ids[i].getSignificanceThreshold();
       os << "significance_threshold=\"" << StringUtils::toStr(significance_threshold) << "\" >\n";
 
-      // write protein hits
-      size_t hit_count { protein_ids[i].getHits().size() };
-      for (Size j = 0; j < hit_count; ++j)
-      {
-        os << "\t\t\t<ProteinHit "
-           << "id=\"PH_" << StringUtils::toStr(prot_count) << "\" "
-           << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" "
-           << "score=\"" << StringUtils::toStr(protein_ids[i].getHits()[j].getScore()) << "\" ";
-        accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count;
-        ++prot_count;
-
-        double coverage = protein_ids[i].getHits()[j].getCoverage();
-        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
-        {
-          os << "coverage=\"" << StringUtils::toStr(coverage) << "\" ";
-        }
-
-        os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
-        writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
-        os << "\t\t\t</ProteinHit>\n";
-      }
-
-      // add ProteinGroup info to metavalues (hack)
-      MetaInfoInterface meta = protein_ids[i];
-      addProteinGroups_(meta, protein_ids[i].getProteinGroups(),
-                        "protein_group", accession_to_id, STORE);
-      addProteinGroups_(meta, protein_ids[i].getIndistinguishableProteins(),
-                        "indistinguishable_proteins", accession_to_id, STORE);
-      writeUserParam_("UserParam", os, meta, 3);
-
-      os << "\t\t</ProteinIdentification>\n";
-
-      //write PeptideIdentifications
-      //
-      // The peptide identifications of the run are formatted in parallel, in blocks of consecutive ones, each block into
-      // a string of its own, and the blocks are written in input order as soon as they are ready: the same bytes as
-      // formatting them one after the other into os, while at most one block per thread is held in memory. Meta values
-      // are read by registry index and their names cached per thread (MetaInfoRegistry takes a process-wide lock for
-      // every name), and the hits are visited in the order of PeptideIdentification::sort() without copying them (unless
-      // a score is NaN). If formatting fails, neither the failing block nor any later one is written, and the error of
-      // the first failing block in input order is rethrown.
-
-      const std::vector<Size>& to_write = run_peptide_ids[i];
-      const Size count_empty = run_empty_count[i];
-      const Size count_wrong_id = peptide_ids.size() - to_write.size() - count_empty;
-
-      const std::string& run_identifier = protein_ids[i].getIdentifier();
-      const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
-      // written as attributes of PeptideIdentification, not as UserParam (UInt(-1) if never registered)
-      const UInt spectrum_reference_index = registry.getIndex("spectrum_reference");
-      const UInt significance_threshold_index = registry.getIndex(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+      // The protein hits, and then the peptide identifications, of the run are formatted in parallel, in blocks of
+      // consecutive ones, each block into a string of its own, and the blocks are written in input order as soon as they
+      // are ready: the same bytes as formatting them one after the other into os, while at most one block per thread is
+      // held in memory. Meta values are read by registry index and their names cached per thread (MetaInfoRegistry takes
+      // a process-wide lock for every name), and the hits are visited in the order of PeptideIdentification::sort()
+      // without copying them (unless a score is NaN). If formatting fails, neither the failing block nor any later one is
+      // written, and the error of the first failing block in input order is rethrown.
 
       // buffers of one thread
       struct Scratch
@@ -407,6 +363,138 @@ namespace OpenMS
           }
         }
       };
+
+      // Writes items [0, count) of the run with write_item(out, item, scratch), in blocks of block_size; progress(end)
+      // after each block written
+      const std::streamsize precision = os.precision();
+      const auto write_in_blocks = [&](const Size count, const Size block_size,
+                                       const std::function<void(std::ostream&, Size, Scratch&)>& write_item,
+                                       const std::function<void(Size)>& progress)
+      {
+        const SignedSize num_blocks = static_cast<SignedSize>((count + block_size - 1) / block_size);
+        std::exception_ptr error;
+        bool write_failed = false; // writing into the file failed; the exception is constructed after the parallel region
+        std::atomic<bool> failed(false);
+
+        // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file
+        // and the threads only wait. Declared without OpenMP, too: with the -fopenmp-simd fallback the compiler still
+        // parses the clauses of the parallel pragma below.
+        [[maybe_unused]] int team_size = 1;
+#ifdef _OPENMP
+        team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
+#endif
+#pragma omp parallel if (num_blocks > 1) num_threads(team_size)
+        {
+          Scratch scratch;
+#pragma omp for ordered schedule(dynamic, 1)
+          for (SignedSize b = 0; b < num_blocks; ++b)
+          {
+            const Size begin = static_cast<Size>(b) * block_size;
+            const Size end = std::min(count, begin + block_size);
+            std::string text;
+            std::exception_ptr block_error;
+            if (!failed.load(std::memory_order_relaxed))
+            {
+              try
+              {
+                std::ostringstream block_os;
+                block_os.precision(precision);
+                formatBlock_(block_os, [&](std::ostream& out) {
+                  for (Size k = begin; k < end; ++k)
+                  {
+                    write_item(out, k, scratch);
+                  }
+                });
+                text = block_os.str();
+              }
+              catch (...)
+              {
+                block_error = std::current_exception();
+              }
+            }
+#pragma omp ordered
+            {
+              if (!failed.load(std::memory_order_relaxed))
+              {
+                if (block_error)
+                {
+                  error = block_error;
+                  failed.store(true, std::memory_order_relaxed);
+                }
+                else
+                {
+                  os.write(text.data(), static_cast<std::streamsize>(text.size()));
+                  if (!os)
+                  {
+                    write_failed = true;
+                    failed.store(true, std::memory_order_relaxed);
+                  }
+                  else
+                  {
+                    progress(end);
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (error) std::rethrow_exception(error);
+        if (write_failed)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, store_function, filename,
+                                              "writing the file failed (e.g. disk full or I/O error)");
+        }
+      };
+
+      // write protein hits; their ids number on from the hits of the runs before, and a peptide evidence refers to the
+      // last hit of its accession
+      const std::vector<ProteinHit>& protein_hits = protein_ids[i].getHits();
+      const UInt first_protein_id = prot_count;
+      for (const ProteinHit& hit : protein_hits)
+      {
+        accession_to_id[hit.getAccession()] = prot_count;
+        ++prot_count;
+      }
+      write_in_blocks(protein_hits.size(), 64, [&](std::ostream& out, Size j, Scratch& scratch)
+      {
+        const ProteinHit& hit = protein_hits[j];
+        out << "\t\t\t<ProteinHit "
+            << "id=\"PH_" << StringUtils::toStr(first_protein_id + static_cast<UInt>(j)) << "\" "
+            << "accession=\"" << writeXMLEscape(hit.getAccession()) << "\" "
+            << "score=\"" << StringUtils::toStr(hit.getScore()) << "\" ";
+
+        double coverage = hit.getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          out << "coverage=\"" << StringUtils::toStr(coverage) << "\" ";
+        }
+
+        out << "sequence=\"" << writeXMLEscape(hit.getSequence()) << "\" >\n";
+        write_user_params(out, hit, "\t\t\t\t<UserParam type=\"", scratch, UInt(-1), UInt(-1));
+        out << "\t\t\t</ProteinHit>\n";
+      }, [](Size) {});
+
+      // add ProteinGroup info to metavalues (hack)
+      MetaInfoInterface meta = protein_ids[i];
+      addProteinGroups_(meta, protein_ids[i].getProteinGroups(),
+                        "protein_group", accession_to_id, STORE);
+      addProteinGroups_(meta, protein_ids[i].getIndistinguishableProteins(),
+                        "indistinguishable_proteins", accession_to_id, STORE);
+      writeUserParam_("UserParam", os, meta, 3);
+
+      os << "\t\t</ProteinIdentification>\n";
+
+      //write PeptideIdentifications
+      const std::vector<Size>& to_write = run_peptide_ids[i];
+      const Size count_empty = run_empty_count[i];
+      const Size count_wrong_id = peptide_ids.size() - to_write.size() - count_empty;
+
+      const std::string& run_identifier = protein_ids[i].getIdentifier();
+      const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      // written as attributes of PeptideIdentification, not as UserParam (UInt(-1) if never registered)
+      const UInt spectrum_reference_index = registry.getIndex("spectrum_reference");
+      const UInt significance_threshold_index = registry.getIndex(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+
 
       const auto write_peptide_identification = [&](std::ostream& out, const PeptideIdentification& pep_id, Scratch& scratch)
       {
@@ -516,81 +604,10 @@ namespace OpenMS
         out << "\t\t</PeptideIdentification>\n";
       };
 
-      const Size block_size = 16;
-      const SignedSize num_blocks = static_cast<SignedSize>((to_write.size() + block_size - 1) / block_size);
-      const std::streamsize precision = os.precision();
-      std::exception_ptr error;
-      bool write_failed = false; // writing into the file failed; the exception is constructed after the parallel region
-      std::atomic<bool> failed(false);
-
-      // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file and
-      // the threads only wait. Declared without OpenMP, too: with the -fopenmp-simd fallback the compiler still parses
-      // the clauses of the parallel pragma below.
-      [[maybe_unused]] int team_size = 1;
-#ifdef _OPENMP
-      team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
-#endif
-#pragma omp parallel if (num_blocks > 1) num_threads(team_size)
+      write_in_blocks(to_write.size(), 16, [&](std::ostream& out, Size k, Scratch& scratch)
       {
-        Scratch scratch;
-#pragma omp for ordered schedule(dynamic, 1)
-        for (SignedSize b = 0; b < num_blocks; ++b)
-        {
-          const Size begin = static_cast<Size>(b) * block_size;
-          const Size end = std::min(to_write.size(), begin + block_size);
-          std::string text;
-          std::exception_ptr block_error;
-          if (!failed.load(std::memory_order_relaxed))
-          {
-            try
-            {
-              std::ostringstream block_os;
-              block_os.precision(precision);
-              formatBlock_(block_os, [&](std::ostream& out) {
-                for (Size k = begin; k < end; ++k)
-                {
-                  write_peptide_identification(out, peptide_ids[to_write[k]], scratch);
-                }
-              });
-              text = block_os.str();
-            }
-            catch (...)
-            {
-              block_error = std::current_exception();
-            }
-          }
-#pragma omp ordered
-          {
-            if (!failed.load(std::memory_order_relaxed))
-            {
-              if (block_error)
-              {
-                error = block_error;
-                failed.store(true, std::memory_order_relaxed);
-              }
-              else
-              {
-                os.write(text.data(), static_cast<std::streamsize>(text.size()));
-                if (!os)
-                {
-                  write_failed = true;
-                  failed.store(true, std::memory_order_relaxed);
-                }
-                else
-                {
-                  setProgress(to_write[end - 1]);
-                }
-              }
-            }
-          }
-        }
-      }
-      if (error) std::rethrow_exception(error);
-      if (write_failed)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-                                            "writing the file failed (e.g. disk full or I/O error)");
-      }
+        write_peptide_identification(out, peptide_ids[to_write[k]], scratch);
+      }, [&](Size end) { setProgress(to_write[end - 1]); });
 
       os << "\t</IdentificationRun>\n";
 
