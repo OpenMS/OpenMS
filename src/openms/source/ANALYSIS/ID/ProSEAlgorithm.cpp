@@ -5005,6 +5005,22 @@ namespace OpenMS
       const std::string& aggregate_base_name,
       bool build_pooled_aggregate) const
   {
+    return searchWithModificationAnalysis_(in_spectra_files, fasta_db, nullptr, output_base_names, aggregate_base_name,
+                                           build_pooled_aggregate);
+  }
+
+  ProSEAlgorithm::MultiFileSearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis_(
+      const std::vector<std::string>& in_spectra_files,
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db_given,
+      const std::string* in_db,
+      const std::vector<std::string>& output_base_names,
+      const std::string& aggregate_base_name,
+      bool build_pooled_aggregate) const
+  {
+    // The database: fasta_db_given, or read from *in_db below, once the first spectrum file is read in the background.
+    std::vector<FASTAFile::FASTAEntry> fasta_db_read;
+    const std::vector<FASTAFile::FASTAEntry>& fasta_db = in_db == nullptr ? fasta_db_given : fasta_db_read;
     if (!output_base_names.empty() && output_base_names.size() != in_spectra_files.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -5018,6 +5034,7 @@ namespace OpenMS
 
     if (in_spectra_files.empty())
     {
+      if (in_db != nullptr) { loadFASTA(*in_db, fasta_db_read); } // reports a database that cannot be read, as before
       mfres.aggregate.exit_code = ExitCodes::INPUT_FILE_EMPTY;
       return mfres;
     }
@@ -5054,6 +5071,8 @@ namespace OpenMS
       first_file_names_electron_activation = std::async(std::launch::async | std::launch::deferred,
         [&in_spectra_files]() { return mzMLHeadNamesElectronActivation(in_spectra_files[0]); });
     }
+    // A database read here is read while the first file is: neither registers meta value names (see above).
+    if (in_db != nullptr) { loadFASTA(*in_db, fasta_db_read); }
 
     // Resolve decoy handling once from the shared input FASTA; reused for the
     // chunk-major path, the single-context path, and the downstream FDR steps.
@@ -5101,11 +5120,17 @@ namespace OpenMS
     // doubles the target DB, a 3000-protein target against chunk_size=5000 should
     // still chunk because the augmented DB is 6000 — otherwise the resulting FI
     // would exceed the user's memory budget by 2×.
+    // A database read from *in_db is not used after it is augmented (at most once, here or in prepare_context()
+    // below): its entries are taken over instead of being copied.
+    const auto augment_db = [&]()
+    {
+      return in_db == nullptr ? buildDecoyAugmentedDB_(fasta_db, strategy) : buildDecoyAugmentedDB_(std::move(fasta_db_read), strategy);
+    };
     std::vector<FASTAFile::FASTAEntry> full_db;
     bool use_chunked = false;
     if (database_chunk_size_ > 0)
     {
-      full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
+      full_db = augment_db();
       use_chunked = (full_db.size() > database_chunk_size_);
     }
 
@@ -5484,7 +5509,7 @@ namespace OpenMS
           if (full_db.empty())
           {
             startProgress(0, 1, "Generate decoys...");
-            full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
+            full_db = augment_db();
             endProgress();
           }
           ctx.db = std::move(full_db);
@@ -5772,12 +5797,9 @@ namespace OpenMS
       const std::string& aggregate_base_name,
       bool build_pooled_aggregate) const
   {
-    // load FASTA once
-    vector<FASTAFile::FASTAEntry> fasta_db;
-    loadFASTA(in_db, fasta_db);
-
-    MultiFileSearchResult mfres = searchWithModificationAnalysis(
-      in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
+    // load FASTA once (while the first spectrum file is read in the background)
+    MultiFileSearchResult mfres = searchWithModificationAnalysis_(
+      in_spectra_files, {}, &in_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
 
     mfres.shared.database_file = in_db;
 

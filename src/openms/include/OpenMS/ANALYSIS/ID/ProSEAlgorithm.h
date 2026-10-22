@@ -999,6 +999,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         std::vector<FASTAFile::FASTAEntry>&& fasta_db,
         const DecoyStrategy_& strategy) const;
 
+    /// The multi-file searchWithModificationAnalysis() overloads: searches @p fasta_db_given, or, with @p in_db set,
+    /// the database read from *in_db (while the first spectrum file is read in the background), whose entries the
+    /// search then takes over instead of copying them.
+    MultiFileSearchResult searchWithModificationAnalysis_(
+        const std::vector<std::string>& in_spectra_files,
+        const std::vector<FASTAFile::FASTAEntry>& fasta_db_given,
+        const std::string* in_db,
+        const std::vector<std::string>& output_base_names,
+        const std::string& aggregate_base_name,
+        bool build_pooled_aggregate) const;
+
     /// prepareContext(fasta_db, electron_ions) that takes the entries of @p fasta_db over instead of copying them.
     /// With @p searched_spectra, the index holds only the peptides these spectra can reach (see FragmentIndex::build):
     /// the context then serves only one search of these spectra, without calibration.
