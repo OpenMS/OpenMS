@@ -3053,13 +3053,31 @@ namespace OpenMS
       {
           const float mz_lo = adjusted_mass - frag_tol;
           const float mz_hi = adjusted_mass + frag_tol;
-          auto left_it = std::lower_bound(bucket_min_mz.begin(), bucket_min_mz.end(), mz_lo);
-          auto right_it = std::upper_bound(bucket_min_mz.begin(), bucket_min_mz.end(), mz_hi);
-
-          if (left_it != bucket_min_mz.begin()) --left_it;
-
-          const size_t bucket_begin = std::distance(bucket_min_mz.begin(), left_it);
-          const size_t bucket_end = std::distance(bucket_min_mz.begin(), right_it);
+          // std::lower_bound / std::upper_bound over the ascending bucket minima, as branchless binary searches: the
+          // same buckets, without a mispredicted branch per halving
+          const float* const minima = bucket_min_mz.data();
+          size_t bucket_begin = 0;
+          size_t bucket_end = 0;
+          if (!bucket_min_mz.empty())
+          {
+            const float* first = minima;
+            for (size_t len = bucket_min_mz.size(); len > 1; )
+            {
+              const size_t half = len / 2;
+              first += half * static_cast<size_t>(first[half - 1] < mz_lo);
+              len -= half;
+            }
+            bucket_begin = static_cast<size_t>(first - minima) + (*first < mz_lo);
+            first = minima;
+            for (size_t len = bucket_min_mz.size(); len > 1; )
+            {
+              const size_t half = len / 2;
+              first += half * static_cast<size_t>(!(mz_hi < first[half - 1]));
+              len -= half;
+            }
+            bucket_end = static_cast<size_t>(first - minima) + !(mz_hi < *first);
+          }
+          if (bucket_begin != 0) --bucket_begin;
 
           for (size_t j = bucket_begin; j < bucket_end; j++)
           {
