@@ -163,8 +163,8 @@ the peak of the fragment at its own charge 2 or 3, so that every annotated fragm
 search's deisotoping tried: up to 3, and with 'Search:fragment:deisotope_charge_cap precursor' at most the spectrum's
 recorded precursor charge, whatever the charge of the PSM; up to 3 if that is unknown). Its footer records the filter:
 'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz row whose 'id' is its
-'spectrum_reference'. That is null exactly if the mz view has no row of the PSM's spectrum (null: no stored spectrum):
-the re-read failed, the spectrum was not found again, or another spectrum of its native ID has the row. A per-input psm file and its mz view are written as soon as the input is
+'spectrum_reference'; a null one means no stored spectrum (the re-read failed, the spectrum was not found again, or
+another spectrum of its native ID has the row). A per-input psm file and its mz view are written as soon as the input is
 done (neither is kept for the rest of the run), in row groups of 256 rows, so that a viewer can read the spectrum and
 the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
@@ -595,6 +595,11 @@ class ProSE :
         OPENMS_LOG_WARN << "-qpx_extended: " << unresolved << " PSM(s) of " << in_file << " are of a spectrum that shares its"
                         << " native ID with another spectrum (at another RT), which has the mz row of that native ID: the mz"
                         << " view has none for them, and their spectrum_reference is null (unresolved)." << endl;
+      }
+      if (read && !result.mz)
+      {
+        OPENMS_LOG_WARN << "-qpx_extended: the mz view of " << in_file << " could not be built (see the error above); no mz"
+                        << " view is written for it, and the spectrum_reference of its PSMs is null." << endl;
       }
 
       // -- predictions --
