@@ -136,8 +136,8 @@ PSM in snake_case instead of the known scores only ('global_qvalue': the PSM-lev
 competition or Percolator, computed over the PSMs of the input file; 'ln_hyperscore'; Percolator's 'percolator_score',
 'percolator_qvalue', 'percolator_pep'; 'precursor_mz_error_ppm' (corrected for the isotope error), 'isotope_error' (as
 the column), 'delta_mass' (open search) and the Percolator features), with 'higher_better' where it is known;
-'spectrum_reference' (string, the native ID of the spectrum); 'isotope_error' (int16: the 13C peaks from the
-monoisotopic to the selected precursor peak, i.e. observed minus theoretical, whatever
+'spectrum_reference' (string, the native ID of the spectrum; null if unresolved, see the mz view below); 'isotope_error'
+(int16: the 13C peaks from the monoisotopic to the selected precursor peak, i.e. observed minus theoretical, whatever
 'Search:report:isotope_error_convention' says); 'protein_mappings' (list of struct accession, start, end, aa_before,
 aa_after: each protein of the peptide with the peptide's 1-based first and last position and the residues before and
 after it, '-' at a protein terminus). The per-input psm files also get 'predicted_ion_type_array', 'predicted_mz_array',
@@ -151,20 +151,26 @@ after its search for the spectra; a failed re-read is a warning and leaves out i
 warning and null prediction columns; without ONNX
 Runtime the prediction columns are null. Each input gets the QPX mz view (the input's basename with .mz.parquet) of the MS2 spectra of
 its written PSMs only (one row per spectrum, in the order of its first PSM; of several spectra of one native ID only
-the first, as 'id' is the view's key, so the PSMs of the others have no spectrum there; 'id' the native ID, 'run_file_name',
+the first, as 'id' is the view's key, so the PSMs of the others have no spectrum there and a null 'spectrum_reference':
+they are unresolved, as a join on their native ID would give the first spectrum, and a reader must not look them up by
+'scan' either; 'id' the native ID, 'run_file_name',
 'scan', 'ms_level', 'centroid', 'scan_start_time' (minutes), 'inverse_ion_mobility', 'ion_injection_time' (null if
 unknown), 'total_ion_current' (of all its peaks), 'precursors', 'cv_params' (null)), whose 'mz' and 'intensity' are
 filtered: the '-qpx_peak_top' most intense peaks of each '-qpx_peak_window' Th window (jumping windows: each starts at
 its first peak; the last one too keeps '-qpx_peak_top' peaks) and the peaks of the fragment annotations 'mz_array' of
 its PSMs ('-qpx_peak_top 0' keeps all); of deisotoped spectra, whose annotation has every fragment at its 1+ m/z, also
-the peak of the fragment at its own charge 2 or 3, so that every annotated fragment keeps its peak. Its footer
-records the filter: 'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz
-row whose 'id' is its 'spectrum_reference'. A per-input psm file and its mz view are written as soon as the input is
+the peak of the fragment at its own charge 2 or 3, so that every annotated fragment keeps its peak (the charges the
+search's deisotoping tried: up to 3, and with 'Search:fragment:deisotope_charge_cap precursor' at most the spectrum's
+recorded precursor charge, whatever the charge of the PSM; up to 3 if that is unknown). Its footer records the filter:
+'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz row whose 'id' is its
+'spectrum_reference' (none if that is null). A per-input psm file and its mz view are written as soon as the input is
 done (neither is kept for the rest of the run), in row groups of 256 rows, so that a viewer can read the spectrum and
 the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
 files were written, in input order, without the prediction columns (and no rows if there are none). The output
 directory holds the per-input files next to the quantms.* ones: open it as a QPX dataset with the prefix 'quantms'.
+(An input with the basename 'quantms', in any letter case, is refused with -out_qpx: its own files would be overwritten
+by the quantms.* files of the run.)
 At the end of the run three QPX metadata views describe it:
 quantms.run.parquet (one row per input, in input order): 'run_accession' and 'run_file_name' (the input's stem),
 'file_name', 'samples' (one sample per run: the stem, label 'LFQ'; ProSE knows no design), 'fraction', 'instrument',
@@ -276,12 +282,16 @@ class ProSE :
       registerFullParam_(search_algo_params_with_subsection);
     }
 
-    /// The prediction columns of one PSM row of -qpx_extended; null when the flag is false
+    /// The spectrum of one PSM row of -qpx_extended: its prediction columns (null when @p has_prediction is false), and
+    /// whether its 'spectrum_reference' is null because its native ID has the mz row of another spectrum
     struct PSMSpectrum_
     {
       bool has_prediction = false;
       std::vector<std::string> ion_type;
       std::vector<float> mz, intensity;
+      /// another spectrum of its native ID (at another RT) has the mz row of that native ID: its 'spectrum_reference'
+      /// is null (unresolved), as a join on its native ID would give that spectrum
+      bool spectrum_unresolved = false;
     };
 
     /// The rows per row group of the per-input psm and mz files of -qpx_extended: a viewer reads the peaks and the
@@ -322,7 +332,8 @@ class ProSE :
 
       An annotated m/z keeps the peak nearest to it (within 0.01 Th). Of deisotoped spectra (@p filter.deisotoped) it
       also keeps, for each charge z from 2 to the deisotoper's maximum (3, or @p precursor_charge if lower and
-      @p filter.cap_at_precursor), the peak nearest to (m/z + (z - 1) * proton) / z (within 0.01 Th): the monoisotopic
+      @p filter.cap_at_precursor; @p precursor_charge is the spectrum's recorded one, as in the search's preprocessing,
+      0 if unknown), the peak nearest to (m/z + (z - 1) * proton) / z (within 0.01 Th): the monoisotopic
       peak of a fragment of charge z, which the deisotoper moved to the annotated 1+ m/z. (That conversion is exact, so
       the raw peak lies at that m/z.) Every annotated fragment thus keeps its peak in the spectrum as the file has it; a
       1+ fragment may keep an unrelated peak at its 2+ or 3+ position too.
@@ -395,9 +406,11 @@ class ProSE :
       the one at its RT). The mz view has one row per spectrum, in the order of the first PSM of each (in the order of
       @p peptide_ids), its peaks filtered with @p filter (keeping the annotated peaks of every PSM of the spectrum); a
       PSM whose spectrum is not found has none, nor has one whose spectrum shares its native ID with an earlier spectrum
-      (the view's key is the native ID). The predictions are PeptDeep's at the NCE of the file: the one PeptDeep
-      rescoring stored on the run ('peptdeep_nce'), else 'peptdeep:nce' if set, else the one
-      PeptDeepRescoring::annotate() selects on a copy of @p peptide_ids; the NCE is then stored on the run.
+      (the view's key is the native ID). A PSM whose native ID has the row of another spectrum is marked
+      PSMSpectrum_::spectrum_unresolved: its spectrum_reference is null, so that no join gives it that spectrum. The
+      predictions are PeptDeep's at the NCE of the file: the one PeptDeep rescoring stored on the run ('peptdeep_nce'),
+      else 'peptdeep:nce' if set, else the one PeptDeepRescoring::annotate() selects on a copy of @p peptide_ids; the
+      NCE is then stored on the run.
     */
     SpectraOfFile_ collectPSMSpectra_(const std::string& in_file, const Param& search_params,
                                       std::vector<ProteinIdentification>& protein_ids,
@@ -490,25 +503,24 @@ class ProSE :
       // the spectrum with a row of each native ID: one row per native ID ('id' is the mz view's primary key), of
       // several spectra of one native ID (at other RTs) the first's; the PSMs of the others have none
       std::map<std::string, const MSSpectrum*> written;
-      Size without_spectrum = 0, peaks_read = 0, peaks_kept = 0;
+      Size peaks_read = 0, peaks_kept = 0;
       for (Size i = 0; i < peptide_ids.size(); ++i)
       {
         if (peptide_ids[i].getHits().empty()) { continue; }
         const MSSpectrum* spectrum = spectrumOf(i);
-        if (spectrum == nullptr) { ++without_spectrum; continue; }
-        const auto [row_of_id, first] = written.emplace(spectrum->getNativeID(), spectrum);
-        if (!first)
-        {
-          if (row_of_id->second != spectrum) { ++without_spectrum; } // another spectrum of this native ID has the row
-          continue; // (else a later PSM of a spectrum with a row)
-        }
-        // its peaks: those the filter keeps for any of its PSMs (each keeps its own annotated peaks)
+        if (spectrum == nullptr) { continue; }
+        if (!written.emplace(spectrum->getNativeID(), spectrum).second) { continue; } // its native ID has a row
+        // its peaks: those the filter keeps for any of its PSMs (each keeps its own annotated peaks), with the
+        // deisotoper's charge cap of the search's preprocessing: the spectrum's recorded precursor charge (0: unknown,
+        // then up to 3), not the charge of a PSM (a spectrum of unknown charge was deisotoped up to 3+, whatever the
+        // charge of its PSMs)
+        const int precursor_charge = spectrum->getPrecursors().empty() ? 0 : spectrum->getPrecursors()[0].getCharge();
         std::vector<bool> keep(spectrum->size(), false);
         for (Size j : psms_of_spectrum[peptide_ids[i].getSpectrumReference()])
         {
           if (spectrumOf(j) != spectrum) { continue; }
           const PeptideHit& hit = peptide_ids[j].getHits()[0];
-          for (Size k : keptPeaks_(*spectrum, hit.getPeakAnnotations(), hit.getCharge(), filter)) { keep[k] = true; }
+          for (Size k : keptPeaks_(*spectrum, hit.getPeakAnnotations(), precursor_charge, filter)) { keep[k] = true; }
         }
         std::vector<float> peak_mz, peak_intensity;
         for (Size k = 0; k < keep.size(); ++k)
@@ -549,11 +561,32 @@ class ProSE :
         cv_params.struct_lists.emplace_back();
         cv_params.null_rows.push_back(true);
       }
+      // Each PSM against the rows, once all are made (a later PSM may make the row of a native ID): of a spectrum whose
+      // native ID has the row of another spectrum (several spectra of one native ID, or none at its RT), its
+      // spectrum_reference becomes null -- a join on its native ID would give that other spectrum's peaks
+      Size without_spectrum = 0, unresolved = 0;
+      for (Size i = 0; i < peptide_ids.size(); ++i)
+      {
+        if (peptide_ids[i].getHits().empty()) { continue; }
+        const auto row = written.find(peptide_ids[i].getSpectrumReference());
+        if (row == written.end()) { ++without_spectrum; } // no spectrum of its native ID (and RT), and no row to join
+        else if (row->second != spectrumOf(i))
+        {
+          out[i].spectrum_unresolved = true;
+          ++unresolved;
+        }
+      }
       if (without_spectrum > 0 && !spectra.empty())
       {
         OPENMS_LOG_WARN << "-qpx_extended: " << without_spectrum << " PSM(s) of " << in_file
-                        << " have no MS2 spectrum of their native ID (and RT) in the file, or one that shares its native ID with"
-                        << " an earlier spectrum; the mz view has none for them." << endl;
+                        << " have no MS2 spectrum of their native ID (and RT) in the file; the mz view has none for them."
+                        << endl;
+      }
+      if (unresolved > 0)
+      {
+        OPENMS_LOG_WARN << "-qpx_extended: " << unresolved << " PSM(s) of " << in_file << " are of a spectrum that shares its"
+                        << " native ID with another spectrum (at another RT), which has the mz row of that native ID: the mz"
+                        << " view has none for them, and their spectrum_reference is null (unresolved)." << endl;
       }
       const Size mz_rows = id.utf8_values.size();
       if (read)
@@ -847,7 +880,8 @@ class ProSE :
     /**
       @brief The columns -qpx_extended adds to the QPX psm view of a file, one entry per row of the view (the best hit
       of each element of @p peptide_ids with hits): 'additional_scores' (replaced: every numeric score and meta value
-      of the PSM in snake_case), 'spectrum_reference', 'isotope_error', 'protein_mappings' (ExtendedColumns_::rows);
+      of the PSM in snake_case), 'spectrum_reference' (null if PSMSpectrum_::spectrum_unresolved), 'isotope_error',
+      'protein_mappings' (ExtendedColumns_::rows);
       the peaks and the predictions of @p spectra (ExtendedColumns_::spectra), which are moved out of @p spectra.
     */
     static ExtendedColumns_ extendedColumns_(const std::vector<ProteinIdentification>& protein_ids,
@@ -915,8 +949,10 @@ class ProSE :
         }
         scores.score_lists.push_back(std::move(row_scores));
 
-        reference.utf8_values.push_back(id.getSpectrumReference());
-        reference.null_rows.push_back(id.getSpectrumReference().empty());
+        // (null: unresolved, its native ID has the mz row of another spectrum; see collectPSMSpectra_())
+        PSMSpectrum_& s = spectra[i];
+        reference.utf8_values.push_back(s.spectrum_unresolved ? std::string() : id.getSpectrumReference());
+        reference.null_rows.push_back(s.spectrum_unresolved || id.getSpectrumReference().empty());
 
         const std::string isotope_key = hit.metaValueExists("isotope_error") ? "isotope_error" : "IsotopeError";
         isotope.int64_values.push_back(hit.metaValueExists(isotope_key) ? isotope_sign * static_cast<int>(hit.getMetaValue(isotope_key)) : 0);
@@ -930,7 +966,6 @@ class ProSE :
         }
         mappings.struct_lists.push_back(std::move(row_mappings));
 
-        PSMSpectrum_& s = spectra[i];
         ion_type.utf8_lists.push_back(std::move(s.ion_type));
         ion_type.null_rows.push_back(!s.has_prediction);
         mz.float_lists.push_back(std::move(s.mz));
@@ -1428,6 +1463,9 @@ class ProSE :
         return ILLEGAL_PARAMETERS;
       }
 
+      // The stem of the files of the whole run in the -out_qpx directory (quantms.psm.parquet, ...), next to the
+      // per-input files <stem>.psm.parquet, ...: reserved, as an input of that stem would have its files overwritten
+      static const std::string QPX_AGGREGATE_STEM = "quantms";
       // Validate basenames are unique (for parquet directory output)
       if (!out_qpx_dir.empty() || !out_parquet_dir.empty())
       {
@@ -1435,6 +1473,14 @@ class ProSE :
         for (const auto& in_file : in_list)
         {
           std::string bn = File::stemName(in_file);
+          // (in any letter case: the file systems of Windows and macOS do not tell quantms.* from Quantms.*)
+          if (!out_qpx_dir.empty() && StringUtils::toLowered(bn) == QPX_AGGREGATE_STEM)
+          {
+            OPENMS_LOG_ERROR << "Input file '" << in_file << "' has basename '" << bn << "', the name of the QPX files of"
+                             << " the whole run in the -out_qpx directory (" << QPX_AGGREGATE_STEM << ".psm.parquet, ...),"
+                             << " which would overwrite its own. Rename the file." << endl;
+            return ILLEGAL_PARAMETERS;
+          }
           if (!basenames.insert(bn).second)
           {
             OPENMS_LOG_ERROR << "Duplicate input basename '" << bn
@@ -2055,7 +2101,7 @@ class ProSE :
         if (psm_meta)
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet", psm_config, psm_meta) && merged_ok;
+            qpx_psm_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet", psm_config, psm_meta) && merged_ok;
         }
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.
@@ -2064,13 +2110,13 @@ class ProSE :
           if (pg_meta && pooled_pg_table && ArrowIOHelpers::tableRowCount(pooled_pg_table) > 0)
           {
             merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-              {pooled_pg_table}, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+              {pooled_pg_table}, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
           }
         }
         else if (pg_meta && !qpx_pg_tables.empty())
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+            qpx_pg_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
         }
       };
 
@@ -2184,7 +2230,7 @@ class ProSE :
                                                              pooled_pg, mod_delta_masses, mod_ptms))}};
           for (const auto& [view, table] : views)
           {
-            const std::string file = out_qpx_dir + "/quantms." + view + ".parquet";
+            const std::string file = out_qpx_dir + "/" + QPX_AGGREGATE_STEM + "." + view + ".parquet";
             const auto meta = ArrowIOHelpers::qpxFileMetadata(view + "_file");
             if (!table || !meta || !ArrowIOHelpers::concatenateAndWriteToParquet({table}, file, ParquetWriteConfig{}, meta))
             {

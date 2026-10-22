@@ -5529,7 +5529,9 @@ add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14
 set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_ProSE_14_deisotope_dump")
 # Two spectra of one native ID (ProSE_14_duplicate_ids.mzML: 20 spectra of DatabaseSuitability_in_spec.mzML and the
 # second once more under the native ID of the first, at another RT): the mz view has one row per native ID (its key),
-# the first spectrum's; the PSM of the other spectrum has no spectrum there.
+# the first spectrum's; the PSM of the other spectrum has no spectrum there and a null spectrum_reference (unresolved),
+# in its psm file and in quantms.psm.parquet. The check joins every other PSM to the mz row of its spectrum_reference and
+# fails if that row is a spectrum of another RT.
 set(_f ProSE_14_duplicate_ids)
 prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML -qpx_peak_top 1)
 prose14_dumps(${_f} ProSE_14_duplicate_ids)
@@ -5539,12 +5541,43 @@ if(NOT WITH_ONNX)
 endif()
 add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML ${_opt} ${_prose14_check})
 set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
+prose14_dumps(${_f} quantms)
+add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML
+  -DMERGED=ON -DSHARED_ID=ON -DSUM_OF=${TESTS_TEMP_DIR}/${_f}_ProSE_14_duplicate_ids_qpx.tmp.tsv ${_prose14_check})
+set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_ProSE_14_duplicate_ids_dump")
+# Spectra of unknown precursor charge (ProSE_14_unknown_charge.mzML: 40 spectra of DatabaseSuitability_in_spec.mzML
+# without their precursor charge, in which every fragment peak of m/z 600 or more is replaced by the 3+ isotope envelope
+# of that fragment, its monoisotopic peak at (m/z + 2 * proton) / 3 and its 13C peak at half the intensity): the search's
+# deisotoping tries fragment charges up to 3 when the precursor charge is unknown and moves these fragments back to
+# their 1+ m/z, and the spectra are identified at 2+. The filter (one peak per 100 Th) keeps the 3+ peaks of their
+# annotated fragments: its charge cap is the spectrum's (unknown: 3), as in the search, not the PSM's 2.
+set(_f ProSE_14_unknown_charge)
+prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_unknown_charge.mzML -qpx_peak_top 1)
+prose14_dumps(${_f} ProSE_14_unknown_charge)
+set(_opt -DPEAKS=FILTERED -DSOME_FEWER=ON -DCONVERTED=ON -DUNKNOWN_CHARGE=ON)
+if(NOT WITH_ONNX)
+  list(APPEND _opt -DPREDICTIONS=OFF)
+endif()
+add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_unknown_charge.mzML ${_opt} ${_prose14_check})
+set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
 # Two inputs of the same file name in different folders: their per-input outputs would overwrite each other, so ProSE
 # refuses the run before searching (exit code 6, ILLEGAL_PARAMETERS) rather than mixing them up.
 add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_x/same.mzML;${TESTS_TEMP_DIR}/ProSE_14_y/same.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_qpx;${TESTS_TEMP_DIR}/ProSE_14_same_name"
   -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=Duplicate input basename 'same'" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
+# An input of basename quantms (in any letter case): its own files in the -out_qpx directory would be overwritten by the
+# QPX files of the whole run (quantms.psm.parquet, ...), so ProSE refuses the run before searching (exit code 6,
+# ILLEGAL_PARAMETERS) and writes none.
+set(_reserved_names quantms QuantMS)
+set(_reserved_cases lower mixed)
+foreach(_name _case IN ZIP_LISTS _reserved_names _reserved_cases)
+  add_test("TOPP_ProSE_14_reserved_stem_${_case}" ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/${_name}.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_qpx;${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case}"
+    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename '${_name}', the name of the QPX files of the whole run"
+    -DABSENT_FILE=${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case}/quantms.psm.parquet -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_case}" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
+endforeach()
 # -qpx_extended extends -out_qpx: without it, ProSE refuses the run (exit code 6).
 add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${_prose14_mzml};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_14_needs_qpx.tmp.idXML;-qpx_extended"
