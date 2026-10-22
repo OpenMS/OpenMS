@@ -5571,15 +5571,28 @@ add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
 set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
 # An input of basename quantms (in any letter case): its own files in the -out_qpx directory would be overwritten by the
 # QPX files of the whole run (quantms.psm.parquet, ...), so ProSE refuses the run before searching (exit code 6,
-# ILLEGAL_PARAMETERS) and writes none.
-set(_reserved_names quantms QuantMS)
-set(_reserved_cases lower mixed)
+# ILLEGAL_PARAMETERS) and writes nothing into the directory. The same for an input of basename openms (here
+# OpenMS.mzML.gz) with -out_parquet, whose directory gets openms.psm.parquet, ...
+set(_reserved_names quantms QuantMS OpenMS.mzML.gz)
+set(_reserved_cases lower mixed parquet)
 foreach(_name _case IN ZIP_LISTS _reserved_names _reserved_cases)
+  set(_dir ${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case})
+  set(_option -out_qpx)
+  set(_files QPX)
+  set(_in ${_name}.mzML)
+  if(_case STREQUAL "parquet")
+    set(_option -out_parquet)
+    set(_files "OpenMS Parquet")
+    set(_in ${_name})
+    string(REPLACE ".mzML.gz" "" _name ${_name})
+  endif()
+  add_test(NAME "TOPP_ProSE_14_reserved_stem_${_case}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${_dir})
   add_test("TOPP_ProSE_14_reserved_stem_${_case}" ${CMAKE_COMMAND}
-    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/${_name}.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_qpx;${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case}"
-    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename '${_name}', the name of the QPX files of the whole run"
-    -DABSENT_FILE=${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case}/quantms.psm.parquet -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_case}" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
+    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/${_in};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;${_option};${_dir}"
+    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename '${_name}', the name of the ${_files} files of the whole run in the ${_option} directory"
+    -DEMPTY_DIR=${_dir} -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_case}" PROPERTIES
+    DEPENDS "TOPP_ProSE_14_app_inputs;TOPP_ProSE_14_reserved_stem_${_case}_clean")
 endforeach()
 # -qpx_extended extends -out_qpx: without it, ProSE refuses the run (exit code 6).
 add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
@@ -5595,19 +5608,6 @@ if(WITH_ONNX)
   add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DPEAKS=FILTERED -DPREDICTIONS=OFF ${_prose14_check})
   set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
 endif()
-# -keep_decoys: the protein FDR of one input keeps the decoy PSMs and proteins that pass (Test 11 removes them).
-add_test("TOPP_ProSE_14_keep_decoys" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} -in ${_prose14_mzml} -keep_decoys
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML)
-add_test("TOPP_ProSE_14_keep_decoys_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML
-  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_ProSE_14_keep_decoys_out" PROPERTIES DEPENDS "TOPP_ProSE_14_keep_decoys")
-# Without protein inference (one input, FDR:protein 0) -qpx_extended writes one protein group per protein.
-set(_f ProSE_14_singletons)
-prose14_run(${_f} ${_prose14_common} -Search:FDR:protein 0 -in ${_prose14_mzml})
-add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/DatabaseSuitability_in_spec.pg.parquet
-  -out_tsv ${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv)
-set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}")
 # The protein FDR of one input skipped: with five hits per spectrum and no PSM FDR, the decoys of ProSE_14_duplicate_ids
 # are only among the hits after the first, and the inference uses the first hit of each PSM, so no decoy protein is left
 # for the picked-protein FDR. The provenance says that it was not applied.
@@ -5624,6 +5624,19 @@ add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_
   "-DEXPECTED=key:string = protein_fdr_applied, value:string = false"
   "-DFORBIDDEN=key:string = protein_fdr_applied, value:string = true" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
+# -keep_decoys: the protein FDR of one input keeps the decoy PSMs and proteins that pass (Test 11 removes them).
+add_test("TOPP_ProSE_14_keep_decoys" ${TOPP_BIN_PATH}/ProSE ${_prose14_common} -in ${_prose14_mzml} -keep_decoys
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML)
+add_test("TOPP_ProSE_14_keep_decoys_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_14_keep_decoys.tmp.idXML
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_14_keep_decoys_out" PROPERTIES DEPENDS "TOPP_ProSE_14_keep_decoys")
+# Without protein inference (one input, FDR:protein 0) -qpx_extended writes one protein group per protein.
+set(_f ProSE_14_singletons)
+prose14_run(${_f} ${_prose14_common} -Search:FDR:protein 0 -in ${_prose14_mzml})
+add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/DatabaseSuitability_in_spec.pg.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv)
+set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}")
 add_test("TOPP_${_f}_pg_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv
   "-DEXPECTED=[sp|P15336|ATF2_HUMAN]" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_pg_out" PROPERTIES DEPENDS "TOPP_${_f}_pg")

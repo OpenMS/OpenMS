@@ -10,6 +10,8 @@
 # insist on the specific failure it is about rather than on any error return.
 # Optional: -DABSENT_FILE=<path> -- must not exist afterwards (it is removed before the run), for
 # failures that must not leave a partial output behind.
+# Optional: -DEMPTY_DIR=<dir> -- must hold no file afterwards (it may exist), for failures that must
+# write nothing into an output directory (remove it before the run, e.g. in a test it depends on).
 if(NOT DEFINED COMMAND)
   message(FATAL_ERROR "check_exit_code.cmake: -DCOMMAND=... is required")
 endif()
@@ -37,5 +39,11 @@ if(DEFINED EXPECTED_OUTPUT_REGEX AND NOT "${out}${err}" MATCHES "${EXPECTED_OUTP
 endif()
 if(DEFINED ABSENT_FILE AND EXISTS "${ABSENT_FILE}")
   message(FATAL_ERROR "'${ABSENT_FILE}' must not have been created.")
+endif()
+if(DEFINED EMPTY_DIR)
+  file(GLOB written "${EMPTY_DIR}/*")
+  if(written)
+    message(FATAL_ERROR "'${EMPTY_DIR}' must hold no file, but holds: ${written}")
+  endif()
 endif()
 message(STATUS "Exit code ${actual_code} as expected")

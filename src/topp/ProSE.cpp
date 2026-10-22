@@ -171,7 +171,7 @@ the prediction of one PSM alone; the psm file's footer has the keys of its predi
 files were written, in input order, without the prediction columns (and no rows if there are none). The output
 directory holds the per-input files next to the quantms.* ones: open it as a QPX dataset with the prefix 'quantms'.
 (An input with the basename 'quantms', in any letter case, is refused with -out_qpx: its own files would be overwritten
-by the quantms.* files of the run.)
+by the quantms.* files of the run; so is one with the basename 'openms' with -out_parquet, for its openms.* files.)
 At the end of the run three QPX metadata views describe it:
 quantms.run.parquet (one row per input, in input order): 'run_accession' and 'run_file_name' (the input's stem),
 'file_name', 'samples' (one sample per run: the stem, label 'LFQ'; ProSE knows no design), 'fraction', 'instrument',
@@ -252,9 +252,9 @@ class ProSE :
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
-      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet (see also -qpx_extended). The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
+      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet (see also -qpx_extended). An input of basename quantms (any letter case) is refused, as these would overwrite its own files. The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
 
-      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
+      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files. An input of basename openms (any letter case) is refused, as these would overwrite its own files.", false, true);
 
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<std::string>("idXML"));
@@ -1463,9 +1463,11 @@ class ProSE :
         return ILLEGAL_PARAMETERS;
       }
 
-      // The stem of the files of the whole run in the -out_qpx directory (quantms.psm.parquet, ...), next to the
-      // per-input files <stem>.psm.parquet, ...: reserved, as an input of that stem would have its files overwritten
+      // The stem of the files of the whole run in the -out_qpx directory (quantms.psm.parquet, ...), and in the
+      // -out_parquet directory (openms.psm.parquet, ...), next to the per-input files <stem>.psm.parquet, ...: reserved,
+      // as an input of that stem would have its files overwritten
       static const std::string QPX_AGGREGATE_STEM = "quantms";
+      static const std::string PARQUET_AGGREGATE_STEM = "openms";
       // Validate basenames are unique (for parquet directory output)
       if (!out_qpx_dir.empty() || !out_parquet_dir.empty())
       {
@@ -1474,11 +1476,17 @@ class ProSE :
         {
           std::string bn = File::stemName(in_file);
           // (in any letter case: the file systems of Windows and macOS do not tell quantms.* from Quantms.*)
-          if (!out_qpx_dir.empty() && StringUtils::toLowered(bn) == QPX_AGGREGATE_STEM)
+          auto reserved = [&](const std::string& dir, const std::string& option, const std::string& files, const std::string& stem)
           {
-            OPENMS_LOG_ERROR << "Input file '" << in_file << "' has basename '" << bn << "', the name of the QPX files of"
-                             << " the whole run in the -out_qpx directory (" << QPX_AGGREGATE_STEM << ".psm.parquet, ...),"
+            if (dir.empty() || StringUtils::toLowered(bn) != stem) { return false; }
+            OPENMS_LOG_ERROR << "Input file '" << in_file << "' has basename '" << bn << "', the name of the " << files
+                             << " files of the whole run in the " << option << " directory (" << stem << ".psm.parquet, ...),"
                              << " which would overwrite its own. Rename the file." << endl;
+            return true;
+          };
+          if (reserved(out_qpx_dir, "-out_qpx", "QPX", QPX_AGGREGATE_STEM)
+              || reserved(out_parquet_dir, "-out_parquet", "OpenMS Parquet", PARQUET_AGGREGATE_STEM))
+          {
             return ILLEGAL_PARAMETERS;
           }
           if (!basenames.insert(bn).second)
@@ -2108,10 +2116,10 @@ class ProSE :
 
       if (!out_parquet_dir.empty())
       {
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_psm_tables,  out_parquet_dir + "/openms.psm.parquet")           && merged_ok;
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_prot_tables, out_parquet_dir + "/openms.proteins.parquet")      && merged_ok;
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_pg_tables,   out_parquet_dir + "/openms.pg.parquet")            && merged_ok;
-        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables,   out_parquet_dir + "/openms.search_params.parquet") && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_psm_tables,  out_parquet_dir + "/" + PARQUET_AGGREGATE_STEM + ".psm.parquet") && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_prot_tables, out_parquet_dir + "/" + PARQUET_AGGREGATE_STEM + ".proteins.parquet") && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_pg_tables,   out_parquet_dir + "/" + PARQUET_AGGREGATE_STEM + ".pg.parquet") && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables,   out_parquet_dir + "/" + PARQUET_AGGREGATE_STEM + ".search_params.parquet") && merged_ok;
       }
 
       // Write merged idXML: ProSEAlgorithm::mergeFileResults() pools all per-file PSMs (possibly

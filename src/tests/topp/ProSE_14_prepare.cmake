@@ -1,6 +1,7 @@
 # Inputs of TOPP_ProSE_14: two copies of MZML in OUT_DIR, ProSE_14_a.mzML and the gzipped ProSE_14_b.mzML.gz, two
-# copies of the same name in different folders, ProSE_14_x/same.mzML and ProSE_14_y/same.mzML, and two of the reserved
-# basename, ProSE_14_reserved/quantms.mzML and ProSE_14_reserved/QuantMS.mzML.
+# copies of the same name in different folders, ProSE_14_x/same.mzML and ProSE_14_y/same.mzML, and copies of the reserved
+# basenames, ProSE_14_reserved/quantms.mzML and ProSE_14_reserved/QuantMS.mzML (-out_qpx), and the gzipped
+# ProSE_14_reserved/OpenMS.mzML.gz (-out_parquet).
 file(COPY_FILE "${MZML}" "${OUT_DIR}/ProSE_14_a.mzML")
 file(COPY_FILE "${MZML}" "${OUT_DIR}/ProSE_14_b.mzML")
 file(REMOVE "${OUT_DIR}/ProSE_14_b.mzML.gz")
@@ -14,3 +15,4 @@ file(MAKE_DIRECTORY "${OUT_DIR}/ProSE_14_reserved")
 foreach(_name quantms QuantMS)
   file(COPY_FILE "${MZML}" "${OUT_DIR}/ProSE_14_reserved/${_name}.mzML")
 endforeach()
+file(COPY_FILE "${OUT_DIR}/ProSE_14_b.mzML.gz" "${OUT_DIR}/ProSE_14_reserved/OpenMS.mzML.gz")
