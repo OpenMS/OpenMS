@@ -5,6 +5,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/CONCEPT/Init.h>
 
 class StringManager_test : public OpenMS::Internal::StringManager
 {
@@ -141,6 +142,24 @@ START_SECTION(appendASCII(const XMLCh * chars, const size_t length, String & res
 
 
 END_SECTION
+START_SECTION(static bool widensASCII())
+  OpenMS::Internal::xercesInitialize();
+  // the tests run with an ASCII-compatible locale (C or UTF-8)
+  TEST_TRUE(StringManager::widensASCII())
+END_SECTION
+
+START_SECTION(static XercesString convert(const char * str))
+  // ASCII text is widened directly: the same as the transcoder's result (convertPtr())
+  std::string all_ascii;
+  for (int c = 1; c < 128; ++c) { all_ascii += static_cast<char>(c); }
+  for (const std::string& text : {std::string(""), std::string("mono_mass"), all_ascii, std::string("caf\xC3\xA9")})
+  {
+    const std::basic_string<char16_t> widened = StringManager::convert(text);
+    const unique_xerces_ptr<char16_t> transcoded = StringManager::convertPtr(text);
+    TEST_TRUE(widened == std::basic_string<char16_t>(transcoded.get()))
+  }
+END_SECTION
+
 XMLCh* nullPointer = nullptr;
 START_SECTION(strLength(const XMLCh* input_ptr))
     int o_length = StringManager::strLength(ascii);

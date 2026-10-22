@@ -242,6 +242,11 @@ public:
     /// Parse an integer from a UTF-16 numeric string (as Xerces' XMLString::parseInt would).
     static Int parseInt(const char16_t * str);
 
+    /// Whether the local code page that native strings are transcoded with maps ASCII characters to the same UTF-16
+    /// code units (true for ASCII-compatible code pages such as UTF-8, ISO-8859-x or windows-125x; false e.g. for
+    /// UTF-7 or ISO-2022-JP). ASCII text is then widened instead of transcoded. Requires an initialized Xerces.
+    static bool widensASCII();
+
     /// Checks if supplied chars in char16_t* can be encoded with ASCII (i.e. the upper byte of each char is 0)
     static bool isASCII(const char16_t * chars, const Size length);
 

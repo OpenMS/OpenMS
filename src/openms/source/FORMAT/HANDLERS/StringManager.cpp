@@ -83,8 +83,8 @@ namespace OpenMS::Internal
 
   namespace
   {
-    // Text in ASCII has the same UTF-16 code units under every ASCII-compatible local code page, which
-    // XMLString::transcode() (fromNative_()) converts with: such text is widened directly.
+    // Text in ASCII has the same UTF-16 code units under an ASCII-compatible local code page, which
+    // XMLString::transcode() (fromNative_()) converts with: such text is then widened directly (see widensASCII()).
     bool isASCIINative(const char* str, Size& length)
     {
       for (length = 0; str[length] != '\0'; ++length)
@@ -95,10 +95,30 @@ namespace OpenMS::Internal
     }
   }
 
+  bool StringManager::widensASCII()
+  {
+    // checked once, on all ASCII characters in a row (in a code page like UTF-7 or ISO-2022-JP, some of them start a
+    // sequence that is decoded differently)
+    static const bool widens = []()
+    {
+      char ascii[128];
+      for (int c = 1; c < 128; ++c) { ascii[c - 1] = static_cast<char>(c); }
+      ascii[127] = '\0';
+      const unique_xerces_ptr<char16_t> transcoded = fromNative_(ascii);
+      if (transcoded.get() == nullptr) { return false; }
+      for (int c = 1; c < 128; ++c)
+      {
+        if (transcoded.get()[c - 1] != static_cast<char16_t>(c)) { return false; } // also stops at a shorter result
+      }
+      return transcoded.get()[127] == 0;
+    }();
+    return widens;
+  }
+
   StringManager::XercesString StringManager::convert(const char* str)
   {
     Size length;
-    if (str != nullptr && isASCIINative(str, length)) { return XercesString(str, str + length); }
+    if (str != nullptr && isASCIINative(str, length) && widensASCII()) { return XercesString(str, str + length); }
     return fromNative_(str).get();
   }
 
