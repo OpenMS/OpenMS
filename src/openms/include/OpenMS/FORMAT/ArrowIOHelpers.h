@@ -19,6 +19,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <unordered_set>
 #include <vector>
 
@@ -97,38 +98,51 @@ namespace ArrowIOHelpers
       double value = 0.0;
       std::optional<bool> higher_better; ///< none: unknown (null)
     };
-    /// An entry of a PROTEIN_MAPPING_LIST row: struct{accession, start, end, aa_before, aa_after}
-    struct ProteinMapping
-    {
-      std::string accession;
-      std::optional<Int32> start, end;            ///< none: null
-      std::optional<std::string> aa_before, aa_after; ///< none: null
-    };
-    /// int16, int32, int64, bool, float64, utf8, list<float32>, list<utf8>, list<struct> of scores, of protein
-    /// mappings or of the fields @c struct_fields
-    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, PROTEIN_MAPPING_LIST, INT32, BOOL, DOUBLE, STRUCT_LIST };
-    /// A field of the struct of a STRUCT_LIST column: of type UTF8, INT32 or BOOL
+    /// int16, int32, int64, bool, float32, float64, utf8, list<float32>, list<int32>, list<utf8>, the list of QPX
+    /// @c additional_scores structs, or a list of structs of the fields @c struct_fields
+    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, INT32, BOOL, DOUBLE, STRUCT_LIST, FLOAT, INT32_LIST };
+    /// A field of the struct of a STRUCT_LIST column: of type UTF8, INT32, BOOL, FLOAT (float32, from a double
+    /// value), DOUBLE, or STRUCT_LIST (a list of structs of its own @c fields)
     struct StructField
     {
+      StructField() = default;
+      StructField(std::string field_name, Type field_type, bool field_nullable = true, std::vector<StructField> struct_fields = {}) :
+        name(std::move(field_name)), type(field_type), nullable(field_nullable), fields(std::move(struct_fields)) {}
       std::string name;
       Type type = Type::UTF8;
       bool nullable = true;
+      std::vector<StructField> fields; ///< STRUCT_LIST: the fields of its struct
+    };
+    struct StructValue;
+    /// An entry of a STRUCT_LIST: one value per field
+    using StructEntry = std::vector<StructValue>;
+    /// The value of a field of a STRUCT_LIST entry, of the field's type: none (null), a string (UTF8), an integer
+    /// (INT32), a bool (BOOL), a double (DOUBLE, FLOAT), or the entries of a nested list (STRUCT_LIST)
+    struct OPENMS_DLLAPI StructValue
+    {
+      std::variant<std::monostate, std::string, Int32, bool, double, std::vector<StructEntry>> value;
+      StructValue() = default; ///< null
+      StructValue(std::string v) : value(std::move(v)) {}
+      StructValue(const char* v) : value(std::string(v)) {} ///< (not a bool)
+      StructValue(Int32 v) : value(v) {}
+      StructValue(bool v) : value(v) {}
+      StructValue(double v) : value(v) {}
+      StructValue(std::vector<StructEntry> v) : value(std::move(v)) {}
+      template <typename T> StructValue(const std::optional<T>& v) { if (v) { *this = StructValue(*v); } }
     };
     std::string name;
     Type type = Type::INT64;
     /// false: the field is non-null (a null row is then an error)
     bool nullable = true;
     std::vector<Int64> int64_values;                              ///< INT16 and INT32 (narrowed, range-checked), INT64, BOOL (0: false)
-    std::vector<double> double_values;                            ///< DOUBLE
+    std::vector<double> double_values;                            ///< DOUBLE, FLOAT (narrowed)
     std::vector<std::string> utf8_values;                         ///< UTF8
     std::vector<std::vector<float>> float_lists;                  ///< FLOAT_LIST
+    std::vector<std::vector<Int32>> int32_lists;                  ///< INT32_LIST
     std::vector<std::vector<std::string>> utf8_lists;             ///< UTF8_LIST
     std::vector<std::vector<Score>> score_lists;                  ///< SCORE_LIST
-    std::vector<std::vector<ProteinMapping>> protein_mapping_lists; ///< PROTEIN_MAPPING_LIST
     std::vector<StructField> struct_fields;                       ///< STRUCT_LIST: the fields of its struct
-    /// STRUCT_LIST: per row its entries, per entry one value per field of @c struct_fields (none: null) as text: the
-    /// string (UTF8), a decimal integer (INT32), "true" or "false" (BOOL)
-    std::vector<std::vector<std::vector<std::optional<std::string>>>> struct_lists;
+    std::vector<std::vector<StructEntry>> struct_lists;           ///< STRUCT_LIST: per row its entries
     std::vector<bool> null_rows;                                  ///< true marks a null row (empty: no null row)
   };
 

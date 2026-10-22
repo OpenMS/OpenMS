@@ -482,8 +482,11 @@ START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<a
   scores.score_lists = {{{"global_qvalue", 0.01, false}, {"delta_mass", 2.0, std::nullopt}}, {}};
   Column mappings;
   mappings.name = "protein_mappings";
-  mappings.type = Column::Type::PROTEIN_MAPPING_LIST;
-  mappings.protein_mapping_lists = {{{"P1", 5, 11, std::string("K"), std::string("-")}}, {{"P2", std::nullopt, std::nullopt, std::nullopt, std::nullopt}}};
+  mappings.type = Column::Type::STRUCT_LIST;
+  mappings.struct_fields = {{"accession", Column::Type::UTF8, false}, {"start", Column::Type::INT32}, {"end", Column::Type::INT32},
+                            {"aa_before", Column::Type::UTF8}, {"aa_after", Column::Type::UTF8}};
+  using Value = Column::StructValue;
+  mappings.struct_lists = {{{"P1", 5, 11, "K", "-"}}, {{"P2", Value(), Value(), Value(), Value()}}};
 
   auto out = ArrowIOHelpers::withColumns(table, {name, small, mz, ion, scores, mappings});
   TEST_TRUE(out != nullptr)
@@ -567,6 +570,102 @@ START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<a
   TEST_TRUE(ArrowIOHelpers::withColumns(table, {wide}) == nullptr)
   wide.int64_values = {1, -32768};
   TEST_TRUE(ArrowIOHelpers::withColumns(table, {wide}) != nullptr)
+}
+END_SECTION
+
+START_SECTION((std::shared_ptr<arrow::Table> tableOfColumns(const std::vector<ParquetColumn>& columns, Size rows)))
+{
+  using Column = ArrowIOHelpers::ParquetColumn;
+  using Value = Column::StructValue;
+  Column id;
+  id.name = "id";
+  id.type = Column::Type::UTF8;
+  id.nullable = false;
+  id.utf8_values = {"a", "b"};
+  Column count;
+  count.name = "count";
+  count.type = Column::Type::INT32;
+  count.int64_values = {3, 0};
+  count.null_rows = {false, true};
+  Column flag;
+  flag.name = "flag";
+  flag.type = Column::Type::BOOL;
+  flag.int64_values = {1, 0};
+  Column number;
+  number.name = "number";
+  number.type = Column::Type::DOUBLE;
+  number.double_values = {0.5, 1.5};
+  // a list of structs with a nested list of structs (as QPX's additional_terms) and a double field
+  Column terms;
+  terms.name = "terms";
+  terms.type = Column::Type::STRUCT_LIST;
+  terms.struct_fields = {{"accession", Column::Type::UTF8, false}, {"score", Column::Type::DOUBLE},
+                         {"properties", Column::Type::STRUCT_LIST, true, {{"key", Column::Type::UTF8, false}, {"value", Column::Type::UTF8}}}};
+  terms.struct_lists = {{{"MS:1", 2.5, std::vector<Column::StructEntry>{{"k", "v"}, {"k2", Value()}}}, {"MS:2", Value(), Value()}}, {}};
+  terms.null_rows = {false, true};
+
+  // float32 (from doubles), list<int32>, a float32 struct field
+  Column time;
+  time.name = "time";
+  time.type = Column::Type::FLOAT;
+  time.double_values = {1.25, 2.5};
+  Column scan;
+  scan.name = "scan";
+  scan.type = Column::Type::INT32_LIST;
+  scan.int32_lists = {{1, 2075}, {}};
+  Column ions;
+  ions.name = "ions";
+  ions.type = Column::Type::STRUCT_LIST;
+  ions.struct_fields = {{"mz", Column::Type::FLOAT, false}, {"charge", Column::Type::INT32}};
+  ions.struct_lists = {{{547.25, 2}}, {{100.5, Value()}}};
+
+  auto table = ArrowIOHelpers::tableOfColumns({id, count, flag, number, terms, time, scan, ions}, 2);
+  TEST_TRUE(table != nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+  TEST_EQUAL(table->num_columns(), 8)
+  TEST_TRUE(table->schema()->field(5)->type()->Equals(arrow::float32()))
+  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::FloatArray>(table->column(5)->chunk(0))->Value(1), 2.5)
+  auto scan_out = std::static_pointer_cast<arrow::ListArray>(table->column(6)->chunk(0));
+  TEST_TRUE(scan_out->type()->Equals(arrow::list(arrow::int32())))
+  TEST_EQUAL(std::static_pointer_cast<arrow::Int32Array>(scan_out->values())->Value(1), 2075)
+  TEST_EQUAL(scan_out->value_length(1), 0)
+  auto ion_entries = std::static_pointer_cast<arrow::StructArray>(std::static_pointer_cast<arrow::ListArray>(table->column(7)->chunk(0))->values());
+  TEST_TRUE(ion_entries->type()->field(0)->type()->Equals(arrow::float32()))
+  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::FloatArray>(ion_entries->GetFieldByName("mz"))->Value(0), 547.25)
+  TEST_TRUE(ion_entries->GetFieldByName("charge")->IsNull(1))
+  TEST_FALSE(table->schema()->field(0)->nullable())
+  TEST_TRUE(table->schema()->field(1)->type()->Equals(arrow::int32()))
+  TEST_TRUE(table->schema()->field(2)->type()->Equals(arrow::boolean()))
+  TEST_TRUE(table->schema()->field(3)->type()->Equals(arrow::float64()))
+  auto count_out = std::static_pointer_cast<arrow::Int32Array>(table->column(1)->chunk(0));
+  TEST_EQUAL(count_out->Value(0), 3)
+  TEST_TRUE(count_out->IsNull(1))
+  auto terms_out = std::static_pointer_cast<arrow::ListArray>(table->column(4)->chunk(0));
+  TEST_EQUAL(terms_out->value_length(0), 2)
+  TEST_TRUE(terms_out->IsNull(1))
+  auto entries = std::static_pointer_cast<arrow::StructArray>(terms_out->values());
+  TEST_STRING_EQUAL(std::static_pointer_cast<arrow::StringArray>(entries->GetFieldByName("accession"))->GetString(1), "MS:2")
+  TEST_REAL_SIMILAR(std::static_pointer_cast<arrow::DoubleArray>(entries->GetFieldByName("score"))->Value(0), 2.5)
+  TEST_TRUE(entries->GetFieldByName("score")->IsNull(1))
+  auto properties = std::static_pointer_cast<arrow::ListArray>(entries->GetFieldByName("properties"));
+  TEST_EQUAL(properties->value_length(0), 2)
+  TEST_TRUE(properties->IsNull(1))
+  auto pairs = std::static_pointer_cast<arrow::StructArray>(properties->values());
+  TEST_STRING_EQUAL(std::static_pointer_cast<arrow::StringArray>(pairs->GetFieldByName("key"))->GetString(1), "k2")
+  TEST_TRUE(pairs->GetFieldByName("value")->IsNull(1))
+
+  // errors: a null in a non-null column or field, a value of another type, another number of values
+  Column null_id = id;
+  null_id.null_rows = {false, true};
+  TEST_TRUE(ArrowIOHelpers::tableOfColumns({null_id}, 2) == nullptr)
+  Column bad = terms;
+  bad.struct_lists = {{{Value(), Value(), Value()}}, {}};
+  TEST_TRUE(ArrowIOHelpers::tableOfColumns({bad}, 2) == nullptr)
+  bad.struct_lists = {{{3, Value(), Value()}}, {}};
+  TEST_TRUE(ArrowIOHelpers::tableOfColumns({bad}, 2) == nullptr)
+  bad.struct_lists = {{{"MS:1"}}, {}};
+  TEST_TRUE(ArrowIOHelpers::tableOfColumns({bad}, 2) == nullptr)
+  TEST_EXCEPTION(Exception::IllegalArgument, ArrowIOHelpers::tableOfColumns({id}, 3))
 }
 END_SECTION
 
