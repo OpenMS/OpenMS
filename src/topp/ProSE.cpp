@@ -157,9 +157,11 @@ unknown), 'total_ion_current' (of all its peaks), 'precursors', 'cv_params' (nul
 filtered: the '-qpx_peak_top' most intense peaks of each '-qpx_peak_window' Th window (jumping windows: each starts at
 its first peak; the last one too keeps '-qpx_peak_top' peaks) and the peaks of the fragment annotations 'mz_array' of
 its PSMs ('-qpx_peak_top 0' keeps all); of deisotoped spectra, whose annotation has every fragment at its 1+ m/z, also
-the peak of the fragment at its own charge 2 or 3, so that every annotated fragment keeps its peak. Its footer
-records the filter: 'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz
-row whose 'id' is its 'spectrum_reference'. A per-input psm file and its mz view are written as soon as the input is
+the peak of the fragment at its own charge 2 or 3, so that every annotated fragment keeps its peak (the charges the
+search's deisotoping tried: up to 3, and with 'Search:fragment:deisotope_charge_cap precursor' at most the spectrum's
+recorded precursor charge, whatever the charge of the PSM; up to 3 if that is unknown). Its footer records the filter:
+'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz row whose 'id' is its
+'spectrum_reference'. A per-input psm file and its mz view are written as soon as the input is
 done (neither is kept for the rest of the run), in row groups of 256 rows, so that a viewer can read the spectrum and
 the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
@@ -322,7 +324,8 @@ class ProSE :
 
       An annotated m/z keeps the peak nearest to it (within 0.01 Th). Of deisotoped spectra (@p filter.deisotoped) it
       also keeps, for each charge z from 2 to the deisotoper's maximum (3, or @p precursor_charge if lower and
-      @p filter.cap_at_precursor), the peak nearest to (m/z + (z - 1) * proton) / z (within 0.01 Th): the monoisotopic
+      @p filter.cap_at_precursor; @p precursor_charge is the spectrum's recorded one, as in the search's preprocessing,
+      0 if unknown), the peak nearest to (m/z + (z - 1) * proton) / z (within 0.01 Th): the monoisotopic
       peak of a fragment of charge z, which the deisotoper moved to the annotated 1+ m/z. (That conversion is exact, so
       the raw peak lies at that m/z.) Every annotated fragment thus keeps its peak in the spectrum as the file has it; a
       1+ fragment may keep an unrelated peak at its 2+ or 3+ position too.
@@ -502,13 +505,17 @@ class ProSE :
           if (row_of_id->second != spectrum) { ++without_spectrum; } // another spectrum of this native ID has the row
           continue; // (else a later PSM of a spectrum with a row)
         }
-        // its peaks: those the filter keeps for any of its PSMs (each keeps its own annotated peaks)
+        // its peaks: those the filter keeps for any of its PSMs (each keeps its own annotated peaks), with the
+        // deisotoper's charge cap of the search's preprocessing: the spectrum's recorded precursor charge (0: unknown,
+        // then up to 3), not the charge of a PSM (a spectrum of unknown charge was deisotoped up to 3+, whatever the
+        // charge of its PSMs)
+        const int precursor_charge = spectrum->getPrecursors().empty() ? 0 : spectrum->getPrecursors()[0].getCharge();
         std::vector<bool> keep(spectrum->size(), false);
         for (Size j : psms_of_spectrum[peptide_ids[i].getSpectrumReference()])
         {
           if (spectrumOf(j) != spectrum) { continue; }
           const PeptideHit& hit = peptide_ids[j].getHits()[0];
-          for (Size k : keptPeaks_(*spectrum, hit.getPeakAnnotations(), hit.getCharge(), filter)) { keep[k] = true; }
+          for (Size k : keptPeaks_(*spectrum, hit.getPeakAnnotations(), precursor_charge, filter)) { keep[k] = true; }
         }
         std::vector<float> peak_mz, peak_intensity;
         for (Size k = 0; k < keep.size(); ++k)

@@ -2,7 +2,7 @@
 # -out_tsv) and, for the footer, the Parquet file itself. Usage:
 #
 #   cmake -DQPX=<dump of the QPX psm.parquet> -DMZML=<the searched mzML, uncompressed>
-#         [-DMZ=<dump of the input's mz.parquet> [-DMZ_PARQUET=<the mz.parquet>] [-DSHARED_ID=ON]] [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DPREDICTIONS=ON|OFF]
+#         [-DMZ=<dump of the input's mz.parquet> [-DMZ_PARQUET=<the mz.parquet>] [-DSHARED_ID=ON]] [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DUNKNOWN_CHARGE=ON] [-DPREDICTIONS=ON|OFF]
 #         [-DTWIN=<dump whose peaks must be the same>] [-DISOTOPE_TWIN=<dump whose isotope errors must be the same>]
 #         [-DISOTOPE_VALUES=<the isotope errors allowed, comma-separated, e.g. 0,1>]
 #         [-DROWS=<n>] [-DSUM_OF=<dumps, comma-separated, whose rows the dump has together>]
@@ -20,7 +20,9 @@
 # - PEAKS ALL (default): every row has all peaks of its spectrum (defaultArrayLength). FILTERED: at most as many, and
 #   for every m/z of the fragment annotation (mz_array) the peak at that m/z or, for a fragment that deisotoping moved
 #   to its 1+ m/z, its monoisotopic peak at charge 2 or 3 (within 0.01 Th) among them (with SOME_FEWER ON, some row has
-#   fewer than its spectrum; with CONVERTED ON, some annotated m/z is no peak and was found at charge 2 or 3).
+#   fewer than its spectrum; with CONVERTED ON, some annotated m/z is no peak and was found at charge 2 or 3; with
+#   UNKNOWN_CHARGE ON, some annotated m/z of a PSM of charge 2 whose spectrum has no precursor charge (selected_ion_charge
+#   null) was found at charge 3: the deisotoper's charge cap of a spectrum of unknown charge is 3, whatever its PSMs').
 #   OFF: every peak column is null.
 # - PREDICTIONS ON (default): every row of precursor charge 1 to 6 has a non-empty prediction, with as many ions as m/z
 #   and intensities. OFF: every prediction column is null.
@@ -326,6 +328,7 @@ set(_converted 0)
 set(_nonzero_isotope OFF)
 set(_found_peptide OFF)
 set(_no_own_spectrum 0)
+set(_converted_unknown_charge 0)
 set(_cols ref peptidoform charge annotated isotope mappings scores rt)
 if (NOT MERGED)
   list(APPEND _cols ions mz intensity)
@@ -345,6 +348,7 @@ foreach(_row RANGE 0 ${_last})
   # the peaks: of the PSM's spectrum in the mz view
   set(_peak_mz null)
   set(_peak_intensity null)
+  set(_precursors "")
   if (NOT MERGED AND NOT PEAKS STREQUAL "OFF")
     string(MAKE_C_IDENTIFIER "${_ref}" _key)
     if (NOT DEFINED _mz_row_${_key})
@@ -354,6 +358,7 @@ foreach(_row RANGE 0 ${_last})
     string(REPLACE "\t" ";" _mz_cells "${_mz_line}")
     list(GET _mz_cells ${_c_m_mz} _peak_mz)
     list(GET _mz_cells ${_c_m_intensity} _peak_intensity)
+    list(GET _mz_cells ${_c_m_precursors} _precursors)
     # the row of its native ID is another spectrum's (one of several of that native ID, at another RT): it has none
     list(GET _mz_cells ${_c_m_scan_start_time} _minutes)
     # (in microseconds: minutes * 60 against seconds, within 50 ms)
@@ -444,6 +449,7 @@ foreach(_row RANGE 0 ${_last})
             math(EXPR _d "${_u} - ${_target}")
             if (_d LESS_EQUAL 100 AND _d GREATER_EQUAL -100)
               set(_found ON)
+              set(_found_z ${_z})
               break()
             endif()
           endforeach()
@@ -455,6 +461,9 @@ foreach(_row RANGE 0 ${_last})
           message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): the annotated peak ${_m} is not among the peaks (at charge 1 to 3)")
         endif()
         math(EXPR _converted "${_converted} + 1")
+        if (_found_z EQUAL 3 AND _charge EQUAL 2 AND _precursors MATCHES "selected_ion_charge:int32 = null")
+          math(EXPR _converted_unknown_charge "${_converted_unknown_charge} + 1")
+        endif()
       endforeach()
     endif()
   endif()
@@ -499,6 +508,9 @@ if (SHARED_ID AND _no_own_spectrum EQUAL 0)
 endif()
 if (CONVERTED AND _converted EQUAL 0)
   message(FATAL_ERROR "${QPX}: every annotated m/z is a peak of the file: no fragment was moved by deisotoping")
+endif()
+if (UNKNOWN_CHARGE AND _converted_unknown_charge EQUAL 0)
+  message(FATAL_ERROR "${QPX}: no annotated m/z of a 2+ PSM of a spectrum without precursor charge was found at charge 3")
 endif()
 if (DEFINED ISOTOPE_TWIN AND NOT _nonzero_isotope)
   message(FATAL_ERROR "${QPX}: every isotope_error is 0")
@@ -548,4 +560,4 @@ if (DEFINED RUN AND PREDICTIONS)
   endif()
 endif()
 
-message(STATUS "${QPX}: ${q_rows} rows, ${_predicted_rows} with a prediction, ${_fewer_rows} with filtered peaks, ${_converted} annotated peaks found at charge 2 or 3")
+message(STATUS "${QPX}: ${q_rows} rows, ${_predicted_rows} with a prediction, ${_fewer_rows} with filtered peaks, ${_converted} annotated peaks found at charge 2 or 3 (${_converted_unknown_charge} at 3 of 2+ PSMs of unknown precursor charge)")

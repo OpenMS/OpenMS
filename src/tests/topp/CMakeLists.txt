@@ -5539,6 +5539,21 @@ if(NOT WITH_ONNX)
 endif()
 add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_duplicate_ids.mzML ${_opt} ${_prose14_check})
 set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
+# Spectra of unknown precursor charge (ProSE_14_unknown_charge.mzML: 40 spectra of DatabaseSuitability_in_spec.mzML
+# without their precursor charge, in which every fragment peak of m/z 600 or more is replaced by the 3+ isotope envelope
+# of that fragment, its monoisotopic peak at (m/z + 2 * proton) / 3 and its 13C peak at half the intensity): the search's
+# deisotoping tries fragment charges up to 3 when the precursor charge is unknown and moves these fragments back to
+# their 1+ m/z, and the spectra are identified at 2+. The filter (one peak per 100 Th) keeps the 3+ peaks of their
+# annotated fragments: its charge cap is the spectrum's (unknown: 3), as in the search, not the PSM's 2.
+set(_f ProSE_14_unknown_charge)
+prose14_run(${_f} ${_prose14_common} -in ${DATA_DIR_TOPP}/ProSE_14_unknown_charge.mzML -qpx_peak_top 1)
+prose14_dumps(${_f} ProSE_14_unknown_charge)
+set(_opt -DPEAKS=FILTERED -DSOME_FEWER=ON -DCONVERTED=ON -DUNKNOWN_CHARGE=ON)
+if(NOT WITH_ONNX)
+  list(APPEND _opt -DPREDICTIONS=OFF)
+endif()
+add_test("TOPP_${_f}_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${DATA_DIR_TOPP}/ProSE_14_unknown_charge.mzML ${_opt} ${_prose14_check})
+set_tests_properties("TOPP_${_f}_check" PROPERTIES DEPENDS "${_dump_tests}")
 # Two inputs of the same file name in different folders: their per-input outputs would overwrite each other, so ProSE
 # refuses the run before searching (exit code 6, ILLEGAL_PARAMETERS) rather than mixing them up.
 add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
