@@ -85,12 +85,15 @@ hand-editing sources and committing them, to keep sync self-healing.
   "Selected feature" reports (`Scores::getInitDirection` writes them to a stream
   it is given) are printed afterwards in fold order. None of these loops draws
   random numbers, so the results do not depend on the number of threads.
-- `patches/06-packed-matrix-product-sparse.patch` — `PackedMatrix::packedMultiply`
-  computes, per row, only the dot products with the columns that share an index
-  with the row, instead of with every column: the others are 0 and are not
-  stored. The products of the banded matrices of `BaseSpline` (the spline PEP,
-  `pep_method` `nonparametric`) take linear instead of quadratic time, with the
-  same result.
+- `patches/06-spline-pep-sparse.patch` — speeds up the spline PEP (`BaseSpline`,
+  `pep_method` `nonparametric`) without changing its result.
+  `PackedMatrix::packedMultiply` computes, per row, only the dot products with
+  the columns that share an index with the row, instead of with every column:
+  the others are 0 and are not stored, so the products of the banded matrices
+  take linear instead of quadratic time. `BaseSpline::solveInPlace` skips the
+  rows whose index range does not include the column it looks for, and stops
+  scanning a row at the first index past it (the indices are sorted and unique),
+  instead of scanning every entry of every row.
 
 ### Regenerating the patch
 

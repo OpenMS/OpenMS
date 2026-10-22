@@ -410,6 +410,26 @@ void BaseSpline::setData(const vector<double>& xx) {
   transform(xx.begin(), xx.end(), back_inserter(x), transf);
 }
 
+// OpenMS: the position of column col in row v, or -1. The indices of a PackedVector are sorted
+// and unique, so rows whose index range does not include col are skipped at once, and the scan
+// stops at the first index past col (the solver visits every row for every column).
+static int findColumn(const PackedVector& v, int col) {
+  const int n = v.numberEntries();
+  if (n == 0 || v.index(0) > col || v.index(n - 1) < col) {
+    return -1;
+  }
+  for (int k = 0; k < n; ++k) {
+    const int ix = v.index(k);
+    if (ix == col) {
+      return k;
+    }
+    if (ix > col) {
+      return -1;
+    }
+  }
+  return -1;
+}
+
 void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
   res = res.makeSparse();
   // Current implementation requires a quadratic mat
@@ -430,14 +450,11 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
     nonEmpty = PackedVector();
     int pivotPos(-1);
     for (row = col; row < mat.numRows(); row++) {
-      int rowEntries = mat[row].numberEntries();
-      for (rowPos = rowEntries; rowPos--;) {
-        int entryIndex = mat[row].index(rowPos);
-        if (entryIndex == col) {
-          nonEmpty.packedAddElement(row, mat[row][rowPos]);
-          if (row == col) {
-            pivotPos = nonEmpty.numberEntries()-1;
-          }
+      rowPos = findColumn(mat[row], col);
+      if (rowPos >= 0) {
+        nonEmpty.packedAddElement(row, mat[row][rowPos]);
+        if (row == col) {
+          pivotPos = nonEmpty.numberEntries()-1;
         }
       }
     }
@@ -525,10 +542,9 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
   for (col = mat.numCols(); col--;) {
     nonEmpty = PackedVector();
     for (row = 0; row < col; row++) {
-      for (rowPos = mat[row].numberEntries(); rowPos--;) {
-        if (mat[row].index(rowPos) == col) {
-          nonEmpty.packedAddElement(row, mat[row][rowPos]);
-        }
+      rowPos = findColumn(mat[row], col);
+      if (rowPos >= 0) {
+        nonEmpty.packedAddElement(row, mat[row][rowPos]);
       }
     }
 //    cout << nonEmpty.values<<endl;
