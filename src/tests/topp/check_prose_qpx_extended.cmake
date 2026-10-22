@@ -2,8 +2,9 @@
 # -out_tsv) and, for the footer, the Parquet file itself. Usage:
 #
 #   cmake -DQPX=<dump of the QPX psm.parquet> -DMZML=<the searched mzML, uncompressed>
-#         [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DPREDICTIONS=ON|OFF]
+#         [-DMZ=<dump of the input's mz.parquet> [-DMZ_PARQUET=<the mz.parquet>]] [-DMERGED=ON] [-DPEAKS=ALL|FILTERED|OFF] [-DSOME_FEWER=ON] [-DCONVERTED=ON] [-DPREDICTIONS=ON|OFF]
 #         [-DTWIN=<dump whose peaks must be the same>] [-DISOTOPE_TWIN=<dump whose isotope errors must be the same>]
+#         [-DISOTOPE_VALUES=<the isotope errors allowed, comma-separated, e.g. 0,1>]
 #         [-DROWS=<n>] [-DSUM_OF=<dumps, comma-separated, whose rows the dump has together>]
 #         [-DPARQUET=<the psm.parquet>] [-DRUN=<dump of quantms.run.parquet> [-DFILES=<inputs, default 1>]
 #          [-DFILE_INDEX=<position of the input, default 0>] [-DNCE=<expected NCE>] [-DLOG=<output of the run> -DNCE_SOURCE=<"from PeptDeep rescoring", "selected" or "set">]
@@ -12,8 +13,8 @@
 #         -P check_prose_qpx_extended.cmake
 #
 # - The dump has the columns of -qpx_extended (spectrum_reference, isotope_error, protein_mappings and, unless MERGED,
-#   peak_mz_array, peak_intensity_array, predicted_ion_type_array, predicted_mz_array, predicted_intensity_array; with
-#   MERGED, quantms.psm.parquet, none of these five); every row a spectrum_reference of a spectrum of the mzML, an
+#   predicted_ion_type_array, predicted_mz_array, predicted_intensity_array; with MERGED, quantms.psm.parquet, none of
+#   these three; never peak columns); every row a spectrum_reference of a spectrum of the mzML, an
 #   integer isotope_error equal to the 'isotope_error' of its additional_scores, and (not MERGED) as many peak
 #   intensities as peak m/z.
 # - PEAKS ALL (default): every row has all peaks of its spectrum (defaultArrayLength). FILTERED: at most as many, and
@@ -23,17 +24,22 @@
 #   OFF: every peak column is null.
 # - PREDICTIONS ON (default): every row of precursor charge 1 to 6 has a non-empty prediction, with as many ions as m/z
 #   and intensities. OFF: every prediction column is null.
-# - TWIN: the peak columns equal those of TWIN, row by row (the same spectra read from another copy of the file).
+# - MZ (with PEAKS ALL or FILTERED): the mz view has one row per spectrum of the PSMs (a dump is sorted, so its order
+#   is not checked), with the QPX columns; a PSM's peaks are those of the row whose id is its spectrum_reference.
+# - TWIN: a dump of another mz view with the same rows (the same spectra read from another copy of the file).
 #   ISOTOPE_TWIN: the isotope_error column equals that of ISOTOPE_TWIN, row by row, and some row has one other than 0.
+#   ISOTOPE_VALUES: every isotope_error is one of these.
 # - ROWS: the dump has exactly that many rows; 0 checks only the columns (and the footer). Without ROWS, at least one.
 #   SUM_OF: as many rows as these dumps together (a merged file).
-# - PARQUET: the footer has the 'prose_' keys of the peak filter and of the prediction model. RUN: the run view has
-#   FILES rows with the columns of -qpx_extended and one LFQ sample each; with MERGED their psm_rows add up to the rows
+# - PARQUET: the footer has the 'prose_' keys of the prediction model (MERGED: no 'prose_' key); MZ_PARQUET those of
+#   the peak filter.
+#   RUN: the run view has FILES rows with the spec's columns and those of -qpx_extended and one LFQ sample each; with MERGED their psm_rows add up to the rows
 #   of the dump. With PREDICTIONS, the input FILE_INDEX reports a number as the NCE (prediction_nce; equal to NCE if
 #   given). With LOG, the run logged that NCE with its source NCE_SOURCE, and for "from PeptDeep rescoring" PeptDeep
 #   rescoring logged the same NCE.
 # - PEPTIDE: the predicted ions of the first row of that peptidoform and CHARGE go to OUT_PREDICTED, the rows of
 #   REFERENCE of the reported NCE to OUT_REFERENCE, as "ion<TAB>m/z<TAB>intensity" lines, for FuzzyDiff.
+cmake_policy(SET CMP0057 NEW) # if(... IN_LIST ...)
 foreach(_required QPX MZML)
   if (NOT DEFINED ${_required})
     message(FATAL_ERROR "${_required} is required")
@@ -50,6 +56,9 @@ if (NOT DEFINED FILE_INDEX)
 endif()
 if (NOT DEFINED FILES)
   set(FILES 1)
+endif()
+if (DEFINED ISOTOPE_VALUES)
+  string(REPLACE "," ";" ISOTOPE_VALUES "${ISOTOPE_VALUES}")
 endif()
 if (MERGED)
   set(PEAKS OFF)
@@ -114,7 +123,14 @@ column(q spectrum_reference _c_ref)
 column(q isotope_error _c_isotope)
 column(q protein_mappings _c_mappings)
 column(q additional_scores _c_scores)
-set(_spectrum_columns peak_mz_array peak_intensity_array predicted_ion_type_array predicted_mz_array predicted_intensity_array)
+# (the peaks are in the mz view, not in any psm file)
+foreach(_name peak_mz_array peak_intensity_array)
+  list(FIND q_header "${_name}" _at)
+  if (NOT _at EQUAL -1)
+    message(FATAL_ERROR "${QPX}: the column '${_name}' is in the psm file")
+  endif()
+endforeach()
+set(_spectrum_columns predicted_ion_type_array predicted_mz_array predicted_intensity_array)
 if (MERGED)
   foreach(_name IN LISTS _spectrum_columns)
     list(FIND q_header "${_name}" _at)
@@ -123,8 +139,6 @@ if (MERGED)
     endif()
   endforeach()
 else()
-  column(q peak_mz_array _c_peak_mz)
-  column(q peak_intensity_array _c_peak_intensity)
   column(q predicted_ion_type_array _c_ions)
   column(q predicted_mz_array _c_mz)
   column(q predicted_intensity_array _c_intensity)
@@ -135,19 +149,92 @@ if (DEFINED ISOTOPE_TWIN)
     message(FATAL_ERROR "${QPX}: ${q_rows} rows, the isotope twin ${ISOTOPE_TWIN} has ${itwin_rows}")
   endif()
 endif()
-if (DEFINED TWIN)
-  read_dump("${TWIN}" twin)
-  if (NOT q_rows EQUAL twin_rows)
-    message(FATAL_ERROR "${QPX}: ${q_rows} rows, the twin ${TWIN} has ${twin_rows}")
+# The mz view: its rows by id; one row per spectrum of the PSMs, in the order of its first PSM
+if (NOT MERGED AND NOT PEAKS STREQUAL "OFF")
+  if (NOT DEFINED MZ)
+    message(FATAL_ERROR "MZ (the dump of the mz view) is required for the peaks")
+  endif()
+  read_dump("${MZ}" m)
+  foreach(_name id run_file_name scan ms_level centroid scan_start_time inverse_ion_mobility ion_injection_time
+          total_ion_current precursors mz intensity cv_params)
+    column(m "${_name}" _c_m_${_name})
+  endforeach()
+  set(_m_ids)
+  if (m_rows GREATER 0)
+    math(EXPR _last_m "${m_rows} - 1")
+    foreach(_k RANGE 0 ${_last_m})
+      list(GET m_lines ${_k} _line)
+      string(REPLACE "\t" ";" _cells "${_line}")
+      list(GET _cells ${_c_m_id} _id)
+      string(MAKE_C_IDENTIFIER "${_id}" _key)
+      if (DEFINED _mz_row_${_key})
+        message(FATAL_ERROR "${MZ}: the spectrum '${_id}' has two rows")
+      endif()
+      set(_mz_row_${_key} ${_k})
+      list(APPEND _m_ids "${_key}")
+      list(GET _cells ${_c_m_ms_level} _level)
+      if (NOT _level STREQUAL "2")
+        message(FATAL_ERROR "${MZ}: row ${_k}: ms_level ${_level}")
+      endif()
+    endforeach()
+  endif()
+  # the spectra of the PSMs, each once (ParquetDiff's dumps are sorted: the order, that of each spectrum's first PSM,
+  # is checked by the app's reader tests)
+  set(_psm_ids)
+  foreach(_line IN LISTS q_lines)
+    string(REPLACE "\t" ";" _cells "${_line}")
+    list(GET _cells ${_c_ref} _id)
+    string(MAKE_C_IDENTIFIER "${_id}" _key)
+    if (NOT "${_key}" IN_LIST _psm_ids)
+      list(APPEND _psm_ids "${_key}")
+    endif()
+  endforeach()
+  list(SORT _psm_ids)
+  list(SORT _m_ids)
+  if (NOT "${_psm_ids}" STREQUAL "${_m_ids}")
+    message(FATAL_ERROR "${MZ}: the spectra are not those of the PSMs, each once")
   endif()
 endif()
+if (DEFINED TWIN)
+  read_dump("${TWIN}" twin)
+  if (NOT m_rows EQUAL twin_rows)
+    message(FATAL_ERROR "${MZ}: ${m_rows} spectra, the twin ${TWIN} has ${twin_rows}")
+  endif()
+  foreach(_line _twin IN ZIP_LISTS m_lines twin_lines)
+    string(REPLACE "\t" ";" _cells "${_line}")
+    string(REPLACE "\t" ";" _twin_cells "${_twin}")
+    foreach(_c id mz intensity)
+      list(GET _cells ${_c_m_${_c}} _a)
+      list(GET _twin_cells ${_c_m_${_c}} _b)
+      if (NOT _a STREQUAL _b)
+        message(FATAL_ERROR "${MZ}: other ${_c} than in ${TWIN}: ${_a}")
+      endif()
+    endforeach()
+  endforeach()
+endif()
 
-# The footer: the 'prose_' keys of the columns of -qpx_extended (the peak filter, the prediction model).
+# The footer: the 'prose_' keys of the spectrum columns of -qpx_extended (the peak filter, the prediction model) in a
+# per-input file, none in the merged file (which has no such columns).
 if (DEFINED PARQUET)
   file(STRINGS "${PARQUET}" _footer REGEX "prose_")
-  foreach(_key peak_window peak_top prediction_ms2_model prediction_instrument)
+  if (MERGED)
+    if (NOT _footer STREQUAL "")
+      message(FATAL_ERROR "${PARQUET}: footer keys of spectrum columns in the merged file: ${_footer}")
+    endif()
+  else()
+    foreach(_key prediction_ms2_model prediction_instrument)
+      if (NOT _footer MATCHES "prose_${_key}")
+        message(FATAL_ERROR "${PARQUET}: no footer key prose_${_key}")
+      endif()
+    endforeach()
+  endif()
+endif()
+# the footer of the mz view: the peak filter
+if (DEFINED MZ_PARQUET)
+  file(STRINGS "${MZ_PARQUET}" _footer REGEX "prose_")
+  foreach(_key peak_window peak_top peak_annotated)
     if (NOT _footer MATCHES "prose_${_key}")
-      message(FATAL_ERROR "${PARQUET}: no footer key prose_${_key}")
+      message(FATAL_ERROR "${MZ_PARQUET}: no footer key prose_${_key}")
     endif()
   endforeach()
 endif()
@@ -157,7 +244,9 @@ if (DEFINED RUN)
   if (NOT run_rows EQUAL FILES)
     message(FATAL_ERROR "${RUN}: ${run_rows} runs, expected ${FILES}")
   endif()
-  foreach(_name run_accession run_file_name file_name samples enzymes modification_parameters search_status
+  # (the spec's columns, also those ProSE leaves null: QPX's validator requires them; then ProSE's)
+  foreach(_name run_accession run_file_name file_name samples fraction instrument enzymes dissociation_method
+          acquisition_method additional_terms modification_parameters search_status
           ms2_spectra_count identified_spectra_count decoy_psm_count psm_rows rescoring_applied rescoring_skipped_reason
           rescoring_warning prediction_nce precursor_error_median_ppm fragment_tolerance_recommended_ppm search_seconds)
     column(run "${_name}" _c_run_${_name})
@@ -221,7 +310,7 @@ set(_nonzero_isotope OFF)
 set(_found_peptide OFF)
 set(_cols ref peptidoform charge annotated isotope mappings scores)
 if (NOT MERGED)
-  list(APPEND _cols peak_mz peak_intensity ions mz intensity)
+  list(APPEND _cols ions mz intensity)
 endif()
 math(EXPR _last "${q_rows} - 1")
 foreach(_row RANGE 0 ${_last})
@@ -230,11 +319,24 @@ foreach(_row RANGE 0 ${_last})
   foreach(_c IN LISTS _cols)
     list(GET _cells ${_c_${_c}} _${_c})
   endforeach()
-  foreach(_c peak_mz peak_intensity ions mz intensity)
+  foreach(_c ions mz intensity)
     if (MERGED)
       set(_${_c} null)
     endif()
   endforeach()
+  # the peaks: of the PSM's spectrum in the mz view
+  set(_peak_mz null)
+  set(_peak_intensity null)
+  if (NOT MERGED AND NOT PEAKS STREQUAL "OFF")
+    string(MAKE_C_IDENTIFIER "${_ref}" _key)
+    if (NOT DEFINED _mz_row_${_key})
+      message(FATAL_ERROR "${QPX}: row ${_row}: the mz view has no spectrum '${_ref}'")
+    endif()
+    list(GET m_lines ${_mz_row_${_key}} _mz_line)
+    string(REPLACE "\t" ";" _mz_cells "${_mz_line}")
+    list(GET _mz_cells ${_c_m_mz} _peak_mz)
+    list(GET _mz_cells ${_c_m_intensity} _peak_intensity)
+  endif()
 
   # the spectrum, the isotope error and the proteins
   string(MAKE_C_IDENTIFIER "${_ref}" _key)
@@ -246,6 +348,9 @@ foreach(_row RANGE 0 ${_last})
   endif()
   if (NOT _isotope STREQUAL "0")
     set(_nonzero_isotope ON)
+  endif()
+  if (DEFINED ISOTOPE_VALUES AND NOT _isotope IN_LIST ISOTOPE_VALUES)
+    message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): isotope_error ${_isotope}, expected one of ${ISOTOPE_VALUES}")
   endif()
   if (_scores MATCHES "score_name:string = isotope_error, score_value:double = ([^,]*),")
     if (NOT CMAKE_MATCH_1 STREQUAL _isotope)
@@ -319,15 +424,6 @@ foreach(_row RANGE 0 ${_last})
         endif()
         math(EXPR _converted "${_converted} + 1")
       endforeach()
-    endif()
-  endif()
-  if (DEFINED TWIN)
-    list(GET twin_lines ${_row} _twin)
-    string(REPLACE "\t" ";" _twin "${_twin}")
-    list(GET _twin ${_c_peak_mz} _twin_mz)
-    list(GET _twin ${_c_peak_intensity} _twin_intensity)
-    if (NOT _twin_mz STREQUAL _peak_mz OR NOT _twin_intensity STREQUAL _peak_intensity)
-      message(FATAL_ERROR "${QPX}: row ${_row} (${_peptidoform}): other peaks than in ${TWIN}")
     endif()
   endif()
 
