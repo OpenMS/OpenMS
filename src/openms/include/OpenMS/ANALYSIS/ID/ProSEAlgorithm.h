@@ -349,9 +349,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] decoy_string Accession marker identifying decoy proteins.
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
      * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
-     * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization; default).
+     * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization, as in the ProSE tool).
      * @param[in] inference_only_psms PSMs that the inference and the picked-protein FDR use as well, but that are not
      *                                reported (SearchResult::inference_only_peptide_ids); their identifiers are ignored.
+     *                                No default, so that a caller cannot drop the searches' inference-only PSMs
+     *                                unnoticed: pass the search result's (empty with FDR:PSM 0 or FDR:protein_inference_PSM
+     *                                at or below FDR:PSM), or an empty list for PSMs without them.
      * @return Whether the picked-protein FDR was applied: false if it was skipped (an empty @p decoy_string, or no decoy
      *         protein left after the inference, which uses the best hit of each PSM only).
      */
@@ -360,8 +363,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            const std::string& decoy_string,
                                            bool decoy_is_prefix,
                                            double protein_fdr,
-                                           bool remove_decoys = true,
-                                           const PeptideIdentificationList& inference_only_psms = PeptideIdentificationList());
+                                           bool remove_decoys,
+                                           const PeptideIdentificationList& inference_only_psms);
 
     /**
      * @brief The protein inference of the protein FDR (applyCompleteSetProteinFDR()) and of mergeFileResults().
