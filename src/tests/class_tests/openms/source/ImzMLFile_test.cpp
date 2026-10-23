@@ -812,7 +812,8 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
   storeWithUnit("IMS:1000047", "unitAccession=\"UO:0000010\" unitName=\"second\"");
   ImzMLMeta meta_unknown_y;
   std::vector<ImzMLSpectrumIndex> index_unknown_y;
-  ImzMLFile().loadSpectraIndex(tmp_imzml, meta_unknown_y, index_unknown_y);
+  MSExperiment index_spectra_unknown_y;
+  ImzMLFile().loadSpectraIndex(tmp_imzml, meta_unknown_y, index_unknown_y, index_spectra_unknown_y);
   TEST_REAL_SIMILAR(meta_unknown_y.pixel_size_x, 25.0)
   TEST_REAL_SIMILAR(meta_unknown_y.pixel_size_y, -1.0)
   MSImagingExperiment reloaded_unknown_y;
