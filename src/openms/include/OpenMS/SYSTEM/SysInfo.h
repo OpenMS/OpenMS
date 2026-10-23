@@ -11,6 +11,8 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <vector>
+
 namespace OpenMS
 {
 
@@ -57,6 +59,22 @@ namespace OpenMS
       ///
       /// `@return` The process ID of the current process
       static Int64 getProcessId();
+
+      /**
+        @brief The number of physical cores the process may run on (at least 1).
+
+        Counts cores, not their hardware threads (SMT), which std::thread::hardware_concurrency() and
+        omp_get_num_procs() count. On Linux: the cores of the CPUs in the affinity mask of the calling thread (taskset,
+        cpusets), or of @p cpus if given (e.g. the CPUs of the OpenMP places, if the OpenMP runtime has bound the
+        calling thread already), at most the CPU quota of the cgroup of the process and of those above it as far as
+        visible (cgroup v2 cpu.max, rounded up). On macOS: hw.physicalcpu. On Windows: the cores of the processors in
+        the affinity mask of the process, in the processor group of the calling thread. Falls back to the hardware
+        threads where this cannot be found out.
+
+        @param cpus Linux only: the logical CPUs (numbers as in /sys/devices/system/cpu) to count the cores of instead
+                    of those of the affinity mask
+      */
+      static UInt getAvailablePhysicalCores(const std::vector<int>& cpus = {});
       /**
         @brief A convenience class to report either absolute or delta (between two timepoints) RAM usage
 

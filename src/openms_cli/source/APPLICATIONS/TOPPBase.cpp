@@ -47,6 +47,7 @@
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -57,6 +58,7 @@
 #include <optional>
 #include <sstream>
 #include <unordered_set>
+#include <vector>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -206,7 +208,19 @@ namespace OpenMS
 #ifdef _OPENMP
     if (num_threads <= 0)
     {
-      num_threads = omp_get_num_procs();
+      // all cores: the physical ones, without their hardware threads (SMT), which seldom make the tools faster but
+      // double the threads that compete for the cores. With OpenMP places (OMP_PLACES, OMP_PROC_BIND), the runtime
+      // may have bound this thread to the first one already: the cores of all places.
+      std::vector<int> cpus;
+#if _OPENMP >= 201511 // OpenMP 4.5: places
+      for (int place = 0; place < omp_get_num_places(); ++place)
+      {
+        std::vector<int> ids(static_cast<Size>(std::max(0, omp_get_place_num_procs(place))));
+        omp_get_place_proc_ids(place, ids.data());
+        cpus.insert(cpus.end(), ids.begin(), ids.end());
+      }
+#endif
+      num_threads = std::clamp(static_cast<int>(SysInfo::getAvailablePhysicalCores(cpus)), 1, std::max(1, omp_get_num_procs()));
     }
     omp_set_num_threads(num_threads);
 #endif
