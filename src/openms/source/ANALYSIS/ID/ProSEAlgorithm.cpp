@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
@@ -385,9 +387,18 @@ namespace OpenMS
                        "A group without decoy or without target PSMs falls back to 'pooled'.",
                        {"advanced"});
     defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Needs decoys ('decoys' auto or generate).");
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards. Needs decoys ('decoys' auto or generate).");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
+    defaults_.setValue("FDR:protein_inference_PSM", 0.1,
+                       "q-value cutoff of the PSMs that protein inference and the protein FDR (FDR:protein) use; FDR:PSM still "
+                       "filters the reported PSMs. The q-values are those FDR:PSM filters on (Percolator's with 'rescore', else "
+                       "see FDR:PSM_groups). A looser cutoff than FDR:PSM leaves more decoy proteins for the picked-protein FDR, "
+                       "as ProteomicsLFQ infers proteins on PSMs at a looser q-value than its PSM FDR. Values at or below FDR:PSM "
+                       "use the PSMs of FDR:PSM; with FDR:PSM 0 (no PSM filter) all PSMs are used.",
+                       {"advanced"});
+    defaults_.setMinFloat("FDR:protein_inference_PSM", 0.0);
+    defaults_.setMaxFloat("FDR:protein_inference_PSM", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
 
     // Add parameters which are only used by FragmentIndex
@@ -683,6 +694,7 @@ namespace OpenMS
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
+    fdr_protein_inference_psm_ = param_.getValue("FDR:protein_inference_PSM");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
@@ -2666,6 +2678,7 @@ namespace OpenMS
     // which does not route through search(spectra, ctx, ...)) starts clean too.
     last_run_stats_ = RunStatistics{};
     last_percolator_ = PercolatorRescoring{};
+    inference_only_peptide_ids_ = PeptideIdentificationList();
 
     // Chunking disabled → take the existing single-context path (decoys built
     // lazily by prepareContext). The ctx is locally owned and not reused,
@@ -2952,7 +2965,7 @@ namespace OpenMS
     capturePreFdrStats_(peptide_ids, last_run_stats_);
 
     // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
-    last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_);
+    last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_, nullptr, &inference_only_peptide_ids_);
 
     restore_tolerances();
 
@@ -3609,6 +3622,7 @@ namespace OpenMS
     last_run_stats_ = RunStatistics{};
     last_percolator_ = PercolatorRescoring{};
     pre_fdr_peptide_ids_ = PeptideIdentificationList();
+    inference_only_peptide_ids_ = PeptideIdentificationList();
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
@@ -3905,7 +3919,7 @@ namespace OpenMS
 
     // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
     last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_,
-                                    keep_pre_fdr_psms_ ? &pre_fdr_peptide_ids_ : nullptr);
+                                    keep_pre_fdr_psms_ ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
 
     restore_fi_params();
 
@@ -3920,13 +3934,74 @@ namespace OpenMS
   // single-file path (the two previously held byte-identical copies).
   // =====================================================================
   // static
+  std::string ProSEAlgorithm::inferProteins(std::vector<ProteinIdentification>& protein_ids,
+                                            const PeptideIdentificationList& peptide_ids,
+                                            const PeptideIdentificationList& inference_only_psms)
+  {
+    if (protein_ids.empty()) { return ""; }
+    ProteinIdentification& run = protein_ids[0];
+
+    // Copies of the best hits with what the inference reads (sequence, charge, peptide evidences, target/decoy and
+    // the scores), in the run: the inference switches their scores and filters them, while the PSMs stay as they are.
+    // PSMs without hits are left out, as the score switch reads the first PSM.
+    PeptideIdentificationList psms;
+    psms.reserve(peptide_ids.size() + inference_only_psms.size());
+    std::vector<std::string> keys;
+    const auto add = [&](const PeptideIdentification& id)
+    {
+      if (id.getHits().empty()) { return; }
+      const PeptideHit* best = &id.getHits()[0];
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (id.isHigherScoreBetter() ? hit.getScore() > best->getScore() : hit.getScore() < best->getScore()) { best = &hit; }
+      }
+      PeptideHit hit(best->getScore(), best->getRank(), best->getCharge(), best->getSequence());
+      hit.setPeptideEvidences(best->getPeptideEvidences());
+      best->getKeys(keys);
+      for (const std::string& key : keys)
+      {
+        if (key == Constants::UserParam::TARGET_DECOY || Scores::isKnownScoreType(key)) { hit.setMetaValue(key, best->getMetaValue(key)); }
+      }
+      PeptideIdentification& copy = psms.emplace_back();
+      copy.setIdentifier(run.getIdentifier());
+      copy.setScoreType(id.getScoreType());
+      copy.setHigherScoreBetter(id.isHigherScoreBetter());
+      copy.setHits({std::move(hit)});
+    };
+    for (const PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getIdentifier() == run.getIdentifier()) { add(id); } // the PSMs of other runs are not the run's evidence
+    }
+    for (const PeptideIdentification& id : inference_only_psms) { add(id); }
+
+    // The protein score: the best PEP of its PSMs, if they have one (Percolator's, also when its q-value is the main
+    // score), as ProteomicsLFQ scores proteins; otherwise the best search engine score (e.g. 'ln(hyperscore)', also
+    // after FDR:PSM made the q-value the main score). The q-values themselves rank the proteins coarsely: many PSMs
+    // share the best q-value.
+    std::string score_type;
+    if (!psms.empty())
+    {
+      const IDScoreSwitcherAlgorithm switcher;
+      if (!switcher.findScoreType(psms[0], IDScoreSwitcherAlgorithm::ScoreType::PEP).score_name.empty()) { score_type = "PEP"; }
+      else if (!switcher.findScoreType(psms[0], IDScoreSwitcherAlgorithm::ScoreType::RAW).score_name.empty()) { score_type = "RAW"; }
+    }
+    BasicProteinInferenceAlgorithm bpia;
+    Param bpia_param = bpia.getParameters();
+    bpia_param.setValue("score_type", score_type);
+    bpia.setParameters(bpia_param);
+    bpia.run(psms, run);
+    return score_type;
+  }
+
+  // static
   bool ProSEAlgorithm::applyCompleteSetProteinFDR(
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       const std::string& decoy_string,
       bool decoy_is_prefix,
       double protein_fdr,
-      bool remove_decoys)
+      bool remove_decoys,
+      const PeptideIdentificationList& inference_only_psms)
   {
     // Defensive: an empty decoy marker would make every protein match the prefix/suffix guard
     // below (hasPrefix(x, "") is always true) and corrupt picked-protein FDR. Callers gate on
@@ -3938,26 +4013,46 @@ namespace OpenMS
       return false;
     }
 
-    // Aggregate the best PSM score per peptide per protein, then apply picked-protein
-    // FDR (Savitski et al. 2015) over the full target+decoy protein set.
-    BasicProteinInferenceAlgorithm bpia;
-    bpia.run(peptide_ids, protein_ids);
+    // Aggregate the best PSM score (PEP, or the search engine score) per peptide per protein over the reported PSMs and
+    // the inference-only ones, then apply picked-protein FDR (Savitski et al. 2015) over the full target+decoy protein
+    // set. The inference uses the best hit of each PSM, and so do the reported PSMs from here on.
+    IDFilter::keepNBestHits(peptide_ids, 1);
+    const std::string score_type = inferProteins(protein_ids, peptide_ids, inference_only_psms);
+
+    const auto is_decoy = [&](const ProteinHit& ph)
+    {
+      return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
+                             : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
+    };
+    const auto& inferred = protein_ids[0].getHits();
+    const Size decoy_proteins = static_cast<Size>(std::count_if(inferred.begin(), inferred.end(), is_decoy));
+    const auto with_hits = [](const PeptideIdentification& id) { return !id.getHits().empty(); };
+    const Size reported = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(), with_hits));
+    const Size inference_only = static_cast<Size>(std::count_if(inference_only_psms.begin(), inference_only_psms.end(), with_hits));
+    OPENMS_LOG_INFO << "[ProSE] Protein inference on " << reported + inference_only << " PSMs (" << inference_only
+                    << " of them up to FDR:protein_inference_PSM, not reported), protein score "
+                    << (score_type.empty() ? "the main score" : score_type) << ": " << inferred.size() - decoy_proteins
+                    << " target and " << decoy_proteins << " decoy proteins." << std::endl;
+
+    // Proteins (and groups) without a reported PSM go: the decoys once their PSMs are removed, and the proteins that
+    // only inference-only PSMs support.
+    const auto remove_unreported_proteins = [&]()
+    {
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
+    };
 
     // Picked-protein FDR needs identified decoy PROTEINS, not merely a decoy database: if PSM-level
     // filtering removed all decoy evidence, q-values would be estimated from targets only. The
     // callers gate on a DB-level / pre-inference "decoys present" check, which does not catch this
     // post-inference target-only edge -- guard it here.
-    const bool has_decoy_proteins = std::any_of(
-        protein_ids[0].getHits().begin(), protein_ids[0].getHits().end(),
-        [&](const ProteinHit& ph) {
-          return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
-                                 : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
-        });
-    if (!has_decoy_proteins)
+    if (decoy_proteins == 0)
     {
       OPENMS_LOG_WARN << "[ProSE] Protein FDR requested but no decoy proteins remain after inference "
                       << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
                       << "target-only q-values." << std::endl;
+      remove_unreported_proteins();
       return false;
     }
 
@@ -3981,10 +4076,8 @@ namespace OpenMS
     {
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
     }
-    IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
-    IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
+    remove_unreported_proteins();
     IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
 
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
@@ -4181,11 +4274,31 @@ namespace OpenMS
     return outcome;
   }
 
+  void ProSEAlgorithm::collectInferenceOnlyPsms_(const PeptideIdentificationList& peptide_ids, double psm_fdr,
+                                                 PeptideIdentificationList& inference_only_psms) const
+  {
+    const double cutoff = fdr_protein_inference_psm_;
+    if (cutoff <= psm_fdr) { return; }
+    for (const PeptideIdentification& id : peptide_ids)
+    {
+      std::vector<PeptideHit> hits;
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (hit.getScore() > psm_fdr && hit.getScore() <= cutoff) { hits.push_back(hit); }
+      }
+      if (hits.empty()) { continue; }
+      PeptideIdentification& copy = inference_only_psms.emplace_back(id);
+      copy.setHits(std::move(hits));
+    }
+  }
+
   bool ProSEAlgorithm::applyDeferredPsmFDR(const std::vector<ProteinIdentification>& protein_ids,
                                            PeptideIdentificationList& peptide_ids,
                                            bool rescored,
-                                           double psm_fdr) const
+                                           double psm_fdr,
+                                           PeptideIdentificationList* inference_only_psms) const
   {
+    if (inference_only_psms != nullptr) { inference_only_psms->clear(); }
     if (psm_fdr <= 0.0 || protein_ids.empty() || peptide_ids.empty())
     {
       return false;
@@ -4205,6 +4318,8 @@ namespace OpenMS
       }
       annotatePsmQValues(peptide_ids); // FDR:PSM_groups as in the search's own FDR:PSM
     }
+    // The PSMs the filter removes but the protein inference uses (FDR:protein_inference_PSM), on the same q-values.
+    if (inference_only_psms != nullptr) { collectInferenceOnlyPsms_(peptide_ids, psm_fdr, *inference_only_psms); }
     // Filters target and decoy PSMs alike by q-value; decoy removal is the protein FDR's finalization.
     IDFilter::filterHitsByScore(peptide_ids, psm_fdr);
     return true;
@@ -4214,9 +4329,13 @@ namespace OpenMS
                                                                    PeptideIdentificationList& peptide_ids,
                                                                    bool has_decoys,
                                                                    RunStatistics& stats,
-                                                                   PeptideIdentificationList* pre_fdr_psms) const
+                                                                   PeptideIdentificationList* pre_fdr_psms,
+                                                                   PeptideIdentificationList* inference_only_psms) const
   {
     PercolatorRescoring rescoring;
+    // The PSMs between FDR:PSM and FDR:protein_inference_PSM are only needed for the protein FDR.
+    if (inference_only_psms != nullptr) { inference_only_psms->clear(); }
+    PeptideIdentificationList* inference_only = fdr_protein_ > 0.0 ? inference_only_psms : nullptr;
     // The copy for a Percolator .pin (setKeepPreFdrPsms()) holds the search engine scores, every reported hit and the
     // decoys: it is the input of a later rescoring, so it is taken before the rescoring as well as before FDR:PSM.
     if (pre_fdr_psms != nullptr) { *pre_fdr_psms = peptide_ids; }
@@ -4234,7 +4353,7 @@ namespace OpenMS
       if (fdr_psm_ > 0.0)
       {
         StopWatch sw_fdr; sw_fdr.start();
-        if (applyDeferredPsmFDR(protein_ids, peptide_ids, rescoring.applied, fdr_psm_))
+        if (applyDeferredPsmFDR(protein_ids, peptide_ids, rescoring.applied, fdr_psm_, inference_only))
         {
           stats.fdr_applied = true;
           stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -4264,6 +4383,7 @@ namespace OpenMS
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
       annotatePsmQValues(peptide_ids);
+      if (inference_only != nullptr) { collectInferenceOnlyPsms_(peptide_ids, fdr_psm_, *inference_only); }
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       stats.fdr_applied = true;
       stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -4851,9 +4971,11 @@ namespace OpenMS
         // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
         // decoy marker (prefix or suffix, detected by DecoyHelper in resolveDecoyStrategy_) so the
         // shared finalization recognises the same decoys that were searched.
-        applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+        applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_,
+                                   true, inference_only_peptide_ids_);
       }
     }
+    inference_only_peptide_ids_ = PeptideIdentificationList();
 
     // patch file-specific metadata
     protein_ids[0].getSearchParameters().db = in_db;
@@ -4879,6 +5001,8 @@ namespace OpenMS
     // Carry whatever statistics the search managed to populate, even on failure.
     result.stats = last_run_stats_;
     result.percolator = last_percolator_;
+    result.inference_only_peptide_ids = std::move(inference_only_peptide_ids_);
+    inference_only_peptide_ids_ = PeptideIdentificationList();
 
     if (result.exit_code != ExitCodes::EXECUTION_OK)
     {
@@ -4919,10 +5043,12 @@ namespace OpenMS
       const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
       if (strategy.have_decoys)
       {
-        applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+        applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_,
+                                   true, result.inference_only_peptide_ids);
         updateFinalStats(result.stats, result.peptide_ids, enzyme_, result.stats.fdr_applied);
       }
     }
+    result.inference_only_peptide_ids = PeptideIdentificationList(); // used by the protein FDR only
 
     return result;
   }
@@ -5356,7 +5482,8 @@ namespace OpenMS
         capturePreFdrStats_(result.peptide_ids, result.stats);
         // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
         result.percolator = applyPsmFDR_(result.protein_ids, result.peptide_ids, has_decoys, result.stats,
-                                         keep_pre_fdr_psms_ ? &result.pre_fdr_peptide_ids : nullptr);
+                                         keep_pre_fdr_psms_ ? &result.pre_fdr_peptide_ids : nullptr,
+                                         &result.inference_only_peptide_ids);
 
         result.exit_code = ExitCodes::EXECUTION_OK;
 
@@ -5544,6 +5671,8 @@ namespace OpenMS
         result.stats.input_file = File::basename(in_spectra);
         if (keep_pre_fdr_psms_) { result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_); }
         pre_fdr_peptide_ids_ = PeptideIdentificationList();
+        result.inference_only_peptide_ids = std::move(inference_only_peptide_ids_);
+        inference_only_peptide_ids_ = PeptideIdentificationList();
 
         if (!result.protein_ids.empty())
           result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
@@ -5836,68 +5965,32 @@ namespace OpenMS
     // merged idXML is schema-valid (matches the single-file path).
     merged_protein_ids[0].setDateTime(DateTime::now());
 
-    // Protein inference: aggregate best PSM score per peptide per protein
-    BasicProteinInferenceAlgorithm bpia;
-    bpia.run(merged_peptides, merged_protein_ids);
-
-    // Optional picked-protein FDR. Needs identified decoy proteins: gate on DB-level decoys
-    // AND a result-level check (the merged inference could be target-only even with a decoy
-    // database if no decoy survived in any file). Track whether FDR was actually applied so
-    // the decoy-removal finalization below only runs when it was.
+    // Cross-file protein inference (inferProteins(): the best PEP, or search engine score, per peptide per protein) and
+    // the optional picked-protein FDR. Picked-protein FDR needs identified decoy proteins: gate on DB-level decoys here,
+    // applyCompleteSetProteinFDR() checks the result of the inference (it could be target-only even with a decoy
+    // database if no decoy survived in any file). It infers the proteins on the pooled PSMs together with the PSMs of
+    // the files between FDR:PSM and FDR:protein_inference_PSM, and finalizes the result: with remove_decoys it strips
+    // the decoys, and in any case the proteins without a pooled PSM and the references to removed proteins (peptide
+    // evidences, indistinguishable proteins and protein groups), so that the result can still be stored as idXML.
+    // Without the protein FDR the merged output is a pooled intermediate that retains the target+decoy evidence for
+    // a downstream FDR.
     if (fdr_protein_ > 0.0 && result.have_decoys && !decoy_string.empty())
     {
-      const bool merged_has_decoy_proteins = std::any_of(
-          merged_protein_ids[0].getHits().begin(), merged_protein_ids[0].getHits().end(),
-          [&](const ProteinHit& ph) {
-            return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
-                                   : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
-          });
-      if (merged_has_decoy_proteins)
+      PeptideIdentificationList inference_only;
+      for (SearchResult& pf : result.per_file)
       {
-        FalseDiscoveryRate fdr;
-        if (!remove_decoys)
-        {
-          // By default the picked-protein FDR drops the decoy proteins from the run; keep them, with q-values, so that
-          // the filter below applies to them as to the targets. The q-values of the targets do not change.
-          Param fdr_param = fdr.getParameters();
-          fdr_param.setValue("add_decoy_proteins", "true");
-          fdr.setParameters(fdr_param);
-        }
-        fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_string, decoy_is_prefix);
-        IDFilter::filterHitsByScore(merged_protein_ids, fdr_protein_);
-        merged.protein_fdr_applied = true;
-
-        OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
-                        << merged_protein_ids[0].getHits().size() << " proteins at "
-                        << fdr_protein_ * 100 << "% FDR" << std::endl;
+        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+        inference_only.insert(inference_only.end(), std::make_move_iterator(pf.inference_only_peptide_ids.begin()),
+                              std::make_move_iterator(pf.inference_only_peptide_ids.end()));
+        pf.inference_only_peptide_ids = PeptideIdentificationList();
       }
-      else
-      {
-        OPENMS_LOG_WARN << "FDR:protein is set but the merged result has no decoy proteins "
-                        << "(marker '" << decoy_string << "'); skipping merged protein FDR to "
-                        << "avoid target-only q-values." << std::endl;
-      }
+      merged.protein_fdr_applied = applyCompleteSetProteinFDR(merged_protein_ids, merged_peptides, decoy_string,
+                                                              decoy_is_prefix, fdr_protein_, remove_decoys, inference_only);
     }
-
-    // Decoy removal is a protein-FDR finalization step: strip decoys only when protein FDR was
-    // actually applied. Otherwise the merged output is a pooled intermediate (cross-file
-    // inference) that retains target+decoy evidence for downstream FDR. With remove_decoys false
-    // the decoys that pass are kept, and only the references to the proteins the filter removed go.
-    if (merged.protein_fdr_applied)
+    else
     {
-      if (remove_decoys)
-      {
-        IDFilter::removeDecoyHits(merged_peptides);
-        IDFilter::removeEmptyIdentifications(merged_peptides);
-        IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
-      }
-      // Keep indistinguishable-protein and protein groups consistent with the filtered hit set.
-      IDFilter::updateProteinGroups(merged_protein_ids[0].getIndistinguishableProteins(), merged_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(merged_protein_ids[0].getProteinGroups(), merged_protein_ids[0].getHits());
-      // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
-      // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
-      // dangling refs that IdXMLFile::store rejects).
-      IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
+      IDFilter::keepNBestHits(merged_peptides, 1); // as the protein FDR keeps them
+      inferProteins(merged_protein_ids, merged_peptides);
     }
 
     return merged;
@@ -5930,9 +6023,11 @@ namespace OpenMS
     if (fdr_protein_ > 0.0 && mfres.have_decoys && result.exit_code == ExitCodes::EXECUTION_OK
         && !result.protein_ids.empty() && !result.peptide_ids.empty())
     {
-      applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids, mfres.decoy_string, mfres.decoy_is_prefix, fdr_protein_);
+      applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids, mfres.decoy_string, mfres.decoy_is_prefix, fdr_protein_,
+                                 true, result.inference_only_peptide_ids);
       updateFinalStats(result.stats, result.peptide_ids, enzyme_, result.stats.fdr_applied);
     }
+    result.inference_only_peptide_ids = PeptideIdentificationList(); // used by the protein FDR only
     return std::move(result);
   }
 

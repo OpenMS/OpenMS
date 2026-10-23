@@ -5041,6 +5041,13 @@ add_test("TOPP_ProSE_6_fdr_info_psms" ${DIFF}
   -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_info.tsv -absdiff 3
   -whitelist "file name" "database" "search engine" "protein hits")
 set_tests_properties("TOPP_ProSE_6_fdr_info_psms" PROPERTIES DEPENDS "TOPP_ProSE_6_fdr_info")
+# (c) the protein inference ranked the proteins by the search engine score of their PSMs, not by the PSM q-values: the
+#     picked-protein FDR keeps the score of the inference as '<score type>_score', which was 'q-value_score'.
+add_test("TOPP_ProSE_6_fdr_structure" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\"" "-DFORBIDDEN=name=\"q-value_score\";accession=\"DECOY_"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_6_fdr_structure" PROPERTIES DEPENDS "TOPP_ProSE_6_fdr")
 # Test 6b: chunked == non-chunked. Diff the chunked output against the SAME-RUN non-chunked output
 # (Test 6), NOT a committed golden: chunking is deterministic per platform (TOPP_ProSE_5_chunked
 # proves it bit-identical), so this is immune to the cross-platform FP noise above while still
@@ -5142,6 +5149,13 @@ add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
   PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+# The protein inference ranked the proteins by the best PEP of their PSMs (as posterior probability), not by the PSM q-values.
+add_test("TOPP_ProSE_11_rescore_structure" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"Posterior Probability_score\""
+  "-DFORBIDDEN=name=\"q-value_score\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_11_rescore_structure" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore")
 # Several input files: each is rescored on its own, then pooled for -out_merged.
 add_test("TOPP_ProSE_11_rescore_multi" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
@@ -5294,12 +5308,12 @@ add_test("TOPP_ProSE_13_merged_info_psms" ${DIFF}
   -in2 ${DATA_DIR_TOPP}/ProSE_13_merged_info.tsv -absdiff 6
   -whitelist "file name" "database" "search engine" "protein hits")
 set_tests_properties("TOPP_ProSE_13_merged_info_psms" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_info")
-# (c) the protein FDR was applied (the protein scores are q-values), the run is the Percolator run, and no decoy PSM or
-#     decoy protein is left.
+# (c) the protein FDR was applied (the protein scores are q-values), the run is the Percolator run, the inference ranked
+#     the proteins by the best PEP of their PSMs (not by the PSM q-values), and no decoy PSM or decoy protein is left.
 add_test("TOPP_ProSE_13_merged_structure" ${CMAKE_COMMAND}
   -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML
-  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";search_engine=\"Percolator\""
-  "-DFORBIDDEN=name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";search_engine=\"Percolator\";name=\"Posterior Probability_score\""
+  "-DFORBIDDEN=name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_;name=\"q-value_score\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_13_merged_structure" PROPERTIES DEPENDS "TOPP_ProSE_13_merged")
 
@@ -5356,6 +5370,35 @@ add_test("TOPP_ProSE_15_empty_merged_summary" ${CMAKE_COMMAND}
   -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_15_empty_merged.tmp.yaml
   "-DEXPECTED=files_failed: 0;files_total: 2;type: \"merged idXML\"" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_15_empty_merged_summary" PROPERTIES DEPENDS "TOPP_ProSE_15_empty_merged")
+
+# Test 16: Search:FDR:protein_inference_PSM. The protein inference and the protein FDR use the PSMs up to it (default 0.1),
+# while FDR:PSM still filters the reported PSMs. With ProSE's own scores and FDR:PSM 0.001 the search leaves PSMs between
+# the two cutoffs (113 on Linux), which the inference uses (the log says how many); with the cutoff at 0 it uses the PSMs of
+# FDR:PSM only. The reported PSMs are the same either way (FileInfo counts, produced-vs-produced).
+foreach(_v looser fdr_psm)
+  set(_opt)
+  set(_log "Protein inference on [0-9]+ PSMs \\([1-9][0-9]* of them up to FDR:protein_inference_PSM")
+  if(_v STREQUAL "fdr_psm")
+    set(_opt -Search:FDR:protein_inference_PSM 0)
+    set(_log "Protein inference on [0-9]+ PSMs \\(0 of them up to FDR:protein_inference_PSM")
+  endif()
+  add_test("TOPP_ProSE_16_inference_${_v}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -Search:rescore false -Search:FDR:PSM 0.001 ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_16_inference_${_v}.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_16_inference_${_v}" PROPERTIES PASS_REGULAR_EXPRESSION "${_log}")
+  add_test("TOPP_ProSE_16_inference_${_v}_info" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/ProSE_16_inference_${_v}.tmp.idXML
+    -out_tsv ${TESTS_TEMP_DIR}/ProSE_16_inference_${_v}_info.tmp.tsv)
+  set_tests_properties("TOPP_ProSE_16_inference_${_v}_info" PROPERTIES DEPENDS "TOPP_ProSE_16_inference_${_v}")
+endforeach()
+add_test("TOPP_ProSE_16_inference_psms" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_16_inference_looser_info.tmp.tsv
+  -in2 ${TESTS_TEMP_DIR}/ProSE_16_inference_fdr_psm_info.tmp.tsv
+  -whitelist "file name" "protein hits")
+set_tests_properties("TOPP_ProSE_16_inference_psms" PROPERTIES
+  DEPENDS "TOPP_ProSE_16_inference_looser_info;TOPP_ProSE_16_inference_fdr_psm_info")
 
 # PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
 # how many PSMs received predicted features or fail -- never continue silently without them.

@@ -69,6 +69,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). The '-out_pin' files are an exception to both: they are written before any FDR filter and keep the decoys. To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
+@note Protein inference of the protein FDR: as in ProteomicsLFQ, the inference and the picked-protein FDR use the PSMs up to a looser q-value than '-Search:FDR:PSM', '-Search:FDR:protein_inference_PSM' (default 0.1), which leaves more decoy proteins for the picked-protein FDR, and a protein scores with the best posterior error probability of its PSMs (Percolator's PEP; without rescoring the best HyperScore). The reported PSMs are still those that pass '-Search:FDR:PSM'; proteins and protein groups without one of them are removed after the protein FDR.
 @note Percolator rescoring: by default ('-Search:rescore true'), the PSMs of each input file are rescored separately with OpenMS' built-in (in-process) Percolator implementation, the same backend PercolatorAdapter uses by default. No percolator executable is needed (the former '-percolator_executable' parameter and '-rescore' flag were removed). Training uses the standard Percolator feature set plus ProSE's search engine features, '-train_best_positive' and target-decoy competition ('-post_processing_tdc'); Percolator q-values become the main score (the SVM score and PEP are kept as meta values MS:1001492/MS:1001493, the HyperScore as meta value 'ln(hyperscore)'), only the best hit per spectrum is kept, and the runs report 'Percolator' as search engine. The PSM and protein FDR thresholds are then applied on the rescored PSMs. A file with fewer than 100 PSMs or without decoys, or for which Percolator fails, is @em not rescored: ProSE prints a warning, keeps its HyperScores (FDR is then computed from them) and continues; the end-of-search report states how many files were rescored. Set '-Search:rescore false' to report ProSE's own scores. '-out_pin' always holds ProSE's own scores (see there).
 @note `Search:peptide:clip_nterm_methionine=true` also searches the mature N-terminal
 peptide after loss of exactly the initial methionine of an M-leading protein.
@@ -456,7 +457,9 @@ class ProSE :
               // resolved decoy marker (prefix or suffix) and skips internally if no decoy proteins
               // survived inference.
               ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
-                                                         mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr);
+                                                         mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr,
+                                                         true, result.inference_only_peptide_ids);
+              result.inference_only_peptide_ids = PeptideIdentificationList(); // release the copy
             }
             else
             {
@@ -482,6 +485,8 @@ class ProSE :
                           << "evidence as intermediates. Use -out_merged to obtain protein FDR "
                           << "over the aggregated set, or pool the per-file outputs and apply "
                           << "FDR downstream (e.g. IDMerger -> ProteinInference -> FalseDiscoveryRate)." << endl;
+          // the PSMs that only the protein inference of the protein FDR would use
+          for (ProSEAlgorithm::SearchResult& result : mfres.per_file) { result.inference_only_peptide_ids = PeptideIdentificationList(); }
         }
       }
 
