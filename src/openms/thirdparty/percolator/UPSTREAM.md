@@ -182,7 +182,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   final order of the keys (and get the scores of the last feature) once, at the end. The
   positives of each feature are counted in a task on the (score, label) pairs in the order of
   its sort (sorted by score, as in the serial loop), instead of a task that sorted the pairs
-  again.
+  again; the chain hands the task a copy of its keys, the task builds the pairs. The ranks are
+  sorted with `sortLikeStdSort` (any sort would do), the feature columns copied in parallel
+  blocks.
   `PosteriorEstimator::estimatePi0` (called by `Scores::merge` and `postMergeStep` for each
   fold and for the merged set) runs its 100 bootstraps as tasks of the enclosing OpenMP
   parallel region (as in `CrossValidation::postIterationProcessing`). The bootstraps draw from

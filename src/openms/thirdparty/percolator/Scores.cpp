@@ -971,7 +971,14 @@ int Scores::getInitDirection(const double initialSelectionFdr,
       omp_in_parallel()) {
     std::exception_ptr chainError;
     std::vector<std::exception_ptr> errors(numFeatures);
-    std::vector<std::vector<pair<double, bool> > > pairsOfFeature(numFeatures);
+    struct ChainKey {
+      double score;
+      unsigned int tieRank;
+      unsigned int index;
+    };
+    // the keys after the sort of each feature (until its count), and the labels
+    std::vector<std::vector<ChainKey> > keysOfFeature(numFeatures);
+    std::vector<char> isTarget(n);
 #pragma omp taskgroup
     {
       try {
@@ -993,28 +1000,24 @@ int Scores::getInitDirection(const double initialSelectionFdr,
           ties.push_back({scores_[i].pPSM->scan, scores_[i].pPSM->expMass, scores_[i].label,
                           static_cast<unsigned int>(i)});
         }
-        std::sort(ties.begin(), ties.end(), tieLess);
+        sortLikeStdSort(ties, tieLess);  // (any sort: only the ranks are used)
         std::vector<unsigned int> tieRank(n);
         unsigned int rank = 0;
         for (std::size_t k = 0; k < n; ++k) {
           if (k > 0 && tieLess(ties[k - 1], ties[k])) ++rank;
           tieRank[ties[k].index] = rank;
         }
-        // the feature values by feature, and the labels
+        // the feature values by feature, and the labels (blocks of PSMs as tasks)
         std::vector<double> columns(static_cast<std::size_t>(numFeatures) * n);
-        std::vector<char> isTarget(n);
-        for (std::size_t i = 0; i < n; ++i) {
-          const double* row = scores_[i].pPSM->features;
+        const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(n);
+#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(columns, isTarget)
+        for (std::ptrdiff_t i = 0; i < numScores; ++i) {
+          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
           for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
-            columns[featNo * n + i] = row[featNo];
+            columns[featNo * n + static_cast<std::size_t>(i)] = sh.pPSM->features[featNo];
           }
-          isTarget[i] = scores_[i].isTarget();
+          isTarget[static_cast<std::size_t>(i)] = sh.isTarget();
         }
-        struct ChainKey {
-          double score;
-          unsigned int tieRank;
-          unsigned int index;
-        };
         std::vector<ChainKey> keys;
         keys.reserve(n);
         for (std::size_t i = 0; i < n; ++i) {
@@ -1027,16 +1030,18 @@ int Scores::getInitDirection(const double initialSelectionFdr,
           sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
             return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
           });
-          std::vector<pair<double, bool> >& combined = pairsOfFeature[featNo];
-          combined.reserve(n);
-          for (const ChainKey& key : keys) combined.emplace_back(key.score, isTarget[key.index] != 0);
-#pragma omp task firstprivate(featNo) shared(pairsOfFeature, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
+          keysOfFeature[featNo] = keys;
+#pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
           try {
-            std::vector<pair<double, bool> >& pairs = pairsOfFeature[featNo];
+            std::vector<pair<double, bool> > pairs;
+            pairs.reserve(keysOfFeature[featNo].size());
+            for (const ChainKey& key : keysOfFeature[featNo]) {
+              pairs.emplace_back(key.score, isTarget[key.index] != 0);
+            }
+            std::vector<ChainKey>().swap(keysOfFeature[featNo]);
             positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
             reverse(pairs.begin(), pairs.end());
             positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
-            std::vector<pair<double, bool> >().swap(pairs);
           } catch (...) {
             errors[featNo] = std::current_exception();
           }
