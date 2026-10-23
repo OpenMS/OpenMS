@@ -9,6 +9,9 @@
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <string>
 #include <thread>
+// A WebAssembly module cannot start other programs: there, run() reports that instead of
+// using Boost.Process (which does not support Emscripten).
+#ifndef __EMSCRIPTEN__
 #include <boost/version.hpp>
 #include <boost/asio/io_context.hpp>
 
@@ -45,6 +48,7 @@ namespace bp = boost::process::v1;
 #else
 namespace bp = boost::process;
 #endif
+#endif // __EMSCRIPTEN__
 
 namespace OpenMS
 {
@@ -93,6 +97,15 @@ namespace OpenMS
       callbackStdOut_(cmd);
     }
 
+#ifdef __EMSCRIPTEN__
+    (void)working_dir; (void)io_mode; (void)env; (void)idle_callback;
+    error_msg = "Process '" + exe + "' cannot be started: WebAssembly does not support running external programs.";
+    if (verbose)
+    {
+      callbackStdErr_(error_msg + "\n");
+    }
+    return RETURNSTATE::FAILED_TO_START;
+#else
     // Convert args from std::string to std::string
     std::vector<std::string> std_args;
     std_args.reserve(args.size());
@@ -289,6 +302,7 @@ namespace OpenMS
       callbackStdOut_("Executed '" + exe + "' successfully!\n");
     }
     return RETURNSTATE::SUCCESS;
+#endif
   }
 
 } // namespace OpenMS

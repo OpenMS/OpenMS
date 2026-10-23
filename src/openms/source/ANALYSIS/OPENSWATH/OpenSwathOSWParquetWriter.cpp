@@ -277,6 +277,14 @@ namespace OpenMS
           << "}\n";
     }
 
+    // The Parquet files of a run are written concurrently. A WebAssembly build without
+    // threads runs each write when waitForWriteTasks_() collects it.
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+    constexpr std::launch write_launch_policy = std::launch::deferred;
+#else
+    constexpr std::launch write_launch_policy = std::launch::async;
+#endif
+
     void waitForWriteTasks_(std::vector<std::future<void>>& tasks)
     {
       for (auto& task : tasks)
@@ -1134,7 +1142,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Features table schema validation failed: " + feat_validation.toString(), "");
       }
-      write_tasks.emplace_back(std::async(std::launch::async, [features_table, run_path]() {
+      write_tasks.emplace_back(std::async(write_launch_policy, [features_table, run_path]() {
         ParquetFile::writeTable(features_table, run_path + "/features.parquet");
       }));
     }
@@ -1194,7 +1202,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Feature transition table schema validation failed: " + ft_validation.toString(), "");
       }
-      write_tasks.emplace_back(std::async(std::launch::async, [ft_table, run_path]() {
+      write_tasks.emplace_back(std::async(write_launch_policy, [ft_table, run_path]() {
         ParquetFile::writeTable(ft_table, run_path + "/feature_transition.parquet");
       }));
     }
@@ -1218,7 +1226,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Feature precursor table schema validation failed: " + fp_validation.toString(), "");
       }
-      write_tasks.emplace_back(std::async(std::launch::async, [fp_table, run_path]() {
+      write_tasks.emplace_back(std::async(write_launch_policy, [fp_table, run_path]() {
         ParquetFile::writeTable(fp_table, run_path + "/feature_precursor.parquet");
       }));
     }

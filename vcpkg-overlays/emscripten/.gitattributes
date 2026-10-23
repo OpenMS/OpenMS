@@ -1,0 +1,3 @@
+# Copies of vcpkg ports: keep their bytes as vcpkg has them (vcpkg's own .gitattributes:
+# "* -text"), patches with CRLF lines included.
+* -text

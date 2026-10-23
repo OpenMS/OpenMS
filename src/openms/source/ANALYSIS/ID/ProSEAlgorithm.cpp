@@ -1609,9 +1609,9 @@ namespace OpenMS
       peptide_ids.resize(used_slots);
     }
 
-    // The work per spectrum varies with its number of hits: hand out small blocks
-#pragma omp parallel for schedule(dynamic, 16)
-    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    // The body of the parallel loop below. A lambda, so that the parallel region captures one
+    // variable instead of 53: LLVM's OpenMP runtime passes at most 32 to a region on WebAssembly.
+    const auto annotate_scan = [&](SignedSize scan_index)
     {
       if (!annotated_hits[scan_index].empty())
       {
@@ -1943,6 +1943,13 @@ namespace OpenMS
           }
         }
       }
+    };
+
+    // The work per spectrum varies with its number of hits: hand out small blocks
+#pragma omp parallel for schedule(dynamic, 16)
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      annotate_scan(scan_index);
     }
 
 #ifdef _OPENMP
@@ -3069,17 +3076,18 @@ namespace OpenMS
                 std::min(static_cast<SignedSize>(ambiguous_[0]), end_at_most - len)};
       }
 
-      /// The sequences looked up for the spans of @p length (combinations saturate at 2^32, far above any budget)
+      /// The sequences looked up for the spans of @p length (combinations saturate at 2^32, far above any budget).
+      /// Counted in 64 bits; the result saturates where Size is narrower (32-bit targets such as WebAssembly).
       Size lookups(const Size length) const
       {
-        Size total = 0, combinations = 1;
+        UInt64 total = 0, combinations = 1;
         for (Size k = 1; k <= maxAmbiguous(); ++k)
         {
-          combinations = std::min(combinations * residuesMatchedBy(protein_[ambiguous_[k - 1]]).size(), Size(1) << 32);
+          combinations = std::min<UInt64>(combinations * residuesMatchedBy(protein_[ambiguous_[k - 1]]).size(), UInt64(1) << 32);
           const auto [first, last] = starts(length, k);
-          if (first <= last) total += combinations * static_cast<Size>(last - first + 1);
+          if (first <= last) total += combinations * static_cast<UInt64>(last - first + 1);
         }
-        return total;
+        return static_cast<Size>(std::min<UInt64>(total, std::numeric_limits<Size>::max()));
       }
 
     private:
@@ -4815,7 +4823,13 @@ namespace OpenMS
     std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
     {
       const int threads = readerThreads(true);
-      return std::async(std::launch::async, [&filename, threads]()
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+      // WebAssembly without threads has no helper thread: load when the result is collected
+      constexpr std::launch policy = std::launch::deferred;
+#else
+      constexpr std::launch policy = std::launch::async;
+#endif
+      return std::async(policy, [&filename, threads]()
       {
 #ifdef _OPENMP
         omp_set_num_threads(threads);

@@ -5,7 +5,14 @@
     {
       "name": "arrow",
       "default-features": false,
-      "features": ["compute", "dataset", "filesystem", "json", "parquet", "s3"]
+      "features": [
+        "compute",
+        "dataset",
+        "filesystem",
+        "json",
+        "parquet",
+        { "name": "s3", "platform": "!emscripten" }
+      ]
     },
     "boost-accumulators",
     "boost-algorithm",
@@ -31,7 +38,7 @@
     "boost-math",
     "boost-multi-index",
     "boost-numeric-conversion",
-    "boost-process",
+    { "name": "boost-process", "platform": "!emscripten" },
     "boost-random",
     "boost-range",
     "boost-regex",
@@ -43,7 +50,7 @@
     "boost-unordered",
     "boost-variant",
     "bzip2",
-    "curl",
+    { "name": "curl", "platform": "!emscripten" },
     "eigen3",
     "highs",
     "libsvm",
