@@ -539,6 +539,7 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
+  CoIsolationDetector_test
   ConfidenceScoring_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test

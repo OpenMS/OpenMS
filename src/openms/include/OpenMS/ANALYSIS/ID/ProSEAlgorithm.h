@@ -57,6 +57,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   public:
     ProSEAlgorithm(); 
 
+    /// PSM meta value of a chimeric search (chimeric:enabled): 1 for a PSM of the selected precursor, 2 for one of a
+    /// precursor co-isolated with it
+    static constexpr const char* CHIMERIC_RANK = "chimeric_rank";
+
     /// Exit codes
     enum class ExitCodes
     {
@@ -1063,8 +1067,61 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
     /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built.
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_; }
+    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know.
+    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
+
+    /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
+    /// The file-based searches then also read the survey scans.
+    bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
+
+    /// The PSM of a precursor co-isolated with the selected one (chimeric:enabled), until its residual spectrum is built
+    struct CoIsolatedPSM_
+    {
+      Size parent = 0;             ///< index of its spectrum in the searched spectra
+      Precursor precursor;         ///< the co-isolated precursor: that of the spectrum with its m/z and charge
+      std::vector<UInt32> removed; ///< the peaks of the spectrum that its residual spectrum leaves out (ascending)
+    };
+
+    /**
+     * @brief Search the precursors co-isolated with the selected one in what the spectrum's other PSMs leave of it
+     * (chimeric:enabled), after the andes chimeric cascade.
+     *
+     * Runs one round per co-isolated precursor rank: round k searches the k-th co-isolated precursor (meta values of
+     * CoIsolationDetector::annotate()) of every spectrum with at least one hit, at its m/z and charge, against the
+     * spectrum without the peaks claimed so far. The best hit of the spectrum claims its peaks first, and the best hit
+     * of each co-isolated precursor (its winner) claims its peaks before the next round: every peak within the
+     * fragment tolerance of one of its theoretical ions. Hits with the best hit's peptide are left out. A co-isolated
+     * precursor is dropped when its winner repeats a PSM of the spectrum (the peptide and charge of a hit of the
+     * spectrum or of an earlier winner). The residual spectra are scored in batches and not kept.
+     *
+     * @param spectra The searched spectra
+     * @param annotated_hits The hits of each spectrum of @p spectra
+     * @param fi The fragment index of the search
+     * @param db The searched database
+     * @param generators Theoretical spectrum generators of the search
+     * @param fragment_tol Fragment mass tolerance
+     * @param fragment_tol_ppm Whether @p fragment_tol is in ppm (else Da)
+     * @param open_search_mode Whether the search is an open search
+     * @param[out] psms The co-isolated PSMs, in spectrum order and, within a spectrum, in detection order
+     * @param[out] hits The hits of each of @p psms (at most chimeric:top_hits and report:top_hits), the winner first
+     * @param[out] pool_stats The candidate-pool statistics of each of @p psms
+     */
+    void searchCoIsolated_(const PeakMap& spectra,
+                           const std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+                           FragmentIndex& fi,
+                           const std::vector<FASTAFile::FASTAEntry>& db,
+                           const SpectrumGenerators_& generators,
+                           double fragment_tol,
+                           bool fragment_tol_ppm,
+                           bool open_search_mode,
+                           std::vector<CoIsolatedPSM_>& psms,
+                           std::vector<std::vector<AnnotatedHit_>>& hits,
+                           std::vector<CandidatePoolStats_>& pool_stats) const;
+
+    /// The residual spectrum of a co-isolated PSM: @p spectrum without the peaks @p removed (ascending indices), with
+    /// @p precursor as its precursor and without the meta values of CoIsolationDetector::annotate()
+    static MSSpectrum residualSpectrum_(const MSSpectrum& spectrum, const std::vector<UInt32>& removed, const Precursor& precursor);
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -1167,6 +1224,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
      * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
      *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
+     * @param[in] evidence_parent For the spectra of @p exp after the first evidence_spectra->size() (the residual
+     *                            spectra of a chimeric search), the index of the spectrum whose peak list in
+     *                            @p evidence_spectra they use; else @p evidence_spectra must be as long as @p exp.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -1185,7 +1245,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_max_charge,
       const std::string& enzyme,
       const std::string& database_name,
-      const PeakMap* evidence_spectra = nullptr) const;
+      const PeakMap* evidence_spectra = nullptr,
+      const std::vector<Size>* evidence_parent = nullptr) const;
 
     /**
      * @brief Adds PeptDeep-prediction-derived rescoring features to the PSMs.
@@ -1296,6 +1357,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};
+    bool chimeric_enabled_{false};       ///< chimeric:enabled: also search the precursors co-isolated with the selected one
     Size calibration_min_psms_{50};
 
     /**
