@@ -1118,6 +1118,7 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   cmap.setColumnHeaders(headers);
 
   ProteinIdentification prot_id; prot_id.setIdentifier("PI_0");
+  prot_id.setScoreType("q-value"); // (after a protein FDR: the group probability is a q-value)
   ProteinHit ph; ph.setAccession("PROT_A"); ph.setScore(0.9);
   prot_id.setHits({ph});
   ProteinIdentification::ProteinGroup pgrp; pgrp.probability = 0.02; pgrp.accessions = {"PROT_A"};
@@ -1192,6 +1193,14 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   TEST_EQUAL(mc->Value(0), 1)
   TEST_FALSE(pgq->IsNull(0))
   TEST_REAL_SIMILAR(pgq->Value(0), 0.02)
+  {
+    // proteins scored without a protein FDR (e.g. a posterior probability): the group probability is no q-value
+    ConsensusMap without_fdr = cmap;
+    without_fdr.getProteinIdentifications()[0].setScoreType("Posterior Probability");
+    auto t_without_fdr = ConsensusMapArrowExport::exportToArrow(without_fdr);
+    TEST_NOT_EQUAL(t_without_fdr, nullptr)
+    TEST_TRUE(t_without_fdr->GetColumnByName("pg_global_qvalue")->chunk(0)->IsNull(0))
+  }
 
   TEST_FALSE(f32("predicted_rt")->IsNull(0))
   TEST_REAL_SIMILAR(f32("predicted_rt")->Value(0), 319.0)
