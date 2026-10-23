@@ -893,6 +893,14 @@ namespace OpenMS
       F f_;
     };
 
+    // Background reads of spectra that lend OpenMP threads of this thread (BackgroundSpectra, below):
+    // takeBackThreadsOfEndedRead() gives this thread its threads back if the read has ended (called between the phases
+    // of a search, outside of parallel regions); startDeferredRead() starts a read that waits for the rescoring of the
+    // search before it; readLendsThreads(): whether a read lends threads of this thread now.
+    void takeBackThreadsOfEndedRead();
+    void startDeferredRead();
+    bool readLendsThreads();
+
     // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
     // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
     // every peak equal to a kept one. It selects them through indices instead of copies of the peaks, and finds the
@@ -2581,8 +2589,16 @@ namespace OpenMS
     // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
     std::exception_ptr scoring_error;
     std::atomic<bool> scoring_failed{false};
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed)
-    for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
+    // While a background read lends threads of this thread, in slices, between which this thread takes them back once
+    // the read has ended (see BackgroundSpectra). Every spectrum is scored on its own: the same results.
+    const SignedSize n_spectra = static_cast<SignedSize>(spectra.size());
+    const SignedSize slice = readLendsThreads() ? std::max<SignedSize>(1, (n_spectra + 15) / 16) : std::max<SignedSize>(1, n_spectra);
+    for (SignedSize slice_begin = 0; slice_begin < n_spectra && !scoring_failed.load(); slice_begin += slice)
+    {
+    takeBackThreadsOfEndedRead();
+    const SignedSize slice_end = std::min(n_spectra, slice_begin + slice);
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed, slice_begin, slice_end)
+    for (SignedSize scan_index = slice_begin; scan_index < slice_end; ++scan_index)
     {
       if (scoring_failed.load(std::memory_order_relaxed)) continue;
       try
@@ -2710,6 +2726,7 @@ namespace OpenMS
         }
         scoring_failed.store(true, std::memory_order_relaxed);
       }
+    }
     }
     endProgress();
     if (scoring_error) std::rethrow_exception(scoring_error);
@@ -3692,6 +3709,7 @@ namespace OpenMS
                     << ", +" << precursor_mass_tolerance_upper_ << "] "
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
+    takeBackThreadsOfEndedRead(); // here and between the other phases: see BackgroundSpectra
     startProgress(0, 1, "Filtering spectra...");
     FragmentIonLikelihoodModel::PeakLists ion_evidence; // annotate:self_trained_ion_priors
     PeakMap evidence_spectra, query_spectra;
@@ -3896,6 +3914,7 @@ namespace OpenMS
       fragment_index_.clear();
     }
 
+    takeBackThreadsOfEndedRead();
     startProgress(0, 1, "Post-processing PSMs...");
     ProSEAlgorithm::postProcessHits_(spectra,
       annotated_hits,
@@ -3922,6 +3941,7 @@ namespace OpenMS
     freeInParallel(evidence_spectra);
     endProgress();
 
+    takeBackThreadsOfEndedRead();
     annotatePeptDeepFeatures_(spectra, protein_ids, peptide_ids);
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
@@ -3969,6 +3989,7 @@ namespace OpenMS
 
     // Optional per-run ion priors need the target/decoy labels and the native scores: after
     // PeptideIndexing, before FDR overwrites the scores.
+    takeBackThreadsOfEndedRead();
     if (self_trained_ion_priors_)
     {
       annotateIonPriors_(spectra, ion_evidence, protein_ids, peptide_ids);
@@ -3986,6 +4007,7 @@ namespace OpenMS
 
     restore_fi_params();
 
+    takeBackThreadsOfEndedRead();
     collectRunStatistics_(spectra, protein_ids, peptide_ids, last_run_stats_);
 
     return ExitCodes::EXECUTION_OK;
@@ -4315,6 +4337,7 @@ namespace OpenMS
     {
       // Percolator gets all target and decoy PSMs; the PSM FDR follows on its q-values (or, if it
       // skipped the run, on the search engine scores).
+      startDeferredRead(); // the next file of a multi-file search, with threads Percolator leaves idle
 #ifdef _OPENMP
       const int threads = omp_get_max_threads();
 #else
@@ -4322,6 +4345,7 @@ namespace OpenMS
 #endif
       OPENMS_LOG_INFO << "[ProSE] Rescoring the PSMs with Percolator..." << std::endl;
       rescoring = rescoreWithPercolator(protein_ids, peptide_ids, threads);
+      takeBackThreadsOfEndedRead();
       if (fdr_psm_ > 0.0)
       {
         StopWatch sw_fdr; sw_fdr.start();
@@ -4843,17 +4867,19 @@ namespace OpenMS
 
     // The OpenMP threads a spectrum file is read with, of those of this thread: at most 16 (the chunked read gets no
     // faster with more). A read in the foreground gets all of them. A read in the background (BackgroundSpectra) takes
-    // an eighth of them, at least one, from this thread, which helps with the rest of the read when it takes the spectra.
-    // Measured at 16 and 64 threads on 8,000-spectrum files of six instrument types, against a reader with a quarter (or
-    // all, if the index build waits for it) of the threads next to all threads of this thread: no more busy threads than
-    // these, 12-17% less CPU time, 3% more wall time at 16 threads and 4-5% less at 64 (a quarter instead of an eighth:
-    // about the same; a fixed share without the help: 7-10% more wall time at 16 threads, as either side idles its
-    // share once it is done).
-    int readerThreads([[maybe_unused]] bool background)
+    // its threads from this thread, which helps with the rest of the read when it takes the spectra: next to the index
+    // build an eighth of them, at least one (measured at 16 and 64 threads on 8,000-spectrum files of six instrument
+    // types, against a reader with a quarter or all of the threads next to all threads of this thread: no more busy
+    // threads than these, 12-17% less CPU time, 3% more wall time at 16 threads and 4-5% less at 64; a fixed share
+    // without the help: 7-10% more wall time at 16 threads, as either side idles its share once it is done); next to the
+    // search of another file a quarter, at least one, which this thread takes back between the phases of the search
+    // once the read has ended.
+    int readerThreads([[maybe_unused]] bool background, [[maybe_unused]] bool next_to_index_build = true)
     {
 #ifdef _OPENMP
       const int threads = omp_get_max_threads();
-      return background ? std::clamp(threads / 8, 1, 16) : std::min(threads, 16);
+      if (!background) { return std::min(threads, 16); }
+      return std::clamp(threads / (next_to_index_build ? 8 : 4), 1, 16);
 #else
       return 1;
 #endif
@@ -4881,6 +4907,10 @@ namespace OpenMS
     // thread gets its threads back when it takes the spectra (get()) or no longer waits for them (destruction, start()
     // of the next read). The helper sets its OpenMP threads itself: a new thread starts with the default of the process
     // (OMP_NUM_THREADS or all cores), not with what was set for this one (e.g. by TOPPBase from -threads).
+    class BackgroundSpectra;
+    thread_local BackgroundSpectra* lending_read = nullptr;  // the read that lends threads of this thread, if any
+    thread_local BackgroundSpectra* deferred_read = nullptr; // the read that waits for startDeferredRead(), if any
+
     class BackgroundSpectra
     {
     public:
@@ -4891,17 +4921,23 @@ namespace OpenMS
       BackgroundSpectra(const BackgroundSpectra&) = delete;
       BackgroundSpectra& operator=(const BackgroundSpectra&) = delete;
 
-      ~BackgroundSpectra() { restoreThreads_(); } // then ~future waits for the helper
-
-      /// Starts to read @p filename, with readerThreads(true) of the threads of this thread, after the read before (if
-      /// any) has ended and this thread has its threads back. @p awaited: the index build waits for the spectra (see
-      /// chunkThreads()).
-      void start(const std::string& filename, const bool awaited = false)
+      ~BackgroundSpectra()
       {
+        if (deferred_read == this) { deferred_read = nullptr; }
         restoreThreads_();
+      } // then ~future waits for the helper
+
+      /// Starts to read @p filename, with @p reader_threads (default: readerThreads(true)) of the threads of this thread,
+      /// after the read before (if any) has ended and this thread has its threads back. @p awaited: the index build waits
+      /// for the spectra (see chunkThreads()). Used by the thread that created it only.
+      void start(const std::string& filename, const bool awaited = false, const int reader_threads = 0)
+      {
+        if (deferred_read == this) { deferred_read = nullptr; }
+        deferred_ = nullptr;
+        restoreThreads_();
+        const int threads = reader_threads > 0 ? reader_threads : readerThreads(true);
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
         help_ = std::make_shared<ChunkHelp>();
-        const int threads = readerThreads(true);
         const int chunk_threads = chunkThreads(awaited);
         spectra_ = std::async(std::launch::async, [&filename, threads, chunk_threads, help = help_]()
         {
@@ -4914,20 +4950,52 @@ namespace OpenMS
 #ifdef _OPENMP
         own_threads_ = omp_get_max_threads();
         omp_set_num_threads(std::max(1, own_threads_ - threads));
+        // taken back early (takeBackThreadsOfEndedRead()) only outside of parallel regions, where this thread runs a
+        // single task, whose ICV this is
+        if (omp_get_level() == 0) { lending_read = this; }
 #endif
       }
 
-      bool valid() const { return spectra_.valid(); }
+      /// Like start(@p filename, false, readerThreads(true, false)), but only when this thread calls startDeferredRead()
+      /// (or get()): during the rescoring of the search before, whose Percolator training uses at most 9 threads.
+      void startDeferred(const std::string& filename)
+      {
+#ifdef _OPENMP
+        if (omp_get_level() != 0) { start(filename, false, readerThreads(true, false)); return; } // see start()
+#endif
+        restoreThreads_();
+        spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
+        help_ = nullptr;
+        deferred_ = &filename;
+        deferred_read = this;
+      }
+
+      /// Starts a deferred read (startDeferred())
+      void startNow()
+      {
+        if (deferred_ != nullptr) { start(*deferred_, false, readerThreads(true, false)); }
+      }
+
+      bool valid() const { return spectra_.valid() || deferred_ != nullptr; }
 
       /// Whether the spectra are read (valid() only)
-      bool ready() const { return spectra_.wait_for(std::chrono::seconds(0)) == std::future_status::ready; }
+      bool ready() const { return deferred_ == nullptr && spectra_.wait_for(std::chrono::seconds(0)) == std::future_status::ready; }
+
+      /// Gives this thread its threads back if the spectra are read
+      void takeBackThreadsIfRead()
+      {
+        if (own_threads_ > 0 && ready()) { restoreThreads_(); }
+      }
 
       /// The spectra (valid() only; waits for them; rethrows what the reader threw). Meanwhile, the threads of this
       /// thread that the reader leaves parse chunks of the file with it (see ChunkHelp).
       PeakMap get()
       {
-        if (help_) { help_->help(); }
-        restoreThreads_();
+        startNow();
+        {
+          const OnScopeExit restore([this]() { restoreThreads_(); }); // also if help() throws
+          if (help_) { help_->help(); }
+        }
         return spectra_.get();
       }
 
@@ -4938,12 +5006,28 @@ namespace OpenMS
         if (own_threads_ > 0) { omp_set_num_threads(own_threads_); }
 #endif
         own_threads_ = 0;
+        if (lending_read == this) { lending_read = nullptr; }
       }
 
       std::shared_ptr<ChunkHelp> help_;
       std::future<PeakMap> spectra_;
       int own_threads_ = 0; // of this thread, while the helper reads; 0: not reduced
+      const std::string* deferred_ = nullptr; // the file of a deferred read
     };
+
+    void takeBackThreadsOfEndedRead()
+    {
+#ifdef _OPENMP
+      if (lending_read != nullptr && omp_get_level() == 0) { lending_read->takeBackThreadsIfRead(); } // see start()
+#endif
+    }
+
+    void startDeferredRead()
+    {
+      if (deferred_read != nullptr) { deferred_read->startNow(); }
+    }
+
+    bool readLendsThreads() { return lending_read != nullptr; }
 
     // Whether the first MBs of an mzML file name an electron-based activation (the terms that
     // MzMLHandler reads as ECD, ETD, ETciD or EThcD). A cheap prediction of what the spectra will
@@ -5247,7 +5331,14 @@ namespace OpenMS
     {
       if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
       {
-        next_spectra.start(in_spectra_files[i], i == 0 && wait_for_first_spectra);
+        // File 0 next to the index build. A later one next to the search of the file before: from its rescoring on if
+        // Percolator, which trains on at most 9 threads, leaves the reader's threads (a quarter) idle; otherwise from the
+        // start (measured on three Orbitrap files at 16 threads without rescoring: from the end of the scoring on, 3%
+        // slower, as more of the read is left for get()). The reader then registers the names of the file's meta values
+        // after the protein mapping of the file before (see the registry order above).
+        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra); }
+        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i]); }
+        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false)); }
       }
     };
     read_next(0);
