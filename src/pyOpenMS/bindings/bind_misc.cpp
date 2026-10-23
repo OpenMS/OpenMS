@@ -3213,7 +3213,7 @@ Annotates and filters transitions in a TargetedExperiment
 :param enable_unspecific_losses: Whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
 :param round_decPow: Round product m/z values to decimal power (default: -4)
 )doc")
-        .def("uisTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double>>& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions) { self.uisTransitions(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, mz_threshold, swathes, round_decPow, max_num_alternative_localizations, shuffle_seed, disable_decoy_transitions); }, "exp"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "enable_ms2_precursors"_a, "mz_threshold"_a, "swathes"_a, "round_decPow"_a = -4, "max_num_alternative_localizations"_a = 20, "shuffle_seed"_a = -1, "disable_decoy_transitions"_a = false, 
+        .def("uisTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double>>& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions) { self.uisTransitions(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, mz_threshold, swathes, round_decPow, max_num_alternative_localizations, shuffle_seed, disable_decoy_transitions); }, "exp"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "enable_ms2_precursors"_a, "mz_threshold"_a, "swathes"_a, "round_decPow"_a = -4, "max_num_alternative_localizations"_a = 20, "shuffle_seed"_a = 1, "disable_decoy_transitions"_a = false,
             R"doc(
 Annotate UIS / site-specific transitions
 
@@ -3244,7 +3244,7 @@ peptidoforms to which they map.
 :param swathes: The swath window settings (to exclude fragment ions falling
 :param round_decPow: Round product m/z values to decimal power (default: -4)
 :param max_num_alternative_localizations: Maximum number of allowed peptide sequence permutations
-:param shuffle_seed: Set seed for shuffle (-1: select seed based on time)
+:param shuffle_seed: Shuffle seed (default 1 for reproducible results; -1 selects a time-based seed)
 :param disable_decoy_transitions: Whether to disable generation of decoy UIS transitions
 )doc")
         ;
@@ -3285,19 +3285,21 @@ Find all residues in a sequence that should not be reversed / shuffled
                                   const std::vector<size_t>& fragment_charges,
                                   bool enable_specific_losses,
                                   bool enable_unspecific_losses,
-                                  int round_decPow) {
+                                  int round_decPow,
+                                  OpenMS::Int shuffle_seed) {
             OpenMS::TargetedExperiment dec;
             self.generateDecoys(exp, dec, method, aim_decoy_fraction, switchKR, decoy_tag,
                                 max_attempts, identity_threshold, precursor_mz_shift,
                                 product_mz_shift, product_mz_threshold, fragment_types,
                                 fragment_charges, enable_specific_losses, enable_unspecific_losses,
-                                round_decPow);
+                                round_decPow, shuffle_seed);
             return dec;
         }, "exp"_a, "method"_a, "aim_decoy_fraction"_a, "switchKR"_a, "decoy_tag"_a,
            "max_attempts"_a, "identity_threshold"_a, "precursor_mz_shift"_a,
            "product_mz_shift"_a, "product_mz_threshold"_a, "fragment_types"_a,
            "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a,
-           "round_decPow"_a = -4, "Generate decoys from a TargetedExperiment")
+           "round_decPow"_a = -4, "shuffle_seed"_a = 1,
+           "Generate decoys from a TargetedExperiment (shuffle_seed=-1 uses time-based seeding)")
         ;
     def_ProgressLogger<OpenMS::MRMDecoy>(mrmdecoy_class);
 

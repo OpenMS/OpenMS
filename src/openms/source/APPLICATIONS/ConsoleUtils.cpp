@@ -64,8 +64,11 @@ namespace OpenMS
         HANDLE hOut;
         CONSOLE_SCREEN_BUFFER_INFO SBInfo;
         hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        GetConsoleScreenBufferInfo(hOut, &SBInfo);
-        console_width_ = SBInfo.dwSize.X;
+        // fails when stdout is redirected (e.g. to a file); SBInfo is then uninitialized
+        if (GetConsoleScreenBufferInfo(hOut, &SBInfo))
+        {
+          console_width_ = SBInfo.dwSize.X;
+        }
 #else // Linux / MacOS
       // try "stty size" command
       // don't use QProcess, since stty will not work there
