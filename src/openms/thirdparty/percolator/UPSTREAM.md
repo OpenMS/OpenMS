@@ -26,6 +26,39 @@ Percolator's `ssl.{cpp,h}`. The replacement:
   these files. If a future upstream Percolator sync introduces a different
   ssl.cpp, this replacement will need to be re-applied manually.
 
+OpenMS changes to the replacement (not in `patches/`: the sync neither copies
+nor patches these files):
+- Fast function object (OpenMS-local files `tron_kernels.h`,
+  `tron_kernels_impl.h`, `tron_kernels_sse2.cpp`, `tron_kernels_avx2.cpp`,
+  `cpu_avx2.h`). On x86-64 builds for the baseline instruction set (no AVX, no
+  FMA: the build whose bits are the reference), `tron()` stores X in blocks of
+  4 rows (`build_bt`) instead of a row-major Eigen matrix, and its function
+  object (`FastTronFunction`) computes f, the gradient and Hv with SSE2 or AVX2
+  kernels, chosen once at run time (`cpuHasAvx2`; `OPENMS_TRON_ISA=ref|sse2|avx2`
+  overrides it, `tronSelectKernels` is the test hook). Every value is computed in
+  the order of `TronFunction`: the margins in the order of Eigen's SSE2
+  row-major gemv (even and odd columns in two lanes), the sums over rows in row
+  order, every product rounded (the AVX2 file is compiled with `-mavx2 -mno-fma
+  -ffp-contract=off`; compiled with FMA or without AVX2 it exports an empty table
+  that is never selected); zero padding of rows and columns cannot change a sum
+  that starts at +0, except in Hv with an infinite or NaN direction (0 * Inf),
+  where `FastTronFunction::Hv` loops over the active rows like `TronFunction`.
+  Further: the active rows are packed while `fun` has them in L1, f and g at
+  w = 0 are computed once per solve (TRON and the gradient-ratio check ask three
+  times), and the buffers are per thread and grow-only (freed at the end of a
+  solve once they exceed 64 MB). The first use of each kernel table in a process
+  solves two small problems both ways (about 1 ms) and falls back to
+  `TronFunction` with a warning if any bit differs. Weights, outputs and the
+  gradient ratio are bit-identical to `TronFunction` (class test
+  `PercolatorTron_test`: whole solves for both kernels, n = 1..60, and fun /
+  grad / Hv with infinite, NaN and huge values). Builds with AVX/FMA
+  (`-march=...`), other architectures, problems with one row and problems with
+  more than INT_MAX - 64 rows keep `TronFunction`. MSVC builds use the SSE2
+  kernels only (no `/arch:AVX2`: its contraction is not verified). Checked with
+  GCC 14.4 -O3 (conda-forge, Linux); MSVC and Apple Clang are covered only by
+  the self-check. (With infinite or huge feature values, TRON's conjugate
+  gradient does not terminate, in both function objects alike.)
+
 ## How to re-sync
 
 Run `./sync-from-upstream.sh <tag-or-sha>`. The script copies files listed in

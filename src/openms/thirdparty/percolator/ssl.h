@@ -79,9 +79,30 @@ struct options {
 // weights. opts.cgitermax is silently ignored — vendored liblinear TRON
 // has no cgitermax analogue (inner CG is an uncapped while-loop until
 // cg-tolerance or trust-region exit).
+//
+// OpenMS: on x86-64 builds for the baseline instruction set (no AVX, no FMA), the
+// function object runs on kernels for SSE2 or AVX2 (chosen at run time), with the
+// same results bit for bit (tron_kernels.h). gradRatio (optional) receives the
+// gradient-norm ratio (0 if ||g(w_0)|| = 0).
 int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
-         double cpos, double cneg);
+         double cpos, double cneg, double* gradRatio = nullptr);
+
+// OpenMS, for tests: selects the function object of tron() for all threads: "ref"
+// (the reference TronFunction), "sse2" or "avx2" (the kernels); nullptr = the
+// default (environment variable OPENMS_TRON_ISA = ref|sse2|avx2, else AVX2 if the
+// CPU has it). Returns false, and changes nothing, if the path is not available
+// in this build or on this CPU.
+bool tronSelectKernels(const char* isa);
+
+// OpenMS, for tests: the function object of tron() ("ref", "sse2" or "avx2") on the
+// problem of tron(set, opts, ..., cpos, cneg) with opts.lambda = lambda, called as
+// TRON calls it: f[0] = fun(0), g[0..n) = grad(0), Hs[0..n) = Hv(s), then f[1] =
+// fun(w), g[n..2n) = grad(w), Hs[n..2n) = Hv(s) (n = set.n). Returns false if the
+// kernels are not available.
+bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double cneg,
+                         double lambda, const double* w, const double* s,
+                         double* f, double* g, double* Hs);
 
 // Drop-in replacement for the legacy SVMlin-based L2_SVM_MFN. The
 // original implementation in this file was the modified-finite-Newton
