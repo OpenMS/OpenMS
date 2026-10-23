@@ -6196,6 +6196,7 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR infers the proteins on the rep
     InferenceRun run = make_inference_run(pep);
     TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3))
     TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T2,T3")
+    TEST_STRING_EQUAL(run.proteins[0].getMetaValue(ProSEAlgorithm::PROTEIN_FDR_SKIPPED_META_VALUE).toString(), "no decoy protein")
 
     // With them, the decoy (PEP 0.2) ranks above T2 (PEP 0.3, although its q-value is 0). With FalseDiscoveryRate's
     // conservative estimate (D + 1) / (T + 1), T2 gets the q-value 2/5 and fails the protein FDR of 30 %, T1 and T3 (1/4)
@@ -6205,6 +6206,7 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR infers the proteins on the rep
     const PeptideIdentificationList reported = run.reported;
     TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, true, run.inference_only))
     TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T3")
+    TEST_FALSE(run.proteins[0].metaValueExists(ProSEAlgorithm::PROTEIN_FDR_SKIPPED_META_VALUE)) // applied
     TEST_EQUAL(run.proteins[0].getScoreType(), "q-value")
     for (const ProteinHit& hit : run.proteins[0].getHits())
     {
@@ -6235,6 +6237,76 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR infers the proteins on the rep
     run = make_inference_run(pep);
     TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, false, run.inference_only))
     TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T3")
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] applyCompleteSetProteinFDR keeps the proteins when no target protein passes the protein FDR))
+{
+  // A small run (as the E. coli example, about 55 proteins): FalseDiscoveryRate's conservative q-value (D + 1) / (T + 1)
+  // cannot go below 1 / (T + 1), so a filter at 10 % would leave no protein of the five. The proteins are reported
+  // without protein-level filtering instead, with their q-values; the FDR counts as not applied (false), and the run
+  // says why. The decoys go as in the other cases, but for remove_decoys false.
+  InferenceRun run = make_inference_run(true);
+  const PeptideIdentificationList reported = run.reported;
+  TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.1, true, run.inference_only))
+  TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T2,T3") // those of the reported PSMs, not T4 and the decoy
+  TEST_STRING_EQUAL(run.proteins[0].getMetaValue(ProSEAlgorithm::PROTEIN_FDR_SKIPPED_META_VALUE).toString(), "no target protein passes")
+  TEST_EQUAL(run.proteins[0].getScoreType(), "q-value")
+  std::map<std::string, double> q_values;
+  for (const ProteinHit& hit : run.proteins[0].getHits()) { q_values[hit.getAccession()] = hit.getScore(); }
+  TEST_REAL_SIMILAR(q_values["T1"], 0.25)
+  TEST_REAL_SIMILAR(q_values["T3"], 0.25)
+  TEST_REAL_SIMILAR(q_values["T2"], 0.4)
+  TEST_EQUAL(run.reported.size(), reported.size())
+  for (const ProteinHit& hit : run.proteins[0].getHits())
+  {
+    TEST_TRUE(hit.metaValueExists("Posterior Probability_score"))
+  }
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, run.proteins, run.reported, {FileTypes::IDXML});
+
+  // A reported decoy PSM: removed with its protein by default, kept (with its protein and q-value) with remove_decoys
+  // false.
+  for (const bool remove_decoys : {true, false})
+  {
+    run = make_inference_run(true);
+    run.reported.push_back(run.inference_only.back()); // the decoy PSM
+    run.reported.back().getHits()[0].setScore(0.008);
+    run.inference_only.pop_back();
+    TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.1, remove_decoys, run.inference_only))
+    TEST_STRING_EQUAL(accessions_of(run.proteins[0]), remove_decoys ? "T1,T2,T3" : "DECOY_T6,T1,T2,T3")
+    TEST_EQUAL(run.reported.size(), remove_decoys ? 3 : 4)
+    TEST_STRING_EQUAL(run.proteins[0].getMetaValue(ProSEAlgorithm::PROTEIN_FDR_SKIPPED_META_VALUE).toString(), "no target protein passes")
+  }
+
+  // The same in the merged path: the search of the first mergeFileResults section (47 target proteins, so no q-value
+  // below 1/48) with FDR:protein 0.001.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  Param p = algo.getParameters();
+  p.setValue("FDR:protein", 0.001);
+  algo.setParameters(p);
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+  TEST_FALSE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_TRUE(merged.protein_ids[0].getHits().size() > 40)
+  TEST_STRING_EQUAL(merged.protein_ids[0].getMetaValue(ProSEAlgorithm::PROTEIN_FDR_SKIPPED_META_VALUE).toString(), "no target protein passes")
+  TEST_EQUAL(merged.protein_ids[0].getScoreType(), "q-value")
+  Size decoys = 0, above = 0;
+  for (const ProteinHit& hit : merged.protein_ids[0].getHits())
+  {
+    decoys += hit.getAccession().starts_with("DECOY_");
+    above += hit.getScore() > 0.001;
+  }
+  TEST_EQUAL(decoys, 0)
+  TEST_EQUAL(above, merged.protein_ids[0].getHits().size())
+  for (const PeptideIdentification& id : merged.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits()) { TEST_FALSE(hit.isDecoy()) }
   }
 }
 END_SECTION

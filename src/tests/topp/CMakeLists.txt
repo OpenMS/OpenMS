@@ -5393,6 +5393,42 @@ add_test("TOPP_ProSE_16_inference_psms" ${DIFF}
 set_tests_properties("TOPP_ProSE_16_inference_psms" PROPERTIES
   DEPENDS "TOPP_ProSE_16_inference_looser_info;TOPP_ProSE_16_inference_fdr_psm_info")
 
+# Test 17: no target protein passes the protein FDR (FDR:protein 0.001 on 47 target proteins: FalseDiscoveryRate's
+# conservative q-value cannot go below 1/48, as on small runs such as the E. coli example). The proteins are reported
+# without protein-level filtering, with their q-values (score type q-value), and the run says why (meta value
+# 'protein_fdr_skipped'); the decoys are removed as usual. One input, and two with -out_merged. The FileInfo summaries
+# equal those of Test 6 and Test 7 (47 proteins, the same PSMs).
+foreach(_v single merged)
+  if(_v STREQUAL "single")
+    set(_io -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_17_unfiltered_${_v}.tmp.idXML)
+    set(_ref ProSE_6_fdr_info.tsv)
+  else()
+    set(_io -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+      -out_merged ${TESTS_TEMP_DIR}/ProSE_17_unfiltered_${_v}.tmp.idXML)
+    set(_ref ProSE_7_merged_info.tsv)
+  endif()
+  add_test("TOPP_ProSE_17_unfiltered_${_v}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -Search:rescore false -Search:FDR:protein 0.001 ${_io}
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
+  set_tests_properties("TOPP_ProSE_17_unfiltered_${_v}" PROPERTIES PASS_REGULAR_EXPRESSION
+    "no target protein passes the protein FDR of 0.1 %; proteins are reported without protein-level filtering")
+  add_test("TOPP_ProSE_17_unfiltered_${_v}_structure" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_17_unfiltered_${_v}.tmp.idXML
+    "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"protein_fdr_skipped\" value=\"no target protein passes\""
+    "-DFORBIDDEN=accession=\"DECOY_;name=\"target_decoy\" value=\"decoy\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_ProSE_17_unfiltered_${_v}_structure" PROPERTIES DEPENDS "TOPP_ProSE_17_unfiltered_${_v}")
+  add_test("TOPP_ProSE_17_unfiltered_${_v}_info" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/ProSE_17_unfiltered_${_v}.tmp.idXML
+    -out_tsv ${TESTS_TEMP_DIR}/ProSE_17_unfiltered_${_v}_info.tmp.tsv)
+  set_tests_properties("TOPP_ProSE_17_unfiltered_${_v}_info" PROPERTIES DEPENDS "TOPP_ProSE_17_unfiltered_${_v}")
+  add_test("TOPP_ProSE_17_unfiltered_${_v}_info_out" ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/ProSE_17_unfiltered_${_v}_info.tmp.tsv
+    -in2 ${DATA_DIR_TOPP}/${_ref} -absdiff 1
+    -whitelist "file name" "database" "search engine" "matched spectra" "peptide hits" "modified top-hits")
+  set_tests_properties("TOPP_ProSE_17_unfiltered_${_v}_info_out" PROPERTIES DEPENDS "TOPP_ProSE_17_unfiltered_${_v}_info")
+endforeach()
+
 # PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
 # how many PSMs received predicted features or fail -- never continue silently without them.
 if(WITH_ONNX)
