@@ -19,9 +19,10 @@ namespace OpenMS::PipEcho
 /**
  * Scores match-between-runs (MBR) transfers and applies FDR control to them.
  *
- * Given the candidate target and decoy acceptor transfers, an SVM is trained on
- * the target/decoy labels to assign each transfer a posterior error probability
- * (PEP), from which q-values are derived. run() returns only the transfers that
+ * Given the candidate target and decoy acceptor transfers, the in-tree
+ * Percolator (semi-supervised, cross-validated linear SVM) is trained on the
+ * target/decoy labels to assign each transfer an SVM score and a posterior
+ * error probability (PEP); q-values are derived from the SVM score ranking. run() returns only the transfers that
  * survive the requested FDR cutoff (with a conservative fallback when the FDR is
  * not estimable -- see run()).
  */
@@ -57,6 +58,7 @@ public:
     BaseFeature::ChargeType donor_charge;
     Score score;
     DonorType donor_type;
+    double svm_score = 0.0; ///< Percolator SVM score (higher = more target-like)
     double pep_score = 1.0;
     double q_value = 1.0;
   };
@@ -75,10 +77,10 @@ public:
    * @param min_decoys  FDR-estimability floor: the minimum number of decoy
    *                    transfers required before any transfer is kept (see
    *                    run()).
-   * @param max_training_points  Upper bound on the SVM training-set size per
-   *                    cross-validation fold (0 = unlimited). Only the model
-   *                    fit is subsampled; prediction and the FDR/q-values use
-   *                    every transfer, so q-values stay unbiased (see round()).
+   * @param max_training_points  Upper bound on the number of transfers the
+   *                    SVM is trained on (0 = unlimited; Percolator's
+   *                    'subset_max_train'). Only the model fit is subsampled;
+   *                    every transfer is scored and enters the q-values.
    */
   TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys,
                    std::size_t max_training_points = 0);
@@ -104,23 +106,6 @@ private:
   /// Try to compute PEP values.
   bool internal_run();
 
-  /// Group the acceptors into roughly equal sized buckets.
-  void group_acceptors(std::vector<group_t>&);
-
-  /// One round of training and predicting for the given groups.
-  bool round(std::size_t,
-             std::vector<group_t>&,
-             std::function<double(const acceptor_t&)>,
-             std::function<bool(double, double)>);
-
-  /// Train a model using the data in the first view, and generate
-  /// predictions for the data in the second parameter..
-  bool train_predict(const group_t& training,
-                     group_t& predict,
-                     double cutoff,
-                     std::function<double(const acceptor_t&)> get,
-                     std::function<bool(double, double)> cmp);
-
   /// Compute and assign Q values to each acceptor.
   void compute_qvalues(bool);
 
@@ -133,14 +118,14 @@ private:
   /// FDR-estimability floor (see run()).
   std::size_t min_decoys_;
 
-  /// Upper bound on the SVM training-set size per fold (0 = unlimited). Only
-  /// the model fit is subsampled; prediction and FDR use all transfers.
+  /// Upper bound on the SVM training-set size (0 = unlimited). Only the model
+  /// fit is subsampled; scoring and FDR use all transfers.
   std::size_t max_training_points_;
 
   /// Whether ion mobility is used as an SVM feature. Ion mobility is an
   /// all-or-nothing property of the acquisition, so this is true only when
   /// *every* acceptor carries a valid IM score; that keeps the SVM predictor
-  /// columns rectangular (SimpleSVM requires equal-length predictor vectors).
+  /// feature rows rectangular (Percolator requires equal-length rows).
   bool use_im_ = false;
 
   /// Whether the RT predictor is the CALIBRATED rt_score ([0,1] agreement) rather
