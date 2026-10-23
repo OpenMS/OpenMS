@@ -43,7 +43,7 @@ OpenMS Library:
     search nests under "Searching <file> (i of n)...".
   - ProSEAlgorithm::applyCompleteSetProteinFDR() returns whether the picked-protein FDR was applied (false: empty decoy
     marker, or no decoy protein left after inference) and keeps the decoys with remove_decoys false, as mergeFileResults()
-    does. The ProSE tool ignores the return value and is unchanged.
+    does.
   - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
     position of their file in the input list (for inputs with distinct paths). After a file whose search failed, the PSMs of the
     later files named the wrong file.
