@@ -15,6 +15,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <filesystem>
 #include <future>
 #include <thread>
 
@@ -271,89 +272,104 @@ namespace OpenMS
     };
 
     /**
-      Phase 1 for a large file: reads parts of it that start with a [Term] line on several threads, each with its own
-      TermReader, and collects their terms in file order (a multimap keeps equal keys in the order of insertion).
-      False if the file is small, or a part does not end a term (lines without an id since the last [Term] line, which
-      carry over into the next term) or fails to parse: then @p all_mods is unchanged and the caller reads the file as a
-      whole, which also reports errors as before.
+      Phase 1 for a large regular file: reads parts of it that start with a [Term] line on several threads, each with
+      its own TermReader, and collects their terms in file order (a multimap keeps equal keys in the order of
+      insertion, also when merging). False if the file is small or not a regular file, a part does not end a term
+      (lines without an id since the last [Term] line, which carry over into the next term), a part fails to parse or
+      anything else fails (e.g. memory): then @p all_mods is unchanged and the caller reads the file as a whole, which
+      also reports errors as before.
     */
-    bool readInParts(std::istream& is, bool cross_links_only, multimap<std::string, ResidueModification>& all_mods)
+    bool readInParts(const std::string& file, bool cross_links_only, multimap<std::string, ResidueModification>& all_mods)
     {
       const Size max_parts = 8;
       const Size min_part_bytes = 128 * 1024;
-      const Size n_threads = std::max(1u, std::thread::hardware_concurrency());
-      std::string text;
-      is.seekg(0, std::ios::end);
-      const std::streamoff size = is.tellg();
-      if (size <= 0) return false;
+      const Size n_threads = std::thread::hardware_concurrency();
+      if (n_threads < 2) return false;
+      std::error_code ec;
+      if (!std::filesystem::is_regular_file(file, ec)) return false;
+      const auto size = std::filesystem::file_size(file, ec);
+      if (ec) return false;
       const Size n_parts = std::min({max_parts, n_threads, Size(size) / min_part_bytes});
       if (n_parts < 2) return false;
-      text.resize(size_t(size));
-      is.seekg(0);
-      if (!is.read(text.data(), size)) return false;
-
-      // parts start at lines that are exactly "[Term]" (PSI-MOD.obo has CRLF line ends)
-      std::vector<size_t> starts{0};
-      for (Size k = 1; k < n_parts; ++k)
-      {
-        size_t p = std::max(starts.back() + 1, text.size() * k / n_parts);
-        for (p = text.find("\n[Term]", p - 1); p != std::string::npos; p = text.find("\n[Term]", p + 1))
-        {
-          const size_t after = p + 7;
-          if (after == text.size() || text[after] == '\n' || (text[after] == '\r' && (after + 1 == text.size() || text[after + 1] == '\n'))) break;
-        }
-        if (p == std::string::npos) break;
-        starts.push_back(p + 1);
-      }
-      starts.push_back(text.size());
-      if (starts.size() < 3) return false;
-
-      std::vector<TermReader> readers(starts.size() - 1, TermReader(cross_links_only));
-      auto read_part = [&](Size i)
-      {
-        TermReader& reader = readers[i];
-        for (size_t from = starts[i]; from < starts[i + 1];)
-        {
-          size_t to = text.find('\n', from);
-          if (to == std::string::npos || to > starts[i + 1]) to = starts[i + 1];
-          reader.line(text.substr(from, to - from));
-          from = to + 1;
-        }
-        const bool ends_term = i + 1 == readers.size() || reader.endsTerm();
-        reader.end();
-        return ends_term;
-      };
-      std::vector<std::future<bool>> later;
-      for (Size i = 1; i < readers.size(); ++i)
-      {
-        later.push_back(std::async(std::launch::async | std::launch::deferred, read_part, i));
-      }
-      bool ok = true;
       try
       {
-        ok = read_part(0);
-      }
-      catch (...)
-      {
-        ok = false;
-      }
-      for (auto& f : later)
-      {
+        std::string text;
+        {
+          std::ifstream in(file, std::ios::binary);
+          if (!in) return false;
+          text.resize(size_t(size));
+          if (!in.read(text.data(), std::streamsize(size)) || in.peek() != std::ifstream::traits_type::eof()) return false;
+        }
+
+        // parts start at lines that are exactly "[Term]" (PSI-MOD.obo has CRLF line ends)
+        std::vector<size_t> starts{0};
+        for (Size k = 1; k < n_parts; ++k)
+        {
+          size_t p = std::max(starts.back() + 1, text.size() * k / n_parts);
+          for (p = text.find("\n[Term]", p - 1); p != std::string::npos; p = text.find("\n[Term]", p + 1))
+          {
+            const size_t after = p + 7;
+            if (after == text.size() || text[after] == '\n' || (text[after] == '\r' && (after + 1 == text.size() || text[after + 1] == '\n'))) break;
+          }
+          if (p == std::string::npos) break;
+          starts.push_back(p + 1);
+        }
+        starts.push_back(text.size());
+        if (starts.size() < 3) return false;
+
+        std::vector<TermReader> readers(starts.size() - 1, TermReader(cross_links_only));
+        auto read_part = [&](Size i)
+        {
+          TermReader& reader = readers[i];
+          for (size_t from = starts[i]; from < starts[i + 1];)
+          {
+            size_t to = text.find('\n', from);
+            if (to == std::string::npos || to > starts[i + 1]) to = starts[i + 1];
+            reader.line(text.substr(from, to - from));
+            from = to + 1;
+          }
+          const bool ends_term = i + 1 == readers.size() || reader.endsTerm();
+          reader.end();
+          return ends_term;
+        };
+        std::vector<std::future<bool>> later;
+        for (Size i = 1; i < readers.size(); ++i)
+        {
+          later.push_back(std::async(std::launch::async | std::launch::deferred, read_part, i));
+        }
+        bool ok = true;
         try
         {
-          ok = f.get() && ok;
+          ok = read_part(0);
         }
         catch (...)
         {
           ok = false;
         }
+        for (auto& f : later)
+        {
+          try
+          {
+            ok = f.get() && ok;
+          }
+          catch (...)
+          {
+            ok = false;
+          }
+        }
+        if (!ok) return false;
+        multimap<std::string, ResidueModification> merged;
+        for (TermReader& reader : readers)
+        {
+          merged.merge(reader.all_mods); // moves the nodes, equal keys after those already there
+        }
+        all_mods = std::move(merged);
+        return true;
       }
-      if (!ok) return false;
-      for (TermReader& reader : readers)
+      catch (...)
       {
-        all_mods.insert(reader.all_mods.begin(), reader.all_mods.end());
+        return false;
       }
-      return true;
     }
   }
 
@@ -368,10 +384,8 @@ namespace OpenMS
 
     // Phase 1: parse OBO file
     multimap<std::string, ResidueModification> all_mods;
-    if (!readInParts(is, cross_links_only_, all_mods))
+    if (!readInParts(resolved, cross_links_only_, all_mods))
     {
-      is.clear();
-      is.seekg(0);
       TermReader reader(cross_links_only_);
       std::string line;
       while (getline(is, line, '\n'))
