@@ -12,14 +12,18 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
 {
   class MSExperiment;
   class MSSpectrum;
+  class Param;
   class PeptideIdentificationList;
 
 /**
@@ -27,8 +31,9 @@ namespace OpenMS
 
   A tool that writes a QPX dataset (e.g. ProSE with @c -out_qpx) takes the mandatory columns of the psm view from
   QPXFile and adds the optional ones of this class with ArrowIOHelpers::withColumns(). It writes the mz view of its
-  identified spectra with mzView(). Columns are ArrowIOHelpers::ParquetColumn and tables are only forward-declared,
-  so the caller needs no Arrow headers.
+  identified spectra with mzView(), the run, sample and provenance views with runView(), sampleView() and
+  provenanceView(), and all views of the dataset with writeDataset(). Columns are ArrowIOHelpers::ParquetColumn and
+  tables are only forward-declared, so the caller needs no Arrow headers.
 
   All members are static.
 
@@ -164,6 +169,163 @@ public:
   */
   static MzView mzView(const MSExperiment& spectra, const PeptideIdentificationList& peptide_ids,
                        const std::string& run_file_name, const PeakFilter& filter);
+
+  /// A sample of a run (the run view's @c samples)
+  struct RunSample
+  {
+    /// The sample's @c sample_accession (of the sample view)
+    std::string accession;
+    /// The label of the sample in the run ("LFQ" for label-free)
+    std::string label = "LFQ";
+    /// The biological replicate (none: null)
+    std::optional<Int32> biological_replicate;
+    /// The technical replicate (none: null)
+    std::optional<Int32> technical_replicate;
+  };
+
+  /// A run of the dataset (a row of the run view, runView())
+  struct Run
+  {
+    /// The @c run_accession
+    std::string accession;
+    /// The @c run_file_name (as in the psm and mz views)
+    std::string run_file_name;
+    /// The @c file_name (e.g. the base name of the input file; "": null)
+    std::string file_name;
+    /// The samples of the run
+    std::vector<RunSample> samples;
+    /// The @c fraction (none or "": null)
+    std::optional<std::string> fraction;
+    /// The @c instrument (none or "": null)
+    std::optional<std::string> instrument;
+    /// The @c dissociation_method (none or "": null)
+    std::optional<std::string> dissociation_method;
+    /// The @c acquisition_method (none or "": null)
+    std::optional<std::string> acquisition_method;
+    /// The @c enzymes (empty: null)
+    std::vector<std::string> enzymes;
+    /// The fixed modifications of the search, by their OpenMS names (e.g. "Carbamidomethyl (C)")
+    std::vector<std::string> fixed_modifications;
+    /// The variable modifications of the search, by their OpenMS names (e.g. "Oxidation (M)")
+    std::vector<std::string> variable_modifications;
+  };
+
+  /// A sample of the dataset (a row of the sample view, sampleView())
+  struct Sample
+  {
+    /// The @c sample_accession
+    std::string accession;
+    /// The @c organism ("not available", as SDRF has it, if unknown)
+    std::string organism = "not available";
+    /// The @c organism_part ("not available", as SDRF has it, if unknown)
+    std::string organism_part = "not available";
+  };
+
+  /// A step of the processing (a row of the provenance view, provenanceView())
+  struct ProvenanceStep
+  {
+    /// The @c step_category (e.g. "database_search")
+    std::string category;
+    /// The @c step_name (e.g. "peptide_search")
+    std::string name;
+    /// The @c tool_name (e.g. "ProSE")
+    std::string tool;
+    /// The @c parameters, as key and value, in this order
+    std::vector<std::pair<std::string, std::string>> parameters;
+    /// The @c config (e.g. paramToJSON() of the tool's parameters; "": null)
+    std::string config;
+    /// The @c output_views (e.g. "psm"; empty: null)
+    std::vector<std::string> output_views;
+  };
+
+  /**
+    @brief The QPX run view: one row per run, in the order of @p runs
+
+    The columns, in this order: @c run_accession, @c run_file_name, @c file_name, @c samples (structs of
+    @c sample_accession, @c label, @c biological_replicate, @c technical_replicate), @c fraction, @c instrument,
+    @c enzymes, @c dissociation_method, @c acquisition_method, @c additional_terms (always null),
+    @c modification_parameters (QPX MODIFICATION structs of @c accession, @c name, @c fixed, @c position,
+    @c target_amino_acid: the fixed, then the variable modifications; @c accession "UNIMOD:<n>" or, without a UniMod
+    accession, the full ID; a modification unknown to ModificationsDB has its name as @c accession and @c name and
+    null @c position and @c target_amino_acid). A tool adds optional columns with ArrowIOHelpers::withColumns().
+
+    @param[in] runs The runs
+    @return the view, or null on an Arrow error (logged)
+  */
+  static std::shared_ptr<arrow::Table> runView(const std::vector<Run>& runs);
+
+  /**
+    @brief The QPX sample view: one row per sample, in the order of @p samples
+
+    The columns, in this order: @c sample_accession, @c organism, @c organism_part (all non-null).
+
+    @param[in] samples The samples
+    @return the view, or null on an Arrow error (logged)
+  */
+  static std::shared_ptr<arrow::Table> sampleView(const std::vector<Sample>& samples);
+
+  /**
+    @brief The QPX provenance view: one row per step, in the order of @p steps
+
+    The columns, in this order: @c step_order (1, 2, ...), @c step_category, @c step_name, @c tool_name,
+    @c tool_version (VersionInfo::getVersion()), @c tool_uri (null), @c parameters (structs of @c key and @c value),
+    @c config, @c output_views.
+
+    @param[in] steps The steps of the processing
+    @return the view, or null on an Arrow error (logged)
+  */
+  static std::shared_ptr<arrow::Table> provenanceView(const std::vector<ProvenanceStep>& steps);
+
+  /**
+    @brief @p param as one JSON object of its full parameter names (e.g. "Search:precursor:mass_tolerance_lower") and
+    values, in the order of the parameters (e.g. for the @c config of a ProvenanceStep)
+
+    Integers and doubles (formatNumber(), non-finite: null) are JSON numbers, lists JSON arrays, an empty value null,
+    and all other values JSON strings.
+
+    @param[in] param The parameters
+    @return the JSON object
+  */
+  static std::string paramToJSON(const Param& param);
+
+  /**
+    @brief @p value as a locale-independent number: the shortest of 15 to 17 significant digits that reads back as
+    @p value (e.g. 0.1 -> "0.1", 100.0 -> "100")
+
+    @param[in] value The number
+    @param[in] non_finite The text of a non-finite @p value (NaN, infinity)
+    @return the text
+  */
+  static std::string formatNumber(double value, const std::string& non_finite = "null");
+
+  /// A view of the dataset for writeDataset()
+  struct View
+  {
+    /// The tables of the view, concatenated (same schema); empty: the view is not written; a null table: the view
+    /// fails
+    std::vector<std::shared_ptr<arrow::Table>> tables;
+    /// The writer configuration
+    ParquetWriteConfig config;
+    /// Extra keys of the file's footer (ArrowIOHelpers::qpxFileMetadata())
+    std::map<std::string, std::string> metadata;
+  };
+
+  /**
+    @brief Write the QPX dataset @p views to @p directory: @p directory/@p prefix.<view>.parquet per view
+
+    Creates @p directory if needed. Writes the views in the order psm, mz, pg, run, sample, provenance (then any other
+    view, by name), each with its tables concatenated and the footer of ArrowIOHelpers::qpxFileMetadata() of the file
+    type "<view>_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
+    table fails. The mz view is not written (logged) if a psm view was given and could not be written, as its rows are
+    keyed by the spectra of the PSMs. A view that fails is logged and the others are still written.
+
+    @param[in] directory The folder of the dataset
+    @param[in] prefix The common prefix of the files (e.g. "quantms")
+    @param[in] views The views by name (e.g. "psm", "run")
+    @return true if every view with tables was written; false if the folder could not be created or a view failed
+  */
+  static bool writeDataset(const std::string& directory, const std::string& prefix,
+                           const std::map<std::string, View>& views);
 };
 
 } // namespace OpenMS

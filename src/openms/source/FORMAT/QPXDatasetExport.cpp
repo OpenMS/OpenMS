@@ -8,9 +8,16 @@
 
 #include <OpenMS/FORMAT/QPXDatasetExport.h>
 
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -20,15 +27,19 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <deque>
+#include <iomanip>
+#include <locale>
 #include <map>
 #include <numeric>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <unordered_map>
 
 namespace OpenMS
@@ -41,6 +52,94 @@ namespace OpenMS
       if (name == "global_qvalue" || name == "percolator_qvalue" || name == "percolator_pep") { return false; }
       if (name == "percolator_score" || name == "ln_hyperscore") { return true; }
       return std::nullopt;
+    }
+
+    /// @p value as a JSON string literal
+    std::string jsonString(const std::string& value)
+    {
+      static const char* const hex = "0123456789abcdef";
+      std::string out = "\"";
+      for (char ch : value)
+      {
+        const unsigned char c = static_cast<unsigned char>(ch);
+        if (c == '"' || c == '\\') { out += '\\'; out += ch; }
+        else if (c == '\n') { out += "\\n"; }
+        else if (c == '\t') { out += "\\t"; }
+        else if (c == '\r') { out += "\\r"; }
+        else if (c < 0x20) { out += "\\u00"; out += hex[c >> 4]; out += hex[c & 0x0F]; }
+        else { out += ch; }
+      }
+      return out + "\"";
+    }
+
+    /// @p value (a Param value) as JSON
+    std::string jsonOfValue(const ParamValue& value)
+    {
+      auto list = [](const auto& items, auto&& one)
+      {
+        std::string out = "[";
+        for (Size k = 0; k < items.size(); ++k) { out += (k > 0 ? "," : "") + one(items[k]); }
+        return out + "]";
+      };
+      switch (value.valueType())
+      {
+        case ParamValue::INT_VALUE: return std::to_string(static_cast<int>(value));
+        case ParamValue::DOUBLE_VALUE: return QPXDatasetExport::formatNumber(static_cast<double>(value));
+        case ParamValue::STRING_LIST: return list(value.toStringVector(), [](const std::string& s) { return jsonString(s); });
+        case ParamValue::INT_LIST: return list(value.toIntVector(), [](int i) { return std::to_string(i); });
+        case ParamValue::DOUBLE_LIST: return list(value.toDoubleVector(), [](double d) { return QPXDatasetExport::formatNumber(d); });
+        case ParamValue::EMPTY_VALUE: return "null";
+        default: return jsonString(value.toString());
+      }
+    }
+
+    /// The QPX MODIFICATION struct fields (run view: modification_parameters)
+    std::vector<QPXDatasetExport::Column::StructField> modificationFields()
+    {
+      using Column = QPXDatasetExport::Column;
+      return {{"accession", Column::Type::UTF8, false}, {"name", Column::Type::UTF8, true}, {"fixed", Column::Type::BOOL, true},
+              {"position", Column::Type::UTF8, true}, {"target_amino_acid", Column::Type::UTF8, true}};
+    }
+
+    /// The modifications of the search (OpenMS names, e.g. "Carbamidomethyl (C)") as QPX MODIFICATION structs
+    std::vector<QPXDatasetExport::Column::StructEntry> modificationParameters(const std::vector<std::string>& fixed,
+                                                                              const std::vector<std::string>& variable)
+    {
+      static const std::map<ResidueModification::TermSpecificity, std::string> positions = {
+        {ResidueModification::ANYWHERE, "Anywhere"}, {ResidueModification::N_TERM, "Any N-term"},
+        {ResidueModification::C_TERM, "Any C-term"}, {ResidueModification::PROTEIN_N_TERM, "Protein N-term"},
+        {ResidueModification::PROTEIN_C_TERM, "Protein C-term"}};
+      using Value = QPXDatasetExport::Column::StructValue;
+      std::vector<QPXDatasetExport::Column::StructEntry> out;
+      for (const auto& [names, is_fixed] : {std::make_pair(&fixed, true), std::make_pair(&variable, false)})
+      {
+        for (const std::string& name : *names)
+        {
+          const ResidueModification* mod = nullptr;
+          try { mod = ModificationsDB::getInstance()->getModification(name); }
+          catch (const Exception::BaseException&) { mod = nullptr; }
+          if (mod == nullptr)
+          {
+            out.push_back({name, name, is_fixed, Value(), Value()});
+            continue;
+          }
+          std::string accession = mod->getUniModAccession(); // "UniMod:4"
+          if (StringUtils::hasPrefix(accession, "UniMod:")) { accession = "UNIMOD:" + accession.substr(7); }
+          if (accession.empty()) { accession = mod->getFullId(); }
+          const auto position = positions.find(mod->getTermSpecificity());
+          const char origin = mod->getOrigin();
+          out.push_back({accession, mod->getId(), is_fixed,
+                         position != positions.end() ? Value(position->second) : Value(),
+                         std::isupper(static_cast<unsigned char>(origin)) && origin != 'X' ? Value(std::string(1, origin)) : Value()});
+        }
+      }
+      return out;
+    }
+
+    /// A column named @p name of type @p type
+    QPXDatasetExport::Column viewColumn(const std::string& name, QPXDatasetExport::Column::Type type, bool nullable = true)
+    {
+      QPXDatasetExport::Column c; c.name = name; c.type = type; c.nullable = nullable; return c;
     }
   }
 
@@ -346,5 +445,179 @@ namespace OpenMS
       else { result.has_spectrum[i] = result.table != nullptr; }
     }
     return result;
+  }
+
+  std::shared_ptr<arrow::Table> QPXDatasetExport::runView(const std::vector<Run>& runs)
+  {
+    Column accession = viewColumn("run_accession", Column::Type::UTF8, false);
+    Column run_file = viewColumn("run_file_name", Column::Type::UTF8, false);
+    Column file_name = viewColumn("file_name", Column::Type::UTF8);
+    Column samples = viewColumn("samples", Column::Type::STRUCT_LIST, false);
+    samples.struct_fields = {{"sample_accession", Column::Type::UTF8, false}, {"label", Column::Type::UTF8, false},
+                             {"biological_replicate", Column::Type::INT32, true}, {"technical_replicate", Column::Type::INT32, true}};
+    Column fraction = viewColumn("fraction", Column::Type::UTF8);
+    Column instrument = viewColumn("instrument", Column::Type::UTF8);
+    Column dissociation = viewColumn("dissociation_method", Column::Type::UTF8);
+    Column acquisition = viewColumn("acquisition_method", Column::Type::UTF8);
+    // (present, as QPX's validator requires it; every value null)
+    Column terms = viewColumn("additional_terms", Column::Type::STRUCT_LIST);
+    terms.struct_fields = {{"accession", Column::Type::UTF8, false}, {"name", Column::Type::UTF8},
+                           {"properties", Column::Type::STRUCT_LIST, true,
+                            {{"key", Column::Type::UTF8, false}, {"value", Column::Type::UTF8, false}}}};
+    Column enzymes = viewColumn("enzymes", Column::Type::UTF8_LIST);
+    Column mods = viewColumn("modification_parameters", Column::Type::STRUCT_LIST);
+    mods.struct_fields = modificationFields();
+    // (none or "": null, as file_name "")
+    auto optional_text = [](Column& c, const std::optional<std::string>& s)
+    {
+      c.utf8_values.push_back(s.value_or(std::string()));
+      c.null_rows.push_back(!s.has_value() || s->empty());
+    };
+    for (const Run& run : runs)
+    {
+      accession.utf8_values.push_back(run.accession);
+      run_file.utf8_values.push_back(run.run_file_name);
+      file_name.utf8_values.push_back(run.file_name);
+      file_name.null_rows.push_back(run.file_name.empty());
+      std::vector<Column::StructEntry> entries;
+      for (const RunSample& sample : run.samples)
+      {
+        entries.push_back({sample.accession, sample.label, Column::StructValue(sample.biological_replicate),
+                           Column::StructValue(sample.technical_replicate)});
+      }
+      samples.struct_lists.push_back(std::move(entries));
+      optional_text(fraction, run.fraction);
+      optional_text(instrument, run.instrument);
+      optional_text(dissociation, run.dissociation_method);
+      optional_text(acquisition, run.acquisition_method);
+      terms.struct_lists.emplace_back();
+      terms.null_rows.push_back(true);
+      enzymes.utf8_lists.push_back(run.enzymes);
+      enzymes.null_rows.push_back(run.enzymes.empty());
+      mods.struct_lists.push_back(modificationParameters(run.fixed_modifications, run.variable_modifications));
+    }
+    // (the spec's columns in its order)
+    return ArrowIOHelpers::tableOfColumns({accession, run_file, file_name, samples, fraction, instrument, enzymes, dissociation,
+                                           acquisition, terms, mods}, runs.size());
+  }
+
+  std::shared_ptr<arrow::Table> QPXDatasetExport::sampleView(const std::vector<Sample>& samples)
+  {
+    Column accession = viewColumn("sample_accession", Column::Type::UTF8, false);
+    Column organism = viewColumn("organism", Column::Type::UTF8, false);
+    Column organism_part = viewColumn("organism_part", Column::Type::UTF8, false);
+    for (const Sample& sample : samples)
+    {
+      accession.utf8_values.push_back(sample.accession);
+      organism.utf8_values.push_back(sample.organism);
+      organism_part.utf8_values.push_back(sample.organism_part);
+    }
+    return ArrowIOHelpers::tableOfColumns({accession, organism, organism_part}, samples.size());
+  }
+
+  std::shared_ptr<arrow::Table> QPXDatasetExport::provenanceView(const std::vector<ProvenanceStep>& steps)
+  {
+    Column order = viewColumn("step_order", Column::Type::INT32, false);
+    Column category = viewColumn("step_category", Column::Type::UTF8, false);
+    Column name = viewColumn("step_name", Column::Type::UTF8, false);
+    Column tool = viewColumn("tool_name", Column::Type::UTF8, false);
+    Column version = viewColumn("tool_version", Column::Type::UTF8);
+    Column uri = viewColumn("tool_uri", Column::Type::UTF8);
+    Column parameters = viewColumn("parameters", Column::Type::STRUCT_LIST);
+    parameters.struct_fields = {{"key", Column::Type::UTF8, false}, {"value", Column::Type::UTF8, false}};
+    Column config = viewColumn("config", Column::Type::UTF8);
+    Column views = viewColumn("output_views", Column::Type::UTF8_LIST);
+    for (Size k = 0; k < steps.size(); ++k)
+    {
+      const ProvenanceStep& s = steps[k];
+      order.int64_values.push_back(static_cast<Int64>(k + 1));
+      category.utf8_values.push_back(s.category);
+      name.utf8_values.push_back(s.name);
+      tool.utf8_values.push_back(s.tool);
+      version.utf8_values.push_back(VersionInfo::getVersion());
+      uri.utf8_values.push_back("");
+      uri.null_rows.push_back(true);
+      std::vector<Column::StructEntry> entries;
+      for (const auto& [key, value] : s.parameters) { entries.push_back({key, value}); }
+      parameters.struct_lists.push_back(std::move(entries));
+      config.utf8_values.push_back(s.config);
+      config.null_rows.push_back(s.config.empty());
+      views.utf8_lists.push_back(s.output_views);
+      views.null_rows.push_back(s.output_views.empty());
+    }
+    return ArrowIOHelpers::tableOfColumns({order, category, name, tool, version, uri, parameters, config, views}, steps.size());
+  }
+
+  std::string QPXDatasetExport::paramToJSON(const Param& param)
+  {
+    std::string out = "{";
+    bool first = true;
+    for (auto it = param.begin(); it != param.end(); ++it)
+    {
+      out += (first ? "" : ",") + jsonString(it.getName()) + ":" + jsonOfValue(it->value);
+      first = false;
+    }
+    return out + "}";
+  }
+
+  std::string QPXDatasetExport::formatNumber(double value, const std::string& non_finite)
+  {
+    if (!std::isfinite(value)) { return non_finite; }
+    std::string text;
+    for (int digits = 15; digits <= 17; ++digits)
+    {
+      std::ostringstream o;
+      o.imbue(std::locale::classic());
+      o << std::setprecision(digits) << value;
+      text = o.str();
+      std::istringstream in(text);
+      in.imbue(std::locale::classic());
+      double back = 0.0;
+      if ((in >> back) && back == value) { break; }
+    }
+    return text;
+  }
+
+  bool QPXDatasetExport::writeDataset(const std::string& directory, const std::string& prefix,
+                                      const std::map<std::string, View>& views)
+  {
+    if (!File::makeDir(directory))
+    {
+      OPENMS_LOG_ERROR << "Failed to create the folder of the QPX dataset: " << directory << std::endl;
+      return false;
+    }
+    // the views in the order psm, mz, pg, run, sample, provenance, then any other by name
+    static const std::vector<std::string> known = {"psm", "mz", "pg", "run", "sample", "provenance"};
+    std::vector<std::string> names;
+    for (const std::string& name : known) { if (views.count(name) > 0) { names.push_back(name); } }
+    for (const auto& entry : views)
+    {
+      if (std::find(known.begin(), known.end(), entry.first) == known.end()) { names.push_back(entry.first); }
+    }
+
+    bool ok = true;
+    bool psm_failed = false;
+    for (const std::string& name : names)
+    {
+      const View& view = views.at(name);
+      if (view.tables.empty()) { continue; } // (not written)
+      const std::string file = directory + "/" + prefix + "." + name + ".parquet";
+      if (name == "mz" && psm_failed)
+      {
+        // (its rows are keyed by the spectra of the PSMs)
+        OPENMS_LOG_ERROR << "Not writing the QPX mz view, as its psm view failed -> " << file << std::endl;
+        continue;
+      }
+      const bool tables = std::none_of(view.tables.begin(), view.tables.end(),
+                                       [](const std::shared_ptr<arrow::Table>& t) { return t == nullptr; });
+      const auto meta = tables ? ArrowIOHelpers::qpxFileMetadata(name + "_file", view.config, view.metadata) : nullptr;
+      if (!tables || !meta || !ArrowIOHelpers::concatenateAndWriteToParquet(view.tables, file, view.config, meta))
+      {
+        OPENMS_LOG_ERROR << "Failed to write the QPX " << name << " view -> " << file << std::endl;
+        ok = false;
+        if (name == "psm") { psm_failed = true; }
+      }
+    }
+    return ok;
   }
 } // namespace OpenMS

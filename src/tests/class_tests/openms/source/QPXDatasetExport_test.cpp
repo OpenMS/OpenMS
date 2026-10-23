@@ -16,17 +16,27 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <arrow/api.h>
+#include <arrow/io/api.h>
+#include <parquet/arrow/reader.h>
 
 #include <algorithm>
+#include <cmath>
+#include <map>
 #include <optional>
 #include <string>
 #include <variant>
@@ -171,6 +181,74 @@ namespace
   bool isNull(const Column::StructValue& v) { return holds_alternative<monostate>(v.value); }
   string text(const Column::StructValue& v) { return holds_alternative<string>(v.value) ? get<string>(v.value) : "(not a string)"; }
   Int32 integer(const Column::StructValue& v) { return holds_alternative<Int32>(v.value) ? get<Int32>(v.value) : -999; }
+
+  /// The names of the columns of @p table, in their order
+  vector<string> columnNames(const shared_ptr<arrow::Table>& table)
+  {
+    vector<string> names;
+    for (const auto& field : table->schema()->fields()) { names.push_back(field->name()); }
+    return names;
+  }
+
+  /// The structs of the list column @p name at @p row of @p table; null if the row is null
+  shared_ptr<arrow::StructArray> structsAt(const shared_ptr<arrow::Table>& table, const string& name, int64_t row)
+  {
+    const auto list = static_pointer_cast<arrow::ListArray>(ArrowIOHelpers::getColumn(table, name));
+    if (!list || list->IsNull(row)) { return nullptr; }
+    return static_pointer_cast<arrow::StructArray>(list->value_slice(row));
+  }
+
+  /// The strings of the list column @p name at @p row of @p table
+  vector<string> stringList(const shared_ptr<arrow::Table>& table, const string& name, int64_t row)
+  {
+    vector<string> out;
+    const auto list = static_pointer_cast<arrow::ListArray>(ArrowIOHelpers::getColumn(table, name));
+    if (!list) { return out; }
+    const auto values = static_pointer_cast<arrow::StringArray>(list->values());
+    for (int64_t i = list->value_offset(row); i < list->value_offset(row + 1); ++i) { out.push_back(values->GetString(i)); }
+    return out;
+  }
+
+  /// The footer (schema key-value metadata) of the Parquet file @p file; empty if it cannot be read
+  map<string, string> footerOf(const string& file)
+  {
+    map<string, string> out;
+    auto opened = arrow::io::ReadableFile::Open(file);
+    if (!opened.ok()) { return out; }
+    std::unique_ptr<parquet::arrow::FileReader> reader;
+    auto reader_result = parquet::arrow::OpenFile(opened.ValueOrDie(), arrow::default_memory_pool());
+    if (!reader_result.ok()) { return out; }
+    reader = std::move(reader_result).ValueOrDie();
+    shared_ptr<arrow::Schema> schema;
+    if (!reader->GetSchema(&schema).ok() || !schema->metadata()) { return out; }
+    for (int64_t i = 0; i < schema->metadata()->size(); ++i) { out[schema->metadata()->key(i)] = schema->metadata()->value(i); }
+    return out;
+  }
+
+  /// The run of the runView() and writeDataset() sections
+  QPXDatasetExport::Run runA()
+  {
+    QPXDatasetExport::Run run;
+    run.accession = "a";
+    run.run_file_name = "a";
+    run.file_name = "a.mzML";
+    QPXDatasetExport::RunSample sample;
+    sample.accession = "a";
+    run.samples = {sample};
+    run.enzymes = {"Trypsin"};
+    run.fixed_modifications = {"Carbamidomethyl (C)"};
+    run.variable_modifications = {"Oxidation (M)", "Foo (X)"};
+    return run;
+  }
+
+  /// The steps of the provenanceView() and writeDataset() sections
+  vector<QPXDatasetExport::ProvenanceStep> provenanceSteps()
+  {
+    QPXDatasetExport::ProvenanceStep search{"database_search", "peptide_search", "ProSE",
+                                            {{"precursor_mass_tolerance", "10"}, {"enzyme", "Trypsin"}}, "{\"a\":1}", {"psm"}};
+    QPXDatasetExport::ProvenanceStep fdr{"fdr_filtering", "psm_fdr", "ProSE", {}, "", {}};
+    return {search, fdr};
+  }
 }
 
 START_TEST(QPXDatasetExport, "$Id$")
@@ -484,6 +562,238 @@ START_SECTION(mzView sorts unsorted spectra)
   TEST_EQUAL(floatList(view.table, "intensity", 0) == (vector<float>{7.0f, 3.0f, 9.0f, 1.0f}), true)
   view = QPXDatasetExport::mzView(mzSpectra(true), mzIds(), "run1", top1);
   TEST_EQUAL(floatList(view.table, "mz", 0) == (vector<float>{200.0f, 350.0f}), true)
+}
+END_SECTION
+
+START_SECTION((static std::shared_ptr<arrow::Table> runView(const std::vector<Run>& runs)))
+{
+  QPXDatasetExport::Run b = runA();
+  b.accession = "b";
+  b.run_file_name = "b";
+  b.file_name = "b.mzML";
+  b.enzymes.clear();
+  b.fixed_modifications.clear();
+  b.variable_modifications.clear();
+  QPXDatasetExport::RunSample replicate;
+  replicate.accession = "b";
+  replicate.label = "TMT126";
+  replicate.biological_replicate = 2;
+  b.samples = {replicate};
+  b.fraction = "1";
+  b.instrument = ""; // "": null
+  const shared_ptr<arrow::Table> table = QPXDatasetExport::runView({runA(), b});
+  TEST_EQUAL(table != nullptr, true)
+  ABORT_IF(table == nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+  const vector<string> names = {"run_accession", "run_file_name", "file_name", "samples", "fraction", "instrument", "enzymes",
+                                "dissociation_method", "acquisition_method", "additional_terms", "modification_parameters"};
+  TEST_EQUAL(columnNames(table) == names, true)
+
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "run_accession"), 0), "a")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "run_file_name"), 0), "a")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "file_name"), 0), "a.mzML")
+  for (const char* unknown : {"fraction", "instrument", "dissociation_method", "acquisition_method", "additional_terms"})
+  {
+    TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, unknown), 0))
+  }
+  // additional_terms: always null
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, "additional_terms"), 1))
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "fraction"), 1), "1")
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, "instrument"), 1))
+  TEST_EQUAL(stringList(table, "enzymes", 0) == vector<string>{"Trypsin"}, true)
+  // no enzymes: null
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, "enzymes"), 1))
+
+  // samples: one of label LFQ, replicates null
+  auto samples = structsAt(table, "samples", 0);
+  ABORT_IF(samples == nullptr)
+  TEST_EQUAL(samples->length(), 1)
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(samples->GetFieldByName("sample_accession"), 0), "a")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(samples->GetFieldByName("label"), 0), "LFQ")
+  TEST_TRUE(ArrowIOHelpers::isNull(samples->GetFieldByName("biological_replicate"), 0))
+  TEST_TRUE(ArrowIOHelpers::isNull(samples->GetFieldByName("technical_replicate"), 0))
+  samples = structsAt(table, "samples", 1);
+  ABORT_IF(samples == nullptr)
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(samples->GetFieldByName("label"), 0), "TMT126")
+  TEST_EQUAL(ArrowIOHelpers::getInt32Value(samples->GetFieldByName("biological_replicate"), 0), 2)
+  TEST_TRUE(ArrowIOHelpers::isNull(samples->GetFieldByName("technical_replicate"), 0))
+
+  // modification_parameters: the fixed, then the variable ones; one unknown to ModificationsDB by its name
+  const auto mods = structsAt(table, "modification_parameters", 0);
+  ABORT_IF(mods == nullptr)
+  TEST_EQUAL(mods->length(), 3)
+  ABORT_IF(mods->length() != 3)
+  const auto accession = mods->GetFieldByName("accession");
+  const auto name = mods->GetFieldByName("name");
+  const auto fixed = mods->GetFieldByName("fixed");
+  const auto position = mods->GetFieldByName("position");
+  const auto target = mods->GetFieldByName("target_amino_acid");
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(accession, 0), "UNIMOD:4")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(name, 0), "Carbamidomethyl")
+  TEST_EQUAL(ArrowIOHelpers::getBoolValue(fixed, 0), true)
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(position, 0), "Anywhere")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(target, 0), "C")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(accession, 1), "UNIMOD:35")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(name, 1), "Oxidation")
+  TEST_EQUAL(ArrowIOHelpers::getBoolValue(fixed, 1), false)
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(position, 1), "Anywhere")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(target, 1), "M")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(accession, 2), "Foo (X)")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(name, 2), "Foo (X)")
+  TEST_EQUAL(ArrowIOHelpers::getBoolValue(fixed, 2), false)
+  TEST_TRUE(ArrowIOHelpers::isNull(position, 2))
+  TEST_TRUE(ArrowIOHelpers::isNull(target, 2))
+  // no modifications: an empty list
+  const auto none = structsAt(table, "modification_parameters", 1);
+  ABORT_IF(none == nullptr)
+  TEST_EQUAL(none->length(), 0)
+
+  // no runs: an empty view of the same columns
+  const shared_ptr<arrow::Table> empty = QPXDatasetExport::runView({});
+  ABORT_IF(empty == nullptr)
+  TEST_EQUAL(empty->num_rows(), 0)
+  TEST_EQUAL(columnNames(empty) == names, true)
+}
+END_SECTION
+
+START_SECTION((static std::shared_ptr<arrow::Table> sampleView(const std::vector<Sample>& samples)))
+{
+  QPXDatasetExport::Sample a;
+  a.accession = "a";
+  QPXDatasetExport::Sample b{"b", "Homo sapiens", "liver"};
+  const shared_ptr<arrow::Table> table = QPXDatasetExport::sampleView({a, b});
+  ABORT_IF(table == nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+  TEST_EQUAL(columnNames(table) == (vector<string>{"sample_accession", "organism", "organism_part"}), true)
+  for (int i = 0; i < table->num_columns(); ++i) { TEST_EQUAL(table->schema()->field(i)->nullable(), false) }
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "sample_accession"), 0), "a")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "organism"), 0), "not available")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "organism_part"), 0), "not available")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "sample_accession"), 1), "b")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "organism"), 1), "Homo sapiens")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "organism_part"), 1), "liver")
+}
+END_SECTION
+
+START_SECTION((static std::shared_ptr<arrow::Table> provenanceView(const std::vector<ProvenanceStep>& steps)))
+{
+  const shared_ptr<arrow::Table> table = QPXDatasetExport::provenanceView(provenanceSteps());
+  ABORT_IF(table == nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+  TEST_EQUAL(columnNames(table) == (vector<string>{"step_order", "step_category", "step_name", "tool_name", "tool_version",
+                                                   "tool_uri", "parameters", "config", "output_views"}), true)
+  const auto order = ArrowIOHelpers::getColumn(table, "step_order");
+  TEST_EQUAL(order->type_id() == arrow::Type::INT32, true)
+  TEST_EQUAL(ArrowIOHelpers::getInt32Value(order, 0), 1)
+  TEST_EQUAL(ArrowIOHelpers::getInt32Value(order, 1), 2)
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "step_category"), 0), "database_search")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "step_name"), 1), "psm_fdr")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "tool_name"), 0), "ProSE")
+  const auto version = ArrowIOHelpers::getColumn(table, "tool_version");
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(version, 0), VersionInfo::getVersion())
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(version, 1), VersionInfo::getVersion())
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, "tool_uri"), 0))
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, "tool_uri"), 1))
+  // the parameters in their order
+  const auto parameters = structsAt(table, "parameters", 0);
+  ABORT_IF(parameters == nullptr)
+  TEST_EQUAL(parameters->length(), 2)
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(parameters->GetFieldByName("key"), 0), "precursor_mass_tolerance")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(parameters->GetFieldByName("value"), 0), "10")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(parameters->GetFieldByName("key"), 1), "enzyme")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(parameters->GetFieldByName("value"), 1), "Trypsin")
+  const auto no_parameters = structsAt(table, "parameters", 1);
+  ABORT_IF(no_parameters == nullptr)
+  TEST_EQUAL(no_parameters->length(), 0)
+  // config "" and output_views {}: null
+  const auto config = ArrowIOHelpers::getColumn(table, "config");
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(config, 0), "{\"a\":1}")
+  TEST_TRUE(ArrowIOHelpers::isNull(config, 1))
+  TEST_EQUAL(stringList(table, "output_views", 0) == vector<string>{"psm"}, true)
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(table, "output_views"), 1))
+}
+END_SECTION
+
+START_SECTION((static std::string formatNumber(double value, const std::string& non_finite = "null")))
+{
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(0.1), "0.1")
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(1.0 / 3.0), "0.3333333333333333")
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(100.0), "100")
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(-2.5), "-2.5")
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(std::nan("")), "null")
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(std::nan(""), "0"), "0")
+  TEST_STRING_EQUAL(QPXDatasetExport::formatNumber(INFINITY, "0"), "0")
+}
+END_SECTION
+
+START_SECTION((static std::string paramToJSON(const Param& param)))
+{
+  Param param;
+  param.setValue("a:b", 3);
+  param.setValue("c", 0.1);
+  param.setValue("d", "x\"y\nz");
+  param.setValue("e", std::vector<std::string>{"u", "v"});
+  const std::string json = QPXDatasetExport::paramToJSON(param);
+  TEST_EQUAL(json.find("\"a:b\":3") != std::string::npos, true)
+  TEST_EQUAL(json.find("\"c\":0.1") != std::string::npos, true)
+  TEST_EQUAL(json.find("\"d\":\"x\\\"y\\nz\"") != std::string::npos, true)
+  TEST_EQUAL(json.find("\"e\":[\"u\",\"v\"]") != std::string::npos, true)
+  TEST_EQUAL(json.front(), '{')
+  TEST_EQUAL(json.back(), '}')
+  TEST_STRING_EQUAL(QPXDatasetExport::paramToJSON(Param()), "{}")
+}
+END_SECTION
+
+START_SECTION((static bool writeDataset(const std::string& directory, const std::string& prefix, const std::map<std::string, View>& views)))
+{
+  TempDir temp;
+  // the folder does not exist yet
+  const std::string dir = temp.getPath() + "/runs";
+  TEST_EQUAL(File::exists(dir), false)
+  std::map<std::string, QPXDatasetExport::View> views;
+  views["psm"].tables = {QPXFile::exportPSMsToQPXArrow(std::vector<ProteinIdentification>(), PeptideIdentificationList(), false)};
+  views["run"].tables = {QPXDatasetExport::runView({runA()})};
+  views["run"].metadata = {{"k", "v"}};
+  views["sample"].tables = {QPXDatasetExport::sampleView({QPXDatasetExport::Sample{"a"}})};
+  views["provenance"].tables = {QPXDatasetExport::provenanceView(provenanceSteps())};
+  views["mz"]; // no tables: not written
+  TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "x", views), true)
+  for (const char* view : {"psm", "run", "sample", "provenance"})
+  {
+    TEST_EQUAL(File::exists(dir + "/x." + view + ".parquet"), true)
+  }
+  TEST_EQUAL(File::exists(dir + "/x.mz.parquet"), false)
+  const map<string, string> footer = footerOf(dir + "/x.run.parquet");
+  TEST_EQUAL(footer.count("file_type"), 1)
+  TEST_STRING_EQUAL(footer.count("file_type") ? footer.at("file_type") : "", "run_file")
+  TEST_STRING_EQUAL(footer.count("k") ? footer.at("k") : "", "v")
+  TEST_EQUAL(footer.count("qpx_version"), 1)
+  // (the extra keys of a view are its own)
+  TEST_EQUAL(footerOf(dir + "/x.provenance.parquet").count("k"), 0)
+
+  // a psm view that cannot be written (no QPX psm table): false, and no mz view
+  const std::string failed_dir = temp.getPath() + "/failed";
+  Column x;
+  x.name = "x";
+  x.type = Column::Type::UTF8;
+  x.utf8_values = {"y"};
+  QPXDatasetExport::PeakFilter all;
+  all.top = 0;
+  std::map<std::string, QPXDatasetExport::View> broken;
+  broken["psm"].tables = {ArrowIOHelpers::tableOfColumns({x}, 1)};
+  broken["mz"].tables = {QPXDatasetExport::mzView(mzSpectra(false), mzIds(), "run1", all).table};
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken), false)
+  TEST_EQUAL(File::exists(failed_dir + "/x.psm.parquet"), false)
+  TEST_EQUAL(File::exists(failed_dir + "/x.mz.parquet"), false)
+  // the mz view alone is written
+  broken.erase("psm");
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken), true)
+  TEST_EQUAL(File::exists(failed_dir + "/x.mz.parquet"), true)
+  // a null table: false
+  std::map<std::string, QPXDatasetExport::View> null_table;
+  null_table["run"].tables = {nullptr};
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "y", null_table), false)
+  TEST_EQUAL(File::exists(failed_dir + "/y.run.parquet"), false)
 }
 END_SECTION
 
