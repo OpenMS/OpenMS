@@ -982,6 +982,8 @@ TOPP tools:
         protein FDR. It is the input of a later rescoring, so with Search:rescore (the default) it also
         holds the PSMs before the rescoring: ProSE's own scores, all reported hits and the decoys. The
         other outputs do not change.
+      - BREAKING (output layout): -out_qpx and -out_parquet write the per-input files into the subfolder runs/;
+        the files of the whole run stay on top. An input may now be named like them (quantms, openms).
     FileConverter:
       - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
         default, which cost a second read of the whole file (5-15% of the conversion time); the new
