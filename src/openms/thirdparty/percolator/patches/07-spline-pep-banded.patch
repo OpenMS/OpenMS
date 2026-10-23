@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
-index b13e27e50d..885f86fd02 100644
+index b13e27e50d..a4c782fd71 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.cpp
 +++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
 @@ -139,6 +139,13 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
@@ -16,7 +16,7 @@ index b13e27e50d..885f86fd02 100644
      PackedMatrix diag = PackedMatrix::packedDiagonalMatrix(PackedVector(static_cast<int>(n), 1) / w).packedMultiply(alpha);
      PackedMatrix aWiQ = (diag).packedMultiply(Q);
      PackedMatrix M = R.packedAdd(Qt.packedMultiply(aWiQ));
-@@ -258,6 +265,302 @@ void BaseSpline::initiateQR() {
+@@ -258,6 +265,307 @@ void BaseSpline::initiateQR() {
    R[n - 3].packedAddElement(n - 3, (dx[n - 3] + dx[n - 2]) / 3);
    Qt = PackedMatrix(n-2,n);
    Qt = Qt.packedTranspose(Q);
@@ -251,7 +251,12 @@ index b13e27e50d..885f86fd02 100644
 +          ++kR;
 +        }
 +      }
-+      bandRows[static_cast<size_t>(row)] = out;
++      BandRow& dst = bandRows[static_cast<size_t>(row)];  // the used elements only (the rest of out is not set)
++      dst.size = out.size;
++      for (int k = 0; k < out.size; ++k) {
++        dst.index[k] = out.index[k];
++        dst.value[k] = out.value[k];
++      }
 +      bandRes[static_cast<size_t>(row)] = bandRes[static_cast<size_t>(row)] - (val * bandRes[static_cast<size_t>(col)]);
 +      maxTouched = max(maxTouched, row);
 +    }

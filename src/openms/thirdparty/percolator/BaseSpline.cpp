@@ -496,7 +496,12 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
           ++kR;
         }
       }
-      bandRows[static_cast<size_t>(row)] = out;
+      BandRow& dst = bandRows[static_cast<size_t>(row)];  // the used elements only (the rest of out is not set)
+      dst.size = out.size;
+      for (int k = 0; k < out.size; ++k) {
+        dst.index[k] = out.index[k];
+        dst.value[k] = out.value[k];
+      }
       bandRes[static_cast<size_t>(row)] = bandRes[static_cast<size_t>(row)] - (val * bandRes[static_cast<size_t>(col)]);
       maxTouched = max(maxTouched, row);
     }
