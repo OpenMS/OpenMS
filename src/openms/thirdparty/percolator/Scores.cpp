@@ -497,7 +497,6 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
  * @return 0 on successfull execution
  */
 int Scores::calcScores(std::vector<double>& w) {
-  std::size_t ix;
   // OpenMS: inside an OpenMP parallel region (CrossValidation), the PSMs are scored by the tasks
   // of the region, in blocks; each score is computed as before, by calcScore.
   const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
@@ -516,6 +515,21 @@ int Scores::calcScores(std::vector<double>& w) {
       scoreIt->score = calcScore(scoreIt->pPSM->features, w);
     }
   }
+  return sortScores();
+}
+
+/**
+ * OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) for scores that calcScores(w) set
+ * already and that have not changed since (in any order): the PSMs are not scored again.
+ */
+int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
+  sortScores();
+  return calcQvals(fdr, skipDecoysPlusOne);
+}
+
+// the sort of calcScores
+int Scores::sortScores() {
+  std::size_t ix;
   sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
   if (VERB > 3) {
     if (scores_.size() >= 10) {

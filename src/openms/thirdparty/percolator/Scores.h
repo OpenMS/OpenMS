@@ -86,6 +86,8 @@ class Scores {
                          bool skipDecoysPlusOne = false);
   int calcScores(vector<double>& w);
   // OpenMS: see Scores.cpp
+  int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
+  // OpenMS: see Scores.cpp
   int countPositives(const std::vector<double>& w, double fdr,
                      bool skipDecoysPlusOne = false) const;
   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
@@ -176,6 +178,8 @@ class Scores {
   int calcQvals(double fdr, bool skipDecoysPlusOne,
                 std::vector<std::pair<double, bool> >& combined);
   void checkSeparationAndSetPi0();
+  // OpenMS: see Scores.cpp
+  int sortScores();
   bool is_output_rt_ = false;
 };
 

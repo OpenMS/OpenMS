@@ -137,6 +137,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
                                        const Normalizer* pNorm,
                                        FeatureMemoryPool& featurePool) {
   assert(nestedXvalBins_ >= 1u);
+  trainScoresOfWeights_ = false;
   // One input set per (nested) cross validation bin, to be reused multiple
   // times
   for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
@@ -351,15 +352,24 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   // for determining an appropriate positive training set, the decoys+1 in the
   // FDR estimates is too restrictive for small datasets
   bool skipDecoysPlusOne = true;
-  // OpenMS: the folds in parallel; each scores and sorts only its own training set
+  // OpenMS: the folds in parallel; each scores and sorts only its own training set. The scores
+  // of the training sets are those of their weights already if mergeCpCnPairs of the previous
+  // step set them (neither has changed since): then they are only sorted again (as calcScores
+  // would after scoring them again, to the same values) and get their q-values.
+  const bool scored = trainScoresOfWeights_;
+  trainScoresOfWeights_ = false;
   vector<std::exception_ptr> trainErrors(numFolds_);
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
-      trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
-                                           skipDecoysPlusOne);
+      if (scored) {
+        trainScores_[set].sortScoresAndCalcQvals(selectionFdr, skipDecoysPlusOne);
+      } else {
+        trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
+                                             skipDecoysPlusOne);
+      }
     } catch (...) {
       trainErrors[set] = std::current_exception();
     }
@@ -526,6 +536,7 @@ int CrossValidation::mergeCpCnPairs(
     const vector<int>& pairTruePoses,
     const vector<double>& cposCandidates,
     const vector<double>& cfracCandidates) {
+  trainScoresOfWeights_ = false;
   vector<int> bestTruePoses(numFolds_, 0);
   vector<double> bestCposes(numFolds_, 1);
   vector<double> bestCfracs(numFolds_, 1);
@@ -639,6 +650,7 @@ int CrossValidation::mergeCpCnPairs(
     }
   }
   rethrowFirstError(foldErrors);
+  trainScoresOfWeights_ = true;
   double bestTruePos = 0;
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     bestTruePos += truePoses[set];
@@ -648,6 +660,7 @@ int CrossValidation::mergeCpCnPairs(
 
 void CrossValidation::postIterationProcessing(Scores& fullset,
                                               SanityCheck* pCheck) {
+  trainScoresOfWeights_ = false;  // OpenMS: Scores::merge changes weights_
   if (decoyFractionTraining_ < 1.0) {
     // with RESET 1 decoy: decoysPerTarget = 1 and decoyFractionTraining = 0.5,
     // then factor = 1.5 and testNullTargetWinProb = 2/3 (and decoyFactor = 2)

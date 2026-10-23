@@ -123,6 +123,9 @@ class CrossValidation {
 
   unsigned int numFolds_;  // number of folds for cross validation
   std::vector<Scores> trainScores_, testScores_;
+  // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
+  // of mergeCpCnPairs) and have not changed since; see doStep
+  bool trainScoresOfWeights_ = false;
   std::vector<double> candidatesCpos_, candidatesCfrac_;
 
   void initializeGridSearch(double targetDecoySizeRatio);

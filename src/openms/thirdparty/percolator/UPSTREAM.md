@@ -155,6 +155,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   `Scores::calcScores` scores the PSMs (each by `calcScore`, as before) in blocks of 2048, as
   tasks of the enclosing OpenMP parallel region if there is one (the fold tasks of
   `CrossValidation`), instead of one after the other.
+  Each step of `CrossValidation::doStep` scores the training sets with the weights that the
+  previous step's `mergeCpCnPairs` scored them with at its end; neither the weights nor the
+  sets change in between, so the scores are the same: the step only sorts them again
+  (`Scores::sortScoresAndCalcQvals`; the order is the same as after scoring them again) and
+  sets the q-values. A flag of `CrossValidation` (`trainScoresOfWeights_`), set at the end of
+  `mergeCpCnPairs` and cleared at the start of `mergeCpCnPairs`, `doStep`,
+  `preIterationSetup` and `postIterationProcessing`, says when this holds.
 
 ### Regenerating the patch
 

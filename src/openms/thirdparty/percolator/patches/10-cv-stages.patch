@@ -1,5 +1,83 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 381333e1f5..8750914452 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -137,6 +137,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+                                        const Normalizer* pNorm,
+                                        FeatureMemoryPool& featurePool) {
+   assert(nestedXvalBins_ >= 1u);
++  trainScoresOfWeights_ = false;
+   // One input set per (nested) cross validation bin, to be reused multiple
+   // times
+   for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
+@@ -351,15 +352,24 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   // for determining an appropriate positive training set, the decoys+1 in the
+   // FDR estimates is too restrictive for small datasets
+   bool skipDecoysPlusOne = true;
+-  // OpenMS: the folds in parallel; each scores and sorts only its own training set
++  // OpenMS: the folds in parallel; each scores and sorts only its own training set. The scores
++  // of the training sets are those of their weights already if mergeCpCnPairs of the previous
++  // step set them (neither has changed since): then they are only sorted again (as calcScores
++  // would after scoring them again, to the same values) and get their q-values.
++  const bool scored = trainScoresOfWeights_;
++  trainScoresOfWeights_ = false;
+   vector<std::exception_ptr> trainErrors(numFolds_);
+ #pragma omp parallel num_threads(numTeamThreads(numThreads_))
+ #pragma omp single
+ #pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     try {
+-      trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
+-                                           skipDecoysPlusOne);
++      if (scored) {
++        trainScores_[set].sortScoresAndCalcQvals(selectionFdr, skipDecoysPlusOne);
++      } else {
++        trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
++                                             skipDecoysPlusOne);
++      }
+     } catch (...) {
+       trainErrors[set] = std::current_exception();
+     }
+@@ -526,6 +536,7 @@ int CrossValidation::mergeCpCnPairs(
+     const vector<int>& pairTruePoses,
+     const vector<double>& cposCandidates,
+     const vector<double>& cfracCandidates) {
++  trainScoresOfWeights_ = false;
+   vector<int> bestTruePoses(numFolds_, 0);
+   vector<double> bestCposes(numFolds_, 1);
+   vector<double> bestCfracs(numFolds_, 1);
+@@ -639,6 +650,7 @@ int CrossValidation::mergeCpCnPairs(
+     }
+   }
+   rethrowFirstError(foldErrors);
++  trainScoresOfWeights_ = true;
+   double bestTruePos = 0;
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     bestTruePos += truePoses[set];
+@@ -648,6 +660,7 @@ int CrossValidation::mergeCpCnPairs(
+ 
+ void CrossValidation::postIterationProcessing(Scores& fullset,
+                                               SanityCheck* pCheck) {
++  trainScoresOfWeights_ = false;  // OpenMS: Scores::merge changes weights_
+   if (decoyFractionTraining_ < 1.0) {
+     // with RESET 1 decoy: decoysPerTarget = 1 and decoyFractionTraining = 0.5,
+     // then factor = 1.5 and testNullTargetWinProb = 2/3 (and decoyFactor = 2)
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index 7c01f3cbc5..3fcefdd056 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -123,6 +123,9 @@ class CrossValidation {
+ 
+   unsigned int numFolds_;  // number of folds for cross validation
+   std::vector<Scores> trainScores_, testScores_;
++  // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
++  // of mergeCpCnPairs) and have not changed since; see doStep
++  bool trainScoresOfWeights_ = false;
+   std::vector<double> candidatesCpos_, candidatesCfrac_;
+ 
+   void initializeGridSearch(double targetDecoySizeRatio);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 0602df3d99..2311d2bba6 100644
+index 0602df3d99..d4da431606 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -46,6 +46,9 @@
@@ -12,10 +90,11 @@ index 0602df3d99..2311d2bba6 100644
  // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
  // strict weak ordering on [first, last): no score or mass is NaN.
  static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
-@@ -495,9 +498,23 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+@@ -494,11 +497,39 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+  * @return 0 on successfull execution
   */
  int Scores::calcScores(std::vector<double>& w) {
-   std::size_t ix;
+-  std::size_t ix;
 -  std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
 -  for (; scoreIt != scores_.end(); ++scoreIt) {
 -    scoreIt->score = calcScore(scoreIt->pPSM->features, w);
@@ -37,5 +116,43 @@ index 0602df3d99..2311d2bba6 100644
 +      scoreIt->score = calcScore(scoreIt->pPSM->features, w);
 +    }
    }
++  return sortScores();
++}
++
++/**
++ * OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) for scores that calcScores(w) set
++ * already and that have not changed since (in any order): the PSMs are not scored again.
++ */
++int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
++  sortScores();
++  return calcQvals(fdr, skipDecoysPlusOne);
++}
++
++// the sort of calcScores
++int Scores::sortScores() {
++  std::size_t ix;
    sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
    if (VERB > 3) {
+     if (scores_.size() >= 10) {
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 8990c95952..7958fcb98b 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -86,6 +86,8 @@ class Scores {
+                          bool skipDecoysPlusOne = false);
+   int calcScores(vector<double>& w);
+   // OpenMS: see Scores.cpp
++  int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
++  // OpenMS: see Scores.cpp
+   int countPositives(const std::vector<double>& w, double fdr,
+                      bool skipDecoysPlusOne = false) const;
+   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
+@@ -176,6 +178,8 @@ class Scores {
+   int calcQvals(double fdr, bool skipDecoysPlusOne,
+                 std::vector<std::pair<double, bool> >& combined);
+   void checkSeparationAndSetPi0();
++  // OpenMS: see Scores.cpp
++  int sortScores();
+   bool is_output_rt_ = false;
+ };
+ 
