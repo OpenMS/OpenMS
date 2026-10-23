@@ -387,10 +387,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
   vector<std::exception_ptr> setupErrors(numFolds_);
-#pragma omp parallel num_threads(numTeamThreads(numThreads_)) if(nestedXvalBins_ <= 1)
-#pragma omp single
-#pragma omp taskloop grainsize(1) if(nestedXvalBins_ <= 1)
-  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+  const auto setupFold = [&](int set) {
     try {
       std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
           nestedTestScores(nestedXvalBins_, usePi0_);
@@ -426,6 +423,15 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
     } catch (...) {
       setupErrors[set] = std::current_exception();
     }
+  };
+  if (nestedXvalBins_ > 1) {
+    // nested cross-validation draws the nested sets at random: the folds in their order
+    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
+  } else {
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+#pragma omp taskloop grainsize(1)
+    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
   }
   rethrowFirstError(setupErrors);
 
@@ -529,81 +535,93 @@ int CrossValidation::mergeCpCnPairs(
   // the pairs are merged here in their order, as before.
   unsigned int numCpCnPairsPerSet =
       static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
+  vector<std::exception_ptr> mergeErrors(numFolds_);
+#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(std::min(numThreads_, kMaxTeamThreads), numFolds_))
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    unsigned int a = set * numCpCnPairsPerSet;
-    unsigned int b = (set + 1) * numCpCnPairsPerSet;
-    int tp = 0;
-    std::vector<CandidateCposCfrac>::iterator itCpCnPair;
-    std::map<std::pair<double, double>, int> intermediateResults;
-    for (itCpCnPair = classWeightsPerFold_.begin() + a;
-         itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
-      tp = pairTruePoses[static_cast<std::size_t>(itCpCnPair - classWeightsPerFold_.begin())];
-      intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
-                                                   itCpCnPair->cfrac}] += tp;
-      itCpCnPair->tp = tp;
-      if (nestedXvalBins_ <= 1) {
-        if (tp >= bestTruePoses[set]) {
-          bestTruePoses[set] = tp;
-          weights_[set] = itCpCnPair->ww;
-          bestCposes[set] = itCpCnPair->cpos;
-          bestCfracs[set] = itCpCnPair->cfrac;
-        }
-      }
-    }
-    if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
-                                // (accumulate) tp estimated for each CV bin
-      // Now check which achieved best performance among cpos, cneg pairs
-      std::vector<double>::const_iterator itCpos = cposCandidates.begin();
-      for (; itCpos != cposCandidates.end(); ++itCpos) {
-        double cpos = *itCpos;
-        std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
-        for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
-          double cfrac = *itCfrac;
-          tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
+    try {
+      unsigned int a = set * numCpCnPairsPerSet;
+      unsigned int b = (set + 1) * numCpCnPairsPerSet;
+      int tp = 0;
+      std::vector<CandidateCposCfrac>::iterator itCpCnPair;
+      std::map<std::pair<double, double>, int> intermediateResults;
+      for (itCpCnPair = classWeightsPerFold_.begin() + a;
+           itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
+        tp = pairTruePoses[static_cast<std::size_t>(itCpCnPair - classWeightsPerFold_.begin())];
+        intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
+                                                     itCpCnPair->cfrac}] += tp;
+        itCpCnPair->tp = tp;
+        if (nestedXvalBins_ <= 1) {
           if (tp >= bestTruePoses[set]) {
             bestTruePoses[set] = tp;
-            bestCposes[set] = cpos;
-            bestCfracs[set] = cfrac;
+            weights_[set] = itCpCnPair->ww;
+            bestCposes[set] = itCpCnPair->cpos;
+            bestCfracs[set] = itCpCnPair->cfrac;
           }
         }
       }
+      if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
+                                  // (accumulate) tp estimated for each CV bin
+        // Now check which achieved best performance among cpos, cneg pairs
+        std::vector<double>::const_iterator itCpos = cposCandidates.begin();
+        for (; itCpos != cposCandidates.end(); ++itCpos) {
+          double cpos = *itCpos;
+          std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
+          for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
+            double cfrac = *itCfrac;
+            tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
+            if (tp >= bestTruePoses[set]) {
+              bestTruePoses[set] = tp;
+              bestCposes[set] = cpos;
+              bestCfracs[set] = cfrac;
+            }
+          }
+        }
+      }
+    } catch (...) {
+      mergeErrors[set] = std::current_exception();
     }
   }
+  rethrowFirstError(mergeErrors);
 
   if (nestedXvalBins_ > 1) {
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
+    vector<std::exception_ptr> refitErrors(numFolds_);
+#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(std::min(numThreads_, kMaxTeamThreads), numFolds_))
     for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-      vector_double pWeights;
-      pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
-      pWeights.vec = new double[pWeights.d];
+      try {
+        vector_double pWeights;
+        pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
+        pWeights.vec = new double[pWeights.d];
 
-      AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
-      trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
-      trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
-                                                    1.0, trainBestPositive_);
+        AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
+        trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
+        trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
+                                                      1.0, trainBestPositive_);
 
-      // Create storage vector for SVM algorithm
-      vector_double Outputs;
-      size_t numInputs =
-          static_cast<std::size_t>(svmInput->positives + svmInput->negatives);
-      Outputs.vec = new double[numInputs];
-      Outputs.d = static_cast<int>(numInputs);
+        // Create storage vector for SVM algorithm
+        vector_double Outputs;
+        size_t numInputs =
+            static_cast<std::size_t>(svmInput->positives + svmInput->negatives);
+        Outputs.vec = new double[numInputs];
+        Outputs.d = static_cast<int>(numInputs);
 
-      for (int ix = 0; ix < pWeights.d; ix++) {
-        pWeights.vec[ix] = 0;
-      }
-      for (int ix = 0; ix < Outputs.d; ix++) {
-        Outputs.vec[ix] = 0;
-      }
-      // Call SVM algorithm (see ssl.cpp)
-      L2_SVM_MFN(*svmInput, pOptions, pWeights, Outputs, bestCposes[set],
-                 bestCposes[set] * bestCfracs[set]);
+        for (int ix = 0; ix < pWeights.d; ix++) {
+          pWeights.vec[ix] = 0;
+        }
+        for (int ix = 0; ix < Outputs.d; ix++) {
+          Outputs.vec[ix] = 0;
+        }
+        // Call SVM algorithm (see ssl.cpp)
+        L2_SVM_MFN(*svmInput, pOptions, pWeights, Outputs, bestCposes[set],
+                   bestCposes[set] * bestCfracs[set]);
 
-      for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
-        weights_[set][i] = pWeights.vec[i];
+        for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
+          weights_[set][i] = pWeights.vec[i];
+        }
+      } catch (...) {
+        refitErrors[set] = std::current_exception();
       }
     }
+    rethrowFirstError(refitErrors);
   }
 
   // OpenMS: the folds in parallel; the counts are added up in fold order

@@ -46,17 +46,23 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+// OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
+// strict weak ordering on [first, last): no score or mass is NaN.
+static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+                             std::vector<ScoreHolder>::const_iterator last) {
+  return std::none_of(first, last, [](const ScoreHolder& sh) {
+    return std::isnan(sh.score) || std::isnan(sh.pPSM->expMass);
+  });
+}
+
 // OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
-// region (see SortLikeStd.h). A NaN score makes the comparison no strict weak ordering, so
-// such scores get std::sort itself.
+// region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
 template <typename Less>
 static void sortScoresLikeStdSort(std::vector<ScoreHolder>& scores, Less less) {
-  const bool anyNaN = std::any_of(scores.begin(), scores.end(),
-                                  [](const ScoreHolder& sh) { return std::isnan(sh.score); });
-  if (anyNaN) {
-    std::sort(scores.begin(), scores.end(), less);
-  } else {
+  if (comparableScores(scores.begin(), scores.end())) {
     sortLikeStdSort(scores, less);
+  } else {
+    std::sort(scores.begin(), scores.end(), less);
   }
 }
 
@@ -577,12 +583,12 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
 
   std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
   if (trainBestPositive) {
-    // OpenMS: sorted like std::sort (see SortLikeStd.h); scan numbers and labels are no NaN
+    // OpenMS: sorted like std::sort (see SortLikeStd.h); file and scan numbers and labels are
+    // no NaN
     sortLikeStdSort(scores_, OrderScanLabel());
     lastUniqueIt =
         std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
-    if (std::any_of(scores_.begin(), lastUniqueIt,
-                    [](const ScoreHolder& sh) { return std::isnan(sh.score); })) {
+    if (!comparableScores(scores_.begin(), lastUniqueIt)) {
       std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
     } else if (lastUniqueIt != scores_.begin()) {
       sortLikeStdSort(&*scores_.begin(), &*scores_.begin() + (lastUniqueIt - scores_.begin()),
@@ -737,11 +743,13 @@ int Scores::getInitDirection(const double initialSelectionFdr,
   // starts from the order the previous feature left, which decides the order of PSMs that
   // compare equal, and the order after the last feature is where the training starts from),
   // with the tasks of the region (see SortLikeStd.h). The q-values are set for the last
-  // feature, as by the loop below. Features with a NaN value use the loop below.
+  // feature, as by the loop below. A NaN feature value or mass (no strict weak ordering) uses
+  // the loop below.
   bool counted = false;
 #ifdef _OPENMP
   const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
-    return std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
+    return std::isnan(sh.pPSM->expMass) ||
+           std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
                        [](double x) { return std::isnan(x); });
   });
   if (numFeatures > 0 && !anyNaN && omp_in_parallel()) {

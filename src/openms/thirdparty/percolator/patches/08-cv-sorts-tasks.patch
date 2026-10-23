@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 3bda99370b..2aa748cf44 100644
+index 3bda99370b..381333e1f5 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -33,16 +33,33 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
@@ -89,18 +89,29 @@ index 3bda99370b..2aa748cf44 100644
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
      try {
        trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
-@@ -357,7 +387,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+@@ -357,8 +387,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
    std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
    std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
    vector<std::exception_ptr> setupErrors(numFolds_);
 -#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_)) if(nestedXvalBins_ <= 1)
-+#pragma omp parallel num_threads(numTeamThreads(numThreads_)) if(nestedXvalBins_ <= 1)
-+#pragma omp single
-+#pragma omp taskloop grainsize(1) if(nestedXvalBins_ <= 1)
-   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+-  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++  const auto setupFold = [&](int set) {
      try {
        std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
-@@ -397,16 +429,38 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+           nestedTestScores(nestedXvalBins_, usePi0_);
+@@ -394,19 +423,50 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+     } catch (...) {
+       setupErrors[set] = std::current_exception();
+     }
++  };
++  if (nestedXvalBins_ > 1) {
++    // nested cross-validation draws the nested sets at random: the folds in their order
++    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
++  } else {
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++#pragma omp taskloop grainsize(1)
++    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
    }
    rethrowFirstError(setupErrors);
  
@@ -147,7 +158,7 @@ index 3bda99370b..2aa748cf44 100644
                                candidatesCpos_, candidatesCfrac_);
    return estTruePos;
  }
-@@ -457,49 +511,25 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+@@ -457,129 +517,119 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
   * CV fold
   * @param pWeights results vector from the SVM algorithm
   * @param pOptions options for the SVM algorithm
@@ -199,20 +210,155 @@ index 3bda99370b..2aa748cf44 100644
 -  }
 -  rethrowFirstError(pairErrors);
 -#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
-+#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
++  vector<std::exception_ptr> mergeErrors(numFolds_);
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(std::min(numThreads_, kMaxTeamThreads), numFolds_))
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-     unsigned int a = set * numCpCnPairsPerSet;
-     unsigned int b = (set + 1) * numCpCnPairsPerSet;
-@@ -542,7 +572,7 @@ int CrossValidation::mergeCpCnPairs(
+-    unsigned int a = set * numCpCnPairsPerSet;
+-    unsigned int b = (set + 1) * numCpCnPairsPerSet;
+-    int tp = 0;
+-    std::vector<CandidateCposCfrac>::iterator itCpCnPair;
+-    std::map<std::pair<double, double>, int> intermediateResults;
+-    for (itCpCnPair = classWeightsPerFold_.begin() + a;
+-         itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
+-      tp = pairTruePoses[static_cast<std::size_t>(itCpCnPair - classWeightsPerFold_.begin())];
+-      intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
+-                                                   itCpCnPair->cfrac}] += tp;
+-      itCpCnPair->tp = tp;
+-      if (nestedXvalBins_ <= 1) {
+-        if (tp >= bestTruePoses[set]) {
+-          bestTruePoses[set] = tp;
+-          weights_[set] = itCpCnPair->ww;
+-          bestCposes[set] = itCpCnPair->cpos;
+-          bestCfracs[set] = itCpCnPair->cfrac;
+-        }
+-      }
+-    }
+-    if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
+-                                // (accumulate) tp estimated for each CV bin
+-      // Now check which achieved best performance among cpos, cneg pairs
+-      std::vector<double>::const_iterator itCpos = cposCandidates.begin();
+-      for (; itCpos != cposCandidates.end(); ++itCpos) {
+-        double cpos = *itCpos;
+-        std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
+-        for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
+-          double cfrac = *itCfrac;
+-          tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
++    try {
++      unsigned int a = set * numCpCnPairsPerSet;
++      unsigned int b = (set + 1) * numCpCnPairsPerSet;
++      int tp = 0;
++      std::vector<CandidateCposCfrac>::iterator itCpCnPair;
++      std::map<std::pair<double, double>, int> intermediateResults;
++      for (itCpCnPair = classWeightsPerFold_.begin() + a;
++           itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
++        tp = pairTruePoses[static_cast<std::size_t>(itCpCnPair - classWeightsPerFold_.begin())];
++        intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
++                                                     itCpCnPair->cfrac}] += tp;
++        itCpCnPair->tp = tp;
++        if (nestedXvalBins_ <= 1) {
+           if (tp >= bestTruePoses[set]) {
+             bestTruePoses[set] = tp;
+-            bestCposes[set] = cpos;
+-            bestCfracs[set] = cfrac;
++            weights_[set] = itCpCnPair->ww;
++            bestCposes[set] = itCpCnPair->cpos;
++            bestCfracs[set] = itCpCnPair->cfrac;
++          }
++        }
++      }
++      if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
++                                  // (accumulate) tp estimated for each CV bin
++        // Now check which achieved best performance among cpos, cneg pairs
++        std::vector<double>::const_iterator itCpos = cposCandidates.begin();
++        for (; itCpos != cposCandidates.end(); ++itCpos) {
++          double cpos = *itCpos;
++          std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
++          for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
++            double cfrac = *itCfrac;
++            tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
++            if (tp >= bestTruePoses[set]) {
++              bestTruePoses[set] = tp;
++              bestCposes[set] = cpos;
++              bestCfracs[set] = cfrac;
++            }
+           }
+         }
+       }
++    } catch (...) {
++      mergeErrors[set] = std::current_exception();
+     }
    }
++  rethrowFirstError(mergeErrors);
  
    if (nestedXvalBins_ > 1) {
 -#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
-+#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
++    vector<std::exception_ptr> refitErrors(numFolds_);
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(std::min(numThreads_, kMaxTeamThreads), numFolds_))
      for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-       vector_double pWeights;
-       pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
-@@ -579,7 +609,9 @@ int CrossValidation::mergeCpCnPairs(
+-      vector_double pWeights;
+-      pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
+-      pWeights.vec = new double[pWeights.d];
+-
+-      AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
+-      trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
+-      trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
+-                                                    1.0, trainBestPositive_);
+-
+-      // Create storage vector for SVM algorithm
+-      vector_double Outputs;
+-      size_t numInputs =
+-          static_cast<std::size_t>(svmInput->positives + svmInput->negatives);
+-      Outputs.vec = new double[numInputs];
+-      Outputs.d = static_cast<int>(numInputs);
+-
+-      for (int ix = 0; ix < pWeights.d; ix++) {
+-        pWeights.vec[ix] = 0;
+-      }
+-      for (int ix = 0; ix < Outputs.d; ix++) {
+-        Outputs.vec[ix] = 0;
+-      }
+-      // Call SVM algorithm (see ssl.cpp)
+-      L2_SVM_MFN(*svmInput, pOptions, pWeights, Outputs, bestCposes[set],
+-                 bestCposes[set] * bestCfracs[set]);
++      try {
++        vector_double pWeights;
++        pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
++        pWeights.vec = new double[pWeights.d];
++
++        AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
++        trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
++        trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
++                                                      1.0, trainBestPositive_);
++
++        // Create storage vector for SVM algorithm
++        vector_double Outputs;
++        size_t numInputs =
++            static_cast<std::size_t>(svmInput->positives + svmInput->negatives);
++        Outputs.vec = new double[numInputs];
++        Outputs.d = static_cast<int>(numInputs);
++
++        for (int ix = 0; ix < pWeights.d; ix++) {
++          pWeights.vec[ix] = 0;
++        }
++        for (int ix = 0; ix < Outputs.d; ix++) {
++          Outputs.vec[ix] = 0;
++        }
++        // Call SVM algorithm (see ssl.cpp)
++        L2_SVM_MFN(*svmInput, pOptions, pWeights, Outputs, bestCposes[set],
++                   bestCposes[set] * bestCfracs[set]);
+ 
+-      for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
+-        weights_[set][i] = pWeights.vec[i];
++        for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
++          weights_[set][i] = pWeights.vec[i];
++        }
++      } catch (...) {
++        refitErrors[set] = std::current_exception();
+       }
+     }
++    rethrowFirstError(refitErrors);
+   }
+ 
    // OpenMS: the folds in parallel; the counts are added up in fold order
    vector<int> truePoses(numFolds_);
    vector<std::exception_ptr> foldErrors(numFolds_);
@@ -223,7 +369,7 @@ index 3bda99370b..2aa748cf44 100644
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
      try {
        truePoses[set] =
-@@ -633,7 +665,16 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
+@@ -633,7 +683,16 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
        testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
      }
    }
@@ -297,7 +443,7 @@ index 11e4c139ef..e7dbb5e9ab 100644
      try {
        positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index cc9698aa39..83980a46b0 100644
+index cc9698aa39..0602df3d99 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -17,6 +17,7 @@
@@ -308,7 +454,7 @@ index cc9698aa39..83980a46b0 100644
  #include <cmath>
  #include <fstream>
  #include <iostream>
-@@ -37,9 +38,28 @@
+@@ -37,9 +38,34 @@
  #include "SetHandler.h"
  #include "ssl.h"
  #include "IsotonicPEP.h"
@@ -320,24 +466,30 @@ index cc9698aa39..83980a46b0 100644
  
  namespace OpenMS { namespace Internal { namespace Percolator {
  
++// OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
++// strict weak ordering on [first, last): no score or mass is NaN.
++static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
++                             std::vector<ScoreHolder>::const_iterator last) {
++  return std::none_of(first, last, [](const ScoreHolder& sh) {
++    return std::isnan(sh.score) || std::isnan(sh.pPSM->expMass);
++  });
++}
++
 +// OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
-+// region (see SortLikeStd.h). A NaN score makes the comparison no strict weak ordering, so
-+// such scores get std::sort itself.
++// region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
 +template <typename Less>
 +static void sortScoresLikeStdSort(std::vector<ScoreHolder>& scores, Less less) {
-+  const bool anyNaN = std::any_of(scores.begin(), scores.end(),
-+                                  [](const ScoreHolder& sh) { return std::isnan(sh.score); });
-+  if (anyNaN) {
-+    std::sort(scores.begin(), scores.end(), less);
-+  } else {
++  if (comparableScores(scores.begin(), scores.end())) {
 +    sortLikeStdSort(scores, less);
++  } else {
++    std::sort(scores.begin(), scores.end(), less);
 +  }
 +}
 +
  void Scores::merge(std::vector<Scores>& sv,
                     double fdr,
                     bool skipNormalizeScores,
-@@ -48,7 +68,7 @@ void Scores::merge(std::vector<Scores>& sv,
+@@ -48,7 +74,7 @@ void Scores::merge(std::vector<Scores>& sv,
    std::vector<Scores>::iterator cvBinScores = sv.begin();
    std::vector<std::vector<double> >::iterator weights = all_w.begin();
    for (; cvBinScores != sv.end(); cvBinScores++, weights++) {
@@ -346,7 +498,7 @@ index cc9698aa39..83980a46b0 100644
      cvBinScores->checkSeparationAndSetPi0();
      cvBinScores->calcQvals(fdr);
      if (!skipNormalizeScores) {
-@@ -60,7 +80,7 @@ void Scores::merge(std::vector<Scores>& sv,
+@@ -60,7 +86,7 @@ void Scores::merge(std::vector<Scores>& sv,
  }
  
  void Scores::postMergeStep() {
@@ -355,7 +507,7 @@ index cc9698aa39..83980a46b0 100644
    totalNumberOfDecoys_ = static_cast<unsigned int>(
        count_if(scores_.begin(), scores_.end(), mem_fn(&ScoreHolder::isDecoy)));
    totalNumberOfTargets_ = static_cast<unsigned int>(
-@@ -228,7 +248,7 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -228,7 +254,7 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
      ix -= remain[static_cast<std::size_t>(fold)];
    }
  
@@ -364,7 +516,7 @@ index cc9698aa39..83980a46b0 100644
  
    if (scores_.size() == 0) {
      ostringstream oss;
-@@ -433,6 +453,34 @@ int Scores::calcScoresAndQvals(std::vector<double>& w,
+@@ -433,6 +459,34 @@ int Scores::calcScoresAndQvals(std::vector<double>& w,
    return calcQvals(fdr, skipDecoysPlusOne);
  }
  
@@ -399,7 +551,7 @@ index cc9698aa39..83980a46b0 100644
  /**
   * Calculates the SVM cost/score of each PSM and sorts them
   * @param w normal vector used for SVM cost
-@@ -445,7 +493,7 @@ int Scores::calcScores(std::vector<double>& w) {
+@@ -445,7 +499,7 @@ int Scores::calcScores(std::vector<double>& w) {
    for (; scoreIt != scores_.end(); ++scoreIt) {
      scoreIt->score = calcScore(scoreIt->pPSM->features, w);
    }
@@ -408,18 +560,18 @@ index cc9698aa39..83980a46b0 100644
    if (VERB > 3) {
      if (scores_.size() >= 10) {
        cerr << "10 best scores and labels" << endl;
-@@ -529,10 +577,17 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+@@ -529,10 +583,17 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
  
    std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
    if (trainBestPositive) {
 -    std::sort(scores_.begin(), scores_.end(), OrderScanLabel());
-+    // OpenMS: sorted like std::sort (see SortLikeStd.h); scan numbers and labels are no NaN
++    // OpenMS: sorted like std::sort (see SortLikeStd.h); file and scan numbers and labels are
++    // no NaN
 +    sortLikeStdSort(scores_, OrderScanLabel());
      lastUniqueIt =
          std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
 -    std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
-+    if (std::any_of(scores_.begin(), lastUniqueIt,
-+                    [](const ScoreHolder& sh) { return std::isnan(sh.score); })) {
++    if (!comparableScores(scores_.begin(), lastUniqueIt)) {
 +      std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
 +    } else if (lastUniqueIt != scores_.begin()) {
 +      sortLikeStdSort(&*scores_.begin(), &*scores_.begin() + (lastUniqueIt - scores_.begin()),
@@ -428,7 +580,7 @@ index cc9698aa39..83980a46b0 100644
    }
  
    std::vector<ScoreHolder>::const_iterator scoreIt = scores_.begin();
-@@ -643,6 +698,21 @@ void Scores::weedOutRedundantMixMax() {
+@@ -643,6 +704,21 @@ void Scores::weedOutRedundantMixMax() {
    postMergeStep();
  }
  
@@ -450,7 +602,7 @@ index cc9698aa39..83980a46b0 100644
  int Scores::getInitDirection(const double initialSelectionFdr,
                               std::vector<double>& direction,
                               std::ostream& report) {
-@@ -654,26 +724,95 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -654,26 +730,97 @@ int Scores::getInitDirection(const double initialSelectionFdr,
    // is too restrictive for small datasets
    bool skipDecoysPlusOne = true;
  
@@ -476,11 +628,13 @@ index cc9698aa39..83980a46b0 100644
 +  // starts from the order the previous feature left, which decides the order of PSMs that
 +  // compare equal, and the order after the last feature is where the training starts from),
 +  // with the tasks of the region (see SortLikeStd.h). The q-values are set for the last
-+  // feature, as by the loop below. Features with a NaN value use the loop below.
++  // feature, as by the loop below. A NaN feature value or mass (no strict weak ordering) uses
++  // the loop below.
 +  bool counted = false;
 +#ifdef _OPENMP
 +  const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
-+    return std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
++    return std::isnan(sh.pPSM->expMass) ||
++           std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
 +                       [](double x) { return std::isnan(x); });
 +  });
 +  if (numFeatures > 0 && !anyNaN && omp_in_parallel()) {

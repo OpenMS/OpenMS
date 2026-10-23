@@ -122,7 +122,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   inside an OpenMP parallel region it makes the comparisons and swaps of libstdc++'s
   `std::sort`, so it leaves the same permutation (also of PSMs that compare equal), but
   hands the right parts of the partitions to tasks (the algorithm of OpenMS'
-  `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score, it is `std::sort`.
+  `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score or mass (no strict weak
+  ordering), it is `std::sort`.
   The loops over the folds (`CrossValidation`, `SanityCheck`) run their folds as tasks of a
   parallel region on up to 12 threads (`numTeamThreads`), whose other threads run the tasks
   of the sorts; `createXvalSetsBySpectrum` and `merge` are called in such a region as well.
@@ -133,8 +134,10 @@ hand-editing sources and committing them, to keep sync self-healing.
   training starts from. The (Cpos, Cneg) pairs are trained as tasks, and each task then
   counts the positives of its pair on the pair's test set without sorting the set
   (`Scores::countPositives`, the count of `calcScoresAndQvals`, by the same argument), so
-  the test sets are no longer copied. Every loop catches the exceptions of its iterations
-  and rethrows the first one, in iteration order.
+  the test sets are no longer copied. Nested cross-validation (which draws its nested sets at
+  random) keeps its serial loop over the folds. Every loop, including those of
+  `mergeCpCnPairs`, catches the exceptions of its iterations and rethrows the first one, in
+  iteration order.
 
 ### Regenerating the patch
 
