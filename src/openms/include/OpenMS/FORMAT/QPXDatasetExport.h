@@ -70,7 +70,8 @@ public:
       - @c spectrum_reference (UTF8): the native ID; null if the element has no spectrum (@p has_spectrum) or no
         native ID;
       - @c isotope_error (INT16): the meta value @c isotope_error (or @c IsotopeError) as observed minus theoretical
-        (also so in @c additional_scores); null without one;
+        (also so in @c additional_scores); null without one, and if it is neither an integer nor a double of an
+        integral value (as read back from a pin file) in the INT16 range;
       - @c protein_mappings (STRUCT_LIST of @c accession, @c start, @c end, @c aa_before, @c aa_after): one entry per
         peptide evidence, 1-based positions (null if unknown), "-" for a protein terminus, null for an unknown residue.
 

@@ -17,6 +17,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/QPXFile.h>
@@ -386,6 +387,28 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   ABORT_IF(reference_empty.null_rows.size() != 2)
   TEST_EQUAL(bool(reference_empty.null_rows[0]), true)
   TEST_EQUAL(bool(reference_empty.null_rows[1]), false)
+
+  // an isotope error that is no int (e.g. read back from a pin file as a double): an integral double as its integer
+  // (with the sign flip), anything else null, without a conversion error
+  PeptideIdentificationList typed;
+  for (const DataValue& error : {DataValue(2.0), DataValue(0.5), DataValue("1"), DataValue(1.0e6)})
+  {
+    PeptideIdentification id = ids[0];
+    vector<PeptideHit> hits = id.getHits();
+    hits[0].setMetaValue("isotope_error", error);
+    id.setHits(hits);
+    typed.push_back(id);
+  }
+  c = QPXDatasetExport::psmColumns(typed, {}, false);
+  const Column isotope_typed = columnOf(c, "isotope_error");
+  TEST_EQUAL(isotope_typed.int64_values.size(), 4)
+  TEST_EQUAL(isotope_typed.null_rows.size(), 4)
+  ABORT_IF(isotope_typed.int64_values.size() != 4 || isotope_typed.null_rows.size() != 4)
+  TEST_EQUAL(isotope_typed.int64_values[0], -2)
+  TEST_EQUAL(bool(isotope_typed.null_rows[0]), false)
+  TEST_EQUAL(bool(isotope_typed.null_rows[1]), true) // 0.5
+  TEST_EQUAL(bool(isotope_typed.null_rows[2]), true) // a string
+  TEST_EQUAL(bool(isotope_typed.null_rows[3]), true) // out of the INT16 range
 
   // no elements: the four columns without rows
   c = QPXDatasetExport::psmColumns(PeptideIdentificationList(), {}, true);
