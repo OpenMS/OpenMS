@@ -70,6 +70,29 @@ This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
 `RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
 container classes have no such attributes.
 
+The identification data value types (`IdentificationData` and its nested records such as
+`MatchData`, `ScoreDefinition`, `IdentificationDataFile.ScanOptions`) are the exception: their
+fields are properties that return **copies**, like getters. A nested record stays valid even after
+the field it came from is replaced, and edits reach the record only when assigned back:
+
+```python
+projection = options.projection
+projection.molecule = False
+options.projection = projection   # a chained options.projection.molecule = False has no effect
+```
+
+Runs are different: a copied run is never written back, because its new query and match IDs
+could collide with IDs the dataset's run allocated meanwhile. `data.getRun(name)` returns a
+snapshot; edits go through `data.run_view(name)` (also returned by `addRun`), which looks the
+run up by UUID on every call. It cannot dangle (it raises `KeyError` once the run is gone) and
+keeps the dataset alive. A feature or consensus map exposes its identification data the same
+way through `identification_data_view()`:
+
+```python
+run = data.run_view("search")
+run.setScore(match_id, score_id, 0.01)   # lands in data
+```
+
 ## Three exceptions, all visible at the call site
 
 | | Example | Why |
@@ -153,8 +176,10 @@ for spec in exp.iter_spectrum_views():
 The same convention already marks the zero-copy numpy views (`data_view()`,
 `matrix_view()`, `peaks_struct()`); this extends it to object element access.
 The family is
-available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features),
-`ConsensusMap` (consensus features), `PeptideIdentificationList`
+available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features,
+`identification_data_view()`), `ConsensusMap` (consensus features,
+`identification_data_view()`), `IdentificationData` (`run_view()`, keyed by run UUID
+rather than position, so it is not invalidated by adding runs), `PeptideIdentificationList`
 (identifications), `MRMTransitionGroup` (features, chromatograms), and
 `MSSpectrum`/`MSChromatogram` (float/integer/string data arrays) — where
 `spec.float_data_array_view(i).data_view()` chains into a fully

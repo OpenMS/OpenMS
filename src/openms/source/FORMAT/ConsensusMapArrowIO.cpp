@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include "MapIdentificationParquet.h"
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -38,6 +39,7 @@
 
 namespace OpenMS
 {
+namespace MapIdentificationParquet = Internal::MapIdentificationParquet;
 
 namespace // anonymous
 {
@@ -1111,19 +1113,26 @@ bool ConsensusMapArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .consensusparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(cmap.getProteinIdentifications());
+  // Native identification links must resolve before anything is written (throws InvalidValue).
+  std::vector<const BaseFeature*> rows;
+  for (const auto& feature : cmap) rows.push_back(&feature);
+  MapIdentificationParquet::validateLinks(cmap.getIdentificationData(), rows);
   // every peptide identification needs its protein identification run
   ProteinRunReferences::check(cmap);
 
-  // 1. Create output directory
+  // 1. Write into a private sibling directory; publish only after every table is complete,
+  //    so a failed export never leaves a partial bundle behind.
+  std::unique_ptr<MapIdentificationParquet::StagedBundle> staged;
   try
   {
-    std::filesystem::create_directories(std::string(directory));
+    staged = std::make_unique<MapIdentificationParquet::StagedBundle>(directory, "consensus_features.parquet");
   }
-  catch (const std::filesystem::filesystem_error& e)
+  catch (const Exception::UnableToCreateFile& e)
   {
-    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create directory: " << e.what() << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: " << e.what() << std::endl;
     return false;
   }
+  const std::string output = staged->path().string();
 
   // 2. Export consensus features table (with ConsensusMap-level metadata)
   auto features_table = exportFeaturesToArrow(cmap);
@@ -1143,7 +1152,7 @@ bool ConsensusMapArrowIO::exportToParquet(
   cmap_metadata["unique_id"] = std::to_string(cmap.getUniqueId());
   cmap_metadata["cmap_metavalues"] = serializeMetaValues_(cmap);
 
-  if (!writeArrowTableToParquet_(features_table, directory + "/consensus_features.parquet",
+  if (!writeArrowTableToParquet_(features_table, output + "/consensus_features.parquet",
                                   "consensus_features", config, cmap_metadata))
   {
     return false;
@@ -1156,7 +1165,7 @@ bool ConsensusMapArrowIO::exportToParquet(
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
     return false;
   }
-  if (!writeArrowTableToParquet_(psms_table, directory + "/psms.parquet", "psms", config))
+  if (!writeArrowTableToParquet_(psms_table, output + "/psms.parquet", "psms", config))
   {
     return false;
   }
@@ -1164,22 +1173,33 @@ bool ConsensusMapArrowIO::exportToParquet(
   // 4. Delegate protein data to ProteinIdentificationArrowIO
   const auto& prot_ids = cmap.getProteinIdentifications();
   if (!ProteinIdentificationArrowIO::exportProteinsToParquet(
-          prot_ids, directory + "/proteins.parquet", config))
+          prot_ids, output + "/proteins.parquet", config))
   {
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
-          prot_ids, directory + "/protein_groups.parquet", config))
+          prot_ids, output + "/protein_groups.parquet", config))
   {
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config,
+          prot_ids, output + "/search_params.parquet", config,
           ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(cmap))))
   {
     return false;
   }
 
+  // 5. Owning identification data and per-feature links (absent for maps without them)
+  try
+  {
+    MapIdentificationParquet::store(staged->path(), cmap.getIdentificationData(), rows);
+    staged->publish();
+  }
+  catch (const Exception::UnableToCreateFile& e)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: " << e.what() << std::endl;
+    return false;
+  }
   return true;
 }
 
@@ -1445,6 +1465,12 @@ bool ConsensusMapArrowIO::importFromParquet(
   // 3. Import PSMs (links to consensus features already in the map)
   auto psms_table = readParquetTable_(directory + "/psms.parquet");
   if (!psms_table) { return false; }
+  // Owning identification data and per-feature links, if the bundle has them (throws on malformed data)
+  {
+    std::vector<BaseFeature*> rows;
+    for (auto& feature : cmap) rows.push_back(&feature);
+    MapIdentificationParquet::load(directory, cmap.getIdentificationData(), rows);
+  }
   const Size stored_runs = cmap.getProteinIdentifications().size();
   if (!importPSMsFromArrow(psms_table, cmap))
   {

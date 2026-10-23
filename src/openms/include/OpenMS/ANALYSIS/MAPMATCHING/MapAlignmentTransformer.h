@@ -9,15 +9,14 @@
 
 #pragma once
 
-#include <vector>
-#include <OpenMS/config.h>
-
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/config.h>
+#include <vector>
 
 namespace OpenMS
 {
@@ -38,12 +37,12 @@ namespace OpenMS
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
-    /// Applies the given transformation to a feature map
+    /// Applies the given transformation to a feature map (features, their peptide identifications and its identification data)
     static void transformRetentionTimes(FeatureMap& fmap,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
-    /// Applies the given transformation to a consensus map
+    /// Applies the given transformation to a consensus map (features, their peptide identifications and its identification data)
     static void transformRetentionTimes(ConsensusMap& cmap,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
@@ -54,9 +53,7 @@ namespace OpenMS
       const TransformationDescription& trafo, bool store_original_rt = false);
 
     /// Applies the given transformation to input items in IdentificationData
-    static void transformRetentionTimes(IdentificationData& id_data,
-                                        const TransformationDescription& trafo,
-                                        bool store_original_rt = false);
+    static void transformRetentionTimes(IdentificationData& id_data, const TransformationDescription& trafo, bool store_original_rt = false);
 
   private:
     /// Applies a transformation to a feature

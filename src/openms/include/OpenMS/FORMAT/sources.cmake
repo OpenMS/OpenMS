@@ -34,6 +34,8 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+IdentificationDataArrow.h
+IdentificationDataFile.h
 FileInfo.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
@@ -70,7 +72,6 @@ MzTabM.h
 MzTabFile.h
 MzTabMFile.h
 MzXMLFile.h
-OMSFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
@@ -137,7 +138,6 @@ list(APPEND sources_list_h QPXValueValidation.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
-list(APPEND sources_list_h PSMArrowIO.h)
 list(APPEND sources_list_h ModificationDefinitionIO.h)
 
 if (WITH_OPENTIMS)
@@ -165,8 +165,7 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ### Keeping them off OpenMS_sources_h is what lets Xerces be a PRIVATE link dependency.
 ###
 ### SqliteConnector_impl.h exposes the raw SQLite C API (sqlite3 / sqlite3_stmt)
-### and OMSFileStore.h / OMSFileLoad.h expose the SQLiteCpp C++ API (SQLite::*).
-### Keeping all three off OpenMS_sources_h is what lets SQLite (SQLiteCpp) be a
+### Keeping it off OpenMS_sources_h is what lets SQLite (SQLiteCpp) be a
 ### fully private dependency: no SQLite type appears in any installed header.
 ###
 ### ParquetFile.h is the same case for Arrow: every one of its helpers takes or
@@ -186,8 +185,6 @@ CompressedInputSource.h
 GzipInputStream.h
 ZipInputStream.h
 SqliteConnector_impl.h
-OMSFileLoad.h
-OMSFileStore.h
 ParquetFile.h
 ZipRandomAccessFile.h
 )

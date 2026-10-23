@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -199,6 +202,35 @@ START_SECTION((static void transformRetentionTimes(ConsensusMap& cmap, const Tra
   TEST_EQUAL(consensusmap[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(consensusmap[2].getMetaValue("original_RT"), 25.4);
   TEST_EQUAL(consensusmap[3].getMetaValue("original_RT"), 26.0);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] maps: the identification data is transformed like peptide identifications))
+{
+  // the retention times of all identifications (linked or not) are transformed, the original ones stored on request
+  const auto check = [&](auto map) {
+    std::vector<std::pair<IdentificationData::QueryReference, double>> before;
+    for (const auto& run : map.getIdentificationData().getRuns())
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          if (query.rt) before.emplace_back(IdentificationData::QueryReference {run.getUuid(), query.getId()}, *query.rt);
+    TEST_EQUAL(before.empty(), false)
+    MapAlignmentTransformer::transformRetentionTimes(map, td, true);
+    for (const auto& [reference, rt] : before)
+    {
+      const auto& after = map.getIdentificationData().findRunByUuid(reference.run_uuid)->getIdentification(reference.query);
+      TEST_REAL_SIMILAR(*after.rt, td.apply(rt))
+      TEST_REAL_SIMILAR(after.getMetaValue("original_RT"), rt)
+    }
+  };
+  FeatureMap features;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
+  IdentificationDataConverter::importFeatureIDs(features);
+  check(features);
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  IdentificationDataConverter::importConsensusIDs(consensus);
+  check(consensus);
 }
 END_SECTION
 

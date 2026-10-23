@@ -77,6 +77,23 @@ features and consensus features, the ID that ``to_df()`` uses as the index is an
 For identifications, ``PeptideIdentificationList.to_psm_arrow()`` gives one row per peptide-spectrum match, with
 the peptidoform in ProForma notation, its modifications, the scores and the protein accessions.
 
+An :py:class:`~.IdentificationData` (see :doc:`identification_data`) gives its matches with
+``to_arrow(columns=None)``: one row per match, with the columns of the ``matches.parquet`` table of an
+``.idparquet`` bundle, including one ``score_<name>`` column per score definition. The dataset is an Arrow stream
+itself, so ``pyarrow.table(data)`` or ``polars.from_arrow(data)`` read it as well. Scores computed from the table,
+for example by a rescoring model, go back with ``apply_patch()``, keyed by ``run_uuid`` and ``match_id``; every row
+is checked first, and an invalid patch raises ``ValueError`` and changes nothing:
+
+.. code-block:: python
+    :linenos:
+
+    revisions = data.revisions()
+    frame = data.to_arrow(columns=["score_q_value"]).to_pandas()
+    frame["score_rescored"] = 1.0 - frame["score_q_value"]
+    data.apply_patch(frame[["run_uuid", "match_id", "score_rescored"]],
+                     add_scores=[oms.IdentificationData.ScoreDefinition(name="rescored")],
+                     expected_revisions=revisions)  # rejects the patch if a run changed meanwhile
+
 Parquet bundles
 ***************
 
@@ -99,7 +116,21 @@ writes and reads them like the XML formats:
 
 ``storeIdentifications()`` and ``loadIdentifications()`` do the same for ``.idparquet``, and
 ``storeConsensusFeatures()`` and ``loadConsensusFeatures()`` for ``.consensusparquet``. These functions do not need
-``pyarrow``.
+``pyarrow``. ``.idparquet`` bundles are the native identification format (see :doc:`identification_data`):
+``storeIdentifications()`` imports peptide and protein identifications into it, keeping their values and order.
+
+The tables of an ``.idparquet`` bundle keep queries (spectra) and candidates apart. For one row per candidate with
+the values of its spectrum, as the ``psms.parquet`` table of OpenMS 3.6 had them, use
+:py:meth:`~.IdentificationDataFile.psm_table` (requires ``pyarrow``):
+
+.. code-block:: python
+    :linenos:
+
+    psms = oms.IdentificationDataFile.psm_table("BSA1.idparquet").to_pandas()
+    print(psms[["peptidoform", "precursor_charge", "rt", "score", "is_decoy"]].head(3))
+
+OpenMS 3.7 does not read the four-table ``.idparquet`` bundles of OpenMS 3.6; convert them to idXML with
+IDFileConverter of OpenMS 3.6.
 
 Each table of a bundle is an ordinary Parquet file, so other programs can read it without pyOpenMS, for example
 pandas:

@@ -411,38 +411,53 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
-                              Size max_length) const
+  void RNaseDigestion::DigestedOligo::addEvidence(const IdentificationData::DatabaseSequence& entry, const NASequence& rna,
+                                                 const pair<Size, Size>& position)
   {
-    for (IdentificationData::ParentSequenceRef parent_ref = id_data.getParentSequences().begin();
-         parent_ref != id_data.getParentSequences().end(); ++parent_ref)
-    {
-      if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
-      {
-        continue;
-      }
+    using ID = IdentificationData;
+    if (sequence_evidence.empty())
+      target_decoy = entry.target_decoy;
+    else if (target_decoy == ID::TargetDecoy::UNKNOWN || entry.target_decoy == ID::TargetDecoy::UNKNOWN)
+      target_decoy = ID::TargetDecoy::UNKNOWN;
+    else if (target_decoy != entry.target_decoy)
+      target_decoy = ID::TargetDecoy::BOTH;
+    const Size end = position.first + position.second;
+    ID::SequenceEvidence evidence;
+    evidence.database = entry.database;
+    evidence.accession = entry.accession;
+    evidence.start = static_cast<UInt32>(position.first);
+    evidence.end = static_cast<UInt32>(end - 1);
+    evidence.before = position.first ? rna[position.first - 1]->getCode()[0] : '[';
+    evidence.after = end < rna.size() ? rna[end]->getCode()[0] : ']';
+    if (std::find(sequence_evidence.begin(), sequence_evidence.end(), evidence) == sequence_evidence.end())
+      sequence_evidence.push_back(std::move(evidence));
+  }
 
-      NASequence rna = NASequence::fromString(parent_ref->sequence);
-      vector<pair<Size, Size>> positions =
-          getFragmentPositions_(rna, min_length, max_length);
 
-      for (const auto& pos : positions)
+  std::vector<RNaseDigestion::DigestedOligo> RNaseDigestion::digest(const IdentificationData::Run& run, Size min_length, Size max_length) const
+  {
+    using ID = IdentificationData;
+    if (run.getMoleculeKind() != ID::MoleculeKind::OLIGONUCLEOTIDE)
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA digestion requires an oligonucleotide run");
+    std::map<NASequence, DigestedOligo> candidates;
+    if (run.getDatabaseSequences())
+      for (const auto& entry : *run.getDatabaseSequences())
       {
-        NASequence fragment = rna.getSubsequence(pos.first, pos.second);
-        applyTerminalGains_(fragment, pos, rna.size());
-        IdentificationData::IdentifiedOligo oligo(fragment);
-        Size end_pos = pos.first + pos.second; // past-the-end position!
-        IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-        match.left_neighbor = std::string(1, (pos.first > 0) ?
-                               rna[pos.first - 1]->getCode()[0] :
-                               IdentificationData::ParentMatch::LEFT_TERMINUS);
-        match.right_neighbor = std::string(1, (end_pos < rna.size()) ?
-                                rna[end_pos]->getCode()[0] :
-                                IdentificationData::ParentMatch::RIGHT_TERMINUS);
-        oligo.parent_matches[parent_ref].insert(match);
-        id_data.registerIdentifiedOligo(oligo);
+        NASequence rna = NASequence::fromString(entry.sequence);
+        for (const auto& pos : getFragmentPositions_(rna, min_length, max_length))
+        {
+          NASequence fragment = rna.getSubsequence(pos.first, pos.second);
+          applyTerminalGains_(fragment, pos, rna.size());
+          auto [it, inserted] = candidates.try_emplace(fragment);
+          if (inserted) it->second.sequence = fragment;
+          it->second.addEvidence(entry, rna, pos);
+        }
       }
-    }
+    std::vector<DigestedOligo> result;
+    result.reserve(candidates.size());
+    for (auto& [sequence, candidate] : candidates)
+      result.push_back(std::move(candidate));
+    return result;
   }
 
 } // namespace OpenMS

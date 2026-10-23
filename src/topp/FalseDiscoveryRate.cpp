@@ -17,6 +17,9 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <map>
+#include <set>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -238,6 +241,20 @@ protected:
       if (psm_level_fdr || peptide_level_fdr)
       {
         fdr.apply(pep_ids, peptide_level_fdr);
+        // Record this tool as producer of the q-values/FDRs it wrote; the search engine stays unchanged.
+        const std::string version = getProcessingInfo_(std::set<DataProcessing::ProcessingAction>{}).getSoftware().getVersion();
+        std::map<std::string, std::set<std::string>> written_score_types;
+        for (const auto& pep_id : pep_ids)
+        {
+          written_score_types[pep_id.getIdentifier()].insert(pep_id.getScoreType());
+        }
+        for (auto& run : prot_ids)
+        {
+          for (const auto& score_type : written_score_types[run.getIdentifier()])
+          {
+            if (score_type == "q-value" || score_type == "FDR") run.setScoreSoftware(score_type, toolName_(), version);
+          }
+        }
         // TODO If no decoys are removed in the param settings, we shouldn't need cleanups
         //  but then all tests need to be changed since cleanup sorts.
         //if (alg_param.getValue("add_decoy_peptides").toBool())

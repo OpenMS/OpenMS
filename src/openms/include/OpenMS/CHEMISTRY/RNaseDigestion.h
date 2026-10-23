@@ -10,9 +10,8 @@
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
-
 #include <OpenMS/DATASTRUCTURES/RegularExpression.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <set>
 
@@ -128,14 +127,27 @@ namespace OpenMS
       Size min_length = 0,
       Size max_length = 0) const;
 
-    /**
-       @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
+    /// A deduplicated digestion candidate with its evidence in the database sequences of the run.
+    struct OPENMS_DLLAPI DigestedOligo
+    {
+      NASequence sequence;
+      std::vector<IdentificationData::SequenceEvidence> sequence_evidence;
+      IdentificationData::TargetDecoy target_decoy = IdentificationData::TargetDecoy::UNKNOWN;
 
-       Digestion products are stored as IdentifiedOligos with corresponding ParentMatch annotations.
-       Only fragments of appropriate length (between @p min_length and @p max_length) are included.
-    */
-    void digest(IdentificationData& id_data, Size min_length = 0,
-                Size max_length = 0) const;
+      /**
+         @brief Add an occurrence of the candidate in a database sequence
+
+         The first occurrence sets the target/decoy state; occurrences in target and decoy sequences make it both,
+         and one in a sequence of unknown state makes it unknown. An occurrence that is already known is not added again.
+
+         @param[in] entry The database sequence
+         @param[in] rna The sequence of @p entry (its neighbors of the occurrence are taken from it)
+         @param[in] position Zero-based start and length of the occurrence in @p rna
+      */
+      void addEvidence(const IdentificationData::DatabaseSequence& entry, const NASequence& rna, const std::pair<Size, Size>& position);
+    };
+    /// Digest the database sequences of an oligonucleotide run without creating experimental spectrum matches.
+    std::vector<DigestedOligo> digest(const IdentificationData::Run& run, Size min_length = 0, Size max_length = 0) const;
 
   protected:
     const Ribonucleotide* five_prime_gain_; ///< 5' mod added by the enzyme

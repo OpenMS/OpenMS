@@ -24,6 +24,7 @@ IDRipper.cpp
 IDDecoyProbability.cpp
 IDScoreGetterSetter.cpp
 IDScoreSwitcherAlgorithm.cpp
+IdentificationDataInference.cpp
 IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp

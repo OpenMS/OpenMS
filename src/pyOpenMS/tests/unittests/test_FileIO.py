@@ -157,14 +157,13 @@ def test_reference_metadata_defaults_and_explicit_values(tmp_path):
         writer.store(str(output), data, "", {"organism": "bad\nheader"})
 
 
-def test_oms_roundtrip_for_bedrmod_export(tmp_path):
-    """OMS identification data can be exported through the Python writer."""
+def test_native_roundtrip_for_bedrmod_export(tmp_path):
+    """Native identification data can be exported through the Python writer."""
     data = pyopenms.IdentificationData()
     assert data.empty()
-    database = str(tmp_path / "empty.oms")
-    pyopenms.OMSFile().store(database, data)
-    loaded = pyopenms.IdentificationData()
-    pyopenms.OMSFile().load(database, loaded)
+    database = str(tmp_path / "empty.idparquet")
+    pyopenms.FileHandler().storeIdentificationData(database, data)
+    loaded = pyopenms.FileHandler().loadIdentificationData(database)
     assert loaded.empty()
     copied = pyopenms.IdentificationData(loaded)
     copied.clear()

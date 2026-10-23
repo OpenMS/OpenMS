@@ -23,14 +23,6 @@ namespace OpenMS
       @ingroup FileIO
   */
 
-  struct CompareMzTabMMatchRef
-  {
-    bool operator() (const IdentificationDataInternal::ObservationMatchRef& lhs, const IdentificationDataInternal::ObservationMatchRef& rhs)  const
-    {
-      return lhs->identified_molecule_var.getIdentifiedCompoundRef()->identifier < rhs->identified_molecule_var.getIdentifiedCompoundRef()->identifier;
-    }
-  };
-
   /**
     @brief MztabM Assay Metadata
   */
@@ -280,7 +272,7 @@ namespace OpenMS
     std::vector<std::string> smf_optional_column_names_;
     std::vector<std::string> sme_optional_column_names_;
 
-    static std::string getAdductString_(const IdentificationDataInternal::ObservationMatchRef& match_ref);
+    static std::string getAdductString_(const IdentificationData::Match& match);
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map,
                                          std::set<std::string>& feature_user_value_keys,
