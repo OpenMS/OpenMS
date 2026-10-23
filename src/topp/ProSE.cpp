@@ -34,7 +34,12 @@
 
 #include <map>
 #include <set>
+#include <iterator>
 #include <thread>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -114,6 +119,12 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+namespace
+{
+  // The OBO files that ControlledVocabulary::getPSIMSCV() reads (below share/OpenMS/CV)
+  constexpr const char* PSI_MS_CV_FILES[] = {"psi-ms.obo", "quality.obo", "unit.obo", "brenda.obo", "goslim_goa.obo"};
+}
 
 class ProSE :
     public TOPPBase
@@ -225,31 +236,6 @@ class ProSE :
         }
       }
 
-      // The mzML reader needs the PSI-MS controlled vocabulary (ControlledVocabulary::getPSIMSCV(), read once per process
-      // from five OBO files, about 60 ms) when it parses the header of the first file, in the background next to the
-      // FASTA read and the index build. One more thread loads it from here on, during the serial start of the search, so
-      // that the reader finds it loaded: only with more than one thread and an mzML input. The thread prints nothing
-      // (the loader only writes warnings about malformed OBO files) and ignores a failure: the reader's own call then
-      // loads it again and throws as before.
-      struct JoinOnReturn
-      {
-        std::thread thread;
-        ~JoinOnReturn() { if (thread.joinable()) { thread.join(); } }
-      } cv_load;
-      if (getIntOption_("threads") != 1
-          && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; }))
-      {
-        try
-        {
-          cv_load.thread = std::thread([]()
-          {
-            try { ControlledVocabulary::getPSIMSCV(); }
-            catch (...) {}
-          });
-        }
-        catch (const std::system_error&) {} // no thread: the reader loads it
-      }
-
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
 
@@ -327,6 +313,36 @@ class ProSE :
         aggregate_base_name = out_mod_analysis_dir + "/" + AGGREGATE_STEM;
       }
 
+      // The mzML reader needs the PSI-MS controlled vocabulary (ControlledVocabulary::getPSIMSCV(), read once per process
+      // from five OBO files, 60-170 ms) when it parses the header of the first file, in the background next to the FASTA
+      // read and the index build, which then wait for it. One more thread loads it during the start of the search, so
+      // that the reader finds it (partly) loaded: only with more than one thread, an mzML input and the five files
+      // readable (the names as in getPSIMSCV(); a load that fails anyway is ignored here, and the reader's own call then
+      // loads it again and throws as before). The load prints nothing for the files shipped with OpenMS (it warns
+      // about malformed OBO files only). The thread ends with the start-up: joined after the search, or on an exception.
+      struct JoinOnReturn
+      {
+        std::thread thread;
+        ~JoinOnReturn() { if (thread.joinable()) { thread.join(); } }
+      } cv_load;
+#ifdef _OPENMP
+      const bool cv_needed = omp_get_max_threads() > 1 // the threads set by TOPPBase from -threads
+        && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; })
+        && std::all_of(std::begin(PSI_MS_CV_FILES), std::end(PSI_MS_CV_FILES), [cv = File::getOpenMSDataPath() + "/CV/"](const char* obo) { return File::readable(cv + obo); });
+      if (cv_needed)
+      {
+        try
+        {
+          cv_load.thread = std::thread([]()
+          {
+            try { ControlledVocabulary::getPSIMSCV(); }
+            catch (...) {}
+          });
+        }
+        catch (...) {} // no thread: the reader loads it
+      }
+#endif
+
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
       // Timer spans search (incl. Percolator and PSM FDR) + protein FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
@@ -335,6 +351,7 @@ class ProSE :
       ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
                                            build_pooled_aggregate);
+      if (cv_load.thread.joinable()) { cv_load.thread.join(); }
 
       if (mfres.per_file.size() != in_list.size())
       {
