@@ -203,6 +203,14 @@ hand-editing sources and committing them, to keep sync self-healing.
   (copied out and back, in parallel blocks) when they are exactly the pool's rows (none free),
   each once, with the pool's row length: the swaps leave the same rows and pointers.
   Otherwise the swaps as before.
+  `Scores::calcQvals` computes the q-values with `PosteriorEstimator::getQValuesInTasks` where
+  it can: inside an OpenMP parallel region, for a finite pi0 >= 1 (no mix-max correction; the
+  training sets of the cross-validation), a finite decoy factor and at least 8192 PSMs. The
+  PSMs are split into blocks of whole groups of equal scores at fixed positions; the targets
+  and decoys of the blocks are counted first, so each block computes the FDRs of its groups
+  from the same counts and by the same expression as `getQValues`; the q-values (minimum FDR
+  from a position to the end, of numbers in [0, 1]) are the minima within each block and then
+  with the minimum of the blocks after it. Otherwise `getQValues` as before.
 
 ### Regenerating the patch
 

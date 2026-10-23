@@ -662,8 +662,12 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
 
   std::vector<double> qvals;
   PosteriorEstimator::setNegative(true);  // also get q-values for decoys
-  PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
-                                 nullTargetWinProb_);
+  // OpenMS: with the tasks of an enclosing OpenMP parallel region where it can (see there)
+  if (!PosteriorEstimator::getQValuesInTasks(pi0_, combined, qvals, skipDecoysPlusOne,
+                                             nullTargetWinProb_)) {
+    PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
+                                   nullTargetWinProb_);
+  }
 
   // set q-values and count number of positives
   std::vector<double>::const_iterator qIt = qvals.begin();

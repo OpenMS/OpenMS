@@ -418,6 +418,118 @@ void PosteriorEstimator::getQValues(double pi0,
   partial_sum(q.rbegin(), q.rend(), q.rbegin(), mymin);
 }
 
+// OpenMS: the smallest block of PSMs a task of getQValuesInTasks handles
+[[maybe_unused]] static const size_t kMinQValueBlock = 4096;
+
+/**
+ * OpenMS: getQValues(pi0, combined, q, skipDecoysPlusOne, nullTargetWinProb) with the tasks of
+ * an enclosing OpenMP parallel region, for a finite pi0 >= 1 (then getQValues makes no mix-max
+ * correction), a finite decoy factor and an empty q; otherwise returns false and does nothing.
+ * The PSMs are split into blocks of whole groups of equal scores (at fixed positions, not
+ * depending on the number of threads). The targets and decoys of the blocks are counted first,
+ * so each block computes the FDRs of its groups from the same counts as the loop of getQValues,
+ * by the same expression. The q-values (the minimum FDR from a position to the end: the FDRs
+ * are numbers in [0, 1], so the order of the minimisation does not matter) are the minima
+ * within each block, and then the minimum of these and the q-value at the start of the next
+ * block.
+ */
+bool PosteriorEstimator::getQValuesInTasks(double pi0,
+    const vector<pair<double, bool> >& combined, vector<double>& q,
+    bool skipDecoysPlusOne, double nullTargetWinProb) {
+#ifdef _OPENMP
+  const size_t n = combined.size();
+  const double decoyFactor = nullTargetWinProb / (1.0 - nullTargetWinProb);
+  if (!(pi0 >= 1.0) || !std::isfinite(pi0) || !(decoyFactor >= 0.0) ||
+      !std::isfinite(decoyFactor) || !q.empty() || n < 2 * kMinQValueBlock ||
+      n > static_cast<size_t>(INT_MAX) || !omp_in_parallel()) {
+    return false;
+  }
+  const bool withNegatives = includeNegativesInResult;
+  // the blocks [starts[b], starts[b + 1]): from multiples of kMinQValueBlock to the next group
+  vector<size_t> starts(1, 0);
+  for (size_t at = kMinQValueBlock; at < n; at += kMinQValueBlock) {
+    size_t start = (std::max)(at, starts.back() + 1);
+    while (start < n && combined[start - 1].first == combined[start].first) ++start;
+    if (start < n) starts.push_back(start);
+  }
+  starts.push_back(n);
+  const int numBlocks = static_cast<int>(starts.size() - 1);
+  vector<int> targets(static_cast<size_t>(numBlocks)), decoys(static_cast<size_t>(numBlocks));
+#pragma omp taskloop grainsize(1) shared(combined, starts, targets, decoys)
+  for (int b = 0; b < numBlocks; ++b) {
+    int t = 0, d = 0;
+    for (size_t i = starts[static_cast<size_t>(b)]; i < starts[static_cast<size_t>(b) + 1]; ++i) {
+      if (combined[i].second) ++t; else ++d;
+    }
+    targets[static_cast<size_t>(b)] = t;
+    decoys[static_cast<size_t>(b)] = d;
+  }
+  // the counts before each block, and the position of its first q-value
+  vector<int> zBefore(static_cast<size_t>(numBlocks)), wBefore(static_cast<size_t>(numBlocks));
+  vector<size_t> qBefore(static_cast<size_t>(numBlocks) + 1);
+  int n_z = skipDecoysPlusOne ? 0 : 1, n_w = 0;
+  qBefore[0] = 0;
+  for (size_t b = 0; b < static_cast<size_t>(numBlocks); ++b) {
+    zBefore[b] = n_z;
+    wBefore[b] = n_w;
+    n_z += decoys[b];
+    n_w += targets[b];
+    qBefore[b + 1] = qBefore[b] + static_cast<size_t>(targets[b]) +
+                     (withNegatives ? static_cast<size_t>(decoys[b]) : 0u);
+  }
+  q.resize(qBefore[static_cast<size_t>(numBlocks)]);
+#pragma omp taskloop grainsize(1) shared(combined, starts, zBefore, wBefore, qBefore, q)
+  for (int b = 0; b < numBlocks; ++b) {
+    // the loop of getQValues on the block, without the mix-max correction (pi0 >= 1)
+    const double E_f1_mod_run_tot = 0.0;
+    int n_z_ge_w = zBefore[static_cast<size_t>(b)], n_w_ge_w = wBefore[static_cast<size_t>(b)];
+    int decoyQueue = 0, targetQueue = 0;
+    size_t out = qBefore[static_cast<size_t>(b)];
+    const size_t end = starts[static_cast<size_t>(b) + 1];
+    for (size_t i = starts[static_cast<size_t>(b)]; i < end; ++i) {
+      if (combined[i].second) {
+        ++n_w_ge_w;
+        ++targetQueue;
+      } else {
+        ++n_z_ge_w;
+        ++decoyQueue;
+      }
+      if (i + 1 == end || combined[i].first != combined[i + 1].first) {
+        if (withNegatives) {
+          targetQueue += decoyQueue;
+        }
+        double fdr = (n_z_ge_w * pi0 + E_f1_mod_run_tot) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
+        for (int k = 0; k < targetQueue; ++k) {
+          q[out++] = (std::min)(fdr, 1.0);
+        }
+        decoyQueue = 0;
+        targetQueue = 0;
+      }
+    }
+    // the minima within the block
+    for (size_t k = qBefore[static_cast<size_t>(b) + 1]; k-- > qBefore[static_cast<size_t>(b)] + 1;) {
+      q[k - 1] = mymin(q[k], q[k - 1]);
+    }
+  }
+  // the minimum of the q-values after each block
+  vector<double> after(static_cast<size_t>(numBlocks), 2.0);  // above every FDR (none after the last block)
+  for (size_t b = static_cast<size_t>(numBlocks) - 1; b-- > 0;) {
+    const bool empty = qBefore[b + 1] == qBefore[b + 2];
+    after[b] = empty ? after[b + 1] : mymin(after[b + 1], q[qBefore[b + 1]]);
+  }
+#pragma omp taskloop grainsize(1) shared(after, qBefore, q)
+  for (int b = 0; b < numBlocks - 1; ++b) {
+    for (size_t k = qBefore[static_cast<size_t>(b)]; k < qBefore[static_cast<size_t>(b) + 1]; ++k) {
+      q[k] = mymin(after[static_cast<size_t>(b)], q[k]);
+    }
+  }
+  return true;
+#else
+  (void)pi0; (void)combined; (void)q; (void)skipDecoysPlusOne; (void)nullTargetWinProb;
+  return false;
+#endif
+}
+
 void PosteriorEstimator::getQValuesFromP(double pi0,
                                          const vector<double>& p, vector<double> & q) {
 	double m = (double)p.size();
