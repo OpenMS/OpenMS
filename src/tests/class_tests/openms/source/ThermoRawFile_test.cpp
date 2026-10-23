@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/IonSource.h>
@@ -19,8 +20,10 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <cmath>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <set>
@@ -71,6 +74,20 @@ namespace
       exp.addChromatogram(c);
     }
   };
+
+  /// The message of the Exception::ParseError that @p f throws (empty if it throws none)
+  std::string parseErrorOf(const std::function<void()>& f)
+  {
+    try
+    {
+      f();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    return std::string();
+  }
 }
 
 START_TEST(ThermoRawFile, "$Id$")
@@ -81,6 +98,52 @@ START_SECTION(void load(const std::string& path, MSExperiment& exp))
   MSExperiment exp;
 
   TEST_EXCEPTION(Exception::FileNotFound, file.load("/definitely/not/present.raw", exp))
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("/definitely/not/present.raw.zip", exp))
+}
+END_SECTION
+
+START_SECTION([EXTRA] compressed RAW files that cannot be read)
+{
+  // gzip- and bzip2-compressed RAW files, and ZIP archives without exactly one .raw file, are reported as such
+  // (not as the vendor library's failure to open the file), by load(), transform() and FileHandler alike
+  TempDir tmp;
+  const std::string dummy = tmp.getPath() + "/dummy.raw";
+  {
+    std::ofstream ofs(dummy.c_str(), std::ios::binary);
+    ofs << "not a RAW file";
+  }
+  const std::string gzipped = dummy + ".gz", bzipped = dummy + ".bz2";
+  File::copy(dummy, gzipped);
+  File::copy(dummy, bzipped);
+  const std::string none = tmp.getPath() + "/none.raw.zip";
+  ZipArchiveFile::addOrReplaceFromFile(none, "dummy.txt", dummy);
+  ZipArchiveFile::addOrReplaceFromFile(none, "__MACOSX/._dummy.raw", dummy);
+  const std::string two = tmp.getPath() + "/two.raw.zip";
+  ZipArchiveFile::addOrReplaceFromFile(two, "a.raw", dummy);
+  ZipArchiveFile::addOrReplaceFromFile(two, "b.RAW", dummy);
+
+  const std::vector<std::pair<std::string, std::string>> cases = {
+    {gzipped, "A gzip-compressed Thermo RAW file cannot be read: decompress it first"},
+    {bzipped, "A bzip2-compressed Thermo RAW file cannot be read: decompress it first"},
+    {none, "ZIP archive holds no file with the extension '.raw'"},
+    {two, "ZIP archive holds 2 files with the extension '.raw' (a.raw, b.RAW)"}};
+  for (const auto& c : cases)
+  {
+    // named references, not a structured binding: clang cannot capture one in a lambda when OpenMP is enabled
+    const std::string& path = c.first;
+    const std::string& expected = c.second;
+    TEST_EQUAL(FileHandler::getType(path), FileTypes::RAW)
+    MSExperiment exp;
+    std::string message = parseErrorOf([&] { ThermoRawFile().load(path, exp); });
+    TEST_EQUAL(message.find(expected) != std::string::npos, true)
+    // reported once, not wrapped as a failure of the vendor library
+    TEST_EQUAL(message.find("Thermo RAW reader") == std::string::npos, true)
+    RecordingConsumer collected;
+    message = parseErrorOf([&] { ThermoRawFile().transform(path, &collected); });
+    TEST_EQUAL(message.find(expected) != std::string::npos, true)
+    message = parseErrorOf([&] { FileHandler().loadExperiment(path, exp); });
+    TEST_EQUAL(message.find(expected) != std::string::npos, true)
+  }
 }
 END_SECTION
 
@@ -426,8 +489,9 @@ START_SECTION([EXTRA] ThermoRawFile::Options scan selection - metadata_only - sk
   TEST_EQUAL(rt_range.getChromatograms()[0].size(), full.getChromatograms()[0].size())
 
   // MS1 spectra and spectra without precursor are kept, as by PeakFileOptions::setPrecursorMZRange
-  for (const auto& [lo, hi] : {std::pair{400.0, 500.0}, std::pair{500.0, 600.0}, std::pair{659.0, 660.0}})
+  for (const auto& range : {std::pair{400.0, 500.0}, std::pair{500.0, 600.0}, std::pair{659.0, 660.0}})
   {
+    const double lo = range.first, hi = range.second; // captured below: clang with OpenMP cannot capture a structured binding
     ThermoRawFile::Options precursor = base;
     precursor.precursor_mz_min = lo;
     precursor.precursor_mz_max = hi;
@@ -627,6 +691,55 @@ START_SECTION(void FileHandler::transformExperiment(const std::string& filename,
   TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(THERMO_RAW_TEST_DATA, &collected, {FileTypes::MZML}))
 }
 END_SECTION
+
+START_SECTION([EXTRA] a ZIP archive that holds the RAW file is read like the RAW file)
+{
+  // Compressed (addOrReplaceFromFile) at the archive root, and stored (zipDirectory) below a directory next to the
+  // AppleDouble file that macOS adds, with the upper-case names that Windows acquisition PCs often write
+  TempDir tmp;
+  const std::string deflated = tmp.getPath() + "/deflated.raw.zip";
+  ZipArchiveFile::addOrReplaceFromFile(deflated, "Angiotensin_AllScans.raw", THERMO_RAW_TEST_DATA);
+  const std::string tree = tmp.getPath() + "/tree";
+  File::makeDir(tree + "/run");
+  File::makeDir(tree + "/__MACOSX/run");
+  File::copy(THERMO_RAW_TEST_DATA, tree + "/run/ANGIOTENSIN.RAW");
+  {
+    std::ofstream ofs((tree + "/__MACOSX/run/._ANGIOTENSIN.RAW").c_str(), std::ios::binary);
+    ofs << "AppleDouble";
+  }
+  const std::string stored = tmp.getPath() + "/STORED.RAW.ZIP";
+  ZipArchiveFile::zipDirectory(tree, stored);
+
+  ThermoRawFile file; // with the checksum
+  MSExperiment expected;
+  file.load(THERMO_RAW_TEST_DATA, expected);
+  MSExperiment handled_raw;
+  FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, handled_raw);
+  for (const std::string& archive : {deflated, stored})
+  {
+    MSExperiment exp;
+    file.load(archive, exp);
+    TEST_EQUAL(exp.size(), expected.size())
+    TEST_TRUE(exp.getSpectra() == expected.getSpectra())
+    TEST_TRUE(exp.getChromatograms() == expected.getChromatograms())
+    // The source file is the archive, as for a Bruker .d.zip; its checksum is the one of the RAW file
+    TEST_EQUAL(exp.getSourceFiles().size(), 1)
+    TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), File::basename(archive))
+    TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), expected.getSourceFiles()[0].getChecksum())
+
+    RecordingConsumer collected;
+    file.transform(archive, &collected);
+    TEST_TRUE(collected.order_ok)
+    TEST_TRUE(collected.exp == exp)
+
+    TEST_EQUAL(FileHandler::getType(archive), FileTypes::RAW)
+    MSExperiment handled;
+    FileHandler().loadExperiment(archive, handled);
+    TEST_EQUAL(handled.size(), handled_raw.size())
+    TEST_TRUE(handled.getSpectra() == handled_raw.getSpectra())
+  }
+}
+END_SECTION
 #endif
 
 #ifdef THERMO_FAIMS_DIA_TEST_DATA
@@ -778,6 +891,50 @@ START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
   cout << "FAIMS SWATH groups=" << groups.size()
        << ", groups with MS1=" << groups_with_ms1
        << ", total DIA windows=" << total_swath_windows << '\n';
+}
+END_SECTION
+
+START_SECTION([EXTRA] SwathFile::loadThermoRaw with readoptions onDisc equals normal)
+{
+  // The onDisc maps read the spectra from the file; they must expose what the in-memory maps hold.
+  std::shared_ptr<ExperimentalSettings> meta_normal, meta_on_disc;
+  const std::string tmp = SystemSettings::getTempDirectory() + "/";
+  std::vector<OpenSwath::SwathMap> normal = SwathFile().loadThermoRaw(THERMO_FAIMS_DIA_TEST_DATA, tmp, meta_normal, "normal");
+  std::vector<OpenSwath::SwathMap> on_disc = SwathFile().loadThermoRaw(THERMO_FAIMS_DIA_TEST_DATA, tmp, meta_on_disc, "onDisc");
+  TEST_EQUAL(on_disc.size(), normal.size())
+  TEST_TRUE(*meta_on_disc == *meta_normal)
+  Size mismatches = 0, compared = 0;
+  for (Size m = 0; m < std::min(normal.size(), on_disc.size()); ++m)
+  {
+    const OpenSwath::SwathMap& a = normal[m];
+    const OpenSwath::SwathMap& b = on_disc[m];
+    TEST_EQUAL(b.ms1, a.ms1)
+    TEST_EQUAL(b.lower, a.lower)
+    TEST_EQUAL(b.upper, a.upper)
+    TEST_EQUAL(b.center, a.center)
+    TEST_EQUAL(b.imLower, a.imLower)
+    TEST_EQUAL(b.imUpper, a.imUpper)
+    TEST_EQUAL(b.sptr->getNrSpectra(), a.sptr->getNrSpectra())
+    if (b.sptr->getNrSpectra() != a.sptr->getNrSpectra()) { continue; }
+    const int n = static_cast<int>(a.sptr->getNrSpectra());
+    for (int i : {0, n / 2, n - 1})
+    {
+      if (i < 0) { continue; }
+      ++compared;
+      const OpenSwath::SpectrumMeta ma = a.sptr->getSpectrumMetaById(i), mb = b.sptr->getSpectrumMetaById(i);
+      const OpenSwath::SpectrumPtr sa = a.sptr->getSpectrumById(i), sb = b.sptr->getSpectrumById(i);
+      if (ma.RT != mb.RT || ma.ms_level != mb.ms_level ||
+          sa->getMZArray()->data != sb->getMZArray()->data ||
+          sa->getIntensityArray()->data != sb->getIntensityArray()->data)
+      {
+        ++mismatches;
+      }
+    }
+    const double rt = a.sptr->getSpectrumMetaById(n / 2).RT;
+    TEST_TRUE(b.sptr->getSpectraByRT(rt, 10.0) == a.sptr->getSpectraByRT(rt, 10.0))
+  }
+  TEST_EQUAL(compared > 0, true)
+  TEST_EQUAL(mismatches, 0)
 }
 END_SECTION
 #endif

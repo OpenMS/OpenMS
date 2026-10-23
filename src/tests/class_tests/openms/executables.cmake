@@ -295,6 +295,7 @@ set(format_executables_list
   SqliteConnector_test
   MRMFile_test
   ThermoRawFile_test
+  OnDiscThermoRawExperiment_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -326,6 +327,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SpectrumAccessOnDisc_test
   SpectrumAccessOpenMS_test
   SpectrumAccessOpenMSInMemory_test
   MRMFeatureAccessOpenMS_test
@@ -538,18 +540,14 @@ set(analysis_executables_list
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
   ConfidenceScoring_test
-  ConsensusIDAlgorithmAverage_test
-  ConsensusIDAlgorithmBest_test
-  ConsensusIDAlgorithmPEPIons_test
-  ConsensusIDAlgorithmPEPMatrix_test
-  ConsensusIDAlgorithmRanks_test
-  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapNormalizerAlgorithmRTLocal_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
+  EntrapmentEvaluation_test
   FalseDiscoveryRate_test
   Scores_test
   FeatureDeconvolution_test

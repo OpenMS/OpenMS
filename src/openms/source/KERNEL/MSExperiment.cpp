@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <numeric>
 #include <unordered_set>
@@ -1021,12 +1022,23 @@ namespace OpenMS
     }
 
     // if no precursor annotation was found or it did not have a spectrum reference,
-    // just
+    // just take the closest preceding spectrum of the level above. With FAIMS, that spectrum must have been
+    // acquired at the same compensation voltage: the scans of the other voltages hold other ions.
+    const bool faims = iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+    const double cv = iterator->getDriftTime();
     do
     {
       --iterator;
       if (ms_level - iterator->getMSLevel() == 1)
       {
+        // A survey scan of another CV is skipped (same tolerance as IsobaricChannelExtractor and IsobaricWorkflow use for
+        // "same CV"). One without a CV is accepted: some converters annotate the CV on MS2 spectra only, and requiring it
+        // on the survey scans would leave such files without any precursor spectrum.
+        if (faims && iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+            && std::fabs(iterator->getDriftTime() - cv) >= 0.01)
+        {
+          continue;
+        }
         return iterator;
       }
     } while (iterator != spectra_.begin());

@@ -31,6 +31,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
@@ -49,6 +50,7 @@
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/MS1LabelState.h>
@@ -60,9 +62,12 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <tuple>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 using namespace OpenMS;
@@ -110,8 +115,7 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
   - Identifications (@p ids), one file per spectra file in the same order, already filtered at PSM level
     (e.g. q-value < 0.01) and carrying Posterior Error Probability scores, e.g. produced with
     @ref TOPP_PercolatorAdapter (@p -score_type pep) or @ref TOPP_IDPosteriorErrorProbability, followed by
-    @ref TOPP_IDFilter. Results from several search engines must be combined with @ref TOPP_ConsensusID
-    rather than concatenated.
+    @ref TOPP_IDFilter. Pass the results of one search engine rather than concatenating those of several.
   - The label specification (@p labels), in the syntax of @ref TOPP_FeatureFinderMultiplex, e.g.
     <tt>[][Lys8,Arg10]</tt> for SILAC, <tt>[][Lys4,Arg6][Lys8,Arg10]</tt> for triple SILAC,
     <tt>[Dimethyl0][Dimethyl6]</tt> for Dimethyl. Every bracket is one channel; the channels are numbered
@@ -141,12 +145,25 @@ the modifications implied by @p labels and refuses to run if they are missing (u
 
 <b>Workflow</b>
   -# Per run: detection of peptide multiplets in the MS1 data (@ref OpenMS::FeatureFinderMultiplexAlgorithm,
-     parameters in @p algorithm and @p label_mass_shifts), mapping of the identifications onto the multiplets
-     (@p id_mapping), reduction to one identification per multiplet, and consolidation of quantitative and
+     parameters in @p algorithm and @p label_mass_shifts). By default (@p algorithm:knock_out) partial multiplets are
+     detected as well: a peptide seen in the heavy channel only, or whose weaker channels do not pass the detection's
+     isotope pattern and intensity filters. A partial multiplet that merely flanks a larger multiplet of the same
+     peptide (its channels at the same m/z, eluting next to it) is merged into the larger one.
+  -# Per run: mapping of the identifications onto the multiplets (@p id_mapping). An identification matches a
+     multiplet when it lies within the elution region of one of its channels (the RT range of its mass traces, plus
+     @p id_mapping:rt_tolerance) and its m/z matches the channel - by default the theoretical m/z of the identified
+     peptidoform, which carries the label, since the precursor m/z can be that of another isotopic peak. An
+     identification of a channel the detection did not find (too weak) joins a partial multiplet detected in the
+     peptide's other channels, at the m/z the peptide has there; its own channel is then re-quantified.
+  -# Per run: reduction to one identification per multiplet - preferring identifications whose labels agree with
+     the multiplet's mass shifts over better-scoring ones that do not - and consolidation of quantitative and
      sequence information (@ref OpenMS::MultiplexResolverAlgorithm, @p resolver): multiplets whose mass shifts
      contradict the labels found in the annotated sequence are removed from quantification (their
-     identifications are kept for protein inference), incomplete multiplets are completed with dummy
-     features (intensity 0 = absent, NaN = not quantifiable). Multiplets without identification are dropped,
+     identifications are kept for protein inference), partial multiplets are completed with dummy
+     features (intensity 0 = absent, NaN = not quantifiable, i.e. another detected pattern overlaps). With
+     @p requantify (default), a missing channel is then measured at its expected position over the elution region
+     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there.
+     Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
      is reduced to the <em>peptide identity</em>: the label modifications of @p labels are removed from the sequence,
      because the label belongs to the channel, not to the peptide, and the light and the heavy spectrum of one
@@ -160,15 +177,16 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      peptidoform as searched (mzTab PSM section, QPX psm view), feature-level output the peptide identity
      (see @ref OpenMS::MS1LabelState). The column headers describe every channel's labels in @c channel_description.
      A spectrum match that was mapped onto several multiplets stays on the one whose matched channel is closest to
-     the precursor; distinct spectra of one peptide on distinct multiplets are all kept, and their channel values
+     the identified peptidoform in m/z; distinct spectra of one peptide on distinct multiplets are all kept, and their channel values
      add up per peptide and charge in the quantification.
   -# Per fraction: retention time alignment of the runs (@p alignment, identification-based, aligned to the
      run that shares the most identifications with every other run) and linking of the multiplets across runs (@p linking); the channels of
      every run are kept as sub-features, so the linked map has one column per (run, channel). Fractions are
      linked separately and then combined column-wise, exactly like ProteomicsLFQ does; a fraction measured in a
-     single run is passed through. With @p match_between_runs, unidentified multiplets take part in the linking
-     and take over the identification of a multiplet at the same position in another run (the SILAC equivalent
-     of ProteomicsLFQ's <tt>-targeted_only false</tt>); multiplets that stay unidentified are not quantified.
+     single run is passed through. With @p match_between_runs, unidentified complete multiplets take part in the
+     linking and take over the identification of a multiplet at the same position in another run (the SILAC
+     equivalent of ProteomicsLFQ's <tt>-targeted_only false</tt>); multiplets that stay unidentified are not
+     quantified. Unidentified partial multiplets are not kept: only an identification tells which channels they are.
   -# Protein inference over all runs (@p protein_inference), protein (and optionally PSM/peptide) FDR
      filtering, and peptide and protein quantification (@p ProteinQuantification), where the fractions of a
      fraction group are aggregated according to the design.
@@ -247,7 +265,7 @@ protected:
       "Identifications filtered at PSM level (e.g., q-value < 0.01), one per spectra file in the same order.\n"
       "The identifications must carry Posterior Error Probability scores (e.g. PercolatorAdapter with -score_type pep,\n"
       "or IDPosteriorErrorProbability) and the labels must have been searched as (variable) modifications.\n"
-      "Combine results from several search engines with ConsensusID rather than concatenating them.");
+      "Pass the results of one search engine rather than concatenating those of several.");
     setValidFormats_("ids", {"idXML", "mzId", "idparquet"});
 
     registerInputFile_("design", "<file>", "",
@@ -310,14 +328,26 @@ protected:
       "true: keep multiplets without an identification, so that linking can hand them the identification of a multiplet at the\n"
       "same position in another run (the counterpart of ProteomicsLFQ's '-targeted_only false').\n"
       "false: only identified multiplets are quantified.\n"
-      "Cannot be combined with 'algorithm:knock_out': the channel order of an unidentified multiplet is only known from its detection pattern.", false);
+      "Only complete unidentified multiplets are kept: the channels of a partial one (see 'algorithm:knock_out') are only known from its identification.", false);
     setValidStrings_("match_between_runs", {"true", "false"});
+
+    registerStringOption_("requantify", "<option>", "true",
+      "true: a channel of an identified multiplet that the detection did not find (see 'algorithm:knock_out') is re-quantified from the\n"
+      "MS1 peaks at its expected position over the elution region of the multiplet, relative to the most intense detected channel (like\n"
+      "MaxQuant's 're-quantify'). It is reported as absent (0) only if its first two isotopic traces are not seen together in at least\n"
+      "two spectra there.\n"
+      "false: such channels are reported as absent.", false);
+    setValidStrings_("requantify", {"true", "false"});
 
     // feature detection: the FeatureFinderMultiplex parameters, minus the two that are set at tool level
     Param ffm_defaults = FeatureFinderMultiplexAlgorithm().getDefaults();
     Param detection_defaults = ffm_defaults.copy("algorithm:", true);
     detection_defaults.remove("labels");
     detection_defaults.remove("max_nr_labelled_aas");
+    detection_defaults.setValue("knock_out", "true",
+      "Detect partial multiplets as well, e.g. a peptide seen in the heavy channel only, or whose light channel is too weak to be detected.\n"
+      "Their missing channels are re-quantified (see 'requantify') or reported as absent. With 'false', only multiplets in which every\n"
+      "channel was detected are quantified. Supported for up to four channels (more: always 'false').");
     Param mass_shift_defaults = ffm_defaults.copy("labels:", true);
 
     // resolver: tolerances only, labels and max_nr_labelled_aas are shared with the feature detection
@@ -326,6 +356,15 @@ protected:
     resolver_defaults.remove("max_nr_labelled_aas");
 
     Param idm_defaults = IDMapper().getDefaults();
+    // The identified peptidoform carries its labels, so its theoretical m/z is the monoisotopic m/z of its channel. The
+    // precursor m/z is off by one or more isotopes whenever the instrument picked another peak of the envelope, which a
+    // search with isotope error correction accepts.
+    idm_defaults.setValue("mz_reference", "peptide",
+      "Source of the m/z values of the identifications: 'peptide' = the theoretical m/z of the identified peptidoform (labels included),\n"
+      "'precursor' = the measured precursor m/z (fails for spectra whose precursor is not the monoisotopic peak).");
+    idm_defaults.setValue("rt_tolerance", idm_defaults.getValue("rt_tolerance"),
+      "RT tolerance (in seconds) beyond the elution region of a multiplet: an identification matches a multiplet if it lies within the\n"
+      "region of one of its channels' mass traces (plus the tolerances), not only near its apex.");
     idm_defaults.addTag("mz_reference", "advanced");
     idm_defaults.addTag("ignore_charge", "advanced");
 
@@ -514,8 +553,8 @@ protected:
       OPENMS_LOG_WARN << "Warning: " << report.removed << " identification(s) in " << id_file_abs_path
                       << " repeat a (spectrum, peptidoform, charge) already claimed by another identification, e.g. "
                       << report.example << ".\nKept the best-scoring one of each group; the others would have counted the same "
-                         "measurement more than once. To control this upstream, combine search engine results with ConsensusID "
-                         "(-algorithm best -keep_old_scores) rather than concatenating them." << endl;
+                         "measurement more than once. To control this upstream, pass the results of one search engine rather "
+                         "than concatenating those of several." << endl;
     }
     if (report.inconsistent_score_direction > 0)
     {
@@ -689,8 +728,15 @@ protected:
   // per run: multiplet detection, ID mapping, resolving
   //-------------------------------------------------------------
 
-  /// Detect the peptide multiplets of one run in its MS1 spectra (FeatureFinderMultiplex, incl. its FAIMS handling)
-  ExitCodes detectMultiplets_(const std::string& mz_file, MSExperiment&& exp, ConsensusMap& multiplets, MSExperiment& blacklist)
+  /**
+    @brief Detect the peptide multiplets of one run in its MS1 spectra (FeatureFinderMultiplex, incl. its FAIMS handling)
+
+    @p features receives the channel features with their convex hulls (the handles of @p multiplets refer to them by unique
+    id), @p blacklist the peaks the detected patterns consist of and, with re-quantification, @p centroided the centroided MS1
+    peaks the detection worked on. Spectra and features carry the FAIMS CV they were acquired at.
+  */
+  ExitCodes detectMultiplets_(const std::string& mz_file, MSExperiment&& exp, ConsensusMap& multiplets, FeatureMap& features,
+                              MSExperiment& blacklist, MSExperiment& centroided)
   {
     if (exp.empty())
     {
@@ -713,6 +759,7 @@ protected:
     ffm_param.insert("algorithm:", getParam_().copy("algorithm:", true));
     ffm_param.setValue("algorithm:labels", labels_);
     ffm_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
+    ffm_param.setValue("algorithm:knock_out", knock_out_ ? "true" : "false");
     ffm_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
     writeDebug_("Parameters passed to FeatureFinderMultiplexAlgorithm", ffm_param, 3);
 
@@ -744,31 +791,321 @@ protected:
         if (has_faims) { cf.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv); }
         multiplets.push_back(cf);
       }
+      for (auto& feature : algorithm.getFeatureMap())
+      {
+        if (has_faims) { feature.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv); }
+        features.push_back(std::move(feature));
+      }
       for (auto& spec : algorithm.getBlacklist())
       {
         if (has_faims) { spec.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv); }
         blacklist.addSpectrum(std::move(spec));
       }
+      if (requantify_)
+      {
+        for (auto& spec : algorithm.getCentroidedExperiment())
+        {
+          if (has_faims) { spec.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv); }
+          centroided.addSpectrum(std::move(spec));
+        }
+      }
     }
     multiplets.ensureUniqueId();
     multiplets.sortByPosition();
-    // the resolver looks peaks up by RT range, which needs the spectra of all FAIMS groups in one order
+    // the resolver and the re-quantification look peaks up by RT range, which needs the spectra of all FAIMS groups in one order
     blacklist.sortSpectra();
     blacklist.updateRanges();
+    centroided.sortSpectra();
+    centroided.updateRanges();
 
     OPENMS_LOG_INFO << "Detected " << multiplets.size() << " peptide multiplet(s) in " << File::basename(mz_file) << "." << endl;
     return EXECUTION_OK;
   }
 
+  /// The FAIMS CV a multiplet, feature or spectrum was acquired at (none for conventional data)
+  static std::optional<double> compensationVoltage_(const MetaInfoInterface& value)
+  {
+    if (!value.metaValueExists(Constants::UserParam::FAIMS_CV)) { return std::nullopt; }
+    return static_cast<double>(value.getMetaValue(Constants::UserParam::FAIMS_CV));
+  }
+
+  /// The absolute m/z tolerance of the multiplet detection at @p mz
+  double detectionMZTolerance_(double mz) const
+  {
+    const double tolerance = getParam_().getValue("algorithm:mz_tolerance");
+    return getParam_().getValue("algorithm:mz_unit").toString() == "ppm" ? mz * tolerance * 1e-6 : tolerance;
+  }
+
+  /**
+    @brief Merge partial multiplets into the larger multiplet of the same peptide they flank, and describe where every channel elutes.
+
+    With knock-outs, a peptide whose weakest channel is detected only around its apex shows up as a complete multiplet there and
+    as partial multiplets (without that channel) in its flanks, where the remaining channels are still detected. Such a partial
+    multiplet - every channel of it coincides in m/z with a channel of a larger multiplet of the same charge and CV, and the two
+    elute within half of 'algorithm:rt_typical' of each other - is removed, and its elution region is added to that of the
+    larger one. Its intensities are not added: the larger multiplet quantifies all its channels over the same scans, so its
+    ratios are not biased by flanks that lack a channel. Identifications in the flanks map onto the larger multiplet instead.
+
+    @return One feature per (multiplet, channel): the unique id, position and charge of the channel's handle, and one convex hull
+            per mass trace of the channel, spanning the elution region of the multiplet (incl. merged flanks). Identifications
+            are mapped onto these, and missing channels are re-quantified over the same region.
+  */
+  FeatureMap mergeFragments_(ConsensusMap& multiplets, const FeatureMap& features) const
+  {
+    std::unordered_map<UInt64, const Feature*> feature_of;
+    for (const Feature& f : features) { feature_of.emplace(f.getUniqueId(), &f); }
+
+    // elution region of every multiplet: the RT range of the mass traces of all its channels
+    vector<std::pair<double, double>> region(multiplets.size());
+    for (Size m = 0; m < multiplets.size(); ++m)
+    {
+      double lo = multiplets[m].getRT(), hi = multiplets[m].getRT();
+      for (const FeatureHandle& handle : multiplets[m].getFeatures())
+      {
+        if (const auto it = feature_of.find(handle.getUniqueId()); it != feature_of.end() && !it->second->getConvexHulls().empty())
+        {
+          const DBoundingBox<2> box = it->second->getConvexHull().getBoundingBox();
+          lo = std::min(lo, box.minX());
+          hi = std::max(hi, box.maxX());
+        }
+      }
+      region[m] = {lo, hi};
+    }
+
+    // which larger multiplet each partial one flanks
+    const double gap = 0.5 * static_cast<double>(getParam_().getValue("algorithm:rt_typical"));
+    vector<std::pair<double, Size>> handle_mzs; // (m/z of a handle, its multiplet), sorted
+    for (Size m = 0; m < multiplets.size(); ++m)
+    {
+      for (const FeatureHandle& handle : multiplets[m].getFeatures()) { handle_mzs.emplace_back(handle.getMZ(), m); }
+    }
+    std::sort(handle_mzs.begin(), handle_mzs.end());
+    auto coincides = [this](const FeatureHandle& a, const FeatureHandle& b)
+    { return std::abs(a.getMZ() - b.getMZ()) <= detectionMZTolerance_(a.getMZ()); };
+
+    const Size none = std::numeric_limits<Size>::max();
+    vector<Size> target(multiplets.size(), none);
+    for (Size a = 0; a < multiplets.size(); ++a)
+    {
+      const ConsensusFeature& partial = multiplets[a];
+      if (partial.size() >= multiplicity_ || partial.getFeatures().empty()) { continue; }
+      const FeatureHandle& first = *partial.getFeatures().begin();
+      const double tolerance = detectionMZTolerance_(first.getMZ());
+      auto it = std::lower_bound(handle_mzs.begin(), handle_mzs.end(), std::make_pair(first.getMZ() - tolerance, Size(0)));
+      for (; it != handle_mzs.end() && it->first <= first.getMZ() + tolerance; ++it)
+      {
+        const Size b = it->second;
+        const ConsensusFeature& larger = multiplets[b];
+        if (larger.size() <= partial.size() || larger.getCharge() != partial.getCharge()
+            || compensationVoltage_(larger) != compensationVoltage_(partial))
+        {
+          continue;
+        }
+        if (region[a].first > region[b].second + gap || region[a].second < region[b].first - gap) { continue; }
+        const bool contained = std::all_of(partial.getFeatures().begin(), partial.getFeatures().end(), [&](const FeatureHandle& h)
+          { return std::any_of(larger.getFeatures().begin(), larger.getFeatures().end(), [&](const FeatureHandle& g) { return coincides(h, g); }); });
+        if (!contained) { continue; }
+        // the most complete candidate, then the closest one
+        auto distance = [&](Size m) { return std::abs(0.5 * (region[m].first + region[m].second) - 0.5 * (region[a].first + region[a].second)); };
+        if (target[a] == none || larger.size() > multiplets[target[a]].size()
+            || (larger.size() == multiplets[target[a]].size() && distance(b) < distance(target[a])))
+        {
+          target[a] = b;
+        }
+      }
+    }
+
+    // a flank of a flank belongs to the outermost multiplet (sizes strictly increase along the chain)
+    Size merged = 0;
+    for (Size a = 0; a < multiplets.size(); ++a)
+    {
+      if (target[a] == none) { continue; }
+      Size b = target[a];
+      while (target[b] != none) { b = target[b]; }
+      region[b].first = std::min(region[b].first, region[a].first);
+      region[b].second = std::max(region[b].second, region[a].second);
+      ++merged;
+    }
+
+    vector<ConsensusFeature> kept;
+    kept.reserve(multiplets.size() - merged);
+    FeatureMap channels;
+    for (Size m = 0; m < multiplets.size(); ++m)
+    {
+      if (target[m] != none) { continue; }
+      for (const FeatureHandle& handle : multiplets[m].getFeatures())
+      {
+        Feature channel;
+        channel.setUniqueId(handle.getUniqueId());
+        channel.setRT(handle.getRT());
+        channel.setMZ(handle.getMZ());
+        channel.setCharge(handle.getCharge());
+        channel.setIntensity(handle.getIntensity());
+        if (const auto cv = compensationVoltage_(multiplets[m])) { channel.setMetaValue(Constants::UserParam::FAIMS_CV, *cv); }
+        // one hull per mass trace of the channel (the monoisotopic one first), spanning the elution region of the multiplet
+        vector<std::pair<double, double>> traces;
+        if (const auto it = feature_of.find(handle.getUniqueId()); it != feature_of.end())
+        {
+          for (const ConvexHull2D& hull : it->second->getConvexHulls())
+          {
+            const DBoundingBox<2> box = hull.getBoundingBox();
+            traces.emplace_back(box.minY(), box.maxY());
+          }
+        }
+        if (traces.empty()) { traces.emplace_back(handle.getMZ(), handle.getMZ()); }
+        for (const auto& [mz_lo, mz_hi] : traces)
+        {
+          ConvexHull2D hull;
+          hull.addPoint(DPosition<2>(region[m].first, mz_lo));
+          hull.addPoint(DPosition<2>(region[m].first, mz_hi));
+          hull.addPoint(DPosition<2>(region[m].second, mz_lo));
+          hull.addPoint(DPosition<2>(region[m].second, mz_hi));
+          channel.getConvexHulls().push_back(hull);
+        }
+        channels.push_back(std::move(channel));
+      }
+      kept.push_back(std::move(multiplets[m]));
+    }
+    multiplets.resize(0);
+    for (auto& cf : kept) { multiplets.push_back(std::move(cf)); }
+    for (auto& [index, header] : multiplets.getColumnHeaders()) { header.size = 0; }
+    for (const auto& cf : multiplets)
+    {
+      for (const FeatureHandle& handle : cf.getFeatures()) { ++multiplets.getColumnHeaders()[handle.getMapIndex()].size; }
+    }
+    channels.updateRanges();
+
+    if (merged > 0)
+    {
+      OPENMS_LOG_INFO << merged << " partial multiplet(s) flank a larger multiplet of the same peptide and were merged into it." << endl;
+    }
+    return channels;
+  }
+
+  /**
+    @brief Attach identifications of channels the detection did not find to the multiplet of their peptide.
+
+    An identification maps onto a multiplet through its own channel. When that channel was too weak to be detected (e.g. the
+    minor channel of a mixture, which DDA fragments all the same), the multiplet can still be there, detected in the other
+    channels of the peptide. So an identification that stayed unassigned is looked up at the m/z its peptide has in the other
+    channels (MultiplexResolverAlgorithm::expectedChannelMZs()): if a partial multiplet of the same charge and CV has a channel
+    there that elutes at the identification (within the 'id_mapping' tolerances), the identification is attached to it, and its
+    own channel is added to the multiplet as a feature of intensity 0 for the re-quantification to measure. The resolver then
+    checks the result like any other identified multiplet.
+  */
+  void attachToUndetectedChannels_(ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver) const
+  {
+    std::unordered_map<UInt64, Size> multiplet_of;
+    for (Size m = 0; m < multiplets.size(); ++m)
+    {
+      for (const FeatureHandle& handle : multiplets[m].getFeatures()) { multiplet_of.emplace(handle.getUniqueId(), m); }
+    }
+    vector<std::pair<double, const Feature*>> by_mz;
+    by_mz.reserve(channels.size());
+    for (const Feature& channel : channels) { by_mz.emplace_back(channel.getMZ(), &channel); }
+    std::sort(by_mz.begin(), by_mz.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    const double rt_tolerance = getParam_().getValue("id_mapping:rt_tolerance");
+    const double mz_tolerance = getParam_().getValue("id_mapping:mz_tolerance");
+    const bool ppm = getParam_().getValue("id_mapping:mz_measure").toString() == "ppm";
+    auto tolerance_at = [&](double mz) { return ppm ? mz * mz_tolerance * 1e-6 : mz_tolerance; };
+
+    PeptideIdentificationList unassigned;
+    Size attached = 0;
+    for (PeptideIdentification& id : multiplets.getUnassignedPeptideIdentifications())
+    {
+      if (id.getHits().empty() || id.getHits()[0].getCharge() == 0)
+      {
+        unassigned.push_back(std::move(id));
+        continue;
+      }
+      const PeptideHit& hit = id.getHits()[0];
+      Size own = 0;
+      const vector<double> mzs = resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), own);
+      const std::optional<double> cv = compensationVoltage_(id);
+
+      // the closest channel feature at the m/z of the peptide in another channel
+      const Feature* best = nullptr;
+      double best_error = std::numeric_limits<double>::max();
+      for (Size j = 0; j < mzs.size(); ++j)
+      {
+        if (j == own) { continue; }
+        const double tolerance = tolerance_at(mzs[j]);
+        auto it = std::lower_bound(by_mz.begin(), by_mz.end(), mzs[j] - tolerance, [](const auto& a, double mz) { return a.first < mz; });
+        for (; it != by_mz.end() && it->first <= mzs[j] + tolerance; ++it)
+        {
+          const Feature& channel = *it->second;
+          if (channel.getCharge() != hit.getCharge() || compensationVoltage_(channel) != cv) { continue; }
+          const DBoundingBox<2> box = channel.getConvexHull().getBoundingBox();
+          if (id.getRT() < box.minX() - rt_tolerance || id.getRT() > box.maxX() + rt_tolerance) { continue; }
+          // in a complete multiplet the identification's channel was detected and did not match it (placeholders added
+          // below for earlier identifications have no unique id and do not count)
+          const auto& handles = multiplets[multiplet_of.at(channel.getUniqueId())].getFeatures();
+          if (static_cast<Size>(std::count_if(handles.begin(), handles.end(), [](const FeatureHandle& h) { return h.hasValidUniqueId(); })) >= multiplicity_)
+          {
+            continue;
+          }
+          const double error = std::abs(channel.getMZ() - mzs[j]);
+          if (error < best_error)
+          {
+            best = &channel;
+            best_error = error;
+          }
+        }
+      }
+      if (best == nullptr)
+      {
+        unassigned.push_back(std::move(id));
+        continue;
+      }
+
+      // the identification's own channel joins the multiplet (unless an earlier identification added it already)
+      ConsensusFeature& multiplet = multiplets[multiplet_of.at(best->getUniqueId())];
+      const double own_mz = mzs[own];
+      vector<FeatureHandle> handles(multiplet.getFeatures().begin(), multiplet.getFeatures().end());
+      if (std::none_of(handles.begin(), handles.end(), [&](const FeatureHandle& h) { return std::abs(h.getMZ() - own_mz) <= tolerance_at(own_mz); }))
+      {
+        FeatureHandle placeholder;
+        placeholder.setMZ(own_mz);
+        placeholder.setRT(multiplet.getRT());
+        placeholder.setCharge(hit.getCharge());
+        placeholder.setIntensity(0.0);
+        handles.push_back(placeholder);
+        // channels in m/z order, numbered from 0 like a detected (partial) pattern; the lightest is the anchor
+        std::sort(handles.begin(), handles.end(), [](const FeatureHandle& a, const FeatureHandle& b) { return a.getMZ() < b.getMZ(); });
+        ConsensusFeature::HandleSetType renumbered;
+        for (Size i = 0; i < handles.size(); ++i)
+        {
+          handles[i].setMapIndex(i);
+          renumbered.insert(handles[i]);
+        }
+        multiplet.setFeatures(std::move(renumbered));
+        multiplet.setMZ(handles.front().getMZ());
+      }
+      // the channel is settled by keepMultiAssignedOnClosest_
+      id.setMetaValue("map_index", 0);
+      multiplet.getPeptideIdentifications().push_back(std::move(id));
+      ++attached;
+    }
+    multiplets.getUnassignedPeptideIdentifications() = std::move(unassigned);
+
+    if (attached > 0)
+    {
+      OPENMS_LOG_INFO << attached << " identification(s) of channels the detection did not find were attached to the multiplet of their "
+                      << "peptide, detected in another channel." << endl;
+    }
+  }
+
   /**
     @brief Attach every spectrum match to the closest channel, and to the closest multiplet only.
 
-    IDMapper attaches an identification to every multiplet within its tolerances and records the
-    first channel within tolerance as its 'map_index'. The resolver reads that index as the channel
-    the spectrum belongs to, so it is set to the channel closest to the precursor m/z here (the same
-    channel whenever the tolerance is smaller than the label shift). One spectrum is evidence for one
-    multiplet, too (and a QPX PSM may reference one feature): it stays with the multiplet whose
-    closest channel is closest to the precursor in m/z, then in RT. This runs before the best-scoring
+    The mapping attaches an identification to every multiplet within its tolerances and records the
+    channel it matched as its 'map_index'. The resolver reads that index as the channel the spectrum
+    belongs to, so it is set to the channel closest to the identification's m/z here: the theoretical
+    m/z of the identified peptidoform, whose labels name its channel (the precursor m/z can be off by
+    isotopes and then lie closer to another channel, e.g. Lys4 at charge 3). One spectrum is evidence
+    for one multiplet, too (and a QPX PSM may reference one feature): it stays with the multiplet whose
+    closest channel is closest to the identification in m/z, then in RT. This runs before the best-scoring
     match is chosen per multiplet, so that a multiplet does not first take a neighbour's
     better-scoring spectrum and then lose it, ending up without its own. Distinct spectra of the same
     peptide on distinct multiplets are not touched: both multiplets are quantified and their channel
@@ -794,12 +1131,14 @@ protected:
         PeptideIdentification& id = ids[i];
         if (id.getHits().empty()) { continue; }
 
-        // the channel closest to the precursor is the one the spectrum belongs to
+        // the channel closest to the identified peptidoform is the one the spectrum belongs to
+        const PeptideHit& hit = id.getHits()[0];
+        const double id_mz = hit.getCharge() != 0 ? hit.getSequence().getMZ(hit.getCharge()) : id.getMZ();
         double best_ppm = std::numeric_limits<double>::infinity(), best_rt = 0.0;
         Size best_map_index = 0;
         for (const FeatureHandle& handle : cf.getFeatures())
         {
-          const double ppm = std::abs(handle.getMZ() - id.getMZ()) / handle.getMZ() * 1e6;
+          const double ppm = std::abs(handle.getMZ() - id_mz) / handle.getMZ() * 1e6;
           if (ppm < best_ppm)
           {
             best_ppm = ppm;
@@ -847,6 +1186,163 @@ protected:
   }
 
   /**
+    @brief Of several identifications on one multiplet, keep those whose labels agree with its mass shifts.
+
+    The best-scoring identification is the one a multiplet is quantified under, and if its labels contradict the detected mass
+    shifts, the multiplet is a quant/ID conflict - even when another identification on it fits (e.g. the best one comes from
+    a co-isolated peptide). So the identifications that fit are preferred: those that do not are moved to the unassigned ones
+    (they remain PSMs for protein inference). A multiplet that none of its identifications fits stays a conflict.
+  */
+  static void keepConsistentIdentifications_(ConsensusMap& multiplets, const MultiplexResolverAlgorithm& resolver)
+  {
+    Size moved = 0;
+    for (auto& cf : multiplets)
+    {
+      PeptideIdentificationList& ids = cf.getPeptideIdentifications();
+      if (ids.size() < 2) { continue; }
+      const vector<bool> consistent = resolver.checkIdentifications(cf);
+      if (std::none_of(consistent.begin(), consistent.end(), [](bool c) { return c; })) { continue; }
+      if (std::all_of(consistent.begin(), consistent.end(), [](bool c) { return c; })) { continue; }
+      PeptideIdentificationList kept;
+      for (Size i = 0; i < ids.size(); ++i)
+      {
+        if (consistent[i])
+        {
+          kept.push_back(std::move(ids[i]));
+          continue;
+        }
+        ids[i].removeMetaValue("map_index");
+        multiplets.getUnassignedPeptideIdentifications().push_back(std::move(ids[i]));
+        ++moved;
+      }
+      ids = std::move(kept);
+    }
+    if (moved > 0)
+    {
+      OPENMS_LOG_INFO << moved << " identification(s) contradict the labels of the multiplet they were mapped onto, which another "
+                      << "identification on it fits; they are not used for quantification." << endl;
+    }
+  }
+
+  /**
+    @brief The intensity of a channel that the multiplet detection did not find, measured at its expected position.
+
+    Pairs the peaks of the first @p traces isotopic mass traces at @p mz (charge @p charge) with those of the same isotope of
+    the reference channel at @p reference_mz, in the spectra of @p cv between @p rt_lo and @p rt_hi, within the detection's
+    m/z tolerance. The intensity is @p reference_intensity scaled by the ratio of the paired peak intensities, i.e. the ratio
+    is taken where both channels were measured, the way the detection corrects the channels of a multiplet. (An integral of
+    the weak channel on its own would miss the flanks and isotopes that fall below the intensity cutoff and be biased low.)
+    Peaks that belong to a detected pattern (@p blacklist) are not used for the channel. Returns 0 (absent) unless the first
+    two traces of the channel are observed together in at least two spectra (one trace if @p traces is 1).
+  */
+  double requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::optional<double>& cv, double rt_lo,
+                            double rt_hi, double mz, int charge, Size traces, double reference_mz, double reference_intensity) const
+  {
+    if (charge == 0 || traces == 0 || !(reference_intensity > 0.0)) { return 0.0; }
+    const Size required = std::min<Size>(traces, 2);
+    double channel_sum = 0.0, reference_sum = 0.0;
+    Size together = 0;
+    for (auto it = spectra.RTBegin(rt_lo); it != spectra.RTEnd(rt_hi); ++it)
+    {
+      if (compensationVoltage_(*it) != cv) { continue; }
+      // the blacklisted peaks of this spectrum, if any (same RT and CV)
+      const MSSpectrum* black = nullptr;
+      for (auto b = blacklist.RTBegin(it->getRT()); b != blacklist.end() && b->getRT() == it->getRT(); ++b)
+      {
+        if (compensationVoltage_(*b) == cv) { black = &*b; break; }
+      }
+      Size found = 0;
+      for (Size k = 0; k < traces; ++k)
+      {
+        const double shift = static_cast<double>(k) * Constants::C13C12_MASSDIFF_U / charge;
+        const Int index = it->findNearest(mz + shift, detectionMZTolerance_(mz + shift));
+        if (index < 0) { continue; }
+        const Peak1D& peak = (*it)[index];
+        if (black != nullptr && black->findNearest(peak.getMZ(), 1e-9) >= 0) { continue; }
+        if (k < required) { ++found; }
+        const Int reference = it->findNearest(reference_mz + shift, detectionMZTolerance_(reference_mz + shift));
+        if (reference < 0) { continue; }
+        channel_sum += peak.getIntensity();
+        reference_sum += (*it)[reference].getIntensity();
+      }
+      if (found == required) { ++together; }
+    }
+    if (together < 2 || !(reference_sum > 0.0)) { return 0.0; }
+    return reference_intensity * channel_sum / reference_sum;
+  }
+
+  /**
+    @brief Re-quantify the channels that completed multiplets lack (dummy features with intensity 0).
+
+    A partial multiplet is completed by the resolver with a dummy feature per missing channel: intensity NaN if another
+    detected pattern overlaps with its position (not quantifiable), otherwise 0. Such a 0 only says that the detection did
+    not find the channel, which can be too weak for its isotope pattern, correlation or intensity filters (e.g. a 1:10
+    mixture). It is replaced by the signal at the channel's expected position over the elution region of the multiplet,
+    relative to the most intense detected channel and with as many mass traces as the detected channels have
+    (requantifyChannel_), so that a weak channel still yields a ratio and only a really absent one is reported as 0 (like
+    MaxQuant's 're-quantify').
+  */
+  void requantifyMissingChannels_(ConsensusMap& resolved, const FeatureMap& channels, const MSExperiment& centroided,
+                                  const MSExperiment& blacklist) const
+  {
+    std::unordered_map<UInt64, const Feature*> channel_of;
+    for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
+
+    Size requantified = 0, absent = 0;
+    for (auto& cf : resolved)
+    {
+      // the elution region and the number of mass traces of the detected channels, and the most intense one
+      double rt_lo = std::numeric_limits<double>::max(), rt_hi = std::numeric_limits<double>::lowest();
+      Size traces = 0;
+      bool has_dummy = false;
+      const FeatureHandle* reference = nullptr;
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        const auto it = channel_of.find(handle.getUniqueId());
+        if (it == channel_of.end())
+        {
+          has_dummy = has_dummy || handle.getIntensity() == 0.0;
+          continue;
+        }
+        const DBoundingBox<2> box = it->second->getConvexHull().getBoundingBox();
+        rt_lo = std::min(rt_lo, box.minX());
+        rt_hi = std::max(rt_hi, box.maxX());
+        traces = std::max(traces, it->second->getConvexHulls().size());
+        if (reference == nullptr || handle.getIntensity() > reference->getIntensity()) { reference = &handle; }
+      }
+      if (!has_dummy || traces == 0 || reference == nullptr) { continue; }
+      const double reference_mz = reference->getMZ(), reference_intensity = reference->getIntensity();
+
+      const std::optional<double> cv = compensationVoltage_(cf);
+      ConsensusFeature::HandleSetType handles;
+      for (FeatureHandle handle : cf.getFeatures())
+      {
+        if (handle.getIntensity() == 0.0 && !channel_of.contains(handle.getUniqueId()))
+        {
+          const double intensity = requantifyChannel_(centroided, blacklist, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(), traces,
+                                                      reference_mz, reference_intensity);
+          if (intensity > 0.0)
+          {
+            handle.setIntensity(intensity);
+            ++requantified;
+          }
+          else
+          {
+            ++absent;
+          }
+        }
+        handles.insert(handle);
+      }
+      cf.setFeatures(std::move(handles));
+    }
+    if (requantified + absent > 0)
+    {
+      OPENMS_LOG_INFO << "Re-quantified " << requantified << " channel(s) the detection did not find; " << absent
+                      << " show no signal at their expected position and are reported as absent." << endl;
+    }
+  }
+
+  /**
     @brief Quantify one run: multiplet detection, ID mapping, conflict resolution, multiplet completion.
 
     The result has one column per channel (map index = channel position), labelled with the channel's
@@ -872,22 +1368,46 @@ protected:
     if (e != EXECUTION_OK) { return e; }
 
     ConsensusMap multiplets;
-    MSExperiment blacklist;
-    e = detectMultiplets_(mz_file, std::move(ms1), multiplets, blacklist);
-    if (e != EXECUTION_OK) { return e; }
+    MSExperiment blacklist, centroided;
+    FeatureMap channels;
+    {
+      FeatureMap features;
+      e = detectMultiplets_(mz_file, std::move(ms1), multiplets, features, blacklist, centroided);
+      if (e != EXECUTION_OK) { return e; }
+      // partial multiplets that flank a larger one of the same peptide become part of it; every channel is described
+      // by where its multiplet elutes
+      channels = mergeFragments_(multiplets, features);
+    }
 
-    // map the identifications onto the multiplets: a multiplet matches if any of its channels does,
-    // and the matched channel is recorded (needed by the resolver)
+    // map the identifications onto the multiplets: an identification matches a multiplet if it lies in the elution
+    // region of one of its channels (plus the tolerances), and the matched channel is recorded (needed by the resolver)
     {
       IDMapper mapper;
       Param idm_param = getParam_().copy("id_mapping:", true);
       writeDebug_("Parameters passed to IDMapper", idm_param, 3);
       mapper.setParameters(idm_param);
-      MS1LabeledFAIMS::annotate(mapper, multiplets, peptide_ids, protein_ids);
+      MS1LabeledFAIMS::annotate(mapper, multiplets, channels, peptide_ids, protein_ids);
     }
+
+    MultiplexResolverAlgorithm resolver;
+    {
+      Param res_param;
+      res_param.insert("algorithm:", getParam_().copy("resolver:", true));
+      res_param.setValue("algorithm:labels", labels_);
+      res_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
+      res_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
+      writeDebug_("Parameters passed to MultiplexResolverAlgorithm", res_param, 3);
+      resolver.setParameters(res_param);
+    }
+
+    // an identification of a channel the detection missed joins the multiplet detected in the peptide's other channels
+    if (knock_out_) { attachToUndetectedChannels_(multiplets, channels, resolver); }
 
     // a spectrum match that landed on several multiplets stays on the closest one only
     keepMultiAssignedOnClosest_(multiplets);
+
+    // identifications whose labels fit the multiplet are preferred over better-scoring ones that do not
+    keepConsistentIdentifications_(multiplets, resolver);
 
     // one identification (the best) per multiplet
     IDConflictResolverAlgorithm::resolve(multiplets);
@@ -898,15 +1418,6 @@ protected:
 
     // remove quant/ID conflicts and complete the multiplets
     {
-      MultiplexResolverAlgorithm resolver;
-      Param res_param;
-      res_param.insert("algorithm:", getParam_().copy("resolver:", true));
-      res_param.setValue("algorithm:labels", labels_);
-      res_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
-      res_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
-      writeDebug_("Parameters passed to MultiplexResolverAlgorithm", res_param, 3);
-      resolver.setParameters(res_param);
-
       ConsensusMap conflicts;
       resolver.resolve(multiplets, resolved, conflicts, blacklist);
       const Size n_resolved = resolved.size();
@@ -918,9 +1429,13 @@ protected:
         {
           ++unidentified;
           // With match between runs, a complete unidentified multiplet is kept: linking can hand it the
-          // identification of a multiplet at the same position in another run. Its channels are in
-          // pattern order, which is what the columns mean (guaranteed by 'knock_out' = false).
-          if (match_between_runs_ && cf.size() == multiplicity_)
+          // identification of a multiplet at the same position in another run. A complete multiplet was
+          // detected by a complete pattern, whose channels are in the order of the columns; the channels
+          // of a partial one are only known from an identification. (A channel added for an identification that
+          // was then attached elsewhere has no unique id: it was not detected.)
+          if (match_between_runs_
+              && static_cast<Size>(std::count_if(cf.getFeatures().begin(), cf.getFeatures().end(),
+                                                 [](const FeatureHandle& h) { return h.hasValidUniqueId(); })) == multiplicity_)
           {
             resolved.push_back(cf);
             ++kept_for_mbr;
@@ -939,6 +1454,22 @@ protected:
       OPENMS_LOG_INFO << "Resolved " << n_resolved << " multiplet(s); " << conflicts_with_id
                       << " identified multiplet(s) contradict their labels and are not quantified; " << unidentified
                       << " multiplet(s) are unidentified, " << kept_for_mbr << " of them kept for match between runs." << endl;
+    }
+
+    // the channels the detection did not find are measured where they are expected
+    if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist); }
+
+    // The handles referred to the run's channel features by unique id; those are internal to this run and
+    // not part of any output.
+    for (auto& cf : resolved)
+    {
+      ConsensusFeature::HandleSetType handles;
+      for (FeatureHandle handle : cf.getFeatures())
+      {
+        handle.setUniqueId(UniqueIdInterface::INVALID);
+        handles.insert(handle);
+      }
+      cf.setFeatures(std::move(handles));
     }
 
     // A dummy channel whose region was blacklisted during feature detection is "not quantifiable" (NaN).
@@ -1509,11 +2040,13 @@ protected:
     }
 
     match_between_runs_ = getStringOption_("match_between_runs") == "true";
-    if (match_between_runs_ && getParam_().getValue("algorithm:knock_out").toString() == "true")
+    requantify_ = getStringOption_("requantify") == "true";
+    knock_out_ = getParam_().getValue("algorithm:knock_out").toString() == "true";
+    if (knock_out_ && multiplicity_ > 4)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "'-match_between_runs true' cannot be combined with '-algorithm:knock_out': with knock-outs, the channels of a multiplet "
-        "are only ordered by its sequence, which an unidentified multiplet does not have.");
+      OPENMS_LOG_WARN << "Warning: the detection of partial multiplets ('algorithm:knock_out') supports up to four channels; '-labels "
+                      << labels_ << "' has " << multiplicity_ << ". Only multiplets in which every channel is detected are quantified." << endl;
+      knock_out_ = false;
     }
 
     if (getStringOption_("protein_quantification") == "strictly_unique_peptides" && in_db.empty())
@@ -1809,6 +2342,8 @@ private:
   vector<std::string> channel_descriptions_;     ///< per channel: PSI-MS names of its labels, for the column header
   std::map<std::string, vector<std::string>> label_long_to_shorts_; ///< PSI-MS name -> short names of '-labels' using it
   bool match_between_runs_ = false;    ///< keep unidentified multiplets so that linking can identify them from other runs
+  bool knock_out_ = true;              ///< detect partial multiplets as well ('algorithm:knock_out', up to four channels)
+  bool requantify_ = true;             ///< re-quantify the channels of partial multiplets from the MS1 peaks
   ExperimentalDesign design_;
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;

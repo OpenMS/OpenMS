@@ -18,6 +18,7 @@
 #include <xercesc/util/XMLString.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <stdexcept>
@@ -694,8 +695,32 @@ void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& 
   if (acc == "IMS:1000031") { meta_.imaging_mode        = "processed";   return; }
   if (acc == "IMS:1000091") { meta_.ibd_sha1            = val;           return; }
   if (acc == "IMS:1000090") { meta_.ibd_md5             = val;           return; }
-  if (acc == "IMS:1000046") { meta_.pixel_size_x  = parseImsDouble_(file_, acc, val); return; }
-  if (acc == "IMS:1000047") { meta_.pixel_size_y  = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "IMS:1000046" || acc == "IMS:1000047")
+  {
+    const bool is_x = (acc == "IMS:1000046");
+    if (!is_x) { pixel_size_y_given_ = true; }
+    // IMS:1000046/47 only require a UO length unit; files without one are taken as micrometer
+    const std::string unit_acc = unit_accession.empty() ? "UO:0000017" : unit_accession;
+    const std::optional<int> exponent = lengthUnitExponent(unit_acc);
+    if (!exponent)
+    {
+      OPENMS_LOG_WARN << "imzML: unit '" << unit_accession << "' of " << acc
+                      << " is not a supported length unit; pixel size left unknown." << std::endl;
+      return;
+    }
+    double& size = is_x ? meta_.pixel_size_x : meta_.pixel_size_y;
+    size = parseImsDouble_(file_, acc, val);
+    if ((is_x ? meta_.pixel_size_y : meta_.pixel_size_x) > 0)
+    {
+      // the other axis was read first: convert this value into its unit
+      size *= std::pow(10.0, *exponent - *lengthUnitExponent(cv_.getTermByName(meta_.pixel_size_unit).id));
+    }
+    else
+    {
+      meta_.pixel_size_unit = cv_.getTerm(unit_acc).name;
+    }
+    return;
+  }
   if (acc == "IMS:1000080") { if (!val.empty()) meta_.uuid = val;        return; }
   if (acc == "IMS:1000044") { meta_.max_dim_x     = parseImsDouble_(file_, acc, val); return; }
   if (acc == "IMS:1000045") { meta_.max_dim_y     = parseImsDouble_(file_, acc, val); return; }

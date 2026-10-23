@@ -34,9 +34,11 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -94,17 +96,16 @@ using namespace std;
 
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
-  in which each consensus feature represents one identified PSM together with its reporter ions.
+  in which each consensus feature represents one identified spectrum together with its reporter ions.
 
-  Because a consensus feature is created per identification, and all identifications of one
-  spectrum read the same MS2/MS3 scan, the input is expected to carry one identification per
-  spectrum. Where several of them agree on peptidoform and charge, only the best-scoring one is
-  kept and the reduction is reported; the others would otherwise contribute the same reporter
-  intensities a second time to every abundance derived from them. Results from several search
-  engines must therefore be combined - with @ref TOPP_ConsensusID (@p -algorithm best
-  @p -keep_old_scores, which preserves each engine's score) - rather than simply concatenated.
-  Identifications of one spectrum naming *different* peptidoforms are left alone and each
-  quantified separately.
+  All identifications of one spectrum read the same MS2/MS3 scan, so one consensus feature carries
+  all of them and the scan's reporter intensities are counted once. Identifications of one spectrum
+  that agree on peptidoform and charge are reduced to the best-scoring one. If they differ in
+  peptidoform or charge (a chimeric spectrum, or search engines that disagree), the spectrum is
+  credited to the best-scoring identification that survives filtering, judged by the scores in the
+  input; the others are moved to the unassigned peptide identifications. Both cases are reported. One
+  identification per spectrum is still expected: pass the results of one search engine rather than
+  concatenating those of several, whose scores are not comparable.
 
   At least one of @p out, @p out_mzTab, or @p out_qpx must be specified; each output is optional individually.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
@@ -218,11 +219,11 @@ protected:
     });
     registerInputFileList_("in_id", "<file>", {},
       "corresponding input PSMs.\n"
-      "One identification per spectrum is expected: this tool quantifies one consensus feature\n"
-      "per identification, so several identifications of one spectrum agreeing on peptidoform\n"
-      "and charge would contribute the same reporter intensities more than once. Only the\n"
-      "best-scoring one of such a group is kept. Combine results from several search engines\n"
-      "with ConsensusID rather than concatenating them.");
+      "One identification per spectrum is expected. Of several identifications of one spectrum\n"
+      "agreeing on peptidoform and charge, only the best-scoring one is kept. Each spectrum is\n"
+      "quantified once: if its identifications differ in peptidoform or charge, it is credited to\n"
+      "the best-scoring one that survives filtering, and the others become unassigned. Pass the\n"
+      "results of one search engine rather than concatenating those of several.");
     setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
@@ -233,7 +234,7 @@ protected:
 
     registerOutputDir_("out_qpx", "<directory>", "", "Optional output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). At least one output must be specified.", false, false);
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
-    registerFlag_("count_sps_matches", "For SPS-MS3: count how many of the co-isolated MS3 precursors (SPS ions) match a b/y fragment ion of the identified peptide. The count is stored as meta value 'sps_matched_ions' on the consensus feature. Off by default.", true);
+    registerFlag_("count_sps_matches", "For SPS-MS3: count how many of the co-isolated MS3 precursors (SPS ions) match a b/y fragment ion of the identified peptide. The count is stored as meta value 'sps_matched_ions' on the consensus feature; a spectrum whose identifications name different peptides is not annotated. Off by default.", true);
     registerDoubleOption_("sps_fragment_mass_tolerance", "<tolerance>", 20.0, "Mass tolerance for matching MS3 SPS precursors to theoretical b/y fragment ions of the identified peptide (only used with 'count_sps_matches').", false, true);
     registerStringOption_("sps_fragment_mass_tolerance_unit", "<unit>", "ppm", "Unit of 'sps_fragment_mass_tolerance'.", false, true);
     setValidStrings_("sps_fragment_mass_tolerance_unit", {"ppm", "Da"});
@@ -368,6 +369,27 @@ protected:
     if (calc_id_purity || !has_ms3)
     {
       double ms1_purity = -1.;
+      // FAIMS: the precursor spectrum must have the CV of the identified scan. Without a precursor spectrum reference,
+      // getPrecursorSpectrum() returns the preceding MS1 spectrum, which can be of another CV: then take the last MS1
+      // spectrum of the scan's CV before it (none: no purity). This applies only when that precursor MS1 spectrum
+      // carries a CV itself: files where only MS2 spectra carry the CV keep the plain preceding MS1, as in
+      // IsobaricChannelExtractor.
+      const MSSpectrum& id_spec = exp[id_spec_idx];
+      const bool faims = id_spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                         && ms1_spec_idx >= 0
+                         && exp[ms1_spec_idx].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      const auto same_cv = [&id_spec, faims](const MSSpectrum& s)
+      {
+        if (!faims) return true;
+        return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+               && std::fabs(s.getDriftTime() - id_spec.getDriftTime()) < 0.01;
+      };
+      if (faims && ms1_spec_idx >= 0 && !same_cv(exp[ms1_spec_idx]))
+      {
+        int idx = id_spec_idx - 1;
+        while (idx >= 0 && !(exp[idx].getMSLevel() == 1 && same_cv(exp[idx]))) { --idx; }
+        ms1_spec_idx = idx;
+      }
       // An MS2 with no preceding MS1 has no survey scan to measure isolation purity against --
       // an acquisition that starts mid-cycle, or an mzML filtered down to a spectrum subset.
       // MSExperiment::getPrecursorSpectrum() reports that as -1, which is NOT a spectrum index:
@@ -386,6 +408,8 @@ protected:
       }
       else
       {
+        // The next MS1 spectrum of the same FAIMS compensation voltage: with FAIMS, the CVs alternate from one MS1
+        // spectrum to the next, and a survey scan of another CV holds other ions
         Size next_ms1_spec = quant_spec_idx;
         do
         {
@@ -396,7 +420,7 @@ protected:
             next_ms1_spec = ms1_spec_idx;
             break;
           }
-          else if (exp[next_ms1_spec].getMSLevel() == 1)          
+          else if (exp[next_ms1_spec].getMSLevel() == 1 && same_cv(exp[next_ms1_spec]))
           {
             break;
           }
@@ -418,10 +442,10 @@ protected:
   }
 
   /**
-   * @brief Fills an existing ConsensusFeature with all kinds of information of an identified and isobarically quantified peptide.
+   * @brief Fills an existing ConsensusFeature with all kinds of information of an identified and isobarically quantified spectrum.
    *
    * @param[out] cf the ConsensusFeature to fill
-   * @param[in] pep information about the PSM (object will be moved)
+   * @param[in] peps all identifications of the spectrum (will be moved)
    * @param[in] exp the MSExperiment to extract information about spectra
    * @param[in] id_spec_idx index of the identifying spectrum
    * @param[in] quant_spec_idx index of the quantifying spectrum
@@ -433,7 +457,7 @@ protected:
    * @param[in] file_idx index of the file in the input list
    * @param[in] spec_idx index of the spectrum over all files
    */
-  void inline fillConsensusFeature_(ConsensusFeature & cf, PeptideIdentification& pep,
+  void inline fillConsensusFeature_(ConsensusFeature & cf, PeptideIdentificationList& peps,
    const MSExperiment& exp, Size id_spec_idx, Size quant_spec_idx, const std::vector<double>& itys,
    const std::unique_ptr<IsobaricQuantitationMethod>& quant_method, double quant_purity, double id_purity,
    double min_reporter_intensity, Size file_idx)
@@ -494,11 +518,118 @@ protected:
 
       cf.setCharge(id_spec.getPrecursors()[0].getCharge());
       cf.setIntensity(overall_intensity);
-      pep.setIdentifier(ID_RUN_NAME_);
-      // Set id_merge_index to track which input file this peptide identification originated from.
-      // This is required for proper mzTab export when multiple files are merged into a single ID run.
-      pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_idx);
-      cf.setPeptideIdentifications({std::move(pep)});
+      for (auto& pep : peps)
+      {
+        pep.setIdentifier(ID_RUN_NAME_);
+        // Set id_merge_index to track which input file this peptide identification originated from.
+        // This is required for proper mzTab export when multiple files are merged into a single ID run.
+        pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_idx);
+      }
+      cf.getPeptideIdentifications() = std::move(peps);
+  }
+
+  /**
+   * @brief Orders the identifications of one spectrum best first, by the score of their best target hit.
+   *
+   * The FDR removes decoy hits, so an identification whose top hit is a decoy can only be credited
+   * with a target hit below it, and is ranked by that one. Identifications without target hits go
+   * last; equal scores keep the input order. If the identifications with hits differ in score type or
+   * orientation, their scores are not comparable and the order is left unchanged.
+   *
+   * @param[in,out] peps the identifications of one spectrum, each with its hits sorted best first
+   * @return false if the scores were not comparable
+   */
+  static bool sortBestFirst_(PeptideIdentificationList& peps)
+  {
+    const PeptideIdentification* reference = nullptr;
+    for (const auto& pep : peps)
+    {
+      if (pep.getHits().empty()) { continue; }
+      if (reference == nullptr) { reference = &pep; }
+      else if (pep.getScoreType() != reference->getScoreType()
+            || pep.isHigherScoreBetter() != reference->isHigherScoreBetter())
+      {
+        return false;
+      }
+    }
+    if (reference == nullptr) { return true; }
+
+    const auto best_target = [](const PeptideIdentification& pep) -> const PeptideHit*
+    {
+      const auto& hits = pep.getHits();
+      const auto it = std::find_if(hits.begin(), hits.end(), [](const PeptideHit& hit) { return !hit.isDecoy(); });
+      return it == hits.end() ? nullptr : &*it;
+    };
+    const bool higher_better = reference->isHigherScoreBetter();
+    std::stable_sort(peps.begin(), peps.end(), [&best_target, higher_better](const PeptideIdentification& left, const PeptideIdentification& right)
+    {
+      const PeptideHit* left_hit = best_target(left);
+      const PeptideHit* right_hit = best_target(right);
+      if (left_hit == nullptr || right_hit == nullptr)
+      {
+        return left_hit != nullptr && right_hit == nullptr;
+      }
+      return higher_better ? left_hit->getScore() > right_hit->getScore() : left_hit->getScore() < right_hit->getScore();
+    });
+    return true;
+  }
+
+  /**
+   * @brief Credits each consensus feature to its first identification with a hit.
+   *
+   * The identifications of a feature are sorted best first by the input score of their best target
+   * hit (see sortBestFirst_). The FDR removes the decoy hits and filtering only removes hits, so the
+   * first identification with a hit is the best-scoring survivor and is credited with that hit.
+   * Reporter intensities can only be attributed to one peptidoform at one charge: identifications that
+   * agree with it on both are kept, the others and those without hits are moved to the unassigned
+   * peptide identifications. A feature without any hit is left unchanged.
+   *
+   * Scores after filtering are not compared: q-values tie heavily, and a peptide-level q-value rates
+   * the peptide's best match in any spectrum, not its match to this one. Identifications keep more
+   * than one hit only with Bayesian inference keeping several PSMs per spectrum and a PSM-level FDR
+   * (the peptide-level FDR keeps each identification's best hit only). There, a filter that removes
+   * an identification's best target hit but keeps a worse one (removing the hits of filtered proteins
+   * with -delete_unreferenced_peptide_hits, or of shared peptides with strictly_unique_peptides) can
+   * leave that worse hit ahead of a better one of another identification.
+   *
+   * @param[in,out] cmap the consensus map
+   * @return the number of features whose identifications differed in peptidoform or charge
+   */
+  static Size creditBestPeptidoform_(ConsensusMap& cmap)
+  {
+    Size conflicting_features = 0;
+    auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+    for (auto& cf : cmap)
+    {
+      auto& peps = cf.getPeptideIdentifications();
+      if (peps.size() < 2) { continue; }
+
+      const auto best = std::find_if(peps.begin(), peps.end(),
+                                     [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
+      if (best == peps.end()) { continue; } // no hits at all: nothing to credit
+
+      // Same sequence comparison (AASequence::operator==) as MzTab and PeptideAndProteinQuant downstream.
+      const AASequence best_sequence = best->getHits()[0].getSequence();
+      const int best_charge = best->getHits()[0].getCharge();
+      PeptideIdentificationList kept;
+      bool conflicting = false;
+      for (auto& pep : peps)
+      {
+        if (!pep.getHits().empty() && pep.getHits()[0].getSequence() == best_sequence
+            && pep.getHits()[0].getCharge() == best_charge)
+        {
+          kept.push_back(std::move(pep));
+        }
+        else
+        {
+          conflicting = conflicting || !pep.getHits().empty();
+          unassigned.push_back(std::move(pep));
+        }
+      }
+      peps = std::move(kept);
+      if (conflicting) { ++conflicting_features; }
+    }
+    return conflicting_features;
   }
 
   std::string addTimeStamp_(std::string& s) const
@@ -681,10 +812,12 @@ protected:
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
 
-      // This tool quantifies one ConsensusFeature per identification (see the resize below), and
-      // all identifications of one spectrum read the same MS2/MS3 scan. Two of them agreeing on
-      // peptidoform and charge would therefore contribute the SAME reporter intensities twice,
-      // to every abundance derived from them. Keep the best-scoring one of each such group.
+      // The reduction below ranks identifications by their best hit and the crediting by their best
+      // target hit, which the input need not store first (protein inference sorts the hits only later).
+      for (auto& pep : pep_ids) { pep.sort(); }
+
+      // Identifications of one spectrum that agree on peptidoform and charge are one match counted
+      // several times (in the FDR, protein inference and peptide counts). Keep the best-scoring one.
       {
         const auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(pep_ids);
         if (report.removed > 0)
@@ -693,9 +826,9 @@ protected:
                           << " repeat a (spectrum, peptidoform, charge) already claimed by another"
                              " identification, e.g. " << report.example << ".\n"
                              "Kept the best-scoring one of each group; the others would have"
-                             " contributed the same reporter intensities a second time. To control"
-                             " this upstream, combine search engine results with ConsensusID"
-                             " (-algorithm best -keep_old_scores) rather than concatenating them."
+                             " counted the same match more than once. To control"
+                             " this upstream, pass the results of one search engine rather than"
+                             " concatenating those of several."
                           << endl;
         }
         if (report.inconsistent_score_direction > 0)
@@ -703,132 +836,213 @@ protected:
           OPENMS_LOG_WARN << "Warning: " << report.inconsistent_score_direction << " group(s) of"
                              " repeated identifications in " << id_file << " disagree on whether a"
                              " higher score is better, so no best one could be chosen. They were"
-                             " left as they are and their reporter intensities will be counted"
-                             " more than once." << endl;
+                             " left as they are." << endl;
         }
         if (report.without_spectrum_reference > 0)
         {
           OPENMS_LOG_INFO << report.without_spectrum_reference << " identification(s) in " << id_file
                           << " carry no spectrum reference and were therefore not checked for"
-                             " repeats. They cannot be quantified either." << endl;
+                             " repeats. They cannot be quantified and are kept as unassigned"
+                             " identifications." << endl;
+        }
+        if (report.multiply_identified_spectra > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << report.multiply_identified_spectra << " spectra in " << id_file
+                          << " carry identifications that differ in peptidoform or charge (a chimeric"
+                             " spectrum, or search engines that disagree). Each such spectrum is"
+                             " quantified once and credited to its best-scoring identification that"
+                             " survives filtering; the others are moved to the unassigned"
+                             " identifications." << endl;
         }
       }
 
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
 
+      // Quantify each spectrum once: all of its identifications read the same MS2/MS3 scan, so one
+      // ConsensusFeature carries all of them. Spectra keep the order in which they first appear.
+      // Within a spectrum, the identifications are sorted best first by the input score of their best
+      // target hit, which rates each one by its own match to the spectrum; creditBestPeptidoform_
+      // relies on this order.
+      std::vector<PeptideIdentificationList> ids_per_spectrum;
+      std::vector<std::string> spectrum_refs;
+      // Identifications that cannot be quantified are kept as unassigned ones. Shared across the
+      // threads of the quantification loop below; insertion there is protected by a critical section.
+      PeptideIdentificationList unassigned_pep_ids;
+      auto keep_unassigned = [&](PeptideIdentification& pep)
+      {
+        pep.setIdentifier(ID_RUN_NAME_);
+        pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
+        unassigned_pep_ids.push_back(std::move(pep));
+      };
+      {
+        std::unordered_map<std::string, Size> spectrum_index;
+        spectrum_index.reserve(pep_ids.size());
+        for (auto& pep : pep_ids)
+        {
+          std::string spec_ref = pep.getSpectrumReference();
+          if (spec_ref.empty()) { keep_unassigned(pep); continue; }
+          const auto [it, inserted] = spectrum_index.try_emplace(std::move(spec_ref), ids_per_spectrum.size());
+          if (inserted)
+          {
+            ids_per_spectrum.emplace_back();
+            spectrum_refs.push_back(it->first);
+          }
+          ids_per_spectrum[it->second].push_back(std::move(pep));
+        }
+      }
+      Size incomparable_spectra = 0;
+      for (auto& peps : ids_per_spectrum)
+      {
+        if (peps.size() > 1 && !sortBestFirst_(peps)) { ++incomparable_spectra; }
+      }
+      if (incomparable_spectra > 0)
+      {
+        OPENMS_LOG_WARN << "Warning: " << incomparable_spectra << " spectra in " << id_file
+                        << " carry identifications with different score types or orientations, so"
+                           " their scores cannot be compared. Each is credited to the first of its"
+                           " identifications in the file that survives filtering." << endl;
+      }
+
       std::vector<ChannelQC> qc;
       qc.resize(quant_method->getNumberOfChannels());
       for (Size i = 0; i < qc.size(); ++i)
       {
-        qc[i].mz_deltas = std::vector<double>(pep_ids.size());
+        qc[i].mz_deltas = std::vector<double>(ids_per_spectrum.size());
       }
 
-      cur_cmap.resize(pep_ids.size());
+      cur_cmap.resize(ids_per_spectrum.size());
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
 
-      // Collect peptide IDs without corresponding MS3 spectra (thread-safe collection)
-      // Note: unassigned_pep_ids is shared across threads; push_back is protected by critical section
-      PeptideIdentificationList unassigned_pep_ids;
-
+      Size missing_spectra = 0;
+      std::string first_missing_spectrum;
       #pragma omp parallel for /*num_threads(inner_threads)*/
-      for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
+      for (int64_t spec_idx = 0; spec_idx < static_cast<int64_t>(ids_per_spectrum.size()); ++spec_idx)
       {
-        auto& pep = pep_ids[pep_idx];
-        const auto& spec_ref = pep.getSpectrumReference();
-        if (!spec_ref.empty())
+        auto& peps = ids_per_spectrum[spec_idx];
+        const std::string& spec_ref = spectrum_refs[spec_idx];
+        auto ms2spec_it = ms2scan_to_index.find(spec_ref);
+        if (ms2spec_it != ms2scan_to_index.end())
         {
-          auto ms2spec_it = ms2scan_to_index.find(spec_ref);
-          if (ms2spec_it != ms2scan_to_index.end())
+          std::vector<std::pair<double,unsigned>> channel_qc(quant_method->getNumberOfChannels(), std::make_pair(std::numeric_limits<double>::quiet_NaN(), 0));
+
+          auto [quant_spec_idx, id_spec_idx, ms1_spec_idx] = getSpecIdxs_(ms2spec_it->second, exp, has_ms3);
+
+          // Check if MS3 spectrum is missing for MS2 spectrum
+          if (has_ms3 && quant_spec_idx == -1)
           {
-            std::vector<std::pair<double,unsigned>> channel_qc(quant_method->getNumberOfChannels(), std::make_pair(std::numeric_limits<double>::quiet_NaN(), 0));
-
-            auto [quant_spec_idx, id_spec_idx, ms1_spec_idx] = getSpecIdxs_(ms2spec_it->second, exp, has_ms3);
-            
-            // Check if MS3 spectrum is missing for MS2 spectrum
-            if (has_ms3 && quant_spec_idx == -1)
+            #pragma omp critical(unassigned_pep_ids_collection)
             {
-              // Store peptide ID with file association for unassigned IDs
-              PeptideIdentification unassigned_pep = pep;
-              unassigned_pep.setIdentifier(ID_RUN_NAME_);
-              unassigned_pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
-              #pragma omp critical(unassigned_pep_ids_collection)
-              {
-                OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second
-                                << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned.\n";
-                unassigned_pep_ids.push_back(std::move(unassigned_pep));
-              }
-              continue;
+              OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second
+                              << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned.\n";
+              for (auto& pep : peps) { keep_unassigned(pep); }
             }
-            
-            auto [quant_purity, id_purity] = getPurities_(quant_spec_idx, id_spec_idx, ms1_spec_idx, exp, has_ms3, max_precursor_isotope_deviation, calc_id_purity, interpolate_precursor_purity);
+            continue;
+          }
 
-            if (has_ms3 && exp[quant_spec_idx].getMSLevel() != 3)
+          // A reporter scan that does not reach every reporter m/z would report zero for the channels it misses.
+          if (!IsobaricChannelExtractor::scanWindowCoversChannels(exp[quant_spec_idx], *quant_method,
+                                                                  channel_extractor.getParameters().getValue("reporter_mass_shift")))
+          {
+            #pragma omp critical(unassigned_pep_ids_collection)
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.",StringUtils::toStr(exp[quant_spec_idx].getMSLevel()));
+              OPENMS_LOG_WARN << "The scan window of spectrum " << exp[quant_spec_idx].getNativeID()
+                              << " does not cover all reporter ions. Skipping quantification and adding to unassigned.\n";
+              for (auto& pep : peps) { keep_unassigned(pep); }
             }
+            continue;
+          }
 
-            std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
+          auto [quant_purity, id_purity] = getPurities_(quant_spec_idx, id_spec_idx, ms1_spec_idx, exp, has_ms3, max_precursor_isotope_deviation, calc_id_purity, interpolate_precursor_purity);
 
-            // For SPS-MS3: optionally count how many of the co-isolated MS3 precursors (SPS ions)
-            // match a theoretical b/y fragment ion of the identified peptide. This estimates how many
-            // of the ions selected for MS3 originate from true fragments of the identified peptide.
-            int sps_matched_ions = -1;
-            int sps_precursor_count = -1;
-            if (count_sps_matches && has_ms3 && !pep.getHits().empty())
+          if (has_ms3 && exp[quant_spec_idx].getMSLevel() != 3)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.",StringUtils::toStr(exp[quant_spec_idx].getMSLevel()));
+          }
+
+          std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
+
+          // For SPS-MS3: optionally count how many of the co-isolated MS3 precursors (SPS ions)
+          // match a theoretical b/y fragment ion of the identified peptide. This estimates how many
+          // of the ions selected for MS3 originate from true fragments of the identified peptide.
+          // Skipped if the identifications name different peptides: the credited one is only decided
+          // after filtering (creditBestPeptidoform_).
+          const AASequence* sps_seq = nullptr;
+          if (count_sps_matches && has_ms3)
+          {
+            for (const auto& pep : peps)
             {
+              if (pep.getHits().empty()) { continue; }
               const AASequence& seq = pep.getHits()[0].getSequence();
-              const auto& sps_precursors = exp[quant_spec_idx].getPrecursors();
-              // SPS fragments of a precursor of charge z are typically singly to (z-1) charged
-              const int id_charge = exp[id_spec_idx].getPrecursors().empty() ? 1 : exp[id_spec_idx].getPrecursors()[0].getCharge();
-              const int max_fragment_charge = std::max(1, id_charge - 1);
-              sps_precursor_count = static_cast<int>(sps_precursors.size());
-              sps_matched_ions = static_cast<int>(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(
-                sps_precursors, seq, sps_fragment_mass_tolerance, sps_fragment_mass_tolerance_unit_ppm, max_fragment_charge));
-            }
-
-            // TODO if itys are all zero we can actually skip correction and quantification
-            // NNLS modifies input, so we need a copy of the correction matrix
-            Matrix<double> m = correction_matrix;
-            std::vector<double> corrected(itys.size(), 0.);
-            NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
-            fillConsensusFeature_(cur_cmap[pep_idx], pep, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
-            if (sps_matched_ions >= 0)
-            {
-              cur_cmap[pep_idx].setMetaValue("sps_matched_ions", sps_matched_ions);
-              cur_cmap[pep_idx].setMetaValue("sps_precursor_count", sps_precursor_count);
-            }
-            for (Size i = 0; i < channel_qc.size(); ++i)
-            {
-              // TODO ProteomeDiscoverer also outputs:
-              //  - Reporter S/N but with S/N they mean the intensity corrected for the noise value from the raw thermo Orbitrap files
-              //    (and I dont think we read them, see https://github.com/compomics/ThermoRawFileParser/blob/c293d4aa1b04bfd62124ff42c512572427a4316a/Writer/MzMlSpectrumWriter.cs#L1664)
-              //  - For SPS-MS3 the number of precursor windows that actually surround a fragment from the identified peptide.
-              //    This is available (opt-in) via the 'count_sps_matches' flag and stored as meta value 'sps_matched_ions'.
-              qc[i].mz_deltas[pep_idx] = channel_qc[i].first;
-              if (channel_qc[i].second > 1)
-              {
-                #pragma omp atomic
-                qc[i].signal_not_unique++;
-              }
+              if (sps_seq == nullptr) { sps_seq = &seq; }
+              else if (seq != *sps_seq) { sps_seq = nullptr; break; }
             }
           }
-          else
+          int sps_matched_ions = -1;
+          int sps_precursor_count = -1;
+          if (sps_seq != nullptr)
           {
-            // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
-            // pruned before the merge below. Should not normally happen: an identified spectrum is
-            // expected to exist in the mzML.
-            OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in spectrum file " << mz_file << ". Skipping." << std::endl;
+            const AASequence& seq = *sps_seq;
+            const auto& sps_precursors = exp[quant_spec_idx].getPrecursors();
+            // SPS fragments of a precursor of charge z are typically singly to (z-1) charged
+            const int id_charge = exp[id_spec_idx].getPrecursors().empty() ? 1 : exp[id_spec_idx].getPrecursors()[0].getCharge();
+            const int max_fragment_charge = std::max(1, id_charge - 1);
+            sps_precursor_count = static_cast<int>(sps_precursors.size());
+            sps_matched_ions = static_cast<int>(PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(
+              sps_precursors, seq, sps_fragment_mass_tolerance, sps_fragment_mass_tolerance_unit_ppm, max_fragment_charge));
+          }
+
+          // TODO if itys are all zero we can actually skip correction and quantification
+          // NNLS modifies input, so we need a copy of the correction matrix
+          Matrix<double> m = correction_matrix;
+          std::vector<double> corrected(itys.size(), 0.);
+          NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
+          fillConsensusFeature_(cur_cmap[spec_idx], peps, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
+          if (sps_matched_ions >= 0)
+          {
+            cur_cmap[spec_idx].setMetaValue("sps_matched_ions", sps_matched_ions);
+            cur_cmap[spec_idx].setMetaValue("sps_precursor_count", sps_precursor_count);
+          }
+          for (Size i = 0; i < channel_qc.size(); ++i)
+          {
+            // TODO ProteomeDiscoverer also outputs:
+            //  - Reporter S/N but with S/N they mean the intensity corrected for the noise value from the raw thermo Orbitrap files
+            //    (and I dont think we read them, see https://github.com/compomics/ThermoRawFileParser/blob/c293d4aa1b04bfd62124ff42c512572427a4316a/Writer/MzMlSpectrumWriter.cs#L1664)
+            //  - For SPS-MS3 the number of precursor windows that actually surround a fragment from the identified peptide.
+            //    This is available (opt-in) via the 'count_sps_matches' flag and stored as meta value 'sps_matched_ions'.
+            qc[i].mz_deltas[spec_idx] = channel_qc[i].first;
+            if (channel_qc[i].second > 1)
+            {
+              #pragma omp atomic
+              qc[i].signal_not_unique++;
+            }
+          }
+        }
+        else
+        {
+          // An identified spectrum missing from the mzML means that the identifications and the
+          // spectra do not belong together (wrong file pairing, or a filtered mzML). Reported after
+          // the loop, since an exception must not leave an OpenMP region.
+          #pragma omp critical(unassigned_pep_ids_collection)
+          {
+            if (missing_spectra == 0) { first_missing_spectrum = spec_ref; }
+            ++missing_spectra;
           }
         }
       }
+      if (missing_spectra > 0)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          std::to_string(missing_spectra) + " identified spectra (e.g. '" + first_missing_spectrum + "') of " + id_file
+          + " are not in the spectrum file " + mz_file + ". Check that the identification and spectrum files"
+            " are given in matching order and that the mzML is the one that was searched.");
+      }
       channel_extractor.printStatsWithMissing(qc);
 
-      // Add peptide IDs without MS3 spectra to unassigned IDs
       if (!unassigned_pep_ids.empty())
       {
-        OPENMS_LOG_INFO << "Adding " << unassigned_pep_ids.size() 
-                        << " peptide identifications without MS3 spectra to unassigned IDs." << std::endl;
+        OPENMS_LOG_INFO << "Adding " << unassigned_pep_ids.size()
+                        << " peptide identifications that could not be quantified to unassigned IDs." << std::endl;
         auto& cmap_unassigned = cmap.getUnassignedPeptideIdentifications();
         cmap_unassigned.insert(cmap_unassigned.end(), 
                                std::make_move_iterator(unassigned_pep_ids.begin()), 
@@ -842,14 +1056,11 @@ protected:
 
       // TODO cleanup, reset?
 
-      // cur_cmap was pre-sized to one ConsensusFeature per peptide ID (resize above) and only the
-      // features we could actually quantify were filled in - fillConsensusFeature_ always inserts at
-      // least one FeatureHandle per channel. Peptide IDs we could not quantify (an identified MS2 with
-      // no corresponding MS3, an identified spectrum missing from the mzML, or one without a spectrum
-      // reference) leave their slot as a default-constructed feature with zero FeatureHandles
-      // (rt/mz/charge = 0, empty sequence, no map association). Their identifications are preserved in
-      // the unassigned peptide IDs, so drop these empty placeholders here instead of merging them into
-      // the output map.
+      // cur_cmap holds one ConsensusFeature per identified spectrum (resize above), and
+      // fillConsensusFeature_ gives each quantified one at least one FeatureHandle per channel. A
+      // spectrum that could not be quantified (an MS2 without MS3, or a spectrum missing from the
+      // mzML) left an empty default-constructed feature. Drop those; their identifications are kept in
+      // the unassigned peptide IDs.
       const Size before_prune = cur_cmap.size();
       cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
                                [](const ConsensusFeature& cf) { return cf.empty(); }),
@@ -987,13 +1198,15 @@ protected:
       fdr.applyBasic(proteins);
     }
     
+    // Unassigned identifications (e.g. of an MS2 without MS3) are PSMs too: -psmFDR filters them below
+    // and they are exported, so they get FDRs/q-values like the others (as in ProteomicsLFQ).
     if (getStringOption_("FDR_type") == "PSM+peptide")
     { 
-      fdr.applyBasicPeptideLevel(cmap, false);
+      fdr.applyBasicPeptideLevel(cmap, true);
     }
     else 
     {
-      fdr.applyBasic(cmap, false);
+      fdr.applyBasic(cmap, true);
     }
     
 
@@ -1079,6 +1292,15 @@ protected:
       proteins.fillIndistinguishableGroupsWithSingletons();
     }
 
+    // Inference and FDR used every identification of a spectrum; quantification and the exporters
+    // need one peptidoform per feature.
+    if (const Size credited = creditBestPeptidoform_(cmap); credited > 0)
+    {
+      OPENMS_LOG_INFO << "Credited " << credited << " spectra whose identifications differ in peptidoform"
+                         " or charge to one of them (the best-scoring one where their scores are"
+                         " comparable); the others were moved to the unassigned peptide identifications."
+                      << endl;
+    }
 
     PeptideAndProteinQuant prot_quantifier;
     prot_quantifier.setParameters(pq_param);

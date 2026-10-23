@@ -13,11 +13,13 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 
+#include <limits>
 #include <set>
 
 using namespace OpenMS;
@@ -435,6 +437,30 @@ START_SECTION((bool writeTableToParquet(const std::shared_ptr<arrow::Table>&, co
   NEW_TMP_FILE(failed_file)
   TEST_FALSE(ArrowIOHelpers::writeTableToParquet(table, failed_file, no_row_group))
   TEST_FALSE(File::exists(failed_file))
+}
+END_SECTION
+
+START_SECTION((std::string metaValueString(const DataValue& value)))
+{
+  // doubles in their shortest form that reads back as the same double
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(-3.6414734172058556)), "-3.6414734172058556")
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(0.30000000000000004)), "0.30000000000000004")
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(0.5)), "0.5")
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(1e-300)), "1e-300")
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(std::numeric_limits<double>::quiet_NaN())), "NaN")
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(-std::numeric_limits<double>::infinity())), "-inf")
+  for (double d : {-3.6414734172058556, 0.30000000000000004, 7.3296492739417545, 0.012345678901234567, 1234.5678901234567, 2.5e20})
+  {
+    TEST_EQUAL(StringUtils::toDouble(ArrowIOHelpers::metaValueString(DataValue(d))) == d, true)
+  }
+  // lists in the format of DataValue::toString()
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(DoubleList{0.30000000000000004, -1.0, 2.5})), "[0.30000000000000004, -1, 2.5]")
+  TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(DataValue(DoubleList{})), "[]")
+  // everything else as DataValue::toString()
+  for (const DataValue& v : {DataValue(42), DataValue("text"), DataValue(IntList{1, 2}), DataValue(StringList{"a", "b"})})
+  {
+    TEST_STRING_EQUAL(ArrowIOHelpers::metaValueString(v), v.toString())
+  }
 }
 END_SECTION
 

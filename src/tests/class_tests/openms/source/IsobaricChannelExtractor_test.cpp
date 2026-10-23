@@ -17,9 +17,11 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -634,6 +636,62 @@ START_SECTION(([EXTRA] precursor isotope matching and isolation window boundarie
 }
 END_SECTION
 
+START_SECTION(([EXTRA] FAIMS: precursor purity from the MS1 spectra of the same compensation voltage))
+{
+  // CVs alternate: the MS1 of -45 V is clean, the MS1 of -65 V has an interfering peak in the isolation window.
+  // The MS2 at -45 V must use the -45 V MS1 spectra, not the last MS1 spectrum of any CV.
+  auto ms1 = [](double rt, double cv, bool interference)
+  {
+    MSSpectrum s;
+    s.setMSLevel(1);
+    s.setRT(rt);
+    s.setDriftTime(cv);
+    s.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+    s.emplace_back(500.25, 1000.0f);
+    if (interference) s.emplace_back(500.77, 1000.0f);
+    return s;
+  };
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.5);
+  ms2.setNativeID("scan=3");
+  ms2.setDriftTime(-45.0);
+  ms2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  Precursor precursor;
+  precursor.setMZ(500.25);
+  precursor.setCharge(2);
+  precursor.setIsolationWindowLowerOffset(1.0);
+  precursor.setIsolationWindowUpperOffset(1.0);
+  ms2.setPrecursors({precursor});
+  for (const auto& channel : q_method->getChannelInformation())
+  {
+    ms2.emplace_back(channel.center, 10000.0f);
+  }
+
+  PeakMap exp;
+  exp.addSpectrum(ms1(100.0, -45.0, false));
+  exp.addSpectrum(ms1(100.2, -65.0, true));
+  exp.addSpectrum(ms2);
+  exp.addSpectrum(ms1(101.0, -65.0, true));
+  exp.addSpectrum(ms1(101.2, -45.0, false));
+
+  for (const char* interpolation : {"false", "true"})
+  {
+    IsobaricChannelExtractor ice(q_method);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "any");
+    p.setValue("purity_interpolation", interpolation);
+    p.setValue("min_precursor_purity", 0.0);
+    ice.setParameters(p);
+    ConsensusMap cm_out;
+    ice.extractChannels(exp, cm_out);
+    TEST_EQUAL(cm_out.size(), 1)
+    ABORT_IF(cm_out.size() != 1)
+    TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_purity"), 1.0)
+  }
+}
+END_SECTION
+
 // extra test for tmt10plex to ensure high-res extraction works
 START_SECTION(([EXTRA] TMT 10plex support))
 {
@@ -1012,4 +1070,63 @@ delete q_method;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static bool scanWindowCoversChannels(const MSSpectrum& spec, const IsobaricQuantitationMethod& method, double tolerance = 0.0)))
+{
+  TMTTenPlexQuantitationMethod tmt10;
+  MSSpectrum spec;
+  // no scan window: assume it covers the channels
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  ScanWindow w;
+  w.begin = 100.0;
+  w.end = 2000.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  // TMT10 reporters are at m/z 126.1-131.1: a scan from m/z 120 covers them, a scan from m/z 127 misses 126
+  w.begin = 120.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  w.begin = 127.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), false)
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10, 1.0), true)
+  // disjoint windows: m/z 100-127 and 130-2000 together span the reporters but miss those at m/z 127-130
+  ScanWindow w2;
+  w.begin = 100.0;
+  w.end = 127.0;
+  w2.begin = 130.0;
+  w2.end = 2000.0;
+  spec.getInstrumentSettings().setScanWindows({w, w2});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), false)
+  w.end = 129.0;
+  w2.begin = 129.0;
+  spec.getInstrumentSettings().setScanWindows({w, w2});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PrecursorPurity::isolationWindowCenter))
+{
+  Precursor p;
+  p.setMZ(627.646);
+  TEST_REAL_SIMILAR(PrecursorPurity::isolationWindowCenter(p), 627.646)
+  p.setMetaValue("isolation window target m/z", 627.980);
+  TEST_REAL_SIMILAR(PrecursorPurity::isolationWindowCenter(p), 627.980)
+
+  // the selected ion is the third isotope (charge 2), above the window's target m/z: the isotopes below it, down to
+  // the monoisotopic peak, are inside the window [499, 502] and count as precursor signal
+  PeakSpectrum ms1;
+  const double d = Constants::C13C12_MASSDIFF_U / 2.0;
+  for (int k = 0; k < 4; ++k) ms1.push_back(Peak1D(500.0 + k * d, 100.0f));
+  Precursor pre;
+  pre.setMZ(500.0 + 3 * d);
+  pre.setCharge(2);
+  pre.setMetaValue("isolation window target m/z", 500.0);
+  pre.setIsolationWindowLowerOffset(1.0);
+  pre.setIsolationWindowUpperOffset(2.0);
+  const auto scores = PrecursorPurity::computePrecursorPurity(ms1, pre, 10.0, true);
+  TEST_EQUAL(scores.target_peak_count, 4)
+  TEST_REAL_SIMILAR(scores.signal_proportion, 1.0)
+}
+END_SECTION
+
 END_TEST

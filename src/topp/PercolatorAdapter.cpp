@@ -644,7 +644,7 @@ protected:
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
-            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " Please use the merge_proteins_add_PSMs option if you used IDMerger. Alternatively, pass"
             " all original single-run idXML inputs as list to this tool.",
             "# runs: " + StringUtils::toStr(protein_ids.size()));
       }
@@ -711,7 +711,7 @@ protected:
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
-                         ". Use TOPP_ConsensusID to combine results from different search engines if desired. Aborting!");
+                         ". Results from different search engines cannot be rescored together. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         

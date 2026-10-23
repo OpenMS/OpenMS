@@ -9,6 +9,8 @@
 #include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
@@ -33,9 +35,12 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #endif
 
 #ifdef WITH_THERMO_RAW
@@ -83,6 +88,8 @@ provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to 
 mac, the mono runtime, which the OpenMS packages there do not include, needs to be present and accessible via
 the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can be set via the
 -RawToMzML:ThermoRaw_executable option.
+Both readers also read a ZIP archive that holds one .raw file (e.g. run.raw.zip): the .raw file is extracted
+into the temporary directory first. gzip- or bzip2-compressed raw files (.raw.gz, .raw.bz2) cannot be read.
 The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
 built-in reader, but without vendor peak picking; see
 <a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
@@ -251,7 +258,7 @@ protected:
     registerFlag_("zstd_compression", "[mzML output only] Compress binary data arrays with Zstandard (zstd) instead of zlib (lossless; can be combined with 'lossy_compression'). Attention: not all external tools can read zstd-compressed mzML files yet.", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
-    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML, mzML to cachedMzML and, with RawToMzML:reader inprocess, Thermo RAW to mzML or cachedMzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML/Bruker .d to mzML, mzML/Bruker .d to cachedMzML and, with RawToMzML:reader inprocess, Thermo RAW to mzML or cachedMzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     
 #ifdef WITH_OPENTIMS
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
@@ -263,6 +270,10 @@ protected:
       "Load MS1 spectra. Disable for MS2-only workflows (peptide database search) "
       "where MS1 surveys are not needed — substantially cuts memory and time. Affects all export modes.", false, true);
     setValidStrings_("bruker:load_ms1", {"true", "false"});
+    registerStringOption_("bruker:load_ms2", "<toggle>", "true",
+      "Load MS2 spectra. Disable for MS1-only workflows (feature detection, quantification): "
+      "the MS2 frames are then not read. Affects all export modes.", false, true);
+    setValidStrings_("bruker:load_ms2", {"true", "false"});
     registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
@@ -457,6 +468,7 @@ protected:
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
     c.load_ms1 = (getStringOption_("bruker:load_ms1") == "true");
+    c.load_ms2 = (getStringOption_("bruker:load_ms2") == "true");
     std::string mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
@@ -566,6 +578,7 @@ protected:
     // Options of the mzML writing consumer for -process_lowmemory
     auto configure_writer = [&](PlainMSDataWritingConsumer& consumer) {
       consumer.getOptions().setWriteIndex(write_scan_index);
+      consumer.getOptions().setForceTPPCompatability(force_TPP_compatibility);
       // numpress compression
       if (lossy_compression)
       {
@@ -590,6 +603,19 @@ protected:
 
     writeDebug_(std::string("Loading input file"), 1);
 
+#ifdef WITH_OPENTIMS
+    // Bruker .d is read with BrukerTimsFile directly below (FileHandler cannot pass the bruker: options). Reject MALDI
+    // imaging data (.d directory or .d.zip archive) as FileHandler::loadExperiment() does: read as DDA, it would lose
+    // its pixel geometry.
+    if (in_type == FileTypes::BRUKER_TDF && BrukerTimsImagingFile::isImagingDataset(in))
+    {
+      OPENMS_LOG_ERROR << "Bruker MALDI imaging .d is a mass spectrometry imaging format, which FileConverter cannot convert "
+                          "(the spectra would lose their pixel positions). FileHandler::loadImagingExperiment() in the OpenMS "
+                          "library and pyOpenMS reads it." << std::endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+#endif
+
     if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
     {
       FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
@@ -608,6 +634,14 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
+      // A ZIP archive must hold one .raw file (ThermoRawFile extracts it itself, ThermoRawFileParser gets it extracted
+      // below; TOPPBase has rejected other compression). Checked here for both readers, so that a bad archive is not
+      // reported as a failure of the in-process reader (whose error message points to the .NET runtime).
+      std::string raw_entry; // the .raw file in a ZIP archive
+      if (FileNameUtils::compressionType(in) == FileTypes::ZIP)
+      {
+        raw_entry = ZipArchiveFile::findSingleEntry(in, ".raw");
+      }
       std::string raw_reader = getStringOption_("RawToMzML:reader");
 #ifdef WITH_THERMO_RAW
       if (raw_reader == "inprocess")
@@ -720,7 +754,10 @@ protected:
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments.push_back(getStringOption_("RawToMzML:ThermoRaw_executable"));
 #endif
-      arguments.push_back("--input=" + in);
+      // ThermoRawFileParser reads plain RAW files only; the extracted file is removed after the conversion
+      std::unique_ptr<TempDir> unpacked;
+      const std::string raw_in = raw_entry.empty() ? in : ZipArchiveFile::extractEntryToTempFile(in, raw_entry, unpacked);
+      arguments.push_back("--input=" + raw_in);
       arguments.push_back("--output=" + out);
       arguments.push_back("-f=2"); // indexedMzML
       arguments.push_back("-e"); // ignore instrument errors
@@ -819,7 +856,7 @@ protected:
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
 
-      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
+      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML || in_type == FileTypes::BRUKER_TDF) && out_type == FileTypes::MZML)
       {
         // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
@@ -841,6 +878,19 @@ protected:
           mzxmlfile.transform(in, &consumer, skip_full_count);
           return EXECUTION_OK;
         }
+#ifdef WITH_OPENTIMS
+        else if (in_type == FileTypes::BRUKER_TDF)
+        {
+          // the spectra are written as they are read; see BrukerTimsFile::transform() for the two
+          // configurations that need the whole run in memory all the same
+          BrukerTimsFile tims_file;
+          tims_file.setLogType(log_type_);
+          tims_file.transform(in, &consumer, getBrukerConfig_());
+          return EXECUTION_OK;
+        }
+#endif
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Process_lowmemory: OpenMS was built without support for reading Bruker .d input.");
       }
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
@@ -860,10 +910,37 @@ protected:
 
         return EXECUTION_OK;
       }
+#ifdef WITH_OPENTIMS
+      else if (in_type == FileTypes::BRUKER_TDF && out_type == FileTypes::CACHEDMZML)
+      {
+        const std::string out_meta = extractCachedMetaFilename(out);
+        if (out_meta.empty())
+        {
+          return ILLEGAL_PARAMETERS;
+        }
+        // The spectra go to the cache as they are read. The cache consumer removes their peaks, so only their
+        // metadata is kept for the metadata file.
+        PeakMap exp_meta;
+        {
+          MSDataCachedConsumer cache(out);
+          MSDataTransformingConsumer keep_meta;
+          keep_meta.setExperimentalSettingsFunc([&exp_meta](const ExperimentalSettings& settings) { static_cast<ExperimentalSettings&>(exp_meta) = settings; });
+          keep_meta.setSpectraProcessingFunc([&exp_meta](MSSpectrum& spectrum) { exp_meta.addSpectrum(spectrum); });
+          MSDataChainingConsumer consumer(std::vector<Interfaces::IMSDataConsumer*>{&cache, &keep_meta});
+          BrukerTimsFile tims_file;
+          tims_file.setLogType(log_type_);
+          tims_file.transform(in, &consumer, getBrukerConfig_());
+        }
+        Internal::CachedMzMLHandler cacher;
+        cacher.setLogType(log_type_);
+        cacher.writeMetadata(exp_meta, out_meta);
+        return EXECUTION_OK;
+      }
+#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+          "Process_lowmemory option can only be used with mzML / mzXML / Bruker .d input and mzML output, or with mzML / Bruker .d input and cachedMzML output.");
       }
     }
 #ifdef WITH_OPENTIMS

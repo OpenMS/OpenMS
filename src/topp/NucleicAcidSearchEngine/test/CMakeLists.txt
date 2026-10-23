@@ -26,3 +26,6 @@ target_sources(NASEDigestion_test PRIVATE
 
 target_sources(NASEDigestion_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNAPrecursorCorrector.cpp)
+
+target_sources(NASEDigestion_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNADirectedDeconvolution.cpp)

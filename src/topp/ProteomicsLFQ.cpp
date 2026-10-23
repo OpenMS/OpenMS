@@ -20,7 +20,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -103,9 +102,8 @@ Input: @n
    (spectrum, peptidoform, charge), so where several identifications of one spectrum agree on
    all three, only the best-scoring one is kept and the reduction is reported. The others would
    otherwise count the same measurement more than once, in the PSM-level FDR and in every output.
-   Results from several search engines must therefore be combined - with @ref TOPP_ConsensusID
-   (@p -algorithm best @p -keep_old_scores, which preserves each engine's score) - rather than
-   simply concatenated. Identifications of one spectrum that name *different* peptidoforms are
+   Pass the results of one search engine rather than concatenating those of several, whose
+   scores are not comparable. Identifications of one spectrum that name *different* peptidoforms are
    left alone: a chimeric spectrum yields two distinct measurements.
 
   - An experimental design file: @n
@@ -122,6 +120,10 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
 and RT in other runs.
 
+In the consensusXML (@p -out_cxml), a consensus feature whose identification was transferred lists the runs it was
+transferred to (their map indices) in the meta value @p mbr_transfer_map_indices. With @p -pip_echo @p true, the
+meta value @p mbr_transfer_qvalues holds the q-values of these transfers, in the same order.
+
 @b Match @b between @b runs @b with @b PIP-ECHO (@p -pip_echo @p true): @n
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
@@ -137,6 +139,9 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
   - If there are fewer decoy transfers than @p PipEcho:min_decoys (default 20), or too few to resolve the
     requested FDR, no transfer is kept, and only the direct identifications remain. @p PipEcho:fdr @p 1.0 keeps
     all transfers.
+  - With @p -proteinFDR @p 1 (no protein filter), only precursors (sequence and charge) identified at q-value
+    <= 0.001 in at least one run are transferred. Otherwise a false identification in one run would be copied into
+    every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
   - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
     cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
@@ -183,7 +188,9 @@ would need several times that.
 
 @b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
 FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
-The data is split by CV and processed separately for each voltage group during feature detection.
+The data is split by CV and processed separately for each voltage group: the chromatographic peak width is
+estimated from the mass traces of each CV, untargeted seeds (Seeding:algorithm multiplex or biosaur2) are found
+per CV and extracted at their CV only, and so is every identification.
 Features representing the same analyte detected at different CV values are merged automatically.
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.
@@ -213,8 +220,9 @@ Normalization: @n
     them.
   - Choosing a normalization is a separate, explicit step. Three routes, in increasing distance
     from this tool: @n
-    - @ref TOPP_ConsensusMapNormalizer on -out_cxml (median, quantile, robust regression or
-      thresholded scaling); @n
+    - @ref TOPP_ConsensusMapNormalizer on -out_cxml (median, quantile, robust regression,
+      thresholded scaling, or 'rt_local', which also removes a drift of the signal along the
+      gradient), followed by @ref TOPP_MSstatsConverter for an MSstats file; @n
     - the ProteinQuantification:consensus:normalize parameter, which scales peptide abundances so
       that the median of each (fraction group, label) assay matches the overall median - i.e. it
       normalizes at the assay level rather than per fraction; @n
@@ -268,8 +276,8 @@ protected:
       "ID files must be provided in same order as spectra files.\n"
       "One identification per spectrum is expected: where several identifications of one\n"
       "spectrum agree on peptidoform and charge, only the best-scoring one is kept, since\n"
-      "the others would count the same measurement more than once. Combine results from\n"
-      "several search engines with ConsensusID rather than concatenating them.", false);
+      "the others would count the same measurement more than once. Pass the results of one\n"
+      "search engine rather than concatenating those of several.", false);
     setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -404,6 +412,8 @@ protected:
     ffi_defaults.remove("detect:peak_width"); // set from data
 
     Param ma_defaults = MapAlignmentAlgorithmTreeGuided().getDefaults();
+    // 'model_type' selects the RT model (both alignment orders); 'model:type' would be a second, unused switch
+    ma_defaults.remove("model:type");
 
     ma_defaults.setValue("align_algorithm:max_rt_shift", 0.1);
     ma_defaults.setValue("align_algorithm:use_unassigned_peptides", "false");
@@ -433,6 +443,7 @@ protected:
     // For PIP-ECHO:
     Param pip_echo_defaults = PipEchoAlgorithm().getDefaults();
     pip_echo_defaults.remove("distance_RT:max_difference"); // estimated from data
+    pip_echo_defaults.remove("donor_max_q");                 // set from -proteinFDR
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default, so we export everything (important for copying back MSstats results)
@@ -603,9 +614,9 @@ protected:
       Param mat_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
-      Param model_params = MapAlignerBase::getModelDefaults("b_spline");
-      std::string model_type = model_params.getValue("type").toString();
-      model_params = model_params.copy(model_type + ":", true);
+      // RT model fitted to the alignment points: Alignment:model_type with its Alignment:model:<type>:* parameters
+      std::string model_type = mat_param.getValue("model_type").toString();
+      Param model_params = mat_param.copy("model:" + model_type + ":", true);
 
       try
       {
@@ -656,7 +667,6 @@ protected:
       }
 
       // determine maximum RT shift after transformation that includes all high confidence IDs
-      using TrafoStat = TransformationDescription::TransformationStatistics;
       for (auto& s : alignment_stats)
       {
         OPENMS_LOG_INFO << "Alignment differences (second) for percentiles (before & after): " << endl;
@@ -676,12 +686,27 @@ protected:
         OPENMS_LOG_INFO << endl;
       }
 
-      double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(), [](TrafoStat a, TrafoStat b) {
-                                    return a.percentiles_after[100] < b.percentiles_after[100];
-                                  })->percentiles_after[100];
-      // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
-      OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
-      max_alignment_diff = std::max(max_alignment_diff, 120.0); // minimum 2 minutes
+      // The linking RT tolerance is sized from the RT differences of the alignment points after alignment: their 95th
+      // percentile, the largest over the runs. Not the maximum: a few outliers (e.g. wrong or chimeric identifications)
+      // decide the maximum, which on a 2 h gradient gave a tolerance of +-20 min and let the linker join unrelated features.
+      // Runs without alignment points (e.g. the reference, or every run after a failed alignment with -force) have no
+      // statistics and do not count; without any, the tolerance stays at the former default of 2 minutes.
+      const Size window_percentile = 95;
+      double max_alignment_diff = -1.0;
+      for (Size i = 0; i < transformations.size(); ++i)
+      {
+        if (transformations[i].getDataPoints().empty()) continue;
+        max_alignment_diff = std::max(max_alignment_diff, alignment_stats[i].percentiles_after.at(window_percentile));
+      }
+      if (max_alignment_diff < 0.0)
+      {
+        max_alignment_diff = 120.0;
+        OPENMS_LOG_INFO << "No run has alignment points. Alignment difference (seconds): " << max_alignment_diff << endl;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Alignment difference (seconds) at the " << window_percentile << "th percentile, largest over the runs: " << max_alignment_diff << endl;
+      }
       max_alignment_diff = std::min(max_alignment_diff, 600.0); // maximum 10 minutes
       return max_alignment_diff;
     }
@@ -740,6 +765,15 @@ protected:
       // Pass the host's raw-spectra chromatographic FWHM down for PIP-ECHO's
       // local_rt:auto window sizing (used only when local_rt:enabled+auto are set).
       pe_param.setValue("local_rt:median_fwhm", median_fwhm);
+      // Without a protein FDR filter, nothing downstream removes a false identification that PIP-ECHO copied into
+      // the other runs (decoy transfers cannot reveal it). Then only confidently identified precursors are
+      // transferred (best q-value <= 0.001, as in andes); the PSM filter alone does not catch them.
+      if (getDoubleOption_("proteinFDR") >= 1.0)
+      {
+        pe_param.setValue("donor_max_q", 0.001);
+        OPENMS_LOG_INFO << "PIP-ECHO: no protein FDR filter (-proteinFDR 1), so only precursors identified at "
+                           "q-value <= 0.001 in some run are transferred.\n";
+      }
       writeDebug_("Parameters passed to the PIP-ECHO algorithm", pe_param, 3);
 
       linker.setParameters(pe_param);
@@ -1072,8 +1106,8 @@ protected:
     @brief Reduce identifications this tool cannot tell apart to one per spectrum.
 
     ProteomicsLFQ measures one value per (spectrum, peptidoform, charge). Input that carries
-    several identifications of that same triple - two search engines concatenated rather than
-    combined, for instance - leaves it undecided which of them owns the measurement, and keeping
+    several identifications of that same triple - the concatenated results of two search engines,
+    for instance - leaves it undecided which of them owns the measurement, and keeping
     all of them counts one identification several times in the PSM-level FDR and repeats it in
     every output. Keep the best-scoring one and say what went.
   **/
@@ -1088,9 +1122,9 @@ protected:
                       << " repeat a (spectrum, peptidoform, charge) already claimed by another"
                          " identification, e.g. " << report.example << ".\n"
                          "Kept the best-scoring one of each group; the others would have counted"
-                         " the same measurement more than once. To control this upstream, combine"
-                         " search engine results with ConsensusID (-algorithm best"
-                         " -keep_old_scores) rather than concatenating them." << endl;
+                         " the same measurement more than once. To control this upstream, pass"
+                         " the results of one search engine rather than concatenating those of"
+                         " several." << endl;
     }
     if (report.inconsistent_score_direction > 0)
     {
@@ -1730,7 +1764,8 @@ protected:
       }
       else
       {
-        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
+        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm,
+          getStringOption_("Seeding:charge"), getDoubleOption_("Seeding:traceRTTolerance"));
       }
 
       if (debug_level_ > 666)
@@ -2700,6 +2735,14 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+
+    // PIP-ECHO annotates its transfers itself; the QT linker transfers identifications without recording it.
+    // Annotate after the PSM and protein FDR filtering above, so that a run whose identification was filtered
+    // out counts as a transfer, but before the resolution below reduces the identifications to the best one.
+    if (getStringOption_("pip_echo") == "false")
+    {
+      IDConflictResolverAlgorithm::annotateTransfers(consensus);
+    }
 
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);

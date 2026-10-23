@@ -77,7 +77,8 @@ namespace
     std::cout << "  imaging_mode: " << meta.imaging_mode << "\n";
     std::cout << "  grid: " << meta.max_count_x << " x " << meta.max_count_y
               << " x " << meta.max_count_z << "\n";
-    std::cout << "  pixel_size (um): " << meta.pixel_size_x << " x " << meta.pixel_size_y << "\n";
+    std::cout << "  pixel_size: " << meta.pixel_size_x << " x " << meta.pixel_size_y << " " << meta.pixel_size_unit
+              << " (-1: unknown)\n";
     std::cout << "  index entries: " << index_entries << "\n";
 
     if (!exp.empty() && exp[0].metaValueExists("imzml:x"))

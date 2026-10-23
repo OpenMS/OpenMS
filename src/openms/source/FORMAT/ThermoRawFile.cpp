@@ -30,37 +30,7 @@ namespace
 {
   using ScanInfo = Internal::ThermoRawScanReader::ScanInfo;
 
-  /// Scan selection by ThermoRawFile::Options, shared by load() and transform().
-  struct Selection
-  {
-    const ThermoRawFile::Options& options;
-
-    bool level(int level) const
-    {
-      return options.ms_levels.empty() || std::find(options.ms_levels.begin(), options.ms_levels.end(), level) != options.ms_levels.end();
-    }
-    bool rt(double rt) const { return rt >= options.rt_min && rt < options.rt_max; }
-    bool precursorFiltered() const
-    {
-      return options.precursor_mz_min > -std::numeric_limits<double>::infinity() || options.precursor_mz_max < std::numeric_limits<double>::infinity();
-    }
-    /// True if scans are selected by values of their header.
-    bool headerFiltered() const
-    {
-      return ! options.ms_levels.empty() || precursorFiltered() || options.rt_min > -std::numeric_limits<double>::infinity()
-             || options.rt_max < std::numeric_limits<double>::infinity();
-    }
-    /// Last scan to read: scans of one controller are in acquisition order, so no later scan can be selected.
-    int lastScan(int last) const { return options.last_scan > 0 ? std::min(last, options.last_scan) : last; }
-    /// True if no scan from @p info on can be selected (checked after reading its header).
-    bool beyondRT(const ScanInfo& info) const { return info.rt >= options.rt_max; }
-    bool selected(const ScanInfo& info) const
-    {
-      if (info.scan < options.first_scan || ! rt(info.rt) || ! level(info.ms_level)) { return false; }
-      return info.ms_level <= 1 || std::isnan(info.precursor_mz)
-             || (info.precursor_mz >= options.precursor_mz_min && info.precursor_mz < options.precursor_mz_max);
-    }
-  };
+  using Selection = Internal::ThermoRawScanSelection;
 
   /// Copies of the most recent converted spectra that later scans can reference as parent.
   class ParentCache
@@ -186,9 +156,9 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
     if (! std::is_sorted(spectra.begin(), spectra.end(), MSSpectrum::RTLess())) { exp.sortSpectra(false); }
     exp.updateRanges();
   }
-  catch (const Exception::FileNotFound&)
+  catch (const Exception::BaseException&)
   {
-    throw;
+    throw; // e.g. FileNotFound, or a ZIP archive that holds no .raw file
   }
   catch (const std::exception& error)
   {

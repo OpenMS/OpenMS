@@ -208,16 +208,14 @@ namespace OpenMS
       const auto& ms1 = experiment[parent];
       if (ms1.isSorted())
       {
-        detector_.setQueryMasses(selected);
-        detector_.performSpectrumDeconvolution(ms1, int(parent), PeakGroup());
+        detector_.deconvolve(ms1, int(parent), selected);
       }
       else
       {
         // FLASH requires m/z order. Preserve the original parent and its data arrays.
         auto sorted_ms1 = ms1;
         sorted_ms1.sortByPosition();
-        detector_.setQueryMasses(selected);
-        detector_.performSpectrumDeconvolution(sorted_ms1, int(parent), PeakGroup());
+        detector_.deconvolve(sorted_ms1, int(parent), selected);
       }
       std::map<std::pair<double, int>, Result> corrections;
       for (const auto& [key, precursor] : queries)
