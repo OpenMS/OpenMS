@@ -33,6 +33,7 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/openms_data_path.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
@@ -4907,6 +4908,21 @@ namespace OpenMS
     // thread gets its threads back when it takes the spectra (get()) or no longer waits for them (destruction, start()
     // of the next read). The helper sets its OpenMP threads itself: a new thread starts with the default of the process
     // (OMP_NUM_THREADS or all cores), not with what was set for this one (e.g. by TOPPBase from -threads).
+    // Whether a read in the background takes its threads from this thread (see BackgroundSpectra): only if this thread
+    // has fewer threads than the process has physical cores (SysInfo::getAvailablePhysicalCores()). With as many threads
+    // as cores, or more, the reader runs next to them with threads of its own (chunkThreads()), as before the budget
+    // (measured on 64 cores, 20 files: at 64 and 128 threads 1-2% more wall time and 1-7% more CPU time than with the
+    // budget; at 16 threads unchanged).
+    bool readBorrowsThreads()
+    {
+#ifdef _OPENMP
+      static const int cores = static_cast<int>(SysInfo::getAvailablePhysicalCores());
+      return omp_get_max_threads() < cores;
+#else
+      return false;
+#endif
+    }
+
     class BackgroundSpectra;
     thread_local BackgroundSpectra* lending_read = nullptr;  // the read that lends threads of this thread, if any
     thread_local BackgroundSpectra* deferred_read = nullptr; // the read that waits for startDeferredRead(), if any
@@ -4935,10 +4951,11 @@ namespace OpenMS
         if (deferred_read == this) { deferred_read = nullptr; }
         deferred_ = nullptr;
         restoreThreads_();
-        const int threads = reader_threads > 0 ? reader_threads : readerThreads(true);
+        const int chunk_threads = chunkThreads(awaited);
+        const bool borrow = readBorrowsThreads();
+        const int threads = !borrow ? chunk_threads : reader_threads > 0 ? reader_threads : readerThreads(true);
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
         help_ = std::make_shared<ChunkHelp>();
-        const int chunk_threads = chunkThreads(awaited);
         spectra_ = std::async(std::launch::async, [&filename, threads, chunk_threads, help = help_]()
         {
           const OnScopeExit done([&help]() { help->close(); }); // get() waits no longer for chunks to parse
@@ -4948,6 +4965,7 @@ namespace OpenMS
           return loadMS2Spectra(filename, threads, help.get(), chunk_threads);
         });
 #ifdef _OPENMP
+        if (!borrow) { return; }
         own_threads_ = omp_get_max_threads();
         omp_set_num_threads(std::max(1, own_threads_ - threads));
         // taken back early (takeBackThreadsOfEndedRead()) only outside of parallel regions, where this thread runs a
@@ -4961,7 +4979,7 @@ namespace OpenMS
       void startDeferred(const std::string& filename)
       {
 #ifdef _OPENMP
-        if (omp_get_level() != 0) { start(filename, false, readerThreads(true, false)); return; } // see start()
+        if (omp_get_level() != 0 || !readBorrowsThreads()) { start(filename, false, readerThreads(true, false)); return; } // see start()
 #endif
         restoreThreads_();
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
