@@ -325,7 +325,12 @@ class ProSE :
         // the files of getPSIMSCV(), which File::find() takes from /CV/ if they exist there, else from the shared data
         static constexpr const char* cv_files[] = {"psi-ms.obo", "quality.obo", "unit.obo", "brenda.obo", "goslim_goa.obo"};
         const std::string cv_dir = File::getOpenMSDataPath() + "/CV/";
-        const bool cv_needed = omp_get_max_threads() > 1 // the threads set by TOPPBase from -threads
+#if _OPENMP >= 200805 // OpenMP 3.0: OMP_THREAD_LIMIT
+        const int threads = std::min(omp_get_max_threads(), omp_get_thread_limit()); // as set by TOPPBase from -threads
+#else
+        const int threads = omp_get_max_threads();
+#endif
+        const bool cv_needed = threads > 1
           && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; })
           && std::all_of(std::begin(cv_files), std::end(cv_files), [&cv_dir](const char* obo)
              {
