@@ -14,13 +14,19 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <arrow/api.h>
+
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <variant>
@@ -81,6 +87,85 @@ namespace
   {
     for (const Column::Score& s : scores) { if (s.name == name) { return s; } }
     return nullopt;
+  }
+
+  /// A spectrum of the peaks (m/z, intensity) @p peaks, in their order
+  MSSpectrum spectrumOf(const vector<pair<double, float>>& peaks)
+  {
+    MSSpectrum s;
+    for (const auto& p : peaks) { s.push_back(Peak1D(p.first, p.second)); }
+    return s;
+  }
+
+  /// A fragment annotation at @p mz
+  PeptideHit::PeakAnnotation ann(double mz)
+  {
+    PeptideHit::PeakAnnotation a;
+    a.mz = mz;
+    a.intensity = 1.0;
+    a.charge = 1;
+    a.annotation = "y1+";
+    return a;
+  }
+
+  /// An MS2 spectrum of the mzView() sections: precursor 500 m/z 2+, centroid
+  MSSpectrum ms2(const string& native_id, double rt, const vector<pair<double, float>>& peaks)
+  {
+    MSSpectrum s = spectrumOf(peaks);
+    s.setNativeID(native_id);
+    s.setRT(rt);
+    s.setMSLevel(2);
+    s.setType(SpectrumSettings::SpectrumType::CENTROID);
+    Precursor p;
+    p.setMZ(500.0);
+    p.setCharge(2);
+    s.setPrecursors({p});
+    return s;
+  }
+
+  /// The spectra of the mzView() sections: "scan=1" at 60 s, "scan=2" at 120 s (its peaks in reverse m/z order if
+  /// @p unsorted), "scan=1" at 180 s
+  MSExperiment mzSpectra(bool unsorted)
+  {
+    vector<pair<double, float>> peaks2 = {{200.0, 7.0f}, {210.0, 3.0f}, {350.0, 9.0f}, {360.0, 1.0f}};
+    if (unsorted) { reverse(peaks2.begin(), peaks2.end()); }
+    MSExperiment e;
+    e.addSpectrum(ms2("scan=1", 60.0, {{100.0, 1.0f}, {150.0, 2.0f}}));
+    e.addSpectrum(ms2("scan=2", 120.0, peaks2));
+    e.addSpectrum(ms2("scan=1", 180.0, {{300.0, 4.0f}}));
+    return e;
+  }
+
+  /// The PSMs of the mzView() sections: scan=2 at 120 s, scan=1 at 60 s, scan=1 at 180 s, scan=9 at 1 s, one without hits
+  PeptideIdentificationList mzIds()
+  {
+    PeptideIdentificationList ids;
+    auto psm = [&ids](const string& native_id, double rt, bool with_hit)
+    {
+      PeptideIdentification id;
+      id.setSpectrumReference(native_id);
+      id.setRT(rt);
+      id.setScoreType("q-value");
+      if (with_hit) { id.setHits({PeptideHit(0.01, 1, 2, AASequence::fromString("PEPTIDEK"))}); }
+      ids.push_back(id);
+    };
+    psm("scan=2", 120.0, true);
+    psm("scan=1", 60.0, true);
+    psm("scan=1", 180.0, true);
+    psm("scan=9", 1.0, true);
+    psm("scan=3", 240.0, false);
+    return ids;
+  }
+
+  /// The float list of column @p name at @p row of @p table
+  vector<float> floatList(const shared_ptr<arrow::Table>& table, const string& name, int64_t row)
+  {
+    vector<float> out;
+    const auto list = static_pointer_cast<arrow::ListArray>(ArrowIOHelpers::getColumn(table, name));
+    if (!list) { return out; }
+    const auto values = static_pointer_cast<arrow::FloatArray>(list->values());
+    for (int64_t i = list->value_offset(row); i < list->value_offset(row + 1); ++i) { out.push_back(values->Value(i)); }
+    return out;
   }
 
   bool isNull(const Column::StructValue& v) { return holds_alternative<monostate>(v.value); }
@@ -241,6 +326,164 @@ START_SECTION(psmColumns refuses a has_spectrum of another size)
   const PeptideIdentificationList ids = psmIds();
   TEST_EXCEPTION(Exception::IllegalArgument, QPXDatasetExport::psmColumns(ids, {true}, true))
   TEST_EXCEPTION(Exception::IllegalArgument, QPXDatasetExport::psmColumns(ids, {true, true, true, true}, true))
+}
+END_SECTION
+
+START_SECTION((static std::vector<Size> keptPeaks(const MSSpectrum& spectrum, const std::vector<PeptideHit::PeakAnnotation>& annotations, int precursor_charge, const PeakFilter& filter)))
+{
+  auto kept = [](const MSSpectrum& s, const vector<PeptideHit::PeakAnnotation>& a, int charge, const QPXDatasetExport::PeakFilter& f)
+  {
+    return QPXDatasetExport::keptPeaks(s, a, charge, f);
+  };
+  QPXDatasetExport::PeakFilter f;
+  f.window = 100.0;
+  f.top = 1;
+  const MSSpectrum s = spectrumOf({{100.0, 5.0f}, {150.0, 10.0f}, {199.0, 1.0f}, {250.0, 3.0f}, {400.0, 2.0f}});
+  // jumping windows from each first peak: [100, 199], [250], [400]
+  TEST_EQUAL(kept(s, {}, 2, f) == (vector<Size>{1, 3, 4}), true)
+  // an annotated m/z keeps the peak nearest to it within 0.01 Th
+  TEST_EQUAL(kept(s, {ann(199.0)}, 2, f) == (vector<Size>{1, 2, 3, 4}), true)
+  TEST_EQUAL(kept(s, {ann(199.02)}, 2, f) == (vector<Size>{1, 3, 4}), true)
+
+  // top 0: all peaks
+  QPXDatasetExport::PeakFilter all;
+  all.top = 0;
+  TEST_EQUAL(kept(s, {}, 2, all) == (vector<Size>{0, 1, 2, 3, 4}), true)
+  TEST_EQUAL(kept(MSSpectrum(), {ann(199.0)}, 2, f).empty(), true)
+
+  // the last window keeps its full quota (WindowMower would scale it by its width)
+  QPXDatasetExport::PeakFilter two;
+  two.window = 100.0;
+  two.top = 2;
+  const MSSpectrum last = spectrumOf({{100.0, 1.0f}, {110.0, 2.0f}, {400.0, 3.0f}, {450.0, 4.0f}});
+  TEST_EQUAL(kept(last, {}, 2, two) == (vector<Size>{0, 1, 2, 3}), true)
+
+  // deisotoped: an annotated 1+ m/z keeps the raw peak of its fragment at charge 2 and 3, up to the precursor's charge
+  const double p = Constants::PROTON_MASS_U;
+  const MSSpectrum d = spectrumOf({{(600.0 + 2 * p) / 3, 1.0f}, {(600.0 + p) / 2, 1.0f}, {500.0, 100.0f}});
+  QPXDatasetExport::PeakFilter deiso;
+  deiso.window = 1000.0;
+  deiso.top = 1;
+  TEST_EQUAL(kept(d, {ann(600.0)}, 2, deiso) == (vector<Size>{2}), true) // not deisotoped: 1+ only
+  deiso.deisotoped = true;
+  TEST_EQUAL(kept(d, {ann(600.0)}, 2, deiso) == (vector<Size>{1, 2}), true)
+  TEST_EQUAL(kept(d, {ann(600.0)}, 0, deiso) == (vector<Size>{0, 1, 2}), true) // unknown charge: up to 3
+  TEST_EQUAL(kept(d, {ann(600.0)}, 1, deiso) == (vector<Size>{2}), true)
+  deiso.cap_at_precursor = false;
+  TEST_EQUAL(kept(d, {ann(600.0)}, 2, deiso) == (vector<Size>{0, 1, 2}), true)
+}
+END_SECTION
+
+START_SECTION((static MzView mzView(const MSExperiment& spectra, const PeptideIdentificationList& peptide_ids, const std::string& run_file_name, const PeakFilter& filter)))
+{
+  QPXDatasetExport::PeakFilter all;
+  all.top = 0;
+  const QPXDatasetExport::MzView view = QPXDatasetExport::mzView(mzSpectra(false), mzIds(), "run1", all);
+  // scan=2 and scan=1 at 60 s have rows; scan=1 at 180 s shares its native ID with the row of the spectrum at 60 s
+  // (unresolved); scan=9 has no spectrum; the element without hits has no PSM
+  TEST_EQUAL(view.has_spectrum == (vector<bool>{true, true, false, false, false}), true)
+  TEST_EQUAL(view.unresolved, 1)
+  TEST_EQUAL(view.without_spectrum, 1)
+  TEST_EQUAL(view.peaks_read, 6)
+  TEST_EQUAL(view.peaks_kept, view.peaks_read)
+  TEST_EQUAL(view.table != nullptr, true)
+  ABORT_IF(view.table == nullptr)
+  TEST_EQUAL(ArrowIOHelpers::tableRowCount(view.table), 2)
+
+  const vector<string> names = {"id", "run_file_name", "scan", "ms_level", "centroid", "scan_start_time",
+                                "inverse_ion_mobility", "ion_injection_time", "total_ion_current", "precursors", "mz",
+                                "intensity", "cv_params"};
+  TEST_EQUAL(view.table->num_columns(), static_cast<int>(names.size()))
+  ABORT_IF(view.table->num_columns() != static_cast<int>(names.size()))
+  for (Size i = 0; i < names.size(); ++i) { TEST_STRING_EQUAL(view.table->schema()->field(static_cast<int>(i))->name(), names[i]) }
+
+  // the rows in the order of the first PSM of each native ID
+  const auto id = ArrowIOHelpers::getColumn(view.table, "id");
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(id, 0), "scan=2")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(id, 1), "scan=1")
+  const auto run = ArrowIOHelpers::getColumn(view.table, "run_file_name");
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(run, 0), "run1")
+  TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(run, 1), "run1")
+  const auto ms_level = ArrowIOHelpers::getColumn(view.table, "ms_level");
+  TEST_EQUAL(ArrowIOHelpers::getInt32Value(ms_level, 0), 2)
+  const auto centroid = ArrowIOHelpers::getColumn(view.table, "centroid");
+  TEST_EQUAL(ArrowIOHelpers::getBoolValue(centroid, 0), true)
+  const auto start_time = ArrowIOHelpers::getColumn(view.table, "scan_start_time");
+  TEST_REAL_SIMILAR(ArrowIOHelpers::getFloatValue(start_time, 0), 2.0)
+  TEST_REAL_SIMILAR(ArrowIOHelpers::getFloatValue(start_time, 1), 1.0)
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(view.table, "inverse_ion_mobility"), 0))
+  TEST_TRUE(ArrowIOHelpers::isNull(ArrowIOHelpers::getColumn(view.table, "ion_injection_time"), 0))
+  const auto tic = ArrowIOHelpers::getColumn(view.table, "total_ion_current");
+  TEST_REAL_SIMILAR(ArrowIOHelpers::getFloatValue(tic, 0), 20.0)
+  TEST_REAL_SIMILAR(ArrowIOHelpers::getFloatValue(tic, 1), 3.0)
+  const auto cv_params = ArrowIOHelpers::getColumn(view.table, "cv_params");
+  TEST_TRUE(ArrowIOHelpers::isNull(cv_params, 0))
+  TEST_TRUE(ArrowIOHelpers::isNull(cv_params, 1))
+  // the peaks of the spectrum at 60 s, not those at 180 s
+  TEST_EQUAL(floatList(view.table, "mz", 1) == (vector<float>{100.0f, 150.0f}), true)
+  TEST_EQUAL(floatList(view.table, "intensity", 1) == (vector<float>{1.0f, 2.0f}), true)
+
+  // the precursor charge caps the peak protection of a deisotoped spectrum: the spectrum's (2+), not the PSM's
+  const double p = Constants::PROTON_MASS_U;
+  MSExperiment deisotoped;
+  deisotoped.addSpectrum(ms2("scan=1", 60.0, {{(600.0 + 2 * p) / 3, 1.0f}, {(600.0 + p) / 2, 1.0f}, {500.0, 100.0f}}));
+  PeptideIdentificationList ids;
+  PeptideIdentification psm;
+  psm.setSpectrumReference("scan=1");
+  psm.setRT(60.0);
+  PeptideHit hit(0.01, 1, 3, AASequence::fromString("PEPTIDEK"));
+  hit.setPeakAnnotations({ann(600.0)});
+  psm.setHits({hit});
+  ids.push_back(psm);
+  QPXDatasetExport::PeakFilter deiso;
+  deiso.window = 1000.0;
+  deiso.top = 1;
+  deiso.deisotoped = true;
+  QPXDatasetExport::MzView capped = QPXDatasetExport::mzView(deisotoped, ids, "run1", deiso);
+  ABORT_IF(capped.table == nullptr)
+  TEST_EQUAL(capped.peaks_read, 3)
+  TEST_EQUAL(capped.peaks_kept, 2)
+  TEST_EQUAL(floatList(capped.table, "mz", 0) == (vector<float>{static_cast<float>((600.0 + p) / 2), 500.0f}), true)
+  // a spectrum of unknown precursor charge: up to 3+
+  deisotoped[0].getPrecursors()[0].setCharge(0);
+  capped = QPXDatasetExport::mzView(deisotoped, ids, "run1", deiso);
+  TEST_EQUAL(capped.peaks_kept, 3)
+
+  // no PSMs: an empty view
+  const QPXDatasetExport::MzView empty = QPXDatasetExport::mzView(mzSpectra(false), PeptideIdentificationList(), "run1", all);
+  TEST_EQUAL(empty.table != nullptr, true)
+  TEST_EQUAL(ArrowIOHelpers::tableRowCount(empty.table), 0)
+  TEST_EQUAL(empty.has_spectrum.empty(), true)
+}
+END_SECTION
+
+START_SECTION(mzView sorts unsorted spectra)
+{
+  QPXDatasetExport::PeakFilter all;
+  all.top = 0;
+  QPXDatasetExport::PeakFilter top1;
+  top1.top = 1;
+  for (const QPXDatasetExport::PeakFilter& f : {all, top1})
+  {
+    const QPXDatasetExport::MzView sorted = QPXDatasetExport::mzView(mzSpectra(false), mzIds(), "run1", f);
+    const QPXDatasetExport::MzView unsorted = QPXDatasetExport::mzView(mzSpectra(true), mzIds(), "run1", f);
+    ABORT_IF(sorted.table == nullptr || unsorted.table == nullptr)
+    TEST_EQUAL(unsorted.has_spectrum == sorted.has_spectrum, true)
+    TEST_EQUAL(unsorted.peaks_kept, sorted.peaks_kept)
+    for (int64_t row = 0; row < 2; ++row)
+    {
+      const vector<float> mz = floatList(unsorted.table, "mz", row);
+      TEST_EQUAL(mz == floatList(sorted.table, "mz", row), true)
+      TEST_EQUAL(floatList(unsorted.table, "intensity", row) == floatList(sorted.table, "intensity", row), true)
+      TEST_EQUAL(is_sorted(mz.begin(), mz.end()), true)
+    }
+  }
+  // the row of "scan=2" (ascending m/z): all peaks; the most intense per 100 Th
+  QPXDatasetExport::MzView view = QPXDatasetExport::mzView(mzSpectra(true), mzIds(), "run1", all);
+  TEST_EQUAL(floatList(view.table, "mz", 0) == (vector<float>{200.0f, 210.0f, 350.0f, 360.0f}), true)
+  TEST_EQUAL(floatList(view.table, "intensity", 0) == (vector<float>{7.0f, 3.0f, 9.0f, 1.0f}), true)
+  view = QPXDatasetExport::mzView(mzSpectra(true), mzIds(), "run1", top1);
+  TEST_EQUAL(floatList(view.table, "mz", 0) == (vector<float>{200.0f, 350.0f}), true)
 }
 END_SECTION
 
