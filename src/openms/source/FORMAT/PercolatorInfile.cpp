@@ -447,8 +447,7 @@ namespace OpenMS
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 
     // The meta values by name index once all names below are registered (by the first stamped hit): looking names up
-    // takes a lock on the registry, which the threads would contend for. Unregistered names are looked up by name
-    // (except the isotope error's, see below).
+    // takes a lock on the registry, which the threads would contend for. Unregistered names are looked up by name.
     std::unordered_map<std::string, UInt> name_index;
     auto exists = [&](const PeptideHit& hit, const std::string& key)
     {
@@ -632,12 +631,6 @@ namespace OpenMS
     {
       const UInt index = MetaInfoInterface::metaRegistry().getIndex(name);
       if (index != UInt(-1)) name_index.emplace(name, index);
-    }
-    // The isotope error is only read: if its name is not registered, no hit has it (a value is set by a registered
-    // name), so it is looked up by index -1, which exists on no hit.
-    for (const std::string& name : {std::string("IsotopeError"), std::string(Constants::UserParam::ISOTOPE_ERROR)})
-    {
-      name_index.try_emplace(name, UInt(-1));
     }
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize pid_index = static_cast<SignedSize>(first_parallel); pid_index < static_cast<SignedSize>(peptide_ids.size()); ++pid_index)

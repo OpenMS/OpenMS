@@ -819,10 +819,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   for (size_t i : training_rows)
   {
     auto* psm = new P::PSMDescription();
+    psm->features = pool.allocate();
     impl_->owned_psms.push_back(psm);
     if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
     else                   impl_->target_ds->registerPsm(psm);
-    psm->features = pool.allocate();
   }
   std::vector<std::exception_ptr> row_errors(training_rows.size());
 #pragma omp parallel for schedule(dynamic, 1024)
@@ -1616,8 +1616,10 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
   // competition), so spectra of different inputs with the same scan number must not share a file.
   std::map<std::string, int> spec_files;
+  // (reserved only without an error: an allocation failure must not replace the error rethrown below)
   size_t num_rows = 0;
   for (const std::vector<Row>& rows_of_spectrum : rows) num_rows += rows_of_spectrum.size();
+  if (std::any_of(errors.begin(), errors.end(), [](const std::exception_ptr& error) { return bool(error); })) num_rows = 0;
   ri.features.reserve(num_rows);
   ri.is_decoy.reserve(num_rows);
   ri.scan_numbers.reserve(num_rows);
