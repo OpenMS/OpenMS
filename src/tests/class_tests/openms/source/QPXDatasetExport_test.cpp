@@ -290,8 +290,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   TEST_EQUAL(reference.null_rows.size(), 2)
   ABORT_IF(reference.utf8_values.size() != 2 || reference.null_rows.size() != 2)
   TEST_STRING_EQUAL(reference.utf8_values[0], "scan=5")
-  TEST_EQUAL(reference.null_rows[0], false)
-  TEST_EQUAL(reference.null_rows[1], true)
+  TEST_EQUAL(bool(reference.null_rows[0]), false)
+  TEST_EQUAL(bool(reference.null_rows[1]), true)
 
   // isotope_error: theoretical minus observed in the meta value, flipped to observed minus theoretical
   const Column isotope = columnOf(c, "isotope_error");
@@ -299,8 +299,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   TEST_EQUAL(isotope.null_rows.size(), 2)
   ABORT_IF(isotope.int64_values.size() != 2 || isotope.null_rows.size() != 2)
   TEST_EQUAL(isotope.int64_values[0], -1)
-  TEST_EQUAL(isotope.null_rows[0], false)
-  TEST_EQUAL(isotope.null_rows[1], true)
+  TEST_EQUAL(bool(isotope.null_rows[0]), false)
+  TEST_EQUAL(bool(isotope.null_rows[1]), true)
 
   // additional_scores: the main score, every numeric meta value (isotope error with the same sign; the rank, which
   // PeptideHit keeps as a meta value), no target_decoy
@@ -368,8 +368,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   ABORT_IF(reference_all.utf8_values.size() != 2 || reference_all.null_rows.size() != 2)
   TEST_STRING_EQUAL(reference_all.utf8_values[0], "scan=5")
   TEST_STRING_EQUAL(reference_all.utf8_values[1], "scan=7")
-  TEST_EQUAL(reference_all.null_rows[0], false)
-  TEST_EQUAL(reference_all.null_rows[1], false)
+  TEST_EQUAL(bool(reference_all.null_rows[0]), false)
+  TEST_EQUAL(bool(reference_all.null_rows[1]), false)
   const Column isotope_all = columnOf(c, "isotope_error");
   ABORT_IF(isotope_all.int64_values.size() != 2)
   TEST_EQUAL(isotope_all.int64_values[0], 1)
@@ -384,8 +384,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   c = QPXDatasetExport::psmColumns(no_reference, {}, true);
   const Column reference_empty = columnOf(c, "spectrum_reference");
   ABORT_IF(reference_empty.null_rows.size() != 2)
-  TEST_EQUAL(reference_empty.null_rows[0], true)
-  TEST_EQUAL(reference_empty.null_rows[1], false)
+  TEST_EQUAL(bool(reference_empty.null_rows[0]), true)
+  TEST_EQUAL(bool(reference_empty.null_rows[1]), false)
 
   // no elements: the four columns without rows
   c = QPXDatasetExport::psmColumns(PeptideIdentificationList(), {}, true);
