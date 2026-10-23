@@ -137,7 +137,8 @@ public:
     std::vector<bool> has_spectrum;
     /// The PSMs without a spectrum of their native ID (and RT), whose native ID has no row either
     Size without_spectrum = 0;
-    /// The PSMs of a spectrum that shares its native ID with another spectrum (at another RT), which has the row
+    /// The PSMs whose native ID has the row of a spectrum that is not theirs: several spectra share the native ID (at
+    /// different RTs), and the row is of another one than the PSM's, or none of them is at the PSM's RT
     Size unresolved = 0;
     /// The peaks of the spectra of the rows
     Size peaks_read = 0;
@@ -311,11 +312,11 @@ public:
   };
 
   /**
-    @brief Write the QPX dataset @p views to @p directory: @p directory/@p prefix.<view>.parquet per view
+    @brief Write the QPX dataset @p views to @p directory: @p directory/@p prefix.VIEW.parquet per view (VIEW: its name)
 
     Creates @p directory if needed. Writes the views in the order psm, mz, pg, run, sample, provenance (then any other
     view, by name), each with its tables concatenated and the footer of ArrowIOHelpers::qpxFileMetadata() of the file
-    type "<view>_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
+    type "VIEW_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
     table fails. The mz view is not written (logged) if a psm view was given and could not be written, as its rows are
     keyed by the spectra of the PSMs. A view that fails is logged and the others are still written.
 
