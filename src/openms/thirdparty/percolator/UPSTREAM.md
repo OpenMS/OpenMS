@@ -211,6 +211,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   from the same counts and by the same expression as `getQValues`; the q-values (minimum FDR
   from a position to the end, of numbers in [0, 1]) are the minima within each block and then
   with the minimum of the blocks after it. Otherwise `getQValues` as before.
+  The sorts of `Scores` by score (`calcScores`, `merge`, `postMergeStep`) compare with
+  `ScoreHolderGreater`, a copy of `operator>` (defined in another file, so each comparison was
+  a function call) that the sort can inline: same outcomes, same moves.
 
 ### Regenerating the patch
 

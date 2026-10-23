@@ -72,6 +72,19 @@ static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Ke
   scores.swap(permuted);
 }
 
+// OpenMS: operator> of ScoreHolder (ScoreHolder.cpp), as a comparison that the sorts below can
+// inline (same outcomes, so the sorts make the same moves)
+struct ScoreHolderGreater {
+  bool operator()(const ScoreHolder& one, const ScoreHolder& other) const {
+    return (one.score > other.score) ||
+           (one.score == other.score && one.pPSM->scan > other.pPSM->scan) ||
+           (one.score == other.score && one.pPSM->scan == other.pPSM->scan &&
+            one.pPSM->expMass > other.pPSM->expMass) ||
+           (one.score == other.score && one.pPSM->scan == other.pPSM->scan &&
+            one.pPSM->expMass == other.pPSM->expMass && one.label > other.label);
+  }
+};
+
 // OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
 // region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
 template <typename Less>
@@ -91,7 +104,7 @@ void Scores::merge(std::vector<Scores>& sv,
   std::vector<Scores>::iterator cvBinScores = sv.begin();
   std::vector<std::vector<double> >::iterator weights = all_w.begin();
   for (; cvBinScores != sv.end(); cvBinScores++, weights++) {
-    sortScoresLikeStdSort(cvBinScores->scores_, greater<ScoreHolder>());
+    sortScoresLikeStdSort(cvBinScores->scores_, ScoreHolderGreater());
     cvBinScores->checkSeparationAndSetPi0();
     cvBinScores->calcQvals(fdr);
     if (!skipNormalizeScores) {
@@ -103,7 +116,7 @@ void Scores::merge(std::vector<Scores>& sv,
 }
 
 void Scores::postMergeStep() {
-  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
+  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
   totalNumberOfDecoys_ = static_cast<unsigned int>(
       count_if(scores_.begin(), scores_.end(), mem_fn(&ScoreHolder::isDecoy)));
   totalNumberOfTargets_ = static_cast<unsigned int>(
@@ -618,7 +631,7 @@ int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
 // the sort of calcScores
 int Scores::sortScores() {
   std::size_t ix;
-  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
+  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
   if (VERB > 3) {
     if (scores_.size() >= 10) {
       cerr << "10 best scores and labels" << endl;

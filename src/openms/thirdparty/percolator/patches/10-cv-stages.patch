@@ -541,7 +541,7 @@ index 83811fcc19..f1409df9b1 100644
    static uint64_t seed_;
  };
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 0602df3d99..667ae0a553 100644
+index 0602df3d99..a30fb5ca91 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -21,6 +21,7 @@
@@ -562,7 +562,7 @@ index 0602df3d99..667ae0a553 100644
  // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
  // strict weak ordering on [first, last): no score or mass is NaN.
  static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
-@@ -55,6 +59,19 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+@@ -55,6 +59,32 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
    });
  }
  
@@ -579,10 +579,41 @@ index 0602df3d99..667ae0a553 100644
 +  scores.swap(permuted);
 +}
 +
++// OpenMS: operator> of ScoreHolder (ScoreHolder.cpp), as a comparison that the sorts below can
++// inline (same outcomes, so the sorts make the same moves)
++struct ScoreHolderGreater {
++  bool operator()(const ScoreHolder& one, const ScoreHolder& other) const {
++    return (one.score > other.score) ||
++           (one.score == other.score && one.pPSM->scan > other.pPSM->scan) ||
++           (one.score == other.score && one.pPSM->scan == other.pPSM->scan &&
++            one.pPSM->expMass > other.pPSM->expMass) ||
++           (one.score == other.score && one.pPSM->scan == other.pPSM->scan &&
++            one.pPSM->expMass == other.pPSM->expMass && one.label > other.label);
++  }
++};
++
  // OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
  // region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
  template <typename Less>
-@@ -254,7 +271,25 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -74,7 +104,7 @@ void Scores::merge(std::vector<Scores>& sv,
+   std::vector<Scores>::iterator cvBinScores = sv.begin();
+   std::vector<std::vector<double> >::iterator weights = all_w.begin();
+   for (; cvBinScores != sv.end(); cvBinScores++, weights++) {
+-    sortScoresLikeStdSort(cvBinScores->scores_, greater<ScoreHolder>());
++    sortScoresLikeStdSort(cvBinScores->scores_, ScoreHolderGreater());
+     cvBinScores->checkSeparationAndSetPi0();
+     cvBinScores->calcQvals(fdr);
+     if (!skipNormalizeScores) {
+@@ -86,7 +116,7 @@ void Scores::merge(std::vector<Scores>& sv,
+ }
+ 
+ void Scores::postMergeStep() {
+-  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
++  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
+   totalNumberOfDecoys_ = static_cast<unsigned int>(
+       count_if(scores_.begin(), scores_.end(), mem_fn(&ScoreHolder::isDecoy)));
+   totalNumberOfTargets_ = static_cast<unsigned int>(
+@@ -254,7 +284,25 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
      ix -= remain[static_cast<std::size_t>(fold)];
    }
  
@@ -609,7 +640,7 @@ index 0602df3d99..667ae0a553 100644
  
    if (scores_.size() == 0) {
      ostringstream oss;
-@@ -270,6 +305,20 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -270,6 +318,20 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
  
    // put scores into the folds; choose a fold (at random) and change it only
    // when scores from a new spectra are encountered
@@ -630,7 +661,7 @@ index 0602df3d99..667ae0a553 100644
    unsigned int previousSpectrum = scores_.begin()->pPSM->scan;
    size_t randIndex = PseudoRandom::lcg_rand() % xval_fold;
    for (std::vector<ScoreHolder>::iterator it = scores_.begin();
-@@ -299,12 +348,17 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -299,12 +361,17 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
      }
  
      // insert
@@ -654,7 +685,7 @@ index 0602df3d99..667ae0a553 100644
        }
      }
      // update number of free position for used fold
-@@ -312,6 +366,30 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -312,6 +379,30 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
      // set previous spectrum to current one for next iteration
      previousSpectrum = curScan;
    }
@@ -685,7 +716,7 @@ index 0602df3d99..667ae0a553 100644
  
    // without RESET: decoysPerTarget = 1 and decoyFractionTraining = 1, then
    // factor = 1 and trainNullTargetWinProb = 1/2 (and decoyFactor = 1)
-@@ -335,6 +413,19 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -335,6 +426,19 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
    }
  
    if (featurePool.isInitialized()) {
@@ -705,7 +736,7 @@ index 0602df3d99..667ae0a553 100644
      boost::unordered_map<double*, double*> movedAddresses;
      size_t idx = 0;
      for (unsigned int i = 0; i < xval_fold; ++i) {
-@@ -494,11 +585,39 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+@@ -494,12 +598,40 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
   * @return 0 on successfull execution
   */
  int Scores::calcScores(std::vector<double>& w) {
@@ -731,6 +762,7 @@ index 0602df3d99..667ae0a553 100644
 +      scoreIt->score = calcScore(scoreIt->pPSM->features, w);
 +    }
    }
+-  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
 +  return sortScores();
 +}
 +
@@ -746,10 +778,11 @@ index 0602df3d99..667ae0a553 100644
 +// the sort of calcScores
 +int Scores::sortScores() {
 +  std::size_t ix;
-   sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
++  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
    if (VERB > 3) {
      if (scores_.size() >= 10) {
-@@ -543,8 +662,12 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
+       cerr << "10 best scores and labels" << endl;
+@@ -543,8 +675,12 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
  
    std::vector<double> qvals;
    PosteriorEstimator::setNegative(true);  // also get q-values for decoys
@@ -764,7 +797,7 @@ index 0602df3d99..667ae0a553 100644
  
    // set q-values and count number of positives
    std::vector<double>::const_iterator qIt = qvals.begin();
-@@ -612,6 +735,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+@@ -612,6 +748,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
    data.m = static_cast<int>(ix2);
  }
  
@@ -847,7 +880,7 @@ index 0602df3d99..667ae0a553 100644
  void Scores::weedOutRedundant() {
    std::map<std::string, unsigned int> peptideSpecCounts;
    double specCountQvalThreshold = -1.0;
-@@ -735,16 +934,18 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -735,16 +947,18 @@ int Scores::getInitDirection(const double initialSelectionFdr,
    // positives[2 * featNo + i]: in forward (i = 0) and backward (i = 1) direction
    std::vector<int> positives(2 * numFeatures);
  
@@ -876,7 +909,7 @@ index 0602df3d99..667ae0a553 100644
    bool counted = false;
  #ifdef _OPENMP
    const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
-@@ -752,37 +953,84 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -752,37 +966,84 @@ int Scores::getInitDirection(const double initialSelectionFdr,
             std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
                         [](double x) { return std::isnan(x); });
    });
