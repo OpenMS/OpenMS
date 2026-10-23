@@ -641,7 +641,8 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
   // the state the loop below leaves.
   bool booted = false;
 #ifdef _OPENMP
-  if (numBoot > 1 && !p.empty() && omp_in_parallel()) {
+  if (numBoot > 1 && numBoot <= static_cast<unsigned int>(INT_MAX) && !p.empty() &&
+      omp_in_parallel()) {
     const uint64_t numDraw = min(p.size(), static_cast<size_t>(1000));
     const uint64_t seed = PseudoRandom::getSeed();
     const size_t numLambdas = lambdas.size();

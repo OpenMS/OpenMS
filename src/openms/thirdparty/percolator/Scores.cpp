@@ -954,7 +954,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
                        [](double x) { return std::isnan(x); });
   });
   const std::size_t n = scores_.size();
-  if (numFeatures > 0 && !anyNaN && n <= std::numeric_limits<unsigned int>::max() &&
+  if (numFeatures > 0 && !anyNaN && n > 0 && n <= std::numeric_limits<unsigned int>::max() &&
       omp_in_parallel()) {
     std::exception_ptr chainError;
     std::vector<std::exception_ptr> errors(numFeatures);
