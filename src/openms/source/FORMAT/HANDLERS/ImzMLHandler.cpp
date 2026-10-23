@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -123,20 +124,6 @@ namespace
       "(need uncompressed MS:1000576). Re-export without compression.");
   }
 
-  /// Drop empty Float/Integer/StringDataArrays left by MzMLHandler for skipped,
-  /// zero-length, untyped, integer-typed, or inline aux arrays. On-disc never
-  /// materializes those ghosts.
-  void pruneEmptyDataArrays_(MSSpectrum& s)
-  {
-    auto prune = [](auto& arrays) {
-      arrays.erase(std::remove_if(arrays.begin(), arrays.end(),
-                                  [](const auto& a) { return a.empty(); }),
-                   arrays.end());
-    };
-    prune(s.getFloatDataArrays());
-    prune(s.getIntegerDataArrays());
-    prune(s.getStringDataArrays());
-  }
 } // namespace
 
 // ===========================================================================
@@ -181,6 +168,17 @@ public:
       s.setMetaValue("imzml:x", static_cast<Int>(ims->x));
       s.setMetaValue("imzml:y", static_cast<Int>(ims->y));
       s.setMetaValue("imzml:z", static_cast<Int>(ims->z));
+
+      // An imzML "scan start time" (MS:1000016) is the acquisition time of a pixel, not a
+      // chromatographic retention time: keep it (in seconds, as MzMLHandler converted it) as
+      // the MetaValue imzml:scan_start_time and leave RT unset (-1), as for files without it.
+      // Only a parsed MS:1000016 counts (an RT from the "elution time" fallback does not). It is
+      // relative to the start of the run, so a negative value is a placeholder for "unknown"
+      if (ims->has_scan_start_time && s.getRT() >= 0.0)
+      {
+        s.setMetaValue("imzml:scan_start_time", s.getRT());
+      }
+      s.setRT(-1.0);
 
       // Update dataset-level bounding box
       if (ims->x > handler_.meta_.max_count_x) handler_.meta_.max_count_x = ims->x;
@@ -237,8 +235,12 @@ public:
           s[i].setMZ(mz_vec[i]);
           s[i].setIntensity(int_vec[i]);
         }
+      }
 
-        // Record first-seen data types at dataset level
+      // Record first-seen data types at dataset level (also when the .ibd is not decoded:
+      // index-only, metadata-only and on-disc loads report the same ImzMLMeta)
+      if (ims->mz_meta.is_ext || ims->int_meta.is_ext)
+      {
         if (handler_.meta_.mz_data_type.empty())
           handler_.meta_.mz_data_type  = dtStr_(ims->mz_meta.dt);
         if (handler_.meta_.int_data_type.empty())
@@ -251,15 +253,8 @@ public:
       if (handler_.ibd_ && handler_.decode_ibd_ && !ims->aux_meta.empty())
       {
         const std::string& ibd_path = handler_.meta_.ibd_file_path;
-        auto& float_arrays = s.getFloatDataArrays();
         for (const auto& aux : ims->aux_meta)
         {
-          if (aux.name.empty())
-          {
-            OPENMS_LOG_WARN << "Skipping external auxiliary array without MS:1000513 / MS:1000786 identity at pixel ("
-                            << ims->x << "," << ims->y << "," << ims->z << ")\n";
-            continue;
-          }
           if (aux.compressed)
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path,
@@ -268,46 +263,13 @@ public:
               + StringConversions::toString(aux.encoded_bytes) + "). "
               "Re-export without compression.");
           }
-          if (aux.count == 0)
+          if (!ImzMLSpectrumRules::isLoadableAuxArray(aux.name, aux.count, aux.dt, s.size(), true, ims->x, ims->y, ims->z))
           {
             continue;
           }
-          if (aux.count != s.size())
-          {
-            OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
-                            << ims->x << "," << ims->y << "," << ims->z
-                            << "): length " << aux.count << " != peak count " << s.size()
-                            << " (viewers require equal length for ion mobility)\n";
-            continue;
-          }
-          if (aux.dt == ImzMLSpectrumIndex::DataType::UNKNOWN)
-          { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than
-            // abort the load, matching the warn-and-skip policy for other bad aux arrays
-            OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
-                            << ims->x << "," << ims->y << "," << ims->z
-                            << "): missing or unsupported binary data type\n";
-            continue;
-          }
-          std::vector<float> values;
+          std::vector<float> values; // exactly aux.count values (readAuxArray throws otherwise)
           ImzMLBinaryIO::readAuxArray(handler_.ibd_, aux.offset, aux.count, aux.dt, values, ibd_path, aux.name);
-          if (values.empty() || values.size() != s.size())
-          {
-            continue;
-          }
-          // Only consider still-empty arrays so repeated array names map 1:1 in order.
-          auto it = std::find_if(float_arrays.begin(), float_arrays.end(),
-                                 [&aux](const auto& a) { return a.empty() && a.getName() == aux.name; });
-          if (it == float_arrays.end())
-          {
-            float_arrays.emplace_back();
-            it = std::prev(float_arrays.end());
-            it->setName(aux.name);
-            if (!aux.unit_accession.empty())
-            {
-              it->setMetaValue("unit_accession", aux.unit_accession);
-            }
-          }
-          it->assign(values.begin(), values.end());
+          ImzMLSpectrumRules::attachAuxArray(s, aux.name, aux.unit_accession, values);
         }
       }
 
@@ -321,25 +283,36 @@ public:
         }
       }
 
-      // MzMLHandler pre-creates empty named arrays for every aux binaryDataArray.
-      // Drop leftovers (zero-length, length mismatch, integer-typed, inline) so
-      // containsIMData() matches OnDiscImzMLExperiment.
-      pruneEmptyDataArrays_(s);
+      // MzMLHandler pre-creates empty named arrays for every aux binaryDataArray. After the
+      // .ibd fill, drop leftovers (zero-length, length mismatch, integer-typed, inline) so
+      // containsIMData() matches OnDiscImzMLExperiment. Without .ibd decoding (index-only,
+      // metadata-only) keep them, empty, so no array metadata is lost; OnDiscImzMLExperiment
+      // fills and prunes them.
+      if (handler_.decode_ibd_)
+      {
+        ImzMLSpectrumRules::pruneEmptyDataArrays(s);
+      }
 
       // MzMLHandler::populateSpectraWithData_() runs before this late .ibd aux fill:
       // it defaults UNKNOWN → IM_PROFILE from a still-empty named IM array, which we
       // may have just pruned. Sync the peak type with the arrays that actually remain.
-      if (s.containsIMData())
+      // Without .ibd decoding (index-only, metadata-only) no aux array is read: use the IM
+      // arrays a decode would load, so the type equals the in-memory load.
+      // OnDiscImzMLExperiment applies the same rule after it reads the arrays.
+      bool has_im_array = false;
+      if (handler_.decode_ibd_)
       {
-        if (s.getIMPeakType() == IMPeakType::UNKNOWN)
-        {
-          s.setIMPeakType(IMPeakType::IM_PROFILE);
-        }
+        has_im_array = s.containsIMData();
       }
       else
       {
-        s.setIMPeakType(IMPeakType::UNKNOWN);
+        // A compressed array is never read (a decode throws), so it gives no IM type.
+        has_im_array = std::any_of(ims->aux_meta.begin(), ims->aux_meta.end(), [this, ims](const ImzMLHandler::ArrayMeta& aux) {
+          return !aux.compressed && ImzMLSpectrumRules::isLoadableAuxArray(aux.name, aux.count, aux.dt, ims->mz_meta.count)
+                 && isIMArrayName_(aux.name);
+        });
       }
+      ImzMLSpectrumRules::applyIMPeakType(s, has_im_array);
 
       // MzMLHandler sorted before consumeSpectrum(), which is a no-op for external
       // arrays (peaks are overwritten from the .ibd). Re-sort here so MZBegin/MZEnd
@@ -396,6 +369,21 @@ private:
   ImzMLHandler&                handler_;
   Interfaces::IMSDataConsumer* downstream_;
   int                          spec_idx_  {0};
+  /// Whether an array name is an ion mobility array (as for containsIMData()), per distinct name
+  std::unordered_map<std::string, bool> im_array_names_;
+
+  bool isIMArrayName_(const std::string& name)
+  {
+    auto it = im_array_names_.find(name);
+    if (it == im_array_names_.end())
+    {
+      DataArrays::FloatDataArray named;
+      named.setName(name);
+      DriftTimeUnit unit;
+      it = im_array_names_.emplace(name, IMDataArrayUtils::getIMUnit(named, unit)).first;
+    }
+    return it->second;
+  }
 
   static std::string dtStr_(ImzMLSpectrumIndex::DataType dt)
   {
@@ -577,6 +565,8 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
       snap.z        = cur_z_;
       snap.mz_meta  = cur_mz_meta_;
       snap.int_meta = cur_int_meta_;
+      // MzMLHandler resets rt_set_ in its endElement below, after this snapshot
+      snap.has_scan_start_time = rt_set_;
       // Safe to move: both vectors are cleared unconditionally below, and nothing
       // between here and that reset reads them. Saves a per-spectrum copy of the
       // aux name/accession/unit strings on datasets with a pixel per spectrum.
@@ -600,6 +590,19 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
     // .ibd afterwards using the external offsets/counts, which are independent of this.
     if (cur_mz_meta_.is_ext || cur_int_meta_.is_ext)
     {
+      default_array_length_ = 0;
+    }
+    // Without .ibd decoding (index-only, metadata-only) no peaks are loaded, inline ones neither:
+    // drop the inline payloads so MzMLHandler still creates the arrays with their metadata, empty.
+    // Zero the declared length as well, as for external arrays above: a length mismatch is
+    // logged inside MzMLHandler's parallel decode, which is not thread-safe.
+    if (!decode_ibd_)
+    {
+      for (auto& bd : bin_data_)
+      {
+        bd.base64.clear();
+        bd.size = 0;
+      }
       default_array_length_ = 0;
     }
     in_spectrum_ = false;

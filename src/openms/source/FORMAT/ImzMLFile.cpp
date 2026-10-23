@@ -497,10 +497,11 @@ void ImzMLFile::load(const std::string& filename, Interfaces::IMSDataConsumer& c
   loadImpl_(filename, &consumer, meta_only, nullptr, nullptr, false);
 }
 
-void ImzMLFile::loadSpectraIndex(const std::string& filename, ImzMLMeta& meta, std::vector<ImzMLSpectrumIndex>& index, const std::string& ibd_path)
+void ImzMLFile::loadSpectraIndex(const std::string& filename, ImzMLMeta& meta, std::vector<ImzMLSpectrumIndex>& index,
+                                 MSExperiment& spectra, const std::string& ibd_path)
 {
-  MSExperiment dummy;
-  loadImpl_(filename, nullptr, dummy, &meta, &index, true, ibd_path);
+  spectra.reset();
+  loadImpl_(filename, nullptr, spectra, &meta, &index, true, ibd_path);
 }
 
 bool ImzMLFile::isValid(const std::string& filename, std::ostream& os)
@@ -574,25 +575,34 @@ void ImzMLFile::loadImpl_(const std::string& filename,
   Internal::ImzMLHandler handler(peak_map, filename, logger);
 
   PeakFileOptions handler_opts = options_;
-  if (index_only)
-  {
-    handler_opts.setFillData(false);
-    handler_opts.setAlwaysAppendData(false);
-  }
-  else if (consumer == nullptr)
-  {
-    handler_opts.setAlwaysAppendData(true);
-  }
+  // Metadata only: MzMLHandler would stop at <spectrumList>, but an imaging dataset needs
+  // every spectrum's metadata and coordinates. Parse them all, without peaks or .ibd reads.
+  // The early stop is switched off on every path, so loadSpectraIndex() cannot return empty.
+  // setFillData(false) asks for no peaks as well (as for MzMLFile and FileHandler).
+  const bool metadata_only = !index_only && (options_.getMetadataOnly() || !options_.getFillData());
+  handler_opts.setMetadataOnly(false);
+  // MzMLHandler's fill step runs on every path. It reads no peak data: the inline <binary> of an
+  // external array is an empty placeholder (peaks come from the .ibd, see connectDecodeConsumer),
+  // and without .ibd decoding ImzMLHandler also drops inline payloads.
+  // It copies the binaryDataArray MetaValues and creates the (empty) aux arrays, so all paths
+  // return the same metadata.
+  handler_opts.setFillData(true);
   handler.setOptions(handler_opts);
 
-  const bool append_to_map = !index_only && (consumer == nullptr);
-  handler.connectDecodeConsumer(consumer, append_to_map, !index_only);
+  // Spectra go into meta_exp for an in-memory load and for index-only (the spectrum metadata
+  // that loadSpectraIndex() returns); a streaming load hands them only to the consumer.
+  const bool append_to_map = consumer == nullptr;
+
+  handler.connectDecodeConsumer(consumer, append_to_map, !index_only && !metadata_only);
 
   // Honor a caller-supplied .ibd path (e.g. OnDiscImzMLExperiment::open(imzml, ibd_override))
   // so the index load AND the UUID integrity check target the file we will actually read from,
   // not an inferred sibling that may be missing or stale.
   const std::string ibd_path = ibd_path_override.empty() ? inferIbdPath_(filename) : ibd_path_override;
-  handler.openIBD(ibd_path);
+  if (!metadata_only) // metadata only reads nothing from the .ibd, which may be absent
+  {
+    handler.openIBD(ibd_path);
+  }
   handler.getImzMLMeta().ibd_file_path = ibd_path;
 
   Internal::StringManager sm;
@@ -639,7 +649,10 @@ void ImzMLFile::loadImpl_(const std::string& filename,
   // 16-byte header of the companion .ibd now. Covers every read path: the in-memory
   // loads and the on-disc reader (OnDiscImzMLExperiment::open() routes through
   // loadSpectraIndex() -> loadImpl_()).
-  verifyIbdUuid_(ibd_path, handler.getImzMLMeta().uuid, filename);
+  if (!metadata_only)
+  {
+    verifyIbdUuid_(ibd_path, handler.getImzMLMeta().uuid, filename);
+  }
 
   // IMS:1000046: without an explicit pixel size y, pixel size x also describes y
   ImzMLMeta& meta = handler.getImzMLMeta();
@@ -657,10 +670,7 @@ void ImzMLFile::loadImpl_(const std::string& filename,
     *out_index = handler.getIndex();
   }
 
-  if (!index_only)
-  {
-    attachImzMLMeta_(meta_exp, handler.getImzMLMeta());
-  }
+  attachImzMLMeta_(meta_exp, handler.getImzMLMeta());
 }
 
 std::string ImzMLFile::inferIbdPath_(const std::string& imzml_path)

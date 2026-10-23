@@ -19,6 +19,7 @@
 
 namespace OpenMS
 {
+  class MSSpectrum;
 
   /**
     @brief Dataset-level metadata for imzML mass spectrometry imaging files.
@@ -261,6 +262,60 @@ namespace OpenMS
     static void writeMzAsFloat64(FILE* ibd,
                                  const std::vector<double>& mz,
                                  const std::string& ibd_path);
+  };
+
+  /**
+    @brief Per-spectrum rules shared by every imzML access path (in-memory, streaming,
+    metadata-only, index-only and @p OnDiscImzMLExperiment), so they cannot drift apart.
+
+    @ingroup FileIO
+  */
+  class OPENMS_DLLAPI ImzMLSpectrumRules
+  {
+  public:
+    /**
+      @brief Acquisition (scan start) time of an imaging spectrum in seconds.
+
+      Imaging spectra keep RT at -1 and store the time as the MetaValue
+      @p imzml:scan_start_time. An RT the caller set (>= 0) wins over the MetaValue;
+      a non-numeric, non-finite or negative MetaValue counts as no time (a scan start time is
+      relative to the start of the run, so a negative one is a placeholder).
+
+      @return The time (>= 0), or the (negative) RT if the spectrum has none.
+    */
+    static double scanStartTime(const MSSpectrum& s);
+
+    /**
+      @brief Whether an external auxiliary array is read from the .ibd for a spectrum
+      with @p n_peaks peaks (it needs an identity, a non-zero length equal to the peak
+      count and a known binary data type). The one rule for every access path.
+
+      With @p warn, a skipped array (other than one of length 0) is logged with the pixel
+      @p x / @p y / @p z.
+    */
+    static bool isLoadableAuxArray(const std::string& name, uint64_t length,
+                                   ImzMLSpectrumIndex::DataType type, uint64_t n_peaks,
+                                   bool warn = false, uint32_t x = 0, uint32_t y = 0, uint32_t z = 0);
+
+    /**
+      @brief Set the IM peak type after the auxiliary arrays are known: with an ion
+      mobility array, @c UNKNOWN becomes @c IM_PROFILE (a type the file declares, e.g.
+      @c MS:1003441, is kept); without one, the type is @c UNKNOWN.
+    */
+    static void applyIMPeakType(MSSpectrum& s, bool has_im_array);
+
+    /**
+      @brief Attach the values of an external auxiliary array read from the .ibd.
+
+      They go into the first still-empty FloatDataArray named @p name (MzMLHandler creates
+      one per auxiliary binaryDataArray, with its metadata), so repeated names map 1:1 in
+      order; without one, a new array named @p name (and @p unit_accession) is added.
+    */
+    static void attachAuxArray(MSSpectrum& s, const std::string& name, const std::string& unit_accession,
+                               const std::vector<float>& values);
+
+    /// Drop the empty Float/Integer/StringDataArrays left by MzMLHandler for aux arrays that were not filled.
+    static void pruneEmptyDataArrays(MSSpectrum& s);
   };
 
 } // namespace OpenMS

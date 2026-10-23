@@ -451,7 +451,11 @@ namespace
       const auto& rt_range = options.getRTRange();
       exp.getSpectra().erase(
         std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-                       [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+                       [&rt_range](const MSSpectrum& s) {
+                         // like the load filter (MzMLHandler), keep spectra without a scan start time
+                         const double t = ImzMLSpectrumRules::scanStartTime(s);
+                         return t >= 0.0 && !rt_range.encloses(DPosition<1>(t));
+                       }),
         exp.getSpectra().end());
     }
 
@@ -1405,10 +1409,15 @@ namespace
       writeCvParam_(os, "MS", "MS:1000795", "no combination");
       os << "\n";
       os << "\t\t\t\t\t<scan instrumentConfigurationRef=\"IC1\">\n";
+      const double scan_start_time = ImzMLSpectrumRules::scanStartTime(spec);
+      if (scan_start_time >= 0.0) // no time: omit the cvParam
+      {
+        os << "\t\t\t\t\t\t";
+        writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(scan_start_time),
+                      "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
+        os << "\n";
+      }
       os << "\t\t\t\t\t\t";
-      writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(spec.getRT()),
-                    "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
-      os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000050", "position x", OpenMS::StringConversions::toString(plan.pixel.x));
       os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000051", "position y", OpenMS::StringConversions::toString(plan.pixel.y));

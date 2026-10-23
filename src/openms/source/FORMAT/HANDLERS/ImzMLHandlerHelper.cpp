@@ -8,9 +8,14 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -376,6 +381,101 @@ void ImzMLBinaryIO::writeMzAsFloat64(FILE* ibd,
     return;
   }
   writeFloat64Array(ibd, mz.data(), mz.size(), ibd_path);
+}
+
+double ImzMLSpectrumRules::scanStartTime(const MSSpectrum& s)
+{
+  if (s.getRT() >= 0.0) // a caller-set RT wins; also skips the MetaValue lookup for non-imaging spectra
+  {
+    return s.getRT();
+  }
+  const DataValue& v = s.getMetaValue("imzml:scan_start_time"); // DataValue::EMPTY if not set
+  if (v.valueType() == DataValue::DOUBLE_VALUE || v.valueType() == DataValue::INT_VALUE)
+  {
+    const double t = static_cast<double>(v);
+    if (std::isfinite(t) && t >= 0.0)
+    {
+      return t;
+    }
+  }
+  return s.getRT();
+}
+
+bool ImzMLSpectrumRules::isLoadableAuxArray(const std::string& name, uint64_t length,
+                                            ImzMLSpectrumIndex::DataType type, uint64_t n_peaks,
+                                            bool warn, uint32_t x, uint32_t y, uint32_t z)
+{
+  std::string reason;
+  if (name.empty())
+  {
+    reason = "no MS:1000513 / MS:1000786 identity";
+  }
+  else if (length == 0)
+  {
+    return false; // nothing to read
+  }
+  else if (length != n_peaks)
+  {
+    reason = "length " + StringConversions::toString(length) + " != peak count " + StringConversions::toString(n_peaks)
+             + " (viewers require equal length for ion mobility)";
+  }
+  else if (type == ImzMLSpectrumIndex::DataType::UNKNOWN)
+  { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than abort,
+    // as for the other bad aux arrays
+    reason = "missing or unsupported binary data type";
+  }
+  else
+  {
+    return true;
+  }
+  if (warn)
+  {
+    OPENMS_LOG_WARN << "Skipping auxiliary array '" << name << "' at pixel (" << x << "," << y << "," << z
+                    << "): " << reason << "\n";
+  }
+  return false;
+}
+
+void ImzMLSpectrumRules::attachAuxArray(MSSpectrum& s, const std::string& name, const std::string& unit_accession,
+                                        const std::vector<float>& values)
+{
+  auto& float_arrays = s.getFloatDataArrays();
+  auto it = std::find_if(float_arrays.begin(), float_arrays.end(),
+                         [&name](const auto& a) { return a.empty() && a.getName() == name; });
+  if (it == float_arrays.end())
+  {
+    it = float_arrays.emplace(float_arrays.end());
+    it->setName(name);
+    if (!unit_accession.empty())
+    {
+      it->setMetaValue("unit_accession", unit_accession);
+    }
+  }
+  it->assign(values.begin(), values.end());
+}
+
+void ImzMLSpectrumRules::pruneEmptyDataArrays(MSSpectrum& s)
+{
+  auto prune = [](auto& arrays) {
+    arrays.erase(std::remove_if(arrays.begin(), arrays.end(),
+                                [](const auto& a) { return a.empty(); }),
+                 arrays.end());
+  };
+  prune(s.getFloatDataArrays());
+  prune(s.getIntegerDataArrays());
+  prune(s.getStringDataArrays());
+}
+
+void ImzMLSpectrumRules::applyIMPeakType(MSSpectrum& s, bool has_im_array)
+{
+  if (!has_im_array)
+  {
+    s.setIMPeakType(IMPeakType::UNKNOWN);
+  }
+  else if (s.getIMPeakType() == IMPeakType::UNKNOWN)
+  {
+    s.setIMPeakType(IMPeakType::IM_PROFILE);
+  }
 }
 
 std::optional<int> lengthUnitExponent(const std::string& unit_accession)
