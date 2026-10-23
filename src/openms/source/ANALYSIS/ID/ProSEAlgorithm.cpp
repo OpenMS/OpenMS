@@ -3920,7 +3920,7 @@ namespace OpenMS
   // single-file path (the two previously held byte-identical copies).
   // =====================================================================
   // static
-  void ProSEAlgorithm::applyCompleteSetProteinFDR(
+  bool ProSEAlgorithm::applyCompleteSetProteinFDR(
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       const std::string& decoy_string,
@@ -3935,7 +3935,7 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "[ProSE] applyCompleteSetProteinFDR called with an empty decoy marker; "
                       << "skipping protein FDR (cannot identify decoys)." << std::endl;
-      return;
+      return false;
     }
 
     // Aggregate the best PSM score per peptide per protein, then apply picked-protein
@@ -3958,7 +3958,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] Protein FDR requested but no decoy proteins remain after inference "
                       << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
                       << "target-only q-values." << std::endl;
-      return;
+      return false;
     }
 
     FalseDiscoveryRate fdr;
@@ -3990,6 +3990,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
                     << protein_ids[0].getHits().size() << " proteins at "
                     << protein_fdr * 100 << "% FDR." << std::endl;
+    return true;
   }
 
   void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
