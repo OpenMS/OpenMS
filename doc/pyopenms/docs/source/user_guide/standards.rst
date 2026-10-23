@@ -198,18 +198,23 @@ A :py:class:`~.PeptideIdentification` holds the peptide hits of one spectrum.
     mzspec:local:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555
 
 ``buildUSI()`` takes the run name, the collection and whether to add the interpretation.
-It writes the run name unchanged, so do not pass a path. It reads the scan number from
-the spectrum reference, the native ID of the spectrum. If it finds none, it writes the
-whole native ID with the index type ``nativeId``. The interpretation is the sequence and
-charge of the first :py:class:`~.PeptideHit`; ``sort()`` puts the best hit first. Without
-a collection, ``buildUSI()`` writes ``local``, which OpenMS uses for data that is not in a
-public repository. Without a spectrum reference, it returns an invalid USI, whose
+It writes the run name unchanged, so do not pass a path. It maps an unambiguous scan
+reference to ``scan:``, ``index=X`` to ``index:``, and structured vendor IDs to
+``nativeId:`` values. For example, Bruker DIA IDs use ``frame,scan``; DDA IDs also
+include the precursor number (``frame,scan,precursor``) so spectra sharing a frame and
+scan remain distinct. This three-value Bruker DDA tuple is an OpenMS extension. Unknown
+native ID formats are passed through as ``nativeId:``. The interpretation is the sequence
+and charge of the first :py:class:`~.PeptideHit`; ``sort()`` puts the best hit first.
+Without a collection, ``buildUSI()`` writes ``local``, which OpenMS uses for data that is
+not in a public repository. Without a spectrum reference, it returns an invalid USI, whose
 ``toString()`` is empty.
 
 In place of the run name, ``buildUSI()`` also accepts an
 :py:class:`~.IdentifierMSRunMapper`, created from the :py:class:`~.ProteinIdentification`
-objects (``oms.IdentifierMSRunMapper(protein_ids)``). It then takes the run from the protein identification that has the same
-identifier as the peptide identification, and drops the directories from its path.
+objects (``oms.IdentifierMSRunMapper(protein_ids)``). It then takes the run from the protein
+identification that has the same identifier as the peptide identification, drops the
+directories and recognized MS file extension, and keeps the full filename for ``index:``
+references because those indices address positions in the file.
 
 mzPAF Peak Annotations
 **********************
