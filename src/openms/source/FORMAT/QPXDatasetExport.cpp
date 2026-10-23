@@ -240,9 +240,26 @@ namespace OpenMS
       reference.utf8_values.push_back(spectrum ? id.getSpectrumReference() : std::string());
       reference.null_rows.push_back(!spectrum || id.getSpectrumReference().empty());
 
+      // an integer, or a double of an integral value (e.g. read back from a pin file); null otherwise (no
+      // conversion error: another type, a fraction or a value out of the INT16 range is no isotope error)
       const std::string isotope_key = hit.metaValueExists("isotope_error") ? "isotope_error" : "IsotopeError";
-      isotope.int64_values.push_back(hit.metaValueExists(isotope_key) ? isotope_sign * static_cast<int>(hit.getMetaValue(isotope_key)) : 0);
-      isotope.null_rows.push_back(!hit.metaValueExists(isotope_key));
+      std::optional<int> isotope_error;
+      if (hit.metaValueExists(isotope_key))
+      {
+        const DataValue& value = hit.getMetaValue(isotope_key);
+        if (value.valueType() == DataValue::INT_VALUE) { isotope_error = static_cast<int>(value); }
+        else if (value.valueType() == DataValue::DOUBLE_VALUE)
+        {
+          const double error = static_cast<double>(value);
+          const double rounded = std::round(error);
+          if (std::isfinite(error) && std::fabs(error - rounded) <= 1e-6 && std::fabs(rounded) <= 32767.0)
+          {
+            isotope_error = static_cast<int>(rounded);
+          }
+        }
+      }
+      isotope.int64_values.push_back(isotope_error ? isotope_sign * *isotope_error : 0);
+      isotope.null_rows.push_back(!isotope_error);
 
       std::vector<Column::StructEntry> row_mappings;
       for (const PeptideEvidence& evidence : hit.getPeptideEvidences())

@@ -70,7 +70,8 @@ public:
       - @c spectrum_reference (UTF8): the native ID; null if the element has no spectrum (@p has_spectrum) or no
         native ID;
       - @c isotope_error (INT16): the meta value @c isotope_error (or @c IsotopeError) as observed minus theoretical
-        (also so in @c additional_scores); null without one;
+        (also so in @c additional_scores); null without one, and if it is neither an integer nor a double of an
+        integral value (as read back from a pin file) in the INT16 range;
       - @c protein_mappings (STRUCT_LIST of @c accession, @c start, @c end, @c aa_before, @c aa_after): one entry per
         peptide evidence, 1-based positions (null if unknown), "-" for a protein terminus, null for an unknown residue.
 
@@ -137,7 +138,8 @@ public:
     std::vector<bool> has_spectrum;
     /// The PSMs without a spectrum of their native ID (and RT), whose native ID has no row either
     Size without_spectrum = 0;
-    /// The PSMs of a spectrum that shares its native ID with another spectrum (at another RT), which has the row
+    /// The PSMs whose native ID has the row of a spectrum that is not theirs: several spectra share the native ID (at
+    /// different RTs), and the row is of another one than the PSM's, or none of them is at the PSM's RT
     Size unresolved = 0;
     /// The peaks of the spectra of the rows
     Size peaks_read = 0;
@@ -311,11 +313,11 @@ public:
   };
 
   /**
-    @brief Write the QPX dataset @p views to @p directory: @p directory/@p prefix.<view>.parquet per view
+    @brief Write the QPX dataset @p views to @p directory: @p directory/@p prefix.VIEW.parquet per view (VIEW: its name)
 
     Creates @p directory if needed. Writes the views in the order psm, mz, pg, run, sample, provenance (then any other
     view, by name), each with its tables concatenated and the footer of ArrowIOHelpers::qpxFileMetadata() of the file
-    type "<view>_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
+    type "VIEW_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
     table fails. The mz view is not written (logged) if a psm view was given and could not be written, as its rows are
     keyed by the spectra of the PSMs. A view that fails is logged and the others are still written.
 

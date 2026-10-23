@@ -17,6 +17,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/QPXFile.h>
@@ -290,8 +291,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   TEST_EQUAL(reference.null_rows.size(), 2)
   ABORT_IF(reference.utf8_values.size() != 2 || reference.null_rows.size() != 2)
   TEST_STRING_EQUAL(reference.utf8_values[0], "scan=5")
-  TEST_EQUAL(reference.null_rows[0], false)
-  TEST_EQUAL(reference.null_rows[1], true)
+  TEST_EQUAL(bool(reference.null_rows[0]), false)
+  TEST_EQUAL(bool(reference.null_rows[1]), true)
 
   // isotope_error: theoretical minus observed in the meta value, flipped to observed minus theoretical
   const Column isotope = columnOf(c, "isotope_error");
@@ -299,8 +300,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   TEST_EQUAL(isotope.null_rows.size(), 2)
   ABORT_IF(isotope.int64_values.size() != 2 || isotope.null_rows.size() != 2)
   TEST_EQUAL(isotope.int64_values[0], -1)
-  TEST_EQUAL(isotope.null_rows[0], false)
-  TEST_EQUAL(isotope.null_rows[1], true)
+  TEST_EQUAL(bool(isotope.null_rows[0]), false)
+  TEST_EQUAL(bool(isotope.null_rows[1]), true)
 
   // additional_scores: the main score, every numeric meta value (isotope error with the same sign; the rank, which
   // PeptideHit keeps as a meta value), no target_decoy
@@ -368,8 +369,8 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   ABORT_IF(reference_all.utf8_values.size() != 2 || reference_all.null_rows.size() != 2)
   TEST_STRING_EQUAL(reference_all.utf8_values[0], "scan=5")
   TEST_STRING_EQUAL(reference_all.utf8_values[1], "scan=7")
-  TEST_EQUAL(reference_all.null_rows[0], false)
-  TEST_EQUAL(reference_all.null_rows[1], false)
+  TEST_EQUAL(bool(reference_all.null_rows[0]), false)
+  TEST_EQUAL(bool(reference_all.null_rows[1]), false)
   const Column isotope_all = columnOf(c, "isotope_error");
   ABORT_IF(isotope_all.int64_values.size() != 2)
   TEST_EQUAL(isotope_all.int64_values[0], 1)
@@ -384,8 +385,30 @@ START_SECTION((static std::vector<Column> psmColumns(const PeptideIdentification
   c = QPXDatasetExport::psmColumns(no_reference, {}, true);
   const Column reference_empty = columnOf(c, "spectrum_reference");
   ABORT_IF(reference_empty.null_rows.size() != 2)
-  TEST_EQUAL(reference_empty.null_rows[0], true)
-  TEST_EQUAL(reference_empty.null_rows[1], false)
+  TEST_EQUAL(bool(reference_empty.null_rows[0]), true)
+  TEST_EQUAL(bool(reference_empty.null_rows[1]), false)
+
+  // an isotope error that is no int (e.g. read back from a pin file as a double): an integral double as its integer
+  // (with the sign flip), anything else null, without a conversion error
+  PeptideIdentificationList typed;
+  for (const DataValue& error : {DataValue(2.0), DataValue(0.5), DataValue("1"), DataValue(1.0e6)})
+  {
+    PeptideIdentification id = ids[0];
+    vector<PeptideHit> hits = id.getHits();
+    hits[0].setMetaValue("isotope_error", error);
+    id.setHits(hits);
+    typed.push_back(id);
+  }
+  c = QPXDatasetExport::psmColumns(typed, {}, false);
+  const Column isotope_typed = columnOf(c, "isotope_error");
+  TEST_EQUAL(isotope_typed.int64_values.size(), 4)
+  TEST_EQUAL(isotope_typed.null_rows.size(), 4)
+  ABORT_IF(isotope_typed.int64_values.size() != 4 || isotope_typed.null_rows.size() != 4)
+  TEST_EQUAL(isotope_typed.int64_values[0], -2)
+  TEST_EQUAL(bool(isotope_typed.null_rows[0]), false)
+  TEST_EQUAL(bool(isotope_typed.null_rows[1]), true) // 0.5
+  TEST_EQUAL(bool(isotope_typed.null_rows[2]), true) // a string
+  TEST_EQUAL(bool(isotope_typed.null_rows[3]), true) // out of the INT16 range
 
   // no elements: the four columns without rows
   c = QPXDatasetExport::psmColumns(PeptideIdentificationList(), {}, true);
