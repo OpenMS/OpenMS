@@ -3497,7 +3497,7 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
     return key;
   };
 
-  const int n_patterns = 10;
+  const int n_patterns = 11;
   const auto makePeptides = [&](int pattern, size_t n)
   {
     std::mt19937 rng(static_cast<uint32_t>(pattern * 1000003 + n));
@@ -3521,7 +3521,8 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
         case 6: mz = static_cast<float>(i % 17); protein = i % 2; break;                  // sawtooth
         case 7: mz = 500.0f + 0.01f * static_cast<float>(rng() % 200000); protein = static_cast<UInt32>(i / 10); break; // as build() has them
         case 8: mz = static_cast<float>(killer[i]); break;                                // heap sort fallback
-        default: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;      // heap sort fallback, ties
+        case 9: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;       // heap sort fallback, ties
+        default: mz = (rng() % 2 ? 1.0f : -1.0f) * static_cast<float>(rng() % 3); protein = rng() % 2; break; // signs, -0.0 == 0.0
       }
       // mod_bitmask_ and sequence_ are not part of the sort key: they tell equal peptides apart
       peptides.emplace_back(protein, static_cast<uint32_t>(i),

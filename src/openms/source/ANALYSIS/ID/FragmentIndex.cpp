@@ -40,6 +40,7 @@
 #include <cstring>
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <numeric>
 #include <set>
@@ -998,34 +999,48 @@ namespace OpenMS
     // if that lies beyond, at b_{K-1}, which holds a_{K-1}'s element by then. (Each scan only passes elements it would
     // not stop at, which no swap has touched, up to the place of the last swap.) So the same swaps are found from the
     // counts of both kinds of elements: K is the largest k for which some position m has at least k of the first kind
-    // left of it and k of the second kind from m on. Returns where the scan from the left stops.
+    // left of it and k of the second kind from m on. Both kinds are marked in bit sets by one pass over the elements;
+    // K, the a_k and b_k are then found in the bit sets. Returns where the scan from the left stops.
     template <typename T, typename Less>
     T* partitionLikeStdSortInParallel(T* first, T* last, Less less)
     {
       const T& pivot = *first; // not moved: the scans cover [first + 1, last)
       T* const begin = first + 1;
-      const auto stops_left = [&](const T& x) { return !less(x, pivot); }; // a scan from the left stops here
-      const auto stops_right = [&](const T& x) { return !less(pivot, x); }; // a scan from the right stops here
-      constexpr std::ptrdiff_t chunk = std::ptrdiff_t(1) << 14;
+      constexpr std::ptrdiff_t chunk = std::ptrdiff_t(1) << 14; // elements; a multiple of 64
+      constexpr std::ptrdiff_t chunk_words = chunk / 64;
       const std::ptrdiff_t n = last - begin;
       const std::ptrdiff_t num_chunks = (n + chunk - 1) / chunk;
-      const auto chunk_begin = [&](std::ptrdiff_t c) { return begin + std::min(n, c * chunk); };
+      const std::ptrdiff_t num_words = (n + 63) / 64;
+      // bit i of word w: the element begin[64 * w + i] stops the scan from the left / from the right; all written below
+      const std::unique_ptr<uint64_t[]> stops_left(new uint64_t[num_words]);
+      const std::unique_ptr<uint64_t[]> stops_right(new uint64_t[num_words]);
       // left[c]: elements of the first kind in chunks [0, c); right[c]: of the second kind in chunks [c, num_chunks)
       std::vector<std::ptrdiff_t> left(num_chunks + 1, 0), right(num_chunks + 1, 0);
-      #pragma omp taskloop grainsize(1) default(none) shared(left, right, stops_left, stops_right, chunk_begin, num_chunks)
+      #pragma omp taskloop grainsize(1) default(none) shared(left, right, stops_left, stops_right, pivot, less) firstprivate(begin, n, num_chunks, num_words, chunk_words)
       for (std::ptrdiff_t c = 0; c < num_chunks; ++c)
       {
         std::ptrdiff_t l = 0, r = 0;
-        for (T* x = chunk_begin(c); x != chunk_begin(c + 1); ++x)
+        for (std::ptrdiff_t w = c * chunk_words; w < std::min(num_words, (c + 1) * chunk_words); ++w)
         {
-          l += stops_left(*x);
-          r += stops_right(*x);
+          const T* const x = begin + 64 * w;
+          const int bits = static_cast<int>(std::min<std::ptrdiff_t>(64, n - 64 * w));
+          uint64_t lw = 0, rw = 0;
+          for (int i = 0; i < bits; ++i)
+          {
+            lw |= uint64_t(!less(x[i], pivot)) << i;
+            rw |= uint64_t(!less(pivot, x[i])) << i;
+          }
+          stops_left[w] = lw;
+          stops_right[w] = rw;
+          l += std::popcount(lw);
+          r += std::popcount(rw);
         }
         left[c + 1] = l;
         right[c] = r;
       }
       for (std::ptrdiff_t c = 0; c < num_chunks; ++c) left[c + 1] += left[c];
       for (std::ptrdiff_t c = num_chunks; c-- > 0;) right[c] += right[c + 1];
+      const auto bit = [](const std::unique_ptr<uint64_t[]>& set, std::ptrdiff_t i) { return std::ptrdiff_t((set[i >> 6] >> (i & 63)) & 1); };
 
       // K = max over m of min(#first kind in [begin, m), #second kind in [m, last)); the first count grows with m, the
       // second shrinks, so the maximum lies where they cross: in the chunk where the first passes the second, or at
@@ -1037,63 +1052,135 @@ namespace OpenMS
       {
         std::ptrdiff_t l = left[cross - 1], r = right[cross - 1];
         K = std::max(K, std::min(l, r));
-        for (T* x = chunk_begin(cross - 1); x != chunk_begin(cross); ++x)
+        for (std::ptrdiff_t i = (cross - 1) * chunk; i < std::min(n, cross * chunk); ++i)
         {
-          l += stops_left(*x);
-          r -= stops_right(*x);
+          l += bit(stops_left, i);
+          r -= bit(stops_right, i);
           K = std::max(K, std::min(l, r));
         }
       }
 
-      // a_k and b_k, found from the chunk counts (k < number of such elements; otherwise last, and first: no such element)
-      const auto a_at = [&](std::ptrdiff_t k) -> T*
+      // a_k and b_k, as offsets from begin, found from the chunk counts and the bit sets (k < number of such elements;
+      // otherwise n, and -1: no such element)
+      const auto select = [](uint64_t word, std::ptrdiff_t r) // the r-th (from 0) set bit of word
       {
-        if (k >= left[num_chunks]) return last;
+        for (; r > 0; --r) word &= word - 1;
+        return std::countr_zero(word);
+      };
+      const auto a_at = [&](std::ptrdiff_t k) -> std::ptrdiff_t
+      {
+        if (k >= left[num_chunks]) return n;
         const std::ptrdiff_t c = std::upper_bound(left.begin(), left.end(), k) - left.begin() - 1;
         std::ptrdiff_t seen = left[c];
-        for (T* x = chunk_begin(c);; ++x)
+        for (std::ptrdiff_t w = c * chunk_words;; ++w)
         {
-          if (stops_left(*x) && seen++ == k) return x;
+          const std::ptrdiff_t count = std::popcount(stops_left[w]);
+          if (seen + count > k) return 64 * w + select(stops_left[w], k - seen);
+          seen += count;
         }
       };
-      const auto b_at = [&](std::ptrdiff_t k) -> T*
+      const auto b_at = [&](std::ptrdiff_t k) -> std::ptrdiff_t
       {
-        if (k >= right[0]) return first;
+        if (k >= right[0]) return -1;
         // the chunk c with right[c + 1] <= k < right[c]
         const std::ptrdiff_t c = std::lower_bound(right.begin(), right.end(), k, std::greater<std::ptrdiff_t>()) - right.begin() - 1;
         std::ptrdiff_t seen = right[c + 1];
-        for (T* x = chunk_begin(c + 1) - 1;; --x)
+        for (std::ptrdiff_t w = std::min(num_words, (c + 1) * chunk_words) - 1;; --w)
         {
-          if (stops_right(*x) && seen++ == k) return x;
+          const std::ptrdiff_t count = std::popcount(stops_right[w]);
+          if (seen + count > k) return 64 * w + select(stops_right[w], count - 1 - (k - seen));
+          seen += count;
         }
       };
-      T* const cut = (K == 0) ? a_at(0) : std::min(a_at(K), b_at(K - 1));
+      T* const cut = begin + ((K == 0) ? a_at(0) : std::min(a_at(K), b_at(K - 1)));
 
-      // the swaps, in blocks of consecutive k: the blocks' starts are looked up before any element moves
+      // the swaps, in blocks of consecutive k, each from its a_k and b_k on to the next set bits
       const std::ptrdiff_t block = std::max<std::ptrdiff_t>(chunk, (K + 255) / 256);
       const std::ptrdiff_t num_blocks = (K + block - 1) / block;
-      std::vector<std::pair<T*, T*>> starts(num_blocks);
-      #pragma omp taskloop grainsize(1) default(none) shared(starts, a_at, b_at, num_blocks, block)
+      #pragma omp taskloop grainsize(1) default(none) shared(stops_left, stops_right, a_at, b_at) firstprivate(begin, num_blocks, block, K)
       for (std::ptrdiff_t j = 0; j < num_blocks; ++j)
       {
-        starts[j] = {a_at(j * block), b_at(j * block)};
-      }
-      #pragma omp taskloop grainsize(1) default(none) shared(starts, stops_left, stops_right, num_blocks, block, K)
-      for (std::ptrdiff_t j = 0; j < num_blocks; ++j)
-      {
-        T* a = starts[j].first;
-        T* b = starts[j].second;
-        for (std::ptrdiff_t k = j * block; k < std::min(K, (j + 1) * block); ++k)
+        std::ptrdiff_t a = a_at(j * block);
+        std::ptrdiff_t b = b_at(j * block);
+        for (std::ptrdiff_t k = j * block;;)
         {
-          if (k > j * block)
-          {
-            while (!stops_left(*++a)) {}
-            while (!stops_right(*--b)) {}
-          }
-          std::iter_swap(a, b);
+          std::iter_swap(begin + a, begin + b);
+          if (++k == std::min(K, (j + 1) * block)) break;
+          std::ptrdiff_t w = (a + 1) >> 6;
+          uint64_t word = stops_left[w] & (~uint64_t(0) << ((a + 1) & 63));
+          while (word == 0) word = stops_left[++w];
+          a = 64 * w + std::countr_zero(word);
+          w = (b - 1) >> 6;
+          word = stops_right[w] & (~uint64_t(0) >> (63 - ((b - 1) & 63)));
+          while (word == 0) word = stops_right[--w];
+          b = 64 * w + 63 - std::countl_zero(word);
         }
       }
       return cut;
+    }
+
+    // std::__unguarded_partition(first + 1, last, first) on one thread, with the same swaps: as long as BLOCK elements
+    // are left between the scans, the scans take BLOCK elements at a time from either end and note those they stop at,
+    // without a branch per element; the k-th noted on the left is swapped with the k-th noted on the right, which
+    // lies beyond it (see partitionLikeStdSortInParallel). The scans then go on from the last swap, element by element.
+    template <typename T, typename Less>
+    T* partitionLikeStdSortInBlocks(T* first, T* last, Less less)
+    {
+      constexpr int BLOCK = 64;
+      const T& pivot = *first;
+      T* lo = first + 1; // [lo, hi): not looked at yet
+      T* hi = last;
+      T* left_base = lo;
+      T* right_base = hi;
+      uint8_t left_stops[BLOCK], right_stops[BLOCK]; // offsets from left_base, and back from right_base
+      int left_n = 0, left_i = 0, right_n = 0, right_i = 0;
+      T* cut = first + 1; // where the scans go on after the blocks
+      T* top = last;
+      while (true)
+      {
+        if (left_i == left_n)
+        {
+          if (hi - lo < BLOCK) break;
+          left_base = lo;
+          left_n = left_i = 0;
+          for (int i = 0; i < BLOCK; ++i)
+          {
+            left_stops[left_n] = static_cast<uint8_t>(i);
+            left_n += !less(lo[i], pivot);
+          }
+          lo += BLOCK;
+        }
+        if (right_i == right_n)
+        {
+          if (hi - lo < BLOCK) break;
+          right_base = hi - 1;
+          right_n = right_i = 0;
+          for (int i = 0; i < BLOCK; ++i)
+          {
+            right_stops[right_n] = static_cast<uint8_t>(i);
+            right_n += !less(pivot, *(right_base - i));
+          }
+          hi -= BLOCK;
+        }
+        const int swaps = std::min(left_n - left_i, right_n - right_i);
+        for (int t = 0; t < swaps; ++t) std::iter_swap(left_base + left_stops[left_i + t], right_base - right_stops[right_i + t]);
+        if (swaps > 0)
+        {
+          cut = left_base + left_stops[left_i + swaps - 1] + 1;
+          top = right_base - right_stops[right_i + swaps - 1];
+        }
+        left_i += swaps;
+        right_i += swaps;
+      }
+      while (true)
+      {
+        while (less(*cut, pivot)) ++cut;
+        --top;
+        while (less(pivot, *top)) --top;
+        if (!(cut < top)) return cut;
+        std::iter_swap(cut, top);
+        ++cut;
+      }
     }
 
     template <typename T, typename Less>
@@ -1124,24 +1211,8 @@ namespace OpenMS
         else if (less(*b, *c)) std::iter_swap(first, c);
         else std::iter_swap(first, b);
         // ... and __unguarded_partition(first + 1, last, pivot = first)
-        T* cut = first + 1;
-        if (last - first > min_parallel_partition)
-        {
-          cut = partitionLikeStdSortInParallel(first, last, less);
-        }
-        else
-        {
-          T* hi = last;
-          while (true)
-          {
-            while (less(*cut, *first)) ++cut;
-            --hi;
-            while (less(*first, *hi)) --hi;
-            if (!(cut < hi)) break;
-            std::iter_swap(cut, hi);
-            ++cut;
-          }
-        }
+        T* const cut = (last - first > min_parallel_partition) ? partitionLikeStdSortInParallel(first, last, less)
+                                                               : partitionLikeStdSortInBlocks(first, last, less);
         // right part [cut, last): recursion in std::sort, a task here if it is large enough to be worth one
         if (last - cut > min_task_size)
         {
@@ -1182,9 +1253,27 @@ namespace OpenMS
       const int depth_limit = 2 * (static_cast<int>(std::bit_width(peptides.size())) - 1); // std::__lg(n) * 2
       const std::ptrdiff_t min_size = static_cast<std::ptrdiff_t>(min_task_size);
       const std::ptrdiff_t min_parallel = static_cast<std::ptrdiff_t>(std::min<size_t>(min_parallel_partition, PTRDIFF_MAX));
+      // The bits of a float without sign bit that is not NaN (every precursor_mz_ that generatePeptides() computes) order
+      // like its value, so its bits and protein_idx in one unsigned integer compare as the pair does: the same
+      // comparisons, the same swaps, with one integer comparison each.
+      uint32_t max_mz_bits = 0;
+      #pragma omp parallel for reduction(max : max_mz_bits)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(peptides.size()); ++i)
+      {
+        max_mz_bits = std::max(max_mz_bits, std::bit_cast<uint32_t>(peptides[i].precursor_mz_));
+      }
+      const auto by_key = [](const Peptide& a, const Peptide& b)
+      {
+        return ((uint64_t(std::bit_cast<uint32_t>(a.precursor_mz_)) << 32) | a.protein_idx)
+               < ((uint64_t(std::bit_cast<uint32_t>(b.precursor_mz_)) << 32) | b.protein_idx);
+      };
+      constexpr uint32_t infinity_bits = 0x7F800000; // larger: NaN, or the sign bit set
       #pragma omp parallel
       #pragma omp single nowait
-      introsortLoopLikeStdSort(first, last, depth_limit, by_mz_then_protein, min_size, min_parallel);
+      {
+        if (max_mz_bits <= infinity_bits) { introsortLoopLikeStdSort(first, last, depth_limit, by_key, min_size, min_parallel); }
+        else { introsortLoopLikeStdSort(first, last, depth_limit, by_mz_then_protein, min_size, min_parallel); }
+      }
       return;
     }
 #else
