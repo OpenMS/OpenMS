@@ -41,8 +41,89 @@
 #include <omp.h>
 #endif
 
+#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__)) && !defined(__SANITIZE_ADDRESS__) && !defined(__SANITIZE_THREAD__)
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <sched.h>
+#include <signal.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#define PROSE_HAND_OVER_MEMORY
+#ifndef SYS_close_range
+#define SYS_close_range 436 // Linux 5.9; the same number on all architectures
+#endif
+#endif
+
 using namespace OpenMS;
 using namespace std;
+
+#ifdef PROSE_HAND_OVER_MEMORY
+namespace
+{
+  /**
+    When a process ends, the kernel releases its memory before the waiting parent learns of the end: 40-80 ms for
+    the 0.5-1 GB that a search leaves behind, after all outputs are written. A helper process that shares the
+    address space (CLONE_VM) takes over that work: it waits until this process has ended (end of file on a pipe
+    whose write end only this process holds; a process drops its address space before it closes its files) and
+    ends itself, so the memory goes back to the system with the helper, a moment after this process ended. This
+    process ends exactly as before (destructors, flushed streams, exit code); the helper writes nothing.
+  */
+  int memory_helper_pipe = -1;
+  alignas(64) char memory_helper_stack[16384];
+
+  /// a system call without the C library: the helper shares the memory of this process, but not its thread state
+  /// (errno)
+  long rawSyscall(long n, long a = 0, long b = 0, long c = 0, long d = 0)
+  {
+#if defined(__x86_64__)
+    register long r10 asm("r10") = d;
+    long ret;
+    asm volatile("syscall" : "=a"(ret) : "a"(n), "D"(a), "S"(b), "d"(c), "r"(r10) : "rcx", "r11", "memory");
+    return ret;
+#else
+    register long x8 asm("x8") = n;
+    register long x0 asm("x0") = a;
+    register long x1 asm("x1") = b;
+    register long x2 asm("x2") = c;
+    register long x3 asm("x3") = d;
+    asm volatile("svc 0" : "+r"(x0) : "r"(x8), "r"(x1), "r"(x2), "r"(x3) : "memory");
+    return x0;
+#endif
+  }
+
+  int memoryHelper(void*)
+  {
+    unsigned long all_signals = ~0UL;
+    rawSyscall(SYS_rt_sigprocmask, SIG_BLOCK, long(&all_signals), 0, sizeof(all_signals));
+    // keep no file of this process open (e.g. the pipe of a caller that reads its output until the end)
+    const long fd = memory_helper_pipe;
+    if (fd > 0 && rawSyscall(SYS_close_range, 0, fd - 1, 0) < 0) { for (long f = 0; f < fd; ++f) { rawSyscall(SYS_close, f); } }
+    if (rawSyscall(SYS_close_range, fd + 1, ~0U, 0) < 0) { for (long f = fd + 1; f < 65536; ++f) { rawSyscall(SYS_close, f); } }
+    char c;
+    long r;
+    do { r = rawSyscall(SYS_read, fd, long(&c), 1); } while (r > 0 || r == -EINTR); // 0 when this process has ended
+    rawSyscall(SYS_exit, 0);
+    return 0;
+  }
+
+  /// Hands the release of the memory at exit to a helper process (see above); does nothing if that fails
+  void handOverMemoryAtExit()
+  {
+    // Valgrind does not run processes that share memory without being threads
+    const char* preload = getenv("LD_PRELOAD");
+    if (preload != nullptr && strstr(preload, "vgpreload") != nullptr) { return; }
+    int fds[2];
+    if (pipe(fds) != 0) { return; }
+    memory_helper_pipe = fds[0];
+    if (clone(memoryHelper, memory_helper_stack + sizeof(memory_helper_stack), CLONE_VM | CLONE_UNTRACED, nullptr) == -1)
+    {
+      close(fds[1]);
+    }
+    close(fds[0]); // the write end stays open until this process ends
+  }
+}
+#endif
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -1036,7 +1117,11 @@ class ProSE :
 int main(int argc, const char** argv)
 {
   ProSE tool;
-  return tool.main(argc, argv);
+  const int exit_code = tool.main(argc, argv);
+#ifdef PROSE_HAND_OVER_MEMORY
+  handOverMemoryAtExit();
+#endif
+  return exit_code;
 }
 
 ///@endcond
