@@ -101,20 +101,32 @@ hand-editing sources and committing them, to keep sync self-healing.
   rows whose index range does not include the column it looks for, and stops
   scanning a row at the first index past it (the indices are sorted and unique),
   instead of scanning every entry of every row.
-- `patches/07-spline-pep-banded.patch` — speeds up the spline PEP further,
-  again without changing its result. `BaseSpline::initiateQR` keeps `Q` and
-  `R` as bands as well, and each iteration of
-  `iterativeReweightedLeastSquares` runs `BaseSpline::bandedIteration`: the
-  same floating-point operations, in the same order, as building `alpha / w`,
-  `aWiQ`, `M = R + Qt * aWiQ`, `gamma = Qt * z`, `solveInPlace` and
-  `gnew = z - aWiQ * gamma` with the sparse matrix code, on band rows in reused
-  buffers and without allocations. The elimination makes the same pivot choices,
-  row swaps and row operations as `solveInPlace` and visits only the rows that
-  can hold the pivot column; the back substitution updates only the right-hand
-  side (the row operations of that pass cannot change the result). Whenever the
-  sparse code would drop an entry (|value| <= 1e-15) or the band structure does
-  not hold, `bandedIteration` returns before it has changed anything and the
-  matrix code runs instead.
+- `patches/07-spline-pep-banded.patch` — speeds up the spline PEP further, again
+  without changing its result. `BaseSpline::initiateQR` keeps `Q` and `R` as
+  bands as well, and each iteration of `iterativeReweightedLeastSquares` runs
+  `BaseSpline::bandedIteration`: the same floating-point operations, in the same
+  order, as building `alpha / w`, `aWiQ`, `M = R + Qt * aWiQ`, `gamma = Qt * z`,
+  `solveInPlace` and `gnew = z - aWiQ * gamma` with the sparse matrix code, on
+  band rows in reused buffers and without allocations. The elimination makes the
+  same pivot choices, row swaps and row operations as `solveInPlace` and visits
+  only the rows that can hold the pivot column; the back substitution updates
+  only the right-hand side (the row operations of that pass cannot change the
+  result). Whenever dropping an entry (|value| <= 1e-15) would violate the band
+  structure, or the elimination would leave it, `bandedIteration` returns before
+  it commits the iteration's outputs and the matrix code runs instead. On FMA
+  targets the compiler may contract `a * b + c` into a fused multiply-add; the
+  band code keeps the expression shapes of the matrix code so that it is
+  contracted the same way: the elimination stores its rounded product in a
+  `volatile` (like `packedProd`, which stores it), and the dot products are
+  loops `tot += a * b` like `packedDotProd` (under Clang with `clang loop
+  unroll(disable) vectorize(disable)`: Clang's SLP vectoriser otherwise
+  multiplied the terms of `Qt * z` separately). This is checked, not guaranteed:
+  both paths ran in every IRLS iteration on 20 real and 300 synthetic inputs and
+  gave the same bits with GCC 14.4 -O3 (no -march, `-march=haswell`,
+  `-march=native` on Zen 4, `-march=haswell -ffp-contract=off`) and Clang 23 -O3
+  (`-mfma` with the default `-ffp-contract=on`, `fast` and `off`, `-march=native
+  -ffp-contract=fast`). Other compilers, versions and targets (AArch64, MSVC
+  `/fp:contract`, x87, fast-math) are not covered.
 - `patches/08-cv-sorts-tasks.patch` — speeds up cross-validation without changing
   its result. The sorts of `Scores` (`calcScores`, `generatePositiveTrainingSet`,
   `createXvalSetsBySpectrum`, `merge`, `postMergeStep`) call `sortLikeStdSort` from the

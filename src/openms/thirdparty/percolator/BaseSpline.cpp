@@ -277,7 +277,11 @@ void BaseSpline::initiateQR() {
 // swaps and row operations; only the rows that can hold an entry in the pivot column are visited), and
 // gnew = z - aWiQ * gamma'. The sparse vectors drop entries with |value| <= 1e-15; whenever that would change the
 // structure assumed here, or the elimination would leave it, bandedIteration returns false before it has changed
-// anything, and the caller runs the matrix code instead.
+// anything, and the caller runs the matrix code instead. Where the compiler may contract a * b + c into a fused
+// multiply-add (FMA targets), the expressions have the shape of the matrix code's: the dot products are loops
+// tot += a * b like PackedVector::packedDotProd (under Clang not unrolled or vectorised: separately vectorised
+// products are not fused like that loop's), and the elimination rounds its products like packedProd, which stores
+// them. This is checked, not guaranteed: see UPSTREAM.md for the compilers and flags.
 void BaseSpline::initiateBanded() {
   banded = false;
   const int n = static_cast<int>(x.size());
@@ -336,6 +340,15 @@ void BaseSpline::initiateBanded() {
   banded = true;
 }
 
+// Clang: no unrolling or loop vectorisation of the dot-product loops (see above). Not for GCC: its contraction depends on the
+// loop structure as well (e.g. tuned for Zen, no FMA in a loop-carried chain), and its unrolled code contracts
+// like the matrix code in all configurations checked.
+#if defined(__clang__)
+#define OPENMS_SPLINE_DOT_LOOP _Pragma("clang loop unroll(disable) vectorize(disable)")
+#else
+#define OPENMS_SPLINE_DOT_LOOP
+#endif
+
 namespace {
   // a vector of the sparse matrix code that has every index 0..size-1
   bool isFilled(const PackedVector& v, int size) {
@@ -389,6 +402,7 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
     row.size = 0;
     for (int j = max(0, i - 2); j <= min(nc - 1, i + 2); ++j) {
       double tot = 0;
+      OPENMS_SPLINE_DOT_LOOP
       for (int k = max(i, j); k <= min(i, j) + 2; ++k) {
         tot += bandQ[3 * static_cast<size_t>(i) + static_cast<size_t>(k - i)] *
                bandA[3 * static_cast<size_t>(k) + static_cast<size_t>(j - k + 2)];
@@ -416,6 +430,7 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
   // gamma = Qt * z
   for (int i = 0; i < nc; ++i) {
     double tot = 0;
+    OPENMS_SPLINE_DOT_LOOP
     for (int t = 0; t < 3; ++t) {
       tot += bandQ[3 * static_cast<size_t>(i) + static_cast<size_t>(t)] * z[i + t];
     }
@@ -486,7 +501,9 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
           out.index[out.size] = pivot.index[kR++];
           out.value[out.size++] = -prod;
         } else {
-          const double prod = pivot.value[kR] * val;
+          // packedProd stores the rounded product before packedSubtract subtracts it: volatile keeps the compiler
+          // from contracting the two into a fused multiply-add (GCC's default -ffp-contract=fast on FMA targets)
+          const volatile double prod = pivot.value[kR] * val;
           const double res = lhs.value[kL] - prod;
           if (fabs(res) > sparse) {
             out.index[out.size] = lhs.index[kL];
@@ -529,6 +546,7 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
   // gnew = z - aWiQ * gamma
   for (int k = 0; k < n; ++k) {
     double tot = 0;
+    OPENMS_SPLINE_DOT_LOOP
     for (int t = 0; t < 3; ++t) {
       const int c = k - 2 + t;
       if (c < 0 || c >= nc) {
@@ -558,6 +576,7 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
   limitg();
   // step = packedNorm(g - gnew) / n, where the difference keeps the entries with |value| > 1e-15
   double tot = 0;
+  OPENMS_SPLINE_DOT_LOOP
   for (int k = 0; k < n; ++k) {
     const double diff = g[k] - gnew[k];
     if (fabs(diff) > sparse) {
@@ -567,6 +586,7 @@ bool BaseSpline::bandedIteration(double alpha, double& step) {
   step = sqrt(tot) / n;
   return true;
 }
+#undef OPENMS_SPLINE_DOT_LOOP
 
 double BaseSpline::evaluateSlope(double alpha) {
   // Calculate a spline for current alpha
