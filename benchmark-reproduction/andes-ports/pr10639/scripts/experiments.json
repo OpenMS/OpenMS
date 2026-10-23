@@ -1009,5 +1009,63 @@
     ]
    }
   }
+ },
+ "mhc2_lm": {
+  "db": "mhc/human_td.fasta",
+  "in": [
+   "mhc2/DN09_Pancreas_classII_techRep1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "lm_c16": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:low_memory",
+     "true",
+     "-Search:database:chunk_size",
+     "2554"
+    ]
+   },
+   "lm_c64": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2.ini",
+    "args": [
+     "-Search:low_memory",
+     "true",
+     "-Search:database:chunk_size",
+     "639"
+    ]
+   }
+  }
+ },
+ "mhc2_deam_lm": {
+  "db": "mhc/human_td.fasta",
+  "in": [
+   "mhc2/DN09_Pancreas_classII_techRep1.mzML"
+  ],
+  "threads": 4,
+  "arms": {
+   "lm_c16": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:low_memory",
+     "true",
+     "-Search:database:chunk_size",
+     "2554"
+    ]
+   },
+   "lm_c64": {
+    "prefix": "/opt/openms-v3",
+    "ini": "ini/mhc2_deam.ini",
+    "args": [
+     "-Search:low_memory",
+     "true",
+     "-Search:database:chunk_size",
+     "639"
+    ]
+   }
+  }
  }
 }

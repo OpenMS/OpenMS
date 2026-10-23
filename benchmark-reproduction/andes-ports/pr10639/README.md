@@ -30,6 +30,27 @@ deamidation the slices need 128 to reach `low_memory`'s memory (+2 %) and are th
 they are faster but need more memory. `low_memory` remains the option with the lowest memory at a given setting and
 needs no slice count to be chosen, but on these searches it is never the fastest way to fit into a memory budget.
 
+### `low_memory` with `chunk_size` (and why not with `mass_slices`)
+
+`mass_slices` is ignored with `low_memory` and no enzyme specificity (warning in the log; MHC class I with 16 slices
+gives the PIN of `low_memory` alone). `chunk_size` does work in peptide-mass mode. Same inputs and builds as above, one
+run per arm. Peak RSS GiB / wall min; PSMs at q ≤ 0.01 (3 seeds):
+
+| search | `low_memory` | `low_memory` + 16 chunks | `low_memory` + 64 chunks | best slices |
+|---|---:|---:|---:|---:|
+| class I (8–12) | 2.05 / 2.7–4.8 | **1.13 / 2.9** | 1.17 / 3.0 | 16: 2.28 / 1.5 |
+| class II (8–25), ≤1 Ox(M) | 6.29 / 23.6, 8,399 PSMs | 5.78 / 23.8, 8,167 PSMs | 10.72 / 23.2 | 64: 5.26 / 15.1, 8,399 PSMs |
+| class II + Deamidated (N, Q) | 7.03 / 87.4, 7,703 PSMs | 6.49 / 76.2, 7,540 PSMs | 13.28¹ / 75.1 | 128: 7.17 / 51.5, 7,703 PSMs |
+
+¹ above the 12.5 GiB limit; the watchdog was not running for this run (it did not survive a container restart), the
+search finished in 15 GB without swap.
+
+- `low_memory` + chunks gives the PIN of the same chunks without `low_memory` (class I 16 chunks, class II 64 chunks):
+  chunking raises the effective candidate cap to 50 per chunk (see "Why `chunk_size` changes the results"), which costs
+  2–3 % PSMs here and makes the memory grow with the number of chunks (the hits of all chunks per spectrum).
+- Only on class I does the combination halve the memory at the same time. On class II, 16 chunks save 8 % of
+  `low_memory`'s memory, and 64 slices are smaller and 1.6× faster without changing the results.
+
 ## Total peptide order (PR head `a3464870`, decided by Timo after the rebuild)
 
 `FragmentIndex::sortPeptides_()` sorted by (precursor m/z, protein) with an unstable sort, so the order of equally heavy
