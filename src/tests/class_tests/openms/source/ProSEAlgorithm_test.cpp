@@ -5940,6 +5940,76 @@ START_SECTION(([EXTRA] mergeFileResults keeps decoys when asked))
 }
 END_SECTION
 
+START_SECTION((static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& decoy_string, bool decoy_is_prefix, double protein_fdr, bool remove_decoys = true)))
+{
+  // One file of the merge search is a complete set on its own. With remove_decoys false the decoy PSMs and the decoy
+  // proteins that pass stay, as in mergeFileResults(); the targets and their q-values are those of the default.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  const ProSEAlgorithm::SearchResult& file = merge_search.per_file[0];
+  std::vector<ProteinIdentification> kept_proteins = file.protein_ids, removed_proteins = file.protein_ids;
+  PeptideIdentificationList kept_peptides = file.peptide_ids, removed_peptides = file.peptide_ids;
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(kept_proteins, kept_peptides, "DECOY_", true, 0.05, false), true)
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(removed_proteins, removed_peptides, "DECOY_", true, 0.05), true)
+  TEST_STRING_EQUAL(kept_proteins[0].getScoreType(), "q-value")
+  TEST_STRING_EQUAL(removed_proteins[0].getScoreType(), "q-value")
+  Size decoy_psms = 0;
+  for (const PeptideIdentification& id : kept_peptides)
+  {
+    for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+  }
+  TEST_TRUE(decoy_psms > 0)
+  TEST_TRUE(target_psms(kept_peptides) == target_psms(removed_peptides))
+  TEST_TRUE(target_psms(removed_peptides).size() == removed_peptides.size()) // the default removes the decoys
+  std::map<std::string, double> q_values;
+  for (const ProteinHit& hit : removed_proteins[0].getHits()) { q_values[hit.getAccession()] = hit.getScore(); }
+  Size decoy_proteins = 0, targets = 0, other_q_values = 0;
+  for (const ProteinHit& hit : kept_proteins[0].getHits())
+  {
+    if (hit.getAccession().starts_with("DECOY_")) { ++decoy_proteins; continue; }
+    ++targets;
+    const auto it = q_values.find(hit.getAccession());
+    other_q_values += it == q_values.end() || it->second != hit.getScore();
+  }
+  TEST_TRUE(decoy_proteins > 0)
+  TEST_EQUAL(targets, q_values.size())
+  TEST_EQUAL(other_q_values, 0)
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, kept_proteins, kept_peptides, {FileTypes::IDXML});
+
+  // Skipped, and false: no decoy protein is left after the inference, which uses the best hit of each PSM only (the
+  // decoy here is the second hit of the only PSM; the PSM's evidence of a decoy does not make the FDR applied), or an
+  // empty decoy marker.
+  std::vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("run");
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("run");
+  peptides[0].setScoreType("ln(hyperscore)");
+  peptides[0].setHigherScoreBetter(true);
+  for (const std::string accession : {"P1", "DECOY_P1"})
+  {
+    const std::string target_decoy = accession.starts_with("DECOY_") ? "decoy" : "target";
+    ProteinHit protein;
+    protein.setAccession(accession);
+    protein.setMetaValue("target_decoy", target_decoy);
+    proteins[0].insertHit(protein);
+    PeptideHit hit(target_decoy == "target" ? 10.0 : 5.0, 0, 2,
+                   AASequence::fromString(target_decoy == "target" ? "PEPTIDEK" : "EDITPEPK"));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession(accession);
+    hit.addPeptideEvidence(evidence);
+    hit.setMetaValue("target_decoy", target_decoy);
+    peptides[0].insertHit(hit);
+  }
+  std::vector<ProteinIdentification> unmarked_proteins = proteins;
+  PeptideIdentificationList unmarked_peptides = peptides;
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(proteins, peptides, "DECOY_", true, 0.05), false)
+  TEST_EQUAL(proteins[0].getHits().size(), 1)
+  TEST_STRING_EQUAL(proteins[0].getHits()[0].getAccession(), "P1")
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(unmarked_proteins, unmarked_peptides, "", true, 0.05), false)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] the multi-file search reports one outer progress step per file))
 {
   // The search reports an outer step per input file, "Searching <file> (i of n)...", so that a caller can tell which
