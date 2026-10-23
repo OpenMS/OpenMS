@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <future>
+#include <limits>
 #include <thread>
 
 using namespace std;
@@ -39,7 +40,8 @@ namespace OpenMS
     public:
       explicit TermReader(bool cross_links_only) : cross_links_only_(cross_links_only) {}
 
-      void line(std::string line)
+      /// @p line is changed (trimmed)
+      void line(std::string& line)
       {
         StringUtils::trim(line);
         line_wo_spaces = line;
@@ -274,7 +276,7 @@ namespace OpenMS
     /**
       Phase 1 for a large regular file: reads parts of it that start with a [Term] line on several threads, each with
       its own TermReader, and collects their terms in file order (a multimap keeps equal keys in the order of
-      insertion, also when merging). False if the file is small or not a regular file, a part does not end a term
+      insertion). False if the file is small or not a regular file, a part does not end a term
       (lines without an id since the last [Term] line, which carry over into the next term), a part fails to parse or
       anything else fails (e.g. memory): then @p all_mods is unchanged and the caller reads the file as a whole, which
       also reports errors as before.
@@ -283,16 +285,21 @@ namespace OpenMS
     {
       const Size max_parts = 8;
       const Size min_part_bytes = 128 * 1024;
+#ifdef OPENMS_WINDOWSPLATFORM
+      // the whole-file read uses a text stream, which ends at a control-Z on Windows
+      (void)file; (void)cross_links_only; (void)all_mods; (void)max_parts; (void)min_part_bytes;
+      return false;
+#else
       const Size n_threads = std::thread::hardware_concurrency();
       if (n_threads < 2) return false;
-      std::error_code ec;
-      if (!std::filesystem::is_regular_file(file, ec)) return false;
-      const auto size = std::filesystem::file_size(file, ec);
-      if (ec) return false;
-      const Size n_parts = std::min({max_parts, n_threads, Size(size) / min_part_bytes});
-      if (n_parts < 2) return false;
       try
       {
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(file, ec)) return false;
+        const auto size = std::filesystem::file_size(file, ec);
+        if (ec || size > uintmax_t(std::numeric_limits<std::streamsize>::max()) || size >= std::string().max_size()) return false;
+        const Size n_parts = std::min({max_parts, n_threads, Size(size / min_part_bytes)});
+        if (n_parts < 2) return false;
         std::string text;
         {
           std::ifstream in(file, std::ios::binary);
@@ -321,11 +328,13 @@ namespace OpenMS
         auto read_part = [&](Size i)
         {
           TermReader& reader = readers[i];
+          std::string line;
           for (size_t from = starts[i]; from < starts[i + 1];)
           {
             size_t to = text.find('\n', from);
             if (to == std::string::npos || to > starts[i + 1]) to = starts[i + 1];
-            reader.line(text.substr(from, to - from));
+            line.assign(text, from, to - from);
+            reader.line(line);
             from = to + 1;
           }
           const bool ends_term = i + 1 == readers.size() || reader.endsTerm();
@@ -358,10 +367,15 @@ namespace OpenMS
           }
         }
         if (!ok) return false;
+        // the nodes are moved in the order of the parts and within them: an inserted node goes after the equal keys
+        // already there (multimap::merge does not promise the order in which it takes them)
         multimap<std::string, ResidueModification> merged;
         for (TermReader& reader : readers)
         {
-          merged.merge(reader.all_mods); // moves the nodes, equal keys after those already there
+          while (!reader.all_mods.empty())
+          {
+            merged.insert(reader.all_mods.extract(reader.all_mods.begin()));
+          }
         }
         all_mods = std::move(merged);
         return true;
@@ -370,6 +384,7 @@ namespace OpenMS
       {
         return false;
       }
+#endif
     }
   }
 
