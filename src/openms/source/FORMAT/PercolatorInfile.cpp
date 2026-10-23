@@ -447,7 +447,8 @@ namespace OpenMS
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 
     // The meta values by name index once all names below are registered (by the first stamped hit): looking names up
-    // takes a lock on the registry, which the threads would contend for. Unregistered names are looked up by name.
+    // takes a lock on the registry, which the threads would contend for. Unregistered names are looked up by name
+    // (except the isotope error's, see below).
     std::unordered_map<std::string, UInt> name_index;
     auto exists = [&](const PeptideHit& hit, const std::string& key)
     {
@@ -506,14 +507,16 @@ namespace OpenMS
             skipped_hits[pid_index].emplace_back(hit_index, NO_EVIDENCE);
             continue;
           }
-          if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+          // looked up once (by name, under the lock of the registry): hit.isDecoy() is target_decoy == DECOY
+          const PeptideHit::TargetDecoyType target_decoy = hit.getTargetDecoyType();
+          if (target_decoy == PeptideHit::TargetDecoyType::UNKNOWN)
           {
             skipped_hits[pid_index].emplace_back(hit_index, UNKNOWN_TARGET_DECOY);
             continue;
           }
           stamp_meta_value("SpecId", file_identifier + scan_identifier);
           stamp_meta_value("ScanNr", scan_number);
-          stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
+          stamp_meta_value("Label", target_decoy == PeptideHit::TargetDecoyType::DECOY ? -1 : 1);
 
           const int charge = hit.getCharge();
           const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
@@ -629,6 +632,12 @@ namespace OpenMS
     {
       const UInt index = MetaInfoInterface::metaRegistry().getIndex(name);
       if (index != UInt(-1)) name_index.emplace(name, index);
+    }
+    // The isotope error is only read: if its name is not registered, no hit has it (a value is set by a registered
+    // name), so it is looked up by index -1, which exists on no hit.
+    for (const std::string& name : {std::string("IsotopeError"), std::string(Constants::UserParam::ISOTOPE_ERROR)})
+    {
+      name_index.try_emplace(name, UInt(-1));
     }
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize pid_index = static_cast<SignedSize>(first_parallel); pid_index < static_cast<SignedSize>(peptide_ids.size()); ++pid_index)
