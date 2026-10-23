@@ -26,6 +26,14 @@ namespace OpenMS
             // Apply optimized thread count parameter
             session_options_->SetIntraOpNumThreads(intra_op_threads);
             session_options_->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+            // Without ONNX Runtime's memory pattern. The inputs of the PeptDeep models change shape
+            // from call to call (batch size, peptide length); for each shape, the pattern plans one
+            // block for all intermediate tensors of a Run, which every Run of that shape allocates and
+            // frees again. Allocated tensor by tensor instead, the results are the same, inference is
+            // as fast and the peak memory is lower. Where ONNX Runtime has no CPU arena (none on
+            // 32-bit platforms), these blocks come from the system allocator, and one that does not
+            // reuse such large blocks keeps growing the memory of the process.
+            session_options_->DisableMemPattern();
 
             memory_info_ = std::make_unique<Ort::MemoryInfo>(
                 Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)
