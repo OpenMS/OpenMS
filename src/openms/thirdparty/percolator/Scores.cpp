@@ -21,6 +21,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -58,39 +59,11 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
   });
 }
 
-// OpenMS: what ScoreHolder's operator< and operator> compare (score, then pPSM->scan,
-// pPSM->expMass and label), and the position of the ScoreHolder. Comparisons of keys have the
-// outcomes of the comparisons of their ScoreHolders, so a sort of the keys (the same algorithm)
-// makes the same moves as a sort of the ScoreHolders: it leaves the same permutation, also of
-// ScoreHolders that compare equal. The keys are smaller and need no pPSM.
-struct ScoreKey {
-  double score, expMass;
-  unsigned int scan;
-  LabelType label;
-  std::size_t index;
-};
-
-// operator< of ScoreHolder (ScoreHolder.cpp)
-static inline bool keyLess(const ScoreKey& one, const ScoreKey& other) {
-  return (one.score < other.score) ||
-         (one.score == other.score && one.scan < other.scan) ||
-         (one.score == other.score && one.scan == other.scan &&
-          one.expMass < other.expMass) ||
-         (one.score == other.score && one.scan == other.scan &&
-          one.expMass == other.expMass && one.label < other.label);
-}
-
-static std::vector<ScoreKey> scoreKeys(const std::vector<ScoreHolder>& scores) {
-  std::vector<ScoreKey> keys;
-  keys.reserve(scores.size());
-  for (std::size_t i = 0; i < scores.size(); ++i) {
-    const ScoreHolder& sh = scores[i];
-    keys.push_back({sh.score, sh.pPSM->expMass, sh.pPSM->scan, sh.label, i});
-  }
-  return keys;
-}
-
-// puts scores[keys[k].index] at position k
+// OpenMS: some sorts of ScoreHolders sort keys instead: what the comparison compares, and the
+// position of the ScoreHolder. If the comparisons of the keys have the outcomes of the
+// comparisons of their ScoreHolders, a sort of the keys (the same algorithm) makes the same
+// moves as a sort of the ScoreHolders: it leaves the same permutation, also of ScoreHolders that
+// compare equal. permuteScores then puts scores[keys[k].index] at position k.
 template <typename Key>
 static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
   std::vector<ScoreHolder> permuted;
@@ -300,8 +273,8 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
 
   // OpenMS: sorted like std::sort(scores_.begin(), scores_.end(), OrderScanHash()) (see
   // SortLikeStd.h), on (hash, position) keys: the hashes are those OrderScanHash compares, so the
-  // comparisons have the same outcomes and the sort makes the same moves (see ScoreKey), without
-  // hashing two PSMs for every comparison
+  // comparisons have the same outcomes and the sort makes the same moves (see permuteScores),
+  // without hashing two PSMs for every comparison
   {
     struct HashKey {
       size_t hash;
@@ -957,16 +930,18 @@ int Scores::getInitDirection(const double initialSelectionFdr,
   // positives[2 * featNo + i]: in forward (i = 0) and backward (i = 1) direction
   std::vector<int> positives(2 * numFeatures);
 
-  // OpenMS: inside an OpenMP parallel region (CrossValidation), the positives of the features
-  // are counted by tasks, each on its own (score, label) pairs of the feature, sorted by score
-  // only: the q-values, and so the count, depend on the order of the scores and on the labels
-  // of each group of equal scores, not on the order within a group (calcQvals treats ties as
-  // one group). Meanwhile, the scores are sorted by every feature in turn as below (sorting
-  // starts from the order the previous feature left, which decides the order of PSMs that
-  // compare equal, and the order after the last feature is where the training starts from),
-  // with the tasks of the region (see SortLikeStd.h), on keys (see ScoreKey). The q-values are
-  // set for the last feature, as by the loop below. A NaN feature value or mass (no strict weak
-  // ordering) uses the loop below.
+  // OpenMS: inside an OpenMP parallel region (CrossValidation), the scores are sorted by every
+  // feature in turn as below (sorting starts from the order the previous feature left, which
+  // decides the order of PSMs that compare equal, and the order after the last feature is where
+  // the training starts from), with the tasks of the region (see SortLikeStd.h), on keys (see
+  // permuteScores): the feature value, the rank of the PSM's (scan, expMass, label) among the
+  // PSMs (what operator< compares after the score), and the position. The PSMs are put into the
+  // final order (and get the scores of the last feature) once, at the end. After each sort, a task counts the
+  // positives of the feature on the (score, label) pairs in that order: the q-values, and so
+  // the count, depend on the order of the scores and on the labels of each group of equal
+  // scores, not on the order within a group (calcQvals treats ties as one group). The q-values
+  // are set for the last feature, as by the loop below. A NaN feature value or mass (no strict
+  // weak ordering) uses the loop below.
   bool counted = false;
 #ifdef _OPENMP
   const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
@@ -974,42 +949,84 @@ int Scores::getInitDirection(const double initialSelectionFdr,
            std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
                        [](double x) { return std::isnan(x); });
   });
-  if (numFeatures > 0 && !anyNaN && omp_in_parallel()) {
-    std::vector<std::pair<const double*, bool> > rows;
-    rows.reserve(scores_.size());
-    for (const ScoreHolder& sh : scores_) rows.emplace_back(sh.pPSM->features, sh.isTarget());
+  const std::size_t n = scores_.size();
+  if (numFeatures > 0 && !anyNaN && n <= std::numeric_limits<unsigned int>::max() &&
+      omp_in_parallel()) {
     std::exception_ptr chainError;
     std::vector<std::exception_ptr> errors(numFeatures);
+    std::vector<std::vector<pair<double, bool> > > pairsOfFeature(numFeatures);
 #pragma omp taskgroup
     {
-      for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
-#pragma omp task firstprivate(featNo) shared(rows, positives, errors, initialSelectionFdr)
-        try {
-          std::vector<pair<double, bool> > combined;
-          combined.reserve(rows.size());
-          for (const auto& row : rows) combined.emplace_back(row.first[featNo], row.second);
-          std::sort(combined.begin(), combined.end(),
-                    [](const pair<double, bool>& a, const pair<double, bool>& b) {
-                      return a.first < b.first;
-                    });
-          positives[2 * featNo] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
-          reverse(combined.begin(), combined.end());
-          positives[2 * featNo + 1] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
-        } catch (...) {
-          errors[featNo] = std::current_exception();
-        }
-      }
       try {
-        // on keys (see ScoreKey): the PSMs are permuted (and get the scores of the last feature)
-        // once, at the end
-        std::vector<ScoreKey> keys = scoreKeys(scores_);
+        // the rank of (scan, expMass, label) in the lexicographic order of operator<
+        struct TieKey {
+          unsigned int scan;
+          double expMass;
+          LabelType label;
+          unsigned int index;
+        };
+        const auto tieLess = [](const TieKey& x, const TieKey& y) {
+          if (x.scan != y.scan) return x.scan < y.scan;
+          if (x.expMass != y.expMass) return x.expMass < y.expMass;
+          return x.label < y.label;
+        };
+        std::vector<TieKey> ties;
+        ties.reserve(n);
+        for (std::size_t i = 0; i < n; ++i) {
+          ties.push_back({scores_[i].pPSM->scan, scores_[i].pPSM->expMass, scores_[i].label,
+                          static_cast<unsigned int>(i)});
+        }
+        std::sort(ties.begin(), ties.end(), tieLess);
+        std::vector<unsigned int> tieRank(n);
+        unsigned int rank = 0;
+        for (std::size_t k = 0; k < n; ++k) {
+          if (k > 0 && tieLess(ties[k - 1], ties[k])) ++rank;
+          tieRank[ties[k].index] = rank;
+        }
+        // the feature values by feature, and the labels
+        std::vector<double> columns(static_cast<std::size_t>(numFeatures) * n);
+        std::vector<char> isTarget(n);
+        for (std::size_t i = 0; i < n; ++i) {
+          const double* row = scores_[i].pPSM->features;
+          for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
+            columns[featNo * n + i] = row[featNo];
+          }
+          isTarget[i] = scores_[i].isTarget();
+        }
+        struct ChainKey {
+          double score;
+          unsigned int tieRank;
+          unsigned int index;
+        };
+        std::vector<ChainKey> keys;
+        keys.reserve(n);
+        for (std::size_t i = 0; i < n; ++i) {
+          keys.push_back({0.0, tieRank[i], static_cast<unsigned int>(i)});
+        }
         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
-          for (ScoreKey& key : keys) key.score = scores_[key.index].pPSM->features[featNo];
-          sortLikeStdSort(keys, [](const ScoreKey& a, const ScoreKey& b) { return keyLess(a, b); });
+          const double* column = &columns[featNo * n];
+          for (ChainKey& key : keys) key.score = column[key.index];
+          // operator< of ScoreHolder
+          sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
+            return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
+          });
+          std::vector<pair<double, bool> >& combined = pairsOfFeature[featNo];
+          combined.reserve(n);
+          for (const ChainKey& key : keys) combined.emplace_back(key.score, isTarget[key.index] != 0);
+#pragma omp task firstprivate(featNo) shared(pairsOfFeature, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
+          try {
+            std::vector<pair<double, bool> >& pairs = pairsOfFeature[featNo];
+            positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
+            reverse(pairs.begin(), pairs.end());
+            positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
+            std::vector<pair<double, bool> >().swap(pairs);
+          } catch (...) {
+            errors[featNo] = std::current_exception();
+          }
           reverse(keys.begin(), keys.end());
         }
         permuteScores(scores_, keys);
-        for (std::size_t i = 0; i < keys.size(); ++i) scores_[i].score = keys[i].score;
+        for (std::size_t i = 0; i < n; ++i) scores_[i].score = keys[i].score;
         std::vector<pair<double, bool> > combined;
         calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
       } catch (...) {

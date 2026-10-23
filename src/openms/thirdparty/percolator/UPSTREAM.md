@@ -175,11 +175,14 @@ hand-editing sources and committing them, to keep sync self-healing.
   positives are equivalent and every sort by score leaves them in that order. Otherwise (and
   with a NaN score or mass) the copies as before.
   `Scores::getInitDirection` sorts the scores by each feature in turn (31 sorts per fold, from
-  the order the previous sort left) on keys (`ScoreKey`: the score, scan, mass and label that
-  `ScoreHolder::operator<` compares, and the position): the comparisons have the same
-  outcomes, so the sorts make the same moves, without reading `pPSM` and moving whole
-  `ScoreHolder`s; the PSMs are put into the final order of the keys (and get the scores of the
-  last feature) once, at the end.
+  the order the previous sort left) on keys: the feature value, the rank of the PSM's (scan,
+  mass, label) in the order `ScoreHolder::operator<` compares them after the score, and the
+  position. The comparisons have the outcomes of `operator<`, so the sorts make the same
+  moves, without reading `pPSM` and moving whole `ScoreHolder`s; the PSMs are put into the
+  final order of the keys (and get the scores of the last feature) once, at the end. The
+  positives of each feature are counted in a task on the (score, label) pairs in the order of
+  its sort (sorted by score, as in the serial loop), instead of a task that sorted the pairs
+  again.
   `PosteriorEstimator::estimatePi0` (called by `Scores::merge` and `postMergeStep` for each
   fold and for the merged set) runs its 100 bootstraps as tasks of the enclosing OpenMP
   parallel region (as in `CrossValidation::postIterationProcessing`). The bootstraps draw from
