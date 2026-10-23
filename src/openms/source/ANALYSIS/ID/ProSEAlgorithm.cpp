@@ -67,6 +67,7 @@
 #include <cctype>
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <cstring>
 #include <exception>
 #include <fstream>
@@ -82,10 +83,13 @@
 #endif
 #include <ostream>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <set>
 #include <sstream>
 #include <string_view>
 #include <tuple>
+#include <utility>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -4385,9 +4389,8 @@ namespace OpenMS
     // read that is short against the build (the read is serial, the build parallel): at most
     // MAX_SPECTRA_BYTES_PER_PEPTIDE / threads bytes of spectra file per peptide (measured with 9 M peptides: faster
     // with 11, 27 and 41 bytes per peptide at 2 threads and with 11 at 4 threads, even with 27, slower with 41).
-    // With more threads, the single-file search reads its file with as many threads as a read in the foreground
-    // (instead of a quarter of them) and always waits: the read then mostly ends while the peptides are generated
-    // and sorted, and the fragment passes over the third or so of the peptides that no spectrum reaches take longer
+    // With more threads, the single-file search always waits (and helps with the rest of the read, see
+    // readerThreads()): the read then mostly ends while the peptides are generated and sorted, and the fragment passes over the third or so of the peptides that no spectrum reaches take longer
     // than the wait (measured at 16 threads on Orbitrap, Astral, timsTOF and TMT files of 8,000 spectra: 0.1-0.2 s
     // shorter per file; waiting for a read with a quarter of the threads was up to 0.1 s slower for some).
     constexpr Size MAX_THREADS_WAITING_FOR_SPECTRA = 4;
@@ -4494,6 +4497,58 @@ namespace OpenMS
       }
     }
 
+    // Lets the thread that waits for a spectra reader (BackgroundSpectra::get()) parse chunks of its loadMzMLChunked()
+    // with its own OpenMP threads, which would idle otherwise, instead of only waiting for the end of the read.
+    class ChunkHelp
+    {
+    public:
+      /// By the reader: from now on, help() runs @p work (which parses chunks until none is left) ...
+      void open(std::function<void()> work)
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!done_) { work_ = std::move(work); }
+        changed_.notify_all();
+      }
+
+      /// ... until the reader closes: waits for the helpers that run it. Also by the reader once it reads no more chunks.
+      void close() noexcept
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        work_ = nullptr;
+        done_ = true;
+        changed_.notify_all();
+        changed_.wait(lock, [this]() { return helpers_ == 0; });
+      }
+
+      /// By the waiting thread: runs the work (with the OpenMP threads of this thread) if the reader opens it, or returns
+      /// once the reader closes.
+      void help()
+      {
+        std::function<void()> work;
+        {
+          std::unique_lock<std::mutex> lock(mutex_);
+          changed_.wait(lock, [this]() { return work_ || done_; });
+          if (!work_) { return; }
+          work = work_;
+          ++helpers_;
+        }
+        const OnScopeExit leave([this]()
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          --helpers_;
+          changed_.notify_all();
+        });
+        work();
+      }
+
+    private:
+      std::mutex mutex_;
+      std::condition_variable changed_;
+      std::function<void()> work_;
+      int helpers_ = 0;
+      bool done_ = false;
+    };
+
     // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
     // their <spectrum> start tags; every chunk is parsed together with the file's header and closing
     // tags by an MzMLFile of its own (MzMLFile::loadBuffer), and the spectra are joined in file order.
@@ -4505,7 +4560,8 @@ namespace OpenMS
     // CDATA section or DOCTYPE before the end of the run; not exactly one spectrum list; a count
     // attribute other than the number of spectra found; few spectra) or a chunk fails to parse. The
     // caller then reads the file with MzMLFile::load(), which also reports its errors.
-    bool loadMzMLChunked(const std::string& filename, const PeakFileOptions& options, int threads, PeakMap& exp)
+    bool loadMzMLChunked(const std::string& filename, const PeakFileOptions& options, int threads, PeakMap& exp,
+                         ChunkHelp* help = nullptr, int chunk_threads = 0)
     {
       std::ifstream in(filename, std::ios::binary);
       if (!in) { return false; }
@@ -4629,11 +4685,12 @@ namespace OpenMS
       };
 
       // 3. Chunks of about equal size: two per thread (the threads do not parse equally fast; every chunk
-      //    costs the set-up of a parser and handler), of at most 8 MB, and of at least 16 spectra.
+      //    costs the set-up of a parser and handler), of at most 8 MB, and of at least 16 spectra. A read in the
+      //    background counts chunk_threads instead (see chunkThreads()).
       constexpr Size max_chunk_bytes = Size(8) << 20;
       const Size n = starts.size();
       const Size bytes = list_end - starts[0];
-      const Size n_chunks = std::min(n / 16, std::max(2 * static_cast<Size>(threads), (bytes + max_chunk_bytes - 1) / max_chunk_bytes));
+      const Size n_chunks = std::min(n / 16, std::max(2 * static_cast<Size>(std::max(threads, chunk_threads)), (bytes + max_chunk_bytes - 1) / max_chunk_bytes));
       std::vector<Size> first{0}; // the first spectrum of each chunk
       for (Size c = 1; c < n_chunks; ++c)
       {
@@ -4666,18 +4723,22 @@ namespace OpenMS
       std::vector<MSSpectrum> spectra(n);
       std::vector<Size> kept(n_chunks_used, 0);
       std::vector<MSChromatogram> chromatograms;
-#pragma omp parallel num_threads(threads)
+      // The chunks are handed out one by one, to the threads of this reader and to those of a helper (another
+      // contention group: no OpenMP critical between the two).
+      std::atomic<Size> next_chunk{0};
+      std::atomic<bool> chunks_ok{true};
+      const auto parse_chunks = [&]([[maybe_unused]] const int team)
+      {
+#pragma omp parallel num_threads(team)
       {
         std::ifstream file; // opened by the thread's first chunk, in the try below
         std::string chunk;
-#pragma omp for schedule(dynamic, 1)
-        for (SignedSize sc = 0; sc < static_cast<SignedSize>(n_chunks_used); ++sc)
+        for (Size c = next_chunk++; c < n_chunks_used; c = next_chunk++)
         {
           bool parsed = false;
           try // exceptions (a parse error, std::bad_alloc of the chunk text, ...) must not leave the parallel region
           {
             if (!file.is_open()) { file.open(filename, std::ios::binary); }
-            const Size c = static_cast<Size>(sc);
             const bool last = c + 1 == n_chunks_used;
             const Size from = starts[first[c]];
             const Size to = last ? run_end : starts[first[c + 1]];
@@ -4709,13 +4770,26 @@ namespace OpenMS
           }
           if (!parsed)
           {
-#pragma omp critical (ProSEAlgorithm_loadMzMLChunked)
-            ok = false;
+            chunks_ok = false;
             file.clear();
           }
         }
       }
-      if (!ok) { return false; }
+      };
+      {
+        // closed (waiting for the chunks of the helper) before what the chunks write to goes, also on an exception
+        const OnScopeExit end_help([help]() { if (help != nullptr) { help->close(); } });
+#ifdef _OPENMP
+        // at most 16 parsers together, as for a reader alone: no faster with more, and each holds a chunk of up to 8 MB
+        constexpr int max_parsers = 16;
+        if (help != nullptr && threads < max_parsers)
+        {
+          help->open([&]() { parse_chunks(std::min(omp_get_max_threads(), max_parsers - threads)); });
+        }
+#endif
+        parse_chunks(threads);
+      }
+      if (!ok || !chunks_ok) { return false; }
 
       Size kept_total = 0; // the spectra in file order: each chunk's slots, without the unused ones
       for (Size c = 0; c < n_chunks_used; ++c)
@@ -4736,8 +4810,8 @@ namespace OpenMS
 
     // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
     // @p threads OpenMP threads: an mzML file in chunks parsed in parallel (loadMzMLChunked) with two
-    // or more, otherwise with FileHandler.
-    PeakMap loadMS2Spectra(const std::string& filename, int threads)
+    // or more (or @p chunk_threads of two or more, with a helper: @p help, see ChunkHelp), otherwise with FileHandler.
+    PeakMap loadMS2Spectra(const std::string& filename, int threads, ChunkHelp* help = nullptr, int chunk_threads = 0)
     {
       PeakMap spectra;
       FileHandler f;
@@ -4746,8 +4820,8 @@ namespace OpenMS
       // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
       // default): with several threads, fewer and larger regions
       if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
-      if (threads > 1 && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
-          && loadMzMLChunked(filename, f.getOptions(), threads, spectra))
+      if ((threads > 1 || (help != nullptr && chunk_threads > 1)) && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
+          && loadMzMLChunked(filename, f.getOptions(), threads, spectra, help, chunk_threads))
       {
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(spectra, true); // as FileHandler::loadExperiment()
 #ifdef __GLIBC__
@@ -4767,33 +4841,109 @@ namespace OpenMS
       return spectra;
     }
 
-    // The OpenMP threads a spectrum file is read with: those of this thread, at most 16 (the chunked
-    // read gets no faster with more). A read in the background, next to the index build or the search
-    // of another file, gets a quarter of them, at least 2: with all of them, it slowed the index build
-    // down when the read was hidden behind it anyway.
+    // The OpenMP threads a spectrum file is read with, of those of this thread: at most 16 (the chunked read gets no
+    // faster with more). A read in the foreground gets all of them. A read in the background (BackgroundSpectra) takes
+    // an eighth of them, at least one, from this thread, which helps with the rest of the read when it takes the spectra.
+    // Measured at 16 and 64 threads on 8,000-spectrum files of six instrument types, against a reader with a quarter (or
+    // all, if the index build waits for it) of the threads next to all threads of this thread: no more busy threads than
+    // these, 12-17% less CPU time, 3% more wall time at 16 threads and 4-5% less at 64 (a quarter instead of an eighth:
+    // about the same; a fixed share without the help: 7-10% more wall time at 16 threads, as either side idles its
+    // share once it is done).
     int readerThreads([[maybe_unused]] bool background)
     {
 #ifdef _OPENMP
       const int threads = omp_get_max_threads();
-      return background ? std::clamp(threads / 4, std::min(threads, 2), 16) : std::min(threads, 16);
+      return background ? std::clamp(threads / 8, 1, 16) : std::min(threads, 16);
 #else
       return 1;
 #endif
     }
 
-    // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads(true) of
-    // this thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores),
-    // not with what was set for this one (e.g. by TOPPBase from -threads).
-    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename, const int threads = readerThreads(true))
+    // The threads whose number sets the chunks of a read in the background (see loadMzMLChunked()): as many as such a
+    // read had before it took its threads from those of this thread (a quarter, at least two; or all, at most 16, if
+    // the index build waits for it), so that a file is cut into the same chunks as before. The order in which the
+    // parsers of the chunks register the names of the meta values they meet first depends on the chunks.
+    int chunkThreads([[maybe_unused]] bool awaited)
     {
-      return std::async(std::launch::async, [&filename, threads]()
+#ifdef _OPENMP
+      const int threads = omp_get_max_threads();
+      return awaited ? std::min(threads, 16) : std::clamp(threads / 4, std::min(threads, 2), 16);
+#else
+      return 1;
+#endif
+    }
+
+    // The spectra of a file that a helper thread reads (loadMS2Spectra()) with some of the OpenMP threads of this thread
+    // (see readerThreads()), while this thread runs its parallel regions with the others: together they keep to the
+    // threads they were given (-threads). With all of its threads next to the reader, this thread kept up to twice as
+    // many busy (29 cores at 16 threads while the FASTA file was read and the peptides generated and sorted), which
+    // costs time wherever the process may not use more cores than it was given (a CPU quota, a shared machine). This
+    // thread gets its threads back when it takes the spectra (get()) or no longer waits for them (destruction, start()
+    // of the next read). The helper sets its OpenMP threads itself: a new thread starts with the default of the process
+    // (OMP_NUM_THREADS or all cores), not with what was set for this one (e.g. by TOPPBase from -threads).
+    class BackgroundSpectra
+    {
+    public:
+      BackgroundSpectra() = default;
+
+      explicit BackgroundSpectra(const std::string& filename, const bool awaited = false) { start(filename, awaited); }
+
+      BackgroundSpectra(const BackgroundSpectra&) = delete;
+      BackgroundSpectra& operator=(const BackgroundSpectra&) = delete;
+
+      ~BackgroundSpectra() { restoreThreads_(); } // then ~future waits for the helper
+
+      /// Starts to read @p filename, with readerThreads(true) of the threads of this thread, after the read before (if
+      /// any) has ended and this thread has its threads back. @p awaited: the index build waits for the spectra (see
+      /// chunkThreads()).
+      void start(const std::string& filename, const bool awaited = false)
+      {
+        restoreThreads_();
+        spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
+        help_ = std::make_shared<ChunkHelp>();
+        const int threads = readerThreads(true);
+        const int chunk_threads = chunkThreads(awaited);
+        spectra_ = std::async(std::launch::async, [&filename, threads, chunk_threads, help = help_]()
+        {
+          const OnScopeExit done([&help]() { help->close(); }); // get() waits no longer for chunks to parse
+#ifdef _OPENMP
+          omp_set_num_threads(threads);
+#endif
+          return loadMS2Spectra(filename, threads, help.get(), chunk_threads);
+        });
+#ifdef _OPENMP
+        own_threads_ = omp_get_max_threads();
+        omp_set_num_threads(std::max(1, own_threads_ - threads));
+#endif
+      }
+
+      bool valid() const { return spectra_.valid(); }
+
+      /// Whether the spectra are read (valid() only)
+      bool ready() const { return spectra_.wait_for(std::chrono::seconds(0)) == std::future_status::ready; }
+
+      /// The spectra (valid() only; waits for them; rethrows what the reader threw). Meanwhile, the threads of this
+      /// thread that the reader leaves parse chunks of the file with it (see ChunkHelp).
+      PeakMap get()
+      {
+        if (help_) { help_->help(); }
+        restoreThreads_();
+        return spectra_.get();
+      }
+
+    private:
+      void restoreThreads_() noexcept
       {
 #ifdef _OPENMP
-        omp_set_num_threads(threads);
+        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); }
 #endif
-        return loadMS2Spectra(filename, threads);
-      });
-    }
+        own_threads_ = 0;
+      }
+
+      std::shared_ptr<ChunkHelp> help_;
+      std::future<PeakMap> spectra_;
+      int own_threads_ = 0; // of this thread, while the helper reads; 0: not reduced
+    };
 
     // Whether the first MBs of an mzML file name an electron-based activation (the terms that
     // MzMLHandler reads as ECD, ETD, ETciD or EThcD). A cheap prediction of what the spectra will
@@ -4847,7 +4997,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      std::future<PeakMap> spectra_ready = loadMS2SpectraAsync(in_spectra);
+      BackgroundSpectra spectra_ready(in_spectra);
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -4859,7 +5009,7 @@ namespace OpenMS
       // need, and rebuild it should such spectra turn up after all (as the multi-file search does
       // when a later file has them): the index searched is the one prepareContext(fasta_db, true)
       // builds.
-      const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
+      const bool spectra_read = spectra_ready.ready()
                                 || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
       if (spectra_read) { spectra = spectra_ready.get(); }
       bool spectra_waited = spectra_read;
@@ -4875,7 +5025,7 @@ namespace OpenMS
           {
             const bool wait = threads <= MAX_THREADS_WAITING_FOR_SPECTRA
                               && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads;
-            if (!wait && spectra_ready.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+            if (!wait && !spectra_ready.ready())
             {
               return nullptr;
             }
@@ -5085,19 +5235,19 @@ namespace OpenMS
     const Size threads_started = startOpenMPThreads();
     const bool read_in_background = threads_started > 1;
     const auto is_mzml = [&in_spectra_files](Size i) { return FileHandler::getTypeByFileName(in_spectra_files[i]) == FileTypes::MZML; };
-    std::future<PeakMap> next_spectra; // the spectra of the next file to search, if read in the background
+    BackgroundSpectra next_spectra; // the spectra of the next file to search, if read in the background
     // A single file is the only search of the context (r3 merge of WP7 and WP10): as in search(file), the index
     // holds only the peptides its spectra can reach if they are read by the time the peptides are generated, or
     // if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA); the spectra taken for that are searched.
     const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
-    // With more threads than MAX_THREADS_WAITING_FOR_SPECTRA, the index build waits for the spectra of such a file,
-    // which are read with the threads of a read in the foreground.
+    // With more threads than MAX_THREADS_WAITING_FOR_SPECTRA, the index build waits for the spectra of such a file
+    // (and helps to read them, see BackgroundSpectra::get()).
     const bool wait_for_first_spectra = restrict_index && threads_started > MAX_THREADS_WAITING_FOR_SPECTRA;
     const auto read_next = [&](Size i)
     {
       if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
       {
-        next_spectra = loadMS2SpectraAsync(in_spectra_files[i], i == 0 && wait_for_first_spectra ? readerThreads(false) : readerThreads(true));
+        next_spectra.start(in_spectra_files[i], i == 0 && wait_for_first_spectra);
       }
     };
     read_next(0);
@@ -5596,7 +5746,7 @@ namespace OpenMS
       // not read yet.
       const auto build_index_while_first_file_is_read = [&]()
       {
-        if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
+        if (next_spectra.valid() && !next_spectra.ready()
             && !(ions_by_activation_ && first_file_names_electron_activation.get()))
         {
           std::function<const PeakMap*(Size)> searched_spectra;
@@ -5609,7 +5759,7 @@ namespace OpenMS
               {
                 const bool wait = wait_for_first_spectra || (threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
                                   && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started);
-                if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                if (!wait && !next_spectra.ready())
                 {
                   return nullptr;
                 }

@@ -2020,12 +2020,6 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
-#ifdef _OPENMP
-      const int num_threads = omp_get_max_threads();
-#else
-      const int num_threads = 1;
-#endif
-
       // The fragments are generated twice: the first pass counts them per m/z bin, the second writes each
       // one straight to its place in fi_fragments_ / electron_fragments_, which end up partitioned into
       // ascending m/z bins as sortAndBucketFragments_() wants them - no intermediate copy of the fragments.
@@ -2078,6 +2072,13 @@ namespace OpenMS
       {
         if (const MSExperiment* spectra = searched_spectra(fi_peptides_.size())) { keepPeptidesInPrecursorWindows_(*spectra); }
       }
+      // After searched_spectra(), which may change the threads of this thread (ProSE gives back the threads of a spectra
+      // reader that it waited for)
+#ifdef _OPENMP
+      const int num_threads = omp_get_max_threads();
+#else
+      const int num_threads = 1;
+#endif
       const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
       const size_t num_peptides = fi_peptides_.size();
       const SignedSize num_portions = static_cast<SignedSize>((num_peptides + portion_size - 1) / portion_size);
