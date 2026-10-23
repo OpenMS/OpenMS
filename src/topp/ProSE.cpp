@@ -718,10 +718,11 @@ class ProSE :
     }
 
     /// ProSE's optional columns of the QPX run view (runs_(); see the tool documentation): the search status, counts,
-    /// rescoring, prediction NCE, error estimates and seconds of each input
+    /// rescoring, prediction NCE, error estimates and seconds of each input (with @p test_mode 0 seconds, so the view
+    /// can be compared with a reference, as TOPPBase fixes the time of the data processing in test mode)
     static std::vector<ArrowIOHelpers::ParquetColumn> runExtraColumns_(const ProSEAlgorithm::MultiFileSearchResult& mfres,
                                                                        const StringList& in_list, const std::vector<Int64>& psm_rows,
-                                                                       bool rescore)
+                                                                       bool rescore, bool test_mode)
     {
       using Column = ArrowIOHelpers::ParquetColumn;
       auto column = [](const std::string& name, Column::Type type) { Column c; c.name = name; c.type = type; return c; };
@@ -767,7 +768,7 @@ class ProSE :
           run_nce = static_cast<double>(pf->protein_ids[0].getMetaValue("peptdeep_nce"));
         }
         optional_number(nce, true, run_nce);
-        seconds.double_values.push_back(pf ? pf->stats.seconds_search : 0.0);
+        seconds.double_values.push_back(pf && !test_mode ? pf->stats.seconds_search : 0.0);
         const ProSEAlgorithm::RunStatistics empty_stats;
         const ProSEAlgorithm::RunStatistics& st = pf ? pf->stats : empty_stats;
         optional_number(errors[0], st.prec_tol_valid, st.prec_err_median);
@@ -1705,7 +1706,7 @@ class ProSE :
         }
         // the run, sample and provenance views: the inputs and the steps of the run
         auto run_view = QPXDatasetExport::runView(runs_(mfres.shared, in_list));
-        if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, rescore)); }
+        if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, rescore, test_mode_)); }
         std::vector<QPXDatasetExport::Sample> samples(in_list.size());
         for (Size i = 0; i < in_list.size(); ++i) { samples[i].accession = File::stemName(in_list[i]); }
         const std::map<std::string, QPXDatasetExport::View> views = {
