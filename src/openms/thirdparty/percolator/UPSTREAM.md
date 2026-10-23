@@ -150,6 +150,11 @@ hand-editing sources and committing them, to keep sync self-healing.
   random) keeps its serial loop over the folds. Every loop, including those of
   `mergeCpCnPairs`, catches the exceptions of its iterations and rethrows the first one, in
   iteration order.
+- `patches/10-cv-stages.patch` — speeds up the stages of cross-validation around the SVM
+  training without changing its result (patch 09 is reserved for the SVM solver).
+  `Scores::calcScores` scores the PSMs (each by `calcScore`, as before) in blocks of 2048, as
+  tasks of the enclosing OpenMP parallel region if there is one (the fold tasks of
+  `CrossValidation`), instead of one after the other.
 
 ### Regenerating the patch
 

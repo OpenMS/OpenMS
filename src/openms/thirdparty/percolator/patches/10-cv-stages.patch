@@ -1,0 +1,41 @@
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 0602df3d99..2311d2bba6 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -46,6 +46,9 @@
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
++// OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
++[[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
++
+ // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
+ // strict weak ordering on [first, last): no score or mass is NaN.
+ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+@@ -495,9 +498,23 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+  */
+ int Scores::calcScores(std::vector<double>& w) {
+   std::size_t ix;
+-  std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+-  for (; scoreIt != scores_.end(); ++scoreIt) {
+-    scoreIt->score = calcScore(scoreIt->pPSM->features, w);
++  // OpenMS: inside an OpenMP parallel region (CrossValidation), the PSMs are scored by the tasks
++  // of the region, in blocks; each score is computed as before, by calcScore.
++  const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
++#ifdef _OPENMP
++  if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
++#pragma omp taskloop grainsize(kMinScoreTaskSize)
++    for (std::ptrdiff_t i = 0; i < numScores; ++i) {
++      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++      sh.score = calcScore(sh.pPSM->features, w);
++    }
++  } else
++#endif
++  {
++    std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
++    for (; scoreIt != scores_.end(); ++scoreIt) {
++      scoreIt->score = calcScore(scoreIt->pPSM->features, w);
++    }
+   }
+   sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
+   if (VERB > 3) {
