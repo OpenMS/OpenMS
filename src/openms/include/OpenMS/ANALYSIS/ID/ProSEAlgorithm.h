@@ -242,8 +242,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       std::vector<ProteinIdentification> protein_ids; ///< one pooled run; empty if no file succeeded
       /// PSMs of all files; meta value 'id_merge_index' = input position of the file (inputs with distinct paths)
       PeptideIdentificationList peptide_ids;
-      /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed); if
-      /// false with FDR:protein, the run's meta value PROTEIN_FDR_SKIPPED_META_VALUE says why
+      /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
     };
 
@@ -315,18 +314,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList& pep_ids) const;
 
     /**
-     * @brief Meta value of the run (ProteinIdentification) that says why applyCompleteSetProteinFDR() did not filter the
-     * proteins at the protein FDR (it returned false); absent when the filter was applied. Values:
-     *  - "no target protein passes": the picked-protein FDR left no target protein at the threshold (e.g. a small run:
-     *    the conservative q-value (D + 1) / (T + 1) cannot go below 1 / (T + 1)). The proteins are reported without
-     *    protein-level filtering, with their q-values (score type "q-value").
-     *  - "no decoy protein": the inference found no decoy protein, so no picked-protein FDR; the proteins keep the scores
-     *    of the inference.
-     *  - "no decoy marker": called without a decoy marker; nothing was done.
-     */
-    static constexpr const char* PROTEIN_FDR_SKIPPED_META_VALUE = "protein_fdr_skipped";
-
-    /**
      * @brief Finalize protein-level FDR on a COMPLETE protein set (a single input file,
      * or a merged cross-file aggregate).
      *
@@ -365,14 +352,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization; default).
      * @param[in] inference_only_psms PSMs that the inference and the picked-protein FDR use as well, but that are not
      *                                reported (SearchResult::inference_only_peptide_ids); their identifiers are ignored.
-     * If target proteins were inferred but none passes @p protein_fdr (e.g. a small run: the conservative q-value
-     * (D + 1) / (T + 1) cannot go below 1 / (T + 1)), the proteins are not filtered: they are reported with their
-     * q-values (the finalization is the same), with a warning, and the function returns false.
-     *
-     * @return Whether the proteins were filtered at @p protein_fdr: false if the picked-protein FDR was skipped (an empty
-     *         @p decoy_string, or no decoy protein left after the inference, which uses the best hit of each PSM only)
-     *         or no target protein passed it. protein_ids[0] then carries the reason as meta value
-     *         PROTEIN_FDR_SKIPPED_META_VALUE.
+     * @return Whether the picked-protein FDR was applied: false if it was skipped (an empty @p decoy_string, or no decoy
+     *         protein left after the inference, which uses the best hit of each PSM only).
      */
     static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
                                            PeptideIdentificationList& peptide_ids,
@@ -727,9 +708,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *  - With FDR:protein > 0 and decoys in the searched database: applyCompleteSetProteinFDR(), whose inference also
      *    uses the PSMs of the files between FDR:PSM and FDR:protein_inference_PSM
      *    (@c per_file[i].inference_only_peptide_ids, which are moved out), with picked-protein FDR (Savitski et al.
-     *    2015) and the filter at FDR:protein, provided the inference identified decoy proteins and a target protein
-     *    passes (otherwise a warning, nothing is filtered, @c protein_fdr_applied is false and the run carries the
-     *    reason as meta value PROTEIN_FDR_SKIPPED_META_VALUE). The finalization then removes the decoys, the proteins without a pooled PSM and the
+     *    2015) and the filter at FDR:protein, provided the inference identified decoy proteins (otherwise a warning,
+     *    and nothing is filtered). The finalization then removes the decoys, the proteins without a pooled PSM and the
      *    references to removed proteins. With @p remove_decoys false the picked-protein FDR keeps the decoy proteins
      *    in the run, with q-values (FalseDiscoveryRate's add_decoy_proteins; the q-values of the targets are the
      *    same), and the filter applies to them as to the targets; the decoy PSMs and the decoy proteins that pass are

@@ -387,7 +387,7 @@ namespace OpenMS
                        "A group without decoy or without target PSMs falls back to 'pooled'.",
                        {"advanced"});
     defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards. If no target protein passes (e.g. on a small run), the proteins are reported without protein-level filtering, with their q-values and a warning (the run's meta value 'protein_fdr_skipped' says why). Needs decoys ('decoys' auto or generate).");
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards. Needs decoys ('decoys' auto or generate).");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setValue("FDR:protein_inference_PSM", 0.1,
@@ -4003,14 +4003,6 @@ namespace OpenMS
       bool remove_decoys,
       const PeptideIdentificationList& inference_only_psms)
   {
-    // Why the proteins were not filtered at the protein FDR (PROTEIN_FDR_SKIPPED_META_VALUE); none if they were.
-    const auto skipped = [&protein_ids](const std::string& reason)
-    {
-      if (!protein_ids.empty()) { protein_ids[0].setMetaValue(PROTEIN_FDR_SKIPPED_META_VALUE, reason); }
-      return false;
-    };
-    if (!protein_ids.empty()) { protein_ids[0].removeMetaValue(PROTEIN_FDR_SKIPPED_META_VALUE); }
-
     // Defensive: an empty decoy marker would make every protein match the prefix/suffix guard
     // below (hasPrefix(x, "") is always true) and corrupt picked-protein FDR. Callers gate on
     // have_decoys (so decoy_string is non-empty in practice), but this is a public static helper.
@@ -4018,7 +4010,7 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "[ProSE] applyCompleteSetProteinFDR called with an empty decoy marker; "
                       << "skipping protein FDR (cannot identify decoys)." << std::endl;
-      return skipped("no decoy marker");
+      return false;
     }
 
     // Aggregate the best PSM score (PEP, or the search engine score) per peptide per protein over the reported PSMs and
@@ -4061,7 +4053,7 @@ namespace OpenMS
                       << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
                       << "target-only q-values." << std::endl;
       remove_unreported_proteins();
-      return skipped("no decoy protein");
+      return false;
     }
 
     FalseDiscoveryRate fdr;
@@ -4074,26 +4066,7 @@ namespace OpenMS
       fdr.setParameters(fdr_param);
     }
     fdr.applyPickedProteinFDR(protein_ids[0], decoy_string, decoy_is_prefix);
-    // If no target protein passes (e.g. a small run: the conservative q-value (D + 1) / (T + 1) of FalseDiscoveryRate
-    // cannot go below 1 / (T + 1)), filtering would leave nothing although there are identifications: report the proteins
-    // without protein-level filtering instead, with their q-values. The finalization below is the same.
-    const auto& picked = protein_ids[0].getHits();
-    const bool has_targets = std::any_of(picked.begin(), picked.end(), [&](const ProteinHit& ph) { return !is_decoy(ph); });
-    const bool target_passes = std::any_of(picked.begin(), picked.end(),
-                                           [&](const ProteinHit& ph) { return !is_decoy(ph) && ph.getScore() <= protein_fdr; });
-    const bool filter = target_passes || !has_targets;
-    if (filter)
-    {
-      IDFilter::filterHitsByScore(protein_ids, protein_fdr);
-    }
-    else
-    {
-      OPENMS_LOG_WARN << "[ProSE] Protein FDR: no target protein passes the protein FDR of " << protein_fdr * 100
-                      << " %; proteins are reported without protein-level filtering (their protein q-values are kept, "
-                      << "the lowest is " << std::min_element(picked.begin(), picked.end(),
-                           [](const ProteinHit& a, const ProteinHit& b) { return a.getScore() < b.getScore(); })->getScore()
-                      << ")." << std::endl;
-    }
+    IDFilter::filterHitsByScore(protein_ids, protein_fdr);
 
     // Decoy removal is the finalization step. removeDecoyHits strips decoy PSMs; decoy
     // proteins then fall out as unreferenced. Repair indistinguishable-protein and
@@ -4106,7 +4079,6 @@ namespace OpenMS
     }
     remove_unreported_proteins();
     IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
-    if (!filter) { return skipped("no target protein passes"); }
 
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
                     << protein_ids[0].getHits().size() << " proteins at "
