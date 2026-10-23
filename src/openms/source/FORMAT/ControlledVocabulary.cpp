@@ -16,11 +16,21 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <string_view>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // StringUtils::hasPrefix() for a string literal, without a std::string made of the literal on each call (the OBO
+    // parser below compares every line with up to 16 literals)
+    bool hasPrefix_(const std::string& s, std::string_view prefix)
+    {
+      return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
+    }
+  }
 
   ControlledVocabulary::CVTerm::CVTerm() :
     name(),
@@ -180,15 +190,15 @@ namespace OpenMS
         continue;
       }
 
-      if (StringUtils::hasPrefix(line_wo_spaces, "data-version:"))
+      if (hasPrefix_(line_wo_spaces, "data-version:"))
       {
         version_ = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
       }
-      if (StringUtils::hasPrefix(line_wo_spaces, "default-namespace:"))
+      if (hasPrefix_(line_wo_spaces, "default-namespace:"))
       {
         label_ = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
       }
-      if (StringUtils::hasPrefix(line_wo_spaces, "remark:URL:"))
+      if (hasPrefix_(line_wo_spaces, "remark:URL:"))
       {
         // Find the position of "http://" or "https://"
         size_t httpPos = line.find("http://");
@@ -234,15 +244,15 @@ namespace OpenMS
       //data line
       else if (in_term)
       {
-        if (StringUtils::hasPrefix(line_wo_spaces, "id:"))
+        if (hasPrefix_(line_wo_spaces, "id:"))
         {
           term.id = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "name:"))
+        else if (hasPrefix_(line_wo_spaces, "name:"))
         {
           term.name = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "is_a:"))
+        else if (hasPrefix_(line_wo_spaces, "is_a:"))
         {
           if (StringUtils::has(line, '!'))
           {
@@ -260,7 +270,7 @@ namespace OpenMS
           }
         }
         // brenda tissue special relationships, DRV (derived and part of)
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:DRV") && name == "brenda")
+        else if (hasPrefix_(line_wo_spaces, "relationship:DRV") && name == "brenda")
         {
           if (StringUtils::has(line, '!'))
           {
@@ -279,7 +289,7 @@ namespace OpenMS
             term.parents.insert(StringUtils::prefix(StringUtils::substr(line, line.find("DRV") + 4), ':') + ":" + StringUtils::trimmed(StringUtils::suffix(line, ':')));
           }
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:part_of") && name == "brenda")
+        else if (hasPrefix_(line_wo_spaces, "relationship:part_of") && name == "brenda")
         {
           if (StringUtils::has(line, '!'))
           {
@@ -298,7 +308,7 @@ namespace OpenMS
             term.parents.insert(StringUtils::prefix(StringUtils::substr(line, line.find("part_of") + 8), ':') + ":" + StringUtils::trimmed(StringUtils::suffix(line, ':')));
           }
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:has_units"))
+        else if (hasPrefix_(line_wo_spaces, "relationship:has_units"))
         {
           if (StringUtils::has(line, '!'))
           {
@@ -317,7 +327,7 @@ namespace OpenMS
             term.units.insert(StringUtils::prefix(StringUtils::substr(line, line.find("has_units") + 10), ':') + ":" + StringUtils::trimmed(StringUtils::suffix(line, ':')));
           }
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "def:"))
+        else if (hasPrefix_(line_wo_spaces, "def:"))
         {
           std::string description = StringUtils::substr(line, line.find('"') + 1);
           StringUtils::trim(description);
@@ -325,7 +335,7 @@ namespace OpenMS
           StringUtils::trim(description);
           term.description = description;
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "synonym:"))
+        else if (hasPrefix_(line_wo_spaces, "synonym:"))
         {
           std::string synonym = StringUtils::substr(line, line.find('"') + 1);
           StringUtils::trim(synonym);
@@ -337,8 +347,8 @@ namespace OpenMS
         {
           term.obsolete = true;
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "xref:value-type") 
-          || StringUtils::hasPrefix(line_wo_spaces, "xref_analog:value-type")
+        else if (hasPrefix_(line_wo_spaces, "xref:value-type") 
+          || hasPrefix_(line_wo_spaces, "xref_analog:value-type")
         )
         {
           StringUtils::remove(line_wo_spaces, '\\');
@@ -396,7 +406,7 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:has_value_type")) // since newer obo type in relationship instead of xref
+        else if (hasPrefix_(line_wo_spaces, "relationship:has_value_type")) // since newer obo type in relationship instead of xref
         {
           if (StringUtils::hasSubstring(line_wo_spaces, "xsd:string"))
           {
@@ -469,7 +479,7 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }       
-        else if (StringUtils::hasPrefix(line_wo_spaces, "xref:binary-data-type") || StringUtils::hasPrefix(line_wo_spaces, "xref_analog:binary-data-type"))
+        else if (hasPrefix_(line_wo_spaces, "xref:binary-data-type") || hasPrefix_(line_wo_spaces, "xref_analog:binary-data-type"))
         {
           StringUtils::remove(line_wo_spaces, '\\');
           //remove description (if present)
