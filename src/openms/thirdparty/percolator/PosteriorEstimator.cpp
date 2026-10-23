@@ -35,6 +35,11 @@
 #include "Transform.h"
 #include "Globals.h"
 #include "Version.h"
+#include <exception>
+#include <stdint.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
@@ -72,6 +77,20 @@ template<class T> void bootstrap(const vector<T>& in, vector<T>& out,
   size_t num_draw = min(in.size(), max_size);
   for (size_t ix = 0; ix < num_draw; ++ix) {
     size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand() * n);
+    out.push_back(in[draw]);
+  }
+  // sort in desending order
+  sort(out.begin(), out.end());
+}
+
+// OpenMS: bootstrap with the numbers drawn from the caller's state of the generator
+template<class T> void bootstrapFrom(const vector<T>& in, vector<T>& out, uint64_t& state,
+                                     size_t max_size = 1000) {
+  out.clear();
+  double n = static_cast<double>(in.size());
+  size_t num_draw = min(in.size(), max_size);
+  for (size_t ix = 0; ix < num_draw; ++ix) {
+    size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand(state) * n);
     out.push_back(in[draw]);
   }
   // sort in desending order
@@ -503,8 +522,54 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
   vector<double> pBoot, mse;
   // Initialize the vector mse with zeroes.
   fill_n(back_inserter(mse), pi0s.size(), 0.0);
+  // OpenMS: inside an OpenMP parallel region (CrossValidation, Scores::merge), the bootstraps
+  // are tasks: each draws its numbers from the generator's state at its first draw (the
+  // bootstraps draw min(n, 1000) numbers each, see bootstrap; PseudoRandom::advance), the
+  // errors are added up in the order of the bootstraps as below, and the generator ends in
+  // the state the loop below leaves.
+  bool booted = false;
+#ifdef _OPENMP
+  if (numBoot > 1 && !p.empty() && omp_in_parallel()) {
+    const uint64_t numDraw = min(p.size(), static_cast<size_t>(1000));
+    const uint64_t seed = PseudoRandom::getSeed();
+    const size_t numLambdas = lambdas.size();
+    vector<double> pi0Boots(static_cast<size_t>(numBoot) * numLambdas);
+    vector<std::exception_ptr> errors(numBoot);
+#pragma omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors)
+    for (int boot = 0; boot < static_cast<int>(numBoot); ++boot) {
+      try {
+        uint64_t state = PseudoRandom::advance(seed, static_cast<uint64_t>(boot) * numDraw);
+        vector<double> pBootOfTask;
+        bootstrapFrom<double>(p, pBootOfTask, state);
+        const size_t nBoot = pBootOfTask.size();
+        for (size_t ix = 0; ix < numLambdas; ++ix) {
+          vector<double>::const_iterator startOfTask =
+              lower_bound(pBootOfTask.begin(), pBootOfTask.end(), lambdas[ix]);
+          double Wl = (double)distance(startOfTask, pBootOfTask.cend());
+          pi0Boots[static_cast<size_t>(boot) * numLambdas + ix] =
+              Wl / static_cast<double>(nBoot) / (1. - lambdas[ix]);
+        }
+      } catch (...) {
+        errors[static_cast<size_t>(boot)] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors) {
+      if (error) std::rethrow_exception(error);
+    }
+    for (unsigned int boot = 0; boot < numBoot; ++boot) {
+      for (unsigned int ix = 0; ix < lambdas.size(); ++ix) {
+        double pi0Boot = pi0Boots[static_cast<size_t>(boot) * numLambdas + ix];
+        // Estimated mean-squared error.
+        mse[ix] += (pi0Boot - minPi0) * (pi0Boot - minPi0);
+      }
+    }
+    PseudoRandom::setSeed(static_cast<unsigned long>(
+        PseudoRandom::advance(seed, static_cast<uint64_t>(numBoot) * numDraw)));
+    booted = true;
+  }
+#endif
   // Examine which lambda level that is most stable under bootstrap
-  for (unsigned int boot = 0; boot < numBoot; ++boot) {
+  for (unsigned int boot = 0; !booted && boot < numBoot; ++boot) {
     // Create an array of bootstrapped p-values, and sort in ascending order.
     bootstrap<double> (p, pBoot);
     n = pBoot.size();

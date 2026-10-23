@@ -150,6 +150,146 @@ index 7c01f3cbc5..3fcefdd056 100644
    std::vector<double> candidatesCpos_, candidatesCfrac_;
  
    void initializeGridSearch(double targetDecoySizeRatio);
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+index fca38a0c54..d5ed735cee 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -35,6 +35,11 @@
+ #include "Transform.h"
+ #include "Globals.h"
+ #include "Version.h"
++#include <exception>
++#include <stdint.h>
++#ifdef _OPENMP
++#include <omp.h>
++#endif
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+@@ -78,6 +83,20 @@ template<class T> void bootstrap(const vector<T>& in, vector<T>& out,
+   sort(out.begin(), out.end());
+ }
+ 
++// OpenMS: bootstrap with the numbers drawn from the caller's state of the generator
++template<class T> void bootstrapFrom(const vector<T>& in, vector<T>& out, uint64_t& state,
++                                     size_t max_size = 1000) {
++  out.clear();
++  double n = static_cast<double>(in.size());
++  size_t num_draw = min(in.size(), max_size);
++  for (size_t ix = 0; ix < num_draw; ++ix) {
++    size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand(state) * n);
++    out.push_back(in[draw]);
++  }
++  // sort in desending order
++  sort(out.begin(), out.end());
++}
++
+ double mymin(double a, double b) {
+   return a > b ? b : a;
+ }
+@@ -503,8 +522,54 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
+   vector<double> pBoot, mse;
+   // Initialize the vector mse with zeroes.
+   fill_n(back_inserter(mse), pi0s.size(), 0.0);
++  // OpenMS: inside an OpenMP parallel region (CrossValidation, Scores::merge), the bootstraps
++  // are tasks: each draws its numbers from the generator's state at its first draw (the
++  // bootstraps draw min(n, 1000) numbers each, see bootstrap; PseudoRandom::advance), the
++  // errors are added up in the order of the bootstraps as below, and the generator ends in
++  // the state the loop below leaves.
++  bool booted = false;
++#ifdef _OPENMP
++  if (numBoot > 1 && !p.empty() && omp_in_parallel()) {
++    const uint64_t numDraw = min(p.size(), static_cast<size_t>(1000));
++    const uint64_t seed = PseudoRandom::getSeed();
++    const size_t numLambdas = lambdas.size();
++    vector<double> pi0Boots(static_cast<size_t>(numBoot) * numLambdas);
++    vector<std::exception_ptr> errors(numBoot);
++#pragma omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors)
++    for (int boot = 0; boot < static_cast<int>(numBoot); ++boot) {
++      try {
++        uint64_t state = PseudoRandom::advance(seed, static_cast<uint64_t>(boot) * numDraw);
++        vector<double> pBootOfTask;
++        bootstrapFrom<double>(p, pBootOfTask, state);
++        const size_t nBoot = pBootOfTask.size();
++        for (size_t ix = 0; ix < numLambdas; ++ix) {
++          vector<double>::const_iterator startOfTask =
++              lower_bound(pBootOfTask.begin(), pBootOfTask.end(), lambdas[ix]);
++          double Wl = (double)distance(startOfTask, pBootOfTask.cend());
++          pi0Boots[static_cast<size_t>(boot) * numLambdas + ix] =
++              Wl / static_cast<double>(nBoot) / (1. - lambdas[ix]);
++        }
++      } catch (...) {
++        errors[static_cast<size_t>(boot)] = std::current_exception();
++      }
++    }
++    for (const std::exception_ptr& error : errors) {
++      if (error) std::rethrow_exception(error);
++    }
++    for (unsigned int boot = 0; boot < numBoot; ++boot) {
++      for (unsigned int ix = 0; ix < lambdas.size(); ++ix) {
++        double pi0Boot = pi0Boots[static_cast<size_t>(boot) * numLambdas + ix];
++        // Estimated mean-squared error.
++        mse[ix] += (pi0Boot - minPi0) * (pi0Boot - minPi0);
++      }
++    }
++    PseudoRandom::setSeed(static_cast<unsigned long>(
++        PseudoRandom::advance(seed, static_cast<uint64_t>(numBoot) * numDraw)));
++    booted = true;
++  }
++#endif
+   // Examine which lambda level that is most stable under bootstrap
+-  for (unsigned int boot = 0; boot < numBoot; ++boot) {
++  for (unsigned int boot = 0; !booted && boot < numBoot; ++boot) {
+     // Create an array of bootstrapped p-values, and sort in ascending order.
+     bootstrap<double> (p, pBoot);
+     n = pBoot.size();
+diff --git a/src/openms/thirdparty/percolator/PseudoRandom.cpp b/src/openms/thirdparty/percolator/PseudoRandom.cpp
+index 15df68426d..a4f82c2d42 100644
+--- a/src/openms/thirdparty/percolator/PseudoRandom.cpp
++++ b/src/openms/thirdparty/percolator/PseudoRandom.cpp
+@@ -33,4 +33,19 @@ double PseudoRandom::lcg_uniform_rand() {
+   return (double)PseudoRandom::lcg_rand() / ((double)PseudoRandom::kRandMax + (double)1);
+ }
+ 
++// OpenMS: the state after `draws` calls of lcg_rand(state). The first draw is made as lcg_rand
++// makes it (a state set by setSeed may exceed the modulus); from then on the state is below the
++// modulus, and each draw multiplies it by 279470273 modulo 4294967291 (no product of two numbers
++// below 2^32 overflows 64 bits), so the remaining draws multiply it by 279470273^(draws - 1).
++uint64_t PseudoRandom::advance(uint64_t state, uint64_t draws) {
++  if (draws == 0) return state;
++  PseudoRandom::lcg_rand(state);
++  uint64_t factor = 1u, power = 279470273u;
++  for (uint64_t k = draws - 1; k != 0; k >>= 1) {
++    if (k & 1u) factor = (factor * power) % 4294967291u;
++    power = (power * power) % 4294967291u;
++  }
++  return (state * factor) % 4294967291u;
++}
++
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/PseudoRandom.h b/src/openms/thirdparty/percolator/PseudoRandom.h
+index 83811fcc19..f1409df9b1 100644
+--- a/src/openms/thirdparty/percolator/PseudoRandom.h
++++ b/src/openms/thirdparty/percolator/PseudoRandom.h
+@@ -36,6 +36,18 @@ class PseudoRandom {
+   static unsigned long lcg_rand();
+   static double lcg_uniform_rand();
+   const static uint64_t kRandMax = 4294967291u;
++  // OpenMS: the numbers of lcg_rand and lcg_uniform_rand from a state of the caller's (to draw
++  // parts of the sequence in parallel), the generator's state, and the state after a number of
++  // draws (jumps ahead without drawing)
++  inline static unsigned long lcg_rand(uint64_t& state) {
++    state = (state * 279470273u) % 4294967291u;
++    return state;
++  }
++  inline static double lcg_uniform_rand(uint64_t& state) {
++    return (double)PseudoRandom::lcg_rand(state) / ((double)PseudoRandom::kRandMax + (double)1);
++  }
++  inline static uint64_t getSeed() { return seed_; }
++  static uint64_t advance(uint64_t state, uint64_t draws);
+  protected:
+   static uint64_t seed_;
+ };
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
 index 0602df3d99..d83c82cc7a 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp

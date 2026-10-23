@@ -180,6 +180,16 @@ hand-editing sources and committing them, to keep sync self-healing.
   outcomes, so the sorts make the same moves, without reading `pPSM` and moving whole
   `ScoreHolder`s; the PSMs are put into the final order of the keys (and get the scores of the
   last feature) once, at the end.
+  `PosteriorEstimator::estimatePi0` (called by `Scores::merge` and `postMergeStep` for each
+  fold and for the merged set) runs its 100 bootstraps as tasks of the enclosing OpenMP
+  parallel region (as in `CrossValidation::postIterationProcessing`). The bootstraps draw from
+  the global `PseudoRandom` generator one after the other, min(n, 1000) numbers each, so each
+  task draws its numbers from the generator's state at its first draw
+  (`PseudoRandom::advance`: the generator multiplies by 279470273 modulo 4294967291, so it can
+  jump ahead by a power of the multiplier; `PseudoRandom::lcg_rand(state)` draws like
+  `lcg_rand` from a state of the caller's); the mean squared errors are added up in the order
+  of the bootstraps, and the generator ends in the state the serial loop leaves. Outside a
+  parallel region, the loop as before.
 
 ### Regenerating the patch
 
