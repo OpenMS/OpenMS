@@ -55,7 +55,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   public ProgressLogger
 {
   public:
-    ProSEAlgorithm(); 
+    ProSEAlgorithm();
 
     /// Exit codes
     enum class ExitCodes
@@ -541,12 +541,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *            requires a non-const reference).
      * @param[out] prot_ids Output protein-level identifications.
      * @param[out] pep_ids  Output spectrum-level peptide identifications (PSMs).
+     * @param[in] defer_fdr If true, return the PSMs before Percolator rescoring and FDR:PSM, and do not
+     *            collect post-FDR run statistics (only ms2_spectra is set). The multi-file wrappers
+     *            use this for joint rescoring; external callers must apply FDR themselves.
      * @return ExitCodes indicating success or error.
      */
     ExitCodes search(PeakMap& spectra,
                      SearchContext& ctx,
                      std::vector<ProteinIdentification>& prot_ids,
-                     PeptideIdentificationList& pep_ids) const;
+                     PeptideIdentificationList& pep_ids,
+                     bool defer_fdr = false) const;
 
     /**
      * @brief In-memory search with modification analysis: no file I/O required.
@@ -1196,6 +1200,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
+    std::string rescore_model_{"joint"}; ///< rescore_model: 'joint' or 'per_run'
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1432,6 +1437,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                      bool has_decoys,
                                      RunStatistics& stats,
                                      PeptideIdentificationList* pre_fdr_psms = nullptr) const;
+
+    /// Helper: apply a single joint Percolator model across all files of a multi-file batch,
+    /// then recompute per-run Target-Decoy Competition (TDC) q-values from the pooled SVM score
+    /// (MS:1001492) as the main score (while MS:1001491 and MS:1001493 retain the pooled Percolator
+    /// q-value and PEP). If the pooled batch cannot be rescored, every file falls back to native-score FDR.
+    void applyJointPsmFDR_(std::vector<SearchResult>& per_file, bool has_decoys) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and
     /// per-run tolerance estimation for one searched file (post-FDR). Silent;

@@ -5409,6 +5409,9 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
   {
     ProSEAlgorithm algo;
     configure(algo, "", 0.05, 0.0);
+    Param p = algo.getParameters();
+    p.setValue("rescore_model", "per_run"); // test per-file skip behavior
+    algo.setParameters(p);
     ProSEAlgorithm::MultiFileSearchResult mfres =
       algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, small_spectra_file}, database_file);
     ABORT_IF(mfres.per_file.size() != 2)
