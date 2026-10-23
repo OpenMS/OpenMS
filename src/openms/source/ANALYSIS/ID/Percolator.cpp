@@ -1565,6 +1565,9 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   std::vector<UInt> feature_indices;
   for (const std::string& f : numeric_features) feature_indices.push_back(index_of(f));
   const UInt scan_nr_index = index_of("ScanNr"), exp_mass_index = index_of("ExpMass"), calc_mass_index = index_of("CalcMass");
+  // A hit is a decoy if its stamped Label is -1: stampPinFeaturesOnHits() stamps it from PeptideHit::isDecoy() on every
+  // hit it does not skip (and stops at a hit whose target_decoy value is unknown); isDecoy() looks its name up twice.
+  const UInt label_index = index_of("Label");
   struct Row
   {
     size_t hit_index;
@@ -1598,7 +1601,8 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
         }
         if (!ok) continue;
 
-        rows[i].push_back({j, std::move(row), hit.isDecoy(), static_cast<int>(hit.getMetaValue(scan_nr_index)),
+        rows[i].push_back({j, std::move(row), static_cast<int>(hit.getMetaValue(label_index)) == -1,
+                           static_cast<int>(hit.getMetaValue(scan_nr_index)),
                            static_cast<double>(hit.getMetaValue(exp_mass_index)),
                            PercolatorInfile::getFeatureValue(hit.getMetaValue(calc_mass_index), "CalcMass")});
       }
@@ -1612,6 +1616,15 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
   // competition), so spectra of different inputs with the same scan number must not share a file.
   std::map<std::string, int> spec_files;
+  size_t num_rows = 0;
+  for (const std::vector<Row>& rows_of_spectrum : rows) num_rows += rows_of_spectrum.size();
+  ri.features.reserve(num_rows);
+  ri.is_decoy.reserve(num_rows);
+  ri.scan_numbers.reserve(num_rows);
+  ri.spec_file_numbers.reserve(num_rows);
+  ri.exp_masses.reserve(num_rows);
+  ri.calc_masses.reserve(num_rows);
+  hit_locs.reserve(num_rows);
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
     if (errors[i]) std::rethrow_exception(errors[i]);
