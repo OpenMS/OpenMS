@@ -9,6 +9,7 @@ AScore.h
 BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
 ConsensusMapMergerAlgorithm.h
+EntrapmentEvaluation.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h

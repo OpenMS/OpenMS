@@ -139,6 +139,10 @@ namespace
     {
       exp.setMetaValue("imzml:pixel_size_y", meta.pixel_size_y);
     }
+    if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      exp.setMetaValue("imzml:pixel_size_unit", meta.pixel_size_unit);
+    }
     if (meta.max_dim_x > 0)
     {
       exp.setMetaValue("imzml:max_dim_x", meta.max_dim_x);
@@ -362,11 +366,20 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
     geom.setDimensions(width, height);
   }
 
-  if (exp.metaValueExists("imzml:pixel_size_x") && exp.metaValueExists("imzml:pixel_size_y"))
+  // each axis separately: a missing MetaValue is an unknown axis (-1)
+  if (exp.metaValueExists("imzml:pixel_size_x") || exp.metaValueExists("imzml:pixel_size_y"))
   {
-    const double px = static_cast<double>(exp.getMetaValue("imzml:pixel_size_x"));
-    const double py = static_cast<double>(exp.getMetaValue("imzml:pixel_size_y"));
-    geom.setPixelSize(px, py, "micrometer");
+    const double px = static_cast<double>(exp.getMetaValue("imzml:pixel_size_x", -1.0));
+    const double py = static_cast<double>(exp.getMetaValue("imzml:pixel_size_y", -1.0));
+    if (exp.metaValueExists("imzml:pixel_size_unit"))
+    {
+      geom.setPixelSize(px, py, exp.getMetaValue("imzml:pixel_size_unit").toString());
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size without imzml:pixel_size_unit; assuming micrometer." << std::endl;
+      geom.setPixelSize(px, py, "micrometer");
+    }
   }
 }
 
@@ -471,9 +484,10 @@ void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& inde
     geom.setDimensions(width, height);
   }
 
-  if (meta.pixel_size_x > 0 && meta.pixel_size_y > 0)
+  // each axis separately: an unknown axis stays -1
+  if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
   {
-    geom.setPixelSize(meta.pixel_size_x, meta.pixel_size_y, "micrometer");
+    geom.setPixelSize(meta.pixel_size_x, meta.pixel_size_y, meta.pixel_size_unit);
   }
 }
 
@@ -525,10 +539,20 @@ void ImzMLFile::store(const std::string& filename, const MSImagingExperiment& ex
     }
   }
 
+  // the copied experiment may carry pixel size MetaValues of a previous load; only the geometry counts
+  for (const char* key : {"imzml:pixel_size_x", "imzml:pixel_size_y", "imzml:pixel_size_unit",
+                          "imzml:max_dim_x", "imzml:max_dim_y"})
+  {
+    out.removeMetaValue(key);
+  }
   if (geom.getWidth() > 0)  { out.setMetaValue("imzml:max_count_x", static_cast<UInt>(geom.getWidth())); }
   if (geom.getHeight() > 0) { out.setMetaValue("imzml:max_count_y", static_cast<UInt>(geom.getHeight())); }
   if (geom.getPixelSizeX() > 0) { out.setMetaValue("imzml:pixel_size_x", geom.getPixelSizeX()); }
   if (geom.getPixelSizeY() > 0) { out.setMetaValue("imzml:pixel_size_y", geom.getPixelSizeY()); }
+  if (geom.getPixelSizeX() > 0 || geom.getPixelSizeY() > 0)
+  {
+    out.setMetaValue("imzml:pixel_size_unit", geom.getPixelSizeUnit());
+  }
 
   store(filename, out);
 }
@@ -616,6 +640,13 @@ void ImzMLFile::loadImpl_(const std::string& filename,
   // loads and the on-disc reader (OnDiscImzMLExperiment::open() routes through
   // loadSpectraIndex() -> loadImpl_()).
   verifyIbdUuid_(ibd_path, handler.getImzMLMeta().uuid, filename);
+
+  // IMS:1000046: without an explicit pixel size y, pixel size x also describes y
+  ImzMLMeta& meta = handler.getImzMLMeta();
+  if (meta.pixel_size_x > 0 && !handler.hasPixelSizeY())
+  {
+    meta.pixel_size_y = meta.pixel_size_x;
+  }
 
   if (out_meta)
   {

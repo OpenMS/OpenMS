@@ -100,6 +100,9 @@ namespace Internal
     /// Non-const access for ImzMLFile to set the .ibd path before parse.
     ImzMLMeta&       getImzMLMeta()       noexcept { return meta_; }
 
+    /// True if the file has a pixel size y (IMS:1000047), even if its value or unit was rejected.
+    bool hasPixelSizeY() const noexcept { return pixel_size_y_given_; }
+
     /// Per-spectrum binary index built during parse (one entry per spectrum).
     const std::vector<ImzMLSpectrumIndex>& getIndex() const noexcept { return index_; }
 
@@ -204,6 +207,7 @@ namespace Internal
     bool   decode_ibd_ { true };
     bool   cur_x_seen_ { false };
     bool   cur_y_seen_ { false };
+    bool   pixel_size_y_given_ { false };
 
     std::unique_ptr<ImzMLInterceptConsumer> decode_bridge_;
   };

@@ -391,6 +391,34 @@ namespace
     {
       meta.polarity = exp.getMetaValue("imzml:polarity").toString();
     }
+    if (exp.metaValueExists("imzml:pixel_size_unit"))
+    {
+      meta.pixel_size_unit = exp.getMetaValue("imzml:pixel_size_unit").toString();
+    }
+    else if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size without imzml:pixel_size_unit; assuming micrometer." << std::endl;
+      meta.pixel_size_unit = "micrometer";
+    }
+    // IMS:1000046/47 need a UO length unit; drop a pixel size whose unit cannot be written
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    if (!cv.hasTermWithName(meta.pixel_size_unit)
+        || !lengthUnitExponent(cv.getTermByName(meta.pixel_size_unit).id))
+    {
+      if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+      {
+        OPENMS_LOG_WARN << "imzML: pixel size unit '" << meta.pixel_size_unit
+                        << "' is not a supported length unit; pixel size not written." << std::endl;
+      }
+      meta.pixel_size_x = -1;
+      meta.pixel_size_y = -1;
+      meta.pixel_size_unit = "unknown";
+    }
+    if (meta.pixel_size_x > 0 && meta.pixel_size_y <= 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size y is unknown; only pixel size x is written, which readers "
+                         "also use for y (IMS:1000046)." << std::endl;
+    }
     return meta;
   }
 
@@ -679,13 +707,19 @@ namespace
     {
       meta.max_count_z = 1;
     }
+    if (meta.pixel_size_x <= 0 && meta.pixel_size_y <= 0)
+    {
+      return;
+    }
+    // max dimension (IMS:1000044/45) is in micrometer; extractMeta_ guarantees a supported pixel size unit
+    const double to_um = std::pow(10.0, *lengthUnitExponent(ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit).id) + 6);
     if (meta.pixel_size_x > 0 && meta.max_count_x > 0)
     {
-      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x;
+      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x * to_um;
     }
     if (meta.pixel_size_y > 0 && meta.max_count_y > 0)
     {
-      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y;
+      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y * to_um;
     }
   }
 
@@ -1274,6 +1308,14 @@ namespace
     os << "\t</softwareList>\n";
     os << "\t<scanSettingsList count=\"1\">\n";
     os << "\t\t<scanSettings id=\"scanSettings1\">\n";
+    // pixel size keeps its own unit; extractMeta_ guarantees a supported length unit when a pixel size is set
+    std::string length_unit_attrs;
+    if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      const ControlledVocabulary::CVTerm& length_unit = ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit);
+      length_unit_attrs = "unitCvRef=\"UO\" unitAccession=\"" + length_unit.id
+                          + "\" unitName=\"" + XMLHandler::writeXMLEscape(length_unit.name) + "\"";
+    }
     if (meta.max_count_x > 0)
     {
       os << "\t\t\t";
@@ -1286,32 +1328,32 @@ namespace
       writeCvParam_(os, "IMS", "IMS:1000043", "max count of pixels y", OpenMS::StringConversions::toString(meta.max_count_y));
       os << "\n";
     }
-    if (meta.max_dim_x > 0)
+    if (std::llround(meta.max_dim_x) > 0) // nonNegativeInteger micrometer; a sub-micrometer extent is not written
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(meta.max_dim_x),
+      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(std::llround(meta.max_dim_x)),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
-    if (meta.max_dim_y > 0)
+    if (std::llround(meta.max_dim_y) > 0) // nonNegativeInteger micrometer; a sub-micrometer extent is not written
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(meta.max_dim_y),
+      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(std::llround(meta.max_dim_y)),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
     if (meta.pixel_size_x > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size x", OpenMS::StringConversions::toString(meta.pixel_size_x),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size (x)", OpenMS::StringConversions::toString(meta.pixel_size_x),
+                    length_unit_attrs);
       os << "\n";
     }
     if (meta.pixel_size_y > 0)
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000047", "pixel size y", OpenMS::StringConversions::toString(meta.pixel_size_y),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     writeImsGeometryCvParams_(os, meta);

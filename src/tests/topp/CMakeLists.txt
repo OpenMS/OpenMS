@@ -4789,6 +4789,21 @@ set_tests_properties("TOPP_DecoyDatabase_8_out" PROPERTIES DEPENDS "TOPP_DecoyDa
 # ... test that shuffle_decoy_ratio with reverse method fails
 add_test("TOPP_DecoyDatabase_9" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_9.tmp.fasta -method reverse -shuffle_decoy_ratio 2)
 set_tests_properties("TOPP_DecoyDatabase_9" PROPERTIES WILL_FAIL 1)
+# ... entrapment: a shuffled entrapment copy of every target, with its own decoy
+add_test("TOPP_DecoyDatabase_10" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_10.tmp.fasta -method shuffle -seed 42 -entrapment_ratio 1)
+add_test("TOPP_DecoyDatabase_10_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_10.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_10_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_10_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_10")
+# ... entrapment is not supported for RNA
+add_test("TOPP_DecoyDatabase_11" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -entrapment_ratio 1)
+set_tests_properties("TOPP_DecoyDatabase_11" PROPERTIES WILL_FAIL 1)
+# EntrapmentEvaluator: entrapment FDP per q-value threshold and class
+add_test("TOPP_EntrapmentEvaluator_1" ${TOPP_BIN_PATH}/EntrapmentEvaluator -test -in ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_input.idXML -out ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -te_ratio 1 -q_value 0.01 0.05 -class_meta_value mod_class)
+add_test("TOPP_EntrapmentEvaluator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_output.tsv )
+set_tests_properties("TOPP_EntrapmentEvaluator_1_out" PROPERTIES DEPENDS "TOPP_EntrapmentEvaluator_1")
+# ... with a DecoyDatabase entrapment database: T/E from the database and the paired estimate at the peptide level
+add_test("TOPP_EntrapmentEvaluator_2" ${TOPP_BIN_PATH}/EntrapmentEvaluator -test -in ${DATA_DIR_TOPP}/EntrapmentEvaluator_2_input.idXML -database ${DATA_DIR_TOPP}/DecoyDatabase_10_out.fasta -out ${TESTS_TEMP_DIR}/EntrapmentEvaluator_2.tmp.tsv -q_value 0.005 0.01)
+add_test("TOPP_EntrapmentEvaluator_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/EntrapmentEvaluator_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/EntrapmentEvaluator_2_output.tsv )
+set_tests_properties("TOPP_EntrapmentEvaluator_2_out" PROPERTIES DEPENDS "TOPP_EntrapmentEvaluator_2")
 
 
 # SimpleSearchEngine:
@@ -4898,10 +4913,10 @@ add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 set_tests_properties("TOPP_ProSE_3_qpx" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx_clean")
 add_test("TOPP_ProSE_3_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/runs/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 add_test(NAME "TOPP_ProSE_3_qpx_pg_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/runs/SimpleSearchEngine_1.pg.parquet)
 set_tests_properties("TOPP_ProSE_3_qpx_pg_absent" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx" WILL_FAIL 1)
 add_test("TOPP_ProSE_3_qpx_merged_exists" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet -schema psm -min_rows 3)
@@ -4915,10 +4930,38 @@ set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_absent" PROPERTIES DEPENDS "TOP
 # coincidence. Produced-vs-produced, so it needs no reference file and cannot churn when the
 # numbers legitimately change.
 add_test("TOPP_ProSE_3_qpx_merged_identity" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/runs/SimpleSearchEngine_1.psm.parquet
   -in2 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet
   -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_merged_identity" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+
+# Inputs named like the aggregate files (quantms, openms): their files are in runs/, the run's next to it.
+add_test(NAME "TOPP_ProSE_3_names_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_3_names)
+foreach(_part quantms openms)
+  add_test(NAME "TOPP_ProSE_3_names_input_${_part}" COMMAND ${CMAKE_COMMAND} -E copy
+    ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML ${TESTS_TEMP_DIR}/ProSE_3_names/in/${_part}.mzML)
+  set_tests_properties("TOPP_ProSE_3_names_input_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_3_names_clean")
+endforeach()
+add_test("TOPP_ProSE_3_names" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${TESTS_TEMP_DIR}/ProSE_3_names/in/quantms.mzML ${TESTS_TEMP_DIR}/ProSE_3_names/in/openms.mzML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_names/qpx -out_parquet ${TESTS_TEMP_DIR}/ProSE_3_names/oms
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+set_tests_properties("TOPP_ProSE_3_names" PROPERTIES DEPENDS "TOPP_ProSE_3_names_input_quantms;TOPP_ProSE_3_names_input_openms")
+foreach(_name quantms openms)
+  add_test("TOPP_ProSE_3_names_qpx_${_name}" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/ProSE_3_names/qpx/runs/${_name}.psm.parquet -schema psm -min_rows 3)
+  set_tests_properties("TOPP_ProSE_3_names_qpx_${_name}" PROPERTIES DEPENDS "TOPP_ProSE_3_names")
+endforeach()
+add_test("TOPP_ProSE_3_names_qpx_aggregate" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_names/qpx/quantms.psm.parquet -schema psm -min_rows 6)
+set_tests_properties("TOPP_ProSE_3_names_qpx_aggregate" PROPERTIES DEPENDS "TOPP_ProSE_3_names")
+foreach(_file oms/runs/openms.psm oms/openms.psm)
+  string(REPLACE "/" "_" _name ${_file})
+  add_test(NAME "TOPP_ProSE_3_names_${_name}" COMMAND ${CMAKE_COMMAND} -E sha256sum
+    ${TESTS_TEMP_DIR}/ProSE_3_names/${_file}.parquet)
+  set_tests_properties("TOPP_ProSE_3_names_${_name}" PROPERTIES DEPENDS "TOPP_ProSE_3_names")
+endforeach()
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -5286,10 +5329,10 @@ add_test("TOPP_ProSE_15_empty_idXML" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS
 set_tests_properties("TOPP_ProSE_15_empty_idXML" PROPERTIES DEPENDS "TOPP_ProSE_15_empty"
   PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
 add_test("TOPP_ProSE_15_empty_qpx_schema" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx/DatabaseSuitability_in_spec.psm.parquet -schema psm -min_rows 0)
+  -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx/runs/DatabaseSuitability_in_spec.psm.parquet -schema psm -min_rows 0)
 set_tests_properties("TOPP_ProSE_15_empty_qpx_schema" PROPERTIES DEPENDS "TOPP_ProSE_15_empty")
-foreach(_table qpx/DatabaseSuitability_in_spec.psm qpx/quantms.psm oms/DatabaseSuitability_in_spec.psm
-               oms/DatabaseSuitability_in_spec.proteins oms/openms.psm)
+foreach(_table qpx/runs/DatabaseSuitability_in_spec.psm qpx/quantms.psm oms/runs/DatabaseSuitability_in_spec.psm
+               oms/runs/DatabaseSuitability_in_spec.proteins oms/openms.psm)
   string(REPLACE "/" "_" _name ${_table})
   add_test("TOPP_ProSE_15_empty_${_name}" ${TOPP_BIN_PATH}/ParquetDiff
     -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_${_table}.parquet -out_tsv ${TESTS_TEMP_DIR}/ProSE_15_empty_${_name}.tmp.tsv)
