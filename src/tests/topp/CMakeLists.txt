@@ -5662,13 +5662,15 @@ set_tests_properties("TOPP_${_f}_pg_schema" PROPERTIES DEPENDS "TOPP_${_f}")
 # and the run view its psm_rows, as for any input whose psm file was written.
 set(_f ProSE_14_mz_write_fails)
 set(_stem DatabaseSuitability_in_spec)
+# (fixtures, not DEPENDS: the run needs the blocking folder also when it is run alone)
 add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
 add_test(NAME "TOPP_${_f}_block" COMMAND ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/${_f}_qpx/runs/${_stem}.mz.parquet)
-set_tests_properties("TOPP_${_f}_block" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+set_tests_properties("TOPP_${_f}_block" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}_block")
 add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;${_prose14_common};-in;${_prose14_mzml};-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
   -DEXPECTED_CODE=12 "-DEXPECTED_OUTPUT_REGEX=Failed to write the QPX mz view" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_block")
+set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_block")
 add_test("TOPP_${_f}_run_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.run.parquet
   -out_tsv ${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
 set_tests_properties("TOPP_${_f}_run_dump" PROPERTIES DEPENDS "TOPP_${_f}")

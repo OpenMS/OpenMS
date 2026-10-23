@@ -160,7 +160,7 @@ another spectrum of its native ID has the row). A per-input psm file and its mz 
 done (neither is kept for the rest of the run), in row groups of 256 rows, so that a viewer can read the spectrum and
 the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
-files were written, in input order, without the prediction columns (and no rows if there are none). The output
+psm file was written, in input order, without the prediction columns (and no rows if there are none). The output
 directory is one QPX dataset (prefix 'quantms'): the quantms.* files of the whole run on top, the per-input files
 (<basename>.psm/mz/pg.parquet) in its subfolder runs/, so an input may be named 'quantms' too; two inputs of one
 basename are still refused, as they would share runs/<basename>.*.
@@ -1352,9 +1352,9 @@ class ProSE :
           std::map<std::string, QPXDatasetExport::View> run_views;
           if (qpx_psm_table && qpx_extended)
           {
-            // The per-input file gets the prediction columns and is written now, with the mz view of its spectra (neither
-            // is kept for the rest of the run); quantms.psm.parquet gets the rows without the predictions, and only of
-            // the inputs whose files were written.
+            // The per-input file gets the prediction columns and is written now (it is not kept for the rest of the run),
+            // its mz view below, after its pg view is built; quantms.psm.parquet gets the rows without the predictions,
+            // and only of the inputs whose psm file was written.
             auto rows_table = ArrowIOHelpers::withColumns(qpx_psm_table, QPXDatasetExport::psmColumns(
               result.peptide_ids, spectra_of_file.mz.has_spectrum, isotopeObservedMinusTheoretical_(result.protein_ids)));
             auto file_table = rows_table ? ArrowIOHelpers::withColumns(rows_table, predictionColumns_(spectra_of_file.predictions)) : nullptr;
@@ -1367,8 +1367,7 @@ class ProSE :
             }
             else if (!QPXDatasetExport::writeDataset(qpx_runs_dir, basename, {{"psm", {{file_table}, qpx_spectra_config, keys}}}))
             {
-              OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
-              input_failed = true;
+              input_failed = true; // (writeDataset() logs the view that failed, with its file)
             }
             else
             {
@@ -1563,10 +1562,13 @@ class ProSE :
       // scan_format only describes the merged psm file if every contributing run agreed on a
       // convention; otherwise it is omitted rather than taken from an arbitrary run.
       std::map<std::string, std::string> qpx_psm_keys;
-      std::set<std::string> distinct_formats(qpx_psm_scan_formats.begin(), qpx_psm_scan_formats.end());
-      if (distinct_formats.size() == 1 && !distinct_formats.begin()->empty())
+      if (!out_qpx_dir.empty())
       {
-        qpx_psm_keys["scan_format"] = *distinct_formats.begin();
+        std::set<std::string> distinct_formats(qpx_psm_scan_formats.begin(), qpx_psm_scan_formats.end());
+        if (distinct_formats.size() == 1 && !distinct_formats.begin()->empty())
+        {
+          qpx_psm_keys["scan_format"] = *distinct_formats.begin();
+        }
       }
       if (!out_qpx_dir.empty() && !qpx_extended)
       {
