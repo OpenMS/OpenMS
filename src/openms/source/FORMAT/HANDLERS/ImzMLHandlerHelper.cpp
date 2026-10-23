@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -384,11 +385,18 @@ void ImzMLBinaryIO::writeMzAsFloat64(FILE* ibd,
 
 double ImzMLSpectrumRules::scanStartTime(const MSSpectrum& s)
 {
-  const DataValue& v = s.getMetaValue("imzml:scan_start_time"); // DataValue::EMPTY if not set
-  const bool is_number = v.valueType() == DataValue::DOUBLE_VALUE || v.valueType() == DataValue::INT_VALUE;
-  if (s.getRT() < 0.0 && is_number && static_cast<double>(v) >= 0.0)
+  if (s.getRT() >= 0.0) // a caller-set RT wins; also skips the MetaValue lookup for non-imaging spectra
   {
-    return static_cast<double>(v);
+    return s.getRT();
+  }
+  const DataValue& v = s.getMetaValue("imzml:scan_start_time"); // DataValue::EMPTY if not set
+  if (v.valueType() == DataValue::DOUBLE_VALUE || v.valueType() == DataValue::INT_VALUE)
+  {
+    const double t = static_cast<double>(v);
+    if (std::isfinite(t) && t >= 0.0)
+    {
+      return t;
+    }
   }
   return s.getRT();
 }

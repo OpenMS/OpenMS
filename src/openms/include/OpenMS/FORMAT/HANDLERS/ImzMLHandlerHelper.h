@@ -278,7 +278,7 @@ namespace OpenMS
 
       Imaging spectra keep RT at -1 and store the time as the MetaValue
       @p imzml:scan_start_time. An RT the caller set (>= 0) wins over the MetaValue;
-      a non-numeric or negative MetaValue counts as no time (a scan start time is
+      a non-numeric, non-finite or negative MetaValue counts as no time (a scan start time is
       relative to the start of the run, so a negative one is a placeholder).
 
       @return The time (>= 0), or the (negative) RT if the spectrum has none.

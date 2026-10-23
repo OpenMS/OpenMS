@@ -28,6 +28,7 @@
 
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <cstdio>
 #include <sstream>
 
@@ -2057,6 +2058,18 @@ START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the sam
   TEST_FALSE(string_time_loaded[0].metaValueExists("imzml:scan_start_time"))
   remove(tmp_str.c_str());
   remove(ibdPathFor_(tmp_str).c_str());
+
+  // a non-finite imzml:scan_start_time counts as no time instead of writing 'inf'
+  MSExperiment inf_time = ram;
+  inf_time[0].setMetaValue("imzml:scan_start_time", std::numeric_limits<double>::infinity());
+  std::string tmp_inf;
+  NEW_TMP_FILE_EXT(tmp_inf, ".imzML");
+  ImzMLFile().store(tmp_inf, inf_time);
+  MSExperiment inf_time_loaded = loadImzMLExperiment_(tmp_inf);
+  TEST_EQUAL(inf_time_loaded.getNrSpectra(), 4)
+  TEST_FALSE(inf_time_loaded[0].metaValueExists("imzml:scan_start_time"))
+  remove(tmp_inf.c_str());
+  remove(ibdPathFor_(tmp_inf).c_str());
 
   // export to mzML writes the scan start time, not RT -1
   std::string tmp_mzml;

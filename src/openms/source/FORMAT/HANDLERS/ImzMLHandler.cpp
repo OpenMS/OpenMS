@@ -594,11 +594,14 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
     }
     // Without .ibd decoding (index-only, metadata-only) no peaks are loaded, inline ones neither:
     // drop the inline payloads so MzMLHandler still creates the arrays with their metadata, empty.
+    // Zero the declared length as well, as for external arrays above: a length mismatch is
+    // logged inside MzMLHandler's parallel decode, which is not thread-safe.
     if (!decode_ibd_)
     {
       for (auto& bd : bin_data_)
       {
         bd.base64.clear();
+        bd.size = 0;
       }
       default_array_length_ = 0;
     }
