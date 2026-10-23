@@ -4239,13 +4239,14 @@ namespace OpenMS
       return outcome;
     }
     // The best hit per spectrum, as IDFilter::keepNBestHits(peptide_ids, 1), with the spectra in parallel: releasing
-    // the other hits (and their meta values) takes most of the time. As many threads as Percolator may use.
+    // the other hits (and their meta values) takes most of the time. With the threads of the rescoring, as Percolator's
+    // own loops (at most 9 threads, ProSE's former cap on Percolator's threads, released them 1.4 times slower at 16).
 #ifdef _OPENMP
     const int max_threads = omp_get_max_threads();
 #else
     const int max_threads = 1;
 #endif
-    [[maybe_unused]] const int trim_threads = std::max(1, std::min({threads <= 0 ? 3 : threads, 9, max_threads}));
+    [[maybe_unused]] const int trim_threads = std::max(1, std::min(threads <= 0 ? 3 : threads, max_threads));
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 256) num_threads(trim_threads)
     for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
