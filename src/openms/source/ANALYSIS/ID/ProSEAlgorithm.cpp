@@ -1244,13 +1244,14 @@ namespace OpenMS
     rescoring.annotate(spectra, protein_ids, peptide_ids);
     endProgress();
     // 'peptdeep:enable' is an explicit request: an input that ends up without a single
-    // predicted PSM must not silently continue with search-engine features only.
-    if (rescoring.getNumPredictedPSMs() == 0)
+    // predicted PSM must not silently continue with search-engine features only. An input
+    // without PSMs has nothing to predict: its (empty) result is reported as it is.
+    if (rescoring.getNumPredictedPSMs() == 0 && rescoring.getNumPSMs() > 0)
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "[ProSE] 'peptdeep:enable' is set, but PeptDeep prediction added features to 0 / "
-        + std::to_string(rescoring.getNumPSMs()) + " PSMs. Check that the search produced PSMs and "
-        "that 'annotate:PSM' includes fragment annotations ('ALL' or 'fragment_annotation').");
+        + std::to_string(rescoring.getNumPSMs()) + " PSMs. Check that 'annotate:PSM' includes fragment annotations "
+        "('ALL' or 'fragment_annotation').");
     }
 #else
     (void)spectra; (void)protein_ids; (void)peptide_ids;

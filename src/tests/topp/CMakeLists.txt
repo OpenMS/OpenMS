@@ -5433,6 +5433,15 @@ if(WITH_ONNX)
     -Search:peptdeep:ms2_model ${TESTS_TEMP_DIR}/does_not_exist_peptdeep_ms2.onnx
     -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_missing_model_out.tmp.idXML)
   set_tests_properties("TOPP_ProSE_peptdeep_missing_model_fails" PROPERTIES WILL_FAIL TRUE)
+  # A search without PSMs (BSA spectra against other proteins) has nothing to predict: it ends normally, with an
+  # empty result.
+  add_test("TOPP_ProSE_peptdeep_no_psms" ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/InternalCalibration_1_BSA1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-Search:peptdeep:enable;true;-out_idxml;${TESTS_TEMP_DIR}/ProSE_peptdeep_no_psms_out.tmp.idXML"
+    -DEXPECTED_CODE=0 -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  add_test("TOPP_ProSE_peptdeep_no_psms_out" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/ProSE_peptdeep_no_psms_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_no_psms_out" PROPERTIES DEPENDS "TOPP_ProSE_peptdeep_no_psms"
+    PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
 else()
   # Without ONNX the request cannot be honoured: hard error instead of a warning.
   add_test("TOPP_ProSE_peptdeep_requires_onnx" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
