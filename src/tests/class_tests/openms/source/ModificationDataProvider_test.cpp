@@ -9,6 +9,10 @@
 #include <OpenMS/CHEMISTRY/OBODataProvider.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <fstream>
+#include <iterator>
 
 using namespace OpenMS;
 using namespace std;
@@ -111,6 +115,47 @@ START_SECTION(OBODataProvider::loadModifications() crosslink)
 
   // XLMOD in cross-link mode should contain cross-linkers
   TEST_EQUAL(mods.size() > 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] OBODataProvider::loadModifications() reads a large file in parts as it reads it as a whole)
+{
+  // PSI-MOD.obo is read in parts that start at "[Term]" lines; with a blank after each "[Term]" (the same term
+  // separator to the reader) no part can start, and the file is read as a whole
+  std::string text;
+  {
+    std::ifstream in(File::find("CHEMISTRY/PSI-MOD.obo"), std::ios::binary);
+    text.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+  }
+  std::string whole_file;
+  NEW_TMP_FILE(whole_file)
+  {
+    std::string whole;
+    Size n_terms = 0;
+    for (size_t from = 0; from < text.size();)
+    {
+      const size_t p = text.find("\n[Term]", from);
+      if (p == std::string::npos) { whole += text.substr(from); break; }
+      whole += text.substr(from, p + 7 - from) + " ";
+      from = p + 7;
+      ++n_terms;
+    }
+    TEST_EQUAL(n_terms > 1000, true)
+    std::ofstream(whole_file, std::ios::binary) << whole;
+  }
+  for (bool cross_links_only : {false, true})
+  {
+    auto in_parts = OBODataProvider("CHEMISTRY/PSI-MOD.obo", cross_links_only).loadModifications();
+    auto as_whole = OBODataProvider(whole_file, cross_links_only).loadModifications();
+    TEST_EQUAL(in_parts.size(), as_whole.size())
+    Size differences = 0;
+    for (Size i = 0; i < std::min(in_parts.size(), as_whole.size()); ++i)
+    {
+      if (!(*in_parts[i] == *as_whole[i]) || in_parts[i]->getFullId() != as_whole[i]->getFullId() ||
+          in_parts[i]->getSynonyms() != as_whole[i]->getSynonyms()) ++differences;
+    }
+    TEST_EQUAL(differences, 0)
+  }
 }
 END_SECTION
 
