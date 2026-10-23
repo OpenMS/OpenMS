@@ -120,12 +120,6 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-namespace
-{
-  // The OBO files that ControlledVocabulary::getPSIMSCV() reads (below share/OpenMS/CV)
-  constexpr const char* PSI_MS_CV_FILES[] = {"psi-ms.obo", "quality.obo", "unit.obo", "brenda.obo", "goslim_goa.obo"};
-}
-
 class ProSE :
     public TOPPBase
 {
@@ -317,21 +311,27 @@ class ProSE :
       // from five OBO files, 60-170 ms) when it parses the header of the first file, in the background next to the FASTA
       // read and the index build, which then wait for it. One more thread loads it during the start of the search, so
       // that the reader finds it (partly) loaded: only with more than one thread, an mzML input and the five files
-      // readable (the names as in getPSIMSCV(); a load that fails anyway is ignored here, and the reader's own call then
-      // loads it again and throws as before). The load prints nothing for the files shipped with OpenMS (it warns
-      // about malformed OBO files only). The thread ends with the start-up: joined after the search, or on an exception.
+      // readable (a load that fails anyway is ignored here, and the reader's own call then loads it again and throws as
+      // before). The load prints nothing for the files shipped with OpenMS (it warns about malformed OBO files only).
+      // The thread ends with the start-up: joined after the search, or on an exception.
       struct JoinOnReturn
       {
         std::thread thread;
         ~JoinOnReturn() { if (thread.joinable()) { thread.join(); } }
       } cv_load;
 #ifdef _OPENMP
-      const bool cv_needed = omp_get_max_threads() > 1 // the threads set by TOPPBase from -threads
-        && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; })
-        && std::all_of(std::begin(PSI_MS_CV_FILES), std::end(PSI_MS_CV_FILES), [cv = File::getOpenMSDataPath() + "/CV/"](const char* obo) { return File::readable(cv + obo); });
-      if (cv_needed)
+      try // any failure here only means no preload
       {
-        try
+        // the files of getPSIMSCV(), which File::find() takes from /CV/ if they exist there, else from the shared data
+        static constexpr const char* cv_files[] = {"psi-ms.obo", "quality.obo", "unit.obo", "brenda.obo", "goslim_goa.obo"};
+        const std::string cv_dir = File::getOpenMSDataPath() + "/CV/";
+        const bool cv_needed = omp_get_max_threads() > 1 // the threads set by TOPPBase from -threads
+          && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; })
+          && std::all_of(std::begin(cv_files), std::end(cv_files), [&cv_dir](const char* obo)
+             {
+               return !File::exists(std::string("/CV/") + obo) && File::readable(cv_dir + obo);
+             });
+        if (cv_needed)
         {
           cv_load.thread = std::thread([]()
           {
@@ -339,8 +339,8 @@ class ProSE :
             catch (...) {}
           });
         }
-        catch (...) {} // no thread: the reader loads it
       }
+      catch (...) {} // no thread: the reader loads it
 #endif
 
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
