@@ -273,6 +273,18 @@ namespace OpenMS
     inner.setLogType(this->getLogType());
     inner.load(path, ms_exp, inner_config);
 
+    // Imaging convention (see MSImagingExperiment): a pixel's acquisition time is not a
+    // retention time; keep it as the MetaValue imzml:scan_start_time and leave RT at -1.
+    for (MSSpectrum& spec : ms_exp)
+    {
+      if (spec.getRT() >= 0.0)
+      {
+        spec.setMetaValue("imzml:scan_start_time", spec.getRT());
+      }
+      spec.setRT(-1.0);
+    }
+    ms_exp.updateRanges(); // BrukerTimsFile computed the RT range from the frame times
+
     std::unordered_map<Int, Size> frame_to_index;
     frame_to_index.reserve(ms_exp.size());
     for (Size i = 0; i < ms_exp.size(); ++i)
