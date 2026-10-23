@@ -85,6 +85,9 @@ class Scores {
                          double fdr,
                          bool skipDecoysPlusOne = false);
   int calcScores(vector<double>& w);
+  // OpenMS: see Scores.cpp
+  int countPositives(const std::vector<double>& w, double fdr,
+                     bool skipDecoysPlusOne = false) const;
   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
  
@@ -152,6 +155,9 @@ class Scores {
   }
 
  protected:
+  // OpenMS: see Scores.cpp
+  int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
+                         double fdr, bool skipDecoysPlusOne) const;
   bool usePi0_;
 
   double pi0_;

@@ -115,6 +115,26 @@ hand-editing sources and committing them, to keep sync self-healing.
   sparse code would drop an entry (|value| <= 1e-15) or the band structure does
   not hold, `bandedIteration` returns before it has changed anything and the
   matrix code runs instead.
+- `patches/08-cv-sorts-tasks.patch` — speeds up cross-validation without changing
+  its result. The sorts of `Scores` (`calcScores`, `generatePositiveTrainingSet`,
+  `createXvalSetsBySpectrum`, `merge`, `postMergeStep`) call `sortLikeStdSort` from the
+  OpenMS-local header `SortLikeStd.h` (not an upstream file, like `InProcessSampler.*`):
+  inside an OpenMP parallel region it makes the comparisons and swaps of libstdc++'s
+  `std::sort`, so it leaves the same permutation (also of PSMs that compare equal), but
+  hands the right parts of the partitions to tasks (the algorithm of OpenMS'
+  `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score, it is `std::sort`.
+  The loops over the folds (`CrossValidation`, `SanityCheck`) run their folds as tasks of a
+  parallel region on up to 12 threads (`numTeamThreads`), whose other threads run the tasks
+  of the sorts; `createXvalSetsBySpectrum` and `merge` are called in such a region as well.
+  `Scores::getInitDirection` counts the positives of each feature in a task of its own, on
+  (score, label) pairs sorted by score only (the q-values treat a group of equal scores as
+  one, so the count does not depend on the order within a group), while the scores are
+  sorted by each feature in turn as before: the order the last feature leaves is where the
+  training starts from. The (Cpos, Cneg) pairs are trained as tasks, and each task then
+  counts the positives of its pair on the pair's test set without sorting the set
+  (`Scores::countPositives`, the count of `calcScoresAndQvals`, by the same argument), so
+  the test sets are no longer copied. Every loop catches the exceptions of its iterations
+  and rethrows the first one, in iteration order.
 
 ### Regenerating the patch
 

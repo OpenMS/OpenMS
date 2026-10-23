@@ -111,10 +111,13 @@ int SanityCheck::getInitDirection(vector<Scores>& testset,
   } else {
     getDefaultDirection(w);
   }
-  // OpenMS: the folds in parallel; each scores and sorts only its own test set
+  // OpenMS: the folds in parallel, as tasks of a region on all numThreads_ threads (which run the
+  // tasks of the sorts as well, see Scores.cpp); each scores and sorts only its own test set
   vector<int> positives(w.size());
   vector<std::exception_ptr> errors(w.size());
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
+#pragma omp parallel num_threads(numThreads_)
+#pragma omp single
+#pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
     try {
       positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
@@ -141,7 +144,9 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
       // reports are printed afterwards, in fold order
       vector<ostringstream> reports(w.size());
       vector<std::exception_ptr> errors(w.size());
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
+#pragma omp parallel num_threads(numThreads_)
+#pragma omp single
+#pragma omp taskloop grainsize(1)
       for (int set = 0; set < static_cast<int>(w.size()); ++set) {
         try {
           calcInitDirection(w[set], static_cast<size_t>(set), reports[set]);
@@ -187,7 +192,9 @@ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
   // OpenMS: the folds in parallel, as in getInitDirection
   vector<int> positives(w.size());
   vector<std::exception_ptr> errors(w.size());
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
+#pragma omp parallel num_threads(numThreads_)
+#pragma omp single
+#pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
     try {
       positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);

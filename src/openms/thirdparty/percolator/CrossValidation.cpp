@@ -33,14 +33,31 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 // more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
 // omp_set_num_threads() instead, which would change the count for the whole process.
 // Without an OpenMP runtime (e.g. -fopenmp-simd, which still parses the clauses) 1.
-[[maybe_unused]] static int numLoopThreads(unsigned int numThreads) {
+// A loop over the folds (or pairs) uses no more threads than it has iterations. The loops
+// whose iterations sort (Scores, see SortLikeStd.h) run them as tasks of a parallel region on
+// more threads instead (numTeamThreads): the threads without an iteration of their own run
+// the tasks of the sorts.
+[[maybe_unused]] static int numLoopThreads(unsigned int numThreads,
+                                           std::size_t iterations = std::size_t(-1)) {
 #ifdef _OPENMP
-  return static_cast<int>(
+  const std::size_t threads = std::min<std::size_t>(
       std::min(std::max(numThreads, 1u),
-               static_cast<unsigned int>(omp_get_max_threads())));
+               static_cast<unsigned int>(omp_get_max_threads())),
+      std::max<std::size_t>(iterations, 1));
+  return static_cast<int>(threads);
 #else
+  (void)numThreads;
+  (void)iterations;
   return 1;
 #endif
+}
+
+// OpenMS: the parallel regions whose iterations run as tasks (with the tasks of their sorts,
+// see SortLikeStd.h) use at most kMaxTeamThreads threads: more threads would mostly wait for
+// tasks, polling the team's task queue.
+constexpr unsigned int kMaxTeamThreads = 12;
+[[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
+  return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
 }
 
 // OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
@@ -129,14 +146,23 @@ int CrossValidation::preIterationSetup(Scores& fullset,
   }
 
   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
-  fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
-                                   featurePool, decoyFractionTraining_,
-                                   decoysPerTarget);
+  // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
+  std::exception_ptr xvalError;
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+  try {
+    fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
+                                     featurePool, decoyFractionTraining_,
+                                     decoysPerTarget);
+  } catch (...) {
+    xvalError = std::current_exception();
+  }
+  if (xvalError) std::rethrow_exception(xvalError);
 
   // initialize weights vector for all folds
   weights_ = vector<vector<double> >(
       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
-  pCheck->setNumThreads(static_cast<unsigned int>(numLoopThreads(numThreads_)));
+  pCheck->setNumThreads(static_cast<unsigned int>(numTeamThreads(numThreads_)));
   int numPositive =
       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
                                testFdr_, initialSelectionFdr_);
@@ -284,7 +310,9 @@ void CrossValidation::train(const Normalizer* pNorm) {
   // OpenMS: the folds in parallel; the counts are added up in fold order
   vector<int> testPositives(numFolds_);
   vector<std::exception_ptr> testErrors(numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+#pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       testPositives[set] =
@@ -325,7 +353,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   bool skipDecoysPlusOne = true;
   // OpenMS: the folds in parallel; each scores and sorts only its own training set
   vector<std::exception_ptr> trainErrors(numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+#pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
@@ -357,7 +387,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
   vector<std::exception_ptr> setupErrors(numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_)) if(nestedXvalBins_ <= 1)
+#pragma omp parallel num_threads(numTeamThreads(numThreads_)) if(nestedXvalBins_ <= 1)
+#pragma omp single
+#pragma omp taskloop grainsize(1) if(nestedXvalBins_ <= 1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
@@ -397,16 +429,38 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   }
   rethrowFirstError(setupErrors);
 
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
-  for (int pairIdx = 0; pairIdx < classWeightsPerFold_.size(); pairIdx++) {
-    CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
-    AlgIn* svmInput =
-        svmInputsVec[cpCnFold->set * nestedXvalBins_ +
-                     static_cast<unsigned int>(cpCnFold->nestedSet)];
-    trainCpCnPair(*cpCnFold, pOptions, svmInput);
+  // OpenMS: the (cpos, cneg) pairs as tasks of one parallel region (see numTeamThreads). Each
+  // task then validates its pair: the positives of the pair's weights on the pair's test set,
+  // counted without changing the set (Scores::countPositives), so that the pairs of a fold can
+  // do so at the same time (the set is not used afterwards). The results do not depend on the
+  // number of threads.
+  // for determining the number of positives, the decoys+1 in the FDR estimates
+  // is too restrictive for small datasets
+  const bool skipDecoysPlusOneValidation = true;
+  vector<int> pairTruePoses(classWeightsPerFold_.size());
+  vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+  for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
+#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, nestedTestScoresVec, pOptions)
+    {
+      try {
+        CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+        AlgIn* svmInput =
+            svmInputsVec[cpCnFold->set * nestedXvalBins_ +
+                         static_cast<unsigned int>(cpCnFold->nestedSet)];
+        trainCpCnPair(*cpCnFold, pOptions, svmInput);
+        pairTruePoses[pairIdx] =
+            nestedTestScoresVec[cpCnFold->set][static_cast<std::size_t>(cpCnFold->nestedSet)]
+                .countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
+      } catch (...) {
+        pairErrors[pairIdx] = std::current_exception();
+      }
+    }
   }
+  rethrowFirstError(pairErrors);
 
-  estTruePos = mergeCpCnPairs(selectionFdr, pOptions, nestedTestScoresVec,
+  estTruePos = mergeCpCnPairs(selectionFdr, pOptions, pairTruePoses,
                               candidatesCpos_, candidatesCfrac_);
   return estTruePos;
 }
@@ -457,49 +511,25 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
  * CV fold
  * @param pWeights results vector from the SVM algorithm
  * @param pOptions options for the SVM algorithm
- * @param nestedTestScoresVec 2D vector, test sets per nested CV fold per CV
- * fold
+ * @param pairTruePoses positives per (cpos,cneg) pair per nested CV fold per
+ * CV fold, on its test set (OpenMS: computed by doStep)
  */
 int CrossValidation::mergeCpCnPairs(
     double selectionFdr,
     options& pOptions,
-    vector<vector<Scores> >& nestedTestScoresVec,
+    const vector<int>& pairTruePoses,
     const vector<double>& cposCandidates,
     const vector<double>& cfracCandidates) {
-  // for determining the number of positives, the decoys+1 in the FDR estimates
-  // is too restrictive for small datasets
-  bool skipDecoysPlusOne = true;
-
   vector<int> bestTruePoses(numFolds_, 0);
   vector<double> bestCposes(numFolds_, 1);
   vector<double> bestCfracs(numFolds_, 1);
   
   // Validate learned parameters per (cpos,cneg) pair per nested CV fold
-  // Note: this cannot be done in trainCpCnPair without setting a critical
-  // pragma, due to the
-  //       scoring calculation in calcScores.
+  // OpenMS: the positives of the pairs are validated in doStep, in the pairs' tasks;
+  // the pairs are merged here in their order, as before.
   unsigned int numCpCnPairsPerSet =
       static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
-  // OpenMS: the positives of all (cpos, cneg) pairs in parallel, each pair on its own copy of
-  // its test set (sorting a shared one would serialize the pairs of a fold). The count does not
-  // depend on the order of the test set (PSMs that compare equal have the same label), and the
-  // test sets are not used afterwards. The pairs are then merged in their order, as before.
-  // At most one copy per thread exists at a time (num_threads, at most 9 in ProSE).
-  vector<int> pairTruePoses(classWeightsPerFold_.size());
-  vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
-  for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); ++pairIdx) {
-    try {
-      CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
-      Scores testScores = nestedTestScoresVec[cpCnPair.set][static_cast<std::size_t>(cpCnPair.nestedSet)];
-      pairTruePoses[pairIdx] =
-          testScores.calcScoresAndQvals(cpCnPair.ww, testFdr_, skipDecoysPlusOne);
-    } catch (...) {
-      pairErrors[pairIdx] = std::current_exception();
-    }
-  }
-  rethrowFirstError(pairErrors);
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     unsigned int a = set * numCpCnPairsPerSet;
     unsigned int b = (set + 1) * numCpCnPairsPerSet;
@@ -542,7 +572,7 @@ int CrossValidation::mergeCpCnPairs(
   }
 
   if (nestedXvalBins_ > 1) {
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
     for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
       vector_double pWeights;
       pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
@@ -579,7 +609,9 @@ int CrossValidation::mergeCpCnPairs(
   // OpenMS: the folds in parallel; the counts are added up in fold order
   vector<int> truePoses(numFolds_);
   vector<std::exception_ptr> foldErrors(numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+#pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       truePoses[set] =
@@ -633,7 +665,16 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
       testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
     }
   }
-  fullset.merge(testScores_, selectionFdr_, skipNormalizeScores_, weights_);
+  // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
+  std::exception_ptr mergeError;
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+  try {
+    fullset.merge(testScores_, selectionFdr_, skipNormalizeScores_, weights_);
+  } catch (...) {
+    mergeError = std::current_exception();
+  }
+  if (mergeError) std::rethrow_exception(mergeError);
 }
 
 /**

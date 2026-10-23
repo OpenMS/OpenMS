@@ -1,0 +1,590 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 3bda99370b..2aa748cf44 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -33,16 +33,33 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
+ // more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
+ // omp_set_num_threads() instead, which would change the count for the whole process.
+ // Without an OpenMP runtime (e.g. -fopenmp-simd, which still parses the clauses) 1.
+-[[maybe_unused]] static int numLoopThreads(unsigned int numThreads) {
++// A loop over the folds (or pairs) uses no more threads than it has iterations. The loops
++// whose iterations sort (Scores, see SortLikeStd.h) run them as tasks of a parallel region on
++// more threads instead (numTeamThreads): the threads without an iteration of their own run
++// the tasks of the sorts.
++[[maybe_unused]] static int numLoopThreads(unsigned int numThreads,
++                                           std::size_t iterations = std::size_t(-1)) {
+ #ifdef _OPENMP
+-  return static_cast<int>(
++  const std::size_t threads = std::min<std::size_t>(
+       std::min(std::max(numThreads, 1u),
+-               static_cast<unsigned int>(omp_get_max_threads())));
++               static_cast<unsigned int>(omp_get_max_threads())),
++      std::max<std::size_t>(iterations, 1));
++  return static_cast<int>(threads);
+ #else
++  (void)numThreads;
++  (void)iterations;
+   return 1;
+ #endif
+ }
+ 
++// OpenMS: the parallel regions whose iterations run as tasks (with the tasks of their sorts,
++// see SortLikeStd.h) use at most kMaxTeamThreads threads: more threads would mostly wait for
++// tasks, polling the team's task queue.
++constexpr unsigned int kMaxTeamThreads = 12;
++[[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
++  return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
++}
++
+ // OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
+ // parallel loop (an exception must not leave an OpenMP region).
+ static void rethrowFirstError(const std::vector<std::exception_ptr>& errors) {
+@@ -129,14 +146,23 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   }
+ 
+   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
+-  fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
+-                                   featurePool, decoyFractionTraining_,
+-                                   decoysPerTarget);
++  // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
++  std::exception_ptr xvalError;
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++  try {
++    fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
++                                     featurePool, decoyFractionTraining_,
++                                     decoysPerTarget);
++  } catch (...) {
++    xvalError = std::current_exception();
++  }
++  if (xvalError) std::rethrow_exception(xvalError);
+ 
+   // initialize weights vector for all folds
+   weights_ = vector<vector<double> >(
+       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
+-  pCheck->setNumThreads(static_cast<unsigned int>(numLoopThreads(numThreads_)));
++  pCheck->setNumThreads(static_cast<unsigned int>(numTeamThreads(numThreads_)));
+   int numPositive =
+       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
+                                testFdr_, initialSelectionFdr_);
+@@ -284,7 +310,9 @@ void CrossValidation::train(const Normalizer* pNorm) {
+   // OpenMS: the folds in parallel; the counts are added up in fold order
+   vector<int> testPositives(numFolds_);
+   vector<std::exception_ptr> testErrors(numFolds_);
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++#pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     try {
+       testPositives[set] =
+@@ -325,7 +353,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   bool skipDecoysPlusOne = true;
+   // OpenMS: the folds in parallel; each scores and sorts only its own training set
+   vector<std::exception_ptr> trainErrors(numFolds_);
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++#pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     try {
+       trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
+@@ -357,7 +387,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
+   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
+   vector<std::exception_ptr> setupErrors(numFolds_);
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_)) if(nestedXvalBins_ <= 1)
++#pragma omp parallel num_threads(numTeamThreads(numThreads_)) if(nestedXvalBins_ <= 1)
++#pragma omp single
++#pragma omp taskloop grainsize(1) if(nestedXvalBins_ <= 1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     try {
+       std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
+@@ -397,16 +429,38 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   }
+   rethrowFirstError(setupErrors);
+ 
+-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+-  for (int pairIdx = 0; pairIdx < classWeightsPerFold_.size(); pairIdx++) {
+-    CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+-    AlgIn* svmInput =
+-        svmInputsVec[cpCnFold->set * nestedXvalBins_ +
+-                     static_cast<unsigned int>(cpCnFold->nestedSet)];
+-    trainCpCnPair(*cpCnFold, pOptions, svmInput);
++  // OpenMS: the (cpos, cneg) pairs as tasks of one parallel region (see numTeamThreads). Each
++  // task then validates its pair: the positives of the pair's weights on the pair's test set,
++  // counted without changing the set (Scores::countPositives), so that the pairs of a fold can
++  // do so at the same time (the set is not used afterwards). The results do not depend on the
++  // number of threads.
++  // for determining the number of positives, the decoys+1 in the FDR estimates
++  // is too restrictive for small datasets
++  const bool skipDecoysPlusOneValidation = true;
++  vector<int> pairTruePoses(classWeightsPerFold_.size());
++  vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++  for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
++#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, nestedTestScoresVec, pOptions)
++    {
++      try {
++        CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
++        AlgIn* svmInput =
++            svmInputsVec[cpCnFold->set * nestedXvalBins_ +
++                         static_cast<unsigned int>(cpCnFold->nestedSet)];
++        trainCpCnPair(*cpCnFold, pOptions, svmInput);
++        pairTruePoses[pairIdx] =
++            nestedTestScoresVec[cpCnFold->set][static_cast<std::size_t>(cpCnFold->nestedSet)]
++                .countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
++      } catch (...) {
++        pairErrors[pairIdx] = std::current_exception();
++      }
++    }
+   }
++  rethrowFirstError(pairErrors);
+ 
+-  estTruePos = mergeCpCnPairs(selectionFdr, pOptions, nestedTestScoresVec,
++  estTruePos = mergeCpCnPairs(selectionFdr, pOptions, pairTruePoses,
+                               candidatesCpos_, candidatesCfrac_);
+   return estTruePos;
+ }
+@@ -457,49 +511,25 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+  * CV fold
+  * @param pWeights results vector from the SVM algorithm
+  * @param pOptions options for the SVM algorithm
+- * @param nestedTestScoresVec 2D vector, test sets per nested CV fold per CV
+- * fold
++ * @param pairTruePoses positives per (cpos,cneg) pair per nested CV fold per
++ * CV fold, on its test set (OpenMS: computed by doStep)
+  */
+ int CrossValidation::mergeCpCnPairs(
+     double selectionFdr,
+     options& pOptions,
+-    vector<vector<Scores> >& nestedTestScoresVec,
++    const vector<int>& pairTruePoses,
+     const vector<double>& cposCandidates,
+     const vector<double>& cfracCandidates) {
+-  // for determining the number of positives, the decoys+1 in the FDR estimates
+-  // is too restrictive for small datasets
+-  bool skipDecoysPlusOne = true;
+-
+   vector<int> bestTruePoses(numFolds_, 0);
+   vector<double> bestCposes(numFolds_, 1);
+   vector<double> bestCfracs(numFolds_, 1);
+   
+   // Validate learned parameters per (cpos,cneg) pair per nested CV fold
+-  // Note: this cannot be done in trainCpCnPair without setting a critical
+-  // pragma, due to the
+-  //       scoring calculation in calcScores.
++  // OpenMS: the positives of the pairs are validated in doStep, in the pairs' tasks;
++  // the pairs are merged here in their order, as before.
+   unsigned int numCpCnPairsPerSet =
+       static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
+-  // OpenMS: the positives of all (cpos, cneg) pairs in parallel, each pair on its own copy of
+-  // its test set (sorting a shared one would serialize the pairs of a fold). The count does not
+-  // depend on the order of the test set (PSMs that compare equal have the same label), and the
+-  // test sets are not used afterwards. The pairs are then merged in their order, as before.
+-  // At most one copy per thread exists at a time (num_threads, at most 9 in ProSE).
+-  vector<int> pairTruePoses(classWeightsPerFold_.size());
+-  vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
+-  for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); ++pairIdx) {
+-    try {
+-      CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
+-      Scores testScores = nestedTestScoresVec[cpCnPair.set][static_cast<std::size_t>(cpCnPair.nestedSet)];
+-      pairTruePoses[pairIdx] =
+-          testScores.calcScoresAndQvals(cpCnPair.ww, testFdr_, skipDecoysPlusOne);
+-    } catch (...) {
+-      pairErrors[pairIdx] = std::current_exception();
+-    }
+-  }
+-  rethrowFirstError(pairErrors);
+-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     unsigned int a = set * numCpCnPairsPerSet;
+     unsigned int b = (set + 1) * numCpCnPairsPerSet;
+@@ -542,7 +572,7 @@ int CrossValidation::mergeCpCnPairs(
+   }
+ 
+   if (nestedXvalBins_ > 1) {
+-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_, numFolds_))
+     for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+       vector_double pWeights;
+       pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
+@@ -579,7 +609,9 @@ int CrossValidation::mergeCpCnPairs(
+   // OpenMS: the folds in parallel; the counts are added up in fold order
+   vector<int> truePoses(numFolds_);
+   vector<std::exception_ptr> foldErrors(numFolds_);
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numLoopThreads(numThreads_))
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++#pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     try {
+       truePoses[set] =
+@@ -633,7 +665,16 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
+       testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
+     }
+   }
+-  fullset.merge(testScores_, selectionFdr_, skipNormalizeScores_, weights_);
++  // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
++  std::exception_ptr mergeError;
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++  try {
++    fullset.merge(testScores_, selectionFdr_, skipNormalizeScores_, weights_);
++  } catch (...) {
++    mergeError = std::current_exception();
++  }
++  if (mergeError) std::rethrow_exception(mergeError);
+ }
+ 
+ /**
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index c9b7195e4f..7c01f3cbc5 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -132,7 +132,7 @@ class CrossValidation {
+ 
+   int mergeCpCnPairs(double selectionFdr,
+                      options& pOptions,
+-                     std::vector<std::vector<Scores> >& nestedTestScoresVec,
++                     const std::vector<int>& pairTruePoses,
+                      const vector<double>& cpos_vec,
+                      const vector<double>& cfrac_vec);
+   int doStep(const Normalizer* pNorm, double selectionFdr);
+diff --git a/src/openms/thirdparty/percolator/SanityCheck.cpp b/src/openms/thirdparty/percolator/SanityCheck.cpp
+index 11e4c139ef..e7dbb5e9ab 100644
+--- a/src/openms/thirdparty/percolator/SanityCheck.cpp
++++ b/src/openms/thirdparty/percolator/SanityCheck.cpp
+@@ -111,10 +111,13 @@ int SanityCheck::getInitDirection(vector<Scores>& testset,
+   } else {
+     getDefaultDirection(w);
+   }
+-  // OpenMS: the folds in parallel; each scores and sorts only its own test set
++  // OpenMS: the folds in parallel, as tasks of a region on all numThreads_ threads (which run the
++  // tasks of the sorts as well, see Scores.cpp); each scores and sorts only its own test set
+   vector<int> positives(w.size());
+   vector<std::exception_ptr> errors(w.size());
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
++#pragma omp parallel num_threads(numThreads_)
++#pragma omp single
++#pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
+     try {
+       positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
+@@ -141,7 +144,9 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
+       // reports are printed afterwards, in fold order
+       vector<ostringstream> reports(w.size());
+       vector<std::exception_ptr> errors(w.size());
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
++#pragma omp parallel num_threads(numThreads_)
++#pragma omp single
++#pragma omp taskloop grainsize(1)
+       for (int set = 0; set < static_cast<int>(w.size()); ++set) {
+         try {
+           calcInitDirection(w[set], static_cast<size_t>(set), reports[set]);
+@@ -187,7 +192,9 @@ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
+   // OpenMS: the folds in parallel, as in getInitDirection
+   vector<int> positives(w.size());
+   vector<std::exception_ptr> errors(w.size());
+-#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
++#pragma omp parallel num_threads(numThreads_)
++#pragma omp single
++#pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
+     try {
+       positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index cc9698aa39..83980a46b0 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -17,6 +17,7 @@
+ 
+ #include <boost/assign.hpp>
+ #include <cassert>
++#include <exception>
+ #include <cmath>
+ #include <fstream>
+ #include <iostream>
+@@ -37,9 +38,28 @@
+ #include "SetHandler.h"
+ #include "ssl.h"
+ #include "IsotonicPEP.h"
++#include "SortLikeStd.h"
++
++#ifdef _OPENMP
++#include <omp.h>
++#endif
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
++// OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
++// region (see SortLikeStd.h). A NaN score makes the comparison no strict weak ordering, so
++// such scores get std::sort itself.
++template <typename Less>
++static void sortScoresLikeStdSort(std::vector<ScoreHolder>& scores, Less less) {
++  const bool anyNaN = std::any_of(scores.begin(), scores.end(),
++                                  [](const ScoreHolder& sh) { return std::isnan(sh.score); });
++  if (anyNaN) {
++    std::sort(scores.begin(), scores.end(), less);
++  } else {
++    sortLikeStdSort(scores, less);
++  }
++}
++
+ void Scores::merge(std::vector<Scores>& sv,
+                    double fdr,
+                    bool skipNormalizeScores,
+@@ -48,7 +68,7 @@ void Scores::merge(std::vector<Scores>& sv,
+   std::vector<Scores>::iterator cvBinScores = sv.begin();
+   std::vector<std::vector<double> >::iterator weights = all_w.begin();
+   for (; cvBinScores != sv.end(); cvBinScores++, weights++) {
+-    sort(cvBinScores->begin(), cvBinScores->end(), greater<ScoreHolder>());
++    sortScoresLikeStdSort(cvBinScores->scores_, greater<ScoreHolder>());
+     cvBinScores->checkSeparationAndSetPi0();
+     cvBinScores->calcQvals(fdr);
+     if (!skipNormalizeScores) {
+@@ -60,7 +80,7 @@ void Scores::merge(std::vector<Scores>& sv,
+ }
+ 
+ void Scores::postMergeStep() {
+-  sort(scores_.begin(), scores_.end(), greater<ScoreHolder>());
++  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
+   totalNumberOfDecoys_ = static_cast<unsigned int>(
+       count_if(scores_.begin(), scores_.end(), mem_fn(&ScoreHolder::isDecoy)));
+   totalNumberOfTargets_ = static_cast<unsigned int>(
+@@ -228,7 +248,7 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     ix -= remain[static_cast<std::size_t>(fold)];
+   }
+ 
+-  std::sort(scores_.begin(), scores_.end(), OrderScanHash());
++  sortLikeStdSort(scores_, OrderScanHash());  // OpenMS: see SortLikeStd.h
+ 
+   if (scores_.size() == 0) {
+     ostringstream oss;
+@@ -433,6 +453,34 @@ int Scores::calcScoresAndQvals(std::vector<double>& w,
+   return calcQvals(fdr, skipDecoysPlusOne);
+ }
+ 
++/**
++ * OpenMS: the number of positives calcScoresAndQvals(w, fdr, skipDecoysPlusOne) returns,
++ * without changing the scores (CrossValidation validates the (Cpos, Cneg) pairs of a fold
++ * with it, concurrently, on the same test set). The count depends on the order of the scores
++ * and on the labels of each group of equal scores, not on the order within a group
++ * (calcQvals treats ties as one group), so the (score, label) pairs are sorted by score
++ * only. With a NaN score (no strict weak ordering), calcScoresAndQvals on a copy.
++ */
++int Scores::countPositives(const std::vector<double>& w, double fdr,
++                           bool skipDecoysPlusOne) const {
++  std::vector<pair<double, bool> > combined;
++  combined.reserve(scores_.size());
++  for (const ScoreHolder& sh : scores_) {
++    combined.emplace_back(calcScore(sh.pPSM->features, w), sh.isTarget());
++  }
++  if (std::any_of(combined.begin(), combined.end(),
++                  [](const pair<double, bool>& x) { return std::isnan(x.first); })) {
++    Scores copy = *this;
++    std::vector<double> weights = w;
++    return copy.calcScoresAndQvals(weights, fdr, skipDecoysPlusOne);
++  }
++  std::sort(combined.begin(), combined.end(),
++            [](const pair<double, bool>& a, const pair<double, bool>& b) {
++              return a.first > b.first;
++            });
++  return countPositivesOfPairs(combined, fdr, skipDecoysPlusOne);
++}
++
+ /**
+  * Calculates the SVM cost/score of each PSM and sorts them
+  * @param w normal vector used for SVM cost
+@@ -445,7 +493,7 @@ int Scores::calcScores(std::vector<double>& w) {
+   for (; scoreIt != scores_.end(); ++scoreIt) {
+     scoreIt->score = calcScore(scoreIt->pPSM->features, w);
+   }
+-  sort(scores_.begin(), scores_.end(), greater<ScoreHolder>());
++  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
+   if (VERB > 3) {
+     if (scores_.size() >= 10) {
+       cerr << "10 best scores and labels" << endl;
+@@ -529,10 +577,17 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+ 
+   std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
+   if (trainBestPositive) {
+-    std::sort(scores_.begin(), scores_.end(), OrderScanLabel());
++    // OpenMS: sorted like std::sort (see SortLikeStd.h); scan numbers and labels are no NaN
++    sortLikeStdSort(scores_, OrderScanLabel());
+     lastUniqueIt =
+         std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
+-    std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
++    if (std::any_of(scores_.begin(), lastUniqueIt,
++                    [](const ScoreHolder& sh) { return std::isnan(sh.score); })) {
++      std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
++    } else if (lastUniqueIt != scores_.begin()) {
++      sortLikeStdSort(&*scores_.begin(), &*scores_.begin() + (lastUniqueIt - scores_.begin()),
++                      greater<ScoreHolder>());
++    }
+   }
+ 
+   std::vector<ScoreHolder>::const_iterator scoreIt = scores_.begin();
+@@ -643,6 +698,21 @@ void Scores::weedOutRedundantMixMax() {
+   postMergeStep();
+ }
+ 
++// OpenMS: the number of positives calcQvals(fdr, skipDecoysPlusOne) returns, without setting
++// the q-values; combined holds (score, isTarget) in the order calcQvals would see.
++int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
++                               double fdr, bool skipDecoysPlusOne) const {
++  std::vector<double> qvals;
++  PosteriorEstimator::setNegative(true);  // also get q-values for decoys
++  PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
++                                 nullTargetWinProb_);
++  int numPos = 0;
++  for (std::size_t i = 0; i < qvals.size(); ++i) {
++    if (qvals[i] < fdr && combined[i].second) ++numPos;
++  }
++  return numPos;
++}
++
+ int Scores::getInitDirection(const double initialSelectionFdr,
+                              std::vector<double>& direction,
+                              std::ostream& report) {
+@@ -654,26 +724,95 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+   // is too restrictive for small datasets
+   bool skipDecoysPlusOne = true;
+ 
+-  // pre-allocate once and reuse across all 2*numFeatures calcQvals calls
+-  std::vector<pair<double, bool> > combined;
+-  combined.reserve(scores_.size());
+-
+-  for (unsigned int featNo = 0; featNo < FeatureNames::getNumFeatures();
+-       featNo++) {
+-    for (std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+-         scoreIt != scores_.end(); ++scoreIt) {
+-      scoreIt->score = scoreIt->pPSM->features[featNo];
++  const unsigned int numFeatures =
++      static_cast<unsigned int>(FeatureNames::getNumFeatures());
++  // positives[2 * featNo + i]: in forward (i = 0) and backward (i = 1) direction
++  std::vector<int> positives(2 * numFeatures);
++
++  // OpenMS: inside an OpenMP parallel region (CrossValidation), the positives of the features
++  // are counted by tasks, each on its own (score, label) pairs of the feature, sorted by score
++  // only: the q-values, and so the count, depend on the order of the scores and on the labels
++  // of each group of equal scores, not on the order within a group (calcQvals treats ties as
++  // one group). Meanwhile, the scores are sorted by every feature in turn as below (sorting
++  // starts from the order the previous feature left, which decides the order of PSMs that
++  // compare equal, and the order after the last feature is where the training starts from),
++  // with the tasks of the region (see SortLikeStd.h). The q-values are set for the last
++  // feature, as by the loop below. Features with a NaN value use the loop below.
++  bool counted = false;
++#ifdef _OPENMP
++  const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
++    return std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
++                       [](double x) { return std::isnan(x); });
++  });
++  if (numFeatures > 0 && !anyNaN && omp_in_parallel()) {
++    std::vector<std::pair<const double*, bool> > rows;
++    rows.reserve(scores_.size());
++    for (const ScoreHolder& sh : scores_) rows.emplace_back(sh.pPSM->features, sh.isTarget());
++    std::exception_ptr chainError;
++    std::vector<std::exception_ptr> errors(numFeatures);
++#pragma omp taskgroup
++    {
++      for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
++#pragma omp task firstprivate(featNo) shared(rows, positives, errors, initialSelectionFdr)
++        try {
++          std::vector<pair<double, bool> > combined;
++          combined.reserve(rows.size());
++          for (const auto& row : rows) combined.emplace_back(row.first[featNo], row.second);
++          std::sort(combined.begin(), combined.end(),
++                    [](const pair<double, bool>& a, const pair<double, bool>& b) {
++                      return a.first < b.first;
++                    });
++          positives[2 * featNo] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
++          reverse(combined.begin(), combined.end());
++          positives[2 * featNo + 1] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
++        } catch (...) {
++          errors[featNo] = std::current_exception();
++        }
++      }
++      try {
++        for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
++          for (ScoreHolder& sh : scores_) sh.score = sh.pPSM->features[featNo];
++          sortLikeStdSort(scores_, [](const ScoreHolder& a, const ScoreHolder& b) { return a < b; });
++          reverse(scores_.begin(), scores_.end());
++        }
++        std::vector<pair<double, bool> > combined;
++        calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
++      } catch (...) {
++        chainError = std::current_exception();
++      }
+     }
+-    sort(scores_.begin(), scores_.end());
+-    // check once in forward direction (i = 0, higher scores are better) and
+-    // once in backward direction (i = 1, lower scores are better)
+-    for (int i = 0; i < 2; i++) {
+-      if (i == 1) {
+-        reverse(scores_.begin(), scores_.end());
++    for (const std::exception_ptr& error : errors) {
++      if (error) std::rethrow_exception(error);
++    }
++    if (chainError) std::rethrow_exception(chainError);
++    counted = true;
++  }
++#endif
++  if (!counted) {
++    // pre-allocate once and reuse across all 2*numFeatures calcQvals calls
++    std::vector<pair<double, bool> > combined;
++    combined.reserve(scores_.size());
++
++    for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
++      for (std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
++           scoreIt != scores_.end(); ++scoreIt) {
++        scoreIt->score = scoreIt->pPSM->features[featNo];
+       }
+-      int positives = calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
+-      if (positives > bestPositives) {
+-        bestPositives = positives;
++      sort(scores_.begin(), scores_.end());
++      // check once in forward direction (i = 0, higher scores are better) and
++      // once in backward direction (i = 1, lower scores are better)
++      for (int i = 0; i < 2; i++) {
++        if (i == 1) {
++          reverse(scores_.begin(), scores_.end());
++        }
++        positives[2 * featNo + i] = calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
++      }
++    }
++  }
++  for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
++    for (int i = 0; i < 2; i++) {
++      if (positives[2 * featNo + i] > bestPositives) {
++        bestPositives = positives[2 * featNo + i];
+         bestFeature = static_cast<int>(featNo);
+         lowBest = (i == 0);
+       }
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 423faf6d64..8990c95952 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -85,6 +85,9 @@ class Scores {
+                          double fdr,
+                          bool skipDecoysPlusOne = false);
+   int calcScores(vector<double>& w);
++  // OpenMS: see Scores.cpp
++  int countPositives(const std::vector<double>& w, double fdr,
++                     bool skipDecoysPlusOne = false) const;
+   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
+   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
+  
+@@ -152,6 +155,9 @@ class Scores {
+   }
+ 
+  protected:
++  // OpenMS: see Scores.cpp
++  int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
++                         double fdr, bool skipDecoysPlusOne) const;
+   bool usePi0_;
+ 
+   double pi0_;

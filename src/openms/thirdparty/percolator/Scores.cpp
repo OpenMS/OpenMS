@@ -17,6 +17,7 @@
 
 #include <boost/assign.hpp>
 #include <cassert>
+#include <exception>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -37,8 +38,27 @@
 #include "SetHandler.h"
 #include "ssl.h"
 #include "IsotonicPEP.h"
+#include "SortLikeStd.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
+// OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
+// region (see SortLikeStd.h). A NaN score makes the comparison no strict weak ordering, so
+// such scores get std::sort itself.
+template <typename Less>
+static void sortScoresLikeStdSort(std::vector<ScoreHolder>& scores, Less less) {
+  const bool anyNaN = std::any_of(scores.begin(), scores.end(),
+                                  [](const ScoreHolder& sh) { return std::isnan(sh.score); });
+  if (anyNaN) {
+    std::sort(scores.begin(), scores.end(), less);
+  } else {
+    sortLikeStdSort(scores, less);
+  }
+}
 
 void Scores::merge(std::vector<Scores>& sv,
                    double fdr,
@@ -48,7 +68,7 @@ void Scores::merge(std::vector<Scores>& sv,
   std::vector<Scores>::iterator cvBinScores = sv.begin();
   std::vector<std::vector<double> >::iterator weights = all_w.begin();
   for (; cvBinScores != sv.end(); cvBinScores++, weights++) {
-    sort(cvBinScores->begin(), cvBinScores->end(), greater<ScoreHolder>());
+    sortScoresLikeStdSort(cvBinScores->scores_, greater<ScoreHolder>());
     cvBinScores->checkSeparationAndSetPi0();
     cvBinScores->calcQvals(fdr);
     if (!skipNormalizeScores) {
@@ -60,7 +80,7 @@ void Scores::merge(std::vector<Scores>& sv,
 }
 
 void Scores::postMergeStep() {
-  sort(scores_.begin(), scores_.end(), greater<ScoreHolder>());
+  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
   totalNumberOfDecoys_ = static_cast<unsigned int>(
       count_if(scores_.begin(), scores_.end(), mem_fn(&ScoreHolder::isDecoy)));
   totalNumberOfTargets_ = static_cast<unsigned int>(
@@ -228,7 +248,7 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
     ix -= remain[static_cast<std::size_t>(fold)];
   }
 
-  std::sort(scores_.begin(), scores_.end(), OrderScanHash());
+  sortLikeStdSort(scores_, OrderScanHash());  // OpenMS: see SortLikeStd.h
 
   if (scores_.size() == 0) {
     ostringstream oss;
@@ -434,6 +454,34 @@ int Scores::calcScoresAndQvals(std::vector<double>& w,
 }
 
 /**
+ * OpenMS: the number of positives calcScoresAndQvals(w, fdr, skipDecoysPlusOne) returns,
+ * without changing the scores (CrossValidation validates the (Cpos, Cneg) pairs of a fold
+ * with it, concurrently, on the same test set). The count depends on the order of the scores
+ * and on the labels of each group of equal scores, not on the order within a group
+ * (calcQvals treats ties as one group), so the (score, label) pairs are sorted by score
+ * only. With a NaN score (no strict weak ordering), calcScoresAndQvals on a copy.
+ */
+int Scores::countPositives(const std::vector<double>& w, double fdr,
+                           bool skipDecoysPlusOne) const {
+  std::vector<pair<double, bool> > combined;
+  combined.reserve(scores_.size());
+  for (const ScoreHolder& sh : scores_) {
+    combined.emplace_back(calcScore(sh.pPSM->features, w), sh.isTarget());
+  }
+  if (std::any_of(combined.begin(), combined.end(),
+                  [](const pair<double, bool>& x) { return std::isnan(x.first); })) {
+    Scores copy = *this;
+    std::vector<double> weights = w;
+    return copy.calcScoresAndQvals(weights, fdr, skipDecoysPlusOne);
+  }
+  std::sort(combined.begin(), combined.end(),
+            [](const pair<double, bool>& a, const pair<double, bool>& b) {
+              return a.first > b.first;
+            });
+  return countPositivesOfPairs(combined, fdr, skipDecoysPlusOne);
+}
+
+/**
  * Calculates the SVM cost/score of each PSM and sorts them
  * @param w normal vector used for SVM cost
  * @param fdr FDR threshold specified by user (default 0.01)
@@ -445,7 +493,7 @@ int Scores::calcScores(std::vector<double>& w) {
   for (; scoreIt != scores_.end(); ++scoreIt) {
     scoreIt->score = calcScore(scoreIt->pPSM->features, w);
   }
-  sort(scores_.begin(), scores_.end(), greater<ScoreHolder>());
+  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
   if (VERB > 3) {
     if (scores_.size() >= 10) {
       cerr << "10 best scores and labels" << endl;
@@ -529,10 +577,17 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
 
   std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
   if (trainBestPositive) {
-    std::sort(scores_.begin(), scores_.end(), OrderScanLabel());
+    // OpenMS: sorted like std::sort (see SortLikeStd.h); scan numbers and labels are no NaN
+    sortLikeStdSort(scores_, OrderScanLabel());
     lastUniqueIt =
         std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
-    std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
+    if (std::any_of(scores_.begin(), lastUniqueIt,
+                    [](const ScoreHolder& sh) { return std::isnan(sh.score); })) {
+      std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
+    } else if (lastUniqueIt != scores_.begin()) {
+      sortLikeStdSort(&*scores_.begin(), &*scores_.begin() + (lastUniqueIt - scores_.begin()),
+                      greater<ScoreHolder>());
+    }
   }
 
   std::vector<ScoreHolder>::const_iterator scoreIt = scores_.begin();
@@ -643,6 +698,21 @@ void Scores::weedOutRedundantMixMax() {
   postMergeStep();
 }
 
+// OpenMS: the number of positives calcQvals(fdr, skipDecoysPlusOne) returns, without setting
+// the q-values; combined holds (score, isTarget) in the order calcQvals would see.
+int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
+                               double fdr, bool skipDecoysPlusOne) const {
+  std::vector<double> qvals;
+  PosteriorEstimator::setNegative(true);  // also get q-values for decoys
+  PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
+                                 nullTargetWinProb_);
+  int numPos = 0;
+  for (std::size_t i = 0; i < qvals.size(); ++i) {
+    if (qvals[i] < fdr && combined[i].second) ++numPos;
+  }
+  return numPos;
+}
+
 int Scores::getInitDirection(const double initialSelectionFdr,
                              std::vector<double>& direction,
                              std::ostream& report) {
@@ -654,26 +724,95 @@ int Scores::getInitDirection(const double initialSelectionFdr,
   // is too restrictive for small datasets
   bool skipDecoysPlusOne = true;
 
-  // pre-allocate once and reuse across all 2*numFeatures calcQvals calls
-  std::vector<pair<double, bool> > combined;
-  combined.reserve(scores_.size());
+  const unsigned int numFeatures =
+      static_cast<unsigned int>(FeatureNames::getNumFeatures());
+  // positives[2 * featNo + i]: in forward (i = 0) and backward (i = 1) direction
+  std::vector<int> positives(2 * numFeatures);
 
-  for (unsigned int featNo = 0; featNo < FeatureNames::getNumFeatures();
-       featNo++) {
-    for (std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
-         scoreIt != scores_.end(); ++scoreIt) {
-      scoreIt->score = scoreIt->pPSM->features[featNo];
-    }
-    sort(scores_.begin(), scores_.end());
-    // check once in forward direction (i = 0, higher scores are better) and
-    // once in backward direction (i = 1, lower scores are better)
-    for (int i = 0; i < 2; i++) {
-      if (i == 1) {
-        reverse(scores_.begin(), scores_.end());
+  // OpenMS: inside an OpenMP parallel region (CrossValidation), the positives of the features
+  // are counted by tasks, each on its own (score, label) pairs of the feature, sorted by score
+  // only: the q-values, and so the count, depend on the order of the scores and on the labels
+  // of each group of equal scores, not on the order within a group (calcQvals treats ties as
+  // one group). Meanwhile, the scores are sorted by every feature in turn as below (sorting
+  // starts from the order the previous feature left, which decides the order of PSMs that
+  // compare equal, and the order after the last feature is where the training starts from),
+  // with the tasks of the region (see SortLikeStd.h). The q-values are set for the last
+  // feature, as by the loop below. Features with a NaN value use the loop below.
+  bool counted = false;
+#ifdef _OPENMP
+  const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
+    return std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
+                       [](double x) { return std::isnan(x); });
+  });
+  if (numFeatures > 0 && !anyNaN && omp_in_parallel()) {
+    std::vector<std::pair<const double*, bool> > rows;
+    rows.reserve(scores_.size());
+    for (const ScoreHolder& sh : scores_) rows.emplace_back(sh.pPSM->features, sh.isTarget());
+    std::exception_ptr chainError;
+    std::vector<std::exception_ptr> errors(numFeatures);
+#pragma omp taskgroup
+    {
+      for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+#pragma omp task firstprivate(featNo) shared(rows, positives, errors, initialSelectionFdr)
+        try {
+          std::vector<pair<double, bool> > combined;
+          combined.reserve(rows.size());
+          for (const auto& row : rows) combined.emplace_back(row.first[featNo], row.second);
+          std::sort(combined.begin(), combined.end(),
+                    [](const pair<double, bool>& a, const pair<double, bool>& b) {
+                      return a.first < b.first;
+                    });
+          positives[2 * featNo] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
+          reverse(combined.begin(), combined.end());
+          positives[2 * featNo + 1] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
+        } catch (...) {
+          errors[featNo] = std::current_exception();
+        }
       }
-      int positives = calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
-      if (positives > bestPositives) {
-        bestPositives = positives;
+      try {
+        for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+          for (ScoreHolder& sh : scores_) sh.score = sh.pPSM->features[featNo];
+          sortLikeStdSort(scores_, [](const ScoreHolder& a, const ScoreHolder& b) { return a < b; });
+          reverse(scores_.begin(), scores_.end());
+        }
+        std::vector<pair<double, bool> > combined;
+        calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
+      } catch (...) {
+        chainError = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors) {
+      if (error) std::rethrow_exception(error);
+    }
+    if (chainError) std::rethrow_exception(chainError);
+    counted = true;
+  }
+#endif
+  if (!counted) {
+    // pre-allocate once and reuse across all 2*numFeatures calcQvals calls
+    std::vector<pair<double, bool> > combined;
+    combined.reserve(scores_.size());
+
+    for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+      for (std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+           scoreIt != scores_.end(); ++scoreIt) {
+        scoreIt->score = scoreIt->pPSM->features[featNo];
+      }
+      sort(scores_.begin(), scores_.end());
+      // check once in forward direction (i = 0, higher scores are better) and
+      // once in backward direction (i = 1, lower scores are better)
+      for (int i = 0; i < 2; i++) {
+        if (i == 1) {
+          reverse(scores_.begin(), scores_.end());
+        }
+        positives[2 * featNo + i] = calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
+      }
+    }
+  }
+  for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+    for (int i = 0; i < 2; i++) {
+      if (positives[2 * featNo + i] > bestPositives) {
+        bestPositives = positives[2 * featNo + i];
         bestFeature = static_cast<int>(featNo);
         lowBest = (i == 0);
       }

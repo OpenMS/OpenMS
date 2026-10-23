@@ -132,7 +132,7 @@ class CrossValidation {
 
   int mergeCpCnPairs(double selectionFdr,
                      options& pOptions,
-                     std::vector<std::vector<Scores> >& nestedTestScoresVec,
+                     const std::vector<int>& pairTruePoses,
                      const vector<double>& cpos_vec,
                      const vector<double>& cfrac_vec);
   int doStep(const Normalizer* pNorm, double selectionFdr);
