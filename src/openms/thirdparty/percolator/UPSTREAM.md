@@ -101,6 +101,20 @@ hand-editing sources and committing them, to keep sync self-healing.
   rows whose index range does not include the column it looks for, and stops
   scanning a row at the first index past it (the indices are sorted and unique),
   instead of scanning every entry of every row.
+- `patches/07-spline-pep-banded.patch` — speeds up the spline PEP further,
+  again without changing its result. `BaseSpline::initiateQR` keeps `Q` and
+  `R` as bands as well, and each iteration of
+  `iterativeReweightedLeastSquares` runs `BaseSpline::bandedIteration`: the
+  same floating-point operations, in the same order, as building `alpha / w`,
+  `aWiQ`, `M = R + Qt * aWiQ`, `gamma = Qt * z`, `solveInPlace` and
+  `gnew = z - aWiQ * gamma` with the sparse matrix code, on band rows in reused
+  buffers and without allocations. The elimination makes the same pivot choices,
+  row swaps and row operations as `solveInPlace` and visits only the rows that
+  can hold the pivot column; the back substitution updates only the right-hand
+  side (the row operations of that pass cannot change the result). Whenever the
+  sparse code would drop an entry (|value| <= 1e-15) or the band structure does
+  not hold, `bandedIteration` returns before it has changed anything and the
+  matrix code runs instead.
 
 ### Regenerating the patch
 
