@@ -174,6 +174,12 @@ hand-editing sources and committing them, to keep sync self-healing.
   q <= fdr) scores strictly higher (`operator>`) than the next one in the set's order, no two
   positives are equivalent and every sort by score leaves them in that order. Otherwise (and
   with a NaN score or mass) the copies as before.
+  `Scores::getInitDirection` sorts the scores by each feature in turn (31 sorts per fold, from
+  the order the previous sort left) on keys (`ScoreKey`: the score, scan, mass and label that
+  `ScoreHolder::operator<` compares, and the position): the comparisons have the same
+  outcomes, so the sorts make the same moves, without reading `pPSM` and moving whole
+  `ScoreHolder`s; the PSMs are put into the final order of the keys (and get the scores of the
+  last feature) once, at the end.
 
 ### Regenerating the patch
 

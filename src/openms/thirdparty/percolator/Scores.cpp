@@ -58,6 +58,46 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
   });
 }
 
+// OpenMS: what ScoreHolder's operator< and operator> compare (score, then pPSM->scan,
+// pPSM->expMass and label), and the position of the ScoreHolder. Comparisons of keys have the
+// outcomes of the comparisons of their ScoreHolders, so a sort of the keys (the same algorithm)
+// makes the same moves as a sort of the ScoreHolders: it leaves the same permutation, also of
+// ScoreHolders that compare equal. The keys are smaller and need no pPSM.
+struct ScoreKey {
+  double score, expMass;
+  unsigned int scan;
+  LabelType label;
+  std::size_t index;
+};
+
+// operator< of ScoreHolder (ScoreHolder.cpp)
+static inline bool keyLess(const ScoreKey& one, const ScoreKey& other) {
+  return (one.score < other.score) ||
+         (one.score == other.score && one.scan < other.scan) ||
+         (one.score == other.score && one.scan == other.scan &&
+          one.expMass < other.expMass) ||
+         (one.score == other.score && one.scan == other.scan &&
+          one.expMass == other.expMass && one.label < other.label);
+}
+
+static std::vector<ScoreKey> scoreKeys(const std::vector<ScoreHolder>& scores) {
+  std::vector<ScoreKey> keys;
+  keys.reserve(scores.size());
+  for (std::size_t i = 0; i < scores.size(); ++i) {
+    const ScoreHolder& sh = scores[i];
+    keys.push_back({sh.score, sh.pPSM->expMass, sh.pPSM->scan, sh.label, i});
+  }
+  return keys;
+}
+
+// puts scores[keys[k].index] at position k
+static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<ScoreKey>& keys) {
+  std::vector<ScoreHolder> permuted;
+  permuted.reserve(scores.size());
+  for (const ScoreKey& key : keys) permuted.push_back(scores[key.index]);
+  scores.swap(permuted);
+}
+
 // OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
 // region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
 template <typename Less>
@@ -849,9 +889,9 @@ int Scores::getInitDirection(const double initialSelectionFdr,
   // one group). Meanwhile, the scores are sorted by every feature in turn as below (sorting
   // starts from the order the previous feature left, which decides the order of PSMs that
   // compare equal, and the order after the last feature is where the training starts from),
-  // with the tasks of the region (see SortLikeStd.h). The q-values are set for the last
-  // feature, as by the loop below. A NaN feature value or mass (no strict weak ordering) uses
-  // the loop below.
+  // with the tasks of the region (see SortLikeStd.h), on keys (see ScoreKey). The q-values are
+  // set for the last feature, as by the loop below. A NaN feature value or mass (no strict weak
+  // ordering) uses the loop below.
   bool counted = false;
 #ifdef _OPENMP
   const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
@@ -885,11 +925,16 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         }
       }
       try {
+        // on keys (see ScoreKey): the PSMs are permuted (and get the scores of the last feature)
+        // once, at the end
+        std::vector<ScoreKey> keys = scoreKeys(scores_);
         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
-          for (ScoreHolder& sh : scores_) sh.score = sh.pPSM->features[featNo];
-          sortLikeStdSort(scores_, [](const ScoreHolder& a, const ScoreHolder& b) { return a < b; });
-          reverse(scores_.begin(), scores_.end());
+          for (ScoreKey& key : keys) key.score = scores_[key.index].pPSM->features[featNo];
+          sortLikeStdSort(keys, [](const ScoreKey& a, const ScoreKey& b) { return keyLess(a, b); });
+          reverse(keys.begin(), keys.end());
         }
+        permuteScores(scores_, keys);
+        for (std::size_t i = 0; i < keys.size(); ++i) scores_[i].score = keys[i].score;
         std::vector<pair<double, bool> > combined;
         calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
       } catch (...) {
