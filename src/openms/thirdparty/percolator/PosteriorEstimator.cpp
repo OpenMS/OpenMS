@@ -423,12 +423,13 @@ void PosteriorEstimator::getQValues(double pi0,
 
 /**
  * OpenMS: getQValues(pi0, combined, q, skipDecoysPlusOne, nullTargetWinProb) with the tasks of
- * an enclosing OpenMP parallel region, for a finite pi0 >= 1 (then getQValues makes no mix-max
- * correction), a finite decoy factor and an empty q; otherwise returns false and does nothing.
+ * an enclosing OpenMP parallel region, for pi0 = 1 (then getQValues makes no mix-max correction,
+ * and every FDR is a number in [0, +inf]), a finite decoy factor >= 0 and an empty q; otherwise
+ * returns false and does nothing.
  * The PSMs are split into blocks of whole groups of equal scores (at fixed positions, not
  * depending on the number of threads). The targets and decoys of the blocks are counted first,
  * so each block computes the FDRs of its groups from the same counts as the loop of getQValues,
- * by the same expression. The q-values (the minimum FDR from a position to the end: the FDRs
+ * by the same expression. The q-values (the minimum FDR from a position to the end: the q-values
  * are numbers in [0, 1], so the order of the minimisation does not matter) are the minima
  * within each block, and then the minimum of these and the q-value at the start of the next
  * block.
@@ -439,18 +440,21 @@ bool PosteriorEstimator::getQValuesInTasks(double pi0,
 #ifdef _OPENMP
   const size_t n = combined.size();
   const double decoyFactor = nullTargetWinProb / (1.0 - nullTargetWinProb);
-  if (!(pi0 >= 1.0) || !std::isfinite(pi0) || !(decoyFactor >= 0.0) ||
-      !std::isfinite(decoyFactor) || !q.empty() || n < 2 * kMinQValueBlock ||
-      n > static_cast<size_t>(INT_MAX) || !omp_in_parallel()) {
+  if (pi0 != 1.0 || !(decoyFactor >= 0.0) || !std::isfinite(decoyFactor) || !q.empty() ||
+      n < 2 * kMinQValueBlock || n > static_cast<size_t>(INT_MAX) || !omp_in_parallel()) {
     return false;
   }
   const bool withNegatives = includeNegativesInResult;
   // the blocks [starts[b], starts[b + 1]): from multiples of kMinQValueBlock to the next group
+  // (each position is compared at most once)
   vector<size_t> starts(1, 0);
+  size_t scanned = 1;
   for (size_t at = kMinQValueBlock; at < n; at += kMinQValueBlock) {
-    size_t start = (std::max)(at, starts.back() + 1);
+    size_t start = (std::max)(at, scanned);
     while (start < n && combined[start - 1].first == combined[start].first) ++start;
-    if (start < n) starts.push_back(start);
+    scanned = start + 1;
+    if (start >= n) break;
+    if (start > starts.back()) starts.push_back(start);
   }
   starts.push_back(n);
   const int numBlocks = static_cast<int>(starts.size() - 1);
