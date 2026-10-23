@@ -56,7 +56,7 @@ This should be a serious concern, since it indicates a possible problem with the
 Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
 automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
 
-<B>FDR within classes of PSMs</B>
+<B>FDR within classes of PSMs (experimental)</B>
 
 With @p -PSM_class, PSMs are split into classes (by their modifications, or by the value of a peptide hit meta value) and
 each target PSM also gets a q-value within its class (meta value "class_q-value"). Its PSM q-value becomes the larger of
@@ -111,7 +111,7 @@ protected:
     registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
     registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
     setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<std::string>("higher_better, lower_better"));
-    registerStringOption_("PSM_class", "<class>", "", "Also control the PSM FDR within classes of PSMs: 'modification' (by the variable modifications of a PSM), or the name of a peptide hit meta value whose values are the classes. A PSM's q-value becomes the larger of its overall and its class q-value, so this only removes PSMs: conservative in small or mostly false classes, and it cannot correct a large class that is itself miscalibrated. Empty: off.", false);
+    registerStringOption_("PSM_class", "<class>", "", "(Experimental:) Also control the PSM FDR within classes of PSMs: 'modification' (by the variable modifications of a PSM), or the name of a peptide hit meta value whose values are the classes. A PSM's q-value becomes the larger of its overall and its class q-value, so this only removes PSMs: conservative in small or mostly false classes, and it cannot correct a large class that is itself miscalibrated. Empty: off.", false);
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
     setValidStrings_("protein", ListUtils::create<std::string>("true,false"));
     registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);

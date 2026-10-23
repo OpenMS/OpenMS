@@ -35,6 +35,8 @@ namespace OpenMS
 
     Ported from bigbio/andes #164.
 
+    @experimental The estimator and its guard may change.
+
     @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI ClassFDR
