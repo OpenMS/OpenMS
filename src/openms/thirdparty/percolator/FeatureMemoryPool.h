@@ -20,6 +20,7 @@
 
 /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
 
+#include <cstddef>
 #include <vector>
 #include <iostream>
 
@@ -48,6 +49,9 @@ class FeatureMemoryPool {
 
   double* allocate();
   void deallocate(double* p);
+
+  // OpenMS: see FeatureMemoryPool.cpp
+  bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
 };
 
 }}}  // namespace OpenMS::Internal::Percolator

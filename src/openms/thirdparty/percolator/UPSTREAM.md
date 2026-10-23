@@ -190,6 +190,16 @@ hand-editing sources and committing them, to keep sync self-healing.
   `lcg_rand` from a state of the caller's); the mean squared errors are added up in the order
   of the bootstraps, and the generator ends in the state the serial loop leaves. Outside a
   parallel region, the loop as before.
+  `Scores::createXvalSetsBySpectrum` sorts the PSMs by spectrum hash on (hash, position) keys
+  (the hashes `OrderScanHash` compares; same outcomes, same moves, see above) instead of
+  hashing two PSMs for every comparison; inside an OpenMP parallel region it draws the folds
+  (and RESET labels) in the order of the PSMs as before and then fills each fold's training
+  and test set in a task of its own, in the same order. It then moved the feature rows of the
+  test sets' PSMs to the start of the pool, one after the other by swaps (tracking the rows
+  it displaced in a hash map); `FeatureMemoryPool::moveRowsInOrder` moves them there directly
+  (copied out and back, in parallel blocks) when they are exactly the pool's rows (none free),
+  each once, with the pool's row length: the swaps leave the same rows and pointers.
+  Otherwise the swaps as before.
 
 ### Regenerating the patch
 

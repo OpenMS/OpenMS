@@ -91,10 +91,11 @@ static std::vector<ScoreKey> scoreKeys(const std::vector<ScoreHolder>& scores) {
 }
 
 // puts scores[keys[k].index] at position k
-static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<ScoreKey>& keys) {
+template <typename Key>
+static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
   std::vector<ScoreHolder> permuted;
   permuted.reserve(scores.size());
-  for (const ScoreKey& key : keys) permuted.push_back(scores[key.index]);
+  for (const Key& key : keys) permuted.push_back(scores[key.index]);
   scores.swap(permuted);
 }
 
@@ -297,7 +298,25 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
     ix -= remain[static_cast<std::size_t>(fold)];
   }
 
-  sortLikeStdSort(scores_, OrderScanHash());  // OpenMS: see SortLikeStd.h
+  // OpenMS: sorted like std::sort(scores_.begin(), scores_.end(), OrderScanHash()) (see
+  // SortLikeStd.h), on (hash, position) keys: the hashes are those OrderScanHash compares, so the
+  // comparisons have the same outcomes and the sort makes the same moves (see ScoreKey), without
+  // hashing two PSMs for every comparison
+  {
+    struct HashKey {
+      size_t hash;
+      std::size_t index;
+    };
+    std::vector<HashKey> keys;
+    keys.reserve(scores_.size());
+    for (std::size_t i = 0; i < scores_.size(); ++i) {
+      const PSMDescription* psm = scores_[i].pPSM;
+      const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
+      keys.push_back({hash, i});
+    }
+    sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
+    permuteScores(scores_, keys);
+  }
 
   if (scores_.size() == 0) {
     ostringstream oss;
@@ -313,6 +332,20 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
 
   // put scores into the folds; choose a fold (at random) and change it only
   // when scores from a new spectra are encountered
+  // OpenMS: the folds and labels are drawn here, in the order of the PSMs as before; inside an
+  // OpenMP parallel region, the folds are filled afterwards, each by a task of its own, in the
+  // same order (see below)
+  std::vector<unsigned int> foldOfPSM;
+  std::vector<LabelType> labelOfPSM;
+#ifdef _OPENMP
+  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
+#else
+  const bool fillInTasks = false;
+#endif
+  if (fillInTasks) {
+    foldOfPSM.reserve(scores_.size());
+    labelOfPSM.reserve(scores_.size());
+  }
   unsigned int previousSpectrum = scores_.begin()->pPSM->scan;
   size_t randIndex = PseudoRandom::lcg_rand() % xval_fold;
   for (std::vector<ScoreHolder>::iterator it = scores_.begin();
@@ -342,18 +375,47 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
     }
 
     // insert
-    for (unsigned int i = 0; i < xval_fold; ++i) {
-      if (i == randIndex) {
-        test[i].addScoreHolder(sh);
-      }
-      if (i != randIndex || xval_fold == 1) {
-        train[i].addScoreHolder(sh);
+    if (fillInTasks) {
+      foldOfPSM.push_back(static_cast<unsigned int>(randIndex));
+      labelOfPSM.push_back(sh.label);
+    } else {
+      for (unsigned int i = 0; i < xval_fold; ++i) {
+        if (i == randIndex) {
+          test[i].addScoreHolder(sh);
+        }
+        if (i != randIndex || xval_fold == 1) {
+          train[i].addScoreHolder(sh);
+        }
       }
     }
     // update number of free position for used fold
     --remain[randIndex];
     // set previous spectrum to current one for next iteration
     previousSpectrum = curScan;
+  }
+  if (fillInTasks) {
+    // OpenMS: fold i gets the PSMs drawn for it (test) and the others (train), in the order of
+    // the PSMs, as the loop above would insert them
+    std::vector<std::exception_ptr> fillErrors(xval_fold);
+#pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
+    for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
+      try {
+        for (std::size_t k = 0; k < scores_.size(); ++k) {
+          ScoreHolder sh = scores_[k];
+          sh.label = labelOfPSM[k];
+          if (foldOfPSM[k] == static_cast<unsigned int>(i)) {
+            test[static_cast<std::size_t>(i)].addScoreHolder(sh);
+          } else {
+            train[static_cast<std::size_t>(i)].addScoreHolder(sh);
+          }
+        }
+      } catch (...) {
+        fillErrors[static_cast<std::size_t>(i)] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : fillErrors) {
+      if (error) std::rethrow_exception(error);
+    }
   }
 
   // without RESET: decoysPerTarget = 1 and decoyFractionTraining = 1, then
@@ -378,6 +440,19 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
   }
 
   if (featurePool.isInitialized()) {
+    // OpenMS: the rows of the test sets' PSMs in the order the loop below moves them to (the
+    // first row, the second, ...); FeatureMemoryPool::moveRowsInOrder moves them there directly
+    // if they are the pool's rows, each once (then the loop leaves the same rows and pointers)
+    std::vector<double**> rowsInOrder;
+    rowsInOrder.reserve(scores_.size());
+    for (unsigned int i = 0; i < xval_fold; ++i) {
+      for (const bool isTarget : {true, false}) {
+        for (ScoreHolder& sh : test[i]) {
+          if (sh.isTarget() == isTarget) rowsInOrder.push_back(&sh.pPSM->features);
+        }
+      }
+    }
+    if (featurePool.moveRowsInOrder(rowsInOrder, FeatureNames::getNumFeatures())) return;
     boost::unordered_map<double*, double*> movedAddresses;
     size_t idx = 0;
     for (unsigned int i = 0; i < xval_fold; ++i) {

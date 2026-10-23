@@ -17,6 +17,16 @@
 
 #include "FeatureMemoryPool.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <memory>
+#include <utility>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 void FeatureMemoryPool::createPool(size_t numFeatures) {
@@ -59,6 +69,72 @@ double* FeatureMemoryPool::allocate() {
 
 void FeatureMemoryPool::deallocate(double* p) {
   freeRows_.push_back(p);
+}
+
+// OpenMS: the smallest block of rows a task of moveRowsInOrder copies
+[[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
+
+// OpenMS: whether moveRowsInOrder runs in an OpenMP parallel region (its copies as tasks)
+static bool inParallel() {
+#ifdef _OPENMP
+  return omp_in_parallel() != 0;
+#else
+  return false;
+#endif
+}
+
+/**
+ * OpenMS: if *rows[0], *rows[1], ... are the rows of the pool (its initialized rows, none of
+ * them free), each once, and rows have numFeatures elements (as in the pool): moves the row
+ * *rows[k] to row k (addressFromIdx(k)), sets *rows[k] to it and returns true. Otherwise
+ * returns false and changes nothing. (Moving the rows one
+ * after the other by swaps, as Scores::createXvalSetsBySpectrum does otherwise, leaves the
+ * same rows and pointers.)
+ */
+bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
+                                        std::size_t numFeatures) {
+  const std::size_t n = rows.size();
+  if (!freeRows_.empty() || n != initializedRows_ || numFeatures_ == 0 ||
+      numFeatures != numFeatures_) {
+    return false;
+  }
+  // the blocks by address, to find the index of a row
+  std::vector<std::pair<std::uintptr_t, std::size_t> > blocks;
+  for (std::size_t b = 0; b < memStarts_.size(); ++b) {
+    blocks.emplace_back(reinterpret_cast<std::uintptr_t>(memStarts_[b]), b);
+  }
+  std::sort(blocks.begin(), blocks.end());
+  const std::uintptr_t rowBytes = static_cast<std::uintptr_t>(numFeatures_) * sizeof(double);
+  std::vector<char> seen(n, 0);
+  for (std::size_t k = 0; k < n; ++k) {
+    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[k]);
+    auto it = std::upper_bound(blocks.begin(), blocks.end(),
+                               std::make_pair(a, std::numeric_limits<std::size_t>::max()));
+    if (it == blocks.begin()) return false;
+    --it;
+    const std::uintptr_t offset = a - it->first;
+    if (offset % rowBytes != 0 || offset / rowBytes >= numRowsPerBlock_) return false;
+    const std::size_t idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
+    if (idx >= n || seen[idx]) return false;
+    seen[idx] = 1;
+  }
+  // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
+  // if there is one (the blocks are disjoint)
+  const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
+  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
+  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
+  (void)inTasks;
+#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
+  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+    std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
+  }
+#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
+  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+    double* row = addressFromIdx(static_cast<unsigned int>(k));
+    std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);
+    *rows[k] = row;
+  }
+  return true;
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

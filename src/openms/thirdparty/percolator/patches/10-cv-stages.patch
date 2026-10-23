@@ -150,6 +150,120 @@ index 7c01f3cbc5..3fcefdd056 100644
    std::vector<double> candidatesCpos_, candidatesCfrac_;
  
    void initializeGridSearch(double targetDecoySizeRatio);
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index 9dd1464107..761e768ca5 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -17,6 +17,16 @@
+ 
+ #include "FeatureMemoryPool.h"
+ 
++#include <algorithm>
++#include <cstdint>
++#include <limits>
++#include <memory>
++#include <utility>
++
++#ifdef _OPENMP
++#include <omp.h>
++#endif
++
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ void FeatureMemoryPool::createPool(size_t numFeatures) {
+@@ -61,4 +71,70 @@ void FeatureMemoryPool::deallocate(double* p) {
+   freeRows_.push_back(p);
+ }
+ 
++// OpenMS: the smallest block of rows a task of moveRowsInOrder copies
++[[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
++
++// OpenMS: whether moveRowsInOrder runs in an OpenMP parallel region (its copies as tasks)
++static bool inParallel() {
++#ifdef _OPENMP
++  return omp_in_parallel() != 0;
++#else
++  return false;
++#endif
++}
++
++/**
++ * OpenMS: if *rows[0], *rows[1], ... are the rows of the pool (its initialized rows, none of
++ * them free), each once, and rows have numFeatures elements (as in the pool): moves the row
++ * *rows[k] to row k (addressFromIdx(k)), sets *rows[k] to it and returns true. Otherwise
++ * returns false and changes nothing. (Moving the rows one
++ * after the other by swaps, as Scores::createXvalSetsBySpectrum does otherwise, leaves the
++ * same rows and pointers.)
++ */
++bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
++                                        std::size_t numFeatures) {
++  const std::size_t n = rows.size();
++  if (!freeRows_.empty() || n != initializedRows_ || numFeatures_ == 0 ||
++      numFeatures != numFeatures_) {
++    return false;
++  }
++  // the blocks by address, to find the index of a row
++  std::vector<std::pair<std::uintptr_t, std::size_t> > blocks;
++  for (std::size_t b = 0; b < memStarts_.size(); ++b) {
++    blocks.emplace_back(reinterpret_cast<std::uintptr_t>(memStarts_[b]), b);
++  }
++  std::sort(blocks.begin(), blocks.end());
++  const std::uintptr_t rowBytes = static_cast<std::uintptr_t>(numFeatures_) * sizeof(double);
++  std::vector<char> seen(n, 0);
++  for (std::size_t k = 0; k < n; ++k) {
++    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[k]);
++    auto it = std::upper_bound(blocks.begin(), blocks.end(),
++                               std::make_pair(a, std::numeric_limits<std::size_t>::max()));
++    if (it == blocks.begin()) return false;
++    --it;
++    const std::uintptr_t offset = a - it->first;
++    if (offset % rowBytes != 0 || offset / rowBytes >= numRowsPerBlock_) return false;
++    const std::size_t idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
++    if (idx >= n || seen[idx]) return false;
++    seen[idx] = 1;
++  }
++  // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
++  // if there is one (the blocks are disjoint)
++  const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
++  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
++  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
++  (void)inTasks;
++#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
++  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
++    std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
++  }
++#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
++  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
++    double* row = addressFromIdx(static_cast<unsigned int>(k));
++    std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);
++    *rows[k] = row;
++  }
++  return true;
++}
++
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.h b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+index a5312c5f14..db79899acb 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.h
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+@@ -20,6 +20,7 @@
+ 
+ /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
+ 
++#include <cstddef>
+ #include <vector>
+ #include <iostream>
+ 
+@@ -48,6 +49,9 @@ class FeatureMemoryPool {
+ 
+   double* allocate();
+   void deallocate(double* p);
++
++  // OpenMS: see FeatureMemoryPool.cpp
++  bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
+ };
+ 
+ }}}  // namespace OpenMS::Internal::Percolator
 diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
 index fca38a0c54..d5ed735cee 100644
 --- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
@@ -291,7 +405,7 @@ index 83811fcc19..f1409df9b1 100644
    static uint64_t seed_;
  };
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 0602df3d99..d83c82cc7a 100644
+index 0602df3d99..7ee44dafdf 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -46,6 +46,9 @@
@@ -304,7 +418,7 @@ index 0602df3d99..d83c82cc7a 100644
  // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
  // strict weak ordering on [first, last): no score or mass is NaN.
  static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
-@@ -55,6 +58,46 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+@@ -55,6 +58,47 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
    });
  }
  
@@ -341,17 +455,141 @@ index 0602df3d99..d83c82cc7a 100644
 +}
 +
 +// puts scores[keys[k].index] at position k
-+static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<ScoreKey>& keys) {
++template <typename Key>
++static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
 +  std::vector<ScoreHolder> permuted;
 +  permuted.reserve(scores.size());
-+  for (const ScoreKey& key : keys) permuted.push_back(scores[key.index]);
++  for (const Key& key : keys) permuted.push_back(scores[key.index]);
 +  scores.swap(permuted);
 +}
 +
  // OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
  // region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
  template <typename Less>
-@@ -494,11 +537,39 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+@@ -254,7 +298,25 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     ix -= remain[static_cast<std::size_t>(fold)];
+   }
+ 
+-  sortLikeStdSort(scores_, OrderScanHash());  // OpenMS: see SortLikeStd.h
++  // OpenMS: sorted like std::sort(scores_.begin(), scores_.end(), OrderScanHash()) (see
++  // SortLikeStd.h), on (hash, position) keys: the hashes are those OrderScanHash compares, so the
++  // comparisons have the same outcomes and the sort makes the same moves (see ScoreKey), without
++  // hashing two PSMs for every comparison
++  {
++    struct HashKey {
++      size_t hash;
++      std::size_t index;
++    };
++    std::vector<HashKey> keys;
++    keys.reserve(scores_.size());
++    for (std::size_t i = 0; i < scores_.size(); ++i) {
++      const PSMDescription* psm = scores_[i].pPSM;
++      const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
++      keys.push_back({hash, i});
++    }
++    sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
++    permuteScores(scores_, keys);
++  }
+ 
+   if (scores_.size() == 0) {
+     ostringstream oss;
+@@ -270,6 +332,20 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+ 
+   // put scores into the folds; choose a fold (at random) and change it only
+   // when scores from a new spectra are encountered
++  // OpenMS: the folds and labels are drawn here, in the order of the PSMs as before; inside an
++  // OpenMP parallel region, the folds are filled afterwards, each by a task of its own, in the
++  // same order (see below)
++  std::vector<unsigned int> foldOfPSM;
++  std::vector<LabelType> labelOfPSM;
++#ifdef _OPENMP
++  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
++#else
++  const bool fillInTasks = false;
++#endif
++  if (fillInTasks) {
++    foldOfPSM.reserve(scores_.size());
++    labelOfPSM.reserve(scores_.size());
++  }
+   unsigned int previousSpectrum = scores_.begin()->pPSM->scan;
+   size_t randIndex = PseudoRandom::lcg_rand() % xval_fold;
+   for (std::vector<ScoreHolder>::iterator it = scores_.begin();
+@@ -299,12 +375,17 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     }
+ 
+     // insert
+-    for (unsigned int i = 0; i < xval_fold; ++i) {
+-      if (i == randIndex) {
+-        test[i].addScoreHolder(sh);
+-      }
+-      if (i != randIndex || xval_fold == 1) {
+-        train[i].addScoreHolder(sh);
++    if (fillInTasks) {
++      foldOfPSM.push_back(static_cast<unsigned int>(randIndex));
++      labelOfPSM.push_back(sh.label);
++    } else {
++      for (unsigned int i = 0; i < xval_fold; ++i) {
++        if (i == randIndex) {
++          test[i].addScoreHolder(sh);
++        }
++        if (i != randIndex || xval_fold == 1) {
++          train[i].addScoreHolder(sh);
++        }
+       }
+     }
+     // update number of free position for used fold
+@@ -312,6 +393,30 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     // set previous spectrum to current one for next iteration
+     previousSpectrum = curScan;
+   }
++  if (fillInTasks) {
++    // OpenMS: fold i gets the PSMs drawn for it (test) and the others (train), in the order of
++    // the PSMs, as the loop above would insert them
++    std::vector<std::exception_ptr> fillErrors(xval_fold);
++#pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
++    for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
++      try {
++        for (std::size_t k = 0; k < scores_.size(); ++k) {
++          ScoreHolder sh = scores_[k];
++          sh.label = labelOfPSM[k];
++          if (foldOfPSM[k] == static_cast<unsigned int>(i)) {
++            test[static_cast<std::size_t>(i)].addScoreHolder(sh);
++          } else {
++            train[static_cast<std::size_t>(i)].addScoreHolder(sh);
++          }
++        }
++      } catch (...) {
++        fillErrors[static_cast<std::size_t>(i)] = std::current_exception();
++      }
++    }
++    for (const std::exception_ptr& error : fillErrors) {
++      if (error) std::rethrow_exception(error);
++    }
++  }
+ 
+   // without RESET: decoysPerTarget = 1 and decoyFractionTraining = 1, then
+   // factor = 1 and trainNullTargetWinProb = 1/2 (and decoyFactor = 1)
+@@ -335,6 +440,19 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+   }
+ 
+   if (featurePool.isInitialized()) {
++    // OpenMS: the rows of the test sets' PSMs in the order the loop below moves them to (the
++    // first row, the second, ...); FeatureMemoryPool::moveRowsInOrder moves them there directly
++    // if they are the pool's rows, each once (then the loop leaves the same rows and pointers)
++    std::vector<double**> rowsInOrder;
++    rowsInOrder.reserve(scores_.size());
++    for (unsigned int i = 0; i < xval_fold; ++i) {
++      for (const bool isTarget : {true, false}) {
++        for (ScoreHolder& sh : test[i]) {
++          if (sh.isTarget() == isTarget) rowsInOrder.push_back(&sh.pPSM->features);
++        }
++      }
++    }
++    if (featurePool.moveRowsInOrder(rowsInOrder, FeatureNames::getNumFeatures())) return;
+     boost::unordered_map<double*, double*> movedAddresses;
+     size_t idx = 0;
+     for (unsigned int i = 0; i < xval_fold; ++i) {
+@@ -494,11 +612,39 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
   * @return 0 on successfull execution
   */
  int Scores::calcScores(std::vector<double>& w) {
@@ -395,7 +633,7 @@ index 0602df3d99..d83c82cc7a 100644
    sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
    if (VERB > 3) {
      if (scores_.size() >= 10) {
-@@ -612,6 +683,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+@@ -612,6 +758,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
    data.m = static_cast<int>(ix2);
  }
  
@@ -478,7 +716,7 @@ index 0602df3d99..d83c82cc7a 100644
  void Scores::weedOutRedundant() {
    std::map<std::string, unsigned int> peptideSpecCounts;
    double specCountQvalThreshold = -1.0;
-@@ -742,9 +889,9 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -742,9 +964,9 @@ int Scores::getInitDirection(const double initialSelectionFdr,
    // one group). Meanwhile, the scores are sorted by every feature in turn as below (sorting
    // starts from the order the previous feature left, which decides the order of PSMs that
    // compare equal, and the order after the last feature is where the training starts from),
@@ -491,7 +729,7 @@ index 0602df3d99..d83c82cc7a 100644
    bool counted = false;
  #ifdef _OPENMP
    const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
-@@ -778,11 +925,16 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -778,11 +1000,16 @@ int Scores::getInitDirection(const double initialSelectionFdr,
          }
        }
        try {
