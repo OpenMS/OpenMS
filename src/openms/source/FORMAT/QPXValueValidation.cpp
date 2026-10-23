@@ -295,6 +295,7 @@ namespace OpenMS
     explicit Impl(View view) : view(view) {}
 
     View view;
+    bool extra_columns = false;
     std::unordered_set<std::string> primary_keys;
     std::unordered_set<std::string> pg_run_keys;
     /// Identities seen in earlier batches; a streaming writer validates one batch at a time,
@@ -326,6 +327,11 @@ namespace OpenMS
     impl_->ids.clear();
   }
 
+  void QPXValueValidation::setExtraColumnsAllowed(bool allowed)
+  {
+    impl_->extra_columns = allowed;
+  }
+
   QPXValueValidation::Result QPXValueValidation::validate(
     const std::shared_ptr<arrow::Table>& table)
   {
@@ -338,7 +344,7 @@ namespace OpenMS
 
     const auto expected = schemaFor(impl_->view);
     const auto schema_validation = ArrowSchemaValidation::validate(
-      table, expected, ArrowSchemaValidation::Mode::Strict);
+      table, expected, impl_->extra_columns ? ArrowSchemaValidation::Mode::Extensible : ArrowSchemaValidation::Mode::Strict);
     if (!schema_validation.valid)
     {
       for (const auto& error : schema_validation.errors)

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
@@ -14,7 +15,6 @@
 #include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <cmath>
 #include <cstdio>
@@ -29,6 +29,10 @@ struct OnDiscImzMLExperiment::Impl
   FILE* ibd_ {nullptr};
   ImzMLMeta meta_;
   std::vector<ImzMLSpectrumIndex> index_;
+  // Per-spectrum metadata (no peaks) and dataset settings from the same parse as index_;
+  // spectra_[i] belongs to index_[i]. decodeSpectrum() starts from a copy of it. Empty when
+  // opened with skip_metadata.
+  MSExperiment spectra_;
 
   // Standard 2D imaging geometry (pixel grid + (x,y)->spectrum index), shared with
   // the in-memory path. Built eagerly in open(): it is an in-memory O(n) pass over
@@ -39,6 +43,7 @@ struct OnDiscImzMLExperiment::Impl
   MSImagingGeometry geometry_;
 
   bool is_open_ {false};
+  bool skip_metadata_ {false}; // open(..., skip_metadata): spectra_ stays empty
   std::string ibd_path_;
 
   ~Impl()
@@ -98,9 +103,16 @@ struct OnDiscImzMLExperiment::Impl
   {
     const ImzMLSpectrumIndex& e = index_[i];
     MSSpectrum s;
-    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
-    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
-    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+    if (skip_metadata_)
+    {
+      s.setMetaValue("imzml:x", static_cast<Int>(e.x));
+      s.setMetaValue("imzml:y", static_cast<Int>(e.y));
+      s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+    }
+    else
+    {
+      s = spectra_[i]; // metadata incl. imzml:x/y/z and empty data arrays; peaks and values follow
+    }
 
     decodePeaksInto_(e, s);
     const std::size_t n = s.size();
@@ -109,10 +121,6 @@ struct OnDiscImzMLExperiment::Impl
     // so FloatDataArrays stay aligned with peak order.
     for (const ImzMLSpectrumIndex::AuxArray& aux : e.aux)
     {
-      if (aux.name.empty())
-      {
-        continue;
-      }
       if (aux.compressed)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
@@ -120,45 +128,23 @@ struct OnDiscImzMLExperiment::Impl
           + "' is not supported (IMS:1000104 encoded length="
           + StringConversions::toString(aux.encoded_bytes) + ")");
       }
-      if (aux.length == 0)
+      if (!ImzMLSpectrumRules::isLoadableAuxArray(aux.name, aux.length, aux.type, n, true, e.x, e.y, e.z))
       {
         continue;
       }
-      if (aux.length != n)
-      {
-        OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
-                        << e.x << "," << e.y << "," << e.z
-                        << "): length " << aux.length << " != peak count " << n << "\n";
-        continue;
-      }
-      if (aux.type == ImzMLSpectrumIndex::DataType::UNKNOWN)
-      { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than
-        // abort the read, matching the warn-and-skip policy for other bad aux arrays
-        OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
-                        << e.x << "," << e.y << "," << e.z
-                        << "): missing or unsupported binary data type\n";
-        continue;
-      }
-      std::vector<float> values;
+      std::vector<float> values; // exactly aux.length values (readAuxArray throws otherwise)
       ImzMLBinaryIO::readAuxArray(ibd_, aux.offset, aux.length, aux.type, values, ibd_path_, aux.name);
-      if (values.empty())
-      {
-        continue;
-      }
-      auto& fda = s.getFloatDataArrays().emplace_back();
-      fda.setName(aux.name);
-      if (!aux.unit_accession.empty())
-      {
-        fda.setMetaValue("unit_accession", aux.unit_accession);
-      }
-      fda.assign(values.begin(), values.end());
+      ImzMLSpectrumRules::attachAuxArray(s, aux.name, aux.unit_accession, values);
     }
+    // Same as ImzMLInterceptConsumer: drop the arrays no .ibd values went into.
+    ImzMLSpectrumRules::pruneEmptyDataArrays(s);
 
-    // Same default as MzMLHandler / ImzMLInterceptConsumer: per-peak IM from the
-    // .ibd is profile data unless a later centroiding step marks it otherwise.
-    if (s.containsIMData() && s.getIMPeakType() == IMPeakType::UNKNOWN)
+    // Same rule as ImzMLInterceptConsumer after its .ibd fill (the parsed type comes with
+    // the spectrum metadata). Without metadata (skip_metadata) the declared type is unknown,
+    // so the IM peak type stays UNKNOWN rather than a guess.
+    if (!skip_metadata_)
     {
-      s.setIMPeakType(IMPeakType::IM_PROFILE);
+      ImzMLSpectrumRules::applyIMPeakType(s, s.containsIMData());
     }
 
     s.sortByPosition();
@@ -223,13 +209,21 @@ OnDiscImzMLExperiment& OnDiscImzMLExperiment::operator=(OnDiscImzMLExperiment&& 
   return *this;
 }
 
-void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::string& ibd_path_override)
+void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::string& ibd_path_override, bool skip_metadata)
 {
   pimpl_ = std::make_unique<Impl>();
 
   ImzMLFile f;
   f.setLogType(ProgressLogger::NONE);
-  f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, ibd_path_override);
+  if (skip_metadata)
+  { // parsed with the index, then released at the end of this scope
+    MSExperiment discarded;
+    f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, discarded, ibd_path_override);
+  }
+  else
+  {
+    f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, pimpl_->spectra_, ibd_path_override);
+  }
 
   // Build the 2D imaging geometry up front (in-memory pass over the index, no .ibd
   // reads). Coordinate-grid problems surface here; only peak decode stays lazy.
@@ -249,6 +243,7 @@ void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::strin
   if (!pimpl_->ibd_)
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
 
+  pimpl_->skip_metadata_ = skip_metadata;
   pimpl_->is_open_ = true;
 }
 
@@ -260,7 +255,14 @@ void OnDiscImzMLExperiment::close() noexcept
     pimpl_->ibd_ = nullptr;
   }
   pimpl_->is_open_ = false;
+  // Release everything open() built (fresh containers free the capacity, which clear() keeps), so no
+  // getter describes a dataset that is no longer open.
   pimpl_->geometry_.clear();
+  pimpl_->spectra_ = MSExperiment();
+  std::vector<ImzMLSpectrumIndex>().swap(pimpl_->index_);
+  pimpl_->meta_ = ImzMLMeta();
+  pimpl_->ibd_path_.clear();
+  pimpl_->skip_metadata_ = false;
 }
 
 bool OnDiscImzMLExperiment::isOpen() const noexcept
@@ -347,6 +349,11 @@ MSImagingGeometry& OnDiscImzMLExperiment::getGeometry()
 const ImzMLMeta& OnDiscImzMLExperiment::getImzMLMeta() const noexcept
 {
   return pimpl_->meta_;
+}
+
+const ExperimentalSettings& OnDiscImzMLExperiment::getExperimentalSettings() const
+{
+  return pimpl_->spectra_.getExperimentalSettings();
 }
 
 uint32_t OnDiscImzMLExperiment::gridWidth() const noexcept

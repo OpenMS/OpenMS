@@ -33,6 +33,7 @@
 
 #include <map>
 #include <set>
+#include <utility>
 
 using namespace OpenMS;
 using namespace std;
@@ -142,9 +143,9 @@ class ProSE :
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
-      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet. The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
+      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input runs/<basename>.psm.parquet and runs/<basename>.pg.parquet, and quantms.psm.parquet and quantms.pg.parquet of the whole run: the folder is one QPX dataset (prefix quantms). The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
 
-      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
+      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input runs/<basename>.psm/proteins/pg/search_params.parquet, and openms.psm/proteins/pg/search_params.parquet of the whole run: the folder is one dataset (prefix openms).", false, true);
 
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<std::string>("idXML"));
@@ -177,6 +178,11 @@ class ProSE :
       const std::string out_parquet_dir = getOutputDirOption("out_parquet");
       // getOutputDirOption auto-creates the directory if it doesn't exist (and returns "" if unset).
       const std::string out_mod_analysis_dir = getOutputDirOption("out_mod_analysis_dir");
+
+      // The per-input Parquet files go to runs/ below the output directory, the files of the whole run stay on top:
+      // an input may be named like them (quantms, openms) without overwriting them.
+      const std::string qpx_runs_dir = out_qpx_dir + "/runs";
+      const std::string parquet_runs_dir = out_parquet_dir + "/runs";
 
       if (in_list.empty())
       {
@@ -220,6 +226,17 @@ class ProSE :
                              << "'. Parquet directory output requires unique basenames." << endl;
             return ILLEGAL_PARAMETERS;
           }
+        }
+      }
+
+      // Create runs/ (the output directories themselves exist already, see getOutputDirOption).
+      for (const auto& [option, dir] : {std::pair<std::string, std::string>{"-out_qpx", out_qpx_dir},
+                                        std::pair<std::string, std::string>{"-out_parquet", out_parquet_dir}})
+      {
+        if (!dir.empty() && !File::makeDir(dir + "/runs"))
+        {
+          OPENMS_LOG_ERROR << "Cannot create the output directory '" << dir << "/runs' (" << option << ")." << endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
 
@@ -543,7 +560,7 @@ class ProSE :
           try
           {
           // PSM — build table once, write to file, accumulate same table for merge.
-          const std::string qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
+          const std::string qpx_psm_file = qpx_runs_dir + "/" + basename + ".psm.parquet";
           auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (qpx_psm_table)
           {
@@ -568,7 +585,7 @@ class ProSE :
           }
 
           // Protein groups — independent of PSM result.
-          const std::string qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
+          const std::string qpx_pg_file = qpx_runs_dir + "/" + basename + ".pg.parquet";
           auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
           // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to
           // libOpenMS' implementation, and on Windows its symbols are dllimport, so calling the
@@ -622,7 +639,7 @@ class ProSE :
         if (!out_parquet_dir.empty())
         {
           // PSM (internal PSMSchema) — build once, write, accumulate for merge.
-          const std::string oms_psm_file = out_parquet_dir + "/" + basename + ".psm.parquet";
+          const std::string oms_psm_file = parquet_runs_dir + "/" + basename + ".psm.parquet";
           auto oms_psm_table = QPXFile::exportToArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (oms_psm_table)
           {
@@ -639,7 +656,7 @@ class ProSE :
           }
 
           // Proteins
-          const std::string oms_prot_file = out_parquet_dir + "/" + basename + ".proteins.parquet";
+          const std::string oms_prot_file = parquet_runs_dir + "/" + basename + ".proteins.parquet";
           auto prot_table = ProteinIdentificationArrowIO::exportProteinsToArrow(result.protein_ids);
           if (prot_table)
           {
@@ -656,7 +673,7 @@ class ProSE :
           }
 
           // Protein groups
-          const std::string oms_pg_file = out_parquet_dir + "/" + basename + ".pg.parquet";
+          const std::string oms_pg_file = parquet_runs_dir + "/" + basename + ".pg.parquet";
           auto pg_table = ProteinIdentificationArrowIO::exportProteinGroupsToArrow(result.protein_ids);
           if (pg_table)
           {
@@ -673,7 +690,7 @@ class ProSE :
           }
 
           // Search params
-          const std::string oms_sp_file = out_parquet_dir + "/" + basename + ".search_params.parquet";
+          const std::string oms_sp_file = parquet_runs_dir + "/" + basename + ".search_params.parquet";
           const auto sp_definitions = ModificationDefinitionIO::encodeByRun(
             result.protein_ids, ModificationDefinitionIO::collect(result.protein_ids, result.peptide_ids));
           auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids, sp_definitions);

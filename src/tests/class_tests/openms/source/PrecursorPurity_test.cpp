@@ -11,6 +11,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -235,6 +236,51 @@ END_SECTION
 END_SECTION
 
 
+
+START_SECTION(([EXTRA] computeSingleScanPrecursorPurities: only intensity inside an off-centre isolation window counts))
+{
+  // The instrument isolated the second isotope (charge 2) in a +-0.2 Th window around it; the selected ion m/z is the
+  // monoisotopic peak, outside that window. Inside: the second isotope (80) and an interferent (20).
+  const double d = Constants::C13C12_MASSDIFF_U / 2.0;
+  PeakMap exp;
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.push_back(Peak1D(500.0, 100.0f));    // monoisotopic, outside the window
+  ms1.push_back(Peak1D(500.0 + d, 80.0f)); // second isotope, inside
+  ms1.push_back(Peak1D(500.6, 20.0f));     // interferent, inside
+  ms1.push_back(Peak1D(501.0 + d, 50.0f)); // fourth isotope, outside
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  Precursor pre;
+  pre.setMZ(500.0);
+  pre.setCharge(2);
+  pre.setMetaValue("isolation window target m/z", 500.0 + d);
+  pre.setIsolationWindowLowerOffset(0.2);
+  pre.setIsolationWindowUpperOffset(0.2);
+  ms2.setPrecursors({pre});
+  exp.addSpectrum(ms1);
+  exp.addSpectrum(ms2);
+  std::vector<double> purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+  TEST_EQUAL(purities.size(), 1)
+  TEST_REAL_SIMILAR(purities[0], 0.8)
+
+  // a follow-up survey scan without signal in the window does not count in the interpolation
+  MSSpectrum next_ms1;
+  next_ms1.setMSLevel(1);
+  next_ms1.push_back(Peak1D(499.0, 100.0f));
+  exp[0].setRT(10.0);
+  exp[1].setRT(11.0);
+  next_ms1.setRT(12.0);
+  exp.addSpectrum(next_ms1);
+  purities = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, 2, exp, 10.0);
+  TEST_REAL_SIMILAR(purities[0], 0.8)
+
+  // nothing of the precursor inside the window
+  exp[0][1].setIntensity(0.0f);
+  purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+  TEST_REAL_SIMILAR(purities[0], 0.0)
+}
+END_SECTION
 
 START_SECTION((static Size countSPSPrecursorsMatchingPeptideFragments(const std::vector<Precursor>& sps_precursors, const AASequence& peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, int max_fragment_charge)))
 

@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -27,10 +28,16 @@
 
 #include <algorithm>
 #include <cctype>
+#include <charconv>
+#include <cmath>
 #include <cstdint>
+#include <functional>
+#include <limits>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <unordered_set>
+#include <variant>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -87,7 +94,8 @@ namespace
   /// Non-QPX tables, and QPX sidecars not produced by these exporters, pass through unchanged.
   bool validateQPXValuesForWrite(
     const std::shared_ptr<arrow::Table>& table,
-    const std::string& filename)
+    const std::string& filename,
+    bool extra_columns)
   {
     const auto metadata = table->schema()->metadata();
     if (!metadata || !metadata->Contains("qpx_version")) { return true; }
@@ -120,6 +128,7 @@ namespace
     }
 
     QPXValueValidation validator(view);
+    validator.setExtraColumnsAllowed(extra_columns);
     const auto validation = validator.validate(table);
     if (!validation.valid)
     {
@@ -591,6 +600,326 @@ std::string qpxScanFormat(const std::vector<std::string>& native_ids)
   return resolved;
 }
 
+namespace
+{
+  /// The rows of @p c (the size of the vector of its type).
+  size_t parquetColumnRows(const ParquetColumn& c)
+  {
+    switch (c.type)
+    {
+      case ParquetColumn::Type::INT16:
+      case ParquetColumn::Type::INT32:
+      case ParquetColumn::Type::BOOL:
+      case ParquetColumn::Type::INT64:                return c.int64_values.size();
+      case ParquetColumn::Type::DOUBLE:
+      case ParquetColumn::Type::FLOAT:                return c.double_values.size();
+      case ParquetColumn::Type::INT32_LIST:           return c.int32_lists.size();
+      case ParquetColumn::Type::STRUCT_LIST:          return c.struct_lists.size();
+      case ParquetColumn::Type::UTF8:                 return c.utf8_values.size();
+      case ParquetColumn::Type::FLOAT_LIST:           return c.float_lists.size();
+      case ParquetColumn::Type::UTF8_LIST:            return c.utf8_lists.size();
+      case ParquetColumn::Type::SCORE_LIST:           return c.score_lists.size();
+    }
+    return 0;
+  }
+
+  /// The Arrow type of a STRUCT_LIST of @p fields (null for a field of another type)
+  std::shared_ptr<arrow::DataType> structListType(const std::vector<ParquetColumn::StructField>& fields)
+  {
+    std::vector<std::shared_ptr<arrow::Field>> out;
+    for (const ParquetColumn::StructField& f : fields)
+    {
+      std::shared_ptr<arrow::DataType> type;
+      switch (f.type)
+      {
+        case ParquetColumn::Type::UTF8:        type = arrow::utf8(); break;
+        case ParquetColumn::Type::INT32:       type = arrow::int32(); break;
+        case ParquetColumn::Type::BOOL:        type = arrow::boolean(); break;
+        case ParquetColumn::Type::DOUBLE:      type = arrow::float64(); break;
+        case ParquetColumn::Type::FLOAT:       type = arrow::float32(); break;
+        case ParquetColumn::Type::STRUCT_LIST: type = structListType(f.fields); break;
+        default: break;
+      }
+      if (!type) { return nullptr; }
+      out.push_back(arrow::field(f.name, type, f.nullable));
+    }
+    return arrow::list(arrow::struct_(out));
+  }
+
+  /// Appends a list of @p entries of the structs of @p fields to @p b (whose type is structListType(@p fields))
+  arrow::Status appendStructEntries(arrow::ListBuilder& b, const std::vector<ParquetColumn::StructField>& fields,
+                                    const std::vector<ParquetColumn::StructEntry>& entries, const std::string& column)
+  {
+    ARROW_RETURN_NOT_OK(b.Append());
+    auto& entry_builder = static_cast<arrow::StructBuilder&>(*b.value_builder());
+    for (const ParquetColumn::StructEntry& entry : entries)
+    {
+      if (entry.size() != fields.size())
+      {
+        return arrow::Status::Invalid("column '", column, "': an entry of ", entry.size(), " values for ", fields.size(), " fields");
+      }
+      ARROW_RETURN_NOT_OK(entry_builder.Append());
+      for (size_t k = 0; k < fields.size(); ++k)
+      {
+        const ParquetColumn::StructField& f = fields[k];
+        const auto& v = entry[k].value;
+        arrow::ArrayBuilder& fb = *entry_builder.field_builder(static_cast<int>(k));
+        if (std::holds_alternative<std::monostate>(v))
+        {
+          if (!f.nullable) { return arrow::Status::Invalid("column '", column, "': the field '", f.name, "' is non-null"); }
+          ARROW_RETURN_NOT_OK(fb.AppendNull());
+          continue;
+        }
+        const auto mismatch = [&]() { return arrow::Status::Invalid("column '", column, "': a value of another type for the field '", f.name, "'"); };
+        switch (f.type)
+        {
+          case ParquetColumn::Type::UTF8:
+            if (!std::holds_alternative<std::string>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::StringBuilder&>(fb).Append(std::get<std::string>(v)));
+            break;
+          case ParquetColumn::Type::INT32:
+            if (!std::holds_alternative<Int32>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::Int32Builder&>(fb).Append(std::get<Int32>(v)));
+            break;
+          case ParquetColumn::Type::BOOL:
+            if (!std::holds_alternative<bool>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::BooleanBuilder&>(fb).Append(std::get<bool>(v)));
+            break;
+          case ParquetColumn::Type::DOUBLE:
+            if (!std::holds_alternative<double>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::DoubleBuilder&>(fb).Append(std::get<double>(v)));
+            break;
+          case ParquetColumn::Type::FLOAT:
+            if (!std::holds_alternative<double>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::FloatBuilder&>(fb).Append(static_cast<float>(std::get<double>(v))));
+            break;
+          case ParquetColumn::Type::STRUCT_LIST:
+            if (!std::holds_alternative<std::vector<ParquetColumn::StructEntry>>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(appendStructEntries(static_cast<arrow::ListBuilder&>(fb), f.fields,
+                                                    std::get<std::vector<ParquetColumn::StructEntry>>(v), column));
+            break;
+          default:
+            return mismatch();
+        }
+      }
+    }
+    return arrow::Status::OK();
+  }
+
+  /// The Arrow array and field of @p c (@p rows rows); a builder error is returned as its status.
+  arrow::Status buildParquetColumn(const ParquetColumn& c, size_t rows, std::shared_ptr<arrow::Field>& field,
+                                   std::shared_ptr<arrow::Array>& array)
+  {
+    auto isNull = [&c](size_t row) { return !c.null_rows.empty() && c.null_rows[row]; };
+    // One row of each type: append the value of @p row (not null) to @p b.
+    auto build = [&](arrow::ArrayBuilder& b, const std::shared_ptr<arrow::DataType>& type, auto&& append) -> arrow::Status
+    {
+      for (size_t row = 0; row < rows; ++row)
+      {
+        if (isNull(row) && !c.nullable)
+        {
+          return arrow::Status::Invalid("column '", c.name, "' is non-null, row ", row, " is null");
+        }
+        ARROW_RETURN_NOT_OK(isNull(row) ? b.AppendNull() : append(row));
+      }
+      ARROW_RETURN_NOT_OK(b.Finish(&array));
+      field = arrow::field(c.name, type, c.nullable);
+      return arrow::Status::OK();
+    };
+    auto int32Of = [&c](int64_t v, size_t row, int32_t& out) -> arrow::Status
+    {
+      if (v < std::numeric_limits<int32_t>::min() || v > std::numeric_limits<int32_t>::max())
+      {
+        return arrow::Status::Invalid("column '", c.name, "' row ", row, ": ", v, " is outside the range of int32");
+      }
+      out = static_cast<int32_t>(v);
+      return arrow::Status::OK();
+    };
+    switch (c.type)
+    {
+      case ParquetColumn::Type::INT16:
+      {
+        arrow::Int16Builder b;
+        return build(b, arrow::int16(), [&](size_t row)
+        {
+          const int64_t v = c.int64_values[row];
+          if (v < std::numeric_limits<int16_t>::min() || v > std::numeric_limits<int16_t>::max())
+          {
+            return arrow::Status::Invalid("column '", c.name, "' row ", row, ": ", v, " is outside the range of int16");
+          }
+          return b.Append(static_cast<int16_t>(v));
+        });
+      }
+      case ParquetColumn::Type::INT64:
+      {
+        arrow::Int64Builder b;
+        return build(b, arrow::int64(), [&](size_t row) { return b.Append(c.int64_values[row]); });
+      }
+      case ParquetColumn::Type::INT32:
+      {
+        arrow::Int32Builder b;
+        return build(b, arrow::int32(), [&](size_t row)
+        {
+          int32_t v = 0;
+          ARROW_RETURN_NOT_OK(int32Of(c.int64_values[row], row, v));
+          return b.Append(v);
+        });
+      }
+      case ParquetColumn::Type::BOOL:
+      {
+        arrow::BooleanBuilder b;
+        return build(b, arrow::boolean(), [&](size_t row) { return b.Append(c.int64_values[row] != 0); });
+      }
+      case ParquetColumn::Type::DOUBLE:
+      {
+        arrow::DoubleBuilder b;
+        return build(b, arrow::float64(), [&](size_t row) { return b.Append(c.double_values[row]); });
+      }
+      case ParquetColumn::Type::FLOAT:
+      {
+        arrow::FloatBuilder b;
+        return build(b, arrow::float32(), [&](size_t row) { return b.Append(static_cast<float>(c.double_values[row])); });
+      }
+      case ParquetColumn::Type::INT32_LIST:
+      {
+        auto values = std::make_shared<arrow::Int32Builder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        return build(b, arrow::list(arrow::int32()), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.int32_lists[row]);
+        });
+      }
+      case ParquetColumn::Type::STRUCT_LIST:
+      {
+        const auto type = structListType(c.struct_fields);
+        if (!type) { return arrow::Status::Invalid("column '", c.name, "': a struct field of an unsupported type"); }
+        std::unique_ptr<arrow::ArrayBuilder> made;
+        ARROW_RETURN_NOT_OK(arrow::MakeBuilder(arrow::default_memory_pool(), type, &made));
+        auto& b = static_cast<arrow::ListBuilder&>(*made);
+        return build(b, type, [&](size_t row) { return appendStructEntries(b, c.struct_fields, c.struct_lists[row], c.name); });
+      }
+      case ParquetColumn::Type::UTF8:
+      {
+        arrow::StringBuilder b;
+        return build(b, arrow::utf8(), [&](size_t row) { return b.Append(c.utf8_values[row]); });
+      }
+      case ParquetColumn::Type::FLOAT_LIST:
+      {
+        auto values = std::make_shared<arrow::FloatBuilder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        return build(b, arrow::list(arrow::float32()), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.float_lists[row]);
+        });
+      }
+      case ParquetColumn::Type::UTF8_LIST:
+      {
+        auto values = std::make_shared<arrow::StringBuilder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        return build(b, arrow::list(arrow::utf8()), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.utf8_lists[row]);
+        });
+      }
+      case ParquetColumn::Type::SCORE_LIST:
+      {
+        // the type of the QPX additional_scores, so that the column can replace that of a QPX view
+        const auto type = QPXPSMSchema::additionalScoresType();
+        auto name = std::make_shared<arrow::StringBuilder>();
+        auto value = std::make_shared<arrow::DoubleBuilder>();
+        auto higher_better = std::make_shared<arrow::BooleanBuilder>();
+        auto entry = std::make_shared<arrow::StructBuilder>(std::static_pointer_cast<arrow::ListType>(type)->value_type(),
+          arrow::default_memory_pool(), std::vector<std::shared_ptr<arrow::ArrayBuilder>>{name, value, higher_better});
+        arrow::ListBuilder b(arrow::default_memory_pool(), entry, type);
+        return build(b, type, [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          for (const ParquetColumn::Score& s : c.score_lists[row])
+          {
+            ARROW_RETURN_NOT_OK(entry->Append());
+            ARROW_RETURN_NOT_OK(name->Append(s.name));
+            ARROW_RETURN_NOT_OK(value->Append(s.value));
+            ARROW_RETURN_NOT_OK(s.higher_better ? higher_better->Append(*s.higher_better) : higher_better->AppendNull());
+          }
+          return arrow::Status::OK();
+        });
+      }
+    }
+    return arrow::Status::Invalid("unknown column type");
+  }
+} // namespace
+
+std::shared_ptr<arrow::Table> withColumns(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::vector<ParquetColumn>& columns)
+{
+  if (!table)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "withColumns: null table");
+  }
+  const size_t rows = static_cast<size_t>(table->num_rows());
+  for (const ParquetColumn& c : columns)
+  {
+    if (parquetColumnRows(c) != rows || (!c.null_rows.empty() && c.null_rows.size() != rows))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Column '" + c.name + "' has " + std::to_string(parquetColumnRows(c)) + " rows, the table " + std::to_string(rows));
+    }
+  }
+
+  std::shared_ptr<arrow::Table> out = table;
+  for (const ParquetColumn& c : columns)
+  {
+    std::shared_ptr<arrow::Field> field;
+    std::shared_ptr<arrow::Array> array;
+    arrow::Status status = buildParquetColumn(c, rows, field, array);
+    if (status.ok())
+    {
+      const auto chunked = std::make_shared<arrow::ChunkedArray>(array);
+      const int existing = out->schema()->GetFieldIndex(c.name);
+      auto result = existing >= 0 ? out->SetColumn(existing, field, chunked) : out->AddColumn(out->num_columns(), field, chunked);
+      status = result.status();
+      if (status.ok()) { out = result.ValueOrDie(); }
+    }
+    if (!status.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: adding column '" << c.name << "' failed: " << status.ToString() << std::endl;
+      return nullptr;
+    }
+  }
+  return out;
+}
+
+std::shared_ptr<arrow::Table> tableOfColumns(
+  const std::vector<ParquetColumn>& columns,
+  Size rows)
+{
+  std::vector<std::shared_ptr<arrow::Field>> fields;
+  std::vector<std::shared_ptr<arrow::Array>> arrays;
+  for (const ParquetColumn& c : columns)
+  {
+    if (parquetColumnRows(c) != rows || (!c.null_rows.empty() && c.null_rows.size() != rows))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Column '" + c.name + "' has " + std::to_string(parquetColumnRows(c)) + " rows, the table " + std::to_string(rows));
+    }
+    std::shared_ptr<arrow::Field> field;
+    std::shared_ptr<arrow::Array> array;
+    const arrow::Status status = buildParquetColumn(c, rows, field, array);
+    if (!status.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: building column '" << c.name << "' failed: " << status.ToString() << std::endl;
+      return nullptr;
+    }
+    fields.push_back(field);
+    arrays.push_back(array);
+  }
+  return arrow::Table::Make(arrow::schema(fields), arrays, static_cast<int64_t>(rows));
+}
+
 bool writeTableToParquet(
   const std::shared_ptr<arrow::Table>& table,
   const std::string& filename,
@@ -601,7 +930,7 @@ bool writeTableToParquet(
     OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to writeTableToParquet (" << filename << ")" << std::endl;
     return false;
   }
-  if (!validateQPXValuesForWrite(table, filename)) { return false; }
+  if (!validateQPXValuesForWrite(table, filename, config.qpx_extra_columns)) { return false; }
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
   if (!file_result.ok())
@@ -622,6 +951,26 @@ bool writeTableToParquet(
   builder.data_pagesize(config.data_page_size);
   if (config.write_statistics) { builder.enable_statistics(); }
   else                         { builder.disable_statistics(); }
+  for (const std::string& name : config.plain_columns)
+  {
+    const auto field = table->schema()->GetFieldByName(name);
+    if (!field) { continue; }
+    // the Parquet paths of the column's leaves: a list as <name>.list.element, a struct by its fields
+    std::function<void(const std::string&, const std::shared_ptr<arrow::DataType>&)> leaves =
+      [&](const std::string& path, const std::shared_ptr<arrow::DataType>& type)
+    {
+      if (type->id() == arrow::Type::LIST)
+      {
+        leaves(path + ".list.element", std::static_pointer_cast<arrow::ListType>(type)->value_type());
+      }
+      else if (type->id() == arrow::Type::STRUCT)
+      {
+        for (const auto& child : type->fields()) { leaves(path + "." + child->name(), child->type()); }
+      }
+      else { builder.disable_dictionary(path); }
+    };
+    leaves(name, field->type());
+  }
 
   auto writer_properties = builder.build();
   auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
@@ -762,6 +1111,42 @@ bool getBoolValue(const std::shared_ptr<arrow::Array>& array, int64_t row, bool 
 bool isNull(const std::shared_ptr<arrow::Array>& array, int64_t row)
 {
   return !array || array->IsNull(row);
+}
+
+std::string metaValueString(const DataValue& value)
+{
+  // Shortest decimal that reads back as the same double. NaN as DataValue::toString() writes it, since
+  // StringUtils::toDouble() reads "NaN" and "inf"/"-inf" but std::to_chars writes "nan".
+  const auto append_double = [](double d, std::string& target)
+  {
+    if (std::isnan(d)) { target += "NaN"; return; }
+    char buf[32];
+    const auto result = std::to_chars(buf, buf + sizeof(buf), d);
+    target.append(buf, result.ptr);
+  };
+
+  std::string s;
+  if (value.valueType() == DataValue::DOUBLE_VALUE)
+  {
+    append_double(static_cast<double>(value), s);
+  }
+  else if (value.valueType() == DataValue::DOUBLE_LIST)
+  {
+    // the list format of DataValue::toString(), "[a, b, c]"
+    s += '[';
+    const DoubleList list = value.toDoubleList();
+    for (Size i = 0; i < list.size(); ++i)
+    {
+      if (i > 0) s += ", ";
+      append_double(list[i], s);
+    }
+    s += ']';
+  }
+  else
+  {
+    s = value.toString();
+  }
+  return s;
 }
 
 void readMetaValues(

@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -1069,4 +1070,63 @@ delete q_method;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static bool scanWindowCoversChannels(const MSSpectrum& spec, const IsobaricQuantitationMethod& method, double tolerance = 0.0)))
+{
+  TMTTenPlexQuantitationMethod tmt10;
+  MSSpectrum spec;
+  // no scan window: assume it covers the channels
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  ScanWindow w;
+  w.begin = 100.0;
+  w.end = 2000.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  // TMT10 reporters are at m/z 126.1-131.1: a scan from m/z 120 covers them, a scan from m/z 127 misses 126
+  w.begin = 120.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+  w.begin = 127.0;
+  spec.getInstrumentSettings().setScanWindows({w});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), false)
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10, 1.0), true)
+  // disjoint windows: m/z 100-127 and 130-2000 together span the reporters but miss those at m/z 127-130
+  ScanWindow w2;
+  w.begin = 100.0;
+  w.end = 127.0;
+  w2.begin = 130.0;
+  w2.end = 2000.0;
+  spec.getInstrumentSettings().setScanWindows({w, w2});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), false)
+  w.end = 129.0;
+  w2.begin = 129.0;
+  spec.getInstrumentSettings().setScanWindows({w, w2});
+  TEST_EQUAL(IsobaricChannelExtractor::scanWindowCoversChannels(spec, tmt10), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PrecursorPurity::isolationWindowCenter))
+{
+  Precursor p;
+  p.setMZ(627.646);
+  TEST_REAL_SIMILAR(PrecursorPurity::isolationWindowCenter(p), 627.646)
+  p.setMetaValue("isolation window target m/z", 627.980);
+  TEST_REAL_SIMILAR(PrecursorPurity::isolationWindowCenter(p), 627.980)
+
+  // the selected ion is the third isotope (charge 2), above the window's target m/z: the isotopes below it, down to
+  // the monoisotopic peak, are inside the window [499, 502] and count as precursor signal
+  PeakSpectrum ms1;
+  const double d = Constants::C13C12_MASSDIFF_U / 2.0;
+  for (int k = 0; k < 4; ++k) ms1.push_back(Peak1D(500.0 + k * d, 100.0f));
+  Precursor pre;
+  pre.setMZ(500.0 + 3 * d);
+  pre.setCharge(2);
+  pre.setMetaValue("isolation window target m/z", 500.0);
+  pre.setIsolationWindowLowerOffset(1.0);
+  pre.setIsolationWindowUpperOffset(2.0);
+  const auto scores = PrecursorPurity::computePrecursorPurity(ms1, pre, 10.0, true);
+  TEST_EQUAL(scores.target_peak_count, 4)
+  TEST_REAL_SIMILAR(scores.signal_proportion, 1.0)
+}
+END_SECTION
+
 END_TEST

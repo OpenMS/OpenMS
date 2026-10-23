@@ -251,15 +251,39 @@ namespace OpenMS
                                   const std::string& native_id);
 
     /**
-      @brief Extract scan number from a native spectrum ID.
+      @brief Extract scan number from a native spectrum ID for USI generation.
 
-      Attempts to extract a numeric scan number from various native ID formats.
-      This is useful when converting native IDs to USI format.
+      Only returns a scan number when the native ID format unambiguously identifies
+      a scan number suitable for the USI `scan:` index type (PSI USI spec section 3.3.5):
+      - Thermo standard: `controllerType=0 controllerNumber=1 scan=X` → X
+      - Bare `scan=X` (Bruker/Agilent simple format) → X
+
+      Non-standard Thermo (controllerType != 0), Waters, Bruker TDF, SCIEX WIFF,
+      and index-based native IDs return std::nullopt — callers should use
+      nativeIdToUSIIndex() for the full USI-spec-compliant mapping.
 
       @param native_id Native spectrum identifier
-      @return Scan number if extraction succeeded, std::nullopt otherwise
+      @return Scan number if this is a standard scan format, std::nullopt otherwise
     */
     static std::optional<int> extractScanNumberFromNativeID(const std::string& native_id);
+
+    /**
+      @brief Convert a native spectrum ID to USI index type and value per the PSI USI spec.
+
+      Maps vendor native ID formats to the correct USI index representation:
+      - `controllerType=0 controllerNumber=1 scan=X` → (SCAN, "X")
+      - `scan=X` (bare, no other prefix) → (SCAN, "X")
+      - `index=X` → (INDEX, "X")
+      - `controllerType=5 controllerNumber=1 scan=7` → (NATIVEID, "5,1,7")
+      - `frame=120 scan=475` → (NATIVEID, "120,475")
+      - `frame=120 scan=475 precursor=2` → (NATIVEID, "120,475,2") (OpenMS DDA extension)
+      - `function=10 process=1 scan=345` → (NATIVEID, "10,1,345")
+      - `sample=1 period=1 cycle=2740 experiment=10` → (NATIVEID, "1,1,2740,10")
+
+      @param native_id Native spectrum identifier
+      @return Pair of (IndexType, index string), or nullopt if native_id is empty
+    */
+    static std::optional<std::pair<IndexType, std::string>> nativeIdToUSIIndex(const std::string& native_id);
 
     /**
       @brief Get the index type string representation.
@@ -279,14 +303,15 @@ namespace OpenMS
     static IndexType indexTypeFromString(const std::string& type_string);
 
     /**
-      @brief Extract basename from a file path (removes directory path).
+      @brief Extract basename from a file path (removes directory and extension).
 
-      This is useful when converting full file paths to MS run names for USI.
-      Example: "/path/to/sample.mzML" -> "sample.mzML"
-      Example: "file:///C:/data/sample.mzML" -> "sample.mzML"
+      Converts full file paths to MS run root names for USI (PSI USI spec section 3.3.4:
+      the msRun is "the root name of a .RAW file or .mzML file").
+      Example: "/path/to/sample.mzML" -> "sample"
+      Example: "file:///C:/data/sample.raw" -> "sample"
 
       @param filepath Full file path or URI
-      @return Basename without path component
+      @return Root name without path or extension
     */
     static std::string extractBasename(const std::string& filepath);
     //@}

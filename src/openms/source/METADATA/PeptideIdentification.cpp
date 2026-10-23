@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/SYSTEM/File.h>
 
 
 
@@ -297,15 +298,14 @@ namespace OpenMS
                                       const std::string& dataset_id,
                                       bool include_interpretation) const
   {
-    // Get the spectrum reference (native ID)
     std::string spec_ref = getSpectrumReference();
 
-    // Try to extract scan number from native ID
-    auto scan_num = USI::extractScanNumberFromNativeID(spec_ref);
+    auto usi_index = USI::nativeIdToUSIIndex(spec_ref);
+    if (!usi_index.has_value())
+    {
+      return USI();
+    }
 
-    // Build interpretation string if requested and hits are available
-    // Note: The first hit is used as the interpretation. For best results,
-    // call sort() before this method to ensure the best-scoring hit is first.
     std::string interpretation;
     if (include_interpretation && !hits_.empty())
     {
@@ -319,36 +319,26 @@ namespace OpenMS
       interpretation = ProForma::toString(ion);
     }
 
-    if (scan_num.has_value())
-    {
-      // Use scan number if extraction succeeded
-      return USI(dataset_id, ms_run_name, USI::IndexType::SCAN,StringUtils::toStr(scan_num.value()), interpretation);
-    }
-    else if (!spec_ref.empty())
-    {
-      // Fall back to nativeId if scan number extraction failed
-      return USI(dataset_id, ms_run_name, USI::IndexType::NATIVEID, spec_ref, interpretation);
-    }
-    else
-    {
-      // Return invalid/empty USI if no spectrum reference is available
-      return USI();
-    }
+    return USI(dataset_id, ms_run_name, usi_index->first, usi_index->second, interpretation);
   }
 
   USI PeptideIdentification::buildUSI(const IdentifierMSRunMapper& mapping,
                                       const std::string& dataset_id,
                                       bool include_interpretation) const
   {
-    // Get the primary MS run path for this identification using the mapping
     std::string ms_run_path = mapping.getPrimaryMSRunPath(*this);
     if (ms_run_path.empty())
     {
-      return USI(); // Invalid USI if mapping not found
+      return USI();
     }
 
-    // Extract basename from the resolved path
     std::string ms_run_name = USI::extractBasename(ms_run_path);
+
+    auto usi_index = USI::nativeIdToUSIIndex(getSpectrumReference());
+    if (usi_index.has_value() && usi_index->first == USI::IndexType::INDEX)
+    {
+      ms_run_name = File::basename(ms_run_path);
+    }
 
     return buildUSI(ms_run_name, dataset_id, include_interpretation);
   }

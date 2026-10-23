@@ -10,6 +10,7 @@ BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
 ConsensusMapMergerAlgorithm.h
 ClassFDR.h
+EntrapmentEvaluation.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h

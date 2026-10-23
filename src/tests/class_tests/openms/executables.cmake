@@ -339,7 +339,7 @@ if(WITH_HDF5)
 endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
-  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test QPXDatasetExport_test
   QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
@@ -548,6 +548,7 @@ set(analysis_executables_list
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
   ClassFDR_test
+  EntrapmentEvaluation_test
   FalseDiscoveryRate_test
   Scores_test
   FeatureDeconvolution_test

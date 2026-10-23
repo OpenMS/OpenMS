@@ -613,7 +613,7 @@ structured numpy view of all pixels at once.
         .def("getWidth", &OpenMS::MSImagingGeometry::getWidth)
         .def("getHeight", &OpenMS::MSImagingGeometry::getHeight)
         .def("setPixelSize", &OpenMS::MSImagingGeometry::setPixelSize,
-             "x"_a, "y"_a, "unit"_a = std::string("micrometer"))
+             "x"_a, "y"_a, "unit"_a)
         .def("getPixelSizeX", &OpenMS::MSImagingGeometry::getPixelSizeX)
         .def("getPixelSizeY", &OpenMS::MSImagingGeometry::getPixelSizeY)
         .def("getPixelSizeUnit", &OpenMS::MSImagingGeometry::getPixelSizeUnit)

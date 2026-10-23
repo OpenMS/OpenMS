@@ -10,6 +10,7 @@ BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
 ConsensusMapMergerAlgorithm.cpp
 ClassFDR.cpp
+EntrapmentEvaluation.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
