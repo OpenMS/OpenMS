@@ -73,7 +73,7 @@ Notes on the files:
   - **HF-X, Astral, TMTpro:** one shuffled, mass-matched entrapment protein per target, r = 1.
   - **timsTOF:** added later with the same `human` database (#10639).
   - **Lumos:** only a whole-protein shuffle so far (#10639).
-  - For the paper the entrapment databases are rebuilt; see section 3.
+  - For the paper all entrapment databases were rebuilt with DecoyDatabase, Lumos included; see section 3.2.
 - **Comparison engines measured on the suite so far:** Sage 0.14.7, ANDES (b7eaece, auto models), MSFragger (only in #10403).
 
 ### Caveat for the paper
@@ -224,7 +224,7 @@ PXD019643 (DDA_1 of each; the DDA_2 and DDA_3 replicates lie next to them on PRI
 
 ## 3. Databases and entrapment
 
-Status 2026-10-23: **every dataset has a FASTA. Entrapment databases exist only for the main benchmark**, and only as scripts plus SHA256, not as files.
+Status 2026-10-23: **every dataset has a FASTA. The entrapment databases of the main benchmark are built** with DecoyDatabase (section 3.2). The datasets of section 2 have none yet, because their FASTA is not chosen (section 4).
 
 ### 3.1 Tools
 
@@ -241,23 +241,46 @@ Since 2026-10-23, PR [#10629](https://github.com/OpenMS/OpenMS/pull/10629) is me
 - They were close to the #10364 `make_entrapment.py` design.
 - The ANDES whole-protein shuffle underestimated the FDP by 20–33%. ANDES has since switched to the same design (bigbio/andes#237).
 
-**Plan for the paper:** rebuild all shuffled entrapment databases with `DecoyDatabase -entrapment_ratio 1` from develop, instead of the per-PR scripts.
-- **Several realisations:** build **3 realisations** (`-seed 1/2/3`) per database. A single realisation scatters by 0.1–0.27 pp (SD) on 3 files × 8,000 spectra.
-- **Reference:** add the *Arabidopsis* foreign entrapment as a reference for 2–3 groups.
-- **Archive:** freeze every FASTA (with UniProt release and download date) and every entrapment database on archive.openms.de, with SHA256 in this file.
+**For the paper** all shuffled entrapment databases are built with `DecoyDatabase -entrapment_ratio 1` from develop, instead of the per-PR scripts.
+- **Several realisations:** **3 realisations** (`-seed 1/2/3`) per database, because a single realisation scatters by 0.1–0.27 pp (SD) on 3 files × 8,000 spectra.
+- **Reference:** the *Arabidopsis* foreign entrapment for `hye` and `human`.
+- **Archive (still to do):** freeze every FASTA (with UniProt release and download date) and every entrapment database on archive.openms.de, with SHA256 in this file.
 
-### 3.2 Main benchmark
+### 3.2 Main benchmark: built databases
 
-| Group | Target database | Entrapment so far | For the paper |
-|---|---|---|---|
-| Velos | `hy` | natural: UPS1/yeast against all human proteins except UPS1, r = 3.376 (`make_velos_natural.py` adds `ENTRAP_` to those accessions) | keep |
-| HF-X, Astral | `hye` | shuffled r = 1, `make_entrapment.py` (#10364 supplement `sage-comparison-20261002`), SHA256 `fb77e3df…` | DecoyDatabase, 3 seeds |
-| TMTpro, timsTOF | `human` | same design, SHA256 `76d25071…` | DecoyDatabase, 3 seeds |
-| Lumos LFQ, Lumos TMT | `hy` | only a whole-protein 1:1 shuffle (#10639, SHA256 `1462fb72…`), the design that underestimates | DecoyDatabase, 3 seeds |
+Built on 2026-10-23 with [`prepare_inputs.sh`](prepare_inputs.sh) and [`build_entrapment_dbs.sh`](build_entrapment_dbs.sh). The build used OpenMS develop `916a7d5` (the #10629 merge), Release, system libraries on Ubuntu 24.04. It takes about 1 minute for all twelve. SHA256 of every database: [`entrapment_dbs.sha256`](entrapment_dbs.sha256).
 
-- **Target databases:** `hy`, `hye` and `human` are regenerated from the HYE FASTA (`d9ac434d…`) by `prepare_databases.py` (reproduction package), with SHA256 in its `databases.json`.
-- **Decoys, open decision:** the frozen suite uses full-protein reversal (`DECOY_`). DecoyDatabase reverses peptide by peptide. In #10629, decoy co-mapping changed the estimate by 0.05–0.1 pp, so one of the two decoy designs has to be chosen for all arms.
-- **Scripts:** the current scripts are on branch `claude/andes-benchmarks` (`benchmark-reproduction/andes-ports/pr10629/scripts/`: `prepare_databases_nopyopenms.py`, `frozen_make_entrapment.py`, `make_velos_natural.py`, `make_foreign.py`).
+**Inputs:**
+- `hy`, `hye` and `human` targets: cut from the HYE FASTA (`d9ac434d…`) exactly as the frozen `prepare_databases.py` does. The script checks the resulting target-decoy files against the frozen `databases.json`, and all three match.
+- *Arabidopsis*: reviewed UP000006548, UniProt 2026_03 (16,345 proteins), SHA256 `e20271b5…`, the same file as in #10629.
+
+**DecoyDatabase settings** (all databases):
+- `-enzyme Trypsin/P` (the search enzyme).
+- `-Decoy:keepPeptideNTerm false -Decoy:keepPeptideCTerm false`. This makes the decoys full-protein reversals with the `DECOY_` prefix, as in the #10364 suite and in the #10629 validation. With the peptide-termini options on, DecoyDatabase reverses peptide by peptide instead.
+- Shuffled entrapment: `-entrapment_ratio 1 -seed 1|2|3`.
+- Decoys are made for targets and entrapment proteins alike (`DECOY_ENTRAP_…`).
+
+| Group | Database | Targets | Entrapment | Decoys | Size |
+|---|---|---:|---:|---:|---:|
+| Velos (main) | `hy_velos_natural_td.fasta`: natural, all human proteins except UPS1 and contaminants | 7,152 | 20,336 | 27,488 | 31 MB |
+| Velos (check), Lumos LFQ, Lumos TMT | `hy_entrap_s{1,2,3}_td.fasta`: shuffled, r = 1 | 27,488 | 27,488 | 54,976 | 65 MB each |
+| HF-X, Astral | `hye_entrap_s{1,2,3}_td.fasta`: shuffled, r = 1 | 31,889 | 31,889 | 63,778 | 71 MB each |
+| TMTpro, timsTOF | `human_entrap_s{1,2,3}_td.fasta`: shuffled, r = 1 | 20,767 | 20,767 | 41,534 | 51 MB each |
+| HF-X, Astral (reference) | `hye_arath_td.fasta`: *Arabidopsis* as foreign entrapment | 31,889 | 16,345 | 48,234 | 53 MB |
+| TMTpro, timsTOF (reference) | `human_arath_td.fasta`: *Arabidopsis* as foreign entrapment | 20,767 | 16,345 | 37,112 | 43 MB |
+
+**Checks** (on all twelve databases):
+- **Decoys:** every decoy is the exact reversal of its target or entrapment protein.
+- **Composition:** every shuffled entrapment protein has the amino acid composition of its target.
+- **Mass-matched peptides** (`db_stats.py` of #10629; Trypsin/P, ≤ 2 missed cleavages, 7–40 aa): no protein has moved cleavage sites, and every entrapment peptide has a target peptide of the same composition, hence the same mass.
+  - 0.3% of the entrapment peptides equal a target peptide (e.g. `hye` s1: 10,292 of 3.33 million). DecoyDatabase keeps them when no shuffle within the identity threshold remains; #10629 reports the same 0.3%.
+  - T/E = 1.003 (`hy`, `hye`, `human`, seed 1).
+- **Velos natural:** same entrapment accessions and sequences as the frozen `make_velos_natural.py` applied to `hy_td.fasta`. Only the decoy names differ (`DECOY_ENTRAP_…` instead of `DECOY_<accession>`), which does not matter to EntrapmentEvaluator. Its target and entrapment sequences are the ones on which #10629 measured T/E = 0.2962, the frozen 1/r (r = 3.376).
+- **Determinism:** a rerun of `hye` seed 2 gives a byte-identical file.
+
+**Not changed from #10364:** the contaminants (`Cont_`) get entrapment copies like every other target.
+
+**What the PRs used before:** `make_entrapment.py` of the #10364 supplement `sage-comparison-20261002`, SHA256 `fb77e3df…` (`hye`) and `76d25071…` (`human`). For Lumos (`hy`) only a whole-protein shuffle existed (#10639, `1462fb72…`), the design that underestimates. These scripts are on branch `claude/andes-benchmarks` (`benchmark-reproduction/andes-ports/pr10629/scripts/`). Numbers measured with them are not directly comparable with the new databases, which are different realisations.
 
 ### 3.3 Further datasets
 
@@ -290,5 +313,4 @@ There, FDR control rests on target-decoy only. The comparison is with the publis
 - **ProteomeTools:** whether the ion-trap CID pools go in.
 - **Immunopeptidomics:** whether to search all technical replicates per sample (needed for comparison with MHCquant2, FragPipe and PEAKS) or one replicate.
 - **Comparison engines and versions:** Sage, ANDES, MSFragger, Comet, … on the full runs.
-- **Decoys:** full-protein reversal, as in #10364, or DecoyDatabase's peptide-wise reversal, for all arms.
 - **FASTAs of section 2:** the authors' FASTA from PRIDE or a frozen current Swiss-Prot release.
