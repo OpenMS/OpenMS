@@ -46,7 +46,9 @@ run per arm. Peak RSS GiB / wall min; PSMs at q ≤ 0.01 (3 seeds):
 search finished in 15 GB without swap.
 
 - `low_memory` + chunks gives the PIN of the same chunks without `low_memory` (class I 16 chunks, class II 64 chunks):
-  chunking raises the effective candidate cap to 50 per chunk (see "Why `chunk_size` changes the results"), which costs
+  every chunk keeps its own `scoring:max_candidates_per_spectrum` = 50 candidates, so chunking raises the effective cap
+  to 50 per chunk (with an unlimited cap, chunked and unchunked searches are byte-identical: frozen `hfx_A2` 4 chunks,
+  MHC class I 16 chunks vs. 16 slices). That costs
   2–3 % PSMs here and makes the memory grow with the number of chunks (the hits of all chunks per spectrum).
 - Only on class I does the combination halve the memory at the same time. On class II, 16 chunks save 8 % of
   `low_memory`'s memory, and 64 slices are smaller and 1.6× faster without changing the results.
