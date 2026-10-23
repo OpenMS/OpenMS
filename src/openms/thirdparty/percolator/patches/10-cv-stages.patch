@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 381333e1f5..8750914452 100644
+index 381333e1f5..1b2a576f6b 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -137,6 +137,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
@@ -38,7 +38,81 @@ index 381333e1f5..8750914452 100644
      } catch (...) {
        trainErrors[set] = std::current_exception();
      }
-@@ -526,6 +536,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -383,12 +393,30 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+ 
+   // Create SVM input data for parallelization
+   // OpenMS: the folds in parallel (each fills its own SVM inputs from its own training set),
+-  // unless nested cross-validation draws the nested sets at random
++  // unless nested cross-validation draws the nested sets at random. Without nested
++  // cross-validation, the SVMs of a fold are trained and validated on copies of its training
++  // set; where Scores::generateTrainingSetsOfSortedSet can, it generates the SVM inputs from the
++  // set itself, and the pairs are validated on the set itself (it does not change until the
++  // next step), without the copies.
+   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
+   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
++  std::vector<const Scores*> pairTestScores(numFolds_ * nestedXvalBins_);
+   vector<std::exception_ptr> setupErrors(numFolds_);
+   const auto setupFold = [&](int set) {
+     try {
++      if (VERB > 2) {
++        const AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
++        cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
++             << " positives and " << svmInput->negatives << " negatives"
++             << std::endl;
++      }
++      if (nestedXvalBins_ == 1 &&
++          trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
++                                                            trainBestPositive_)) {
++        svmInputsVec[set] = svmInputs_[set];
++        pairTestScores[set] = &trainScores_[set];
++        return;
++      }
+       std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
+           nestedTestScores(nestedXvalBins_, usePi0_);
+       if (nestedXvalBins_ > 1) {
+@@ -405,11 +433,6 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+       for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
+            ++nestedFold) {
+         AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
+-        if ((VERB > 2) && (nestedFold == 0)) {
+-          cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
+-               << " positives and " << svmInput->negatives << " negatives"
+-               << std::endl;
+-        }
+         nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
+         nestedTrainScores[nestedFold].generatePositiveTrainingSet(
+             *svmInput, selectionFdr, 1.0, trainBestPositive_);
+@@ -419,6 +442,8 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+                << svmInput->negatives << " negatives" << std::endl;
+         }
+         svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
++        pairTestScores[set * nestedXvalBins_ + nestedFold] =
++            &nestedTestScoresVec[set][nestedFold];
+       }
+     } catch (...) {
+       setupErrors[set] = std::current_exception();
+@@ -448,7 +473,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+ #pragma omp parallel num_threads(numTeamThreads(numThreads_))
+ #pragma omp single
+   for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
+-#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, nestedTestScoresVec, pOptions)
++#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, pairTestScores, pOptions)
+     {
+       try {
+         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+@@ -457,8 +482,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+                          static_cast<unsigned int>(cpCnFold->nestedSet)];
+         trainCpCnPair(*cpCnFold, pOptions, svmInput);
+         pairTruePoses[pairIdx] =
+-            nestedTestScoresVec[cpCnFold->set][static_cast<std::size_t>(cpCnFold->nestedSet)]
+-                .countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
++            pairTestScores[cpCnFold->set * nestedXvalBins_ +
++                           static_cast<unsigned int>(cpCnFold->nestedSet)]
++                ->countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
+       } catch (...) {
+         pairErrors[pairIdx] = std::current_exception();
+       }
+@@ -526,6 +552,7 @@ int CrossValidation::mergeCpCnPairs(
      const vector<int>& pairTruePoses,
      const vector<double>& cposCandidates,
      const vector<double>& cfracCandidates) {
@@ -46,7 +120,7 @@ index 381333e1f5..8750914452 100644
    vector<int> bestTruePoses(numFolds_, 0);
    vector<double> bestCposes(numFolds_, 1);
    vector<double> bestCfracs(numFolds_, 1);
-@@ -639,6 +650,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -639,6 +666,7 @@ int CrossValidation::mergeCpCnPairs(
      }
    }
    rethrowFirstError(foldErrors);
@@ -54,7 +128,7 @@ index 381333e1f5..8750914452 100644
    double bestTruePos = 0;
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
      bestTruePos += truePoses[set];
-@@ -648,6 +660,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -648,6 +676,7 @@ int CrossValidation::mergeCpCnPairs(
  
  void CrossValidation::postIterationProcessing(Scores& fullset,
                                                SanityCheck* pCheck) {
@@ -77,7 +151,7 @@ index 7c01f3cbc5..3fcefdd056 100644
  
    void initializeGridSearch(double targetDecoySizeRatio);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 0602df3d99..d4da431606 100644
+index 0602df3d99..8b8d88f40b 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -46,6 +46,9 @@
@@ -134,8 +208,91 @@ index 0602df3d99..d4da431606 100644
    sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
    if (VERB > 3) {
      if (scores_.size() >= 10) {
+@@ -612,6 +643,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+   data.m = static_cast<int>(ix2);
+ }
+ 
++/**
++ * OpenMS: what generateNegativeTrainingSet(data, 1.0) and then
++ * generatePositiveTrainingSet(data, fdr, 1.0, trainBestPositive) give on a copy of this set,
++ * without the copy and without sorting the PSMs; returns false (and changes nothing) where that
++ * is not certain. The negatives are the decoys in their order. With trainBestPositive, the copy
++ * is sorted by spectrum and label (OrderScanLabel), keeps the first PSM of each group
++ * (std::unique) and sorts the kept PSMs by score again; the positives are the kept targets with
++ * q <= fdr, in that order:
++ *  - which PSM of a group comes first depends on how the sort orders the PSMs of the group, so
++ *    the (spectrum, label) keys are sorted from the order of the PSMs here, like std::sort
++ *    (sortLikeStdSort, the sort generatePositiveTrainingSet uses): the comparisons of the keys
++ *    have the outcomes of OrderScanLabel's, so the sort makes the same moves;
++ *  - if each positive scores strictly higher (operator>) than the next positive here, no two
++ *    positives are equivalent, so every sort by score leaves them in this order. Otherwise, and
++ *    with a NaN score or mass, false.
++ */
++bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
++                                             const bool trainBestPositive) const {
++  // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
++  std::vector<char> kept(scores_.size(), 1);
++  if (trainBestPositive && !scores_.empty()) {
++    if (!comparableScores(scores_.begin(), scores_.end())) return false;
++    struct ScanLabelKey {
++      unsigned int specFileNr, scan;
++      LabelType label;
++      std::size_t index;
++    };
++    std::vector<ScanLabelKey> keys;
++    keys.reserve(scores_.size());
++    for (std::size_t i = 0; i < scores_.size(); ++i) {
++      keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
++    }
++    // the comparison of OrderScanLabel, on the keys
++    sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
++      if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
++      if (x.scan != y.scan) return x.scan < y.scan;
++      return x.label > y.label;
++    });
++    // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
++    for (std::size_t k = 1; k < keys.size(); ++k) {
++      if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
++          keys[k].label == keys[k - 1].label) {
++        kept[keys[k].index] = 0;
++      }
++    }
++  }
++  std::vector<std::size_t> positives;
++  for (std::size_t i = 0; i < scores_.size(); ++i) {
++    const ScoreHolder& sh = scores_[i];
++    if (kept[i] && sh.isTarget() && sh.q <= fdr) {
++      if (trainBestPositive && !positives.empty() && !(scores_[positives.back()] > sh)) {
++        return false;
++      }
++      positives.push_back(i);
++    }
++  }
++
++  std::size_t ix2 = 0;
++  for (const ScoreHolder& sh : scores_) {
++    if (sh.isDecoy()) {
++      data.vals[ix2] = sh.pPSM->features;
++      data.Y[ix2] = -1;
++      ix2++;
++    }
++  }
++  data.negatives = static_cast<int>(ix2);
++  for (std::size_t i : positives) {
++    data.vals[ix2] = scores_[i].pPSM->features;
++    data.Y[ix2] = 1;
++    ix2++;
++  }
++  data.positives = static_cast<int>(positives.size());
++  data.m = static_cast<int>(ix2);
++  return true;
++}
++
+ void Scores::weedOutRedundant() {
+   std::map<std::string, unsigned int> peptideSpecCounts;
+   double specCountQvalThreshold = -1.0;
 diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
-index 8990c95952..7958fcb98b 100644
+index 8990c95952..74038b88cf 100644
 --- a/src/openms/thirdparty/percolator/Scores.h
 +++ b/src/openms/thirdparty/percolator/Scores.h
 @@ -86,6 +86,8 @@ class Scores {
@@ -147,7 +304,17 @@ index 8990c95952..7958fcb98b 100644
    int countPositives(const std::vector<double>& w, double fdr,
                       bool skipDecoysPlusOne = false) const;
    int calcQvals(double fdr, bool skipDecoysPlusOne = false);
-@@ -176,6 +178,8 @@ class Scores {
+@@ -108,6 +110,9 @@ class Scores {
+                                    const double cpos,
+                                    const bool trainBestPositive);
+   void generateNegativeTrainingSet(AlgIn& data, const double cneg);
++  // OpenMS: see Scores.cpp
++  bool generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
++                                       const bool trainBestPositive) const;
+ 
+   void recalculateSizes();
+   void normalizeScores(double fdr, std::vector<double>& weights);
+@@ -176,6 +181,8 @@ class Scores {
    int calcQvals(double fdr, bool skipDecoysPlusOne,
                  std::vector<std::pair<double, bool> >& combined);
    void checkSeparationAndSetPi0();

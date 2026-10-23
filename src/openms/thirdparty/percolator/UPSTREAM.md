@@ -162,6 +162,18 @@ hand-editing sources and committing them, to keep sync self-healing.
   sets the q-values. A flag of `CrossValidation` (`trainScoresOfWeights_`), set at the end of
   `mergeCpCnPairs` and cleared at the start of `mergeCpCnPairs`, `doStep`,
   `preIterationSetup` and `postIterationProcessing`, says when this holds.
+  Without nested cross-validation, `doStep` trained and validated the SVMs of a fold on two
+  copies of its training set; `Scores::generateTrainingSetsOfSortedSet` generates the SVM
+  inputs from the set itself, without copying or sorting it, and the pairs are validated on
+  the set itself (`countPositives` does not change it). The negatives are the decoys in their
+  order. With `trainBestPositive` the copy was sorted by spectrum and label (`OrderScanLabel`),
+  kept the first PSM of each group (`std::unique`) and sorted the kept PSMs by score again:
+  the (file, scan, label) keys of the PSMs are sorted from the same order like `std::sort`
+  (`sortLikeStdSort`, as before; the comparisons have the same outcomes, so the sort makes the
+  same moves) to find the first PSM of each group, and if each positive (a kept target with
+  q <= fdr) scores strictly higher (`operator>`) than the next one in the set's order, no two
+  positives are equivalent and every sort by score leaves them in that order. Otherwise (and
+  with a NaN score or mass) the copies as before.
 
 ### Regenerating the patch
 

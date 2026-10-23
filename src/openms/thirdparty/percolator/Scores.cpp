@@ -643,6 +643,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
   data.m = static_cast<int>(ix2);
 }
 
+/**
+ * OpenMS: what generateNegativeTrainingSet(data, 1.0) and then
+ * generatePositiveTrainingSet(data, fdr, 1.0, trainBestPositive) give on a copy of this set,
+ * without the copy and without sorting the PSMs; returns false (and changes nothing) where that
+ * is not certain. The negatives are the decoys in their order. With trainBestPositive, the copy
+ * is sorted by spectrum and label (OrderScanLabel), keeps the first PSM of each group
+ * (std::unique) and sorts the kept PSMs by score again; the positives are the kept targets with
+ * q <= fdr, in that order:
+ *  - which PSM of a group comes first depends on how the sort orders the PSMs of the group, so
+ *    the (spectrum, label) keys are sorted from the order of the PSMs here, like std::sort
+ *    (sortLikeStdSort, the sort generatePositiveTrainingSet uses): the comparisons of the keys
+ *    have the outcomes of OrderScanLabel's, so the sort makes the same moves;
+ *  - if each positive scores strictly higher (operator>) than the next positive here, no two
+ *    positives are equivalent, so every sort by score leaves them in this order. Otherwise, and
+ *    with a NaN score or mass, false.
+ */
+bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+                                             const bool trainBestPositive) const {
+  // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
+  std::vector<char> kept(scores_.size(), 1);
+  if (trainBestPositive && !scores_.empty()) {
+    if (!comparableScores(scores_.begin(), scores_.end())) return false;
+    struct ScanLabelKey {
+      unsigned int specFileNr, scan;
+      LabelType label;
+      std::size_t index;
+    };
+    std::vector<ScanLabelKey> keys;
+    keys.reserve(scores_.size());
+    for (std::size_t i = 0; i < scores_.size(); ++i) {
+      keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
+    }
+    // the comparison of OrderScanLabel, on the keys
+    sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
+      if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
+      if (x.scan != y.scan) return x.scan < y.scan;
+      return x.label > y.label;
+    });
+    // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
+    for (std::size_t k = 1; k < keys.size(); ++k) {
+      if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
+          keys[k].label == keys[k - 1].label) {
+        kept[keys[k].index] = 0;
+      }
+    }
+  }
+  std::vector<std::size_t> positives;
+  for (std::size_t i = 0; i < scores_.size(); ++i) {
+    const ScoreHolder& sh = scores_[i];
+    if (kept[i] && sh.isTarget() && sh.q <= fdr) {
+      if (trainBestPositive && !positives.empty() && !(scores_[positives.back()] > sh)) {
+        return false;
+      }
+      positives.push_back(i);
+    }
+  }
+
+  std::size_t ix2 = 0;
+  for (const ScoreHolder& sh : scores_) {
+    if (sh.isDecoy()) {
+      data.vals[ix2] = sh.pPSM->features;
+      data.Y[ix2] = -1;
+      ix2++;
+    }
+  }
+  data.negatives = static_cast<int>(ix2);
+  for (std::size_t i : positives) {
+    data.vals[ix2] = scores_[i].pPSM->features;
+    data.Y[ix2] = 1;
+    ix2++;
+  }
+  data.positives = static_cast<int>(positives.size());
+  data.m = static_cast<int>(ix2);
+  return true;
+}
+
 void Scores::weedOutRedundant() {
   std::map<std::string, unsigned int> peptideSpecCounts;
   double specCountQvalThreshold = -1.0;

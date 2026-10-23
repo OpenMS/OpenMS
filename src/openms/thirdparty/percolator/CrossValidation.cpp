@@ -393,12 +393,30 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
 
   // Create SVM input data for parallelization
   // OpenMS: the folds in parallel (each fills its own SVM inputs from its own training set),
-  // unless nested cross-validation draws the nested sets at random
+  // unless nested cross-validation draws the nested sets at random. Without nested
+  // cross-validation, the SVMs of a fold are trained and validated on copies of its training
+  // set; where Scores::generateTrainingSetsOfSortedSet can, it generates the SVM inputs from the
+  // set itself, and the pairs are validated on the set itself (it does not change until the
+  // next step), without the copies.
   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
+  std::vector<const Scores*> pairTestScores(numFolds_ * nestedXvalBins_);
   vector<std::exception_ptr> setupErrors(numFolds_);
   const auto setupFold = [&](int set) {
     try {
+      if (VERB > 2) {
+        const AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
+        cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
+             << " positives and " << svmInput->negatives << " negatives"
+             << std::endl;
+      }
+      if (nestedXvalBins_ == 1 &&
+          trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
+                                                            trainBestPositive_)) {
+        svmInputsVec[set] = svmInputs_[set];
+        pairTestScores[set] = &trainScores_[set];
+        return;
+      }
       std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
           nestedTestScores(nestedXvalBins_, usePi0_);
       if (nestedXvalBins_ > 1) {
@@ -415,11 +433,6 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
       for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
            ++nestedFold) {
         AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
-        if ((VERB > 2) && (nestedFold == 0)) {
-          cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
-               << " positives and " << svmInput->negatives << " negatives"
-               << std::endl;
-        }
         nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
         nestedTrainScores[nestedFold].generatePositiveTrainingSet(
             *svmInput, selectionFdr, 1.0, trainBestPositive_);
@@ -429,6 +442,8 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
                << svmInput->negatives << " negatives" << std::endl;
         }
         svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
+        pairTestScores[set * nestedXvalBins_ + nestedFold] =
+            &nestedTestScoresVec[set][nestedFold];
       }
     } catch (...) {
       setupErrors[set] = std::current_exception();
@@ -458,7 +473,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
   for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
-#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, nestedTestScoresVec, pOptions)
+#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, pairTestScores, pOptions)
     {
       try {
         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
@@ -467,8 +482,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
                          static_cast<unsigned int>(cpCnFold->nestedSet)];
         trainCpCnPair(*cpCnFold, pOptions, svmInput);
         pairTruePoses[pairIdx] =
-            nestedTestScoresVec[cpCnFold->set][static_cast<std::size_t>(cpCnFold->nestedSet)]
-                .countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
+            pairTestScores[cpCnFold->set * nestedXvalBins_ +
+                           static_cast<unsigned int>(cpCnFold->nestedSet)]
+                ->countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
       } catch (...) {
         pairErrors[pairIdx] = std::current_exception();
       }

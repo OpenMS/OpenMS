@@ -110,6 +110,9 @@ class Scores {
                                    const double cpos,
                                    const bool trainBestPositive);
   void generateNegativeTrainingSet(AlgIn& data, const double cneg);
+  // OpenMS: see Scores.cpp
+  bool generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+                                       const bool trainBestPositive) const;
 
   void recalculateSizes();
   void normalizeScores(double fdr, std::vector<double>& weights);
