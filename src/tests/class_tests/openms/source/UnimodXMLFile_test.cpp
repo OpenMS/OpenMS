@@ -15,8 +15,11 @@
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
+#include <fstream>
+#include <iterator>
 #include <vector>
 
 ///////////////////////////
@@ -172,6 +175,52 @@ START_SECTION([EXTRA] neutral loss formulas and neutral loss masses agree for ev
   {
     delete modifications[k];
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] a file parsed in slices gives the modifications of the file parsed as a whole)
+{
+  // unimod.xml is large enough to be parsed in slices; a comment in its <umod:modifications> section makes the
+  // same content parse as a whole (see UnimodXMLFile::loadInSlices_())
+  std::string text;
+  {
+    std::ifstream in(File::find("CHEMISTRY/unimod.xml"), std::ios::binary);
+    text.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+  }
+  const std::string open_tag = "<umod:modifications>";
+  const size_t open = text.find(open_tag);
+  TEST_EQUAL(open != std::string::npos, true)
+  std::string whole_file;
+  NEW_TMP_FILE(whole_file)
+  {
+    std::string whole = text;
+    whole.insert(open + open_tag.size(), "<!-- parsed as a whole -->");
+    std::ofstream(whole_file, std::ios::binary) << whole;
+  }
+  vector<ResidueModification*> sliced, whole;
+  UnimodXMLFile().load("CHEMISTRY/unimod.xml", sliced);
+  UnimodXMLFile().load(whole_file, whole);
+  TEST_EQUAL(sliced.size(), whole.size())
+  Size differences = 0;
+  for (Size i = 0; i < std::min(sliced.size(), whole.size()); ++i)
+  {
+    if (!(*sliced[i] == *whole[i]) || sliced[i]->getFullId() != whole[i]->getFullId()) ++differences;
+  }
+  TEST_EQUAL(differences, 0)
+  for (auto* m : sliced) delete m;
+  for (auto* m : whole) delete m;
+
+  // an error in one slice: the whole file is parsed again and reports it
+  std::string broken_file;
+  NEW_TMP_FILE(broken_file)
+  {
+    std::string broken = text;
+    const size_t middle = broken.find("</umod:mod>", broken.size() / 2);
+    broken.replace(middle, 11, "</umod:mox>");
+    std::ofstream(broken_file, std::ios::binary) << broken;
+  }
+  vector<ResidueModification*> none;
+  TEST_EXCEPTION(Exception::ParseError, UnimodXMLFile().load(broken_file, none))
 }
 END_SECTION
 
