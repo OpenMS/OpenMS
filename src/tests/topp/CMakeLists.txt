@@ -4898,10 +4898,10 @@ add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 set_tests_properties("TOPP_ProSE_3_qpx" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx_clean")
 add_test("TOPP_ProSE_3_qpx_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/runs/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 add_test(NAME "TOPP_ProSE_3_qpx_pg_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/runs/SimpleSearchEngine_1.pg.parquet)
 set_tests_properties("TOPP_ProSE_3_qpx_pg_absent" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx" WILL_FAIL 1)
 add_test("TOPP_ProSE_3_qpx_merged_exists" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet -schema psm -min_rows 3)
@@ -4915,10 +4915,38 @@ set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_absent" PROPERTIES DEPENDS "TOP
 # coincidence. Produced-vs-produced, so it needs no reference file and cannot churn when the
 # numbers legitimately change.
 add_test("TOPP_ProSE_3_qpx_merged_identity" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/runs/SimpleSearchEngine_1.psm.parquet
   -in2 ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet
   -min_rows 3)
 set_tests_properties("TOPP_ProSE_3_qpx_merged_identity" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+
+# Inputs named like the aggregate files (quantms, openms): their files are in runs/, the run's next to it.
+add_test(NAME "TOPP_ProSE_3_names_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_3_names)
+foreach(_part quantms openms)
+  add_test(NAME "TOPP_ProSE_3_names_input_${_part}" COMMAND ${CMAKE_COMMAND} -E copy
+    ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML ${TESTS_TEMP_DIR}/ProSE_3_names/in/${_part}.mzML)
+  set_tests_properties("TOPP_ProSE_3_names_input_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_3_names_clean")
+endforeach()
+add_test("TOPP_ProSE_3_names" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${TESTS_TEMP_DIR}/ProSE_3_names/in/quantms.mzML ${TESTS_TEMP_DIR}/ProSE_3_names/in/openms.mzML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_names/qpx -out_parquet ${TESTS_TEMP_DIR}/ProSE_3_names/oms
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+set_tests_properties("TOPP_ProSE_3_names" PROPERTIES DEPENDS "TOPP_ProSE_3_names_input_quantms;TOPP_ProSE_3_names_input_openms")
+foreach(_name quantms openms)
+  add_test("TOPP_ProSE_3_names_qpx_${_name}" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/ProSE_3_names/qpx/runs/${_name}.psm.parquet -schema psm -min_rows 3)
+  set_tests_properties("TOPP_ProSE_3_names_qpx_${_name}" PROPERTIES DEPENDS "TOPP_ProSE_3_names")
+endforeach()
+add_test("TOPP_ProSE_3_names_qpx_aggregate" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_names/qpx/quantms.psm.parquet -schema psm -min_rows 6)
+set_tests_properties("TOPP_ProSE_3_names_qpx_aggregate" PROPERTIES DEPENDS "TOPP_ProSE_3_names")
+foreach(_file oms/runs/openms.psm oms/openms.psm)
+  string(REPLACE "/" "_" _name ${_file})
+  add_test(NAME "TOPP_ProSE_3_names_${_name}" COMMAND ${CMAKE_COMMAND} -E sha256sum
+    ${TESTS_TEMP_DIR}/ProSE_3_names/${_file}.parquet)
+  set_tests_properties("TOPP_ProSE_3_names_${_name}" PROPERTIES DEPENDS "TOPP_ProSE_3_names")
+endforeach()
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -5272,10 +5300,10 @@ add_test("TOPP_ProSE_15_empty_idXML" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS
 set_tests_properties("TOPP_ProSE_15_empty_idXML" PROPERTIES DEPENDS "TOPP_ProSE_15_empty"
   PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
 add_test("TOPP_ProSE_15_empty_qpx_schema" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx/DatabaseSuitability_in_spec.psm.parquet -schema psm -min_rows 0)
+  -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_qpx/runs/DatabaseSuitability_in_spec.psm.parquet -schema psm -min_rows 0)
 set_tests_properties("TOPP_ProSE_15_empty_qpx_schema" PROPERTIES DEPENDS "TOPP_ProSE_15_empty")
-foreach(_table qpx/DatabaseSuitability_in_spec.psm qpx/quantms.psm oms/DatabaseSuitability_in_spec.psm
-               oms/DatabaseSuitability_in_spec.proteins oms/openms.psm)
+foreach(_table qpx/runs/DatabaseSuitability_in_spec.psm qpx/quantms.psm oms/runs/DatabaseSuitability_in_spec.psm
+               oms/runs/DatabaseSuitability_in_spec.proteins oms/openms.psm)
   string(REPLACE "/" "_" _name ${_table})
   add_test("TOPP_ProSE_15_empty_${_name}" ${TOPP_BIN_PATH}/ParquetDiff
     -in1 ${TESTS_TEMP_DIR}/ProSE_15_empty_${_table}.parquet -out_tsv ${TESTS_TEMP_DIR}/ProSE_15_empty_${_name}.tmp.tsv)
@@ -5363,20 +5391,26 @@ set(_prose14_common -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
 set(_prose14_mzml ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML)
 set(_prose14_check -P ${DATA_DIR_TOPP}/check_prose_qpx_extended.cmake)
-# The dump of the QPX psm.parquet of input <stem> of run <f> (test TOPP_<f>).
+# The dump of the QPX psm.parquet of input <stem> of run <f> (test TOPP_<f>): runs/<stem>.psm.parquet, or with <stem>
+# quantms the file of the whole run, quantms.psm.parquet.
 macro(prose14_dumps _f _stem)
-  add_test("TOPP_${_f}_${_stem}_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.psm.parquet
+  if("${_stem}" STREQUAL "quantms")
+    set(_base ${TESTS_TEMP_DIR}/${_f}_qpx/${_stem})
+  else()
+    set(_base ${TESTS_TEMP_DIR}/${_f}_qpx/runs/${_stem})
+  endif()
+  add_test("TOPP_${_f}_${_stem}_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${_base}.psm.parquet
     -out_tsv ${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv)
   set_tests_properties("TOPP_${_f}_${_stem}_dump" PROPERTIES DEPENDS "TOPP_${_f}")
-  set(_dumps -DQPX=${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv -DPARQUET=${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.psm.parquet
+  set(_dumps -DQPX=${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv -DPARQUET=${_base}.psm.parquet
     -DRUN=${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
   set(_dump_tests "TOPP_${_f}_${_stem}_dump;TOPP_${_f}_run_dump")
   if(NOT "${_stem}" STREQUAL "quantms")
     # the input's mz view (the spectra of its PSMs)
-    add_test("TOPP_${_f}_${_stem}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.mz.parquet
+    add_test("TOPP_${_f}_${_stem}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${_base}.mz.parquet
       -out_tsv ${TESTS_TEMP_DIR}/${_f}_${_stem}_mz.tmp.tsv)
     set_tests_properties("TOPP_${_f}_${_stem}_mz_dump" PROPERTIES DEPENDS "TOPP_${_f}")
-    list(APPEND _dumps -DMZ=${TESTS_TEMP_DIR}/${_f}_${_stem}_mz.tmp.tsv -DMZ_PARQUET=${TESTS_TEMP_DIR}/${_f}_qpx/${_stem}.mz.parquet)
+    list(APPEND _dumps -DMZ=${TESTS_TEMP_DIR}/${_f}_${_stem}_mz.tmp.tsv -DMZ_PARQUET=${_base}.mz.parquet)
     list(APPEND _dump_tests "TOPP_${_f}_${_stem}_mz_dump")
   endif()
 endmacro()
@@ -5451,7 +5485,7 @@ add_test("TOPP_${_f}_sample_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}
 set_tests_properties("TOPP_${_f}_sample_out" PROPERTIES DEPENDS "TOPP_${_f}_sample")
 # The protein groups of one input with protein inference (FDR:protein in ProSE_6_fdr.ini), with their q-values.
 add_test("TOPP_ProSE_14_qpx_plain_pg" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_14_qpx_plain_qpx/DatabaseSuitability_in_spec.pg.parquet -schema pg -min_rows 1)
+  -in1 ${TESTS_TEMP_DIR}/ProSE_14_qpx_plain_qpx/runs/DatabaseSuitability_in_spec.pg.parquet -schema pg -min_rows 1)
 set_tests_properties("TOPP_ProSE_14_qpx_plain_pg" PROPERTIES DEPENDS "TOPP_ProSE_14_qpx_plain")
 
 # Two inputs, one of them gzipped (a copy of the other), with -out_merged and -keep_decoys. Each input gets the columns
@@ -5569,47 +5603,6 @@ add_test("TOPP_ProSE_14_same_name" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_x/same.mzML;${TESTS_TEMP_DIR}/ProSE_14_y/same.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_qpx;${TESTS_TEMP_DIR}/ProSE_14_same_name"
   -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=Duplicate input basename 'same'" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14_app_inputs")
-# An input of basename quantms (in any letter case): its own files in the -out_qpx directory would be overwritten by the
-# QPX files of the whole run (quantms.psm.parquet, ...), so ProSE refuses the run before searching (exit code 6,
-# ILLEGAL_PARAMETERS) and writes nothing into the directory. The same for an input of basename openms (here
-# OpenMS.mzML.gz) with -out_parquet, whose directory gets openms.psm.parquet, ...
-set(_reserved_names quantms QuantMS OpenMS.mzML.gz)
-set(_reserved_cases lower mixed parquet)
-foreach(_name _case IN ZIP_LISTS _reserved_names _reserved_cases)
-  set(_dir ${TESTS_TEMP_DIR}/ProSE_14_reserved_${_case})
-  set(_option -out_qpx)
-  set(_files QPX)
-  set(_in ${_name}.mzML)
-  if(_case STREQUAL "parquet")
-    set(_option -out_parquet)
-    set(_files "OpenMS Parquet")
-    set(_in ${_name})
-    string(REPLACE ".mzML.gz" "" _name ${_name})
-  endif()
-  add_test(NAME "TOPP_ProSE_14_reserved_stem_${_case}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${_dir})
-  add_test("TOPP_ProSE_14_reserved_stem_${_case}" ${CMAKE_COMMAND}
-    "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/${_in};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;${_option};${_dir}"
-    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename '${_name}', the name of the ${_files} files of the whole run in the ${_option} directory"
-    -DEMPTY_DIR=${_dir} -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_case}" PROPERTIES
-    DEPENDS "TOPP_ProSE_14_app_inputs;TOPP_ProSE_14_reserved_stem_${_case}_clean")
-endforeach()
-# An input of basename merged (here Merged.mzML) with -out_parquet, -out_merged and several inputs: the -out_parquet
-# directory gets the pooled proteins as merged.proteins.parquet and merged.pg.parquet, which would overwrite its own, so
-# ProSE refuses the run (exit code 6) and writes nothing (no merged idXML either). Alone (no pooled files) it is searched.
-set(_dir ${TESTS_TEMP_DIR}/ProSE_14_reserved_merged)
-add_test(NAME "TOPP_ProSE_14_reserved_stem_merged_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${_dir} ${_dir}_alone)
-add_test("TOPP_ProSE_14_reserved_stem_merged" ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_a.mzML;${TESTS_TEMP_DIR}/ProSE_14_reserved/Merged.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_parquet;${_dir};-out_merged;${_dir}.tmp.idXML"
-  -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=has basename 'Merged', the name of the pooled proteins of -out_merged in the -out_parquet directory"
-  -DEMPTY_DIR=${_dir} -DABSENT_FILE=${_dir}.tmp.idXML -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-add_test("TOPP_ProSE_14_reserved_stem_merged_alone" ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${TESTS_TEMP_DIR}/ProSE_14_reserved/Merged.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_parquet;${_dir}_alone"
-  -DEXPECTED_CODE=0 -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-foreach(_t merged merged_alone)
-  set_tests_properties("TOPP_ProSE_14_reserved_stem_${_t}" PROPERTIES
-    DEPENDS "TOPP_ProSE_14_app_inputs;TOPP_ProSE_14_reserved_stem_merged_clean")
-endforeach()
 # -qpx_extended extends -out_qpx: without it, ProSE refuses the run (exit code 6).
 add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${_prose14_mzml};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_14_needs_qpx.tmp.idXML;-qpx_extended"
@@ -5655,14 +5648,14 @@ set_tests_properties("TOPP_ProSE_14_keep_decoys_out" PROPERTIES DEPENDS "TOPP_Pr
 # Without protein inference (one input, FDR:protein 0) -qpx_extended writes one protein group per protein.
 set(_f ProSE_14_singletons)
 prose14_run(${_f} ${_prose14_common} -Search:FDR:protein 0 -in ${_prose14_mzml})
-add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/DatabaseSuitability_in_spec.pg.parquet
+add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/DatabaseSuitability_in_spec.pg.parquet
   -out_tsv ${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv)
 set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}")
 add_test("TOPP_${_f}_pg_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_pg.tmp.tsv
   "-DEXPECTED=[sp|P15336|ATF2_HUMAN]" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_pg_out" PROPERTIES DEPENDS "TOPP_${_f}_pg")
 add_test("TOPP_${_f}_pg_schema" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/DatabaseSuitability_in_spec.pg.parquet -schema pg -min_rows 1)
+  -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/DatabaseSuitability_in_spec.pg.parquet -schema pg -min_rows 1)
 set_tests_properties("TOPP_${_f}_pg_schema" PROPERTIES DEPENDS "TOPP_${_f}")
 # An empty result: no PSM passes the PSM FDR; the psm view is written with its columns, its footer and no rows.
 # ProSE_empty.fasta swaps target and decoy: its decoys (DECOY_, reused by decoys=auto) are the proteins of the
