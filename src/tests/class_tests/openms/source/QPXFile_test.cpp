@@ -695,11 +695,18 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
     table->GetColumnByName("is_decoy")->chunk(0));
   TEST_EQUAL(is_decoy_col->Value(0), false)
 
-  // global_qvalue carries group.probability
+  // global_qvalue carries group.probability only if it is a q-value: here the proteins carry Mascot scores
   auto qv_col = std::static_pointer_cast<arrow::DoubleArray>(
     table->GetColumnByName("global_qvalue")->chunk(0));
-  TEST_EQUAL(qv_col->IsNull(0), false)
-  TEST_REAL_SIMILAR(qv_col->Value(0), 0.01)
+  TEST_EQUAL(qv_col->IsNull(0), true)
+  {
+    ProteinIdentification after_fdr = prot_id;
+    after_fdr.setScoreType("q-value");
+    auto with_q = ProteinGroupArrowExport::exportToArrow({after_fdr}, pep_ids);
+    auto q = std::static_pointer_cast<arrow::DoubleArray>(with_q->GetColumnByName("global_qvalue")->chunk(0));
+    TEST_EQUAL(q->IsNull(0), false)
+    TEST_REAL_SIMILAR(q->Value(0), 0.01)
+  }
 
   // peptides list: one entry per group accession (2 here: PROT_A and PROT_B)
   auto peptides_list = std::static_pointer_cast<arrow::ListArray>(
