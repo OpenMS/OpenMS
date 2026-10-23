@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -39,6 +40,7 @@
 #include <cmath>
 #include <map>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <variant>
 #include <vector>
@@ -224,6 +226,40 @@ namespace
     if (!reader->GetSchema(&schema).ok() || !schema->metadata()) { return out; }
     for (int64_t i = 0; i < schema->metadata()->size(); ++i) { out[schema->metadata()->key(i)] = schema->metadata()->value(i); }
     return out;
+  }
+
+  /// The rows of the Parquet file @p file; -1 if it cannot be read
+  int64_t rowsOf(const string& file)
+  {
+    auto opened = arrow::io::ReadableFile::Open(file);
+    if (!opened.ok()) { return -1; }
+    auto reader = parquet::arrow::OpenFile(opened.ValueOrDie(), arrow::default_memory_pool());
+    if (!reader.ok()) { return -1; }
+    const auto table = reader.ValueOrDie()->ReadTable();
+    if (!table.ok()) { return -1; }
+    return table.ValueOrDie()->num_rows();
+  }
+
+  /// The mz view of a run @p run_file_name with one MS2 spectrum and PSM per native ID of @p native_ids
+  shared_ptr<arrow::Table> mzTableOf(const vector<string>& native_ids, const string& run_file_name)
+  {
+    MSExperiment spectra;
+    PeptideIdentificationList ids;
+    double rt = 0.0;
+    for (const string& native_id : native_ids)
+    {
+      rt += 60.0;
+      spectra.addSpectrum(ms2(native_id, rt, {{100.0, 1.0f}}));
+      PeptideIdentification id;
+      id.setSpectrumReference(native_id);
+      id.setRT(rt);
+      id.setScoreType("q-value");
+      id.setHits({PeptideHit(0.01, 1, 2, AASequence::fromString("PEPTIDEK"))});
+      ids.push_back(id);
+    }
+    QPXDatasetExport::PeakFilter all;
+    all.top = 0;
+    return QPXDatasetExport::mzView(spectra, ids, run_file_name, all).table;
   }
 
   /// The run of the runView() and writeDataset() sections
@@ -822,6 +858,40 @@ START_SECTION((static bool writeDataset(const std::string& directory, const std:
   null_table["run"].tables = {nullptr};
   TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "y", null_table), false)
   TEST_EQUAL(File::exists(failed_dir + "/y.run.parquet"), false)
+}
+END_SECTION
+
+START_SECTION(writeDataset refuses an mz view with an id twice (one run per mz view))
+{
+  TempDir temp;
+  const std::string dir = temp.getPath();
+  const auto run1 = mzTableOf({"scan=1", "scan=2"}, "run1");
+  const auto run2 = mzTableOf({"scan=3", "scan=1"}, "run2");
+  const auto run3 = mzTableOf({"scan=3", "scan=4"}, "run3");
+  ABORT_IF(run1 == nullptr || run2 == nullptr || run3 == nullptr)
+  TEST_EQUAL(ArrowIOHelpers::tableRowCount(run2), 2)
+
+  // the mz views of two runs that both have "scan=1": false, no mz file (the error names the id); the others are written
+  std::map<std::string, QPXDatasetExport::View> views;
+  views["mz"].tables = {run1, run2};
+  views["run"].tables = {QPXDatasetExport::runView({runA()})};
+  ostringstream captured;
+  OPENMS_LOG_ERROR.insert(captured);
+  TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "two", views), false)
+  OPENMS_LOG_ERROR.remove(captured);
+  TEST_EQUAL(File::exists(dir + "/two.mz.parquet"), false)
+  TEST_EQUAL(File::exists(dir + "/two.run.parquet"), true)
+  TEST_EQUAL(captured.str().find("'scan=1'") != string::npos, true)
+
+  // one run's mz view is written
+  views["mz"].tables = {run1};
+  TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "one", views), true)
+  TEST_EQUAL(rowsOf(dir + "/one.mz.parquet"), 2)
+
+  // the mz views of two runs of distinct ids are written, concatenated
+  views["mz"].tables = {run1, run3};
+  TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "distinct", views), true)
+  TEST_EQUAL(rowsOf(dir + "/distinct.mz.parquet"), 4)
 }
 END_SECTION
 

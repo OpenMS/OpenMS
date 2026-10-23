@@ -29,6 +29,8 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <arrow/api.h>
+
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -41,6 +43,7 @@
 #include <set>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -51,6 +54,38 @@ namespace OpenMS
     {
       if (name == "global_qvalue" || name == "percolator_qvalue" || name == "percolator_pep") { return false; }
       if (name == "percolator_score" || name == "ln_hyperscore") { return true; }
+      return std::nullopt;
+    }
+
+    /// The first @c id that the tables @p tables (not null) together have twice; none if they have none twice (or no
+    /// @c id column)
+    std::optional<std::string> duplicateId(const std::vector<std::shared_ptr<arrow::Table>>& tables)
+    {
+      std::unordered_set<std::string> seen;
+      for (const std::shared_ptr<arrow::Table>& table : tables)
+      {
+        const std::shared_ptr<arrow::ChunkedArray> column = table->GetColumnByName("id");
+        if (column == nullptr) { continue; }
+        for (const std::shared_ptr<arrow::Array>& chunk : column->chunks())
+        {
+          for (int64_t row = 0; row < chunk->length(); ++row)
+          {
+            if (chunk->IsNull(row)) { continue; }
+            std::string id;
+            if (chunk->type_id() == arrow::Type::STRING)
+            {
+              id = std::static_pointer_cast<arrow::StringArray>(chunk)->GetString(row);
+            }
+            else // (not the QPX type of 'id')
+            {
+              const auto scalar = chunk->GetScalar(row);
+              if (!scalar.ok()) { continue; }
+              id = (*scalar)->ToString();
+            }
+            if (!seen.insert(id).second) { return id; }
+          }
+        }
+      }
       return std::nullopt;
     }
 
@@ -627,6 +662,17 @@ namespace OpenMS
       }
       const bool tables = std::none_of(view.tables.begin(), view.tables.end(),
                                        [](const std::shared_ptr<arrow::Table>& t) { return t == nullptr; });
+      if (name == "mz" && tables)
+      {
+        // (one run per mz view: its key 'id', the native ID, is unique only within a run, e.g. "scan=1" of each)
+        if (const std::optional<std::string> duplicate = duplicateId(view.tables))
+        {
+          OPENMS_LOG_ERROR << "Not writing the QPX mz view, as its tables have the id '" << *duplicate
+                           << "' twice (an mz view is of one run) -> " << file << std::endl;
+          ok = false;
+          continue;
+        }
+      }
       const auto meta = tables ? ArrowIOHelpers::qpxFileMetadata(name + "_file", view.config, view.metadata) : nullptr;
       if (!tables || !meta || !ArrowIOHelpers::concatenateAndWriteToParquet(view.tables, file, view.config, meta))
       {

@@ -128,7 +128,8 @@ public:
   static std::vector<Size> keptPeaks(const MSSpectrum& spectrum, const std::vector<PeptideHit::PeakAnnotation>& annotations,
                                      int precursor_charge, const PeakFilter& filter);
 
-  /// The QPX mz view of the spectra of the PSMs of one run (mzView())
+  /// The QPX mz view of the spectra of the PSMs of one run (mzView()). It is of that run only: its key @c id, the native
+  /// ID, is unique within the run, not across runs (writeDataset() refuses an mz view with an @c id twice)
   struct MzView
   {
     /// The mz view (null if it could not be built; the error is logged)
@@ -158,6 +159,10 @@ public:
     PSMs of its spectrum (each keeps its own annotated peaks), with the precursor charge of the spectrum's first
     precursor (not the charge of a PSM: a spectrum of unknown charge was deisotoped up to @p filter.max_charge, whatever
     the charge of its PSMs). A spectrum not sorted by m/z is sorted (in a copy).
+
+    The view is of one run: its @c id (the native ID) is unique within the run, but runs share native IDs (e.g.
+    "scan=1"), so the views of several runs are not one mz view. writeDataset() refuses an mz view whose tables have an
+    @c id twice; write each run's view to a dataset (file) of its own.
 
     The columns, in this order: @c id, @c run_file_name, @c scan (ArrowIOHelpers::qpxScanComponents()), @c ms_level,
     @c centroid, @c scan_start_time (minutes), @c inverse_ion_mobility (null unless in Vs/cm^2), @c ion_injection_time
@@ -319,7 +324,9 @@ public:
     view, by name), each with its tables concatenated and the footer of ArrowIOHelpers::qpxFileMetadata() of the file
     type "VIEW_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
     table fails. The mz view is not written (logged) if a psm view was given and could not be written, as its rows are
-    keyed by the spectra of the PSMs. A view that fails is logged and the others are still written.
+    keyed by the spectra of the PSMs. The mz view is of one run (mzView()): its key @c id, the native ID, is unique
+    only within a run, so an mz view whose tables together have an @c id twice (e.g. "scan=1" of two runs) fails (the
+    error names the @c id). A view that fails is logged and the others are still written.
 
     @param[in] directory The folder of the dataset
     @param[in] prefix The common prefix of the files (e.g. "quantms")
