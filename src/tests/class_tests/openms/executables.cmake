@@ -544,6 +544,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapNormalizerAlgorithmRTLocal_test
+  ConsensusElutionWidth_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
