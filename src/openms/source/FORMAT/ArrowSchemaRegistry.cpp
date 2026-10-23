@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+
+#include <set>
 #include <arrow/api.h>
 #include <sstream>
 
@@ -47,9 +49,9 @@ namespace OpenMS
       int actual_n = actual_schema->num_fields();
       int expected_n = expected_schema->num_fields();
 
-      if (mode == Mode::Strict)
+      if (mode == Mode::Strict || mode == Mode::Extensible)
       {
-        if (actual_n != expected_n)
+        if (actual_n < expected_n || (mode == Mode::Strict && actual_n != expected_n))
         {
           result.valid = false;
           result.errors.push_back("Field count mismatch: got " + std::to_string(actual_n) +
@@ -83,12 +85,23 @@ namespace OpenMS
           }
         }
 
-        // Check for extra fields beyond expected count
+        // Check for extra fields beyond expected count (Extensible: allowed after the expected ones, under names of
+        // their own: neither an expected field's nor another extra field's)
+        std::set<std::string> names;
+        for (int i = 0; i < expected_n; ++i) { names.insert(expected_schema->field(i)->name()); }
         for (int i = expected_n; i < actual_n; ++i)
         {
-          result.valid = false;
-          result.errors.push_back("Unexpected field '" + actual_schema->field(i)->name() +
-            "' not in expected schema");
+          const std::string& name = actual_schema->field(i)->name();
+          if (mode == Mode::Strict)
+          {
+            result.valid = false;
+            result.errors.push_back("Unexpected field '" + name + "' not in expected schema");
+          }
+          else if (!names.insert(name).second)
+          {
+            result.valid = false;
+            result.errors.push_back("Duplicate field '" + name + "' at index " + std::to_string(i));
+          }
         }
 
         // Check for missing fields beyond actual count
