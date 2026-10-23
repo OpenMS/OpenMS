@@ -14,7 +14,8 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
-#include <future>
+#include <filesystem>
+#include <string_view>
 #include <thread>
 
 using namespace std;
@@ -44,26 +45,174 @@ namespace OpenMS
 
   namespace
   {
-    /// Are the end tags of \<umod:mod\> in [@p from, @p to) of @p text the only text like them (no comments, CDATA
-    /// sections, processing instructions), and does every specificity have a position the handler knows?
-    bool sliceable(const std::string& text, size_t from, size_t to)
+    /// A start or end tag in the text of a file without comments, CDATA sections and processing instructions
+    struct Tag
     {
+      std::string_view name; ///< with its prefix, e.g. "umod:mod"
+      std::string_view text; ///< from '<' to '>'
+      bool closing = false;
+      bool self_closing = false;
+    };
+
+    /// Reads the tag that starts at the '<' at @p p and ends before @p limit ('>' in quoted attribute values is skipped)
+    bool readTag(std::string_view text, size_t p, size_t limit, Tag& tag)
+    {
+      size_t i = p + 1;
+      tag.closing = i < limit && text[i] == '/';
+      if (tag.closing) ++i;
+      size_t n = i;
+      while (n < limit && !std::isspace(static_cast<unsigned char>(text[n])) && text[n] != '>' && text[n] != '/') ++n;
+      tag.name = text.substr(i, n - i);
+      char quote = 0;
+      for (size_t k = n; k < limit; ++k)
+      {
+        const char c = text[k];
+        if (quote != 0) { if (c == quote) quote = 0; }
+        else if (c == '"' || c == '\'') quote = c;
+        else if (c == '<') return false;
+        else if (c == '>')
+        {
+          tag.text = text.substr(p, k + 1 - p);
+          tag.self_closing = text[k - 1] == '/';
+          return !tag.name.empty();
+        }
+      }
+      return false;
+    }
+
+    /// The value of attribute @p name of a start tag as written (entities not expanded); false if it is not there
+    bool attributeValue(std::string_view tag_text, std::string_view name, std::string_view& value)
+    {
+      size_t i = 1;
+      while (i < tag_text.size() && !std::isspace(static_cast<unsigned char>(tag_text[i])) && tag_text[i] != '>' && tag_text[i] != '/') ++i;
+      while (true)
+      {
+        while (i < tag_text.size() && std::isspace(static_cast<unsigned char>(tag_text[i]))) ++i;
+        if (i >= tag_text.size() || tag_text[i] == '>' || tag_text[i] == '/') return false;
+        const size_t name_begin = i;
+        while (i < tag_text.size() && !std::isspace(static_cast<unsigned char>(tag_text[i])) && tag_text[i] != '=') ++i;
+        const std::string_view attribute = tag_text.substr(name_begin, i - name_begin);
+        while (i < tag_text.size() && std::isspace(static_cast<unsigned char>(tag_text[i]))) ++i;
+        if (i >= tag_text.size() || tag_text[i] != '=') return false;
+        ++i;
+        while (i < tag_text.size() && std::isspace(static_cast<unsigned char>(tag_text[i]))) ++i;
+        if (i >= tag_text.size() || (tag_text[i] != '"' && tag_text[i] != '\'')) return false;
+        const char quote = tag_text[i++];
+        const size_t value_end = tag_text.find(quote, i);
+        if (value_end == std::string_view::npos) return false;
+        if (attribute == name)
+        {
+          value = tag_text.substr(i, value_end - i);
+          return true;
+        }
+        i = value_end + 1;
+      }
+    }
+
+    /// The elements UnimodXMLHandler acts on, with the prefix of unimod.xml; the same names without it (which the
+    /// handler accepts too) make a file unsuitable for slices
+    enum class HandlerTag { NONE, MOD, SPECIFICITY, NEUTRAL_LOSS, DELTA, ELEMENT, UNPREFIXED };
+
+    HandlerTag handlerTag(std::string_view name)
+    {
+      const bool prefixed = name.substr(0, 5) == "umod:";
+      const std::string_view local = prefixed ? name.substr(5) : name;
+      HandlerTag tag = HandlerTag::NONE;
+      if (local == "mod") tag = HandlerTag::MOD;
+      else if (local == "specificity") tag = HandlerTag::SPECIFICITY;
+      else if (local == "NeutralLoss") tag = HandlerTag::NEUTRAL_LOSS;
+      else if (local == "delta") tag = HandlerTag::DELTA;
+      else if (local == "element") tag = HandlerTag::ELEMENT;
+      return (tag != HandlerTag::NONE && !prefixed) ? HandlerTag::UNPREFIXED : tag;
+    }
+
+    /**
+      Is [@p from, @p to) of the \<umod:modifications\> section a sequence of complete \<umod:mod\> elements that the
+      handler reads the same way with a fresh handler as after the elements before it? That is: plain tags only (no
+      comments, CDATA sections, processing instructions, which could hold text like tags), \<umod:specificity\> only in
+      \<umod:mod\>, \<umod:NeutralLoss\> only in \<umod:specificity\> (the neutral losses of an open specificity are what
+      the handler carries from one element to the next otherwise), \<umod:delta\> and \<umod:element\> only in
+      \<umod:mod\>, and every specificity with a position that the handler knows (it reports others).
+    */
+    bool sliceable(std::string_view text, size_t from, size_t to)
+    {
+      int in_mod = 0, in_specificity = 0;
+      Tag tag;
       for (size_t p = text.find('<', from); p < to; p = text.find('<', p + 1))
       {
-        if (text[p + 1] == '!' || text[p + 1] == '?') return false;
+        if (!readTag(text, p, to, tag) || tag.name[0] == '!' || tag.name[0] == '?') return false;
+        p += tag.text.size() - 1;
+        switch (handlerTag(tag.name))
+        {
+          case HandlerTag::NONE: break;
+          case HandlerTag::UNPREFIXED: return false;
+          case HandlerTag::MOD:
+            if (in_specificity != 0 || in_mod != (tag.closing ? 1 : 0)) return false;
+            in_mod = (tag.closing || tag.self_closing) ? 0 : 1;
+            break;
+          case HandlerTag::SPECIFICITY:
+            if (in_mod != 1 || in_specificity != (tag.closing ? 1 : 0)) return false;
+            if (!tag.closing)
+            {
+              std::string_view pos;
+              if (!attributeValue(tag.text, "position", pos)) return false;
+              if (pos != "Anywhere" && pos != "Protein N-term" && pos != "Protein C-term" && pos != "Any C-term" && pos != "Any N-term") return false;
+            }
+            in_specificity = (tag.closing || tag.self_closing) ? 0 : 1;
+            break;
+          case HandlerTag::NEUTRAL_LOSS:
+            if (in_specificity != 1) return false;
+            break;
+          case HandlerTag::DELTA:
+          case HandlerTag::ELEMENT:
+            if (in_mod != 1) return false;
+            break;
+        }
       }
-      // a position the handler does not know is reported per specificity: keep such messages in file order
-      const std::string position_attr = "position=\"";
-      for (size_t p = text.find(position_attr, from); p < to; p = text.find(position_attr, p + 1))
+      return in_mod == 0 && in_specificity == 0;
+    }
+
+    /// Does [@p from, @p to) hold plain tags only, none that the handler acts on except \<umod:element\> if
+    /// @p elements_allowed (outside \<umod:delta\>/\<umod:NeutralLoss\> the handler ignores those)?
+    bool inert(std::string_view text, size_t from, size_t to, bool elements_allowed)
+    {
+      Tag tag;
+      for (size_t p = text.find('<', from); p < to; p = text.find('<', p + 1))
       {
-        if (!std::isspace(static_cast<unsigned char>(text[p - 1]))) continue; // e.g. 'composition="'
-        const size_t value = p + position_attr.size();
-        const size_t value_end = text.find('"', value);
-        if (value_end == std::string::npos) return false;
-        const std::string pos = text.substr(value, value_end - value);
-        if (pos != "Anywhere" && pos != "Protein N-term" && pos != "Protein C-term" && pos != "Any C-term" && pos != "Any N-term") return false;
+        if (!readTag(text, p, to, tag) || tag.name[0] == '!' || tag.name[0] == '?') return false;
+        p += tag.text.size() - 1;
+        const HandlerTag h = handlerTag(tag.name);
+        if (h != HandlerTag::NONE && !(elements_allowed && h == HandlerTag::ELEMENT)) return false;
       }
       return true;
+    }
+
+    /// Where the root element \<umod:unimod\> starts, if the file before it is an XML declaration, comments and
+    /// white space only (no document type declaration: entities could change the meaning of the text); else npos
+    size_t rootStart(std::string_view text)
+    {
+      size_t p = text.substr(0, 3) == "\xEF\xBB\xBF" ? 3 : 0;
+      if (text.substr(p, 6) == "<?xml ")
+      {
+        p = text.find("?>", p);
+        if (p == std::string_view::npos) return std::string_view::npos;
+        p += 2;
+      }
+      while (p < text.size())
+      {
+        if (std::isspace(static_cast<unsigned char>(text[p]))) { ++p; continue; }
+        if (text.substr(p, 4) == "<!--")
+        {
+          p = text.find("-->", p + 4);
+          if (p == std::string_view::npos) return std::string_view::npos;
+          p += 3;
+          continue;
+        }
+        Tag tag;
+        if (text[p] == '<' && readTag(text, p, text.size(), tag) && !tag.closing && !tag.self_closing && tag.name == "umod:unimod") return p;
+        return std::string_view::npos;
+      }
+      return std::string_view::npos;
     }
   }
 
@@ -72,85 +221,104 @@ namespace OpenMS
     // unimod.xml (2.5 MB) takes most of the start-up of a tool that needs the ModificationsDB
     const Size max_slices = 8;
     const Size min_slice_bytes = 256 * 1024;
-    const Size n_threads = std::max(1u, std::thread::hardware_concurrency());
-    std::string text;
-    {
-      std::ifstream in(file, std::ios::binary | std::ios::ate);
-      if (!in) return false;
-      const std::streamoff size = in.tellg();
-      if (size <= 0) return false;
-      text.resize(size_t(size));
-      in.seekg(0);
-      if (!in.read(text.data(), size)) return false;
-    }
-    const std::string open_tag = "<umod:modifications>", close_tag = "</umod:modifications>", mod_end = "</umod:mod>";
-    const size_t open = text.find(open_tag);
-    if (open == std::string::npos) return false;
-    const size_t begin = open + open_tag.size();
-    const size_t end = text.find(close_tag, begin);
-    if (end == std::string::npos) return false;
-    const Size n_slices = std::min({max_slices, n_threads, Size((end - begin) / min_slice_bytes)});
-    if (n_slices < 2) return false;
-    std::vector<size_t> cuts{begin};
-    for (Size k = 1; k < n_slices; ++k)
-    {
-      const size_t p = text.find(mod_end, std::max(cuts.back(), begin + (end - begin) * k / n_slices));
-      if (p == std::string::npos || p + mod_end.size() >= end) break;
-      cuts.push_back(p + mod_end.size());
-    }
-    cuts.push_back(end);
-    if (cuts.size() < 3) return false;
+    const Size n_threads = std::thread::hardware_concurrency();
+    if (n_threads < 2) return false;
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(file, ec)) return false;
+    const auto file_size = std::filesystem::file_size(file, ec);
+    if (ec || file_size < 2 * min_slice_bytes) return false;
 
-    // each slice: everything before the section + its modifications + everything after the section; the end tags it
-    // was cut at are those of elements if no slice holds a comment, CDATA section or processing instruction
-    std::vector<std::vector<ResidueModification*>> parts(cuts.size() - 1);
-    auto parse_slice = [&](Size i)
+    // the slices, each parsed with its own handler; deleted unless all are parsed and moved to 'modifications'
+    std::vector<std::vector<ResidueModification*>> parts;
+    struct PartsOwner
     {
-      if (!sliceable(text, cuts[i], cuts[i + 1])) return false;
-      // an error is reported by parsing the whole file again, not with the line numbers of the slice
-      Logger::LogSinkGuard quiet(getThreadLocalLogFatal(), std::cerr);
-      const std::string buffer = text.substr(0, begin) + text.substr(cuts[i], cuts[i + 1] - cuts[i]) + text.substr(end);
-      Internal::UnimodXMLHandler handler(parts[i], file);
-      UnimodXMLFile().parseBuffer_(buffer, &handler);
-      return true;
-    };
-    std::vector<std::future<bool>> later;
-    for (Size i = 1; i < parts.size(); ++i)
-    {
-      later.push_back(std::async(std::launch::async | std::launch::deferred, parse_slice, i));
-    }
-    bool ok = true;
+      std::vector<std::vector<ResidueModification*>>& parts;
+      ~PartsOwner() { for (auto& part : parts) for (ResidueModification* m : part) delete m; }
+    } owner{parts};
     try
     {
-      ok = parse_slice(0);
-    }
-    catch (...)
-    {
-      ok = false;
-    }
-    for (auto& f : later)
-    {
+      std::string text;
+      {
+        std::ifstream in(file, std::ios::binary);
+        if (!in) return false;
+        text.resize(size_t(file_size));
+        if (!in.read(text.data(), std::streamsize(file_size)) || in.peek() != std::ifstream::traits_type::eof()) return false;
+      }
+      const std::string_view view(text);
+      const size_t root = rootStart(view);
+      if (root == std::string_view::npos) return false;
+      const std::string open_tag = "<umod:modifications>", close_tag = "</umod:modifications>", mod_end = "</umod:mod>";
+      const size_t open = text.find(open_tag, root);
+      if (open == std::string::npos) return false;
+      const size_t begin = open + open_tag.size();
+      const size_t end = text.find(close_tag, begin);
+      if (end == std::string::npos) return false;
+      // nothing the handler acts on before or after the section: it is read again with every slice
+      if (!inert(view, root, begin, false) || !inert(view, end, text.size(), true)) return false;
+      const Size n_slices = std::min({max_slices, n_threads, Size((end - begin) / min_slice_bytes)});
+      if (n_slices < 2) return false;
+      std::vector<size_t> cuts{begin};
+      for (Size k = 1; k < n_slices; ++k)
+      {
+        const size_t p = text.find(mod_end, std::max(cuts.back(), begin + (end - begin) * k / n_slices));
+        if (p == std::string::npos || p + mod_end.size() >= end) break;
+        cuts.push_back(p + mod_end.size());
+      }
+      cuts.push_back(end);
+      if (cuts.size() < 3) return false;
+
+      // Each slice on a thread of its own, whose log streams are silenced: a slice that is not sliceable() or fails
+      // to parse makes the whole file parse again as before, which reports what it reports, once and in order.
+      parts.resize(cuts.size() - 1);
+      std::vector<char> ok(parts.size(), 0);
+      auto parse_slice = [&](Size i)
+      {
+        try
+        {
+          for (Logger::LogStream* log : {&getThreadLocalLogFatal(), &getThreadLocalLogError(), &getThreadLocalLogWarn(),
+                                         &getThreadLocalLogInfo(), &getThreadLocalLogDebug()})
+          {
+            log->removeAllStreams();
+          }
+          if (!sliceable(view, cuts[i], cuts[i + 1])) return;
+          // everything before the section + the slice + everything after the section
+          const std::string buffer = text.substr(0, begin) + text.substr(cuts[i], cuts[i + 1] - cuts[i]) + text.substr(end);
+          Internal::UnimodXMLHandler handler(parts[i], file);
+          UnimodXMLFile().parseBuffer_(buffer, &handler);
+          ok[i] = 1;
+        }
+        catch (...)
+        {
+        }
+      };
+      std::vector<std::thread> threads;
+      threads.reserve(parts.size());
       try
       {
-        ok = f.get() && ok;
+        for (Size i = 0; i < parts.size(); ++i) threads.emplace_back(parse_slice, i);
       }
       catch (...)
       {
-        ok = false;
+        for (auto& t : threads) t.join();
+        return false;
       }
+      for (auto& t : threads) t.join();
+      if (std::find(ok.begin(), ok.end(), 0) != ok.end()) return false;
+
+      Size n_mods = modifications.size();
+      for (const auto& part : parts) n_mods += part.size();
+      modifications.reserve(n_mods);
+    }
+    catch (...)
+    {
+      return false;
     }
     for (auto& part : parts)
     {
-      if (ok)
-      {
-        modifications.insert(modifications.end(), part.begin(), part.end());
-      }
-      else
-      {
-        for (ResidueModification* m : part) delete m;
-      }
+      modifications.insert(modifications.end(), part.begin(), part.end()); // no allocation: reserved above
+      part.clear();
     }
-    return ok;
+    return true;
   }
 
 } // namespace OpenMS
