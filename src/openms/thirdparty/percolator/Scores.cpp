@@ -542,7 +542,7 @@ int Scores::calcScores(std::vector<double>& w) {
   const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
 #ifdef _OPENMP
   if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
-#pragma omp taskloop grainsize(kMinScoreTaskSize)
+#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(w)
     for (std::ptrdiff_t i = 0; i < numScores; ++i) {
       ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
       sh.score = calcScore(sh.pPSM->features, w);

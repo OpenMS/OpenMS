@@ -154,7 +154,7 @@ hand-editing sources and committing them, to keep sync self-healing.
   training without changing its result (patch 09 is reserved for the SVM solver).
   `Scores::calcScores` scores the PSMs (each by `calcScore`, as before) in blocks of 2048, as
   tasks of the enclosing OpenMP parallel region if there is one (the fold tasks of
-  `CrossValidation`), instead of one after the other.
+  `CrossValidation`), instead of one after the other (the tasks share the weights).
   Each step of `CrossValidation::doStep` scores the training sets with the weights that the
   previous step's `mergeCpCnPairs` scored them with at its end; neither the weights nor the
   sets change in between, so the scores are the same: the step only sorts them again
