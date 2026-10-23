@@ -141,7 +141,7 @@ predicted again at that NCE), else 'Search:peptdeep:nce' if set, else the one Pe
 copy of the written PSMs; PSMs of precursor charge 1 to 6 are predicted, others get null. Each input is read once more
 after its search for the spectra; a failed re-read is a warning and leaves out its mz view (and the
 'spectrum_reference' of its PSMs null), a failed prediction a warning and null prediction columns; without ONNX
-Runtime the prediction columns are null. Each input gets the QPX mz view (runs/<basename>.mz.parquet) of the MS2 spectra of
+Runtime the prediction columns are null. Each input gets the QPX mz view (runs/BASENAME.mz.parquet, BASENAME the input's basename) of the MS2 spectra of
 its written PSMs only (one row per spectrum, in the order of its first PSM; of several spectra of one native ID only
 the first, as 'id' is the view's key, so the PSMs of the others have no spectrum there and a null 'spectrum_reference':
 they are unresolved, as a join on their native ID would give the first spectrum, and a reader must not look them up by
@@ -162,8 +162,8 @@ the prediction of one PSM alone; the psm file's footer has the keys of its predi
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
 psm file was written, in input order, without the prediction columns (and no rows if there are none). The output
 directory is one QPX dataset (prefix 'quantms'): the quantms.* files of the whole run on top, the per-input files
-(<basename>.psm/mz/pg.parquet) in its subfolder runs/, so an input may be named 'quantms' too; two inputs of one
-basename are still refused, as they would share runs/<basename>.*.
+(BASENAME.psm/mz/pg.parquet) in its subfolder runs/, so an input may be named 'quantms' too; two inputs of one
+basename are still refused, as they would share runs/BASENAME.*.
 At the end of the run three QPX metadata views describe it:
 quantms.run.parquet (one row per input, in input order): 'run_accession' and 'run_file_name' (the input's stem),
 'file_name', 'samples' (one sample per run: the stem, label 'LFQ'; ProSE knows no design), 'fraction', 'instrument',
