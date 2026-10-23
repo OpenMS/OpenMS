@@ -541,6 +541,23 @@ START_SECTION([EXTRA] incomplete SQL rows and unused NULL metadata do not abort)
 }
 END_SECTION
 
+START_SECTION([EXTRA] retained SQL transitions require a decoy label)
+{
+  std::string path;
+  NEW_TMP_FILE(path);
+  path += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", path);
+  OpenSwathPercolatorScoring scorer;
+  scorer.score(path, OpenSwathPercolatorScoring::Level::MS2);
+  // A NULL label must not train as a target transition.
+  executeSqlite_(path,
+    "CREATE TABLE nullable_transition AS SELECT * FROM TRANSITION; DROP TABLE TRANSITION; "
+    "ALTER TABLE nullable_transition RENAME TO TRANSITION; "
+    "UPDATE TRANSITION SET DECOY=NULL;");
+  TEST_EXCEPTION(Exception::MissingInformation, scorer.score(path, OpenSwathPercolatorScoring::Level::TRANSITION))
+}
+END_SECTION
+
 START_SECTION([EXTRA] missing SQL feature tables precede metadata reads)
 {
   for (const auto level : {OpenSwathPercolatorScoring::Level::MS1, OpenSwathPercolatorScoring::Level::MS2,

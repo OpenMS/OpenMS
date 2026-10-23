@@ -22,6 +22,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -185,6 +186,13 @@ namespace OpenMS
     {
       pep_im_map[cmp.id] = cmp.drift_time;
     }
+    // Read-only lookup for the parallel loop: operator[] would insert into the shared map.
+    // A missing compound yields NaN, which the calibrant filter below discards.
+    const auto drift_time_of = [&pep_im_map](const std::string& pepref)
+    {
+      const auto it = pep_im_map.find(pepref);
+      return it == pep_im_map.end() ? std::numeric_limits<double>::quiet_NaN() : it->second;
+    };
 
     TransformationDescription::DataPoints data_im;
 
@@ -255,7 +263,7 @@ namespace OpenMS
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        double drift_target = drift_time_of(pepref);
         RangeMobility im_range;
         if (im_extraction_win != -1 ) // im_extraction_win is set
         {
@@ -300,7 +308,7 @@ namespace OpenMS
       {
         const auto& tr0 = transition_group->getTransitions()[0];
         const auto pepref0 = tr0.getPeptideRef();
-        const double drift_target0 = pep_im_map[pepref0];
+        const double drift_target0 = drift_time_of(pepref0);
 
         // Define an IM window centered on the theoretical drift time of this peptide
         RangeMobility im_range_ms1(drift_target0);
@@ -342,7 +350,7 @@ namespace OpenMS
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        double drift_target = drift_time_of(pepref);
 
         // do not need to check for IM because we are correcting IM
         RangeMobility im_range(drift_target);

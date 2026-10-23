@@ -910,6 +910,20 @@ START_SECTION(correctIM keeps paired calibration points and exact fits independe
       TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
     }
 
+    // A transition whose compound is missing from the library is dropped like an invalid
+    // calibrant instead of entering the fit with a default theoretical mobility of 0.
+    auto missing_compound_exp = targeted_exp;
+    missing_compound_exp.compounds.erase(missing_compound_exp.compounds.begin()); // calibrant_1000
+    {
+      TransformationDescription result;
+      correction.correctIM(ordered_groups, missing_compound_exp, swath_maps, false, result);
+      TEST_EQUAL(result.getDataPoints().size(), n_calibrants - 1)
+      TEST_TRUE(result.getDataPoints() == reference.getDataPoints())
+      TEST_TRUE(result.getModelParameters() == reference.getModelParameters())
+      TEST_TRUE(correction.getFragmentImWindow() == fragment_window)
+      TEST_TRUE(correction.getPrecursorImWindow() == precursor_window)
+    }
+
     // Preserve the established empty-fit failure, without replacing an existing
     // transformation or window estimates with non-finite results.
     TransformationDescription unchanged = reference;

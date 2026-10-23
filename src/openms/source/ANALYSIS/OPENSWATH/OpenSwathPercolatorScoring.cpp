@@ -72,6 +72,7 @@ namespace OpenMS
       double exp_rt = 0.0;
       std::optional<Int64> transition_id;
       bool decoy = false;
+      bool decoy_known = true; // false for a NULL label, which only discarded rows may carry
       Size run_rank = 0;
       Size precursor_rank = 0;
       int cv_group_key = 0;
@@ -434,6 +435,12 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Deterministic OpenSWATH Percolator scoring requires finite retention times.", StringUtils::toStr(row.exp_rt));
+        }
+        if (!row.decoy_known)
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "OpenSWATH Percolator scoring requires a decoy label for transition " +
+            StringUtils::toStr(row.transition_id.value_or(-1)) + " of feature " + StringUtils::toStr(row.feature_id) + ".");
         }
         run_ranks.emplace(keys.runs.at(row.run_id), 0);
         precursor_ranks.emplace(keys.precursors.at(row.precursor_id), 0);
@@ -955,6 +962,7 @@ namespace OpenMS
         row.exp_rt = sqlite3_column_type(stmt, col) == SQLITE_NULL ? std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col);
         ++col;
         row.transition_id = Sql::extractInt64(stmt, col++);
+        row.decoy_known = sqlite3_column_type(stmt, col) != SQLITE_NULL;
         row.decoy = sqlite3_column_int(stmt, col++) != 0;
         (void)Sql::extractInt(stmt, col++);
         const double peakgroup_pep = sqlite3_column_type(stmt, col) == SQLITE_NULL ?
