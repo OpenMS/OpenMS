@@ -249,6 +249,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   The sorts of `Scores` by score (`calcScores`, `merge`, `postMergeStep`) compare with
   `ScoreHolderGreater`, a copy of `operator>` (defined in another file, so each comparison was
   a function call) that the sort can inline: same outcomes, same moves.
+- `patches/11-tdc-sort-tasks.patch` — `Scores::weedOutRedundantTDC` sorts the PSMs by
+  spectrum (`OrderScanMassCharge`) with `sortLikeStdSort` (`SortLikeStd.h`) instead of
+  `std::sort`, unless a score or mass is NaN (no strict weak ordering): the same permutation,
+  with the tasks of an enclosing OpenMP parallel region. OpenMS' `Percolator::rescore` calls it
+  in such a region (as the cross-validation calls `merge`), so that this sort, the sort of
+  `postMergeStep` and the bootstraps of `estimatePi0` run as tasks; outside a region it is
+  `std::sort` as before.
 
 ### Regenerating the patch
 

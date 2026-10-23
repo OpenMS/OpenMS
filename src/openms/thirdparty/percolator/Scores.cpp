@@ -876,7 +876,13 @@ void Scores::weedOutRedundant(
  */
 void Scores::weedOutRedundantTDC() {
   // order the scores (based on spectra id and score)
-  std::sort(scores_.begin(), scores_.end(), OrderScanMassCharge());
+  // OpenMS: like std::sort, with the tasks of an enclosing OpenMP parallel region (see
+  // SortLikeStd.h), if the comparison is a strict weak ordering (no NaN mass or score)
+  if (comparableScores(scores_.begin(), scores_.end())) {
+    sortLikeStdSort(scores_, OrderScanMassCharge());
+  } else {
+    std::sort(scores_.begin(), scores_.end(), OrderScanMassCharge());
+  }
   scores_.erase(
       std::unique(scores_.begin(), scores_.end(), UniqueScanMassCharge()),
       scores_.end());

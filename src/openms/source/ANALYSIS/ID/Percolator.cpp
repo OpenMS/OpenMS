@@ -38,6 +38,10 @@
 #include <unordered_set>
 #include <utility>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
 
@@ -256,6 +260,19 @@ struct RowKeys
 
 // Populate a single PSMDescription from one row of RescoreInput. The row's
 // feature pointer comes from SetHandler's FeatureMemoryPool.
+// The threads of a parallel region whose sorts and pi0 bootstraps run as its tasks: at most 12,
+// as the cross-validation's (thirdparty/percolator/CrossValidation.cpp: numTeamThreads), more
+// would mostly wait for tasks; never more than OpenMP allows here.
+[[maybe_unused]] static int teamThreads(int num_threads)
+{
+#ifdef _OPENMP
+  return std::max(1, std::min({num_threads, 12, omp_get_max_threads()}));
+#else
+  (void)num_threads;
+  return 1;
+#endif
+}
+
 // Rethrows the first error, in iteration order, caught in the iterations of a parallel loop.
 static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
 {
@@ -932,7 +949,23 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
     if (impl_->post_processing_tdc)
     {
-      all_scores.weedOutRedundantTDC();
+      // In a parallel region, as the cross-validation calls Scores::merge: the sorts and the
+      // bootstraps of the pi0 estimate run as its tasks, with the same results (see
+      // thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
+      std::exception_ptr tdc_error;
+#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
+#pragma omp single
+      {
+        try
+        {
+          all_scores.weedOutRedundantTDC();
+        }
+        catch (...)
+        {
+          tdc_error = std::current_exception();
+        }
+      }
+      if (tdc_error) std::rethrow_exception(tdc_error);
     }
 
     // Mirror Caller::calculatePSMProb: after the merge, recompute q-values
