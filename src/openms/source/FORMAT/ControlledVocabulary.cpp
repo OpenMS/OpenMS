@@ -15,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <memory>
 
 using namespace std;
 
@@ -656,14 +657,16 @@ namespace OpenMS
 
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
   {
-    static const ControlledVocabulary cv = []() {
-      ControlledVocabulary cv;
-      cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-      return cv;
+    // never destroyed: freeing its terms one by one at exit took a tool reading mzML about 7 ms (the memory is
+    // released with the process anyway)
+    static const ControlledVocabulary& cv = *[]() {
+      auto cv = std::make_unique<ControlledVocabulary>();
+      cv->loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+      cv->loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv->loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv->loadFromOBO("BTO", File::find("/CV/brenda.obo"));
+      cv->loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+      return cv.release();
     }();
     return cv;
   }
