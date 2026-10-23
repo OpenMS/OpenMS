@@ -265,6 +265,34 @@ static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
   }
 }
 
+// Fills a PSMDescription from one row of RescoreInput; its feature row
+// (psm.features) is allocated already.
+static void fillPSMFromRow(
+  P::PSMDescription& psm,
+  const std::vector<double>& feats,
+  const RowKeys& keys,
+  size_t row_index,
+  std::string& synth_id)
+{
+  // Synthesize an opaque row ID as the "peptide" string — never parsed.
+  char buf[32];
+  std::snprintf(buf, sizeof(buf), "row_%08zu", row_index);
+  synth_id = buf;
+  psm.setId(synth_id);
+  psm.setPeptide(synth_id);
+  psm.scan        = static_cast<unsigned int>(keys.scan);
+  psm.specFileNr  = static_cast<unsigned int>(keys.spec_file);
+  psm.expMass     = keys.exp_mass;
+  psm.calcMass    = keys.calc_mass;
+  psm.retentionTime_ = 0.0;
+
+  double* feat_ptr = psm.features;
+  for (size_t j = 0; j < feats.size(); ++j)
+  {
+    feat_ptr[j] = feats[j];
+  }
+}
+
 static P::PSMDescription* makePSMFromRow(
   const std::vector<double>& feats,
   const RowKeys& keys,
@@ -273,25 +301,9 @@ static P::PSMDescription* makePSMFromRow(
   P::FeatureMemoryPool& pool)
 {
   auto* psm = new P::PSMDescription();
-  // Synthesize an opaque row ID as the "peptide" string — never parsed.
-  char buf[32];
-  std::snprintf(buf, sizeof(buf), "row_%08zu", row_index);
-  synth_id = buf;
-  psm->setId(synth_id);
-  psm->setPeptide(synth_id);
-  psm->scan        = static_cast<unsigned int>(keys.scan);
-  psm->specFileNr  = static_cast<unsigned int>(keys.spec_file);
-  psm->expMass     = keys.exp_mass;
-  psm->calcMass    = keys.calc_mass;
-  psm->retentionTime_ = 0.0;
-
   // Allocate feature row from the pool.
-  double* feat_ptr = pool.allocate();
-  for (size_t j = 0; j < feats.size(); ++j)
-  {
-    feat_ptr[j] = feats[j];
-  }
-  psm->features = feat_ptr;
+  psm->features = pool.allocate();
+  fillPSMFromRow(*psm, feats, keys, row_index, synth_id);
   return psm;
 }
 
@@ -781,17 +793,36 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   // Populate rows (training subset only — the second pass below scores the
   // full set using the trained model, mirroring upstream Caller.cpp flow).
+  // The PSMs and their feature rows are allocated and registered by this
+  // thread, in the order of the rows, and filled in parallel. (The data sets
+  // delete the PSMs in this thread; PSMs allocated by other threads would take
+  // much longer to free.)
   impl_->synthesized_ids.resize(n_rows);
   impl_->owned_psms.reserve(training_rows.size());
   for (size_t i : training_rows)
   {
-    const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.features[i], keys, i,
-                               impl_->synthesized_ids[i], pool);
+    auto* psm = new P::PSMDescription();
     impl_->owned_psms.push_back(psm);
     if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
     else                   impl_->target_ds->registerPsm(psm);
+    psm->features = pool.allocate();
   }
+  std::vector<std::exception_ptr> row_errors(training_rows.size());
+#pragma omp parallel for schedule(dynamic, 1024)
+  for (SignedSize k = 0; k < static_cast<SignedSize>(training_rows.size()); ++k)
+  {
+    try
+    {
+      const size_t i = training_rows[k];
+      fillPSMFromRow(*impl_->owned_psms[k], input.features[i], makeRowKeys(input, i), i,
+                     impl_->synthesized_ids[i]);
+    }
+    catch (...)
+    {
+      row_errors[k] = std::current_exception();
+    }
+  }
+  rethrowFirstError(row_errors);
 
   impl_->set_handler->push_back_dataset(impl_->target_ds.release());
   impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
