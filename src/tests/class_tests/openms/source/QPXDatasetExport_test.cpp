@@ -526,6 +526,11 @@ START_SECTION((static MzView mzView(const MSExperiment& spectra, const PeptideId
   deisotoped[0].getPrecursors()[0].setCharge(0);
   capped = QPXDatasetExport::mzView(deisotoped, ids, "run1", deiso);
   TEST_EQUAL(capped.peaks_kept, 3)
+  // ... also if its PSM is of charge 2: the search deisotoped it up to 3+, so the fragment's 3+ peak stays
+  ids[0].getHits()[0].setCharge(2);
+  capped = QPXDatasetExport::mzView(deisotoped, ids, "run1", deiso);
+  TEST_EQUAL(capped.peaks_kept, 3)
+  TEST_EQUAL(floatList(capped.table, "mz", 0).front(), static_cast<float>((600.0 + 2 * p) / 3))
 
   // no PSMs: an empty view
   const QPXDatasetExport::MzView empty = QPXDatasetExport::mzView(mzSpectra(false), PeptideIdentificationList(), "run1", all);
