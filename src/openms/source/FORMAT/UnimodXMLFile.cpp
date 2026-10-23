@@ -14,9 +14,11 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <limits>
 #include <filesystem>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 using namespace std;
 
@@ -126,6 +128,23 @@ namespace OpenMS
       return (tag != HandlerTag::NONE && !prefixed) ? HandlerTag::UNPREFIXED : tag;
     }
 
+    /// Follows @p tag on the stack of @p open elements; false for markup other than tags (comments, CDATA sections,
+    /// processing instructions, declarations) and for an end tag that does not close the innermost open element
+    bool balance(const Tag& tag, std::vector<std::string_view>& open)
+    {
+      if (tag.name[0] == '!' || tag.name[0] == '?') return false;
+      if (tag.closing)
+      {
+        if (open.empty() || open.back() != tag.name) return false;
+        open.pop_back();
+      }
+      else if (!tag.self_closing)
+      {
+        open.push_back(tag.name);
+      }
+      return true;
+    }
+
     /**
       Is [@p from, @p to) of the \<umod:modifications\> section a sequence of complete \<umod:mod\> elements that the
       handler reads the same way with a fresh handler as after the elements before it? That is: plain tags only (no
@@ -137,10 +156,11 @@ namespace OpenMS
     bool sliceable(std::string_view text, size_t from, size_t to)
     {
       int in_mod = 0, in_specificity = 0;
+      std::vector<std::string_view> open; // all elements: a slice is a sequence of complete elements
       Tag tag;
       for (size_t p = text.find('<', from); p < to; p = text.find('<', p + 1))
       {
-        if (!readTag(text, p, to, tag) || tag.name[0] == '!' || tag.name[0] == '?') return false;
+        if (!readTag(text, p, to, tag) || !balance(tag, open)) return false;
         p += tag.text.size() - 1;
         switch (handlerTag(tag.name))
         {
@@ -169,17 +189,20 @@ namespace OpenMS
             break;
         }
       }
-      return in_mod == 0 && in_specificity == 0;
+      return in_mod == 0 && in_specificity == 0 && open.empty();
     }
 
-    /// Does [@p from, @p to) hold plain tags only, none that the handler acts on except \<umod:element\> if
-    /// @p elements_allowed (outside \<umod:delta\>/\<umod:NeutralLoss\> the handler ignores those)?
-    bool inert(std::string_view text, size_t from, size_t to, bool elements_allowed)
+    /**
+      Does [@p from, @p to) hold plain tags only, none that the handler acts on except \<umod:element\> if
+      @p elements_allowed (outside \<umod:delta\>/\<umod:NeutralLoss\> the handler ignores those), and does it leave
+      the elements @p open (on entry: open before it) open at its end?
+    */
+    bool inert(std::string_view text, size_t from, size_t to, bool elements_allowed, std::vector<std::string_view>& open)
     {
       Tag tag;
       for (size_t p = text.find('<', from); p < to; p = text.find('<', p + 1))
       {
-        if (!readTag(text, p, to, tag) || tag.name[0] == '!' || tag.name[0] == '?') return false;
+        if (!readTag(text, p, to, tag) || !balance(tag, open)) return false;
         p += tag.text.size() - 1;
         const HandlerTag h = handlerTag(tag.name);
         if (h != HandlerTag::NONE && !(elements_allowed && h == HandlerTag::ELEMENT)) return false;
@@ -194,9 +217,17 @@ namespace OpenMS
       size_t p = text.substr(0, 3) == "\xEF\xBB\xBF" ? 3 : 0;
       if (text.substr(p, 6) == "<?xml ")
       {
-        p = text.find("?>", p);
-        if (p == std::string_view::npos) return std::string_view::npos;
-        p += 2;
+        const size_t declaration_end = text.find("?>", p);
+        if (declaration_end == std::string_view::npos) return std::string_view::npos;
+        // the tags are read from the bytes: UTF-8 (the default) only, not e.g. UTF-7, which can encode '<'
+        std::string_view encoding;
+        if (attributeValue(text.substr(p, declaration_end - p) , "encoding", encoding))
+        {
+          std::string e(encoding);
+          std::transform(e.begin(), e.end(), e.begin(), [](unsigned char c) { return char(std::tolower(c)); });
+          if (e != "utf-8" && e != "utf8") return std::string_view::npos;
+        }
+        p = declaration_end + 2;
       }
       while (p < text.size())
       {
@@ -222,11 +253,7 @@ namespace OpenMS
     const Size max_slices = 8;
     const Size min_slice_bytes = 256 * 1024;
     const Size n_threads = std::thread::hardware_concurrency();
-    if (n_threads < 2) return false;
-    std::error_code ec;
-    if (!std::filesystem::is_regular_file(file, ec)) return false;
-    const auto file_size = std::filesystem::file_size(file, ec);
-    if (ec || file_size < 2 * min_slice_bytes) return false;
+    if (n_threads < 2 || !enforced_encoding_.empty()) return false;
 
     // the slices, each parsed with its own handler; deleted unless all are parsed and moved to 'modifications'
     std::vector<std::vector<ResidueModification*>> parts;
@@ -237,6 +264,10 @@ namespace OpenMS
     } owner{parts};
     try
     {
+      std::error_code ec;
+      if (!std::filesystem::is_regular_file(file, ec)) return false;
+      const auto file_size = std::filesystem::file_size(file, ec);
+      if (ec || file_size < 2 * min_slice_bytes || file_size > uintmax_t(std::numeric_limits<std::streamsize>::max()) || file_size >= std::string().max_size()) return false;
       std::string text;
       {
         std::ifstream in(file, std::ios::binary);
@@ -254,7 +285,11 @@ namespace OpenMS
       const size_t end = text.find(close_tag, begin);
       if (end == std::string::npos) return false;
       // nothing the handler acts on before or after the section: it is read again with every slice
-      if (!inert(view, root, begin, false) || !inert(view, end, text.size(), true)) return false;
+      // ... and the section is the second level of the document: <umod:unimod><umod:modifications>, closed after it
+      std::vector<std::string_view> open_elements;
+      if (!inert(view, root, begin, false, open_elements) ||
+          open_elements != std::vector<std::string_view>{"umod:unimod", "umod:modifications"}) return false;
+      if (!inert(view, end, text.size(), true, open_elements) || !open_elements.empty()) return false;
       const Size n_slices = std::min({max_slices, n_threads, Size((end - begin) / min_slice_bytes)});
       if (n_slices < 2) return false;
       std::vector<size_t> cuts{begin};

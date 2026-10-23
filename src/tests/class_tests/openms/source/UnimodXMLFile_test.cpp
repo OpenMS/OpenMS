@@ -253,6 +253,17 @@ START_SECTION([EXTRA] a file parsed in slices gives the modifications of the fil
   broken.replace(middle, 11, "</umod:mox>");
   vector<ResidueModification*> none;
   TEST_EXCEPTION(Exception::ParseError, UnimodXMLFile().load(write(broken), none))
+  for (auto* m : none) delete m;
+
+  // a nested, unclosed <umod:modifications> in the section (malformed): an error as with the whole file
+  {
+    std::string nested = text;
+    const size_t p = nested.find("</umod:mod>", nested.size() / 3) + 11;
+    nested.insert(p, open_tag);
+    vector<ResidueModification*> mods;
+    TEST_EXCEPTION(Exception::ParseError, UnimodXMLFile().load(write(nested), mods))
+    for (auto* m : mods) delete m;
+  }
 }
 END_SECTION
 
