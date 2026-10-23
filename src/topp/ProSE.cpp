@@ -11,6 +11,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -33,6 +34,7 @@
 
 #include <map>
 #include <set>
+#include <thread>
 
 using namespace OpenMS;
 using namespace std;
@@ -221,6 +223,31 @@ class ProSE :
             return ILLEGAL_PARAMETERS;
           }
         }
+      }
+
+      // The mzML reader needs the PSI-MS controlled vocabulary (ControlledVocabulary::getPSIMSCV(), read once per process
+      // from five OBO files, about 60 ms) when it parses the header of the first file, in the background next to the
+      // FASTA read and the index build. One more thread loads it from here on, during the serial start of the search, so
+      // that the reader finds it loaded: only with more than one thread and an mzML input. The thread prints nothing
+      // (the loader only writes warnings about malformed OBO files) and ignores a failure: the reader's own call then
+      // loads it again and throws as before.
+      struct JoinOnReturn
+      {
+        std::thread thread;
+        ~JoinOnReturn() { if (thread.joinable()) { thread.join(); } }
+      } cv_load;
+      if (getIntOption_("threads") != 1
+          && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; }))
+      {
+        try
+        {
+          cv_load.thread = std::thread([]()
+          {
+            try { ControlledVocabulary::getPSIMSCV(); }
+            catch (...) {}
+          });
+        }
+        catch (const std::system_error&) {} // no thread: the reader loads it
       }
 
       ProgressLogger progresslogger;
