@@ -5657,6 +5657,28 @@ set_tests_properties("TOPP_${_f}_pg_out" PROPERTIES DEPENDS "TOPP_${_f}_pg")
 add_test("TOPP_${_f}_pg_schema" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/DatabaseSuitability_in_spec.pg.parquet -schema pg -min_rows 1)
 set_tests_properties("TOPP_${_f}_pg_schema" PROPERTIES DEPENDS "TOPP_${_f}")
+# A failed write of an input's mz view (a folder in the place of runs/<stem>.mz.parquet) fails the input (exit code 12,
+# INTERNAL_ERROR, the error logged), but its psm file was written before: quantms.psm.parquet keeps the input's rows,
+# and the run view its psm_rows, as for any input whose psm file was written.
+set(_f ProSE_14_mz_write_fails)
+set(_stem DatabaseSuitability_in_spec)
+add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+add_test(NAME "TOPP_${_f}_block" COMMAND ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/${_f}_qpx/runs/${_stem}.mz.parquet)
+set_tests_properties("TOPP_${_f}_block" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;${_prose14_common};-in;${_prose14_mzml};-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
+  -DEXPECTED_CODE=12 "-DEXPECTED_OUTPUT_REGEX=Failed to write the QPX mz view" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_block")
+add_test("TOPP_${_f}_run_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.run.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
+set_tests_properties("TOPP_${_f}_run_dump" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_${_stem}_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/${_stem}.psm.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv)
+set_tests_properties("TOPP_${_f}_${_stem}_dump" PROPERTIES DEPENDS "TOPP_${_f}")
+prose14_dumps(${_f} quantms)
+add_test("TOPP_${_f}_quantms_check" ${CMAKE_COMMAND} ${_dumps} -DMZML=${_prose14_mzml} -DMERGED=ON
+  -DSUM_OF=${TESTS_TEMP_DIR}/${_f}_${_stem}_qpx.tmp.tsv ${_prose14_check})
+set_tests_properties("TOPP_${_f}_quantms_check" PROPERTIES DEPENDS "${_dump_tests};TOPP_${_f}_${_stem}_dump")
 # An empty result: no PSM passes the PSM FDR; the psm view is written with its columns, its footer and no rows.
 # ProSE_empty.fasta swaps target and decoy: its decoys (DECOY_, reused by decoys=auto) are the proteins of the
 # DatabaseSuitability database, its targets their reversed sequences, so the spectra match decoys only. The protein FDR

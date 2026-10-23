@@ -1347,27 +1347,34 @@ class ProSE :
             if (!pid.getSpectrumReference().empty()) { spec_refs.push_back(pid.getSpectrumReference()); }
           }
           const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spec_refs);
-          // -qpx_extended: the views of the input's own QPX dataset (runs/<basename>.psm/mz/pg.parquet), written together
-          // below; quantms.psm.parquet gets its rows without the predictions, and only if its files were written
+          // -qpx_extended: the views of the input's own QPX dataset after its psm file (runs/<basename>.mz/pg.parquet),
+          // written below
           std::map<std::string, QPXDatasetExport::View> run_views;
-          std::shared_ptr<arrow::Table> rows_table;
           if (qpx_psm_table && qpx_extended)
           {
-            // The per-input file gets the prediction columns and is written as soon as the input is done, with the mz view
-            // of its spectra (neither is kept for the rest of the run).
-            rows_table = ArrowIOHelpers::withColumns(qpx_psm_table, QPXDatasetExport::psmColumns(
+            // The per-input file gets the prediction columns and is written now, with the mz view of its spectra (neither
+            // is kept for the rest of the run); quantms.psm.parquet gets the rows without the predictions, and only of
+            // the inputs whose files were written.
+            auto rows_table = ArrowIOHelpers::withColumns(qpx_psm_table, QPXDatasetExport::psmColumns(
               result.peptide_ids, spectra_of_file.mz.has_spectrum, isotopeObservedMinusTheoretical_(result.protein_ids)));
             auto file_table = rows_table ? ArrowIOHelpers::withColumns(rows_table, predictionColumns_(spectra_of_file.predictions)) : nullptr;
+            std::map<std::string, std::string> keys = qpx_prediction_keys;
+            if (!psm_scan_format.empty()) { keys["scan_format"] = psm_scan_format; }
             if (!file_table)
             {
               OPENMS_LOG_ERROR << "Failed to add the -qpx_extended columns for " << in_file << endl;
               input_failed = true;
             }
+            else if (!QPXDatasetExport::writeDataset(qpx_runs_dir, basename, {{"psm", {{file_table}, qpx_spectra_config, keys}}}))
+            {
+              OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
+              input_failed = true;
+            }
             else
             {
-              std::map<std::string, std::string> keys = qpx_prediction_keys;
-              if (!psm_scan_format.empty()) { keys["scan_format"] = psm_scan_format; }
-              run_views["psm"] = {{file_table}, qpx_spectra_config, keys};
+              qpx_psm_tables.push_back(rows_table);
+              qpx_psm_scan_formats.push_back(psm_scan_format);
+              qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(rows_table);
               // the mz view of the spectra of its PSMs (none if they could not be read again)
               if (spectra_of_file.mz.table)
               {
@@ -1447,20 +1454,11 @@ class ProSE :
             OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << qpx_pg_file << endl;
           }
 
-          if (!run_views.empty())
+          // (writeDataset() logs the view that failed)
+          if (!run_views.empty() && !QPXDatasetExport::writeDataset(qpx_runs_dir, basename, run_views))
           {
-            if (!QPXDatasetExport::writeDataset(qpx_runs_dir, basename, run_views))
-            {
-              OPENMS_LOG_ERROR << "Failed to write the QPX files of " << in_file << " -> " << qpx_runs_dir << "/" << basename
-                               << ".*.parquet" << endl;
-              input_failed = true;
-            }
-            else if (run_views.count("psm") > 0)
-            {
-              qpx_psm_tables.push_back(rows_table);
-              qpx_psm_scan_formats.push_back(psm_scan_format);
-              qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(rows_table);
-            }
+            OPENMS_LOG_ERROR << "Failed to write the QPX files of " << in_file << " -> " << qpx_runs_dir << endl;
+            input_failed = true;
           }
           }
           catch (const Exception::BaseException& e)
