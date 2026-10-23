@@ -71,7 +71,9 @@ Notes on the files:
 - **Entrapment, the only estimate of the true error rate here:**
   - **Velos:** natural entrapment, UPS1/yeast against all human proteins, r = 3.376.
   - **HF-X, Astral, TMTpro:** one shuffled, mass-matched entrapment protein per target, r = 1.
-  - **timsTOF, Lumos:** added later the same way (#10639).
+  - **timsTOF:** added later with the same `human` database (#10639).
+  - **Lumos:** only a whole-protein shuffle so far (#10639).
+  - For the paper the entrapment databases are rebuilt; see section 3.
 - **Comparison engines measured on the suite so far:** Sage 0.14.7, ANDES (b7eaece, auto models), MSFragger (only in #10403).
 
 ### Caveat for the paper
@@ -178,7 +180,7 @@ on two instruments, so they can be compared directly.
 | #9203 | DN17_Liver_classI_techRep2 | speed only |
 
 - **Memory:** an unspecific human index does not fit into 12.5 GiB. The search needs `low_memory` or `database:mass_slices`, which is in PR #10639, still open.
-- **FDR control:** entrapment hits on MHC data are too few to check it (2–7 per run).
+- **FDR control:** entrapment hits on MHC data were too few to check it (2–7 per run in #10630/#10636). The paper uses no entrapment for immunopeptidomics (section 3).
 
 **[PXD019643](https://www.ebi.ac.uk/pride/archive/projects/PXD019643): HLA Ligand Atlas** (Marcu et al., J Immunother Cancer 2021)
 - **Data:** Orbitrap Fusion Lumos, CID. 1,470 raw files: 751 class I (W6/32, 400–650 m/z) and 718 class II (Tü39 + L243, 400–1000 m/z). Usually 3 DDA replicates per donor, tissue and class.
@@ -220,7 +222,66 @@ PXD019643 (DDA_1 of each; the DDA_2 and DDA_3 replicates lie next to them on PRI
 - **What ProSE would need:** all replicates of a sample, peptide-level FDR, and the same database as MHCquant2 (Swiss-Prot human; 20 ppm; z 1–4; 8–14 aa for class I).
 - **Possible ground truth:** PXD058436 also has six synthetic peptide mix runs (`*_Synpepmix*_classI_*.raw`, Thermo), which have not been examined yet.
 
-## 3. Open decisions
+## 3. Databases and entrapment
+
+Status 2026-10-23: **every dataset has a FASTA. Entrapment databases exist only for the main benchmark**, and only as scripts plus SHA256, not as files.
+
+### 3.1 Tools
+
+Since 2026-10-23, PR [#10629](https://github.com/OpenMS/OpenMS/pull/10629) is merged into develop. It adds two tools:
+
+- **`DecoyDatabase -entrapment_ratio N`:** writes N shuffled entrapment copies of each target protein (prefix `ENTRAP_`), each with its own decoys.
+  - Each copy is shuffled peptide by peptide. The C-terminal residue and K, R and P stay in place, and residues are permuted, never replaced, so entrapment peptides are mass-matched.
+  - Shuffles that equal a target peptide or exceed the identity threshold are rejected.
+  - The output is deterministic for a given `-seed`.
+- **`EntrapmentEvaluator`:** estimates the FDP at each q-value threshold. It uses the combined estimator `N_E / N · (1 + T/E)`, with T/E measured from the database (`-database`, I = L).
+
+**How the design was validated (#10629):** on HF-X, Astral and TMTpro it was compared with a foreign-proteome entrapment (reviewed *Arabidopsis*, UP000006548).
+- The estimates were within 0.15–0.45 pp of the foreign reference.
+- They were close to the #10364 `make_entrapment.py` design.
+- The ANDES whole-protein shuffle underestimated the FDP by 20–33%. ANDES has since switched to the same design (bigbio/andes#237).
+
+**Plan for the paper:** rebuild all shuffled entrapment databases with `DecoyDatabase -entrapment_ratio 1` from develop, instead of the per-PR scripts.
+- **Several realisations:** build **3 realisations** (`-seed 1/2/3`) per database. A single realisation scatters by 0.1–0.27 pp (SD) on 3 files × 8,000 spectra.
+- **Reference:** add the *Arabidopsis* foreign entrapment as a reference for 2–3 groups.
+- **Archive:** freeze every FASTA (with UniProt release and download date) and every entrapment database on archive.openms.de, with SHA256 in this file.
+
+### 3.2 Main benchmark
+
+| Group | Target database | Entrapment so far | For the paper |
+|---|---|---|---|
+| Velos | `hy` | natural: UPS1/yeast against all human proteins except UPS1, r = 3.376 (`make_velos_natural.py` adds `ENTRAP_` to those accessions) | keep |
+| HF-X, Astral | `hye` | shuffled r = 1, `make_entrapment.py` (#10364 supplement `sage-comparison-20261002`), SHA256 `fb77e3df…` | DecoyDatabase, 3 seeds |
+| TMTpro, timsTOF | `human` | same design, SHA256 `76d25071…` | DecoyDatabase, 3 seeds |
+| Lumos LFQ, Lumos TMT | `hy` | only a whole-protein 1:1 shuffle (#10639, SHA256 `1462fb72…`), the design that underestimates | DecoyDatabase, 3 seeds |
+
+- **Target databases:** `hy`, `hye` and `human` are regenerated from the HYE FASTA (`d9ac434d…`) by `prepare_databases.py` (reproduction package), with SHA256 in its `databases.json`.
+- **Decoys, open decision:** the frozen suite uses full-protein reversal (`DECOY_`). DecoyDatabase reverses peptide by peptide. In #10629, decoy co-mapping changed the estimate by 0.05–0.1 pp, so one of the two decoy designs has to be chosen for all arms.
+- **Scripts:** the current scripts are on branch `claude/andes-benchmarks` (`benchmark-reproduction/andes-ports/pr10629/scripts/`: `prepare_databases_nopyopenms.py`, `frozen_make_entrapment.py`, `make_velos_natural.py`, `make_foreign.py`).
+
+### 3.3 Further datasets
+
+| Dataset | FASTA used so far | FASTA from the authors (PRIDE) | Entrapment for the paper |
+|---|---|---|---|
+| PXD011695 (ETD, mouse) | Swiss-Prot mouse, 17,277 entries; file and release not recorded | [010090_MusMusculus_Uniprot_ISOFORMS_CONCAT_20161109.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2019/05/PXD011695/010090_MusMusculus_Uniprot_ISOFORMS_CONCAT_20161109.fasta) (95 MB, with isoforms and concatenated decoys) | DecoyDatabase shuffle |
+| PXD065289 (ETciD, HEK293) | Swiss-Prot human, 20,416 entries; not recorded | [fasta.zip](https://ftp.pride.ebi.ac.uk/pride/data/archive/2026/03/PXD065289/fasta.zip) (34 MB) | DecoyDatabase shuffle |
+| PXD070049 (Astral HYE) | ProteoBench HYE FASTA (section 1) | [uniprotkb_proteome_HYE_UniversalContaminants.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2026/02/PXD070049/uniprotkb_proteome_HYE_UniversalContaminants.fasta) (20 MB) | as HF-X/Astral; optional natural entrapment from the single-species runs |
+| PXD046453 (Astral HeLa) | Swiss-Prot human, 20,416 entries; not recorded | none deposited | DecoyDatabase shuffle |
+| Percolator LTQ sets | [yeast.fasta.gz](https://noble.gs.washington.edu/proj/percolator/data/yeast.fasta.gz), [worm.fasta.gz](https://noble.gs.washington.edu/proj/percolator/data/worm.fasta.gz) | same page (also `decoy0–9.fasta.gz`) | DecoyDatabase shuffle |
+| iPRG2015 (PXD010981) | archive reference searches | [iPRG2015_decoy.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2018/09/PXD010981/iPRG2015_decoy.fasta) (8 MB) | DecoyDatabase shuffle |
+| iPRG2016 (PXD008425) | archive reference searches | [prest_pool_a.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2017/12/PXD008425/prest_pool_a.fasta), [prest_pool_b.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2017/12/PXD008425/prest_pool_b.fasta), [prest_1000_random.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2017/12/PXD008425/prest_1000_random.fasta) | possibly natural (?): if the 1,000 random PrESTs are absent from the samples, as the file names suggest; to be checked against the study design |
+| PXD042233 (Lumos CID HeLa) | Swiss-Prot human, 20,416 entries; not recorded | [UP000005640_9606.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/12/PXD042233/UP000005640_9606.fasta), [contaminants.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/12/PXD042233/contaminants.fasta) | DecoyDatabase shuffle |
+| ProteomeTools | — | peptide lists of the pools | not needed: synthetic peptides are ground truth |
+| PXD058436 (immuno, timsTOF) | [human_sp.fasta](https://archive.openms.de/openms/testfiles/human_sp.fasta) on archive.openms.de (20,431 entries, used in #10634, #10639); MHCquant2 used Swiss-Prot of 2020-10-14 | none deposited | **none**: target-decoy FDR only |
+| PXD019643 (immuno, Lumos) | — | [sp_21_04_2020_decoy.fasta](https://ftp.pride.ebi.ac.uk/pride/data/archive/2021/04/PXD019643/sp_21_04_2020_decoy.fasta) (27 MB, with decoys) | **none**: target-decoy FDR only |
+
+**Immunopeptidomics without entrapment:** two reasons.
+- With unspecific cleavage, entrapment counts per run are too small to estimate an FDP (2–7 hits per run so far).
+- DecoyDatabase's peptide-wise shuffle is designed for enzymatic peptides and has not been checked on unspecific searches.
+
+There, FDR control rests on target-decoy only. The comparison is with the published MHCquant2, FragPipe and PEAKS results at the same FDR level.
+
+## 4. Open decisions
 
 - **Rescoring:** which rescoring is counted, Percolator 3.09 as an external step or ProSE's in-process Percolator (#10578).
 - **timsTOF input:** the PRIDE mzML or ProSE's native `.d`/`.d.zip` reader.
@@ -229,3 +290,5 @@ PXD019643 (DDA_1 of each; the DDA_2 and DDA_3 replicates lie next to them on PRI
 - **ProteomeTools:** whether the ion-trap CID pools go in.
 - **Immunopeptidomics:** whether to search all technical replicates per sample (needed for comparison with MHCquant2, FragPipe and PEAKS) or one replicate.
 - **Comparison engines and versions:** Sage, ANDES, MSFragger, Comet, … on the full runs.
+- **Decoys:** full-protein reversal, as in #10364, or DecoyDatabase's peptide-wise reversal, for all arms.
+- **FASTAs of section 2:** the authors' FASTA from PRIDE or a frozen current Swiss-Prot release.
