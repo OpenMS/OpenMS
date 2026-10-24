@@ -392,6 +392,12 @@ namespace OpenMS
                        "scores, which the FDR filters then use (the ProSE tool warns). Set to 'false' to report the search engine "
                        "scores.");
     defaults_.setValidStrings("rescore", {"true", "false"});
+    defaults_.setValue("rescore_solver", "tron",
+                       "Solver of Percolator's SVMs with 'rescore' (Percolator's parameter 'solver'): 'tron' (default, "
+                       "Percolator's trust region Newton method), 'newton' (explicit-Hessian Newton method with exact line "
+                       "search and warm starts: the same models within the solver tolerance, much faster on large runs) or "
+                       "'lda' (Fisher's linear discriminant instead of the SVM: fastest, an approximation).", {"advanced"});
+    defaults_.setValidStrings("rescore_solver", {"tron", "newton", "lda"});
 
     defaults_.setValue("FDR:PSM", 0.0,
                        "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR; 0 disables the filter). Target and decoy PSMs are filtered "
@@ -710,6 +716,7 @@ namespace OpenMS
       self_trained_ion_priors_ = false;
     }
     rescore_ = param_.getValue("rescore").toString() == "true";
+    rescore_solver_ = param_.getValue("rescore_solver").toString();
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -4188,7 +4195,8 @@ namespace OpenMS
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       int threads,
-      std::vector<std::vector<PeptideHit>>* dropped)
+      std::vector<std::vector<PeptideHit>>* dropped,
+      const std::string& solver)
   {
     PercolatorRescoring outcome;
     if (protein_ids.empty())
@@ -4248,6 +4256,7 @@ namespace OpenMS
     // cross-validation trains 9 models at a time (3 folds x 3 Cneg values) and sorts on more threads (up to 12); the
     // results do not depend on the threads
     pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 128));
+    pp.setValue("solver", solver);
     perc.setParameters(pp);
 
     try
@@ -4329,6 +4338,7 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
       run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
+      if (solver != "tron") run_sp.setMetaValue("Percolator:solver", solver);
       run.setSearchParameters(run_sp);
     }
     outcome.applied = true;
@@ -4398,7 +4408,8 @@ namespace OpenMS
       const bool release_later = threads > 1;
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
-      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr);
+      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr,
+                                         rescore_solver_);
       if (!dropped.empty())
       {
         try

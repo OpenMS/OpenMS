@@ -1209,6 +1209,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
+    std::string rescore_solver_{"tron"}; ///< rescore_solver: Percolator's SVM solver
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1297,11 +1298,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     mutable std::shared_ptr<void> released_hits_;
 
     /// rescoreWithPercolator(); with @p dropped, the hits it drops are moved there (as memory allows) instead of
-    /// destroyed
+    /// destroyed; @p solver: Percolator's parameter 'solver' (parameter 'rescore_solver')
     static PercolatorRescoring rescoreWithPercolator_(std::vector<ProteinIdentification>& protein_ids,
                                                       PeptideIdentificationList& peptide_ids,
                                                       int threads,
-                                                      std::vector<std::vector<PeptideHit>>* dropped);
+                                                      std::vector<std::vector<PeptideHit>>* dropped,
+                                                      const std::string& solver = "tron");
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
