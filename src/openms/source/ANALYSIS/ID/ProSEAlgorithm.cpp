@@ -4784,6 +4784,7 @@ namespace OpenMS
               parsed = part.size() <= first[c + 1] - first[c];
               if (parsed)
               {
+                for (MSSpectrum& spectrum : part) { spectrum.sortByPosition(); } // see loadMS2Spectra()
                 std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
                 kept[c] = part.size();
                 if (last) { chromatograms = std::move(part.getChromatograms()); }
@@ -4849,8 +4850,9 @@ namespace OpenMS
       // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
       // default): with several threads, fewer and larger regions
       if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
-      if ((threads > 1 || (help != nullptr && chunk_threads > 1)) && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
-          && loadMzMLChunked(filename, f.getOptions(), threads, spectra, help, chunk_threads))
+      const bool chunked = (threads > 1 || (help != nullptr && chunk_threads > 1)) && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
+                           && loadMzMLChunked(filename, f.getOptions(), threads, spectra, help, chunk_threads);
+      if (chunked)
       {
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(spectra, true); // as FileHandler::loadExperiment()
 #ifdef __GLIBC__
@@ -4866,7 +4868,9 @@ namespace OpenMS
       {
         f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
       }
-      spectra.sortSpectra(true);
+      // by retention time, and the peaks of each spectrum by m/z: the chunks of loadMzMLChunked() sorted the peaks of
+      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run)
+      spectra.sortSpectra(!chunked);
       return spectra;
     }
 
