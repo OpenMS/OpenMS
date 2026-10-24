@@ -392,6 +392,18 @@ namespace OpenMS
                        "scores, which the FDR filters then use (the ProSE tool warns). Set to 'false' to report the search engine "
                        "scores.");
     defaults_.setValidStrings("rescore", {"true", "false"});
+    defaults_.setValue("rescoring:subset_max_train", 0,
+                       "Percolator trains on at most this many PSMs (drawn at random by spectrum: the PSMs of a spectrum "
+                       "stay together) and then scores all PSMs with the learned model, like the percolator executable's "
+                       "--subset-max-train. 0 trains on all PSMs. Faster on large runs; the results differ.",
+                       {"advanced"});
+    defaults_.setMinInt("rescoring:subset_max_train", 0);
+    defaults_.setValue("rescoring:iterations", 10,
+                       "Iterations of Percolator's cross-validation training (the percolator executable's --maxiter). "
+                       "Fewer are faster; the results differ.",
+                       {"advanced"});
+    defaults_.setMinInt("rescoring:iterations", 1);
+    defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
 
     defaults_.setValue("FDR:PSM", 0.0,
                        "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR; 0 disables the filter). Target and decoy PSMs are filtered "
@@ -710,6 +722,8 @@ namespace OpenMS
       self_trained_ion_priors_ = false;
     }
     rescore_ = param_.getValue("rescore").toString() == "true";
+    percolator_training_.subset_max_train = static_cast<int>(param_.getValue("rescoring:subset_max_train"));
+    percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -4180,7 +4194,7 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids,
       int threads)
   {
-    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr);
+    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr, PercolatorTraining());
   }
 
   // static
@@ -4188,7 +4202,8 @@ namespace OpenMS
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       int threads,
-      std::vector<std::vector<PeptideHit>>* dropped)
+      std::vector<std::vector<PeptideHit>>* dropped,
+      const PercolatorTraining& training)
   {
     PercolatorRescoring outcome;
     if (protein_ids.empty())
@@ -4243,7 +4258,8 @@ namespace OpenMS
     Param pp = perc.getDefaults();
     pp.setValue("train_best_positive", "true");
     pp.setValue("post_processing_tdc", "true");
-    pp.setValue("subset_max_train", 0);  // train on all PSMs
+    pp.setValue("subset_max_train", training.subset_max_train);  // 0 (the default): train on all PSMs
+    pp.setValue("num_iterations", training.iterations);
     pp.setValue("pep_method", "nonparametric");  // as the percolator executable
     // cross-validation trains 9 models at a time (3 folds x 3 Cneg values) and sorts on more threads (up to 12); the
     // results do not depend on the threads
@@ -4398,7 +4414,8 @@ namespace OpenMS
       const bool release_later = threads > 1;
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
-      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr);
+      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr,
+                                         percolator_training_);
       if (!dropped.empty())
       {
         try
