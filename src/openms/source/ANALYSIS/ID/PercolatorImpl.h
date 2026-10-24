@@ -73,6 +73,12 @@ namespace OpenMS
     std::string reset_representative = "model";
     bool   reset_audit = false;
     std::string reset_stem_table;             ///< empty = none
+    int    reset_mlp_members = 8;             ///< learner "mlp" (PercolatorReset::Options)
+    int    reset_mlp_hidden = 16;
+    int    reset_mlp_epochs = 30;
+    int    reset_mlp_warm_epochs = 3;
+    bool   reset_mlp_crossfit = true;
+    int    reset_mlp_norm_min_decoys = 1000;
     /// Result of the last RESET rescorePSMs() call (null otherwise).
     std::shared_ptr<const PercolatorReset::Output> last_reset;
 

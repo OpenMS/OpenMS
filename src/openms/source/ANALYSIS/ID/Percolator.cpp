@@ -218,6 +218,25 @@ Percolator::Percolator()
   defaults_.setValue("reset:learner", "svm",
                      "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
   defaults_.setValidStrings("reset:learner", {"svm","mlp"});
+  defaults_.setValue("reset:mlp_members", 8, "RESET learner 'mlp': networks per ensemble.");
+  defaults_.setMinInt("reset:mlp_members", 1);
+  defaults_.setValue("reset:mlp_hidden", 16, "RESET learner 'mlp': units of each of the two hidden layers.");
+  defaults_.setMinInt("reset:mlp_hidden", 1);
+  defaults_.setValue("reset:mlp_epochs", 30, "RESET learner 'mlp': training epochs of the first round (of every round without warm starts).");
+  defaults_.setMinInt("reset:mlp_epochs", 1);
+  defaults_.setValue("reset:mlp_warm_epochs", 3,
+                     "RESET learner 'mlp': > 0 = warm starts: the networks continue from the previous round for this many "
+                     "epochs; 0 = trained afresh every round.");
+  defaults_.setMinInt("reset:mlp_warm_epochs", 0);
+  defaults_.setValue("reset:mlp_crossfit", "true",
+                     "RESET learner 'mlp': score each stem by the networks that did not train on it (3 folds by a hash of the "
+                     "sequence, as Percolator's cross-validation); 'false' = one final ensemble scores everything, which ranks "
+                     "the training decoys it learned too low and selects too many positives.");
+  defaults_.setValidStrings("reset:mlp_crossfit", {"true","false"});
+  defaults_.setValue("reset:mlp_norm_min_decoys", 1000,
+                     "RESET learner 'mlp', cross-fitted: normalize the fold ensembles' scores (as Percolator's folds) only if "
+                     "every fold has at least this many training decoys (0 = always).");
+  defaults_.setMinInt("reset:mlp_norm_min_decoys", 0);
   defaults_.setValue("reset:representative", "model",
                      "RESET: the PSM that represents a stem: 'model' = after each round, best score under the new model "
                      "(default; the FDR then also assumes that null targets and decoys are exchangeable over their whole PSM "
@@ -265,6 +284,12 @@ void Percolator::updateMembers_()
   impl_->algorithm = param_.getValue("algorithm").toString();
   impl_->reset_salt = param_.getValue("reset:salt").toString();
   impl_->reset_learner = param_.getValue("reset:learner").toString();
+  impl_->reset_mlp_members = static_cast<int>(param_.getValue("reset:mlp_members"));
+  impl_->reset_mlp_hidden = static_cast<int>(param_.getValue("reset:mlp_hidden"));
+  impl_->reset_mlp_epochs = static_cast<int>(param_.getValue("reset:mlp_epochs"));
+  impl_->reset_mlp_warm_epochs = static_cast<int>(param_.getValue("reset:mlp_warm_epochs"));
+  impl_->reset_mlp_crossfit = param_.getValue("reset:mlp_crossfit").toString() == "true";
+  impl_->reset_mlp_norm_min_decoys = static_cast<int>(param_.getValue("reset:mlp_norm_min_decoys"));
   impl_->reset_iterations = static_cast<int>(param_.getValue("reset:iterations"));
   impl_->reset_representative = param_.getValue("reset:representative").toString();
   impl_->reset_audit = param_.getValue("reset:audit").toString() == "true";
@@ -1970,6 +1995,12 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
     }
   }
   opt.learner = impl_->reset_learner;
+  opt.mlp_members = impl_->reset_mlp_members;
+  opt.mlp_hidden = impl_->reset_mlp_hidden;
+  opt.mlp_epochs = impl_->reset_mlp_epochs;
+  opt.mlp_warm_epochs = impl_->reset_mlp_warm_epochs;
+  opt.mlp_crossfit = impl_->reset_mlp_crossfit;
+  opt.mlp_norm_min_decoys = impl_->reset_mlp_norm_min_decoys;
   opt.iterations = impl_->reset_iterations;
   opt.representative = impl_->reset_representative;
   opt.train_fdr = impl_->train_fdr;
@@ -1981,7 +2012,8 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
 #endif
   auto rr = std::make_shared<PercolatorReset::Output>(PercolatorReset::run(in, opt));
   OPENMS_LOG_INFO << "RESET: salt " << rr->salt << (opt.salt.has_value() ? "" : " (drawn)") << ", PSM-only protocol"
-                  << ", learner " << opt.learner << ", " << opt.iterations << " rounds." << std::endl;
+                  << ", learner " << opt.learner << (rr->learner_settings.empty() ? "" : " (" + rr->learner_settings + ")") << ", "
+                  << opt.iterations << " rounds." << std::endl;
   OPENMS_LOG_INFO << "RESET: " << rr->target_stems << " target and " << rr->decoy_stems << " decoy stems considered ("
                   << rr->training_decoys << " training, " << rr->estimating_decoys << " estimating decoys); features: "
                   << ListUtils::concatenate(rr->used_features, ",") << std::endl;

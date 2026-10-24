@@ -407,6 +407,24 @@ namespace OpenMS
     defaults_.setValue("reset:learner", "svm",
                        "rescore_method 'reset': 'svm' = linear SVM; 'mlp' = small MLP ensemble (experimental).", {"advanced"});
     defaults_.setValidStrings("reset:learner", {"svm", "mlp"});
+    defaults_.setValue("reset:mlp_members", 8, "rescore_method 'reset', learner 'mlp': networks per ensemble.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_members", 1);
+    defaults_.setValue("reset:mlp_hidden", 16, "rescore_method 'reset', learner 'mlp': units of each of the two hidden layers.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_hidden", 1);
+    defaults_.setValue("reset:mlp_epochs", 30, "rescore_method 'reset', learner 'mlp': training epochs of the first round.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_epochs", 1);
+    defaults_.setValue("reset:mlp_warm_epochs", 3,
+                       "rescore_method 'reset', learner 'mlp': > 0 = the networks continue from the previous round for this many "
+                       "epochs (warm starts); 0 = trained afresh (mlp_epochs) every round.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_warm_epochs", 0);
+    defaults_.setValue("reset:mlp_crossfit", "true",
+                       "rescore_method 'reset', learner 'mlp': score each peptide by the networks that did not train on it (3 folds "
+                       "by sequence hash); 'false' = one final ensemble (memorizes its training decoys: fewer peptides).", {"advanced"});
+    defaults_.setValidStrings("reset:mlp_crossfit", {"true", "false"});
+    defaults_.setValue("reset:mlp_norm_min_decoys", 1000,
+                       "rescore_method 'reset', learner 'mlp', cross-fitted: normalize the folds' scores (as Percolator) only if every "
+                       "fold has at least this many training decoys (0 = always).", {"advanced"});
+    defaults_.setMinInt("reset:mlp_norm_min_decoys", 0);
     defaults_.setValue("reset:representative", "model",
                        "rescore_method 'reset': the PSM that represents a peptide (stem): 'model' (default) = after each training "
                        "round, best score under the new model (+2 % peptides on DIA; the FDR then also assumes that null targets "
@@ -747,11 +765,14 @@ namespace OpenMS
     if (param_.getValue("rescore_method").toString() == "reset")
     {
       percolator_extra_.setValue("algorithm", "reset");
-      for (const std::string key : {"salt", "learner", "audit", "stem_table", "representative"})
+      for (const std::string key : {"salt", "learner", "audit", "stem_table", "representative", "mlp_crossfit"})
       {
         percolator_extra_.setValue("reset:" + key, param_.getValue("reset:" + key).toString());
       }
-      percolator_extra_.setValue("reset:iterations", static_cast<int>(param_.getValue("reset:iterations")));
+      for (const std::string key : {"iterations", "mlp_members", "mlp_hidden", "mlp_epochs", "mlp_warm_epochs", "mlp_norm_min_decoys"})
+      {
+        percolator_extra_.setValue("reset:" + key, static_cast<int>(param_.getValue("reset:" + key)));
+      }
       if (static_cast<double>(param_.getValue("FDR:PSM")) > 0.0)
       {
         OPENMS_LOG_WARN << "[ProSE] rescore_method 'reset' with FDR:PSM > 0: the PSM q-values that FDR:PSM filters on are "
@@ -4389,6 +4410,7 @@ namespace OpenMS
         run_sp.setMetaValue("RESET:salt", StringUtils::toStr(rr->salt));
         run_sp.setMetaValue("RESET:protocol", "PSM-only");
         run_sp.setMetaValue("RESET:learner", rr->learner);
+        if (!rr->learner_settings.empty()) run_sp.setMetaValue("RESET:learner_settings", rr->learner_settings);
         run_sp.setMetaValue("RESET:fdr_level", "peptide (stem): RESET:peptide_q_value; PSM q-values heuristic");
         run_sp.setMetaValue("RESET:target_stems_1pct", static_cast<int>(rr->discoveries_1pct));
       }
