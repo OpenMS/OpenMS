@@ -131,6 +131,7 @@ START_SECTION(static Output run(const Input& input, const Options& options))
   PercolatorReset::Options opt;
   opt.salt = 12345;
   opt.threads = 2;
+  opt.iterations = 5; // default 20 (representative "model", the default, is exercised by every run below)
   const PercolatorReset::Output out = PercolatorReset::run(in, opt);
   TEST_EQUAL(out.scores.size(), in.features.size())
   TEST_EQUAL(out.stem_q_values.size(), in.features.size())
@@ -315,6 +316,15 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     PercolatorReset::Input huge = in;
     for (size_t i = 0; i < huge.features.size(); ++i) huge.features[i][2] = (i % 2 == 0 ? 1.7e308 : -1.7e308);
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(huge, opt))
+  }
+
+  // the paper's representative (best search score) runs as well
+  {
+    PercolatorReset::Options o = opt;
+    o.representative = "search";
+    TEST_EQUAL(PercolatorReset::run(in, o).discoveries_1pct > 600, true)
+    o.representative = "best";
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
   }
 
   // malformed input

@@ -218,11 +218,11 @@ Percolator::Percolator()
   defaults_.setValue("reset:learner", "svm",
                      "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
   defaults_.setValidStrings("reset:learner", {"svm","mlp"});
-  defaults_.setValue("reset:representative", "search",
+  defaults_.setValue("reset:representative", "model",
                      "RESET: the PSM that represents a stem: 'search' = best search engine score (the paper); 'model' = "
                      "after each round, best score under the new model (many PSMs per peptide, e.g. DIA).");
   defaults_.setValidStrings("reset:representative", {"search","model"});
-  defaults_.setValue("reset:iterations", 5, "RESET: training rounds.");
+  defaults_.setValue("reset:iterations", 20, "RESET: training rounds (the paper: 5, which do not converge on DIA data).");
   defaults_.setMinInt("reset:iterations", 1);
   defaults_.setValue("reset:audit", "false",
                      "RESET: feature-symmetry audit before training (per-feature AUC and KS of training decoys vs "
@@ -2019,7 +2019,8 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   ro.scores = rr->scores;
   ro.q_values = rr->psm_q_values;
   ro.peps = rr->psm_peps;
-  impl_->svm_weights.assign(1, rr->weights);
+  impl_->svm_weights.clear();
+  if (!rr->weights.empty()) impl_->svm_weights.assign(1, rr->weights); // the linear learner only
   impl_->last_used_default_direction = false;
   impl_->last_reset = std::move(rr);
   return ro;

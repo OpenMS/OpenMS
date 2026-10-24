@@ -793,7 +793,15 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
         }
         const Model fm = fit(rows, y, cp, cn, keyedHash(salt, MLP, static_cast<std::uint64_t>(round * 100 + f)));
         std::vector<double>& hs = held_scores[static_cast<Size>(t)];
-        for (Size r : held_index[f]) hs.push_back(fm.score(X.row(train_rows[r])));
+        for (Size r : held_index[f])
+        {
+          hs.push_back(fm.score(X.row(train_rows[r])));
+          if (!std::isfinite(hs.back()))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: non-finite held-out score.",
+                                          StringUtils::toStr(hs.back()));
+          }
+        }
       }
       catch (...)
       {
@@ -996,11 +1004,20 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     // PEP: antitonic regression (pool adjacent violators) of the estimating-decoy indicator over the ranks
     std::vector<double> blk_val, blk_w;
     std::vector<Size> blk_len;
-    for (Size r = 0; r < dec.size(); ++r)
+    // one initial block per distinct score (review r3: tied scores get one PEP, whatever their tie-broken order)
+    for (Size r = 0; r < dec.size();)
     {
-      blk_val.push_back(dec[r] ? 1.0 : 0.0);
-      blk_w.push_back(1.0);
-      blk_len.push_back(1);
+      Size e = r;
+      double decoys = 0.0;
+      while (e < dec.size() && out.scores[psms[e]] == out.scores[psms[r]])
+      {
+        decoys += dec[e] ? 1.0 : 0.0;
+        ++e;
+      }
+      blk_val.push_back(decoys / static_cast<double>(e - r));
+      blk_w.push_back(static_cast<double>(e - r));
+      blk_len.push_back(e - r);
+      r = e;
       while (blk_val.size() > 1 && blk_val[blk_val.size() - 2] > blk_val.back())
       {
         const Size b = blk_val.size() - 1;
