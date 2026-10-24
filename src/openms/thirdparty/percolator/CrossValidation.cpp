@@ -382,6 +382,9 @@ void CrossValidation::trainFoldChains() {
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     unsigned int step = 0;
     int stage = 0;
+    // the feature rows of the training set (its PSMs and labels do not change during the training;
+    // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
+    std::vector<std::pair<const double*, bool> > rows;
     try {
       for (; step < niter_; ++step) {
         const double selectionFdr = step == 0u ? initialSelectionFdr_ : selectionFdr_;
@@ -397,6 +400,7 @@ void CrossValidation::trainFoldChains() {
         const Scores* testSet = nullptr;
         setupFoldInputs(set, selectionFdr, nestedTestScores, &testSet);
         stage = 2;
+        if (step == 0u) trainScores_[set].getFeatureRows(rows);
         vector<std::exception_ptr> pairErrors(numCpCnPairsPerSet);
         for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
 #pragma omp task default(shared) firstprivate(k)
@@ -405,8 +409,8 @@ void CrossValidation::trainFoldChains() {
               const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
               CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
               trainCpCnPair(cpCnFold, pOptions, svmInputs_[cpCnFold.set]);
-              pairTruePoses[pairIdx] =
-                  testSet->countPositives(cpCnFold.ww, testFdr_, skipDecoysPlusOneValidation);
+              pairTruePoses[pairIdx] = testSet->countPositives(
+                  cpCnFold.ww, testFdr_, skipDecoysPlusOneValidation, rows);
             } catch (...) {
               pairErrors[k] = std::current_exception();
             }

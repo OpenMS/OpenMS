@@ -18,6 +18,7 @@
 #include <boost/assign.hpp>
 #include <cassert>
 #include <exception>
+#include <functional>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -578,17 +579,126 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
   for (const ScoreHolder& sh : scores_) {
     combined.emplace_back(calcScore(sh.pPSM->features, w), sh.isTarget());
   }
+  return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
+}
+
+/**
+ * OpenMS: the feature rows of the PSMs (pPSM->features) with their isTarget(), sorted by address:
+ * countPositives(w, fdr, skipDecoysPlusOne, rows) reads the rows in the order they are in memory
+ * instead of following each PSM's pointers in the order of the scores. The rows stay valid as
+ * long as the set holds the same PSMs with the same labels, in any order.
+ */
+void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const {
+  rows.clear();
+  rows.reserve(scores_.size());
+  for (const ScoreHolder& sh : scores_) {
+    rows.emplace_back(sh.pPSM->features, sh.isTarget());
+  }
+  std::sort(rows.begin(), rows.end(),
+            [](const pair<const double*, bool>& a, const pair<const double*, bool>& b) {
+              return std::less<const double*>()(a.first, b.first);
+            });
+}
+
+/**
+ * OpenMS: countPositives(w, fdr, skipDecoysPlusOne) with the rows of getFeatureRows of this set
+ * (the count does not depend on the order of the scores, see countPositives).
+ */
+int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
+                           const std::vector<pair<const double*, bool> >& rows) const {
+  std::vector<pair<double, bool> > combined;
+  combined.reserve(rows.size());
+  for (const pair<const double*, bool>& row : rows) {
+    combined.emplace_back(calcScore(row.first, w), row.second);
+  }
+  return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
+}
+
+// OpenMS: countPositives from the (score, isTarget) pairs of the PSMs, in any order
+int Scores::countPositivesOfScores(std::vector<pair<double, bool> >& combined,
+                                   const std::vector<double>& w, double fdr,
+                                   bool skipDecoysPlusOne) const {
   if (std::any_of(combined.begin(), combined.end(),
                   [](const pair<double, bool>& x) { return std::isnan(x.first); })) {
     Scores copy = *this;
     std::vector<double> weights = w;
     return copy.calcScoresAndQvals(weights, fdr, skipDecoysPlusOne);
   }
+  int numPos = 0;
+  if (countPositivesOfTop(combined, fdr, skipDecoysPlusOne, numPos)) {
+    return numPos;
+  }
   std::sort(combined.begin(), combined.end(),
             [](const pair<double, bool>& a, const pair<double, bool>& b) {
               return a.first > b.first;
             });
   return countPositivesOfPairs(combined, fdr, skipDecoysPlusOne);
+}
+
+/**
+ * OpenMS: the count of countPositivesOfPairs (combined sorted by score, no NaN score) from the
+ * PSMs with the highest scores only, where that gives the same count; then true (combined is
+ * permuted), otherwise false (only permuted).
+ * With pi0 >= 1 (finite) and a finite decoy factor >= 0, getQValues makes no mix-max correction:
+ * at the end of each group of equal scores, FDR = (decoys * pi0 + 0) / max(1, targets) *
+ * decoyFactor (decoys and targets counted from the top, decoys from 1 without skipDecoysPlusOne),
+ * and the q-value of a PSM is the minimum of min(FDR, 1) at the ends of its group and the groups
+ * after it. So the positives are the targets up to the end of the last group with min(FDR, 1) <
+ * fdr. The groups of a top part (all PSMs scoring at least as high as the k-th highest, sorted)
+ * are walked as in getQValues; a group after the top part ends with at least the top part's
+ * decoys and at most all targets, and each operation of the expression is monotone, so its FDR
+ * is at least that of (decoys of the top part, all targets). If min(that, 1) >= fdr, no later
+ * group counts. Otherwise k grows; with k = n, false (the caller sorts all PSMs).
+ */
+bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, double fdr,
+                                 bool skipDecoysPlusOne, int& numPos) const {
+  const double pi0 = pi0_;
+  const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
+  if (!(pi0 >= 1.0) || !std::isfinite(pi0) || !(decoyFactor >= 0.0) ||
+      !std::isfinite(decoyFactor)) {
+    return false;
+  }
+  const auto greater = [](const pair<double, bool>& a, const pair<double, bool>& b) {
+    return a.first > b.first;
+  };
+  const std::size_t n = combined.size();
+  int numTargets = 0;
+  for (const pair<double, bool>& x : combined) {
+    if (x.second) ++numTargets;
+  }
+  for (std::size_t k = std::max<std::size_t>(4096, n / 8); k < n; k *= 4) {
+    std::nth_element(combined.begin(), combined.begin() + static_cast<std::ptrdiff_t>(k - 1),
+                     combined.end(), greater);
+    // the top part: the k highest scores and all PSMs scoring equal to the k-th (whole groups)
+    const double kth = combined[k - 1].first;
+    const auto topEnd = std::partition(
+        combined.begin() + static_cast<std::ptrdiff_t>(k), combined.end(),
+        [kth](const pair<double, bool>& x) { return x.first == kth; });
+    std::sort(combined.begin(), topEnd, greater);
+    // the loop of getQValues on the top part
+    PosteriorEstimator::setNegative(true);  // as countPositivesOfPairs
+    int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;
+    int count = 0;
+    for (auto it = combined.begin(); it != topEnd; ++it) {
+      if (it->second) {
+        ++n_w_ge_w;
+      } else {
+        ++n_z_ge_w;
+      }
+      if (it + 1 == topEnd || it->first != (it + 1)->first) {
+        const double groupFdr =
+            (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
+        if ((std::min)(groupFdr, 1.0) < fdr) count = n_w_ge_w;
+      }
+    }
+    const double tailFdr =
+        (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, numTargets)) * decoyFactor;
+    if ((std::min)(tailFdr, 1.0) >= fdr) {
+      numPos = count;
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

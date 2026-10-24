@@ -90,6 +90,11 @@ class Scores {
   // OpenMS: see Scores.cpp
   int countPositives(const std::vector<double>& w, double fdr,
                      bool skipDecoysPlusOne = false) const;
+  // OpenMS: the feature rows of the PSMs with their isTarget(), in the order of the rows in
+  // memory, and countPositives from these (see Scores.cpp)
+  void getFeatureRows(std::vector<std::pair<const double*, bool> >& rows) const;
+  int countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
+                     const std::vector<std::pair<const double*, bool> >& rows) const;
   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
  
@@ -163,6 +168,11 @@ class Scores {
   // OpenMS: see Scores.cpp
   int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
                          double fdr, bool skipDecoysPlusOne) const;
+  int countPositivesOfScores(std::vector<std::pair<double, bool> >& combined,
+                             const std::vector<double>& w, double fdr,
+                             bool skipDecoysPlusOne) const;
+  bool countPositivesOfTop(std::vector<std::pair<double, bool> >& combined, double fdr,
+                           bool skipDecoysPlusOne, int& numPos) const;
   bool usePi0_;
 
   double pi0_;

@@ -269,6 +269,18 @@ hand-editing sources and committing them, to keep sync self-healing.
   first by step, then by stage, then by fold) is rethrown after the reports of the steps before
   it. `CrossValidation::setupFoldInputs` is `doStep`'s setup of a fold's SVM inputs, now shared by
   both. Otherwise `train` steps through `doStep` as before.
+  The (Cpos, Cneg) pairs of a fold count their positives (`Scores::countPositives`) with less
+  work, to the same count. The fold's feature rows with their labels are collected once
+  (`Scores::getFeatureRows`, sorted by address, so the scoring reads them in the order they are in
+  memory; the training set keeps its PSMs and labels during the training), and the scores (each by
+  `calcScore`, as before) are counted from the PSMs with the highest scores only where that gives
+  the same count (`Scores::countPositivesOfTop`): with pi0 >= 1 and a finite decoy factor >= 0,
+  `getQValues` makes no mix-max correction, the positives are the targets up to the end of the
+  last group of equal scores whose min(FDR, 1) is below the threshold, and every group after the
+  PSMs scoring at least as high as the k-th highest (k = n / 8, then 4 times more) has an FDR of
+  at least (their decoys, all targets): each operation of the FDR's expression is monotone. If
+  that bound is not below the threshold, only those PSMs are sorted and walked; otherwise all are
+  sorted as before.
 
 ### Regenerating the patch
 
