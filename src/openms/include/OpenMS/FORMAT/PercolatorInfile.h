@@ -54,6 +54,7 @@ namespace OpenMS
         /// copies into a temporary first: the record stays valid if an allocation fails
         PinFeatureMetaValueMap& operator=(const PinFeatureMetaValueMap& other)
         {
+          if (this == &other) return *this;
           PinFeatureMetaValueMap copy(other);
           swap(copy);
           return *this;

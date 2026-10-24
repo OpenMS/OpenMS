@@ -60,56 +60,53 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
   out[i] = in[i] + sum;
 }
 
-// OpenMS: whether an OpenMP parallel region here runs on more than one thread (else the loops below
-// keep the order in which they read the rows, which is faster on one thread)
-static bool parallelByFeature() {
-#ifdef _OPENMP
-  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
-  int threads = 1;
-#pragma omp parallel
-#pragma omp single
-  threads = omp_get_num_threads();
-  return threads > 1;
-#else
-  return false;
-#endif
-}
-
 // OpenMS: the sums of setSet over the PSMs (features), by feature, in an OpenMP parallel loop over
 // the features: each feature's sums are added up by one thread, over the PSMs in order, as in
-// setSet (the same results). Returns false (and changes nothing) if a feature value is not
-// finite: then setSet reports it as before.
+// setSet (the same results). Returns false (and changes nothing) without a team of more than one
+// thread (then the row-major loops of setSet are faster) or if a feature value is not finite (then
+// setSet reports it as before).
 static bool sumsByFeature(const std::vector<double*>& featuresV, std::size_t numFeatures,
                           std::vector<double>& sub, std::vector<double>& div) {
+#ifdef _OPENMP
+  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
   const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
   const double n = static_cast<double>(featuresV.size());
   std::vector<double> sums(sub.begin(), sub.begin() + nf), squares(div.begin(), div.begin() + nf);
-  bool finite = true;
-#pragma omp parallel for schedule(static) reduction(&& : finite)
-  for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
-    double s = sums[static_cast<std::size_t>(ix)];
-    bool finiteFeature = true;
-    for (const double* features : featuresV) {
-      finiteFeature = finiteFeature && std::isfinite(features[ix]);
-      s += features[ix];
+  bool byFeature = false, finite = true;
+#pragma omp parallel
+  if (omp_get_num_threads() > 1) {
+#pragma omp single
+    byFeature = true;
+#pragma omp for schedule(static) reduction(&& : finite)
+    for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+      double s = sums[static_cast<std::size_t>(ix)];
+      bool finiteFeature = true;
+      for (const double* features : featuresV) {
+        finiteFeature = finiteFeature && std::isfinite(features[ix]);
+        s += features[ix];
+      }
+      finite = finite && finiteFeature;
+      if (!finiteFeature) continue;
+      if (n > 0.0) {
+        s /= n;
+      }
+      double d2 = squares[static_cast<std::size_t>(ix)];
+      for (const double* features : featuresV) {
+        const double d = features[ix] - s;
+        d2 += d * d;
+      }
+      sums[static_cast<std::size_t>(ix)] = s;
+      squares[static_cast<std::size_t>(ix)] = d2;
     }
-    finite = finite && finiteFeature;
-    if (!finiteFeature) continue;
-    if (n > 0.0) {
-      s /= n;
-    }
-    double d2 = squares[static_cast<std::size_t>(ix)];
-    for (const double* features : featuresV) {
-      const double d = features[ix] - s;
-      d2 += d * d;
-    }
-    sums[static_cast<std::size_t>(ix)] = s;
-    squares[static_cast<std::size_t>(ix)] = d2;
   }
-  if (!finite) return false;
+  if (!byFeature || !finite) return false;
   std::copy(sums.begin(), sums.end(), sub.begin());
   std::copy(squares.begin(), squares.end(), div.begin());
   return true;
+#else
+  (void)featuresV; (void)numFeatures; (void)sub; (void)div;
+  return false;
+#endif
 }
 
 void StdvNormalizer::setSet(std::vector<double*>& featuresV,
@@ -120,7 +117,7 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   sub.resize(nf + nrf, 0.0);
   div.resize(nf + nrf, 0.0);
   // OpenMS: large sets without retention features by feature (see sumsByFeature), then as below
-  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 && parallelByFeature() &&
+  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 &&
       sumsByFeature(featuresV, nf, sub, div)) {
     for (size_t ix = 0; ix < nf; ++ix) {
       if (div[ix] <= 0 || featuresV.empty()) {

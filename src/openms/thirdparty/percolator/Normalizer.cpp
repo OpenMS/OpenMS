@@ -59,21 +59,6 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
   }
 }
 
-// OpenMS: whether an OpenMP parallel region here runs on more than one thread (else the loops below
-// keep the order in which they read the rows, which is faster on one thread)
-static bool parallelByFeature() {
-#ifdef _OPENMP
-  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
-  int threads = 1;
-#pragma omp parallel
-#pragma omp single
-  threads = omp_get_num_threads();
-  return threads > 1;
-#else
-  return false;
-#endif
-}
-
 /**
  * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
  * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
@@ -83,20 +68,29 @@ static bool parallelByFeature() {
  */
 void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
                                         vector<double*>& rtFeaturesV) {
-  if (!rtFeaturesV.empty() || numRetentionFeatures != 0 || featuresV.size() < 4096 ||
-      numFeatures < 2 || !parallelByFeature()) {
-    normalizeSet(featuresV, rtFeaturesV);
-    return;
-  }
-  const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
-#pragma omp parallel for schedule(static)
-  for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
-    const double s = sub[static_cast<std::size_t>(ix)];
-    const double d = div[static_cast<std::size_t>(ix)];
-    for (double* features : featuresV) {
-      features[ix] = (features[ix] - s) / d;
+#ifdef _OPENMP
+  // (with a team of one thread, the row-major loop of normalizeSet below, which is faster then)
+  bool byFeature = false;
+  if (rtFeaturesV.empty() && numRetentionFeatures == 0 && featuresV.size() >= 4096 &&
+      numFeatures >= 2 && omp_get_max_threads() > 1 && !omp_in_parallel()) {
+    const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
+#pragma omp parallel
+    if (omp_get_num_threads() > 1) {
+#pragma omp single
+      byFeature = true;
+#pragma omp for schedule(static)
+      for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+        const double s = sub[static_cast<std::size_t>(ix)];
+        const double d = div[static_cast<std::size_t>(ix)];
+        for (double* features : featuresV) {
+          features[ix] = (features[ix] - s) / d;
+        }
+      }
     }
   }
+  if (byFeature) return;
+#endif
+  normalizeSet(featuresV, rtFeaturesV);
 }
 
 void Normalizer::normalize(const double* in, double* out, size_t offset,
