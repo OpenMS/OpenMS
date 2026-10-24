@@ -10,6 +10,8 @@
 #include "ONNXEnvironment.h"
 #include <OpenMS/CONCEPT/Exception.h>
 #include <onnxruntime_cxx_api.h>
+#include <algorithm>
+#include <exception>
 #include <stdexcept>
 
 #ifdef _WIN32
@@ -18,13 +20,16 @@
 
 namespace OpenMS
 {
-    ONNXPredictorBase::ONNXPredictorBase(const std::string& model_path, int intra_op_threads)
+    ONNXPredictorBase::ONNXPredictorBase(const std::string& model_path, int threads) :
+        threads_(std::max(1, threads))
     {
         try {
             session_options_ = std::make_unique<Ort::SessionOptions>();
 
-            // Apply optimized thread count parameter
-            session_options_->SetIntraOpNumThreads(intra_op_threads);
+            // One intra-op thread: the predictors run their model runs side by side (forEachBatch()).
+            // Split over 16 intra-op threads, a run of a batch of PeptDeep's MS2 model kept them busy
+            // waiting for each other (all cores used, 2.2x the wall time of 16 runs at once on iPRG2015).
+            session_options_->SetIntraOpNumThreads(1);
             session_options_->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
             // Without ONNX Runtime's memory pattern. The inputs of the PeptDeep models change shape
             // from call to call (batch size, peptide length); for each shape, the pattern plans one
@@ -133,6 +138,33 @@ namespace OpenMS
     size_t ONNXPredictorBase::getOutputCount() const
     {
         return session_->GetOutputCount();
+    }
+
+    void ONNXPredictorBase::forEachBatch(const std::vector<std::vector<size_t>>& groups, size_t batch_size,
+                                         const std::function<void(const size_t* indices, size_t n)>& run) const
+    {
+        std::vector<std::pair<const std::vector<size_t>*, size_t>> batches; // (group, first position in it)
+        for (const std::vector<size_t>& group : groups)
+        {
+            for (size_t begin = 0; begin < group.size(); begin += batch_size) { batches.emplace_back(&group, begin); }
+        }
+        const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(batches.size());
+        std::exception_ptr failure; // exceptions must not leave the parallel region
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(std::max<std::ptrdiff_t>(1, std::min<std::ptrdiff_t>(threads_, n)))) if (n > 1 && threads_ > 1)
+        for (std::ptrdiff_t k = 0; k < n; ++k)
+        {
+            try
+            {
+                const auto& [group, begin] = batches[static_cast<size_t>(k)];
+                run(group->data() + begin, std::min(batch_size, group->size() - begin));
+            }
+            catch (...)
+            {
+#pragma omp critical (ONNXPredictorBase_forEachBatch)
+                if (!failure) { failure = std::current_exception(); }
+            }
+        }
+        if (failure) { std::rethrow_exception(failure); }
     }
 
 } // namespace OpenMS

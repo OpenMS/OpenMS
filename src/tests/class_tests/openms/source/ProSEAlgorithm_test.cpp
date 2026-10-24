@@ -168,6 +168,7 @@ public:
   using ProSEAlgorithm::fragment_mass_tolerance_;
   using ProSEAlgorithm::poolSearchedFiles_;
   using ProSEAlgorithm::residualSpectrum_;
+  using ProSEAlgorithm::collectRunStatistics_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -3758,6 +3759,70 @@ START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
   // User bounds unchanged — no writeback happened.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 100.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 100.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] collectRunStatistics_: signed mass errors of the target PSMs, of the precursor corrected by the isotope error))
+{
+  // 12 target PSMs at -2.1, -2.0 and -1.9 ppm, every fourth matched at its first 13C peak (isotope_error +1, observed
+  // minus theoretical, the default report:isotope_error_convention), with a y3+ and a b2++ fragment at +2.5 ppm and a
+  // y3 with a neutral loss (not a fragment error); 5 decoy PSMs at +50 ppm with fragments at +100 ppm, left out
+  ProSEAlgorithm_test algo;
+  const AASequence sequence = AASequence::fromString("PEPTIDEK");
+  const double precursor_mz = sequence.getMZ(2);
+  const double y3 = sequence.getSuffix(3).getMZ(1, Residue::YIon), b2 = sequence.getPrefix(2).getMZ(2, Residue::BIon);
+  PeptideIdentificationList ids;
+  auto add = [&](double ppm, int isotope_error, double fragment_ppm, bool decoy)
+  {
+    PeptideHit hit;
+    hit.setSequence(sequence);
+    hit.setCharge(2);
+    hit.setScore(10.0);
+    hit.setMetaValue(Constants::UserParam::TARGET_DECOY, decoy ? "decoy" : "target");
+    hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, isotope_error);
+    std::vector<PeptideHit::PeakAnnotation> annotations(3);
+    annotations[0].annotation = "y3+"; annotations[0].charge = 1; annotations[0].mz = y3 * (1.0 + fragment_ppm * 1e-6);
+    annotations[1].annotation = "b2++"; annotations[1].charge = 2; annotations[1].mz = b2 * (1.0 + fragment_ppm * 1e-6);
+    annotations[2].annotation = "y3-H2O1+"; annotations[2].charge = 1; annotations[2].mz = y3 - 1.0;
+    hit.setPeakAnnotations(annotations);
+    PeptideIdentification id;
+    id.setMZ(precursor_mz * (1.0 + ppm * 1e-6) + isotope_error * Constants::C13C12_MASSDIFF_U / 2.0);
+    id.setHits({hit});
+    ids.push_back(id);
+  };
+  for (int i = 0; i < 12; ++i) { add(-2.0 + 0.1 * (i % 3 - 1), i % 4 == 0 ? 1 : 0, 2.5, false); }
+  for (int i = 0; i < 5; ++i) { add(50.0, 0, 100.0, true); }
+  ProSEAlgorithm::RunStatistics stats;
+  algo.collectRunStatistics_(PeakMap(), {}, ids, stats);
+  TEST_EQUAL(stats.target_psms, 12)
+  TEST_EQUAL(stats.decoy_psms, 5)
+  TEST_EQUAL(stats.prec_tol_valid, true)
+  TEST_REAL_SIMILAR(stats.prec_err_median, -2.0)
+  TEST_REAL_SIMILAR(stats.prec_err_mad, 0.1)
+  TEST_REAL_SIMILAR(stats.prec_err_recommended, 3.0) // ceil(2.0 + 3 * 1.4826 * 0.1)
+  TEST_EQUAL(stats.frag_tol_valid, true)
+  TEST_REAL_SIMILAR(stats.frag_err_median, 2.5)
+  TEST_REAL_SIMILAR(stats.frag_err_mad, 0.0)
+  TEST_REAL_SIMILAR(stats.frag_err_recommended, 3.0)
+
+  // fewer than 10 target PSMs: no estimate
+  ids.erase(ids.begin() + 3, ids.begin() + 12);
+  ProSEAlgorithm::RunStatistics few;
+  algo.collectRunStatistics_(PeakMap(), {}, ids, few);
+  TEST_EQUAL(few.prec_tol_valid, false)
+  TEST_EQUAL(few.frag_tol_valid, false)
+}
+END_SECTION
+
+START_SECTION((static std::string renderTotalTime(const SharedSearchStats& sh)))
+{
+  ProSEAlgorithm::SharedSearchStats sh;
+  sh.seconds_total = 28.14;
+  sh.seconds_output = 18.1;
+  TEST_STRING_EQUAL(ProSEAlgorithm::renderTotalTime(sh), "total 28.1s | search of the file(s) 10.0s | outputs 18.1s")
+  sh.seconds_qpx_extended = 12.71;
+  TEST_STRING_EQUAL(ProSEAlgorithm::renderTotalTime(sh),
+                    "total 28.1s | search of the file(s) 10.0s | outputs 18.1s (of which -qpx_extended 12.7s)")
 }
 END_SECTION
 

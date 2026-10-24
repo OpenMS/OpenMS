@@ -469,6 +469,81 @@ START_SECTION([EXTRA] automatic NCE selection scans the grid and reports its cho
 }
 END_SECTION
 
+START_SECTION((void selectNCE(const PeakMap& spectra, std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids)))
+{
+  // Without a model it cannot select, with an absent one it must fail loudly; no PSMs: nothing to do.
+  {
+    PeptDeepRescoring r;
+    PeakMap exp;
+    vector<ProteinIdentification> prot(1);
+    PeptideIdentificationList peps;
+    peps.push_back(makeId_("run_A", 100.0, makeHit_("PEPTIDEK", 2, 10.0, {{"y3", 1.0}})));
+    TEST_EXCEPTION(Exception::MissingInformation, r.selectNCE(exp, prot, peps))
+    Param p = r.getParameters();
+    p.setValue("ms2_model", "does_not_exist_ms2.onnx");
+    r.setParameters(p);
+    TEST_EXCEPTION(Exception::FileNotFound, r.selectNCE(exp, prot, peps))
+    p.setValue("ms2_model", OPENMS_GET_TEST_DATA_PATH("PeptDeepRescoring_test.txt")); // never loaded: no PSMs
+    r.setParameters(p);
+    PeptideIdentificationList none;
+    r.selectNCE(exp, prot, none);
+    TEST_EQUAL(prot[0].metaValueExists(PeptDeepRescoring::NCE_META_VALUE), false)
+  }
+  if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))
+  {
+    STATUS("PeptDeep ONNX models not found next to the test; skipping the selectNCE() comparison with annotate().")
+  }
+  else
+  {
+    // The same selection as annotate() (same sample, same scan), without the predictions of all PSMs and the features:
+    // the run gets the NCE annotate() would have used, and the PSMs and search parameters stay as they are.
+    const std::vector<std::pair<std::string, double>> peaks =
+      {{"b2", 400.0}, {"y3", 900.0}, {"y4", 650.0}, {"b3", 280.0}, {"y5", 520.0}};
+    PeptideIdentificationList peps;
+    const std::vector<std::string> seqs =
+      {"PEPTIDEK", "TESTPEPTIDER", "ELVISLIVESK", "LNGGKPVDEK",
+       "VATVSLPRK", "AGGDLSTVEK", "YLDGTSLSPK", "IADPEHLVK"};
+    for (Size i = 0; i < seqs.size(); ++i)
+    {
+      peps.push_back(makeId_("run_A", 200.0 + 30.0 * i, makeHit_(seqs[i], 2, 20.0 - i, peaks)));
+    }
+    std::vector<ProteinIdentification> prot(1);
+    prot[0].setIdentifier("run_A");
+
+    PeptDeepRescoring r;
+    Param p = r.getParameters();
+    p.setValue("ms2_model", ms2_model_path);
+    p.setValue("rt_model", rt_model_path);
+    p.setValue("rt_model_type", "linear");
+    r.setParameters(p);
+    PeakMap exp;
+
+    std::vector<ProteinIdentification> annotated_prot = prot;
+    PeptideIdentificationList annotated = peps;
+    r.annotate(exp, annotated_prot, annotated);
+    const double annotate_nce = r.getUsedNCE();
+
+    std::vector<ProteinIdentification> selected_prot = prot;
+    r.selectNCE(exp, selected_prot, peps);
+    TEST_REAL_SIMILAR(r.getUsedNCE(), annotate_nce)
+    TEST_EQUAL(selected_prot[0].metaValueExists(PeptDeepRescoring::NCE_META_VALUE), true)
+    TEST_REAL_SIMILAR(double(selected_prot[0].getMetaValue(PeptDeepRescoring::NCE_META_VALUE)),
+                      double(annotated_prot[0].getMetaValue(PeptDeepRescoring::NCE_META_VALUE)))
+    // no features: neither on the PSMs nor registered for the rescoring
+    TEST_EQUAL(peps[0].getHits()[0].metaValueExists(Constants::UserParam::MS2_COSINE), false)
+    TEST_EQUAL(selected_prot[0].getSearchParameters().metaValueExists("extra_features"), false)
+    TEST_EQUAL(r.getNumPredictedPSMs(), 0)
+
+    // a fixed NCE is taken as it is
+    p.setValue("nce", 27.0);
+    r.setParameters(p);
+    std::vector<ProteinIdentification> fixed_prot = prot;
+    r.selectNCE(exp, fixed_prot, peps);
+    TEST_REAL_SIMILAR(double(fixed_prot[0].getMetaValue(PeptDeepRescoring::NCE_META_VALUE)), 27.0)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] the NCE of each run is recorded on the run)
 {
   // The name of the meta value is public, and fixed: consumers of stored results read it.

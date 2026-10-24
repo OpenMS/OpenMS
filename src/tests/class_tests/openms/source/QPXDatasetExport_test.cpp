@@ -808,7 +808,7 @@ START_SECTION((static std::string paramToJSON(const Param& param)))
 }
 END_SECTION
 
-START_SECTION((static bool writeDataset(const std::string& directory, const std::string& prefix, const std::map<std::string, View>& views)))
+START_SECTION((static bool writeDataset(const std::string& directory, const std::string& prefix, const std::map<std::string, View>& views, std::set<std::string>* failed = nullptr)))
 {
   TempDir temp;
   // the folder does not exist yet
@@ -846,13 +846,19 @@ START_SECTION((static bool writeDataset(const std::string& directory, const std:
   std::map<std::string, QPXDatasetExport::View> broken;
   broken["psm"].tables = {ArrowIOHelpers::tableOfColumns({x}, 1)};
   broken["mz"].tables = {QPXDatasetExport::mzView(mzSpectra(false), mzIds(), "run1", all).table};
-  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken), false)
+  // (the views are written at the same time: the mz view is removed again, and both are reported)
+  std::set<std::string> failed;
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken, &failed), false)
   TEST_EQUAL(File::exists(failed_dir + "/x.psm.parquet"), false)
   TEST_EQUAL(File::exists(failed_dir + "/x.mz.parquet"), false)
+  TEST_EQUAL(failed.size(), 2)
+  TEST_EQUAL(failed.count("psm"), 1)
+  TEST_EQUAL(failed.count("mz"), 1)
   // the mz view alone is written
   broken.erase("psm");
-  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken), true)
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken, &failed), true)
   TEST_EQUAL(File::exists(failed_dir + "/x.mz.parquet"), true)
+  TEST_EQUAL(failed.empty(), true)
   // a null table: false
   std::map<std::string, QPXDatasetExport::View> null_table;
   null_table["run"].tables = {nullptr};

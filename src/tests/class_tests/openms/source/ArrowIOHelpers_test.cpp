@@ -547,14 +547,18 @@ START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<a
     auto r = parquet::arrow::OpenFile(in, arrow::default_memory_pool()).ValueOrDie();
     return r->parquet_reader()->metadata()->RowGroup(0)->ColumnChunk(leaf)->has_dictionary_page();
   };
-  // (leaves: id, name, small, mz.list.element, ...)
-  TEST_TRUE(hasDictionary(file, 3))
+  // (leaves: id, name, small, mz.list.element, ion.list.element, additional_scores...name, ...value, ...)
+  // a floating-point leaf never has a dictionary (mostly distinct values), the others have one
+  TEST_FALSE(hasDictionary(file, 3))
+  TEST_FALSE(hasDictionary(file, 6))
+  TEST_TRUE(hasDictionary(file, 4))
+  TEST_TRUE(hasDictionary(file, 5))
   ParquetWriteConfig plain;
-  plain.plain_columns = {"mz", "not_a_column"};
+  plain.plain_columns = {"ion", "not_a_column"};
   std::string plain_file;
   NEW_TMP_FILE(plain_file)
   TEST_TRUE(ArrowIOHelpers::writeTableToParquet(out, plain_file, plain))
-  TEST_FALSE(hasDictionary(plain_file, 3))
+  TEST_FALSE(hasDictionary(plain_file, 4))
   TEST_TRUE(hasDictionary(plain_file, 1))
 
   // a column of another number of rows

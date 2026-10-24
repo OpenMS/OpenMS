@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <cmath>
 #include <map>
 #include <vector>
 #include <unordered_map>
@@ -86,6 +87,7 @@ namespace OpenMS
       int total_psms = 0;                   ///< Total number of PSMs analyzed
       int modified_psms = 0;                ///< PSMs with non-zero delta mass
       int unmodified_psms = 0;              ///< PSMs with ~zero delta mass
+      int decoy_psms = 0;                   ///< Decoy PSMs (target_decoy "decoy"), left out of all other counts
       double mean_delta_mass = 0.0;         ///< Mean delta mass (excluding unmodified)
       double median_delta_mass = 0.0;       ///< Median delta mass (excluding unmodified)
     };
@@ -130,6 +132,10 @@ namespace OpenMS
 
     /**
      * @brief Analyze delta mass patterns from peptide identifications
+     *
+     * The histogram of the delta masses of the target hits, in bins of 0.0005 Da (decoy hits, with target_decoy
+     * "decoy", are left out: their delta masses are those of wrong matches; hits without the annotation count as
+     * targets). Delta masses within 0.05 Da of zero are left out (unmodified).
      * 
      * @param[in,out] peptide_ids List of peptide identifications containing delta mass information
      * @param[in] use_smoothing Whether to apply smoothing to the delta mass histogram
@@ -220,10 +226,14 @@ namespace OpenMS
      * A delta mass is mapped to a known modification in the same way as in
      * mapDeltaMassesToModifications(): to the nearest one within the tolerance, "A//B" if candidates are about equally close.
      *
+     * The counts are of the target hits of @p peptide_ids (as the histogram's; the decoy hits are only counted, in
+     * DeltaMassStatistics::decoy_psms). The unique peptides of an entry are the distinct sequences of the hits whose
+     * delta mass falls into its histogram bin, i.e. of the hits counted in its count.
+     *
      * @param histogram Delta mass histogram from analyzeDeltaMassPatterns()
      * @param charge_histogram Charge state counts per delta mass
-     * @param peptide_ids Peptide identifications for computing unique peptide counts
-     * @param precursor_mass_tolerance Mass tolerance for grouping
+     * @param peptide_ids Peptide identifications for computing the counts and unique peptide counts
+     * @param precursor_mass_tolerance Mass tolerance for mapping to known modifications (capped at 0.02 Da)
      * @param precursor_mass_tolerance_unit_ppm Whether tolerance is in ppm
      * @return DeltaMassStatistics table with all entries and summary statistics
      */
@@ -284,6 +294,15 @@ namespace OpenMS
     void writePTMStatistics(const PTMStatistics& stats,
                             const std::string& output_file) const;
 
+    /// Delta masses within this threshold of zero are considered unmodified.
+    static constexpr double DELTA_MASS_ZERO_THRESHOLD_ = 0.05; // Da
+
+    /// Whether a PSM of delta mass @p delta_mass counts as unmodified: within DELTA_MASS_ZERO_THRESHOLD_ of zero
+    static bool isUnmodified(double delta_mass)
+    {
+      return std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_;
+    }
+
   private:
 
     /// Maximum tolerance (Da) for matching delta masses to known modification masses.
@@ -295,8 +314,14 @@ namespace OpenMS
     /// to which a cluster mass is known.
     static constexpr double MOD_MAPPING_AMBIGUITY_TOL_ = 0.0005; // Da
 
-    /// Delta masses within this threshold of zero are considered unmodified.
-    static constexpr double DELTA_MASS_ZERO_THRESHOLD_ = 0.05; // Da
+    /// The width of a bin of the delta mass histogram (analyzeDeltaMassPatterns())
+    static constexpr double DELTA_MASS_BIN_WIDTH_ = 0.0005; // Da
+
+    /// The index of the bin of the delta mass histogram of @p delta_mass (its mass: index * DELTA_MASS_BIN_WIDTH_)
+    static Int64 deltaMassBin_(double delta_mass)
+    {
+      return static_cast<Int64>(std::llround(delta_mass / DELTA_MASS_BIN_WIDTH_));
+    }
 
     /// Gaussian function for smoothing
     static double gaussian_(double x, double sigma);

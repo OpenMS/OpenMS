@@ -21,7 +21,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
-#include <functional>  // std::hash (ProteinMapping_)
+#include <functional>  // std::hash (ProteinMapping_), std::function (loadSpectra)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
@@ -97,8 +97,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double hyperscore_min = 0.0;
       double hyperscore_median = 0.0;
       double hyperscore_max = 0.0;
+      /// Mass error estimate (ppm) of the top hits of the target PSMs (at least 10): the median of the signed errors
+      /// (observed minus theoretical; of the precursor corrected by the hit's isotope error, in an open search of the
+      /// PSMs without a delta mass, within 0.05 Da of zero, only), their median absolute
+      /// deviation from it (unscaled), and the recommended symmetric tolerance ceil(|median| + 3 * 1.4826 * MAD)
       bool prec_tol_valid = false;             ///< true if precursor-error estimate present
       double prec_err_median = 0.0, prec_err_mad = 0.0, prec_err_recommended = 0.0;
+      /// The same of the annotated b and y fragment peaks (without neutral losses) of these PSMs; within the searched
+      /// fragment tolerance (unmatched peaks have no error)
       bool frag_tol_valid = false;             ///< true if fragment-error estimate present
       double frag_err_median = 0.0, frag_err_mad = 0.0, frag_err_recommended = 0.0;
       double seconds_search = 0.0;             ///< scoring + post-processing wall time
@@ -137,6 +143,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       Size indexed_fragments = 0;              ///< theoretical fragments in the index (summed over chunks)
       double seconds_index_build = 0.0;        ///< decoy generation + fragment index build wall time
       double seconds_total = 0.0;              ///< whole-search wall time (set by the caller)
+      double seconds_output = 0.0;             ///< of seconds_total, the wall time after the search of the files: the outputs (set by the caller)
+      double seconds_qpx_extended = 0.0;       ///< of seconds_output, ProSE's -qpx_extended work: the spectra and predictions of the PSMs (set by the caller)
     };
 
     /**
@@ -440,6 +448,23 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static PercolatorRescoring rescoreWithPercolator(std::vector<ProteinIdentification>& protein_ids,
                                                      PeptideIdentificationList& peptide_ids,
                                                      int threads);
+
+    /**
+     * @brief The MS2 spectra of a spectrum file as the searches of this class read them.
+     *
+     * Sorted by RT, their peaks by m/z. An mzML file is read in chunks that the OpenMP threads of
+     * this thread (at most 16) parse in parallel, in one pass over the file; other files (Bruker .d,
+     * Thermo .raw), or an mzML file whose layout the chunks do not support (e.g. compressed), with
+     * FileHandler::loadExperiment(). For a second look at the spectra of a search, e.g. those of its
+     * PSMs (ProSE's -qpx_extended).
+     *
+     * @param[in] filename The spectrum file (mzML, Bruker .d or Thermo .raw)
+     * @param[in] keep If set, only the spectra it accepts are kept, so that the result holds only
+     *                 those in memory. It is called on several threads at once.
+     * @return The spectra
+     * @throws Exception::BaseException as FileHandler::loadExperiment() if the file cannot be read
+     */
+    static PeakMap loadSpectra(const std::string& filename, const std::function<bool(const MSSpectrum&)>& keep = {});
 
     /**
      * @brief Apply the PSM-level FDR that a search with Percolator rescoring deferred.
@@ -1588,6 +1613,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                  const PeptideIdentificationList& peptide_ids,
                                  const std::string& enzyme,
                                  bool fdr_applied);
+
+    /**
+     * @brief The total time of a run, by part: "total <s>s | search of the file(s) <s>s | outputs <s>s
+     *        (of which -qpx_extended <s>s)", from @p sh's seconds_total, seconds_output and seconds_qpx_extended
+     *        (the last part only if positive). The end of the report of renderRunSummary(), and of ProSE's report of
+     *        several files.
+     */
+    static std::string renderTotalTime(const SharedSearchStats& sh);
 
     /// Render a human-readable single-run summary block (configuration recap,
     /// database/index stats, identification results, tolerance estimate, timing
