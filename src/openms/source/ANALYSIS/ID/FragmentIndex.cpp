@@ -786,12 +786,38 @@ namespace OpenMS
     return start == 0 || (clip_nterm_methionine_ && start == 1 && ! protein.empty() && protein[0] == 'M');
   }
 
+  namespace
+  {
+    // AASequence::fromString(StringUtils::substr(protein, first, length)) without the string and its parsing when every
+    // letter is an upper-case residue letter of ResidueDB (fromString maps those one by one to ResidueDB's residues:
+    // nothing to trim, no 'n'/'c' terminus, no modification)
+    AASequence unmodifiedSequence(const std::string& protein, size_t first, size_t length)
+    {
+      static const ResidueDB* rdb = ResidueDB::getInstance();
+      if (first < protein.size())
+      {
+        const size_t n = std::min(length, protein.size() - first);
+        std::vector<const Residue*> residues;
+        residues.reserve(n);
+        for (size_t i = 0; i < n; ++i)
+        {
+          const char c = protein[first + i];
+          const Residue* r = (c >= 'A' && c <= 'Z') ? rdb->getResidue(c) : nullptr;
+          if (r == nullptr) break;
+          residues.push_back(r);
+        }
+        if (residues.size() == n && n > 0) return AASequence::fromResidues(std::move(residues));
+      }
+      return AASequence::fromString(StringUtils::substr(protein, first, length));
+    }
+  }
+
   AASequence FragmentIndex::reconstructModifiedSequence(
     const Peptide& peptide,
     const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
   {
     const string& protein_seq = fasta_entries[peptide.protein_idx].sequence;
-    AASequence seq = AASequence::fromString(StringUtils::substr(protein_seq, peptide.sequence_.first, peptide.sequence_.second));
+    AASequence seq = unmodifiedSequence(protein_seq, peptide.sequence_.first, peptide.sequence_.second);
 
     const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
     if (!has_modifications) return seq;
@@ -904,7 +930,7 @@ namespace OpenMS
     // the realized sub-peptide is the prefix [mother start, mother start + realized_length)
     const size_t realized_start = mother.sequence_.first;
 
-    AASequence seq = AASequence::fromString(StringUtils::substr(protein_seq, realized_start, realized_length));
+    AASequence seq = unmodifiedSequence(protein_seq, realized_start, realized_length);
 
     const bool has_mods = !(modifications_fixed_.empty() && modifications_variable_.empty());
     if (!has_mods && subset_bitmask == 0) return seq;

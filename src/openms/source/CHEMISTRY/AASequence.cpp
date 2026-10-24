@@ -743,6 +743,13 @@ namespace OpenMS
     return seq;
   }
 
+  AASequence AASequence::fromResidues(std::vector<const Residue*>&& residues)
+  {
+    AASequence aas;
+    aas.peptide_ = std::move(residues);
+    return aas;
+  }
+
   AASequence& AASequence::operator+=(const Residue* residue)
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))

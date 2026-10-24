@@ -1790,6 +1790,23 @@ START_SECTION(([EXTRA] std::hash<AASequence>))
 }
 END_SECTION
 
+START_SECTION(static AASequence fromResidues(std::vector<const Residue*>&& residues))
+{
+  // the sequence of fromString() for plain residue letters
+  const ResidueDB* rdb = ResidueDB::getInstance();
+  for (const std::string s : {"PEPTIDEK", "ACDEFGHIKLMNPQRSTVWY", "XU", "G"})
+  {
+    std::vector<const Residue*> residues;
+    for (const char c : s) residues.push_back(rdb->getResidue(c));
+    const AASequence seq = AASequence::fromResidues(std::move(residues));
+    TEST_EQUAL(seq == AASequence::fromString(s), true)
+    TEST_EQUAL(seq.toString(), AASequence::fromString(s).toString())
+    TEST_EQUAL(seq.hasNTerminalModification() || seq.hasCTerminalModification(), false)
+  }
+  TEST_EQUAL(AASequence::fromResidues({}).empty(), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION((Satellite ion absolute formulas and unsupported cleavage residues))
