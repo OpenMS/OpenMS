@@ -289,6 +289,14 @@ hand-editing sources and committing them, to keep sync self-healing.
   walked; otherwise (also for a threshold above 1) all are sorted as before.
   The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
   directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
+- `patches/13-cv-large-sets.patch` — speeds up the training of large data sets without changing
+  its result. If a fold's training set has at least 2^18 PSMs, the fold chains (`trainFoldChains`)
+  run on all threads instead of 12 (`numChainTeamThreads`): the tasks of a chain's own passes (the
+  scoring, sorting and q-values of its sets) are then large enough for more threads. From 2^17 PSMs
+  on, the validation of a (Cpos, Cneg) pair (`Scores::countPositives` with the feature rows) scores
+  the rows in tasks (each score by `calcScore`, as before) and sorts the top part with
+  `sortLikeStdSort`, and `Scores::getFeatureRows` sorts the rows by address with `sortLikeStdSort`
+  (same permutations as `std::sort`).
 
 ### Regenerating the patch
 
