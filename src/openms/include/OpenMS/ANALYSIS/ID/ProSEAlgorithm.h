@@ -61,6 +61,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// precursor co-isolated with it
     static constexpr const char* CHIMERIC_RANK = "chimeric_rank";
 
+    /// With 'decoys' auto, the decoys of the database are reused only if there are at least this many decoys per target
+    /// protein (and at most MAX_DECOYS_PER_TARGET); otherwise the search refuses the database (Exception::InvalidParameter)
+    static constexpr double MIN_DECOYS_PER_TARGET = 0.5;
+    /// See MIN_DECOYS_PER_TARGET
+    static constexpr double MAX_DECOYS_PER_TARGET = 2.0;
+
     /// Exit codes
     enum class ExitCodes
     {
@@ -210,9 +216,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    @c aggregate.protein_ids / @c aggregate.peptide_ids are released
      *    afterwards. In closed search nothing is pooled at all.
      *  - When Percolator (parameter 'rescore') rescored only some of the files,
-     *    their runs report different search engines (Percolator / ProSE) and
-     *    are not merged: nothing is pooled (a warning is logged), so
-     *    @p aggregate is left almost-empty as above, also in open search.
+     *    their runs report different search engines (Percolator / ProSE): the
+     *    pooled copies of the runs all get ProSE's engine, so that
+     *    IDMergerAlgorithm merges them (see mergeFileResults() for the
+     *    scores); the runs of @p per_file stay as they are.
      *
      * The aggregate's @c protein_ids template is taken from the first
      * successful per-file result (search parameters are identical across files
@@ -248,6 +255,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList peptide_ids;
       /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
+      /// Percolator ('rescore') rescored only some of the files that were searched: the pooled proteins are scored by
+      /// ProSE's score 'ln(hyperscore)' of all PSMs instead of Percolator's PEP (see mergeFileResults())
+      bool rescoring_mixed = false;
     };
 
     /**
@@ -330,9 +340,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * together with @p inference_only_psms (e.g. those up to FDR:protein_inference_PSM), as ProteomicsLFQ infers
      * proteins on PSMs of a looser cutoff before it filters them at its PSM FDR: more decoy proteins for the picked
      * FDR, and the score of a protein is the best PEP of its PSMs (the raw search engine score without a PEP, see
-     * inferProteins()). The reported PSMs stay as they are, but for the decoys that the finalization removes; the
-     * proteins and groups that none of them references afterwards (the decoys, and the proteins only
-     * @p inference_only_psms support) are removed.
+     * inferProteins()). The proteins and the indistinguishable groups are filtered at @p protein_fdr, each by its own
+     * q-value (the picked FDR of the groups counts a group once, however many targets it holds, so a group can be
+     * above the cutoff while its proteins are not), and only the proteins of the groups that pass stay. The reported
+     * PSMs stay as they are, but for the decoys that the finalization removes and the PSMs all of whose proteins the
+     * filter removed (as ProteomicsLFQ removes them: no reported PSM is left without a protein); the proteins and
+     * groups that none of them references afterwards (the decoys, and the proteins only @p inference_only_psms
+     * support) are removed.
      *
      * Shared by the file-based single-file search() above, mergeFileResults() and the ProSE TOPP tool's
      * single-file finalization, so the exact IDFilter sequence and ordering live in one
@@ -348,8 +362,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * stay, and only the references to the proteins the filter removed go.
      *
      * @param[in,out] protein_ids Protein identifications (operates on protein_ids[0]).
-     * @param[in,out] peptide_ids The reported PSMs; only the best hit of each is kept, and decoy PSMs are removed
-     *                            (unless @p remove_decoys is false).
+     * @param[in,out] peptide_ids The reported PSMs; only the best hit of each is kept, decoy PSMs are removed
+     *                            (unless @p remove_decoys is false), and so are the PSMs whose proteins all fail the
+     *                            protein FDR.
      * @param[in] decoy_string Accession marker identifying decoy proteins.
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
      * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
@@ -375,11 +390,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * Runs BasicProteinInferenceAlgorithm on the best hits of @p peptide_ids and @p inference_only_psms (copies that
      * hold what the inference reads; the PSMs themselves stay unchanged) for the run protein_ids[0], with the
-     * algorithm's 'score_type': "PEP" if the PSMs carry a posterior error probability (after Percolator rescoring the
-     * main score is the q-value, and the PEP is the meta value MS:1001493), so that a protein scores with the best PEP
-     * of its PSMs (as a posterior probability, 1 - PEP), as in ProteomicsLFQ. Otherwise "RAW", the search engine score
-     * (e.g. 'ln(hyperscore)', also when FDR:PSM made the q-value the main score and kept the search engine score as a
-     * meta value), or the main score if the PSMs carry neither.
+     * algorithm's 'score_type': "PEP" if every PSM carries a posterior error probability (after Percolator rescoring
+     * the main score is the q-value, and the PEP is the meta value MS:1001493), so that a protein scores with the best
+     * PEP of its PSMs (as a posterior probability, 1 - PEP), as in ProteomicsLFQ. Otherwise "RAW", ProSE's score
+     * 'ln(hyperscore)' if every PSM carries it (as main score, or as a meta value after rescoring or FDR:PSM; e.g. a
+     * pooled set of which Percolator rescored only some files), else another raw search engine score that all PSMs
+     * carry, or the main score if they carry none.
      *
      * @param[in,out] protein_ids Protein identifications; protein_ids[0] gets the scores and the indistinguishable
      *                            groups, and loses the proteins without PSMs.
@@ -390,6 +406,33 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static std::string inferProteins(std::vector<ProteinIdentification>& protein_ids,
                                      const PeptideIdentificationList& peptide_ids,
                                      const PeptideIdentificationList& inference_only_psms = PeptideIdentificationList());
+
+    /**
+     * @brief Removes the proteins that no PSM references, and them from the protein groups.
+     *
+     * Keeps the protein hits of @p protein_ids whose accession a peptide evidence of a hit of @p peptide_ids or of
+     * @p also_referencing names, and updates the indistinguishable groups and the protein groups of each run
+     * (IDFilter::updateProteinGroups()). Every search does this after its PSM filters (with the PSMs that only the
+     * protein inference uses as @p also_referencing), and the protein FDR after its own.
+     */
+    static void removeUnreportedProteins(std::vector<ProteinIdentification>& protein_ids,
+                                         const PeptideIdentificationList& peptide_ids,
+                                         const PeptideIdentificationList& also_referencing = PeptideIdentificationList());
+
+    /**
+     * @brief Removes the repeated entries of a protein database, which searching would report twice (e.g. a FASTA file
+     * concatenated twice, or contaminants added twice).
+     *
+     * An entry whose accession (FASTA identifier) an entry before it has, with the same sequence, is removed (the first
+     * one stays, with its description); the number removed is logged as a warning that names @p source.
+     *
+     * @param[in,out] db The database, in file order.
+     * @param[in] source The database file (or another name of the database) for the messages.
+     * @return The number of entries removed.
+     * @throws Exception::ParseError if two entries of one accession have different sequences: they cannot both be
+     *         reported under it, and which one is meant is unknown. The message names the accession and @p source.
+     */
+    static Size removeDuplicateProteins(std::vector<FASTAFile::FASTAEntry>& db, const std::string& source);
 
     /**
      * @brief Annotate PSM q-values by target-decoy competition of the best hit of each spectrum, as FDR:PSM does.
@@ -699,8 +742,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /**
      * @brief Pools result (moving its PSMs out), infers proteins across files, applies FDR:protein of this instance
-     * with picked-protein FDR if decoy proteins were identified and then, by default, removes the decoys. Throws
-     * Exception::InvalidValue if Percolator rescored only some files.
+     * with picked-protein FDR if decoy proteins were identified and then, by default, removes the decoys.
      *
      * The evaluation of the ProSE tool's -out_merged, for the result of a multi-file
      * searchWithModificationAnalysis() with the parameters of this instance:
@@ -712,6 +754,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
      *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
      *    search engine score without PEPs) on the best hit of each pooled PSM.
+     *  - Percolator ('rescore') rescored only some files (e.g. one with fewer than 100 PSMs; @c rescoring_mixed of the
+     *    result, and a warning that names the others): each PSM keeps the q-value of its file (Percolator's, or
+     *    target-decoy q-values of ProSE's score), on which FDR:PSM filtered it, but the proteins are scored by
+     *    ProSE's score 'ln(hyperscore)' of all PSMs, as only the rescored ones have a PEP; with FDR:PSM 0 every pooled
+     *    PSM also gets 'ln(hyperscore)' as main score (instead of Percolator's q-value), so that all PSMs are on one
+     *    score. The pooled run reports ProSE's search engine.
      *  - With FDR:protein > 0 and decoys in the searched database: applyCompleteSetProteinFDR(), whose inference also
      *    uses the PSMs of the files between FDR:PSM and FDR:protein_inference_PSM
      *    (@c per_file[i].inference_only_peptide_ids, which are moved out), with picked-protein FDR (Savitski et al.
@@ -729,7 +777,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                       of the files (@c per_file[i].protein_ids: search parameters, meta values such as
      *                       PeptDeepRescoring::NCE_META_VALUE, primary MS run paths) stay as they are. The statistics,
      *                       exit codes, Percolator outcomes and modification analyses stay, too. Unchanged if
-     *                       Exception::IllegalArgument or Exception::InvalidValue is thrown.
+     *                       Exception::IllegalArgument is thrown.
      * @param[in] in_spectra_files The input files of the search, in its order: one per entry of @c result.per_file.
      * @param[in] remove_decoys Whether the finalization of the protein FDR removes the decoy PSMs and proteins (default,
      *                          as in the ProSE tool's -out_merged). False keeps those that pass, e.g. to show them;
@@ -738,8 +786,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @return The pooled run and PSMs; empty if no file was searched.
      *
      * @throws Exception::IllegalArgument if @p in_spectra_files has not one entry per file of @p result.
-     * @throws Exception::InvalidValue if Percolator ('rescore') rescored only some of the files that were searched: their
-     *         runs report different search engines and scores and cannot be pooled.
      */
     MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files,
                                   bool remove_decoys = true) const;
