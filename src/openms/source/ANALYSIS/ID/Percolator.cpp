@@ -179,10 +179,11 @@ Percolator::Percolator()
                      "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "
                      "Larger values train faster; the results differ from Percolator's (1e-7).",
                      {"advanced"});
-  defaults_.setMinFloat("tron_epsilon", 0.0);
+  defaults_.setMinFloat("tron_epsilon", 1e-15);
   defaults_.setValue("warm_start", "false",
                      "Start each SVM training of a cross-validation iteration from the weights its (Cpos, Cneg) "
-                     "pair learned in the previous iteration instead of 0 (faster; the results differ).",
+                     "pair learned in the previous iteration instead of 0 (faster; the results differ). "
+                     "Not with nested_xval_bins > 1.",
                      {"advanced"});
   defaults_.setValidStrings("warm_start", {"true", "false"});
   defaults_.setValue("single_cneg", "false",

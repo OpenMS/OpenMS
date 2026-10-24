@@ -702,9 +702,10 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
   if (VERB > 3)
     cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
          << endl;
-  // OpenMS: with warmStart_, from the pair's weights of the previous iteration (0 at first)
+  // OpenMS: with warmStart_ (and no nested cross-validation), from the pair's weights of the
+  // previous iteration (0 at first)
   for (int ix = 0; ix < pWeights.d; ix++) {
-    pWeights.vec[ix] = warmStart_ ? cpCnFold.ww[static_cast<std::size_t>(ix)] : 0;
+    pWeights.vec[ix] = warmStart_ && nestedXvalBins_ == 1 ? cpCnFold.ww[static_cast<std::size_t>(ix)] : 0;
   }
   for (int ix = 0; ix < Outputs.d; ix++) {
     Outputs.vec[ix] = 0;

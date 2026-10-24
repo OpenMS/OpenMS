@@ -20,6 +20,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 #include "DataSet.h"
@@ -72,9 +73,12 @@ class CrossValidation {
   // OpenMS (experimental options of the training; the defaults are Percolator's training): TRON's
   // stopping tolerance (default EPSILON), warm starts (each (Cpos, Cneg) pair starts TRON from its
   // weights of the previous iteration instead of 0), one Cneg candidate (3 x the target/decoy
-  // ratio) instead of three. Set before preIterationSetup.
+  // ratio) instead of three. Set before preIterationSetup. A tolerance that is not finite and
+  // positive keeps EPSILON; warm starts apply without nested cross-validation only (its nested
+  // sets are drawn anew in each iteration).
   void setTrainingOptions(double tronEpsilon, bool warmStart, bool singleCneg) {
-    tronEpsilon_ = tronEpsilon;
+    tronEpsilon_ = tronEpsilon > 0.0 && tronEpsilon < std::numeric_limits<double>::infinity()
+                       ? tronEpsilon : EPSILON;
     warmStart_ = warmStart;
     singleCneg_ = singleCneg;
   }

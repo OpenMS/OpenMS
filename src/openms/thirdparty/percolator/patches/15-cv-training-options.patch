@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 005531d6b0..46e28d3bf4 100644
+index 005531d6b0..21a5bc73cf 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -202,9 +202,10 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
@@ -33,31 +33,43 @@ index 005531d6b0..46e28d3bf4 100644
    pOptions.cgitermax = CGITERMAX;
    pOptions.mfnitermax = MFNITERMAX;
    int estTruePos = 0;
-@@ -701,8 +702,9 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+@@ -701,8 +702,10 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
    if (VERB > 3)
      cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
           << endl;
-+  // OpenMS: with warmStart_, from the pair's weights of the previous iteration (0 at first)
++  // OpenMS: with warmStart_ (and no nested cross-validation), from the pair's weights of the
++  // previous iteration (0 at first)
    for (int ix = 0; ix < pWeights.d; ix++) {
 -    pWeights.vec[ix] = 0;
-+    pWeights.vec[ix] = warmStart_ ? cpCnFold.ww[static_cast<std::size_t>(ix)] : 0;
++    pWeights.vec[ix] = warmStart_ && nestedXvalBins_ == 1 ? cpCnFold.ww[static_cast<std::size_t>(ix)] : 0;
    }
    for (int ix = 0; ix < Outputs.d; ix++) {
      Outputs.vec[ix] = 0;
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
-index b518ce830d..67e271a951 100644
+index b518ce830d..dc72d69f8b 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.h
 +++ b/src/openms/thirdparty/percolator/CrossValidation.h
-@@ -69,6 +69,16 @@ class CrossValidation {
+@@ -20,6 +20,7 @@
+ 
+ #include <iomanip>
+ #include <iostream>
++#include <limits>
+ #include <vector>
+ 
+ #include "DataSet.h"
+@@ -69,6 +70,19 @@ class CrossValidation {
  
    void train(const Normalizer* pNorm);
  
 +  // OpenMS (experimental options of the training; the defaults are Percolator's training): TRON's
 +  // stopping tolerance (default EPSILON), warm starts (each (Cpos, Cneg) pair starts TRON from its
 +  // weights of the previous iteration instead of 0), one Cneg candidate (3 x the target/decoy
-+  // ratio) instead of three. Set before preIterationSetup.
++  // ratio) instead of three. Set before preIterationSetup. A tolerance that is not finite and
++  // positive keeps EPSILON; warm starts apply without nested cross-validation only (its nested
++  // sets are drawn anew in each iteration).
 +  void setTrainingOptions(double tronEpsilon, bool warmStart, bool singleCneg) {
-+    tronEpsilon_ = tronEpsilon;
++    tronEpsilon_ = tronEpsilon > 0.0 && tronEpsilon < std::numeric_limits<double>::infinity()
++                       ? tronEpsilon : EPSILON;
 +    warmStart_ = warmStart;
 +    singleCneg_ = singleCneg;
 +  }
@@ -65,7 +77,7 @@ index b518ce830d..67e271a951 100644
    void postIterationProcessing(Scores& fullset, SanityCheck* pCheck);
  
    void printAllWeights(ostream& weightStream, const Normalizer* pNorm);
-@@ -122,6 +132,10 @@ class CrossValidation {
+@@ -122,6 +136,10 @@ class CrossValidation {
    const static double requiredIncreaseOver2Iterations_;
  
    unsigned int numFolds_;  // number of folds for cross validation

@@ -407,7 +407,7 @@ namespace OpenMS
                        "Stopping tolerance of the SVM solver (TRON) of Percolator's training (Percolator: 1e-7). Larger "
                        "values (e.g. 1e-3) train much faster on large runs; the results differ.",
                        {"advanced"});
-    defaults_.setMinFloat("rescoring:tron_epsilon", 0.0);
+    defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
     defaults_.setValue("rescoring:warm_start", "false",
                        "Each SVM training of an iteration starts from the weights of the previous iteration instead of "
                        "0 (faster; the results differ).",
