@@ -41,7 +41,9 @@
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <filesystem>
 #include <iterator>
 #include <limits>
@@ -353,6 +355,7 @@ protected:
 
     registerTOPPSubsection_("workflow", "Workflow options.");
     registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect FASTA/predicted or transition-library preparation, force prepared peptide-query normalization, force transition-list assay/decoy preparation, or predict a library from FASTA.", false);
+    registerStringOption_("workflow:profile", "<file>", "", "Optional stage event TSV in a new file (stage, event, elapsed_seconds, unix_seconds). Existing files are never overwritten. Uses monotonic elapsed time and wall-clock epoch time for sampled-monitor alignment, flushing each boundary. Failed stages have no end event. Must not alias workflow inputs or outputs.", false);
     setValidStrings_("workflow:library_mode", {"auto", "prepared_pqp", "transition_list", "predicted"});
     registerStringOption_("workflow:working_format", "<choice>", "sqlite", "Internal workflow container used after extraction/scoring: 'sqlite' writes a .osw workflow, 'parquet' writes a .oswpq archive.", false);
     setValidStrings_("workflow:working_format", {"sqlite", "parquet"});
@@ -2300,6 +2303,191 @@ protected:
   }
 
 
+  // Keep profiling local to this tool. In particular, unwinding must never emit
+  // an end event: an end means that the corresponding stage succeeded.
+  struct StageProfile
+  {
+    std::FILE* stream = nullptr;
+    std::string path;
+    std::chrono::steady_clock::time_point origin;
+
+    ~StageProfile()
+    {
+      if (stream != nullptr) std::fclose(stream);
+    }
+
+    void open(const std::string& filename)
+    {
+      if (filename.empty()) return;
+      path = filename;
+      // Exclusive creation also protects existing aliases to raw-directory
+      // children without scanning the raw data tree or racing an exists check.
+      stream = std::fopen(path.c_str(), "wx");
+      check(stream != nullptr);
+      origin = std::chrono::steady_clock::now();
+      check(std::fprintf(stream, "stage\tevent\telapsed_seconds\tunix_seconds\n") >= 0 && std::fflush(stream) == 0);
+    }
+
+    void check(bool success) const
+    {
+      if (!success)
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
+      }
+    }
+
+    void event(const char* stage, const char* event)
+    {
+      if (stream == nullptr) return;
+      const double elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - origin).count();
+      const double unix_seconds = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+      const std::string elapsed_text = StringUtils::toStr(elapsed);
+      const std::string unix_text = StringUtils::toStr(unix_seconds);
+      check(std::fprintf(stream, "%s\t%s\t%s\t%s\n", stage, event, elapsed_text.c_str(), unix_text.c_str()) >= 0 && std::fflush(stream) == 0);
+    }
+
+    void close()
+    {
+      if (stream == nullptr) return;
+      std::FILE* current = stream;
+      stream = nullptr;
+      check(std::fclose(current) == 0);
+    }
+  };
+
+  void validateProfilePath_(const std::string& profile, const StringList& inputs, const std::string& out_dir) const
+  {
+    if (profile.empty()) return;
+    const auto canonical = [](const std::string& path)
+    {
+      std::error_code error;
+      auto result = std::filesystem::weakly_canonical(std::filesystem::absolute(path), error);
+      if (error)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Cannot resolve workflow:profile path: " + path);
+      }
+      return result;
+    };
+    const auto profile_path = canonical(profile);
+    const auto reject_alias = [&](const std::string& path, bool input = false)
+    {
+      if (path.empty()) return;
+      const auto candidate = canonical(path);
+      std::error_code error;
+      const bool same_file = std::filesystem::equivalent(profile_path, candidate, error);
+      const bool same_existing_file = !error && same_file;
+      const bool directory = input && std::filesystem::is_directory(candidate, error);
+      const auto relative = profile_path.lexically_relative(candidate);
+      const bool inside_input = directory && !relative.empty() && *relative.begin() != "..";
+      if (profile_path == candidate || same_existing_file || inside_input)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "workflow:profile aliases workflow input or output: " + path);
+      }
+    };
+    // Only real path options are candidates. Enumerated strings such as
+    // library_mode=auto must not reserve a perfectly valid profile name.
+    const Param& parameters = getParam_();
+    const std::set<std::string> run_outputs = {
+      "TargetedDataExtraction:out_chrom", "TargetedDataExtraction:out_mobilogram",
+      "TargetedDataExtraction:irt_trafo", "TargetedDataExtraction:irt_mzml",
+      "TargetedDataExtraction:Calibration:MassIMCorrection:debug_mz_file",
+      "TargetedDataExtraction:Calibration:MassIMCorrection:debug_im_file"};
+    reject_alias(parameters.getValue("log").toString());
+    for (auto it = parameters.begin(); it != parameters.end(); ++it)
+    {
+      if (!it->tags.count(TAG_INPUT_FILE) &&
+          !(it->tags.count(TAG_OUTPUT_FILE) && !run_outputs.count(it.getName()))) continue;
+      if (it->value.valueType() == ParamValue::STRING_VALUE)
+      {
+        reject_alias(it->value.toString(), it->tags.count(TAG_INPUT_FILE));
+      }
+      else if (it->value.valueType() == ParamValue::STRING_LIST)
+      {
+        for (const auto& value : static_cast<StringList>(it->value)) reject_alias(value, it->tags.count(TAG_INPUT_FILE));
+      }
+    }
+    for (const auto& key : {"rt_norm", "tr_irt_priority_sampling"})
+    {
+      reject_alias(parameters.getValue(std::string("TargetedDataExtraction:Calibration:") + key).toString());
+    }
+    for (const auto& key : {"linear_irt_file", "nonlinear_irt_file"})
+    {
+      StringList paths;
+      const std::string requested = parameters.getValue(std::string("TargetedDataExtraction:Calibration:files:") + key).toString();
+      // STATIC_FILES may consume the full path, including spaces, whereas
+      // run-specific calibration consumes the individual space-separated paths.
+      reject_alias(requested);
+      StringUtils::split(requested, ' ', paths);
+      for (const auto& path : paths) reject_alias(path);
+    }
+    const std::string base = makeExportBasePath_(inputs, out_dir);
+    for (const auto& task : getExportTasks_())
+    {
+      if (task.type == ExportTaskType::FeatureParquet)
+      {
+        reject_alias(base + ".precursor.feature.scores.parquet");
+        if (getParquetConfig_().include_transition_data)
+        {
+          reject_alias(base + ".transition.feature.scores.parquet");
+        }
+      }
+      else if (task.type == ExportTaskType::Results)
+      {
+        reject_alias(base + (getResultsConfig_().format == OpenSwathExportFileFormat::Parquet ? ".results.parquet" : ".results.tsv"));
+      }
+      else
+      {
+        const auto config = getMatrixConfig_(*task.matrix_level);
+        reject_alias(base + "." + toString(*task.matrix_level) +
+                     (config.format == OpenSwathExportFileFormat::Parquet ? ".matrix.parquet" : ".matrix.tsv"));
+      }
+    }
+    const bool split = getFlag_("TargetedDataExtraction:split_file_input");
+    const bool multiple_runs = inputs.size() > 1 && !split;
+    const bool mobility = getStringOption_("TargetedDataExtraction:ion_mobility_mode") != "disabled";
+    const bool debug = toBool_(getStringOption_("TargetedDataExtraction:write_debug_files"));
+    const auto check_run_output = [&](const std::string& key, const std::string& stem,
+                                      const std::string& extension, bool automatic, bool enabled)
+    {
+      if (!enabled) return;
+      const std::string requested = parameters.getValue(key).toString();
+      for (const auto& input : inputs)
+      {
+        if (!requested.empty())
+        {
+          reject_alias(multiple_runs ? makePerRunManualOutputPath_(requested, File::stemName(input)) : requested);
+        }
+        else if (automatic)
+        {
+          reject_alias(makeAutoRunOutputPath_({input}, out_dir, stem, extension));
+        }
+        if (split) break;
+      }
+    };
+    check_run_output("TargetedDataExtraction:out_chrom", "chrom", getWorkflowFormat_() == WorkflowFormat::OSWPQ ? "xic" : "sqMass",
+                     toBool_(getStringOption_("TargetedDataExtraction:write_chromatograms")), true);
+    check_run_output("TargetedDataExtraction:out_mobilogram", "mobi", "xim",
+                     toBool_(getStringOption_("TargetedDataExtraction:write_mobilograms")), mobility);
+    check_run_output("TargetedDataExtraction:irt_trafo", "debug.irt", "trafoXML", debug, true);
+    check_run_output("TargetedDataExtraction:irt_mzml", "debug.irt", "mzML", debug, true);
+    check_run_output("TargetedDataExtraction:Calibration:MassIMCorrection:debug_mz_file", "debug.mz", "txt", debug, true);
+    check_run_output("TargetedDataExtraction:Calibration:MassIMCorrection:debug_im_file", "debug.im", "txt", debug, mobility);
+    const std::string requested = getOutputDirOption("workflow:intermediate_dir");
+    const auto intermediate = canonical(requested.empty() ? out_dir + "/OpenDIA_intermediates" : requested);
+    const auto relative = profile_path.lexically_relative(intermediate);
+    if (!relative.empty() && *relative.begin() != "..")
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "workflow:profile must be outside the intermediate directory.");
+    }
+    for (const auto& name : {"prepared_library.pqp", "workflow.osw", "workflow.oswpq"})
+    {
+      reject_alias((intermediate / name).string());
+    }
+  }
+
   ExitCodes main_(int, const char**) override
   {
     const StringList input_files = getStringList_("in");
@@ -2309,6 +2497,13 @@ protected:
 
     try
     {
+      const std::string profile_path = getStringOption_("workflow:profile");
+      validateProfilePath_(profile_path, input_files, out_dir);
+      StageProfile profile;
+      profile.open(profile_path);
+      // Now-existing profile files also make equivalent() detect differently
+      // cased future-output aliases on case-insensitive filesystems.
+      validateProfilePath_(profile_path, input_files, out_dir);
       const FileTypes::Type tr_type = resolveTransitionLibraryType_(input_library);
       // Validate the predicted-mode options before any library I/O or working-directory setup.
       const LibraryMode requested_library_mode = getLibraryMode_();
@@ -2383,6 +2578,7 @@ protected:
         working_dir.path + "/workflow.oswpq" :
         working_dir.path + "/workflow.osw";
 
+      profile.event("library_preparation", "start");
       OpenSwathLibraryPreparation library_preparation;
       library_preparation.setLogType(log_type_);
       const Param reader_parameters = getParam_().copy("TargetedDataExtraction:Library:", true);
@@ -2500,6 +2696,8 @@ protected:
         OPENMS_LOG_INFO << "Wrote reusable prepared predicted library: " << reusable_pqp_abs << std::endl;
       }
 
+      profile.event("library_preparation", "end");
+      profile.event("extraction", "start");
       bool enable_uis_scoring = getStringOption_("TargetedDataExtraction:enable_ipf") == "true";
       if (isPeptidoformInferenceRequested_() && !enable_uis_scoring)
       {
@@ -2512,6 +2710,7 @@ protected:
       {
         return extraction_result;
       }
+      profile.event("extraction", "end");
 
 #ifdef __GLIBC__
       // Extraction and scoring ran on all threads, and glibc keeps what they freed in the arenas of
@@ -2520,6 +2719,7 @@ protected:
       malloc_trim(0);
 #endif
 
+      profile.event("rescoring", "start");
       Rescorer rescoring;
       Param rescoring_params = getParam_().copy("Rescoring:", true);
       rescoring_params.remove("level");
@@ -2542,10 +2742,15 @@ protected:
         rescoring.score(workflow_output, level);
       }
 
+      profile.event("rescoring", "end");
+      profile.event("inference", "start");
       if (workflow_format == WorkflowFormat::OSW)
       {
         runInference_(workflow_output);
+        profile.event("inference", "end");
+        profile.event("export", "start");
         runExports_(workflow_output, input_files, out_dir);
+        profile.event("export", "end");
       }
       else
       {
@@ -2575,14 +2780,19 @@ protected:
         try
         {
           runInferenceOSWPQ_(workflow_workspace);
+          profile.event("inference", "end");
+          profile.event("export", "start");
           runExportsOSWPQ_(workflow_workspace, input_files, out_dir);
+          profile.event("export", "end");
           if (working_dir.remove_on_success)
           {
             OPENMS_LOG_INFO << "Skipping workflow.oswpq repack because the run-owned intermediate directory will be removed on success." << std::endl;
           }
           else
           {
+            profile.event("archive_commit", "start");
             workflow_workspace.commit();
+            profile.event("archive_commit", "end");
           }
         }
         catch (...)
@@ -2600,6 +2810,7 @@ protected:
         }
       }
 
+      profile.close();
       cleanupWorkingDirectory_(working_dir);
       return EXECUTION_OK;
     }

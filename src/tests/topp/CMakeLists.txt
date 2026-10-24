@@ -3033,6 +3033,18 @@ if(NOT DISABLE_OPENSWATH)
     -TargetedDataExtraction:Calibration:windows:estimate_mz false
     -TargetedDataExtraction:Calibration:windows:estimate_im false)
 
+  add_test("TOPP_OpenDIA_profile"
+    ${CMAKE_COMMAND}
+    "-DTOOL=${TOPP_BIN_PATH}/OpenDIA"
+    "-DCOMMON_ARGS=${OPENDIA_SUCCESS_COMMON_ARGS}"
+    "-DWORK=${TESTS_TEMP_DIR}/OpenDIA_profile"
+    "-DBASENAME=${OPENDIA_TRANSITION_LIST_BASENAME}"
+    "-DLIBRARY=${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.pqp"
+    "-DTARGET_LIBRARY=${OPENDIA_TARGET_LIBRARY}"
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIA_profile.cmake)
+  set_tests_properties("TOPP_OpenDIA_success_prepare" PROPERTIES FIXTURES_SETUP OpenDIA_success_library)
+  set_tests_properties("TOPP_OpenDIA_profile" PROPERTIES FIXTURES_REQUIRED OpenDIA_success_library)
+
   add_test("TOPP_OpenDIA_success_sqlite"
     ${TOPP_BIN_PATH}/OpenDIA ${OPENDIA_SUCCESS_COMMON_ARGS}
     -workflow:working_format sqlite
