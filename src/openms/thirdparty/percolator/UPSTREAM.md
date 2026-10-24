@@ -45,8 +45,11 @@ nor patches these files):
   where `FastTronFunction::Hv` loops over the active rows like `TronFunction`.
   Further: the active rows are packed while `fun` has them in L1, f and g at
   w = 0 are computed once per solve (TRON and the gradient-ratio check ask three
-  times), and the buffers are per thread and grow-only (freed at the end of a
-  solve once they exceed 64 MB). The first use of each kernel table in a process
+  times), and the buffers are grow-only and come from a pool of workspaces that
+  solves take and give back (a workspace above 64 MB is freed at the end of its
+  solve, unless a `TronWorkspaceHold` exists: `CrossValidation::train` holds one, so
+  the solves of a large training reuse their buffers instead of allocating and
+  page-faulting them per solve; the large ones are freed when the hold ends). The first use of each kernel table in a process
   solves two small problems both ways (about 1 ms) and falls back to
   `TronFunction` with a warning if any bit differs. Weights, outputs and the
   gradient ratio are bit-identical to `TronFunction` (class test
@@ -297,6 +300,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   the rows in tasks (each score by `calcScore`, as before) and sorts the top part with
   `sortLikeStdSort`, and `Scores::getFeatureRows` sorts the rows by address with `sortLikeStdSort`
   (same permutations as `std::sort`).
+- `patches/14-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
+  `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
+  the local replacement above). No change of results.
 
 ### Regenerating the patch
 

@@ -254,6 +254,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
  * @param pNorm Normalization object
  */
 void CrossValidation::train(const Normalizer* pNorm) {
+  // OpenMS: the solves of the training reuse their buffers (see ssl.h)
+  TronWorkspaceHold holdTronWorkspaces;
   if (VERB > 0) {
     cerr << "---Training with Cpos";
     if (selectedCpos_ > 0) {
