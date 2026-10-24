@@ -256,6 +256,19 @@ hand-editing sources and committing them, to keep sync self-healing.
   in such a region (as the cross-validation calls `merge`), so that this sort, the sort of
   `postMergeStep` and the bootstraps of `estimatePi0` run as tasks; outside a region it is
   `std::sort` as before.
+- `patches/12-cv-fold-chains.patch` — speeds up the training of the cross-validation without
+  changing its result. Without quick validation (its stop test needs the sum over the folds after
+  each step), nested cross-validation (which draws the nested sets at random) and the reports of
+  each step's training sets and weights (`VERB > 2`, `reportPerformanceEachIteration`), no fold
+  depends on another fold until the end of `CrossValidation::train`. `trainFoldChains` then runs
+  all steps of a fold (scoring its training set, its SVM inputs, its (Cpos, Cneg) pairs as tasks,
+  the choice of its best pair as in `mergeCpCnPairs`, the scoring of the training set with the
+  chosen weights) and the scoring of its test set as one task, so that the folds no longer wait for
+  each other at every stage of every step; the counts are added up in fold order afterwards and the
+  reports printed as before. An error ends its fold's task; the error `train` would have thrown (the
+  first by step, then by stage, then by fold) is rethrown after the reports of the steps before
+  it. `CrossValidation::setupFoldInputs` is `doStep`'s setup of a fold's SVM inputs, now shared by
+  both. Otherwise `train` steps through `doStep` as before.
 
 ### Regenerating the patch
 

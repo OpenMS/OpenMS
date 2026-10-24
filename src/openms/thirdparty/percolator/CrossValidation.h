@@ -139,6 +139,10 @@ class CrossValidation {
                      const vector<double>& cpos_vec,
                      const vector<double>& cfrac_vec);
   int doStep(const Normalizer* pNorm, double selectionFdr);
+  // OpenMS: see CrossValidation.cpp
+  void setupFoldInputs(int set, double selectionFdr, std::vector<Scores>& nestedTestScores,
+                       const Scores** testSets);
+  void trainFoldChains();
 
   void printSetWeights(ostream& weightStream, unsigned int set);
   void printRawSetWeights(ostream& weightStream,
