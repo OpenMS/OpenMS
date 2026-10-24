@@ -6073,7 +6073,6 @@ START_SECTION(([EXTRA] mergeFileResults pools runs of which Percolator rescored 
 
     const Size in_second = target_psms(result.per_file[1].peptide_ids).size();
     ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, files);
-    TEST_TRUE(merged.rescoring_mixed)
     TEST_TRUE(merged.protein_fdr_applied)
     ABORT_IF(merged.protein_ids.size() != 1)
     TEST_STRING_EQUAL(merged.protein_ids[0].getSearchEngine(), "ProSE")

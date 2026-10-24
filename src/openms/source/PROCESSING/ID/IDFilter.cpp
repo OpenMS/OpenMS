@@ -324,6 +324,22 @@ namespace OpenMS
     keepMatchingItems(proteins.getHits(), acc_filter);
   }
 
+  void IDFilter::removeUnreferencedProteins(vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides,
+                                            const PeptideIdentificationList& more_peptides)
+  {
+    auto run_to_accessions = collectReferencedAccessions(peptides);
+    for (auto& [run_id, accessions] : collectReferencedAccessions(more_peptides))
+    {
+      run_to_accessions[run_id].merge(accessions);
+    }
+    for (ProteinIdentification& prot : proteins)
+    {
+      const unordered_set<std::string>& accessions = run_to_accessions[prot.getIdentifier()];
+      HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      keepMatchingItems(prot.getHits(), acc_filter);
+    }
+  }
+
   void IDFilter::removeUnreferencedProteins(vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
   {
     auto run_to_accessions = collectReferencedAccessions(peptides);

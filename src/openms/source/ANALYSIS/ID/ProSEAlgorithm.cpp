@@ -1663,7 +1663,7 @@ namespace OpenMS
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue(mv_scan_index, static_cast<unsigned int>(scan_index));
-        pi.setScoreType("ln(hyperscore)"); // also for scoring:method mass_accuracy, a log-space HyperScore (recorded in the search parameters)
+        pi.setScoreType(SEARCH_ENGINE_SCORE); // also for scoring:method mass_accuracy, a log-space HyperScore (recorded in the search parameters)
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -2289,20 +2289,26 @@ namespace OpenMS
     std::string ext_string = det.success ? det.name : decoy_prefix_;
     bool ext_is_prefix = det.success ? det.is_prefix : true;
 
+    Size n_decoys = 0; // the entries with the marker (as PeptideIndexing finds them: this spelling exactly)
     if (!existing && !decoy_prefix_.empty())
     {
-      bool any_prefix = false, any_suffix = false;
+      Size n_prefix = 0, n_suffix = 0;
       for (const FASTAFile::FASTAEntry& e : db)
       {
-        if (StringUtils::hasPrefix(e.identifier, decoy_prefix_)) { any_prefix = true; break; }
-        if (StringUtils::hasSuffix(e.identifier, decoy_prefix_)) { any_suffix = true; }
+        n_prefix += StringUtils::hasPrefix(e.identifier, decoy_prefix_);
+        n_suffix += StringUtils::hasSuffix(e.identifier, decoy_prefix_);
       }
-      if (any_prefix || any_suffix)
+      if (n_prefix + n_suffix > 0)
       {
         existing = true;
         ext_string = decoy_prefix_;
-        ext_is_prefix = any_prefix; // prefer prefix when both orientations occur
+        ext_is_prefix = n_prefix > 0; // prefer prefix when both orientations occur
+        n_decoys = ext_is_prefix ? n_prefix : n_suffix;
       }
+    }
+    else if (existing)
+    {
+      n_decoys = countDecoyEntries_(db, ext_string, ext_is_prefix);
     }
 
     DecoyStrategy_ s;
@@ -2315,8 +2321,6 @@ namespace OpenMS
           // targets by the decoys, one decoy per target: with far fewer (e.g. a few entries of the decoy_prefix found
           // literally, which DecoyHelper's 40 % rule does not detect) or far more decoys, every q-value is off by
           // about that factor. Refuse such a database rather than reporting wrong FDRs.
-          const Size n_decoys = static_cast<Size>(std::count_if(db.begin(), db.end(), [&](const FASTAFile::FASTAEntry& e)
-                                                  { return accessionHasDecoyMarker_(e.identifier, ext_string, ext_is_prefix); }));
           const Size n_targets = db.size() - n_decoys;
           if (static_cast<double>(n_decoys) < MIN_DECOYS_PER_TARGET * static_cast<double>(n_targets)
               || static_cast<double>(n_decoys) > MAX_DECOYS_PER_TARGET * static_cast<double>(n_targets))
@@ -2401,7 +2405,8 @@ namespace OpenMS
     // The entries are filtered in place instead of being copied one by one: the same entries
     // in the same order.
     std::vector<FASTAFile::FASTAEntry> db = std::move(fasta_db);
-    // A database read from a file had its repeats removed (and its conflicts reported with the file name) already.
+    // For in-memory databases; one read from a file had its repeats removed by loadFASTA() already (and its conflicts
+    // reported with the file name), so this finds none.
     removeDuplicateProteins(db, "the protein database");
 
     // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
@@ -4392,29 +4397,8 @@ namespace OpenMS
         return std::all_of(psms.begin(), psms.end(), [&](const PeptideIdentification& id)
                            { return !switcher.findScoreType(id, type).score_name.empty(); });
       };
-      static const std::string search_engine_score = "ln(hyperscore)";
-      const auto search_engine_value = [&](const PeptideIdentification& id) -> std::optional<double>
-      {
-        const PeptideHit& hit = id.getHits()[0];
-        if (id.getScoreType() == search_engine_score) { return hit.getScore(); }
-        for (const std::string& name : {search_engine_score, search_engine_score + "_score"})
-        {
-          if (hit.metaValueExists(name)) { return static_cast<double>(hit.getMetaValue(name)); }
-        }
-        return std::nullopt;
-      };
       if (all_have(IDScoreSwitcherAlgorithm::ScoreType::PEP)) { score_type = "PEP"; }
-      else if (std::all_of(psms.begin(), psms.end(), [&](const PeptideIdentification& id) { return search_engine_value(id).has_value(); }))
-      {
-        for (PeptideIdentification& id : psms)
-        {
-          const double value = *search_engine_value(id);
-          id.getHits()[0].setScore(value);
-          id.setScoreType(search_engine_score);
-          id.setHigherScoreBetter(true);
-        }
-        score_type = "RAW"; // the main score of the copies now; "RAW" finds it as such
-      }
+      else if (useSearchEngineScore_(psms)) { score_type = "RAW"; } // the main score of the copies now; "RAW" finds it
       else if (all_have(IDScoreSwitcherAlgorithm::ScoreType::RAW)) { score_type = "RAW"; }
     }
     BasicProteinInferenceAlgorithm bpia;
@@ -4430,24 +4414,12 @@ namespace OpenMS
                                                 const PeptideIdentificationList& peptide_ids,
                                                 const PeptideIdentificationList& also_referencing)
   {
-    std::unordered_set<std::string> referenced;
-    for (const PeptideIdentificationList* list : {&peptide_ids, &also_referencing})
-    {
-      for (const PeptideIdentification& id : *list)
-      {
-        for (const PeptideHit& hit : id.getHits())
-        {
-          for (const PeptideEvidence& evidence : hit.getPeptideEvidences()) { referenced.insert(evidence.getProteinAccession()); }
-        }
-      }
-    }
+    if (also_referencing.empty()) { IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids); }
+    else { IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids, also_referencing); }
     for (ProteinIdentification& run : protein_ids)
     {
-      std::vector<ProteinHit>& hits = run.getHits();
-      hits.erase(std::remove_if(hits.begin(), hits.end(), [&](const ProteinHit& hit) { return !referenced.contains(hit.getAccession()); }),
-                 hits.end());
-      IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), hits);
-      IDFilter::updateProteinGroups(run.getProteinGroups(), hits);
+      IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
+      IDFilter::updateProteinGroups(run.getProteinGroups(), run.getHits());
     }
   }
 
@@ -4492,10 +4464,6 @@ namespace OpenMS
                     << (score_type.empty() ? "the main score" : score_type) << ": " << inferred.size() - decoy_proteins
                     << " target and " << decoy_proteins << " decoy proteins." << std::endl;
 
-    // Proteins (and groups) without a reported PSM go: the decoys once their PSMs are removed, and the proteins that
-    // only inference-only PSMs support.
-    const auto remove_unreported_proteins = [&]() { removeUnreportedProteins(protein_ids, peptide_ids); };
-
     // Picked-protein FDR needs identified decoy PROTEINS, not merely a decoy database: if PSM-level
     // filtering removed all decoy evidence, q-values would be estimated from targets only. The
     // callers gate on a DB-level / pre-inference "decoys present" check, which does not catch this
@@ -4505,7 +4473,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] Protein FDR requested but no decoy proteins remain after inference "
                       << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
                       << "target-only q-values." << std::endl;
-      remove_unreported_proteins();
+      removeUnreportedProteins(protein_ids, peptide_ids); // the proteins only inference-only PSMs support
       return false;
     }
 
@@ -4528,11 +4496,7 @@ namespace OpenMS
     if (!groups.empty())
     {
       IDFilter::filterGroupsByScore(groups, protein_fdr, protein_ids[0].isHigherScoreBetter());
-      std::unordered_set<std::string> grouped;
-      for (const ProteinIdentification::ProteinGroup& group : groups) { grouped.insert(group.accessions.begin(), group.accessions.end()); }
-      std::vector<ProteinHit>& hits = protein_ids[0].getHits();
-      hits.erase(std::remove_if(hits.begin(), hits.end(), [&](const ProteinHit& hit) { return !grouped.contains(hit.getAccession()); }),
-                 hits.end());
+      IDFilter::removeUngroupedProteins(groups, protein_ids[0].getHits());
     }
 
     // Decoy removal is the finalization step. removeDecoyHits strips decoy PSMs; decoy
@@ -4544,7 +4508,9 @@ namespace OpenMS
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
     }
-    remove_unreported_proteins();
+    // Proteins (and groups) without a reported PSM go: the decoys once their PSMs are removed, and the proteins that
+    // only inference-only PSMs support.
+    removeUnreportedProteins(protein_ids, peptide_ids);
     // A PSM all of whose proteins failed the protein FDR goes too (as in ProteomicsLFQ): it would be reported without
     // any protein (no protein accession, start, end or flanking residues), so every reported PSM maps to a reported
     // protein. The proteins of the PSMs that stay are not affected.
@@ -4607,14 +4573,12 @@ namespace OpenMS
       // whose FDR nothing estimates. Use the +1-corrected estimate (D + 1) / T instead: 1/T for every PSM (the q-value
       // of the best of T targets, and of all below it), so that a threshold below 1/T reports no PSM, as an
       // unattainable protein FDR reports no protein.
+      fdr.apply(peptide_ids); // keeps the best hit of each PSM, decoys included (add_decoy_peptides)
       Size targets = 0, decoys = 0;
-      for (PeptideIdentification& id : peptide_ids)
+      for (const PeptideIdentification& id : peptide_ids)
       {
-        if (id.getHits().empty()) { continue; }
-        id.sort();
-        (id.getHits()[0].isDecoy() ? decoys : targets) += 1;
+        if (!id.getHits().empty()) { (id.getHits()[0].isDecoy() ? decoys : targets) += 1; }
       }
-      fdr.apply(peptide_ids);
       if (decoys == 0 && targets > 0)
       {
         OPENMS_LOG_WARN << "[ProSE] FDR:PSM: none of the " << targets << " PSMs matched a decoy; their q-value is the "
@@ -4904,7 +4868,7 @@ namespace OpenMS
     // starts an entry there as well, and the reader of the piece before stops when it arrives
     // there. Whenever this does not work out (small file, no such place, a reader that fails or
     // does not arrive at the next piece), load() reads the file and reports errors as before.
-    void loadFASTA(const std::string& filename, std::vector<FASTAFile::FASTAEntry>& entries)
+    void readFASTA(const std::string& filename, std::vector<FASTAFile::FASTAEntry>& entries)
     {
       std::vector<std::streamoff> pieces{0}; // where each piece starts; the first one where readStart() starts
 #ifdef _OPENMP
@@ -4995,6 +4959,14 @@ namespace OpenMS
       {
         entries.insert(entries.end(), std::make_move_iterator(piece.begin()), std::make_move_iterator(piece.end()));
       }
+    }
+
+    // The database of a search: readFASTA(), without repeated entries (ProSEAlgorithm::removeDuplicateProteins(), which
+    // names the file in its warning or error), before the database is used.
+    void loadFASTA(const std::string& filename, std::vector<FASTAFile::FASTAEntry>& entries)
+    {
+      readFASTA(filename, entries);
+      ProSEAlgorithm::removeDuplicateProteins(entries, filename);
     }
 
     // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
@@ -5356,7 +5328,6 @@ namespace OpenMS
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
-      removeDuplicateProteins(fasta_db, in_db); // before the database is used: an early, clear error
 
       // ions:by_activation: the index needs c and z+1 ions if electron-activated spectra are
       // searched, which is known once the spectra are read. Wait for them if they are read already
@@ -5425,7 +5396,6 @@ namespace OpenMS
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
-      removeDuplicateProteins(fasta_db, in_db); // before the database is used: an early, clear error
 
       // delegate to in-memory search
       ec = search(spectra, fasta_db, protein_ids, peptide_ids);
@@ -5661,17 +5631,11 @@ namespace OpenMS
       // Shared report stats: chunk-major builds C indices (one per chunk),
       // reused across all files — count/time them once, not per file.
       mfres.shared.chunked = true;
-      for (const auto& e : full_db)
-      {
-        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
-        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
-        // would be miscounted as targets. have_decoys is false for target-only (ignore),
-        // where decoys are stripped and decoy_string is empty.
-        const bool is_decoy = strategy.have_decoys &&
-            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
-        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
-        else { ++mfres.shared.db_target_proteins; }
-      }
+      // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded decoy_prefix_: otherwise reused
+      // external/suffix decoys (decoy_mode "external") would be miscounted as targets. have_decoys is false for
+      // target-only (ignore), where decoys are stripped and decoy_string is empty.
+      mfres.shared.db_decoy_proteins = strategy.have_decoys ? countDecoyEntries_(full_db, strategy.decoy_string, strategy.is_prefix) : 0;
+      mfres.shared.db_target_proteins = full_db.size() - mfres.shared.db_decoy_proteins;
 
       OPENMS_LOG_INFO << "[ProSE] open_search=" << (open_search_mode ? "true" : "false")
                       << " (precursor tolerance [-" << precursor_mass_tolerance_lower_
@@ -6049,17 +6013,9 @@ namespace OpenMS
         ctx_built = true;
         mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
         mfres.shared.peptide_mass_mode = ctx.fragment_index.isPeptideMassMode();
-        for (const auto& e : ctx.db)
-        {
-          // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
-          // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
-          // would be miscounted as targets. have_decoys is false for target-only (ignore),
-          // where decoys are stripped and decoy_string is empty.
-          const bool is_decoy = strategy.have_decoys &&
-              accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
-          if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
-          else { ++mfres.shared.db_target_proteins; }
-        }
+        // (counted by the resolved decoy marker, as in the chunk-major path)
+        mfres.shared.db_decoy_proteins = strategy.have_decoys ? countDecoyEntries_(ctx.db, strategy.decoy_string, strategy.is_prefix) : 0;
+        mfres.shared.db_target_proteins = ctx.db.size() - mfres.shared.db_decoy_proteins;
       };
 
       mfres.per_file.reserve(in_spectra_files.size());
@@ -6295,7 +6251,6 @@ namespace OpenMS
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
     loadFASTA(in_db, fasta_db);
-    removeDuplicateProteins(fasta_db, in_db); // before the database is used: an early, clear error
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
       in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
@@ -6332,20 +6287,19 @@ namespace OpenMS
     // not rescore keeps ProSE as its search engine, while the rescored ones report Percolator: if both occur, the copies
     // of the runs that are pooled get ProSE's engine (the pooled evaluation then scores all files by ProSE's score, see
     // mergeFileResults()); the runs of the files stay as they are.
-    const ProteinIdentification* search_engine_run = nullptr; // a run of ProSE's own engine, if the engines differ
+    std::string engine, engine_version; // of a run that Percolator did not rescore
+    bool rescored = false, not_rescored = false;
+    for (const SearchResult& pf : per_file)
     {
-      std::set<std::pair<std::string, std::string>> engines;
-      for (const SearchResult& pf : per_file)
+      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
+      (pf.percolator.applied ? rescored : not_rescored) = true;
+      if (!pf.percolator.applied && engine.empty())
       {
-        if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
-        engines.emplace(pf.protein_ids[0].getSearchEngine(), pf.protein_ids[0].getSearchEngineVersion());
-        if (!pf.percolator.applied && search_engine_run == nullptr) { search_engine_run = &pf.protein_ids[0]; }
+        engine = pf.protein_ids[0].getSearchEngine();
+        engine_version = pf.protein_ids[0].getSearchEngineVersion();
       }
-      if (engines.size() < 2) { search_engine_run = nullptr; }
     }
-    // (copied before the loop below: it moves the PSMs, not the runs, but the pointer is not needed after it)
-    const std::string engine = search_engine_run != nullptr ? search_engine_run->getSearchEngine() : std::string();
-    const std::string engine_version = search_engine_run != nullptr ? search_engine_run->getSearchEngineVersion() : std::string();
+    if (!rescored || !not_rescored) { engine.clear(); } // one engine: nothing to set
 
     IDMergerAlgorithm merger;
     std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
@@ -6433,7 +6387,6 @@ namespace OpenMS
     }
 
     MergedResult merged;
-    merged.rescoring_mixed = rescoring_mixed;
     if (n_searched == 0) { return merged; } // no file was searched: nothing to pool
 
     // Use the effective decoy marker/position the search resolved (which may be an auto-detected external marker,
@@ -6466,21 +6419,7 @@ namespace OpenMS
     merged_protein_ids[0].setDateTime(DateTime::now());
 
     // Without FDR:PSM the main scores of a mixed set differ: Percolator's q-values and ProSE's scores. One score for all.
-    if (rescoring_mixed && fdr_psm_ <= 0.0)
-    {
-      static const std::string search_engine_score = "ln(hyperscore)";
-      for (PeptideIdentification& id : merged_peptides)
-      {
-        if (id.getScoreType() == search_engine_score) { continue; }
-        for (PeptideHit& hit : id.getHits())
-        {
-          if (hit.metaValueExists(search_engine_score)) { hit.setScore(static_cast<double>(hit.getMetaValue(search_engine_score))); }
-        }
-        id.setScoreType(search_engine_score);
-        id.setHigherScoreBetter(true);
-        id.sort();
-      }
-    }
+    if (rescoring_mixed && fdr_psm_ <= 0.0) { useSearchEngineScore_(merged_peptides); }
 
     // Cross-file protein inference (inferProteins(): the best PEP, or search engine score, per peptide per protein) and
     // the optional picked-protein FDR. Picked-protein FDR needs identified decoy proteins: gate on DB-level decoys here,
@@ -6557,6 +6496,46 @@ namespace OpenMS
     if (marker.empty() || accession.size() < marker.size()) { return false; }
     return is_prefix ? (accession.compare(0, marker.size(), marker) == 0)
                      : (accession.compare(accession.size() - marker.size(), marker.size(), marker) == 0);
+  }
+
+  bool ProSEAlgorithm::useSearchEngineScore_(PeptideIdentificationList& ids)
+  {
+    // The name of the score of each PSM: none for those that have it as main score already
+    const std::string main_score = SEARCH_ENGINE_SCORE, meta_score = main_score + "_score";
+    std::vector<const std::string*> source(ids.size(), nullptr);
+    for (Size i = 0; i < ids.size(); ++i)
+    {
+      const PeptideIdentification& id = ids[i];
+      if (id.getHits().empty() || id.getScoreType() == main_score) { continue; }
+      const PeptideHit& hit = id.getHits()[0];
+      if (hit.metaValueExists(main_score)) { source[i] = &main_score; }
+      else if (hit.metaValueExists(meta_score)) { source[i] = &meta_score; }
+      else { return false; }
+    }
+    // one switcher per meta value name
+    std::map<const std::string*, IDScoreSwitcherAlgorithm> switchers;
+    Size counter = 0;
+    for (Size i = 0; i < ids.size(); ++i)
+    {
+      if (source[i] == nullptr) { continue; }
+      auto [it, inserted] = switchers.try_emplace(source[i]);
+      if (inserted)
+      {
+        Param p = it->second.getParameters();
+        p.setValue("new_score", *source[i]);
+        p.setValue("new_score_type", main_score);
+        p.setValue("new_score_orientation", "higher_better");
+        it->second.setParameters(p);
+      }
+      it->second.switchScores(ids[i], counter);
+    }
+    return true;
+  }
+
+  Size ProSEAlgorithm::countDecoyEntries_(const std::vector<FASTAFile::FASTAEntry>& db, const std::string& marker, bool is_prefix)
+  {
+    return static_cast<Size>(std::count_if(db.begin(), db.end(), [&](const FASTAFile::FASTAEntry& e)
+                                           { return accessionHasDecoyMarker_(e.identifier, marker, is_prefix); }));
   }
 
   // =====================================================================

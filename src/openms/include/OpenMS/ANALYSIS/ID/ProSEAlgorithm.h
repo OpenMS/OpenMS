@@ -255,9 +255,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList peptide_ids;
       /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
-      /// Percolator ('rescore') rescored only some of the files that were searched: the pooled proteins are scored by
-      /// ProSE's score 'ln(hyperscore)' of all PSMs instead of Percolator's PEP (see mergeFileResults())
-      bool rescoring_mixed = false;
     };
 
     /**
@@ -410,9 +407,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /**
      * @brief Removes the proteins that no PSM references, and them from the protein groups.
      *
-     * Keeps the protein hits of @p protein_ids whose accession a peptide evidence of a hit of @p peptide_ids or of
-     * @p also_referencing names, and updates the indistinguishable groups and the protein groups of each run
-     * (IDFilter::updateProteinGroups()). Every search does this after its PSM filters (with the PSMs that only the
+     * Keeps the protein hits of each run of @p protein_ids whose accession a peptide evidence of a hit of a PSM of the
+     * run (by identifier) in @p peptide_ids or @p also_referencing names (IDFilter::removeUnreferencedProteins()), and
+     * updates the indistinguishable groups and the protein groups of each run (IDFilter::updateProteinGroups()). Every search does this after its PSM filters (with the PSMs that only the
      * protein inference uses as @p also_referencing), and the protein FDR after its own.
      */
     static void removeUnreportedProteins(std::vector<ProteinIdentification>& protein_ids,
@@ -754,8 +751,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
      *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
      *    search engine score without PEPs) on the best hit of each pooled PSM.
-     *  - Percolator ('rescore') rescored only some files (e.g. one with fewer than 100 PSMs; @c rescoring_mixed of the
-     *    result, and a warning that names the others): each PSM keeps the q-value of its file (Percolator's, or
+     *  - Percolator ('rescore') rescored only some files (e.g. one with fewer than 100 PSMs; a warning names the
+     *    others): each PSM keeps the q-value of its file (Percolator's, or
      *    target-decoy q-values of ProSE's score), on which FDR:PSM filtered it, but the proteins are scored by
      *    ProSE's score 'ln(hyperscore)' of all PSMs, as only the rescored ones have a PEP; with FDR:PSM 0 every pooled
      *    PSM also gets 'ln(hyperscore)' as main score (instead of Percolator's q-value), so that all PSMs are on one
@@ -1565,6 +1562,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Empty marker → false. Pure std::string (no String dependency).
     static bool accessionHasDecoyMarker_(const std::string& accession,
                                          const std::string& marker, bool is_prefix);
+
+    /// ProSE's own PSM score (HyperScore, in log space): the main score of its PSMs, and after Percolator rescoring or
+    /// FDR:PSM a meta value of this name (or with the suffix "_score", as FalseDiscoveryRate keeps it)
+    static constexpr const char* SEARCH_ENGINE_SCORE = "ln(hyperscore)";
+
+    /// Helper: makes SEARCH_ENGINE_SCORE the main score of every PSM of @p ids (IDScoreSwitcherAlgorithm; the former
+    /// main score stays a meta value), if every PSM with hits has it (as main score or as meta value). Returns whether it
+    /// did; otherwise @p ids is unchanged. For a set of PSMs of which Percolator rescored only some (see
+    /// mergeFileResults()).
+    static bool useSearchEngineScore_(PeptideIdentificationList& ids);
+
+    /// Helper: the entries of @p db whose accession carries the decoy @p marker (accessionHasDecoyMarker_())
+    static Size countDecoyEntries_(const std::vector<FASTAFile::FASTAEntry>& db, const std::string& marker, bool is_prefix);
 
     /// Helper: pool the runs of the files of @p per_file that were searched (exit code EXECUTION_OK) with
     /// IDMergerAlgorithm into one run (@p protein_ids, one entry) that lists @p in_spectra_files as primary MS run

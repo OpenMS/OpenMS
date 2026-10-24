@@ -727,7 +727,7 @@ class ProSE :
     /// can be compared with a reference, as TOPPBase fixes the time of the data processing in test mode)
     static std::vector<ArrowIOHelpers::ParquetColumn> runExtraColumns_(const ProSEAlgorithm::MultiFileSearchResult& mfres,
                                                                        const StringList& in_list, const std::vector<Int64>& psm_rows,
-                                                                       bool psm_fdr, bool rescore, bool test_mode)
+                                                                       bool rescore, bool test_mode)
     {
       using Column = ArrowIOHelpers::ParquetColumn;
       auto column = [](const std::string& name, Column::Type type) { Column c; c.name = name; c.type = type; return c; };
@@ -766,7 +766,7 @@ class ProSE :
         // whether FDR:PSM filtered the PSMs: null without FDR:PSM (or a failed search); false if it was skipped (a
         // search without decoys), so that a viewer does not take the PSMs for filtered ones
         psm_fdr_applied.int64_values.push_back(pf && pf->stats.fdr_applied ? 1 : 0);
-        psm_fdr_applied.null_rows.push_back(!psm_fdr || !searched || pf->exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK);
+        psm_fdr_applied.null_rows.push_back(!(mfres.shared.psm_fdr_threshold > 0.0) || !searched || pf->exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK);
         // the rescoring outcome: null without rescoring ('Search:rescore' off)
         applied.int64_values.push_back(pf && pf->percolator.applied ? 1 : 0);
         applied.null_rows.push_back(!rescore);
@@ -1646,29 +1646,27 @@ class ProSE :
           // (If Percolator rescored only some inputs, mergeFileResults() pools them on ProSE's score and warns.)
           ProSEAlgorithm::MergedResult merged = sse.mergeFileResults(mfres, in_list, /*remove_decoys=*/ !keep_decoys);
           protein_fdr_applied = merged.protein_fdr_applied;
+          if (getFlag_("test") && !merged.protein_ids.empty())
           {
-            if (getFlag_("test") && !merged.protein_ids.empty())
-            {
-              StringList basenames;
-              for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
-              merged.protein_ids[0].setPrimaryMSRunPath(basenames);
-            }
+            StringList basenames;
+            for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
+            merged.protein_ids[0].setPrimaryMSRunPath(basenames);
+          }
 
-            FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
-            if (pooled_pg && !out_qpx_dir.empty())
-            {
-              pooled_pg_table = ProteinGroupArrowExport::exportToArrow(merged.protein_ids, merged.peptide_ids);
-            }
+          FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
+          if (pooled_pg && !out_qpx_dir.empty())
+          {
+            pooled_pg_table = ProteinGroupArrowExport::exportToArrow(merged.protein_ids, merged.peptide_ids);
+          }
 
-            // The pooled proteins and protein groups next to the per-file ones: the per-file runs have no protein
-            // inference across files, so these are the only proteins with the protein FDR of a multi-file run.
-            if (!out_parquet_dir.empty())
-            {
-              merged_ok = ProteinIdentificationArrowIO::exportProteinsToParquet(
-                            merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".proteins.parquet") && merged_ok;
-              merged_ok = ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
-                            merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".pg.parquet") && merged_ok;
-            }
+          // The pooled proteins and protein groups next to the per-file ones: the per-file runs have no protein
+          // inference across files, so these are the only proteins with the protein FDR of a multi-file run.
+          if (!out_parquet_dir.empty())
+          {
+            merged_ok = ProteinIdentificationArrowIO::exportProteinsToParquet(
+                          merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".proteins.parquet") && merged_ok;
+            merged_ok = ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
+                          merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".pg.parquet") && merged_ok;
           }
         }
         catch (const Exception::BaseException& e)
@@ -1713,7 +1711,7 @@ class ProSE :
         }
         // the run, sample and provenance views: the inputs and the steps of the run
         auto run_view = QPXDatasetExport::runView(runs_(mfres.shared, in_list));
-        if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, user_psm_fdr > 0.0, rescore, test_mode_)); }
+        if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, rescore, test_mode_)); }
         std::vector<QPXDatasetExport::Sample> samples(in_list.size());
         for (Size i = 0; i < in_list.size(); ++i) { samples[i].accession = File::stemName(in_list[i]); }
         const std::map<std::string, QPXDatasetExport::View> views = {
