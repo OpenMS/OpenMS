@@ -26,6 +26,7 @@
 #include <tuple>
 #include <type_traits>
 #include <regex>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -934,6 +935,10 @@ namespace OpenMS
     {
       try
       {
+        if (n_features > 0 && n_rows > input.feature_matrix.max_size() / n_features)
+        {
+          throw std::length_error("PercolatorInfile::buildFeatureMatrix: too many feature values");
+        }
         input.feature_matrix.resize(n_rows * n_features);
         is_decoy.resize(n_rows);
         input.scan_numbers.resize(n_rows);
@@ -960,7 +965,7 @@ namespace OpenMS
 #else
     const size_t n_buffers = 1;
 #endif
-    const size_t pin_width = PIN_CHARGE + static_cast<size_t>(std::max(0, max_charge - min_charge + 1));
+    const size_t pin_width = column_names.size();
     std::vector<double> pin_buffer(n_buffers * pin_width), scratch_buffer(n_buffers * n_features);
     const std::string no_spec_id;
 #pragma omp parallel for schedule(dynamic, 64)
@@ -1155,8 +1160,8 @@ namespace OpenMS
     RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
     // A hit whose PIN columns cannot be computed (an invalid value, e.g. a CalcMass that is not a number) and the hits
-    // after it are left as they are: buildFeatureMatrix() computes the same numbers, fails the same way and reports
-    // the error in its order.
+    // after it are left as they are: buildFeatureMatrix() computes the same numbers and reports such an error (in
+    // rescorePSMs, it runs first, so none occurs here).
     // Any other error (e.g. an allocation failure, also in the string columns) is raised, the first by spectrum.
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 64)

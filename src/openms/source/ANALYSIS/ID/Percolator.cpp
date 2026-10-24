@@ -1524,13 +1524,15 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       "No PSMs to rescore.");
   }
 
-  // A hit that carries a meta value under the name of a PIN column gets its PIN value, as stamping did.
-  PercolatorInfile::refreshPinMetaValues(peptide_ids, enzyme, min_charge, max_charge);
-
   // Training then uses the feature vectors the executable would read from the .pin file, row for row.
   RescoreInput ri;
   PSMRowLocations hit_locs;
   buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs);
+
+  // A hit that carries a meta value under the name of a PIN column gets its PIN value, as stamping did (before the
+  // training, so also if it fails). After the matrix: its computation succeeded for every hit, the matrix's errors
+  // are raised in order first.
+  PercolatorInfile::refreshPinMetaValues(peptide_ids, enzyme, min_charge, max_charge);
   OPENMS_LOG_INFO << "Rescoring " << ri.rowCount() << " PSMs in-process with "
                   << ri.featureCount() << " features." << std::endl;
 
@@ -1540,7 +1542,16 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   // When the PIN features were stamped, the PIN columns that a stamped hit (evidence, target/decoy type) did not have
   // were removed after the write-back below, also the original score that it stores under the old score type if that is
   // the name of a PIN column (e.g. "score"). Kept that way: these hits lose that meta value again.
-  std::vector<std::tuple<size_t, size_t, std::string>> remove_old_score; // (identification, hit, old score type)
+  // (identification, hit, old score type), removed also if the write-back throws, as by the cleanup of the stamped values
+  struct RemoveOldScore
+  {
+    PeptideIdentificationList& ids;
+    std::vector<std::tuple<size_t, size_t, std::string>> hits;
+    ~RemoveOldScore()
+    {
+      for (const auto& [i, j, type] : hits) ids[i].getHits()[j].removeMetaValue(type); // (allocates nothing)
+    }
+  } remove_old_score{peptide_ids, {}};
   {
     const StringList pin_columns = PercolatorInfile::getPinColumnNames(min_charge, max_charge);
     const std::string* last_type = nullptr;
@@ -1560,7 +1571,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
         if (!hits[j].getPeptideEvidences().empty() && hits[j].getTargetDecoyType() != PeptideHit::TargetDecoyType::UNKNOWN
             && !hits[j].metaValueExists(type))
         {
-          remove_old_score.emplace_back(i, j, type);
+          remove_old_score.hits.emplace_back(i, j, type);
         }
       }
     }
@@ -1706,10 +1717,6 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       }
     }
     rethrowFirstError(errors);
-  }
-  for (const auto& [i, j, type] : remove_old_score)
-  {
-    peptide_ids[i].getHits()[j].removeMetaValue(type);
   }
   return ro.scores.size();
 }
