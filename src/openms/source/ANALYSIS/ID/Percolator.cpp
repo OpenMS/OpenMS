@@ -293,10 +293,13 @@ static void fillPSMFromRow(
   size_t row_index,
   std::string& synth_id)
 {
-  // Synthesize an opaque row ID as the "peptide" string — never parsed.
-  char buf[32];
-  std::snprintf(buf, sizeof(buf), "row_%08zu", row_index);
-  synth_id = buf;
+  // Synthesize an opaque row ID as the "peptide" string: "row_%08zu" (written without snprintf, which cost more than
+  // the rest of the row); the scores are mapped back to the rows by it.
+  char digits[24];
+  size_t n_digits = 0;
+  for (size_t v = row_index; v != 0 || n_digits < 8; v /= 10) digits[n_digits++] = static_cast<char>('0' + v % 10);
+  synth_id.assign("row_");
+  while (n_digits > 0) synth_id += digits[--n_digits];
   psm.setId(synth_id);
   psm.setPeptide(synth_id);
   psm.scan        = static_cast<unsigned int>(keys.scan);
