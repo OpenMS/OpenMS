@@ -177,6 +177,33 @@ START_SECTION([EXTRA] reproducibility with fixed seed is bit-identical)
 }
 END_SECTION
 
+START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the previous iteration)
+{
+  // With warm_start, TRON (the default solver) starts every (Cpos, Cneg) pair from the weights it learned in the previous
+  // iteration instead of 0. At a loose tolerance the solves stop early, so a warm start must change the result (if the
+  // start weights were discarded, warm and cold runs would be identical); repeated warm runs are reproducible, and the
+  // default (no warm start) is the cold training.
+  const RescoreInput input = makeModeratelySeparableInput_(500, 11);
+  auto run = [&](bool warm, double eps)
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("num_threads", 3);
+    par.setValue("tron_epsilon", eps);
+    par.setValue("warm_start", warm ? "true" : "false");
+    p.setParameters(par);
+    return p.rescore(input);
+  };
+  const RescoreOutput cold = run(false, 0.3), warm = run(true, 0.3);
+  TEST_EQUAL(cold.scores == warm.scores, false)
+  TEST_EQUAL(run(true, 0.3).scores == warm.scores, true)
+  TEST_EQUAL(medianTargetBeatsDecoy_(warm, input), true)
+  Percolator p;
+  TEST_EQUAL(p.getDefaults().getValue("warm_start").toString(), "false")
+}
+END_SECTION
+
 START_SECTION([EXTRA] num_threads does not change the results)
 {
   // num_threads limits the threads of the cross-validation loops; each fold and

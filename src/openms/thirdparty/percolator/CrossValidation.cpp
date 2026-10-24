@@ -772,18 +772,20 @@ bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
 
 // OpenMS: the solver of the SVMs (setSolver). Newton (newton_svm.h) and LDA start from the
 // weights in w; LDA needs two rows of each class, Newton at most kNewtonMaxColumns columns:
-// otherwise, and if Newton fails or does not converge, TRON solves the SVM (from 0, as with
-// kSolverTron). Returns whether LDA gave the weights (their ranking does not depend on the
-// costs).
+// otherwise, and if Newton fails or does not converge, TRON solves the SVM from 0. With
+// kSolverTron, TRON starts from w as given (0, or the pair's previous weights with warmStart_).
+// Returns whether LDA gave the weights (their ranking does not depend on the costs).
 bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double cpos,
                                double cneg, vector_double& w, vector_double& outputs) {
   if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.vec)) return true;
-  if (solver_ != kSolverTron &&
-      newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
-    return false;
-  }
-  for (int ix = 0; ix < w.d; ix++) {
-    w.vec[ix] = 0;
+  if (solver_ != kSolverTron) {
+    if (newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
+      return false;
+    }
+    // the fallback of Newton and LDA: TRON from 0
+    for (int ix = 0; ix < w.d; ix++) {
+      w.vec[ix] = 0;
+    }
   }
   L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
   return false;

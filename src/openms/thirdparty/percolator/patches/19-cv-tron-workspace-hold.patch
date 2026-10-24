@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 3f2b5904ad..bd8f0bf727 100644
+index 632fdf7a6c..9ed52b0240 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -263,6 +263,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {

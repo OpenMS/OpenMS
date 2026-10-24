@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 609c9f4add..3f2b5904ad 100644
+index 609c9f4add..632fdf7a6c 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -17,11 +17,11 @@
@@ -118,7 +118,7 @@ index 609c9f4add..3f2b5904ad 100644
                                      options& pOptions,
                                      AlgIn* svmInput) {
    vector_double pWeights;
-@@ -712,21 +748,43 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+@@ -712,21 +748,45 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
    if (VERB > 3)
      cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
           << endl;
@@ -148,25 +148,27 @@ index 609c9f4add..3f2b5904ad 100644
 +
 +// OpenMS: the solver of the SVMs (setSolver). Newton (newton_svm.h) and LDA start from the
 +// weights in w; LDA needs two rows of each class, Newton at most kNewtonMaxColumns columns:
-+// otherwise, and if Newton fails or does not converge, TRON solves the SVM (from 0, as with
-+// kSolverTron). Returns whether LDA gave the weights (their ranking does not depend on the
-+// costs).
++// otherwise, and if Newton fails or does not converge, TRON solves the SVM from 0. With
++// kSolverTron, TRON starts from w as given (0, or the pair's previous weights with warmStart_).
++// Returns whether LDA gave the weights (their ranking does not depend on the costs).
 +bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double cpos,
 +                               double cneg, vector_double& w, vector_double& outputs) {
 +  if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.vec)) return true;
-+  if (solver_ != kSolverTron &&
-+      newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
-+    return false;
-+  }
-+  for (int ix = 0; ix < w.d; ix++) {
-+    w.vec[ix] = 0;
++  if (solver_ != kSolverTron) {
++    if (newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
++      return false;
++    }
++    // the fallback of Newton and LDA: TRON from 0
++    for (int ix = 0; ix < w.d; ix++) {
++      w.vec[ix] = 0;
++    }
 +  }
 +  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
 +  return false;
  }
  
  /**
-@@ -829,8 +887,8 @@ int CrossValidation::mergeCpCnPairs(
+@@ -829,8 +889,8 @@ int CrossValidation::mergeCpCnPairs(
            Outputs.vec[ix] = 0;
          }
          // Call SVM algorithm (see ssl.cpp)

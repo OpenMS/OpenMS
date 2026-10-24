@@ -371,7 +371,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   first Newton step is the least squares fit on all rows), `kSolverLda` runs `ldaSvm`;
   if they cannot (LDA: fewer than two rows of a class or a fitted scale that is not
   positive; Newton: too many columns, a failed factorization, a non-finite gradient norm
-  or no convergence within `mfnitermax` steps), Newton or TRON solves the SVM. In
+  or no convergence within `mfnitermax` steps), Newton or TRON (from 0) solves the SVM. With
+  `kSolverTron`, TRON starts from the weights `trainCpCnPair` gives it (0, or the pair's previous weights with patch
+  15's warm start). In
   `trainFoldChains`, Newton stops at a tolerance of 1e-4 in the steps before the last one
   (which solves to `EPSILON` as TRON); with LDA the first pair of a fold is trained first
   and, if LDA gave its weights (whose ranking, and so the count, does not depend on the
