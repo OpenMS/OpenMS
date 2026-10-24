@@ -1454,83 +1454,79 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
   }
 }
 
-void Percolator::buildPSMRescoreInput(PeptideIdentificationList& peptide_ids,
-                                      const StringList& feature_set,
-                                      const std::string& enzyme,
-                                      int min_charge,
-                                      int max_charge,
-                                      RescoreInput& ri,
-                                      PSMRowLocations& hit_locs)
+namespace
 {
-  ri = RescoreInput();
-  hit_locs.clear();
-
-  // Training then uses the feature vectors the executable would read from the .pin file, row for row.
-  PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
-  const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
-    peptide_ids, enzyme, min_charge, max_charge, added_pin_meta_values);
-  OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
-                  << skipped.size() << " PSMs skipped (no evidence or unknown TD)." << std::endl;
-
-  // Removes only the stamped meta values that did not exist before, also when rescoring throws.
-  struct PinMetaValueCleanup
+// Removes only the stamped meta values that did not exist before, also when rescoring throws.
+struct PinMetaValueCleanup
+{
+  PeptideIdentificationList& ids;
+  PercolatorInfile::PinFeatureMetaValueMap& added;
+  ~PinMetaValueCleanup()
   {
-    PeptideIdentificationList& ids;
-    PercolatorInfile::PinFeatureMetaValueMap& added;
-    ~PinMetaValueCleanup()
+    // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the
+    // registry, which the threads would contend for); the stamped names are registered. The key sets are
+    // released in the loop as well. A destructor must not throw: if the parallel removal cannot allocate,
+    // the remaining values are removed serially by name, which allocates nothing.
+    bool failed = false;
+    try
     {
-      // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the
-      // registry, which the threads would contend for); the stamped names are registered. The key sets are
-      // released in the loop as well. A destructor must not throw: if the parallel removal cannot allocate,
-      // the remaining values are removed serially by name, which allocates nothing.
-      bool failed = false;
-      try
-      {
-        std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
-        entries.reserve(added.size());
-        for (auto& entry : added) entries.push_back(&entry);
+      std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
+      entries.reserve(added.size());
+      for (auto& entry : added) entries.push_back(&entry);
 #pragma omp parallel reduction(||: failed)
+      {
+        try
         {
-          try
-          {
-            std::unordered_map<std::string, UInt> name_index;
+          std::unordered_map<std::string, UInt> name_index;
 #pragma omp for schedule(dynamic, 256)
-            for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
-            {
-              auto& [hit_location, keys] = *entries[e];
-              PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-              for (const std::string& key : keys)
-              {
-                auto it = name_index.find(key);
-                if (it == name_index.end())
-                {
-                  it = name_index.emplace(key, MetaInfoInterface::metaRegistry().getIndex(key)).first;
-                }
-                hit.removeMetaValue(it->second);
-              }
-              keys.clear();
-            }
-          }
-          catch (...)
+          for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
           {
-            failed = true;
+            auto& [hit_location, keys] = *entries[e];
+            PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
+            for (const std::string& key : keys)
+            {
+              auto it = name_index.find(key);
+              if (it == name_index.end())
+              {
+                it = name_index.emplace(key, MetaInfoInterface::metaRegistry().getIndex(key)).first;
+              }
+              hit.removeMetaValue(it->second);
+            }
+            keys.clear();
           }
         }
-      }
-      catch (...)
-      {
-        failed = true;
-      }
-      if (failed)
-      {
-        for (const auto& [hit_location, keys] : added)
+        catch (...)
         {
-          PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-          for (const std::string& key : keys) hit.removeMetaValue(key);
+          failed = true;
         }
       }
     }
-  } cleanup{peptide_ids, added_pin_meta_values};
+    catch (...)
+    {
+      failed = true;
+    }
+    if (failed)
+    {
+      for (const auto& [hit_location, keys] : added)
+      {
+        PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
+        for (const std::string& key : keys) hit.removeMetaValue(key);
+      }
+    }
+  }
+};
+}
+
+// The feature rows of the hits on which stampPinFeaturesOnHits() stamped the PIN features (rescorePSMs() step 2).
+template <typename Skipped>
+static void buildRowsOfStampedHits(PeptideIdentificationList& peptide_ids,
+                                   const StringList& feature_set,
+                                   const Skipped& skipped,
+                                   RescoreInput& ri,
+                                   Percolator::PSMRowLocations& hit_locs)
+{
+  ri = RescoreInput();
+  hit_locs.clear();
 
   // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass is
   // used by Percolator for the spectrum key (it goes into RescoreInput.exp_masses), not for training.
@@ -1649,6 +1645,25 @@ void Percolator::buildPSMRescoreInput(PeptideIdentificationList& peptide_ids,
                   << numeric_features.size() << " features." << std::endl;
 }
 
+void Percolator::buildPSMRescoreInput(PeptideIdentificationList& peptide_ids,
+                                      const StringList& feature_set,
+                                      const std::string& enzyme,
+                                      int min_charge,
+                                      int max_charge,
+                                      RescoreInput& ri,
+                                      PSMRowLocations& hit_locs)
+{
+  // Training then uses the feature vectors the executable would read from the .pin file, row for row.
+  PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
+  const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
+    peptide_ids, enzyme, min_charge, max_charge, added_pin_meta_values);
+  OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
+                  << skipped.size() << " PSMs skipped (no evidence or unknown TD)." << std::endl;
+
+  PinMetaValueCleanup cleanup{peptide_ids, added_pin_meta_values};
+  buildRowsOfStampedHits(peptide_ids, feature_set, skipped, ri, hit_locs);
+}
+
 Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              const StringList& feature_set,
                              const std::string& enzyme,
@@ -1679,10 +1694,17 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       "No PSMs to rescore.");
   }
 
-  // The feature rows (the PIN meta values stamped for them are removed again)
+  // Training then uses the feature vectors the executable would read from the .pin file, row for row.
+  PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
+  const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
+    peptide_ids, enzyme, min_charge, max_charge, added_pin_meta_values);
+  OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
+                  << skipped.size() << " PSMs skipped (no evidence or unknown TD)." << std::endl;
+
+  PinMetaValueCleanup cleanup{peptide_ids, added_pin_meta_values};
   RescoreInput ri;
   PSMRowLocations hit_locs;
-  buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs);
+  buildRowsOfStampedHits(peptide_ids, feature_set, skipped, ri, hit_locs);
 
   // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
   const RescoreOutput ro = scorer ? scorer(ri, hit_locs) : rescore(ri);

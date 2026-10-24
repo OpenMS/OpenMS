@@ -395,21 +395,23 @@ namespace OpenMS
     defaults_.setValue("rescore_reuse:mode", "per_file",
                        "Which PSMs train the Percolator model of a run ('rescore'). 'per_file': the run itself, with Percolator's "
                        "three-fold cross-validation. The other modes cross-fit: the spectra are split into two halves at random "
-                       "(by Percolator's seed), one model is trained per half on at most 'rescore_reuse:max_train' PSMs, and every PSM is "
-                       "scored by the model of the other half, so that no PSM is scored by a model that was trained on it. 'joint' (a "
+                       "(by Percolator's seed), one model is trained per half on about 'rescore_reuse:max_train' PSMs, and every PSM is "
+                       "scored by the model of the other half, so that no PSM is scored by a model that was trained on it (5 % of the "
+                       "spectra of each half are not trained on: their decoys put the scores of the other half's model on one scale). 'joint' (a "
                        "multi-file search): the training PSMs are drawn from all files, the same number from each, and the files are "
                        "rescored once all are searched (mokapot's joint model). 'static' (a multi-file search): they are drawn from the first "
                        "'rescore_reuse:static_files' files, and every later file is rescored with these models after its search, unless "
-                       "the features of its decoy PSMs differ from those of the training decoys by more than 'rescore_reuse:max_shift': "
+                       "the features of its PSMs differ from those of the training PSMs by more than 'rescore_reuse:max_shift': "
                        "then it is rescored as with 'per_file'. 'own': every file trains its two models on its own PSMs. In every mode the "
-                       "q-values and PEPs of a file come from its own target-decoy competition, best PSM per spectrum. 'joint' and "
+                       "q-values and PEPs of a file come from its own target-decoy competition (Percolator's, as with 'per_file'). 'joint' and "
                        "'static' need an unchunked closed search of several files and keep all files' PSMs in memory until they are "
                        "rescored; otherwise 'per_file' applies.",
                        {"advanced"});
     defaults_.setValidStrings("rescore_reuse:mode", {"per_file", "joint", "static", "own"});
     defaults_.setValue("rescore_reuse:max_train", 250000,
-                       "Training PSMs per model of 'rescore_reuse:mode' (0: all PSMs of the half). The spectra are drawn at random, all "
-                       "PSMs of a drawn spectrum together, and the files share the number equally (a file with fewer PSMs gives all).",
+                       "Training PSMs per model of 'rescore_reuse:mode' (0: all PSMs of the half but the calibration spectra). The spectra are "
+                       "drawn at random, all PSMs of a drawn spectrum together, so the number is met on average; the files share it "
+                       "equally (a file with fewer PSMs gives all).",
                        {"advanced"});
     defaults_.setMinInt("rescore_reuse:max_train", 0);
     defaults_.setValue("rescore_reuse:static_files", 1, "With 'rescore_reuse:mode' static: the number of (first) input files that train the models.",
@@ -417,8 +419,8 @@ namespace OpenMS
     defaults_.setMinInt("rescore_reuse:static_files", 1);
     defaults_.setValue("rescore_reuse:max_shift", 0.5,
                        "With 'rescore_reuse:mode' static: the largest domain shift for which a file is rescored with the static models. "
-                       "The shift is max |2 AUC - 1| over the features the models use, AUC comparing the file's decoy PSMs with the "
-                       "training decoys (0: same distribution, 1: separated).",
+                       "The shift is max |2 AUC - 1| over the features the models use, AUC comparing the file's PSMs with the "
+                       "training PSMs, targets and decoys alike (0: same distribution, 1: separated).",
                        {"advanced"});
     defaults_.setMinFloat("rescore_reuse:max_shift", 0.0);
     defaults_.setMaxFloat("rescore_reuse:max_shift", 1.0);
@@ -4210,19 +4212,21 @@ namespace OpenMS
   // Proteome Res 2021; training subsampled over runs and scores relative to the decoys: PyProphet, Rosenberger et al.,
   // Nat Methods 2017).
   //
-  // How the FDR stays valid: (1) No PSM is scored by a model that was trained on it. The spectra are split into two
-  // halves by a seeded hash of (file index, spectrum index); one model is trained per half, and a PSM is scored by the
-  // model of the other half. All PSMs of a spectrum, target and decoy, are in the same half, so the target-decoy
-  // competition of a spectrum compares scores of the same model. A file that does not train ('static') is seen by
+  // How the FDR stays valid: (1) No PSM is scored by a model that was trained on it, and no PSM's label enters the
+  // transform of its own score. The spectra are split into two halves by a seeded hash of (file index, spectrum
+  // index); one model is trained per half, and a PSM is scored by the model of the other half. All PSMs of a spectrum,
+  // target and decoy, are in the same half, so Percolator's target-decoy competition (spectrum and experimental mass,
+  // as without rescore_reuse) compares scores of the same model. A file that does not train ('static') is seen by
   // neither model. As in Percolator's cross-validation, the model that scores a PSM was trained on other spectra of
-  // the same file (with 'joint' and 'own'), the standard cross-validation design. (2) The training spectra are drawn by
-  // the hash, independently of labels and scores. (3) The two models' scores are put on one scale, per model: relative
-  // to the mean and standard deviation of its scores of the other half's training decoys, which it did not train on
-  // (a monotone transform per model, as Percolator normalises the scores of each fold). (4) q-values and PEPs are
-  // estimated per file by Percolator::score() on the file's own PSMs (best PSM per spectrum, target-decoy competition);
-  // they are not pooled across files. (5) The domain-shift check of 'static' compares the feature distributions of a
-  // file's decoys with those of the training decoys (an AUC over all decoys, not their ranks against the targets) and
-  // only chooses between two valid procedures (static models or Percolator trained on the file).
+  // the same file (with 'joint' and 'own'): a PSM's label enters only models that score other PSMs. (2) The training
+  // spectra are drawn by the hash, independently of labels and scores. (3) The two models' scores are put on one
+  // scale, per model: relative to the mean and standard deviation of its scores of calibration decoys, decoys of its
+  // own half that it was not trained on (5 % of the spectra of each half are kept out of the training for this);
+  // these PSMs are scored by the other model. (4) q-values and PEPs are estimated per file by Percolator::score() on
+  // the file's own PSMs; they are not pooled across files. (5) The domain-shift check of 'static' compares the feature
+  // distributions of all PSMs of a file with those of the training PSMs, without their target/decoy labels, so the
+  // choice between the static models and Percolator trained on the file does not depend on the labels it estimates
+  // the FDR from.
   // =====================================================================
   namespace
   {
@@ -4307,8 +4311,12 @@ namespace OpenMS
       return feature_set;
     }
 
-    // Training decoys kept for the domain-shift check, and decoys of a file compared with them
-    constexpr Size REUSE_SHIFT_DECOYS = 20000;
+    // Training PSMs kept for the domain-shift check, and PSMs of a file compared with them
+    constexpr Size REUSE_SHIFT_PSMS = 20000;
+    // The spectra of a half whose uniform draw is at least this are calibration spectra: never trained on
+    constexpr double REUSE_CALIBRATION_FROM = 0.95;
+    // Calibration decoys used per model (every k-th)
+    constexpr Size REUSE_CALIBRATION_DECOYS = 200000;
   }
 
   struct ProSEAlgorithm::ReuseModel_
@@ -4319,12 +4327,12 @@ namespace OpenMS
     int min_charge = 0;                  ///< charge range of the charge features
     int max_charge = 0;
     std::array<PercolatorModel, 2> models; ///< models[h]: trained on half h
-    /// mean and standard deviation of models[h]'s scores of the other half's training decoys
+    /// mean and standard deviation of models[h]'s scores of the calibration decoys of half h
     std::array<double, 2> center{0.0, 0.0};
     std::array<double, 2> scale{1.0, 1.0};
     std::array<Size, 2> training_psms{0, 0};
     std::vector<Size> training_files;    ///< indices of the files that trained
-    std::vector<std::vector<double>> decoys; ///< training decoys (a sample), for the domain-shift check
+    std::vector<std::vector<double>> sample; ///< training PSMs (a sample, targets and decoys), for the domain-shift check
     std::vector<Size> used_features;     ///< features with a weight in a model, for the domain-shift check
     bool used_default_direction = false; ///< Percolator's sanity check replaced a learned model
 
@@ -4345,6 +4353,7 @@ namespace OpenMS
       std::string model;
       bool used_default_direction = false;
       double shift = -1.0;
+      std::string fallback; ///< why Percolator is to be trained on the run instead (then the scorer throws)
     };
     Percolator::PSMScorer scorer;
     int min_charge = 0;
@@ -4427,12 +4436,14 @@ namespace OpenMS
         for (const Size k : order)
         {
           const double quota = budget / static_cast<double>(left--);
-          if (psms[k][h] > quota) { fraction[k][h] = quota / psms[k][h]; }
-          budget -= std::min(psms[k][h], quota);
+          const double trainable = psms[k][h] * REUSE_CALIBRATION_FROM;
+          if (trainable > quota) { fraction[k][h] = quota / trainable; }
+          budget -= std::min(trainable, quota);
         }
       }
     }
     std::array<RescoreInput, 2> train;
+    std::array<std::vector<std::vector<double>>, 2> calibration; // calibration decoys of each half
     for (Size k = 0; k < n_runs; ++k)
     {
       const Size file = used[k]->file_index;
@@ -4449,7 +4460,13 @@ namespace OpenMS
       {
         const Size spectrum = rows[r].first;
         const int h = reuseHalf(seed, file, spectrum);
-        if (fraction[k][h] < 1.0 && reuseUniform(seed, file, spectrum) >= fraction[k][h]) continue;
+        const double u = reuseUniform(seed, file, spectrum);
+        if (u >= REUSE_CALIBRATION_FROM)
+        {
+          if (ri.is_decoy[r]) { calibration[h].push_back(std::move(ri.features[r])); }
+          continue;
+        }
+        if (u >= REUSE_CALIBRATION_FROM * fraction[k][h]) continue;
         RescoreInput& t = train[h];
         t.features.push_back(std::move(ri.features[r]));
         t.is_decoy.push_back(ri.is_decoy[r]);
@@ -4476,16 +4493,16 @@ namespace OpenMS
       model->models[h] = perc.train(train[h]);
       model->used_default_direction = model->used_default_direction || perc.usedDefaultDirection();
     }
-    // The scale of each model: its scores of the training decoys of the other half (which it did not train on).
+    // The scale of each model: its scores of the calibration decoys of its half (not trained on; scored by the other model).
     for (int h = 0; h < 2; ++h)
     {
-      const RescoreInput& other = train[1 - h];
+      const std::vector<std::vector<double>>& decoys = calibration[h];
+      const Size step = std::max<Size>(1, (decoys.size() + REUSE_CALIBRATION_DECOYS - 1) / REUSE_CALIBRATION_DECOYS);
       double sum = 0.0, sum2 = 0.0;
       Size n = 0;
-      for (Size r = 0; r < other.features.size(); ++r)
+      for (Size r = 0; r < decoys.size(); r += step)
       {
-        if (!other.is_decoy[r]) continue;
-        const double score = reuseRawScore(model->models[h].weights, other.features[r]);
+        const double score = reuseRawScore(model->models[h].weights, decoys[r]);
         sum += score;
         sum2 += score * score;
         ++n;
@@ -4498,20 +4515,19 @@ namespace OpenMS
         model->scale[h] = (sd > 0.0 && std::isfinite(sd)) ? sd : 1.0;
       }
     }
-    // The domain-shift check: features with a weight, and a sample of the training decoys (every k-th).
+    // The domain-shift check: features with a weight, and a sample of the training PSMs (every k-th, without labels).
     for (Size j = 0; j < model->features.size(); ++j)
     {
       if (model->models[0].weights[j] != 0.0 || model->models[1].weights[j] != 0.0) { model->used_features.push_back(j); }
     }
-    Size n_decoys = 0;
-    for (const RescoreInput& t : train) { n_decoys += static_cast<Size>(std::count(t.is_decoy.begin(), t.is_decoy.end(), true)); }
-    const Size step = std::max<Size>(1, (n_decoys + REUSE_SHIFT_DECOYS - 1) / REUSE_SHIFT_DECOYS);
+    const Size n_train = train[0].features.size() + train[1].features.size();
+    const Size step = std::max<Size>(1, (n_train + REUSE_SHIFT_PSMS - 1) / REUSE_SHIFT_PSMS);
     Size d = 0;
     for (RescoreInput& t : train)
     {
       for (Size r = 0; r < t.features.size(); ++r)
       {
-        if (t.is_decoy[r] && d++ % step == 0) { model->decoys.push_back(std::move(t.features[r])); }
+        if (d++ % step == 0) { model->sample.push_back(std::move(t.features[r])); }
       }
     }
     return model;
@@ -4541,14 +4557,13 @@ namespace OpenMS
     {
       Percolator perc;
       perc.setParameters(rescoringPercolatorParameters(perc.getDefaults(), threads));
-      // Percolator trained on the run, as without rescore_reuse
-      const auto trained_on_run = [&](const std::string& why)
+      // Percolator trained on the run, as without rescore_reuse: rescoreWithReuseModel_() rescores the run again without
+      // the models (with the run's own feature set)
+      const auto trained_on_run = [&](const std::string& why) -> RescoreOutput
       {
-        OPENMS_LOG_INFO << "[ProSE] rescore_reuse: Percolator is trained on the file: " << why << std::endl;
-        note->model = "trained on the file (" + why + ")";
-        RescoreOutput out = perc.rescore(ri);
-        note->used_default_direction = perc.usedDefaultDirection();
-        return out;
+        note->fallback = why;
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "rescore_reuse: Percolator is to be trained on the run (" + why + ")", "");
       };
       if (ri.feature_names != model.features)
       {
@@ -4557,26 +4572,24 @@ namespace OpenMS
       const Size n = ri.features.size();
       if (check_shift)
       {
-        std::vector<Size> decoys;
-        for (Size r = 0; r < n; ++r) { if (ri.is_decoy[r]) decoys.push_back(r); }
-        const Size step = std::max<Size>(1, (decoys.size() + REUSE_SHIFT_DECOYS - 1) / REUSE_SHIFT_DECOYS);
+        // all PSMs, without their labels (see above)
+        const Size step = std::max<Size>(1, (n + REUSE_SHIFT_PSMS - 1) / REUSE_SHIFT_PSMS);
         double shift = 0.0;
         std::string worst;
         for (const Size j : model.used_features)
         {
           std::vector<double> a, b;
-          for (Size k = 0; k < decoys.size(); k += step) { a.push_back(ri.features[decoys[k]][j]); }
-          for (const std::vector<double>& row : model.decoys) { b.push_back(row[j]); }
+          for (Size r = 0; r < n; r += step) { a.push_back(ri.features[r][j]); }
+          for (const std::vector<double>& row : model.sample) { b.push_back(row[j]); }
           const double s = std::fabs(2.0 * reuseAUC(std::move(a), std::move(b)) - 1.0);
           if (s > shift) { shift = s; worst = model.features[j]; }
         }
         note->shift = shift;
-        OPENMS_LOG_INFO << "[ProSE] rescore_reuse: domain shift of the decoys " << shift << " (largest in feature '" << worst
+        OPENMS_LOG_INFO << "[ProSE] rescore_reuse: domain shift of the PSMs " << shift << " (largest in feature '" << worst
                         << "'; limit " << max_shift << ")" << std::endl;
-        if (decoys.empty() || shift > max_shift)
+        if (shift > max_shift)
         {
-          return trained_on_run(decoys.empty() ? std::string("no decoy PSMs")
-                                : "domain shift " + StringUtils::toStr(shift) + " in feature '" + worst + "'");
+          return trained_on_run("domain shift " + StringUtils::toStr(shift) + " in feature '" + worst + "'");
         }
       }
       // The cross-fitted score of every row: the model of the other half, on its scale.
@@ -4619,7 +4632,26 @@ namespace OpenMS
       }
     };
     PercolatorRescoring outcome = rescoreWithPercolator_(protein_ids, peptide_ids, threads, dropped, &reuse);
-    outcome.model = note->model;
+    if (note->fallback.empty())
+    {
+      outcome.model = note->model;
+      return outcome;
+    }
+    // The run is rescored as without rescore_reuse (rescorePSMs() left the PSMs unchanged when the scorer threw).
+    OPENMS_LOG_INFO << "[ProSE] rescore_reuse: Percolator is trained on the file: " << note->fallback << std::endl;
+    outcome = rescoreWithPercolator_(protein_ids, peptide_ids, threads, dropped);
+    if (outcome.applied)
+    {
+      outcome.model = "trained on the file (" + note->fallback + ")";
+      for (ProteinIdentification& run : protein_ids)
+      {
+        ProteinIdentification::SearchParameters run_sp = run.getSearchParameters();
+        run_sp.setMetaValue("Percolator:rescore_reuse_mode", reuse.mode);
+        run_sp.setMetaValue("Percolator:rescore_reuse_model", outcome.model);
+        if (note->shift >= 0.0) { run_sp.setMetaValue("Percolator:rescore_reuse_shift", note->shift); }
+        run.setSearchParameters(run_sp);
+      }
+    }
     return outcome;
   }
 
@@ -4942,7 +4974,7 @@ namespace OpenMS
       const bool release_later = threads > 1;
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
-      if (reuse_model_ != nullptr)
+      if (reuse_model_ != nullptr && reuse_mode_ == "static")
       {
         // rescore_reuse static: a file after the training files
         rescoring = rescoreWithReuseModel_(protein_ids, peptide_ids, reuse_file_index_, *reuse_model_, true, threads,
@@ -6485,6 +6517,8 @@ namespace OpenMS
                                : std::min(reuse_static_files_, in_spectra_files.size());
       std::vector<Size> reuse_deferred;
       reuse_model_.reset();
+      // the state of this search is not left behind, whichever way it ends
+      const OnScopeExit reset_reuse([this]() { reuse_defer_ = false; reuse_model_.reset(); reuse_file_index_ = 0; });
 
       // While the first file is read: build the index, as search(file) does without c and z+1 ions
       // unless the spectra are read already or the file names an electron-based activation early on.
@@ -6605,9 +6639,6 @@ namespace OpenMS
         mfres.per_file.push_back(std::move(result));
       }
       finishDeferredRescoring_(mfres, reuse_deferred); // 'joint': all files (nothing without rescore_reuse)
-      reuse_defer_ = false;
-      reuse_model_.reset();
-      reuse_file_index_ = 0;
     }
 
     // Build the aggregate result by pooling per-file PSMs.
