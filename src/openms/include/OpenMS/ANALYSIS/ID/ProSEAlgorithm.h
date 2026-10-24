@@ -160,6 +160,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       int subset_max_train = 0;  ///< train on at most this many PSMs (drawn by spectrum, then all are scored; 0 = all)
       int iterations = 10;       ///< iterations of the cross-validation training
+      double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
+      bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
+      bool single_cneg = false;    ///< one Cneg candidate instead of three
     };
 
     /**

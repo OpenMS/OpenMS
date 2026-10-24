@@ -283,6 +283,12 @@ hand-editing sources and committing them, to keep sync self-healing.
   walked; otherwise (also for a threshold above 1) all are sorted as before.
   The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
   directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
+- `patches/15-cv-training-options.patch` — experimental options of the training, off by default
+  (`CrossValidation::setTrainingOptions`, set by the OpenMS wrapper's parameters `tron_epsilon`,
+  `warm_start`, `single_cneg`): TRON's stopping tolerance instead of `EPSILON`; each (Cpos, Cneg)
+  pair starts TRON from its weights of the previous iteration instead of 0; one Cneg candidate (3 x
+  the target/decoy ratio) instead of three. With the defaults the training is unchanged; otherwise
+  the results differ from Percolator's.
 
 ### Regenerating the patch
 

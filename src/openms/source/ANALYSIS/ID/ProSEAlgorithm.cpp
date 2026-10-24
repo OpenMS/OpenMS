@@ -403,6 +403,21 @@ namespace OpenMS
                        "Fewer are faster; the results differ.",
                        {"advanced"});
     defaults_.setMinInt("rescoring:iterations", 1);
+    defaults_.setValue("rescoring:tron_epsilon", 1e-7,
+                       "Stopping tolerance of the SVM solver (TRON) of Percolator's training (Percolator: 1e-7). Larger "
+                       "values (e.g. 1e-3) train much faster on large runs; the results differ.",
+                       {"advanced"});
+    defaults_.setMinFloat("rescoring:tron_epsilon", 0.0);
+    defaults_.setValue("rescoring:warm_start", "false",
+                       "Each SVM training of an iteration starts from the weights of the previous iteration instead of "
+                       "0 (faster; the results differ).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:warm_start", {"true", "false"});
+    defaults_.setValue("rescoring:single_cneg", "false",
+                       "Percolator trains with one Cneg (3 x the target/decoy ratio x Cpos) instead of selecting among "
+                       "three by cross-validation (faster; the results differ).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:single_cneg", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
 
     defaults_.setValue("FDR:PSM", 0.0,
@@ -724,6 +739,9 @@ namespace OpenMS
     rescore_ = param_.getValue("rescore").toString() == "true";
     percolator_training_.subset_max_train = static_cast<int>(param_.getValue("rescoring:subset_max_train"));
     percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
+    percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
+    percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
+    percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -4260,6 +4278,9 @@ namespace OpenMS
     pp.setValue("post_processing_tdc", "true");
     pp.setValue("subset_max_train", training.subset_max_train);  // 0 (the default): train on all PSMs
     pp.setValue("num_iterations", training.iterations);
+    pp.setValue("tron_epsilon", training.tron_epsilon);
+    pp.setValue("warm_start", training.warm_start ? "true" : "false");
+    pp.setValue("single_cneg", training.single_cneg ? "true" : "false");
     pp.setValue("pep_method", "nonparametric");  // as the percolator executable
     // cross-validation trains 9 models at a time (3 folds x 3 Cneg values) and sorts on more threads (up to 12); the
     // results do not depend on the threads

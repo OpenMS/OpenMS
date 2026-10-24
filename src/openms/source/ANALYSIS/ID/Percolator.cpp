@@ -175,6 +175,22 @@ Percolator::Percolator()
                      "this param.");
   defaults_.setMinInt("subset_max_train", 0);
 
+  defaults_.setValue("tron_epsilon", 1e-7,
+                     "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "
+                     "Larger values train faster; the results differ from Percolator's (1e-7).",
+                     {"advanced"});
+  defaults_.setMinFloat("tron_epsilon", 0.0);
+  defaults_.setValue("warm_start", "false",
+                     "Start each SVM training of a cross-validation iteration from the weights its (Cpos, Cneg) "
+                     "pair learned in the previous iteration instead of 0 (faster; the results differ).",
+                     {"advanced"});
+  defaults_.setValidStrings("warm_start", {"true", "false"});
+  defaults_.setValue("single_cneg", "false",
+                     "Without c_neg: only Cneg = 3 x the target/decoy ratio x Cpos instead of selecting among 1, 3 "
+                     "and 10 x by cross-validation (faster; the results differ).",
+                     {"advanced"});
+  defaults_.setValidStrings("single_cneg", {"true", "false"});
+
   defaults_.setValue("report_as_main_score", "none",
                      "Which Percolator output to stamp as the main PeptideHit score after rescoring. "
                      "'none' (default) leaves hit.getScore() and the PeptideIdentification score_type "
@@ -229,6 +245,9 @@ void Percolator::updateMembers_()
   impl_->post_processing_tdc = (param_.getValue("post_processing_tdc").toString() == "true");
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
+  impl_->tron_epsilon        = static_cast<double>(param_.getValue("tron_epsilon"));
+  impl_->warm_start          = (param_.getValue("warm_start").toString() == "true");
+  impl_->single_cneg         = (param_.getValue("single_cneg").toString() == "true");
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
@@ -585,6 +604,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
+  cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
 
   std::vector<double> avg_weights;
   try
@@ -891,6 +911,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
+  cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
 
   std::vector<double> avg_weights;
   try
