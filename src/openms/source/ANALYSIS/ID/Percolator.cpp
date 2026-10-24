@@ -34,7 +34,6 @@
 #include <map>
 #include <numeric>
 #include <queue>
-#include <random>
 #include <set>
 #include <sstream>
 #include <unordered_map>
@@ -1928,18 +1927,32 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
     }
   }
   rethrowFirstError(errors);
+  // the PSM-level competition unit is the spectrum: identifications of the same spectrum (file and spectrum reference)
+  // compete together; without a spectrum reference, each identification is its own spectrum
+  {
+    std::unordered_map<std::string, size_t> spectrum_of;
+    std::vector<size_t> unit(peptide_ids.size(), std::numeric_limits<size_t>::max());
+    for (size_t r = 0; r < n; ++r)
+    {
+      const size_t pid_i = in.spectrum[r];
+      if (unit[pid_i] == std::numeric_limits<size_t>::max())
+      {
+        const PeptideIdentification& pid = peptide_ids[pid_i];
+        const std::string& ref = pid.getSpectrumReference();
+        unit[pid_i] = ref.empty() ? pid_i
+                      : spectrum_of.try_emplace(PercolatorInfile::getFileIdentifier(pid) + '\x1f' + ref, pid_i).first->second;
+      }
+      in.spectrum[r] = unit[pid_i];
+    }
+  }
 
   PercolatorReset::Options opt;
-  if (impl_->reset_salt.empty())
-  {
-    std::random_device rd;
-    opt.salt = (static_cast<std::uint64_t>(rd()) << 32) ^ static_cast<std::uint64_t>(rd());
-  }
-  else
+  if (!impl_->reset_salt.empty()) // empty: PercolatorReset::run() draws a fresh salt (reported below)
   {
     try
     {
       size_t pos = 0;
+      if (impl_->reset_salt.find_first_not_of("0123456789") != std::string::npos) throw std::invalid_argument("not a number");
       opt.salt = std::stoull(impl_->reset_salt, &pos);
       if (pos != impl_->reset_salt.size()) throw std::invalid_argument("trailing characters");
     }
@@ -1959,9 +1972,9 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
 #else
   opt.threads = 1;
 #endif
-  OPENMS_LOG_INFO << "RESET: salt " << opt.salt << ", pairing " << opt.pairing << ", learner " << opt.learner
-                  << ", " << opt.iterations << " rounds." << std::endl;
   auto rr = std::make_shared<PercolatorReset::Output>(PercolatorReset::run(in, opt));
+  OPENMS_LOG_INFO << "RESET: salt " << rr->salt << (opt.salt.has_value() ? "" : " (drawn)") << ", pairing " << opt.pairing
+                  << ", learner " << opt.learner << ", " << opt.iterations << " rounds." << std::endl;
   OPENMS_LOG_INFO << "RESET: " << rr->target_stems << " target and " << rr->decoy_stems << " decoy stems considered ("
                   << rr->training_decoys << " training, " << rr->estimating_decoys << " estimating decoys); features: "
                   << ListUtils::concatenate(rr->used_features, ",") << std::endl;
@@ -1977,7 +1990,8 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
     if (!rr->audit.empty())
     {
       OPENMS_LOG_INFO << "RESET audit: " << rr->audit_decoys << " training decoys vs " << rr->audit_proxy
-                      << " pseudo-targets (null proxy), AUC standard error under symmetry " << auc_se << std::endl;
+                      << " pseudo-targets (null proxy); approximate AUC standard error under symmetry (no ties, the "
+                         "median cut ignored) " << auc_se << std::endl;
     }
     for (const PercolatorReset::AuditFeature& af : rr->audit)
     {
@@ -1989,7 +2003,8 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
       OPENMS_LOG_INFO << "RESET audit: multivariate (cross-fitted logistic regression) AUC " << rr->audit_multivariate_auc
                       << (rr->audit_flagged ? "  FLAGGED (> 0.55)" : "") << "; null proxy: " << rr->audit_proxy_ratio
                       << " pseudo-targets per training decoy below the training decoys' median search score (about 3 "
-                         "if all are incorrect; more = correct targets in the proxy, which bias the AUCs)" << std::endl;
+                         "if all are incorrect; more suggests correct targets in the proxy, which bias the AUCs, or "
+                         "asymmetry; diagnostic only)" << std::endl;
     }
   }
   for (const std::string& line : rr->rounds) OPENMS_LOG_INFO << "RESET " << line << std::endl;

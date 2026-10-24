@@ -22,6 +22,7 @@
 #include <exception>
 #include <map>
 #include <numeric>
+#include <limits>
 #include <random>
 #include <sstream>
 #include <unordered_map>
@@ -104,6 +105,17 @@ namespace
       double b3 = 0.0;
     };
     std::vector<Net> nets;
+
+    bool finite() const
+    {
+      auto ok = [](const std::vector<double>& v) { return std::all_of(v.begin(), v.end(), [](double x) { return std::isfinite(x); }); };
+      if (nets.empty()) return !w.empty() && ok(w);
+      for (const Net& n : nets)
+      {
+        if (!ok(n.w1) || !ok(n.b1) || !ok(n.w2) || !ok(n.b2) || !ok(n.w3) || !std::isfinite(n.b3)) return false;
+      }
+      return true;
+    }
 
     double score(const double* x) const
     {
@@ -426,7 +438,35 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown learner.", opt.learner);
   }
-  const std::uint64_t salt = opt.salt;
+  auto bad_option = [](const std::string& what, const std::string& value)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: invalid option " + what + ".", value);
+  };
+  if (!(opt.train_fdr > 0.0 && opt.train_fdr < 1.0)) bad_option("train_fdr (0 < train_fdr < 1)", StringUtils::toStr(opt.train_fdr));
+  if (opt.iterations < 1) bad_option("iterations (>= 1)", StringUtils::toStr(opt.iterations));
+  if (opt.c_values.empty()) bad_option("c_values (empty)", "");
+  for (double c : opt.c_values)
+  {
+    if (!(std::isfinite(c) && c > 0.0)) bad_option("c_values (finite, > 0)", StringUtils::toStr(c));
+  }
+  if (opt.learner == "mlp" && (opt.mlp_members < 1 || opt.mlp_hidden < 1 || opt.mlp_epochs < 1))
+  {
+    bad_option("mlp_members / mlp_hidden / mlp_epochs (>= 1)", StringUtils::toStr(opt.mlp_members));
+  }
+  if (n_rows >= static_cast<Size>(std::numeric_limits<int>::max()) || n_feat + 1 >= static_cast<Size>(std::numeric_limits<int>::max()))
+  {
+    bad_option("input size (rows and features must fit an int for the solver)", StringUtils::toStr(n_rows));
+  }
+  std::uint64_t salt;
+  if (opt.salt.has_value())
+  {
+    salt = *opt.salt;
+  }
+  else
+  {
+    std::random_device rd;
+    salt = (static_cast<std::uint64_t>(rd()) << 32) ^ static_cast<std::uint64_t>(rd());
+  }
   Output out;
   out.salt = salt;
   out.pairing = opt.pairing;
@@ -459,38 +499,34 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   for (const auto& [spec, row] : best_of_spectrum) spectrum_winners.push_back(row);
   std::sort(spectrum_winners.begin(), spectrum_winners.end());
 
-  // 2. Stem reduction: best winning PSM per (stem, label) by search engine score
-  std::unordered_map<std::string, Size> stem_index[2]; // [decoy] stem -> index into out.stems
+  // 2. Stem reduction: best winning PSM per stem (sequence) by search engine score. Label-blind (masking): the stem's
+  //    label is the label of that PSM; a sequence with target and decoy PSMs is one stem.
+  std::unordered_map<std::string, Size> stem_index; // stem -> index into out.stems
   for (Size row : spectrum_winners)
   {
-    const int d = in.is_decoy[row] ? 1 : 0;
-    auto [it, inserted] = stem_index[d].try_emplace(in.stems[row], out.stems.size());
+    auto [it, inserted] = stem_index.try_emplace(in.stems[row], out.stems.size());
     if (inserted)
     {
       Stem s;
       s.stem = in.stems[row];
       s.representative = row;
-      s.decoy = in.is_decoy[row];
-      s.search_score = in.search_scores[row];
       out.stems.push_back(std::move(s));
     }
     else if (better(row, out.stems[it->second].representative, in.search_scores))
     {
       out.stems[it->second].representative = row;
-      out.stems[it->second].search_score = in.search_scores[row];
     }
   }
-  // stems in a defined order independent of hash map iteration and (masking) of the labels: by sequence (the label
-  // only separates a target and a decoy stem of the same sequence)
+  for (Stem& st : out.stems)
   {
-    std::sort(out.stems.begin(), out.stems.end(), [](const Stem& a, const Stem& b)
-    {
-      if (a.stem != b.stem) return a.stem < b.stem;
-      return !a.decoy && b.decoy;
-    });
-    stem_index[0].clear();
-    stem_index[1].clear();
-    for (Size s = 0; s < out.stems.size(); ++s) stem_index[out.stems[s].decoy ? 1 : 0][out.stems[s].stem] = s;
+    st.decoy = in.is_decoy[st.representative];
+    st.search_score = in.search_scores[st.representative];
+  }
+  // stems in a defined order independent of hash map iteration: by sequence
+  {
+    std::sort(out.stems.begin(), out.stems.end(), [](const Stem& a, const Stem& b) { return a.stem < b.stem; });
+    stem_index.clear();
+    for (Size s = 0; s < out.stems.size(); ++s) stem_index[out.stems[s].stem] = s;
   }
   // roles: the coin of each decoy stem (all decoy stems, also those that are not considered)
   for (Stem& s : out.stems)
@@ -498,43 +534,28 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     s.role = !s.decoy ? Role::TARGET : (isTrainingDecoy(salt, s.stem) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
     s.considered = true;
   }
-  // optional stem-level competition of paired stems: protein reversal maps the target stem body (all but the
-  // C-terminal residue) to the reversed body of a decoy stem; targets and decoys with the same key are paired in
-  // sequence order, the better by search engine score is kept, unpaired stems are kept.
+  // optional stem-level competition of paired stems, by a fixed map of sequences (it does not depend on which stems
+  // were observed): the partner of a stem is its pseudo-reverse, reverse(all but the last residue) + last residue.
+  // For protein-reversal decoys with C-terminal cleavage this is the generated decoy whenever the preceding target
+  // peptide ends with the same residue; other stems have no observed partner and are kept. Of a target stem and its
+  // partner decoy stem, the better by search engine score is kept.
   if (opt.pairing == "reverse")
   {
-    std::map<std::string, std::pair<std::vector<Size>, std::vector<Size>>> groups;
-    for (Size s = 0; s < out.stems.size(); ++s)
+    for (Size t = 0; t < out.stems.size(); ++t)
     {
-      const std::string& seq = out.stems[s].stem;
-      std::string body = seq.size() > 1 ? seq.substr(0, seq.size() - 1) : seq;
-      if (out.stems[s].decoy)
-      {
-        std::reverse(body.begin(), body.end());
-        groups[body].second.push_back(s);
-      }
-      else
-      {
-        groups[body].first.push_back(s);
-      }
-    }
-    std::vector<double> stem_score(out.stems.size());
-    std::vector<std::uint64_t> stem_tie(out.stems.size());
-    for (Size s = 0; s < out.stems.size(); ++s)
-    {
-      stem_score[s] = out.stems[s].search_score;
-      stem_tie[s] = row_tie[out.stems[s].representative];
-    }
-    for (auto& [key, members] : groups)
-    {
-      // the vectors are in sequence order (stems are sorted)
-      const Size pairs = std::min(members.first.size(), members.second.size());
-      for (Size p = 0; p < pairs; ++p)
-      {
-        const Size t = members.first[p], d = members.second[p];
-        const bool target_wins = stem_score[t] != stem_score[d] ? stem_score[t] > stem_score[d] : stem_tie[t] < stem_tie[d];
-        out.stems[target_wins ? d : t].considered = false;
-      }
+      if (out.stems[t].decoy) continue;
+      const std::string& seq = out.stems[t].stem;
+      if (seq.size() < 2) continue;
+      std::string partner(seq.rbegin() + 1, seq.rend());
+      partner += seq.back();
+      if (partner == seq) continue;
+      const auto it = stem_index.find(partner);
+      if (it == stem_index.end() || !out.stems[it->second].decoy) continue;
+      const Size d = it->second;
+      const double st = out.stems[t].search_score, sd = out.stems[d].search_score;
+      const bool target_wins = st != sd ? st > sd
+                                        : row_tie[out.stems[t].representative] < row_tie[out.stems[d].representative];
+      out.stems[target_wins ? d : t].considered = false;
     }
   }
 
@@ -577,6 +598,11 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       s2 += dv * dv;
     }
     const double sigma = std::sqrt(s2 / static_cast<double>(m));
+    if (!std::isfinite(mu) || !std::isfinite(sigma))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "RESET: the values of feature '" + in.feature_names[j] + "' are too large to standardize.", StringUtils::toStr(mu));
+    }
     if (!(sigma > 1e-12 * std::max(1.0, std::fabs(mu)))) continue;
     mean[j] = mu;
     sd[j] = sigma;
@@ -746,10 +772,22 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       for (Size r = 0; r < po.size(); ++r) { train_rows.push_back(po[r]); train_y.push_back(1.0); train_fold.push_back(static_cast<int>(r % 3)); }
       for (Size r = 0; r < no.size(); ++r) { train_rows.push_back(no[r]); train_y.push_back(-1.0); train_fold.push_back(static_cast<int>(r % 3)); }
     }
+    if (pos.size() < 3 || neg.size() < 3)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "RESET: too few positive stems or training decoys for 3-fold cross-validation (at least 3 each).",
+        StringUtils::toStr(pos.size()) + " / " + StringUtils::toStr(neg.size()));
+    }
     auto fit = [&](const std::vector<Size>& rows, const std::vector<double>& y, double cp, double cn, std::uint64_t seed)
     {
-      if (opt.learner == "mlp") return trainMlp(X, rows, y, cp, cn, seed, opt.mlp_members, opt.mlp_hidden, opt.mlp_epochs);
-      return trainSvm(X, rows, y, cp, cn);
+      Model fm = opt.learner == "mlp" ? trainMlp(X, rows, y, cp, cn, seed, opt.mlp_members, opt.mlp_hidden, opt.mlp_epochs)
+                                      : trainSvm(X, rows, y, cp, cn);
+      if (!fm.finite())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "RESET: the learner returned non-finite parameters.", opt.learner);
+      }
+      return fm;
     };
     // cross-validation: per (fold, pair) the held-out scores
     const Size tasks = 3 * grid.size();
@@ -819,7 +857,15 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     }
     model = fit(train_rows, train_y, grid[best].first, grid[best].second,
                 keyedHash(salt, MLP, static_cast<std::uint64_t>(round * 100 + 99)));
-    for (Size k = 0; k < m; ++k) cur[k] = model.score(X.row(k));
+    for (Size k = 0; k < m; ++k)
+    {
+      cur[k] = model.score(X.row(k));
+      if (!std::isfinite(cur[k]))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: non-finite stem score.",
+                                      StringUtils::toStr(cur[k]));
+      }
+    }
     std::ostringstream os;
     os << "round " << (round + 1) << ": positives " << pos.size() << " (train FDR " << alpha << "), training decoys "
        << neg.size() << ", C+ " << grid[best].first << ", C- " << grid[best].second << ", held-out discoveries "
@@ -877,6 +923,11 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
         {
           standardize(in.features[static_cast<Size>(i)], x.data());
           out.scores[static_cast<Size>(i)] = model.score(x.data());
+          if (!std::isfinite(out.scores[static_cast<Size>(i)]))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: non-finite PSM score.",
+                                          StringUtils::toStr(out.scores[static_cast<Size>(i)]));
+          }
         }
         catch (...)
         {
@@ -891,9 +942,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   }
   for (Size i = 0; i < n_rows; ++i)
   {
-    const int d = in.is_decoy[i] ? 1 : 0;
-    auto it = stem_index[d].find(in.stems[i]);
-    if (it != stem_index[d].end())
+    auto it = stem_index.find(in.stems[i]);
+    if (it != stem_index.end())
     {
       const Stem& st = out.stems[it->second];
       out.roles[i] = st.role;

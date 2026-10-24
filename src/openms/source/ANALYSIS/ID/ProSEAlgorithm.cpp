@@ -411,6 +411,8 @@ namespace OpenMS
     defaults_.setValue("reset:learner", "svm",
                        "rescore_method 'reset': 'svm' = linear SVM; 'mlp' = small MLP ensemble (experimental).", {"advanced"});
     defaults_.setValidStrings("reset:learner", {"svm", "mlp"});
+    defaults_.setValue("reset:iterations", 5, "rescore_method 'reset': training rounds.", {"advanced"});
+    defaults_.setMinInt("reset:iterations", 1);
     defaults_.setValue("reset:audit", "false",
                        "rescore_method 'reset': feature-symmetry audit before training (log).", {"advanced"});
     defaults_.setValidStrings("reset:audit", {"true", "false"});
@@ -744,6 +746,12 @@ namespace OpenMS
       for (const std::string key : {"salt", "pairing", "learner", "audit", "stem_table"})
       {
         percolator_extra_.setValue("reset:" + key, param_.getValue("reset:" + key).toString());
+      }
+      percolator_extra_.setValue("reset:iterations", static_cast<int>(param_.getValue("reset:iterations")));
+      if (static_cast<double>(param_.getValue("FDR:PSM")) > 0.0)
+      {
+        OPENMS_LOG_WARN << "[ProSE] rescore_method 'reset' with FDR:PSM > 0: the PSM q-values that FDR:PSM filters on are "
+                           "heuristic under RESET (FDR is controlled at the peptide level: RESET:peptide_q_value)." << endl;
       }
     }
     fdr_psm_ = param_.getValue("FDR:PSM");

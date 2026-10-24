@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -25,9 +26,12 @@ namespace OpenMS
     arXiv:2411.15771), as Percolator 3.07+ ('--reset-algorithm') and the authors' Python implementation do:
 
     1. PSM-level competition: per spectrum (Input::spectrum) the hit with the best search engine score.
-    2. Stem reduction: per stem (unmodified sequence; Input::stems) and label, the best of these PSMs by search engine
-       score; it carries that PSM's features. With Options::pairing "reverse", a target stem additionally competes
-       with its paired decoy stem (see there); otherwise every stem is kept ("PSM-only" protocol of the paper).
+    2. Stem reduction: per stem (unmodified sequence; Input::stems) the best of these PSMs by search engine score; it
+       carries that PSM's features and label (label-blind: a sequence with target and decoy PSMs is one stem). With
+       Options::pairing "reverse", a target stem additionally competes with its partner decoy stem, a fixed map of
+       sequences: partner(x) = reverse(x without its last residue) + last residue (the protein-reversal decoy with
+       C-terminal cleavage whenever the preceding residue matches; heuristic, unvalidated). Otherwise every stem is kept
+       ("PSM-only" protocol of the paper, the default).
     3. Coin: every decoy stem is a training decoy or an estimating decoy, by an independent Bernoulli(1/2) coin:
        bit 0 of a 64-bit hash of (salt, stem). Pseudo-targets = targets + estimating decoys.
     4. Up to Options::iterations rounds: positive set = pseudo-targets that pass Options::train_fdr against the
@@ -35,7 +39,8 @@ namespace OpenMS
        +1, then with the threshold relaxed by 0.005 steps); negative set = all training decoys; class weights
        (C+, C-) from Options::c_values by 3-fold cross-validation maximizing the held-out pseudo-target discoveries
        (same SeqStep+), then a linear L2-SVM (Percolator's TRON solver) on all of the round's training rows rescores
-       every stem. Only training-decoy labels enter (masking): estimating decoys are pseudo-targets throughout.
+       every stem. Only training-decoy labels enter (masking): estimating decoys are pseudo-targets throughout. The C
+       grid uses all 9 pairs (the design handoff; the authors' Python restricts it to C- >= C+).
     5. Final ranking: training decoys are dropped; targets and estimating decoys are ranked by the last model and
        q-values follow from FDP = 2 (D_est + 1) / max(T, 1) (SeqStep+ at c = 2/3), monotonized from the bottom.
 
@@ -67,11 +72,12 @@ namespace OpenMS
 
     struct Options
     {
-      std::uint64_t salt = 0;           ///< coin salt (record it; never pick the best of several salts)
+      /// coin salt (never pick the best of several salts); unset = a fresh random salt, recorded in Output::salt
+      std::optional<std::uint64_t> salt;
       int iterations = 5;               ///< training rounds
       double train_fdr = 0.01;          ///< FDR for the positive set and for the cross-validation counts
       std::vector<double> c_values = {0.1, 1.0, 10.0}; ///< grid for C+ and C- (all pairs)
-      std::string pairing = "none";     ///< "none" or "reverse" (see Options::pairing in the parameter docs)
+      std::string pairing = "none";     ///< "none" (PSM-only) or "reverse" (fixed pseudo-reverse partner, see above)
       std::string learner = "svm";      ///< "svm" (linear) or "mlp" (small MLP ensemble, experimental)
       bool audit = false;               ///< run the feature-symmetry audit
       std::vector<std::string> zero_features = {"enzInt"}; ///< features set to 0 (target-biased, as in the paper)

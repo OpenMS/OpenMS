@@ -46,7 +46,7 @@ namespace
   }
 
   // Simulated search: correct target PSMs (features shifted), incorrect targets and decoys (same null distribution).
-  // Decoys are the reversed bodies of target stems with the other C-terminal residue (protein-reversal-like), each
+  // Decoys are the reversed bodies of target stems with K or R as C-terminal residue (protein-reversal-like), each
   // spectrum has one hit; @p correct_truth receives per row whether it is a correct target.
   PercolatorReset::Input simulate(uint64_t seed, size_t correct, size_t incorrect, size_t decoys, std::vector<bool>& correct_truth,
                                   double shift = 4.5)
@@ -74,7 +74,8 @@ namespace
     {
       std::string body = bodies[i % bodies.size()];
       std::reverse(body.begin(), body.end());
-      add(body + "R", true, false);
+      add(body + (i % 2 == 0 ? "K" : "R"), true, false); // half pair with their target under pairing 'reverse'
+
     }
     return in;
   }
@@ -211,11 +212,12 @@ START_SECTION(static Output run(const Input& input, const Options& options))
                                                         // proxy holds some correct targets: not exactly 0.5)
   TEST_EQUAL(audited.scores == out.scores, true)          // the audit only reports
 
-  // pairing 'reverse': of each target stem and its reversed decoy exactly one is considered
+  // pairing 'reverse': of each target stem and its pseudo-reversed decoy (the 1500 decoys ending with K) exactly one is
+  // considered
   opt.audit = false;
   opt.pairing = "reverse";
   const PercolatorReset::Output paired = PercolatorReset::run(in, opt);
-  TEST_EQUAL(paired.target_stems + paired.decoy_stems, 3000)
+  TEST_EQUAL(paired.target_stems + paired.decoy_stems, 4500)
   TEST_EQUAL(paired.discoveries_1pct > 600, true)
 
   // the MLP learner runs and finds discoveries
@@ -248,6 +250,94 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     }
     STATUS("mean FDP at 5 %: " << fdp_sum / 20.0)
     TEST_EQUAL(fdp_sum / 20.0 < 0.075, true)
+  }
+
+  opt.learner = "svm";
+  opt.iterations = 5;
+  // review r1: a target and a decoy hit of the same sequence form ONE stem (label-blind stem construction); its label
+  // is the label of its best PSM
+  {
+    PercolatorReset::Input col = in;
+    col.stems[0] = "PEPTIDEK";                  // a target row
+    col.stems[in.features.size() - 1] = "PEPTIDEK"; // a decoy row
+    const PercolatorReset::Output r = PercolatorReset::run(col, opt);
+    Size n = 0;
+    for (const PercolatorReset::Stem& st : r.stems) n += st.stem == "PEPTIDEK" ? 1 : 0;
+    TEST_EQUAL(n, 1)
+  }
+
+  // review r1: pairing 'reverse' is a fixed map of sequences, partner(x) = reverse(x without its last residue) + last
+  // residue; it does not depend on which other stems were observed
+  {
+    PercolatorReset::Options po = opt;
+    po.pairing = "reverse";
+    auto addRow = [](PercolatorReset::Input& x, const std::string& stem, bool decoy, double score)
+    {
+      x.features.push_back({score, score, 0.0, decoy ? 0.0 : 1.0});
+      x.is_decoy.push_back(decoy);
+      x.search_scores.push_back(score);
+      x.spectrum.push_back(1000000 + x.spectrum.size());
+      x.stems.push_back(stem);
+    };
+    PercolatorReset::Input base;
+    std::vector<bool> tr;
+    base = simulate(11, 1500, 1500, 3000, tr);
+    // targets bK, bR; decoys reverse(b)K, reverse(b)R (b = WWMMHHY): the fixed partners are bK <-> rev(b)K, bR <-> rev(b)R
+    PercolatorReset::Input with_bk = base;
+    addRow(with_bk, "WWMMHHYK", false, 1.0);
+    addRow(with_bk, "WWMMHHYR", false, 2.0);
+    addRow(with_bk, "YHHMMWWK", true, 3.0);
+    addRow(with_bk, "YHHMMWWR", true, 1.5);
+    PercolatorReset::Input without_bk = base;
+    addRow(without_bk, "WWMMHHYR", false, 2.0);
+    addRow(without_bk, "YHHMMWWK", true, 3.0);
+    addRow(without_bk, "YHHMMWWR", true, 1.5);
+    auto considered = [](const PercolatorReset::Output& r, const std::string& stem)
+    {
+      for (const PercolatorReset::Stem& st : r.stems) if (st.stem == stem) return st.considered;
+      return false;
+    };
+    const PercolatorReset::Output r1 = PercolatorReset::run(with_bk, po);
+    TEST_EQUAL(considered(r1, "WWMMHHYK"), false) // lost to its partner YHHMMWWK (3.0 > 1.0)
+    TEST_EQUAL(considered(r1, "YHHMMWWK"), true)
+    TEST_EQUAL(considered(r1, "WWMMHHYR"), true)  // beat its partner YHHMMWWR (2.0 > 1.5)
+    TEST_EQUAL(considered(r1, "YHHMMWWR"), false)
+    const PercolatorReset::Output r2 = PercolatorReset::run(without_bk, po);
+    TEST_EQUAL(considered(r2, "YHHMMWWK"), true)  // no partner observed: kept
+    TEST_EQUAL(considered(r2, "WWMMHHYR"), true)  // the same competition as with bK
+    TEST_EQUAL(considered(r2, "YHHMMWWR"), false)
+  }
+
+  // review r1: without a salt, run() draws one and records it
+  {
+    PercolatorReset::Options no_salt = opt;
+    no_salt.salt.reset();
+    const PercolatorReset::Output a = PercolatorReset::run(in, no_salt);
+    const PercolatorReset::Output b = PercolatorReset::run(in, no_salt);
+    TEST_EQUAL(a.salt != b.salt, true)
+    PercolatorReset::Options replay = opt;
+    replay.salt = a.salt;
+    TEST_EQUAL(PercolatorReset::run(in, replay).scores == a.scores, true)
+  }
+
+  // review r1: invalid options and features whose standardization overflows are rejected
+  {
+    PercolatorReset::Options o = opt;
+    o.train_fdr = -std::numeric_limits<double>::infinity();
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.train_fdr = 1.0;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.c_values = {1.0, 0.0};
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.c_values = {1.0, std::numeric_limits<double>::infinity()};
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.learner = "mlp"; o.mlp_members = 0;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.iterations = 0;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    PercolatorReset::Input huge = in;
+    for (size_t i = 0; i < huge.features.size(); ++i) huge.features[i][2] = (i % 2 == 0 ? 1.7e308 : -1.7e308);
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(huge, opt))
   }
 
   // malformed input
