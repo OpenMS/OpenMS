@@ -1,0 +1,8 @@
+ctrl_x_q05 PIP-ECHO: added 27819 acceptors to the consensus map with 1463 decoys seen
+ctrl_x_q01 PIP-ECHO: added 0 acceptors to the consensus map with 0 decoys seen
+proto_x_q05 PIP-ECHO: added 39812 acceptors to the consensus map with 2094 decoys seen
+proto_x_q01 PIP-ECHO: added 0 acceptors to the consensus map with 0 decoys seen
+rand_x PIP-ECHO: added 51145 acceptors to the consensus map with 2690 decoys seen
+rand_x_absent PIP-ECHO: added 40974 acceptors to the consensus map with 2155 decoys seen
+probe_x PIP-ECHO: added 33943 acceptors to the consensus map with 1785 decoys seen
+probe_x_absent PIP-ECHO: added 23377 acceptors to the consensus map with 1229 decoys seen

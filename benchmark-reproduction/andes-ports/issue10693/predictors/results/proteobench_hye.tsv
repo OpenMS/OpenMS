@@ -1,0 +1,9 @@
+arm	precursors	median_abs_eps	ecoli_abs_eps	cv
+ctrl_x_q05/out_msstats.csv	45135	0.2193	0.3977	0.2344
+ctrl_x_q05/norm.csv	45135	0.1542	0.3205	0.0928
+ctrl_x_q01/out_msstats.csv	42162	0.2251	0.4227	0.2324
+ctrl_x_q01/norm.csv	42162	0.1520	0.3105	0.0895
+proto_x_q05/out_msstats.csv	47640	0.2208	0.4657	0.2347
+proto_x_q05/norm.csv	47640	0.1580	0.3798	0.0961
+proto_x_q01/out_msstats.csv	42162	0.2245	0.4364	0.2311
+proto_x_q01/norm.csv	42162	0.1513	0.3144	0.0891

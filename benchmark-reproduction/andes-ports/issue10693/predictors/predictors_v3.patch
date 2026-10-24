@@ -1,0 +1,369 @@
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+index 695ea93f..e570e9d7 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+@@ -21,12 +21,15 @@
+ #include <unordered_map>
+ 
+ #include <algorithm>
++#include <cstdlib>
++#include <fstream>
+ #include <cmath>
+ #include <limits>
+ #include <memory>
+ #include <optional>
+ #include <ranges>
+ #include <set>
++#include <deque>
+ #include <unordered_map>
+ 
+ namespace OpenMS::PipEcho
+@@ -489,6 +492,39 @@ void Impl::partition_features(const std::vector<FeatureMap>& maps, RunMap& runs)
+   logger.setLogType(ProgressLogger::CMD);
+   logger.startProgress(0, num_maps, "building maps");
+ 
++  // [PSEUDO #10693, local only] PIPECHO_PSEUDO=<percent>: for that share of the precursors identified in >= 2 runs,
++  // hide the identification in one of those runs (the feature becomes an unidentified acceptor, tagged with its key),
++  // so that transfers into it can be checked: right if they land on that feature, wrong peak otherwise.
++  // PIPECHO_PSEUDO_OUT=<file>: the hidden pairs; the accepted transfers are appended in generate_consensus_map().
++  static std::deque<Feature> pseudo_store;
++  std::map<std::string, std::size_t> pseudo_hidden; // key -> hidden map
++  if (const char* pct = std::getenv("PIPECHO_PSEUDO"))
++  {
++    const long share = std::atol(pct);
++    std::map<std::string, std::set<std::size_t>> ident_maps;
++    for (std::size_t i = 0; i < num_maps; ++i)
++    {
++      for (const auto& f : maps[i])
++      {
++        if (PipEcho::Util::feature_hit(f).has_value()) { ident_maps[feature_sequence_key(f)].insert(i); }
++      }
++    }
++    std::ofstream out(std::getenv("PIPECHO_PSEUDO_OUT") ? std::getenv("PIPECHO_PSEUDO_OUT") : "pipecho_pseudo.tsv");
++    out << "key\thidden_map\tn_ident\n";
++    for (const auto& [key, ms] : ident_maps)
++    {
++      if (ms.size() < 2) { continue; }
++      long sum = 0;
++      for (const unsigned char c : key) { sum = sum * 31 + c; sum %= 1000003; }
++      if (sum % 100 >= share) { continue; }
++      auto it = ms.begin();
++      std::advance(it, (sum / 100) % ms.size());
++      pseudo_hidden[key] = *it;
++      out << key << '\t' << *it << '\t' << ms.size() << '\n';
++    }
++    OPENMS_LOG_INFO << "[PSEUDO] hiding " << pseudo_hidden.size() << " identifications (" << share << " % of the precursors identified in >= 2 runs)\n";
++  }
++
+   for (std::size_t i = 0; i < num_maps; ++i)
+   {
+     logger.setProgress(i);
+@@ -505,6 +541,23 @@ void Impl::partition_features(const std::vector<FeatureMap>& maps, RunMap& runs)
+       // FeatureMap doesn't let us have a non-const reference
+       // iterator.  So, we have to cheat and cast it.
+       prepare_feature(const_cast<Feature&>(feature));
++      if (! pseudo_hidden.empty() && PipEcho::Util::feature_hit(feature).has_value())
++      {
++        const std::string key = feature_sequence_key(feature);
++        if (auto h = pseudo_hidden.find(key); h != pseudo_hidden.end() && h->second == i)
++        {
++          // PIPECHO_PSEUDO_MODE=absent: drop the feature entirely (the precursor's peak was "not detected"), so every
++          // accepted transfer into this run is a wrong peak
++          static const bool absent = std::getenv("PIPECHO_PSEUDO_MODE") && std::string(std::getenv("PIPECHO_PSEUDO_MODE")) == "absent";
++          if (absent) { continue; }
++          pseudo_store.push_back(feature);
++          Feature& hidden = pseudo_store.back();
++          hidden.getPeptideIdentifications().clear();
++          hidden.setMetaValue("pipecho_pseudo_key", key);
++          run.insert(hidden, i);
++          continue;
++        }
++      }
+       run.insert(feature, i);
+     }
+   }
+@@ -585,12 +638,35 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+                                      const DonorMap& donors,
+                                      AcceptorMap& acceptors)
+ {
++  // [DIAG, local investigation only] PIPECHO_DIAG=<file>: one line per donor and acceptor run
++  static std::ofstream* diag = nullptr;
++  static bool diag_init = false;
++  if (! diag_init)
++  {
++    diag_init = true;
++    if (const char* p = std::getenv("PIPECHO_DIAG"))
++    {
++      diag = new std::ofstream(p);
++      diag->precision(10);
++      *diag << "widen\tdonor_map\tacceptor_map\tkey\tcharge\tmz\tdonor_rt\tcenter\tgate\tglobal_tol\tfound\tn_mz\tn_in_window\tbest_dt\tbest_ppm\n";
++    }
++  }
++  std::vector<std::pair<double, const Acceptor*>> by_mz;
++  long acceptor_map = -1;
++  if (diag)
++  {
++    for (const auto& a : acceptors.storage) { by_mz.emplace_back(a->feature.getMZ(), a.get()); }
++    std::sort(by_mz.begin(), by_mz.end(), [](const auto& l, const auto& r) { return l.first < r.first; });
++    if (! acceptors.storage.empty()) { acceptor_map = static_cast<long>((*acceptors.storage.begin())->map_index); }
++  }
++
+   for (auto& donor : donors.storage)
+   {
+     if (donor_max_q < 1.0 && ! transferable_.contains(feature_sequence_key(donor->feature)))
+     {
+       continue; // [donor_max_q] not confidently identified anywhere: not transferred
+     }
++    bool diag_found = false;
+     for (auto window = initial_window(*donor); window.has_value();
+          window = next_window(window))
+     {
+@@ -600,15 +676,38 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+       {
+         auto acceptor = target->second;
+         acceptor->push_back(target->first, donor, DonorType::Target);
++        diag_found = true;
+       }
+ 
+-      const auto random_donor = find_random_donor(donors, *donor, *window);
++      // [PROTOTYPE #10693, local only] PIPECHO_PROBE_DECOYS=<seconds>: the decoy looks at the donor's m/z at a fixed
++      // RT shift whose sign follows from the precursor key (sum of its characters), so that an extraction at
++      // predicted positions can serve the decoy positions as well. Otherwise: RT of a random other donor.
++      static const double probe_shift = std::getenv("PIPECHO_PROBE_DECOYS") ? std::atof(std::getenv("PIPECHO_PROBE_DECOYS")) : 0.0;
++      std::optional<double> decoy_rt;
++      if (probe_shift > 0.0)
++      {
++        const std::string key = feature_sequence_key(donor->feature);
++        long sum = 0;
++        for (const unsigned char c : key) { sum += c; }
++        // shift at least 4 base local half-windows (PIP-ECHO's separation for random donors), else the decoy can
++        // reach the precursor's own peak where the local window is wide
++        double shift = probe_shift;
++        if (use_local_rt_ && local_rt_ && ! std::getenv("PIPECHO_PROBE_FIXED"))
++        {
++          const double lw = local_rt_->predict(donor->feature.getRT()).half_window / std::max(local_rt_->widen, 1.0);
++          shift = std::max(shift, 4.0 * lw);
++        }
++        decoy_rt = donor->feature.getRT() + ((sum % 2 == 0) ? shift : -shift);
++      }
++      else if (const auto random_donor = find_random_donor(donors, *donor, *window); random_donor.has_value())
++      {
++        decoy_rt = (*random_donor)->feature.getRT();
++      }
+       match_t decoy = {}; // No std::optional::and_then in C++ 20 :(
+ 
+-      if (random_donor.has_value())
++      if (decoy_rt.has_value())
+       {
+-        decoy = find_acceptor_for(stats, acceptors, *donor, *window,
+-                                  (*random_donor)->feature.getRT());
++        decoy = find_acceptor_for(stats, acceptors, *donor, *window, *decoy_rt);
+ 
+         if (decoy.has_value())
+         {
+@@ -622,7 +721,43 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+         break; // We can stop searching.
+       }
+     }
++
++    if (diag)
++    {
++      const double mz = donor->feature.getMZ();
++      const double rt = donor->feature.getRT();
++      double center = rt, gate = std::numeric_limits<double>::infinity();
++      if (use_local_rt_ && local_rt_)
++      {
++        const LocalRtModel::Pred p = local_rt_->predict(rt);
++        center = p.center;
++        gate = p.half_window;
++      }
++      const double tol = mz_max_diff.mz_diff(mz);
++      const double win = std::min(gate, rt_sec_max_window);
++      std::size_t n_mz = 0, n_in = 0;
++      double best_dt = std::numeric_limits<double>::quiet_NaN(), best_ppm = best_dt;
++      auto it = std::lower_bound(by_mz.begin(), by_mz.end(), mz - tol,
++                                 [](const auto& e, double v) { return e.first < v; });
++      for (; it != by_mz.end() && it->first <= mz + tol; ++it)
++      {
++        const Feature& f = it->second->feature;
++        if (f.getCharge() != donor->feature.getCharge()) { continue; }
++        ++n_mz;
++        const double dt = f.getRT() - center;
++        if (std::fabs(dt) <= win) { ++n_in; }
++        if (std::isnan(best_dt) || std::fabs(dt) < std::fabs(best_dt))
++        {
++          best_dt = dt;
++          best_ppm = (f.getMZ() - mz) / mz * 1e6;
++        }
++      }
++      *diag << lrt_widen_ << '\t' << donor->map_index << '\t' << acceptor_map << '\t' << feature_sequence_key(donor->feature)
++            << '\t' << donor->feature.getCharge() << '\t' << mz << '\t' << rt << '\t' << center << '\t' << gate << '\t'
++            << rt_sec_max_window << '\t' << diag_found << '\t' << n_mz << '\t' << n_in << '\t' << best_dt << '\t' << best_ppm << '\n';
++    }
+   }
++  if (diag) { diag->flush(); }
+ }
+ 
+ /******************************************************************************/
+@@ -867,6 +1002,17 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
+     std::string key
+       = feature_sequence_key(acceptor->donor_ident, acceptor->donor_charge);
+ 
++    if (std::getenv("PIPECHO_PSEUDO"))
++    {
++      static std::ofstream acc_out(std::string(std::getenv("PIPECHO_PSEUDO_OUT") ? std::getenv("PIPECHO_PSEUDO_OUT") : "pipecho_pseudo.tsv") + ".accepted.tsv");
++      static bool header = false;
++      if (! header) { acc_out << "donor_key\tacceptor_map\tacceptor_pseudo_key\tq\n"; header = true; }
++      const Feature& af = acceptor->acceptor.get().feature;
++      acc_out << key << '\t' << acceptor->acceptor.get().map_index << '\t'
++              << (af.metaValueExists("pipecho_pseudo_key") ? af.getMetaValue("pipecho_pseudo_key").toString() : std::string("-"))
++              << '\t' << acceptor->q_value << '\n';
++    }
++
+     transfer_info_t& transfer_info = transfer_map[key];
+     transfer_info.map_indices.push_back(
+       static_cast<Int>(acceptor->acceptor.get().map_index));
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/RunStatistics.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/RunStatistics.cpp
+index b37f16da..b721509f 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/RunStatistics.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/RunStatistics.cpp
+@@ -224,6 +224,18 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
+ 
+   s.mbr_score = bound(100.0 * std::pow(product, 1.0 / measures));
+ 
++  // Prototype (#10693 step 2): extraction evidence, SVM-only (PIPECHO_EXTRA_PREDICTORS).
++  const auto m0_width = [](const Feature& f) -> double {
++    const auto& hulls = f.getConvexHulls();
++    if (hulls.empty()) { return 0.0; }
++    const auto bb = hulls[0].getBoundingBox();
++    return bb.isEmpty() ? 0.0 : bb.maxPosition()[0] - bb.minPosition()[0];
++  };
++  s.ffid_quality = acceptor.getOverallQuality();
++  const double wa = m0_width(acceptor), wd = m0_width(donor);
++  s.width_ratio = (wa > 0.0 && wd > 0.0) ? std::fabs(std::log2(wa / wd)) : 0.0;
++  s.n_traces = static_cast<double>(acceptor.getConvexHulls().size());
++
+   return s;
+ }
+ 
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Score.h b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Score.h
+index 8eb825c9..17e9076f 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Score.h
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Score.h
+@@ -69,6 +69,11 @@ struct Score
+ 
+   /// Single score used for bootstrapping.
+   double mbr_score;
++
++  /// Prototype (#10693 step 2): extraction evidence of the acceptor feature.
++  double ffid_quality = 0.0;   ///< acceptor overall quality (FFID)
++  double width_ratio = 0.0;    ///< |log2(acceptor / donor M0 elution width)|
++  double n_traces = 0.0;       ///< number of mass traces of the acceptor
+ };
+ 
+ } // namespace OpenMS::PipEcho
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/TransferFDRModel.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/TransferFDRModel.cpp
+index 138afcad..5507e8b6 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/TransferFDRModel.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/TransferFDRModel.cpp
+@@ -6,6 +6,8 @@
+ // $Authors: Peter J. Jones $
+ // --------------------------------------------------------------------------
+ 
++#include <cstdlib>
++#include <fstream>
+ #include <OpenMS/CONCEPT/Exception.h>
+ #include <OpenMS/CONCEPT/LogStream.h>
+ #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+@@ -216,6 +218,23 @@ const TransferFDRModel::group_t& TransferFDRModel::run(double fdr_cutoff)
+ 
+   compute_qvalues(pep_okay);
+ 
++  // Prototype (#10693 step 2): PIPECHO_SCORE_DUMP=<file> writes every scored acceptor before the FDR cut.
++  if (const char* dump = std::getenv("PIPECHO_SCORE_DUMP"))
++  {
++    std::ofstream out(dump);
++    out.precision(8);
++    out << "target\tdonor\tacceptor_map\trt\tmz\tintensity\trt_diff_error\trt_score\tmass_error\tisotope_score\tmbr_score\tffid_quality\twidth_ratio\tn_traces\tpep\tq\n";
++    for (const auto& a : acceptors_)
++    {
++      const Feature& f = a->acceptor.get().feature;
++      out << a->is_target() << '\t' << a->donor_ident << '\t' << a->acceptor.get().map_index << '\t' << f.getRT() << '\t'
++          << f.getMZ() << '\t' << a->score.intensity << '\t' << a->score.rt_diff_error << '\t' << a->score.rt_score << '\t'
++          << a->score.mass_error << '\t' << a->score.isotope_score << '\t' << a->score.mbr_score << '\t'
++          << a->score.ffid_quality << '\t' << a->score.width_ratio << '\t' << a->score.n_traces << '\t'
++          << a->pep_score << '\t' << a->q_value << '\n';
++    }
++  }
++
+   const auto [first, last]
+     = std::ranges::remove_if(acceptors_, [&fdr_cutoff](const auto& a) {
+         return a->q_value > fdr_cutoff;
+@@ -663,6 +682,13 @@ void predictors_t::encode(const TransferFDRModel::acceptor_t& acceptor,
+     predictors["im_diff_score"].push_back(acceptor.score.im_diff_score);
+   }
+   predictors["mbr_score"].push_back(acceptor.score.mbr_score);
++  static const bool extra = std::getenv("PIPECHO_EXTRA_PREDICTORS") != nullptr;
++  if (extra)
++  {
++    predictors["ffid_quality"].push_back(acceptor.score.ffid_quality);
++    predictors["width_ratio"].push_back(acceptor.score.width_ratio);
++    predictors["n_traces"].push_back(acceptor.score.n_traces);
++  }
+ 
+   if (create_labels)
+   {
+diff --git a/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp b/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp
+index 2d948ed0..9c76589b 100644
+--- a/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp
++++ b/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp
+@@ -365,6 +365,11 @@ namespace OpenMS
+         peptides.back().setMZ(feat.getMZ());
+         peptides.back().setMetaValue("FFId_category", "internal");
+         peptides.back().setMetaValue("SeedFeatureID",StringUtils::toStr(feat.getUniqueId()));
++        // [PROTOTYPE #10693, local only] a seed may carry its own apex RT tolerance
++        if (feat.metaValueExists("seed_apex_rt_tolerance"))
++        {
++          peptides.back().setMetaValue("seed_apex_rt_tolerance", feat.getMetaValue("seed_apex_rt_tolerance"));
++        }
+ 
+         // Copy IM meta value from feature if present (some feature finders annotate IM)
+         // If not present, the seed will be extracted across the full IM range
+@@ -1793,7 +1798,8 @@ namespace OpenMS
+             if (isSeedPseudoHit_(hit))
+             {
+               // seed apex RT was stored on the PeptideIdentification in addSeeds_()
+-              if (std::fabs(pid.getRT() - feature_rt) > rt_tol)
++              const double tol_here = pid.metaValueExists("seed_apex_rt_tolerance") ? double(pid.getMetaValue("seed_apex_rt_tolerance")) : rt_tol;
++              if (std::fabs(pid.getRT() - feature_rt) > tol_here)
+               {
+                 return true; // detected apex too far from seed apex -> remove
+               }
+diff --git a/src/topp/ProteomicsLFQ.cpp b/src/topp/ProteomicsLFQ.cpp
+index fe0c4a61..b4066381 100644
+--- a/src/topp/ProteomicsLFQ.cpp
++++ b/src/topp/ProteomicsLFQ.cpp
+@@ -1768,6 +1768,23 @@ protected:
+           getStringOption_("Seeding:charge"), getDoubleOption_("Seeding:traceRTTolerance"));
+       }
+ 
++      // [PROTOTYPE #10693, local only] PLFQ_EXTRA_SEEDS_DIR=<dir>: add the seeds in <dir>/<run>.featureXML
++      if (const char* extra_dir = std::getenv("PLFQ_EXTRA_SEEDS_DIR"))
++      {
++        const std::string fn = std::string(extra_dir) + "/" + FileHandler::stripExtension(File::basename(mz_file)) + ".featureXML";
++        if (File::exists(fn))
++        {
++          FeatureMap extra;
++          FileHandler().loadFeatures(fn, extra);
++          for (auto& f : extra)
++          {
++            f.ensureUniqueId();
++            seeds.push_back(f);
++          }
++          OPENMS_LOG_INFO << "[PROTOTYPE] added " << extra.size() << " seeds from " << fn << '\n';
++        }
++      }
++
+       if (debug_level_ > 666)
+       {
+         FileHandler().storeFeatures("debug_seeds_fraction_" + StringUtils::toStr(fraction) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);

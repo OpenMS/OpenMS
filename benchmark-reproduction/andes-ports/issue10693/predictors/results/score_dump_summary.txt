@@ -1,0 +1,28 @@
+== ctrl_x_q05: 55045 scored acceptors, 9749 decoys; medians (target 1 / decoy 0)
+        intensity  rt_score  mass_error  isotope_score  mbr_score  ffid_quality    pep
+target                                                                                
+0           0.438     0.065       0.126          0.983      7.049         1.760  1.000
+1           0.468     0.630       0.469          0.991     41.302         2.214  0.882
+targets q<=0.01/0.03/0.05: 0 10724 27819 min q 0.02
+
+== proto_x_q05: 134099 scored acceptors, 45077 decoys; medians (target 1 / decoy 0)
+        intensity  rt_score  mass_error  isotope_score  mbr_score  ffid_quality    pep
+target                                                                                
+0           0.146      0.31       0.566          0.707     12.724        -0.611  1.000
+1           0.382      0.64       0.566          0.971     41.736         1.629  0.763
+targets q<=0.01/0.03/0.05: 0 16238 39812 min q 0.0189
+
+== rand_x: 58840 scored acceptors, 4349 decoys; medians (target 1 / decoy 0)
+        intensity  rt_score  mass_error  isotope_score  mbr_score  ffid_quality    pep
+target                                                                                
+0           0.368     0.061       0.073          0.971      5.775         1.856  1.000
+1           0.477     0.651       0.563          0.991     44.098         2.276  0.951
+targets q<=0.01/0.03/0.05: 24482 45490 51145 min q 0.0035
+
+== rand_x_absent: 49251 scored acceptors, 4121 decoys; medians (target 1 / decoy 0)
+        intensity  rt_score  mass_error  isotope_score  mbr_score  ffid_quality    pep
+target                                                                                
+0           0.353     0.056       0.068          0.971      5.434         1.842  1.000
+1           0.468     0.620       0.468          0.991     41.037         2.216  0.927
+targets q<=0.01/0.03/0.05: 14713 36504 40974 min q 0.0044
+
