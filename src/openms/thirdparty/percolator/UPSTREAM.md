@@ -312,6 +312,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   In a parallel region, `Scores::getScoreLabelPairs`, the setting and counting of the q-values in
   `calcQvals` (counts of blocks of PSMs, added up) and the rescaling of `normalizeScores` run over
   large sets as tasks of blocks of PSMs: the same pairs, q-values, count and scores.
+  The taskloops over PSMs or rows (`Scores`: `calcScores`, the loops above, `permuteScores`;
+  `FeatureMemoryPool::moveRowsInOrder`; the blocks of `PosteriorEstimator::getQValuesInTasks`) have
+  at most 64 tasks: libgomp runs all tasks of a taskloop in the encountering thread, one after the
+  other, if its team's queue would then hold more than 64 tasks per thread, so that e.g. the
+  scoring of a set of 2.3M PSMs (1134 tasks of 2048) ran on one thread of a team of 12. Larger
+  blocks; each element computes the same (the q-value blocks still start at positions that depend
+  on the set only).
 
 ### Regenerating the patch
 

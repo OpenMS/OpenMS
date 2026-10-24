@@ -94,6 +94,10 @@ void FeatureMemoryPool::reserveRows(std::size_t numRows) {
 
 // OpenMS: the smallest block of rows a task of moveRowsInOrder copies
 [[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
+// OpenMS: and at most this many tasks per taskloop (libgomp runs all tasks of a taskloop in the
+// encountering thread, one after the other, if its team's queue would then hold more than 64
+// tasks per thread)
+[[maybe_unused]] constexpr std::ptrdiff_t kMaxRowTasks = 64;
 
 // OpenMS: whether moveRowsInOrder runs in an OpenMP parallel region (its copies as tasks)
 static bool inParallel() {
@@ -129,10 +133,12 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
   const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
   const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
   (void)inTasks;
+  [[maybe_unused]] const std::ptrdiff_t grain =
+      std::max(kMinRowsPerTask, (numRows + kMaxRowTasks - 1) / kMaxRowTasks);
   // the index of each row (n if it is none of the pool's rows), by the tasks of an enclosing
   // OpenMP parallel region if there is one; then whether each row occurs once
   const std::unique_ptr<std::size_t[]> indexOf(new std::size_t[n]);
-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, blocks, indexOf) if(inTasks)
+#pragma omp taskloop grainsize(grain) shared(rows, blocks, indexOf) if(inTasks)
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     std::size_t idx = n;
     const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[static_cast<std::size_t>(k)]);
@@ -156,11 +162,11 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
   // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
   // if there is one (the blocks are disjoint)
   const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
+#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
   }
-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
+#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     double* row = addressFromIdx(static_cast<unsigned int>(k));
     std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);
