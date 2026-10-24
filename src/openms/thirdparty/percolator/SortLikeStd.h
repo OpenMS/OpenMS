@@ -18,8 +18,9 @@
  *    known. (__insertion_sort, used for the first 16 elements, and __unguarded_linear_insert
  *    differ in their comparisons, not in where an element ends up.)
  * Both points need what std::sort needs anyway: a comparison that is a strict weak ordering
- * and has no state. The partitionings of large ranges (the first ones, which no other task
- * runs beside) make the swaps of __unguarded_partition with all tasks (partitionInParallel).
+ * and has no state. The partitionings of large ranges (the first ones, where the scans of one
+ * partitioning are the critical path) make the swaps of __unguarded_partition with all tasks
+ * (partitionInParallel); partitionings of disjoint ranges may run so at the same time.
  * The same algorithm sorts the peptides of OpenMS' FragmentIndex (FragmentIndex::sortPeptides_,
  * whose test compares it with std::sort).
  *

@@ -172,7 +172,7 @@ hand-editing sources and committing them, to keep sync self-healing.
   hands the right parts of the partitions to tasks (the algorithm of OpenMS'
   `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score or mass (no strict weak
   ordering), it is `std::sort`. Ranges of more than 2^18 elements (large data sets: the first
-  partitionings, which no other task of the sort runs beside) are partitioned with all tasks
+  partitionings, whose scans are the critical path of the sort) are partitioned with all tasks
   (`partitionInParallel`): the elements are classified against the pivot in chunks, and the swaps
   of `__unguarded_partition` (the k-th element from the left not less than the pivot with the k-th
   from the right the pivot is not less than, while they are in order) are made from these
