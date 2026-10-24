@@ -6415,25 +6415,38 @@ namespace OpenMS
     stats.target_psms = 0;
     stats.decoy_psms = 0;
     // The spectra in parallel (their top scores collected in spectrum order below), reading the target/decoy value by
-    // name index: looking the name up takes a lock on the registry, which the threads would contend for. An
-    // unregistered name is on no hit.
+    // name index (looking the name up takes a lock on the registry, which the threads would contend for; by name if it
+    // is not registered). The first error in spectrum order is rethrown.
     const UInt td_index = MetaInfoInterface::metaRegistry().getIndex(Constants::UserParam::TARGET_DECOY);
     const SignedSize num_ids = static_cast<SignedSize>(peptide_ids.size());
     std::vector<double> top_scores(peptide_ids.size());
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
     Size target_psms = 0, decoy_psms = 0;
 #pragma omp parallel for schedule(static, 1024) reduction(+ : target_psms, decoy_psms)
     for (SignedSize i = 0; i < num_ids; ++i)
     {
-      const PeptideIdentification& pid = peptide_ids[i];
-      if (pid.getHits().empty()) { continue; }
-      const PeptideHit& top = pid.getHits().front();
-      top_scores[i] = top.getScore();
+      try
+      {
+        const PeptideIdentification& pid = peptide_ids[i];
+        if (pid.getHits().empty()) { continue; }
+        const PeptideHit& top = pid.getHits().front();
+        top_scores[i] = top.getScore();
 
-      if (td_index == UInt(-1) || !top.metaValueExists(td_index)) { continue; }
-      const std::string td = top.getMetaValue(td_index).toString();
-      // "target+decoy" counts as target (OpenMS FDR semantics).
-      if (td == "decoy") { ++decoy_psms; }
-      else if (!td.empty()) { ++target_psms; }
+        const bool by_name = td_index == UInt(-1);
+        if (by_name ? !top.metaValueExists(Constants::UserParam::TARGET_DECOY) : !top.metaValueExists(td_index)) { continue; }
+        const std::string td = (by_name ? top.getMetaValue(Constants::UserParam::TARGET_DECOY) : top.getMetaValue(td_index)).toString();
+        // "target+decoy" counts as target (OpenMS FDR semantics).
+        if (td == "decoy") { ++decoy_psms; }
+        else if (!td.empty()) { ++target_psms; }
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors)
+    {
+      if (error) { std::rethrow_exception(error); }
     }
     stats.target_psms = target_psms;
     stats.decoy_psms = decoy_psms;

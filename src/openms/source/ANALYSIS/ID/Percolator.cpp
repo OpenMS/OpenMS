@@ -1486,27 +1486,38 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     {
       // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the registry,
       // which the threads would contend for); the stamped names are registered. A destructor must not throw: if the
-      // indices cannot be allocated, the values are removed serially by name, which allocates nothing.
-      std::vector<UInt> name_index;
+      // parallel removal fails (e.g. cannot allocate), the values are removed serially by name, which allocates nothing.
+      bool failed = false;
       try
       {
+        std::vector<UInt> name_index;
         name_index.reserve(added.names.size());
+        for (const std::string& name : added.names) name_index.push_back(MetaInfoInterface::metaRegistry().getIndex(name));
+#pragma omp parallel for schedule(dynamic, 256) reduction(||: failed)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(added.hits.size()); ++i)
+        {
+          try
+          {
+            PeptideHit& hit = ids[added.hits[i].first].getHits()[added.hits[i].second];
+            for (size_t k = added.offsets[i]; k < added.offsets[i + 1]; ++k) hit.removeMetaValue(name_index[added.name_indices[k]]);
+          }
+          catch (...)
+          {
+            failed = true;
+          }
+        }
       }
       catch (...)
+      {
+        failed = true;
+      }
+      if (failed)
       {
         for (size_t i = 0; i < added.hits.size(); ++i)
         {
           PeptideHit& hit = ids[added.hits[i].first].getHits()[added.hits[i].second];
           for (size_t k = added.offsets[i]; k < added.offsets[i + 1]; ++k) hit.removeMetaValue(added.names[added.name_indices[k]]);
         }
-        return;
-      }
-      for (const std::string& name : added.names) name_index.push_back(MetaInfoInterface::metaRegistry().getIndex(name));
-#pragma omp parallel for schedule(dynamic, 256)
-      for (SignedSize i = 0; i < static_cast<SignedSize>(added.hits.size()); ++i)
-      {
-        PeptideHit& hit = ids[added.hits[i].first].getHits()[added.hits[i].second];
-        for (size_t k = added.offsets[i]; k < added.offsets[i + 1]; ++k) hit.removeMetaValue(name_index[added.name_indices[k]]);
       }
     }
   } cleanup{peptide_ids, added_pin_meta_values};

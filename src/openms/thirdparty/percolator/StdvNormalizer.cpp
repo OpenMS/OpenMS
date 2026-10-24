@@ -24,6 +24,10 @@
 #include "StdvNormalizer.h"
 #include "Globals.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
@@ -54,6 +58,16 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
     sum += sub[i] * in[i];
   }
   out[i] = in[i] + sum;
+}
+
+// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
+// order in which they read the rows, which is faster on one thread)
+static bool parallelByFeature() {
+#ifdef _OPENMP
+  return omp_get_max_threads() > 1 && !omp_in_parallel();
+#else
+  return false;
+#endif
 }
 
 // OpenMS: the sums of setSet over the PSMs (features), by feature, in an OpenMP parallel loop over
@@ -101,7 +115,7 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   sub.resize(nf + nrf, 0.0);
   div.resize(nf + nrf, 0.0);
   // OpenMS: large sets without retention features by feature (see sumsByFeature), then as below
-  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 &&
+  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 && parallelByFeature() &&
       sumsByFeature(featuresV, nf, sub, div)) {
     for (size_t ix = 0; ix < nf; ++ix) {
       if (div[ix] <= 0 || featuresV.empty()) {

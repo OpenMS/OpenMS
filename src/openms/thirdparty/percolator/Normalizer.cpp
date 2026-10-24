@@ -26,6 +26,10 @@
 #include "FeatureNames.h"
 #include "Globals.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
@@ -55,6 +59,16 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
   }
 }
 
+// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
+// order in which they read the rows, which is faster on one thread)
+static bool parallelByFeature() {
+#ifdef _OPENMP
+  return omp_get_max_threads() > 1 && !omp_in_parallel();
+#else
+  return false;
+#endif
+}
+
 /**
  * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
  * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
@@ -65,7 +79,7 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
 void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
                                         vector<double*>& rtFeaturesV) {
   if (!rtFeaturesV.empty() || numRetentionFeatures != 0 || featuresV.size() < 4096 ||
-      numFeatures < 2) {
+      numFeatures < 2 || !parallelByFeature()) {
     normalizeSet(featuresV, rtFeaturesV);
     return;
   }

@@ -466,9 +466,8 @@ namespace OpenMS
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 
     // The meta values by name index once all stamped names are registered (by the first stamped hit): looking names up
-    // takes a lock on the registry, which the threads would contend for. Until then (UInt(-1)) by name.
-    // The names that are only read (the isotope errors, target_decoy) by index as well: a name that is not registered
-    // then is on no hit (no hit can hold a value under it, and the stamping registers no such name).
+    // takes a lock on the registry, which the threads would contend for. Until then, and for names that are not
+    // registered then (UInt(-1)), by name. The names that are only read (the isotope errors, target_decoy) as well.
     std::vector<UInt> name_index(names.size(), UInt(-1));
     bool by_index = false;
     UInt legacy_isotope_error_index = UInt(-1), isotope_error_index = UInt(-1), target_decoy_index = UInt(-1);
@@ -482,26 +481,22 @@ namespace OpenMS
     };
     auto read_exists = [&](const PeptideHit& hit, const std::string& name, UInt index)
     {
-      if (!by_index) return hit.metaValueExists(name);
-      return index != UInt(-1) && hit.metaValueExists(index);
+      return (!by_index || index == UInt(-1)) ? hit.metaValueExists(name) : hit.metaValueExists(index);
     };
     auto read = [&](const PeptideHit& hit, const std::string& name, UInt index) -> const DataValue&
     {
-      return by_index ? hit.getMetaValue(index) : hit.getMetaValue(name);
+      return (!by_index || index == UInt(-1)) ? hit.getMetaValue(name) : hit.getMetaValue(index);
     };
-    // PeptideHit::getTargetDecoyType(), by index
+    // PeptideHit::getTargetDecoyType() by index (a value it does not know: the getter itself, which throws)
     auto target_decoy_type = [&](const PeptideHit& hit)
     {
-      if (!by_index) return hit.getTargetDecoyType();
-      if (target_decoy_index == UInt(-1) || !hit.metaValueExists(target_decoy_index))
-      {
-        return PeptideHit::TargetDecoyType::UNKNOWN;
-      }
+      if (!by_index || target_decoy_index == UInt(-1)) return hit.getTargetDecoyType();
+      if (!hit.metaValueExists(target_decoy_index)) return PeptideHit::TargetDecoyType::UNKNOWN;
       const std::string td = StringUtils::toLowered(hit.getMetaValue(target_decoy_index).toString());
       if (td == "decoy") return PeptideHit::TargetDecoyType::DECOY;
       if (td == "target+decoy") return PeptideHit::TargetDecoyType::TARGET_DECOY;
       if (td == "target") return PeptideHit::TargetDecoyType::TARGET;
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", td);
+      return hit.getTargetDecoyType();
     };
 
     // Stamps the hits of one spectrum; returns whether it stamped any.
@@ -705,11 +700,13 @@ namespace OpenMS
       hit_offsets[pid_index + 1] = hit_offsets[pid_index] + added[pid_index].hits.size();
       name_offsets[pid_index + 1] = name_offsets[pid_index] + added[pid_index].names.size();
     }
-    added_meta_values.names = names;
-    added_meta_values.hits.resize(hit_offsets[num_spectra]);
-    added_meta_values.offsets.resize(hit_offsets[num_spectra] > 0 ? hit_offsets[num_spectra] + 1 : 0);
-    added_meta_values.name_indices.resize(name_offsets[num_spectra]);
-    if (!added_meta_values.offsets.empty()) added_meta_values.offsets.back() = name_offsets[num_spectra];
+    // (built in a temporary that is swapped in when complete: the record stays valid if an allocation fails)
+    PinFeatureMetaValueMap record;
+    record.names = names;
+    record.hits.resize(hit_offsets[num_spectra]);
+    record.offsets.resize(hit_offsets[num_spectra] > 0 ? hit_offsets[num_spectra] + 1 : 0);
+    record.name_indices.resize(name_offsets[num_spectra]);
+    if (!record.offsets.empty()) record.offsets.back() = name_offsets[num_spectra];
 #pragma omp parallel for schedule(dynamic, 1024)
     for (SignedSize pid_index = 0; pid_index < static_cast<SignedSize>(num_spectra); ++pid_index)
     {
@@ -717,13 +714,17 @@ namespace OpenMS
       size_t hit = hit_offsets[pid_index], offset = name_offsets[pid_index];
       for (const auto& [hit_index, num_names] : a.hits)
       {
-        added_meta_values.hits[hit] = {static_cast<size_t>(pid_index), hit_index};
-        added_meta_values.offsets[hit] = offset;
+        record.hits[hit] = {static_cast<size_t>(pid_index), hit_index};
+        record.offsets[hit] = offset;
         ++hit;
         offset += num_names;
       }
-      std::copy(a.names.begin(), a.names.end(), added_meta_values.name_indices.begin() + name_offsets[pid_index]);
+      std::copy(a.names.begin(), a.names.end(), record.name_indices.begin() + name_offsets[pid_index]);
     }
+    added_meta_values.names.swap(record.names);
+    added_meta_values.hits.swap(record.hits);
+    added_meta_values.offsets.swap(record.offsets);
+    added_meta_values.name_indices.swap(record.name_indices);
     // the lists of these spectra (an error restores only the spectra after them) released in parallel
 #pragma omp parallel for schedule(dynamic, 1024)
     for (SignedSize pid_index = 0; pid_index < static_cast<SignedSize>(num_spectra); ++pid_index)

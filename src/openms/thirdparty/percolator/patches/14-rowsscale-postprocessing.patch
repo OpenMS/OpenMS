@@ -1,31 +1,37 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 005531d6b0..6c45575b35 100644
+index 005531d6b0..c3e5df2f49 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -886,9 +886,21 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
+@@ -886,8 +886,27 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
    }
  
    if (!pCheck->validateDirection(weights_)) {
 -    for (std::size_t set = 0; set < numFolds_; ++set) {
 -      testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
-+    // OpenMS: the test sets as tasks of a parallel region, whose threads also run the tasks of
-+    // their scoring, sorts and q-values (see Scores::calcScores and SortLikeStd.h): each test
-+    // set gets the same scores, order and q-values as in a loop over the sets.
-+    std::vector<std::exception_ptr> resetErrors(numFolds_);
++    if (VERB > 3) {
++      // (prints the scores of each sort: one set after the other)
++      for (std::size_t set = 0; set < numFolds_; ++set) {
++        testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
++      }
++    } else {
++      // OpenMS: the test sets as tasks of a parallel region, whose threads also run the tasks of
++      // their scoring, sorts and q-values (see Scores::calcScores and SortLikeStd.h): each test
++      // set gets the same scores, order and q-values as in a loop over the sets.
++      std::vector<std::exception_ptr> resetErrors(numFolds_);
 +#pragma omp parallel num_threads(numTeamThreads(numThreads_))
 +#pragma omp single
 +#pragma omp taskloop grainsize(1) shared(resetErrors)
-+    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-+      try {
-+        testScores_[static_cast<std::size_t>(set)].calcScoresAndQvals(weights_[0], selectionFdr_);
-+      } catch (...) {
-+        resetErrors[static_cast<std::size_t>(set)] = std::current_exception();
++      for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++        try {
++          testScores_[static_cast<std::size_t>(set)].calcScoresAndQvals(weights_[0], selectionFdr_);
++        } catch (...) {
++          resetErrors[static_cast<std::size_t>(set)] = std::current_exception();
++        }
 +      }
++      rethrowFirstError(resetErrors);
      }
-+    rethrowFirstError(resetErrors);
    }
    // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
-   std::exception_ptr mergeError;
 diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
 index 761e768ca5..ab7546ea89 100644
 --- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
@@ -134,13 +140,34 @@ index db79899acb..8b974ad40c 100644
  
  }}}  // namespace OpenMS::Internal::Percolator
 diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
-index 229d78702d..91ca079093 100644
+index 229d78702d..9fc41af430 100644
 --- a/src/openms/thirdparty/percolator/Normalizer.cpp
 +++ b/src/openms/thirdparty/percolator/Normalizer.cpp
-@@ -55,6 +55,31 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
+@@ -26,6 +26,10 @@
+ #include "FeatureNames.h"
+ #include "Globals.h"
+ 
++#ifdef _OPENMP
++#include <omp.h>
++#endif
++
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ using namespace std;
+@@ -55,6 +59,41 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
    }
  }
  
++// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
++// order in which they read the rows, which is faster on one thread)
++static bool parallelByFeature() {
++#ifdef _OPENMP
++  return omp_get_max_threads() > 1 && !omp_in_parallel();
++#else
++  return false;
++#endif
++}
++
 +/**
 + * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
 + * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
@@ -151,7 +178,7 @@ index 229d78702d..91ca079093 100644
 +void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
 +                                        vector<double*>& rtFeaturesV) {
 +  if (!rtFeaturesV.empty() || numRetentionFeatures != 0 || featuresV.size() < 4096 ||
-+      numFeatures < 2) {
++      numFeatures < 2 || !parallelByFeature()) {
 +    normalizeSet(featuresV, rtFeaturesV);
 +    return;
 +  }
@@ -489,7 +516,7 @@ index 88d8d65789..ca102b1db1 100644
  
  LabelType const SetHandler::getLabel(int setPos) {
 diff --git a/src/openms/thirdparty/percolator/StdvNormalizer.cpp b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
-index 2128232575..f58ace1d20 100644
+index 2128232575..8266b92a73 100644
 --- a/src/openms/thirdparty/percolator/StdvNormalizer.cpp
 +++ b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
 @@ -14,6 +14,7 @@
@@ -500,10 +527,31 @@ index 2128232575..f58ace1d20 100644
  #include <iostream>
  #include <cmath>
  #include <vector>
-@@ -55,6 +56,43 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
+@@ -23,6 +24,10 @@
+ #include "StdvNormalizer.h"
+ #include "Globals.h"
+ 
++#ifdef _OPENMP
++#include <omp.h>
++#endif
++
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ using namespace std;
+@@ -55,6 +60,53 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
    out[i] = in[i] + sum;
  }
  
++// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
++// order in which they read the rows, which is faster on one thread)
++static bool parallelByFeature() {
++#ifdef _OPENMP
++  return omp_get_max_threads() > 1 && !omp_in_parallel();
++#else
++  return false;
++#endif
++}
++
 +// OpenMS: the sums of setSet over the PSMs (features), by feature, in an OpenMP parallel loop over
 +// the features: each feature's sums are added up by one thread, over the PSMs in order, as in
 +// setSet (the same results). Returns false (and changes nothing) if a feature value is not
@@ -544,12 +592,12 @@ index 2128232575..f58ace1d20 100644
  void StdvNormalizer::setSet(std::vector<double*>& featuresV,
                              std::vector<double*>& rtFeaturesV, size_t nf,
                              size_t nrf) {
-@@ -62,6 +100,18 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
+@@ -62,6 +114,18 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
    numRetentionFeatures = nrf;
    sub.resize(nf + nrf, 0.0);
    div.resize(nf + nrf, 0.0);
 +  // OpenMS: large sets without retention features by feature (see sumsByFeature), then as below
-+  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 &&
++  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 && parallelByFeature() &&
 +      sumsByFeature(featuresV, nf, sub, div)) {
 +    for (size_t ix = 0; ix < nf; ++ix) {
 +      if (div[ix] <= 0 || featuresV.empty()) {

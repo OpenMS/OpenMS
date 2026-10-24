@@ -289,12 +289,14 @@ hand-editing sources and committing them, to keep sync self-healing.
   the test sets are scored with the default weights as tasks of a parallel region (as
   `SanityCheck::validateDirection` does), so their scoring, sorts and q-values run as the region's
   tasks (`Scores::calcScores`, `SortLikeStd.h`, `PosteriorEstimator::getQValuesInTasks`): the same
-  scores, order and q-values as the loop over the sets.
+  scores, order and q-values as the loop over the sets (with `VERB > 3`, which prints the scores of
+  each sort, the loop as before).
   Before the training, on large sets: the feature pool's blocks for the rows of the rescoring are
   created (zero-filled) in parallel (`FeatureMemoryPool::reserveRows`, called by OpenMS'
   `Percolator::rescore`; `allocate` then hands out the same rows in the same order);
-  `StdvNormalizer::setSet` adds up each feature's sums by one thread, in the order of the PSMs, the
-  features in parallel (a value that is not finite: as before, which reports it);
+  with OpenMP on more than one thread, `StdvNormalizer::setSet` adds up each feature's sums by one
+  thread, in the order of the PSMs, the features in parallel (a value that is not finite: as before,
+  which reports it);
   `SetHandler::normalizeFeatures` normalizes the PSMs' rows by feature in parallel
   (`Normalizer::normalizeRowsByFeature`: each value as by `normalize`; the rows are rows of the
   feature pool, equal or disjoint); `SetHandler::populateScoresWithPSMs` reserves room for the
