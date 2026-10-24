@@ -95,60 +95,98 @@ namespace
     const double* row(Size i) const { return v.data() + i * cols; }
   };
 
+  // ---------------------------------------------------------------------------------------------
+  // MLP learner (experimental): ensemble of networks d -> h -> h -> 1 (tanh, tanh, linear) in float32, trained by
+  // mini-batch Adam with the batch's forward and backward passes as small matrix products (Eigen). Every network is
+  // trained by one thread from its own random stream, so results do not depend on the number of threads.
+  // ---------------------------------------------------------------------------------------------
+  using MatF = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  using VecF = Eigen::Matrix<float, Eigen::Dynamic, 1>;
+  using RowVecF = Eigen::Matrix<float, 1, Eigen::Dynamic>;
+
+  struct MlpNet
+  {
+    Eigen::Index d = 0, h = 0;
+    std::vector<float> p;      // W1 (d x h, row-major), b1 (h), W2 (h x h), b2 (h), w3 (h), b3
+    std::vector<float> m1, m2; // Adam moments (kept for warm starts)
+    std::uint64_t step = 0;    // Adam steps so far
+
+    Eigen::Index oB1() const { return d * h; }
+    Eigen::Index oW2() const { return d * h + h; }
+    Eigen::Index oB2() const { return d * h + h + h * h; }
+    Eigen::Index oW3() const { return d * h + 2 * h + h * h; }
+    Eigen::Index oB3() const { return d * h + 3 * h + h * h; }
+  };
+
+  // Work buffers of the forward pass (per thread)
+  struct MlpWork
+  {
+    MatF a1, a2;
+    VecF o;
+  };
+
+  // Outputs of @p net for the @p n rows (row-major, net.d columns) at @p x, into work.o
+  void mlpForward(const MlpNet& net, const float* x, Eigen::Index n, MlpWork& work)
+  {
+    const Eigen::Index d = net.d, h = net.h;
+    if (work.a1.rows() < n || work.a1.cols() != h)
+    {
+      work.a1.resize(n, h);
+      work.a2.resize(n, h);
+      work.o.resize(n);
+    }
+    Eigen::Map<const MatF> X(x, n, d);
+    Eigen::Map<const MatF> W1(net.p.data(), d, h), W2(net.p.data() + net.oW2(), h, h);
+    Eigen::Map<const RowVecF> b1(net.p.data() + net.oB1(), h), b2(net.p.data() + net.oB2(), h);
+    Eigen::Map<const VecF> w3(net.p.data() + net.oW3(), h);
+    auto A1 = work.a1.topRows(n);
+    auto A2 = work.a2.topRows(n);
+    auto o = work.o.head(n);
+    A1.noalias() = X * W1;
+    A1.rowwise() += b1;
+    A1 = A1.array().tanh();
+    A2.noalias() = A1 * W2;
+    A2.rowwise() += b2;
+    A2 = A2.array().tanh();
+    o.noalias() = A2 * w3;
+    o.array() += net.p[static_cast<Size>(net.oB3())];
+  }
+
   // A trained model: linear (w, bias last) or an MLP ensemble.
   struct Model
   {
     std::vector<double> w; // linear: cols + 1
-    struct Net
-    {
-      Size d = 0, h = 0;
-      std::vector<double> w1, b1, w2, b2, w3; // d x h, h, h x h, h, h
-      double b3 = 0.0;
-    };
-    std::vector<Net> nets;
+    std::vector<MlpNet> nets;                // MLP ensemble
+    std::vector<std::vector<MlpNet>> folds;  // cross-fitted MLP: one ensemble per fold (nets empty)
+    std::vector<double> fold_center, fold_scale; // cross-fitted MLP: score = (output - center) / scale per fold
 
     bool finite() const
     {
-      auto ok = [](const std::vector<double>& v) { return std::all_of(v.begin(), v.end(), [](double x) { return std::isfinite(x); }); };
+      auto ok = [](const auto& v) { return std::all_of(v.begin(), v.end(), [](auto x) { return std::isfinite(x); }); };
+      auto ok_nets = [&](const std::vector<MlpNet>& v) { return std::all_of(v.begin(), v.end(), [&](const MlpNet& n) { return ok(n.p); }); };
+      if (!folds.empty()) return std::all_of(folds.begin(), folds.end(), ok_nets);
       if (nets.empty()) return !w.empty() && ok(w);
-      for (const Net& n : nets)
-      {
-        if (!ok(n.w1) || !ok(n.b1) || !ok(n.w2) || !ok(n.b2) || !ok(n.w3) || !std::isfinite(n.b3)) return false;
-      }
-      return true;
+      return ok_nets(nets);
     }
 
+    // linear model: score of one standardized row
     double score(const double* x) const
     {
-      if (nets.empty())
+      double s = w.back();
+      for (Size j = 0; j + 1 < w.size(); ++j) s += w[j] * x[j];
+      return s;
+    }
+
+    // mean output of @p members (summed in order) for @p n standardized float rows at @p x
+    static void scoreEnsemble(const std::vector<MlpNet>& members, const float* x, Eigen::Index n, double* out, MlpWork& work)
+    {
+      std::fill(out, out + n, 0.0);
+      for (const MlpNet& net : members)
       {
-        double s = w.back();
-        for (Size j = 0; j + 1 < w.size(); ++j) s += w[j] * x[j];
-        return s;
+        mlpForward(net, x, n, work);
+        for (Eigen::Index i = 0; i < n; ++i) out[i] += static_cast<double>(work.o(i));
       }
-      double sum = 0.0;
-      std::vector<double> a1, a2;
-      for (const Net& n : nets)
-      {
-        a1.assign(n.h, 0.0);
-        a2.assign(n.h, 0.0);
-        for (Size k = 0; k < n.h; ++k)
-        {
-          double s = n.b1[k];
-          for (Size j = 0; j < n.d; ++j) s += n.w1[j * n.h + k] * x[j];
-          a1[k] = std::tanh(s);
-        }
-        for (Size k = 0; k < n.h; ++k)
-        {
-          double s = n.b2[k];
-          for (Size j = 0; j < n.h; ++j) s += n.w2[j * n.h + k] * a1[j];
-          a2[k] = std::tanh(s);
-        }
-        double o = n.b3;
-        for (Size k = 0; k < n.h; ++k) o += n.w3[k] * a2[k];
-        sum += o;
-      }
-      return sum / static_cast<double>(nets.size());
+      for (Eigen::Index i = 0; i < n; ++i) out[i] /= static_cast<double>(members.size());
     }
   };
 
@@ -186,121 +224,105 @@ namespace
     return model;
   }
 
-  // Small MLP ensemble (two tanh hidden layers, linear output), weighted squared-hinge loss + weight decay
-  // (decay = 1 / (C * rows), as the SVM's regularization), mini-batch Adam, fixed epochs; deterministic seeds
-  // from the salt. The members differ by their initialization and batch order only.
-  Model trainMlp(const Matrix& X, const std::vector<Size>& rows, const std::vector<double>& y, double c_pos, double c_neg,
-                 std::uint64_t seed, int members, int hidden, int epochs)
+  // Trains one MLP network for @p epochs epochs of mini-batch Adam (batch 256, learning rate 1e-3) on the rows @p rows of
+  // @p X with labels @p y: weighted squared hinge (per-class costs C+ / C-, normalized to a total weight of rows.size())
+  // plus weight decay 1 / (mean C * rows), as the SVM's regularization. An empty @p net is first initialized (normal,
+  // scaled by 1 / sqrt(fan-in)); otherwise training continues from its state (warm start). @p rng draws the
+  // initialization and the batch order.
+  void trainMlpNet(MlpNet& net, const MatF& X, const std::vector<Size>& rows, const std::vector<double>& y, double c_pos,
+                   double c_neg, int hidden, int epochs, std::mt19937_64& rng)
   {
-    Model model;
-    const Size d = X.cols, h = static_cast<Size>(std::max(hidden, 1)), m = rows.size();
-    const double c_mean = (c_pos + c_neg) / 2.0;
-    const double decay = 1.0 / (c_mean * std::max<double>(static_cast<double>(m), 1.0));
-    for (int member = 0; member < members; ++member)
+    const Eigen::Index d = X.cols(), h = std::max(hidden, 1);
+    const Size m = rows.size();
+    if (net.p.empty())
     {
-      std::mt19937_64 rng(keyedHash(seed, MLP, static_cast<std::uint64_t>(member)));
-      Model::Net net;
       net.d = d;
       net.h = h;
+      net.p.assign(static_cast<Size>(net.oB3() + 1), 0.0f);
       std::normal_distribution<double> nd(0.0, 1.0);
-      net.w1.resize(d * h);
-      net.b1.assign(h, 0.0);
-      net.w2.resize(h * h);
-      net.b2.assign(h, 0.0);
-      net.w3.resize(h);
-      for (double& v : net.w1) v = nd(rng) / std::sqrt(static_cast<double>(std::max<Size>(d, 1)));
-      for (double& v : net.w2) v = nd(rng) / std::sqrt(static_cast<double>(h));
-      for (double& v : net.w3) v = nd(rng) / std::sqrt(static_cast<double>(h));
-      // Adam state over the flat parameter vector
-      std::vector<double*> params;
-      for (double& v : net.w1) params.push_back(&v);
-      for (double& v : net.b1) params.push_back(&v);
-      for (double& v : net.w2) params.push_back(&v);
-      for (double& v : net.b2) params.push_back(&v);
-      for (double& v : net.w3) params.push_back(&v);
-      params.push_back(&net.b3);
-      const Size np = params.size();
-      std::vector<double> mom(np, 0.0), vel(np, 0.0), grad(np, 0.0);
-      const double lr = 1e-3, beta1 = 0.9, beta2 = 0.999, eps = 1e-8;
-      Size step = 0;
-      std::vector<Size> order(m);
-      std::iota(order.begin(), order.end(), 0);
-      const Size batch = 256;
-      std::vector<double> a1(h), a2(h), d2(h), d1(h);
-      // class weights normalized so that the total weight is m
-      double wsum = 0.0;
-      for (Size i = 0; i < m; ++i) wsum += (y[i] > 0 ? c_pos : c_neg);
-      const double wnorm = wsum > 0 ? static_cast<double>(m) / wsum : 1.0;
-      for (int epoch = 0; epoch < epochs; ++epoch)
+      const double s1 = 1.0 / std::sqrt(static_cast<double>(std::max<Eigen::Index>(d, 1))), s2 = 1.0 / std::sqrt(static_cast<double>(h));
+      for (Eigen::Index k = 0; k < d * h; ++k) net.p[static_cast<Size>(k)] = static_cast<float>(nd(rng) * s1);
+      for (Eigen::Index k = 0; k < h * h; ++k) net.p[static_cast<Size>(net.oW2() + k)] = static_cast<float>(nd(rng) * s2);
+      for (Eigen::Index k = 0; k < h; ++k) net.p[static_cast<Size>(net.oW3() + k)] = static_cast<float>(nd(rng) * s2);
+      net.m1.assign(net.p.size(), 0.0f);
+      net.m2.assign(net.p.size(), 0.0f);
+      net.step = 0;
+    }
+    if (m == 0) return;
+    const double c_mean = (c_pos + c_neg) / 2.0;
+    const float decay = static_cast<float>(1.0 / (c_mean * static_cast<double>(m)));
+    // class weights normalized so that the total weight is m
+    double wsum = 0.0;
+    for (Size i = 0; i < m; ++i) wsum += (y[i] > 0 ? c_pos : c_neg);
+    const double wnorm = wsum > 0 ? static_cast<double>(m) / wsum : 1.0;
+    const float cw_pos = static_cast<float>(c_pos * wnorm), cw_neg = static_cast<float>(c_neg * wnorm);
+    constexpr Eigen::Index batch = 256;
+    MatF xb(batch, d), a1(batch, h), a2(batch, h), d1(batch, h), d2(batch, h);
+    VecF o(batch), g(batch);
+    std::vector<float> grad(net.p.size());
+    Eigen::Map<const MatF> W1(net.p.data(), d, h), W2(net.p.data() + net.oW2(), h, h);
+    Eigen::Map<const RowVecF> b1(net.p.data() + net.oB1(), h), b2(net.p.data() + net.oB2(), h);
+    Eigen::Map<const VecF> w3(net.p.data() + net.oW3(), h);
+    Eigen::Map<MatF> gW1(grad.data(), d, h), gW2(grad.data() + net.oW2(), h, h);
+    Eigen::Map<RowVecF> gb1(grad.data() + net.oB1(), h), gb2(grad.data() + net.oB2(), h);
+    Eigen::Map<VecF> gw3(grad.data() + net.oW3(), h);
+    const float lr = 1e-3f, beta1 = 0.9f, beta2 = 0.999f, eps = 1e-8f;
+    std::vector<Size> order(m);
+    std::iota(order.begin(), order.end(), 0);
+    for (int epoch = 0; epoch < epochs; ++epoch)
+    {
+      std::shuffle(order.begin(), order.end(), rng);
+      for (Size start = 0; start < m; start += static_cast<Size>(batch))
       {
-        std::shuffle(order.begin(), order.end(), rng);
-        for (Size start = 0; start < m; start += batch)
+        const Eigen::Index nb = static_cast<Eigen::Index>(std::min(m - start, static_cast<Size>(batch)));
+        for (Eigen::Index b = 0; b < nb; ++b) xb.row(b) = X.row(static_cast<Eigen::Index>(rows[order[start + static_cast<Size>(b)]]));
+        auto Xb = xb.topRows(nb);
+        auto A1 = a1.topRows(nb);
+        auto A2 = a2.topRows(nb);
+        auto D1 = d1.topRows(nb);
+        auto D2 = d2.topRows(nb);
+        auto O = o.head(nb);
+        auto G = g.head(nb);
+        // forward
+        A1.noalias() = Xb * W1;
+        A1.rowwise() += b1;
+        A1 = A1.array().tanh();
+        A2.noalias() = A1 * W2;
+        A2.rowwise() += b2;
+        A2 = A2.array().tanh();
+        O.noalias() = A2 * w3;
+        O.array() += net.p[static_cast<Size>(net.oB3())];
+        // d loss / d output (0 for rows beyond the margin)
+        for (Eigen::Index b = 0; b < nb; ++b)
         {
-          const Size end = std::min(m, start + batch);
-          std::fill(grad.begin(), grad.end(), 0.0);
-          for (Size bi = start; bi < end; ++bi)
-          {
-            const Size i = order[bi];
-            const double* x = X.row(rows[i]);
-            for (Size k = 0; k < h; ++k)
-            {
-              double s = net.b1[k];
-              for (Size j = 0; j < d; ++j) s += net.w1[j * h + k] * x[j];
-              a1[k] = std::tanh(s);
-            }
-            for (Size k = 0; k < h; ++k)
-            {
-              double s = net.b2[k];
-              for (Size j = 0; j < h; ++j) s += net.w2[j * h + k] * a1[j];
-              a2[k] = std::tanh(s);
-            }
-            double o = net.b3;
-            for (Size k = 0; k < h; ++k) o += net.w3[k] * a2[k];
-            const double margin = 1.0 - y[i] * o;
-            if (margin <= 0.0) continue;
-            const double cw = (y[i] > 0 ? c_pos : c_neg) * wnorm;
-            const double dout = -2.0 * cw * margin * y[i]; // d loss / d o
-            // parameter offsets
-            const Size o_w1 = 0, o_b1 = d * h, o_w2 = o_b1 + h, o_b2 = o_w2 + h * h, o_w3 = o_b2 + h, o_b3 = o_w3 + h;
-            for (Size k = 0; k < h; ++k)
-            {
-              grad[o_w3 + k] += dout * a2[k];
-              d2[k] = dout * net.w3[k] * (1.0 - a2[k] * a2[k]);
-            }
-            grad[o_b3] += dout;
-            for (Size j = 0; j < h; ++j)
-            {
-              double s = 0.0;
-              for (Size k = 0; k < h; ++k)
-              {
-                grad[o_w2 + j * h + k] += a1[j] * d2[k];
-                s += net.w2[j * h + k] * d2[k];
-              }
-              d1[j] = s * (1.0 - a1[j] * a1[j]);
-            }
-            for (Size k = 0; k < h; ++k) grad[o_b2 + k] += d2[k];
-            for (Size j = 0; j < d; ++j)
-            {
-              for (Size k = 0; k < h; ++k) grad[o_w1 + j * h + k] += x[j] * d1[k];
-            }
-            for (Size k = 0; k < h; ++k) grad[o_b1 + k] += d1[k];
-          }
-          ++step;
-          const double nb = static_cast<double>(end - start);
-          const double c1 = 1.0 - std::pow(beta1, static_cast<double>(step));
-          const double c2 = 1.0 - std::pow(beta2, static_cast<double>(step));
-          for (Size p = 0; p < np; ++p)
-          {
-            const double g = grad[p] / nb + decay * *params[p];
-            mom[p] = beta1 * mom[p] + (1.0 - beta1) * g;
-            vel[p] = beta2 * vel[p] + (1.0 - beta2) * g * g;
-            *params[p] -= lr * (mom[p] / c1) / (std::sqrt(vel[p] / c2) + eps);
-          }
+          const double yi = y[order[start + static_cast<Size>(b)]];
+          const float margin = 1.0f - static_cast<float>(yi) * O(b);
+          G(b) = margin > 0.0f ? -2.0f * (yi > 0 ? cw_pos : cw_neg) * margin * static_cast<float>(yi) : 0.0f;
+        }
+        // backward
+        gw3.noalias() = A2.transpose() * G;
+        grad[static_cast<Size>(net.oB3())] = G.sum();
+        D2 = (G * w3.transpose()).array() * (1.0f - A2.array().square());
+        gW2.noalias() = A1.transpose() * D2;
+        gb2 = D2.colwise().sum();
+        D1.noalias() = D2 * W2.transpose();
+        D1.array() *= (1.0f - A1.array().square());
+        gW1.noalias() = Xb.transpose() * D1;
+        gb1 = D1.colwise().sum();
+        // Adam
+        ++net.step;
+        const float inv_nb = 1.0f / static_cast<float>(nb);
+        const float c1 = static_cast<float>(1.0 - std::pow(static_cast<double>(beta1), static_cast<double>(net.step)));
+        const float c2 = static_cast<float>(1.0 - std::pow(static_cast<double>(beta2), static_cast<double>(net.step)));
+        for (Size k = 0; k < net.p.size(); ++k)
+        {
+          const float gk = grad[k] * inv_nb + decay * net.p[k];
+          net.m1[k] = beta1 * net.m1[k] + (1.0f - beta1) * gk;
+          net.m2[k] = beta2 * net.m2[k] + (1.0f - beta2) * gk * gk;
+          net.p[k] -= lr * (net.m1[k] / c1) / (std::sqrt(net.m2[k] / c2) + eps);
         }
       }
-      model.nets.push_back(std::move(net));
     }
-    return model;
   }
 
   // AUC = P(a > b) + P(a = b) / 2, by ranks
@@ -451,9 +473,10 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   {
     if (!(std::isfinite(c) && c > 0.0)) bad_option("c_values (finite, > 0)", StringUtils::toStr(c));
   }
-  if (opt.learner == "mlp" && (opt.mlp_members < 1 || opt.mlp_hidden < 1 || opt.mlp_epochs < 1))
+  if (opt.learner == "mlp" && (opt.mlp_members < 1 || opt.mlp_hidden < 1 || opt.mlp_epochs < 1 || opt.mlp_warm_epochs < 0
+                                || opt.mlp_norm_min_decoys < 0))
   {
-    bad_option("mlp_members / mlp_hidden / mlp_epochs (>= 1)", StringUtils::toStr(opt.mlp_members));
+    bad_option("mlp_members / mlp_hidden / mlp_epochs (>= 1), mlp_warm_epochs / mlp_norm_min_decoys (>= 0)", StringUtils::toStr(opt.mlp_members));
   }
   if (n_rows >= static_cast<Size>(std::numeric_limits<int>::max()) || n_feat + 1 >= static_cast<Size>(std::numeric_limits<int>::max()))
   {
@@ -472,6 +495,13 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   Output out;
   out.salt = salt;
   out.learner = opt.learner;
+  if (opt.learner == "mlp")
+  {
+    out.learner_settings = StringUtils::toStr(opt.mlp_members) + " members, hidden " + StringUtils::toStr(opt.mlp_hidden) + ", epochs "
+                           + StringUtils::toStr(opt.mlp_epochs) + ", warm epochs " + StringUtils::toStr(opt.mlp_warm_epochs)
+                           + (opt.mlp_crossfit ? ", cross-fitted, fold normalization from " + StringUtils::toStr(opt.mlp_norm_min_decoys)
+                                                 + " training decoys per fold" : "");
+  }
 
   // per row: stem hash and tie key (random order among equal scores, fixed by the salt)
   std::vector<std::uint64_t> stem_hash(n_rows), row_tie(n_rows);
@@ -605,6 +635,80 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   X.cols = used.size();
   X.v.resize(m * used.size());
   for (Size k = 0; k < m; ++k) standardize(in.features[out.stems[cs[k]].representative], X.v.data() + k * X.cols);
+  // learner "mlp": float32 copies of the stem rows (updated with X) and of all spectrum winners (representative "model")
+  const bool mlp = opt.learner == "mlp";
+  const bool crossfit = mlp && opt.mlp_crossfit;
+  const Eigen::Index mlp_chunk = 1024; // rows per scoring block
+  const int mlp_threads = std::max(1, opt.threads);
+  MatF Xf;
+  MatF Xw;                             // standardized spectrum winners, in the order of spectrum_winners
+  std::vector<Size> winner_pos;        // row -> position in spectrum_winners (representative "model")
+  // fixed fold of a sequence (warm starts, cross-fitting): a hash of salt and sequence (label-blind)
+  auto foldOf = [&](std::uint64_t seq_hash) { return static_cast<int>(keyedHash(salt, FOLD, seq_hash) % 3); };
+  std::vector<int> stem_fold(m, 0);
+  // rows by ensemble (cross-fitting: by fold; else one group) for the stems, the spectrum winners and all rows
+  std::vector<std::vector<Size>> stem_groups, winner_groups, row_groups;
+  auto standardizeF = [&](const std::vector<double>& raw, float* dst)
+  {
+    for (Size u = 0; u < used.size(); ++u) dst[u] = static_cast<float>((raw[used[u]] - mean[used[u]]) / sd[used[u]]);
+  };
+  if (mlp)
+  {
+    Xf = Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
+           X.v.data(), static_cast<Eigen::Index>(m), static_cast<Eigen::Index>(X.cols)).cast<float>();
+    const Size n_groups = crossfit ? 3 : 1;
+    stem_groups.resize(n_groups);
+    row_groups.resize(n_groups);
+    for (Size k = 0; k < m; ++k)
+    {
+      stem_fold[k] = foldOf(stem_hash[out.stems[cs[k]].representative]);
+      stem_groups[crossfit ? static_cast<Size>(stem_fold[k]) : 0].push_back(k);
+    }
+    for (Size i = 0; i < n_rows; ++i) row_groups[crossfit ? static_cast<Size>(foldOf(stem_hash[i])) : 0].push_back(i);
+    if (opt.representative == "model")
+    {
+      winner_groups.resize(n_groups);
+      winner_pos.assign(n_rows, 0);
+      Xw.resize(static_cast<Eigen::Index>(spectrum_winners.size()), static_cast<Eigen::Index>(X.cols));
+      for (Size w = 0; w < spectrum_winners.size(); ++w)
+      {
+        winner_pos[spectrum_winners[w]] = w;
+        standardizeF(in.features[spectrum_winners[w]], Xw.data() + static_cast<Eigen::Index>(w) * Xw.cols());
+        winner_groups[crossfit ? static_cast<Size>(foldOf(stem_hash[spectrum_winners[w]])) : 0].push_back(w);
+      }
+    }
+  }
+  // MLP scores: dst[i] = ensemble output for item i of @p groups (group g: fold g's ensemble if the model is
+  // cross-fitted, else the model's ensemble); fill(i, dst) writes item i's standardized float row. Parallel over
+  // blocks of mlp_chunk items of one group.
+  auto scoreGrouped = [&](const Model& md, const std::vector<std::vector<Size>>& groups, Size n, const auto& fill,
+                          std::vector<double>& dst)
+  {
+    dst.assign(n, 0.0);
+    std::vector<std::pair<Size, Size>> blocks; // (group, first position)
+    for (Size g = 0; g < groups.size(); ++g)
+    {
+      for (Size s0 = 0; s0 < groups[g].size(); s0 += static_cast<Size>(mlp_chunk)) blocks.emplace_back(g, s0);
+    }
+#pragma omp parallel num_threads(mlp_threads)
+    {
+      MlpWork work;
+      MatF xc(mlp_chunk, static_cast<Eigen::Index>(used.size()));
+      std::vector<double> sc(static_cast<Size>(mlp_chunk));
+#pragma omp for schedule(static)
+      for (SignedSize b = 0; b < static_cast<SignedSize>(blocks.size()); ++b)
+      {
+        const auto [g, s0] = blocks[static_cast<Size>(b)];
+        const Size nr = std::min(static_cast<Size>(mlp_chunk), groups[g].size() - s0);
+        for (Size r = 0; r < nr; ++r) fill(groups[g][s0 + r], xc.data() + static_cast<Eigen::Index>(r) * xc.cols());
+        Model::scoreEnsemble(md.folds.empty() ? md.nets : md.folds[g], xc.data(), static_cast<Eigen::Index>(nr), sc.data(), work);
+        const bool norm = !md.folds.empty() && !md.fold_scale.empty();
+        for (Size r = 0; r < nr; ++r) dst[groups[g][s0 + r]] = norm ? (sc[r] - md.fold_center[g]) / md.fold_scale[g] : sc[r];
+      }
+    }
+  };
+  auto fillStem = [&](Size k, float* dst) { std::copy_n(Xf.data() + static_cast<Eigen::Index>(k) * Xf.cols(), Xf.cols(), dst); };
+  auto fillWinner = [&](Size w, float* dst) { std::copy_n(Xw.data() + static_cast<Eigen::Index>(w) * Xw.cols(), Xw.cols(), dst); };
 
   // pseudo-labels (masking): training decoys -1, pseudo-targets (targets, estimating decoys) +1
   std::vector<bool> training_decoy(m);
@@ -716,6 +820,11 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     return pos;
   };
   std::vector<Size> ranked(m);
+  // learner "mlp": networks per cross-validation task (fold, C pair) and of the final model; with warm starts
+  // (Options::mlp_warm_epochs > 0) they carry over to the next round
+  const bool warm = mlp && opt.mlp_warm_epochs > 0;
+  std::vector<std::vector<MlpNet>> cv_nets(3 * grid.size());
+  std::vector<MlpNet> final_nets;
   for (int round = 0; round < std::max(1, opt.iterations); ++round)
   {
     std::iota(ranked.begin(), ranked.end(), 0);
@@ -727,6 +836,13 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       alpha += 0.005;
       pos = positiveSet(ranked, alpha, 0.0);
+    }
+    if (round > 0 && pos.size() < 3)
+    {
+      // a later round whose model leaves too few positives (weak data): keep the previous round's model and scores
+      out.rounds.push_back("round " + StringUtils::toStr(round + 1) + ": " + StringUtils::toStr(pos.size())
+                           + " positive stems: training stopped, the model of round " + StringUtils::toStr(round) + " is kept");
+      break;
     }
     if (pos.empty())
     {
@@ -754,16 +870,34 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       for (Size r = 0; r < po.size(); ++r) { train_rows.push_back(po[r]); train_y.push_back(1.0); train_fold.push_back(static_cast<int>(r % 3)); }
       for (Size r = 0; r < no.size(); ++r) { train_rows.push_back(no[r]); train_y.push_back(-1.0); train_fold.push_back(static_cast<int>(r % 3)); }
     }
+    // warm starts and cross-fitting: a stem keeps its fold over the rounds (a network never trained on its held-out
+    // stems in an earlier round; cross-fitting scores a stem by the networks of its fold); round robin as above (and no
+    // cross-fitting in this round) if a fold would lack positives or negatives
+    bool fixed_folds = false;
+    if (warm || crossfit)
+    {
+      std::vector<int> fixed(train_rows.size());
+      Size per_fold[3][2] = {{0, 0}, {0, 0}, {0, 0}};
+      for (Size r = 0; r < train_rows.size(); ++r)
+      {
+        fixed[r] = stem_fold[train_rows[r]];
+        ++per_fold[fixed[r]][train_y[r] > 0 ? 1 : 0];
+      }
+      fixed_folds = true;
+      for (const auto& pf : per_fold) fixed_folds = fixed_folds && pf[0] > 0 && pf[1] > 0;
+      if (fixed_folds) train_fold = std::move(fixed);
+    }
+    const bool crossfit_round = crossfit && fixed_folds;
     if (pos.size() < 3 || neg.size() < 3)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "RESET: too few positive stems or training decoys for 3-fold cross-validation (at least 3 each).",
         StringUtils::toStr(pos.size()) + " / " + StringUtils::toStr(neg.size()));
     }
-    auto fit = [&](const std::vector<Size>& rows, const std::vector<double>& y, double cp, double cn, std::uint64_t seed)
+    // learner "svm"
+    auto fit = [&](const std::vector<Size>& rows, const std::vector<double>& y, double cp, double cn)
     {
-      Model fm = opt.learner == "mlp" ? trainMlp(X, rows, y, cp, cn, seed, opt.mlp_members, opt.mlp_hidden, opt.mlp_epochs)
-                                      : trainSvm(X, rows, y, cp, cn);
+      Model fm = trainSvm(X, rows, y, cp, cn);
       if (!fm.finite())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -777,6 +911,86 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     std::vector<std::vector<Size>> held_index(3); // positions in train_rows
     for (Size r = 0; r < train_rows.size(); ++r) held_index[train_fold[r]].push_back(r);
     std::vector<std::exception_ptr> errors(tasks);
+    const int members = opt.mlp_members;
+    const int epochs = warm && round > 0 ? opt.mlp_warm_epochs : opt.mlp_epochs;
+    if (mlp)
+    {
+      // every network of every task is one parallel job; then the held-out scores of each task's ensemble
+      std::vector<std::vector<Size>> fold_rows(3);
+      std::vector<std::vector<double>> fold_y(3);
+      for (int f = 0; f < 3; ++f)
+      {
+        for (Size r = 0; r < train_rows.size(); ++r)
+        {
+          if (train_fold[r] == f) continue;
+          fold_rows[f].push_back(train_rows[r]);
+          fold_y[f].push_back(train_y[r]);
+        }
+      }
+      for (std::vector<MlpNet>& v : cv_nets)
+      {
+        if (!warm) v.clear();
+        v.resize(static_cast<Size>(members));
+      }
+      const SignedSize jobs = static_cast<SignedSize>(tasks) * members;
+      std::vector<std::exception_ptr> job_errors(static_cast<Size>(jobs));
+#pragma omp parallel for schedule(dynamic, 1) num_threads(threads)
+      for (SignedSize j = 0; j < jobs; ++j)
+      {
+        try
+        {
+          const Size t = static_cast<Size>(j / members);
+          const int f = static_cast<int>(t / grid.size());
+          const auto [cp, cn] = grid[t % grid.size()];
+          const std::uint64_t task_seed = keyedHash(salt, MLP, static_cast<std::uint64_t>(round) * 100 + static_cast<std::uint64_t>(f));
+          std::mt19937_64 rng(keyedHash(task_seed, MLP, static_cast<std::uint64_t>(j % members)));
+          trainMlpNet(cv_nets[t][static_cast<Size>(j % members)], Xf, fold_rows[f], fold_y[f], cp, cn, opt.mlp_hidden, epochs, rng);
+        }
+        catch (...)
+        {
+          job_errors[static_cast<Size>(j)] = std::current_exception();
+        }
+      }
+      for (const std::exception_ptr& e : job_errors)
+      {
+        if (e) std::rethrow_exception(e);
+      }
+#pragma omp parallel for schedule(dynamic, 1) num_threads(threads)
+      for (SignedSize t = 0; t < static_cast<SignedSize>(tasks); ++t)
+      {
+        try
+        {
+          const std::vector<MlpNet>& nets = cv_nets[static_cast<Size>(t)];
+          const int f = static_cast<int>(t / static_cast<SignedSize>(grid.size()));
+          if (!std::all_of(nets.begin(), nets.end(), [](const MlpNet& n) { return std::all_of(n.p.begin(), n.p.end(), [](float v) { return std::isfinite(v); }); }))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: the learner returned non-finite parameters.", opt.learner);
+          }
+          MatF xh(static_cast<Eigen::Index>(held_index[f].size()), Xf.cols());
+          for (Size r = 0; r < held_index[f].size(); ++r) xh.row(static_cast<Eigen::Index>(r)) = Xf.row(static_cast<Eigen::Index>(train_rows[held_index[f][r]]));
+          std::vector<double>& hs = held_scores[static_cast<Size>(t)];
+          hs.assign(held_index[f].size(), 0.0);
+          MlpWork work;
+          for (Eigen::Index r0 = 0; r0 < xh.rows(); r0 += mlp_chunk)
+          {
+            Model::scoreEnsemble(nets, xh.data() + r0 * xh.cols(), std::min(mlp_chunk, xh.rows() - r0), hs.data() + r0, work);
+          }
+          for (double v : hs)
+          {
+            if (!std::isfinite(v))
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: non-finite held-out score.", StringUtils::toStr(v));
+            }
+          }
+        }
+        catch (...)
+        {
+          errors[static_cast<Size>(t)] = std::current_exception();
+        }
+      }
+    }
+    else
+    {
 #pragma omp parallel for schedule(dynamic, 1) num_threads(threads)
     for (SignedSize t = 0; t < static_cast<SignedSize>(tasks); ++t)
     {
@@ -792,7 +1006,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
           rows.push_back(train_rows[r]);
           y.push_back(train_y[r]);
         }
-        const Model fm = fit(rows, y, cp, cn, keyedHash(salt, MLP, static_cast<std::uint64_t>(round) * 100 + static_cast<std::uint64_t>(f)));
+        const Model fm = fit(rows, y, cp, cn);
         std::vector<double>& hs = held_scores[static_cast<Size>(t)];
         for (Size r : held_index[f])
         {
@@ -808,6 +1022,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       {
         errors[static_cast<Size>(t)] = std::current_exception();
       }
+    }
     }
     for (const std::exception_ptr& e : errors)
     {
@@ -845,13 +1060,56 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       if (counts[best] > 0 || cv_alpha >= 1.0) break;
       if (cv_plus > 0.0) cv_plus = 0.0; else cv_alpha += 0.005;
     }
-    model = fit(train_rows, train_y, grid[best].first, grid[best].second,
-                keyedHash(salt, MLP, static_cast<std::uint64_t>(round) * 100 + 99));
+    if (crossfit_round)
+    {
+      // cross-fitted model: the ensembles of the chosen C pair, one per fold (normalized below)
+      model.nets.clear();
+      model.folds.clear();
+      model.fold_center.clear();
+      model.fold_scale.clear();
+      for (int f = 0; f < 3; ++f) model.folds.push_back(cv_nets[static_cast<Size>(f) * grid.size() + best]);
+    }
+    else if (mlp)
+    {
+      model.folds.clear();
+      if (!warm) final_nets.clear();
+      final_nets.resize(static_cast<Size>(members));
+      const std::uint64_t final_seed = keyedHash(salt, MLP, static_cast<std::uint64_t>(round) * 100 + 99);
+      std::vector<std::exception_ptr> job_errors(static_cast<Size>(members));
+#pragma omp parallel for schedule(dynamic, 1) num_threads(threads)
+      for (int j = 0; j < members; ++j)
+      {
+        try
+        {
+          std::mt19937_64 rng(keyedHash(final_seed, MLP, static_cast<std::uint64_t>(j)));
+          trainMlpNet(final_nets[static_cast<Size>(j)], Xf, train_rows, train_y, grid[best].first, grid[best].second, opt.mlp_hidden, epochs, rng);
+        }
+        catch (...)
+        {
+          job_errors[static_cast<Size>(j)] = std::current_exception();
+        }
+      }
+      for (const std::exception_ptr& e : job_errors)
+      {
+        if (e) std::rethrow_exception(e);
+      }
+      model.nets = final_nets;
+      if (!model.finite())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: the learner returned non-finite parameters.", opt.learner);
+      }
+    }
+    else
+    {
+      model = fit(train_rows, train_y, grid[best].first, grid[best].second);
+    }
     if (opt.representative == "model")
     {
       // the stem's PSM with the best score under the new model represents it from now on (label-blind: a function of
       // the stem's PSMs and the model)
       std::vector<std::exception_ptr> rep_errors(m);
+      std::vector<double> winner_score; // learner "mlp": all spectrum winners scored in blocks first
+      if (mlp) scoreGrouped(model, winner_groups, spectrum_winners.size(), fillWinner, winner_score);
 #pragma omp parallel num_threads(threads)
       {
         std::vector<double> x(X.cols);
@@ -866,8 +1124,16 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
             Size best_row = st.representative;
             for (Size row : stem_rows[cs[k]])
             {
-              standardize(in.features[row], x.data());
-              const double sc = model.score(x.data());
+              double sc;
+              if (mlp)
+              {
+                sc = winner_score[winner_pos[row]];
+              }
+              else
+              {
+                standardize(in.features[row], x.data());
+                sc = model.score(x.data());
+              }
               if (sc > best_score || (sc == best_score && row_tie[row] < row_tie[best_row]))
               {
                 best_score = sc;
@@ -879,6 +1145,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
               st.representative = best_row;
               st.search_score = in.search_scores[best_row];
               standardize(in.features[best_row], X.v.data() + k * X.cols);
+              if (mlp) Xf.row(static_cast<Eigen::Index>(k)) = Xw.row(static_cast<Eigen::Index>(winner_pos[best_row]));
             }
           }
           catch (...)
@@ -892,9 +1159,52 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
         if (e) std::rethrow_exception(e);
       }
     }
+    if (mlp) scoreGrouped(model, stem_groups, m, fillStem, cur);
+    if (crossfit_round)
+    {
+      // the three fold ensembles are trained separately, so their score scales differ, but the stems are ranked
+      // together: as Percolator normalizes the scores of its cross-validation folds, each fold's scores are shifted and
+      // scaled so that the score at which its pseudo-targets pass Options::train_fdr against its training decoys
+      // (SeqStep+, c = 3/4, as the positive set) becomes 0 and the median score of its training decoys -1 (labels of
+      // training decoys only: masking holds); a fold without such a threshold keeps its scores
+      model.fold_center.assign(3, 0.0);
+      model.fold_scale.assign(3, 1.0);
+      // only with enough training decoys in every fold (Options::mlp_norm_min_decoys): with few, the anchors are set by
+      // a handful of decoys and add noise; all folds or none, so that raw and normalized folds are never mixed
+      Size fold_decoys[3] = {0, 0, 0};
+      for (Size k = 0; k < m; ++k) fold_decoys[stem_fold[k]] += training_decoy[k] ? 1 : 0;
+      const bool normalize = std::min({fold_decoys[0], fold_decoys[1], fold_decoys[2]}) >= static_cast<Size>(opt.mlp_norm_min_decoys);
+      for (int f = 0; normalize && f < 3; ++f)
+      {
+        std::vector<Size> fk;
+        std::vector<double> dec_scores;
+        for (Size k = 0; k < m; ++k)
+        {
+          if (stem_fold[k] != f) continue;
+          fk.push_back(k);
+          if (training_decoy[k]) dec_scores.push_back(cur[k]);
+        }
+        if (dec_scores.empty()) continue;
+        rankByScore(fk, cur, tie);
+        std::vector<bool> dec(fk.size());
+        for (Size r = 0; r < fk.size(); ++r) dec[r] = training_decoy[fk[r]];
+        const std::vector<double> q = seqStepQValues(dec, 3.0, 1.0);
+        double thr = std::numeric_limits<double>::quiet_NaN();
+        for (Size r = 0; r < fk.size(); ++r)
+        {
+          if (!dec[r] && q[r] <= opt.train_fdr) thr = cur[fk[r]];
+        }
+        std::nth_element(dec_scores.begin(), dec_scores.begin() + static_cast<std::ptrdiff_t>(dec_scores.size() / 2), dec_scores.end());
+        const double med = dec_scores[dec_scores.size() / 2];
+        if (!std::isfinite(thr) || !(thr - med > 1e-12)) continue;
+        model.fold_center[static_cast<Size>(f)] = thr;
+        model.fold_scale[static_cast<Size>(f)] = thr - med;
+      }
+      for (Size k = 0; k < m; ++k) cur[k] = (cur[k] - model.fold_center[static_cast<Size>(stem_fold[k])]) / model.fold_scale[static_cast<Size>(stem_fold[k])];
+    }
     for (Size k = 0; k < m; ++k)
     {
-      cur[k] = model.score(X.row(k));
+      if (!mlp) cur[k] = model.score(X.row(k));
       if (!std::isfinite(cur[k]))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: non-finite stem score.",
@@ -946,6 +1256,18 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   out.psm_peps.assign(n_rows, 1.0);
   out.stem_q_values.assign(n_rows, 1.0);
   out.roles.assign(n_rows, Role::TARGET);
+  if (mlp)
+  {
+    scoreGrouped(model, row_groups, n_rows, [&](Size i, float* dst) { standardizeF(in.features[i], dst); }, out.scores);
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (!std::isfinite(out.scores[i]))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: non-finite PSM score.", StringUtils::toStr(out.scores[i]));
+      }
+    }
+  }
+  else
   {
     std::vector<std::exception_ptr> errors(n_rows);
 #pragma omp parallel num_threads(threads)

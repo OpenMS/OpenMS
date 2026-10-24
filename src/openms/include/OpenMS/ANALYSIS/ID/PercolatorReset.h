@@ -87,7 +87,18 @@ namespace OpenMS
       int threads = 1;                  ///< threads for the cross-validation solves
       int mlp_members = 8;              ///< MLP ensemble size
       int mlp_hidden = 16;              ///< MLP hidden units (two hidden layers)
-      int mlp_epochs = 30;              ///< MLP training epochs
+      int mlp_epochs = 30;              ///< MLP training epochs (the first round, or every round without warm starts)
+      /// MLP warm starts: > 0 = the networks of each cross-validation task and of the final model continue from the
+      /// previous round for this many epochs (a stem keeps its fold over the rounds); 0 = trained afresh every round
+      int mlp_warm_epochs = 3;
+      /// MLP cross-fitting: the stems (folds fixed by a hash of salt and sequence) are scored by the ensemble of the chosen
+      /// C pair that did not train on their fold, in every round and at the end (no final fit); otherwise one final
+      /// ensemble trained on all training stems scores everything, which ranks the training decoys it trained on too low
+      bool mlp_crossfit = true;
+      /// MLP cross-fitting: the fold ensembles' scores are normalized (as Percolator's folds: the fold's score at
+      /// train_fdr against its training decoys -> 0, its median training decoy -> -1) only if every fold has at least this
+      /// many training decoys (0 = always)
+      int mlp_norm_min_decoys = 1000;
     };
 
     /// Role of a row's stem (decoy stems by their coin)
@@ -148,6 +159,7 @@ namespace OpenMS
       std::vector<double> weights;            ///< linear learner: raw-feature weights of the final model, bias last
       std::uint64_t salt = 0;                 ///< the effective salt and the learner (for reports)
       std::string learner;
+      std::string learner_settings;           ///< learner "mlp": its settings (for reports); empty for "svm"
     };
 
     /// Runs RESET; throws Exception::InvalidValue on malformed input or without decoy stems.

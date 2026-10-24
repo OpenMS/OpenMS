@@ -223,6 +223,77 @@ START_SECTION(static Output run(const Input& input, const Options& options))
   opt.iterations = 2;
   const PercolatorReset::Output mlp = PercolatorReset::run(in, opt);
   TEST_EQUAL(mlp.discoveries_1pct > 600, true)
+  TEST_EQUAL(mlp.learner_settings, "2 members, hidden 16, epochs 5, warm epochs 3, cross-fitted, fold normalization from 1000 training decoys per fold")
+  {
+    // MLP: reproducible and independent of the number of threads (one thread per network)
+    PercolatorReset::Options o = opt;
+    o.threads = opt.threads == 1 ? 4 : 1;
+    const PercolatorReset::Output again_mlp = PercolatorReset::run(in, o);
+    TEST_EQUAL(again_mlp.scores == mlp.scores, true)
+    TEST_EQUAL(again_mlp.stem_q_values == mlp.stem_q_values, true)
+    // masking with the MLP (cross-fitted and not): relabelling the estimating decoys as targets changes no score
+    for (const bool cf : {true, false})
+    {
+      o = opt;
+      o.mlp_crossfit = cf;
+      const PercolatorReset::Output a = PercolatorReset::run(in, o);
+      PercolatorReset::Input rl = in;
+      for (size_t i = 0; i < in.features.size(); ++i)
+      {
+        if (a.roles[i] == PercolatorReset::Role::ESTIMATING_DECOY) rl.is_decoy[i] = false;
+      }
+      TEST_EQUAL(PercolatorReset::run(rl, o).scores == a.scores, true)
+      TEST_EQUAL(a.discoveries_1pct > 600, true)
+    }
+    // trained afresh every round (no warm starts) also works
+    o = opt;
+    o.mlp_warm_epochs = 0;
+    TEST_EQUAL(PercolatorReset::run(in, o).discoveries_1pct > 600, true)
+    // fold normalization always (0) and never (a huge threshold) both work; this data has < 1000 training decoys per
+    // fold, so the default does not normalize: equal to "never"
+    o = opt;
+    o.mlp_norm_min_decoys = 0;
+    TEST_EQUAL(PercolatorReset::run(in, o).discoveries_1pct > 600, true)
+    o.mlp_norm_min_decoys = 1000000;
+    TEST_EQUAL(PercolatorReset::run(in, o).scores == mlp.scores, true)
+    // cross-fitting: the training decoys are scored by networks that did not train on them, so they stay
+    // exchangeable with the estimating decoys in the top of the ranking (without it the MLP ranks its own training
+    // decoys too low); here: similar counts of both above the score of the 300th best decoy
+    std::vector<std::pair<double, int>> dec;
+    for (const PercolatorReset::Stem& st : mlp.stems)
+    {
+      if (st.decoy) dec.emplace_back(st.score, st.role == PercolatorReset::Role::TRAINING_DECOY ? 1 : 0);
+    }
+    std::sort(dec.begin(), dec.end(), [](const auto& l, const auto& r) { return l.first > r.first; });
+    int top_training = 0;
+    for (size_t k = 0; k < 300 && k < dec.size(); ++k) top_training += dec[k].second;
+    STATUS("training decoys among the 300 best decoys (cross-fitted MLP): " << top_training)
+    TEST_EQUAL(top_training > 110 && top_training < 190, true)
+  }
+  // MLP FDR control on simulated data (as for the SVM below, a stronger signal; 20 data sets): mean FDP at q <= 0.05
+  // stays near 0.05
+  {
+    double fdp_sum = 0.0;
+    for (uint64_t rep = 0; rep < 20; ++rep)
+    {
+      std::vector<bool> t2;
+      const PercolatorReset::Input sim = simulate(2000 + rep, 400, 2600, 3000, t2, 3.0);
+      PercolatorReset::Options o2;
+      o2.salt = 555 + rep;
+      o2.iterations = 3;
+      o2.learner = "mlp";
+      o2.mlp_members = 2;
+      const PercolatorReset::Output r2 = PercolatorReset::run(sim, o2);
+      size_t d2 = 0, f2 = 0;
+      for (size_t i = 0; i < sim.features.size(); ++i)
+      {
+        if (!sim.is_decoy[i] && r2.stem_q_values[i] <= 0.05) { ++d2; if (!t2[i]) ++f2; }
+      }
+      fdp_sum += d2 > 0 ? static_cast<double>(f2) / static_cast<double>(d2) : 0.0;
+    }
+    STATUS("MLP mean FDP at 5 %: " << fdp_sum / 20.0)
+    TEST_EQUAL(fdp_sum / 20.0 < 0.075, true)
+  }
 
   // FDR control (weak signal, many nulls): mean false discovery proportion over 20 simulated data sets and salts at
   // q <= 0.05 stays near or below 0.05 (expected FDP of RESET <= 0.05; 0.075 leaves room for the sampling error)
@@ -312,6 +383,10 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     o = opt; o.c_values = {1.0, std::numeric_limits<double>::infinity()};
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
     o = opt; o.learner = "mlp"; o.mlp_members = 0;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.learner = "mlp"; o.mlp_warm_epochs = -1;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o = opt; o.learner = "mlp"; o.mlp_norm_min_decoys = -1;
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
     o = opt; o.iterations = 0;
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
