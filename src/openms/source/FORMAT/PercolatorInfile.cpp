@@ -427,6 +427,59 @@ namespace OpenMS
       if (value.valueType() == DataValue::INT_VALUE) return static_cast<float>(static_cast<long long>(value));
       return StringUtils::toFloat(value.toString());
     }
+
+    // SpectrumLookup::extractScanNumber(id, RegularExpression(SpectrumLookup::getRegExFromNativeID(first_id)), true)
+    // for every id, without the regular expression when it is "<key>=(?<GROUP>\d+)" (all native ID types but the plain
+    // number): the number after the last "<key>=" that a digit follows (the matches cannot overlap: the keys hold no
+    // digit and none ends with its own beginning), converted with StringUtils::toInt32 as there (-1 if it fails).
+    class ScanNumberOf
+    {
+    public:
+      explicit ScanNumberOf(const std::string& first_id) :
+        pattern_(SpectrumLookup::getRegExFromNativeID(first_id)),
+        regex_(pattern_)
+      {
+        static const std::string group = "=(?<GROUP>\\d+)";
+        if (pattern_.size() > group.size() && StringUtils::hasSuffix(pattern_, group))
+        {
+          key_ = pattern_.substr(0, pattern_.size() - group.size() + 1); // "<key>="
+          if (std::any_of(key_.begin(), key_.end(), [](char c) { return !std::isalpha(static_cast<unsigned char>(c)) && c != '='; }))
+          {
+            key_.clear(); // (only letters and '=': the cases above)
+          }
+        }
+      }
+
+      Int operator()(const std::string& id) const
+      {
+        if (key_.empty()) return SpectrumLookup::extractScanNumber(id, regex_, /*no_error=*/true);
+        size_t last_begin = std::string::npos, last_end = 0;
+        for (size_t pos = id.find(key_); pos != std::string::npos; pos = id.find(key_, pos + 1))
+        {
+          size_t end = pos + key_.size();
+          while (end < id.size() && id[end] >= '0' && id[end] <= '9') ++end;
+          if (end > pos + key_.size())
+          {
+            last_begin = pos + key_.size();
+            last_end = end;
+          }
+        }
+        if (last_begin == std::string::npos) return -1;
+        try
+        {
+          return StringUtils::toInt32(id.substr(last_begin, last_end - last_begin));
+        }
+        catch (Exception::ConversionError&)
+        {
+          return -1;
+        }
+      }
+
+    private:
+      std::string pattern_;
+      RegularExpression regex_;
+      std::string key_;
+    };
   }
 
   template <bool with_strings, typename Exists, typename Get, typename Put>
@@ -580,7 +633,7 @@ namespace OpenMS
 
     // Scan-number regex is derived from the first pid's scan identifier.
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
+    const ScanNumberOf scan_number_of(sid);
 
     // Per spectrum (PeptideIdentification): the meta values it added (hit index, keys), the values it overwrote (hit
     // index, key, previous value), the hits it skipped (hit index, reason) and the error it stopped at, collected in
@@ -617,8 +670,7 @@ namespace OpenMS
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
       const std::string file_identifier = getFileIdentifier(pep_id);
 
-      const Int scan_number = SpectrumLookup::extractScanNumber(
-        scan_identifier, scan_regex, /*no_error=*/true);
+      const Int scan_number = scan_number_of(scan_identifier);
 
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
@@ -841,7 +893,7 @@ namespace OpenMS
 
     // Scan-number regex is derived from the first pid's scan identifier.
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
+    const ScanNumberOf scan_number_of(sid);
 
     // The hits of spectrum (PeptideIdentification) i are hit_offset[i] onwards. Their state (first pass): skipped
     // (0) or stamped (STAMPED, i.e. evidence and target/decoy type), a decoy (DECOY), a row (ROW: every feature).
@@ -877,7 +929,7 @@ namespace OpenMS
       {
         const std::string scan_identifier = getScanIdentifier(peptide_ids[i], i + 1);
         file_identifier[i] = getFileIdentifier(peptide_ids[i]);
-        scan_numbers[i] = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, /*no_error=*/true);
+        scan_numbers[i] = scan_number_of(scan_identifier);
       }
       catch (...)
       {
@@ -1178,7 +1230,7 @@ namespace OpenMS
     const UInt lookup_index[] = {registry.getIndex("CalcMass"), registry.getIndex("IsotopeError"),
                                  registry.getIndex(Constants::UserParam::ISOTOPE_ERROR)};
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
+    const ScanNumberOf scan_number_of(sid);
 
     // A hit whose PIN columns cannot be computed (an invalid value, e.g. a CalcMass that is not a number) and the hits
     // after it are left as they are: buildFeatureMatrix() computes the same numbers and reports such an error (in
@@ -1204,7 +1256,7 @@ namespace OpenMS
             {
               const std::string scan_identifier = getScanIdentifier(pid, static_cast<size_t>(si) + 1);
               spectrum.emplace(getFileIdentifier(pid) + scan_identifier,
-                               SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, /*no_error=*/true));
+                               scan_number_of(scan_identifier));
             }
             auto exists = [&](int lookup)
             {
