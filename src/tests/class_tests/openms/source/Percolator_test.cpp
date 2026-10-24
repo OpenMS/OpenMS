@@ -812,6 +812,41 @@ START_SECTION([EXTRA] malformed input throws InvalidValue)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] RescoreInput: the dense feature_matrix in place of features, same results))
+{
+  const RescoreInput nested = makeModeratelySeparableInput_(400, 11);
+  RescoreInput dense = nested;
+  dense.features.clear();
+  for (const std::vector<double>& row : nested.features) dense.feature_matrix.insert(dense.feature_matrix.end(), row.begin(), row.end());
+  TEST_EQUAL(dense.rowCount(), nested.rowCount())
+  TEST_EQUAL(dense.featureCount(), 2)
+  TEST_EQUAL(dense.row(5)[1], nested.features[5][1])
+
+  // rescore(), train() and score() read the rows of either layout
+  Percolator p1, p2;
+  const RescoreOutput out_nested = p1.rescore(nested);
+  const RescoreOutput out_dense = p2.rescore(dense);
+  TEST_EQUAL(out_dense.scores == out_nested.scores, true)
+  TEST_EQUAL(out_dense.q_values == out_nested.q_values, true)
+  TEST_EQUAL(out_dense.peps == out_nested.peps, true)
+  const PercolatorModel model_nested = p1.train(nested);
+  const PercolatorModel model_dense = p2.train(dense);
+  TEST_EQUAL(model_dense.weights == model_nested.weights, true)
+  TEST_EQUAL(p2.score(dense, model_dense).scores == p1.score(nested, model_nested).scores, true)
+
+  // malformed: rows in both layouts, a matrix that does not hold is_decoy.size() rows, no feature names
+  RescoreInput both = dense;
+  both.features = nested.features;
+  TEST_EXCEPTION(Exception::InvalidValue, p1.rescore(both))
+  RescoreInput short_matrix = dense;
+  short_matrix.feature_matrix.pop_back();
+  TEST_EXCEPTION(Exception::InvalidValue, p1.rescore(short_matrix))
+  RescoreInput no_names = dense;
+  no_names.feature_names.clear();
+  TEST_EXCEPTION(Exception::InvalidValue, p1.rescore(no_names))
+}
+END_SECTION
+
 START_SECTION((PercolatorModel train(const RescoreInput& input)))
 {
   RescoreInput input = makeModeratelySeparableInput_(300, 42);

@@ -282,11 +282,12 @@ static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
   }
 }
 
-// Fills a PSMDescription from one row of RescoreInput; its feature row
+// Fills a PSMDescription from one row of RescoreInput (n_feat values at feats); its feature row
 // (psm.features) is allocated already.
 static void fillPSMFromRow(
   P::PSMDescription& psm,
-  const std::vector<double>& feats,
+  const double* feats,
+  size_t n_feat,
   const RowKeys& keys,
   size_t row_index,
   std::string& synth_id)
@@ -304,14 +305,15 @@ static void fillPSMFromRow(
   psm.retentionTime_ = 0.0;
 
   double* feat_ptr = psm.features;
-  for (size_t j = 0; j < feats.size(); ++j)
+  for (size_t j = 0; j < n_feat; ++j)
   {
     feat_ptr[j] = feats[j];
   }
 }
 
 static P::PSMDescription* makePSMFromRow(
-  const std::vector<double>& feats,
+  const double* feats,
+  size_t n_feat,
   const RowKeys& keys,
   size_t row_index,
   std::string& synth_id,
@@ -320,7 +322,7 @@ static P::PSMDescription* makePSMFromRow(
   auto* psm = new P::PSMDescription();
   // Allocate feature row from the pool.
   psm->features = pool.allocate();
-  fillPSMFromRow(*psm, feats, keys, row_index, synth_id);
+  fillPSMFromRow(*psm, feats, n_feat, keys, row_index, synth_id);
   return psm;
 }
 
@@ -366,7 +368,10 @@ static RescoreInput makeSubsetInput_(
 {
   RescoreInput out;
   out.feature_names = input.feature_names;
-  out.features.reserve(indices.size());
+  const bool dense = input.features.empty();
+  const size_t n_feat = input.featureCount();
+  if (dense) out.feature_matrix.reserve(indices.size() * n_feat);
+  else       out.features.reserve(indices.size());
   out.is_decoy.reserve(indices.size());
   const bool has_cv       = !input.cv_group_keys.empty();
   const bool has_scan     = !input.scan_numbers.empty();
@@ -380,7 +385,8 @@ static RescoreInput makeSubsetInput_(
   if (has_calc)     out.calc_masses.reserve(indices.size());
   for (size_t i : indices)
   {
-    out.features.push_back(input.features[i]);
+    if (dense) out.feature_matrix.insert(out.feature_matrix.end(), input.row(i), input.row(i) + n_feat);
+    else       out.features.push_back(input.features[i]);
     out.is_decoy.push_back(input.is_decoy[i]);
     if (has_cv)       out.cv_group_keys.push_back(input.cv_group_keys[i]);
     if (has_scan)     out.scan_numbers.push_back(input.scan_numbers[i]);
@@ -394,18 +400,30 @@ static RescoreInput makeSubsetInput_(
 // Dimension + optional-field checks shared by rescore/train/score entry points.
 static void validateRescoreInput_(const RescoreInput& input)
 {
-  if (input.features.empty())
+  if (input.features.empty() && input.feature_matrix.empty())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "RescoreInput has empty features matrix", "");
   }
-  if (input.features.size() != input.is_decoy.size())
+  if (!input.features.empty() && !input.feature_matrix.empty())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "RescoreInput has rows in both features and feature_matrix", "");
+  }
+  if (input.features.empty() &&
+      (input.feature_names.empty() || input.feature_matrix.size() / input.feature_names.size() != input.is_decoy.size() ||
+       input.feature_matrix.size() % input.feature_names.size() != 0))
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "feature_matrix must hold is_decoy.size() rows of feature_names.size() values", "");
+  }
+  if (input.rowCount() != input.is_decoy.size())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "features and is_decoy length mismatch", "");
   }
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
   for (const auto& row : input.features)
   {
     if (row.size() != n_feat)
@@ -436,7 +454,7 @@ static void validateRescoreInput_(const RescoreInput& input)
 static void validateModelCompat_(
   const RescoreInput& input, const PercolatorModel& model)
 {
-  const size_t n_feat = input.features.front().size();
+  const size_t n_feat = input.featureCount();
   if (model.weights.size() != n_feat + 1)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -493,8 +511,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
 
   // SetHandler + feature pool. maxPSMs=0 because we never use SetHandler's own
   // readPSMs path (it's a file-level loader); we register rows directly.
@@ -527,7 +545,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.features[i], keys, i,
+    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->owned_psms.push_back(psm);
     if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
@@ -640,8 +658,8 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 
   impl_->reset();
 
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
 
   // Fresh feature pool. Reuses the second_pass_* scratch fields in Impl so
   // the next reset() cleans everything up via RAII.
@@ -669,7 +687,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.features[i], keys, i,
+    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->second_pass_psms.push_back(psm);
 
@@ -774,8 +792,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   validateRescoreInput_(input);
 
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
 
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
@@ -831,7 +849,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     try
     {
       const size_t i = training_rows[k];
-      fillPSMFromRow(*impl_->owned_psms[k], input.features[i], makeRowKeys(input, i), i,
+      fillPSMFromRow(*impl_->owned_psms[k], input.row(i), n_feat, makeRowKeys(input, i), i,
                      impl_->synthesized_ids[i]);
     }
     catch (...)
@@ -932,7 +950,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       for (size_t i = 0; i < n_rows; ++i)
       {
         const RowKeys keys = makeRowKeys(input, i);
-        auto* psm = makePSMFromRow(input.features[i], keys, i,
+        auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
                                    impl_->synthesized_ids[i], full_pool);
         impl_->second_pass_psms.push_back(psm);
 

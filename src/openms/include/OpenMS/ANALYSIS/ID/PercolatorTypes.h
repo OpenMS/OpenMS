@@ -26,7 +26,7 @@ namespace OpenMS
   struct OPENMS_DLLAPI RescoreInput
   {
     /// [n_rows][n_features] scalar features per row. Rows must all have
-    /// the same length.
+    /// the same length. Empty if the rows are in the dense @ref feature_matrix.
     std::vector<std::vector<double>> features;
     /// Target (false) or decoy (true) label per row.
     std::vector<bool> is_decoy;
@@ -38,6 +38,39 @@ namespace OpenMS
     std::vector<int> cv_group_keys;
     /// Names aligned 1:1 with feature columns; used for logging only.
     StringList feature_names;
+
+    /**
+      @brief The feature matrix in one dense block, in place of @ref features.
+
+      Row-major: row i holds the values of the feature_names.size() features at
+      [i * feature_names.size(), (i + 1) * feature_names.size()). Used when
+      @ref features is empty (at most one of the two may hold rows); the number
+      of rows is then is_decoy.size(). rowCount(), featureCount() and row()
+      read the rows of either layout.
+
+      Percolator::buildPSMRescoreInput() builds the feature matrix of PSM
+      rescoring this way, straight from the PSMs.
+    */
+    std::vector<double> feature_matrix;
+
+    /// Number of rows: of @ref features, or else of the dense @ref feature_matrix
+    size_t rowCount() const
+    {
+      return features.empty() && !feature_matrix.empty() ? is_decoy.size() : features.size();
+    }
+
+    /// Number of features per row: of the first row of @ref features, or else feature_names.size() (0 without rows)
+    size_t featureCount() const
+    {
+      if (!features.empty()) return features.front().size();
+      return feature_matrix.empty() ? 0 : feature_names.size();
+    }
+
+    /// The featureCount() values of row @p i: of @ref features, or else of the dense @ref feature_matrix
+    const double* row(size_t i) const
+    {
+      return !features.empty() ? features[i].data() : feature_matrix.data() + i * feature_names.size();
+    }
 
     /**
       @brief Optional per-row PIN-compatible fields.
