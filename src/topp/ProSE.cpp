@@ -1477,6 +1477,9 @@ class ProSE :
           catch (const std::exception& e)
           {
             OPENMS_LOG_ERROR << "Failed to collect the spectra of the PSMs of " << in_file << ": " << e.what() << endl;
+            // (its thread may have written the mz view before the failure, e.g. out of memory in the predictions; no PSM
+            // has its spectrum now)
+            if (!mz_file.empty()) { File::remove(mz_file); }
             spectra_of_file = SpectraOfFile_();
             spectra_of_file.mz.has_spectrum.assign(result.peptide_ids.size(), false);
             spectra_of_file.predictions.assign(std::count_if(result.peptide_ids.begin(), result.peptide_ids.end(),
