@@ -445,11 +445,14 @@ bool PosteriorEstimator::getQValuesInTasks(double pi0,
     return false;
   }
   const bool withNegatives = includeNegativesInResult;
-  // the blocks [starts[b], starts[b + 1]): from multiples of kMinQValueBlock to the next group
-  // (each position is compared at most once)
+  // the blocks [starts[b], starts[b + 1]): from multiples of the block size (kMinQValueBlock, or
+  // more for at most 64 blocks: libgomp runs all tasks of a taskloop in the encountering thread if
+  // its team's queue would then hold more than 64 tasks per thread) to the next group (each
+  // position is compared at most once)
+  const size_t blockSize = (std::max)(kMinQValueBlock, (n + 63) / 64);
   vector<size_t> starts(1, 0);
   size_t scanned = 1;
-  for (size_t at = kMinQValueBlock; at < n; at += kMinQValueBlock) {
+  for (size_t at = blockSize; at < n; at += blockSize) {
     size_t start = (std::max)(at, scanned);
     while (start < n && combined[start - 1].first == combined[start].first) ++start;
     scanned = start + 1;

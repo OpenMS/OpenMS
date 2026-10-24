@@ -26,6 +26,10 @@
 #include "FeatureNames.h"
 #include "Globals.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
@@ -53,6 +57,40 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
     features = *it;
     normalize(features, features, offset, numFeatures);
   }
+}
+
+/**
+ * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
+ * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
+ * retention features by feature, in an OpenMP parallel loop over the features: each value is
+ * normalized as by normalize() (if a row occurs more than once, as often, in the same order),
+ * so the rows get the same values.
+ */
+void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
+                                        vector<double*>& rtFeaturesV) {
+#ifdef _OPENMP
+  // (with a team of one thread, the row-major loop of normalizeSet below, which is faster then)
+  bool byFeature = false;
+  if (rtFeaturesV.empty() && numRetentionFeatures == 0 && featuresV.size() >= 4096 &&
+      numFeatures >= 2 && omp_get_max_threads() > 1 && !omp_in_parallel()) {
+    const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
+#pragma omp parallel
+    if (omp_get_num_threads() > 1) {
+#pragma omp single
+      byFeature = true;
+#pragma omp for schedule(static)
+      for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+        const double s = sub[static_cast<std::size_t>(ix)];
+        const double d = div[static_cast<std::size_t>(ix)];
+        for (double* features : featuresV) {
+          features[ix] = (features[ix] - s) / d;
+        }
+      }
+    }
+  }
+  if (byFeature) return;
+#endif
+  normalizeSet(featuresV, rtFeaturesV);
 }
 
 void Normalizer::normalize(const double* in, double* out, size_t offset,

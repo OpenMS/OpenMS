@@ -1,0 +1,614 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 005531d6b0..c3e5df2f49 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -886,8 +886,27 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
+   }
+ 
+   if (!pCheck->validateDirection(weights_)) {
+-    for (std::size_t set = 0; set < numFolds_; ++set) {
+-      testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
++    if (VERB > 3) {
++      // (prints the scores of each sort: one set after the other)
++      for (std::size_t set = 0; set < numFolds_; ++set) {
++        testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
++      }
++    } else {
++      // OpenMS: the test sets as tasks of a parallel region, whose threads also run the tasks of
++      // their scoring, sorts and q-values (see Scores::calcScores and SortLikeStd.h): each test
++      // set gets the same scores, order and q-values as in a loop over the sets.
++      std::vector<std::exception_ptr> resetErrors(numFolds_);
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++#pragma omp taskloop grainsize(1) shared(resetErrors)
++      for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++        try {
++          testScores_[static_cast<std::size_t>(set)].calcScoresAndQvals(weights_[0], selectionFdr_);
++        } catch (...) {
++          resetErrors[static_cast<std::size_t>(set)] = std::current_exception();
++        }
++      }
++      rethrowFirstError(resetErrors);
+     }
+   }
+   // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index 761e768ca5..ab7546ea89 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -71,8 +71,33 @@ void FeatureMemoryPool::deallocate(double* p) {
+   freeRows_.push_back(p);
+ }
+ 
++/**
++ * OpenMS: creates the blocks of the first numRows rows (if the pool has fewer), zero-filled as
++ * createNewBlock does, by the threads of an OpenMP parallel loop: allocate() then hands out the
++ * same rows in the same order without creating blocks (filling a block of a large set on one
++ * thread took most of the time of allocating its rows).
++ */
++void FeatureMemoryPool::reserveRows(std::size_t numRows) {
++  if (numRowsPerBlock_ == 0) return;
++  const std::size_t numBlocks = (numRows + numRowsPerBlock_ - 1) / numRowsPerBlock_;
++  if (numBlocks <= memStarts_.size()) return;
++  const std::size_t blockSize = static_cast<std::size_t>(numFeatures_) * numRowsPerBlock_;
++  std::vector<std::unique_ptr<double[]> > blocks(numBlocks - memStarts_.size());
++  for (std::unique_ptr<double[]>& block : blocks) block.reset(new double[blockSize]);
++  memStarts_.reserve(numBlocks);
++#pragma omp parallel for schedule(static)
++  for (std::ptrdiff_t b = 0; b < static_cast<std::ptrdiff_t>(blocks.size()); ++b) {
++    std::fill_n(blocks[static_cast<std::size_t>(b)].get(), blockSize, 0.0);
++  }
++  for (std::unique_ptr<double[]>& block : blocks) memStarts_.push_back(block.release());
++}
++
+ // OpenMS: the smallest block of rows a task of moveRowsInOrder copies
+ [[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
++// OpenMS: and at most this many tasks per taskloop (libgomp runs all tasks of a taskloop in the
++// encountering thread, one after the other, if its team's queue would then hold more than 64
++// tasks per thread)
++[[maybe_unused]] constexpr std::ptrdiff_t kMaxRowTasks = 64;
+ 
+ // OpenMS: whether moveRowsInOrder runs in an OpenMP parallel region (its copies as tasks)
+ static bool inParallel() {
+@@ -105,30 +130,43 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
+   }
+   std::sort(blocks.begin(), blocks.end());
+   const std::uintptr_t rowBytes = static_cast<std::uintptr_t>(numFeatures_) * sizeof(double);
+-  std::vector<char> seen(n, 0);
+-  for (std::size_t k = 0; k < n; ++k) {
+-    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[k]);
++  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
++  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
++  (void)inTasks;
++  [[maybe_unused]] const std::ptrdiff_t grain =
++      std::max(kMinRowsPerTask, (numRows + kMaxRowTasks - 1) / kMaxRowTasks);
++  // the index of each row (n if it is none of the pool's rows), by the tasks of an enclosing
++  // OpenMP parallel region if there is one; then whether each row occurs once
++  const std::unique_ptr<std::size_t[]> indexOf(new std::size_t[n]);
++#pragma omp taskloop grainsize(grain) shared(rows, blocks, indexOf) if(inTasks)
++  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
++    std::size_t idx = n;
++    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[static_cast<std::size_t>(k)]);
+     auto it = std::upper_bound(blocks.begin(), blocks.end(),
+                                std::make_pair(a, std::numeric_limits<std::size_t>::max()));
+-    if (it == blocks.begin()) return false;
+-    --it;
+-    const std::uintptr_t offset = a - it->first;
+-    if (offset % rowBytes != 0 || offset / rowBytes >= numRowsPerBlock_) return false;
+-    const std::size_t idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
++    if (it != blocks.begin()) {
++      --it;
++      const std::uintptr_t offset = a - it->first;
++      if (offset % rowBytes == 0 && offset / rowBytes < numRowsPerBlock_) {
++        idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
++      }
++    }
++    indexOf[static_cast<std::size_t>(k)] = idx;
++  }
++  std::vector<char> seen(n, 0);
++  for (std::size_t k = 0; k < n; ++k) {
++    const std::size_t idx = indexOf[k];
+     if (idx >= n || seen[idx]) return false;
+     seen[idx] = 1;
+   }
+   // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
+   // if there is one (the blocks are disjoint)
+   const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
+-  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
+-  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
+-  (void)inTasks;
+-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
++#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
+   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+     std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
+   }
+-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
++#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
+   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+     double* row = addressFromIdx(static_cast<unsigned int>(k));
+     std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.h b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+index db79899acb..8b974ad40c 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.h
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+@@ -52,6 +52,7 @@ class FeatureMemoryPool {
+ 
+   // OpenMS: see FeatureMemoryPool.cpp
+   bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
++  void reserveRows(std::size_t numRows);
+ };
+ 
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
+index 229d78702d..9003995608 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.cpp
++++ b/src/openms/thirdparty/percolator/Normalizer.cpp
+@@ -26,6 +26,10 @@
+ #include "FeatureNames.h"
+ #include "Globals.h"
+ 
++#ifdef _OPENMP
++#include <omp.h>
++#endif
++
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ using namespace std;
+@@ -55,6 +59,40 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
+   }
+ }
+ 
++/**
++ * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
++ * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
++ * retention features by feature, in an OpenMP parallel loop over the features: each value is
++ * normalized as by normalize() (if a row occurs more than once, as often, in the same order),
++ * so the rows get the same values.
++ */
++void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
++                                        vector<double*>& rtFeaturesV) {
++#ifdef _OPENMP
++  // (with a team of one thread, the row-major loop of normalizeSet below, which is faster then)
++  bool byFeature = false;
++  if (rtFeaturesV.empty() && numRetentionFeatures == 0 && featuresV.size() >= 4096 &&
++      numFeatures >= 2 && omp_get_max_threads() > 1 && !omp_in_parallel()) {
++    const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
++#pragma omp parallel
++    if (omp_get_num_threads() > 1) {
++#pragma omp single
++      byFeature = true;
++#pragma omp for schedule(static)
++      for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
++        const double s = sub[static_cast<std::size_t>(ix)];
++        const double d = div[static_cast<std::size_t>(ix)];
++        for (double* features : featuresV) {
++          features[ix] = (features[ix] - s) / d;
++        }
++      }
++    }
++  }
++  if (byFeature) return;
++#endif
++  normalizeSet(featuresV, rtFeaturesV);
++}
++
+ void Normalizer::normalize(const double* in, double* out, size_t offset,
+                            size_t numFeatures) {
+   for (unsigned int ix = 0; ix < numFeatures; ++ix) {
+diff --git a/src/openms/thirdparty/percolator/Normalizer.h b/src/openms/thirdparty/percolator/Normalizer.h
+index 28ff0e60d4..9d8212a477 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.h
++++ b/src/openms/thirdparty/percolator/Normalizer.h
+@@ -38,6 +38,9 @@ class Normalizer {
+                     vector<double*>& rtFeaturesV);
+   void normalizeSet(vector<double*>& featuresV,
+                     size_t offset, size_t numFeatures);
++  // OpenMS: see Normalizer.cpp
++  void normalizeRowsByFeature(vector<double*>& featuresV,
++                              vector<double*>& rtFeaturesV);
+   void normalize(const double* in, double* out, size_t offset,
+                  size_t numFeatures);
+   inline double normalize(const double in, size_t index) {
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+index 87806f0d40..625e2769cc 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -445,11 +445,14 @@ bool PosteriorEstimator::getQValuesInTasks(double pi0,
+     return false;
+   }
+   const bool withNegatives = includeNegativesInResult;
+-  // the blocks [starts[b], starts[b + 1]): from multiples of kMinQValueBlock to the next group
+-  // (each position is compared at most once)
++  // the blocks [starts[b], starts[b + 1]): from multiples of the block size (kMinQValueBlock, or
++  // more for at most 64 blocks: libgomp runs all tasks of a taskloop in the encountering thread if
++  // its team's queue would then hold more than 64 tasks per thread) to the next group (each
++  // position is compared at most once)
++  const size_t blockSize = (std::max)(kMinQValueBlock, (n + 63) / 64);
+   vector<size_t> starts(1, 0);
+   size_t scanned = 1;
+-  for (size_t at = kMinQValueBlock; at < n; at += kMinQValueBlock) {
++  for (size_t at = blockSize; at < n; at += blockSize) {
+     size_t start = (std::max)(at, scanned);
+     while (start < n && combined[start - 1].first == combined[start].first) ++start;
+     scanned = start + 1;
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index ada09cf6b7..728c2e6616 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -50,6 +50,18 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ // OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
+ [[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
++// OpenMS: the smallest block of PSMs a task of getScoreLabelPairs, calcQvals or normalizeScores
++// handles
++[[maybe_unused]] constexpr std::ptrdiff_t kMinPairTaskSize = 4 * kMinScoreTaskSize;
++
++// OpenMS: the grain size of a taskloop over n elements: at least minGrain, and at most kMaxLoopTasks
++// tasks. (libgomp runs all tasks of a taskloop in the encountering thread, one after the other, if
++// its team's queue would then hold more than 64 tasks per thread; the grain size does not change
++// what an element computes.)
++[[maybe_unused]] constexpr std::ptrdiff_t kMaxLoopTasks = 64;
++[[maybe_unused]] static std::ptrdiff_t loopGrain(std::ptrdiff_t n, std::ptrdiff_t minGrain) {
++  return std::max(minGrain, (n + kMaxLoopTasks - 1) / kMaxLoopTasks);
++}
+ 
+ // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
+ // strict weak ordering on [first, last): no score or mass is NaN.
+@@ -65,8 +77,22 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+ // comparisons of their ScoreHolders, a sort of the keys (the same algorithm) makes the same
+ // moves as a sort of the ScoreHolders: it leaves the same permutation, also of ScoreHolders that
+ // compare equal. permuteScores then puts scores[keys[k].index] at position k.
++// OpenMS: inside an OpenMP parallel region, large sets are permuted by its tasks (blocks of
++// positions).
+ template <typename Key>
+ static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
++#ifdef _OPENMP
++  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(keys.size());
++  if (n >= 4 * kMinScoreTaskSize && keys.size() == scores.size() && omp_in_parallel()) {
++    std::vector<ScoreHolder> permuted(keys.size());
++#pragma omp taskloop grainsize(loopGrain(n, 4 * kMinScoreTaskSize)) shared(scores, keys, permuted)
++    for (std::ptrdiff_t k = 0; k < n; ++k) {
++      permuted[static_cast<std::size_t>(k)] = scores[keys[static_cast<std::size_t>(k)].index];
++    }
++    scores.swap(permuted);
++    return;
++  }
++#endif
+   std::vector<ScoreHolder> permuted;
+   permuted.reserve(scores.size());
+   for (const Key& key : keys) permuted.push_back(scores[key.index]);
+@@ -294,12 +320,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+       size_t hash;
+       std::size_t index;
+     };
+-    std::vector<HashKey> keys;
+-    keys.reserve(scores_.size());
+-    for (std::size_t i = 0; i < scores_.size(); ++i) {
+-      const PSMDescription* psm = scores_[i].pPSM;
++    std::vector<HashKey> keys(scores_.size());
++    const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
++    // (blocks of PSMs as the tasks of an enclosing parallel region, if any)
++#pragma omp taskloop grainsize(loopGrain(numScores, 4 * kMinScoreTaskSize)) shared(keys) if(numScores >= 8 * kMinScoreTaskSize)
++    for (std::ptrdiff_t i = 0; i < numScores; ++i) {
++      const PSMDescription* psm = scores_[static_cast<std::size_t>(i)].pPSM;
+       const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
+-      keys.push_back({hash, i});
++      keys[static_cast<std::size_t>(i)] = {hash, static_cast<std::size_t>(i)};
+     }
+     sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
+     permuteScores(scores_, keys);
+@@ -542,6 +570,20 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
+     }
+   }
+ 
++#ifdef _OPENMP
++  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
++  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
++  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
++#pragma omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(fdrScore, diff)
++    for (std::ptrdiff_t i = 0; i < n; ++i) {
++      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++      sh.score -= fdrScore;
++      sh.score /= diff;
++    }
++    Normalizer::endScoreNormalizeWeights(weights, weights, fdrScore, diff);
++    return;
++  }
++#endif
+   std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+   for (; scoreIt != scores_.end(); ++scoreIt) {
+     scoreIt->score -= fdrScore;
+@@ -720,7 +762,7 @@ int Scores::calcScores(std::vector<double>& w) {
+   const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
+ #ifdef _OPENMP
+   if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
+-#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(w)
++#pragma omp taskloop grainsize(loopGrain(numScores, kMinScoreTaskSize)) shared(w)
+     for (std::ptrdiff_t i = 0; i < numScores; ++i) {
+       ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+       sh.score = calcScore(sh.pPSM->features, w);
+@@ -769,6 +811,17 @@ int Scores::sortScores() {
+ 
+ void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
+   combined.resize(scores_.size());
++#ifdef _OPENMP
++  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
++  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
++  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
++#pragma omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(combined)
++    for (std::ptrdiff_t i = 0; i < n; ++i) {
++      combined[static_cast<std::size_t>(i)] = scores_[static_cast<std::size_t>(i)].toPair();
++    }
++    return;
++  }
++#endif
+   transform(scores_.begin(), scores_.end(), combined.begin(),
+             mem_fn(&ScoreHolder::toPair));
+ }
+@@ -800,6 +853,30 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
+   }
+ 
+   // set q-values and count number of positives
++#ifdef _OPENMP
++  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs; the counts
++  // of the blocks are added up afterwards)
++  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(qvals.size());
++  if (n >= 2 * kMinPairTaskSize && qvals.size() == scores_.size() && omp_in_parallel()) {
++    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
++    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
++    std::vector<int> positivesOfBlock(static_cast<std::size_t>(numBlocks), 0);
++#pragma omp taskloop grainsize(1) shared(qvals, positivesOfBlock, fdr)
++    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
++      const std::ptrdiff_t last = std::min(n, (block + 1) * blockSize);
++      int positives = 0;
++      for (std::ptrdiff_t i = block * blockSize; i < last; ++i) {
++        ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++        sh.q = qvals[static_cast<std::size_t>(i)];
++        if (sh.q < fdr && sh.isTarget()) ++positives;
++      }
++      positivesOfBlock[static_cast<std::size_t>(block)] = positives;
++    }
++    int numPos = 0;
++    for (const int positives : positivesOfBlock) numPos += positives;
++    return numPos;
++  }
++#endif
+   std::vector<double>::const_iterator qIt = qvals.begin();
+   std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+ 
+@@ -1100,8 +1177,12 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+       unsigned int index;
+     };
+     // the keys after the sort of each feature (until its count), and the labels
+-    std::vector<std::vector<ChainKey> > keysOfFeature(numFeatures);
++    std::vector<std::unique_ptr<ChainKey[]> > keysOfFeature(numFeatures);
+     std::vector<char> isTarget(n);
++    // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
++    // (each key is written once, so the order of the blocks does not matter)
++    constexpr std::ptrdiff_t kMinChainTaskSize = 16384;
++    const std::ptrdiff_t numKeys = static_cast<std::ptrdiff_t>(n);
+ #pragma omp taskgroup
+     {
+       try {
+@@ -1130,16 +1211,25 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+           if (k > 0 && tieLess(ties[k - 1], ties[k])) ++rank;
+           tieRank[ties[k].index] = rank;
+         }
+-        // the feature values by feature, and the labels (blocks of PSMs as tasks)
+-        std::vector<double> columns(static_cast<std::size_t>(numFeatures) * n);
+-        const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(n);
+-#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(columns, isTarget)
+-        for (std::ptrdiff_t i = 0; i < numScores; ++i) {
+-          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++        // the feature values by feature, and the labels (blocks of PSMs as tasks; every value is
++        // written there, so the array is not zero-filled first)
++        // (a block of PSMs per task, column by column: consecutive writes)
++        const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
++        const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
++        const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
++#pragma omp taskloop grainsize(1) shared(columns, isTarget)
++        for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
++          const std::size_t first = static_cast<std::size_t>(block * blockSize);
++          const std::size_t last = std::min(n, first + static_cast<std::size_t>(blockSize));
++          for (std::size_t i = first; i < last; ++i) {
++            isTarget[i] = scores_[i].isTarget();
++          }
+           for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
+-            columns[featNo * n + static_cast<std::size_t>(i)] = sh.pPSM->features[featNo];
++            double* column = &columns[featNo * n];
++            for (std::size_t i = first; i < last; ++i) {
++              column[i] = scores_[i].pPSM->features[featNo];
++            }
+           }
+-          isTarget[static_cast<std::size_t>(i)] = sh.isTarget();
+         }
+         std::vector<ChainKey> keys;
+         keys.reserve(n);
+@@ -1148,30 +1238,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+         }
+         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+           const double* column = &columns[featNo * n];
+-          for (ChainKey& key : keys) key.score = column[key.index];
++#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
++          for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
++            ChainKey& key = keys[static_cast<std::size_t>(i)];
++            key.score = column[key.index];
++          }
+           // operator< of ScoreHolder
+           sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
+             return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
+           });
+-          keysOfFeature[featNo] = keys;
++          {
++            keysOfFeature[featNo].reset(new ChainKey[n]);
++            ChainKey* snapshot = keysOfFeature[featNo].get();
++#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
++            for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
++              snapshot[i] = keys[static_cast<std::size_t>(i)];
++            }
++          }
+ #pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
+           try {
+             std::vector<pair<double, bool> > pairs;
+-            pairs.reserve(keysOfFeature[featNo].size());
+-            for (const ChainKey& key : keysOfFeature[featNo]) {
+-              pairs.emplace_back(key.score, isTarget[key.index] != 0);
++            pairs.reserve(n);
++            const ChainKey* snapshot = keysOfFeature[featNo].get();
++            for (std::size_t i = 0; i < n; ++i) {
++              pairs.emplace_back(snapshot[i].score, isTarget[snapshot[i].index] != 0);
+             }
+-            std::vector<ChainKey>().swap(keysOfFeature[featNo]);
++            keysOfFeature[featNo].reset();
+             positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
+             reverse(pairs.begin(), pairs.end());
+             positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
+           } catch (...) {
+             errors[featNo] = std::current_exception();
+           }
+-          reverse(keys.begin(), keys.end());
++          // reversed (the pairs of positions as tasks)
++#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
++          for (std::ptrdiff_t i = 0; i < numKeys / 2; ++i) {
++            std::swap(keys[static_cast<std::size_t>(i)], keys[static_cast<std::size_t>(numKeys - 1 - i)]);
++          }
++        }
++        // the PSMs in the order of the keys (as permuteScores), with the scores of the last feature
++        // (blocks as tasks)
++        std::vector<ScoreHolder> permuted(n);
++#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, permuted)
++        for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
++          const ChainKey& key = keys[static_cast<std::size_t>(i)];
++          permuted[static_cast<std::size_t>(i)] = scores_[key.index];
++          permuted[static_cast<std::size_t>(i)].score = key.score;
+         }
+-        permuteScores(scores_, keys);
+-        for (std::size_t i = 0; i < n; ++i) scores_[i].score = keys[i].score;
++        scores_.swap(permuted);
+         std::vector<pair<double, bool> > combined;
+         calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
+       } catch (...) {
+diff --git a/src/openms/thirdparty/percolator/SetHandler.cpp b/src/openms/thirdparty/percolator/SetHandler.cpp
+index 88d8d65789..ca102b1db1 100644
+--- a/src/openms/thirdparty/percolator/SetHandler.cpp
++++ b/src/openms/thirdparty/percolator/SetHandler.cpp
+@@ -59,7 +59,10 @@ void SetHandler::push_back_dataset( DataSet * ds ) {
+ }
+ 
+ void SetHandler::populateScoresWithPSMs(vector<ScoreHolder> &scores, LabelType label) {
+-  subsets_[getSubsetIndexFromLabel(label)]->fillScores(scores);
++  DataSet* subset = subsets_[getSubsetIndexFromLabel(label)];
++  // OpenMS: room for the subset's PSMs at once
++  scores.reserve(scores.size() + static_cast<std::size_t>(subset->getSize()));
++  subset->fillScores(scores);
+ }
+ 
+ void SetHandler::normalizeFeatures(Normalizer*& pNorm) {
+@@ -73,7 +76,8 @@ void SetHandler::normalizeFeatures(Normalizer*& pNorm) {
+       rtFeaturesV,
+       FeatureNames::getNumFeatures(),
+       0);
+-  pNorm->normalizeSet(featuresV, rtFeaturesV);
++  // OpenMS: by feature on large sets (the PSMs' rows are rows of the feature pool)
++  pNorm->normalizeRowsByFeature(featuresV, rtFeaturesV);
+ }
+ 
+ LabelType const SetHandler::getLabel(int setPos) {
+diff --git a/src/openms/thirdparty/percolator/StdvNormalizer.cpp b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
+index 2128232575..fb2c499449 100644
+--- a/src/openms/thirdparty/percolator/StdvNormalizer.cpp
++++ b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
+@@ -14,6 +14,7 @@
+  limitations under the License.
+ 
+  *******************************************************************************/
++#include <algorithm>
+ #include <iostream>
+ #include <cmath>
+ #include <vector>
+@@ -23,6 +24,10 @@
+ #include "StdvNormalizer.h"
+ #include "Globals.h"
+ 
++#ifdef _OPENMP
++#include <omp.h>
++#endif
++
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ using namespace std;
+@@ -55,6 +60,55 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
+   out[i] = in[i] + sum;
+ }
+ 
++// OpenMS: the sums of setSet over the PSMs (features), by feature, in an OpenMP parallel loop over
++// the features: each feature's sums are added up by one thread, over the PSMs in order, as in
++// setSet (the same results). Returns false (and changes nothing) without a team of more than one
++// thread (then the row-major loops of setSet are faster) or if a feature value is not finite (then
++// setSet reports it as before).
++static bool sumsByFeature(const std::vector<double*>& featuresV, std::size_t numFeatures,
++                          std::vector<double>& sub, std::vector<double>& div) {
++#ifdef _OPENMP
++  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
++  const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
++  const double n = static_cast<double>(featuresV.size());
++  std::vector<double> sums(sub.begin(), sub.begin() + nf), squares(div.begin(), div.begin() + nf);
++  bool byFeature = false, finite = true;
++#pragma omp parallel
++  if (omp_get_num_threads() > 1) {
++#pragma omp single
++    byFeature = true;
++#pragma omp for schedule(static) reduction(&& : finite)
++    for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
++      double s = sums[static_cast<std::size_t>(ix)];
++      bool finiteFeature = true;
++      for (const double* features : featuresV) {
++        finiteFeature = finiteFeature && std::isfinite(features[ix]);
++        s += features[ix];
++      }
++      finite = finite && finiteFeature;
++      if (!finiteFeature) continue;
++      if (n > 0.0) {
++        s /= n;
++      }
++      double d2 = squares[static_cast<std::size_t>(ix)];
++      for (const double* features : featuresV) {
++        const double d = features[ix] - s;
++        d2 += d * d;
++      }
++      sums[static_cast<std::size_t>(ix)] = s;
++      squares[static_cast<std::size_t>(ix)] = d2;
++    }
++  }
++  if (!byFeature || !finite) return false;
++  std::copy(sums.begin(), sums.end(), sub.begin());
++  std::copy(squares.begin(), squares.end(), div.begin());
++  return true;
++#else
++  (void)featuresV; (void)numFeatures; (void)sub; (void)div;
++  return false;
++#endif
++}
++
+ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
+                             std::vector<double*>& rtFeaturesV, size_t nf,
+                             size_t nrf) {
+@@ -62,6 +116,18 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
+   numRetentionFeatures = nrf;
+   sub.resize(nf + nrf, 0.0);
+   div.resize(nf + nrf, 0.0);
++  // OpenMS: large sets without retention features by feature (see sumsByFeature), then as below
++  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 &&
++      sumsByFeature(featuresV, nf, sub, div)) {
++    for (size_t ix = 0; ix < nf; ++ix) {
++      if (div[ix] <= 0 || featuresV.empty()) {
++        div[ix] = 1.0;
++      } else {
++        div[ix] = sqrt(div[ix] / static_cast<double>(featuresV.size()));
++      }
++    }
++    return;
++  }
+   double n = 0.0;
+   double* features;
+   size_t ix;

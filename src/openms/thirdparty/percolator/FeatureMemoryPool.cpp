@@ -71,8 +71,33 @@ void FeatureMemoryPool::deallocate(double* p) {
   freeRows_.push_back(p);
 }
 
+/**
+ * OpenMS: creates the blocks of the first numRows rows (if the pool has fewer), zero-filled as
+ * createNewBlock does, by the threads of an OpenMP parallel loop: allocate() then hands out the
+ * same rows in the same order without creating blocks (filling a block of a large set on one
+ * thread took most of the time of allocating its rows).
+ */
+void FeatureMemoryPool::reserveRows(std::size_t numRows) {
+  if (numRowsPerBlock_ == 0) return;
+  const std::size_t numBlocks = (numRows + numRowsPerBlock_ - 1) / numRowsPerBlock_;
+  if (numBlocks <= memStarts_.size()) return;
+  const std::size_t blockSize = static_cast<std::size_t>(numFeatures_) * numRowsPerBlock_;
+  std::vector<std::unique_ptr<double[]> > blocks(numBlocks - memStarts_.size());
+  for (std::unique_ptr<double[]>& block : blocks) block.reset(new double[blockSize]);
+  memStarts_.reserve(numBlocks);
+#pragma omp parallel for schedule(static)
+  for (std::ptrdiff_t b = 0; b < static_cast<std::ptrdiff_t>(blocks.size()); ++b) {
+    std::fill_n(blocks[static_cast<std::size_t>(b)].get(), blockSize, 0.0);
+  }
+  for (std::unique_ptr<double[]>& block : blocks) memStarts_.push_back(block.release());
+}
+
 // OpenMS: the smallest block of rows a task of moveRowsInOrder copies
 [[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
+// OpenMS: and at most this many tasks per taskloop (libgomp runs all tasks of a taskloop in the
+// encountering thread, one after the other, if its team's queue would then hold more than 64
+// tasks per thread)
+[[maybe_unused]] constexpr std::ptrdiff_t kMaxRowTasks = 64;
 
 // OpenMS: whether moveRowsInOrder runs in an OpenMP parallel region (its copies as tasks)
 static bool inParallel() {
@@ -105,30 +130,43 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
   }
   std::sort(blocks.begin(), blocks.end());
   const std::uintptr_t rowBytes = static_cast<std::uintptr_t>(numFeatures_) * sizeof(double);
-  std::vector<char> seen(n, 0);
-  for (std::size_t k = 0; k < n; ++k) {
-    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[k]);
+  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
+  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
+  (void)inTasks;
+  [[maybe_unused]] const std::ptrdiff_t grain =
+      std::max(kMinRowsPerTask, (numRows + kMaxRowTasks - 1) / kMaxRowTasks);
+  // the index of each row (n if it is none of the pool's rows), by the tasks of an enclosing
+  // OpenMP parallel region if there is one; then whether each row occurs once
+  const std::unique_ptr<std::size_t[]> indexOf(new std::size_t[n]);
+#pragma omp taskloop grainsize(grain) shared(rows, blocks, indexOf) if(inTasks)
+  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+    std::size_t idx = n;
+    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[static_cast<std::size_t>(k)]);
     auto it = std::upper_bound(blocks.begin(), blocks.end(),
                                std::make_pair(a, std::numeric_limits<std::size_t>::max()));
-    if (it == blocks.begin()) return false;
-    --it;
-    const std::uintptr_t offset = a - it->first;
-    if (offset % rowBytes != 0 || offset / rowBytes >= numRowsPerBlock_) return false;
-    const std::size_t idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
+    if (it != blocks.begin()) {
+      --it;
+      const std::uintptr_t offset = a - it->first;
+      if (offset % rowBytes == 0 && offset / rowBytes < numRowsPerBlock_) {
+        idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
+      }
+    }
+    indexOf[static_cast<std::size_t>(k)] = idx;
+  }
+  std::vector<char> seen(n, 0);
+  for (std::size_t k = 0; k < n; ++k) {
+    const std::size_t idx = indexOf[k];
     if (idx >= n || seen[idx]) return false;
     seen[idx] = 1;
   }
   // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
   // if there is one (the blocks are disjoint)
   const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
-  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
-  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
-  (void)inTasks;
-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
+#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
   }
-#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
+#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     double* row = addressFromIdx(static_cast<unsigned int>(k));
     std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);

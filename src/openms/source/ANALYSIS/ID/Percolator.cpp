@@ -838,6 +838,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // much longer to free.)
   impl_->synthesized_ids.resize(n_rows);
   impl_->owned_psms.reserve(training_rows.size());
+  pool.reserveRows(training_rows.size()); // the pool's blocks for these rows, zero-filled in parallel
   for (size_t i : training_rows)
   {
     auto* psm = new P::PSMDescription();

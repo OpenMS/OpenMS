@@ -283,6 +283,44 @@ hand-editing sources and committing them, to keep sync self-healing.
   walked; otherwise (also for a threshold above 1) all are sorted as before.
   The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
   directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
+- `patches/14-rowsscale-postprocessing.patch` — speeds up the steps before and after the training
+  of the cross-validation on large sets, without changing their results.
+  `CrossValidation::postIterationProcessing`: when the sanity check rejects the learned weights,
+  the test sets are scored with the default weights as tasks of a parallel region (as
+  `SanityCheck::validateDirection` does), so their scoring, sorts and q-values run as the region's
+  tasks (`Scores::calcScores`, `SortLikeStd.h`, `PosteriorEstimator::getQValuesInTasks`): the same
+  scores, order and q-values as the loop over the sets (with `VERB > 3`, which prints the scores of
+  each sort, the loop as before).
+  Before the training, on large sets: the feature pool's blocks for the rows of the rescoring are
+  created (zero-filled) in parallel (`FeatureMemoryPool::reserveRows`, called by OpenMS'
+  `Percolator::rescore`; `allocate` then hands out the same rows in the same order);
+  with OpenMP on more than one thread, `StdvNormalizer::setSet` adds up each feature's sums by one
+  thread, in the order of the PSMs, the features in parallel (a value that is not finite: as before,
+  which reports it);
+  `SetHandler::normalizeFeatures` normalizes the PSMs' rows by feature in parallel
+  (`Normalizer::normalizeRowsByFeature`: each value as by `normalize`; the rows are rows of the
+  feature pool, equal or disjoint); `SetHandler::populateScoresWithPSMs` reserves room for the
+  PSMs. The same values.
+  `Scores::getInitDirection` (the chain of sorts by each feature, in a parallel region): the
+  feature columns are not zero-filled before the tasks write them; the keys get each feature's
+  values, are copied for the count of the feature and are reversed by tasks of blocks of keys
+  (each key written once), and the PSMs are put into the final order by such tasks: the same
+  keys, the same order of the PSMs.
+  `FeatureMemoryPool::moveRowsInOrder` finds the index of each row by tasks (then checks that each
+  occurs once, in order, as before): the same answer and rows.
+  `Scores::createXvalSetsBySpectrum` computes the spectrum hash keys, and `permuteScores` puts large
+  sets into the order of the sorted keys, by the tasks of the region; `getInitDirection` writes its
+  feature columns by blocks of PSMs (one column after the other per block).
+  In a parallel region, `Scores::getScoreLabelPairs`, the setting and counting of the q-values in
+  `calcQvals` (counts of blocks of PSMs, added up) and the rescaling of `normalizeScores` run over
+  large sets as tasks of blocks of PSMs: the same pairs, q-values, count and scores.
+  The taskloops over PSMs or rows (`Scores`: `calcScores`, the loops above, `permuteScores`;
+  `FeatureMemoryPool::moveRowsInOrder`; the blocks of `PosteriorEstimator::getQValuesInTasks`) have
+  at most 64 tasks: libgomp runs all tasks of a taskloop in the encountering thread, one after the
+  other, if its team's queue would then hold more than 64 tasks per thread, so that e.g. the
+  scoring of a set of 2.3M PSMs (1134 tasks of 2048) ran on one thread of a team of 12. Larger
+  blocks; each element computes the same (the q-value blocks still start at positions that depend
+  on the set only).
 
 ### Regenerating the patch
 

@@ -52,6 +52,7 @@ class FeatureMemoryPool {
 
   // OpenMS: see FeatureMemoryPool.cpp
   bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
+  void reserveRows(std::size_t numRows);
 };
 
 }}}  // namespace OpenMS::Internal::Percolator

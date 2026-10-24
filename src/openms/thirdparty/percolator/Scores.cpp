@@ -50,6 +50,18 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 // OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
 [[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
+// OpenMS: the smallest block of PSMs a task of getScoreLabelPairs, calcQvals or normalizeScores
+// handles
+[[maybe_unused]] constexpr std::ptrdiff_t kMinPairTaskSize = 4 * kMinScoreTaskSize;
+
+// OpenMS: the grain size of a taskloop over n elements: at least minGrain, and at most kMaxLoopTasks
+// tasks. (libgomp runs all tasks of a taskloop in the encountering thread, one after the other, if
+// its team's queue would then hold more than 64 tasks per thread; the grain size does not change
+// what an element computes.)
+[[maybe_unused]] constexpr std::ptrdiff_t kMaxLoopTasks = 64;
+[[maybe_unused]] static std::ptrdiff_t loopGrain(std::ptrdiff_t n, std::ptrdiff_t minGrain) {
+  return std::max(minGrain, (n + kMaxLoopTasks - 1) / kMaxLoopTasks);
+}
 
 // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
 // strict weak ordering on [first, last): no score or mass is NaN.
@@ -65,8 +77,22 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
 // comparisons of their ScoreHolders, a sort of the keys (the same algorithm) makes the same
 // moves as a sort of the ScoreHolders: it leaves the same permutation, also of ScoreHolders that
 // compare equal. permuteScores then puts scores[keys[k].index] at position k.
+// OpenMS: inside an OpenMP parallel region, large sets are permuted by its tasks (blocks of
+// positions).
 template <typename Key>
 static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
+#ifdef _OPENMP
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(keys.size());
+  if (n >= 4 * kMinScoreTaskSize && keys.size() == scores.size() && omp_in_parallel()) {
+    std::vector<ScoreHolder> permuted(keys.size());
+#pragma omp taskloop grainsize(loopGrain(n, 4 * kMinScoreTaskSize)) shared(scores, keys, permuted)
+    for (std::ptrdiff_t k = 0; k < n; ++k) {
+      permuted[static_cast<std::size_t>(k)] = scores[keys[static_cast<std::size_t>(k)].index];
+    }
+    scores.swap(permuted);
+    return;
+  }
+#endif
   std::vector<ScoreHolder> permuted;
   permuted.reserve(scores.size());
   for (const Key& key : keys) permuted.push_back(scores[key.index]);
@@ -294,12 +320,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
       size_t hash;
       std::size_t index;
     };
-    std::vector<HashKey> keys;
-    keys.reserve(scores_.size());
-    for (std::size_t i = 0; i < scores_.size(); ++i) {
-      const PSMDescription* psm = scores_[i].pPSM;
+    std::vector<HashKey> keys(scores_.size());
+    const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
+    // (blocks of PSMs as the tasks of an enclosing parallel region, if any)
+#pragma omp taskloop grainsize(loopGrain(numScores, 4 * kMinScoreTaskSize)) shared(keys) if(numScores >= 8 * kMinScoreTaskSize)
+    for (std::ptrdiff_t i = 0; i < numScores; ++i) {
+      const PSMDescription* psm = scores_[static_cast<std::size_t>(i)].pPSM;
       const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
-      keys.push_back({hash, i});
+      keys[static_cast<std::size_t>(i)] = {hash, static_cast<std::size_t>(i)};
     }
     sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
     permuteScores(scores_, keys);
@@ -542,6 +570,20 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
     }
   }
 
+#ifdef _OPENMP
+  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+#pragma omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(fdrScore, diff)
+    for (std::ptrdiff_t i = 0; i < n; ++i) {
+      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+      sh.score -= fdrScore;
+      sh.score /= diff;
+    }
+    Normalizer::endScoreNormalizeWeights(weights, weights, fdrScore, diff);
+    return;
+  }
+#endif
   std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
   for (; scoreIt != scores_.end(); ++scoreIt) {
     scoreIt->score -= fdrScore;
@@ -720,7 +762,7 @@ int Scores::calcScores(std::vector<double>& w) {
   const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
 #ifdef _OPENMP
   if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
-#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(w)
+#pragma omp taskloop grainsize(loopGrain(numScores, kMinScoreTaskSize)) shared(w)
     for (std::ptrdiff_t i = 0; i < numScores; ++i) {
       ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
       sh.score = calcScore(sh.pPSM->features, w);
@@ -769,6 +811,17 @@ int Scores::sortScores() {
 
 void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
   combined.resize(scores_.size());
+#ifdef _OPENMP
+  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+#pragma omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(combined)
+    for (std::ptrdiff_t i = 0; i < n; ++i) {
+      combined[static_cast<std::size_t>(i)] = scores_[static_cast<std::size_t>(i)].toPair();
+    }
+    return;
+  }
+#endif
   transform(scores_.begin(), scores_.end(), combined.begin(),
             mem_fn(&ScoreHolder::toPair));
 }
@@ -800,6 +853,30 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
   }
 
   // set q-values and count number of positives
+#ifdef _OPENMP
+  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs; the counts
+  // of the blocks are added up afterwards)
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(qvals.size());
+  if (n >= 2 * kMinPairTaskSize && qvals.size() == scores_.size() && omp_in_parallel()) {
+    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
+    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
+    std::vector<int> positivesOfBlock(static_cast<std::size_t>(numBlocks), 0);
+#pragma omp taskloop grainsize(1) shared(qvals, positivesOfBlock, fdr)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+      const std::ptrdiff_t last = std::min(n, (block + 1) * blockSize);
+      int positives = 0;
+      for (std::ptrdiff_t i = block * blockSize; i < last; ++i) {
+        ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+        sh.q = qvals[static_cast<std::size_t>(i)];
+        if (sh.q < fdr && sh.isTarget()) ++positives;
+      }
+      positivesOfBlock[static_cast<std::size_t>(block)] = positives;
+    }
+    int numPos = 0;
+    for (const int positives : positivesOfBlock) numPos += positives;
+    return numPos;
+  }
+#endif
   std::vector<double>::const_iterator qIt = qvals.begin();
   std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
 
@@ -1100,8 +1177,12 @@ int Scores::getInitDirection(const double initialSelectionFdr,
       unsigned int index;
     };
     // the keys after the sort of each feature (until its count), and the labels
-    std::vector<std::vector<ChainKey> > keysOfFeature(numFeatures);
+    std::vector<std::unique_ptr<ChainKey[]> > keysOfFeature(numFeatures);
     std::vector<char> isTarget(n);
+    // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
+    // (each key is written once, so the order of the blocks does not matter)
+    constexpr std::ptrdiff_t kMinChainTaskSize = 16384;
+    const std::ptrdiff_t numKeys = static_cast<std::ptrdiff_t>(n);
 #pragma omp taskgroup
     {
       try {
@@ -1130,16 +1211,25 @@ int Scores::getInitDirection(const double initialSelectionFdr,
           if (k > 0 && tieLess(ties[k - 1], ties[k])) ++rank;
           tieRank[ties[k].index] = rank;
         }
-        // the feature values by feature, and the labels (blocks of PSMs as tasks)
-        std::vector<double> columns(static_cast<std::size_t>(numFeatures) * n);
-        const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(n);
-#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(columns, isTarget)
-        for (std::ptrdiff_t i = 0; i < numScores; ++i) {
-          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
-          for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
-            columns[featNo * n + static_cast<std::size_t>(i)] = sh.pPSM->features[featNo];
+        // the feature values by feature, and the labels (blocks of PSMs as tasks; every value is
+        // written there, so the array is not zero-filled first)
+        // (a block of PSMs per task, column by column: consecutive writes)
+        const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
+        const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
+        const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
+#pragma omp taskloop grainsize(1) shared(columns, isTarget)
+        for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+          const std::size_t first = static_cast<std::size_t>(block * blockSize);
+          const std::size_t last = std::min(n, first + static_cast<std::size_t>(blockSize));
+          for (std::size_t i = first; i < last; ++i) {
+            isTarget[i] = scores_[i].isTarget();
           }
-          isTarget[static_cast<std::size_t>(i)] = sh.isTarget();
+          for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
+            double* column = &columns[featNo * n];
+            for (std::size_t i = first; i < last; ++i) {
+              column[i] = scores_[i].pPSM->features[featNo];
+            }
+          }
         }
         std::vector<ChainKey> keys;
         keys.reserve(n);
@@ -1148,30 +1238,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         }
         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
           const double* column = &columns[featNo * n];
-          for (ChainKey& key : keys) key.score = column[key.index];
+#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+          for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+            ChainKey& key = keys[static_cast<std::size_t>(i)];
+            key.score = column[key.index];
+          }
           // operator< of ScoreHolder
           sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
             return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
           });
-          keysOfFeature[featNo] = keys;
+          {
+            keysOfFeature[featNo].reset(new ChainKey[n]);
+            ChainKey* snapshot = keysOfFeature[featNo].get();
+#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+            for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+              snapshot[i] = keys[static_cast<std::size_t>(i)];
+            }
+          }
 #pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
           try {
             std::vector<pair<double, bool> > pairs;
-            pairs.reserve(keysOfFeature[featNo].size());
-            for (const ChainKey& key : keysOfFeature[featNo]) {
-              pairs.emplace_back(key.score, isTarget[key.index] != 0);
+            pairs.reserve(n);
+            const ChainKey* snapshot = keysOfFeature[featNo].get();
+            for (std::size_t i = 0; i < n; ++i) {
+              pairs.emplace_back(snapshot[i].score, isTarget[snapshot[i].index] != 0);
             }
-            std::vector<ChainKey>().swap(keysOfFeature[featNo]);
+            keysOfFeature[featNo].reset();
             positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
             reverse(pairs.begin(), pairs.end());
             positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
           } catch (...) {
             errors[featNo] = std::current_exception();
           }
-          reverse(keys.begin(), keys.end());
+          // reversed (the pairs of positions as tasks)
+#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+          for (std::ptrdiff_t i = 0; i < numKeys / 2; ++i) {
+            std::swap(keys[static_cast<std::size_t>(i)], keys[static_cast<std::size_t>(numKeys - 1 - i)]);
+          }
         }
-        permuteScores(scores_, keys);
-        for (std::size_t i = 0; i < n; ++i) scores_[i].score = keys[i].score;
+        // the PSMs in the order of the keys (as permuteScores), with the scores of the last feature
+        // (blocks as tasks)
+        std::vector<ScoreHolder> permuted(n);
+#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, permuted)
+        for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+          const ChainKey& key = keys[static_cast<std::size_t>(i)];
+          permuted[static_cast<std::size_t>(i)] = scores_[key.index];
+          permuted[static_cast<std::size_t>(i)].score = key.score;
+        }
+        scores_.swap(permuted);
         std::vector<pair<double, bool> > combined;
         calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
       } catch (...) {

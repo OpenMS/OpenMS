@@ -59,7 +59,10 @@ void SetHandler::push_back_dataset( DataSet * ds ) {
 }
 
 void SetHandler::populateScoresWithPSMs(vector<ScoreHolder> &scores, LabelType label) {
-  subsets_[getSubsetIndexFromLabel(label)]->fillScores(scores);
+  DataSet* subset = subsets_[getSubsetIndexFromLabel(label)];
+  // OpenMS: room for the subset's PSMs at once
+  scores.reserve(scores.size() + static_cast<std::size_t>(subset->getSize()));
+  subset->fillScores(scores);
 }
 
 void SetHandler::normalizeFeatures(Normalizer*& pNorm) {
@@ -73,7 +76,8 @@ void SetHandler::normalizeFeatures(Normalizer*& pNorm) {
       rtFeaturesV,
       FeatureNames::getNumFeatures(),
       0);
-  pNorm->normalizeSet(featuresV, rtFeaturesV);
+  // OpenMS: by feature on large sets (the PSMs' rows are rows of the feature pool)
+  pNorm->normalizeRowsByFeature(featuresV, rtFeaturesV);
 }
 
 LabelType const SetHandler::getLabel(int setPos) {
