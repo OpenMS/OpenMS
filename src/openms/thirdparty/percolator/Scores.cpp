@@ -65,8 +65,22 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
 // comparisons of their ScoreHolders, a sort of the keys (the same algorithm) makes the same
 // moves as a sort of the ScoreHolders: it leaves the same permutation, also of ScoreHolders that
 // compare equal. permuteScores then puts scores[keys[k].index] at position k.
+// OpenMS: inside an OpenMP parallel region, large sets are permuted by its tasks (blocks of
+// positions).
 template <typename Key>
 static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
+#ifdef _OPENMP
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(keys.size());
+  if (n >= 4 * kMinScoreTaskSize && keys.size() == scores.size() && omp_in_parallel()) {
+    std::vector<ScoreHolder> permuted(keys.size());
+#pragma omp taskloop grainsize(4 * kMinScoreTaskSize) shared(scores, keys, permuted)
+    for (std::ptrdiff_t k = 0; k < n; ++k) {
+      permuted[static_cast<std::size_t>(k)] = scores[keys[static_cast<std::size_t>(k)].index];
+    }
+    scores.swap(permuted);
+    return;
+  }
+#endif
   std::vector<ScoreHolder> permuted;
   permuted.reserve(scores.size());
   for (const Key& key : keys) permuted.push_back(scores[key.index]);
@@ -294,12 +308,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
       size_t hash;
       std::size_t index;
     };
-    std::vector<HashKey> keys;
-    keys.reserve(scores_.size());
-    for (std::size_t i = 0; i < scores_.size(); ++i) {
-      const PSMDescription* psm = scores_[i].pPSM;
+    std::vector<HashKey> keys(scores_.size());
+    const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
+    // (blocks of PSMs as the tasks of an enclosing parallel region, if any)
+#pragma omp taskloop grainsize(4 * kMinScoreTaskSize) shared(keys) if(numScores >= 8 * kMinScoreTaskSize)
+    for (std::ptrdiff_t i = 0; i < numScores; ++i) {
+      const PSMDescription* psm = scores_[static_cast<std::size_t>(i)].pPSM;
       const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
-      keys.push_back({hash, i});
+      keys[static_cast<std::size_t>(i)] = {hash, static_cast<std::size_t>(i)};
     }
     sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
     permuteScores(scores_, keys);
@@ -1136,15 +1152,23 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         }
         // the feature values by feature, and the labels (blocks of PSMs as tasks; every value is
         // written there, so the array is not zero-filled first)
+        // (a block of PSMs per task, column by column: consecutive writes)
         const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
-        const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(n);
-#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(columns, isTarget)
-        for (std::ptrdiff_t i = 0; i < numScores; ++i) {
-          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
-          for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
-            columns[featNo * n + static_cast<std::size_t>(i)] = sh.pPSM->features[featNo];
+        const std::ptrdiff_t numBlocks =
+            (numKeys + kMinScoreTaskSize - 1) / kMinScoreTaskSize;
+#pragma omp taskloop grainsize(1) shared(columns, isTarget)
+        for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+          const std::size_t first = static_cast<std::size_t>(block * kMinScoreTaskSize);
+          const std::size_t last = std::min(n, first + static_cast<std::size_t>(kMinScoreTaskSize));
+          for (std::size_t i = first; i < last; ++i) {
+            isTarget[i] = scores_[i].isTarget();
           }
-          isTarget[static_cast<std::size_t>(i)] = sh.isTarget();
+          for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
+            double* column = &columns[featNo * n];
+            for (std::size_t i = first; i < last; ++i) {
+              column[i] = scores_[i].pPSM->features[featNo];
+            }
+          }
         }
         std::vector<ChainKey> keys;
         keys.reserve(n);

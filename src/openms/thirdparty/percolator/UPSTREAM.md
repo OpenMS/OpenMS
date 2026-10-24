@@ -306,6 +306,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   keys, the same order of the PSMs.
   `FeatureMemoryPool::moveRowsInOrder` finds the index of each row by tasks (then checks that each
   occurs once, in order, as before): the same answer and rows.
+  `Scores::createXvalSetsBySpectrum` computes the spectrum hash keys, and `permuteScores` puts large
+  sets into the order of the sorted keys, by the tasks of the region; `getInitDirection` writes its
+  feature columns by blocks of PSMs (one column after the other per block).
 
 ### Regenerating the patch
 
