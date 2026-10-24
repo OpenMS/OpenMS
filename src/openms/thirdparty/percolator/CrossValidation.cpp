@@ -59,6 +59,16 @@ constexpr unsigned int kMaxTeamThreads = 12;
 [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
   return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
 }
+// OpenMS: from training sets of kLargeTrainingSet PSMs on, the tasks of a fold chain's own passes
+// (the scoring, sorting and q-values of its sets, the scoring of its validations) are large enough
+// for more threads: the fold chains then get all threads.
+constexpr std::size_t kLargeTrainingSet = std::size_t(1) << 18;
+[[maybe_unused]] static int numChainTeamThreads(unsigned int numThreads,
+                                                const std::vector<Scores>& trainScores) {
+  std::size_t largest = 0;
+  for (const Scores& set : trainScores) largest = std::max<std::size_t>(largest, set.size());
+  return largest >= kLargeTrainingSet ? numLoopThreads(numThreads) : numTeamThreads(numThreads);
+}
 // OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
 // whose 31 sorts per fold run one after the other) gains from a few more threads for the tasks
 // of its sorts: at most kMaxSetupTeamThreads.
@@ -244,6 +254,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
  * @param pNorm Normalization object
  */
 void CrossValidation::train(const Normalizer* pNorm) {
+  // OpenMS: the solves of the training reuse their buffers (see ssl.h)
+  TronWorkspaceHold holdTronWorkspaces;
   if (VERB > 0) {
     cerr << "---Training with Cpos";
     if (selectedCpos_ > 0) {
@@ -385,7 +397,7 @@ void CrossValidation::trainFoldChains() {
   vector<FoldError> foldErrors(numFolds_);
   const bool scored = trainScoresOfWeights_;
   trainScoresOfWeights_ = false;
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp parallel num_threads(numChainTeamThreads(numThreads_, trainScores_))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {

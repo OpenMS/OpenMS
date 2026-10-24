@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -218,8 +219,9 @@ struct AlignedDoubles {
   size_t bytes() const { return v.capacity() * sizeof(double); }
 };
 
-// Per-thread workspace of tron(): the cross-validation runs its solves on the threads of an OpenMP
-// team that persists, so the buffers are allocated (and page-faulted) once per thread, not per solve.
+// Workspace of a solve of tron(). The cross-validation runs many solves one after the other (on
+// the threads of an OpenMP team), so the buffers are taken from a pool and given back, and are
+// allocated (and page-faulted) once, not per solve.
 struct TronWorkspace {
   AlignedDoubles xb;    // X in BT4 layout
   AlignedDoubles a[2];  // active rows in BT4 layout (current, pending)
@@ -234,13 +236,52 @@ struct TronWorkspace {
 };
 
 // Workspaces above this size are freed at the end of tron(), so that a huge problem does not keep
-// its buffers on every thread of the pool.
+// its buffers in the pool, unless a TronWorkspaceHold exists (then at the end of the last one).
 constexpr size_t kTronWorkspaceKeepBytes = size_t(64) << 20;
 
-TronWorkspace& tronWorkspace() {
-  thread_local TronWorkspace ws;
-  return ws;
+struct TronWorkspacePool {
+  std::mutex mutex;
+  std::vector<std::unique_ptr<TronWorkspace> > idle;
+  int holds = 0;
+};
+
+// never destroyed: a TronWorkspaceHold or a solve may end during the destruction of statics
+TronWorkspacePool& tronWorkspacePool() {
+  static TronWorkspacePool* pool = new TronWorkspacePool();
+  return *pool;
 }
+
+// A workspace from the pool for one solve, given back at the end (freed if it is large and no
+// TronWorkspaceHold exists)
+class TronWorkspaceLease {
+ public:
+  TronWorkspaceLease() {
+    TronWorkspacePool& pool = tronWorkspacePool();
+    {
+      std::lock_guard<std::mutex> lock(pool.mutex);
+      if (!pool.idle.empty()) {
+        ws_ = std::move(pool.idle.back());
+        pool.idle.pop_back();
+      }
+    }
+    if (!ws_) ws_ = std::make_unique<TronWorkspace>();
+  }
+  ~TronWorkspaceLease() {
+    TronWorkspacePool& pool = tronWorkspacePool();
+    std::lock_guard<std::mutex> lock(pool.mutex);
+    if (pool.holds == 0 && ws_->bytes() > kTronWorkspaceKeepBytes) return;  // freed
+    try {
+      pool.idle.push_back(std::move(ws_));
+    } catch (...) {  // (freed)
+    }
+  }
+  TronWorkspaceLease(const TronWorkspaceLease&) = delete;
+  TronWorkspaceLease& operator=(const TronWorkspaceLease&) = delete;
+  TronWorkspace& get() { return *ws_; }
+
+ private:
+  std::unique_ptr<TronWorkspace> ws_;
+};
 
 template <class T> void growTo(std::vector<T>& v, size_t n) {
   if (v.size() < n) v.resize(n);
@@ -453,7 +494,8 @@ int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vecto
   const int n = Weights.d;
   const int num_real = n - 1;
   const double inv_2lambda = 1.0 / (2.0 * opts.lambda);
-  TronWorkspace& ws = tronWorkspace();
+  TronWorkspaceLease lease;
+  TronWorkspace& ws = lease.get();
   const int np = (n + 3) & ~3;
   const int mp = (m + 31) & ~31;
   int ret;
@@ -487,7 +529,6 @@ int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vecto
     fn.grad(Weights.vec, g_final.data());
     ret = gradRatioConverged(g0, g_final, opts.epsilon, gradRatio);
   }
-  if (ws.bytes() > kTronWorkspaceKeepBytes) ws = TronWorkspace();
   return ret;
 }
 
@@ -552,6 +593,28 @@ bool kernelsVerified(int kernels) {
 #endif
 
 }  // namespace
+
+TronWorkspaceHold::TronWorkspaceHold() {
+#ifdef PERCOLATOR_TRON_KERNELS
+  TronWorkspacePool& pool = tronWorkspacePool();
+  std::lock_guard<std::mutex> lock(pool.mutex);
+  ++pool.holds;
+#endif
+}
+
+TronWorkspaceHold::~TronWorkspaceHold() {
+#ifdef PERCOLATOR_TRON_KERNELS
+  TronWorkspacePool& pool = tronWorkspacePool();
+  std::lock_guard<std::mutex> lock(pool.mutex);
+  if (--pool.holds == 0) {  // the large workspaces are freed
+    pool.idle.erase(std::remove_if(pool.idle.begin(), pool.idle.end(),
+                                   [](const std::unique_ptr<TronWorkspace>& ws) {
+                                     return ws->bytes() > kTronWorkspaceKeepBytes;
+                                   }),
+                    pool.idle.end());
+  }
+#endif
+}
 
 bool tronSelectKernels(const char* isa) {
   int k;

@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 005531d6b0..c3e5df2f49 100644
+index 8e22bd47ed..e94a0db472 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -886,8 +886,27 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
+@@ -896,8 +896,27 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
    }
  
    if (!pCheck->validateDirection(weights_)) {
@@ -232,10 +232,10 @@ index 87806f0d40..625e2769cc 100644
      while (start < n && combined[start - 1].first == combined[start].first) ++start;
      scanned = start + 1;
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index ada09cf6b7..728c2e6616 100644
+index 20e0af7570..653b2cdf43 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -50,6 +50,18 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+@@ -50,6 +50,19 @@ namespace OpenMS { namespace Internal { namespace Percolator {
  
  // OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
  [[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
@@ -251,10 +251,11 @@ index ada09cf6b7..728c2e6616 100644
 +[[maybe_unused]] static std::ptrdiff_t loopGrain(std::ptrdiff_t n, std::ptrdiff_t minGrain) {
 +  return std::max(minGrain, (n + kMaxLoopTasks - 1) / kMaxLoopTasks);
 +}
- 
- // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
- // strict weak ordering on [first, last): no score or mass is NaN.
-@@ -65,8 +77,22 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
++
+ // OpenMS: from this many PSMs on, the validations of the (Cpos, Cneg) pairs (countPositives) score
+ // the PSMs and sort as tasks of the enclosing OpenMP parallel region (in which the cross-validation
+ // runs them), and so does getFeatureRows
+@@ -69,8 +82,22 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
  // comparisons of their ScoreHolders, a sort of the keys (the same algorithm) makes the same
  // moves as a sort of the ScoreHolders: it leaves the same permutation, also of ScoreHolders that
  // compare equal. permuteScores then puts scores[keys[k].index] at position k.
@@ -277,7 +278,7 @@ index ada09cf6b7..728c2e6616 100644
    std::vector<ScoreHolder> permuted;
    permuted.reserve(scores.size());
    for (const Key& key : keys) permuted.push_back(scores[key.index]);
-@@ -294,12 +320,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -298,12 +325,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
        size_t hash;
        std::size_t index;
      };
@@ -297,7 +298,7 @@ index ada09cf6b7..728c2e6616 100644
      }
      sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
      permuteScores(scores_, keys);
-@@ -542,6 +570,20 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
+@@ -546,6 +575,20 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
      }
    }
  
@@ -318,7 +319,7 @@ index ada09cf6b7..728c2e6616 100644
    std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
    for (; scoreIt != scores_.end(); ++scoreIt) {
      scoreIt->score -= fdrScore;
-@@ -720,7 +762,7 @@ int Scores::calcScores(std::vector<double>& w) {
+@@ -745,7 +788,7 @@ int Scores::calcScores(std::vector<double>& w) {
    const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
  #ifdef _OPENMP
    if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
@@ -327,7 +328,7 @@ index ada09cf6b7..728c2e6616 100644
      for (std::ptrdiff_t i = 0; i < numScores; ++i) {
        ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
        sh.score = calcScore(sh.pPSM->features, w);
-@@ -769,6 +811,17 @@ int Scores::sortScores() {
+@@ -794,6 +837,17 @@ int Scores::sortScores() {
  
  void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
    combined.resize(scores_.size());
@@ -345,7 +346,7 @@ index ada09cf6b7..728c2e6616 100644
    transform(scores_.begin(), scores_.end(), combined.begin(),
              mem_fn(&ScoreHolder::toPair));
  }
-@@ -800,6 +853,30 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
+@@ -825,6 +879,30 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
    }
  
    // set q-values and count number of positives
@@ -376,7 +377,7 @@ index ada09cf6b7..728c2e6616 100644
    std::vector<double>::const_iterator qIt = qvals.begin();
    std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
  
-@@ -1100,8 +1177,12 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1125,8 +1203,12 @@ int Scores::getInitDirection(const double initialSelectionFdr,
        unsigned int index;
      };
      // the keys after the sort of each feature (until its count), and the labels
@@ -390,7 +391,7 @@ index ada09cf6b7..728c2e6616 100644
  #pragma omp taskgroup
      {
        try {
-@@ -1130,16 +1211,25 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1155,16 +1237,25 @@ int Scores::getInitDirection(const double initialSelectionFdr,
            if (k > 0 && tieLess(ties[k - 1], ties[k])) ++rank;
            tieRank[ties[k].index] = rank;
          }
@@ -424,7 +425,7 @@ index ada09cf6b7..728c2e6616 100644
          }
          std::vector<ChainKey> keys;
          keys.reserve(n);
-@@ -1148,30 +1238,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1173,30 +1264,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
          }
          for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
            const double* column = &columns[featNo * n];

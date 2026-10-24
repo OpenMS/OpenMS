@@ -45,8 +45,11 @@ nor patches these files):
   where `FastTronFunction::Hv` loops over the active rows like `TronFunction`.
   Further: the active rows are packed while `fun` has them in L1, f and g at
   w = 0 are computed once per solve (TRON and the gradient-ratio check ask three
-  times), and the buffers are per thread and grow-only (freed at the end of a
-  solve once they exceed 64 MB). The first use of each kernel table in a process
+  times), and the buffers are grow-only and come from a pool of workspaces that
+  solves take and give back (a workspace above 64 MB is freed at the end of its
+  solve, unless a `TronWorkspaceHold` exists: `CrossValidation::train` holds one, so
+  the solves of a large training reuse their buffers instead of allocating and
+  page-faulting them per solve; the large ones are freed when the hold ends). The first use of each kernel table in a process
   solves two small problems both ways (about 1 ms) and falls back to
   `TronFunction` with a warning if any bit differs. Weights, outputs and the
   gradient ratio are bit-identical to `TronFunction` (class test
@@ -168,7 +171,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   `std::sort`, so it leaves the same permutation (also of PSMs that compare equal), but
   hands the right parts of the partitions to tasks (the algorithm of OpenMS'
   `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score or mass (no strict weak
-  ordering), it is `std::sort`.
+  ordering), it is `std::sort`. Ranges of more than 2^18 elements (large data sets: the first
+  partitionings, whose scans are the critical path of the sort) are partitioned with all tasks
+  (`partitionInParallel`): the elements are classified against the pivot in chunks, and the swaps
+  of `__unguarded_partition` (the k-th element from the left not less than the pivot with the k-th
+  from the right the pivot is not less than, while they are in order) are made from these
+  classes, in blocks; same swaps, same cut (if its bookkeeping cannot be allocated, the scans of
+  `__unguarded_partition` as before).
   The loops over the folds (`CrossValidation`, `SanityCheck`) run their folds as tasks of a
   parallel region on up to 12 threads (`numTeamThreads`), whose other threads run the tasks
   of the sorts; `createXvalSetsBySpectrum` and `merge` are called in such a region as well.
@@ -283,6 +292,14 @@ hand-editing sources and committing them, to keep sync self-healing.
   walked; otherwise (also for a threshold above 1) all are sorted as before.
   The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
   directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
+- `patches/13-cv-large-sets.patch` — speeds up the training of large data sets without changing
+  its result. If a fold's training set has at least 2^18 PSMs, the fold chains (`trainFoldChains`)
+  run on all threads instead of 12 (`numChainTeamThreads`): the tasks of a chain's own passes (the
+  scoring, sorting and q-values of its sets) are then large enough for more threads. From 2^17 PSMs
+  on, the validation of a (Cpos, Cneg) pair (`Scores::countPositives` with the feature rows) scores
+  the rows in tasks (each score by `calcScore`, as before) and sorts the top part with
+  `sortLikeStdSort`, and `Scores::getFeatureRows` sorts the rows by address with `sortLikeStdSort`
+  (same permutations as `std::sort`).
 - `patches/14-rowsscale-postprocessing.patch` — speeds up the steps before and after the training
   of the cross-validation on large sets, without changing their results.
   `CrossValidation::postIterationProcessing`: when the sanity check rejects the learned weights,
@@ -321,6 +338,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   scoring of a set of 2.3M PSMs (1134 tasks of 2048) ran on one thread of a team of 12. Larger
   blocks; each element computes the same (the q-value blocks still start at positions that depend
   on the set only).
+- `patches/19-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
+  `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
+  the local replacement above). No change of results.
 
 ### Regenerating the patch
 

@@ -63,6 +63,11 @@ namespace OpenMS { namespace Internal { namespace Percolator {
   return std::max(minGrain, (n + kMaxLoopTasks - 1) / kMaxLoopTasks);
 }
 
+// OpenMS: from this many PSMs on, the validations of the (Cpos, Cneg) pairs (countPositives) score
+// the PSMs and sort as tasks of the enclosing OpenMP parallel region (in which the cross-validation
+// runs them), and so does getFeatureRows
+[[maybe_unused]] constexpr std::ptrdiff_t kLargeSet = std::ptrdiff_t(1) << 17;
+
 // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
 // strict weak ordering on [first, last): no score or mass is NaN.
 static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
@@ -636,10 +641,14 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
   for (const ScoreHolder& sh : scores_) {
     rows.emplace_back(sh.pPSM->features, sh.isTarget());
   }
-  std::sort(rows.begin(), rows.end(),
-            [](const pair<const double*, bool>& a, const pair<const double*, bool>& b) {
-              return std::less<const double*>()(a.first, b.first);
-            });
+  const auto byAddress = [](const pair<const double*, bool>& a, const pair<const double*, bool>& b) {
+    return std::less<const double*>()(a.first, b.first);
+  };
+  if (static_cast<std::ptrdiff_t>(rows.size()) >= kLargeSet) {
+    sortLikeStdSort(rows, byAddress);
+  } else {
+    std::sort(rows.begin(), rows.end(), byAddress);
+  }
 }
 
 /**
@@ -649,9 +658,22 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
 int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
                            const std::vector<pair<const double*, bool> >& rows) const {
   std::vector<pair<double, bool> > combined;
-  combined.reserve(rows.size());
-  for (const pair<const double*, bool>& row : rows) {
-    combined.emplace_back(calcScore(row.first, w), row.second);
+  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(rows.size());
+#ifdef _OPENMP
+  if (numRows >= kLargeSet && omp_in_parallel()) {
+    combined.resize(rows.size());
+#pragma omp taskloop grainsize(numRows / 64) shared(combined, rows, w)
+    for (std::ptrdiff_t i = 0; i < numRows; ++i) {
+      const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
+      combined[static_cast<std::size_t>(i)] = {calcScore(row.first, w), row.second};
+    }
+  } else
+#endif
+  {
+    combined.reserve(rows.size());
+    for (const pair<const double*, bool>& row : rows) {
+      combined.emplace_back(calcScore(row.first, w), row.second);
+    }
   }
   return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
 }
@@ -727,7 +749,11 @@ bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, dou
     const double tailFdr =
         (topDecoys * pi0 + 0.0) / (double)((std::max)(1, numTargets)) * decoyFactor;
     if (!((std::min)(tailFdr, 1.0) >= fdr)) continue;
-    std::sort(combined.begin(), topEnd, greater);
+    if (topEnd - combined.begin() >= kLargeSet) {
+      sortLikeStdSort(combined.data(), combined.data() + (topEnd - combined.begin()), greater);
+    } else {
+      std::sort(combined.begin(), topEnd, greater);
+    }
     // the loop of getQValues on the top part
     PosteriorEstimator::setNegative(true);  // as countPositivesOfPairs
     int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;

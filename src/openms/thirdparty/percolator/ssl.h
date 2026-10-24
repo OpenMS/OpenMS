@@ -88,6 +88,17 @@ int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
          double cpos, double cneg, double* gradRatio = nullptr);
 
+// OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
+// of any size for the next solves (otherwise those above 64 MB are freed after the solve); the
+// last one to end frees them. CrossValidation holds one during its training.
+class TronWorkspaceHold {
+ public:
+  TronWorkspaceHold();
+  ~TronWorkspaceHold();
+  TronWorkspaceHold(const TronWorkspaceHold&) = delete;
+  TronWorkspaceHold& operator=(const TronWorkspaceHold&) = delete;
+};
+
 // OpenMS, for tests: selects the function object of tron() for all threads: "ref"
 // (the reference TronFunction), "sse2" or "avx2" (the kernels); nullptr = the
 // default (environment variable OPENMS_TRON_ISA = ref|sse2|avx2, else AVX2 if the
