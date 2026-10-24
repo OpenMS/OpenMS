@@ -270,8 +270,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   it. `CrossValidation::setupFoldInputs` is `doStep`'s setup of a fold's SVM inputs, now shared by
   both. Otherwise `train` steps through `doStep` as before.
   The (Cpos, Cneg) pairs of a fold count their positives (`Scores::countPositives`) with less
-  work, to the same count. The fold's feature rows with their labels are collected once
-  (`Scores::getFeatureRows`, sorted by address, so the scoring reads them in the order they are in
+  work, to the same count. The fold's feature rows with their labels are collected once if
+  the fold validates at least 3 pairs (`Scores::getFeatureRows`, sorted by address, so the scoring reads them in the order they are in
   memory; the training set keeps its PSMs and labels during the training), and the scores (each by
   `calcScore`, as before) are counted from the PSMs with the highest scores only where that gives
   the same count (`Scores::countPositivesOfTop`): with pi0 >= 1 and a finite decoy factor >= 0,
@@ -279,8 +279,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   last group of equal scores whose min(FDR, 1) is below the threshold, and every group after the
   PSMs scoring at least as high as the k-th highest (k = n / 8, then 4 times more) has an FDR of
   at least (their decoys, all targets): each operation of the FDR's expression is monotone. If
-  that bound is not below the threshold, only those PSMs are sorted and walked; otherwise all are
-  sorted as before.
+  that bound is not below the threshold (checked before sorting), only those PSMs are sorted and
+  walked; otherwise (also for a threshold above 1) all are sorted as before.
   The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
   directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
 

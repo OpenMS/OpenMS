@@ -648,14 +648,16 @@ int Scores::countPositivesOfScores(std::vector<pair<double, bool> >& combined,
  * are walked as in getQValues; a group after the top part ends with at least the top part's
  * decoys and at most all targets, and each operation of the expression is monotone, so its FDR
  * is at least that of (decoys of the top part, all targets). If min(that, 1) >= fdr, no later
- * group counts. Otherwise k grows; with k = n, false (the caller sorts all PSMs).
+ * group counts, and the top part is sorted and walked. Otherwise k grows; once the top part is
+ * all PSMs, false (the caller sorts them).
  */
 bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, double fdr,
                                  bool skipDecoysPlusOne, int& numPos) const {
   const double pi0 = pi0_;
   const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
+  // (with fdr > 1 or NaN, no bound can exclude the later groups)
   if (!(pi0 >= 1.0) || !std::isfinite(pi0) || !(decoyFactor >= 0.0) ||
-      !std::isfinite(decoyFactor)) {
+      !std::isfinite(decoyFactor) || !(fdr <= 1.0)) {
     return false;
   }
   const auto greater = [](const pair<double, bool>& a, const pair<double, bool>& b) {
@@ -674,6 +676,15 @@ bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, dou
     const auto topEnd = std::partition(
         combined.begin() + static_cast<std::ptrdiff_t>(k), combined.end(),
         [kth](const pair<double, bool>& x) { return x.first == kth; });
+    if (topEnd == combined.end()) break;
+    // the bound for the groups after the top part first (from its decoys, in any order)
+    int topDecoys = skipDecoysPlusOne ? 0 : 1;
+    for (auto it = combined.begin(); it != topEnd; ++it) {
+      if (!it->second) ++topDecoys;
+    }
+    const double tailFdr =
+        (topDecoys * pi0 + 0.0) / (double)((std::max)(1, numTargets)) * decoyFactor;
+    if (!((std::min)(tailFdr, 1.0) >= fdr)) continue;
     std::sort(combined.begin(), topEnd, greater);
     // the loop of getQValues on the top part
     PosteriorEstimator::setNegative(true);  // as countPositivesOfPairs
@@ -691,12 +702,8 @@ bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, dou
         if ((std::min)(groupFdr, 1.0) < fdr) count = n_w_ge_w;
       }
     }
-    const double tailFdr =
-        (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, numTargets)) * decoyFactor;
-    if ((std::min)(tailFdr, 1.0) >= fdr) {
-      numPos = count;
-      return true;
-    }
+    numPos = count;
+    return true;
   }
   return false;
 }

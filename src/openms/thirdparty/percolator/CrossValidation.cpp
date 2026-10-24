@@ -369,6 +369,8 @@ void CrossValidation::trainFoldChains() {
   const bool skipDecoysPlusOne = true;
   const bool skipDecoysPlusOneValidation = true;
   const std::size_t numCpCnPairsPerSet = classWeightsPerFold_.size() / numFolds_;
+  // the rows are collected (and sorted) once per fold: worth it when a fold validates a few pairs
+  const bool useRows = static_cast<std::size_t>(niter_) * numCpCnPairsPerSet >= 3u;
   // positives of each step and fold (as in mergeCpCnPairs), and of each fold's test set
   vector<vector<int> > stepPositives(niter_, vector<int>(numFolds_, 0));
   vector<int> testPositives(numFolds_);
@@ -407,7 +409,7 @@ void CrossValidation::trainFoldChains() {
         const Scores* testSet = nullptr;
         setupFoldInputs(set, selectionFdr, nestedTestScores, &testSet);
         stage = 2;
-        if (step == 0u) trainScores_[set].getFeatureRows(rows);
+        if (step == 0u && useRows) trainScores_[set].getFeatureRows(rows);
         vector<std::exception_ptr> pairErrors(numCpCnPairsPerSet);
         for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
 #pragma omp task default(shared) firstprivate(k)
@@ -416,8 +418,11 @@ void CrossValidation::trainFoldChains() {
               const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
               CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
               trainCpCnPair(cpCnFold, pOptions, svmInputs_[cpCnFold.set]);
-              pairTruePoses[pairIdx] = testSet->countPositives(
-                  cpCnFold.ww, testFdr_, skipDecoysPlusOneValidation, rows);
+              pairTruePoses[pairIdx] =
+                  useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
+                                                    skipDecoysPlusOneValidation, rows)
+                          : testSet->countPositives(cpCnFold.ww, testFdr_,
+                                                    skipDecoysPlusOneValidation);
             } catch (...) {
               pairErrors[k] = std::current_exception();
             }
@@ -459,6 +464,8 @@ void CrossValidation::trainFoldChains() {
     }
   }
   const unsigned int stepsDone = firstError ? firstError->step : niter_;
+  // as after the last mergeCpCnPairs (unchanged without steps); false after an error in a step
+  trainScoresOfWeights_ = stepsDone == niter_ && (niter_ > 0u || scored);
   for (unsigned int i = 0; i < niter_; i++) {
     if (VERB > 1) {
       cerr << "Iteration " << i + 1 << ":\t";
@@ -482,8 +489,6 @@ void CrossValidation::trainFoldChains() {
   if (firstError) {
     std::rethrow_exception(firstError->error);
   }
-  // as after the last mergeCpCnPairs (unchanged without steps)
-  trainScoresOfWeights_ = niter_ > 0u || scored;
   int foundPositives = 0;
   for (size_t set = 0; set < numFolds_; ++set) {
     foundPositives += testPositives[set];
