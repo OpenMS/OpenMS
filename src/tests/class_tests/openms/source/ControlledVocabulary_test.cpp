@@ -60,6 +60,30 @@ START_SECTION(bool exists(const std::string& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:7"),false)
 END_SECTION
 
+START_SECTION(([EXTRA] copies and moves keep lookups by id working))
+{
+  ControlledVocabulary copied;
+  {
+    ControlledVocabulary original;
+    original.loadFromOBO("bla", OPENMS_GET_TEST_DATA_PATH("ControlledVocabulary.obo"));
+    copied = original;
+    ControlledVocabulary constructed(original);
+    TEST_EQUAL(constructed.getTerm("OpenMS:2").name, "Ford")
+  } // the original is gone: the copy must not refer to its terms
+  TEST_EQUAL(copied.getTerm("OpenMS:2").name, "Ford")
+  TEST_EQUAL(copied.exists("OpenMS:6"), true)
+  TEST_EQUAL(copied.isChildOf("OpenMS:6", "OpenMS:1"), true)
+  ControlledVocabulary moved(std::move(copied));
+  TEST_EQUAL(moved.getTerm("OpenMS:6").name, "Ka")
+  ControlledVocabulary assigned;
+  assigned = std::move(moved);
+  TEST_EQUAL(assigned.getTerm("OpenMS:4").name, "A-Klasse")
+  TEST_EQUAL(assigned.isChildOf("OpenMS:4", "OpenMS:2"), false)
+  TEST_EQUAL(assigned.exists("OpenMS:7"), false)
+  TEST_EXCEPTION(Exception::InvalidValue, assigned.getTerm("OpenMS:7"))
+}
+END_SECTION
+
 START_SECTION(const CVTerm& getTerm(const std::string& id) const)
 	const ControlledVocabulary::CVTerm* term=nullptr;
 	//Auto

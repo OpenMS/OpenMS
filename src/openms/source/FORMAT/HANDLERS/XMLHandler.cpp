@@ -181,9 +181,10 @@ namespace OpenMS::Internal
     DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const std::string& parent_tag, const std::string& accession, const std::string& name,
                                          const std::string& value, const std::string& unit_accession) const
     {
-      // the actual value stored in the CVParam
-      // we assume for now that it is a string value, we update the type later on
-      DataValue cv_value = value;
+      // the actual value stored in the CVParam: numeric and boolean types are set
+      // below, everything else keeps the string (assigned at the end, which
+      // avoids allocating a string value that a number then replaces)
+      DataValue cv_value;
 
       // Abort on unknown terms
       try
@@ -299,6 +300,11 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           return DataValue::EMPTY;
         }
+      }
+
+      if (cv_value.isEmpty())
+      {
+        cv_value = value;
       }
 
       if (!unit_accession.empty())

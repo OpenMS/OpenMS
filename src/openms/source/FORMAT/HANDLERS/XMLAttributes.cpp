@@ -98,7 +98,11 @@ namespace OpenMS::Internal
     {
       for (Size i = 0; i < native_->count_; ++i)
       {
-        if (equalsUTF8(qname, native_->entries_[i].name())) return static_cast<SignedSize>(i);
+        const std::string_view name = native_->entries_[i].name();
+        // An ASCII first byte that differs rules the name out without decoding.
+        const unsigned char first = name.empty() ? 0 : static_cast<unsigned char>(name[0]);
+        if (first < 0x80 && first != qname[0]) continue;
+        if (equalsUTF8(qname, name)) return static_cast<SignedSize>(i);
       }
       return -1;
     }

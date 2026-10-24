@@ -204,6 +204,16 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
+      /// Assigns a required attribute to @p value (reusing its capacity); fatal error if absent
+      void requiredAttributeAsString_(std::string& value, const XMLAttributes& attributes, const char16_t* name) const;
+
+      /// Reused attribute buffers for cvParam/userParam elements (avoids allocating per element)
+      struct ParamBuffers_
+      {
+        std::string accession, name, value, unit_accession, type;
+      };
+      ParamBuffers_ param_buffers_;
+
       /// Shared implementation of onStartElement() and tryOnStartElementUTF8()
       void startElement_(std::string_view tag_name, const XMLAttributes& attributes);
 
