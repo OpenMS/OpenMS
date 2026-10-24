@@ -97,9 +97,17 @@ canonical sequence and is not emitted again; isoforms typed "external" or
 "not described" have no reconstructable sequence and are reported in the log.
 An isoform entry carries the features UniProt annotates on that isoform
 (<code>\<location sequence="..."\></code>, see above), with ids and
-\\DisulfideBond connectivity as for canonical entries; the canonical entry's
-annotations are not mapped onto the spliced sequence. Disable isoform expansion
-with @c -omit_isoforms.
+\\DisulfideBond connectivity as for canonical entries. By default the canonical
+entry's annotations are not mapped onto the spliced sequence, since UniProt does
+not assert them for the isoform. With @c -map_canonical_features they are: each
+canonical annotation is moved to isoform coordinates through the splice variants
+the isoform is built from. Annotations on a deleted or replaced residue (for a
+disulfide bond or cross-link: on either of its residues) are not mapped, nor are
+regions overlapping a splice variant, except processed regions (chain, propeptide,
+signal and transit peptide): those are clipped to the residues they keep, and one
+reaching the canonical N- or C-terminus reaches the isoform's. A mapped annotation
+that UniProt also annotates on the isoform itself is written once. Disable isoform
+expansion with @c -omit_isoforms.
 
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
 auto-detected by the underlying parser).
@@ -732,8 +740,8 @@ namespace
   /// with gene / taxonomy / mnemonic inherited from the parent and no SV/EV/PE
   /// (UniProt versions isoform sequences with the parent entry, not separately).
   /// Its annotations are the features UniProt annotates on this isoform
-  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates; the canonical
-  /// entry's annotations are not mapped onto the spliced sequence.
+  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates, plus, with
+  /// -map_canonical_features, the canonical annotations mapped onto it.
   void writeIsoformPeffEntry(std::ostream& out, const UniProtEntry& parent, const IsoformEntry& iso,
                              const std::string& prefix,
                              const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
@@ -827,6 +835,7 @@ protected:
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
     registerFlag_("omit_isoforms", "Skip the additional PEFF entries for UniProt isoforms (alternative products whose sequences are reconstructed from splice-variant features).");
+    registerFlag_("map_canonical_features", "Also annotate each isoform entry with the canonical entry's annotations, mapped to isoform coordinates through its splice variants (UniProt does not assert them for the isoform). Annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are clipped. No effect with -omit_isoforms.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -840,6 +849,7 @@ protected:
     const bool omit_aa               = getFlag_("omit_amino_acid_modifications");
     const bool omit_var              = getFlag_("omit_sequence_variations");
     const bool omit_iso              = getFlag_("omit_isoforms");
+    const bool map_canonical         = getFlag_("map_canonical_features");
 
     const bool record_processing = !omit_proc;
     const bool record_aa_mods    = !omit_aa;
@@ -941,6 +951,7 @@ protected:
     std::string spool_open_failed_path;
     OboFallbackTracker fallback_tracker;
     IsoformScopedTracker isoform_scoped_tracker;
+    IsoformScopedTracker canonical_mapped_tracker;
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
@@ -957,7 +968,7 @@ protected:
         }
         PreparedEntry pe = prepareEntry(std::move(entry), ptms, prefix_override, option_b,
                                         record_processing, record_aa_mods, record_variants,
-                                        record_isoforms, skipped_isoforms);
+                                        record_isoforms, map_canonical, skipped_isoforms);
         auto it = spools.find(pe.prefix);
         if (it == spools.end())
         {
@@ -977,6 +988,7 @@ protected:
           prefixes.push_back(pe.prefix);
         }
         isoform_scoped_tracker.add(pe.isoform_scoped_applied, pe.isoform_scoped_skipped);
+        canonical_mapped_tracker.add(pe.canonical_mapped, pe.canonical_unmapped);
         writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix,
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
@@ -1099,6 +1111,17 @@ protected:
       OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.skipped << " feature(s) annotated on isoforms "
                          "that are not written (location/@sequence) were not applied ("
                       << isoform_scoped_tracker.skipped_entries << " entries affected).\n";
+    }
+    if (canonical_mapped_tracker.applied > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.applied << " canonical annotation(s) were mapped "
+                         "onto isoform entries (" << canonical_mapped_tracker.applied_entries << " entries affected).\n";
+    }
+    if (canonical_mapped_tracker.skipped > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.skipped << " canonical annotation(s) lie in or "
+                         "cross a splice variant of an isoform, or have an unknown position, and were not mapped onto it ("
+                      << canonical_mapped_tracker.skipped_entries << " entries affected).\n";
     }
     return EXECUTION_OK;
   }

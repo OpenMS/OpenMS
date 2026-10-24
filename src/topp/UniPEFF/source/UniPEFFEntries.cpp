@@ -78,17 +78,28 @@ namespace
     return out;
   }
 
+  /// One splice variant applied by buildIsoformSequence(): the canonical residues
+  /// @c begin..end (1-based) are replaced by @c replacement_length residues (0 = deleted).
+  struct SpliceEdit
+  {
+    int begin;
+    int end;
+    int replacement_length;
+  };
+
   /// Apply the splice-variant features referenced by @p iso to @p canonical.
   /// A referenced range without a <variation> is deleted; one with a <variation>
   /// is replaced (a longer replacement extends the sequence). Features are
   /// applied C- to N-terminal so an application cannot shift the coordinates of
-  /// the ones still pending. On any inconsistency (unknown ref, unknown or
+  /// the ones still pending. The applied splice variants are returned in @p edits,
+  /// sorted N- to C-terminal. On any inconsistency (unknown ref, unknown or
   /// out-of-bounds coordinates, overlapping features, <original> text not
   /// matching the canonical sequence) @p error is set and "" returned.
   std::string buildIsoformSequence(const UniProtIsoform& iso, const std::string& canonical,
                                    const std::unordered_map<std::string, const UniProtFeature*>& vsp_by_id,
-                                   std::string& error)
+                                   std::vector<SpliceEdit>& edits, std::string& error)
   {
+    edits.clear();
     struct Span { int begin; int end; const UniProtFeature* feature; };
     std::vector<Span> spans;
     for (const std::string& r : splitRefs(iso.sequence_ref))
@@ -140,7 +151,116 @@ namespace
       error = "reconstructed sequence is empty";
       return {};
     }
+    for (auto it = spans.rbegin(); it != spans.rend(); ++it)
+    {
+      edits.push_back(SpliceEdit{it->begin, it->end, static_cast<int>(it->feature->variation.size())});
+    }
     return seq;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Canonical → isoform coordinates (-map_canonical_features)
+  // ──────────────────────────────────────────────────────────────────
+
+  /// Isoform position of canonical residue @p p under @p edits (sorted N- to C-terminal),
+  /// or 0 if @p p is unknown (0), beyond @p canonical_length or inside a splice variant
+  /// (deleted or replaced, so the isoform has no such residue).
+  int mapPosition(int p, const std::vector<SpliceEdit>& edits, int canonical_length)
+  {
+    if (p < 1 || p > canonical_length) return 0;
+    int shift = 0;
+    for (const SpliceEdit& e : edits)
+    {
+      if (p < e.begin) break;
+      if (p <= e.end) return 0;
+      shift += e.replacement_length - (e.end - e.begin + 1);
+    }
+    return p + shift;
+  }
+
+  /// UniProt feature types that become \\Processed annotations (see classifyAndAppend()).
+  bool isProcessingFeature(const std::string& type)
+  {
+    return type == "chain" || type == "initiator methionine" || type == "propeptide"
+           || type == "signal peptide" || type == "transit peptide";
+  }
+
+  /// Map the coordinates of the canonical feature @p f onto an isoform built by @p edits; returns
+  /// false (and leaves @p mapped unspecified) if the isoform does not contain it:
+  ///  - a single position, and each of the two linked residues of a disulfide bond or cross-link,
+  ///    must lie outside every splice variant;
+  ///  - a processed region (chain, propeptide, signal/transit peptide) is clipped to the canonical
+  ///    residues it keeps; one that starts at the canonical N-terminus or ends at the canonical
+  ///    C-terminus still does so in the isoform. It is dropped if it keeps no residue;
+  ///  - any other region (e.g. a sequence variant range) must not overlap a splice variant.
+  /// Features with unknown (0) coordinates are dropped, since they cannot be placed.
+  bool mapFeature(const UniProtFeature& f, const std::vector<SpliceEdit>& edits, int canonical_length,
+                  int isoform_length, UniProtFeature& mapped)
+  {
+    mapped = f;
+    if (f.has_position)
+    {
+      mapped.position = mapPosition(f.position, edits, canonical_length);
+      return mapped.position != 0;
+    }
+    if (!f.has_range || f.begin < 1 || f.begin > f.end || f.end > canonical_length) return false;
+
+    if (f.type == "disulfide bond" || f.type == "cross-link")
+    {
+      // two linked residues, not a region: splice variants between them do not matter
+      mapped.begin = mapPosition(f.begin, edits, canonical_length);
+      mapped.end = mapPosition(f.end, edits, canonical_length);
+      return mapped.begin != 0 && mapped.end != 0;
+    }
+
+    if (isProcessingFeature(f.type))
+    {
+      // first and last canonical residue of the region that no splice variant removes or replaces
+      int first = f.begin;
+      for (const SpliceEdit& e : edits)
+      {
+        if (first >= e.begin && first <= e.end) first = e.end + 1;
+      }
+      int last = f.end;
+      for (auto it = edits.rbegin(); it != edits.rend(); ++it)
+      {
+        if (last >= it->begin && last <= it->end) last = it->begin - 1;
+      }
+      if (first > last) return false;
+      mapped.begin = (f.begin == 1) ? 1 : mapPosition(first, edits, canonical_length);
+      mapped.end = (f.end == canonical_length) ? isoform_length : mapPosition(last, edits, canonical_length);
+      return true;
+    }
+
+    const bool overlaps = std::any_of(edits.begin(), edits.end(),
+                                      [&f](const SpliceEdit& e) { return e.begin <= f.end && e.end >= f.begin; });
+    if (overlaps) return false;
+    mapped.begin = mapPosition(f.begin, edits, canonical_length);
+    mapped.end = mapPosition(f.end, edits, canonical_length);
+    return true;
+  }
+
+  /// First and last residue of @p f: a position p is p..p, so it equals a one-residue range; unknown is 0..0.
+  std::pair<int, int> residueSpan(const UniProtFeature& f)
+  {
+    if (f.has_position) return {f.position, f.position};
+    if (f.has_range) return {f.begin, f.end};
+    return {0, 0};
+  }
+
+  /// True if @p a and @p b become the same annotation (see classifyAndAppend()): same type, residues
+  /// (a position and a one-residue range at it are the same) and variation and, for modifications, the
+  /// same cleaned description. Other descriptions (e.g. of a sequence variant or a chain) are not
+  /// written, so features differing only in them are the same.
+  bool sameAnnotationFeature(const UniProtFeature& a, const UniProtFeature& b)
+  {
+    if (a.type != b.type || residueSpan(a) != residueSpan(b) || a.variation != b.variation)
+    {
+      return false;
+    }
+    const bool description_written = a.type == "modified residue" || a.type == "cross-link"
+                                     || a.type == "glycosylation site" || a.type == "lipid moiety-binding region";
+    return !description_written || cleanPtmDescription(a.description) == cleanPtmDescription(b.description);
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -501,13 +621,14 @@ namespace
 
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
-                             bool record_variants, bool record_isoforms,
+                             bool record_variants, bool record_isoforms, bool map_canonical_features,
                              SkippedIsoformCounts& skipped_isoforms)
   {
     PreparedEntry pe;
     pe.source = std::move(e);
     pe.prefix = prefix_override.empty() ? prefixForDataset(pe.source.dataset) : prefix_override;
 
+    std::vector<std::vector<SpliceEdit>> isoform_edits;  // parallel to pe.isoforms
     if (record_isoforms && !pe.source.isoforms.empty())
     {
       std::unordered_map<std::string, const UniProtFeature*> vsp_by_id;
@@ -536,7 +657,8 @@ namespace
           continue;
         }
         std::string error;
-        std::string seq = buildIsoformSequence(iso, pe.source.sequence, vsp_by_id, error);
+        std::vector<SpliceEdit> edits;
+        std::string seq = buildIsoformSequence(iso, pe.source.sequence, vsp_by_id, edits, error);
         if (!error.empty())
         {
           OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession << " isoform " << iso.id << " "
@@ -544,6 +666,7 @@ namespace
           continue;
         }
         pe.isoforms.push_back(IsoformEntry{iso.id, iso.name, std::move(seq), {}});
+        isoform_edits.push_back(std::move(edits));
       }
     }
 
@@ -557,13 +680,21 @@ namespace
       if (iso.sequence_type == "displayed" && !iso.id.empty()) displayed_ids.push_back(iso.id);
     }
 
+    // With map_canonical_features: the canonical features that became annotations of the canonical
+    // entry (mapped onto each isoform below), and the isoform-scoped features written to each
+    // isoform (a mapped copy of one of them is not written again).
+    std::vector<const UniProtFeature*> canonical_annotated;
+    std::vector<std::vector<const UniProtFeature*>> isoform_scoped(pe.isoforms.size());
+
     for (const auto& f : pe.source.features)
     {
       if (!isIsoformScoped(f)
           || std::find(displayed_ids.begin(), displayed_ids.end(), f.location_sequence) != displayed_ids.end())
       {
+        const size_t before = classifiedAnnotationCount(pe.annotations);
         classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
                           record_variants, pe.source.accession);
+        if (classifiedAnnotationCount(pe.annotations) > before) canonical_annotated.push_back(&f);
         continue;
       }
       auto target = emitted_isoform.find(f.location_sequence);
@@ -573,7 +704,11 @@ namespace
         const size_t before = classifiedAnnotationCount(iso.annotations);
         classifyAndAppend(f, ptms, iso.annotations, record_processing, record_aa_mods,
                           record_variants, iso.accession);
-        if (classifiedAnnotationCount(iso.annotations) > before) ++pe.isoform_scoped_applied;
+        if (classifiedAnnotationCount(iso.annotations) > before)
+        {
+          ++pe.isoform_scoped_applied;
+          isoform_scoped[target->second].push_back(&f);
+        }
         continue;
       }
       // The isoform is not written (external, not described, not reconstructable, or
@@ -589,6 +724,38 @@ namespace
         OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
                          << "' is annotated on isoform " << f.location_sequence
                          << ", which is not written; not applied.\n";
+      }
+    }
+
+    // Canonical features mapped onto each isoform through the splice variants it is built from.
+    // UniProt does not assert them for the isoform; this is opt-in.
+    if (map_canonical_features)
+    {
+      const int canonical_length = static_cast<int>(pe.source.sequence.size());
+      for (size_t i = 0; i < pe.isoforms.size(); ++i)
+      {
+        IsoformEntry& iso = pe.isoforms[i];
+        for (const UniProtFeature* f : canonical_annotated)
+        {
+          UniProtFeature mapped;
+          if (!mapFeature(*f, isoform_edits[i], canonical_length, static_cast<int>(iso.sequence.size()), mapped))
+          {
+            ++pe.canonical_unmapped;
+            OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f->type << " '" << f->description
+                             << "' cannot be placed on isoform " << iso.accession
+                             << " (in or across a splice variant, or unknown position); not mapped.\n";
+            continue;
+          }
+          const auto& scoped = isoform_scoped[i];
+          if (std::any_of(scoped.begin(), scoped.end(),
+                          [&mapped](const UniProtFeature* s) { return sameAnnotationFeature(*s, mapped); }))
+          {
+            continue;  // UniProt annotates it on the isoform itself; already written
+          }
+          classifyAndAppend(mapped, ptms, iso.annotations, record_processing, record_aa_mods,
+                            record_variants, iso.accession);
+          ++pe.canonical_mapped;
+        }
       }
     }
 
