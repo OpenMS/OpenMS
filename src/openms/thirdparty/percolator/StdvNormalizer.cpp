@@ -14,6 +14,7 @@
  limitations under the License.
 
  *******************************************************************************/
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -62,32 +63,33 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
 static bool sumsByFeature(const std::vector<double*>& featuresV, std::size_t numFeatures,
                           std::vector<double>& sub, std::vector<double>& div) {
   const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
+  const double n = static_cast<double>(featuresV.size());
+  std::vector<double> sums(sub.begin(), sub.begin() + nf), squares(div.begin(), div.begin() + nf);
   bool finite = true;
 #pragma omp parallel for schedule(static) reduction(&& : finite)
   for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+    double s = sums[static_cast<std::size_t>(ix)];
+    bool finiteFeature = true;
     for (const double* features : featuresV) {
-      finite = finite && std::isfinite(features[ix]);
-    }
-  }
-  if (!finite) return false;
-  const double n = static_cast<double>(featuresV.size());
-#pragma omp parallel for schedule(static)
-  for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
-    double s = sub[static_cast<std::size_t>(ix)];
-    for (const double* features : featuresV) {
+      finiteFeature = finiteFeature && std::isfinite(features[ix]);
       s += features[ix];
     }
+    finite = finite && finiteFeature;
+    if (!finiteFeature) continue;
     if (n > 0.0) {
       s /= n;
     }
-    double d2 = div[static_cast<std::size_t>(ix)];
+    double d2 = squares[static_cast<std::size_t>(ix)];
     for (const double* features : featuresV) {
       const double d = features[ix] - s;
       d2 += d * d;
     }
-    sub[static_cast<std::size_t>(ix)] = s;
-    div[static_cast<std::size_t>(ix)] = d2;
+    sums[static_cast<std::size_t>(ix)] = s;
+    squares[static_cast<std::size_t>(ix)] = d2;
   }
+  if (!finite) return false;
+  std::copy(sums.begin(), sums.end(), sub.begin());
+  std::copy(squares.begin(), squares.end(), div.begin());
   return true;
 }
 
