@@ -1065,9 +1065,12 @@ namespace OpenMS
       }
       catch (...)
       {
-        // before the first hit, as the stamping of the spectrum
-        stamp_error_hit[i] = 0;
-        stamp_errors[i] = std::current_exception();
+        // before the first hit, as the stamping of the spectrum (unless the first pass stopped it already)
+        if (!stamp_errors[i])
+        {
+          stamp_error_hit[i] = 0;
+          stamp_errors[i] = std::current_exception();
+        }
       }
     }
 
