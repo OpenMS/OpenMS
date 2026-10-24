@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <limits>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -74,7 +75,7 @@ namespace
     {
       std::string body = bodies[i % bodies.size()];
       std::reverse(body.begin(), body.end());
-      add(body + (i % 2 == 0 ? "K" : "R"), true, false); // half pair with their target under pairing 'reverse'
+      add(body + (i % 2 == 0 ? "K" : "R"), true, false);
 
     }
     return in;
@@ -212,16 +213,7 @@ START_SECTION(static Output run(const Input& input, const Options& options))
                                                         // proxy holds some correct targets: not exactly 0.5)
   TEST_EQUAL(audited.scores == out.scores, true)          // the audit only reports
 
-  // pairing 'reverse': of each target stem and its pseudo-reversed decoy (the 1500 decoys ending with K) exactly one is
-  // considered
-  opt.audit = false;
-  opt.pairing = "reverse";
-  const PercolatorReset::Output paired = PercolatorReset::run(in, opt);
-  TEST_EQUAL(paired.target_stems + paired.decoy_stems, 4500)
-  TEST_EQUAL(paired.discoveries_1pct > 600, true)
-
   // the MLP learner runs and finds discoveries
-  opt.pairing = "none";
   opt.learner = "mlp";
   opt.mlp_members = 2;
   opt.mlp_epochs = 5;
@@ -266,46 +258,31 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     TEST_EQUAL(n, 1)
   }
 
-  // review r1: pairing 'reverse' is a fixed map of sequences, partner(x) = reverse(x without its last residue) + last
-  // residue; it does not depend on which other stems were observed
+  // review r2: a target row never inherits the q-value of a decoy stem of its sequence: a strong decoy PSM and a weak
+  // target PSM of one sequence -> the stem is a decoy; the target row gets peptide q-value 1 and role TARGET
   {
-    PercolatorReset::Options po = opt;
-    po.pairing = "reverse";
-    auto addRow = [](PercolatorReset::Input& x, const std::string& stem, bool decoy, double score)
+    PercolatorReset::Input col = in;
+    const size_t t = 0, d = in.features.size() - 1;
+    col.stems[t] = "PEPTIDEK";
+    col.stems[d] = "PEPTIDEK";
+    col.search_scores[t] = -50.0;
+    col.features[t][0] = -50.0;
+    col.search_scores[d] = 50.0;
+    col.features[d] = {50.0, 50.0, 0.0, 0.0};
+    const PercolatorReset::Output r = PercolatorReset::run(col, opt);
+    TEST_EQUAL(r.roles[t] == PercolatorReset::Role::TARGET, true)
+    TEST_REAL_SIMILAR(r.stem_q_values[t], 1.0)
+    // the exported target discoveries are exactly the target stems with q <= 0.01
+    std::set<std::string> exported, accepted;
+    for (size_t i = 0; i < col.features.size(); ++i)
     {
-      x.features.push_back({score, score, 0.0, decoy ? 0.0 : 1.0});
-      x.is_decoy.push_back(decoy);
-      x.search_scores.push_back(score);
-      x.spectrum.push_back(1000000 + x.spectrum.size());
-      x.stems.push_back(stem);
-    };
-    PercolatorReset::Input base;
-    std::vector<bool> tr;
-    base = simulate(11, 1500, 1500, 3000, tr);
-    // targets bK, bR; decoys reverse(b)K, reverse(b)R (b = WWMMHHY): the fixed partners are bK <-> rev(b)K, bR <-> rev(b)R
-    PercolatorReset::Input with_bk = base;
-    addRow(with_bk, "WWMMHHYK", false, 1.0);
-    addRow(with_bk, "WWMMHHYR", false, 2.0);
-    addRow(with_bk, "YHHMMWWK", true, 3.0);
-    addRow(with_bk, "YHHMMWWR", true, 1.5);
-    PercolatorReset::Input without_bk = base;
-    addRow(without_bk, "WWMMHHYR", false, 2.0);
-    addRow(without_bk, "YHHMMWWK", true, 3.0);
-    addRow(without_bk, "YHHMMWWR", true, 1.5);
-    auto considered = [](const PercolatorReset::Output& r, const std::string& stem)
+      if (!col.is_decoy[i] && r.stem_q_values[i] <= 0.01) exported.insert(col.stems[i]);
+    }
+    for (const PercolatorReset::Stem& st : r.stems)
     {
-      for (const PercolatorReset::Stem& st : r.stems) if (st.stem == stem) return st.considered;
-      return false;
-    };
-    const PercolatorReset::Output r1 = PercolatorReset::run(with_bk, po);
-    TEST_EQUAL(considered(r1, "WWMMHHYK"), false) // lost to its partner YHHMMWWK (3.0 > 1.0)
-    TEST_EQUAL(considered(r1, "YHHMMWWK"), true)
-    TEST_EQUAL(considered(r1, "WWMMHHYR"), true)  // beat its partner YHHMMWWR (2.0 > 1.5)
-    TEST_EQUAL(considered(r1, "YHHMMWWR"), false)
-    const PercolatorReset::Output r2 = PercolatorReset::run(without_bk, po);
-    TEST_EQUAL(considered(r2, "YHHMMWWK"), true)  // no partner observed: kept
-    TEST_EQUAL(considered(r2, "WWMMHHYR"), true)  // the same competition as with bK
-    TEST_EQUAL(considered(r2, "YHHMMWWR"), false)
+      if (!st.decoy && st.q_value <= 0.01) accepted.insert(st.stem);
+    }
+    TEST_EQUAL(exported == accepted, true)
   }
 
   // review r1: without a salt, run() draws one and records it

@@ -68,7 +68,6 @@ namespace OpenMS
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
     std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
     std::string reset_salt;                   ///< empty = random
-    std::string reset_pairing = "none";
     std::string reset_learner = "svm";
     int    reset_iterations = 5;
     std::string reset_representative = "search";

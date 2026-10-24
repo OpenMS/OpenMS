@@ -39,8 +39,9 @@ namespace P = OpenMS::Internal::Percolator;
 namespace
 {
   // ---------------------------------------------------------------------------------------------
-  // Hashing: the coin, tie breaks and fold assignment are functions of (salt, purpose, sequence),
-  // so they do not depend on row order, threads or scores.
+  // Hashing: the coin is a function of (salt, sequence); tie breaks and fold assignment of (salt, sequence, row
+  // index). None depends on labels, threads or scores; tie breaks (and so results with tied scores) depend on the
+  // order of the input rows.
   // ---------------------------------------------------------------------------------------------
   std::uint64_t splitmix64(std::uint64_t x)
   {
@@ -430,10 +431,6 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       }
     }
   }
-  if (opt.pairing != "none" && opt.pairing != "reverse")
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown pairing.", opt.pairing);
-  }
   if (opt.representative != "search" && opt.representative != "model")
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown representative.", opt.representative);
@@ -473,7 +470,6 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   }
   Output out;
   out.salt = salt;
-  out.pairing = opt.pairing;
   out.learner = opt.learner;
 
   // per row: stem hash and tie key (random order among equal scores, fixed by the salt)
@@ -544,31 +540,6 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     s.role = !s.decoy ? Role::TARGET : (isTrainingDecoy(salt, s.stem) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
     s.considered = true;
   }
-  // optional stem-level competition of paired stems, by a fixed map of sequences (it does not depend on which stems
-  // were observed): the partner of a stem is its pseudo-reverse, reverse(all but the last residue) + last residue.
-  // For protein-reversal decoys with C-terminal cleavage this is the generated decoy whenever the preceding target
-  // peptide ends with the same residue; other stems have no observed partner and are kept. Of a target stem and its
-  // partner decoy stem, the better by search engine score is kept.
-  if (opt.pairing == "reverse")
-  {
-    for (Size t = 0; t < out.stems.size(); ++t)
-    {
-      if (out.stems[t].decoy) continue;
-      const std::string& seq = out.stems[t].stem;
-      if (seq.size() < 2) continue;
-      std::string partner(seq.rbegin() + 1, seq.rend());
-      partner += seq.back();
-      if (partner == seq) continue;
-      const auto it = stem_index.find(partner);
-      if (it == stem_index.end() || !out.stems[it->second].decoy) continue;
-      const Size d = it->second;
-      const double st = out.stems[t].search_score, sd = out.stems[d].search_score;
-      const bool target_wins = st != sd ? st > sd
-                                        : row_tie[out.stems[t].representative] < row_tie[out.stems[d].representative];
-      out.stems[target_wins ? d : t].considered = false;
-    }
-  }
-
   // considered stems; counts
   std::vector<Size> cs; // considered stem indices
   for (Size s = 0; s < out.stems.size(); ++s)
@@ -997,17 +968,16 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   }
   for (Size i = 0; i < n_rows; ++i)
   {
+    // the row's role follows its own label (decoy rows: the coin of their sequence); the stem's q-value is exported
+    // only to rows of the stem's label (review r2: a target row of a sequence whose stem is a decoy must not inherit
+    // that decoy's q-value)
+    out.roles[i] = !in.is_decoy[i] ? Role::TARGET
+                   : (isTrainingDecoy(salt, in.stems[i]) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
     auto it = stem_index.find(in.stems[i]);
     if (it != stem_index.end())
     {
       const Stem& st = out.stems[it->second];
-      out.roles[i] = st.role;
-      out.stem_q_values[i] = st.considered ? st.q_value : 1.0;
-    }
-    else
-    {
-      out.roles[i] = !in.is_decoy[i] ? Role::TARGET
-                     : (isTrainingDecoy(salt, in.stems[i]) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
+      out.stem_q_values[i] = st.considered && st.decoy == in.is_decoy[i] ? st.q_value : 1.0;
     }
   }
   {

@@ -404,10 +404,6 @@ namespace OpenMS
                        "rescore_method 'reset': salt of the decoy coins (unsigned 64-bit integer); empty = random per run. "
                        "The salt is recorded in the search parameters ('RESET:salt'). Never pick the best of several salts.",
                        {"advanced"});
-    defaults_.setValue("reset:pairing", "none",
-                       "rescore_method 'reset': 'none' = all stems compete (PSM-only protocol); 'reverse' = each target stem "
-                       "also competes with its reversed decoy stem (protein-reversal decoys, C-terminal cleavage).", {"advanced"});
-    defaults_.setValidStrings("reset:pairing", {"none", "reverse"});
     defaults_.setValue("reset:learner", "svm",
                        "rescore_method 'reset': 'svm' = linear SVM; 'mlp' = small MLP ensemble (experimental).", {"advanced"});
     defaults_.setValidStrings("reset:learner", {"svm", "mlp"});
@@ -747,7 +743,7 @@ namespace OpenMS
     if (param_.getValue("rescore_method").toString() == "reset")
     {
       percolator_extra_.setValue("algorithm", "reset");
-      for (const std::string key : {"salt", "pairing", "learner", "audit", "stem_table", "representative"})
+      for (const std::string key : {"salt", "learner", "audit", "stem_table", "representative"})
       {
         percolator_extra_.setValue("reset:" + key, param_.getValue("reset:" + key).toString());
       }
@@ -4387,7 +4383,7 @@ namespace OpenMS
       {
         run_sp.setMetaValue("Percolator:algorithm", "reset");
         run_sp.setMetaValue("RESET:salt", StringUtils::toStr(rr->salt));
-        run_sp.setMetaValue("RESET:pairing", rr->pairing);
+        run_sp.setMetaValue("RESET:protocol", "PSM-only");
         run_sp.setMetaValue("RESET:learner", rr->learner);
         run_sp.setMetaValue("RESET:fdr_level", "peptide (stem): RESET:peptide_q_value; PSM q-values heuristic");
         run_sp.setMetaValue("RESET:target_stems_1pct", static_cast<int>(rr->discoveries_1pct));

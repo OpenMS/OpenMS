@@ -27,11 +27,9 @@ namespace OpenMS
 
     1. PSM-level competition: per spectrum (Input::spectrum) the hit with the best search engine score.
     2. Stem reduction: per stem (unmodified sequence; Input::stems) the best of these PSMs by search engine score; it
-       carries that PSM's features and label (label-blind: a sequence with target and decoy PSMs is one stem). With
-       Options::pairing "reverse", a target stem additionally competes with its partner decoy stem, a fixed map of
-       sequences: partner(x) = reverse(x without its last residue) + last residue (the protein-reversal decoy with
-       C-terminal cleavage whenever the preceding residue matches; heuristic, unvalidated). Otherwise every stem is kept
-       ("PSM-only" protocol of the paper, the default).
+       carries that PSM's features and label (label-blind: a sequence with target and decoy PSMs is one stem). Every
+       stem is considered ("PSM-only" protocol of the paper: ProSE's decoys are reversed proteins, which give no fixed
+       target-decoy peptide pairing; a pseudo-reverse pairing was tried and removed, review round 2).
     3. Coin: every decoy stem is a training decoy or an estimating decoy, by an independent Bernoulli(1/2) coin:
        bit 0 of a 64-bit hash of (salt, stem). Pseudo-targets = targets + estimating decoys.
     4. Up to Options::iterations rounds: positive set = pseudo-targets that pass Options::train_fdr against the
@@ -77,7 +75,6 @@ namespace OpenMS
       int iterations = 5;               ///< training rounds
       double train_fdr = 0.01;          ///< FDR for the positive set and for the cross-validation counts
       std::vector<double> c_values = {0.1, 1.0, 10.0}; ///< grid for C+ and C- (all pairs)
-      std::string pairing = "none";     ///< "none" (PSM-only) or "reverse" (fixed pseudo-reverse partner, see above)
       std::string learner = "svm";      ///< "svm" (linear) or "mlp" (small MLP ensemble, experimental)
       /// "search": a stem is represented by its PSM with the best search engine score (the paper); "model": after each
       /// round by its PSM with the best score under the new model (label-blind; for many PSMs per peptide, e.g. DIA)
@@ -100,7 +97,7 @@ namespace OpenMS
       Size representative = 0;    ///< row of the stem's best PSM (by search engine score)
       bool decoy = false;
       Role role = Role::TARGET;
-      bool considered = false;    ///< kept by the stem-level competition (always true without pairing)
+      bool considered = false;    ///< ranked (always true: PSM-only protocol; kept for the stem table format)
       double search_score = 0.0;  ///< search engine score of the representative
       double score = 0.0;         ///< final model score of the representative
       double q_value = 1.0;       ///< RESET q-value (1 for training decoys and stems not considered)
@@ -145,8 +142,8 @@ namespace OpenMS
       Size discoveries_1pct = 0;  ///< target stems with q <= 0.01
       std::vector<std::string> used_features; ///< features the learner used (non-constant, not zeroed)
       std::vector<double> weights;            ///< linear learner: raw-feature weights of the final model, bias last
-      std::uint64_t salt = 0;                 ///< the options' salt, pairing and learner (for reports)
-      std::string pairing, learner;
+      std::uint64_t salt = 0;                 ///< the effective salt and the learner (for reports)
+      std::string learner;
     };
 
     /// Runs RESET; throws Exception::InvalidValue on malformed input or without decoy stems.

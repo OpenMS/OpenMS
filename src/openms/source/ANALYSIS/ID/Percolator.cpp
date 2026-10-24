@@ -215,11 +215,6 @@ Percolator::Percolator()
   defaults_.setValue("reset:salt", "",
                      "RESET: salt of the decoy coins (an unsigned 64-bit integer). Empty = a fresh random salt per run "
                      "(recorded in the log and by ProSE in the search parameters). Never choose the best of several salts.");
-  defaults_.setValue("reset:pairing", "none",
-                     "RESET: 'none' = every stem with a PSM is considered (PSM-only protocol); 'reverse' = a target "
-                     "stem competes with the decoy stem whose sequence without the C-terminal residue is its own reversed "
-                     "(the decoys of protein reversal with C-terminal cleavage), the better by search engine score is kept.");
-  defaults_.setValidStrings("reset:pairing", {"none","reverse"});
   defaults_.setValue("reset:learner", "svm",
                      "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
   defaults_.setValidStrings("reset:learner", {"svm","mlp"});
@@ -268,7 +263,6 @@ void Percolator::updateMembers_()
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
   impl_->algorithm = param_.getValue("algorithm").toString();
   impl_->reset_salt = param_.getValue("reset:salt").toString();
-  impl_->reset_pairing = param_.getValue("reset:pairing").toString();
   impl_->reset_learner = param_.getValue("reset:learner").toString();
   impl_->reset_iterations = static_cast<int>(param_.getValue("reset:iterations"));
   impl_->reset_representative = param_.getValue("reset:representative").toString();
@@ -1878,7 +1872,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->reset_stem_table);
       }
-      os << "# RESET stem table: salt " << rr.salt << ", pairing " << rr.pairing << ", learner " << rr.learner
+      os << "# RESET stem table: salt " << rr.salt << ", PSM-only protocol, learner " << rr.learner
          << "; q_value = peptide (stem) level, FDP = 2 (D_est + 1) / max(T, 1) over targets and estimating decoys\n";
       os << "stem\tpeptide\tlabel\trole\tconsidered\tsearch_score\treset_score\tq_value\tspectrum_reference\tcharge\n";
       os.precision(10);
@@ -1935,6 +1929,7 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   // the PSM-level competition unit is the spectrum: identifications of the same spectrum (file and spectrum reference)
   // compete together; without a spectrum reference, each identification is its own spectrum
   {
+    size_t without_reference = 0;
     std::unordered_map<std::string, size_t> spectrum_of;
     std::vector<size_t> unit(peptide_ids.size(), std::numeric_limits<size_t>::max());
     for (size_t r = 0; r < n; ++r)
@@ -1944,10 +1939,16 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
       {
         const PeptideIdentification& pid = peptide_ids[pid_i];
         const std::string& ref = pid.getSpectrumReference();
+        without_reference += ref.empty() ? 1 : 0;
         unit[pid_i] = ref.empty() ? pid_i
                       : spectrum_of.try_emplace(PercolatorInfile::getFileIdentifier(pid) + '\x1f' + ref, pid_i).first->second;
       }
       in.spectrum[r] = unit[pid_i];
+    }
+    if (without_reference > 0)
+    {
+      OPENMS_LOG_WARN << "RESET: " << without_reference << " identifications without spectrum reference compete as "
+                         "separate spectra." << std::endl;
     }
   }
 
@@ -1967,7 +1968,6 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
         "reset:salt must be empty or an unsigned 64-bit integer", impl_->reset_salt);
     }
   }
-  opt.pairing = impl_->reset_pairing;
   opt.learner = impl_->reset_learner;
   opt.iterations = impl_->reset_iterations;
   opt.representative = impl_->reset_representative;
@@ -1979,7 +1979,7 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   opt.threads = 1;
 #endif
   auto rr = std::make_shared<PercolatorReset::Output>(PercolatorReset::run(in, opt));
-  OPENMS_LOG_INFO << "RESET: salt " << rr->salt << (opt.salt.has_value() ? "" : " (drawn)") << ", pairing " << opt.pairing
+  OPENMS_LOG_INFO << "RESET: salt " << rr->salt << (opt.salt.has_value() ? "" : " (drawn)") << ", PSM-only protocol"
                   << ", learner " << opt.learner << ", " << opt.iterations << " rounds." << std::endl;
   OPENMS_LOG_INFO << "RESET: " << rr->target_stems << " target and " << rr->decoy_stems << " decoy stems considered ("
                   << rr->training_decoys << " training, " << rr->estimating_decoys << " estimating decoys); features: "
