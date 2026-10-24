@@ -1368,7 +1368,7 @@ namespace OpenMS::Internal
             const ResidueModification* c_term_mod = hit.getSequence().getCTerminalModification();
             if (c_term_mod != nullptr)
             {
-              p += "\t\t<Modification location=\"" + StringUtils::toStr(hit.getSequence().size()) + "\">\n";
+              p += "\t\t<Modification location=\"" + StringUtils::toStr(hit.getSequence().size() + 1) + "\">\n"; // C-terminus is length + 1
               std::string acc = c_term_mod->getUniModAccession();
               p += "\t\t\t<cvParam accession=\"UNIMOD:" + StringUtils::suffix(acc, ':');
               p += "\" name=\"" + c_term_mod->getId();
@@ -1763,7 +1763,7 @@ namespace OpenMS::Internal
         const ResidueModification* c_term_mod = peptide_sequence.getCTerminalModification();
         if (c_term_mod != nullptr)
         {
-          p += "\t\t<Modification location=\"" + StringUtils::toStr(peptide_sequence.size()) + "\">\n";
+          p += "\t\t<Modification location=\"" + StringUtils::toStr(peptide_sequence.size() + 1) + "\">\n"; // C-terminus is length + 1
           std::string acc = c_term_mod->getUniModAccession();
           bool unimod = true;
           if (!acc.empty())
