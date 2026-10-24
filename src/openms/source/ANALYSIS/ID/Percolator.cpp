@@ -223,6 +223,10 @@ Percolator::Percolator()
   defaults_.setValue("reset:learner", "svm",
                      "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
   defaults_.setValidStrings("reset:learner", {"svm","mlp"});
+  defaults_.setValue("reset:representative", "search",
+                     "RESET: the PSM that represents a stem: 'search' = best search engine score (the paper); 'model' = "
+                     "after each round, best score under the new model (many PSMs per peptide, e.g. DIA).");
+  defaults_.setValidStrings("reset:representative", {"search","model"});
   defaults_.setValue("reset:iterations", 5, "RESET: training rounds.");
   defaults_.setMinInt("reset:iterations", 1);
   defaults_.setValue("reset:audit", "false",
@@ -267,6 +271,7 @@ void Percolator::updateMembers_()
   impl_->reset_pairing = param_.getValue("reset:pairing").toString();
   impl_->reset_learner = param_.getValue("reset:learner").toString();
   impl_->reset_iterations = static_cast<int>(param_.getValue("reset:iterations"));
+  impl_->reset_representative = param_.getValue("reset:representative").toString();
   impl_->reset_audit = param_.getValue("reset:audit").toString() == "true";
   impl_->reset_stem_table = param_.getValue("reset:stem_table").toString();
 }
@@ -1965,6 +1970,7 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   opt.pairing = impl_->reset_pairing;
   opt.learner = impl_->reset_learner;
   opt.iterations = impl_->reset_iterations;
+  opt.representative = impl_->reset_representative;
   opt.train_fdr = impl_->train_fdr;
   opt.audit = impl_->reset_audit;
 #ifdef _OPENMP

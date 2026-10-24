@@ -79,6 +79,9 @@ namespace OpenMS
       std::vector<double> c_values = {0.1, 1.0, 10.0}; ///< grid for C+ and C- (all pairs)
       std::string pairing = "none";     ///< "none" (PSM-only) or "reverse" (fixed pseudo-reverse partner, see above)
       std::string learner = "svm";      ///< "svm" (linear) or "mlp" (small MLP ensemble, experimental)
+      /// "search": a stem is represented by its PSM with the best search engine score (the paper); "model": after each
+      /// round by its PSM with the best score under the new model (label-blind; for many PSMs per peptide, e.g. DIA)
+      std::string representative = "search";
       bool audit = false;               ///< run the feature-symmetry audit
       std::vector<std::string> zero_features = {"enzInt"}; ///< features set to 0 (target-biased, as in the paper)
       int threads = 1;                  ///< threads for the cross-validation solves

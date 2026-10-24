@@ -411,6 +411,10 @@ namespace OpenMS
     defaults_.setValue("reset:learner", "svm",
                        "rescore_method 'reset': 'svm' = linear SVM; 'mlp' = small MLP ensemble (experimental).", {"advanced"});
     defaults_.setValidStrings("reset:learner", {"svm", "mlp"});
+    defaults_.setValue("reset:representative", "search",
+                       "rescore_method 'reset': the PSM that represents a peptide (stem): 'search' = best search engine score "
+                       "(the paper); 'model' = after each training round, best score under the new model.", {"advanced"});
+    defaults_.setValidStrings("reset:representative", {"search", "model"});
     defaults_.setValue("reset:iterations", 5, "rescore_method 'reset': training rounds.", {"advanced"});
     defaults_.setMinInt("reset:iterations", 1);
     defaults_.setValue("reset:audit", "false",
@@ -743,7 +747,7 @@ namespace OpenMS
     if (param_.getValue("rescore_method").toString() == "reset")
     {
       percolator_extra_.setValue("algorithm", "reset");
-      for (const std::string key : {"salt", "pairing", "learner", "audit", "stem_table"})
+      for (const std::string key : {"salt", "pairing", "learner", "audit", "stem_table", "representative"})
       {
         percolator_extra_.setValue("reset:" + key, param_.getValue("reset:" + key).toString());
       }

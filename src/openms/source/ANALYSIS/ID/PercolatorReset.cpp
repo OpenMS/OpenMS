@@ -434,6 +434,10 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown pairing.", opt.pairing);
   }
+  if (opt.representative != "search" && opt.representative != "model")
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown representative.", opt.representative);
+  }
   if (opt.learner != "svm" && opt.learner != "mlp")
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown learner.", opt.learner);
@@ -527,6 +531,12 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     std::sort(out.stems.begin(), out.stems.end(), [](const Stem& a, const Stem& b) { return a.stem < b.stem; });
     stem_index.clear();
     for (Size s = 0; s < out.stems.size(); ++s) stem_index[out.stems[s].stem] = s;
+  }
+  // the PSMs (spectrum winners) of each stem (Options::representative "model"; label-blind: all PSMs of the sequence)
+  std::vector<std::vector<Size>> stem_rows(opt.representative == "model" ? out.stems.size() : 0);
+  if (opt.representative == "model")
+  {
+    for (Size row : spectrum_winners) stem_rows[stem_index.at(in.stems[row])].push_back(row);
   }
   // roles: the coin of each decoy stem (all decoy stems, also those that are not considered)
   for (Stem& s : out.stems)
@@ -857,6 +867,51 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     }
     model = fit(train_rows, train_y, grid[best].first, grid[best].second,
                 keyedHash(salt, MLP, static_cast<std::uint64_t>(round * 100 + 99)));
+    if (opt.representative == "model")
+    {
+      // the stem's PSM with the best score under the new model represents it from now on (label-blind: a function of
+      // the stem's PSMs and the model)
+      std::vector<std::exception_ptr> rep_errors(m);
+#pragma omp parallel num_threads(threads)
+      {
+        std::vector<double> x(X.cols);
+#pragma omp for schedule(dynamic, 256)
+        for (SignedSize kk = 0; kk < static_cast<SignedSize>(m); ++kk)
+        {
+          try
+          {
+            const Size k = static_cast<Size>(kk);
+            Stem& st = out.stems[cs[k]];
+            double best_score = -std::numeric_limits<double>::infinity();
+            Size best_row = st.representative;
+            for (Size row : stem_rows[cs[k]])
+            {
+              standardize(in.features[row], x.data());
+              const double sc = model.score(x.data());
+              if (sc > best_score || (sc == best_score && row_tie[row] < row_tie[best_row]))
+              {
+                best_score = sc;
+                best_row = row;
+              }
+            }
+            if (best_row != st.representative)
+            {
+              st.representative = best_row;
+              st.search_score = in.search_scores[best_row];
+              standardize(in.features[best_row], X.v.data() + k * X.cols);
+            }
+          }
+          catch (...)
+          {
+            rep_errors[static_cast<Size>(kk)] = std::current_exception();
+          }
+        }
+      }
+      for (const std::exception_ptr& e : rep_errors)
+      {
+        if (e) std::rethrow_exception(e);
+      }
+    }
     for (Size k = 0; k < m; ++k)
     {
       cur[k] = model.score(X.row(k));

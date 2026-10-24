@@ -71,6 +71,7 @@ namespace OpenMS
     std::string reset_pairing = "none";
     std::string reset_learner = "svm";
     int    reset_iterations = 5;
+    std::string reset_representative = "search";
     bool   reset_audit = false;
     std::string reset_stem_table;             ///< empty = none
     /// Result of the last RESET rescorePSMs() call (null otherwise).
