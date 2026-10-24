@@ -11,6 +11,11 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 ///////////////////////////
 
 #include <algorithm>
@@ -344,6 +349,46 @@ END_SECTION
 START_SECTION(([QcMLFile::QualityParameter] std::string toXMLString(UInt indentation_level) const ))
 {
 	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(([EXTRA] collectQCData reports TIC and RIC slumps as percentages))
+{
+  // 4 MS1 spectra (1 with a summed intensity below 10k) and 4 MS2 spectra, plus a TIC with 5 points (2 below 10k)
+  MSExperiment exp;
+  for (Size i = 0; i < 8; ++i)
+  {
+    MSSpectrum spec;
+    spec.setRT(10.0 * i);
+    spec.setMSLevel(i % 2 == 0 ? 1 : 2);
+    if (spec.getMSLevel() == 2)
+    {
+      Precursor prec;
+      prec.setMZ(500.0);
+      prec.setCharge(2);
+      spec.setPrecursors({prec});
+    }
+    const double intensity = (i == 0) ? 1000.0 : 50000.0;
+    spec.push_back(Peak1D(400.0, intensity));
+    spec.push_back(Peak1D(600.0, intensity));
+    exp.addSpectrum(spec);
+  }
+  MSChromatogram tic;
+  tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+  for (Size i = 0; i < 5; ++i)
+  {
+    tic.push_back(ChromatogramPeak(10.0 * i, i < 2 ? 5000.0 : 50000.0));
+  }
+  exp.addChromatogram(tic);
+  exp.updateRanges();
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  QcMLFile qcml;
+  qcml.collectQCData(prot_ids, pep_ids, FeatureMap(), ConsensusMap(), "slumps.mzML", false, exp);
+
+  TEST_REAL_SIMILAR(std::stod(qcml.exportQP("slumps", "QC:0000057")), 25.0) // 1 of 4 MS1 spectra
+  TEST_REAL_SIMILAR(std::stod(qcml.exportQP("slumps", "QC:0000023")), 40.0) // 2 of 5 TIC points
 }
 END_SECTION
 
