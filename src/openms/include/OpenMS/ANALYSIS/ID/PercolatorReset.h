@@ -76,10 +76,11 @@ namespace OpenMS
       double train_fdr = 0.01;          ///< FDR for the positive set and for the cross-validation counts
       std::vector<double> c_values = {0.1, 1.0, 10.0}; ///< grid for C+ and C- (all pairs)
       std::string learner = "svm";      ///< "svm" (linear) or "mlp" (small MLP ensemble, experimental)
-      /// "search": a stem is represented by its PSM with the best search engine score (the paper); "model" (default):
-      /// after each round by its PSM with the best score under the new model (label-blind; for many PSMs per peptide,
-      /// e.g. DIA; assumes the symmetry of null targets and decoys over a stem's whole PSM collection)
-      std::string representative = "model";
+      /// "search" (default): a stem is represented by its PSM with the best search engine score (the paper); "model"
+      /// (EXPERIMENTAL): after each round by its PSM with the best score under the new model. Masking holds, but the
+      /// FDR then also needs null targets and decoys to be exchangeable over their whole PSM collections, including
+      /// their sizes (review r4: a null target with many more PSMs than a decoy gains from the maximum).
+      std::string representative = "search";
       bool audit = false;               ///< run the feature-symmetry audit
       std::vector<std::string> zero_features = {"enzInt"}; ///< features set to 0 (target-biased, as in the paper)
       int threads = 1;                  ///< threads for the cross-validation solves

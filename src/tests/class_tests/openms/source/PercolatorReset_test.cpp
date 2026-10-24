@@ -131,7 +131,8 @@ START_SECTION(static Output run(const Input& input, const Options& options))
   PercolatorReset::Options opt;
   opt.salt = 12345;
   opt.threads = 2;
-  opt.iterations = 5; // default 20 (representative "model", the default, is exercised by every run below)
+  opt.iterations = 5;          // default 20
+  opt.representative = "model"; // experimental option, exercised by the runs below (incl. the masking test)
   const PercolatorReset::Output out = PercolatorReset::run(in, opt);
   TEST_EQUAL(out.scores.size(), in.features.size())
   TEST_EQUAL(out.stem_q_values.size(), in.features.size())
@@ -322,7 +323,15 @@ START_SECTION(static Output run(const Input& input, const Options& options))
   {
     PercolatorReset::Options o = opt;
     o.representative = "search";
-    TEST_EQUAL(PercolatorReset::run(in, o).discoveries_1pct > 600, true)
+    const PercolatorReset::Output rs = PercolatorReset::run(in, o);
+    TEST_EQUAL(rs.discoveries_1pct > 600, true)
+    // masking also with the default representative
+    PercolatorReset::Input rl = in;
+    for (size_t i = 0; i < in.features.size(); ++i)
+    {
+      if (rs.roles[i] == PercolatorReset::Role::ESTIMATING_DECOY) rl.is_decoy[i] = false;
+    }
+    TEST_EQUAL(PercolatorReset::run(rl, o).scores == rs.scores, true)
     o.representative = "best";
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
   }

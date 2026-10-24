@@ -153,7 +153,8 @@ namespace
   };
 
   // Linear L2-SVM (squared hinge, regularized bias) with per-class costs, via Percolator's TRON solver:
-  // minimizes 0.5 ||w||^2 + sum_i C_{y_i} max(0, 1 - y_i w.x_i)^2 (the objective of LinearSVC with class weights).
+  // minimizes 0.5 ||w||^2 + sum_i C_{y_i} max(0, 1 - y_i w.x_i)^2, the bias (a constant 1.0 column that the solver
+  // appends itself) regularized as in liblinear / LinearSVC with intercept_scaling 1.
   Model trainSvm(const Matrix& X, const std::vector<Size>& rows, const std::vector<double>& y, double c_pos, double c_neg)
   {
     const int m = static_cast<int>(rows.size());
@@ -791,7 +792,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
           rows.push_back(train_rows[r]);
           y.push_back(train_y[r]);
         }
-        const Model fm = fit(rows, y, cp, cn, keyedHash(salt, MLP, static_cast<std::uint64_t>(round * 100 + f)));
+        const Model fm = fit(rows, y, cp, cn, keyedHash(salt, MLP, static_cast<std::uint64_t>(round) * 100 + static_cast<std::uint64_t>(f)));
         std::vector<double>& hs = held_scores[static_cast<Size>(t)];
         for (Size r : held_index[f])
         {
@@ -845,7 +846,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       if (cv_plus > 0.0) cv_plus = 0.0; else cv_alpha += 0.005;
     }
     model = fit(train_rows, train_y, grid[best].first, grid[best].second,
-                keyedHash(salt, MLP, static_cast<std::uint64_t>(round * 100 + 99)));
+                keyedHash(salt, MLP, static_cast<std::uint64_t>(round) * 100 + 99));
     if (opt.representative == "model")
     {
       // the stem's PSM with the best score under the new model represents it from now on (label-blind: a function of
