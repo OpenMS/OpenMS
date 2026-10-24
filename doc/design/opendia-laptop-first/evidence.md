@@ -14,9 +14,12 @@ review remain separate from output equality. The separate profiler branch
 now builds and passes its profiling fixture plus all 29 OpenDIA TOPP checks. Four
 instrumented cold/warm followups produced valid stage summaries and passed frozen
 output-equivalence comparisons across results and all three matrices. Standalone
-TimSim rescoring completed; Astral rescoring was refused by the source-WAL guard
-because persistent SQLite sidecars remain. These are descriptive, separate-binary
-measurements, not same-binary repeats, exact resource peaks, or candidate acceptance.
+TimSim rescoring completed. Astral rescoring completed on a disposable copy of the
+frozen database and its WAL/SHM sidecars. It exited successfully in 9m09s with
+10.27 GiB maximum RSS. Checks confirmed that the frozen source files did not change.
+This single rescore is descriptive, not a baseline, repeatability result or acceptance
+evidence. These are separate-binary measurements, not same-binary repeats, exact
+resource peaks for the full workflow, or candidate acceptance.
 See [WP-00](work-packages/00-acceptance-baseline.md) for exact matrix counts, frozen
 comparison tolerances, remaining evidence and proposed gates awaiting owner/reviewer agreement.
 
