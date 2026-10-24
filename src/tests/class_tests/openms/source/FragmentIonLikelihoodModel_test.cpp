@@ -425,6 +425,65 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
 }
 END_SECTION
 
+START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, const std::vector<uint8_t>& ion_series, const std::vector<UInt>& ion_ordinals, const std::vector<Int>& ion_charges, const AASequence& peptide, int precursor_charge, double tolerance, bool ppm, std::vector<Ion>& ions) const))
+{
+  // the same ions as from the names, for both context sets, charges 1-3, ppm and Da, with modifications
+  TheoreticalSpectrumGenerator tsg;
+  Param p = tsg.getParameters();
+  p.setValue("add_metainfo", "true");
+  p.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(p);
+  for (const Model::ContextSet context_set : {Model::ContextSet::RICH, Model::ContextSet::BASIC})
+  {
+    const Model model(context_set);
+    for (const std::string& s : {"DFPIANGER", "C(Carbamidomethyl)PEPM(Oxidation)TIDEK", "HPYFYAPELLFFAK", "AEFVEVTK"})
+    {
+      const AASequence peptide = AASequence::fromString(s);
+      Model::PeakLists peaks;
+      peaks.reset(1);
+      peaks.assign(0, observed_(peptide));
+      for (int max_charge = 1; max_charge <= 3; ++max_charge)
+      {
+        for (const bool ppm : {true, false})
+        {
+          MSSpectrum named;
+          tsg.getSpectrum(named, peptide, 1, max_charge);
+          std::vector<Model::Ion> expected, ions;
+          model.matchIons(peaks, 0, named, peptide, max_charge + 1, ppm ? 20.0 : 0.02, ppm, expected);
+          MSSpectrum coded;
+          std::vector<uint8_t> series;
+          std::vector<UInt> ordinals;
+          std::vector<Int> charges;
+          TEST_EQUAL(tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, peptide, 1, max_charge), true)
+          model.matchIons(peaks, 0, coded, series, ordinals, charges, peptide, max_charge + 1, ppm ? 20.0 : 0.02, ppm, ions);
+          bool same = ions.size() == expected.size() && !ions.empty();
+          for (Size i = 0; same && i < ions.size(); ++i)
+          {
+            same = ions[i].context == expected[i].context && ions[i].outcome == expected[i].outcome;
+          }
+          TEST_EQUAL(same, true)
+        }
+      }
+    }
+  }
+
+  // invalid input
+  const Model rich;
+  const AASequence peptide = AASequence::fromString("DFPIANGER");
+  Model::PeakLists peaks;
+  peaks.reset(1);
+  MSSpectrum coded;
+  std::vector<uint8_t> series;
+  std::vector<UInt> ordinals;
+  std::vector<Int> charges;
+  tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, peptide, 1, 1);
+  std::vector<Model::Ion> out;
+  std::vector<Int> short_charges(charges.begin(), charges.end() - 1);
+  TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, series, ordinals, short_charges, peptide, 2, 20.0, true, out))
+  TEST_EXCEPTION(Exception::InvalidParameter, rich.matchIons(peaks, 0, coded, series, ordinals, charges, peptide, 2, 0.0, true, out))
+}
+END_SECTION
+
 START_SECTION((void addObservations(const std::vector<Ion>& ions, bool noise)))
 {
   const AASequence peptide = AASequence::fromString("DFPIANGER");
