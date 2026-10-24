@@ -4045,8 +4045,8 @@ namespace OpenMS
     startProgress(0, 1, "Post-processing PSMs...");
     // The fragment annotations of a hit are needed only for the output: when the rescoring (all but the best hit of a
     // spectrum) or the PSM FDR drops hits, they are made after that, for the hits that remain. Not if anything reads
-    // them before (PeptDeep features) or keeps the hits of before (the pre-FDR copy). (A search that fails before (e.g.
-    // in the protein mapping) returns its error with hits without them.)
+    // them before (PeptDeep features) or keeps the hits of before (the pre-FDR copy). A search that fails in the protein
+    // mapping makes them before it returns its error.
     // Only for hits of this search (identifications already in @p peptide_ids keep theirs), found again by their
     // scan_index (stored as unsigned int).
     const bool defer_peak_annotations = (rescore_ || fdr_psm_ > 0.0) && !peptdeep_enable_ && !keep_pre_fdr_psms_
@@ -4104,6 +4104,8 @@ namespace OpenMS
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
+      // (the hits returned with the error carry their fragment annotations, as before the deferral)
+      if (defer_peak_annotations) annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_);
       restore_fi_params();
       if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {

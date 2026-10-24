@@ -1947,17 +1947,61 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     Percolator perc;
     perc.rescorePSMs(all, feature_set, "trypsin", 2, 2, score_type);
     perc.rescorePSMs(best, feature_set, "trypsin", 2, 2, score_type, true);
-    bool same = true;
+    bool same = true, original_first = true;
     Size tied = 0;
     for (Size i = 1; i < all.size(); ++i)
     {
-      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore()) ++tied;
       all[i].sort();
       best[i].sort();
       same = same && all[i].getHits()[0] == best[i].getHits()[0];
+      // a tie for the best score: the original (first) of the two tied hits is the best one
+      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore())
+      {
+        ++tied;
+        original_first = original_first && !best[i].getHits()[0].metaValueExists("tie_marker");
+      }
     }
     TEST_EQUAL(same, true)
+    TEST_EQUAL(original_first, true)
     TEST_EQUAL(tied > 0, true)
+  }
+
+  // a NaN new score (an original score of NaN under the old score type "percolator_q_value", which is the q-value then):
+  // all hits of that identification are written, as without best_hit_only
+  {
+    StringList no_score_features = PercolatorInfile::getStandardFeatureSet(2, 2);
+    no_score_features.push_back("Peptide");
+    no_score_features.push_back("Proteins");
+    PeptideIdentificationList all = makeIds(), best = makeIds();
+    for (PeptideIdentificationList* ids : {&all, &best})
+    {
+      for (Size i = 1; i < ids->size(); ++i) (*ids)[i].setScoreType("percolator_q_value");
+      (*ids)[5].getHits()[1].setScore(std::numeric_limits<double>::quiet_NaN());
+    }
+    Percolator perc;
+    perc.rescorePSMs(all, no_score_features, "trypsin", 2, 2, "q-value");
+    perc.rescorePSMs(best, no_score_features, "trypsin", 2, 2, "q-value", true);
+    auto same_value = [](double a, double b) { return a == b || (std::isnan(a) && std::isnan(b)); };
+    bool same = all[5].getHits().size() == best[5].getHits().size();
+    for (Size j = 0; same && j < all[5].getHits().size(); ++j)
+    {
+      const PeptideHit& a = all[5].getHits()[j];
+      const PeptideHit& b = best[5].getHits()[j];
+      std::vector<std::string> keys_a, keys_b;
+      a.getKeys(keys_a);
+      b.getKeys(keys_b);
+      same = keys_a == keys_b && same_value(a.getScore(), b.getScore());
+      for (const std::string& key : keys_a)
+      {
+        const DataValue& va = a.getMetaValue(key);
+        same = same && (va.valueType() != DataValue::DOUBLE_VALUE ? va == b.getMetaValue(key)
+                                                                   : same_value(double(va), double(b.getMetaValue(key))));
+      }
+    }
+    TEST_EQUAL(same, true)
+    TEST_EQUAL(std::isnan(best[5].getHits()[1].getScore()), true)
+    TEST_EQUAL(best[5].getHits()[2].metaValueExists("MS:1001491"), true) // (not the best hit, written)
+    TEST_EQUAL(best[6].getHits()[1].metaValueExists("MS:1001491") && best[6].getHits()[2].metaValueExists("MS:1001491"), false)
   }
 
   // an old score type named like a Percolator value: the original score kept under that name replaces the Percolator
