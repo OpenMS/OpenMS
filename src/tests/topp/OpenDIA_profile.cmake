@@ -99,6 +99,14 @@ run_case(failed failure -tr "${TARGET_LIBRARY}" -workflow:library_mode prepared_
   -workflow:profile "${WORK}/failed.tsv")
 check_events("${WORK}/failed.tsv" "library_preparation/start")
 
+# Fail while loading raw data after library preparation and extraction start.
+# The event file must be flushed/readable and must not claim extraction ended.
+file(WRITE "${WORK}/invalid.mzML" "<mzML>")
+run_case(extraction_failed failure -in "${WORK}/invalid.mzML"
+  -workflow:profile "${WORK}/extraction_failed.tsv")
+check_events("${WORK}/extraction_failed.tsv"
+  "library_preparation/start;library_preparation/end;extraction/start")
+
 # Disabled exports and single-run manual outputs must not reserve fabricated
 # paths. Stop in library preparation, before these test outputs could be used.
 file(MAKE_DIRECTORY "${WORK}/disabled_out")
