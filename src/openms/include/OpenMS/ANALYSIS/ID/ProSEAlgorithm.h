@@ -150,6 +150,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// A caveat of an applied rescoring, as a sentence to show to the user (empty if none): Percolator's
       /// sanity check replaced the learned model by the best single feature (Percolator::usedDefaultDirection())
       std::string warning;
+      /// With 'rescore_reuse:mode' other than per_file: the models that scored the PSMs, as a phrase to show to the user (empty: trained
+      /// on the run itself)
+      std::string model;
     };
 
     /**
@@ -1209,6 +1212,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
+    std::string reuse_mode_{"per_file"}; ///< rescore_reuse:mode
+    Size reuse_max_train_{250000};       ///< rescore_reuse:max_train
+    Size reuse_static_files_{1};         ///< rescore_reuse:static_files
+    double reuse_max_shift_{0.5};        ///< rescore_reuse:max_shift
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1296,12 +1303,58 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// the last copy of this object that shares it).
     mutable std::shared_ptr<void> released_hits_;
 
+    /// rescore_reuse: how the PSMs of a run are scored instead of training Percolator on them (defined in the .cpp file)
+    struct ReuseScoring_;
+    /// rescore_reuse: the two cross-fitted models (defined in the .cpp file)
+    struct ReuseModel_;
+    /// rescore_reuse: a run that trains models: its index in the search (the random halves depend on it) and its PSMs
+    struct ReuseRun_
+    {
+      Size file_index;
+      const std::vector<ProteinIdentification>* protein_ids;
+      PeptideIdentificationList* peptide_ids;
+    };
+
     /// rescoreWithPercolator(); with @p dropped, the hits it drops are moved there (as memory allows) instead of
-    /// destroyed
+    /// destroyed. With @p reuse, the PSMs are scored as it says instead of by a model trained on them.
     static PercolatorRescoring rescoreWithPercolator_(std::vector<ProteinIdentification>& protein_ids,
                                                       PeptideIdentificationList& peptide_ids,
                                                       int threads,
-                                                      std::vector<std::vector<PeptideHit>>* dropped);
+                                                      std::vector<std::vector<PeptideHit>>* dropped,
+                                                      const ReuseScoring_* reuse = nullptr);
+
+    /// rescore_reuse: trains the two cross-fitted models on PSMs of @p runs (see the parameter); throws if Percolator cannot
+    /// train them
+    std::shared_ptr<const ReuseModel_> trainReuseModel_(const std::vector<ReuseRun_>& runs, int threads) const;
+
+    /// rescore_reuse: rescores the PSMs of a run (file @p file_index of the search) with @p model, as rescoreWithPercolator_();
+    /// with @p check_shift, a run whose decoys differ from the training decoys by more than reuse_max_shift_ is rescored by
+    /// Percolator trained on it instead
+    PercolatorRescoring rescoreWithReuseModel_(std::vector<ProteinIdentification>& protein_ids,
+                                               PeptideIdentificationList& peptide_ids,
+                                               Size file_index,
+                                               const ReuseModel_& model,
+                                               bool check_shift,
+                                               int threads,
+                                               std::vector<std::vector<PeptideHit>>* dropped) const;
+
+    /// FDR:PSM on the PSMs of a run after its rescoring (see applyPsmFDR_())
+    void applyRescoredPsmFDR_(const std::vector<ProteinIdentification>& protein_ids,
+                              PeptideIdentificationList& peptide_ids,
+                              bool has_decoys,
+                              RunStatistics& stats,
+                              bool rescored) const;
+
+    /// rescore_reuse joint/static: trains the models on the files of @p deferred (indices into @p mfres.per_file, searched
+    /// with reuse_defer_), then rescores them and applies FDR:PSM
+    void finishDeferredRescoring_(MultiFileSearchResult& mfres, const std::vector<Size>& deferred) const;
+
+    /// rescore_reuse: the models of a multi-file search ('static': trained on its first files; null otherwise)
+    mutable std::shared_ptr<const ReuseModel_> reuse_model_;
+    /// rescore_reuse: the current search defers its rescoring and FDR:PSM to finishDeferredRescoring_()
+    mutable bool reuse_defer_ = false;
+    /// rescore_reuse: the index of the file of the current search in a multi-file search (0 otherwise)
+    mutable Size reuse_file_index_ = 0;
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback

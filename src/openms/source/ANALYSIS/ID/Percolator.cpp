@@ -1450,24 +1450,16 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
   }
 }
 
-Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
-                             const StringList& feature_set,
-                             const std::string& enzyme,
-                             int min_charge,
-                             int max_charge,
-                             const std::string& score_type)
+void Percolator::buildPSMRescoreInput(PeptideIdentificationList& peptide_ids,
+                                      const StringList& feature_set,
+                                      const std::string& enzyme,
+                                      int min_charge,
+                                      int max_charge,
+                                      RescoreInput& ri,
+                                      PSMRowLocations& hit_locs)
 {
-  if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "score_type must be 'q-value', 'pep' or 'svm'", score_type);
-  }
-  if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
-                   [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
-  {
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "No PSMs to rescore.");
-  }
+  ri = RescoreInput();
+  hit_locs.clear();
 
   // Training then uses the feature vectors the executable would read from the .pin file, row for row.
   PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
@@ -1555,9 +1547,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
 
   // The RescoreInput is built here rather than with fillPINCompatibleFields() so the PIN-compatible
   // fields stay aligned with the feature rows when hits are skipped (missing target_decoy or feature).
-  RescoreInput ri;
   ri.feature_names = numeric_features;
-  std::vector<std::pair<size_t, size_t>> hit_locs;
   // The feature rows of each spectrum (PeptideIdentification) in parallel, reading the meta values by name index:
   // looking names up takes a lock on the registry, which the threads would contend for. An unregistered name (index
   // -1) exists on no hit.
@@ -1653,9 +1643,53 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   }
   OPENMS_LOG_INFO << "Rescoring " << ri.features.size() << " PSMs in-process with "
                   << numeric_features.size() << " features." << std::endl;
+}
+
+Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
+                             const StringList& feature_set,
+                             const std::string& enzyme,
+                             int min_charge,
+                             int max_charge,
+                             const std::string& score_type)
+{
+  return rescorePSMs(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, PSMScorer());
+}
+
+Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
+                             const StringList& feature_set,
+                             const std::string& enzyme,
+                             int min_charge,
+                             int max_charge,
+                             const std::string& score_type,
+                             const PSMScorer& scorer)
+{
+  if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "score_type must be 'q-value', 'pep' or 'svm'", score_type);
+  }
+  if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
+                   [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No PSMs to rescore.");
+  }
+
+  // The feature rows (the PIN meta values stamped for them are removed again)
+  RescoreInput ri;
+  PSMRowLocations hit_locs;
+  buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs);
 
   // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
-  const RescoreOutput ro = rescore(ri);
+  const RescoreOutput ro = scorer ? scorer(ri, hit_locs) : rescore(ri);
+  if (ro.scores.size() != ri.features.size() || ro.q_values.size() != ri.features.size()
+      || ro.peps.size() != ri.features.size())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "The scorer returned " + std::to_string(ro.scores.size()) + " scores for "
+      + std::to_string(ri.features.size()) + " feature rows.", "");
+  }
+  auto index_of = [](const std::string& name) { return MetaInfoInterface::metaRegistry().getIndex(name); };
 
   // The hits are updated in parallel, except for the first row and the first spectrum with hits: these register the
   // new meta value names in the order of a serial loop, and MetaInfo keeps meta values in the order of their name

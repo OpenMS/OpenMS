@@ -13,7 +13,9 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -181,6 +183,47 @@ namespace OpenMS
                      int min_charge,
                      int max_charge,
                      const std::string& score_type = "q-value");
+
+    /// The hit of every feature row of a PSM RescoreInput (buildPSMRescoreInput(), rescorePSMs()):
+    /// (index of its PeptideIdentification, index of the hit in it)
+    using PSMRowLocations = std::vector<std::pair<size_t, size_t>>;
+
+    /// Scores the feature rows that rescorePSMs() built, in place of rescore(): one score, q-value and PEP per row
+    using PSMScorer = std::function<RescoreOutput(const RescoreInput&, const PSMRowLocations&)>;
+
+    /**
+      @brief As rescorePSMs() above, but the feature rows are scored by @p scorer instead of rescore(input).
+
+      Steps 1, 2, 4 and 5 are those of rescorePSMs() above. @p scorer gets the feature rows and the hit of each row;
+      it must return one score, q-value and PEP per row (e.g. from score() with a model trained on other PSMs).
+      An empty @p scorer calls rescore(input), as rescorePSMs() above.
+
+      @throws Exception::InvalidValue if @p scorer returns another number of rows, or as rescorePSMs() above
+    */
+    Size rescorePSMs(PeptideIdentificationList& peptide_ids,
+                     const StringList& feature_set,
+                     const std::string& enzyme,
+                     int min_charge,
+                     int max_charge,
+                     const std::string& score_type,
+                     const PSMScorer& scorer);
+
+    /**
+      @brief The feature rows that rescorePSMs() trains on: steps 1, 2 and 5 of rescorePSMs(), without rescoring.
+
+      The PIN feature meta values are stamped on the hits, read into @p input (with scan numbers, spectrum file
+      numbers and experimental/calculated masses as rescorePSMs() fills them) and removed again; @p peptide_ids is
+      left as it was. @p rows gets the hit of every row.
+
+      @throws Exception::MissingInformation if no hit could be turned into a feature row
+    */
+    static void buildPSMRescoreInput(PeptideIdentificationList& peptide_ids,
+                                     const StringList& feature_set,
+                                     const std::string& enzyme,
+                                     int min_charge,
+                                     int max_charge,
+                                     RescoreInput& input,
+                                     PSMRowLocations& rows);
 
     /**
       @brief SVM weights trained in the last rescore()/train() call.
