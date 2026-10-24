@@ -299,6 +299,11 @@ hand-editing sources and committing them, to keep sync self-healing.
   (`Normalizer::normalizeRowsByFeature`: each value as by `normalize`; the rows are rows of the
   feature pool, equal or disjoint); `SetHandler::populateScoresWithPSMs` reserves room for the
   PSMs. The same values.
+  `Scores::getInitDirection` (the chain of sorts by each feature, in a parallel region): the
+  feature columns are not zero-filled before the tasks write them; the keys get each feature's
+  values, are copied for the count of the feature and are reversed by tasks of blocks of keys
+  (each key written once), and the PSMs are put into the final order by such tasks: the same
+  keys, the same order of the PSMs.
 
 ### Regenerating the patch
 
