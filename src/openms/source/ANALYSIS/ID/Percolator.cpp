@@ -1560,6 +1560,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     try
     {
       const auto& pid = peptide_ids[i];
+      rows[i].reserve(pid.getHits().size());
       for (size_t j = 0; j < pid.getHits().size(); ++j)
       {
         if (skipped.contains({static_cast<size_t>(i), j})) continue;
@@ -1587,40 +1588,52 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       errors[i] = std::current_exception();
     }
   }
+  for (const std::exception_ptr& error : errors)
+  {
+    if (error) std::rethrow_exception(error);
+  }
   // Spectrum files in order of appearance, as Percolator numbers the FileName column of the pin
   // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
   // competition), so spectra of different inputs with the same scan number must not share a file.
+  // Then the rows in spectrum order, each spectrum's rows moved to their place in parallel.
   std::map<std::string, int> spec_files;
-  // (reserved only without an error: an allocation failure must not replace the error rethrown below)
-  size_t num_rows = 0;
-  for (const std::vector<Row>& rows_of_spectrum : rows) num_rows += rows_of_spectrum.size();
-  if (std::any_of(errors.begin(), errors.end(), [](const std::exception_ptr& error) { return bool(error); })) num_rows = 0;
-  ri.features.reserve(num_rows);
-  ri.is_decoy.reserve(num_rows);
-  ri.scan_numbers.reserve(num_rows);
-  ri.spec_file_numbers.reserve(num_rows);
-  ri.exp_masses.reserve(num_rows);
-  ri.calc_masses.reserve(num_rows);
-  hit_locs.reserve(num_rows);
+  std::vector<int> spec_file_of(peptide_ids.size(), 0);
+  std::vector<size_t> first_row(peptide_ids.size() + 1, 0);
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
-    if (errors[i]) std::rethrow_exception(errors[i]);
+    first_row[i + 1] = first_row[i] + rows[i].size();
     if (rows[i].empty()) continue;
-    const int spec_file = spec_files.try_emplace(
+    spec_file_of[i] = spec_files.try_emplace(
       PercolatorInfile::getFileIdentifier(peptide_ids[i]), static_cast<int>(spec_files.size())).first->second;
+  }
+  const size_t num_rows = first_row.back();
+  ri.features.resize(num_rows);
+  std::vector<char> is_decoy(num_rows); // (ri.is_decoy is a std::vector<bool>: set below, by one thread)
+  ri.scan_numbers.resize(num_rows);
+  ri.spec_file_numbers.resize(num_rows);
+  ri.exp_masses.resize(num_rows);
+  ri.calc_masses.resize(num_rows);
+  hit_locs.resize(num_rows);
+#pragma omp parallel for schedule(dynamic, 256)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+  {
+    size_t r = first_row[i];
     for (Row& row : rows[i])
     {
-      ri.features.push_back(std::move(row.features));
-      ri.is_decoy.push_back(row.is_decoy);
-      ri.scan_numbers.push_back(row.scan_number);
-      ri.spec_file_numbers.push_back(spec_file);
-      ri.exp_masses.push_back(row.exp_mass);
-      ri.calc_masses.push_back(row.calc_mass);
-      hit_locs.emplace_back(i, row.hit_index);
+      ri.features[r] = std::move(row.features);
+      is_decoy[r] = row.is_decoy;
+      ri.scan_numbers[r] = row.scan_number;
+      ri.spec_file_numbers[r] = spec_file_of[i];
+      ri.exp_masses[r] = row.exp_mass;
+      ri.calc_masses[r] = row.calc_mass;
+      hit_locs[r] = {static_cast<size_t>(i), row.hit_index};
+      ++r;
     }
+    std::vector<Row>().swap(rows[i]);
   }
   rows.clear();
   rows.shrink_to_fit();
+  ri.is_decoy.assign(is_decoy.begin(), is_decoy.end());
   if (ri.features.empty())
   {
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1631,6 +1644,13 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
 
   // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
   const RescoreOutput ro = rescore(ri);
+  // The feature rows (allocated by the threads of the loop above) are released in parallel: on one thread, at the
+  // end of this function, that took long.
+#pragma omp parallel for schedule(dynamic, 4096)
+  for (SignedSize r = 0; r < static_cast<SignedSize>(ri.features.size()); ++r)
+  {
+    std::vector<double>().swap(ri.features[r]);
+  }
 
   // The hits are updated in parallel, except for the first row and the first spectrum with hits: these register the
   // new meta value names in the order of a serial loop, and MetaInfo keeps meta values in the order of their name
