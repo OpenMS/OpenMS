@@ -696,6 +696,20 @@ namespace OpenMS
   }
 
 
+  std::string PercolatorInfile::pinEnzymeName(const std::string& enzyme)
+  {
+    std::string name;
+    for (const char c : enzyme)
+    {
+      if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+    if (name == "trypsin/p") return "trypsinp";
+    if (name == "pepsina") return "pepsin";
+    static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                      "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+    return pin_enzymes.contains(name) ? name : "no_enzyme";
+  }
+
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
     if (enz == "trypsin")

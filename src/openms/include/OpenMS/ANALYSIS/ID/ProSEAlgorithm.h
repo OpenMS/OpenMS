@@ -61,6 +61,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// precursor co-isolated with it
     static constexpr const char* CHIMERIC_RANK = "chimeric_rank";
 
+    /// Upper bound of report:top_hits (the hits reported per spectrum)
+    static constexpr int MAX_REPORTED_HITS = 100;
+
     /// Exit codes
     enum class ExitCodes
     {
@@ -84,6 +87,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::string input_file;                  ///< spectrum file this run searched (basename or path)
       Size ms2_spectra = 0;                    ///< number of MS2 spectra in the input
+      Size profile_spectra = 0;                ///< MS2 spectra recorded as profile (not centroided) spectra
+      Size charge_out_of_range_spectra = 0;    ///< MS2 spectra not searched: their charge is outside precursor:min/max_charge
       Size matched_spectra = 0;                ///< spectra with >=1 retained PSM in the final IDs (after FDR, if applied)
       Size target_psms = 0;                    ///< target PSMs in the final IDs (after FDR, if applied)
       Size decoy_psms = 0;                     ///< decoy PSMs in the final IDs (after FDR, if applied)
@@ -1573,6 +1578,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                const std::vector<ProteinIdentification>& protein_ids,
                                const PeptideIdentificationList& peptide_ids,
                                RunStatistics& stats) const;
+
+    /// Helper: counts the MS2 spectra of @p spectra, those recorded as profile spectra and those whose precursor
+    /// charge lies outside of precursor:min_charge..max_charge, into the fields of @p stats.
+    void countSearchableSpectra_(const PeakMap& spectra, RunStatistics& stats) const;
+
+    /// Helper: warns about @p spectra (of @p input; empty: not named) that cannot be searched as intended: no MS2
+    /// spectra (e.g. an MS1-only file), MS2 spectra recorded as profile spectra, and MS2 spectra whose precursor
+    /// charge lies outside of precursor:min_charge..max_charge (not searched).
+    void warnAboutSpectra_(const PeakMap& spectra, const std::string& input) const;
 
   public:
     /// Recompute result-level statistics (matched count, unique peptide/protein

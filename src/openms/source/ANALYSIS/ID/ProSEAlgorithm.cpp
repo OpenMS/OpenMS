@@ -113,8 +113,14 @@ namespace OpenMS
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", {"ppm", "Da"});
 
-    defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
-    defaults_.setValue("precursor:max_charge", 5, "Maximum precursor charge to be considered.");
+    defaults_.setValue("precursor:min_charge", 2,
+                       "Minimum precursor charge to be considered. Spectra without a precursor charge are searched with every "
+                       "charge of the range; spectra whose recorded charge lies outside of it are not searched.");
+    defaults_.setMinInt("precursor:min_charge", 1);
+    defaults_.setMaxInt("precursor:min_charge", FragmentIndex::MAX_PRECURSOR_CHARGE);
+    defaults_.setValue("precursor:max_charge", 5, "Maximum precursor charge to be considered (see precursor:min_charge).");
+    defaults_.setMinInt("precursor:max_charge", 1);
+    defaults_.setMaxInt("precursor:max_charge", FragmentIndex::MAX_PRECURSOR_CHARGE);
 
     defaults_.setSectionDescription("precursor",
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
@@ -156,7 +162,9 @@ namespace OpenMS
 
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
+    defaults_.setMinInt("fragment:min_mz", 0);
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
+    defaults_.setMinInt("fragment:max_mz", 0);
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
@@ -190,6 +198,8 @@ namespace OpenMS
     defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus and a residue carry one modification each: a variable terminal modification (e.g. 'Acetyl (Protein N-term)', 'Gln->pyro-Glu (N-term Q)') is not searched where a fixed one sits on that terminus (e.g. 'TMT6plex (N-term)'), and a variable residue modification (e.g. 'Glutathione (C)') is not searched where a fixed one sits on that residue (e.g. 'Carbamidomethyl (C)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
+    defaults_.setMinInt("modifications:variable_max_per_peptide", 0);
+    defaults_.setMaxInt("modifications:variable_max_per_peptide", FragmentIndex::MAX_VARIABLE_MODS_PER_PEPTIDE);
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
     vector<std::string> all_enzymes;
@@ -298,8 +308,11 @@ namespace OpenMS
     defaults_.setSectionDescription("peptdeep", "PeptDeep (ONNX) prediction-based rescoring features");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
+    defaults_.setMinInt("peptide:min_size", 0);
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
+    defaults_.setMinInt("peptide:max_size", 0);
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
+    defaults_.setMinInt("peptide:missed_cleavages", 0);
     defaults_.setValue("peptide:clip_nterm_methionine", "true",
                        "Also search protein N-terminal peptides after removal of their initial methionine. "
                        "The retained-M form is still searched; length, mass and missed-cleavage limits apply to each form. "
@@ -330,7 +343,7 @@ namespace OpenMS
       "           (e.g. HLA peptides 8..12mers). For very large search spaces consider\n"
       "           tightening 'peptide:min_size'/'peptide:max_size'.");
     defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
-    defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
+    defaults_.setValue("peptide:motif", "", FragmentIndex::PEPTIDE_MOTIF_DESCRIPTION);
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
     // forwarded to FragmentIndex
@@ -343,6 +356,8 @@ namespace OpenMS
     defaults_.setValidStrings("low_memory", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setMinInt("report:top_hits", 1);
+    defaults_.setMaxInt("report:top_hits", MAX_REPORTED_HITS);
     defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
                        "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
                        "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
@@ -404,10 +419,14 @@ namespace OpenMS
 
     // Add parameters which are only used by FragmentIndex
     defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
+    defaults_.setMinInt("peptide:min_mass", 0);
     defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database");
+    defaults_.setMinInt("peptide:max_mass", 0);
 
     // Fragment-level filtering
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
+    defaults_.setMinInt("fragment:min_matched_ions", 0);
+    defaults_.setMaxInt("fragment:min_matched_ions", FragmentIndex::MAX_MIN_MATCHED_IONS);
 
     // Precursor isotope error handling. The search convention (theoretical minus observed) is kept for these two
     // parameters; the reported isotope_error follows report:isotope_error_convention.
@@ -416,13 +435,20 @@ namespace OpenMS
                        "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor. "
                        "The PSM meta value 'isotope_error' reports the opposite sign by default (see "
                        "report:isotope_error_convention).");
+    defaults_.setMinInt("precursor:isotope_error_min", -FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
+    defaults_.setMaxInt("precursor:isotope_error_min", FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
     defaults_.setValue("precursor:isotope_error_max", 1,
                        "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
                        "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
+    defaults_.setMinInt("precursor:isotope_error_max", -FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
+    defaults_.setMaxInt("precursor:isotope_error_max", FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
+    defaults_.setMinInt("fragment:max_charge", 1);
+    defaults_.setMaxInt("fragment:max_charge", FragmentIndex::MAX_FRAGMENT_CHARGE);
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setMinInt("scoring:max_candidates_per_spectrum", 1);
     defaults_.setValue(
       "scoring:fragment_charges", "auto",
       "Fragment charges of the theoretical spectra that score each candidate. 'single' scores singly charged fragments only. "
@@ -532,6 +558,9 @@ namespace OpenMS
 
   void ProSEAlgorithm::updateMembers_()
   {
+    // inverted ranges and an invalid peptide:motif, before anything is read (the FragmentIndex checks them again)
+    FragmentIndex::checkSearchParameters(param_);
+
     precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
     precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
     precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit").toString();
@@ -676,7 +705,7 @@ namespace OpenMS
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
     peptide_enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
       param_.getValue("peptide:enzyme_specificity").toString());
-    peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
+    peptide_motif_ = param_.getValue("peptide:motif").toString(); // applied by the FragmentIndex
 
     report_top_hits_ = param_.getValue("report:top_hits");
     isotope_error_observed_minus_theoretical_ =
@@ -688,6 +717,15 @@ namespace OpenMS
     else                                 { decoy_mode_ = DecoyMode_::AUTO; }
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    if (peptdeep_enable_
+        && std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") == annotate_psm_.end()
+        && std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) == annotate_psm_.end())
+    {
+      // PeptDeepRescoring compares the predicted with the annotated fragment peaks of each PSM
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "peptdeep:enable needs the fragment annotation of the PSMs: annotate:PSM must contain 'ALL' or '"
+        + std::string(Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) + "'.");
+    }
     self_trained_ion_priors_ = param_.getValue("annotate:self_trained_ion_priors").toBool();
     ion_prior_model_ = param_.getValue("annotate:ion_prior_model").toString() == "basic"
                          ? FragmentIonLikelihoodModel::ContextSet::BASIC : FragmentIonLikelihoodModel::ContextSet::RICH;
@@ -2356,8 +2394,10 @@ namespace OpenMS
     //    it so the C-terminal peptide stays searchable and decoys are built from the protein
     //    alone. FragmentIndex skips peptides that contain a stop codon inside the sequence.
     //    An entry left without residues has nothing to search, and decoy generation needs
-    //    residues: drop it.
+    //    residues: drop it. Lowercase residues are read as uppercase ones, as the FASTA format
+    //    defines them (NCBI); they are neither indexed nor reversed otherwise.
     auto kept = db.begin();
+    Size lowercase_entries = 0;
     for (FASTAFile::FASTAEntry& e : db)
     {
       const bool is_existing_decoy = strategy.strip_existing &&
@@ -2366,6 +2406,16 @@ namespace OpenMS
       if (!is_existing_decoy)
       {
         std::string& sequence = e.sequence;
+        bool lowercase = false;
+        for (char& c : sequence)
+        {
+          if (c >= 'a' && c <= 'z')
+          {
+            c = static_cast<char>(c - 'a' + 'A');
+            lowercase = true;
+          }
+        }
+        lowercase_entries += lowercase ? 1 : 0;
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
         if (!sequence.empty())
         {
@@ -2382,6 +2432,11 @@ namespace OpenMS
       }
     }
     db.erase(kept, db.end());
+    if (lowercase_entries > 0)
+    {
+      OPENMS_LOG_INFO << "[ProSE] " << lowercase_entries << " database entries hold lowercase residues; they are searched "
+                      << "as uppercase ones." << std::endl;
+    }
     // Warn when the share of decoys that start with M is below half the share of targets that do.
     if (check_met_symmetry && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
     {
@@ -2986,6 +3041,7 @@ namespace OpenMS
     PeakMap evidence_spectra, query_spectra;
     PeakMap* query_ptr = query_raw_spectrum_ ? &query_spectra : nullptr;
     PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
+    warnAboutSpectra_(spectra, "");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
                        peaks_window_top_, peaks_window_type_, deisotoping_, self_trained_ion_priors_ ? &ion_evidence : nullptr,
                        ion_prior_scored_peaks_, evidence_ptr, query_ptr);
@@ -3066,8 +3122,8 @@ namespace OpenMS
     const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // 4. Allocate per-spectrum hit accumulator (persists across chunks).
+    // not reserved: most spectra keep few hits or none, and report:top_hits per spectrum ahead of time is a lot
     vector<vector<AnnotatedHit_>> annotated_hits(spectra.size());
-    for (auto& a : annotated_hits) { a.reserve(report_top_hits_); }
     // Accumulates across chunks: every chunk contributes its own candidates for the
     // same spectrum, and the pool features must see all of them.
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
@@ -3905,6 +3961,7 @@ namespace OpenMS
     PeakMap evidence_spectra, query_spectra;
     PeakMap* query_ptr = query_raw_spectrum_ ? &query_spectra : nullptr;
     PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
+    warnAboutSpectra_(spectra, "");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
                        peaks_window_top_, peaks_window_type_, deisotoping_, self_trained_ion_priors_ ? &ion_evidence : nullptr,
                        ion_prior_scored_peaks_, evidence_ptr, query_ptr);
@@ -4048,8 +4105,8 @@ namespace OpenMS
     const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // preallocate storage for PSMs
+    // not reserved: most spectra keep few hits or none, and report:top_hits per spectrum ahead of time is a lot
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
-    for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
 
     bool open_search_mode = open_search;
@@ -4478,24 +4535,6 @@ namespace OpenMS
     }
   }
 
-  namespace
-  {
-    // Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
-    std::string pinEnzymeName(const std::string& enzyme)
-    {
-      std::string name;
-      for (const char c : enzyme)
-      {
-        if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-      }
-      if (name == "trypsin/p") return "trypsinp";
-      if (name == "pepsina") return "pepsin";
-      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
-                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
-      return pin_enzymes.contains(name) ? name : "no_enzyme";
-    }
-  }
-
   // =====================================================================
   // In-process Percolator rescoring of one search run (parameter 'rescore'). Single
   // source of truth for the ProSE TOPP tool and other callers (e.g. the
@@ -4568,7 +4607,7 @@ namespace OpenMS
 
     try
     {
-      perc.rescorePSMs(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()),
+      perc.rescorePSMs(peptide_ids, feature_set, PercolatorInfile::pinEnzymeName(sp.digestion_enzyme.getName()),
                        min_charge, max_charge, "q-value");
     }
     catch (const Exception::BaseException& e)
@@ -5545,6 +5584,7 @@ namespace OpenMS
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
         all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), chimericSearch_());
+        warnAboutSpectra_(all_spectra[i], in_spectra_files[i]);
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, deisotoping_,
                            self_trained_ion_priors_ ? &all_ion_evidence[i] : nullptr, ion_prior_scored_peaks_,
@@ -5657,8 +5697,7 @@ namespace OpenMS
       std::vector<std::vector<CandidatePoolStats_>> per_file_pool_stats(in_spectra_files.size());
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
-        per_file_hits[i].resize(all_spectra[i].size());
-        for (auto& a : per_file_hits[i]) a.reserve(report_top_hits_);
+        per_file_hits[i].resize(all_spectra[i].size()); // not reserved, as annotated_hits in search()
         per_file_pool_stats[i].resize(all_spectra[i].size());
       }
       if (chimeric_enabled_)
@@ -6509,14 +6548,58 @@ namespace OpenMS
   // SearchResult::stats is consistent for any caller; leaves achieved FDR and
   // timing fields untouched (captured at well-defined points in the search paths).
   // =====================================================================
+  void ProSEAlgorithm::countSearchableSpectra_(const PeakMap& spectra, RunStatistics& stats) const
+  {
+    stats.ms2_spectra = stats.profile_spectra = stats.charge_out_of_range_spectra = 0;
+    for (const MSSpectrum& s : spectra)
+    {
+      if (s.getMSLevel() != 2) continue;
+      ++stats.ms2_spectra;
+      if (s.getType() == SpectrumSettings::SpectrumType::PROFILE) ++stats.profile_spectra;
+      // as FragmentIndex::precursorCharges(): a recorded charge outside of the range is not searched
+      const Int charge = s.getPrecursors().empty() ? 0 : s.getPrecursors()[0].getCharge();
+      if (charge > 0 && (charge < static_cast<Int>(precursor_min_charge_) || charge > static_cast<Int>(precursor_max_charge_)))
+      {
+        ++stats.charge_out_of_range_spectra;
+      }
+    }
+  }
+
+  void ProSEAlgorithm::warnAboutSpectra_(const PeakMap& spectra, const std::string& input) const
+  {
+    RunStatistics counts;
+    countSearchableSpectra_(spectra, counts);
+    const std::string of = input.empty() ? std::string() : " of '" + input + "'";
+    if (counts.ms2_spectra == 0)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Warning: " << (input.empty() ? std::string("the input") : "'" + input + "'")
+                      << " holds no MS2 spectra (e.g. an MS1-only file): "
+                      << "nothing is searched and no peptides are identified." << std::endl;
+      return;
+    }
+    if (counts.profile_spectra > 0)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Warning: " << counts.profile_spectra << " of " << counts.ms2_spectra << " MS2 spectra" << of
+                      << " are recorded as profile spectra. ProSE expects centroided spectra and searches profile "
+                      << "spectra as they are, which identifies few peptides, if any. Centroid them first (e.g. with "
+                      << "PeakPickerHiRes, or peak picking when converting the raw files)." << std::endl;
+    }
+    if (counts.charge_out_of_range_spectra > 0)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Warning: " << counts.charge_out_of_range_spectra << " of " << counts.ms2_spectra
+                      << " MS2 spectra" << of << " have a precursor charge outside of precursor:min_charge.."
+                      << "max_charge (" << precursor_min_charge_ << ".." << precursor_max_charge_
+                      << ") and are not searched." << std::endl;
+    }
+  }
+
   void ProSEAlgorithm::collectRunStatistics_(
       const PeakMap& spectra,
       const std::vector<ProteinIdentification>& /*protein_ids*/,
       const PeptideIdentificationList& peptide_ids,
       RunStatistics& stats) const
   {
-    stats.ms2_spectra = std::count_if(spectra.begin(), spectra.end(),
-                                      [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
+    countSearchableSpectra_(spectra, stats);
     // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
     // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
     // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
@@ -7198,6 +7281,8 @@ namespace OpenMS
         y << "  - input_file: " << q(st.input_file) << "\n";
         y << "    exit_code: " << static_cast<int>(pf.exit_code) << "\n";
         y << "    ms2_spectra: " << st.ms2_spectra << "\n";
+        y << "    profile_spectra: " << st.profile_spectra << "\n";
+        y << "    charge_out_of_range_spectra: " << st.charge_out_of_range_spectra << "\n";
         y << "    matched_spectra: " << st.matched_spectra << "\n";
         y << "    target_psms: " << st.target_psms << "\n";
         y << "    decoy_psms: " << st.decoy_psms << "\n";
@@ -7335,6 +7420,19 @@ namespace OpenMS
     if (!s.input_file.empty())
     {
       os << "[ProSE] Input        : " << s.input_file << "  (" << s.ms2_spectra << " MS2 spectra)\n";
+    }
+    if (s.ms2_spectra == 0)
+    {
+      os << "[ProSE] Warning      : no MS2 spectra in the input (e.g. an MS1-only file): nothing was searched\n";
+    }
+    if (s.profile_spectra > 0)
+    {
+      os << "[ProSE] Warning      : " << s.profile_spectra << " MS2 spectra are profile spectra; centroid them first\n";
+    }
+    if (s.charge_out_of_range_spectra > 0)
+    {
+      os << "[ProSE] Warning      : " << s.charge_out_of_range_spectra << " MS2 spectra not searched: precursor charge outside of "
+         << sh.min_charge << "-" << sh.max_charge << "\n";
     }
     // -- Configuration recap --
     os << "[ProSE] Config       : " << sh.enzyme << ", " << sh.missed_cleavages << " MC | prec [-"

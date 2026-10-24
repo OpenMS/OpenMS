@@ -179,6 +179,20 @@ namespace OpenMS
        */
       static double getFeatureValue(const DataValue& value, const std::string& feature);
 
+      /**
+       * @brief The name of an OpenMS enzyme as @ref store and @ref stampPinFeaturesOnHits expect it ('enz').
+       *
+       * The enzN, enzC and enzInt features know the enzymes of PercolatorAdapter's 'enzyme' option (no_enzyme,
+       * elastase, pepsin, proteinasek, thermolysin, chymotrypsin, lys-n, lys-c, arg-c, asp-n, glu-c, trypsin,
+       * trypsinp); any other name counts every site as enzymatic. This maps an enzyme name of ProteaseDB (e.g.
+       * 'Trypsin/P', 'Lys-C', 'PepsinA') to its name there: lowercase without spaces, 'Trypsin/P' as 'trypsinp',
+       * 'PepsinA' as 'pepsin'; an enzyme that is not there as 'no_enzyme'.
+       *
+       * @param[in] enzyme Name of the enzyme (ProteaseDB)
+       * @return Its name for the .pin features
+       */
+      static std::string pinEnzymeName(const std::string& enzyme);
+
     protected:
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM

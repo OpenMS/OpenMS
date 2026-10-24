@@ -109,6 +109,10 @@ namespace OpenMS
         /**
           @brief Reads the next FASTA entry from file.
 
+          A header without sequence (followed by the next header or the end of the file) gives an entry with an empty
+          sequence, and a warning. The errors name the file and the line (or, after setPosition(), the byte offset)
+          of the entry that could not be read.
+
           If you want to read all entries in one go, use load().
           @return true if entry was read; false if EOF was reached
           @exception Exception::FileNotFound is thrown if the file does not exists.
@@ -167,9 +171,14 @@ namespace OpenMS
     protected:
         /**
          @brief Reads a protein entry from the current file position and returns the ID and sequence
-         @return Return true if the protein entry was read and saved successfully, false otherwise
+
+         A header line that is followed by the next header line or the end of the file gives an entry without sequence.
+         @return Return true if the protein entry was read and saved successfully, false otherwise (error_ says why)
          */
         bool readEntry_(std::string& id, std::string& description, std::string& seq);
+
+        /// Where the entry that readEntry_() read last starts: its line if known, otherwise its byte offset
+        std::string errorLocation_() const;
 
         std::fstream infile_;       ///< filestream for reading; init using FastaFile::readStart()
         std::ofstream outfile_;     ///< filestream for writing; init using FastaFile::writeStart()
@@ -178,6 +187,11 @@ namespace OpenMS
         std::string seq_;           ///< sequence of currently read protein
         std::string id_;            ///< identifier of currently read protein
         std::string description_;   ///< description of currently read protein
+        std::string filename_;      ///< name of the file read (readStart())
+        Size line_{0};              ///< line of the next character read (1-based); 0: unknown, after setPosition()
+        Size entry_line_{0};        ///< line of the entry read last (0: unknown)
+        std::streampos entry_offset_{}; ///< byte offset where reading the entry read last began (whitespace before it included)
+        std::string error_;         ///< why readEntry_() failed
     };
 
 } // namespace OpenMS

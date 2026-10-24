@@ -245,9 +245,9 @@ class ProSE :
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
-      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input runs/<basename>.psm.parquet and runs/<basename>.pg.parquet, and quantms.psm.parquet and quantms.pg.parquet of the whole run (see also -qpx_extended): the folder is one QPX dataset (prefix quantms). The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
+      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input runs/<basename>.psm.parquet and runs/<basename>.pg.parquet, and quantms.psm.parquet and quantms.pg.parquet of the whole run (see also -qpx_extended): the folder is one QPX dataset (prefix quantms). The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one. The Parquet files of an earlier run in the folder (quantms.*.parquet, runs/*.parquet) are removed.", false, true);
 
-      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input runs/<basename>.psm/proteins/pg/search_params.parquet, and openms.psm/proteins/pg/search_params.parquet of the whole run: the folder is one dataset (prefix openms). With -out_merged and several inputs also merged.proteins.parquet and merged.pg.parquet (the pooled proteins).", false, true);
+      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input runs/<basename>.psm/proteins/pg/search_params.parquet, and openms.psm/proteins/pg/search_params.parquet of the whole run: the folder is one dataset (prefix openms). With -out_merged and several inputs also merged.proteins.parquet and merged.pg.parquet (the pooled proteins). The Parquet files of an earlier run in the folder (openms.*.parquet, merged.*.parquet, runs/*.parquet) are removed.", false, true);
 
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<std::string>("idXML"));
@@ -991,6 +991,34 @@ class ProSE :
 
       ProSEAlgorithm sse;
       sse.setParameters(search_params);
+
+      // The output directories hold the files of this run only: the Parquet files of an earlier run into the same
+      // directory (of other inputs, or views this run does not write, e.g. a pg file without protein inference) would
+      // otherwise be read as part of this dataset. Removed once the parameters are known to be valid.
+      for (const auto& [dir, stems] : {std::pair<std::string, StringList>{out_qpx_dir, {QPX_AGGREGATE_STEM}},
+                                       std::pair<std::string, StringList>{out_parquet_dir, {PARQUET_AGGREGATE_STEM, PARQUET_POOLED_STEM}}})
+      {
+        if (dir.empty()) continue;
+        StringList stale, files;
+        File::fileList(dir + "/runs", "*.parquet", stale, true);
+        for (const std::string& stem : stems)
+        {
+          File::fileList(dir, stem + ".*.parquet", files, true);
+          stale.insert(stale.end(), files.begin(), files.end());
+        }
+        for (const std::string& file : stale)
+        {
+          if (!File::remove(file))
+          {
+            OPENMS_LOG_ERROR << "Cannot remove '" << file << "', a file of an earlier run in the output directory." << endl;
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
+        }
+        if (!stale.empty())
+        {
+          OPENMS_LOG_INFO << "Removed " << stale.size() << " Parquet files of an earlier run from '" << dir << "'." << endl;
+        }
+      }
       // -out_pin is the input of a later rescoring: the PSMs before the rescoring and before any FDR filter. Both
       // Search:rescore (Percolator q-values as scores, only the best hit per spectrum) and FDR:PSM (removes PSMs,
       // q-values as scores) change the PSMs in the search, so the search also hands back each file's PSMs before them.
@@ -1137,7 +1165,8 @@ class ProSE :
           else
           {
             const auto& sp = result.protein_ids.front().getSearchParameters();
-            const std::string enz_str = sp.digestion_enzyme.getName();
+            // the name the enzN/enzC/enzInt features know (as the in-process rescoring, ProSEAlgorithm::rescoreWithPercolator())
+            const std::string enz_str = PercolatorInfile::pinEnzymeName(sp.digestion_enzyme.getName());
             const auto colon = sp.charges.find(':');
             const int min_charge = (colon != std::string::npos)
                                      ? StringUtils::toInt32(sp.charges.substr(0, colon))

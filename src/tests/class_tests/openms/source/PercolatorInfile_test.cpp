@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <tuple>
 #include <vector>
 
 using namespace OpenMS;
@@ -263,6 +264,49 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the isotope error corrects dm/abs
   // SAMPLEK: no isotope error, the plain difference
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("dm")), observed_mz - samplek.getMZ(2))
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("absdm")), std::abs(observed_mz - samplek.getMZ(2)))
+}
+END_SECTION
+
+START_SECTION((static std::string pinEnzymeName(const std::string& enzyme)))
+{
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("Trypsin"), "trypsin")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("Trypsin/P"), "trypsinp")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("Lys-C"), "lys-c")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("Chymotrypsin"), "chymotrypsin")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("PepsinA"), "pepsin")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("Proteinase K"), "proteinasek")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("unspecific cleavage"), "no_enzyme")
+  TEST_EQUAL(PercolatorInfile::pinEnzymeName("Arg-C/P"), "no_enzyme")
+
+  // The enzyme features of a tryptic peptide with a missed cleavage: with the mapped name enzN = enzC = 1 and one
+  // internal site; the raw name 'Trypsin/P' is unknown to the features and counts every site (ProSE -out_pin did so).
+  auto stamp = [](const std::string& enz)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPKTIDER"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore('M');
+    ev.setAAAfter('S');
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setMZ(hit.getSequence().getMZ(2));
+    pid.setRT(10.0);
+    pid.setSpectrumReference("scan=1");
+    pid.setHits(std::vector<PeptideHit>{hit});
+    PeptideIdentificationList pids;
+    pids.push_back(pid);
+    PercolatorInfile::stampPinFeaturesOnHits(pids, enz, 2, 3);
+    const PeptideHit& stamped = pids[0].getHits()[0];
+    return std::make_tuple(static_cast<int>(stamped.getMetaValue("enzN")), static_cast<int>(stamped.getMetaValue("enzC")),
+                           static_cast<int>(stamped.getMetaValue("enzInt")));
+  };
+  TEST_TRUE(stamp(PercolatorInfile::pinEnzymeName("Trypsin/P")) == std::make_tuple(0, 1, 1))
+  TEST_TRUE(stamp(PercolatorInfile::pinEnzymeName("Trypsin")) == std::make_tuple(0, 1, 1))
+  TEST_TRUE(stamp("Trypsin/P") == std::make_tuple(1, 1, 8))
 }
 END_SECTION
 

@@ -553,6 +553,7 @@ START_SECTION(isotope_error)
 
   // Configure parameters before building the index (isotope error and fragment m/z bounds)
   auto params = isoTest.getParameters();
+  params.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   params.setValue("precursor:isotope_error_min", -3);
   params.setValue("precursor:isotope_error_max", 3);
   params.setValue("fragment:min_mz", 0);
@@ -612,6 +613,7 @@ START_SECTION(tolerance)
   FragmentIndex_test tolTest;
 
   auto params = tolTest.getParameters();
+  params.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   params.setValue("fragment:min_mz", 0);
   params.setValue("fragment:max_mz", 90000);
   params.setValue("fragment:min_ion_index", 0); // index all ions to verify all theoretical peaks match
@@ -1430,6 +1432,7 @@ START_SECTION((FragmentIndex does not score the peptide at range.second (closed-
 
   FragmentIndex_test fi;
   Param p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("precursor:mass_tolerance_unit", "Da");
   p.setValue("precursor:mass_tolerance_lower", 5.0);
   p.setValue("precursor:mass_tolerance_upper", 5.0);
@@ -1778,6 +1781,7 @@ START_SECTION((peptide-mass index admits a candidate whose sub-peptide matches a
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -1846,6 +1850,7 @@ START_SECTION((peptide-mass query is safe and correct when a smaller index is qu
   // staying correct after the shrink.
   auto make_masses = [](FragmentIndex_test& fi) {
     Param p = fi.getParameters();
+    p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
     p.setValue("peptide:enzyme_specificity", "none");
     p.setValue("peptide:min_size", 8);
     p.setValue("peptide:max_size", 12);
@@ -1932,6 +1937,7 @@ START_SECTION((fragment-index query is deterministic across repeated queries and
   //      for full teeth) nor change the result.
   auto make_closed = [](FragmentIndex_test& fi) {
     Param p = fi.getParameters();
+    p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
     p.setValue("precursor:mass_tolerance_lower", 20.0);
     p.setValue("precursor:mass_tolerance_upper", 20.0);
     p.setValue("precursor:mass_tolerance_unit", "ppm");
@@ -2022,6 +2028,7 @@ START_SECTION((Peptide-mass mode: matches candidates when a fixed N-terminal mod
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2099,6 +2106,7 @@ START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as
   {
     FragmentIndex_test fi;
     auto p = fi.getParameters();
+    p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
     p.setValue("peptide:enzyme_specificity", "none");
     p.setValue("peptide:min_size", 8);
     p.setValue("peptide:max_size", 12);
@@ -2320,6 +2328,7 @@ START_SECTION((peptide-mass query returns candidate with subset_bitmask for vari
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2388,6 +2397,7 @@ START_SECTION((Peptide-mass mode: emits one SpectrumMatch per valid subset at th
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2528,6 +2538,7 @@ START_SECTION((Peptide-mass mode: handles identical-delta variable mods without 
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2605,6 +2616,7 @@ START_SECTION((peptide-mass query admits PROTEIN_N_TERM variable mod only for an
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2684,6 +2696,7 @@ START_SECTION((peptide-mass query admits PROTEIN_C_TERM variable mod only for an
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2759,6 +2772,7 @@ START_SECTION((peptide-mass query-path rejects position-conflicting subsets))
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 8);
   p.setValue("peptide:max_size", 12);
@@ -2992,6 +3006,7 @@ START_SECTION((Peptide-mass mode: realizes a whole mother))
 
   FragmentIndex_test fi;
   auto p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none");
   p.setValue("peptide:min_size", 9);
   p.setValue("peptide:max_size", 9);
@@ -3070,6 +3085,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment i
   auto make_index = [&db](FragmentIndex& fi, bool low_memory, bool deduplicate, bool open)
   {
     Param p = fi.getParameters();
+    p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
     p.setValue("peptide:enzyme_specificity", "none");
     p.setValue("peptide:min_size", 8);
     p.setValue("peptide:max_size", 30);
@@ -4530,6 +4546,7 @@ START_SECTION(([EXTRA] fragments on bucket boundaries are matched by query() and
 
   FragmentIndex_test fi;
   Param p = fi.getParameters();
+  p.setValue("precursor:min_charge", 1); // a recorded charge outside of the range is not searched
   p.setValue("peptide:enzyme_specificity", "none"); // many peptides, so that the index has many buckets
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 20);
@@ -5008,6 +5025,172 @@ START_SECTION(([EXTRA] residue-specific terminal modifications occupy the termin
     const AASequence realized = fi.reconstructRealizedSubSequence(mother, db, 9, 1);
     TEST_EQUAL(realized, target)
     TEST_EQUAL(AASequence::fromString(realized.toString()), realized)
+  }
+}
+END_SECTION
+
+START_SECTION((static void checkSearchParameters(const Param& param)))
+{
+  // valid: the defaults, a single charge, an unlimited peptide length (max_size 0)
+  FragmentIndex fi;
+  const Param defaults = fi.getParameters();
+  FragmentIndex::checkSearchParameters(defaults);
+  Param p = defaults;
+  p.setValue("precursor:min_charge", 3);
+  p.setValue("precursor:max_charge", 3);
+  p.setValue("peptide:max_size", 0);
+  p.setValue("peptide:motif", "N[^P][ST]");
+  FragmentIndex::checkSearchParameters(p);
+  fi.setParameters(p);
+  TEST_EQUAL(fi.getParameters().getValue("peptide:motif").toString(), "N[^P][ST]")
+
+  // inverted ranges and an invalid motif: InvalidParameter naming the parameters, also from setParameters()
+  const std::vector<std::tuple<std::string, ParamValue, std::string>> invalid{
+    {"precursor:min_charge", 6, "precursor:min_charge (6) is larger than precursor:max_charge (5)"},
+    {"precursor:isotope_error_min", 1, "precursor:isotope_error_min (1) is larger than precursor:isotope_error_max (0)"},
+    {"peptide:min_size", 41, "peptide:min_size (41) is larger than peptide:max_size (40)"},
+    {"peptide:min_mass", 9001, "peptide:min_mass (9001) is larger than peptide:max_mass (9000)"},
+    {"fragment:min_mz", 2001, "fragment:min_mz (2001) is larger than fragment:max_mz (2000)"},
+    {"peptide:motif", "[A-", "peptide:motif '[A-' is not a valid regular expression"}};
+  for (const auto& [name, value, message] : invalid)
+  {
+    Param q = defaults;
+    q.setValue(name, value);
+    TEST_EXCEPTION(Exception::InvalidParameter, FragmentIndex::checkSearchParameters(q))
+    try
+    {
+      FragmentIndex::checkSearchParameters(q);
+    }
+    catch (const Exception::InvalidParameter& e)
+    {
+      TEST_TRUE(std::string(e.what()).find(message) != std::string::npos)
+    }
+    FragmentIndex other;
+    TEST_EXCEPTION(Exception::InvalidParameter, other.setParameters(q))
+  }
+
+  // values outside of the restrictions (they used to wrap around in 16-bit members or never end a loop)
+  const std::vector<std::pair<std::string, int>> out_of_range{
+    {"precursor:max_charge", 65535}, {"precursor:max_charge", 65536}, {"precursor:min_charge", 0},
+    {"precursor:isotope_error_max", 32767}, {"precursor:isotope_error_min", -32768}, {"fragment:max_charge", 0},
+    {"fragment:max_charge", 65536}, {"fragment:min_matched_ions", 65536}, {"modifications:variable_max_per_peptide", 6},
+    {"modifications:variable_max_per_peptide", -1}, {"peptide:missed_cleavages", -1}, {"peptide:min_size", -1},
+    {"peptide:max_size", -1}, {"scoring:max_candidates_per_spectrum", 0}, {"report:top_hits", 0}};
+  for (const auto& [name, value] : out_of_range)
+  {
+    Param q = defaults;
+    q.setValue(name, value);
+    FragmentIndex other;
+    TEST_EXCEPTION(Exception::InvalidParameter, other.setParameters(q))
+  }
+  // the bounds themselves are accepted
+  Param bounds = defaults;
+  bounds.setValue("precursor:min_charge", 1);
+  bounds.setValue("precursor:max_charge", FragmentIndex::MAX_PRECURSOR_CHARGE);
+  bounds.setValue("precursor:isotope_error_min", -FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
+  bounds.setValue("precursor:isotope_error_max", FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
+  bounds.setValue("fragment:max_charge", FragmentIndex::MAX_FRAGMENT_CHARGE);
+  bounds.setValue("modifications:variable_max_per_peptide", FragmentIndex::MAX_VARIABLE_MODS_PER_PEPTIDE);
+  bounds.setValue("fragment:min_matched_ions", FragmentIndex::MAX_MIN_MATCHED_IONS);
+  FragmentIndex at_bounds;
+  at_bounds.setParameters(bounds);
+  TEST_EQUAL(static_cast<int>(at_bounds.getParameters().getValue("precursor:max_charge")), 20)
+}
+END_SECTION
+
+START_SECTION((static void precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges)))
+{
+  Precursor precursor;
+  std::vector<uint16_t> charges{9}; // cleared first
+  precursor.setCharge(0); // unknown: every charge of the range
+  FragmentIndex::precursorCharges(precursor, 2, 4, charges);
+  TEST_EQUAL(charges.size(), 3)
+  TEST_TRUE(charges == std::vector<uint16_t>({2, 3, 4}))
+  precursor.setCharge(-2); // negative: unknown as well
+  FragmentIndex::precursorCharges(precursor, 2, 3, charges);
+  TEST_TRUE(charges == std::vector<uint16_t>({2, 3}))
+  precursor.setCharge(3); // recorded and in the range
+  FragmentIndex::precursorCharges(precursor, 2, 4, charges);
+  TEST_TRUE(charges == std::vector<uint16_t>({3}))
+  precursor.setCharge(6); // recorded outside of the range: not searched (iPRG reported a charge-6 PSM with max_charge 5)
+  FragmentIndex::precursorCharges(precursor, 2, 5, charges);
+  TEST_TRUE(charges.empty())
+  precursor.setCharge(1);
+  FragmentIndex::precursorCharges(precursor, 2, 5, charges);
+  TEST_TRUE(charges.empty())
+  // the largest range ends (a uint16_t loop up to 65535 never did)
+  precursor.setCharge(0);
+  FragmentIndex::precursorCharges(precursor, 1, 65535, charges);
+  TEST_EQUAL(charges.size(), 65535)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] querySpectrum(): the charge range applies to recorded charges, peptide:motif filters the candidates))
+{
+  // the multi-charge fixture above: ACDEFGRHIL of a protein, its 2+ spectrum
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+  AASequence target = AASequence::fromString("ACDEFGRHIL");
+  const double target_mz_2plus = (target.getMonoWeight() + 2 * Constants::PROTON_MASS_U) / 2.0;
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(target_mz_2plus);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  // the realized sequences of the hits of spec with the recorded @p charge (0: none)
+  auto query = [&](bool low_memory, int min_charge, int max_charge, int charge, const std::string& motif)
+  {
+    FragmentIndex_test fi;
+    Param p = fi.getParameters();
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("fragment:min_mz", 0);
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("precursor:min_charge", min_charge);
+    p.setValue("precursor:max_charge", max_charge);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    p.setValue("low_memory", low_memory ? "true" : "false");
+    p.setValue("fragment:min_matched_ions", 3);
+    p.setValue("peptide:motif", motif);
+    fi.setParameters(p);
+    fi.build(entries);
+    MSSpectrum s = spec;
+    s.getPrecursors()[0].setCharge(charge);
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(s, entries, sms);
+    std::set<std::string> sequences;
+    for (const auto& hit : sms.hits_)
+    {
+      const auto& peptide = fi.getPeptides()[hit.peptide_idx_];
+      sequences.insert((low_memory ? fi.reconstructRealizedSubSequence(peptide, entries, hit.realized_length_)
+                                   : fi.reconstructModifiedSequence(peptide, entries)).toString());
+    }
+    return sequences;
+  };
+  for (const bool low_memory : {false, true})
+  {
+    TEST_TRUE(query(low_memory, 2, 3, 2, "").count("ACDEFGRHIL"))  // recorded charge in the range
+    TEST_TRUE(query(low_memory, 2, 3, 0, "").count("ACDEFGRHIL"))  // no recorded charge: the range
+    TEST_TRUE(query(low_memory, 3, 4, 2, "").empty())              // recorded charge outside of the range: not searched
+    TEST_TRUE(query(low_memory, 3, 4, 0, "").count("ACDEFGRHIL") == 0) // no recorded charge: 3+ and 4+ only
+    // peptide:motif: the candidates contain a match
+    const std::set<std::string> with_motif = query(low_memory, 2, 2, 2, "GRH");
+    TEST_TRUE(with_motif.count("ACDEFGRHIL"))
+    for (const std::string& sequence : with_motif) { TEST_TRUE(sequence.find("GRH") != std::string::npos) }
+    TEST_TRUE(query(low_memory, 2, 2, 2, "^ACD").count("ACDEFGRHIL"))
+    TEST_TRUE(query(low_memory, 2, 2, 2, "W").empty())        // no peptide holds W
+    TEST_TRUE(query(low_memory, 2, 2, 2, "HIL$").count("ACDEFGRHIL"))
+    TEST_TRUE(query(low_memory, 2, 2, 2, "^CDE").count("ACDEFGRHIL") == 0)
   }
 }
 END_SECTION

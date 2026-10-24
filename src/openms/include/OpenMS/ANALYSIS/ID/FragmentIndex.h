@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -321,6 +322,50 @@ namespace OpenMS
       const double threshold = unit_ppm ? 1000.0 : 1.0;
       return std::max(lower_magnitude, upper_magnitude) > threshold;
     }
+
+    /// @name Bounds of the search parameters (their Param restrictions, also of ProSEAlgorithm)
+    /// Each charge and isotope error of a spectrum is a separate query; the variable modifications of a peptide are
+    /// enumerated as all combinations of at most modifications:variable_max_per_peptide of them.
+    //@{
+    static constexpr int MAX_PRECURSOR_CHARGE = 20;          ///< precursor:min_charge/max_charge lie in [1, 20]
+    static constexpr int MAX_FRAGMENT_CHARGE = 10;           ///< fragment:max_charge lies in [1, 10]
+    static constexpr int MAX_ABS_ISOTOPE_ERROR = 5;          ///< precursor:isotope_error_min/max lie in [-5, 5]
+    static constexpr int MAX_VARIABLE_MODS_PER_PEPTIDE = 5;  ///< modifications:variable_max_per_peptide lies in [0, 5]
+    static constexpr int MAX_MIN_MATCHED_IONS = 1000;        ///< fragment:min_matched_ions lies in [0, 1000]
+    //@}
+
+    /// Description of the parameter peptide:motif (of this class and ProSEAlgorithm)
+    static constexpr const char* PEPTIDE_MOTIF_DESCRIPTION =
+      "If set, only peptides whose unmodified sequence (one-letter codes) contains a match of this regular expression "
+      "are searched, target and decoy peptides alike, e.g. 'N[^P][ST]' for N-glycosylation sequons or 'C' for "
+      "cysteine-containing peptides; '^' and '$' anchor it to the peptide termini.";
+
+    /**
+     * @brief Rejects search parameters whose combination searches nothing or cannot be searched.
+     *
+     * The single values are checked against the restrictions of the parameters (Param::checkDefaults()); this checks
+     * how they combine: precursor:min_charge <= precursor:max_charge, precursor:isotope_error_min <=
+     * precursor:isotope_error_max, peptide:min_size <= peptide:max_size (unless max_size is 0, i.e. unlimited),
+     * peptide:min_mass <= peptide:max_mass, fragment:min_mz <= fragment:max_mz, and that peptide:motif is a valid
+     * regular expression. Parameters that @p param does not hold are not checked.
+     *
+     * @param[in] param Parameters of FragmentIndex or ProSEAlgorithm
+     * @throws Exception::InvalidParameter naming the parameters that do not fit
+     */
+    static void checkSearchParameters(const Param& param);
+
+    /**
+     * @brief The precursor charges a spectrum is searched with.
+     *
+     * Those of [@p min_charge, @p max_charge] if @p precursor has no charge (0 or negative), otherwise its charge if it
+     * lies in the range, and none if not: the range bounds the charges of the reported PSMs.
+     *
+     * @param[in] precursor The precursor of the spectrum
+     * @param[in] min_charge precursor:min_charge
+     * @param[in] max_charge precursor:max_charge
+     * @param[out] charges The charges, ascending (cleared first)
+     */
+    static void precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges);
 
     /**
      * @brief Rejects fixed terminal modifications that the index cannot restrict to the peptides they apply to.
@@ -1021,6 +1066,10 @@ private:
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     bool deduplicate_{false};       ///< peptide:deduplicate
+    RegularExpression peptide_motif_; ///< peptide:motif (empty(): none, every peptide is searched)
+
+    /// Whether the unmodified peptide @p sequence of @p length residues passes peptide:motif
+    bool matchesMotif_(const char* sequence, size_t length) const;
     
     /// Instance delegate — same rule, reads the member bounds.
     bool isOpenSearchMode_() const noexcept
