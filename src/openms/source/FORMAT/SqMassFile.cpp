@@ -49,7 +49,7 @@ namespace OpenMS
     {
       int batch_size = 500;
       std::vector<int> indices;
-      for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrSpectra() / batch_size); batch_idx++)
+      for (size_t batch_idx = 0; batch_idx * batch_size < sql_mass.getNrSpectra(); batch_idx++)
       {
         int idx_start = static_cast<int>(batch_idx * batch_size);
         int idx_end = static_cast<int>(std::min((batch_idx + 1) * static_cast<size_t>(batch_size), sql_mass.getNrSpectra()));
@@ -71,7 +71,7 @@ namespace OpenMS
     {
       int batch_size = 500;
       std::vector<int> indices;
-      for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrChromatograms() / batch_size); batch_idx++)
+      for (size_t batch_idx = 0; batch_idx * batch_size < sql_mass.getNrChromatograms(); batch_idx++)
       {
         int idx_start = static_cast<int>(batch_idx * batch_size);
         int idx_end = static_cast<int>(std::min((batch_idx + 1) * static_cast<size_t>(batch_size), sql_mass.getNrChromatograms()));

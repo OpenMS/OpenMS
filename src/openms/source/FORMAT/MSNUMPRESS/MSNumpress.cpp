@@ -239,10 +239,12 @@ double optimalLinearFixedPointMass(
 		size_t dataSize,
         double mass_acc
 ) {
-	if (dataSize < 3)
+	if (dataSize == 0)
 	{
-		return 0; // we just encode the first two points as floats
+		return 0;
 	}
+    // encodeLinear stores the first two values as fixed-point integers too,
+    // so arrays of one or two values need a fixed point like longer arrays.
     // We calculate the maximal fixedPoint we need to achieve a specific mass
     // accuracy. Note that the maximal error we will make by encoding as int is
     // 0.5 due to rounding errors.

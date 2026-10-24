@@ -51,6 +51,13 @@ namespace OpenMS::Internal
         sqlite3_finalize(stmt);
         return native_ids;
       }
+
+      /// A string as an SQL literal: in single quotes, with embedded quotes doubled.
+      std::string sqlQuote(std::string value)
+      {
+        StringUtils::substitute(value, "'", "''");
+        return "'" + value + "'";
+      }
     }
 
   /**
@@ -1230,8 +1237,8 @@ namespace OpenMS::Internal
         int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE); // 1 = positive
         insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" <<
           spec_id_ << "," <<
-          run_id_ << ",'" <<
-          spec.getNativeID() << "'," <<
+          run_id_ << "," <<
+          sqlQuote(spec.getNativeID()) << "," <<
           spec.getMSLevel() << "," <<
           spec.getRT() << "," <<
           polarity << "); ";
@@ -1265,7 +1272,7 @@ namespace OpenMS::Internal
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
               "," << prec.getDriftTime() << 
               "," << prec.getActivationEnergy() << 
-              "," << activation_method << ",'" << pepseq << "'" << "); ";
+              "," << activation_method << "," << sqlQuote(pepseq) << "); ";
           }
           else
           {
@@ -1466,7 +1473,7 @@ namespace OpenMS::Internal
       for (Size k = 0; k < chroms.size(); k++)
       {
         const MSChromatogram& chrom = chroms[k];
-        insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, RUN_ID, NATIVE_ID) VALUES (" << chrom_id_ << "," << run_id_ << ",'" << chrom.getNativeID() << "'); ";
+        insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, RUN_ID, NATIVE_ID) VALUES (" << chrom_id_ << "," << run_id_ << "," << sqlQuote(chrom.getNativeID()) << "); ";
 
         const OpenMS::Precursor& prec = chrom.getPrecursor();
         // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
@@ -1486,7 +1493,7 @@ namespace OpenMS::Internal
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
             "," << prec.getDriftTime() << 
             "," << prec.getActivationEnergy() << 
-            "," << activation_method << ",'" << pepseq << "'" << "); ";
+            "," << activation_method << "," << sqlQuote(pepseq) << "); ";
         }
         else
         {
