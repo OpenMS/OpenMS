@@ -218,12 +218,12 @@ Percolator::Percolator()
   defaults_.setValue("reset:learner", "svm",
                      "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
   defaults_.setValidStrings("reset:learner", {"svm","mlp"});
-  defaults_.setValue("reset:representative", "search",
-                     "RESET: the PSM that represents a stem: 'search' = best search engine score (the paper); 'model' = "
-                     "after each round, best score under the new model (EXPERIMENTAL: valid only if null targets and decoys "
-                     "are exchangeable over their whole PSM collections, including their sizes).");
+  defaults_.setValue("reset:representative", "model",
+                     "RESET: the PSM that represents a stem: 'model' = after each round, best score under the new model "
+                     "(default; the FDR then also assumes that null targets and decoys are exchangeable over their whole PSM "
+                     "collections, including their sizes); 'search' = best search engine score (the paper).");
   defaults_.setValidStrings("reset:representative", {"search","model"});
-  defaults_.setValue("reset:iterations", 20, "RESET: training rounds (the paper: 5, which do not converge on DIA data).");
+  defaults_.setValue("reset:iterations", 25, "RESET: training rounds (the paper: 5, which do not converge on DIA data).");
   defaults_.setMinInt("reset:iterations", 1);
   defaults_.setValue("reset:audit", "false",
                      "RESET: feature-symmetry audit before training (per-feature AUC and KS of training decoys vs "

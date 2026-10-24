@@ -131,8 +131,9 @@ START_SECTION(static Output run(const Input& input, const Options& options))
   PercolatorReset::Options opt;
   opt.salt = 12345;
   opt.threads = 2;
-  opt.iterations = 5;          // default 20
-  opt.representative = "model"; // experimental option, exercised by the runs below (incl. the masking test)
+  TEST_EQUAL(opt.iterations, 25)
+  TEST_EQUAL(opt.representative, "model")
+  opt.iterations = 5; // speed (the default representative "model" is exercised by the runs below, incl. masking)
   const PercolatorReset::Output out = PercolatorReset::run(in, opt);
   TEST_EQUAL(out.scores.size(), in.features.size())
   TEST_EQUAL(out.stem_q_values.size(), in.features.size())

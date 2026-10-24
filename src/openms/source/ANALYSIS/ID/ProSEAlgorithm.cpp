@@ -407,15 +407,15 @@ namespace OpenMS
     defaults_.setValue("reset:learner", "svm",
                        "rescore_method 'reset': 'svm' = linear SVM; 'mlp' = small MLP ensemble (experimental).", {"advanced"});
     defaults_.setValidStrings("reset:learner", {"svm", "mlp"});
-    defaults_.setValue("reset:representative", "search",
-                       "rescore_method 'reset': the PSM that represents a peptide (stem): 'search' = best search engine score "
-                       "(the paper, default); 'model' = after each training round, best score under the new model "
-                       "(EXPERIMENTAL, +2 % peptides on DIA: valid only if null targets and decoys are exchangeable over their "
-                       "whole PSM collections, including their sizes).", {"advanced"});
+    defaults_.setValue("reset:representative", "model",
+                       "rescore_method 'reset': the PSM that represents a peptide (stem): 'model' (default) = after each training "
+                       "round, best score under the new model (+2 % peptides on DIA; the FDR then also assumes that null targets "
+                       "and decoys are exchangeable over their whole PSM collections, including their sizes); 'search' = best "
+                       "search engine score (the paper).", {"advanced"});
     defaults_.setValidStrings("reset:representative", {"search", "model"});
-    defaults_.setValue("reset:iterations", 20,
+    defaults_.setValue("reset:iterations", 25,
                        "rescore_method 'reset': training rounds (the paper: 5; on DIA pseudo-spectra 5 rounds stop far from "
-                       "convergence: 78 % of 20 rounds' peptides on HeLa).", {"advanced"});
+                       "convergence: 82 % of the peptides of 20 rounds on HeLa).", {"advanced"});
     defaults_.setMinInt("reset:iterations", 1);
     defaults_.setValue("reset:audit", "false",
                        "rescore_method 'reset': feature-symmetry audit before training (log).", {"advanced"});

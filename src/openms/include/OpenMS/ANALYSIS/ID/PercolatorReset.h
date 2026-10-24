@@ -32,7 +32,7 @@ namespace OpenMS
        target-decoy peptide pairing; a pseudo-reverse pairing was tried and removed, review round 2).
     3. Coin: every decoy stem is a training decoy or an estimating decoy, by an independent Bernoulli(1/2) coin:
        bit 0 of a 64-bit hash of (salt, stem). Pseudo-targets = targets + estimating decoys.
-    4. Options::iterations rounds (default 20; the paper uses 5, which do not converge on DIA pseudo-spectra): positive set = pseudo-targets that pass Options::train_fdr against the
+    4. Options::iterations rounds (default 25; the paper uses 5, which do not converge on DIA pseudo-spectra): positive set = pseudo-targets that pass Options::train_fdr against the
        training decoys with SeqStep+ at c = 3/4 (decoys + 1 counted three times; without positives first without the
        +1, then with the threshold relaxed by 0.005 steps); negative set = all training decoys; class weights
        (C+, C-) from Options::c_values by 3-fold cross-validation maximizing the held-out pseudo-target discoveries
@@ -72,15 +72,16 @@ namespace OpenMS
     {
       /// coin salt (never pick the best of several salts); unset = a fresh random salt, recorded in Output::salt
       std::optional<std::uint64_t> salt;
-      int iterations = 20;              ///< training rounds (5 in the paper; 20 measured: 5 do not converge on DIA)
+      int iterations = 25;              ///< training rounds (5 in the paper; they do not converge on DIA data)
       double train_fdr = 0.01;          ///< FDR for the positive set and for the cross-validation counts
       std::vector<double> c_values = {0.1, 1.0, 10.0}; ///< grid for C+ and C- (all pairs)
       std::string learner = "svm";      ///< "svm" (linear) or "mlp" (small MLP ensemble, experimental)
-      /// "search" (default): a stem is represented by its PSM with the best search engine score (the paper); "model"
-      /// (EXPERIMENTAL): after each round by its PSM with the best score under the new model. Masking holds, but the
-      /// FDR then also needs null targets and decoys to be exchangeable over their whole PSM collections, including
-      /// their sizes (review r4: a null target with many more PSMs than a decoy gains from the maximum).
-      std::string representative = "search";
+      /// "model" (default, user decision 24 Oct 2026): after each round a stem is represented by its PSM with the best
+      /// score under the new model; "search": by its PSM with the best search engine score (the paper). With "model"
+      /// masking holds, but the FDR also needs null targets and decoys to be exchangeable over their whole PSM
+      /// collections, including their sizes (review r4: a null target with many more PSMs than a decoy gains from the
+      /// maximum); entrapment validation decides.
+      std::string representative = "model";
       bool audit = false;               ///< run the feature-symmetry audit
       std::vector<std::string> zero_features = {"enzInt"}; ///< features set to 0 (target-biased, as in the paper)
       int threads = 1;                  ///< threads for the cross-validation solves

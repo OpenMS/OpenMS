@@ -69,8 +69,8 @@ namespace OpenMS
     std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
     std::string reset_salt;                   ///< empty = random
     std::string reset_learner = "svm";
-    int    reset_iterations = 20;
-    std::string reset_representative = "search";
+    int    reset_iterations = 25;
+    std::string reset_representative = "model";
     bool   reset_audit = false;
     std::string reset_stem_table;             ///< empty = none
     /// Result of the last RESET rescorePSMs() call (null otherwise).
