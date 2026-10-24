@@ -4142,34 +4142,16 @@ namespace OpenMS
 
   namespace
   {
-    // Destroys the hits that the rescoring dropped (rescoreWithPercolator()) on a helper thread, which the next
-    // release of the calling thread, or the end of that thread, waits for. Freeing them took the rescoring's threads
-    // 42-60 ms at 16 threads for the 65,000 dropped hits of an Astral run (allocator contention: 150 ms on one
-    // thread), while the search waited; on a helper thread they are freed meanwhile (130 ms) during the remaining
-    // phases of the search and the output, which keep fewer threads busy than they were given (11-12 at 16 threads).
-    class BackgroundHitRelease
+    // A helper thread that destroys hits, joined when this goes (see applyPsmFDR_()).
+    struct HitRelease
     {
-    public:
-      ~BackgroundHitRelease() { wait(); }
+      std::thread thread;
 
-      void start(std::vector<std::vector<PeptideHit>>&& hits)
+      ~HitRelease()
       {
-        wait();
-        // if the thread cannot be started, the hits are destroyed here (with the function object the thread got)
-        try { thread_ = std::thread([hits = std::move(hits)]() mutable { std::vector<std::vector<PeptideHit>>().swap(hits); }); }
-        catch (...) {}
+        if (thread.joinable()) { thread.join(); }
       }
-
-    private:
-      void wait() noexcept
-      {
-        if (thread_.joinable()) { thread_.join(); }
-      }
-
-      std::thread thread_;
     };
-
-    thread_local BackgroundHitRelease dropped_hit_release;
 
     // Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
     std::string pinEnzymeName(const std::string& enzyme)
@@ -4197,6 +4179,16 @@ namespace OpenMS
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       int threads)
+  {
+    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr);
+  }
+
+  // static
+  ProSEAlgorithm::PercolatorRescoring ProSEAlgorithm::rescoreWithPercolator_(
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids,
+      int threads,
+      std::vector<std::vector<PeptideHit>>* dropped)
   {
     PercolatorRescoring outcome;
     if (protein_ids.empty())
@@ -4277,9 +4269,13 @@ namespace OpenMS
     const int max_threads = 1;
 #endif
     [[maybe_unused]] const int trim_threads = std::max(1, std::min(threads <= 0 ? 3 : threads, max_threads));
-    // With threads, the other hits are moved out and destroyed on a helper thread (see BackgroundHitRelease).
-    const bool release_later = trim_threads > 1;
-    std::vector<std::vector<PeptideHit>> dropped(release_later ? peptide_ids.size() : 0);
+    // With @p dropped, the other hits are moved there (to be destroyed later, see applyPsmFDR_()) if memory allows,
+    // otherwise destroyed here.
+    if (dropped != nullptr)
+    {
+      try { dropped->resize(peptide_ids.size()); }
+      catch (...) { dropped = nullptr; }
+    }
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 256) num_threads(trim_threads)
     for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
@@ -4291,7 +4287,12 @@ namespace OpenMS
         std::vector<PeptideHit>& hits = pid.getHits();
         if (hits.size() > 1)
         {
-          if (release_later) { dropped[i].assign(std::make_move_iterator(hits.begin() + 1), std::make_move_iterator(hits.end())); }
+          if (dropped != nullptr)
+          {
+            // moves no hit if the allocation fails (then they are destroyed below)
+            try { (*dropped)[i].assign(std::make_move_iterator(hits.begin() + 1), std::make_move_iterator(hits.end())); }
+            catch (...) {}
+          }
           hits.resize(1);
         }
       }
@@ -4300,7 +4301,6 @@ namespace OpenMS
         errors[i] = std::current_exception();
       }
     }
-    if (release_later) { dropped_hit_release.start(std::move(dropped)); }
     for (const std::exception_ptr& error : errors)
     {
       if (error) std::rethrow_exception(error);
@@ -4385,7 +4385,23 @@ namespace OpenMS
       const int threads = 1;
 #endif
       OPENMS_LOG_INFO << "[ProSE] Rescoring the PSMs with Percolator..." << std::endl;
-      rescoring = rescoreWithPercolator(protein_ids, peptide_ids, threads);
+      // The hits that the rescoring drops (all but the best per spectrum) are destroyed on a helper thread while the
+      // search and its output continue: destroying the 65,000 dropped hits of an Astral run took the rescoring's 16
+      // threads 42-60 ms (allocator contention; 150 ms on one thread) while the search waited. The phases after the
+      // rescoring keep 11-14 of 16 threads busy. The next rescoring, and the destruction of this object, wait for it.
+      released_hits_.reset(); // the release of the search before (multi-file search)
+      std::vector<std::vector<PeptideHit>> dropped;
+      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, threads > 1 ? &dropped : nullptr);
+      if (!dropped.empty())
+      {
+        try
+        {
+          auto release = std::make_shared<HitRelease>();
+          release->thread = std::thread([hits = std::move(dropped)]() mutable { std::vector<std::vector<PeptideHit>>().swap(hits); });
+          released_hits_ = std::move(release);
+        }
+        catch (...) {} // if the thread cannot be started, the hits are destroyed here
+      }
       takeBackThreadsOfEndedRead();
       if (fdr_psm_ > 0.0)
       {

@@ -24,6 +24,7 @@
 #include <functional>  // std::hash (ProteinMapping_)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
+#include <memory>      // std::shared_ptr (released_hits_)
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
 #include <string_view>
 #include <unordered_map>
@@ -1290,6 +1291,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;
+    /// The hits that the most recent rescoring dropped (all but the best per spectrum), destroyed by a helper thread
+    /// meanwhile (see applyPsmFDR_()); the next rescoring and the destruction of this object (its last copy) wait for it.
+    mutable std::shared_ptr<void> released_hits_;
+
+    /// rescoreWithPercolator(); with @p dropped, the hits it drops are moved there (as memory allows) instead of
+    /// destroyed
+    static PercolatorRescoring rescoreWithPercolator_(std::vector<ProteinIdentification>& protein_ids,
+                                                      PeptideIdentificationList& peptide_ids,
+                                                      int threads,
+                                                      std::vector<std::vector<PeptideHit>>* dropped);
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
