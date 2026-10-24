@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -20,6 +21,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -173,20 +175,23 @@ namespace OpenMS
     }
 
     std::vector<std::string> trgr_ids;
-    std::map<std::string, double> pep_im_map;
     trgr_ids.reserve(transition_group_map.size());
     for (const auto& trgroup_it : transition_group_map)
     {
       trgr_ids.push_back(trgroup_it.first);
     }
-    for (const auto& cmp : targeted_exp.getCompounds())
+    // Build once, then keep all lookups read-only during parallel extraction.
+    const auto pep_im_map = [&targeted_exp]()
     {
-      pep_im_map[cmp.id] = cmp.drift_time;
-    }
+      std::map<std::string, double> result;
+      for (const auto& cmp : targeted_exp.getCompounds())
+      {
+        result[cmp.id] = cmp.drift_time;
+      }
+      return result;
+    }();
 
     TransformationDescription::DataPoints data_im;
-    std::vector<double> exp_im;
-    std::vector<double> theo_im;
 
     // Collect MS1 IM pairs across all transition groups
     std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
@@ -255,7 +260,9 @@ namespace OpenMS
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        const auto drift_it = pep_im_map.find(pepref);
+        if (drift_it == pep_im_map.end()) {continue;}
+        const double drift_target = drift_it->second;
         RangeMobility im_range;
         if (im_extraction_win != -1 ) // im_extraction_win is set
         {
@@ -286,8 +293,6 @@ namespace OpenMS
         {
           // store result drift time
           data_im.push_back(std::make_pair(im, drift_target));
-          exp_im.push_back(im);
-          theo_im.push_back(drift_target);
           if (!debug_im_file_.empty())
           {
             os_im << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << '\n';
@@ -302,7 +307,9 @@ namespace OpenMS
       {
         const auto& tr0 = transition_group->getTransitions()[0];
         const auto pepref0 = tr0.getPeptideRef();
-        const double drift_target0 = pep_im_map[pepref0];
+        const auto drift_it = pep_im_map.find(pepref0);
+        if (drift_it == pep_im_map.end()) {continue;}
+        const double drift_target0 = drift_it->second;
 
         // Define an IM window centered on the theoretical drift time of this peptide
         RangeMobility im_range_ms1(drift_target0);
@@ -326,7 +333,7 @@ namespace OpenMS
 
           DIAHelpers::integrateWindow(sp_ms1_collect, mz, im, intensity, dummy, im_range_ms1);
 
-          if (im > 0.0)
+          if (im > 0.0 && std::isfinite(im) && std::isfinite(drift_target0))
           {
             exp_im_ms1_local.push_back(im);
             theo_im_ms1_local.push_back(drift_target0);
@@ -344,7 +351,9 @@ namespace OpenMS
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        const auto drift_it = pep_im_map.find(pepref);
+        if (drift_it == pep_im_map.end()) {continue;}
+        const double drift_target = drift_it->second;
 
         // do not need to check for IM because we are correcting IM
         RangeMobility im_range(drift_target);
@@ -373,8 +382,6 @@ namespace OpenMS
         {
           // store result drift time
           data_im.push_back(std::make_pair(im, drift_target));
-          exp_im.push_back(im);
-          theo_im.push_back(drift_target);
           if (!debug_im_file_.empty())
           {
             os_im << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << '\n';
@@ -394,9 +401,27 @@ namespace OpenMS
 
     if (!debug_im_file_.empty()) {os_im.close();}
 
-    if (exp_im.empty())
+    // Discard whole pairs before sorting: NaNs do not define a strict weak order.
+    // Missing or invalid calibrants must not prevent fitting the remaining valid ones.
+    std::erase_if(data_im, [](const auto& point)
+    {
+      return !std::isfinite(point.first) || !std::isfinite(point.second);
+    });
+    if (data_im.empty())
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression",std::string("Could not fit a linear model to the data (0 points)."));
+    }
+
+    // Parallel extraction appends in completion order. Fit both regressions to the same
+    // canonically ordered pairs so floating-point sums do not depend on thread scheduling.
+    std::sort(data_im.begin(), data_im.end());
+    std::vector<double> exp_im, theo_im;
+    exp_im.reserve(data_im.size());
+    theo_im.reserve(data_im.size());
+    for (const auto& point : data_im)
+    {
+      exp_im.push_back(point.first);
+      theo_im.push_back(point.second);
     }
 
     // linear correction is default (none returns in the beginning of the function)
@@ -432,6 +457,7 @@ namespace OpenMS
         // (x, y) = (experimental IM, theoretical IM)
         ms1_points.emplace_back(exp_im_ms1_all[i], theo_im_ms1_all[i]);
       }
+      std::sort(ms1_points.begin(), ms1_points.end());
 
       // Copy the fitted model; don't mutate im_trafo's datapoints
       TransformationDescription im_trafo_inv = im_trafo;
@@ -817,4 +843,3 @@ namespace OpenMS
   }
 
   }
-

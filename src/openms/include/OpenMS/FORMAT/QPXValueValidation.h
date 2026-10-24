@@ -129,6 +129,15 @@ namespace OpenMS
     /// Forget primary keys accumulated from earlier validate() calls.
     void reset();
 
+    /**
+      @brief Allow optional columns after the view's own (QPX readers ignore columns they do not know)
+
+      Off by default: validate() then requires the view's columns exactly. On, each view column is still checked in
+      place (name, type, nullability), and the further columns must have names distinct from each other and from the
+      view's columns.
+    */
+    void setExtraColumnsAllowed(bool allowed);
+
   private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
