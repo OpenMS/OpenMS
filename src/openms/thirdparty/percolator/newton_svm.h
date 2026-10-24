@@ -45,7 +45,7 @@ struct NewtonStats {
   int iterations = 0;     // Newton steps
   int passes = 0;         // passes over all rows (margins; the Hessian passes read the active rows only)
   long long hessianRows = 0;  // active rows summed over the Hessian passes
-  double gradRatio = 0.0;     // ||g(w)|| / ||g(0)|| at the end
+  double gradRatio = 0.0;     // ||g(w)|| / ||g(0)|| at the end (infinite if only g(0) is 0)
 };
 
 // Minimizes F (above) for the costs cpos, cneg and opts.lambda by Newton's method,

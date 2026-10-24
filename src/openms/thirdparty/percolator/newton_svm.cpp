@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <limits>
 #include <vector>
 
 #include <Eigen/Dense>
@@ -298,7 +299,7 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
       ret = -1;
       break;
     }
-    st.gradRatio = gnorm0 > 0.0 ? gnorm / gnorm0 : 0.0;
+    st.gradRatio = gnorm0 > 0.0 ? gnorm / gnorm0 : gnorm > 0.0 ? std::numeric_limits<double>::infinity() : 0.0;
     if (gnorm <= eps * gnorm0) {
       ret = 1;
       break;
@@ -508,7 +509,7 @@ double svmObjective(const AlgIn& set, double lambda, double cpos, double cneg, c
   double f = 0.0;
   for (int j = 0; j < n; ++j) f += w[j] * w[j];
   f *= 0.5;
-  const double inv2l = 1.0 / (2.0 * lambda);
+  const double cp = 0.5 * (cpos / lambda), cn = 0.5 * (cneg / lambda);  // C_i
   for (int i = 0; i < set.m; ++i) {
     double s = 0.0;
     for (int j = 0; j < n - 1; ++j) s += set.vals[i][j] * w[j];
@@ -516,7 +517,7 @@ double svmObjective(const AlgIn& set, double lambda, double cpos, double cneg, c
     const double margin = set.Y[i] * s;
     if (margin < 1.0) {
       const double d = 1.0 - margin;
-      f += (set.Y[i] > 0.0 ? cpos : cneg) * inv2l * d * d;
+      f += (set.Y[i] > 0.0 ? cp : cn) * d * d;
     }
   }
   return f;
