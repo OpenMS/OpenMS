@@ -1480,58 +1480,32 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   struct PinMetaValueCleanup
   {
     PeptideIdentificationList& ids;
-    PercolatorInfile::PinFeatureMetaValueMap& added;
+    const PercolatorInfile::PinFeatureMetaValueMap& added;
     ~PinMetaValueCleanup()
     {
-      // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the
-      // registry, which the threads would contend for); the stamped names are registered. The key sets are
-      // released in the loop as well. A destructor must not throw: if the parallel removal cannot allocate,
-      // the remaining values are removed serially by name, which allocates nothing.
-      bool failed = false;
+      // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the registry,
+      // which the threads would contend for); the stamped names are registered. A destructor must not throw: if the
+      // indices cannot be allocated, the values are removed serially by name, which allocates nothing.
+      std::vector<UInt> name_index;
       try
       {
-        std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
-        entries.reserve(added.size());
-        for (auto& entry : added) entries.push_back(&entry);
-#pragma omp parallel reduction(||: failed)
-        {
-          try
-          {
-            std::unordered_map<std::string, UInt> name_index;
-#pragma omp for schedule(dynamic, 256)
-            for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
-            {
-              auto& [hit_location, keys] = *entries[e];
-              PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-              for (const std::string& key : keys)
-              {
-                auto it = name_index.find(key);
-                if (it == name_index.end())
-                {
-                  it = name_index.emplace(key, MetaInfoInterface::metaRegistry().getIndex(key)).first;
-                }
-                hit.removeMetaValue(it->second);
-              }
-              keys.clear();
-            }
-          }
-          catch (...)
-          {
-            failed = true;
-          }
-        }
+        name_index.reserve(added.names.size());
       }
       catch (...)
       {
-        failed = true;
-      }
-      if (failed)
-      {
-        for (const auto& [hit_location, keys] : added)
+        for (size_t i = 0; i < added.hits.size(); ++i)
         {
-          PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-          for (const std::string& key : keys) hit.removeMetaValue(key);
+          PeptideHit& hit = ids[added.hits[i].first].getHits()[added.hits[i].second];
+          for (size_t k = added.offsets[i]; k < added.offsets[i + 1]; ++k) hit.removeMetaValue(added.names[added.name_indices[k]]);
         }
+        return;
+      }
+      for (const std::string& name : added.names) name_index.push_back(MetaInfoInterface::metaRegistry().getIndex(name));
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(added.hits.size()); ++i)
+      {
+        PeptideHit& hit = ids[added.hits[i].first].getHits()[added.hits[i].second];
+        for (size_t k = added.offsets[i]; k < added.offsets[i + 1]; ++k) hit.removeMetaValue(name_index[added.name_indices[k]]);
       }
     }
   } cleanup{peptide_ids, added_pin_meta_values};

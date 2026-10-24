@@ -12,8 +12,10 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <algorithm>
 #include <map>
 #include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -27,8 +29,51 @@ namespace OpenMS
   class OPENMS_DLLAPI PercolatorInfile
   {
     public:
-      /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
-      using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
+      /**
+         @brief The PIN meta values that stampPinFeaturesOnHits() added to the hits (those that did not exist before).
+
+         The names are stored once, and for each hit only the positions of its names in @p names (a set of strings per
+         hit took most of the time of stamping and removing the values of large runs). The hits that got any are in
+         ascending order of (peptide ID index, hit index): hits[i] got the names names[name_indices[k]] for k in
+         [offsets[i], offsets[i + 1]), in the order of @p names.
+      */
+      struct PinFeatureMetaValueMap
+      {
+        /// names of the meta values that can be added
+        std::vector<std::string> names;
+        /// (peptide ID index, hit index) of the hits that got any, ascending
+        std::vector<std::pair<size_t, size_t>> hits;
+        /// start of the names of each hit in @p name_indices, and their end (hits.size() + 1 entries; empty without hits)
+        std::vector<size_t> offsets;
+        /// positions in @p names
+        std::vector<UInt> name_indices;
+
+        /// number of hits that got meta values
+        size_t size() const { return hits.size(); }
+        bool empty() const { return hits.empty(); }
+        void clear()
+        {
+          names.clear();
+          hits.clear();
+          offsets.clear();
+          name_indices.clear();
+        }
+        /// 1 if the hit got meta values, else 0
+        size_t count(const std::pair<size_t, size_t>& hit) const
+        {
+          return std::binary_search(hits.begin(), hits.end(), hit) ? 1 : 0;
+        }
+        /// the names of the meta values the hit got (empty if none)
+        std::vector<std::string> keys(const std::pair<size_t, size_t>& hit) const
+        {
+          std::vector<std::string> result;
+          const auto it = std::lower_bound(hits.begin(), hits.end(), hit);
+          if (it == hits.end() || *it != hit) return result;
+          const size_t i = static_cast<size_t>(it - hits.begin());
+          for (size_t k = offsets[i]; k < offsets[i + 1]; ++k) result.push_back(names[name_indices[k]]);
+          return result;
+        }
+      };
 
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 

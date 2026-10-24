@@ -297,9 +297,16 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: an error stops at the failing hit
   // stamped and recorded up to the failing hit, including the keys it added before the error
   TEST_EQUAL(added.size(), 151)
   TEST_EQUAL(added.count({149, 0}), 1)
+  // every stamped name but 'score' (existed before): SpecId ... peplen, charge2, charge3, enzN ... Proteins
+  TEST_EQUAL(ListUtils::concatenate(added.keys({149, 0}), ","),
+             "SpecId,ScanNr,Label,CalcMass,ExpMass,deltamass,retentiontime,mass,peplen,charge2,charge3,enzN,enzC,enzInt,dm,absdm,Peptide,Proteins")
   TEST_EQUAL(static_cast<double>(pids[149].getHits()[0].getMetaValue("score")), 150.0)
   ABORT_IF(added.count({150, 0}) != 1)
-  TEST_EQUAL(added.at({150, 0}).size(), 3)  // SpecId, ScanNr, Label
+  TEST_EQUAL(added.keys({150, 0}).size(), 3)  // SpecId, ScanNr, Label
+  TEST_EQUAL(ListUtils::concatenate(added.keys({150, 0}), ","), "SpecId,ScanNr,Label")
+  TEST_EQUAL(added.keys({151, 0}).size(), 0)
+  TEST_EQUAL(added.hits.size() + 1, added.offsets.size())
+  TEST_EQUAL(added.offsets.back(), added.name_indices.size())
   TEST_EQUAL(pids[150].getHits()[0].metaValueExists("SpecId"), true)
   // the spectra after it are as before
   bool untouched = true;
