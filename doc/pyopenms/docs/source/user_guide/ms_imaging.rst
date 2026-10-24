@@ -45,6 +45,16 @@ Pixel coordinates start at 0. The spectrum of the top-left pixel is:
 
     8399
 
+The geometry also stores the physical pixel size and its unit. A file that does not state the pixel size gives
+``-1`` and the unit ``"unknown"`` instead of a made-up default, so check for it before converting pixels to
+distances:
+
+.. code-block:: python
+    :linenos:
+
+    if geometry.getPixelSizeX() > 0:
+        print(geometry.getPixelSizeX(), geometry.getPixelSizeY(), geometry.getPixelSizeUnit())
+
 Ion images
 **********
 
