@@ -43,6 +43,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <future>
 #include <cmath>
 #include <exception>
 #include <iomanip>
@@ -166,9 +167,10 @@ search's deisotoping tried: up to 3, and with 'Search:fragment:deisotope_charge_
 recorded precursor charge, whatever the charge of the PSM; up to 3 if that is unknown). Its footer records the filter:
 'prose_peak_window', 'prose_peak_top', 'prose_peak_annotated' (kept). A PSM's spectrum is the mz row whose 'id' is its
 'spectrum_reference'; a null one means no stored spectrum (the re-read failed, the spectrum was not found again, or
-another spectrum of its native ID has the row). A per-input psm file and its mz view are written as soon as the input is
-done (neither is kept for the rest of the run), in row groups of 256 rows, so that a viewer can read the spectrum and
-the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
+another spectrum of its native ID has the row). A per-input mz view is written while the PSMs of the input are
+predicted, its psm and pg files right after the input's other outputs, each file on a thread of its own while the run
+goes on (an mz view whose psm file cannot be written is removed again); psm and mz files are in row groups of 256 rows,
+so that a viewer can read the spectrum and the prediction of one PSM alone; the psm file's footer has the keys of its prediction columns:
 'prose_prediction_ms2_model', 'prose_prediction_instrument'. quantms.psm.parquet has the rows of the inputs whose
 psm file was written, in input order, without the prediction columns (and no rows if there are none). The output
 directory is one QPX dataset (prefix 'quantms'): the quantms.* files of the whole run on top, the per-input files
@@ -328,12 +330,40 @@ class ProSE :
       OPENMS_LOG_INFO << "-qpx_extended: " << in_file << ": " << what << endl;
     }
 
+    /// Where collectPSMSpectra_() writes the mz view of an input: the folder and prefix of its QPX dataset
+    /// (runs/<basename>.mz.parquet), the writer configuration and the footer keys
+    struct MzTarget_
+    {
+      std::string directory, prefix;
+      ParquetWriteConfig config;
+      std::map<std::string, std::string> keys;
+      std::string file() const { return directory + "/" + prefix + ".mz.parquet"; }
+    };
+
+    /// The native IDs of @p peptide_ids that have one (for ArrowIOHelpers::qpxScanFormat())
+    static std::vector<std::string> spectrumReferences_(const PeptideIdentificationList& peptide_ids)
+    {
+      std::vector<std::string> references;
+      references.reserve(peptide_ids.size());
+      for (const PeptideIdentification& id : peptide_ids)
+      {
+        std::string reference = id.getSpectrumReference();
+        if (!reference.empty()) { references.push_back(std::move(reference)); }
+      }
+      return references;
+    }
+
     /// The spectra and predictions of the PSMs of one searched file (collectPSMSpectra_())
     struct SpectraOfFile_
     {
-      /// the QPX mz view of the file's MS2 spectra of its PSMs (no table if they could not be read), and per element of
-      /// the file's peptide identifications whether it has the row of its spectrum (for its 'spectrum_reference')
+      /// the QPX mz view of the file's MS2 spectra of its PSMs, without its table (written already; see @c mz_rows), and
+      /// per element of the file's peptide identifications whether it has the row of its spectrum (for its
+      /// 'spectrum_reference')
       QPXDatasetExport::MzView mz;
+      /// the rows of the mz view; 0 if it could not be built (or the spectra could not be read)
+      Size mz_rows = 0;
+      /// the mz view was built, but could not be written (logged)
+      bool mz_write_failed = false;
       /// the predictions: one entry per row of the file's psm view (per element of its peptide identifications with hits)
       std::vector<PSMPrediction_> predictions;
     };
@@ -348,14 +378,17 @@ class ProSE :
 
       The spectra are read again from @p in_file, as the search reads them (ProSEAlgorithm::loadSpectra(): one pass,
       parsed in parallel), keeping only the MS2 spectra of the PSMs' native IDs; the mz view is QPXDatasetExport::mzView()
-      of them, with @p filter. After a failed re-read no PSM has its spectrum (a null spectrum_reference). The predictions
+      of them, with @p filter, built and written to @p mz_target while the predictions are made (on a thread of its
+      own): the caller removes its file if the psm file of the input cannot be written. After a failed re-read no PSM
+      has its spectrum (a null spectrum_reference). The predictions
       are PeptDeep's at the NCE of the file: the one PeptDeep rescoring stored on the run ('peptdeep_nce'), else
       'peptdeep:nce' if set, else the one PeptDeepRescoring::selectNCE() selects for @p peptide_ids (as
       PeptDeepRescoring::annotate() would); the NCE is then stored on the run.
     */
     SpectraOfFile_ collectPSMSpectra_(const std::string& in_file, const Param& search_params,
                                       std::vector<ProteinIdentification>& protein_ids,
-                                      const PeptideIdentificationList& peptide_ids, const QPXDatasetExport::PeakFilter& filter)
+                                      const PeptideIdentificationList& peptide_ids, const QPXDatasetExport::PeakFilter& filter,
+                                      const MzTarget_& mz_target)
     {
       SpectraOfFile_ result;
       std::vector<PSMPrediction_> out(peptide_ids.size()); // per element of peptide_ids
@@ -388,32 +421,39 @@ class ProSE :
         read = false;
       }
 
-      // -- the mz view: a row per spectrum, in the order of its first PSM --
-      QPXDatasetExport::MzView& mz = result.mz;
+      // -- the mz view: a row per spectrum, in the order of its first PSM; built and written on a thread of its own,
+      //    while the predictions are made below --
+      struct MzOfFile
+      {
+        QPXDatasetExport::MzView mz;
+        Size rows = 0;
+        bool table = false; // (built)
+        bool write_failed = false;
+      };
+      std::future<MzOfFile> mz_of_file;
       if (read)
       {
-        mz = QPXDatasetExport::mzView(spectra, peptide_ids, ArrowIOHelpers::qpxRunFileName(in_file), filter);
-      }
-      else
-      {
-        mz.has_spectrum.assign(peptide_ids.size(), false);
-      }
-      if (mz.without_spectrum > 0)
-      {
-        OPENMS_LOG_WARN << "-qpx_extended: " << mz.without_spectrum << " PSM(s) of " << in_file
-                        << " have no MS2 spectrum of their native ID (and RT) in the file; the mz view has none for them,"
-                        << " and their spectrum_reference is null." << endl;
-      }
-      if (mz.unresolved > 0)
-      {
-        OPENMS_LOG_WARN << "-qpx_extended: " << mz.unresolved << " PSM(s) of " << in_file << " are of a spectrum that shares its"
-                        << " native ID with another spectrum (at another RT), which has the mz row of that native ID: the mz"
-                        << " view has none for them, and their spectrum_reference is null (unresolved)." << endl;
-      }
-      if (read && !mz.table)
-      {
-        OPENMS_LOG_WARN << "-qpx_extended: the mz view of " << in_file << " could not be built (see the error above); no mz"
-                        << " view is written for it, and the spectrum_reference of its PSMs is null." << endl;
+#ifdef _OPENMP
+        const int threads = omp_get_max_threads(); // (a new thread starts with the default of the process)
+#endif
+        mz_of_file = std::async(std::launch::async, [&]()
+        {
+#ifdef _OPENMP
+          omp_set_num_threads(threads);
+#endif
+          MzOfFile built;
+          built.mz = QPXDatasetExport::mzView(spectra, peptide_ids, ArrowIOHelpers::qpxRunFileName(in_file), filter);
+          built.rows = ArrowIOHelpers::tableRowCount(built.mz.table);
+          built.table = built.mz.table != nullptr;
+          if (built.mz.table)
+          {
+            // (writeDataset() logs a failure)
+            built.write_failed = !QPXDatasetExport::writeDataset(mz_target.directory, mz_target.prefix,
+                                                                 {{"mz", {{built.mz.table}, mz_target.config, mz_target.keys}}});
+            built.mz.table.reset();
+          }
+          return built;
+        });
       }
 
       // -- predictions --
@@ -443,7 +483,39 @@ class ProSE :
         told = true;
       }
 #endif
-      OPENMS_LOG_INFO << "-qpx_extended: " << in_file << ": " << ArrowIOHelpers::tableRowCount(mz.table)
+      // -- the mz view, once built and written --
+      QPXDatasetExport::MzView& mz = result.mz;
+      bool table = false;
+      if (mz_of_file.valid())
+      {
+        MzOfFile built = mz_of_file.get();
+        table = built.table;
+        mz = std::move(built.mz);
+        result.mz_rows = built.rows;
+        result.mz_write_failed = built.write_failed;
+      }
+      else
+      {
+        mz.has_spectrum.assign(peptide_ids.size(), false);
+      }
+      if (mz.without_spectrum > 0)
+      {
+        OPENMS_LOG_WARN << "-qpx_extended: " << mz.without_spectrum << " PSM(s) of " << in_file
+                        << " have no MS2 spectrum of their native ID (and RT) in the file; the mz view has none for them,"
+                        << " and their spectrum_reference is null." << endl;
+      }
+      if (mz.unresolved > 0)
+      {
+        OPENMS_LOG_WARN << "-qpx_extended: " << mz.unresolved << " PSM(s) of " << in_file << " are of a spectrum that shares its"
+                        << " native ID with another spectrum (at another RT), which has the mz row of that native ID: the mz"
+                        << " view has none for them, and their spectrum_reference is null (unresolved)." << endl;
+      }
+      if (read && !table)
+      {
+        OPENMS_LOG_WARN << "-qpx_extended: the mz view of " << in_file << " could not be built (see the error above); no mz"
+                        << " view is written for it, and the spectrum_reference of its PSMs is null." << endl;
+      }
+      OPENMS_LOG_INFO << "-qpx_extended: " << in_file << ": " << result.mz_rows
                       << " spectra of its PSMs, " << mz.peaks_kept << " of " << mz.peaks_read << " peaks kept";
       if (filter.top > 0)
       {
@@ -699,7 +771,10 @@ class ProSE :
       }
       predictions.clear();
       predictions.shrink_to_fit();
-      return {std::move(ion_type), std::move(mz), std::move(intensity)};
+      // (moved into the result: returning an initializer list would copy every column)
+      std::vector<Column> columns;
+      for (Column* c : {&ion_type, &mz, &intensity}) { columns.push_back(std::move(*c)); }
+      return columns;
     }
 
     /// The footer keys of the mz.parquet files of -qpx_extended: the peak filter of their peaks
@@ -1300,6 +1375,17 @@ class ProSE :
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
       Size failed_count = 0;
+      std::vector<bool> input_failed_of(in_list.size(), false); // (counted in failed_count)
+      // -qpx_extended: the writes of the inputs' psm and pg files, each on a thread of its own while the run goes on
+      // (finished below, after quantms.*: the rows of an input are in quantms.psm.parquet unless its psm file fails)
+      struct InputWrite
+      {
+        Size input = 0;
+        std::string in_file, mz_file;          // (mz_file: its mz view, written already)
+        std::shared_ptr<arrow::Table> rows;    // its rows of quantms.psm.parquet
+        std::future<std::pair<bool, std::set<std::string>>> result; // written, and the views that failed
+      };
+      std::vector<InputWrite> input_writes;
       // Paths actually written, for an accurate output manifest in the report.
       std::vector<std::string> written_idxml;
       // -qpx_extended: the rows of each input in quantms.psm.parquet (its footer says), the footer keys of the per-input
@@ -1346,13 +1432,44 @@ class ProSE :
         // -- the peaks and predictions of -qpx_extended --
         // Collected before the other outputs: selecting the NCE stores it on the run, which they write. A failed re-read
         // or prediction leaves columns null (collectPSMSpectra_ logs it); running out of memory fails the input.
+        // The protein groups of the QPX output, built on a thread of their own while the input's other outputs are (from
+        // a copy of its runs, on which -qpx_extended stores the NCE of its predictions; its PSMs are only read)
+        std::future<std::shared_ptr<arrow::Table>> pg_build;
+        if (!out_qpx_dir.empty())
+        {
+          pg_build = std::async(std::launch::async, [&result, qpx_extended, runs = result.protein_ids]() mutable
+          {
+            if (qpx_extended && !runs.empty() && runs[0].getIndistinguishableProteins().empty())
+            {
+              // -qpx_extended: without protein inference, one group per protein (without a q-value)
+              for (const ProteinHit& protein : runs[0].getHits())
+              {
+                ProteinIdentification::ProteinGroup group;
+                group.probability = std::numeric_limits<double>::quiet_NaN();
+                group.accessions = {protein.getAccession()};
+                runs[0].getIndistinguishableProteins().push_back(group);
+              }
+            }
+            return ProteinGroupArrowExport::exportToArrow(runs, result.peptide_ids);
+          });
+        }
+
         SpectraOfFile_ spectra_of_file;
+        std::string mz_file;     // -qpx_extended: the mz view of the input,
+        bool mz_written = false; // written already (removed below if its psm file cannot be written)
         if (qpx_extended)
         {
           sw_qpx_extended.resume();
           try
           {
-            spectra_of_file = collectPSMSpectra_(in_file, search_params, result.protein_ids, result.peptide_ids, peak_filter);
+            MzTarget_ mz_target{qpx_runs_dir, basename, qpx_mz_config, peakMetadata_(peak_filter)};
+            const std::string scan_format = ArrowIOHelpers::qpxScanFormat(spectrumReferences_(result.peptide_ids));
+            if (!scan_format.empty()) { mz_target.keys["scan_format"] = scan_format; }
+            mz_file = mz_target.file();
+            spectra_of_file = collectPSMSpectra_(in_file, search_params, result.protein_ids, result.peptide_ids, peak_filter,
+                                                 mz_target);
+            mz_written = spectra_of_file.mz_rows > 0 && !spectra_of_file.mz_write_failed;
+            if (spectra_of_file.mz_write_failed) { input_failed = true; } // (logged)
           }
           catch (const std::exception& e)
           {
@@ -1385,6 +1502,7 @@ class ProSE :
         }
 
         // -- QPX directory output --
+        bool psm_file_written = false; // -qpx_extended: the input's psm file
         if (!out_qpx_dir.empty())
         {
           // Wrapped like the sibling modes above: the QPX exporters refuse input they cannot key
@@ -1394,24 +1512,27 @@ class ProSE :
           {
           // PSM — build table once, write to file, accumulate same table for merge.
           const std::string qpx_psm_file = qpx_runs_dir + "/" + basename + ".psm.parquet";
-          auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
-          std::vector<std::string> spec_refs;
-          spec_refs.reserve(result.peptide_ids.size());
-          for (const auto& pid : result.peptide_ids)
+          // -qpx_extended: the optional columns of the psm view, built on a thread of their own while the view is
+          std::future<std::vector<ArrowIOHelpers::ParquetColumn>> extra_columns;
+          if (qpx_extended)
           {
-            if (!pid.getSpectrumReference().empty()) { spec_refs.push_back(pid.getSpectrumReference()); }
+            extra_columns = std::async(std::launch::async, [&]()
+            {
+              return QPXDatasetExport::psmColumns(result.peptide_ids, spectra_of_file.mz.has_spectrum,
+                                                  isotopeObservedMinusTheoretical_(result.protein_ids));
+            });
           }
-          const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spec_refs);
-          // -qpx_extended: the views of the input's own QPX dataset after its psm file (runs/<basename>.mz/pg.parquet),
-          // written below
+          auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
+          const std::string psm_scan_format = ArrowIOHelpers::qpxScanFormat(spectrumReferences_(result.peptide_ids));
+          // -qpx_extended: the views of the input's own QPX dataset (runs/<basename>.psm/mz/pg.parquet), written below
           std::map<std::string, QPXDatasetExport::View> run_views;
+          std::shared_ptr<arrow::Table> psm_rows_table; // (its rows in quantms.psm.parquet, once its psm file is written)
           if (qpx_psm_table && qpx_extended)
           {
-            // The per-input file gets the prediction columns and is written now (it is not kept for the rest of the run),
-            // its mz view below, after its pg view is built; quantms.psm.parquet gets the rows without the predictions,
-            // and only of the inputs whose psm file was written.
-            auto rows_table = ArrowIOHelpers::withColumns(qpx_psm_table, QPXDatasetExport::psmColumns(
-              result.peptide_ids, spectra_of_file.mz.has_spectrum, isotopeObservedMinusTheoretical_(result.protein_ids)));
+            // The per-input file gets the prediction columns and is written below with its mz and pg views (it is not
+            // kept for the rest of the run); quantms.psm.parquet gets the rows without the predictions, and only of the
+            // inputs whose psm file was written.
+            auto rows_table = ArrowIOHelpers::withColumns(qpx_psm_table, extra_columns.get());
             auto file_table = rows_table ? ArrowIOHelpers::withColumns(rows_table, predictionColumns_(spectra_of_file.predictions)) : nullptr;
             std::map<std::string, std::string> keys = qpx_prediction_keys;
             if (!psm_scan_format.empty()) { keys["scan_format"] = psm_scan_format; }
@@ -1420,23 +1541,11 @@ class ProSE :
               OPENMS_LOG_ERROR << "Failed to add the -qpx_extended columns for " << in_file << endl;
               input_failed = true;
             }
-            else if (!QPXDatasetExport::writeDataset(qpx_runs_dir, basename, {{"psm", {{file_table}, qpx_spectra_config, keys}}}))
-            {
-              input_failed = true; // (writeDataset() logs the view that failed, with its file)
-            }
             else
             {
-              qpx_psm_tables.push_back(rows_table);
-              qpx_psm_scan_formats.push_back(psm_scan_format);
-              qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(rows_table);
-              // the mz view of the spectra of its PSMs (none if they could not be read again)
-              if (spectra_of_file.mz.table)
-              {
-                std::map<std::string, std::string> mz_keys = peakMetadata_(peak_filter);
-                if (!psm_scan_format.empty()) { mz_keys["scan_format"] = psm_scan_format; }
-                run_views["mz"] = {{spectra_of_file.mz.table}, qpx_mz_config, mz_keys};
-                spectra_of_file.mz.table.reset();
-              }
+              // written below with its pg view, at the same time (its mz view is written already)
+              run_views["psm"] = {{file_table}, qpx_spectra_config, keys};
+              psm_rows_table = rows_table;
             }
           }
           else if (qpx_psm_table)
@@ -1454,26 +1563,9 @@ class ProSE :
             OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " — skipping " << qpx_psm_file << endl;
           }
 
-          // Protein groups — independent of PSM result.
+          // Protein groups — independent of PSM result (built above).
           const std::string qpx_pg_file = qpx_runs_dir + "/" + basename + ".pg.parquet";
-          std::shared_ptr<arrow::Table> qpx_pg_table;
-          if (qpx_extended && !result.protein_ids.empty() && result.protein_ids[0].getIndistinguishableProteins().empty())
-          {
-            // -qpx_extended: without protein inference, one group per protein (without a q-value)
-            std::vector<ProteinIdentification> runs = result.protein_ids;
-            for (const ProteinHit& protein : runs[0].getHits())
-            {
-              ProteinIdentification::ProteinGroup group;
-              group.probability = std::numeric_limits<double>::quiet_NaN();
-              group.accessions = {protein.getAccession()};
-              runs[0].getIndistinguishableProteins().push_back(group);
-            }
-            qpx_pg_table = ProteinGroupArrowExport::exportToArrow(runs, result.peptide_ids);
-          }
-          else
-          {
-            qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
-          }
+          std::shared_ptr<arrow::Table> qpx_pg_table = pg_build.get();
           // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to
           // libOpenMS' implementation, and on Windows its symbols are dllimport, so calling the
           // member here links on Linux but not on MSVC.
@@ -1509,10 +1601,31 @@ class ProSE :
           }
 
           // (writeDataset() logs the view that failed)
-          if (!run_views.empty() && !QPXDatasetExport::writeDataset(qpx_runs_dir, basename, run_views))
+          if (!run_views.empty())
           {
-            OPENMS_LOG_ERROR << "Failed to write the QPX files of " << in_file << " -> " << qpx_runs_dir << endl;
-            input_failed = true;
+            // (writeDataset() logs the view that failed)
+            auto views = std::make_shared<std::map<std::string, QPXDatasetExport::View>>(std::move(run_views));
+            InputWrite input_write;
+            input_write.input = i;
+            input_write.in_file = in_file;
+            input_write.mz_file = mz_written ? mz_file : std::string();
+            input_write.rows = psm_rows_table;
+            input_write.result = std::async(std::launch::async, [views, directory = qpx_runs_dir, basename]() mutable
+            {
+              std::pair<bool, std::set<std::string>> written;
+              written.first = QPXDatasetExport::writeDataset(directory, basename, *views, &written.second);
+              views.reset(); // (the tables, once written)
+              return written;
+            });
+            input_writes.push_back(std::move(input_write));
+          }
+          if (psm_rows_table)
+          {
+            // (unless its psm file fails, see input_writes)
+            qpx_psm_tables.push_back(psm_rows_table);
+            qpx_psm_scan_formats.push_back(psm_scan_format);
+            qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(psm_rows_table);
+            psm_file_written = true;
           }
           }
           catch (const Exception::BaseException& e)
@@ -1531,6 +1644,13 @@ class ProSE :
                              << " -> " << out_qpx_dir << " (Arrow/Parquet): " << e.what() << endl;
             input_failed = true;
           }
+        }
+        if (mz_written && !psm_file_written)
+        {
+          // (its rows are keyed by the spectra of the PSMs)
+          OPENMS_LOG_ERROR << "Not keeping the QPX mz view, as the psm view of " << in_file << " was not written -> "
+                           << mz_file << endl;
+          File::remove(mz_file);
         }
 
         // -- OpenMS internal directory output --
@@ -1608,6 +1728,7 @@ class ProSE :
         }
 
         if (input_failed) { ++failed_count; }
+        input_failed_of[i] = input_failed;
       }
 
       // -- Write merged Parquet files --
@@ -1729,7 +1850,7 @@ class ProSE :
       }
 
       // -- -qpx_extended: the QPX dataset of the whole run, quantms.psm/pg/run/sample/provenance.parquet --
-      if (qpx_extended)
+      auto write_aggregate = [&]() -> bool
       {
         mfres.shared.seconds_total = sw_total.getClockTime(); // (for the provenance view; the report's below)
         std::string mod_delta_masses, mod_ptms;
@@ -1767,7 +1888,66 @@ class ProSE :
           {"provenance", {{QPXDatasetExport::provenanceView(provenanceSteps_(mfres, search_params, rescore, protein_fdr_applied,
                                                                               pooled_pg, mod_delta_masses, mod_ptms))},
                           ParquetWriteConfig{}, {}}}};
-        merged_ok = QPXDatasetExport::writeDataset(out_qpx_dir, QPX_AGGREGATE_STEM, views) && merged_ok;
+        return QPXDatasetExport::writeDataset(out_qpx_dir, QPX_AGGREGATE_STEM, views);
+      };
+      // The writes of the inputs' files, once done: an input whose psm file failed fails, its mz view is not kept and its
+      // rows are taken out of quantms.psm.parquet (which is then written again)
+      auto finish_input_writes = [&]() -> bool
+      {
+        bool rows_removed = false;
+        for (InputWrite& input_write : input_writes)
+        {
+          std::pair<bool, std::set<std::string>> written;
+          try
+          {
+            written = input_write.result.get();
+          }
+          catch (const std::exception& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << input_write.in_file << " -> " << out_qpx_dir
+                             << " (Arrow/Parquet): " << e.what() << endl;
+            written = {false, {"psm"}};
+          }
+          if (!written.first)
+          {
+            OPENMS_LOG_ERROR << "Failed to write the QPX files of " << input_write.in_file << " -> " << qpx_runs_dir << endl;
+            if (!input_failed_of[input_write.input]) { input_failed_of[input_write.input] = true; ++failed_count; }
+          }
+          if (written.second.count("psm") == 0 || !input_write.rows) { continue; }
+          const auto rows = std::find(qpx_psm_tables.begin(), qpx_psm_tables.end(), input_write.rows);
+          if (rows != qpx_psm_tables.end())
+          {
+            qpx_psm_scan_formats.erase(qpx_psm_scan_formats.begin() + (rows - qpx_psm_tables.begin()));
+            qpx_psm_tables.erase(rows);
+          }
+          qpx_psm_rows[input_write.input] = 0;
+          if (!input_write.mz_file.empty())
+          {
+            // (its rows are keyed by the spectra of the PSMs)
+            OPENMS_LOG_ERROR << "Not keeping the QPX mz view, as the psm view of " << input_write.in_file
+                             << " could not be written -> " << input_write.mz_file << endl;
+            File::remove(input_write.mz_file);
+          }
+          rows_removed = true;
+        }
+        input_writes.clear();
+        return rows_removed;
+      };
+      if (qpx_extended)
+      {
+        // (written while the inputs' files are still written)
+        const bool aggregate_written = write_aggregate();
+        if (finish_input_writes())
+        {
+          qpx_psm_keys.clear();
+          std::set<std::string> distinct_formats(qpx_psm_scan_formats.begin(), qpx_psm_scan_formats.end());
+          if (distinct_formats.size() == 1 && !distinct_formats.begin()->empty()) { qpx_psm_keys["scan_format"] = *distinct_formats.begin(); }
+          merged_ok = write_aggregate() && merged_ok;
+        }
+        else
+        {
+          merged_ok = aggregate_written && merged_ok;
+        }
       }
 
       // =====================================================================
