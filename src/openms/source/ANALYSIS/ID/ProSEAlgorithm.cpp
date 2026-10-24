@@ -1592,7 +1592,7 @@ namespace OpenMS
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
          mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_chance_match_surprise{},
-         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{};
+         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{}, mv_rank{};
     {
       const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
                                                 [](const std::vector<AnnotatedHit_>& hits) { return !hits.empty(); });
@@ -1627,6 +1627,13 @@ namespace OpenMS
         }
         mv_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
         if (open_search_mode) mv_delta_mass = registry.registerName("DeltaMass");
+        // The rank of the hits below the top one (PeptideHit::setRank() by name: one lookup under the registry's
+        // lock per hit), registered where the loop below registered it (by its first second-best hit), after the names
+        // above: no other name of a hit is registered in between.
+        if (std::any_of(annotated_hits.begin(), annotated_hits.end(), [](const std::vector<AnnotatedHit_>& hits) { return hits.size() > 1; }))
+        {
+          mv_rank = registry.registerName(Constants::UserParam::RANK);
+        }
       }
     }
 
@@ -1973,7 +1980,8 @@ namespace OpenMS
           std::vector<PeptideHit>& hits = pi.getHits();
           for (Size r = 0; r < hits.size(); ++r)
           {
-            hits[r].setRank(static_cast<UInt>(r));
+            // as setRank(r): the rank of the top hit (0) is the default, which a new hit does not carry
+            if (r != 0) hits[r].setMetaValue(mv_rank, static_cast<UInt>(r));
           }
         }
 
