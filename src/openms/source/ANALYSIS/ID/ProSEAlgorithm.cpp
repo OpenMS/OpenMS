@@ -4592,6 +4592,11 @@ namespace OpenMS
     constexpr Size REUSE_CALIBRATION_DECOYS = 200000;
   }
 
+  bool ProSEAlgorithm::reuseTrainingDraw(UInt64 seed, Size file, Size spectrum, double fraction)
+  {
+    return reuseUniform(seed, file, spectrum) < REUSE_CALIBRATION_FROM * fraction;
+  }
+
   struct ProSEAlgorithm::ReuseModel_
   {
     std::string mode;                    ///< rescore_reuse:mode of the training
@@ -4741,7 +4746,7 @@ namespace OpenMS
         const double u = reuseUniform(seed, file, s);
         const bool drawn = u >= REUSE_CALIBRATION_FROM
                            ? (u - REUSE_CALIBRATION_FROM) / (1.0 - REUSE_CALIBRATION_FROM) < calibration_fraction[h]
-                           : u < REUSE_CALIBRATION_FROM * fraction[k][h];
+                           : reuseTrainingDraw(seed, file, s, fraction[k][h]);
         if (drawn && !ids[s].getHits().empty()) { spectra.push_back(s); }
       }
       PeptideIdentificationList drawn_ids;

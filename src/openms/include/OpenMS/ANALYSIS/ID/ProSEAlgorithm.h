@@ -170,6 +170,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+     * @brief rescore_reuse: whether spectrum @p spectrum (its index in the run) of file @p file is drawn for the
+     *        training of the models at the sampling fraction @p fraction (rescore_reuse:max_train)
+     *
+     * A seeded hash-uniform draw per spectrum (all PSMs of a spectrum together), independent of its position: a capped
+     * training sample is spread at random over the whole run, not its first spectra. The 5 % of the spectra whose draw
+     * is highest are calibration spectra and never drawn for training.
+     */
+    static bool reuseTrainingDraw(UInt64 seed, Size file, Size spectrum, double fraction);
+
+    /**
      * @brief Comprehensive search result including modification analysis
      *
      * This structure contains all outputs from an open search including:

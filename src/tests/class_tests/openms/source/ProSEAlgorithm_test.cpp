@@ -6936,4 +6936,47 @@ START_SECTION(([EXTRA] an exception after the calibration pass leaves the tolera
 }
 END_SECTION
 
+START_SECTION(([EXTRA] rescore_reuse:max_train draws its training spectra at random from the whole run))
+{
+  // (user rule: a capped training samples from the entire input, seeded, by spectrum; not the first N)
+  const Size n = 100000;
+  for (const UInt64 seed : {UInt64(1), UInt64(42)})
+  {
+    for (const double fraction : {0.02, 0.1, 0.5})
+    {
+      std::vector<Size> per_decile(10, 0);
+      Size drawn = 0, last = 0;
+      for (Size s = 0; s < n; ++s)
+      {
+        if (!ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, fraction)) continue;
+        ++drawn;
+        ++per_decile[s * 10 / n];
+        last = s;
+      }
+      const double expected = 0.95 * fraction * static_cast<double>(n);
+      TEST_TRUE(std::fabs(static_cast<double>(drawn) - expected) < 0.05 * expected)
+      // not a prefix: every tenth of the run contributes about its share, the sample reaches the end of the run
+      for (const Size d : per_decile) TEST_TRUE(std::fabs(static_cast<double>(d) - expected / 10.0) < 0.2 * expected / 10.0)
+      TEST_TRUE(last >= n - n / 100)
+      // seeded: the same draw again, another seed or file draws other spectra
+      Size same = 0, other_seed = 0, other_file = 0;
+      for (Size s = 0; s < 2000; ++s)
+      {
+        const bool a = ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, fraction);
+        same += a == ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, fraction) ? 1 : 0;
+        other_seed += a != ProSEAlgorithm::reuseTrainingDraw(seed + 1, 0, s, fraction) ? 1 : 0;
+        other_file += a != ProSEAlgorithm::reuseTrainingDraw(seed, 1, s, fraction) ? 1 : 0;
+      }
+      TEST_EQUAL(same, 2000)
+      TEST_TRUE(other_seed > 0)
+      TEST_TRUE(other_file > 0)
+    }
+    // calibration spectra (the top 5 % of the draws) are never drawn for training, also at fraction 1
+    Size drawn_all = 0;
+    for (Size s = 0; s < n; ++s) drawn_all += ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, 1.0) ? 1 : 0;
+    TEST_TRUE(std::fabs(static_cast<double>(drawn_all) - 0.95 * n) < 0.01 * n)
+  }
+}
+END_SECTION
+
 END_TEST
