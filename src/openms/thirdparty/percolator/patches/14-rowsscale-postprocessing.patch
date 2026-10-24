@@ -140,7 +140,7 @@ index db79899acb..8b974ad40c 100644
  
  }}}  // namespace OpenMS::Internal::Percolator
 diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
-index 229d78702d..9fc41af430 100644
+index 229d78702d..ea64d25f50 100644
 --- a/src/openms/thirdparty/percolator/Normalizer.cpp
 +++ b/src/openms/thirdparty/percolator/Normalizer.cpp
 @@ -26,6 +26,10 @@
@@ -154,15 +154,20 @@ index 229d78702d..9fc41af430 100644
  namespace OpenMS { namespace Internal { namespace Percolator {
  
  using namespace std;
-@@ -55,6 +59,41 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
+@@ -55,6 +59,46 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
    }
  }
  
-+// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
-+// order in which they read the rows, which is faster on one thread)
++// OpenMS: whether an OpenMP parallel region here runs on more than one thread (else the loops below
++// keep the order in which they read the rows, which is faster on one thread)
 +static bool parallelByFeature() {
 +#ifdef _OPENMP
-+  return omp_get_max_threads() > 1 && !omp_in_parallel();
++  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
++  int threads = 1;
++#pragma omp parallel
++#pragma omp single
++  threads = omp_get_num_threads();
++  return threads > 1;
 +#else
 +  return false;
 +#endif
@@ -516,7 +521,7 @@ index 88d8d65789..ca102b1db1 100644
  
  LabelType const SetHandler::getLabel(int setPos) {
 diff --git a/src/openms/thirdparty/percolator/StdvNormalizer.cpp b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
-index 2128232575..8266b92a73 100644
+index 2128232575..b5b600f739 100644
 --- a/src/openms/thirdparty/percolator/StdvNormalizer.cpp
 +++ b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
 @@ -14,6 +14,7 @@
@@ -538,15 +543,20 @@ index 2128232575..8266b92a73 100644
  namespace OpenMS { namespace Internal { namespace Percolator {
  
  using namespace std;
-@@ -55,6 +60,53 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
+@@ -55,6 +60,58 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
    out[i] = in[i] + sum;
  }
  
-+// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
-+// order in which they read the rows, which is faster on one thread)
++// OpenMS: whether an OpenMP parallel region here runs on more than one thread (else the loops below
++// keep the order in which they read the rows, which is faster on one thread)
 +static bool parallelByFeature() {
 +#ifdef _OPENMP
-+  return omp_get_max_threads() > 1 && !omp_in_parallel();
++  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
++  int threads = 1;
++#pragma omp parallel
++#pragma omp single
++  threads = omp_get_num_threads();
++  return threads > 1;
 +#else
 +  return false;
 +#endif
@@ -592,7 +602,7 @@ index 2128232575..8266b92a73 100644
  void StdvNormalizer::setSet(std::vector<double*>& featuresV,
                              std::vector<double*>& rtFeaturesV, size_t nf,
                              size_t nrf) {
-@@ -62,6 +114,18 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
+@@ -62,6 +119,18 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
    numRetentionFeatures = nrf;
    sub.resize(nf + nrf, 0.0);
    div.resize(nf + nrf, 0.0);

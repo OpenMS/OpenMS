@@ -6414,15 +6414,16 @@ namespace OpenMS
   {
     stats.target_psms = 0;
     stats.decoy_psms = 0;
-    // The spectra in parallel (their top scores collected in spectrum order below), reading the target/decoy value by
-    // name index (looking the name up takes a lock on the registry, which the threads would contend for; by name if it
-    // is not registered). The first error in spectrum order is rethrown.
+    // The top hits of the spectra are read in parallel (the target/decoy value by name index: looking the name up takes
+    // a lock on the registry, which the threads would contend for; by name if it is not registered), then their scores
+    // collected and counted in spectrum order, as before (also where an error stops it).
+    enum TopHit : char { NO_HIT, OTHER, TARGET, DECOY };
     const UInt td_index = MetaInfoInterface::metaRegistry().getIndex(Constants::UserParam::TARGET_DECOY);
     const SignedSize num_ids = static_cast<SignedSize>(peptide_ids.size());
+    std::vector<TopHit> top_hits(peptide_ids.size(), NO_HIT);
     std::vector<double> top_scores(peptide_ids.size());
     std::vector<std::exception_ptr> errors(peptide_ids.size());
-    Size target_psms = 0, decoy_psms = 0;
-#pragma omp parallel for schedule(static, 1024) reduction(+ : target_psms, decoy_psms)
+#pragma omp parallel for schedule(static, 1024)
     for (SignedSize i = 0; i < num_ids; ++i)
     {
       try
@@ -6430,30 +6431,29 @@ namespace OpenMS
         const PeptideIdentification& pid = peptide_ids[i];
         if (pid.getHits().empty()) { continue; }
         const PeptideHit& top = pid.getHits().front();
+        top_hits[i] = OTHER;
         top_scores[i] = top.getScore();
 
         const bool by_name = td_index == UInt(-1);
         if (by_name ? !top.metaValueExists(Constants::UserParam::TARGET_DECOY) : !top.metaValueExists(td_index)) { continue; }
         const std::string td = (by_name ? top.getMetaValue(Constants::UserParam::TARGET_DECOY) : top.getMetaValue(td_index)).toString();
         // "target+decoy" counts as target (OpenMS FDR semantics).
-        if (td == "decoy") { ++decoy_psms; }
-        else if (!td.empty()) { ++target_psms; }
+        if (td == "decoy") { top_hits[i] = DECOY; }
+        else if (!td.empty()) { top_hits[i] = TARGET; }
       }
       catch (...)
       {
         errors[i] = std::current_exception();
       }
     }
-    for (const std::exception_ptr& error : errors)
-    {
-      if (error) { std::rethrow_exception(error); }
-    }
-    stats.target_psms = target_psms;
-    stats.decoy_psms = decoy_psms;
     std::vector<double> hyperscores;
     for (SignedSize i = 0; i < num_ids; ++i)
     {
-      if (!peptide_ids[i].getHits().empty()) { hyperscores.push_back(top_scores[i]); }
+      if (top_hits[i] == NO_HIT) { continue; }
+      hyperscores.push_back(top_scores[i]);
+      if (errors[i]) { std::rethrow_exception(errors[i]); }
+      if (top_hits[i] == DECOY) { ++stats.decoy_psms; }
+      else if (top_hits[i] == TARGET) { ++stats.target_psms; }
     }
 
     if (!hyperscores.empty())

@@ -48,6 +48,25 @@ namespace OpenMS
         /// positions in @p names
         std::vector<UInt> name_indices;
 
+        PinFeatureMetaValueMap() = default;
+        PinFeatureMetaValueMap(const PinFeatureMetaValueMap&) = default;
+        PinFeatureMetaValueMap(PinFeatureMetaValueMap&&) noexcept = default;
+        /// copies into a temporary first: the record stays valid if an allocation fails
+        PinFeatureMetaValueMap& operator=(const PinFeatureMetaValueMap& other)
+        {
+          PinFeatureMetaValueMap copy(other);
+          swap(copy);
+          return *this;
+        }
+        PinFeatureMetaValueMap& operator=(PinFeatureMetaValueMap&&) noexcept = default;
+        void swap(PinFeatureMetaValueMap& other) noexcept
+        {
+          names.swap(other.names);
+          hits.swap(other.hits);
+          offsets.swap(other.offsets);
+          name_indices.swap(other.name_indices);
+        }
+
         /// number of hits that got meta values
         size_t size() const { return hits.size(); }
         bool empty() const { return hits.empty(); }

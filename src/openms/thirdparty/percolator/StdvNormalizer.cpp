@@ -60,11 +60,16 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
   out[i] = in[i] + sum;
 }
 
-// OpenMS: whether an OpenMP loop here runs on more than one thread (else the loops below keep the
-// order in which they read the rows, which is faster on one thread)
+// OpenMS: whether an OpenMP parallel region here runs on more than one thread (else the loops below
+// keep the order in which they read the rows, which is faster on one thread)
 static bool parallelByFeature() {
 #ifdef _OPENMP
-  return omp_get_max_threads() > 1 && !omp_in_parallel();
+  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
+  int threads = 1;
+#pragma omp parallel
+#pragma omp single
+  threads = omp_get_num_threads();
+  return threads > 1;
 #else
   return false;
 #endif

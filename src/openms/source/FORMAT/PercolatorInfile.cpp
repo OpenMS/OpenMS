@@ -721,10 +721,7 @@ namespace OpenMS
       }
       std::copy(a.names.begin(), a.names.end(), record.name_indices.begin() + name_offsets[pid_index]);
     }
-    added_meta_values.names.swap(record.names);
-    added_meta_values.hits.swap(record.hits);
-    added_meta_values.offsets.swap(record.offsets);
-    added_meta_values.name_indices.swap(record.name_indices);
+    added_meta_values.swap(record);
     // the lists of these spectra (an error restores only the spectra after them) released in parallel
 #pragma omp parallel for schedule(dynamic, 1024)
     for (SignedSize pid_index = 0; pid_index < static_cast<SignedSize>(num_spectra); ++pid_index)
