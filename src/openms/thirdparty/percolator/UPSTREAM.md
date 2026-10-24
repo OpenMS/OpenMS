@@ -283,6 +283,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   walked; otherwise (also for a threshold above 1) all are sorted as before.
   The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
   directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
+- `patches/14-rowsscale-postprocessing.patch` — speeds up the steps before and after the training
+  of the cross-validation on large sets, without changing their results.
+  `CrossValidation::postIterationProcessing`: when the sanity check rejects the learned weights,
+  the test sets are scored with the default weights as tasks of a parallel region (as
+  `SanityCheck::validateDirection` does), so their scoring, sorts and q-values run as the region's
+  tasks (`Scores::calcScores`, `SortLikeStd.h`, `PosteriorEstimator::getQValuesInTasks`): the same
+  scores, order and q-values as the loop over the sets.
 
 ### Regenerating the patch
 

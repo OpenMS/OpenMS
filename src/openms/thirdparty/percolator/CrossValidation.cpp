@@ -886,9 +886,21 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
   }
 
   if (!pCheck->validateDirection(weights_)) {
-    for (std::size_t set = 0; set < numFolds_; ++set) {
-      testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
+    // OpenMS: the test sets as tasks of a parallel region, whose threads also run the tasks of
+    // their scoring, sorts and q-values (see Scores::calcScores and SortLikeStd.h): each test
+    // set gets the same scores, order and q-values as in a loop over the sets.
+    std::vector<std::exception_ptr> resetErrors(numFolds_);
+#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp single
+#pragma omp taskloop grainsize(1) shared(resetErrors)
+    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+      try {
+        testScores_[static_cast<std::size_t>(set)].calcScoresAndQvals(weights_[0], selectionFdr_);
+      } catch (...) {
+        resetErrors[static_cast<std::size_t>(set)] = std::current_exception();
+      }
     }
+    rethrowFirstError(resetErrors);
   }
   // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
   std::exception_ptr mergeError;
