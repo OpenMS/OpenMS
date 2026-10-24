@@ -71,6 +71,27 @@ void FeatureMemoryPool::deallocate(double* p) {
   freeRows_.push_back(p);
 }
 
+/**
+ * OpenMS: creates the blocks of the first numRows rows (if the pool has fewer), zero-filled as
+ * createNewBlock does, by the threads of an OpenMP parallel loop: allocate() then hands out the
+ * same rows in the same order without creating blocks (filling a block of a large set on one
+ * thread took most of the time of allocating its rows).
+ */
+void FeatureMemoryPool::reserveRows(std::size_t numRows) {
+  if (numRowsPerBlock_ == 0) return;
+  const std::size_t numBlocks = (numRows + numRowsPerBlock_ - 1) / numRowsPerBlock_;
+  if (numBlocks <= memStarts_.size()) return;
+  const std::size_t blockSize = static_cast<std::size_t>(numFeatures_) * numRowsPerBlock_;
+  std::vector<std::unique_ptr<double[]> > blocks(numBlocks - memStarts_.size());
+  for (std::unique_ptr<double[]>& block : blocks) block.reset(new double[blockSize]);
+  memStarts_.reserve(numBlocks);
+#pragma omp parallel for schedule(static)
+  for (std::ptrdiff_t b = 0; b < static_cast<std::ptrdiff_t>(blocks.size()); ++b) {
+    std::fill_n(blocks[static_cast<std::size_t>(b)].get(), blockSize, 0.0);
+  }
+  for (std::unique_ptr<double[]>& block : blocks) memStarts_.push_back(block.release());
+}
+
 // OpenMS: the smallest block of rows a task of moveRowsInOrder copies
 [[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
 

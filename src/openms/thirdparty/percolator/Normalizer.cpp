@@ -55,6 +55,31 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
   }
 }
 
+/**
+ * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
+ * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
+ * retention features by feature, in an OpenMP parallel loop over the features: each value is
+ * normalized as by normalize() (if a row occurs more than once, as often, in the same order),
+ * so the rows get the same values.
+ */
+void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
+                                        vector<double*>& rtFeaturesV) {
+  if (!rtFeaturesV.empty() || numRetentionFeatures != 0 || featuresV.size() < 4096 ||
+      numFeatures < 2) {
+    normalizeSet(featuresV, rtFeaturesV);
+    return;
+  }
+  const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
+#pragma omp parallel for schedule(static)
+  for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+    const double s = sub[static_cast<std::size_t>(ix)];
+    const double d = div[static_cast<std::size_t>(ix)];
+    for (double* features : featuresV) {
+      features[ix] = (features[ix] - s) / d;
+    }
+  }
+}
+
 void Normalizer::normalize(const double* in, double* out, size_t offset,
                            size_t numFeatures) {
   for (unsigned int ix = 0; ix < numFeatures; ++ix) {

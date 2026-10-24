@@ -55,6 +55,42 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
   out[i] = in[i] + sum;
 }
 
+// OpenMS: the sums of setSet over the PSMs (features), by feature, in an OpenMP parallel loop over
+// the features: each feature's sums are added up by one thread, over the PSMs in order, as in
+// setSet (the same results). Returns false (and changes nothing) if a feature value is not
+// finite: then setSet reports it as before.
+static bool sumsByFeature(const std::vector<double*>& featuresV, std::size_t numFeatures,
+                          std::vector<double>& sub, std::vector<double>& div) {
+  const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
+  bool finite = true;
+#pragma omp parallel for schedule(static) reduction(&& : finite)
+  for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+    for (const double* features : featuresV) {
+      finite = finite && std::isfinite(features[ix]);
+    }
+  }
+  if (!finite) return false;
+  const double n = static_cast<double>(featuresV.size());
+#pragma omp parallel for schedule(static)
+  for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+    double s = sub[static_cast<std::size_t>(ix)];
+    for (const double* features : featuresV) {
+      s += features[ix];
+    }
+    if (n > 0.0) {
+      s /= n;
+    }
+    double d2 = div[static_cast<std::size_t>(ix)];
+    for (const double* features : featuresV) {
+      const double d = features[ix] - s;
+      d2 += d * d;
+    }
+    sub[static_cast<std::size_t>(ix)] = s;
+    div[static_cast<std::size_t>(ix)] = d2;
+  }
+  return true;
+}
+
 void StdvNormalizer::setSet(std::vector<double*>& featuresV,
                             std::vector<double*>& rtFeaturesV, size_t nf,
                             size_t nrf) {
@@ -62,6 +98,18 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   numRetentionFeatures = nrf;
   sub.resize(nf + nrf, 0.0);
   div.resize(nf + nrf, 0.0);
+  // OpenMS: large sets without retention features by feature (see sumsByFeature), then as below
+  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 &&
+      sumsByFeature(featuresV, nf, sub, div)) {
+    for (size_t ix = 0; ix < nf; ++ix) {
+      if (div[ix] <= 0 || featuresV.empty()) {
+        div[ix] = 1.0;
+      } else {
+        div[ix] = sqrt(div[ix] / static_cast<double>(featuresV.size()));
+      }
+    }
+    return;
+  }
   double n = 0.0;
   double* features;
   size_t ix;
