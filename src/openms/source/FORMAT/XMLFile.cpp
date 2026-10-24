@@ -509,8 +509,12 @@ private:
       xmlCtxtSetMaxAmplification(parser.get(), 5);
       xmlCtxtUseOptions(parser.get(), XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT | XML_PARSE_HUGE);
 
-      unsigned char buffer[65536];
-      Size count = read(buffer, sizeof(buffer));
+      // On the heap: parsers run in deep call stacks and on OpenMP worker threads
+      // (1 MB stacks on Windows), where 64 KiB of stack is a real share.
+      constexpr Size chunk_size = 65536;
+      const std::unique_ptr<unsigned char[]> chunk_buffer(new unsigned char[chunk_size]);
+      unsigned char* const buffer = chunk_buffer.get();
+      Size count = read(buffer, chunk_size);
       // OpenMS writes ISO-8859-1 declarations. libxml2 would decode those byte by byte;
       // instead, pass ASCII chunks through unchanged and convert the others here.
       const bool latin1 = isLatin1(encoding.empty() ? declaredEncoding(buffer, count) : encoding);
@@ -537,7 +541,7 @@ private:
         const unsigned char* chunk = latin1 ? latin1ToUTF8(buffer, size, converted) : buffer;
         status = xmlParseChunk(parser.get(), reinterpret_cast<const char*>(chunk), static_cast<int>(size), count == 0);
         if (status || count == 0) { break; }
-        count = read(buffer, sizeof(buffer));
+        count = read(buffer, chunk_size);
       }
       if (state.exception)
       {
