@@ -5142,6 +5142,7 @@ namespace OpenMS
         if (!rr->learner_settings.empty()) run_sp.setMetaValue("RESET:learner_settings", rr->learner_settings);
         run_sp.setMetaValue("RESET:fdr_level", "peptide (stem): RESET:peptide_q_value; PSM q-values heuristic");
         run_sp.setMetaValue("RESET:target_stems_1pct", static_cast<int>(rr->discoveries_1pct));
+      }
       if (reuse != nullptr)
       {
         run_sp.setMetaValue("Percolator:rescore_reuse_mode", reuse->mode);
