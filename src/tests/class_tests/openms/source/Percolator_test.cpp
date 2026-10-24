@@ -1858,6 +1858,79 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
 }
 END_SECTION
 
+START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge, const std::string& score_type, bool best_hit_only)))
+{
+  // best_hit_only: the best hit of each identification (after PeptideIdentification::sort()) is the same hit with the
+  // same score and meta values as without; the others carry no Percolator meta values. Three hits per spectrum, one of
+  // them without peptide evidence in some spectra (not rescored), an identification without hits first.
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  auto makeIds = [&]()
+  {
+    PeptideIdentificationList ids;
+    PeptideIdentification no_hits;
+    no_hits.setScoreType("hyperscore");
+    ids.push_back(no_hits);
+    for (int i = 0; i < 400; ++i)
+    {
+      PeptideIdentification pid;
+      pid.setScoreType("hyperscore");
+      pid.setHigherScoreBetter(true);
+      pid.setRT(10.0 * i);
+      pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+      std::vector<PeptideHit> hits;
+      for (int h = 0; h < 3; ++h)
+      {
+        const bool decoy = (i + h) % 2 == 1;
+        std::string seq;
+        for (int k = 0; k < 8 + (i + h) % 5; ++k) seq += aas[(i * 7 + h * 3 + k * 13) % aas.size()];
+        seq += 'K';
+        PeptideHit hit;
+        hit.setSequence(AASequence::fromString(seq));
+        hit.setCharge(2);
+        hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod((3 * i + h) * 0.6180339887498949, 1.0) - 1.0 - 0.5 * h);
+        hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+        if (!(h == 2 && i % 7 == 0)) hit.setPeptideEvidences({PeptideEvidence(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A')});
+        hits.push_back(hit);
+      }
+      pid.setMZ(hits[0].getSequence().getMZ(2));
+      pid.setHits(hits);
+      ids.push_back(pid);
+    }
+    return ids;
+  };
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+  for (const std::string score_type : {"q-value", "pep", "svm"})
+  {
+    PeptideIdentificationList all = makeIds(), best = makeIds();
+    Percolator perc;
+    const Size n_all = perc.rescorePSMs(all, feature_set, "trypsin", 2, 2, score_type);
+    const Size n_best = perc.rescorePSMs(best, feature_set, "trypsin", 2, 2, score_type, true);
+    TEST_EQUAL(n_all, n_best)
+    bool same = all.size() == best.size();
+    Size without_meta = 0;
+    for (Size i = 0; same && i < all.size(); ++i)
+    {
+      same = all[i].getScoreType() == best[i].getScoreType() && all[i].isHigherScoreBetter() == best[i].isHigherScoreBetter();
+      if (all[i].getHits().empty()) continue;
+      all[i].sort();
+      best[i].sort();
+      same = same && all[i].getHits()[0] == best[i].getHits()[0];
+      for (Size j = 1; j < best[i].getHits().size(); ++j)
+      {
+        const PeptideHit& other = best[i].getHits()[j];
+        if (!other.metaValueExists("MS:1001491") && !other.metaValueExists("percolator_score")) ++without_meta;
+        same = same && other.getScore() == all[i].getHits()[j].getScore();
+      }
+    }
+    TEST_EQUAL(same, true)
+    TEST_EQUAL(without_meta, 800)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] rescorePSMs: meta values as when the PIN features were stamped and removed again))
 {
   // 300 target and 300 decoy PSMs with the old score type "score", a PIN column name: the original score that the

@@ -167,6 +167,10 @@ namespace OpenMS
       @param[in] min_charge       Lowest charge of the charge{N} one-hot features
       @param[in] max_charge       Highest charge of the charge{N} one-hot features
       @param[in] score_type       New main score: "q-value", "pep" or "svm"
+      @param[in] best_hit_only    For callers that keep only the best hit of each identification: the meta values
+                                  above (the original score, the Percolator scores) are written only to the hit that
+                                  PeptideIdentification::sort() puts first under the new score; the others get only
+                                  their new main score. (Identifications with a NaN score: all hits, as without.)
 
       @return The number of rescored hits
 
@@ -180,7 +184,8 @@ namespace OpenMS
                      const std::string& enzyme,
                      int min_charge,
                      int max_charge,
-                     const std::string& score_type = "q-value");
+                     const std::string& score_type = "q-value",
+                     bool best_hit_only = false);
 
     /// The hit of every feature row of a PSM RescoreInput (buildPSMRescoreInput(), rescorePSMs()):
     /// (index of its PeptideIdentification, index of the hit in it)

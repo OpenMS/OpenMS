@@ -1513,7 +1513,8 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              const std::string& enzyme,
                              int min_charge,
                              int max_charge,
-                             const std::string& score_type)
+                             const std::string& score_type,
+                             bool best_hit_only)
 {
   if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
   {
@@ -1582,16 +1583,35 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
 
   // looking names up takes a lock on the registry, which threads would contend for: the parallel loops below use indices
   auto index_of = [](const std::string& name) { return MetaInfoInterface::metaRegistry().getIndex(name); };
+  constexpr size_t NO_ROW = std::numeric_limits<size_t>::max();
+
+  // The row of each hit (NO_ROW: not rescored); the Percolator scores of a hit are read from the rows, not back from
+  // the meta values they were written to.
+  std::vector<std::vector<size_t>> row_of(peptide_ids.size());
+  for (size_t i = 0; i < peptide_ids.size(); ++i)
+  {
+    row_of[i].assign(peptide_ids[i].getHits().size(), NO_ROW);
+  }
+  for (size_t row = 0; row < ro.scores.size(); ++row)
+  {
+    row_of[hit_locs[row].first][hit_locs[row].second] = row;
+  }
+
+  // The identifications without hits come first (updated serially), then the first one with hits; with several score
+  // types (each a meta value name) all spectra are updated serially, registering their names in order.
+  size_t first_with_hits = 0;
+  while (first_with_hits < peptide_ids.size() && peptide_ids[first_with_hits].getHits().empty()) ++first_with_hits;
+  const bool one_score_type = first_with_hits < peptide_ids.size()
+    && std::all_of(peptide_ids.begin() + first_with_hits + 1, peptide_ids.end(),
+                   [&](const PeptideIdentification& pid) { return pid.getHits().empty() || pid.getScoreType() == peptide_ids[first_with_hits].getScoreType(); });
+  // Only the best hits get meta values: with one score type (the names are registered below as the writes to all hits
+  // registered them).
+  const bool best_only = best_hit_only && one_score_type;
 
   // The hits are updated in parallel, except for the first row and the first spectrum with hits: these register the
   // new meta value names in the order of a serial loop, and MetaInfo keeps meta values in the order of their name
-  // indices. With several score types (each a meta value name) all spectra are updated serially. The parallel
-  // updates use the name indices: looking names up takes a lock on the registry, which the threads would contend for.
-  std::vector<std::vector<char>> rescored(peptide_ids.size());
-  for (size_t i = 0; i < peptide_ids.size(); ++i)
-  {
-    rescored[i].assign(peptide_ids[i].getHits().size(), false);
-  }
+  // indices. The parallel updates use the name indices: looking names up takes a lock on the registry, which the
+  // threads would contend for.
   auto store_row = [&](size_t row, const auto& score_key, const auto& q_value_key, const auto& pep_key)
   {
     const auto [pid_i, hit_i] = hit_locs[row];
@@ -1599,27 +1619,35 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     hit.setMetaValue(score_key,   ro.scores[row]);
     hit.setMetaValue(q_value_key, ro.q_values[row]);
     hit.setMetaValue(pep_key,     ro.peps[row]);
-    rescored[pid_i][hit_i] = true;
   };
   if (!ro.scores.empty())
   {
-    store_row(0, "percolator_score", "percolator_q_value", "percolator_pep");
-    const UInt score_index = index_of("percolator_score"), q_value_index = index_of("percolator_q_value"),
-               pep_index = index_of("percolator_pep");
-    std::vector<std::exception_ptr> errors(ro.scores.size());
-#pragma omp parallel for schedule(dynamic, 256)
-    for (SignedSize row = 1; row < static_cast<SignedSize>(ro.scores.size()); ++row)
+    if (best_only)
     {
-      try
-      {
-        store_row(static_cast<size_t>(row), score_index, q_value_index, pep_index);
-      }
-      catch (...)
-      {
-        errors[row] = std::current_exception();
-      }
+      // (as the write to the first row registered them)
+      MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      for (const char* name : {"percolator_score", "percolator_q_value", "percolator_pep"}) registry.registerName(name);
     }
-    rethrowFirstError(errors);
+    else
+    {
+      store_row(0, "percolator_score", "percolator_q_value", "percolator_pep");
+      const UInt score_index = index_of("percolator_score"), q_value_index = index_of("percolator_q_value"),
+                 pep_index = index_of("percolator_pep");
+      std::vector<std::exception_ptr> errors(ro.scores.size());
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize row = 1; row < static_cast<SignedSize>(ro.scores.size()); ++row)
+      {
+        try
+        {
+          store_row(static_cast<size_t>(row), score_index, q_value_index, pep_index);
+        }
+        catch (...)
+        {
+          errors[row] = std::current_exception();
+        }
+      }
+      rethrowFirstError(errors);
+    }
   }
 
   // Canonical score fields and PSI-MS CV terms, as PercolatorAdapter writes them for the executable.
@@ -1645,58 +1673,99 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     }
 
     auto& hits = pid.getHits();
+    // Hits that were not rescored get the values the executable path gives PSMs missing from
+    // Percolator's output (q-value = PEP = 1, SVM score = -100: confidently not identified), so
+    // their main score matches the new score type of the identification.
+    auto scores_of = [&](size_t j, double& svm, double& qval, double& pep)
+    {
+      svm = -100.0; qval = 1.0; pep = 1.0;
+      const size_t row = row_of[i][j];
+      if (row != NO_ROW)
+      {
+        svm  = ro.scores[row];
+        qval = ro.q_values[row];
+        pep  = ro.peps[row];
+      }
+    };
+    auto new_score = [&](double svm, double qval, double pep)
+    {
+      if (score_type == "q-value") return qval;
+      if (score_type == "pep") return pep;
+      return svm;
+    };
+    // best_only: the hit that the stable sort by the new score puts first (the first of the lowest q-values or PEPs,
+    // highest SVM scores); with a NaN score that order is not defined: all hits are written
+    size_t best = NO_ROW;
+    if (best_only && !index.empty() && !hits.empty())
+    {
+      bool nan = false;
+      double best_score = 0.0;
+      for (size_t j = 0; j < hits.size() && !nan; ++j)
+      {
+        double svm, qval, pep;
+        scores_of(j, svm, qval, pep);
+        const double score = new_score(svm, qval, pep);
+        if (std::isnan(score)) { nan = true; break; }
+        if (j == 0 || (score_type == "svm" ? score > best_score : score < best_score))
+        {
+          best = j;
+          best_score = score;
+        }
+      }
+      if (nan)
+      {
+        best = NO_ROW;
+        for (size_t j = 0; j < hits.size(); ++j)
+        {
+          if (row_of[i][j] != NO_ROW) store_row(row_of[i][j], index[1], index[2], index[3]);
+        }
+      }
+    }
     for (size_t j = 0; j < hits.size(); ++j)
     {
       PeptideHit& hit = hits[j];
-      // Hits that were not rescored get the values the executable path gives PSMs missing from
-      // Percolator's output (q-value = PEP = 1, SVM score = -100: confidently not identified), so
-      // their main score matches the new score type of the identification.
-      double svm = -100.0, qval = 1.0, pep = 1.0;
+      double svm, qval, pep;
+      scores_of(j, svm, qval, pep);
       if (index.empty())
       {
         hit.setMetaValue(old_score_type, hit.getScore());  // preserve original
-        if (rescored[i][j])
-        {
-          svm  = hit.getMetaValue("percolator_score");
-          qval = hit.getMetaValue("percolator_q_value");
-          pep  = hit.getMetaValue("percolator_pep");
-        }
         hit.setMetaValue("MS:1001492", svm);    // percolator:score
         hit.setMetaValue("MS:1001491", qval);   // percolator:Q value
         hit.setMetaValue("MS:1001493", pep);    // percolator:PEP
       }
-      else
+      else if (best == NO_ROW || j == best)
       {
         hit.setMetaValue(index[0], hit.getScore());
-        if (rescored[i][j])
-        {
-          svm  = hit.getMetaValue(index[1]);
-          qval = hit.getMetaValue(index[2]);
-          pep  = hit.getMetaValue(index[3]);
-        }
+        if (best != NO_ROW && row_of[i][j] != NO_ROW) store_row(row_of[i][j], index[1], index[2], index[3]);
         hit.setMetaValue(index[4], svm);
         hit.setMetaValue(index[5], qval);
         hit.setMetaValue(index[6], pep);
       }
-
-      if (score_type == "q-value")      hit.setScore(qval);
-      else if (score_type == "pep")     hit.setScore(pep);
-      else                              hit.setScore(svm);
+      hit.setScore(new_score(svm, qval, pep));
     }
   };
   size_t first_parallel = 0;
-  while (first_parallel < peptide_ids.size() && peptide_ids[first_parallel].getHits().empty())
+  while (first_parallel < first_with_hits)
   {
     store_canonical(first_parallel++, {});
   }
   if (first_parallel < peptide_ids.size())
   {
     const std::string first_score_type = peptide_ids[first_parallel].getScoreType();
-    // Several score types: the spectra are updated serially, registering their names in order.
-    const bool one_score_type = std::all_of(peptide_ids.begin() + first_parallel + 1, peptide_ids.end(),
-      [&](const PeptideIdentification& pid) { return pid.getHits().empty() || pid.getScoreType() == first_score_type; });
-    store_canonical(first_parallel++, {});
     std::vector<UInt> index;
+    if (best_only)
+    {
+      // the names the serial update of the first spectrum with hits registered, in that order; it is updated in parallel
+      MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      for (const std::string& name : {first_score_type, std::string("MS:1001492"), std::string("MS:1001491"), std::string("MS:1001493")})
+      {
+        registry.registerName(name);
+      }
+    }
+    else
+    {
+      store_canonical(first_parallel++, {});
+    }
     if (one_score_type)
     {
       for (const std::string& name : {first_score_type, std::string("percolator_score"), std::string("percolator_q_value"),

@@ -4379,8 +4379,9 @@ namespace OpenMS
 
     try
     {
+      // (only the best hit of each spectrum is kept below: the others need no Percolator meta values)
       perc.rescorePSMs(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()),
-                       min_charge, max_charge, "q-value");
+                       min_charge, max_charge, "q-value", /*best_hit_only=*/true);
     }
     catch (const Exception::BaseException& e)
     {
