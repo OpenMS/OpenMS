@@ -206,7 +206,8 @@ START_SECTION((MzML UTF8 opt-in preserves a derived handler UTF16 override))
   OpenMS::Internal::MzMLHandler exact(experiment, "memory", "1.1.0", logger);
   TEST_TRUE(exact.tryOnCharactersUTF8(nullptr, 0))
   TEST_TRUE(exact.tryOnCharactersUTF8("plain", 5))
-  TEST_FALSE(exact.tryOnCharactersUTF8("β🧬", std::string("β🧬").size()))
+  // Outside <binary>, onCharacters drops all text: it is consumed without conversion.
+  TEST_TRUE(exact.tryOnCharactersUTF8("β🧬", std::string("β🧬").size()))
   MzMLCharacterSpy derived(experiment, logger);
   TEST_FALSE(derived.tryOnCharactersUTF8("plain", 5))
   TEST_FALSE(derived.tryOnCharactersUTF8("β🧬", std::string("β🧬").size()))

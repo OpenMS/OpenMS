@@ -32,10 +32,18 @@ namespace OpenMS::Internal
   std::u16string StringManager::convert(const char* str)
   {
     std::u16string result;
-    if (!str) return result;
+    if (str) convert(str, std::strlen(str), result);
+    return result;
+  }
+
+  void StringManager::convert(const char* str, Size length, std::u16string& result)
+  {
     const auto* input = reinterpret_cast<const unsigned char*>(str);
-    const auto* end = input + std::strlen(str);
-    result.reserve(end - input);
+    const auto* end = input + length;
+    // ASCII is by far the most common case: widen without decoding.
+    const auto* ascii_end = std::find_if(input, end, [](unsigned char c) { return c >= 0x80; });
+    result.assign(input, ascii_end);
+    input = ascii_end;
     while (input != end)
     {
       const unsigned lead = *input++;
@@ -62,7 +70,6 @@ namespace OpenMS::Internal
         result.push_back(static_cast<char16_t>(0xdc00 + (code & 0x3ff)));
       }
     }
-    return result;
   }
 
   std::u16string StringManager::convert(const std::string& str)

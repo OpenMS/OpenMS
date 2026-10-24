@@ -133,6 +133,16 @@ namespace OpenMS::Internal
       return false;
     }
 
+    bool XMLHandler::tryOnStartElementUTF8(std::string_view /*qname*/, const XMLAttributes& /*attributes*/)
+    {
+      return false;
+    }
+
+    bool XMLHandler::tryOnEndElementUTF8(std::string_view /*qname*/)
+    {
+      return false;
+    }
+
     void XMLHandler::writeTo(std::ostream & /*os*/)
     {
     }

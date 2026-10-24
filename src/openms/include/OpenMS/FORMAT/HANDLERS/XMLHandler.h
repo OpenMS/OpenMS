@@ -106,6 +106,16 @@ public:
         Derived handlers opt in explicitly; existing UTF-16 overrides stay valid.
       */
       virtual bool tryOnCharactersUTF8(const char* chars, Size length);
+      /**
+        @brief Try to handle an opening tag by its UTF-8 qualified name.
+
+        Same contract as tryOnCharactersUTF8(): return false without side effects
+        to receive onStartElement() with the UTF-16 name instead. The default always
+        returns false.
+      */
+      virtual bool tryOnStartElementUTF8(std::string_view qname, const XMLAttributes& attributes);
+      /// Closing-tag counterpart of tryOnStartElementUTF8(); falls back to onEndElement().
+      virtual bool tryOnEndElementUTF8(std::string_view qname);
 
       //@}
 
@@ -408,25 +418,25 @@ protected:
       /// Converts an attribute to a String
       inline std::string attributeAsString_(const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
-        return sm_.convert(val);
+        std::string val;
+        if (!a.valueUTF8(name, val)) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
+        return val;
       }
 
       /// Converts an attribute to a Int
       inline Int attributeAsInt_(const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
-        return sm_.parseInt(val);
+        std::string val;
+        if (!a.valueUTF8(name, val)) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
+        return StringUtils::toInt32(val);
       }
 
       /// Converts an attribute to a double
       inline double attributeAsDouble_(const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
-        return StringUtils::toDouble(sm_.convert(val));
+        std::string val;
+        if (!a.valueUTF8(name, val)) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
+        return StringUtils::toDouble(val);
       }
 
       /// Converts an attribute to a DoubleList
@@ -445,13 +455,7 @@ protected:
       */
       inline bool optionalAttributeAsString_(std::string & value, const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
-        {
-          value = sm_.convert(val);
-          return true;
-        }
-        return false;
+        return a.valueUTF8(name, value);
       }
 
       /**
@@ -461,10 +465,10 @@ protected:
       */
       inline bool optionalAttributeAsInt_(Int & value, const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
+        std::string val;
+        if (a.valueUTF8(name, val))
         {
-          value = sm_.parseInt(val);
+          value = StringUtils::toInt32(val);
           return true;
         }
         return false;
@@ -477,10 +481,10 @@ protected:
       */
       inline bool optionalAttributeAsUInt_(UInt & value, const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
+        std::string val;
+        if (a.valueUTF8(name, val))
         {
-          value = sm_.parseInt(val);
+          value = StringUtils::toInt32(val);
           return true;
         }
         return false;
@@ -493,10 +497,10 @@ protected:
       */
       inline bool optionalAttributeAsDouble_(double & value, const XMLAttributes & a, const char * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
+        std::string val;
+        if (a.valueUTF8(name, val))
         {
-          value =StringUtils::toDouble(sm_.convert(val));
+          value = StringUtils::toDouble(val);
           return true;
         }
         return false;
@@ -553,25 +557,25 @@ protected:
       /// Converts an attribute to a String
       inline std::string attributeAsString_(const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
-        return sm_.convert(val);
+        std::string val;
+        if (!a.valueUTF8(name, val)) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
+        return val;
       }
 
       /// Converts an attribute to a Int
       inline Int attributeAsInt_(const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
-        return sm_.parseInt(val);
+        std::string val;
+        if (!a.valueUTF8(name, val)) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
+        return StringUtils::toInt32(val);
       }
 
       /// Converts an attribute to a double
       inline double attributeAsDouble_(const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
-        return StringUtils::toDouble(sm_.convert(val));
+        std::string val;
+        if (!a.valueUTF8(name, val)) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
+        return StringUtils::toDouble(val);
       }
 
       /// Converts an attribute to a DoubleList
@@ -586,22 +590,16 @@ protected:
       /// Assigns the attribute content to the String @a value if the attribute is present
       inline bool optionalAttributeAsString_(std::string& value, const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
-        {
-          value = sm_.convert(val);
-          return !value.empty();
-        }
-        return false;
+        return a.valueUTF8(name, value) && !value.empty();
       }
 
       /// Assigns the attribute content to the Int @a value if the attribute is present
       inline bool optionalAttributeAsInt_(Int & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
+        std::string val;
+        if (a.valueUTF8(name, val))
         {
-          value = sm_.parseInt(val);
+          value = StringUtils::toInt32(val);
           return true;
         }
         return false;
@@ -610,10 +608,10 @@ protected:
       /// Assigns the attribute content to the UInt @a value if the attribute is present
       inline bool optionalAttributeAsUInt_(UInt & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
+        std::string val;
+        if (a.valueUTF8(name, val))
         {
-          value = sm_.parseInt(val);
+          value = StringUtils::toInt32(val);
           return true;
         }
         return false;
@@ -622,10 +620,10 @@ protected:
       /// Assigns the attribute content to the double @a value if the attribute is present
       inline bool optionalAttributeAsDouble_(double & value, const XMLAttributes & a, const char16_t * name) const
       {
-        const char16_t * val = a.value(name);
-        if (val != nullptr)
+        std::string val;
+        if (a.valueUTF8(name, val))
         {
-          value = StringUtils::toDouble(sm_.convert(val));
+          value = StringUtils::toDouble(val);
           return true;
         }
         return false;

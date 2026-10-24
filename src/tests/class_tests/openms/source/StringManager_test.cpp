@@ -16,6 +16,7 @@ static_assert(!std::is_constructible_v<XMLAttributes, XMLAttributes::Values&&>);
 static_assert(!std::is_constructible_v<XMLAttributes, const XMLAttributes::Values&&>);
 static_assert(std::is_copy_constructible_v<XMLAttributes>);
 static_assert(std::is_copy_assignable_v<XMLAttributes>);
+static_assert(!std::is_constructible_v<XMLAttributes, XMLAttributes::NativeStore&&>);
 
 START_TEST(StringManager, "$Id$")
 START_SECTION(UTF8 and UTF16 conversions own their storage and preserve Unicode)
@@ -97,6 +98,67 @@ START_SECTION(Attribute views copy and assign without copying their backing stor
   TEST_TRUE(std::u16string(copied.value(u"id")) == u"changed")
   TEST_TRUE(std::u16string(assigned.value(u"id")) == u"changed")
   TEST_TRUE(std::u16string(XMLAttributes(second).value(u"id")) == u"second")
+}
+END_SECTION
+
+START_SECTION(UTF8 slices convert into reused storage)
+{
+  std::u16string target = u"previous content that is longer";
+  const std::string text = "Grüße \U0001F600 tail";
+  StringManager::convert(text.data(), 6, target); // the first six bytes are "Grüß"
+  TEST_TRUE(target == u"Grüß")
+  StringManager::convert(text.data(), text.size(), target);
+  TEST_TRUE(target == u"Grüße \U0001F600 tail")
+  StringManager::convert(text.data(), 0, target);
+  TEST_TRUE(target.empty())
+  TEST_EXCEPTION(Exception::ConversionError, StringManager::convert("a\xc3", 2, target))
+}
+END_SECTION
+
+START_SECTION(Parser-owned UTF8 attributes convert lazily and are reusable)
+{
+  const std::string id = "first", accent = "é \U0001F600";
+  XMLAttributes::NativeStore store;
+  store.add({}, "id", id);
+  store.add("p", "attr", accent);
+  store.add({}, "β", "beta");
+  const XMLAttributes attributes(store);
+  TEST_EQUAL(attributes.size(), 3)
+  TEST_EQUAL(attributes.index(u"id"), 0)
+  TEST_EQUAL(attributes.index(u"p:attr"), 1)
+  TEST_EQUAL(attributes.index(u"β"), 2)
+  TEST_EQUAL(attributes.index(u"attr"), -1)
+  TEST_EQUAL(attributes.index(u"i"), -1)
+  TEST_EQUAL(attributes.index(u"idx"), -1)
+  TEST_TRUE(std::u16string(attributes.value(u"p:attr")) == u"é \U0001F600")
+  // conversion happens once, the pointer stays valid for the callback
+  TEST_TRUE(attributes.value(u"p:attr") == attributes.valueByIndex(1))
+  TEST_TRUE(attributes.value("p:attr") == attributes.valueByIndex(1))
+  TEST_TRUE(std::u16string(attributes.value("β")) == u"beta")
+  TEST_TRUE(attributes.value("missing") == nullptr)
+  TEST_TRUE(attributes.valueByIndex(3) == nullptr)
+  TEST_EXCEPTION(Exception::ConversionError, attributes.value("\xc0\xaf"))
+  std::string utf8 = "untouched";
+  TEST_FALSE(attributes.valueUTF8(u"missing", utf8))
+  TEST_EQUAL(utf8, "untouched")
+  TEST_TRUE(attributes.valueUTF8(u"p:attr", utf8))
+  TEST_EQUAL(utf8, accent)
+  TEST_TRUE(attributes.valueUTF8("id", utf8))
+  TEST_EQUAL(utf8, "first")
+
+  // the next element reuses the entries, including their cached UTF-16 values
+  store.clear();
+  store.add("p", "attr", "second");
+  TEST_EQUAL(attributes.size(), 1)
+  TEST_TRUE(std::u16string(attributes.value(u"p:attr")) == u"second")
+  TEST_TRUE(attributes.value(u"id") == nullptr)
+
+  // legacy UTF-16 attributes give the same UTF-8 values
+  const XMLAttributes::Values values{{u"p:attr", u"é \U0001F600"}};
+  const XMLAttributes legacy(values);
+  TEST_TRUE(legacy.valueUTF8("p:attr", utf8))
+  TEST_EQUAL(utf8, accent)
+  TEST_EQUAL(legacy.size(), 1)
 }
 END_SECTION
 

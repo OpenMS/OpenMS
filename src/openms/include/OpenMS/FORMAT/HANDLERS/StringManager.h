@@ -41,6 +41,13 @@ public:
     /// Transcode the supplied C string to a UTF-16 string
     static std::u16string convert(const char * str);
 
+    /**
+      @brief Converts the UTF-8 sequence [@p str, @p str + @p length) to UTF-16 into @p result
+
+      @p result is overwritten; its capacity is reused. Throws Exception::ConversionError for invalid UTF-8.
+    */
+    static void convert(const char * str, Size length, std::u16string & result);
+
     /// Transcode the supplied C++ string to a UTF-16 string
     static std::u16string convert(const std::string & str);
 

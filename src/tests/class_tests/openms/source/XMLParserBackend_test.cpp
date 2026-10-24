@@ -256,6 +256,25 @@ START_SECTION(Encoding overrides are per reader)
   TEST_EQUAL(latin_handler.text == u"Grüße", true)
   TEST_EQUAL(utf8_handler.text == u"Grüße", true)
 END_SECTION
+START_SECTION(ISO-8859-1 declarations decode text and attributes across read boundaries)
+  for (const std::string declaration : {std::string("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"),
+                                        std::string("<?xml version='1.0' encoding = 'iso-8859-1' standalone='yes'?>\n")})
+  {
+    Reader reader;
+    Handler handler;
+    std::string xml = declaration + "<root value='Gr\xfc\xdf" "e'>";
+    // Put non-ASCII bytes on both sides of the 64 KiB read boundary.
+    const Size padding = 65535 - xml.size();
+    xml += std::string(padding, 'x') + "\xe9\xe9\xff</root>";
+    reader.parseBuffer_(xml, &handler);
+    TEST_TRUE(handler.attribute == u"Grüße")
+    TEST_TRUE(handler.text == std::u16string(padding, u'x') + u"ééÿ")
+  }
+  // Other declarations keep libxml2's decoding: these bytes are invalid UTF-8.
+  Reader reader;
+  Handler handler;
+  TEST_EXCEPTION(Exception::ParseError, reader.parseBuffer_("<?xml version='1.0' encoding='UTF-8'?><root>\xfc</root>", &handler))
+END_SECTION
 START_SECTION(Unsupported encoding diagnostics retain the input filename)
   std::string filename;
   NEW_TMP_FILE(filename)

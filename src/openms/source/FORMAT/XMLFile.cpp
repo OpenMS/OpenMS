@@ -22,6 +22,10 @@
 
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
+#include <libxml/encoding.h>
+#include <cstdint>
+#include <string_view>
+#include <vector>
 #include <exception>
 #include <algorithm>
 #include <cstring>
@@ -79,21 +83,86 @@ private:
       enforced_encoding_ = encoding;
     }
 
-    // C callbacks capture every exception: no C++ exception crosses libxml2 frames.
-    struct LibxmlState
+    namespace
     {
-      XMLHandler* handler;
-      std::exception_ptr exception;
-      static LibxmlState& state(void* ctx)
+      bool isASCIIWord(const unsigned char* data)
       {
-        return *static_cast<LibxmlState*>(static_cast<xmlParserCtxt*>(ctx)->_private);
+        std::uint64_t word;
+        std::memcpy(&word, data, sizeof(word));
+        return (word & 0x8080808080808080ull) == 0;
       }
-      static std::u16string utf16(const xmlChar* text, int length = -1)
+
+      /// End of the ASCII run starting at @p from
+      Size asciiRunEnd(const unsigned char* data, Size from, Size size)
       {
-        std::u16string result;
-        if (!text) return result;
+        while (from + 8 <= size && isASCIIWord(data + from)) from += 8;
+        while (from < size && data[from] < 0x80) ++from;
+        return from;
+      }
+
+      /**
+        @brief Converts an ISO-8859-1 chunk to UTF-8
+
+        Returns @p data itself if the chunk is ASCII (as mzML usually is), otherwise
+        the converted bytes in @p storage. Latin-1 is a single-byte encoding, so
+        chunks convert independently.
+      */
+      const unsigned char* latin1ToUTF8(const unsigned char* data, Size& size, std::vector<unsigned char>& storage)
+      {
+        Size in = asciiRunEnd(data, 0, size);
+        if (in == size) return data;
+        storage.resize(2 * size);
+        unsigned char* out = storage.data();
+        std::memcpy(out, data, in);
+        out += in;
+        while (in < size)
+        {
+          const unsigned char c = data[in++];
+          *out++ = static_cast<unsigned char>(0xc0 | (c >> 6));
+          *out++ = static_cast<unsigned char>(0x80 | (c & 0x3f));
+          const Size run = asciiRunEnd(data, in, size);
+          std::memcpy(out, data + in, run - in);
+          out += run - in;
+          in = run;
+        }
+        size = static_cast<Size>(out - storage.data());
+        return storage.data();
+      }
+
+      /// The encoding named by the XML declaration at the start of @p data, or empty if there is none.
+      std::string declaredEncoding(const unsigned char* data, Size size)
+      {
+        const std::string_view text(reinterpret_cast<const char*>(data), std::min<Size>(size, 1024));
+        if (text.substr(0, 6) != "<?xml " && text.substr(0, 6) != "<?xml\t" && text.substr(0, 6) != "<?xml\n" && text.substr(0, 6) != "<?xml\r") return {};
+        const auto declaration = text.substr(0, text.find("?>"));
+        if (declaration.size() == text.size()) return {};
+        auto pos = declaration.find("encoding");
+        if (pos == std::string_view::npos) return {};
+        pos = declaration.find_first_not_of(" \t\r\n", pos + 8);
+        if (pos == std::string_view::npos || declaration[pos] != '=') return {};
+        pos = declaration.find_first_not_of(" \t\r\n", pos + 1);
+        if (pos == std::string_view::npos || (declaration[pos] != '"' && declaration[pos] != '\'')) return {};
+        const auto close = declaration.find(declaration[pos], pos + 1);
+        if (close == std::string_view::npos) return {};
+        return std::string(declaration.substr(pos + 1, close - pos - 1));
+      }
+
+      /// Whether libxml2 decodes @p encoding with its built-in ISO-8859-1 decoder
+      bool isLatin1(const std::string& encoding)
+      {
+        return !encoding.empty() && xmlParseCharEncoding(encoding.c_str()) == XML_CHAR_ENCODING_8859_1;
+      }
+
+      /// Converts parser UTF-8 to UTF-16 into @p result (reusing its capacity).
+      const char16_t* utf16(std::u16string& result, const xmlChar* text, Size length)
+      {
+        result.clear();
+        if (!text) return result.c_str();
         const unsigned char* cursor = text;
-        const unsigned char* end = text + (length < 0 ? xmlStrlen(text) : length);
+        const unsigned char* end = text + length;
+        const unsigned char* ascii = text + asciiRunEnd(text, 0, length);
+        result.assign(cursor, ascii);
+        cursor = ascii;
         while (cursor < end)
         {
           unsigned int cp = *cursor++;
@@ -111,7 +180,34 @@ private:
           }
           else { result.push_back(static_cast<char16_t>(cp)); }
         }
-        return result;
+        return result.c_str();
+      }
+
+      const char16_t* utf16(std::u16string& result, const xmlChar* text)
+      {
+        return utf16(result, text, text ? static_cast<Size>(xmlStrlen(text)) : 0);
+      }
+
+      std::string_view view(const xmlChar* text)
+      {
+        return text ? std::string_view(reinterpret_cast<const char*>(text)) : std::string_view();
+      }
+    }
+
+    // C callbacks capture every exception: no C++ exception crosses libxml2 frames.
+    struct LibxmlState
+    {
+      XMLHandler* handler;
+      std::exception_ptr exception;
+      // Reused across callbacks so that a parse does not allocate per element.
+      XMLAttributes::NativeStore attributes;
+      std::string name8;
+      std::u16string name;
+      std::u16string text;
+
+      static LibxmlState& state(void* ctx)
+      {
+        return *static_cast<LibxmlState*>(static_cast<xmlParserCtxt*>(ctx)->_private);
       }
       template <typename Callback> static void callback(void* ctx, Callback&& fn)
       {
@@ -129,25 +225,38 @@ private:
       {
         callback(ctx, [&](LibxmlState& s)
         {
-          XMLAttributes::Values values;
+          s.attributes.clear();
           if (attrs)
           {
-            for (Size i = 0; attrs[i]; i += 2) values.emplace_back(utf16(attrs[i]), utf16(attrs[i + 1]));
+            for (Size i = 0; attrs[i]; i += 2) s.attributes.add({}, view(attrs[i]), view(attrs[i + 1]));
           }
-          s.handler->onStartElement(utf16(name).c_str(), XMLAttributes(values));
+          const XMLAttributes attributes(s.attributes);
+          if (s.handler->tryOnStartElementUTF8(view(name), attributes)) { return; }
+          s.handler->onStartElement(utf16(s.name, name), attributes);
         });
       }
       static void endLegacy(void* ctx, const xmlChar* name)
       {
-        callback(ctx, [&](LibxmlState& s) { s.handler->onEndElement(utf16(name).c_str()); });
+        callback(ctx, [&](LibxmlState& s)
+        {
+          if (s.handler->tryOnEndElementUTF8(view(name))) { return; }
+          s.handler->onEndElement(utf16(s.name, name));
+        });
       }
-      static std::u16string qualifiedName(const xmlChar* local, const xmlChar* prefix)
+      std::string_view qualifiedNameUTF8(const xmlChar* local, const xmlChar* prefix)
       {
-        if (!prefix) return utf16(local);
-        auto name = utf16(prefix);
+        if (!prefix) return view(local);
+        name8.assign(view(prefix)).append(1, ':').append(view(local));
+        return name8;
+      }
+      const char16_t* qualifiedName(const xmlChar* local, const xmlChar* prefix)
+      {
+        if (!prefix) return utf16(name, local);
+        utf16(text, local); // no character data is pending inside a tag
+        utf16(name, prefix);
         name += u':';
-        name += utf16(local);
-        return name;
+        name += text;
+        return name.c_str();
       }
       static void start(void* ctx, const xmlChar* local, const xmlChar* prefix,
                         const xmlChar*, int namespace_count, const xmlChar** namespaces,
@@ -155,32 +264,31 @@ private:
       {
         callback(ctx, [&](LibxmlState& s)
         {
-          XMLAttributes::Values values;
-          values.reserve(namespace_count + attribute_count);
+          s.attributes.clear();
           // Existing handlers consume qualified names and can inspect xmlns declarations.
           for (int i = 0; i < namespace_count; ++i)
           {
-            std::u16string name = u"xmlns";
-            if (namespaces[2 * i]) { name += u':'; name += utf16(namespaces[2 * i]); }
-            values.emplace_back(std::move(name), utf16(namespaces[2 * i + 1]));
+            if (namespaces[2 * i]) { s.attributes.add("xmlns", view(namespaces[2 * i]), view(namespaces[2 * i + 1])); }
+            else { s.attributes.add({}, "xmlns", view(namespaces[2 * i + 1])); }
           }
           for (int i = 0; i < attribute_count; ++i)
           {
             const xmlChar** attr = attrs + 5 * i;
             // SAX2 values are bounded slices, not null-terminated strings.
-            values.emplace_back(qualifiedName(attr[0], attr[1]),
-                                utf16(attr[3], static_cast<int>(attr[4] - attr[3])));
+            s.attributes.add(view(attr[1]), view(attr[0]),
+                             std::string_view(reinterpret_cast<const char*>(attr[3]), static_cast<Size>(attr[4] - attr[3])));
           }
-          const auto name = qualifiedName(local, prefix);
-          s.handler->onStartElement(name.c_str(), XMLAttributes(values));
+          const XMLAttributes attributes(s.attributes);
+          if (s.handler->tryOnStartElementUTF8(s.qualifiedNameUTF8(local, prefix), attributes)) { return; }
+          s.handler->onStartElement(s.qualifiedName(local, prefix), attributes);
         });
       }
       static void end(void* ctx, const xmlChar* local, const xmlChar* prefix, const xmlChar*)
       {
         callback(ctx, [&](LibxmlState& s)
         {
-          const auto name = qualifiedName(local, prefix);
-          s.handler->onEndElement(name.c_str());
+          if (s.handler->tryOnEndElementUTF8(s.qualifiedNameUTF8(local, prefix))) { return; }
+          s.handler->onEndElement(s.qualifiedName(local, prefix));
         });
       }
       static void characters(void* ctx, const xmlChar* text, int length)
@@ -188,8 +296,8 @@ private:
         callback(ctx, [&](LibxmlState& s)
         {
           if (s.handler->tryOnCharactersUTF8(reinterpret_cast<const char*>(text), static_cast<Size>(length))) { return; }
-          const auto value = utf16(text, length);
-          s.handler->onCharacters(value.c_str(), value.size());
+          utf16(s.text, text, static_cast<Size>(length));
+          s.handler->onCharacters(s.text.c_str(), s.text.size());
         });
       }
       static void error(void* ctx, const xmlError* error)
@@ -206,7 +314,7 @@ private:
     void parse(Read&& read, XMLHandler* handler, const std::string& encoding, const std::string& filename, bool namespace_aware)
     {
       libxmlInitialize();
-      LibxmlState state{handler, {}};
+      LibxmlState state{handler, {}, {}, {}, {}, {}};
       xmlSAXHandler sax{};
       if (xmlSAXVersion(&sax, namespace_aware ? 2 : 1) != 0)
       {
@@ -242,20 +350,36 @@ private:
       // Keep diagnostics local to this parser, including namespace errors.
       xmlCtxtSetErrorHandler(parser.get(), LibxmlState::error, parser.get());
       xmlCtxtUseOptions(parser.get(), XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT);
-      if (!encoding.empty())
+
+      unsigned char buffer[65536];
+      Size count = read(buffer, sizeof(buffer));
+      // OpenMS writes ISO-8859-1 declarations. libxml2 would decode those byte by byte;
+      // instead, pass ASCII chunks through unchanged and convert the others here.
+      const bool latin1 = isLatin1(encoding.empty() ? declaredEncoding(buffer, count) : encoding);
+      if (latin1)
+      {
+        // An explicit encoding takes precedence over the declaration.
+        if (xmlSwitchEncodingName(parser.get(), "UTF-8") != 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot switch XML encoding");
+        }
+      }
+      else if (!encoding.empty())
       {
         if (xmlSwitchEncodingName(parser.get(), encoding.c_str()) != 0)
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Unsupported XML encoding: " + encoding);
         }
       }
-      char buffer[65536];
+      std::vector<unsigned char> converted;
       int status = 0;
       while (!state.exception)
       {
-        const auto count = read(reinterpret_cast<unsigned char*>(buffer), sizeof(buffer));
-        status = xmlParseChunk(parser.get(), buffer, static_cast<int>(count), count == 0);
+        Size size = count;
+        const unsigned char* chunk = latin1 ? latin1ToUTF8(buffer, size, converted) : buffer;
+        status = xmlParseChunk(parser.get(), reinterpret_cast<const char*>(chunk), static_cast<int>(size), count == 0);
         if (status || count == 0) { break; }
+        count = read(buffer, sizeof(buffer));
       }
       if (state.exception)
       {

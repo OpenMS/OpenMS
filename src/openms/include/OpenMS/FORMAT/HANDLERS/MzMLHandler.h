@@ -124,6 +124,12 @@ public:
       /// Consume ASCII character data directly; preserve derived UTF-16 overrides.
       bool tryOnCharactersUTF8(const char* chars, Size length) override;
 
+      /// Handle the opening tag by its UTF-8 name; preserve derived UTF-16 overrides.
+      bool tryOnStartElementUTF8(std::string_view qname, const XMLAttributes& attributes) override;
+
+      /// Handle the closing tag by its UTF-8 name; preserve derived UTF-16 overrides.
+      bool tryOnEndElementUTF8(std::string_view qname) override;
+
       /// Docu in base class XMLHandler::writeTo
       void writeTo(std::ostream& os) override;
 
@@ -198,6 +204,12 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
+      /// Shared implementation of onStartElement() and tryOnStartElementUTF8()
+      void startElement_(std::string_view tag_name, const XMLAttributes& attributes);
+
+      /// Shared implementation of onEndElement() and tryOnEndElementUTF8()
+      void endElement_(std::string_view tag_name);
+
       void populateSpectraWithData_();
 
       /**
