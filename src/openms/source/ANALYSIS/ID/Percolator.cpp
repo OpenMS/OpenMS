@@ -662,6 +662,10 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   }
   fn.initFeatures();
 
+  // As train() and rescore(): a score distribution that cannot be rescaled at test_fdr (e.g. no target below it) is
+  // shifted instead of failing (Scores::normalizeScores); the q-values and PEPs do not depend on that scale.
+  P::Globals::getInstance()->setNoTerminate(true);
+
   P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
   impl_->synthesized_ids.resize(n_rows);
   impl_->second_pass_psms.reserve(n_rows);

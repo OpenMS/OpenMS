@@ -4590,6 +4590,14 @@ namespace OpenMS
         one.features[r][0] = (reuseRawScore(model.models[m].weights, ri.features[r]) - model.center[m]) / model.scale[m];
       }
       one.is_decoy = ri.is_decoy;
+      {
+        double sum_t = 0.0, sum_d = 0.0;
+        Size n_d = 0;
+        for (Size r = 0; r < n; ++r) { (ri.is_decoy[r] ? sum_d : sum_t) += one.features[r][0]; n_d += ri.is_decoy[r] ? 1 : 0; }
+        OPENMS_LOG_DEBUG << "[ProSE] rescore_reuse: " << n << " rows (" << n_d << " decoys) of file " << file_index + 1
+                         << ", mean cross-fitted score of the targets " << sum_t / std::max<double>(1.0, double(n - n_d))
+                         << ", of the decoys " << sum_d / std::max<double>(1.0, double(n_d)) << std::endl;
+      }
       // The spectrum: best PSM per spectrum (target-decoy competition) as in training
       one.scan_numbers.resize(n);
       for (Size r = 0; r < n; ++r) { one.scan_numbers[r] = static_cast<int>(rows[r].first); }
