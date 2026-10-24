@@ -235,13 +235,16 @@ namespace OpenMS
        * @ref stampPinFeaturesOnHits overwrites a meta value that a hit already has under the name of a PIN column
        * (except CalcMass, which it reads) and the cleanup after in-process rescoring kept it: such values reached the
        * output. In-process rescoring keeps that effect with this function: only hits that carry such a value are
-       * computed and changed (none if no PIN column name is registered yet).
+       * computed and changed (none if no PIN column name is registered yet). An error (e.g. an invalid CalcMass)
+       * stops its spectrum, as stamping; the first by spectrum is raised. rescorePSMs() calls it after
+       * buildFeatureMatrix(), which raises the errors of the computation in stamping order first.
        *
        * @param[in,out] peptide_ids The PSMs
        * @param[in] enz Enzyme name (as for @ref store)
        * @param[in] min_charge Lower bound for the charge{N} one-hot features
        * @param[in] max_charge Upper bound for the charge{N} one-hot features
        */
+      /// @throws Exception::InvalidValue as @ref stampPinFeaturesOnHits for a hit that carries such a value
       static void refreshPinMetaValues(PeptideIdentificationList& peptide_ids,
         const std::string& enz,
         int min_charge,

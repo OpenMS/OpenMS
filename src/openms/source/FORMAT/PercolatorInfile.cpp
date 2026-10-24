@@ -1035,7 +1035,11 @@ namespace OpenMS
     const size_t n_buffers = 1;
 #endif
     const size_t pin_width = column_names.size();
-    std::vector<double> pin_buffer(n_buffers * pin_width), scratch_buffer(n_buffers * n_features);
+    if (n_buffers > std::vector<double>().max_size() / pin_width)
+    {
+      throw std::length_error("PercolatorInfile::buildFeatureMatrix: too many threads");
+    }
+    std::vector<double> pin_buffer(n_buffers * pin_width);
     const std::string no_spec_id;
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize si = 0; si < static_cast<SignedSize>(n_spectra); ++si)
@@ -1047,7 +1051,6 @@ namespace OpenMS
       const size_t thread = 0;
 #endif
       double* pin_values = pin_buffer.data() + thread * pin_width;
-      double* scratch_row = scratch_buffer.data() + thread * n_features;
       const PeptideIdentification& pid = peptide_ids[i];
       const std::vector<PeptideHit>& hits = pid.getHits();
       size_t row = row_offset[i];
@@ -1092,7 +1095,8 @@ namespace OpenMS
           {
             // the features in the order of the feature set, up to the first missing one
             const bool is_row = fill && (s & ROW);
-            double* out = is_row ? input.feature_matrix.data() + row * n_features : scratch_row;
+            // (the values of a hit that is not a row are only checked)
+            double* out = is_row ? input.feature_matrix.data() + row * n_features : nullptr;
             bool complete = true;
             for (size_t f = 0; f < n_features; ++f)
             {
@@ -1114,7 +1118,7 @@ namespace OpenMS
                 // (a value that is not finite is reported as for its stamped meta value)
                 if (!std::isfinite(value)) getFeatureValue(DataValue(value), feature_list[f]);
               }
-              out[f] = value;
+              if (out != nullptr) out[f] = value;
             }
             if (!complete) continue;
             if (!std::isfinite(calc_mass)) getFeatureValue(DataValue(calc_mass), "CalcMass");
@@ -1232,10 +1236,8 @@ namespace OpenMS
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
     const ScanNumberOf scan_number_of(sid);
 
-    // A hit whose PIN columns cannot be computed (an invalid value, e.g. a CalcMass that is not a number) and the hits
-    // after it are left as they are: buildFeatureMatrix() computes the same numbers and reports such an error (in
-    // rescorePSMs, it runs first, so none occurs here).
-    // Any other error (e.g. an allocation failure, also in the string columns) is raised, the first by spectrum.
+    // An error stops its spectrum (as stamping); the first by spectrum is raised. (In rescorePSMs, buildFeatureMatrix()
+    // computed the same numbers for every hit before, so only the string columns or an allocation can fail here.)
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize si = 0; si < static_cast<SignedSize>(peptide_ids.size()); ++si)
@@ -1247,7 +1249,6 @@ namespace OpenMS
         std::optional<std::tuple<std::string, Int>> spectrum; // SpecId and ScanNr, when a hit needs them
         for (PeptideHit& hit : pid.getHits())
         {
-          try
           {
             if (!carries_pin_column(hit) || hit.getPeptideEvidences().empty()) continue;
             const PeptideHit::TargetDecoyType target_decoy = targetDecoyType(hit, td_index);
@@ -1270,10 +1271,6 @@ namespace OpenMS
             pinHitColumns_<true>(hit, target_decoy == PeptideHit::TargetDecoyType::DECOY, std::get<0>(*spectrum),
                                  std::get<1>(*spectrum), pid.getMZ(), pid.getRT(), enz, min_charge, max_charge,
                                  exists, get, put);
-          }
-          catch (const Exception::BaseException&)
-          {
-            break; // (stamping stops the spectrum at this hit)
           }
         }
       }
