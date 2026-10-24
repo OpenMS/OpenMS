@@ -56,6 +56,16 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# These tests spell UTF-8 text as narrow string literals. MSVC would encode them in
+# the build machine's code page instead (and read the source as such).
+if (MSVC)
+  foreach(_utf8_test StringManager_test XMLHandler_test XMLParserBackend_test)
+    if (TARGET ${_utf8_test})
+      target_compile_options(${_utf8_test} PRIVATE /utf-8)
+    endif()
+  endforeach()
+endif()
+
 # Class tests of classes that live with a TOPP tool rather than in the library. A tool that
 # has a test/CMakeLists.txt gets it added here, and declares its tests with
 # openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/

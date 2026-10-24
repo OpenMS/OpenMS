@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLAttributes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
@@ -562,7 +563,8 @@ private:
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
-      std::ifstream file(std::filesystem::u8path(filename), std::ios::binary);
+      // UTF-8 or (on Windows) code-page file names, as File::exists() accepts them
+      std::ifstream file(to_path(filename), std::ios::binary);
       if (!file)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot open XML file");
