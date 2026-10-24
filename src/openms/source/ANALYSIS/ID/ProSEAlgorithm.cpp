@@ -89,6 +89,7 @@
 #include <set>
 #include <sstream>
 #include <string_view>
+#include <thread>
 #include <tuple>
 #include <utility>
 
@@ -4141,6 +4142,35 @@ namespace OpenMS
 
   namespace
   {
+    // Destroys the hits that the rescoring dropped (rescoreWithPercolator()) on a helper thread, which the next
+    // release of the calling thread, or the end of that thread, waits for. Freeing them took the rescoring's threads
+    // 42-60 ms at 16 threads for the 65,000 dropped hits of an Astral run (allocator contention: 150 ms on one
+    // thread), while the search waited; on a helper thread they are freed meanwhile (130 ms) during the remaining
+    // phases of the search and the output, which keep fewer threads busy than they were given (11-12 at 16 threads).
+    class BackgroundHitRelease
+    {
+    public:
+      ~BackgroundHitRelease() { wait(); }
+
+      void start(std::vector<std::vector<PeptideHit>>&& hits)
+      {
+        wait();
+        // if the thread cannot be started, the hits are destroyed here (with the function object the thread got)
+        try { thread_ = std::thread([hits = std::move(hits)]() mutable { std::vector<std::vector<PeptideHit>>().swap(hits); }); }
+        catch (...) {}
+      }
+
+    private:
+      void wait() noexcept
+      {
+        if (thread_.joinable()) { thread_.join(); }
+      }
+
+      std::thread thread_;
+    };
+
+    thread_local BackgroundHitRelease dropped_hit_release;
+
     // Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
     std::string pinEnzymeName(const std::string& enzyme)
     {
@@ -4247,6 +4277,9 @@ namespace OpenMS
     const int max_threads = 1;
 #endif
     [[maybe_unused]] const int trim_threads = std::max(1, std::min(threads <= 0 ? 3 : threads, max_threads));
+    // With threads, the other hits are moved out and destroyed on a helper thread (see BackgroundHitRelease).
+    const bool release_later = trim_threads > 1;
+    std::vector<std::vector<PeptideHit>> dropped(release_later ? peptide_ids.size() : 0);
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 256) num_threads(trim_threads)
     for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
@@ -4255,13 +4288,19 @@ namespace OpenMS
       {
         PeptideIdentification& pid = peptide_ids[i];
         pid.sort();
-        if (pid.getHits().size() > 1) pid.getHits().resize(1);
+        std::vector<PeptideHit>& hits = pid.getHits();
+        if (hits.size() > 1)
+        {
+          if (release_later) { dropped[i].assign(std::make_move_iterator(hits.begin() + 1), std::make_move_iterator(hits.end())); }
+          hits.resize(1);
+        }
       }
       catch (...)
       {
         errors[i] = std::current_exception();
       }
     }
+    if (release_later) { dropped_hit_release.start(std::move(dropped)); }
     for (const std::exception_ptr& error : errors)
     {
       if (error) std::rethrow_exception(error);
