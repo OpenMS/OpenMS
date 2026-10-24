@@ -227,7 +227,10 @@ namespace OpenMS
     using PSMScorer = std::function<RescoreOutput(const RescoreInput&, const PSMRowLocations&)>;
 
     /**
-      @brief As rescorePSMs() above, but the feature rows are scored by @p scorer instead of rescore(input).
+      @brief As rescorePSMs(), but the feature rows are scored by @p scorer instead of rescore(input).
+
+      (Its own name: as an overload of rescorePSMs(), a function pointer passed for @p scorer would convert to the
+      bool best_hit_only of the other overload.)
 
       The other steps are those of rescorePSMs() above. @p scorer gets the feature rows (buildPSMRescoreInput()) and
       the hit of each row; it must return one score, q-value and PEP per row (e.g. from score() with a model trained
@@ -236,14 +239,14 @@ namespace OpenMS
 
       @throws Exception::InvalidValue if @p scorer returns another number of rows, or as rescorePSMs() above
     */
-    Size rescorePSMs(PeptideIdentificationList& peptide_ids,
-                     const StringList& feature_set,
-                     const std::string& enzyme,
-                     int min_charge,
-                     int max_charge,
-                     const std::string& score_type,
-                     const PSMScorer& scorer,
-                     bool best_hit_only = false);
+    Size rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
+                               const StringList& feature_set,
+                               const std::string& enzyme,
+                               int min_charge,
+                               int max_charge,
+                               const std::string& score_type,
+                               const PSMScorer& scorer,
+                               bool best_hit_only = false);
 
     /**
       @brief SVM weights trained in the last rescore()/train() call.

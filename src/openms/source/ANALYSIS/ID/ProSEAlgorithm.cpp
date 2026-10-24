@@ -4597,6 +4597,12 @@ namespace OpenMS
     return reuseUniform(seed, file, spectrum) < REUSE_CALIBRATION_FROM * fraction;
   }
 
+  bool ProSEAlgorithm::reuseCalibrationDraw(UInt64 seed, Size file, Size spectrum, double fraction)
+  {
+    const double u = reuseUniform(seed, file, spectrum);
+    return u >= REUSE_CALIBRATION_FROM && (u - REUSE_CALIBRATION_FROM) / (1.0 - REUSE_CALIBRATION_FROM) < fraction;
+  }
+
   struct ProSEAlgorithm::ReuseModel_
   {
     std::string mode;                    ///< rescore_reuse:mode of the training
@@ -4743,10 +4749,9 @@ namespace OpenMS
       for (Size s = 0; s < ids.size(); ++s)
       {
         const int h = reuseHalf(seed, file, s);
-        const double u = reuseUniform(seed, file, s);
-        const bool drawn = u >= REUSE_CALIBRATION_FROM
-                           ? (u - REUSE_CALIBRATION_FROM) / (1.0 - REUSE_CALIBRATION_FROM) < calibration_fraction[h]
-                           : reuseTrainingDraw(seed, file, s, fraction[k][h]);
+        // (disjoint: a calibration spectrum is never a training spectrum)
+        const bool drawn = reuseCalibrationDraw(seed, file, s, calibration_fraction[h])
+                           || reuseTrainingDraw(seed, file, s, fraction[k][h]);
         if (drawn && !ids[s].getHits().empty()) { spectra.push_back(s); }
       }
       PeptideIdentificationList drawn_ids;
@@ -5058,8 +5063,8 @@ namespace OpenMS
       }
       else
       {
-        perc.rescorePSMs(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()),
-                         min_charge, max_charge, "q-value", reuse->scorer, /*best_hit_only=*/true);
+        perc.rescorePSMsWithScorer(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()),
+                                   min_charge, max_charge, "q-value", reuse->scorer, /*best_hit_only=*/true);
       }
     }
     catch (const Exception::BaseException& e)

@@ -179,6 +179,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     static bool reuseTrainingDraw(UInt64 seed, Size file, Size spectrum, double fraction);
 
+    /// rescore_reuse: whether spectrum @p spectrum of file @p file is drawn as a calibration spectrum (whose decoys set
+    /// the scale of a model; never trained on) at the calibration fraction @p fraction: from the 5 % of the spectra
+    /// whose draw is highest, so never a training spectrum (reuseTrainingDraw()) at any fraction
+    static bool reuseCalibrationDraw(UInt64 seed, Size file, Size spectrum, double fraction);
+
     /**
      * @brief Comprehensive search result including modification analysis
      *

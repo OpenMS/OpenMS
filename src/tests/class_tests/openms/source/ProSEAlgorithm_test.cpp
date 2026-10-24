@@ -6971,10 +6971,28 @@ START_SECTION(([EXTRA] rescore_reuse:max_train draws its training spectra at ran
       TEST_TRUE(other_seed > 0)
       TEST_TRUE(other_file > 0)
     }
-    // calibration spectra (the top 5 % of the draws) are never drawn for training, also at fraction 1
-    Size drawn_all = 0;
-    for (Size s = 0; s < n; ++s) drawn_all += ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, 1.0) ? 1 : 0;
+    // calibration and training draws are disjoint at every fraction (also both at 1, where together they draw every
+    // spectrum); the calibration spectra are about 5 % of the run and spread over it as well
+    Size drawn_all = 0, calibration_all = 0, both = 0, neither = 0;
+    std::vector<Size> calibration_per_decile(10, 0);
+    for (Size s = 0; s < n; ++s)
+    {
+      const bool t = ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, 1.0), c = ProSEAlgorithm::reuseCalibrationDraw(seed, 0, s, 1.0);
+      drawn_all += t ? 1 : 0;
+      calibration_all += c ? 1 : 0;
+      both += t && c ? 1 : 0;
+      neither += !t && !c ? 1 : 0;
+      if (c) ++calibration_per_decile[s * 10 / n];
+      for (const double f : {0.1, 0.5})
+      {
+        both += ProSEAlgorithm::reuseTrainingDraw(seed, 0, s, f) && ProSEAlgorithm::reuseCalibrationDraw(seed, 0, s, f) ? 1 : 0;
+      }
+    }
+    TEST_EQUAL(both, 0)
+    TEST_EQUAL(neither, 0)
     TEST_TRUE(std::fabs(static_cast<double>(drawn_all) - 0.95 * n) < 0.01 * n)
+    TEST_TRUE(std::fabs(static_cast<double>(calibration_all) - 0.05 * n) < 0.01 * n)
+    for (const Size d : calibration_per_decile) TEST_TRUE(std::fabs(static_cast<double>(d) - 0.005 * n) < 0.2 * 0.005 * n)
   }
 }
 END_SECTION

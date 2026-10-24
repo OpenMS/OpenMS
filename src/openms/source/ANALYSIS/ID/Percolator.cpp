@@ -1634,17 +1634,18 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              const std::string& score_type,
                              bool best_hit_only)
 {
-  return rescorePSMs(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, PSMScorer(), best_hit_only);
+  return rescorePSMsWithScorer(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, PSMScorer(),
+                               best_hit_only);
 }
 
-Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
-                             const StringList& feature_set,
-                             const std::string& enzyme,
-                             int min_charge,
-                             int max_charge,
-                             const std::string& score_type,
-                             const PSMScorer& scorer,
-                             bool best_hit_only)
+Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
+                                       const StringList& feature_set,
+                                       const std::string& enzyme,
+                                       int min_charge,
+                                       int max_charge,
+                                       const std::string& score_type,
+                                       const PSMScorer& scorer,
+                                       bool best_hit_only)
 {
   if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
   {
