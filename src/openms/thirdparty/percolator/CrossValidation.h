@@ -30,6 +30,7 @@
 #include "SanityCheck.h"
 #include "Scores.h"
 #include "ssl.h"
+#include "newton_svm.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
@@ -90,6 +91,8 @@ class CrossValidation {
   void inline setReportPerformanceEachIteration(bool on) {
     reportPerformanceEachIteration_ = on;
   }
+  // OpenMS: the solver of the SVMs (SvmSolver, newton_svm.h; default kSolverTron)
+  void inline setSolver(int solver) { solver_ = solver; }
 
  protected:
   std::vector<AlgIn*> svmInputs_;
@@ -126,12 +129,19 @@ class CrossValidation {
   // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
   // of mergeCpCnPairs) and have not changed since; see doStep
   bool trainScoresOfWeights_ = false;
+  // OpenMS: the solver of the SVMs (SvmSolver)
+  int solver_ = kSolverTron;
   std::vector<double> candidatesCpos_, candidatesCfrac_;
 
   void initializeGridSearch(double targetDecoySizeRatio);
   void trainCpCnPair(CandidateCposCfrac& cpCnFold,
                      options& pOptions,
                      AlgIn* svmInput);
+
+  // OpenMS: solves the SVM of svmInput with the solver (solver_), from the weights in w
+  // (Newton, LDA; TRON starts from 0)
+  void trainSvm(const AlgIn& svmInput, options& pOptions, double cpos, double cneg,
+                vector_double& w, vector_double& outputs);
 
   int mergeCpCnPairs(double selectionFdr,
                      options& pOptions,

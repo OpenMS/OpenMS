@@ -48,6 +48,11 @@ set(OpenMS_percolator_sources
   tron_kernels_sse2.cpp
   tron_kernels_avx2.cpp
 
+  # OpenMS-local: the Newton (explicit Hessian, exact line search) and LDA solvers
+  # that the cross-validation can use instead of TRON (Percolator parameter
+  # 'solver'); see newton_svm.h. Not in whitelist.txt.
+  newton_svm.cpp
+
   # OpenMS-local addition: reservoir-sampling helper derived from
   # SetHandler::readPSMs, required by the in-process Percolator wrapper
   # since we don't vendor Caller.cpp. Not in whitelist.txt — preserved
