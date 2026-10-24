@@ -30,6 +30,14 @@ namespace OpenMS
       /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
       using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
 
+      /**
+       * @brief Writes the PSMs of @p peptide_ids as a Percolator input file.
+       *
+       * @p enz names the enzyme of the enzN, enzC and enzInt features: a name of PercolatorAdapter's 'enzyme' option
+       * (no_enzyme, elastase, pepsin, proteinasek, thermolysin, chymotrypsin, lys-n, lys-c, arg-c, asp-n, glu-c,
+       * trypsin, trypsinp) or of ProteaseDB (e.g. 'Trypsin/P', 'Lys-C', 'PepsinA'), which is mapped to it; any other
+       * enzyme counts every site as enzymatic.
+       */
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 

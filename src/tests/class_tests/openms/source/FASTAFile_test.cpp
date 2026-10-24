@@ -305,6 +305,112 @@ START_SECTION([EXTRA] test_position)
 END_SECTION
 
 
+// writes @p content to a new temporary file and returns its name
+auto writeFASTA = [](const std::string& content)
+{
+  static int count = 0;
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, "_" + std::to_string(++count) + ".fasta");
+  std::ofstream f(filename.c_str(), std::ios::binary);
+  f << content;
+  return filename;
+};
+
+// the message of the ParseError of loading @p filename ("" if it loads)
+auto loadError = [](const std::string& filename)
+{
+  vector<FASTAFile::FASTAEntry> data;
+  try
+  {
+    FASTAFile().load(filename, data);
+  }
+  catch (const Exception::ParseError& e)
+  {
+    return std::string(e.what());
+  }
+  return std::string();
+};
+
+START_SECTION([EXTRA] a UTF-8 byte order mark is skipped)
+{
+  vector<FASTAFile::FASTAEntry> data;
+  FASTAFile().load(writeFASTA("\xEF\xBB\xBF>P1 first\nPEPTIDE\n>P2\nSEQ\n"), data);
+  ABORT_IF(data.size() != 2)
+  TEST_EQUAL(data[0].identifier, "P1")
+  TEST_EQUAL(data[0].description, "first")
+  TEST_EQUAL(data[0].sequence, "PEPTIDE")
+  TEST_EQUAL(data[1].sequence, "SEQ")
+  // a BOM before PEFF headers and blank lines
+  FASTAFile().load(writeFASTA("\xEF\xBB\xBF# PEFF 1.0\n\n>P1\nPEPTIDE\n"), data);
+  ABORT_IF(data.size() != 1)
+  TEST_EQUAL(data[0].identifier, "P1")
+}
+END_SECTION
+
+START_SECTION([EXTRA] an entry without sequence does not swallow the next header)
+{
+  vector<FASTAFile::FASTAEntry> data;
+  // in the middle (also with a description and Windows line breaks), and a header without line break at the end
+  FASTAFile().load(writeFASTA(">E1\n>P1 desc\nPEPTIDE\n>E2 empty one\r\n>P2\nSEQ\n>E3 at the end"), data);
+  ABORT_IF(data.size() != 5)
+  TEST_EQUAL(data[0].identifier, "E1")
+  TEST_EQUAL(data[0].sequence, "")
+  TEST_EQUAL(data[1].identifier, "P1")
+  TEST_EQUAL(data[1].description, "desc")
+  TEST_EQUAL(data[1].sequence, "PEPTIDE")
+  TEST_EQUAL(data[2].identifier, "E2")
+  TEST_EQUAL(data[2].description, "empty one")
+  TEST_EQUAL(data[2].sequence, "")
+  TEST_EQUAL(data[3].identifier, "P2")
+  TEST_EQUAL(data[3].sequence, "SEQ")
+  TEST_EQUAL(data[4].identifier, "E3")
+  TEST_EQUAL(data[4].description, "at the end")
+  TEST_EQUAL(data[4].sequence, "")
+  // a header line at the end, with line break; blank lines before the next header
+  FASTAFile().load(writeFASTA(">P1\nPEP\n>E1 x\n"), data);
+  ABORT_IF(data.size() != 2)
+  TEST_EQUAL(data[1].identifier, "E1")
+  TEST_EQUAL(data[1].sequence, "")
+  FASTAFile().load(writeFASTA(">E1\n\n\n>P1\nPEP\n"), data);
+  ABORT_IF(data.size() != 2)
+  TEST_EQUAL(data[0].sequence, "")
+  TEST_EQUAL(data[1].identifier, "P1")
+  TEST_EQUAL(data[1].sequence, "PEP")
+  // a '>' within a sequence line is not a header
+  FASTAFile().load(writeFASTA(">P1\nPE>P\n"), data);
+  ABORT_IF(data.size() != 1)
+  TEST_EQUAL(data[0].sequence, "PE>P")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] residues are read as written; lowercase ones are not changed))
+{
+  vector<FASTAFile::FASTAEntry> data;
+  FASTAFile().load(writeFASTA(">P1\npeptide\nPEP\n"), data);
+  ABORT_IF(data.size() != 1)
+  TEST_EQUAL(data[0].sequence, "peptidePEP")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] parse errors name the file, the line and the problem))
+{
+  const std::string no_header = writeFASTA("\nPEPTIDE\n>P1\nSEQ\n");
+  std::string error = loadError(no_header);
+  TEST_TRUE(error.find("line 2: expected a header line starting with '>', found 'PEPTIDE'") != std::string::npos)
+  TEST_TRUE(error.find("The first entry could not be read") != std::string::npos)
+  TEST_TRUE(error.find(no_header) != std::string::npos)
+
+  const std::string no_identifier = writeFASTA(">P1\nPEP\nTIDE\n>\nSEQ\n");
+  error = loadError(no_identifier);
+  TEST_TRUE(error.find("line 4: the header line has no identifier after '>'") != std::string::npos)
+  TEST_TRUE(error.find("Only 1 proteins could be read") != std::string::npos)
+  TEST_TRUE(error.find(no_identifier) != std::string::npos)
+
+  TEST_TRUE(loadError(writeFASTA("")).find("no FASTA entry found") != std::string::npos)
+  TEST_EQUAL(loadError(writeFASTA(">P1\nPEP\n")), "")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

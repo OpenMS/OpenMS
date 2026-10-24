@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include "../../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
@@ -42,6 +43,7 @@
 #include <map>
 #include <mutex>
 #include <numeric>
+#include <optional>
 #include <set>
 #include <string_view>
 #include <unordered_map>
@@ -115,6 +117,112 @@ namespace OpenMS
       ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
       ion_offsets_.zp1_offset = Residue::getInternalToZp1Ion().getMonoWeight();
     });
+  }
+
+  namespace
+  {
+    // The bounds of restrictSearchParameters() (documented there)
+    constexpr int MAX_PRECURSOR_CHARGE = 20;
+    constexpr int MAX_FRAGMENT_CHARGE = 10;
+    constexpr int MAX_ABS_ISOTOPE_ERROR = 5;
+    constexpr int MAX_VARIABLE_MODS_PER_PEPTIDE = 5;
+    constexpr int MAX_MIN_MATCHED_IONS = 1000;
+    constexpr int MAX_REPORTED_HITS = 100;
+
+    // checkSearchParameters() without peptide:motif
+    void checkSearchRanges(const Param& param)
+    {
+      const auto check_range = [&param](const std::string& min_name, const std::string& max_name, bool zero_max_unlimited)
+      {
+        if (!param.exists(min_name) || !param.exists(max_name)) return;
+        const double min_value = param.getValue(min_name);
+        const double max_value = param.getValue(max_name);
+        if (zero_max_unlimited && max_value == 0.0) return;
+        if (min_value > max_value)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            min_name + " (" + param.getValue(min_name).toString() + ") is larger than " + max_name + " ("
+            + param.getValue(max_name).toString() + "): nothing would be searched. Swap the values or adjust the range.");
+        }
+      };
+      check_range("precursor:min_charge", "precursor:max_charge", false);
+      check_range("precursor:isotope_error_min", "precursor:isotope_error_max", false);
+      check_range("peptide:min_size", "peptide:max_size", true);
+      check_range("peptide:min_mass", "peptide:max_mass", false);
+      check_range("fragment:min_mz", "fragment:max_mz", false);
+    }
+
+    // The compiled peptide:motif (none if empty), or InvalidParameter
+    RegularExpression compileMotif(const std::string& motif)
+    {
+      if (motif.empty()) return RegularExpression();
+      try
+      {
+        return RegularExpression(motif);
+      }
+      catch (const std::exception& e)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "peptide:motif '" + motif + "' is not a valid regular expression (" + e.what() + ").");
+      }
+    }
+  } // namespace
+
+  void FragmentIndex::restrictSearchParameters(Param& param)
+  {
+    const auto restrict = [&param](const std::string& name, int min, std::optional<int> max = std::nullopt)
+    {
+      if (!param.exists(name)) return;
+      param.setMinInt(name, min);
+      if (max) param.setMaxInt(name, *max);
+    };
+    restrict("precursor:min_charge", 1, MAX_PRECURSOR_CHARGE);
+    restrict("precursor:max_charge", 1, MAX_PRECURSOR_CHARGE);
+    restrict("precursor:isotope_error_min", -MAX_ABS_ISOTOPE_ERROR, MAX_ABS_ISOTOPE_ERROR);
+    restrict("precursor:isotope_error_max", -MAX_ABS_ISOTOPE_ERROR, MAX_ABS_ISOTOPE_ERROR);
+    restrict("fragment:max_charge", 1, MAX_FRAGMENT_CHARGE);
+    restrict("modifications:variable_max_per_peptide", 0, MAX_VARIABLE_MODS_PER_PEPTIDE);
+    restrict("fragment:min_matched_ions", 0, MAX_MIN_MATCHED_IONS);
+    restrict("report:top_hits", 1, MAX_REPORTED_HITS);
+    restrict("scoring:max_candidates_per_spectrum", 1);
+    for (const char* name : {"peptide:missed_cleavages", "peptide:min_size", "peptide:max_size", "peptide:min_mass",
+                             "peptide:max_mass", "fragment:min_mz", "fragment:max_mz"})
+    {
+      restrict(name, 0);
+    }
+    if (param.exists("peptide:motif"))
+    {
+      param.setValue("peptide:motif", param.getValue("peptide:motif"),
+        "If set, only peptides whose unmodified sequence (one-letter codes) contains a match of this regular expression "
+        "are searched, target and decoy peptides alike, e.g. 'N[^P][ST]' for N-glycosylation sequons or 'C' for "
+        "cysteine-containing peptides; '^' and '$' anchor it to the peptide termini.",
+        param.getTags("peptide:motif"));
+    }
+  }
+
+  void FragmentIndex::checkSearchParameters(const Param& param)
+  {
+    checkSearchRanges(param);
+    if (param.exists("peptide:motif")) { compileMotif(param.getValue("peptide:motif").toString()); }
+  }
+
+  void FragmentIndex::precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges)
+  {
+    charges.clear();
+    const int charge = precursor.getCharge();
+    if (charge > 0)
+    {
+      if (charge >= min_charge && charge <= max_charge) charges.push_back(static_cast<uint16_t>(charge));
+      return;
+    }
+    // int, not uint16_t: a loop variable of the type of the bound never passes a bound of 65535
+    for (int z = std::max(min_charge, 1); z <= max_charge; ++z) charges.push_back(static_cast<uint16_t>(z));
+  }
+
+  bool FragmentIndex::matchesMotif_(const char* sequence, size_t length) const
+  {
+    return peptide_motif_.empty()
+           || boost::regex_search(sequence, sequence + length, Internal::RegularExpressionAccess::get(peptide_motif_));
   }
 
   void FragmentIndex::checkFixedModifications(const StringList& fixed_modifications)
@@ -1393,6 +1501,7 @@ namespace OpenMS
               skipped_peptides++;
               continue;
             }
+            if (!matchesMotif_(sub.data(), sub.size())) continue; // peptide:motif
           }
 
           const char* seq_ptr = protein.sequence.c_str() + digested_peptide.first;
@@ -1977,8 +2086,8 @@ namespace OpenMS
 
         if (is_peptide_mass_mode_)
         {
-          // mother: one entry per prefix that the query can realize, holding its (M+H)+ with fixed
-          // modifications (the mass generatePeptides() would give the unmodified peptide) and, with
+          // mother: one entry per prefix that the query can realize (that passes peptide:motif), holding its (M+H)+
+          // with fixed modifications (the mass generatePeptides() would give the unmodified peptide) and, with
           // entry_sites_, an upper bound of its variable modification sites (buildModSlots_() makes at most one
           // slot per terminal modification and per modification of each residue)
           uint32_t sites = static_cast<uint32_t>(variable_nterm_mods_.size() + variable_cterm_mods_.size());
@@ -1986,7 +2095,7 @@ namespace OpenMS
           {
             sites += static_cast<uint32_t>(variable_mod_table_[static_cast<unsigned char>(seq_ptr[length - 1])].size());
             const float mz = static_cast<float>(mass);
-            if (length >= peptide_min_length_ && mz >= entry_min_mz && mz <= entry_max_mz)
+            if (length >= peptide_min_length_ && mz >= entry_min_mz && mz <= entry_max_mz && matchesMotif_(seq_ptr, length))
             {
               const UInt32 entry = entry_sites_
                 ? (static_cast<UInt32>(peptide_idx) | (std::min(sites, ENTRY_MAX_SITES_) << ENTRY_SITES_SHIFT_))
@@ -2620,16 +2729,11 @@ namespace OpenMS
     {
       if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) { continue; } // not searched
       const Precursor& precursor = spectrum.getPrecursors()[0];
-      charges.clear();
-      if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
-      else
-      {
-        for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
-      }
+      precursorCharges(precursor, min_precursor_charge_, max_precursor_charge_, charges);
       for (const uint16_t charge : charges)
       {
         const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
-        for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+        for (int isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
         {
           const float shifted_mass = precursor_mass
             + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
@@ -3105,7 +3209,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // the caller's accumulator.
     thread_local std::vector<CandidateBlock_> blocks;
     blocks.clear();
-    for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
+    // int, not int16_t: a loop variable of the type of the bound never passes a bound of 32767
+    for (int isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
     {
       const float shifted_mass = precursor_mass
         + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
@@ -3127,7 +3232,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         blocks.clear();
       }
       const size_t cell_offset = blocks.empty() ? 0 : blocks.back().cell_offset + (blocks.back().second - blocks.back().first);
-      blocks.push_back({candidates_range.first, candidates_range.second, cell_offset, isotope_error});
+      blocks.push_back({candidates_range.first, candidates_range.second, cell_offset, static_cast<int16_t>(isotope_error)});
     }
     queryPeaks(sms, spectrum, blocks, charge, with_electron_ions);
   }
@@ -3214,17 +3319,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // Preconditions checked by the public entry point querySpectrum.
     const Precursor& precursor = spectrum.getPrecursors()[0];
     std::vector<uint16_t> charges;
-    // Precursor::getCharge() returns signed Int; treat non-positive (0 = unset,
-    // rare negative-mode encodings) as "unknown" and fall back to the
-    // configured min..max range.
-    if (precursor.getCharge() > 0)
-    {
-      charges.push_back(static_cast<uint16_t>(precursor.getCharge()));
-    }
-    else
-    {
-      for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z) charges.push_back(z);
-    }
+    // Precursor::getCharge() returns signed Int; non-positive (0 = unset, rare negative-mode encodings) is "unknown"
+    precursorCharges(precursor, min_precursor_charge_, max_precursor_charge_, charges);
 
     // The windows of the peaks; peak_windows[f - 1] holds those of the fragment charges 1..f, as queryPeaks()
     // matches a precursor of charge z with the fragment charges 1..min(z, fragment:max_charge)
@@ -3296,7 +3392,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       // the precursor (M+H)+ of searchDifferentPrecursorRanges() for this charge
       const float mz = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
-      for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
+      for (int isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
       {
         // The window of the fragment index (searchDifferentPrecursorRanges(), getPeptidesInMassWindow()): a
         // peptidoform is a candidate if its precursor_mz_ lies in [lo, hi]
@@ -3363,7 +3459,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             sm.subset_bitmask_ = subset;
             sm.sigma_delta_ = static_cast<float>(peptidoform_mass - mass);
             sm.precursor_charge_ = charge;
-            sm.isotope_error_ = isotope_error;
+            sm.isotope_error_ = static_cast<int16_t>(isotope_error);
             sm.realized_length_ = static_cast<uint16_t>(length);
             sm.peptide_idx_ = mother_idx;
             tie_keys.push_back({precursor_mz, mother.protein_idx, static_cast<uint16_t>(start)});
@@ -3593,19 +3689,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
 
       // Fragment-index path: fasta_entries not needed.
-      // two posible modes. Precursor has a charge or we test all possible charges
-      vector<size_t> charges;
-      if (precursor[0].getCharge())
-      {
-        charges.push_back(precursor[0].getCharge());
-      }
-      else
-      {
-        for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
-        {
-          charges.push_back(i);
-        }
-      }
+      // The precursor's charge if it has one (none if it lies outside of the charge range), else every charge of the range
+      std::vector<uint16_t> charges;
+      precursorCharges(precursor[0], min_precursor_charge_, max_precursor_charge_, charges);
 
       // Charge outer, isotope error inner (inside searchDifferentPrecursorRanges); each
       // block appends to sms in ascending peptide index. A per-charge staging container
@@ -3668,8 +3754,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
-    defaults_.setValue("precursor:min_charge", 2, "min precursor charge");
-    defaults_.setValue("precursor:max_charge", 5, "max precursor charge");
+    defaults_.setValue("precursor:min_charge", 2,
+                       "min precursor charge. Spectra without a precursor charge are searched with every charge of the "
+                       "range; spectra whose recorded charge lies outside of it are not searched.");
+    defaults_.setValue("precursor:max_charge", 5, "max precursor charge (see precursor:min_charge)");
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
@@ -3712,7 +3800,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       "           spaces consider tightening 'peptide:min_size'/'peptide:max_size'.");
     defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
     defaults_.setValue("peptide:min_size", 7, "Minimal peptide length for database");
-    defaults_.setValue("peptide:max_size", 40, "Maximal peptide length for database");
+    defaults_.setValue("peptide:max_size", 40, "Maximal peptide length for database (0 = unlimited)");
 
     defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
     defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database"); //Todo: set unlimited option
@@ -3775,14 +3863,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
-    defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
+    defaults_.setValue("peptide:motif", "", ""); // description: restrictSearchParameters()
     defaults_.setSectionDescription("peptide", "Peptide Options");
+    restrictSearchParameters(defaults_);
 
     defaultsToParam_();
 }
 
   void FragmentIndex::updateMembers_()
   {
+    // checkSearchParameters(), with the motif compiled once
+    checkSearchRanges(param_);
+    peptide_motif_ = compileMotif(param_.getValue("peptide:motif").toString());
+
     add_b_ions_ = param_.getValue("ions:add_b_ions").toBool();
     add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();
     add_a_ions_ = param_.getValue("ions:add_a_ions").toBool();

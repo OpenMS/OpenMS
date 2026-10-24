@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <tuple>
 #include <vector>
 
 using namespace OpenMS;
@@ -263,6 +264,47 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the isotope error corrects dm/abs
   // SAMPLEK: no isotope error, the plain difference
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("dm")), observed_mz - samplek.getMZ(2))
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("absdm")), std::abs(observed_mz - samplek.getMZ(2)))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with ProteaseDB and Percolator enzyme names))
+{
+  // The enzyme features of a tryptic peptide with a missed cleavage, preceded by M and followed by S: the C-terminus
+  // and one internal site are tryptic
+  auto stamp = [](const std::string& enz)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPKTIDER"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore('M');
+    ev.setAAAfter('S');
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setMZ(hit.getSequence().getMZ(2));
+    pid.setRT(10.0);
+    pid.setSpectrumReference("scan=1");
+    pid.setHits(std::vector<PeptideHit>{hit});
+    PeptideIdentificationList pids;
+    pids.push_back(pid);
+    PercolatorInfile::stampPinFeaturesOnHits(pids, enz, 2, 3);
+    const PeptideHit& stamped = pids[0].getHits()[0];
+    return std::make_tuple(static_cast<int>(stamped.getMetaValue("enzN")), static_cast<int>(stamped.getMetaValue("enzC")),
+                           static_cast<int>(stamped.getMetaValue("enzInt")));
+  };
+  // ProSE -out_pin passed 'Trypsin/P', which used to count every site (1, 1, 8)
+  for (const std::string enzyme : {"Trypsin/P", "trypsinp", "Trypsin", "trypsin"})
+  {
+    TEST_TRUE(stamp(enzyme) == std::make_tuple(0, 1, 1))
+  }
+  TEST_TRUE(stamp("Lys-C") == std::make_tuple(0, 0, 1)) // K|T inside; M|P and R|S are not Lys-C sites
+  TEST_TRUE(stamp("lys-c") == std::make_tuple(0, 0, 1))
+  // an enzyme the features do not know counts every site
+  TEST_TRUE(stamp("no_enzyme") == std::make_tuple(1, 1, 8))
+  TEST_TRUE(stamp("unspecific cleavage") == std::make_tuple(1, 1, 8))
 }
 END_SECTION
 
