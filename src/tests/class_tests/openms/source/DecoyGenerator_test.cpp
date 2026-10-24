@@ -3,10 +3,11 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, kg290 $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/test_config.h>
 
@@ -44,6 +45,52 @@ END_SECTION
 
 dg = new DecoyGenerator();
 dg->setSeed(4711);
+
+START_SECTION((void startDeBruijn(Size k, UInt64 seed, const std::string& keep_residues); void addProteinToDeBruijn(const AASequence&); void finalizeDeBruijn(); AASequence deBruijn(const AASequence&) const))
+  const auto protein_a = AASequence::fromString("APEPTIDEG");
+  const auto protein_b = AASequence::fromString("KPEPTIDEA");
+  DecoyGenerator debruijn;
+  debruijn.startDeBruijn(2, 4711);
+  debruijn.addProteinToDeBruijn(protein_a);
+  debruijn.addProteinToDeBruijn(protein_b);
+  debruijn.finalizeDeBruijn();
+
+  const auto decoy_a = debruijn.deBruijn(protein_a).toUnmodifiedString();
+  const auto decoy_b = debruijn.deBruijn(protein_b).toUnmodifiedString();
+  TEST_STRING_EQUAL(decoy_a, "ETKEPEPIP")
+  TEST_EQUAL(decoy_a.size(), protein_a.size())
+  TEST_EQUAL(decoy_b.size(), protein_b.size())
+  TEST_EQUAL(decoy_a.substr(3, 5), decoy_b.substr(3, 5)) // shared seven-residue repeat remains shared for L-k residues
+
+  DecoyGenerator seeded_again;
+  seeded_again.startDeBruijn(2, 4711);
+  seeded_again.addProteinToDeBruijn(protein_a);
+  seeded_again.addProteinToDeBruijn(protein_b);
+  seeded_again.finalizeDeBruijn();
+  TEST_EQUAL(seeded_again.deBruijn(protein_a).toUnmodifiedString(), decoy_a)
+
+  DecoyGenerator keep_cleavage;
+  keep_cleavage.startDeBruijn(2, 4711, "K");
+  keep_cleavage.addProteinToDeBruijn(AASequence::fromString("MPEPTIDEK"));
+  keep_cleavage.finalizeDeBruijn();
+  TEST_EQUAL(keep_cleavage.deBruijn(AASequence::fromString("MPEPTIDEK")).toUnmodifiedString().back(), 'K')
+
+  TEST_EXCEPTION(Exception::Precondition, debruijn.deBruijn(AASequence::fromString("WWWWWWW")))
+  TEST_EXCEPTION(Exception::InvalidParameter, debruijn.deBruijn(AASequence::fromString("M(Oxidation)PEPTIDEK")))
+
+  DecoyGenerator not_started;
+  TEST_EXCEPTION(Exception::Precondition, not_started.addProteinToDeBruijn(protein_a))
+  TEST_EXCEPTION(Exception::Precondition, not_started.finalizeDeBruijn())
+  TEST_EXCEPTION(Exception::Precondition, not_started.deBruijn(protein_a))
+  TEST_EXCEPTION(Exception::InvalidParameter, not_started.startDeBruijn(0, 4711))
+
+  DecoyGenerator finalized;
+  finalized.startDeBruijn(2, 4711);
+  finalized.addProteinToDeBruijn(protein_a);
+  finalized.finalizeDeBruijn();
+  TEST_EXCEPTION(Exception::Precondition, finalized.addProteinToDeBruijn(protein_b))
+  TEST_EXCEPTION(Exception::Precondition, finalized.finalizeDeBruijn())
+END_SECTION
 
 START_SECTION((AASequence reverseProtein(const AASequence& protein)))
   TEST_EQUAL(dg->reverseProtein(AASequence::fromString("PRTEINE")).toString(), "ENIETRP")
