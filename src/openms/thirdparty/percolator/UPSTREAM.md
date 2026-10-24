@@ -168,7 +168,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   `std::sort`, so it leaves the same permutation (also of PSMs that compare equal), but
   hands the right parts of the partitions to tasks (the algorithm of OpenMS'
   `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score or mass (no strict weak
-  ordering), it is `std::sort`.
+  ordering), it is `std::sort`. Ranges of more than 2^18 elements (large data sets: the first
+  partitionings, which no other task of the sort runs beside) are partitioned with all tasks
+  (`partitionInParallel`): the elements are classified against the pivot in chunks, and the swaps
+  of `__unguarded_partition` (the k-th element from the left not less than the pivot with the k-th
+  from the right the pivot is not less than, while they are in order) are made from these
+  classes, in blocks; same swaps, same cut (if its bookkeeping cannot be allocated, the scans of
+  `__unguarded_partition` as before).
   The loops over the folds (`CrossValidation`, `SanityCheck`) run their folds as tasks of a
   parallel region on up to 12 threads (`numTeamThreads`), whose other threads run the tasks
   of the sorts; `createXvalSetsBySpectrum` and `merge` are called in such a region as well.
