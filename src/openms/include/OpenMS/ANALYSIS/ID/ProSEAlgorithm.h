@@ -979,6 +979,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                         double tolerance, bool ppm,
                                                         std::vector<double>& alternatives);
 
+    /// localFragmentEvidence_() with the charges of the peaks of @p theoretical given (@p charges, one per peak)
+    static LocalFragmentEvidence_ localFragmentEvidence_(const MSSpectrum& spectrum,
+                                                        const MSSpectrum& theoretical,
+                                                        const std::vector<Int>& charges,
+                                                        int max_charge,
+                                                        const std::vector<double>& densities,
+                                                        double tolerance, bool ppm,
+                                                        std::vector<double>& alternatives);
+
     /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
     static bool isElectronActivated_(const MSSpectrum& spectrum);
 
@@ -1123,6 +1132,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
      * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
      *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
+     * @param[in] defer_peak_annotations Leave out the fragment annotations (annotate:PSM fragment_annotation): the caller
+     *                                   adds them with annotateFragmentPeaks_() to the hits it keeps.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -1141,7 +1152,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_max_charge,
       const std::string& enzyme,
       const std::string& database_name,
-      const PeakMap* evidence_spectra = nullptr) const;
+      const PeakMap* evidence_spectra = nullptr,
+      bool defer_peak_annotations = false) const;
+
+    /**
+     * @brief The fragment annotations that postProcessHits_() leaves out with defer_peak_annotations, for the hits of
+     * @p peptide_ids (by their "scan_index" in @p exp), computed as postProcessHits_() computes them.
+     */
+    void annotateFragmentPeaks_(const PeakMap& exp, PeptideIdentificationList& peptide_ids,
+                                double fragment_mass_tolerance, const std::string& fragment_mass_tolerance_unit_ppm) const;
 
     /**
      * @brief Adds PeptDeep-prediction-derived rescoring features to the PSMs.

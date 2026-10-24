@@ -807,18 +807,27 @@ namespace OpenMS
       const MSSpectrum& spectrum, const MSSpectrum& theoretical, int max_charge,
       const std::vector<double>& densities, double tolerance, bool ppm, std::vector<double>& alternatives)
   {
+    if (spectrum.empty() || theoretical.empty()) return LocalFragmentEvidence_();
+    OPENMS_PRECONDITION(!theoretical.getIntegerDataArrays().empty()
+      && theoretical.getIntegerDataArrays()[0].size() == theoretical.size(), "Aligned fragment charges required")
+    return localFragmentEvidence_(spectrum, theoretical, theoretical.getIntegerDataArrays()[0], max_charge, densities, tolerance,
+                                  ppm, alternatives);
+  }
+
+  ProSEAlgorithm::LocalFragmentEvidence_ ProSEAlgorithm::localFragmentEvidence_(
+      const MSSpectrum& spectrum, const MSSpectrum& theoretical, const std::vector<Int>& charges, int max_charge,
+      const std::vector<double>& densities, double tolerance, bool ppm, std::vector<double>& alternatives)
+  {
     // The ions of charge <= max_charge of a TSG spectrum of charges 1..Z are the TSG spectrum of charges
     // 1..max_charge, in the same order: the generator adds each charge independently and sorts stably.
     // Annotation therefore passes its own theoretical spectrum instead of generating a second one.
     LocalFragmentEvidence_ evidence;
     if (spectrum.empty() || theoretical.empty()) return evidence;
     OPENMS_PRECONDITION(densities.size() == spectrum.size(), "One local density per experimental peak required")
-    OPENMS_PRECONDITION(!theoretical.getIntegerDataArrays().empty()
-      && theoretical.getIntegerDataArrays()[0].size() == theoretical.size(), "Aligned fragment charges required")
+    OPENMS_PRECONDITION(charges.size() == theoretical.size(), "Aligned fragment charges required")
 
     static const double water_mass = EmpiricalFormula("H2O").getMonoWeight();
     static const double ammonia_mass = EmpiricalFormula("NH3").getMonoWeight();
-    const auto& charges = theoretical.getIntegerDataArrays()[0];
     alternatives.clear();
     alternatives.reserve(3 * theoretical.size());
     for (Size i = 0; i < theoretical.size(); ++i)
@@ -1453,7 +1462,8 @@ namespace OpenMS
         const Int precursor_max_charge,
         const std::string& enzyme,
         const std::string& database_name,
-        const PeakMap* evidence_spectra) const
+        const PeakMap* evidence_spectra,
+        bool defer_peak_annotations) const
   {
     // Candidate-pool features (delta score, z-score, candidate count) are derived
     // from @p pool_stats rather than from @p annotated_hits: scoreSpectraAgainstIndex_
@@ -1536,6 +1546,8 @@ namespace OpenMS
     // normalized MIC, and complementary ion pairs
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
       || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+    // no ion name is written here: the theoretical spectra may come without them
+    const bool without_ion_names = !annotation_fragment_annotations || defer_peak_annotations;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -1674,6 +1686,11 @@ namespace OpenMS
 
         AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
         std::vector<double> evidence_alternatives; // reused by all hits of this spectrum
+        // the theoretical spectrum without ion names (reused by all hits of this spectrum), see below
+        MSSpectrum coded_spec;
+        std::vector<uint8_t> coded_series;
+        std::vector<UInt> coded_ordinals;
+        std::vector<Int> coded_charges;
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
@@ -1686,31 +1703,38 @@ namespace OpenMS
           ph.setScore(ah.score);
           ph.setSequence(ah.sequence);
 
-          // Generate theoretical spectrum + alignment for annotations that need it.
+          // Generate theoretical spectrum + alignment for annotations that need it. Unless the ion names are written
+          // (fragment annotations here), the peaks of getSpectrum() come without them, with the series, ordinal and
+          // charge of each ion as numbers (getIonSeriesSpectrum(): the same peaks in the same order; about a fifth of
+          // the cost), if the generator supports that.
           std::vector<std::pair<Size, Size>> alignment;
           MSSpectrum theoretical_spec;
+          bool coded = false;
           // Annotate the charges actually scored when higher charges are scored.
           const int max_frag_z = scoring_multiple_charges_ ? scoringMaxCharge_(static_cast<int>(used_charge))
                                                            : ((charge >= 2) ? std::min<int>(charge - 1, 2) : 1);
           if (need_alignment)
           {
-            tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
+            coded = without_ion_names
+                    && tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, ah.sequence, 1, max_frag_z);
+            if (!coded) tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             if (sa_absolute)
             {
-              alignAbsoluteTolerance_(alignment, theoretical_spec, spec, sa_tolerance, alignment_scratch);
+              alignAbsoluteTolerance_(alignment, coded ? coded_spec : theoretical_spec, spec, sa_tolerance, alignment_scratch);
             }
             else
             {
-              sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+              sa.getSpectrumAlignment(alignment, coded ? coded_spec : theoretical_spec, spec);
             }
           }
+          const MSSpectrum& theo_spec = coded ? coded_spec : theoretical_spec;
 
           if (annotation_fragment_error_ppm)
           {
             std::vector<double> err;
             for (const auto& match : alignment)
             {
-              double fragment_error = fabs(Math::getPPM(spec[match.second].getMZ(), theoretical_spec[match.first].getMZ()));
+              double fragment_error = fabs(Math::getPPM(spec[match.second].getMZ(), theo_spec[match.first].getMZ()));
               err.push_back(fragment_error);
             }
             double median_ppm_error(0);
@@ -1774,8 +1798,9 @@ namespace OpenMS
           if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
             || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
           {
-            const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
-            const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
+            // (the names and charges of getSpectrum(); none for a coded spectrum)
+            const auto* ion_names = coded ? nullptr : &theoretical_spec.getStringDataArrays()[0];
+            const auto* ion_charges = coded ? nullptr : &theoretical_spec.getIntegerDataArrays()[0];
 
             // Build PeakAnnotation vector + collect ion ordinals for longest run.
             // Prefix = a/b/c (N-terminal), suffix = x/y/z (C-terminal). Ordinals
@@ -1796,13 +1821,13 @@ namespace OpenMS
 
             for (const auto& [theo_idx, exp_idx] : alignment)
             {
-              if (annotation_fragment_annotations)
+              if (annotation_fragment_annotations && !defer_peak_annotations)
               {
                 PeptideHit::PeakAnnotation pa;
                 pa.mz = spec[exp_idx].getMZ();
                 pa.intensity = spec[exp_idx].getIntensity();
-                pa.annotation = ion_names[theo_idx];
-                pa.charge = ion_charges[theo_idx];
+                pa.annotation = (*ion_names)[theo_idx];
+                pa.charge = (*ion_charges)[theo_idx];
                 peak_annotations.push_back(pa);
               }
 
@@ -1812,9 +1837,14 @@ namespace OpenMS
                 counted_exp_peaks[exp_idx] = 1;
               }
 
-              if (need_ordinals && ion_names[theo_idx].size() >= 2)
+              if (need_ordinals && coded)
               {
-                const std::string& name = ion_names[theo_idx];
+                // the number of the ion name ("b5+", "z.4+": 5, 4), never 0
+                (coded_series[theo_idx] == 0 ? prefix_ordinals : suffix_ordinals).push_back(static_cast<int>(coded_ordinals[theo_idx]));
+              }
+              else if (need_ordinals && (*ion_names)[theo_idx].size() >= 2)
+              {
+                const std::string& name = (*ion_names)[theo_idx];
                 const char c = name[0];
                 const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
                 const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
@@ -1834,7 +1864,7 @@ namespace OpenMS
               }
             }
 
-            if (annotation_fragment_annotations)
+            if (annotation_fragment_annotations && !defer_peak_annotations)
             {
               ph.setPeakAnnotations(std::move(peak_annotations));
             }
@@ -1906,8 +1936,10 @@ namespace OpenMS
             LocalFragmentEvidence_ evidence;
             if (need_alignment && evidence_z <= max_frag_z)
             {
-              evidence = localFragmentEvidence_(evidence_spec, theoretical_spec, evidence_z, local_densities,
-                fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
+              evidence = coded ? localFragmentEvidence_(evidence_spec, coded_spec, coded_charges, evidence_z, local_densities,
+                                                        fragment_mass_tolerance, evidence_ppm, evidence_alternatives)
+                               : localFragmentEvidence_(evidence_spec, theoretical_spec, evidence_z, local_densities,
+                                                        fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
             }
             else
             {
@@ -2557,6 +2589,83 @@ namespace OpenMS
   // Score all spectra against a single FragmentIndex, appending results to
   // annotated_hits. Used by both chunked and non-chunked search paths.
   // =====================================================================
+  void ProSEAlgorithm::annotateFragmentPeaks_(const PeakMap& exp, PeptideIdentificationList& peptide_ids,
+                                              double fragment_mass_tolerance,
+                                              const std::string& fragment_mass_tolerance_unit_ppm) const
+  {
+    bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end()
+      || std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end();
+    if (!annotation_fragment_annotations) return;
+    // the generators and the alignment of postProcessHits_()
+    const SpectrumGenerators_ generators = spectrumGenerators_();
+    SpectrumAlignment sa;
+    {
+      Param sa_param(sa.getParameters());
+      sa_param.setValue("tolerance", fragment_mass_tolerance);
+      sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
+      sa.setParameters(sa_param);
+    }
+    const bool sa_absolute = !sa.getParameters().getValue("is_relative_tolerance").toBool();
+    const double sa_tolerance = (double)sa.getParameters().getValue("tolerance");
+    const UInt scan_index_key = MetaInfoInterface::metaRegistry().getIndex("scan_index");
+
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
+#pragma omp parallel for schedule(dynamic, 16)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      try
+      {
+        PeptideIdentification& pi = peptide_ids[i];
+        if (pi.getHits().empty()) continue;
+        const Size scan_index = static_cast<Size>(static_cast<int>(pi.getMetaValue(scan_index_key))); // (set by postProcessHits_())
+        const MSSpectrum& spec = exp[scan_index];
+        const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
+        const Size charge = spec.getPrecursors()[0].getCharge();
+        AlignmentScratch_ alignment_scratch;
+        for (PeptideHit& ph : pi.getHits())
+        {
+          // as postProcessHits_() for this hit (its charge is the charge used there)
+          const Size used_charge = static_cast<Size>(ph.getCharge());
+          const int max_frag_z = scoring_multiple_charges_ ? scoringMaxCharge_(static_cast<int>(used_charge))
+                                                           : ((charge >= 2) ? std::min<int>(charge - 1, 2) : 1);
+          MSSpectrum theoretical_spec;
+          std::vector<std::pair<Size, Size>> alignment;
+          tsg.getSpectrum(theoretical_spec, ph.getSequence(), 1, max_frag_z);
+          if (sa_absolute)
+          {
+            alignAbsoluteTolerance_(alignment, theoretical_spec, spec, sa_tolerance, alignment_scratch);
+          }
+          else
+          {
+            sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+          }
+          const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
+          const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
+          std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+          peak_annotations.reserve(alignment.size());
+          for (const auto& [theo_idx, exp_idx] : alignment)
+          {
+            PeptideHit::PeakAnnotation pa;
+            pa.mz = spec[exp_idx].getMZ();
+            pa.intensity = spec[exp_idx].getIntensity();
+            pa.annotation = ion_names[theo_idx];
+            pa.charge = ion_charges[theo_idx];
+            peak_annotations.push_back(pa);
+          }
+          ph.setPeakAnnotations(std::move(peak_annotations));
+        }
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors)
+    {
+      if (error) std::rethrow_exception(error);
+    }
+  }
+
   void ProSEAlgorithm::scoreSpectraAgainstIndex_(
       const PeakMap& spectra,
       FragmentIndex& fi,
@@ -3918,6 +4027,10 @@ namespace OpenMS
 
     takeBackThreadsOfEndedRead();
     startProgress(0, 1, "Post-processing PSMs...");
+    // The fragment annotations of a hit are needed only for the output: when the rescoring (all but the best hit of a
+    // spectrum) or the PSM FDR drops hits, they are made after that, for the hits that remain. Not if anything reads
+    // them before (PeptDeep features) or keeps the hits of before (the pre-FDR copy).
+    const bool defer_peak_annotations = (rescore_ || fdr_psm_ > 0.0) && !peptdeep_enable_ && !keep_pre_fdr_psms_;
     ProSEAlgorithm::postProcessHits_(spectra,
       annotated_hits,
       pool_stats,
@@ -3935,7 +4048,8 @@ namespace OpenMS
       precursor_max_charge_,
       enzyme_,
       "", // no database filename for in-memory search
-      evidence_ptr
+      evidence_ptr,
+      defer_peak_annotations
       );
     // Release the hits and the additional peak list before PeptideIndexing.
     freeInParallel(annotated_hits);
@@ -4006,6 +4120,11 @@ namespace OpenMS
     // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
     last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_,
                                     keep_pre_fdr_psms_ ? &pre_fdr_peptide_ids_ : nullptr);
+    if (defer_peak_annotations)
+    {
+      takeBackThreadsOfEndedRead();
+      annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_);
+    }
 
     restore_fi_params();
 
@@ -6667,6 +6786,28 @@ namespace OpenMS
     const auto fragment_charges = [max_fragment_charge](int precursor_charge) {
       return std::max(1, std::min(max_fragment_charge, precursor_charge - 1));
     };
+    // The ions of @p sequence (charge 1 to fragment_charges(charge)) matched against peak list @p scan: from the
+    // series, ordinals and charges of getIonSeriesSpectrum() if the generator supports it (no ion names to write and
+    // parse back: the same ions), else from getSpectrum() with the names.
+    struct IonScratch
+    {
+      PeakSpectrum theo;
+      std::vector<uint8_t> series;
+      std::vector<UInt> ordinals;
+      std::vector<Int> charges;
+    };
+    const auto match_ions = [&](const FragmentIonLikelihoodModel& model, const TheoreticalSpectrumGenerator& tsg, Size scan,
+                                const AASequence& sequence, int charge, IonScratch& scratch, std::vector<FragmentIonLikelihoodModel::Ion>& ions)
+    {
+      if (tsg.getIonSeriesSpectrum(scratch.theo, scratch.series, scratch.ordinals, scratch.charges, sequence, 1, fragment_charges(charge)))
+      {
+        model.matchIons(evidence, scan, scratch.theo, scratch.series, scratch.ordinals, scratch.charges, sequence, charge, tolerance, ppm, ions);
+        return;
+      }
+      scratch.theo.clear(true);
+      tsg.getSpectrum(scratch.theo, sequence, 1, fragment_charges(charge));
+      model.matchIons(evidence, scan, scratch.theo, sequence, charge, tolerance, ppm, ions);
+    };
 
     // 1. The spectrum of every PSM (scan_index of postProcessHits_); -1 if it has no peaks to match.
     const Size n_ids = peptide_ids.size();
@@ -6754,14 +6895,11 @@ namespace OpenMS
           const PeptideHit& hit = best_hit(peptide_ids[psms[t]]);
           const int charge = hit.getCharge();
           const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spectra[scan]);
-          PeakSpectrum theo;
-          tsg.getSpectrum(theo, hit.getSequence(), 1, fragment_charges(charge));
-          model.matchIons(evidence, scan, theo, hit.getSequence(), charge, tolerance, ppm, signal[t]);
+          IonScratch scratch;
+          match_ions(model, tsg, scan, hit.getSequence(), charge, scratch, signal[t]);
           const AASequence reversed = reversedNoiseSequence_(hit.getSequence());
           if (reversed == hit.getSequence()) continue; // no noise hypothesis (a palindrome)
-          theo.clear(true);
-          tsg.getSpectrum(theo, reversed, 1, fragment_charges(charge));
-          model.matchIons(evidence, scan, theo, reversed, charge, tolerance, ppm, noise[t]);
+          match_ions(model, tsg, scan, reversed, charge, scratch, noise[t]);
         }
         for (Size t = 0; t < psms.size(); ++t)
         {
@@ -6796,7 +6934,7 @@ namespace OpenMS
       const SignedSize scan = scans[i];
       const bool scorable = trained && scan >= 0;
       const FragmentIonLikelihoodModel& model = models[scorable ? 1 - static_cast<Size>(scan) % 2 : 0];
-      PeakSpectrum theo;
+      IonScratch scratch;
       std::vector<FragmentIonLikelihoodModel::Ion> ions;
       for (PeptideHit& hit : pi.getHits())
       {
@@ -6804,9 +6942,7 @@ namespace OpenMS
         if (scorable)
         {
           const int charge = hit.getCharge();
-          theo.clear(true);
-          generators.forSpectrum(spectra[scan]).getSpectrum(theo, hit.getSequence(), 1, fragment_charges(charge));
-          model.matchIons(evidence, static_cast<Size>(scan), theo, hit.getSequence(), charge, tolerance, ppm, ions);
+          match_ions(model, generators.forSpectrum(spectra[scan]), static_cast<Size>(scan), hit.getSequence(), charge, scratch, ions);
           features = model.score(ions);
         }
         if (write_llr) hit.setMetaValue(mv_llr, features.log_likelihood_ratio);
