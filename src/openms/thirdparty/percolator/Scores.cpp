@@ -50,6 +50,9 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 // OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
 [[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
+// OpenMS: the smallest block of PSMs a task of getScoreLabelPairs, calcQvals or normalizeScores
+// handles
+[[maybe_unused]] constexpr std::ptrdiff_t kMinPairTaskSize = 4 * kMinScoreTaskSize;
 
 // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
 // strict weak ordering on [first, last): no score or mass is NaN.
@@ -558,6 +561,20 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
     }
   }
 
+#ifdef _OPENMP
+  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+#pragma omp taskloop grainsize(kMinPairTaskSize) shared(fdrScore, diff)
+    for (std::ptrdiff_t i = 0; i < n; ++i) {
+      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+      sh.score -= fdrScore;
+      sh.score /= diff;
+    }
+    Normalizer::endScoreNormalizeWeights(weights, weights, fdrScore, diff);
+    return;
+  }
+#endif
   std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
   for (; scoreIt != scores_.end(); ++scoreIt) {
     scoreIt->score -= fdrScore;
@@ -785,6 +802,17 @@ int Scores::sortScores() {
 
 void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
   combined.resize(scores_.size());
+#ifdef _OPENMP
+  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+#pragma omp taskloop grainsize(kMinPairTaskSize) shared(combined)
+    for (std::ptrdiff_t i = 0; i < n; ++i) {
+      combined[static_cast<std::size_t>(i)] = scores_[static_cast<std::size_t>(i)].toPair();
+    }
+    return;
+  }
+#endif
   transform(scores_.begin(), scores_.end(), combined.begin(),
             mem_fn(&ScoreHolder::toPair));
 }
@@ -816,6 +844,29 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
   }
 
   // set q-values and count number of positives
+#ifdef _OPENMP
+  // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs; the counts
+  // of the blocks are added up afterwards)
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(qvals.size());
+  if (n >= 2 * kMinPairTaskSize && qvals.size() == scores_.size() && omp_in_parallel()) {
+    const std::ptrdiff_t numBlocks = (n + kMinPairTaskSize - 1) / kMinPairTaskSize;
+    std::vector<int> positivesOfBlock(static_cast<std::size_t>(numBlocks), 0);
+#pragma omp taskloop grainsize(1) shared(qvals, positivesOfBlock, fdr)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+      const std::ptrdiff_t last = std::min(n, (block + 1) * kMinPairTaskSize);
+      int positives = 0;
+      for (std::ptrdiff_t i = block * kMinPairTaskSize; i < last; ++i) {
+        ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+        sh.q = qvals[static_cast<std::size_t>(i)];
+        if (sh.q < fdr && sh.isTarget()) ++positives;
+      }
+      positivesOfBlock[static_cast<std::size_t>(block)] = positives;
+    }
+    int numPos = 0;
+    for (const int positives : positivesOfBlock) numPos += positives;
+    return numPos;
+  }
+#endif
   std::vector<double>::const_iterator qIt = qvals.begin();
   std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
 

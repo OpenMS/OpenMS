@@ -309,6 +309,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   `Scores::createXvalSetsBySpectrum` computes the spectrum hash keys, and `permuteScores` puts large
   sets into the order of the sorted keys, by the tasks of the region; `getInitDirection` writes its
   feature columns by blocks of PSMs (one column after the other per block).
+  In a parallel region, `Scores::getScoreLabelPairs`, the setting and counting of the q-values in
+  `calcQvals` (counts of blocks of PSMs, added up) and the rescaling of `normalizeScores` run over
+  large sets as tasks of blocks of PSMs: the same pairs, q-values, count and scores.
 
 ### Regenerating the patch
 
