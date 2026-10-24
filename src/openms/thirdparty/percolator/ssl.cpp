@@ -245,9 +245,10 @@ struct TronWorkspacePool {
   int holds = 0;
 };
 
+// never destroyed: a TronWorkspaceHold or a solve may end during the destruction of statics
 TronWorkspacePool& tronWorkspacePool() {
-  static TronWorkspacePool pool;
-  return pool;
+  static TronWorkspacePool* pool = new TronWorkspacePool();
+  return *pool;
 }
 
 // A workspace from the pool for one solve, given back at the end (freed if it is large and no

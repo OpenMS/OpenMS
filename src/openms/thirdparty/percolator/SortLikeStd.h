@@ -74,8 +74,8 @@ template <typename T, typename Less>
 T* partitionInParallel(T* first, T* last, Less less, std::ptrdiff_t chunk) {
   T* const begin = first + 1;  // the pivot *first is not moved: the scans cover [first + 1, last)
   const std::ptrdiff_t n = last - begin;
-  const std::ptrdiff_t numChunks = (n + chunk - 1) / chunk;
-  const auto chunkBegin = [n, chunk](std::ptrdiff_t c) { return std::min(n, c * chunk); };
+  const std::ptrdiff_t numChunks = n / chunk + (n % chunk != 0);
+  const auto chunkBegin = [n, chunk, numChunks](std::ptrdiff_t c) { return c < numChunks ? c * chunk : n; };
   // kinds[i] & 1: the scan from the left stops at begin[i] (!less(begin[i], pivot));
   // kinds[i] & 2: the scan from the right stops there (!less(pivot, begin[i]))
   std::vector<unsigned char> kinds;
