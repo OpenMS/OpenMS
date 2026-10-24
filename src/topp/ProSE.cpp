@@ -434,9 +434,12 @@ class ProSE :
       if (read)
       {
 #ifdef _OPENMP
-        const int threads = omp_get_max_threads(); // (a new thread starts with the default of the process)
-#endif
+        // the OpenMP threads of this thread (a new thread starts with the default of the process), by value: the thread
+        // may start after this block has ended
+        mz_of_file = std::async(std::launch::async, [&, threads = omp_get_max_threads()]()
+#else
         mz_of_file = std::async(std::launch::async, [&]()
+#endif
         {
 #ifdef _OPENMP
           omp_set_num_threads(threads);
