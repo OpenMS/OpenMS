@@ -134,13 +134,14 @@ class CrossValidation {
   std::vector<double> candidatesCpos_, candidatesCfrac_;
 
   void initializeGridSearch(double targetDecoySizeRatio);
-  void trainCpCnPair(CandidateCposCfrac& cpCnFold,
+  // OpenMS: returns whether the weights' ranking does not depend on the costs (trainSvm)
+  bool trainCpCnPair(CandidateCposCfrac& cpCnFold,
                      options& pOptions,
                      AlgIn* svmInput);
 
   // OpenMS: solves the SVM of svmInput with the solver (solver_), from the weights in w
-  // (Newton, LDA; TRON starts from 0)
-  void trainSvm(const AlgIn& svmInput, options& pOptions, double cpos, double cneg,
+  // (Newton, LDA; TRON starts from 0); returns whether LDA gave the weights
+  bool trainSvm(const AlgIn& svmInput, options& pOptions, double cpos, double cneg,
                 vector_double& w, vector_double& outputs);
 
   int mergeCpCnPairs(double selectionFdr,

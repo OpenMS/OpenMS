@@ -243,7 +243,7 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
     });
     Vector g0 = Vector::Zero(n);
     for (int b = 0; b < nb; ++b) g0 += Eigen::Map<const Vector>(partB.data() + static_cast<std::size_t>(b) * n, n);
-    gnorm0 = g0.norm();
+    gnorm0 = g0.stableNorm();
     ++st.passes;
   }
 
@@ -290,20 +290,20 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
         for (int k = j + 1; k < n; ++k) H(k, j) = H(j, k);
       }
       haveH = true;
-      if (cold && iter == 0) gnorm0 = rhs.norm();
+      if (cold && iter == 0) gnorm0 = rhs.stableNorm();
     }
     // g(w) = w + sum_I 2 C_i x_i (x_i . w - t_i) = H w - rhs
-    const double gnorm = (H * wv - rhs).norm();
+    const double gnorm = (H * wv - rhs).stableNorm();
+    if (!std::isfinite(gnorm) || !std::isfinite(gnorm0)) {
+      ret = -1;
+      break;
+    }
     st.gradRatio = gnorm0 > 0.0 ? gnorm / gnorm0 : 0.0;
     if (gnorm <= eps * gnorm0) {
       ret = 1;
       break;
     }
     if (iter >= opts.mfnitermax) break;
-    if (!std::isfinite(gnorm)) {
-      ret = -1;
-      break;
-    }
 
     // the Newton point: the minimum of the regularized least squares problem on the active rows
     Eigen::LLT<Matrix> llt(H);
@@ -494,7 +494,8 @@ bool ldaSvm(const AlgIn& set, const options& opts, double cpos, double cneg, dou
   if (!(det > 0.0)) return false;
   const double gamma = (p22 * cts - p12 * ctsum) / det;
   const double b0 = (p11 * ctsum - p12 * cts) / det;
-  if (!std::isfinite(gamma) || !std::isfinite(b0)) return false;
+  // gamma <= 0 would reverse Fisher's ranking (wt . (mu_pos - mu_neg) > 0)
+  if (!(gamma > 0.0) || !std::isfinite(gamma) || !std::isfinite(b0)) return false;
   for (int j = 0; j < nf; ++j) w[j] = gamma * wt(j);
   w[nf] = b0;
   return true;

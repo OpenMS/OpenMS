@@ -309,11 +309,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   `trainCpCnPair` and of the nested refit: `kSolverNewton` runs `newtonSvm`
   (`newton_svm.h`) from the pair's weights of the step before (0 at the first step, whose
   first Newton step is the least squares fit on all rows), `kSolverLda` runs `ldaSvm`;
-  if they cannot (LDA: fewer than two rows of a class; Newton: too many columns or a
-  failed factorization), Newton or TRON solves the SVM. In `trainFoldChains`, Newton
-  stops at a tolerance of 1e-4 in the steps before the last one (which solves to
-  `EPSILON` as TRON), LDA trains the first pair of a fold only and copies its weights
-  and count to the others (LDA does not depend on the costs), and with either solver
+  if they cannot (LDA: fewer than two rows of a class or a fitted scale that is not
+  positive; Newton: too many columns, a failed factorization, a non-finite gradient norm
+  or no convergence within `mfnitermax` steps), Newton or TRON solves the SVM. In
+  `trainFoldChains`, Newton stops at a tolerance of 1e-4 in the steps before the last one
+  (which solves to `EPSILON` as TRON); with LDA the first pair of a fold is trained first
+  and, if LDA gave its weights (whose ranking, and so the count, does not depend on the
+  costs), its weights and count serve the other pairs, which are trained otherwise; with either solver
   training sets of at least 2^17 PSMs run the fold chains on all threads, whose tasks
   then also take the solvers' row blocks.
 

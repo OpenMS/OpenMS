@@ -53,15 +53,17 @@ struct NewtonStats {
 // on all rows, i.e. the LS-SVM / Fisher discriminant). Ends when ||g(w)|| <=
 // eps * ||g(0)|| (TRON's criterion) or after opts.mfnitermax steps. On return w holds
 // the solution and outputs (if not null, set.m values) X w. Returns 1 if the
-// criterion was met, 0 if not, and -1 (w unchanged) if the problem is not supported
-// (n > kNewtonMaxColumns, m < 1, opts.lambda <= 0) or the factorization failed.
+// criterion was met, 0 if not (w and outputs then hold the last iterate), and -1 (w
+// unchanged) if the problem is not supported (n > kNewtonMaxColumns, m < 1,
+// opts.lambda <= 0), a gradient norm is not finite or the factorization failed.
 int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, double eps,
               double* w, double* outputs, NewtonStats* stats = nullptr);
 
-// Fisher's discriminant of the rows with Y > 0 against those with Y < 0, scaled and
-// shifted for F (above) with the costs cpos, cneg and opts.lambda. Returns false
-// (w unchanged) if a class has fewer than two rows, n > kNewtonMaxColumns or
-// opts.lambda <= 0; w then needs another solver.
+// Fisher's discriminant of the rows with Y > 0 against those with Y < 0, scaled (by a
+// positive factor: the ranking of the rows does not depend on the costs) and shifted
+// for F (above) with the costs cpos, cneg and opts.lambda. Returns false (w unchanged)
+// if a class has fewer than two rows, n > kNewtonMaxColumns, opts.lambda <= 0 or the
+// fitted scale is not positive; w then needs another solver.
 bool ldaSvm(const AlgIn& set, const options& opts, double cpos, double cneg, double* w);
 
 // F(w) (above), for tests and diagnostics (one pass, in row order)

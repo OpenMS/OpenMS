@@ -16,6 +16,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <limits>
+#include <utility>
 #include <vector>
 
 #ifdef _OPENMP
@@ -132,6 +134,22 @@ namespace
     return newtonSvm(p.in, opts, cpos, cneg, eps, w.data(), out ? out->data() : nullptr, st);
   }
 
+  // a problem with the given rows of one feature
+  struct Tiny
+  {
+    vector<double> x, y;
+    AlgIn in;
+    Tiny(vector<double> x_, vector<double> y_) : x(std::move(x_)), y(std::move(y_)), in(int(x.size()), 2)
+    {
+      in.m = int(x.size());
+      for (int i = 0; i < in.m; ++i)
+      {
+        in.vals[i] = &x[i];
+        in.Y[i] = y[i];
+      }
+    }
+  };
+
   bool sameBits(const vector<double>& a, const vector<double>& b)
   {
     return a.size() == b.size() && std::memcmp(a.data(), b.data(), a.size() * sizeof(double)) == 0;
@@ -229,6 +247,26 @@ START_SECTION((int newtonSvm(const AlgIn& set, const options& opts, double cpos,
     TEST_EQUAL(std::fabs(svmObjective(p.in, 1.0, 0.1, 0.3, w4.data()) - ft) <= 1e-6 * ft, true)
   }
 
+  // the iteration limit: 0 (not converged), the last iterate
+  {
+    Tiny t({1.0, -1.0}, {1.0, -1.0});
+    options opts = makeOptions();
+    opts.mfnitermax = 0;
+    vector<double> w(2, 0.0);
+    TEST_EQUAL(newtonSvm(t.in, opts, 1.0, 1.0, EPSILON, w.data(), nullptr), 0)
+    opts.mfnitermax = MFNITERMAX;
+    TEST_EQUAL(newtonSvm(t.in, opts, 1.0, 1.0, EPSILON, w.data(), nullptr), 1)
+    TEST_REAL_SIMILAR(w[0], 2.0 / 3.0)
+    // huge costs (squared gradient components overflow): not "converged" at 0, the optimum (1, 0)
+    vector<double> v(2, 0.0);
+    TEST_EQUAL(newtonSvm(t.in, opts, 1e160, 1e160, EPSILON, v.data(), nullptr), 1)
+    TEST_REAL_SIMILAR(v[0], 1.0)
+    // infinite costs: -1, w unchanged
+    vector<double> u(2, 0.0);
+    TEST_EQUAL(newtonSvm(t.in, opts, std::numeric_limits<double>::infinity(), 1.0, EPSILON, u.data(), nullptr), -1)
+    TEST_EQUAL(u[0], 0.0)
+  }
+
   // not supported: w unchanged, -1
   {
     Problem p(50, 130, 0, 3);
@@ -275,6 +313,15 @@ START_SECTION((bool ldaSvm(const AlgIn& set, const options& opts, double cpos, d
   vector<double> v(10, 0.0);
   TEST_EQUAL(ldaSvm(q.in, opts, 1.0, 1.0, v.data()), true)
   for (double x : v) TEST_EQUAL(std::isfinite(x), true)
+  // the scale is positive (Fisher's ranking) for any costs, or LDA declines
+  {
+    Tiny t({-2.1, -1.9, -3.1, -2.9}, {1.0, 1.0, -1.0, -1.0});
+    for (double cneg : {0.05, 0.1, 1.0})
+    {
+      vector<double> v(2, 0.0);
+      if (ldaSvm(t.in, opts, 0.1, cneg, v.data())) TEST_EQUAL(v[0] > 0.0, true)
+    }
+  }
   // fewer than two rows of a class: false, w unchanged
   Problem r(500, 9, 3, 4);
   vector<double> u(10, 0.25);
