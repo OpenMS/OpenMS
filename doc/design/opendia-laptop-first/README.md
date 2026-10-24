@@ -2,6 +2,8 @@
 
 **Status:** proposed, updated 24 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
 
+This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
+
 ## Current verification status
 
 Full fresh workstation A/B output comparisons passed at selected clean merged source
