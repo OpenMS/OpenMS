@@ -181,7 +181,9 @@ private:
 
       Handlers decode arrays in OpenMP regions between parsing steps. Idle OpenMP
       workers spin-wait for the next region and, using all cores, would starve the
-      decompression thread. Affects only parallel regions started by this thread.
+      decompression thread. A thread count below the core count (e.g. a tool's
+      -threads) already leaves a core free and is kept. Affects only parallel
+      regions started by this thread.
     */
     class OpenMPThreadReservation_
     {
@@ -189,15 +191,19 @@ public:
       OpenMPThreadReservation_()
       {
 #ifdef _OPENMP
-        previous_ = omp_get_max_threads();
-        if (previous_ > 1) { omp_set_num_threads(previous_ - 1); }
+        const int threads = omp_get_max_threads();
+        if (threads > 1 && threads >= omp_get_num_procs())
+        {
+          previous_ = threads;
+          omp_set_num_threads(threads - 1);
+        }
 #endif
       }
 
       ~OpenMPThreadReservation_()
       {
 #ifdef _OPENMP
-        if (previous_ > 1) { omp_set_num_threads(previous_); }
+        if (previous_ > 0) { omp_set_num_threads(previous_); }
 #endif
       }
 
@@ -205,7 +211,7 @@ public:
       OpenMPThreadReservation_& operator=(const OpenMPThreadReservation_&) = delete;
 
 private:
-      int previous_ = 1;
+      int previous_ = 0; ///< thread count to restore, 0 if unchanged
     };
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
@@ -318,36 +324,22 @@ private:
       /// Converts parser UTF-8 to UTF-16 into @p result (reusing its capacity).
       const char16_t* utf16(std::u16string& result, const xmlChar* text, Size length)
       {
-        result.clear();
-        if (!text) return result.c_str();
-        const unsigned char* cursor = text;
-        const unsigned char* end = text + length;
-        const unsigned char* ascii = text + asciiRunEnd(text, 0, length);
-        result.assign(cursor, ascii);
-        cursor = ascii;
-        while (cursor < end)
-        {
-          unsigned int cp = *cursor++;
-          if (cp >= 0xc0)
-          {
-            const int remaining = cp < 0xe0 ? 1 : cp < 0xf0 ? 2 : 3;
-            cp &= (1u << (6 - remaining)) - 1;
-            for (int i = 0; i < remaining && cursor < end; ++i) { cp = (cp << 6) | (*cursor++ & 0x3f); }
-          }
-          if (cp > 0xffff)
-          {
-            cp -= 0x10000;
-            result.push_back(static_cast<char16_t>(0xd800 + (cp >> 10)));
-            result.push_back(static_cast<char16_t>(0xdc00 + (cp & 0x3ff)));
-          }
-          else { result.push_back(static_cast<char16_t>(cp)); }
-        }
+        if (text) { StringManager::convert(reinterpret_cast<const char*>(text), length, result); }
+        else { result.clear(); }
         return result.c_str();
       }
 
       const char16_t* utf16(std::u16string& result, const xmlChar* text)
       {
         return utf16(result, text, text ? static_cast<Size>(xmlStrlen(text)) : 0);
+      }
+
+      /// libxml2 diagnostics end with a line break; OpenMS appends the location itself.
+      std::string diagnostic(const xmlError* error, const char* fallback)
+      {
+        std::string message = error && error->message ? error->message : fallback;
+        while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) { message.pop_back(); }
+        return message;
       }
 
       std::string_view view(const xmlChar* text)
@@ -466,7 +458,7 @@ private:
       {
         callback(ctx, [&](LibxmlState& s)
         {
-          const std::string message = error->message ? error->message : "libxml2 parse error";
+          const std::string message = diagnostic(error, "libxml2 parse error");
           if (error->level == XML_ERR_WARNING) { s.handler->warning(XMLHandler::LOAD, message, error->line, error->int2); }
           else { s.handler->fatalError(XMLHandler::LOAD, message, error->line, error->int2); }
         });
@@ -511,7 +503,10 @@ private:
       parser->userData = parser.get();
       // Keep diagnostics local to this parser, including namespace errors.
       xmlCtxtSetErrorHandler(parser.get(), LibxmlState::error, parser.get());
-      xmlCtxtUseOptions(parser.get(), XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT);
+      // Like Xerces, accept large attribute values and deep nesting (HUGE), but
+      // keep an explicit entity expansion budget, as the DOM-based readers do.
+      xmlCtxtSetMaxAmplification(parser.get(), 5);
+      xmlCtxtUseOptions(parser.get(), XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT | XML_PARSE_HUGE);
 
       unsigned char buffer[65536];
       Size count = read(buffer, sizeof(buffer));
@@ -553,7 +548,7 @@ private:
         std::string message = "libxml2 rejected XML input";
         if (const auto* error = xmlCtxtGetLastError(parser.get()))
         {
-          if (error->message) { message += ": " + std::string(error->message); }
+          if (error->message) { message += ": " + diagnostic(error, ""); }
           message += " (line " + std::to_string(error->line) + ", column " + std::to_string(error->int2) + ")";
         }
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, message);

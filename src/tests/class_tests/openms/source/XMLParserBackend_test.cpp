@@ -374,6 +374,33 @@ START_SECTION(Native ASCII attribute lookup and UTF8 fallback)
   TEST_TRUE(attributes.value("naïve") == attributes.value(u"naïve"))
   TEST_TRUE(attributes.value("βmissing") == nullptr)
 END_SECTION
+START_SECTION(Large attributes and deep nesting remain readable as with Xerces)
+  Reader reader;
+  Handler handler;
+  const std::string large(10000001, 'x');
+  reader.parseBuffer_("<root value='" + large + "'>" + large + "</root>", &handler);
+  TEST_EQUAL(handler.attribute.size(), large.size())
+  TEST_EQUAL(handler.text.size(), large.size())
+  std::string deep;
+  for (Size i = 0; i < 300; ++i) { deep += "<e>"; }
+  for (Size i = 0; i < 300; ++i) { deep += "</e>"; }
+  Handler nested;
+  reader.parseBuffer_(deep, &nested);
+  TEST_EQUAL(nested.starts, 300)
+  // The entity amplification budget still applies.
+  std::string bomb = "<!DOCTYPE r [<!ENTITY a '0123456789'>";
+  std::string previous = "a";
+  for (char level = 'b'; level <= 'j'; ++level)
+  {
+    bomb += std::string("<!ENTITY ") + level + " '" ;
+    for (int i = 0; i < 10; ++i) { bomb += "&" + previous + ";"; }
+    bomb += "'>";
+    previous = std::string(1, level);
+  }
+  bomb += "]><r>&j;</r>";
+  Handler exploded;
+  TEST_EXCEPTION(Exception::ParseError, reader.parseBuffer_(bomb, &exploded))
+END_SECTION
 START_SECTION(Compressed input is read ahead without changing results or blocking early stops)
   // Several MiB of decompressed XML: more than the read-ahead queue holds.
   MSExperiment experiment;

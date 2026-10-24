@@ -33,9 +33,10 @@ namespace OpenMS
       if (state.exception) { return; }
       try
       {
-        state.validator->logError_(error->level == XML_ERR_WARNING ? "warning" : "error",
-                                  error->message ? error->message : "libxml2 validation error",
-                                  error->line, error->int2);
+        std::string message = error->message ? error->message : "libxml2 validation error";
+        // libxml2 diagnostics end with a line break; logError_ adds its own.
+        while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) { message.pop_back(); }
+        state.validator->logError_(error->level == XML_ERR_WARNING ? "warning" : "error", message, error->line, error->int2);
       }
       catch (...) { state.exception = std::current_exception(); }
     }
