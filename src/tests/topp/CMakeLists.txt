@@ -5651,19 +5651,19 @@ foreach(_view proteins pg)
     DEPENDS "TOPP_${_f}_runs_merged_${_view};TOPP_${_f}_merged_${_view}")
 endforeach()
 
-# Test 17: databases and runs whose FDR ProSE would get wrong, or report without saying so.
+# Test 18: databases and runs whose FDR ProSE would get wrong, or report without saying so.
 # - A repeated database entry (same accession and sequence: a FASTA file or the contaminants added twice) is searched
 #   once, with a warning; the QPX pg view refused the repeated accession at the end of the search (exit code 12).
 # - Two entries of one accession with different sequences are refused before the search (INPUT_FILE_CORRUPT, 3), and
 #   decoys=auto refuses a database with far fewer decoys than targets (ILLEGAL_PARAMETERS, 6): 'generate' replaces them.
-add_test(NAME "TOPP_ProSE_17_inputs" COMMAND ${CMAKE_COMMAND}
+add_test(NAME "TOPP_ProSE_18_inputs" COMMAND ${CMAKE_COMMAND}
   -DFASTA=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -DOUT_DIR=${TESTS_TEMP_DIR}
-  -P ${DATA_DIR_TOPP}/ProSE_17_prepare.cmake)
-set(_prose17 ${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML)
+  -P ${DATA_DIR_TOPP}/ProSE_18_prepare.cmake)
+set(_prose18 ${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML)
 foreach(_case twice conflict few_decoys few_decoys_generate)
-  set(_f ProSE_17_${_case})
+  set(_f ProSE_18_${_case})
   string(REPLACE "_generate" "" _database ${_case})
-  set(_args "${_prose17};-database;${TESTS_TEMP_DIR}/ProSE_17_${_database}.fasta;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended")
+  set(_args "${_prose18};-database;${TESTS_TEMP_DIR}/ProSE_18_${_database}.fasta;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended")
   if(_case STREQUAL "twice")
     set(_code 0)
     set(_regex "repeats 49 entries \\(same accession and sequence")
@@ -5682,17 +5682,17 @@ foreach(_case twice conflict few_decoys few_decoys_generate)
   add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
   add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND} "-DCOMMAND=${_args}" -DEXPECTED_CODE=${_code}
     "-DEXPECTED_OUTPUT_REGEX=${_regex}" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_ProSE_17_inputs;TOPP_${_f}_clean")
+  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs;TOPP_${_f}_clean")
 endforeach()
-add_test("TOPP_ProSE_17_twice_pg" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/ProSE_17_twice_qpx/quantms.pg.parquet -schema pg -min_rows 1)
-set_tests_properties("TOPP_ProSE_17_twice_pg" PROPERTIES DEPENDS "TOPP_ProSE_17_twice")
+add_test("TOPP_ProSE_18_twice_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_18_twice_qpx/quantms.pg.parquet -schema pg -min_rows 1)
+set_tests_properties("TOPP_ProSE_18_twice_pg" PROPERTIES DEPENDS "TOPP_ProSE_18_twice")
 
 # - FDR:PSM without decoys (decoys=ignore) is skipped: the provenance view says so (the run view: psm_fdr_applied false).
-set(_f ProSE_17_psm_fdr_skipped)
+set(_f ProSE_18_psm_fdr_skipped)
 add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
 add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${_prose17};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-Search:decoys;ignore;-Search:FDR:protein;0;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
+  "-DCOMMAND=${_prose18};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-Search:decoys;ignore;-Search:FDR:protein;0;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
   -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=FDR:PSM is set but the search has no decoys" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
 add_test("TOPP_${_f}_provenance" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.provenance.parquet
