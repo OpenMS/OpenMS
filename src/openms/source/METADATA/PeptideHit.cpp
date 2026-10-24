@@ -451,25 +451,28 @@ namespace OpenMS
     std::stable_sort(sorted.begin(), sorted.end(), [](const PeptideHit::PeakAnnotation* a, const PeptideHit::PeakAnnotation* b) { return *a < *b; });
 
     // "mz,intensity,charge,annotation" per peak, separated by '|'; the annotation quoted as StringUtils::quote()
-    // does (backslash and quote escaped), everything appended in place
+    // does (backslash and quote escaped). Formatted into a string of its own (@p annotation_string may be one of the
+    // annotations), then appended.
+    std::string out;
     for (Size k = 0; k < sorted.size(); ++k)
     {
       const PeptideHit::PeakAnnotation& a = *sorted[k];
-      if (k > 0) { annotation_string += '|'; }
-      StringUtils::appendToStr(a.mz, annotation_string);
-      annotation_string += ',';
-      StringUtils::appendToStr(a.intensity, annotation_string);
-      annotation_string += ',';
-      StringUtils::appendToStr(a.charge, annotation_string);
-      annotation_string += ",\"";
+      if (k > 0) { out += '|'; }
+      StringUtils::appendToStr(a.mz, out);
+      out += ',';
+      StringUtils::appendToStr(a.intensity, out);
+      out += ',';
+      StringUtils::appendToStr(a.charge, out);
+      out += ",\"";
       for (const char c : a.annotation)
       {
-        if (c == '\\') { annotation_string += "\\\\"; }
-        else if (c == '"') { annotation_string += "\\\""; }
-        else { annotation_string += c; }
+        if (c == '\\') { out += "\\\\"; }
+        else if (c == '"') { out += "\\\""; }
+        else { out += c; }
       }
-      annotation_string += '"';
+      out += '"';
     }
+    annotation_string += out;
   }
 
 } // namespace OpenMS

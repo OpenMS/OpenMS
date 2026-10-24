@@ -1544,8 +1544,10 @@ namespace OpenMS
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
     // normalized MIC, and complementary ion pairs
-    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
-      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+    // (deferred fragment annotations are aligned when they are made)
+    const bool need_alignment = annotation_fragment_error_ppm || (annotation_fragment_annotations && !defer_peak_annotations)
+      || annotation_longest_ion_run || annotation_matched_ion_current || annotation_matched_ion_current_fraction
+      || annotation_complementary_ions_fraction;
     // no ion name is written here: the theoretical spectra may come without them
     const bool without_ion_names = !annotation_fragment_annotations || defer_peak_annotations;
 
@@ -1947,6 +1949,12 @@ namespace OpenMS
                                                         fragment_mass_tolerance, evidence_ppm, evidence_alternatives)
                                : localFragmentEvidence_(evidence_spec, theoretical_spec, evidence_z, local_densities,
                                                         fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
+            }
+            else if (tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, ah.sequence, 1, evidence_z))
+            {
+              // (the peaks and charges of getSpectrum(), without the names)
+              evidence = localFragmentEvidence_(evidence_spec, coded_spec, coded_charges, evidence_z, local_densities,
+                fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
             }
             else
             {
@@ -2625,7 +2633,7 @@ namespace OpenMS
       {
         PeptideIdentification& pi = peptide_ids[i];
         if (pi.getHits().empty()) continue;
-        const Size scan_index = static_cast<Size>(static_cast<int>(pi.getMetaValue(scan_index_key))); // (set by postProcessHits_())
+        const Size scan_index = static_cast<Size>(static_cast<long long>(pi.getMetaValue(scan_index_key))); // (set by postProcessHits_())
         const MSSpectrum& spec = exp[scan_index];
         const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
         const Size charge = spec.getPrecursors()[0].getCharge();
@@ -4037,7 +4045,8 @@ namespace OpenMS
     startProgress(0, 1, "Post-processing PSMs...");
     // The fragment annotations of a hit are needed only for the output: when the rescoring (all but the best hit of a
     // spectrum) or the PSM FDR drops hits, they are made after that, for the hits that remain. Not if anything reads
-    // them before (PeptDeep features) or keeps the hits of before (the pre-FDR copy).
+    // them before (PeptDeep features) or keeps the hits of before (the pre-FDR copy). (A search that fails before (e.g.
+    // in the protein mapping) returns its error with hits without them.)
     const bool defer_peak_annotations = (rescore_ || fdr_psm_ > 0.0) && !peptdeep_enable_ && !keep_pre_fdr_psms_;
     ProSEAlgorithm::postProcessHits_(spectra,
       annotated_hits,
@@ -4131,7 +4140,12 @@ namespace OpenMS
     if (defer_peak_annotations)
     {
       takeBackThreadsOfEndedRead();
+      // (counted as search time, as when postProcessHits_ made them)
+      StopWatch sw_annotations;
+      sw_annotations.start();
       annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_);
+      sw_annotations.stop();
+      last_run_stats_.seconds_search += sw_annotations.getClockTime();
     }
 
     restore_fi_params();

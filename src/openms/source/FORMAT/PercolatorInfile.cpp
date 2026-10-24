@@ -436,8 +436,7 @@ namespace OpenMS
     {
     public:
       explicit ScanNumberOf(const std::string& first_id) :
-        pattern_(SpectrumLookup::getRegExFromNativeID(first_id)),
-        regex_(pattern_)
+        pattern_(SpectrumLookup::getRegExFromNativeID(first_id))
       {
         static const std::string group = "=(?<GROUP>\\d+)";
         if (pattern_.size() > group.size() && StringUtils::hasSuffix(pattern_, group))
@@ -448,6 +447,7 @@ namespace OpenMS
             key_.clear(); // (only letters and '=': the cases above)
           }
         }
+        if (key_.empty()) regex_.assign(pattern_); // (compiled only if used)
       }
 
       Int operator()(const std::string& id) const
