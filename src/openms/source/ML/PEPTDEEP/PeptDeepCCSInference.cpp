@@ -20,8 +20,8 @@
 
 namespace OpenMS
 {
-  PeptDeepCCSInference::PeptDeepCCSInference(const std::string& model_path, int intra_op_threads, size_t batch_size)
-    : model_(model_path, intra_op_threads), batch_size_(batch_size)
+  PeptDeepCCSInference::PeptDeepCCSInference(const std::string& model_path, int threads, size_t batch_size)
+    : model_(model_path, threads), batch_size_(batch_size)
   {
     if (batch_size_ == 0)
     {
@@ -95,105 +95,114 @@ namespace OpenMS
     Ort::AllocatedStringPtr output_name_ptr = model_.session().GetOutputNameAllocated(0, ort_alloc);
     const char* output_names[] = {output_name_ptr.get()};
 
+    // The model runs: of at most batch_size_ peptides of one group each, run side by side (ONNXPredictorBase::forEachCall()),
+    // each storing its predictions
+    std::vector<std::pair<const std::vector<size_t>*, size_t>> chunks; // (group, its first index of the chunk)
     for (const std::vector<size_t>& group_indices : groups)
     {
       for (size_t chunk_start = 0; chunk_start < group_indices.size(); chunk_start += batch_size_)
       {
-        size_t current_chunk_size = std::min(batch_size_, group_indices.size() - chunk_start);
-
-        std::vector<OpenMS::AASequence> chunk_peptides;
-        std::vector<float> chunk_charges;
-        chunk_peptides.reserve(current_chunk_size);
-        chunk_charges.reserve(current_chunk_size);
-
-        for (size_t j = 0; j < current_chunk_size; ++j)
-        {
-          size_t original_idx = group_indices[chunk_start + j];
-          chunk_peptides.push_back(parsed_peptides[original_idx]);
-          chunk_charges.push_back(charges[original_idx]);
-        }
-
-        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPrecursorBatch(chunk_peptides, chunk_charges, input_config);
-        const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
-        const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
-
-        std::vector<Ort::Value> input_tensors;
-        input_tensors.reserve(input_names.size());
-
-        for (size_t i = 0; i < input_names.size(); ++i)
-        {
-          const std::string& name = input_names[i];
-          Ort::TypeInfo type_info = model_.session().GetInputTypeInfo(i);
-          auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
-          std::vector<int64_t> expected_shape = tensor_info.GetShape();
-          if (!expected_shape.empty())
-          {
-            expected_shape[0] = batch_size_cast;
-          }
-
-          if (name == "aa_indices" || name == "input_sequences")
-          {
-            expected_shape = {batch_size_cast, sequence_length};
-            input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
-              model_.memoryInfo(),
-              batch.aa_indices.data(),
-              batch.aa_indices.size(),
-              expected_shape.data(),
-              expected_shape.size()));
-          }
-          else if (name == "mod_x")
-          {
-            expected_shape = {batch_size_cast, sequence_length, ML::PEPTDEEP_MOD_ELEMENTS};
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(
-              model_.memoryInfo(),
-              batch.mod_x.data(),
-              batch.mod_x.size(),
-              expected_shape.data(),
-              expected_shape.size()));
-          }
-          else if (name == "charges" || name == "charge")
-          {
-            expected_shape = {batch_size_cast, 1};
-            input_tensors.push_back(Ort::Value::CreateTensor<float>(
-              model_.memoryInfo(),
-              batch.charges.data(),
-              batch.charges.size(),
-              expected_shape.data(),
-              expected_shape.size()));
-          }
-          else
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ONNX input: " + name);
-          }
-        }
-
-        auto output_tensors = model_.session().Run(
-          Ort::RunOptions{nullptr},
-          input_names_chars.data(),
-          input_tensors.data(),
-          input_tensors.size(),
-          output_names,
-          1);
-
-        const size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
-        if (output_count < batch.batch_size)
-        {
-          throw Exception::InvalidValue(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "ONNX model output shape mismatch.",
-            std::to_string(output_count));
-        }
-
-        float* output = output_tensors.front().GetTensorMutableData<float>();
-
-        for (size_t j = 0; j < current_chunk_size; ++j)
-        {
-          predictions[group_indices[chunk_start + j]] = output[j];
-        }
+        chunks.emplace_back(&group_indices, chunk_start);
       }
     }
+    model_.forEachCall(chunks.size(), [&](size_t chunk)
+    {
+      const std::vector<size_t>& group_indices = *chunks[chunk].first;
+      const size_t chunk_start = chunks[chunk].second;
+      size_t current_chunk_size = std::min(batch_size_, group_indices.size() - chunk_start);
+
+      std::vector<OpenMS::AASequence> chunk_peptides;
+      std::vector<float> chunk_charges;
+      chunk_peptides.reserve(current_chunk_size);
+      chunk_charges.reserve(current_chunk_size);
+
+      for (size_t j = 0; j < current_chunk_size; ++j)
+      {
+        size_t original_idx = group_indices[chunk_start + j];
+        chunk_peptides.push_back(parsed_peptides[original_idx]);
+        chunk_charges.push_back(charges[original_idx]);
+      }
+
+      ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPrecursorBatch(chunk_peptides, chunk_charges, input_config);
+      const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
+      const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
+
+      std::vector<Ort::Value> input_tensors;
+      input_tensors.reserve(input_names.size());
+
+      for (size_t i = 0; i < input_names.size(); ++i)
+      {
+        const std::string& name = input_names[i];
+        Ort::TypeInfo type_info = model_.session().GetInputTypeInfo(i);
+        auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+        std::vector<int64_t> expected_shape = tensor_info.GetShape();
+        if (!expected_shape.empty())
+        {
+          expected_shape[0] = batch_size_cast;
+        }
+
+        if (name == "aa_indices" || name == "input_sequences")
+        {
+          expected_shape = {batch_size_cast, sequence_length};
+          input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
+            model_.memoryInfo(),
+            batch.aa_indices.data(),
+            batch.aa_indices.size(),
+            expected_shape.data(),
+            expected_shape.size()));
+        }
+        else if (name == "mod_x")
+        {
+          expected_shape = {batch_size_cast, sequence_length, ML::PEPTDEEP_MOD_ELEMENTS};
+          input_tensors.push_back(Ort::Value::CreateTensor<float>(
+            model_.memoryInfo(),
+            batch.mod_x.data(),
+            batch.mod_x.size(),
+            expected_shape.data(),
+            expected_shape.size()));
+        }
+        else if (name == "charges" || name == "charge")
+        {
+          expected_shape = {batch_size_cast, 1};
+          input_tensors.push_back(Ort::Value::CreateTensor<float>(
+            model_.memoryInfo(),
+            batch.charges.data(),
+            batch.charges.size(),
+            expected_shape.data(),
+            expected_shape.size()));
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ONNX input: " + name);
+        }
+      }
+
+      auto output_tensors = model_.session().Run(
+        Ort::RunOptions{nullptr},
+        input_names_chars.data(),
+        input_tensors.data(),
+        input_tensors.size(),
+        output_names,
+        1);
+
+      const size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
+      if (output_count < batch.batch_size)
+      {
+        throw Exception::InvalidValue(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "ONNX model output shape mismatch.",
+          std::to_string(output_count));
+      }
+
+      float* output = output_tensors.front().GetTensorMutableData<float>();
+
+      for (size_t j = 0; j < current_chunk_size; ++j)
+      {
+        predictions[group_indices[chunk_start + j]] = output[j];
+      }
+    });
 
     return predictions;
   }

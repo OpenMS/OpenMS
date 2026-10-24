@@ -138,11 +138,18 @@ after it, '-' at a protein terminus). The per-input psm files also get 'predicte
 'ion_type_array' ("b3+", "y5++"), with their theoretical m/z and the intensity PeptDeep predicts, relative to the most
 intense of them; ions of 0.01 or less are left out. The predictions use the settings of 'Search:peptdeep:*' (models,
 instrument) at the normalised collision energy of the file: the one PeptDeep rescoring used ('Search:peptdeep:enable';
-predicted again at that NCE), else 'Search:peptdeep:nce' if set, else the one PeptDeep rescoring selects, run on a
-copy of the written PSMs; PSMs of precursor charge 1 to 6 are predicted, others get null. Each input is read once more
-after its search for the spectra; a failed re-read is a warning and leaves out its mz view (and the
-'spectrum_reference' of its PSMs null), a failed prediction a warning and null prediction columns; without ONNX
-Runtime the prediction columns are null. Each input gets the QPX mz view (runs/BASENAME.mz.parquet, BASENAME the input's basename) of the MS2 spectra of
+predicted again at that NCE), else 'Search:peptdeep:nce' if set, else the one PeptDeep rescoring would select for the
+written PSMs (its selection alone, without its features); PSMs of precursor charge 1 to 6 are predicted, others get
+null. Each input is read once more after its search for the spectra of its PSMs (as the search reads it: in one pass,
+parsed in parallel); a failed re-read is a warning and leaves out its mz view (and the 'spectrum_reference' of its PSMs
+null), a failed prediction a warning and null prediction columns; without ONNX Runtime the prediction columns are
+null. The work of each input is logged in phase lines, each written at once when its phase starts, for a progress
+display: "-qpx_extended: INPUT: reading spectra", "-qpx_extended: INPUT: selecting NCE" (only if the NCE is selected),
+"-qpx_extended: INPUT: predicting N peptides at NCE X (SOURCE)" (N the distinct peptide and charge pairs, SOURCE
+'from PeptDeep rescoring', 'set' or 'selected'; not without ONNX Runtime or without PSMs) and
+"-qpx_extended: INPUT: writing" (the outputs of the input), INPUT the path of the input as given; other lines of that
+prefix are summaries or warnings. The NCE selection logs no "[PeptDeepRescoring]" lines of its own (except warnings
+about its input), so they stand for PeptDeep rescoring only. Each input gets the QPX mz view (runs/BASENAME.mz.parquet, BASENAME the input's basename) of the MS2 spectra of
 its written PSMs only (one row per spectrum, in the order of its first PSM; of several spectra of one native ID only
 the first, as 'id' is the view's key, so the PSMs of the others have no spectrum there and a null 'spectrum_reference':
 they are unresolved, as a join on their native ID would give the first spectrum, and a reader must not look them up by
@@ -176,7 +183,15 @@ filters), 'decoy_psm_count', 'psm_rows' (its rows in quantms.psm.parquet), int64
 the search did not rescore), 'rescoring_skipped_reason', 'rescoring_warning' (string); 'prediction_nce' (double; null:
 no prediction); 'precursor_error_median_ppm', 'precursor_error_mad_ppm', 'precursor_tolerance_recommended_ppm',
 'fragment_error_median_ppm', 'fragment_error_mad_ppm', 'fragment_tolerance_recommended_ppm' (double; null: no
-estimate); 'search_seconds' (double).
+estimate, fewer than 10 PSMs): the mass errors of the best hits of the run's target PSMs after the FDR filters (decoys
+left out), signed, observed minus theoretical m/z in ppm: of the precursor, its m/z corrected by the hit's isotope error
+(the 13C peak the search matched), in an open search of the PSMs without a delta mass (within 0.05 Da of zero) only;
+of the fragments, every annotated b and y peak (without neutral losses) of these PSMs. The median is that of the signed errors (the bias of the run), the MAD their median absolute deviation from the
+median (unscaled), and the recommended tolerance the symmetric one that covers the bias and three standard deviations
+of a normal distribution estimated robustly: ceil(|median| + 3 * 1.4826 * MAD). The fragment errors are those of the
+matched peaks, so within the searched fragment tolerance: a recommended fragment tolerance near it says that the
+searched one may be too narrow rather than right (the report's "Tolerance estimate" is the same); 'search_seconds'
+(double).
 quantms.sample.parquet: the sample of each run ('sample_accession' the stem; 'organism' and 'organism_part' "not
 available", as SDRF has an unknown value).
 quantms.provenance.parquet: one row per step, in order: 'database_search' 'peptide_search' (tool ProSE; parameters
@@ -304,6 +319,13 @@ class ProSE :
       filter.cap_at_precursor = value("fragment:deisotope_charge_cap", "precursor") == "precursor";
     }
 
+    /// A phase line of the -qpx_extended work on the input @p in_file, "-qpx_extended: <in_file>: <what>", written at once
+    /// (std::endl flushes the log): a progress parser follows the work by these lines (see the tool documentation)
+    static void logPhase_(const std::string& in_file, const std::string& what)
+    {
+      OPENMS_LOG_INFO << "-qpx_extended: " << in_file << ": " << what << endl;
+    }
+
     /// The spectra and predictions of the PSMs of one searched file (collectPSMSpectra_())
     struct SpectraOfFile_
     {
@@ -322,11 +344,12 @@ class ProSE :
       logged as a warning and leaves no mz view or null prediction columns; the search result of the file is not
       affected. Only std::bad_alloc propagates: out of memory is not taken for an unreadable file.
 
-      The spectra are read again from @p in_file (the MS2 spectra of the PSMs' native IDs); the mz view is
-      QPXDatasetExport::mzView() of them, with @p filter. After a failed re-read no PSM has its spectrum (a null
-      spectrum_reference). The predictions are PeptDeep's at the NCE of the file: the one PeptDeep rescoring stored on
-      the run ('peptdeep_nce'), else 'peptdeep:nce' if set, else the one PeptDeepRescoring::annotate() selects on a copy
-      of @p peptide_ids; the NCE is then stored on the run.
+      The spectra are read again from @p in_file, as the search reads them (ProSEAlgorithm::loadSpectra(): one pass,
+      parsed in parallel), keeping only the MS2 spectra of the PSMs' native IDs; the mz view is QPXDatasetExport::mzView()
+      of them, with @p filter. After a failed re-read no PSM has its spectrum (a null spectrum_reference). The predictions
+      are PeptDeep's at the NCE of the file: the one PeptDeep rescoring stored on the run ('peptdeep_nce'), else
+      'peptdeep:nce' if set, else the one PeptDeepRescoring::selectNCE() selects for @p peptide_ids (as
+      PeptDeepRescoring::annotate() would); the NCE is then stored on the run.
     */
     SpectraOfFile_ collectPSMSpectra_(const std::string& in_file, const Param& search_params,
                                       std::vector<ProteinIdentification>& protein_ids,
@@ -343,20 +366,13 @@ class ProSE :
       }
       PeakMap spectra; // the spectra of the PSMs (several, if a native ID is not unique in the file)
       bool read = true;
+      logPhase_(in_file, "reading spectra");
       try
       {
-        MSDataTransformingConsumer keep;
-        keep.setSpectraProcessingFunc([&](MSSpectrum& spectrum)
+        spectra = ProSEAlgorithm::loadSpectra(in_file, [&native_ids](const MSSpectrum& spectrum)
         {
-          if (spectrum.getMSLevel() == 2 && native_ids.count(spectrum.getNativeID()) > 0)
-          {
-            if (!spectrum.isSorted()) { spectrum.sortByPosition(); }
-            spectra.addSpectrum(spectrum);
-          }
+          return spectrum.getMSLevel() == 2 && native_ids.count(spectrum.getNativeID()) > 0;
         });
-        FileHandler fh;
-        fh.getOptions().setMSLevels({2});
-        fh.transformExperiment(in_file, &keep, {}, log_type_);
       }
       catch (const std::bad_alloc&)
       {
@@ -439,6 +455,62 @@ class ProSE :
       return result;
     }
 #ifdef WITH_ONNX
+    /// The values per cleavage of PeptDeep's MS2 model: [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2,
+    /// y_modloss_z1, y_modloss_z2]
+    static constexpr Size PEPTDEEP_ION_CHANNELS = 8;
+
+    /// The predicted ions of the PeptDeep prediction @p flat of @p peptide at precursor charge @p z: its b and y ions of
+    /// charge 1 (and 2 for precursors of charge 2 or more), relative to the most intense of them, without those of 0.01
+    /// or less, with their m/z (of @p generator), by m/z. None (no prediction) if @p flat is empty (not predicted), has
+    /// another layout (@p layout false) or no intensity.
+    static PSMPrediction_ predictedIons_(const TheoreticalSpectrumGenerator& generator, const std::string& peptide, int z,
+                                         const std::vector<float>& flat, bool& layout)
+    {
+      PSMPrediction_ ions;
+      if (flat.empty()) { return ions; } // not predicted (counted by the caller)
+      const AASequence sequence = AASequence::fromString(peptide);
+      const Size length = sequence.size();
+      constexpr Size channels = PEPTDEEP_ION_CHANNELS;
+      if (flat.size() != channels * (length - 1)) { layout = false; return ions; }
+      // (type, ordinal, charge) -> intensity; cleavage `pos` carries b(pos + 1) and y(length - 1 - pos)
+      std::map<std::tuple<char, int, int>, double> intensity;
+      double base_peak = 0.0;
+      for (Size pos = 0; pos + 1 < length; ++pos)
+      {
+        const int b = static_cast<int>(pos + 1), y = static_cast<int>(length - 1 - pos);
+        intensity[{'b', b, 1}] = flat[pos * channels + 0];
+        intensity[{'y', y, 1}] = flat[pos * channels + 2];
+        if (z > 1)
+        {
+          intensity[{'b', b, 2}] = flat[pos * channels + 1];
+          intensity[{'y', y, 2}] = flat[pos * channels + 3];
+        }
+      }
+      for (const auto& [ion, value] : intensity) { base_peak = std::max(base_peak, value); }
+      if (!(base_peak > 0.0)) { return ions; }
+
+      PeakSpectrum theoretical;
+      generator.getSpectrum(theoretical, sequence, 1, z > 1 ? 2 : 1);
+      const auto& names = theoretical.getStringDataArrays().at(0);
+      const auto& ion_charges = theoretical.getIntegerDataArrays().at(0);
+      ions.has_prediction = true;
+      for (Size t = 0; t < theoretical.size(); ++t)
+      {
+        const std::string& name = names[t]; // e.g. "b3+", "y12++"
+        Size end = 1;
+        while (end < name.size() && name[end] >= '0' && name[end] <= '9') { ++end; }
+        if (end == 1) { continue; }
+        const auto found = intensity.find({name[0], std::stoi(name.substr(1, end - 1)), ion_charges[t]});
+        if (found == intensity.end()) { continue; }
+        const double relative = found->second / base_peak;
+        if (!(relative > 0.01)) { continue; }
+        ions.ion_type.push_back(name);
+        ions.mz.push_back(static_cast<float>(theoretical[t].getMZ()));
+        ions.intensity.push_back(static_cast<float>(relative));
+      }
+      return ions;
+    }
+
     /// The predictions of collectPSMSpectra_(), into @p out. Throws on failure (the caller logs it).
     void predictPSMSpectra_(const std::string& in_file, const Param& search_params,
                             std::vector<ProteinIdentification>& protein_ids,
@@ -469,27 +541,24 @@ class ProSE :
       }
       else if (!run.metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
       {
+        // The NCE PeptDeep rescoring would have selected (its selection, without predicting all PSMs and computing its
+        // features); it logs no "[PeptDeepRescoring]" lines of its own, so that a progress parser does not take this
+        // for the rescoring
+        logPhase_(in_file, "selecting NCE");
         PeptDeepRescoring rescoring;
         Param p = rescoring.getParameters();
         p.setValue("ms2_model", ms2_model);
-        p.setValue("rt_model", File::find(search_params.getValue("peptdeep:rt_model").toString(), model_dirs));
         p.setValue("instrument", instrument);
-        p.setValue("rt_model_type", search_params.getValue("peptdeep:rt_model_type"));
         p.setValue("batch_size", batch_size);
         p.setValue("threads", threads);
         rescoring.setParameters(p);
         rescoring.setLogType(log_type_);
-        std::vector<ProteinIdentification> runs = protein_ids;
-        PeptideIdentificationList psms = peptide_ids;
-        OPENMS_LOG_INFO << "-qpx_extended: selecting the NCE of " << in_file
-                        << " with PeptDeep rescoring on a copy of its PSMs" << endl;
-        rescoring.annotate(spectra, runs, psms);
-        if (!runs[0].metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
+        rescoring.selectNCE(spectra, protein_ids, peptide_ids);
+        if (!run.metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
         {
           OPENMS_LOG_WARN << "-qpx_extended: no NCE selected for " << in_file << "; the predicted_* columns are null." << endl;
           return;
         }
-        run.setMetaValue(PeptDeepRescoring::NCE_META_VALUE, runs[0].getMetaValue(PeptDeepRescoring::NCE_META_VALUE));
         nce_source = "selected";
       }
       const double nce = run.getMetaValue(PeptDeepRescoring::NCE_META_VALUE);
@@ -522,6 +591,9 @@ class ProSE :
       }
       if (peptides.empty()) { return; }
 
+      std::ostringstream predicting;
+      predicting << "predicting " << peptides.size() << " peptides at NCE " << nce << " (" << nce_source << ")";
+      logPhase_(in_file, predicting.str());
       PeptDeepMS2Inference ms2(ms2_model, threads, static_cast<size_t>(batch_size));
       const int64_t instrument_index = ML::instrumentIndex(instrument);
       std::vector<std::vector<float>> predicted;
@@ -547,68 +619,42 @@ class ProSE :
                         << " peptides of " << in_file << "; their predicted_* columns are null." << endl;
       }
 
-      // The b and y ions of charge 1 (and 2 for precursors of charge 2 or more) of each pair, relative to the most
-      // intense of them, without those of 0.01 or less, with their m/z, by m/z.
-      TheoreticalSpectrumGenerator generator;
-      Param tsg = generator.getParameters();
+      // The b and y ions of each pair, independently of each other: in parallel, with a generator per thread
+      // (exceptions must not leave the parallel region).
+      Param tsg = TheoreticalSpectrumGenerator().getParameters();
       tsg.setValue("add_b_ions", "true");
       tsg.setValue("add_y_ions", "true");
       tsg.setValue("add_first_prefix_ion", "true");
       tsg.setValue("add_metainfo", "true");
-      generator.setParameters(tsg);
-      constexpr Size channels = 8; // [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2, y_modloss_z1, y_modloss_z2]
       std::vector<PSMPrediction_> ions_of_key(peptides.size());
       Size other_layout = 0;
-      for (Size k = 0; k < peptides.size(); ++k)
+      std::exception_ptr failure;
+#pragma omp parallel reduction(+ : other_layout)
       {
-        const AASequence sequence = AASequence::fromString(peptides[k]);
-        const Size length = sequence.size();
-        const std::vector<float>& flat = predicted[k];
-        if (flat.empty()) { continue; } // not predicted (counted above)
-        if (flat.size() != channels * (length - 1)) { ++other_layout; continue; }
-        const int z = static_cast<int>(charges[k]);
-        // (type, ordinal, charge) -> intensity; cleavage `pos` carries b(pos + 1) and y(length - 1 - pos)
-        std::map<std::tuple<char, int, int>, double> intensity;
-        double base_peak = 0.0;
-        for (Size pos = 0; pos + 1 < length; ++pos)
+        TheoreticalSpectrumGenerator generator;
+        generator.setParameters(tsg);
+#pragma omp for schedule(dynamic, 64)
+        for (SignedSize k = 0; k < static_cast<SignedSize>(peptides.size()); ++k)
         {
-          const int b = static_cast<int>(pos + 1), y = static_cast<int>(length - 1 - pos);
-          intensity[{'b', b, 1}] = flat[pos * channels + 0];
-          intensity[{'y', y, 1}] = flat[pos * channels + 2];
-          if (z > 1)
+          try
           {
-            intensity[{'b', b, 2}] = flat[pos * channels + 1];
-            intensity[{'y', y, 2}] = flat[pos * channels + 3];
+            bool layout = true;
+            const Size key = static_cast<Size>(k);
+            ions_of_key[key] = predictedIons_(generator, peptides[key], static_cast<int>(charges[key]), predicted[key], layout);
+            if (!layout) { ++other_layout; }
+          }
+          catch (...)
+          {
+#pragma omp critical (ProSE_predictPSMSpectra)
+            if (!failure) { failure = std::current_exception(); }
           }
         }
-        for (const auto& [ion, value] : intensity) { base_peak = std::max(base_peak, value); }
-        if (!(base_peak > 0.0)) { continue; }
-
-        PeakSpectrum theoretical;
-        generator.getSpectrum(theoretical, sequence, 1, z > 1 ? 2 : 1);
-        const auto& names = theoretical.getStringDataArrays().at(0);
-        const auto& ion_charges = theoretical.getIntegerDataArrays().at(0);
-        PSMPrediction_& ions = ions_of_key[k];
-        ions.has_prediction = true;
-        for (Size t = 0; t < theoretical.size(); ++t)
-        {
-          const std::string& name = names[t]; // e.g. "b3+", "y12++"
-          Size end = 1;
-          while (end < name.size() && name[end] >= '0' && name[end] <= '9') { ++end; }
-          if (end == 1) { continue; }
-          const auto found = intensity.find({name[0], std::stoi(name.substr(1, end - 1)), ion_charges[t]});
-          if (found == intensity.end()) { continue; }
-          const double relative = found->second / base_peak;
-          if (!(relative > 0.01)) { continue; }
-          ions.ion_type.push_back(name);
-          ions.mz.push_back(static_cast<float>(theoretical[t].getMZ()));
-          ions.intensity.push_back(static_cast<float>(relative));
-        }
       }
+      if (failure) { std::rethrow_exception(failure); }
       if (other_layout > 0)
       {
         OPENMS_LOG_WARN << "-qpx_extended: the MS2 model gave " << other_layout << " of " << peptides.size()
-                        << " peptides of " << in_file << " another number of values than " << channels
+                        << " peptides of " << in_file << " another number of values than " << PEPTDEEP_ION_CHANNELS
                         << " per cleavage (an unexpected model layout); their predicted_* columns are null." << endl;
       }
       for (Size i = 0; i < peptide_ids.size(); ++i)
@@ -620,8 +666,6 @@ class ProSE :
         out[i].mz = ions.mz;
         out[i].intensity = ions.intensity;
       }
-      OPENMS_LOG_INFO << "-qpx_extended: " << in_file << ": PeptDeep predictions of " << peptides.size()
-                      << " peptide(s) at NCE " << nce << " (" << nce_source << ")" << endl;
     }
 #endif
 
@@ -1065,6 +1109,9 @@ class ProSE :
       ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
                                            build_pooled_aggregate);
+      // the outputs from here on, with the -qpx_extended work (the report's timing)
+      const double seconds_searching = sw_total.getClockTime();
+      StopWatch sw_qpx_extended;
 
       if (mfres.per_file.size() != in_list.size())
       {
@@ -1302,6 +1349,7 @@ class ProSE :
         SpectraOfFile_ spectra_of_file;
         if (qpx_extended)
         {
+          sw_qpx_extended.resume();
           try
           {
             spectra_of_file = collectPSMSpectra_(in_file, search_params, result.protein_ids, result.peptide_ids, peak_filter);
@@ -1316,6 +1364,8 @@ class ProSE :
                                                PSMPrediction_());
             input_failed = true;
           }
+          sw_qpx_extended.stop();
+          logPhase_(in_file, "writing");
         }
 
         // -- idXML output --
@@ -1682,6 +1732,8 @@ class ProSE :
       if (qpx_extended)
       {
         mfres.shared.seconds_total = sw_total.getClockTime();
+        mfres.shared.seconds_output = mfres.shared.seconds_total - seconds_searching;
+        mfres.shared.seconds_qpx_extended = sw_qpx_extended.getClockTime();
         std::string mod_delta_masses, mod_ptms;
         if (!out_mod_analysis_dir.empty() && open_search_mode)
         {
@@ -1726,6 +1778,8 @@ class ProSE :
       {
         sw_total.stop();
         mfres.shared.seconds_total = sw_total.getClockTime();
+        mfres.shared.seconds_output = mfres.shared.seconds_total - seconds_searching;
+        mfres.shared.seconds_qpx_extended = sw_qpx_extended.getClockTime();
         const std::string summary_out = getStringOption_("summary_out");
         const bool no_summary = getFlag_("no_summary");
         const ProSEAlgorithm::SharedSearchStats& sh = mfres.shared;
@@ -1819,7 +1873,7 @@ class ProSE :
             {
               ProSEAlgorithm::renderModificationSummary(mfres.aggregate.modification_analysis, r);
             }
-            r << "[ProSE] Total time   : " << std::fixed << std::setprecision(1) << sh.seconds_total << " s\n";
+            r << "[ProSE] Total time   : " << ProSEAlgorithm::renderTotalTime(sh) << "\n";
           }
 
           // -- Percolator rescoring status. --

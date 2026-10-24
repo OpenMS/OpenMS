@@ -65,7 +65,7 @@ namespace OpenMS
       std::string rt_model_path;
       std::string ccs_model_path;
       std::string ms2_model_path;
-      int intra_op_threads = 4;
+      int intra_op_threads = 4; ///< threads of each predictor: its model runs that run at once, each on one thread (ONNXPredictorBase::forEachCall())
       Size batch_size = 500;
       bool predict_ccs = true;
     };

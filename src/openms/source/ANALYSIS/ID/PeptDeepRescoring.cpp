@@ -191,9 +191,9 @@ namespace OpenMS
     defaults_.setMinFloat("ms2_strong_fraction", 0.0);
     defaults_.setMaxFloat("ms2_strong_fraction", 1.0);
 
-    defaults_.setValue("batch_size", 500, "Peptides per ONNX inference call.", {"advanced"});
+    defaults_.setValue("batch_size", 64, "Peptides per ONNX inference call. The calls run side by side, one per thread (see 'threads'): small ones keep the threads evenly busy and the memory low.", {"advanced"});
     defaults_.setMinInt("batch_size", 1);
-    defaults_.setValue("threads", 4, "ONNX intra-op threads.", {"advanced"});
+    defaults_.setValue("threads", 4, "Threads of the predictions: the model runs (one per batch of peptides of one length) run side by side, each on one thread.", {"advanced"});
     defaults_.setMinInt("threads", 1);
 
     defaultsToParam_();
@@ -237,44 +237,18 @@ namespace OpenMS
 
   Size PeptDeepRescoring::getNumPredictedPSMs() const { return num_predicted_psms_; }
 
-  void PeptDeepRescoring::annotate(const PeakMap& spectra,
-                                   std::vector<ProteinIdentification>& protein_ids,
-                                   PeptideIdentificationList& peptide_ids)
+  PeptDeepRescoring::PSMRows PeptDeepRescoring::gatherPSMs_(const PeptideIdentificationList& peptide_ids)
   {
-    // Diagnostics describe the call that is about to happen, not the previous one.
-    used_nce_ = -1.0;
-    rt_calibration_error_ = -1.0;
-    num_psms_ = 0;
-    num_predicted_psms_ = 0;
-    for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
-
-    if (ms2_model_.empty() || rt_model_.empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "PeptDeepRescoring needs both 'ms2_model' and 'rt_model' to be set.");
-    }
-    for (const std::string& m : {ms2_model_, rt_model_})
-    {
-      if (!File::exists(m))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, m);
-      }
-    }
-    if (peptide_ids.empty()) { return; }
-
     // ---- gather the PSMs, and the distinct (sequence, charge) pairs to predict ----
-    std::vector<Row> rows;
+    PSMRows psms;
     std::map<std::pair<std::string, int>, Size> seen;
-    std::vector<std::string> uniq_seq;
-    std::vector<float> uniq_charge;
     // Counted per run, not per file: a merged input where one run carries peak
     // annotations and another does not would otherwise pass the global check below and
     // leave the unannotated run with four MS2 features that are silently zero for every
     // one of its PSMs -- a constant block that Percolator reads as a run separator.
     std::map<std::string, Size> annotated_by_run;
-    // Runs are calibrated separately, so keep their rows apart. std::map keeps the
-    // order stable, which keeps the log output reproducible.
-    std::map<std::string, std::vector<Size>> rows_by_run;
+    // Runs are calibrated separately, so keep their rows apart (PSMRows::rows_by_run). std::map
+    // keeps the order stable, which keeps the log output reproducible.
 
     for (Size pi = 0; pi < peptide_ids.size(); ++pi)
     {
@@ -301,17 +275,17 @@ namespace OpenMS
         auto it = seen.find(key);
         if (it == seen.end())
         {
-          it = seen.emplace(key, uniq_seq.size()).first;
-          uniq_seq.push_back(str);
-          uniq_charge.push_back(static_cast<float>(z));
+          it = seen.emplace(key, psms.uniq_seq.size()).first;
+          psms.uniq_seq.push_back(str);
+          psms.uniq_charge.push_back(static_cast<float>(z));
         }
         // The run identifier is what keeps NCE and RT calibration per-run, so it has to
         // still distinguish the runs by the time we get here -- see the note on annotate().
-        rows_by_run[peptide_ids[pi].getIdentifier()].push_back(rows.size());
-        rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore(), h == best && !hits[h].isDecoy()});
+        psms.rows_by_run[peptide_ids[pi].getIdentifier()].push_back(psms.rows.size());
+        psms.rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore(), h == best && !hits[h].isDecoy()});
       }
     }
-    if (rows.empty()) { return; }
+    if (psms.rows.empty()) { return psms; }
 
     StringList unannotated_runs;
     for (const auto& [run_id, n] : annotated_by_run)
@@ -337,9 +311,13 @@ namespace OpenMS
                          "real values. Re-run the search with fragment annotation enabled for all "
                          "runs, or rescore the runs separately." << '\n';
     }
+    return psms;
+  }
 
+  std::map<std::string, double> PeptDeepRescoring::collisionEnergies_(const PeakMap& spectra)
+  {
     // Collision energy per spectrum, keyed by native ID so each run can pick out its
-    // own spectra. Built once; the PeakMap is not otherwise needed below.
+    // own spectra. Built once; the PeakMap is not otherwise needed.
     //
     // Native IDs are unique within a run, not across runs -- scan numbering restarts
     // per file -- so a PeakMap spanning several runs can hold the same ID twice. Where
@@ -364,6 +342,64 @@ namespace OpenMS
                       << " spectrum identifiers occur more than once with differing collision "
                          "energies; those spectra are excluded from collision-energy selection." << '\n';
     }
+    return collision_energies;
+  }
+
+  void PeptDeepRescoring::storeNCE_(std::vector<ProteinIdentification>& protein_ids, const std::map<std::string, double>& nce_by_run)
+  {
+    if (nce_by_run.empty()) { return; }
+    bool any_matched = false;
+    for (ProteinIdentification& prot : protein_ids)
+    {
+      const auto it = nce_by_run.find(prot.getIdentifier());
+      if (it == nce_by_run.end()) { continue; }
+      any_matched = true;
+      prot.setMetaValue(NCE_META_VALUE, it->second);
+    }
+    if (!any_matched && !protein_ids.empty())
+    {
+      // The runs are all folded onto the first entry (see annotate()), so a single NCE can
+      // only stand for them if they agree (always so for a fixed 'nce'); otherwise record
+      // none rather than an arbitrary run's.
+      const double first_nce = nce_by_run.begin()->second;
+      if (std::all_of(nce_by_run.begin(), nce_by_run.end(),
+                      [&](const auto& kv) { return kv.second == first_nce; }))
+      {
+        protein_ids[0].setMetaValue(NCE_META_VALUE, first_nce);
+      }
+    }
+  }
+
+  void PeptDeepRescoring::annotate(const PeakMap& spectra,
+                                   std::vector<ProteinIdentification>& protein_ids,
+                                   PeptideIdentificationList& peptide_ids)
+  {
+    // Diagnostics describe the call that is about to happen, not the previous one.
+    used_nce_ = -1.0;
+    rt_calibration_error_ = -1.0;
+    num_psms_ = 0;
+    num_predicted_psms_ = 0;
+    for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
+
+    if (ms2_model_.empty() || rt_model_.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "PeptDeepRescoring needs both 'ms2_model' and 'rt_model' to be set.");
+    }
+    for (const std::string& m : {ms2_model_, rt_model_})
+    {
+      if (!File::exists(m))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, m);
+      }
+    }
+    if (peptide_ids.empty()) { return; }
+
+    const PSMRows psms = gatherPSMs_(peptide_ids);
+    if (psms.rows.empty()) { return; }
+    const std::vector<Row>& rows = psms.rows;
+    const std::map<std::string, std::vector<Size>>& rows_by_run = psms.rows_by_run;
+    const std::map<std::string, double> collision_energies = collisionEnergies_(spectra);
 
     // Loading a model is expensive, so both sessions are created once and reused by
     // every run.
@@ -373,7 +409,7 @@ namespace OpenMS
     if (rows_by_run.size() > 1)
     {
       OPENMS_LOG_INFO << "[PeptDeepRescoring] " << rows_by_run.size()
-                      << " identification runs; calibrating each separately." << '\n';
+                      << " identification runs; calibrating each separately." << std::endl;
     }
     // The NCE each run's predictions used, recorded on the run below. used_nce_ only
     // keeps the last one.
@@ -384,7 +420,7 @@ namespace OpenMS
       // can hold runs from engines that disagree on it, and picking the wrong direction
       // would calibrate on the *worst* PSMs.
       const bool higher_better = peptide_ids[rows[run_rows.front()].pi].isHigherScoreBetter();
-      annotateRun_(run_id, collision_energies, peptide_ids, rows, run_rows, uniq_seq, uniq_charge,
+      annotateRun_(run_id, collision_energies, peptide_ids, rows, run_rows, psms.uniq_seq, psms.uniq_charge,
                    higher_better, ms2, rt);
       nce_by_run[run_id] = used_nce_;
     }
@@ -408,7 +444,6 @@ namespace OpenMS
       }
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       prot.setSearchParameters(sp);
-      prot.setMetaValue(NCE_META_VALUE, nce_by_run.at(prot.getIdentifier()));
     }
     if (!any_matched && !protein_ids.empty())
     {
@@ -424,21 +459,175 @@ namespace OpenMS
       }
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       protein_ids[0].setSearchParameters(sp);
-      // The runs are all folded onto this one entry, so a single NCE can only stand for
-      // them if they agree (always so for a fixed 'nce'); otherwise record none rather
-      // than an arbitrary run's.
-      const double first_nce = nce_by_run.begin()->second;
-      if (std::all_of(nce_by_run.begin(), nce_by_run.end(),
-                      [&](const auto& kv) { return kv.second == first_nce; }))
-      {
-        protein_ids[0].setMetaValue(NCE_META_VALUE, first_nce);
-      }
     }
+    // The NCE of each run, on the run (on the first one, as the features, if no identifier matches)
+    storeNCE_(protein_ids, nce_by_run);
 
     // Stable, machine-checkable summary (pipelines such as quantms grep for it).
     OPENMS_LOG_INFO << "[PeptDeepRescoring] Predicted features added: " << num_predicted_psms_
                     << " / " << num_psms_ << " PSMs (" << ListUtils::concatenate(names, ", ")
-                    << "), NCE=" << used_nce_ << '\n';
+                    << "), NCE=" << used_nce_ << std::endl;
+  }
+
+  void PeptDeepRescoring::selectNCE(const PeakMap& spectra,
+                                    std::vector<ProteinIdentification>& protein_ids,
+                                    const PeptideIdentificationList& peptide_ids)
+  {
+    used_nce_ = -1.0;
+    rt_calibration_error_ = -1.0;
+    num_psms_ = 0;
+    num_predicted_psms_ = 0;
+    for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
+
+    if (ms2_model_.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "PeptDeepRescoring::selectNCE() needs 'ms2_model' to be set.");
+    }
+    if (!File::exists(ms2_model_))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ms2_model_);
+    }
+    if (peptide_ids.empty()) { return; }
+
+    const PSMRows psms = gatherPSMs_(peptide_ids);
+    if (psms.rows.empty()) { return; }
+    const std::map<std::string, double> collision_energies = collisionEnergies_(spectra);
+    PeptDeepMS2Inference ms2(ms2_model_, threads_, batch_size_);
+    std::map<std::string, double> nce_by_run;
+    for (const auto& [run_id, run_rows] : psms.rows_by_run)
+    {
+      const bool higher_better = peptide_ids[psms.rows[run_rows.front()].pi].isHigherScoreBetter();
+      const std::vector<Size> confident = confidentRows_(psms.rows, run_rows, higher_better);
+      double centre = 0.0, median_cosine = 0.0;
+      used_nce_ = selectRunNCE_(collision_energies, peptide_ids, psms.rows, run_rows, confident, psms.uniq_seq,
+                                psms.uniq_charge, ms2, centre, median_cosine);
+      nce_by_run[run_id] = used_nce_;
+    }
+    storeNCE_(protein_ids, nce_by_run);
+  }
+
+  std::vector<Size> PeptDeepRescoring::confidentRows_(const std::vector<Row>& rows, const std::vector<Size>& run_rows,
+                                                      bool higher_better) const
+  {
+    // Confident PSMs of this run, used both to score NCE candidates and to fit the RT
+    // calibration. Ranking by search score keeps this independent of the MS2 features.
+    std::vector<Size> by_score;
+    for (Size i : run_rows)
+    {
+      if (rows[i].calibration_candidate) { by_score.push_back(i); }
+    }
+    if (by_score.empty()) { by_score = run_rows; } // e.g. a run holding only decoy hits
+    std::sort(by_score.begin(), by_score.end(), [&](Size a, Size b)
+      { return higher_better ? rows[a].score > rows[b].score : rows[a].score < rows[b].score; });
+    const Size n_conf = std::max<Size>(1, static_cast<Size>(by_score.size() * (1.0 - calibration_quantile_)));
+    return std::vector<Size>(by_score.begin(), by_score.begin() + std::min(n_conf, by_score.size()));
+  }
+
+  double PeptDeepRescoring::selectRunNCE_(const std::map<std::string, double>& collision_energies,
+                                          const PeptideIdentificationList& peptide_ids,
+                                          const std::vector<Row>& rows,
+                                          const std::vector<Size>& run_rows,
+                                          const std::vector<Size>& confident,
+                                          const std::vector<std::string>& uniq_seq,
+                                          const std::vector<float>& uniq_charge,
+                                          PeptDeepMS2Inference& ms2,
+                                          double& centre,
+                                          double& median_cosine)
+  {
+    double nce = nce_;
+    if (nce > 0.0) { return nce; }
+
+    const int64_t instrument = ML::instrumentIndex(instrument_);
+    // Centre the grid on what the instrument recorded for *this run's* spectra.
+    // Runs acquired at different collision energies otherwise share a grid that can
+    // exclude one of their optima.
+    std::vector<double> ces;
+    for (Size i : run_rows)
+    {
+      const auto it = collision_energies.find(peptide_ids[rows[i].pi].getSpectrumReference());
+      if (it != collision_energies.end()) { ces.push_back(it->second); }
+    }
+    if (ces.empty())
+    {
+      // No usable spectrum references (older files, or identifications not linked to
+      // these spectra): fall back to every collision energy we saw.
+      for (const auto& [ref, ce] : collision_energies) { (void)ref; ces.push_back(ce); }
+    }
+    centre = nce_fallback_;
+    if (!ces.empty())
+    {
+      std::nth_element(ces.begin(), ces.begin() + ces.size() / 2, ces.end());
+      centre = ces[ces.size() / 2];
+    }
+
+    std::vector<double> grid;
+    for (double x = centre - nce_grid_halfwidth_; x <= centre + nce_grid_halfwidth_ + 1e-9; x += nce_grid_step_)
+    {
+      if (x > 0.0) { grid.push_back(x); }
+    }
+    if (grid.empty()) { grid.push_back(centre); }
+
+    // Sample only from the confident set, so the selected NCE follows the same
+    // calibration_quantile as the retention-time fit.
+    std::vector<Size> sample(confident.begin(),
+                             confident.begin() + std::min(nce_sample_size_, confident.size()));
+    // Each peptide (with its charge) of the sample is predicted once per candidate energy, as
+    // those of the run are in annotateRun_(), however many of the sampled PSMs identify it.
+    // Predicted PSM by PSM, a sample that repeats its peptides took several times the
+    // inference, in larger batches.
+    std::vector<std::string> s_seq;
+    std::vector<float> s_charge;
+    std::vector<Size> s_pred; // position of the prediction for sample[k]
+    constexpr Size not_predicted = std::numeric_limits<Size>::max();
+    std::vector<Size> s_pos(uniq_seq.size(), not_predicted); // key -> position in s_seq
+    // The observed spectrum does not depend on the candidate energy, so parse the peak
+    // annotations once here rather than once per grid point.
+    std::vector<IonMap> s_obs;
+    s_pred.reserve(sample.size()); s_obs.reserve(sample.size());
+    for (Size i : sample)
+    {
+      Size& pos = s_pos[rows[i].key];
+      if (pos == not_predicted)
+      {
+        pos = s_seq.size();
+        s_seq.push_back(uniq_seq[rows[i].key]);
+        s_charge.push_back(uniq_charge[rows[i].key]);
+      }
+      s_pred.push_back(pos);
+      s_obs.push_back(observedIons_(peptide_ids[rows[i].pi].getHits()[rows[i].hit]));
+    }
+
+    double best_median = -1.0;
+    nce = centre;
+    startProgress(0, grid.size(), "Selecting collision energy...");
+    Size done = 0;
+    for (double cand : grid)
+    {
+      const std::vector<float> s_nce(s_seq.size(), static_cast<float>(cand));
+      const std::vector<int64_t> s_inst(s_seq.size(), instrument);
+      const std::vector<std::vector<float>> pred = ms2.predictMS2(s_seq, s_charge, s_nce, s_inst);
+
+      std::vector<double> cosines;
+      cosines.reserve(sample.size());
+      for (Size k = 0; k < sample.size(); ++k)
+      {
+        const Row& r = rows[sample[k]];
+        const std::vector<float>& p = pred[s_pred[k]];
+        Size channels = (r.len > 1 && !p.empty()) ? p.size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
+        if (channels == 0) { channels = DEFAULT_ION_CHANNELS; }
+        cosines.push_back(similarity_(predictedIons_(p, r.len, channels),
+                                      s_obs[k], ms2_min_ordinal_, r.len, ms2_strong_fraction_).cosine);
+      }
+      std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
+      const double med = cosines[cosines.size() / 2];
+      OPENMS_LOG_DEBUG << "[PeptDeepRescoring] NCE " << cand << " -> median cosine " << med << '\n';
+      if (med > best_median) { best_median = med; nce = cand; }
+      setProgress(++done);
+    }
+    endProgress();
+    median_cosine = best_median;
+    return nce;
   }
 
   void PeptDeepRescoring::annotateRun_(const std::string& run_id,
@@ -455,114 +644,20 @@ namespace OpenMS
     if (run_rows.empty()) { return; }
 
     // Confident PSMs of this run, used both to score NCE candidates and to fit the RT
-    // calibration. Ranking by search score keeps this independent of the MS2 features.
-    std::vector<Size> by_score;
-    for (Size i : run_rows)
-    {
-      if (rows[i].calibration_candidate) { by_score.push_back(i); }
-    }
-    if (by_score.empty()) { by_score = run_rows; } // e.g. a run holding only decoy hits
-    std::sort(by_score.begin(), by_score.end(), [&](Size a, Size b)
-      { return higher_better ? rows[a].score > rows[b].score : rows[a].score < rows[b].score; });
-    const Size n_conf = std::max<Size>(1, static_cast<Size>(by_score.size() * (1.0 - calibration_quantile_)));
-    std::vector<Size> confident(by_score.begin(), by_score.begin() + std::min(n_conf, by_score.size()));
+    // calibration.
+    const std::vector<Size> confident = confidentRows_(rows, run_rows, higher_better);
 
     const int64_t instrument = ML::instrumentIndex(instrument_);
 
     // ---- normalised collision energy ----
-    double nce = nce_;
-    if (nce <= 0.0)
+    double centre = 0.0, best_median = -1.0;
+    const double nce = selectRunNCE_(collision_energies, peptide_ids, rows, run_rows, confident, uniq_seq, uniq_charge,
+                                     ms2, centre, best_median);
+    if (nce_ <= 0.0)
     {
-      // Centre the grid on what the instrument recorded for *this run's* spectra.
-      // Runs acquired at different collision energies otherwise share a grid that can
-      // exclude one of their optima.
-      std::vector<double> ces;
-      for (Size i : run_rows)
-      {
-        const auto it = collision_energies.find(peptide_ids[rows[i].pi].getSpectrumReference());
-        if (it != collision_energies.end()) { ces.push_back(it->second); }
-      }
-      if (ces.empty())
-      {
-        // No usable spectrum references (older files, or identifications not linked to
-        // these spectra): fall back to every collision energy we saw.
-        for (const auto& [ref, ce] : collision_energies) { (void)ref; ces.push_back(ce); }
-      }
-      double centre = nce_fallback_;
-      if (!ces.empty())
-      {
-        std::nth_element(ces.begin(), ces.begin() + ces.size() / 2, ces.end());
-        centre = ces[ces.size() / 2];
-      }
-
-      std::vector<double> grid;
-      for (double x = centre - nce_grid_halfwidth_; x <= centre + nce_grid_halfwidth_ + 1e-9; x += nce_grid_step_)
-      {
-        if (x > 0.0) { grid.push_back(x); }
-      }
-      if (grid.empty()) { grid.push_back(centre); }
-
-      // Sample only from the confident set, so the selected NCE follows the same
-      // calibration_quantile as the retention-time fit.
-      std::vector<Size> sample(confident.begin(),
-                               confident.begin() + std::min(nce_sample_size_, confident.size()));
-      // Each peptide (with its charge) of the sample is predicted once per candidate energy, as
-      // those of the run are below, however many of the sampled PSMs identify it. Predicted PSM
-      // by PSM, a sample that repeats its peptides took several times the inference, in larger
-      // batches.
-      std::vector<std::string> s_seq;
-      std::vector<float> s_charge;
-      std::vector<Size> s_pred; // position of the prediction for sample[k]
-      constexpr Size not_predicted = std::numeric_limits<Size>::max();
-      std::vector<Size> s_pos(uniq_seq.size(), not_predicted); // key -> position in s_seq
-      // The observed spectrum does not depend on the candidate energy, so parse the peak
-      // annotations once here rather than once per grid point.
-      std::vector<IonMap> s_obs;
-      s_pred.reserve(sample.size()); s_obs.reserve(sample.size());
-      for (Size i : sample)
-      {
-        Size& pos = s_pos[rows[i].key];
-        if (pos == not_predicted)
-        {
-          pos = s_seq.size();
-          s_seq.push_back(uniq_seq[rows[i].key]);
-          s_charge.push_back(uniq_charge[rows[i].key]);
-        }
-        s_pred.push_back(pos);
-        s_obs.push_back(observedIons_(peptide_ids[rows[i].pi].getHits()[rows[i].hit]));
-      }
-
-      double best_median = -1.0;
-      nce = centre;
-      startProgress(0, grid.size(), "Selecting collision energy...");
-      Size done = 0;
-      for (double cand : grid)
-      {
-        const std::vector<float> s_nce(s_seq.size(), static_cast<float>(cand));
-        const std::vector<int64_t> s_inst(s_seq.size(), instrument);
-        const std::vector<std::vector<float>> pred = ms2.predictMS2(s_seq, s_charge, s_nce, s_inst);
-
-        std::vector<double> cosines;
-        cosines.reserve(sample.size());
-        for (Size k = 0; k < sample.size(); ++k)
-        {
-          const Row& r = rows[sample[k]];
-          const std::vector<float>& p = pred[s_pred[k]];
-          Size channels = (r.len > 1 && !p.empty()) ? p.size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
-          if (channels == 0) { channels = DEFAULT_ION_CHANNELS; }
-          cosines.push_back(similarity_(predictedIons_(p, r.len, channels),
-                                        s_obs[k], ms2_min_ordinal_, r.len, ms2_strong_fraction_).cosine);
-        }
-        std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
-        const double med = cosines[cosines.size() / 2];
-        OPENMS_LOG_DEBUG << "[PeptDeepRescoring] NCE " << cand << " -> median cosine " << med << '\n';
-        if (med > best_median) { best_median = med; nce = cand; }
-        setProgress(++done);
-      }
-      endProgress();
       OPENMS_LOG_INFO << "[PeptDeepRescoring] run '" << run_id << "': NCE " << nce
                       << " selected from a grid centred on " << centre
-                      << " (median cosine " << best_median << ")" << '\n';
+                      << " (median cosine " << best_median << ")" << std::endl;
     }
     used_nce_ = nce;
 
@@ -662,7 +757,7 @@ namespace OpenMS
       }
       OPENMS_LOG_INFO << "[PeptDeepRescoring] run '" << run_id << "': retention-time calibration ("
                       << rt_model_type_ << ") on " << points.size() << " PSMs, median residual "
-                      << rt_calibration_error_ << " s" << '\n';
+                      << rt_calibration_error_ << " s" << std::endl;
     }
     else
     {

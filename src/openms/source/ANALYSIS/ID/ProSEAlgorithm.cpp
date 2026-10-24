@@ -293,7 +293,7 @@ namespace OpenMS
     defaults_.setValue("peptdeep:nce", -1.0, "Normalised collision energy for the PeptDeep MS2 model. Negative selects it automatically from the collision energy recorded in the spectra, refined by scoring a small grid on confident PSMs.");
     defaults_.setValue("peptdeep:rt_model_type", "b_spline", "Model mapping predicted onto observed retention time.", {"advanced"});
     defaults_.setValidStrings("peptdeep:rt_model_type", {"b_spline", "lowess", "linear"});
-    defaults_.setValue("peptdeep:batch_size", 500, "Peptides per ONNX inference call.", {"advanced"});
+    defaults_.setValue("peptdeep:batch_size", 64, "Peptides per ONNX inference call. The calls run side by side, one per thread: small ones keep the threads evenly busy and the memory low (on iPRG2015 with 16 threads, 64 took 40% less time than 500 and 1 GB less memory).", {"advanced"});
     defaults_.setMinInt("peptdeep:batch_size", 1);
     defaults_.setSectionDescription("peptdeep", "PeptDeep (ONNX) prediction-based rescoring features");
 
@@ -4866,7 +4866,9 @@ namespace OpenMS
     // CDATA section or DOCTYPE before the end of the run; not exactly one spectrum list; a count
     // attribute other than the number of spectra found; few spectra) or a chunk fails to parse. The
     // caller then reads the file with MzMLFile::load(), which also reports its errors.
-    bool loadMzMLChunked(const std::string& filename, const PeakFileOptions& options, int threads, PeakMap& exp)
+    // With @p keep only the spectra it accepts are kept (by each chunk, right after parsing it).
+    bool loadMzMLChunked(const std::string& filename, const PeakFileOptions& options, int threads, PeakMap& exp,
+                         const std::function<bool(const MSSpectrum&)>& keep = {})
     {
       std::ifstream in(filename, std::ios::binary);
       if (!in) { return false; }
@@ -5056,6 +5058,13 @@ namespace OpenMS
               PeakMap part;
               mzml.loadBuffer(chunk, part);
               parsed = part.size() <= first[c + 1] - first[c];
+              if (parsed && keep)
+              {
+                std::vector<MSSpectrum>& parsed_spectra = part.getSpectra();
+                parsed_spectra.erase(std::remove_if(parsed_spectra.begin(), parsed_spectra.end(),
+                                                    [&keep](const MSSpectrum& s) { return !keep(s); }),
+                                     parsed_spectra.end());
+              }
               if (parsed)
               {
                 std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
@@ -5098,7 +5107,9 @@ namespace OpenMS
     // The MS2 spectra (with @p survey_scans also the MS1 spectra) of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
     // @p threads OpenMP threads: an mzML file in chunks parsed in parallel (loadMzMLChunked) with two
     // or more, otherwise with FileHandler.
-    PeakMap loadMS2Spectra(const std::string& filename, int threads, bool survey_scans = false)
+    // With @p keep only the spectra it accepts (see ProSEAlgorithm::loadSpectra()).
+    PeakMap loadMS2Spectra(const std::string& filename, int threads, bool survey_scans = false,
+                           const std::function<bool(const MSSpectrum&)>& keep = {})
     {
       PeakMap spectra;
       FileHandler f;
@@ -5109,7 +5120,7 @@ namespace OpenMS
       // default): with several threads, fewer and larger regions
       if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
       if (threads > 1 && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
-          && loadMzMLChunked(filename, f.getOptions(), threads, spectra))
+          && loadMzMLChunked(filename, f.getOptions(), threads, spectra, keep))
       {
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(spectra, true); // as FileHandler::loadExperiment()
 #ifdef __GLIBC__
@@ -5124,6 +5135,11 @@ namespace OpenMS
       else
       {
         f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+        if (keep)
+        {
+          std::vector<MSSpectrum>& all = spectra.getSpectra();
+          all.erase(std::remove_if(all.begin(), all.end(), [&keep](const MSSpectrum& s) { return !keep(s); }), all.end());
+        }
       }
       spectra.sortSpectra(true);
       return spectra;
@@ -5179,6 +5195,11 @@ namespace OpenMS
       }
       return false;
     }
+  }
+
+  PeakMap ProSEAlgorithm::loadSpectra(const std::string& filename, const std::function<bool(const MSSpectrum&)>& keep)
+  {
+    return loadMS2Spectra(filename, readerThreads(false), false, keep);
   }
 
   // =====================================================================
@@ -6526,9 +6547,15 @@ namespace OpenMS
     set<std::string> unique_proteins;
     Size n_target = 0, n_decoy = 0;
 
-    // Per-PSM error values for tolerance estimation (top-ranked hits only)
+    // Mass errors for the tolerance estimate, of the top-ranked hits of the target PSMs (a decoy is a wrong match: its
+    // errors are noise), signed (observed minus theoretical, ppm): of the precursor, corrected by the isotope error of
+    // the hit (as the search matched it; as the annotation PRECURSOR_ERROR_PPM_USERPARAM), and of the annotated b and y
+    // fragment peaks (fragment_errors_psms: the PSMs with any).
     vector<double> precursor_errors;
     vector<double> fragment_errors;
+    Size fragment_errors_psms = 0;
+    static const double water_mass = EmpiricalFormula("H2O").getMonoWeight();
+    std::vector<double> residue_masses; // of a hit, cumulative (prefix sums, for the b and y ions)
 
     EnzymaticDigestion digestor;
     digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme_));
@@ -6546,20 +6573,56 @@ namespace OpenMS
 
       if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
 
-      // Precursor error: always compute inline (cheap), independent of annotate:PSM.
-      // Skip hits with unresolved charge (0) — getMZ() would throw.
-      if (top.getCharge() > 0)
+      const bool is_decoy = top.metaValueExists(Constants::UserParam::TARGET_DECOY)
+                            && top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
+      // Precursor error: always computed inline (cheap), independent of annotate:PSM. Skip hits with unresolved
+      // charge (0) - getMZ() would throw - and, in an open search, those with a delta mass (a modification the
+      // sequence lacks, not a mass error; within 0.05 Da of zero, as OpenSearchModificationAnalysis counts them
+      // unmodified).
+      const bool shifted = top.metaValueExists("DeltaMass") && std::fabs(static_cast<double>(top.getMetaValue("DeltaMass"))) > 0.05;
+      if (!is_decoy && !shifted && top.getCharge() > 0)
       {
-        double theo_mz = top.getSequence().getMZ(top.getCharge());
-        double prec_error_ppm = Math::getPPM(pid.getMZ(), theo_mz);
-        precursor_errors.push_back(fabs(prec_error_ppm));
+        // The isotope offset the search matched at, in 13C spacings of theoretical minus observed (the reported
+        // 'isotope_error' follows report:isotope_error_convention): the observed m/z of the monoisotopic peak is
+        // observed + offset * C13C12 / charge
+        int offset = 0;
+        if (top.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
+        {
+          const int reported = static_cast<int>(top.getMetaValue(Constants::UserParam::ISOTOPE_ERROR));
+          offset = isotope_error_observed_minus_theoretical_ ? -reported : reported;
+        }
+        const double corrected_mz = pid.getMZ() + offset * Constants::C13C12_MASSDIFF_U / top.getCharge();
+        precursor_errors.push_back(Math::getPPM(corrected_mz, top.getSequence().getMZ(top.getCharge())));
       }
 
-      // Fragment error: use annotation metavalue if available (computing it
-      // inline would require spectrum alignment which is expensive).
-      if (top.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
+      // Fragment errors: of the annotated b and y peaks ("b3+", "y12++"; not those with a neutral loss or of other
+      // ions), against their m/z from the hit's sequence
+      if (!is_decoy && !top.getPeakAnnotations().empty())
       {
-        fragment_errors.push_back(static_cast<double>(top.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
+        const AASequence& sequence = top.getSequence();
+        const Size length = sequence.size();
+        residue_masses.assign(length + 1, 0.0);
+        for (Size i = 0; i < length; ++i)
+        {
+          residue_masses[i + 1] = residue_masses[i] + sequence[i].getMonoWeight(Residue::Internal);
+        }
+        const double n_term = sequence.hasNTerminalModification() ? sequence.getNTerminalModification()->getDiffMonoMass() : 0.0;
+        const double c_term = sequence.hasCTerminalModification() ? sequence.getCTerminalModification()->getDiffMonoMass() : 0.0;
+        bool any = false;
+        for (const PeptideHit::PeakAnnotation& pa : top.getPeakAnnotations())
+        {
+          const std::string& name = pa.annotation;
+          if (name.size() < 3 || (name[0] != 'b' && name[0] != 'y') || pa.charge < 1) { continue; }
+          Size end = 1, ordinal = 0;
+          while (end < name.size() && name[end] >= '0' && name[end] <= '9') { ordinal = ordinal * 10 + static_cast<Size>(name[end] - '0'); ++end; }
+          if (ordinal == 0 || ordinal >= length || name.find_first_not_of('+', end) != std::string::npos) { continue; }
+          const double neutral = name[0] == 'b' ? residue_masses[ordinal] + n_term
+                                                : residue_masses[length] - residue_masses[length - ordinal] + c_term + water_mass;
+          const double theoretical_mz = (neutral + pa.charge * Constants::PROTON_MASS_U) / pa.charge;
+          fragment_errors.push_back(Math::getPPM(pa.mz, theoretical_mz));
+          any = true;
+        }
+        if (any) { ++fragment_errors_psms; }
       }
 
       ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
@@ -6579,24 +6642,25 @@ namespace OpenMS
     stats.target_psms = n_target;
     stats.decoy_psms = n_decoy;
 
-    // -- Per-run tolerance estimation (median + 3*MAD, matching prior behaviour) --
+    // -- Per-run tolerance estimate: the median of the signed errors (the bias) and their MAD (the spread; unscaled).
+    //    The recommended (symmetric) tolerance covers the bias plus three standard deviations of a normal distribution,
+    //    estimated robustly as 1.4826 * MAD: ceil(|median| + 3 * 1.4826 * MAD). Of the fragments it is an estimate
+    //    within the searched tolerance: peaks beyond it were not matched. --
     const Size min_psms_for_estimation = 10;
+    const auto estimate = [](vector<double>& errors, double& median, double& mad, double& recommended)
+    {
+      median = Math::median(errors.begin(), errors.end());
+      mad = Math::MAD(errors.begin(), errors.end(), median);
+      recommended = std::ceil(std::fabs(median) + 3.0 * 1.4826 * mad);
+    };
     if (precursor_errors.size() >= min_psms_for_estimation)
     {
-      double med = Math::median(precursor_errors.begin(), precursor_errors.end());
-      double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
-      stats.prec_err_median = med;
-      stats.prec_err_mad = mad;
-      stats.prec_err_recommended = std::ceil(med + 3.0 * mad);
+      estimate(precursor_errors, stats.prec_err_median, stats.prec_err_mad, stats.prec_err_recommended);
       stats.prec_tol_valid = true;
     }
-    if (fragment_errors.size() >= min_psms_for_estimation)
+    if (fragment_errors_psms >= min_psms_for_estimation)
     {
-      double med = Math::median(fragment_errors.begin(), fragment_errors.end());
-      double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
-      stats.frag_err_median = med;
-      stats.frag_err_mad = mad;
-      stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
+      estimate(fragment_errors, stats.frag_err_median, stats.frag_err_mad, stats.frag_err_recommended);
       stats.frag_tol_valid = true;
     }
   }
@@ -7185,6 +7249,8 @@ namespace OpenMS
     y << "  indexed_fragments: " << sh.indexed_fragments << "\n";
     y << "  seconds_index_build: " << num(sh.seconds_index_build) << "\n";
     y << "  seconds_total: " << num(sh.seconds_total) << "\n";
+    y << "  seconds_output: " << num(sh.seconds_output) << "\n";
+    y << "  seconds_qpx_extended: " << num(sh.seconds_qpx_extended) << "\n";
 
     y << "per_file:";
     if (mfres.per_file.empty()) { y << " []\n"; }
@@ -7313,6 +7379,15 @@ namespace OpenMS
   // =====================================================================
   // Render a human-readable single-run summary block.
   // =====================================================================
+  std::string ProSEAlgorithm::renderTotalTime(const SharedSearchStats& sh)
+  {
+    std::ostringstream os;
+    os << std::fixed << std::setprecision(1) << "total " << sh.seconds_total << "s | search of the file(s) "
+       << std::max(0.0, sh.seconds_total - sh.seconds_output) << "s | outputs " << sh.seconds_output << "s";
+    if (sh.seconds_qpx_extended > 0.0) { os << " (of which -qpx_extended " << sh.seconds_qpx_extended << "s)"; }
+    return os.str();
+  }
+
   void ProSEAlgorithm::renderRunSummary(
       const RunStatistics& s,
       const SharedSearchStats& sh,
@@ -7439,9 +7514,11 @@ namespace OpenMS
     os << "[ProSE] ------------------------- Timing -----------------------------\n";
     os << "[ProSE] " << std::fixed << std::setprecision(1);
     if (s.seconds_calibration > 0.0) { os << "calib " << s.seconds_calibration << "s | "; }
-    if (s.seconds_search > 0.0)      { os << "search " << s.seconds_search << "s | "; }
+    if (s.seconds_search > 0.0)      { os << "scoring " << s.seconds_search << "s | "; }
     if (s.seconds_fdr > 0.0)         { os << "fdr " << s.seconds_fdr << "s | "; }
     os << "index(shared) " << sh.seconds_index_build << "s\n";
+    // the whole run (set by the caller): the search of the file (reading it, rescoring, FDR, ...) and the outputs
+    if (sh.seconds_total > 0.0) { os << "[ProSE] " << renderTotalTime(sh) << "\n"; }
 
     // -- Modification discovery (open search only) --
     if (is_open_search)

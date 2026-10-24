@@ -11,6 +11,7 @@
 #include <OpenMS/config.h>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <memory>
 #include <vector>
@@ -27,19 +28,25 @@ namespace OpenMS
     /**
       @brief Owns the ONNX Runtime session of one model file, for the predictors built on it
 
-      Loads the model with all graph optimizations and the given number of intra-op threads, without
-      ONNX Runtime's memory pattern (the inputs of the models change shape from call to call), and gives
-      a predictor (PeptDeepRTInference, PeptDeepCCSInference, PeptDeepMS2Inference) the session and the
-      CPU memory info it needs to build input tensors. The ONNX Runtime types are only forward-declared
-      here. Available in builds with @c WITH_ONNX.
+      Loads the model with all graph optimizations, without ONNX Runtime's memory pattern (the inputs of
+      the models change shape from call to call), and gives a predictor (PeptDeepRTInference,
+      PeptDeepCCSInference, PeptDeepMS2Inference) the session and the CPU memory info it needs to build
+      input tensors. The ONNX Runtime types are only forward-declared here. Available in builds with
+      @c WITH_ONNX.
+
+      A predictor splits its input into model runs (calls of Ort::Session::Run(), e.g. one per batch of
+      peptides of one length) and runs them with forEachCall(): up to threads() calls at once, each on
+      one thread (the session has one intra-op thread). On CPU, the small models of PeptDeep scale much
+      better over their calls than within one call (2.2x faster with 16 threads), and the result of a
+      call does not depend on the number of its threads.
     */
     class OPENMS_DLLAPI ONNXPredictorBase
     {
     public:
         /// @brief Constructor initializes the generic ONNX session safely across platforms.
         /// @param model_path Path to the ONNX model file.
-        /// @param intra_op_threads Number of ONNX execution threads (default 4 based on profiling).
-        explicit ONNXPredictorBase(const std::string& model_path, int intra_op_threads = 4);
+        /// @param threads The model runs forEachCall() runs at once (each on one thread); at least 1.
+        explicit ONNXPredictorBase(const std::string& model_path, int threads = 4);
 
         virtual ~ONNXPredictorBase();
 
@@ -72,7 +79,20 @@ namespace OpenMS
         /// @brief Return the number of model outputs.
         size_t getOutputCount() const;
 
+        /// @brief The model runs forEachCall() runs at once (the threads of the constructor, at least 1).
+        int threads() const;
+
+        /**
+          @brief Runs @p call for 0 to @p n - 1, up to threads() of them at once (with OpenMP)
+
+          For the model runs of a prediction: @p call(k) runs the session on the k-th part of the input (Ort::Session::Run()
+          may be called concurrently) and stores its result. Once all have run, the first exception of a call, if any, is
+          rethrown.
+        */
+        void forEachCall(size_t n, const std::function<void(size_t)>& call) const;
+
     private:
+        int threads_ = 1;
         std::unique_ptr<Ort::SessionOptions> session_options_;
         std::unique_ptr<Ort::Session> session_;
         std::unique_ptr<Ort::MemoryInfo> memory_info_;

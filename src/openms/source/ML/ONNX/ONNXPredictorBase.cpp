@@ -10,6 +10,8 @@
 #include "ONNXEnvironment.h"
 #include <OpenMS/CONCEPT/Exception.h>
 #include <onnxruntime_cxx_api.h>
+#include <algorithm>
+#include <exception>
 #include <stdexcept>
 
 #ifdef _WIN32
@@ -18,13 +20,16 @@
 
 namespace OpenMS
 {
-    ONNXPredictorBase::ONNXPredictorBase(const std::string& model_path, int intra_op_threads)
+    ONNXPredictorBase::ONNXPredictorBase(const std::string& model_path, int threads) :
+        threads_(std::max(1, threads))
     {
         try {
             session_options_ = std::make_unique<Ort::SessionOptions>();
 
-            // Apply optimized thread count parameter
-            session_options_->SetIntraOpNumThreads(intra_op_threads);
+            // One intra-op thread: the predictors run their model runs side by side (forEachCall()).
+            // Split over 16 intra-op threads, a run of a batch of PeptDeep's MS2 model kept them busy
+            // waiting for each other (all cores used, 2.2x the wall time of 16 runs at once on iPRG2015).
+            session_options_->SetIntraOpNumThreads(1);
             session_options_->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
             // Without ONNX Runtime's memory pattern. The inputs of the PeptDeep models change shape
             // from call to call (batch size, peptide length); for each shape, the pattern plans one
@@ -133,6 +138,30 @@ namespace OpenMS
     size_t ONNXPredictorBase::getOutputCount() const
     {
         return session_->GetOutputCount();
+    }
+
+    int ONNXPredictorBase::threads() const
+    {
+        return threads_;
+    }
+
+    void ONNXPredictorBase::forEachCall(size_t n, const std::function<void(size_t)>& call) const
+    {
+        std::exception_ptr failure; // exceptions must not leave the parallel region
+#pragma omp parallel for schedule(dynamic, 1) num_threads(std::max(1, std::min(threads_, static_cast<int>(std::min<size_t>(n, 1024))))) if (n > 1 && threads_ > 1)
+        for (std::ptrdiff_t k = 0; k < static_cast<std::ptrdiff_t>(n); ++k)
+        {
+            try
+            {
+                call(static_cast<size_t>(k));
+            }
+            catch (...)
+            {
+#pragma omp critical (ONNXPredictorBase_forEachCall)
+                if (!failure) { failure = std::current_exception(); }
+            }
+        }
+        if (failure) { std::rethrow_exception(failure); }
     }
 
 } // namespace OpenMS
