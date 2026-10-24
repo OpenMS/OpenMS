@@ -1328,7 +1328,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::shared_ptr<const ReuseModel_> trainReuseModel_(const std::vector<ReuseRun_>& runs, int threads) const;
 
     /// rescore_reuse: rescores the PSMs of a run (file @p file_index of the search) with @p model, as rescoreWithPercolator_();
-    /// with @p check_shift, a run whose decoys differ from the training decoys by more than reuse_max_shift_ is rescored by
+    /// with @p check_shift, a run whose PSMs (targets and decoys, labels unused) differ from the training PSMs by more than reuse_max_shift_ is rescored by
     /// Percolator trained on it instead
     PercolatorRescoring rescoreWithReuseModel_(std::vector<ProteinIdentification>& protein_ids,
                                                PeptideIdentificationList& peptide_ids,

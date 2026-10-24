@@ -397,7 +397,7 @@ namespace OpenMS
                        "three-fold cross-validation. The other modes cross-fit: the spectra are split into two halves at random "
                        "(by Percolator's seed), one model is trained per half on about 'rescore_reuse:max_train' PSMs, and every PSM is "
                        "scored by the model of the other half, so that no PSM is scored by a model that was trained on it (5 % of the "
-                       "spectra of each half are not trained on: their decoys put the scores of the other half's model on one scale). 'joint' (a "
+                       "spectra of each half are not trained on: their decoys put the scores of their own half's model on one scale; they are scored by the other model). 'joint' (a "
                        "multi-file search): the training PSMs are drawn from all files, the same number from each, and the files are "
                        "rescored once all are searched (mokapot's joint model). 'static' (a multi-file search): they are drawn from the first "
                        "'rescore_reuse:static_files' files, and every later file is rescored with these models after its search, unless "
@@ -4442,15 +4442,44 @@ namespace OpenMS
         }
       }
     }
+    // The calibration spectra of a half: a share of those with u >= REUSE_CALIBRATION_FROM, for about
+    // 2 x REUSE_CALIBRATION_DECOYS PSMs per half.
+    std::array<double, 2> calibration_fraction{1.0, 1.0};
+    for (int h = 0; h < 2; ++h)
+    {
+      double half_psms = 0.0;
+      for (Size k = 0; k < n_runs; ++k) { half_psms += psms[k][h]; }
+      const double calibration_psms = half_psms * (1.0 - REUSE_CALIBRATION_FROM);
+      if (calibration_psms > 2.0 * REUSE_CALIBRATION_DECOYS) { calibration_fraction[h] = 2.0 * REUSE_CALIBRATION_DECOYS / calibration_psms; }
+    }
     std::array<RescoreInput, 2> train;
+    StopWatch sw_rows;
+    sw_rows.start();
     std::array<std::vector<std::vector<double>>, 2> calibration; // calibration decoys of each half
     for (Size k = 0; k < n_runs; ++k)
     {
       const Size file = used[k]->file_index;
+      // Only the drawn spectra get feature rows: a copy of them (spectra[i]: the index of the copy's spectrum i).
+      const PeptideIdentificationList& ids = *used[k]->peptide_ids;
+      std::vector<Size> spectra;
+      for (Size s = 0; s < ids.size(); ++s)
+      {
+        const int h = reuseHalf(seed, file, s);
+        const double u = reuseUniform(seed, file, s);
+        const bool drawn = u >= REUSE_CALIBRATION_FROM
+                           ? (u - REUSE_CALIBRATION_FROM) / (1.0 - REUSE_CALIBRATION_FROM) < calibration_fraction[h]
+                           : u < REUSE_CALIBRATION_FROM * fraction[k][h];
+        if (drawn && !ids[s].getHits().empty()) { spectra.push_back(s); }
+      }
+      PeptideIdentificationList drawn_ids;
+      drawn_ids.resize(spectra.size());
+#pragma omp parallel for schedule(dynamic, 1024) num_threads(std::max(1, threads))
+      for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i) { drawn_ids[i] = ids[spectra[i]]; }
+      if (drawn_ids.empty()) { continue; }
       RescoreInput ri;
       Percolator::PSMRowLocations rows;
-      Percolator::buildPSMRescoreInput(*used[k]->peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, rows);
-      if (k == 0) { model->features = ri.feature_names; }
+      Percolator::buildPSMRescoreInput(drawn_ids, feature_set, enzyme, min_charge, max_charge, ri, rows);
+      if (model->features.empty()) { model->features = ri.feature_names; }
       else if (ri.feature_names != model->features)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -4458,15 +4487,13 @@ namespace OpenMS
       }
       for (Size r = 0; r < ri.features.size(); ++r)
       {
-        const Size spectrum = rows[r].first;
+        const Size spectrum = spectra[rows[r].first];
         const int h = reuseHalf(seed, file, spectrum);
-        const double u = reuseUniform(seed, file, spectrum);
-        if (u >= REUSE_CALIBRATION_FROM)
+        if (reuseUniform(seed, file, spectrum) >= REUSE_CALIBRATION_FROM)
         {
           if (ri.is_decoy[r]) { calibration[h].push_back(std::move(ri.features[r])); }
           continue;
         }
-        if (u >= REUSE_CALIBRATION_FROM * fraction[k][h]) continue;
         RescoreInput& t = train[h];
         t.features.push_back(std::move(ri.features[r]));
         t.is_decoy.push_back(ri.is_decoy[r]);
@@ -4490,7 +4517,18 @@ namespace OpenMS
       }
       Percolator perc;
       perc.setParameters(rescoringPercolatorParameters(perc.getDefaults(), threads));
+      if (h == 0)
+      {
+        sw_rows.stop();
+        OPENMS_LOG_INFO << "[ProSE] rescore_reuse: training PSMs of " << n_runs << " file(s) drawn in " << sw_rows.getClockTime()
+                        << " s" << std::endl;
+      }
+      StopWatch sw_train;
+      sw_train.start();
       model->models[h] = perc.train(train[h]);
+      sw_train.stop();
+      OPENMS_LOG_INFO << "[ProSE] rescore_reuse: model " << h + 1 << " trained on " << train[h].features.size() << " PSMs in "
+                      << sw_train.getClockTime() << " s" << std::endl;
       model->used_default_direction = model->used_default_direction || perc.usedDefaultDirection();
     }
     // The scale of each model: its scores of the calibration decoys of its half (not trained on; scored by the other model).
@@ -4919,6 +4957,8 @@ namespace OpenMS
       SearchResult& result = mfres.per_file[d];
       if (result.exit_code != ExitCodes::EXECUTION_OK) { continue; }
       OPENMS_LOG_INFO << "[ProSE] Rescoring the PSMs of " << result.stats.input_file << " with Percolator..." << std::endl;
+      StopWatch sw_file;
+      sw_file.start();
       result.percolator = model != nullptr
                           ? rescoreWithReuseModel_(result.protein_ids, result.peptide_ids, d, *model, false, threads, nullptr)
                           : rescoreWithPercolator_(result.protein_ids, result.peptide_ids, threads, nullptr);
@@ -4929,6 +4969,9 @@ namespace OpenMS
       result.stats.missed_cleavage_histogram.clear();
       collectRunStatistics_(PeakMap(), result.protein_ids, result.peptide_ids, result.stats);
       result.stats.ms2_spectra = ms2_spectra;
+      sw_file.stop();
+      OPENMS_LOG_INFO << "[ProSE] rescore_reuse: " << result.stats.input_file << " rescored in " << sw_file.getClockTime() << " s"
+                      << std::endl;
     }
     sw.stop();
     OPENMS_LOG_INFO << "[ProSE] rescore_reuse: " << deferred.size() << " file(s) rescored in " << sw.getClockTime() << " s" << std::endl;

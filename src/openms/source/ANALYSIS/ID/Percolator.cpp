@@ -691,26 +691,41 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   // train()/rescore() — otherwise callers see raw upstream exceptions.
   try
   {
-    all_scores.postMergeStep();
-    all_scores.calcQvals(impl_->test_fdr);
-    // normalizeScores takes a non-const ref and rescales the weight vector in
-    // place (endScoreNormalizeWeights). Use a local copy so the caller's model
-    // is not mutated.
-    std::vector<double> weights_copy = model.weights;
-    all_scores.normalizeScores(impl_->test_fdr, weights_copy);
-
-    if (impl_->post_processing_tdc)
+    // In a parallel region, as in rescore(): the sorts and the bootstraps of the pi0 estimate run as its tasks, with the
+    // same results (see thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
+    std::exception_ptr error;
+#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
+#pragma omp single
     {
-      all_scores.weedOutRedundantTDC();
-    }
+      try
+      {
+        all_scores.postMergeStep();
+        all_scores.calcQvals(impl_->test_fdr);
+        // normalizeScores takes a non-const ref and rescales the weight vector in
+        // place (endScoreNormalizeWeights). Use a local copy so the caller's model
+        // is not mutated.
+        std::vector<double> weights_copy = model.weights;
+        all_scores.normalizeScores(impl_->test_fdr, weights_copy);
 
-    // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
-    // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
-    // internal postMergeStep. Kept unconditional for symmetry with rescore()
-    // — when TDC is off this is a no-op (pi0 and scores are unchanged since
-    // the earlier calcQvals call) but the cost is negligible on already-
-    // sorted scores.
-    all_scores.calcQvals(impl_->test_fdr);
+        if (impl_->post_processing_tdc)
+        {
+          all_scores.weedOutRedundantTDC();
+        }
+
+        // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
+        // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
+        // internal postMergeStep. Kept unconditional for symmetry with rescore()
+        // — when TDC is off this is a no-op (pi0 and scores are unchanged since
+        // the earlier calcQvals call) but the cost is negligible on already-
+        // sorted scores.
+        all_scores.calcQvals(impl_->test_fdr);
+      }
+      catch (...)
+      {
+        error = std::current_exception();
+      }
+    }
+    if (error) std::rethrow_exception(error);
     impl_->last_pi0 = all_scores.getPi0();
 
     if (impl_->pep_method == "isotonic")
