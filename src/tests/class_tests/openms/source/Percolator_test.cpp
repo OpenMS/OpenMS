@@ -1928,6 +1928,41 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     TEST_EQUAL(same, true)
     TEST_EQUAL(without_meta, 800)
   }
+
+  // an old score type named like a Percolator value: the original score kept under that name replaces the Percolator
+  // value there, and the canonical fields are those meta values (as when they were read back from the hits)
+  for (const std::string old_type : {"percolator_q_value", "percolator_score", "percolator_pep"})
+  {
+    PeptideIdentificationList all = makeIds(), best = makeIds();
+    std::vector<std::vector<double>> original(all.size());
+    for (Size i = 0; i < all.size(); ++i)
+    {
+      all[i].setScoreType(old_type);
+      best[i].setScoreType(old_type);
+      for (const PeptideHit& hit : all[i].getHits()) original[i].push_back(hit.getScore());
+    }
+    Percolator perc;
+    perc.rescorePSMs(all, feature_set, "trypsin", 2, 2, "q-value");
+    perc.rescorePSMs(best, feature_set, "trypsin", 2, 2, "q-value", true);
+    bool kept = true, same = true;
+    for (Size i = 1; i < all.size(); ++i)
+    {
+      for (Size j = 0; j < all[i].getHits().size(); ++j)
+      {
+        const PeptideHit& hit = all[i].getHits()[j];
+        if (!hit.getPeptideEvidences().empty())
+        {
+          kept = kept && double(hit.getMetaValue(old_type)) == original[i][j];
+          if (old_type == "percolator_q_value") kept = kept && hit.getScore() == original[i][j];
+        }
+      }
+      all[i].sort();
+      best[i].sort();
+      same = same && all[i].getHits()[0] == best[i].getHits()[0];
+    }
+    TEST_EQUAL(kept, true)
+    TEST_EQUAL(same, true)
+  }
 }
 END_SECTION
 

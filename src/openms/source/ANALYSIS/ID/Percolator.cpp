@@ -1676,15 +1676,19 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     // Hits that were not rescored get the values the executable path gives PSMs missing from
     // Percolator's output (q-value = PEP = 1, SVM score = -100: confidently not identified), so
     // their main score matches the new score type of the identification.
+    // (an old score type named like a Percolator value: the original score, kept under that name after the Percolator
+    // values were written, replaced the value there, and the values were read back from the meta values)
+    const bool old_is_score = old_score_type == "percolator_score", old_is_q_value = old_score_type == "percolator_q_value",
+               old_is_pep = old_score_type == "percolator_pep";
     auto scores_of = [&](size_t j, double& svm, double& qval, double& pep)
     {
       svm = -100.0; qval = 1.0; pep = 1.0;
       const size_t row = row_of[i][j];
       if (row != NO_ROW)
       {
-        svm  = ro.scores[row];
-        qval = ro.q_values[row];
-        pep  = ro.peps[row];
+        svm  = old_is_score   ? hits[j].getScore() : ro.scores[row];
+        qval = old_is_q_value ? hits[j].getScore() : ro.q_values[row];
+        pep  = old_is_pep     ? hits[j].getScore() : ro.peps[row];
       }
     };
     auto new_score = [&](double svm, double qval, double pep)
@@ -1735,8 +1739,9 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       }
       else if (best == NO_ROW || j == best)
       {
-        hit.setMetaValue(index[0], hit.getScore());
+        // (in the order of the writes to all hits: the Percolator values first, then the original score)
         if (best != NO_ROW && row_of[i][j] != NO_ROW) store_row(row_of[i][j], index[1], index[2], index[3]);
+        hit.setMetaValue(index[0], hit.getScore());
         hit.setMetaValue(index[4], svm);
         hit.setMetaValue(index[5], qval);
         hit.setMetaValue(index[6], pep);
