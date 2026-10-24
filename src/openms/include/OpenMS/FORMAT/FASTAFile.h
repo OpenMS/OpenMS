@@ -190,7 +190,7 @@ namespace OpenMS
         std::string filename_;      ///< name of the file read (readStart())
         Size line_{0};              ///< line of the next character read (1-based); 0: unknown, after setPosition()
         Size entry_line_{0};        ///< line of the entry read last (0: unknown)
-        std::streampos entry_offset_{}; ///< byte offset where reading the entry read last began (whitespace before it included)
+        std::streampos entry_offset_{}; ///< byte offset of the entry read last
         std::string error_;         ///< why readEntry_() failed
     };
 

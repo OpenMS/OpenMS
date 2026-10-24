@@ -43,6 +43,7 @@
 #include <map>
 #include <mutex>
 #include <numeric>
+#include <optional>
 #include <set>
 #include <string_view>
 #include <unordered_map>
@@ -118,32 +119,46 @@ namespace OpenMS
     });
   }
 
-  void FragmentIndex::checkSearchParameters(const Param& param)
+  namespace
   {
-    const auto check_range = [&param](const std::string& min_name, const std::string& max_name, bool zero_max_unlimited)
+    // The bounds of restrictSearchParameters() (documented there)
+    constexpr int MAX_PRECURSOR_CHARGE = 20;
+    constexpr int MAX_FRAGMENT_CHARGE = 10;
+    constexpr int MAX_ABS_ISOTOPE_ERROR = 5;
+    constexpr int MAX_VARIABLE_MODS_PER_PEPTIDE = 5;
+    constexpr int MAX_MIN_MATCHED_IONS = 1000;
+    constexpr int MAX_REPORTED_HITS = 100;
+
+    // checkSearchParameters() without peptide:motif
+    void checkSearchRanges(const Param& param)
     {
-      if (!param.exists(min_name) || !param.exists(max_name)) return;
-      const double min_value = param.getValue(min_name);
-      const double max_value = param.getValue(max_name);
-      if (zero_max_unlimited && max_value == 0.0) return;
-      if (min_value > max_value)
+      const auto check_range = [&param](const std::string& min_name, const std::string& max_name, bool zero_max_unlimited)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          min_name + " (" + param.getValue(min_name).toString() + ") is larger than " + max_name + " ("
-          + param.getValue(max_name).toString() + "): nothing would be searched. Swap the values or adjust the range.");
-      }
-    };
-    check_range("precursor:min_charge", "precursor:max_charge", false);
-    check_range("precursor:isotope_error_min", "precursor:isotope_error_max", false);
-    check_range("peptide:min_size", "peptide:max_size", true);
-    check_range("peptide:min_mass", "peptide:max_mass", false);
-    check_range("fragment:min_mz", "fragment:max_mz", false);
-    if (param.exists("peptide:motif"))
+        if (!param.exists(min_name) || !param.exists(max_name)) return;
+        const double min_value = param.getValue(min_name);
+        const double max_value = param.getValue(max_name);
+        if (zero_max_unlimited && max_value == 0.0) return;
+        if (min_value > max_value)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            min_name + " (" + param.getValue(min_name).toString() + ") is larger than " + max_name + " ("
+            + param.getValue(max_name).toString() + "): nothing would be searched. Swap the values or adjust the range.");
+        }
+      };
+      check_range("precursor:min_charge", "precursor:max_charge", false);
+      check_range("precursor:isotope_error_min", "precursor:isotope_error_max", false);
+      check_range("peptide:min_size", "peptide:max_size", true);
+      check_range("peptide:min_mass", "peptide:max_mass", false);
+      check_range("fragment:min_mz", "fragment:max_mz", false);
+    }
+
+    // The compiled peptide:motif (none if empty), or InvalidParameter
+    RegularExpression compileMotif(const std::string& motif)
     {
-      const std::string motif = param.getValue("peptide:motif").toString();
+      if (motif.empty()) return RegularExpression();
       try
       {
-        RegularExpression test(motif);
+        return RegularExpression(motif);
       }
       catch (const std::exception& e)
       {
@@ -151,6 +166,44 @@ namespace OpenMS
           "peptide:motif '" + motif + "' is not a valid regular expression (" + e.what() + ").");
       }
     }
+  } // namespace
+
+  void FragmentIndex::restrictSearchParameters(Param& param)
+  {
+    const auto restrict = [&param](const std::string& name, int min, std::optional<int> max = std::nullopt)
+    {
+      if (!param.exists(name)) return;
+      param.setMinInt(name, min);
+      if (max) param.setMaxInt(name, *max);
+    };
+    restrict("precursor:min_charge", 1, MAX_PRECURSOR_CHARGE);
+    restrict("precursor:max_charge", 1, MAX_PRECURSOR_CHARGE);
+    restrict("precursor:isotope_error_min", -MAX_ABS_ISOTOPE_ERROR, MAX_ABS_ISOTOPE_ERROR);
+    restrict("precursor:isotope_error_max", -MAX_ABS_ISOTOPE_ERROR, MAX_ABS_ISOTOPE_ERROR);
+    restrict("fragment:max_charge", 1, MAX_FRAGMENT_CHARGE);
+    restrict("modifications:variable_max_per_peptide", 0, MAX_VARIABLE_MODS_PER_PEPTIDE);
+    restrict("fragment:min_matched_ions", 0, MAX_MIN_MATCHED_IONS);
+    restrict("report:top_hits", 1, MAX_REPORTED_HITS);
+    restrict("scoring:max_candidates_per_spectrum", 1);
+    for (const char* name : {"peptide:missed_cleavages", "peptide:min_size", "peptide:max_size", "peptide:min_mass",
+                             "peptide:max_mass", "fragment:min_mz", "fragment:max_mz"})
+    {
+      restrict(name, 0);
+    }
+    if (param.exists("peptide:motif"))
+    {
+      param.setValue("peptide:motif", param.getValue("peptide:motif"),
+        "If set, only peptides whose unmodified sequence (one-letter codes) contains a match of this regular expression "
+        "are searched, target and decoy peptides alike, e.g. 'N[^P][ST]' for N-glycosylation sequons or 'C' for "
+        "cysteine-containing peptides; '^' and '$' anchor it to the peptide termini.",
+        param.getTags("peptide:motif"));
+    }
+  }
+
+  void FragmentIndex::checkSearchParameters(const Param& param)
+  {
+    checkSearchRanges(param);
+    if (param.exists("peptide:motif")) { compileMotif(param.getValue("peptide:motif").toString()); }
   }
 
   void FragmentIndex::precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges)
@@ -2033,8 +2086,8 @@ namespace OpenMS
 
         if (is_peptide_mass_mode_)
         {
-          // mother: one entry per prefix that the query can realize, holding its (M+H)+ with fixed
-          // modifications (the mass generatePeptides() would give the unmodified peptide) and, with
+          // mother: one entry per prefix that the query can realize (that passes peptide:motif), holding its (M+H)+
+          // with fixed modifications (the mass generatePeptides() would give the unmodified peptide) and, with
           // entry_sites_, an upper bound of its variable modification sites (buildModSlots_() makes at most one
           // slot per terminal modification and per modification of each residue)
           uint32_t sites = static_cast<uint32_t>(variable_nterm_mods_.size() + variable_cterm_mods_.size());
@@ -2042,7 +2095,7 @@ namespace OpenMS
           {
             sites += static_cast<uint32_t>(variable_mod_table_[static_cast<unsigned char>(seq_ptr[length - 1])].size());
             const float mz = static_cast<float>(mass);
-            if (length >= peptide_min_length_ && mz >= entry_min_mz && mz <= entry_max_mz)
+            if (length >= peptide_min_length_ && mz >= entry_min_mz && mz <= entry_max_mz && matchesMotif_(seq_ptr, length))
             {
               const UInt32 entry = entry_sites_
                 ? (static_cast<UInt32>(peptide_idx) | (std::min(sites, ENTRY_MAX_SITES_) << ENTRY_SITES_SHIFT_))
@@ -3381,7 +3434,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             return false;
           });
           if (length == 0) return;
-          if (!matchesMotif_(sequence, length)) return; // peptide:motif, on the prefix that is the peptide
 
           const bool is_prot_nterm = isProteinNTerminal_(protein, start);
           const bool is_prot_cterm = (start + length == protein.size());
@@ -3705,16 +3757,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("precursor:min_charge", 2,
                        "min precursor charge. Spectra without a precursor charge are searched with every charge of the "
                        "range; spectra whose recorded charge lies outside of it are not searched.");
-    defaults_.setMinInt("precursor:min_charge", 1);
-    defaults_.setMaxInt("precursor:min_charge", MAX_PRECURSOR_CHARGE);
     defaults_.setValue("precursor:max_charge", 5, "max precursor charge (see precursor:min_charge)");
-    defaults_.setMinInt("precursor:max_charge", 1);
-    defaults_.setMaxInt("precursor:max_charge", MAX_PRECURSOR_CHARGE);
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
-    defaults_.setMinInt("fragment:min_mz", 0);
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
-    defaults_.setMinInt("fragment:max_mz", 0);
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
@@ -3725,8 +3771,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus and a residue carry one modification each: a variable terminal modification (e.g. 'Acetyl (Protein N-term)', 'Gln->pyro-Glu (N-term Q)') is not searched where a fixed one sits on that terminus (e.g. 'TMT6plex (N-term)'), and a variable residue modification (e.g. 'Glutathione (C)') is not searched where a fixed one sits on that residue (e.g. 'Carbamidomethyl (C)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
-    defaults_.setMinInt("modifications:variable_max_per_peptide", 0);
-    defaults_.setMaxInt("modifications:variable_max_per_peptide", MAX_VARIABLE_MODS_PER_PEPTIDE);
 
     vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
@@ -3735,7 +3779,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
 
     defaults_.setValue("peptide:missed_cleavages", 1, "Missed cleavages for digestion");
-    defaults_.setMinInt("peptide:missed_cleavages", 0);
     defaults_.setValue(
       "peptide:clip_nterm_methionine", "false",
       "Also consider loss of the initial M of a protein. Length and missed-cleavage limits apply to the clipped peptide, "
@@ -3757,14 +3800,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       "           spaces consider tightening 'peptide:min_size'/'peptide:max_size'.");
     defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
     defaults_.setValue("peptide:min_size", 7, "Minimal peptide length for database");
-    defaults_.setMinInt("peptide:min_size", 0);
     defaults_.setValue("peptide:max_size", 40, "Maximal peptide length for database (0 = unlimited)");
-    defaults_.setMinInt("peptide:max_size", 0);
 
     defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
-    defaults_.setMinInt("peptide:min_mass", 0);
     defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database"); //Todo: set unlimited option
-    defaults_.setMinInt("peptide:max_mass", 0);
 
 
     is_build_ = false; // TODO: remove this and build on construction
@@ -3772,8 +3811,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     //Search-related params
 
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
-    defaults_.setMinInt("fragment:min_matched_ions", 0);
-    defaults_.setMaxInt("fragment:min_matched_ions", MAX_MIN_MATCHED_IONS);
     // Default iso range [-2, 0]: Orbitrap/QExactive/tims monoisotopic peak picking
     // fails predominantly *upward* (picks the +1 or +2 isotope instead of the true
     // monoisotopic). The query matches observed mass + isotope_error * C13C12, so an
@@ -3783,13 +3820,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("precursor:isotope_error_min", -2,
                        "Minimum precursor isotope error searched, in 13C spacings (1.00336 Da) added to the observed "
                        "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor.");
-    defaults_.setMinInt("precursor:isotope_error_min", -MAX_ABS_ISOTOPE_ERROR);
-    defaults_.setMaxInt("precursor:isotope_error_min", MAX_ABS_ISOTOPE_ERROR);
     defaults_.setValue("precursor:isotope_error_max", 0,
                        "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
                        "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
-    defaults_.setMinInt("precursor:isotope_error_max", -MAX_ABS_ISOTOPE_ERROR);
-    defaults_.setMaxInt("precursor:isotope_error_max", MAX_ABS_ISOTOPE_ERROR);
 
     defaults_.setValue("low_memory", "false",
       "Non-specific searches (peptide:enzyme_specificity=none; ignored otherwise): index the peptide masses, as the "
@@ -3800,10 +3833,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValidStrings("low_memory", {"true", "false"});
     
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
-    defaults_.setMinInt("fragment:max_charge", 1);
-    defaults_.setMaxInt("fragment:max_charge", MAX_FRAGMENT_CHARGE);
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
-    defaults_.setMinInt("scoring:max_candidates_per_spectrum", 1);
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     //defaults from the searchEngine that are not needed for this class, but otherwise we would generate a warning
@@ -3832,19 +3862,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                 Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
-    defaults_.setMinInt("report:top_hits", 1);
     defaults_.setSectionDescription("report", "Reporting Options");
-    defaults_.setValue("peptide:motif", "", PEPTIDE_MOTIF_DESCRIPTION);
+    defaults_.setValue("peptide:motif", "", ""); // description: restrictSearchParameters()
     defaults_.setSectionDescription("peptide", "Peptide Options");
+    restrictSearchParameters(defaults_);
 
     defaultsToParam_();
 }
 
   void FragmentIndex::updateMembers_()
   {
-    checkSearchParameters(param_);
-    const std::string motif = param_.getValue("peptide:motif").toString();
-    peptide_motif_ = motif.empty() ? RegularExpression() : RegularExpression(motif);
+    // checkSearchParameters(), with the motif compiled once
+    checkSearchRanges(param_);
+    peptide_motif_ = compileMotif(param_.getValue("peptide:motif").toString());
 
     add_b_ions_ = param_.getValue("ions:add_b_ions").toBool();
     add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();

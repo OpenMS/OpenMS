@@ -418,13 +418,30 @@ namespace OpenMS
     return stampPinFeaturesOnHits(peptide_ids, enz, min_charge, max_charge, added_meta_values);
   }
 
+  namespace
+  {
+    // The name of the enzyme @p enzyme (of the .pin features, or of ProteaseDB: 'Trypsin/P' etc.) that isEnz_() knows:
+    // lowercase without spaces, 'trypsin/p' as 'trypsinp', 'pepsina' as 'pepsin'; "no_enzyme" if it knows none
+    std::string pinEnzymeName(const std::string& enzyme)
+    {
+      std::string name = StringUtils::toLowered(enzyme);
+      StringUtils::remove(name, ' ');
+      if (name == "trypsin/p") return "trypsinp";
+      if (name == "pepsina") return "pepsin";
+      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+      return pin_enzymes.contains(name) ? name : "no_enzyme";
+    }
+  }
+
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
     PeptideIdentificationList& peptide_ids,
-    const std::string& enz,
+    const std::string& enzyme,
     int min_charge,
     int max_charge,
     PinFeatureMetaValueMap& added_meta_values)
   {
+    const std::string enz = pinEnzymeName(enzyme); // store() and the in-process rescoring pass ProteaseDB names as well
     std::set<std::pair<size_t, size_t>> skipped;
     added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
@@ -695,20 +712,6 @@ namespace OpenMS
     return txt;
   }
 
-
-  std::string PercolatorInfile::pinEnzymeName(const std::string& enzyme)
-  {
-    std::string name;
-    for (const char c : enzyme)
-    {
-      if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-    }
-    if (name == "trypsin/p") return "trypsinp";
-    if (name == "pepsina") return "pepsin";
-    static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
-                                                      "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
-    return pin_enzymes.contains(name) ? name : "no_enzyme";
-  }
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {

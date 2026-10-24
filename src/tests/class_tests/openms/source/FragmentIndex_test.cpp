@@ -5075,7 +5075,7 @@ START_SECTION((static void checkSearchParameters(const Param& param)))
     {"precursor:isotope_error_max", 32767}, {"precursor:isotope_error_min", -32768}, {"fragment:max_charge", 0},
     {"fragment:max_charge", 65536}, {"fragment:min_matched_ions", 65536}, {"modifications:variable_max_per_peptide", 6},
     {"modifications:variable_max_per_peptide", -1}, {"peptide:missed_cleavages", -1}, {"peptide:min_size", -1},
-    {"peptide:max_size", -1}, {"scoring:max_candidates_per_spectrum", 0}, {"report:top_hits", 0}};
+    {"peptide:max_size", -1}, {"scoring:max_candidates_per_spectrum", 0}, {"report:top_hits", 0}, {"report:top_hits", 101}};
   for (const auto& [name, value] : out_of_range)
   {
     Param q = defaults;
@@ -5086,15 +5086,40 @@ START_SECTION((static void checkSearchParameters(const Param& param)))
   // the bounds themselves are accepted
   Param bounds = defaults;
   bounds.setValue("precursor:min_charge", 1);
-  bounds.setValue("precursor:max_charge", FragmentIndex::MAX_PRECURSOR_CHARGE);
-  bounds.setValue("precursor:isotope_error_min", -FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
-  bounds.setValue("precursor:isotope_error_max", FragmentIndex::MAX_ABS_ISOTOPE_ERROR);
-  bounds.setValue("fragment:max_charge", FragmentIndex::MAX_FRAGMENT_CHARGE);
-  bounds.setValue("modifications:variable_max_per_peptide", FragmentIndex::MAX_VARIABLE_MODS_PER_PEPTIDE);
-  bounds.setValue("fragment:min_matched_ions", FragmentIndex::MAX_MIN_MATCHED_IONS);
+  bounds.setValue("precursor:max_charge", 20);
+  bounds.setValue("precursor:isotope_error_min", -5);
+  bounds.setValue("precursor:isotope_error_max", 5);
+  bounds.setValue("fragment:max_charge", 10);
+  bounds.setValue("modifications:variable_max_per_peptide", 5);
+  bounds.setValue("fragment:min_matched_ions", 1000);
   FragmentIndex at_bounds;
   at_bounds.setParameters(bounds);
   TEST_EQUAL(static_cast<int>(at_bounds.getParameters().getValue("precursor:max_charge")), 20)
+}
+END_SECTION
+
+START_SECTION((static void restrictSearchParameters(Param& param)))
+{
+  // only the entries that exist
+  Param p;
+  p.setValue("precursor:max_charge", 5);
+  p.setValue("report:top_hits", 1);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("peptide:motif", "", "");
+  FragmentIndex::restrictSearchParameters(p);
+  TEST_EQUAL(p.getEntry("precursor:max_charge").min_int, 1)
+  TEST_EQUAL(p.getEntry("precursor:max_charge").max_int, 20)
+  TEST_EQUAL(p.getEntry("report:top_hits").max_int, 100)
+  TEST_EQUAL(p.getEntry("peptide:missed_cleavages").min_int, 0)
+  TEST_EQUAL(p.getEntry("peptide:missed_cleavages").max_int, std::numeric_limits<int>::max())
+  TEST_TRUE(p.getDescription("peptide:motif").find("regular expression") != std::string::npos)
+  TEST_EQUAL(p.exists("fragment:max_charge"), false)
+  // the defaults of FragmentIndex carry them
+  const Param defaults = FragmentIndex().getDefaults();
+  TEST_EQUAL(defaults.getEntry("fragment:max_charge").max_int, 10)
+  TEST_EQUAL(defaults.getEntry("modifications:variable_max_per_peptide").max_int, 5)
+  TEST_EQUAL(defaults.getEntry("precursor:isotope_error_min").min_int, -5)
+  TEST_EQUAL(defaults.getDescription("peptide:motif"), p.getDescription("peptide:motif"))
 }
 END_SECTION
 

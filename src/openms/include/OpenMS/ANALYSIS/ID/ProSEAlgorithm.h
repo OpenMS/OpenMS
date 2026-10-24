@@ -61,9 +61,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// precursor co-isolated with it
     static constexpr const char* CHIMERIC_RANK = "chimeric_rank";
 
-    /// Upper bound of report:top_hits (the hits reported per spectrum)
-    static constexpr int MAX_REPORTED_HITS = 100;
-
     /// Exit codes
     enum class ExitCodes
     {
@@ -1341,7 +1338,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peptide_missed_cleavages_;
     EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
-    std::string peptide_motif_;
 
     Size report_top_hits_;
     /// report:isotope_error_convention: the PSMs report isotope_error as observed minus theoretical (true) or with the
@@ -1579,14 +1575,25 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                const PeptideIdentificationList& peptide_ids,
                                RunStatistics& stats) const;
 
-    /// Helper: counts the MS2 spectra of @p spectra, those recorded as profile spectra and those whose precursor
-    /// charge lies outside of precursor:min_charge..max_charge, into the fields of @p stats.
-    void countSearchableSpectra_(const PeakMap& spectra, RunStatistics& stats) const;
+    /// The MS2 spectra of a spectrum file, those recorded as profile spectra and those that are not searched
+    /// because their precursor charge lies outside of precursor:min_charge..max_charge (FragmentIndex::precursorCharges())
+    struct SpectraCounts_
+    {
+      Size ms2 = 0;
+      Size profile = 0;
+      Size charge_out_of_range = 0;
+    };
 
-    /// Helper: warns about @p spectra (of @p input; empty: not named) that cannot be searched as intended: no MS2
-    /// spectra (e.g. an MS1-only file), MS2 spectra recorded as profile spectra, and MS2 spectra whose precursor
-    /// charge lies outside of precursor:min_charge..max_charge (not searched).
-    void warnAboutSpectra_(const PeakMap& spectra, const std::string& input) const;
+    /// Helper: the SpectraCounts_ of @p spectra
+    SpectraCounts_ countSpectra_(const PeakMap& spectra) const;
+
+    /// Helper: preprocessSpectra_() with the settings of the search, after warning about @p spectra (of @p input;
+    /// empty: not named) that cannot be searched as intended: no MS2 spectra (e.g. an MS1-only file), MS2 spectra
+    /// recorded as profile spectra, MS2 spectra whose precursor charge lies outside of the charge range (not searched).
+    /// @p ion_evidence is filled with annotate:self_trained_ion_priors only.
+    void preprocessSearchedSpectra_(PeakMap& spectra, const std::string& input,
+                                    FragmentIonLikelihoodModel::PeakLists& ion_evidence,
+                                    PeakMap* evidence_spectra, PeakMap* query_spectra) const;
 
   public:
     /// Recompute result-level statistics (matched count, unique peptide/protein

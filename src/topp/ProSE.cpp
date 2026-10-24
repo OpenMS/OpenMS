@@ -219,6 +219,33 @@ written as merged.proteins.parquet and merged.pg.parquet in the -out_parquet dir
 class ProSE :
     public TOPPBase
 {
+  /// Removes the Parquet files of an earlier run from the output directory @p dir (none if empty): runs/*.parquet and
+  /// STEM.*.parquet of the @p stems. False (logged) if one cannot be removed.
+  static bool removeEarlierParquetFiles_(const std::string& dir, const StringList& stems)
+  {
+    if (dir.empty()) return true;
+    StringList stale, files;
+    File::fileList(dir + "/runs", "*.parquet", stale, true);
+    for (const std::string& stem : stems)
+    {
+      File::fileList(dir, stem + ".*.parquet", files, true);
+      stale.insert(stale.end(), files.begin(), files.end());
+    }
+    for (const std::string& file : stale)
+    {
+      if (!File::remove(file))
+      {
+        OPENMS_LOG_ERROR << "Cannot remove '" << file << "', a file of an earlier run in the output directory." << endl;
+        return false;
+      }
+    }
+    if (!stale.empty())
+    {
+      OPENMS_LOG_INFO << "Removed " << stale.size() << " Parquet files of an earlier run from '" << dir << "'." << endl;
+    }
+    return true;
+  }
+
   public:
     ProSE() :
       TOPPBase("ProSE",
@@ -995,30 +1022,12 @@ class ProSE :
       // The output directories hold the files of this run only: the Parquet files of an earlier run into the same
       // directory (of other inputs, or views this run does not write, e.g. a pg file without protein inference) would
       // otherwise be read as part of this dataset. Removed once the parameters are known to be valid.
-      for (const auto& [dir, stems] : {std::pair<std::string, StringList>{out_qpx_dir, {QPX_AGGREGATE_STEM}},
-                                       std::pair<std::string, StringList>{out_parquet_dir, {PARQUET_AGGREGATE_STEM, PARQUET_POOLED_STEM}}})
+      if (!removeEarlierParquetFiles_(out_qpx_dir, {QPX_AGGREGATE_STEM})
+          || !removeEarlierParquetFiles_(out_parquet_dir, {PARQUET_AGGREGATE_STEM, PARQUET_POOLED_STEM}))
       {
-        if (dir.empty()) continue;
-        StringList stale, files;
-        File::fileList(dir + "/runs", "*.parquet", stale, true);
-        for (const std::string& stem : stems)
-        {
-          File::fileList(dir, stem + ".*.parquet", files, true);
-          stale.insert(stale.end(), files.begin(), files.end());
-        }
-        for (const std::string& file : stale)
-        {
-          if (!File::remove(file))
-          {
-            OPENMS_LOG_ERROR << "Cannot remove '" << file << "', a file of an earlier run in the output directory." << endl;
-            return CANNOT_WRITE_OUTPUT_FILE;
-          }
-        }
-        if (!stale.empty())
-        {
-          OPENMS_LOG_INFO << "Removed " << stale.size() << " Parquet files of an earlier run from '" << dir << "'." << endl;
-        }
+        return CANNOT_WRITE_OUTPUT_FILE;
       }
+
       // -out_pin is the input of a later rescoring: the PSMs before the rescoring and before any FDR filter. Both
       // Search:rescore (Percolator q-values as scores, only the best hit per spectrum) and FDR:PSM (removes PSMs,
       // q-values as scores) change the PSMs in the search, so the search also hands back each file's PSMs before them.
@@ -1165,8 +1174,7 @@ class ProSE :
           else
           {
             const auto& sp = result.protein_ids.front().getSearchParameters();
-            // the name the enzN/enzC/enzInt features know (as the in-process rescoring, ProSEAlgorithm::rescoreWithPercolator())
-            const std::string enz_str = PercolatorInfile::pinEnzymeName(sp.digestion_enzyme.getName());
+            const std::string enz_str = sp.digestion_enzyme.getName(); // PercolatorInfile maps it to its enzyme names
             const auto colon = sp.charges.find(':');
             const int min_charge = (colon != std::string::npos)
                                      ? StringUtils::toInt32(sp.charges.substr(0, colon))

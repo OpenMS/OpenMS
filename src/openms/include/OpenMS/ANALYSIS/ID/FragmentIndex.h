@@ -323,22 +323,19 @@ namespace OpenMS
       return std::max(lower_magnitude, upper_magnitude) > threshold;
     }
 
-    /// @name Bounds of the search parameters (their Param restrictions, also of ProSEAlgorithm)
-    /// Each charge and isotope error of a spectrum is a separate query; the variable modifications of a peptide are
-    /// enumerated as all combinations of at most modifications:variable_max_per_peptide of them.
-    //@{
-    static constexpr int MAX_PRECURSOR_CHARGE = 20;          ///< precursor:min_charge/max_charge lie in [1, 20]
-    static constexpr int MAX_FRAGMENT_CHARGE = 10;           ///< fragment:max_charge lies in [1, 10]
-    static constexpr int MAX_ABS_ISOTOPE_ERROR = 5;          ///< precursor:isotope_error_min/max lie in [-5, 5]
-    static constexpr int MAX_VARIABLE_MODS_PER_PEPTIDE = 5;  ///< modifications:variable_max_per_peptide lies in [0, 5]
-    static constexpr int MAX_MIN_MATCHED_IONS = 1000;        ///< fragment:min_matched_ions lies in [0, 1000]
-    //@}
-
-    /// Description of the parameter peptide:motif (of this class and ProSEAlgorithm)
-    static constexpr const char* PEPTIDE_MOTIF_DESCRIPTION =
-      "If set, only peptides whose unmodified sequence (one-letter codes) contains a match of this regular expression "
-      "are searched, target and decoy peptides alike, e.g. 'N[^P][ST]' for N-glycosylation sequons or 'C' for "
-      "cysteine-containing peptides; '^' and '$' anchor it to the peptide termini.";
+    /**
+     * @brief Sets the restrictions of the search parameters that FragmentIndex and ProSEAlgorithm share, and the
+     * description of peptide:motif, on the entries of @p param that exist.
+     *
+     * Each charge and isotope error of a spectrum is a separate query, and the variable modifications of a peptide
+     * are enumerated as all combinations of at most modifications:variable_max_per_peptide of them, so these are
+     * bounded: precursor:min_charge/max_charge [1, 20], precursor:isotope_error_min/max [-5, 5], fragment:max_charge
+     * [1, 10], modifications:variable_max_per_peptide [0, 5], fragment:min_matched_ions [0, 1000], report:top_hits
+     * [1, 100]; scoring:max_candidates_per_spectrum at least 1; the other counts, masses and m/z at least 0.
+     *
+     * @param[in,out] param Defaults of FragmentIndex or ProSEAlgorithm
+     */
+    static void restrictSearchParameters(Param& param);
 
     /**
      * @brief Rejects search parameters whose combination searches nothing or cannot be searched.

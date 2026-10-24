@@ -39,6 +39,7 @@ namespace OpenMS
     }
 
     entry_line_ = line_;
+    entry_offset_ = infile_.tellg();
     c = next();
     if (c != '>')
     {
@@ -199,7 +200,6 @@ namespace OpenMS
       }
     }
     entries_read_ = 0;
-    entry_offset_ = infile_.tellg();
   }
 
   void FASTAFile::readStartWithProgress(const std::string& filename, const std::string& progress_label)
@@ -238,8 +238,7 @@ namespace OpenMS
     protein.description = std::move(description_);
     protein.sequence = std::move(seq_);
 
-    entry_offset_ = infile_.tellg(); // where the next entry starts (but for whitespace)
-    setProgress(entry_offset_);
+    setProgress(infile_.tellg());
 
     return true;
   }
@@ -270,7 +269,6 @@ namespace OpenMS
       infile_.clear(); // when end of file is reached, otherwise it gets -1
       infile_.seekg(pos);
       line_ = 0; // unknown: errors name the byte offset instead
-      entry_offset_ = pos;
       return true;
     }
     return false;
