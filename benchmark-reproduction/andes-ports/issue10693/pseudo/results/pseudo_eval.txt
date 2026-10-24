@@ -1,0 +1,32 @@
+rand: hidden identifications 9684
+q	accepted	wrong_peak	wrong_peak_pct	recovery_pct	false_acceptance_pct
+0.005	0	0	0.00	0.0	0.00
+0.01	5929	44	0.74	60.8	0.45
+0.02	8133	60	0.74	83.4	0.62
+0.03	8621	67	0.78	88.3	0.69
+0.05	9077	76	0.84	92.9	0.78
+
+probe: hidden identifications 9684
+q	accepted	wrong_peak	wrong_peak_pct	recovery_pct	false_acceptance_pct
+0.005	0	0	0.00	0.0	0.00
+0.01	0	0	0.00	0.0	0.00
+0.02	0	0	0.00	0.0	0.00
+0.03	3930	25	0.64	40.3	0.26
+0.05	7069	52	0.74	72.5	0.54
+
+rand_absent: hidden identifications 9684
+q	accepted	wrong_peak	wrong_peak_pct	recovery_pct	false_acceptance_pct
+0.005	0	0	0.00	0.0	0.00
+0.01	49	49	100.00	0.0	0.51
+0.02	93	93	100.00	0.0	0.96
+0.03	114	114	100.00	0.0	1.18
+0.05	126	126	100.00	0.0	1.30
+
+probe_absent: hidden identifications 9684
+q	accepted	wrong_peak	wrong_peak_pct	recovery_pct	false_acceptance_pct
+0.005	0	0	0.00	0.0	0.00
+0.01	0	0	0.00	0.0	0.00
+0.02	0	0	0.00	0.0	0.00
+0.03	14	14	100.00	0.0	0.14
+0.05	61	61	100.00	0.0	0.63
+

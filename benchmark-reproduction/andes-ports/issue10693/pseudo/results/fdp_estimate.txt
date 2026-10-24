@@ -1,0 +1,4 @@
+pairs without the precursor's feature (no candidate at the predicted position): 115519
+q 0.01: accepted transfers into reported pairs 11314; expected wrong ~673 (5.9 %)
+q 0.03: accepted transfers into reported pairs 25475; expected wrong ~1562 (6.1 %)
+q 0.05: accepted transfers into reported pairs 27653; expected wrong ~1734 (6.3 %)
