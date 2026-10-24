@@ -1,0 +1,6 @@
+ctrl_q05 [LOCAL-RT] 9749 decoy transfers (>= 20 needed) at widen x1; FDR estimable. PIP-ECHO: added 23779 acceptors to the consensus map with 1250 decoys seen 
+ctrl15_q05 [LOCAL-RT] 9749 decoy transfers (>= 20 needed) at widen x1; FDR estimable. PIP-ECHO: added 23908 acceptors to the consensus map with 1257 decoys seen 
+ctrl2_q05 [LOCAL-RT] 11579 decoy transfers (>= 20 needed) at widen x1; FDR estimable. PIP-ECHO: added 20295 acceptors to the consensus map with 1067 decoys seen 
+proto15_q05 [LOCAL-RT] 45077 decoy transfers (>= 20 needed) at widen x1; FDR estimable. PIP-ECHO: added 22183 acceptors to the consensus map with 1166 decoys seen 
+protorand_q05 [LOCAL-RT] 8090 decoy transfers (>= 20 needed) at widen x1; FDR estimable. PIP-ECHO: added 80538 acceptors to the consensus map with 4237 decoys seen 
+protorand_q01 [LOCAL-RT] 8090 decoy transfers (>= 100 needed) at widen x1; FDR estimable. PIP-ECHO: added 30397 acceptors to the consensus map with 306 decoys seen 

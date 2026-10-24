@@ -1,0 +1,190 @@
+diff --git a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+index 695ea93f..07696394 100644
+--- a/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
++++ b/src/openms/source/ANALYSIS/MAPMATCHING/PIPECHO/Impl.cpp
+@@ -21,6 +21,8 @@
+ #include <unordered_map>
+ 
+ #include <algorithm>
++#include <cstdlib>
++#include <fstream>
+ #include <cmath>
+ #include <limits>
+ #include <memory>
+@@ -585,12 +587,35 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+                                      const DonorMap& donors,
+                                      AcceptorMap& acceptors)
+ {
++  // [DIAG, local investigation only] PIPECHO_DIAG=<file>: one line per donor and acceptor run
++  static std::ofstream* diag = nullptr;
++  static bool diag_init = false;
++  if (! diag_init)
++  {
++    diag_init = true;
++    if (const char* p = std::getenv("PIPECHO_DIAG"))
++    {
++      diag = new std::ofstream(p);
++      diag->precision(10);
++      *diag << "widen\tdonor_map\tacceptor_map\tkey\tcharge\tmz\tdonor_rt\tcenter\tgate\tglobal_tol\tfound\tn_mz\tn_in_window\tbest_dt\tbest_ppm\n";
++    }
++  }
++  std::vector<std::pair<double, const Acceptor*>> by_mz;
++  long acceptor_map = -1;
++  if (diag)
++  {
++    for (const auto& a : acceptors.storage) { by_mz.emplace_back(a->feature.getMZ(), a.get()); }
++    std::sort(by_mz.begin(), by_mz.end(), [](const auto& l, const auto& r) { return l.first < r.first; });
++    if (! acceptors.storage.empty()) { acceptor_map = static_cast<long>((*acceptors.storage.begin())->map_index); }
++  }
++
+   for (auto& donor : donors.storage)
+   {
+     if (donor_max_q < 1.0 && ! transferable_.contains(feature_sequence_key(donor->feature)))
+     {
+       continue; // [donor_max_q] not confidently identified anywhere: not transferred
+     }
++    bool diag_found = false;
+     for (auto window = initial_window(*donor); window.has_value();
+          window = next_window(window))
+     {
+@@ -600,15 +625,38 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+       {
+         auto acceptor = target->second;
+         acceptor->push_back(target->first, donor, DonorType::Target);
++        diag_found = true;
+       }
+ 
+-      const auto random_donor = find_random_donor(donors, *donor, *window);
++      // [PROTOTYPE #10693, local only] PIPECHO_PROBE_DECOYS=<seconds>: the decoy looks at the donor's m/z at a fixed
++      // RT shift whose sign follows from the precursor key (sum of its characters), so that an extraction at
++      // predicted positions can serve the decoy positions as well. Otherwise: RT of a random other donor.
++      static const double probe_shift = std::getenv("PIPECHO_PROBE_DECOYS") ? std::atof(std::getenv("PIPECHO_PROBE_DECOYS")) : 0.0;
++      std::optional<double> decoy_rt;
++      if (probe_shift > 0.0)
++      {
++        const std::string key = feature_sequence_key(donor->feature);
++        long sum = 0;
++        for (const unsigned char c : key) { sum += c; }
++        // shift at least 4 base local half-windows (PIP-ECHO's separation for random donors), else the decoy can
++        // reach the precursor's own peak where the local window is wide
++        double shift = probe_shift;
++        if (use_local_rt_ && local_rt_)
++        {
++          const double lw = local_rt_->predict(donor->feature.getRT()).half_window / std::max(local_rt_->widen, 1.0);
++          shift = std::max(shift, 4.0 * lw);
++        }
++        decoy_rt = donor->feature.getRT() + ((sum % 2 == 0) ? shift : -shift);
++      }
++      else if (const auto random_donor = find_random_donor(donors, *donor, *window); random_donor.has_value())
++      {
++        decoy_rt = (*random_donor)->feature.getRT();
++      }
+       match_t decoy = {}; // No std::optional::and_then in C++ 20 :(
+ 
+-      if (random_donor.has_value())
++      if (decoy_rt.has_value())
+       {
+-        decoy = find_acceptor_for(stats, acceptors, *donor, *window,
+-                                  (*random_donor)->feature.getRT());
++        decoy = find_acceptor_for(stats, acceptors, *donor, *window, *decoy_rt);
+ 
+         if (decoy.has_value())
+         {
+@@ -622,7 +670,43 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
+         break; // We can stop searching.
+       }
+     }
++
++    if (diag)
++    {
++      const double mz = donor->feature.getMZ();
++      const double rt = donor->feature.getRT();
++      double center = rt, gate = std::numeric_limits<double>::infinity();
++      if (use_local_rt_ && local_rt_)
++      {
++        const LocalRtModel::Pred p = local_rt_->predict(rt);
++        center = p.center;
++        gate = p.half_window;
++      }
++      const double tol = mz_max_diff.mz_diff(mz);
++      const double win = std::min(gate, rt_sec_max_window);
++      std::size_t n_mz = 0, n_in = 0;
++      double best_dt = std::numeric_limits<double>::quiet_NaN(), best_ppm = best_dt;
++      auto it = std::lower_bound(by_mz.begin(), by_mz.end(), mz - tol,
++                                 [](const auto& e, double v) { return e.first < v; });
++      for (; it != by_mz.end() && it->first <= mz + tol; ++it)
++      {
++        const Feature& f = it->second->feature;
++        if (f.getCharge() != donor->feature.getCharge()) { continue; }
++        ++n_mz;
++        const double dt = f.getRT() - center;
++        if (std::fabs(dt) <= win) { ++n_in; }
++        if (std::isnan(best_dt) || std::fabs(dt) < std::fabs(best_dt))
++        {
++          best_dt = dt;
++          best_ppm = (f.getMZ() - mz) / mz * 1e6;
++        }
++      }
++      *diag << lrt_widen_ << '\t' << donor->map_index << '\t' << acceptor_map << '\t' << feature_sequence_key(donor->feature)
++            << '\t' << donor->feature.getCharge() << '\t' << mz << '\t' << rt << '\t' << center << '\t' << gate << '\t'
++            << rt_sec_max_window << '\t' << diag_found << '\t' << n_mz << '\t' << n_in << '\t' << best_dt << '\t' << best_ppm << '\n';
++    }
+   }
++  if (diag) { diag->flush(); }
+ }
+ 
+ /******************************************************************************/
+diff --git a/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp b/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp
+index 2d948ed0..9c76589b 100644
+--- a/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp
++++ b/src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp
+@@ -365,6 +365,11 @@ namespace OpenMS
+         peptides.back().setMZ(feat.getMZ());
+         peptides.back().setMetaValue("FFId_category", "internal");
+         peptides.back().setMetaValue("SeedFeatureID",StringUtils::toStr(feat.getUniqueId()));
++        // [PROTOTYPE #10693, local only] a seed may carry its own apex RT tolerance
++        if (feat.metaValueExists("seed_apex_rt_tolerance"))
++        {
++          peptides.back().setMetaValue("seed_apex_rt_tolerance", feat.getMetaValue("seed_apex_rt_tolerance"));
++        }
+ 
+         // Copy IM meta value from feature if present (some feature finders annotate IM)
+         // If not present, the seed will be extracted across the full IM range
+@@ -1793,7 +1798,8 @@ namespace OpenMS
+             if (isSeedPseudoHit_(hit))
+             {
+               // seed apex RT was stored on the PeptideIdentification in addSeeds_()
+-              if (std::fabs(pid.getRT() - feature_rt) > rt_tol)
++              const double tol_here = pid.metaValueExists("seed_apex_rt_tolerance") ? double(pid.getMetaValue("seed_apex_rt_tolerance")) : rt_tol;
++              if (std::fabs(pid.getRT() - feature_rt) > tol_here)
+               {
+                 return true; // detected apex too far from seed apex -> remove
+               }
+diff --git a/src/topp/ProteomicsLFQ.cpp b/src/topp/ProteomicsLFQ.cpp
+index fe0c4a61..b4066381 100644
+--- a/src/topp/ProteomicsLFQ.cpp
++++ b/src/topp/ProteomicsLFQ.cpp
+@@ -1768,6 +1768,23 @@ protected:
+           getStringOption_("Seeding:charge"), getDoubleOption_("Seeding:traceRTTolerance"));
+       }
+ 
++      // [PROTOTYPE #10693, local only] PLFQ_EXTRA_SEEDS_DIR=<dir>: add the seeds in <dir>/<run>.featureXML
++      if (const char* extra_dir = std::getenv("PLFQ_EXTRA_SEEDS_DIR"))
++      {
++        const std::string fn = std::string(extra_dir) + "/" + FileHandler::stripExtension(File::basename(mz_file)) + ".featureXML";
++        if (File::exists(fn))
++        {
++          FeatureMap extra;
++          FileHandler().loadFeatures(fn, extra);
++          for (auto& f : extra)
++          {
++            f.ensureUniqueId();
++            seeds.push_back(f);
++          }
++          OPENMS_LOG_INFO << "[PROTOTYPE] added " << extra.size() << " seeds from " << fn << '\n';
++        }
++      }
++
+       if (debug_level_ > 666)
+       {
+         FileHandler().storeFeatures("debug_seeds_fraction_" + StringUtils::toStr(fraction) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);

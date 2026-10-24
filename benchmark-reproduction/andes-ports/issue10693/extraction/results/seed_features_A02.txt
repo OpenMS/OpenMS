@@ -1,0 +1,6 @@
+            n  extracted_pct  median_intensity  median_apex_dt  median_quality
+kind                                                                          
+decoy   23852           25.3        10425872.5        8.052350       -1.186853
+target  23852           49.4        32877976.0        3.061047        1.420392
+target intensity quartiles [17334076. 32877976. 62420469.]
+decoy intensity quartiles [ 2478659. 10425872. 34736205.]
