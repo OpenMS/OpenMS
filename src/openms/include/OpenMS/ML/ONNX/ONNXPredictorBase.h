@@ -34,9 +34,9 @@ namespace OpenMS
       input tensors. The ONNX Runtime types are only forward-declared here. Available in builds with
       @c WITH_ONNX.
 
-      A predictor splits its input into model runs (calls of Ort::Session::Run(), e.g. one per batch of
-      peptides of one length) and runs them with forEachCall(): up to threads() calls at once, each on
-      one thread (the session has one intra-op thread). On CPU, the small models of PeptDeep scale much
+      A predictor splits its input into model runs (calls of Ort::Session::Run(), one per batch of
+      peptides of one length) and runs them with forEachBatch(): up to the constructor's @p threads runs
+      at once, each on one thread (the session has one intra-op thread). On CPU, the small models of PeptDeep scale much
       better over their calls than within one call (2.2x faster with 16 threads), and the result of a
       call does not depend on the number of its threads.
     */
@@ -45,7 +45,7 @@ namespace OpenMS
     public:
         /// @brief Constructor initializes the generic ONNX session safely across platforms.
         /// @param model_path Path to the ONNX model file.
-        /// @param threads The model runs forEachCall() runs at once (each on one thread); at least 1.
+        /// @param threads The model runs forEachBatch() runs at once (each on one thread); at least 1.
         explicit ONNXPredictorBase(const std::string& model_path, int threads = 4);
 
         virtual ~ONNXPredictorBase();
@@ -79,17 +79,16 @@ namespace OpenMS
         /// @brief Return the number of model outputs.
         size_t getOutputCount() const;
 
-        /// @brief The model runs forEachCall() runs at once (the threads of the constructor, at least 1).
-        int threads() const;
-
         /**
-          @brief Runs @p call for 0 to @p n - 1, up to threads() of them at once (with OpenMP)
+          @brief Runs @p run on each batch of @p groups, up to the constructor's @p threads batches at once (with OpenMP)
 
-          For the model runs of a prediction: @p call(k) runs the session on the k-th part of the input (Ort::Session::Run()
-          may be called concurrently) and stores its result. Once all have run, the first exception of a call, if any, is
-          rethrown.
+          The batches of a group are its consecutive slices of at most @p batch_size indices (the last one shorter);
+          @p run(indices, n) gets one of them, e.g. to run the session on those peptides (Ort::Session::Run() may be
+          called concurrently) and store their predictions. Once all have run, the first exception of a batch, if any,
+          is rethrown.
         */
-        void forEachCall(size_t n, const std::function<void(size_t)>& call) const;
+        void forEachBatch(const std::vector<std::vector<size_t>>& groups, size_t batch_size,
+                          const std::function<void(const size_t* indices, size_t n)>& run) const;
 
     private:
         int threads_ = 1;

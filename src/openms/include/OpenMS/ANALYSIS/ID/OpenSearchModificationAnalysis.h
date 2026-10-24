@@ -294,6 +294,15 @@ namespace OpenMS
     void writePTMStatistics(const PTMStatistics& stats,
                             const std::string& output_file) const;
 
+    /// Delta masses within this threshold of zero are considered unmodified.
+    static constexpr double DELTA_MASS_ZERO_THRESHOLD_ = 0.05; // Da
+
+    /// Whether a PSM of delta mass @p delta_mass counts as unmodified: within DELTA_MASS_ZERO_THRESHOLD_ of zero
+    static bool isUnmodified(double delta_mass)
+    {
+      return std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_;
+    }
+
   private:
 
     /// Maximum tolerance (Da) for matching delta masses to known modification masses.
@@ -305,16 +314,13 @@ namespace OpenMS
     /// to which a cluster mass is known.
     static constexpr double MOD_MAPPING_AMBIGUITY_TOL_ = 0.0005; // Da
 
-    /// Delta masses within this threshold of zero are considered unmodified.
-    static constexpr double DELTA_MASS_ZERO_THRESHOLD_ = 0.05; // Da
-
     /// The width of a bin of the delta mass histogram (analyzeDeltaMassPatterns())
     static constexpr double DELTA_MASS_BIN_WIDTH_ = 0.0005; // Da
 
-    /// The bin of the delta mass histogram of @p delta_mass: rounded to DELTA_MASS_BIN_WIDTH_
-    static double deltaMassBin_(double delta_mass)
+    /// The index of the bin of the delta mass histogram of @p delta_mass (its mass: index * DELTA_MASS_BIN_WIDTH_)
+    static Int64 deltaMassBin_(double delta_mass)
     {
-      return std::round(delta_mass / DELTA_MASS_BIN_WIDTH_) * DELTA_MASS_BIN_WIDTH_;
+      return static_cast<Int64>(std::llround(delta_mass / DELTA_MASS_BIN_WIDTH_));
     }
 
     /// Gaussian function for smoothing

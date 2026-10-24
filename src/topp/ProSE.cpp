@@ -51,6 +51,7 @@
 #include <sstream>
 
 #include <map>
+#include <memory>
 #include <set>
 #include <tuple>
 #include <unordered_set>
@@ -456,10 +457,6 @@ class ProSE :
       return result;
     }
 #ifdef WITH_ONNX
-    /// The values per cleavage of PeptDeep's MS2 model: [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2,
-    /// y_modloss_z1, y_modloss_z2]
-    static constexpr Size PEPTDEEP_ION_CHANNELS = 8;
-
     /// The predicted ions of the PeptDeep prediction @p flat of @p peptide at precursor charge @p z: its b and y ions of
     /// charge 1 (and 2 for precursors of charge 2 or more), relative to the most intense of them, without those of 0.01
     /// or less, with their m/z (of @p generator), by m/z. None (no prediction) if @p flat is empty (not predicted), has
@@ -471,45 +468,49 @@ class ProSE :
       if (flat.empty()) { return ions; } // not predicted (counted by the caller)
       const AASequence sequence = AASequence::fromString(peptide);
       const Size length = sequence.size();
-      constexpr Size channels = PEPTDEEP_ION_CHANNELS;
-      if (flat.size() != channels * (length - 1)) { layout = false; return ions; }
-      // (type, ordinal, charge) -> intensity; cleavage `pos` carries b(pos + 1) and y(length - 1 - pos)
-      std::map<std::tuple<char, int, int>, double> intensity;
+      if (flat.size() != PeptDeepMS2Inference::ION_CHANNELS * (length - 1)) { layout = false; return ions; }
+      const int max_charge = z > 1 ? 2 : 1;
       double base_peak = 0.0;
-      for (Size pos = 0; pos + 1 < length; ++pos)
+      for (Size ordinal = 1; ordinal < length; ++ordinal)
       {
-        const int b = static_cast<int>(pos + 1), y = static_cast<int>(length - 1 - pos);
-        intensity[{'b', b, 1}] = flat[pos * channels + 0];
-        intensity[{'y', y, 1}] = flat[pos * channels + 2];
-        if (z > 1)
+        for (int charge = 1; charge <= max_charge; ++charge)
         {
-          intensity[{'b', b, 2}] = flat[pos * channels + 1];
-          intensity[{'y', y, 2}] = flat[pos * channels + 3];
+          base_peak = std::max({base_peak, static_cast<double>(flat[PeptDeepMS2Inference::ionIndex(length, 'b', ordinal, charge)]),
+                                static_cast<double>(flat[PeptDeepMS2Inference::ionIndex(length, 'y', ordinal, charge)])});
         }
       }
-      for (const auto& [ion, value] : intensity) { base_peak = std::max(base_peak, value); }
       if (!(base_peak > 0.0)) { return ions; }
 
       PeakSpectrum theoretical;
-      generator.getSpectrum(theoretical, sequence, 1, z > 1 ? 2 : 1);
+      generator.getSpectrum(theoretical, sequence, 1, max_charge);
       const auto& names = theoretical.getStringDataArrays().at(0);
       const auto& ion_charges = theoretical.getIntegerDataArrays().at(0);
       ions.has_prediction = true;
       for (Size t = 0; t < theoretical.size(); ++t)
       {
         const std::string& name = names[t]; // e.g. "b3+", "y12++"
-        Size end = 1;
-        while (end < name.size() && name[end] >= '0' && name[end] <= '9') { ++end; }
-        if (end == 1) { continue; }
-        const auto found = intensity.find({name[0], std::stoi(name.substr(1, end - 1)), ion_charges[t]});
-        if (found == intensity.end()) { continue; }
-        const double relative = found->second / base_peak;
+        Size ordinal = 0;
+        for (Size i = 1; i < name.size() && name[i] >= '0' && name[i] <= '9'; ++i) { ordinal = ordinal * 10 + static_cast<Size>(name[i] - '0'); }
+        if (ion_charges[t] > max_charge) { continue; }
+        const Size index = PeptDeepMS2Inference::ionIndex(length, name[0], ordinal, ion_charges[t]);
+        if (index == PeptDeepMS2Inference::NO_ION) { continue; }
+        const double relative = static_cast<double>(flat[index]) / base_peak;
         if (!(relative > 0.01)) { continue; }
         ions.ion_type.push_back(name);
         ions.mz.push_back(static_cast<float>(theoretical[t].getMZ()));
         ions.intensity.push_back(static_cast<float>(relative));
       }
       return ions;
+    }
+
+    /// The session of PeptDeep's MS2 model for the predictions of -qpx_extended: loaded once per run, at its first use
+    /// (the model, threads and batch size are those of the search parameters, the same for every input)
+    std::unique_ptr<PeptDeepMS2Inference> ms2_session_;
+
+    PeptDeepMS2Inference& ms2Session_(const std::string& ms2_model, int threads, int batch_size)
+    {
+      if (!ms2_session_) { ms2_session_ = std::make_unique<PeptDeepMS2Inference>(ms2_model, threads, static_cast<size_t>(batch_size)); }
+      return *ms2_session_;
     }
 
     /// The predictions of collectPSMSpectra_(), into @p out. Throws on failure (the caller logs it).
@@ -530,8 +531,8 @@ class ProSE :
       const int batch_size = search_params.getValue("peptdeep:batch_size");
       const std::string instrument = search_params.getValue("peptdeep:instrument").toString();
 
-      // The NCE: the one PeptDeep rescoring used, else 'peptdeep:nce' if set, else the one PeptDeepRescoring::annotate()
-      // selects, run on a copy of the PSMs only for that (its features and RT calibration are discarded).
+      // The NCE: the one PeptDeep rescoring used, else 'peptdeep:nce' if set, else the one PeptDeepRescoring::selectNCE()
+      // selects (as annotate() would).
       ProteinIdentification& run = protein_ids[0];
       std::string nce_source = "from PeptDeep rescoring";
       const double fixed_nce = search_params.getValue("peptdeep:nce");
@@ -550,11 +551,9 @@ class ProSE :
         Param p = rescoring.getParameters();
         p.setValue("ms2_model", ms2_model);
         p.setValue("instrument", instrument);
-        p.setValue("batch_size", batch_size);
-        p.setValue("threads", threads);
         rescoring.setParameters(p);
         rescoring.setLogType(log_type_);
-        rescoring.selectNCE(spectra, protein_ids, peptide_ids);
+        rescoring.selectNCE(spectra, protein_ids, peptide_ids, ms2Session_(ms2_model, threads, batch_size));
         if (!run.metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
         {
           OPENMS_LOG_WARN << "-qpx_extended: no NCE selected for " << in_file << "; the predicted_* columns are null." << endl;
@@ -595,7 +594,7 @@ class ProSE :
       std::ostringstream predicting;
       predicting << "predicting " << peptides.size() << " peptides at NCE " << nce << " (" << nce_source << ")";
       logPhase_(in_file, predicting.str());
-      PeptDeepMS2Inference ms2(ms2_model, threads, static_cast<size_t>(batch_size));
+      PeptDeepMS2Inference& ms2 = ms2Session_(ms2_model, threads, batch_size);
       const int64_t instrument_index = ML::instrumentIndex(instrument);
       std::vector<std::vector<float>> predicted;
       try
@@ -655,7 +654,7 @@ class ProSE :
       if (other_layout > 0)
       {
         OPENMS_LOG_WARN << "-qpx_extended: the MS2 model gave " << other_layout << " of " << peptides.size()
-                        << " peptides of " << in_file << " another number of values than " << PEPTDEEP_ION_CHANNELS
+                        << " peptides of " << in_file << " another number of values than " << PeptDeepMS2Inference::ION_CHANNELS
                         << " per cleavage (an unexpected model layout); their predicted_* columns are null." << endl;
       }
       for (Size i = 0; i < peptide_ids.size(); ++i)
@@ -1732,9 +1731,7 @@ class ProSE :
       // -- -qpx_extended: the QPX dataset of the whole run, quantms.psm/pg/run/sample/provenance.parquet --
       if (qpx_extended)
       {
-        mfres.shared.seconds_total = sw_total.getClockTime();
-        mfres.shared.seconds_output = mfres.shared.seconds_total - seconds_searching;
-        mfres.shared.seconds_qpx_extended = sw_qpx_extended.getClockTime();
+        mfres.shared.seconds_total = sw_total.getClockTime(); // (for the provenance view; the report's below)
         std::string mod_delta_masses, mod_ptms;
         if (!out_mod_analysis_dir.empty() && open_search_mode)
         {

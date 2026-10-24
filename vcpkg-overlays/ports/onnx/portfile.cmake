@@ -3,6 +3,8 @@
 # all operator schemas when its schema registry is first used, and ONNX Runtime registers them again when it creates
 # its environment, which prints a "Schema error: Trying to register schema ... but it is already registered" line per
 # schema (about 600) to stderr in every process that runs an ONNX model.
+# Drop this overlay once microsoft/vcpkg's onnx port sets ONNX_DISABLE_STATIC_REGISTRATION (or offers it as a feature that
+# the onnxruntime port requests); until then it pins onnx to 1.19.0, the version of the vcpkg baseline.
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 vcpkg_from_github(

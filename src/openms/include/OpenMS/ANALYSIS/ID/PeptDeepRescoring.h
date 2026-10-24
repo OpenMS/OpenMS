@@ -151,6 +151,13 @@ namespace OpenMS
                    std::vector<ProteinIdentification>& protein_ids,
                    const PeptideIdentificationList& peptide_ids);
 
+    /// selectNCE() with the session of the MS2 model @p ms2_inference (e.g. one for all inputs of a run) instead of one
+    /// of @p ms2_model; its threads and batch size apply
+    void selectNCE(const PeakMap& spectra,
+                   std::vector<ProteinIdentification>& protein_ids,
+                   const PeptideIdentificationList& peptide_ids,
+                   PeptDeepMS2Inference& ms2_inference);
+
     /// Normalised collision energy used for the run annotated last (after any scan).
     /// -1 if annotate() has not run, or returned before selecting one.
     double getUsedNCE() const;
@@ -191,6 +198,16 @@ namespace OpenMS
       std::map<std::string, std::vector<Size>> rows_by_run;
     };
 
+    /// The start of annotate() and selectNCE(): resets the diagnostics; throws Exception::MissingInformation (@p what) if
+    /// one of @p models is not set, Exception::FileNotFound if one does not exist; false if there are no PSMs
+    bool startCall_(const PeptideIdentificationList& peptide_ids, const StringList& models, const std::string& what);
+
+    /// selectNCE() with the session @p ms2_inference
+    void selectNCE_(const PeakMap& spectra,
+                    std::vector<ProteinIdentification>& protein_ids,
+                    const PeptideIdentificationList& peptide_ids,
+                    PeptDeepMS2Inference& ms2_inference);
+
     /// The PSMs of @p peptide_ids. Throws Exception::MissingInformation if no PSM carries peak annotations, and warns
     /// if only some runs do.
     static PSMRows gatherPSMs_(const PeptideIdentificationList& peptide_ids);
@@ -203,15 +220,13 @@ namespace OpenMS
     /// best search score first, without the calibration_quantile held out
     std::vector<Size> confidentRows_(const std::vector<Row>& rows, const std::vector<Size>& run_rows, bool higher_better) const;
 
-    /// The NCE of a run: 'nce' if set, else the grid scan on a sample of its @p confident rows. With the scan, @p centre
+    /// The NCE of a run (@p run_rows of @p psms): 'nce' if set, else the grid scan on a sample of its @p confident rows. With the scan, @p centre
     /// is the centre of its grid and @p median_cosine the median cosine of the selected NCE (else both unchanged).
     double selectRunNCE_(const std::map<std::string, double>& collision_energies,
                          const PeptideIdentificationList& peptide_ids,
-                         const std::vector<Row>& rows,
+                         const PSMRows& psms,
                          const std::vector<Size>& run_rows,
                          const std::vector<Size>& confident,
-                         const std::vector<std::string>& uniq_seq,
-                         const std::vector<float>& uniq_charge,
                          PeptDeepMS2Inference& ms2_inference,
                          double& centre,
                          double& median_cosine);
@@ -226,11 +241,9 @@ namespace OpenMS
     void annotateRun_(const std::string& run_id,
                       const std::map<std::string, double>& collision_energies,
                       PeptideIdentificationList& peptide_ids,
-                      const std::vector<Row>& rows,
+                      const PSMRows& psms,
                       const std::vector<Size>& run_rows,
-                      const std::vector<std::string>& uniq_seq,
-                      const std::vector<float>& uniq_charge,
-                      bool higher_score_better,
+                      bool higher_better,
                       PeptDeepMS2Inference& ms2_inference,
                       PeptDeepRTInference& rt_inference);
 

@@ -26,7 +26,7 @@ namespace OpenMS
         try {
             session_options_ = std::make_unique<Ort::SessionOptions>();
 
-            // One intra-op thread: the predictors run their model runs side by side (forEachCall()).
+            // One intra-op thread: the predictors run their model runs side by side (forEachBatch()).
             // Split over 16 intra-op threads, a run of a batch of PeptDeep's MS2 model kept them busy
             // waiting for each other (all cores used, 2.2x the wall time of 16 runs at once on iPRG2015).
             session_options_->SetIntraOpNumThreads(1);
@@ -140,24 +140,27 @@ namespace OpenMS
         return session_->GetOutputCount();
     }
 
-    int ONNXPredictorBase::threads() const
+    void ONNXPredictorBase::forEachBatch(const std::vector<std::vector<size_t>>& groups, size_t batch_size,
+                                         const std::function<void(const size_t* indices, size_t n)>& run) const
     {
-        return threads_;
-    }
-
-    void ONNXPredictorBase::forEachCall(size_t n, const std::function<void(size_t)>& call) const
-    {
+        std::vector<std::pair<const std::vector<size_t>*, size_t>> batches; // (group, first position in it)
+        for (const std::vector<size_t>& group : groups)
+        {
+            for (size_t begin = 0; begin < group.size(); begin += batch_size) { batches.emplace_back(&group, begin); }
+        }
+        const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(batches.size());
         std::exception_ptr failure; // exceptions must not leave the parallel region
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::max(1, std::min(threads_, static_cast<int>(std::min<size_t>(n, 1024))))) if (n > 1 && threads_ > 1)
-        for (std::ptrdiff_t k = 0; k < static_cast<std::ptrdiff_t>(n); ++k)
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(std::max<std::ptrdiff_t>(1, std::min<std::ptrdiff_t>(threads_, n)))) if (n > 1 && threads_ > 1)
+        for (std::ptrdiff_t k = 0; k < n; ++k)
         {
             try
             {
-                call(static_cast<size_t>(k));
+                const auto& [group, begin] = batches[static_cast<size_t>(k)];
+                run(group->data() + begin, std::min(batch_size, group->size() - begin));
             }
             catch (...)
             {
-#pragma omp critical (ONNXPredictorBase_forEachCall)
+#pragma omp critical (ONNXPredictorBase_forEachBatch)
                 if (!failure) { failure = std::current_exception(); }
             }
         }

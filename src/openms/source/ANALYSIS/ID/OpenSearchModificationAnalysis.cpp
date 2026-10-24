@@ -86,12 +86,6 @@ namespace OpenMS
       }
       return joined;
     }
-    /// Whether @p hit is a decoy (target_decoy "decoy"). The statistics are of the target hits: a decoy's delta mass is
-    /// that of a wrong match. A hit without the annotation counts as a target.
-    bool isDecoyHit(const PeptideHit& hit)
-    {
-      return hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy").toString() == "decoy";
-    }
   } // namespace
 
   std::pair<OpenSearchModificationAnalysis::DeltaMassHistogram, OpenSearchModificationAnalysis::DeltaMassToChargeCount>
@@ -99,10 +93,6 @@ namespace OpenMS
                                                           bool use_smoothing, 
                                                           bool /*debug*/) const
   {
-    // Lambda to round values to the histogram's bins
-    auto roundToTolerance = [](double value) {
-      return deltaMassBin_(value);
-    };
 
     // Data structures to store histogram and charge states
     DeltaMassHistogram histogram(FuzzyDoubleComparator(1e-9));
@@ -116,18 +106,18 @@ namespace OpenMS
       for (const auto& hit : hits)
       {
         // Retrieve delta mass and charge (of the target hits)
-        if (!hit.metaValueExists("DeltaMass") || isDecoyHit(hit))
+        if (!hit.metaValueExists("DeltaMass") || hit.isDecoy())
           continue;
 
         double delta_mass = (double)hit.getMetaValue("DeltaMass");
         int charge = hit.getCharge();
 
         // Ignore delta masses close to zero
-        if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
+        if (isUnmodified(delta_mass))
           continue;
 
         // Round delta mass to bin similar values
-        double rounded_mass = roundToTolerance(delta_mass);
+        double rounded_mass = static_cast<double>(deltaMassBin_(delta_mass)) * DELTA_MASS_BIN_WIDTH_;
 
         // Update histogram count
         histogram[rounded_mass] += 1.0;
@@ -640,17 +630,14 @@ namespace OpenMS
     // Build modification lookup
     auto mod_lookup = buildModificationMassLookup_();
 
-    // Count the target PSMs (decoys only counted) and, in the same pass, collect the per-hit data needed for
-    // the unique peptide counts below: the histogram bin of the delta mass and a dense id per distinct sequence.
-    std::vector<double> hit_bins;
-    std::vector<UInt32> hit_sequence_ids;
-    std::unordered_map<std::string, UInt32> sequence_to_id;
-
+    // Count the target PSMs (decoys only counted) and, in the same pass, collect the (histogram bin, sequence) of each
+    // target hit with a delta mass, for the unique peptide counts of the bins below.
+    std::vector<std::pair<Int64, std::string>> bin_sequences;
     for (const auto& peptide_id : peptide_ids)
     {
       for (const auto& hit : peptide_id.getHits())
       {
-        if (isDecoyHit(hit))
+        if (hit.isDecoy())
         {
           stats.decoy_psms++;
           continue;
@@ -659,7 +646,7 @@ namespace OpenMS
         if (hit.metaValueExists("DeltaMass"))
         {
           double delta_mass = (double)hit.getMetaValue("DeltaMass");
-          if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
+          if (isUnmodified(delta_mass))
           {
             stats.unmodified_psms++;
           }
@@ -667,19 +654,16 @@ namespace OpenMS
           {
             stats.modified_psms++;
           }
-
-          hit_bins.push_back(deltaMassBin_(delta_mass));
-          auto id_entry = sequence_to_id.emplace(hit.getSequence().toString(),
-                                                 static_cast<UInt32>(sequence_to_id.size()));
-          hit_sequence_ids.push_back(id_entry.first->second);
+          bin_sequences.emplace_back(deltaMassBin_(delta_mass), hit.getSequence().toString());
         }
       }
     }
-
-    // Per-sequence marker, used to count distinct sequences per delta mass bin without
-    // rebuilding a set of sequence strings for every bin
-    std::vector<UInt64> sequence_seen(sequence_to_id.size(), 0);
-    UInt64 seen_marker = 0;
+    // The distinct sequences per bin
+    std::sort(bin_sequences.begin(), bin_sequences.end());
+    bin_sequences.erase(std::unique(bin_sequences.begin(), bin_sequences.end()), bin_sequences.end());
+    std::unordered_map<Int64, int> unique_peptides_of_bin;
+    for (const auto& [bin, sequence] : bin_sequences) { ++unique_peptides_of_bin[bin]; }
+    bin_sequences = {};
 
     // Collect delta masses for median calculation
     std::vector<double> all_delta_masses;
@@ -708,16 +692,8 @@ namespace OpenMS
       // Count the unique peptides of the PSMs of the entry: those whose delta mass falls into its histogram bin, as
       // they are counted in 'count' (with a smoothed histogram, those of the bin of its maximum). Not those within the
       // precursor mass tolerance: in an open search that is the whole open window, i.e. nearly all PSMs.
-      ++seen_marker;
-      for (size_t i = 0; i < hit_bins.size(); ++i)
-      {
-        if (std::abs(hit_bins[i] - delta_mass) < 1e-9 &&
-            sequence_seen[hit_sequence_ids[i]] != seen_marker)
-        {
-          sequence_seen[hit_sequence_ids[i]] = seen_marker;
-          entry.unique_peptides++;
-        }
-      }
+      const auto unique = unique_peptides_of_bin.find(deltaMassBin_(delta_mass));
+      if (unique != unique_peptides_of_bin.end()) { entry.unique_peptides = unique->second; }
 
       // Try to map to known modification, named as in mapDeltaMassesToModifications(): after the nearest
       // one within mod_tol, or after all of them ("A//B") if several are about equally close
@@ -787,7 +763,7 @@ namespace OpenMS
     {
       for (const auto& hit : peptide_id.getHits())
       {
-        if (!hit.metaValueExists("PTM") || isDecoyHit(hit)) // (of the target hits)
+        if (!hit.metaValueExists("PTM") || hit.isDecoy()) // (of the target hits)
           continue;
 
         std::string ptm_name = StringUtils::toStr(hit.getMetaValue("PTM"));

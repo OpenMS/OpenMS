@@ -43,11 +43,6 @@ namespace
 {
   using namespace OpenMS;
 
-  /// Slot layout of the PeptDeep MS2 output: eight ion channels per fragment position,
-  /// of which the first four are the singly and doubly charged b and y ions.
-  constexpr int ION_B1 = 0, ION_B2 = 1, ION_Y1 = 2, ION_Y2 = 3;
-  constexpr Size DEFAULT_ION_CHANNELS = 8;
-
   /// (ion type, charge, ordinal) -> intensity
   using IonMap = std::map<std::tuple<char, int, int>, double>;
 
@@ -74,24 +69,30 @@ namespace
     return out;
   }
 
-  /// Predicted b/y intensities, keyed like observedIons_().
-  ///
-  /// Fragment position i carries b_(i+1) and y_(len-1-i): the model emits fragments
-  /// N-to-C, so the y series is numbered from the other end.
+  /// Predicted b/y intensities of charge 1 and 2, keyed like observedIons_() (the layout of the prediction:
+  /// PeptDeepMS2Inference::ionIndex(), with @p channels values per cleavage position).
   IonMap predictedIons_(const std::vector<float>& flat, Size pep_len, Size channels)
   {
     IonMap out;
-    if (pep_len < 2 || channels == 0) { return out; }
-    for (Size pos = 0; pos + 1 < pep_len; ++pos)
+    for (Size ordinal = 1; ordinal < pep_len; ++ordinal)
     {
-      const Size base = pos * channels;
-      if (base + ION_Y2 >= flat.size()) { break; }
-      out[std::make_tuple('b', 1, static_cast<int>(pos + 1))] = flat[base + ION_B1];
-      out[std::make_tuple('b', 2, static_cast<int>(pos + 1))] = flat[base + ION_B2];
-      out[std::make_tuple('y', 1, static_cast<int>(pep_len - 1 - pos))] = flat[base + ION_Y1];
-      out[std::make_tuple('y', 2, static_cast<int>(pep_len - 1 - pos))] = flat[base + ION_Y2];
+      for (const char type : {'b', 'y'})
+      {
+        for (const int z : {1, 2})
+        {
+          const Size i = PeptDeepMS2Inference::ionIndex(pep_len, type, ordinal, z, channels);
+          if (i < flat.size()) { out[std::make_tuple(type, z, static_cast<int>(ordinal))] = flat[i]; }
+        }
+      }
     }
     return out;
+  }
+
+  /// The values per cleavage position of the prediction @p flat of a peptide of @p length residues
+  Size ionChannels_(const std::vector<float>& flat, Size length)
+  {
+    const Size channels = (length > 1 && !flat.empty()) ? flat.size() / (length - 1) : PeptDeepMS2Inference::ION_CHANNELS;
+    return channels == 0 ? PeptDeepMS2Inference::ION_CHANNELS : channels;
   }
 
   struct Similarity
@@ -370,9 +371,7 @@ namespace OpenMS
     }
   }
 
-  void PeptDeepRescoring::annotate(const PeakMap& spectra,
-                                   std::vector<ProteinIdentification>& protein_ids,
-                                   PeptideIdentificationList& peptide_ids)
+  bool PeptDeepRescoring::startCall_(const PeptideIdentificationList& peptide_ids, const StringList& models, const std::string& what)
   {
     // Diagnostics describe the call that is about to happen, not the previous one.
     used_nce_ = -1.0;
@@ -381,19 +380,28 @@ namespace OpenMS
     num_predicted_psms_ = 0;
     for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
 
-    if (ms2_model_.empty() || rt_model_.empty())
+    for (const std::string& m : models)
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "PeptDeepRescoring needs both 'ms2_model' and 'rt_model' to be set.");
+      if (m.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, what);
+      }
     }
-    for (const std::string& m : {ms2_model_, rt_model_})
+    for (const std::string& m : models)
     {
       if (!File::exists(m))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, m);
       }
     }
-    if (peptide_ids.empty()) { return; }
+    return !peptide_ids.empty();
+  }
+
+  void PeptDeepRescoring::annotate(const PeakMap& spectra,
+                                   std::vector<ProteinIdentification>& protein_ids,
+                                   PeptideIdentificationList& peptide_ids)
+  {
+    if (!startCall_(peptide_ids, {ms2_model_, rt_model_}, "PeptDeepRescoring needs both 'ms2_model' and 'rt_model' to be set.")) { return; }
 
     const PSMRows psms = gatherPSMs_(peptide_ids);
     if (psms.rows.empty()) { return; }
@@ -420,8 +428,7 @@ namespace OpenMS
       // can hold runs from engines that disagree on it, and picking the wrong direction
       // would calibrate on the *worst* PSMs.
       const bool higher_better = peptide_ids[rows[run_rows.front()].pi].isHigherScoreBetter();
-      annotateRun_(run_id, collision_energies, peptide_ids, rows, run_rows, psms.uniq_seq, psms.uniq_charge,
-                   higher_better, ms2, rt);
+      annotateRun_(run_id, collision_energies, peptide_ids, psms, run_rows, higher_better, ms2, rt);
       nce_by_run[run_id] = used_nce_;
     }
 
@@ -473,35 +480,35 @@ namespace OpenMS
                                     std::vector<ProteinIdentification>& protein_ids,
                                     const PeptideIdentificationList& peptide_ids)
   {
-    used_nce_ = -1.0;
-    rt_calibration_error_ = -1.0;
-    num_psms_ = 0;
-    num_predicted_psms_ = 0;
-    for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
+    if (!startCall_(peptide_ids, {ms2_model_}, "PeptDeepRescoring::selectNCE() needs 'ms2_model' to be set.")) { return; }
+    PeptDeepMS2Inference ms2(ms2_model_, threads_, batch_size_);
+    selectNCE_(spectra, protein_ids, peptide_ids, ms2);
+  }
 
-    if (ms2_model_.empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "PeptDeepRescoring::selectNCE() needs 'ms2_model' to be set.");
-    }
-    if (!File::exists(ms2_model_))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ms2_model_);
-    }
-    if (peptide_ids.empty()) { return; }
+  void PeptDeepRescoring::selectNCE(const PeakMap& spectra,
+                                    std::vector<ProteinIdentification>& protein_ids,
+                                    const PeptideIdentificationList& peptide_ids,
+                                    PeptDeepMS2Inference& ms2_inference)
+  {
+    if (!startCall_(peptide_ids, {}, "")) { return; }
+    selectNCE_(spectra, protein_ids, peptide_ids, ms2_inference);
+  }
 
+  void PeptDeepRescoring::selectNCE_(const PeakMap& spectra,
+                                     std::vector<ProteinIdentification>& protein_ids,
+                                     const PeptideIdentificationList& peptide_ids,
+                                     PeptDeepMS2Inference& ms2)
+  {
     const PSMRows psms = gatherPSMs_(peptide_ids);
     if (psms.rows.empty()) { return; }
     const std::map<std::string, double> collision_energies = collisionEnergies_(spectra);
-    PeptDeepMS2Inference ms2(ms2_model_, threads_, batch_size_);
     std::map<std::string, double> nce_by_run;
     for (const auto& [run_id, run_rows] : psms.rows_by_run)
     {
       const bool higher_better = peptide_ids[psms.rows[run_rows.front()].pi].isHigherScoreBetter();
       const std::vector<Size> confident = confidentRows_(psms.rows, run_rows, higher_better);
       double centre = 0.0, median_cosine = 0.0;
-      used_nce_ = selectRunNCE_(collision_energies, peptide_ids, psms.rows, run_rows, confident, psms.uniq_seq,
-                                psms.uniq_charge, ms2, centre, median_cosine);
+      used_nce_ = selectRunNCE_(collision_energies, peptide_ids, psms, run_rows, confident, ms2, centre, median_cosine);
       nce_by_run[run_id] = used_nce_;
     }
     storeNCE_(protein_ids, nce_by_run);
@@ -526,15 +533,16 @@ namespace OpenMS
 
   double PeptDeepRescoring::selectRunNCE_(const std::map<std::string, double>& collision_energies,
                                           const PeptideIdentificationList& peptide_ids,
-                                          const std::vector<Row>& rows,
+                                          const PSMRows& psms,
                                           const std::vector<Size>& run_rows,
                                           const std::vector<Size>& confident,
-                                          const std::vector<std::string>& uniq_seq,
-                                          const std::vector<float>& uniq_charge,
                                           PeptDeepMS2Inference& ms2,
                                           double& centre,
                                           double& median_cosine)
   {
+    const std::vector<Row>& rows = psms.rows;
+    const std::vector<std::string>& uniq_seq = psms.uniq_seq;
+    const std::vector<float>& uniq_charge = psms.uniq_charge;
     double nce = nce_;
     if (nce > 0.0) { return nce; }
 
@@ -614,9 +622,7 @@ namespace OpenMS
       {
         const Row& r = rows[sample[k]];
         const std::vector<float>& p = pred[s_pred[k]];
-        Size channels = (r.len > 1 && !p.empty()) ? p.size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
-        if (channels == 0) { channels = DEFAULT_ION_CHANNELS; }
-        cosines.push_back(similarity_(predictedIons_(p, r.len, channels),
+        cosines.push_back(similarity_(predictedIons_(p, r.len, ionChannels_(p, r.len)),
                                       s_obs[k], ms2_min_ordinal_, r.len, ms2_strong_fraction_).cosine);
       }
       std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
@@ -633,15 +639,16 @@ namespace OpenMS
   void PeptDeepRescoring::annotateRun_(const std::string& run_id,
                                        const std::map<std::string, double>& collision_energies,
                                        PeptideIdentificationList& peptide_ids,
-                                       const std::vector<Row>& rows,
+                                       const PSMRows& psms,
                                        const std::vector<Size>& run_rows,
-                                       const std::vector<std::string>& uniq_seq,
-                                       const std::vector<float>& uniq_charge,
                                        bool higher_better,
                                        PeptDeepMS2Inference& ms2,
                                        PeptDeepRTInference& rt)
   {
     if (run_rows.empty()) { return; }
+    const std::vector<Row>& rows = psms.rows;
+    const std::vector<std::string>& uniq_seq = psms.uniq_seq;
+    const std::vector<float>& uniq_charge = psms.uniq_charge;
 
     // Confident PSMs of this run, used both to score NCE candidates and to fit the RT
     // calibration.
@@ -651,8 +658,7 @@ namespace OpenMS
 
     // ---- normalised collision energy ----
     double centre = 0.0, best_median = -1.0;
-    const double nce = selectRunNCE_(collision_energies, peptide_ids, rows, run_rows, confident, uniq_seq, uniq_charge,
-                                     ms2, centre, best_median);
+    const double nce = selectRunNCE_(collision_energies, peptide_ids, psms, run_rows, confident, ms2, centre, best_median);
     if (nce_ <= 0.0)
     {
       OPENMS_LOG_INFO << "[PeptDeepRescoring] run '" << run_id << "': NCE " << nce
@@ -688,10 +694,8 @@ namespace OpenMS
     {
       const Row& r = rows[i];
       const std::vector<float>& pred = ms2_pred[key_pos[r.key]];
-      Size channels = (r.len > 1 && !pred.empty()) ? pred.size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
-      if (channels == 0) { channels = DEFAULT_ION_CHANNELS; }
       const PeptideHit& hit = peptide_ids[r.pi].getHits()[r.hit];
-      sims[i] = similarity_(predictedIons_(pred, r.len, channels), observedIons_(hit),
+      sims[i] = similarity_(predictedIons_(pred, r.len, ionChannels_(pred, r.len)), observedIons_(hit),
                             ms2_min_ordinal_, r.len, ms2_strong_fraction_);
     }
 

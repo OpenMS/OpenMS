@@ -44,6 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -98,6 +99,19 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The m/z of the monoisotopic precursor peak of an observed precursor m/z that FragmentIndex matched at the isotope
+    /// offset @p isotope_offset (13C spacings, theoretical minus observed: it searches shifted_mass = precursor_mass +
+    /// isotope_offset * C13C12, so M_theo ~ M_obs + isotope_offset * C13C12): observed + offset * C13C12 / charge. The
+    /// precursor errors of the PSMs (PRECURSOR_ERROR_PPM_USERPARAM), of the calibration and of the run statistics are
+    /// those of this m/z.
+    double monoisotopicPrecursorMZ(double observed_mz, int isotope_offset, double charge)
+    {
+      return observed_mz + static_cast<double>(isotope_offset) * Constants::C13C12_MASSDIFF_U / charge;
+    }
+  }
+
   ProSEAlgorithm::ProSEAlgorithm() :
     DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
@@ -1733,8 +1747,7 @@ namespace OpenMS
             // (ah.isotope_error is this search offset, whatever sign the PSM reports).
             // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
             // feature, corrupting target/decoy discrimination.
-            const double corrected_mz = mz
-              + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
+            const double corrected_mz = monoisotopicPrecursorMZ(mz, ah.isotope_error, static_cast<double>(used_charge));
             double theo_mz = ah.sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
             ph.setMetaValue(mv_precursor_error, ppm_difference);
@@ -4855,6 +4868,13 @@ namespace OpenMS
       }
     }
 
+    // Removes the spectra of @p spectra that @p keep does not accept (none without @p keep)
+    void removeUnkept(std::vector<MSSpectrum>& spectra, const std::function<bool(const MSSpectrum&)>& keep)
+    {
+      if (!keep) { return; }
+      spectra.erase(std::remove_if(spectra.begin(), spectra.end(), [&keep](const MSSpectrum& s) { return !keep(s); }), spectra.end());
+    }
+
     // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
     // their <spectrum> start tags; every chunk is parsed together with the file's header and closing
     // tags by an MzMLFile of its own (MzMLFile::loadBuffer), and the spectra are joined in file order.
@@ -5058,13 +5078,7 @@ namespace OpenMS
               PeakMap part;
               mzml.loadBuffer(chunk, part);
               parsed = part.size() <= first[c + 1] - first[c];
-              if (parsed && keep)
-              {
-                std::vector<MSSpectrum>& parsed_spectra = part.getSpectra();
-                parsed_spectra.erase(std::remove_if(parsed_spectra.begin(), parsed_spectra.end(),
-                                                    [&keep](const MSSpectrum& s) { return !keep(s); }),
-                                     parsed_spectra.end());
-              }
+              if (parsed) { removeUnkept(part.getSpectra(), keep); }
               if (parsed)
               {
                 std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
@@ -5096,6 +5110,7 @@ namespace OpenMS
         }
       }
       spectra.erase(spectra.begin() + static_cast<SignedSize>(kept_total), spectra.end());
+      if (keep) { spectra.shrink_to_fit(); } // (without the slots of the spectra not kept)
       exp.setSpectra(std::move(spectra));
       exp.setChromatograms(std::move(chromatograms));
       exp.setLoadedFileType(filename);
@@ -5132,14 +5147,18 @@ namespace OpenMS
         if (threads >= 8) { malloc_trim(0); }
 #endif
       }
+      else if (keep && FileHandler::getTypeByFileName(filename) == FileTypes::MZML)
+      {
+        // streamed, so that only the kept spectra are held
+        spectra.clear(true);
+        MSDataTransformingConsumer consumer;
+        consumer.setSpectraProcessingFunc([&spectra, &keep](MSSpectrum& spectrum) { if (keep(spectrum)) { spectra.addSpectrum(spectrum); } });
+        f.transformExperiment(filename, &consumer, {FileTypes::MZML});
+      }
       else
       {
         f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        if (keep)
-        {
-          std::vector<MSSpectrum>& all = spectra.getSpectra();
-          all.erase(std::remove_if(all.begin(), all.end(), [&keep](const MSSpectrum& s) { return !keep(s); }), all.end());
-        }
+        removeUnkept(spectra.getSpectra(), keep); // (Bruker .d, Thermo .raw)
       }
       spectra.sortSpectra(true);
       return spectra;
@@ -6573,30 +6592,30 @@ namespace OpenMS
 
       if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
 
-      const bool is_decoy = top.metaValueExists(Constants::UserParam::TARGET_DECOY)
-                            && top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
+      const PeptideHit::TargetDecoyType target_decoy = top.getTargetDecoyType();
+      const bool is_decoy = target_decoy == PeptideHit::TargetDecoyType::DECOY;
       // Precursor error: always computed inline (cheap), independent of annotate:PSM. Skip hits with unresolved
       // charge (0) - getMZ() would throw - and, in an open search, those with a delta mass (a modification the
-      // sequence lacks, not a mass error; within 0.05 Da of zero, as OpenSearchModificationAnalysis counts them
-      // unmodified).
-      const bool shifted = top.metaValueExists("DeltaMass") && std::fabs(static_cast<double>(top.getMetaValue("DeltaMass"))) > 0.05;
+      // sequence lacks, not a mass error; as OpenSearchModificationAnalysis tells unmodified PSMs).
+      const bool shifted = top.metaValueExists("DeltaMass")
+                           && !OpenSearchModificationAnalysis::isUnmodified(static_cast<double>(top.getMetaValue("DeltaMass")));
       if (!is_decoy && !shifted && top.getCharge() > 0)
       {
-        // The isotope offset the search matched at, in 13C spacings of theoretical minus observed (the reported
-        // 'isotope_error' follows report:isotope_error_convention): the observed m/z of the monoisotopic peak is
-        // observed + offset * C13C12 / charge
+        // The isotope offset the search matched at (theoretical minus observed): the reported 'isotope_error' follows
+        // report:isotope_error_convention
         int offset = 0;
         if (top.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
         {
           const int reported = static_cast<int>(top.getMetaValue(Constants::UserParam::ISOTOPE_ERROR));
           offset = isotope_error_observed_minus_theoretical_ ? -reported : reported;
         }
-        const double corrected_mz = pid.getMZ() + offset * Constants::C13C12_MASSDIFF_U / top.getCharge();
+        const double corrected_mz = monoisotopicPrecursorMZ(pid.getMZ(), offset, static_cast<double>(top.getCharge()));
         precursor_errors.push_back(Math::getPPM(corrected_mz, top.getSequence().getMZ(top.getCharge())));
       }
 
       // Fragment errors: of the annotated b and y peaks ("b3+", "y12++"; not those with a neutral loss or of other
-      // ions), against their m/z from the hit's sequence
+      // ions), against their m/z from the hit's sequence: (prefix or suffix residue masses + terminal modification
+      // [+ H2O] + charge protons) / charge, the masses TheoreticalSpectrumGenerator gives the annotated ions
       if (!is_decoy && !top.getPeakAnnotations().empty())
       {
         const AASequence& sequence = top.getSequence();
@@ -6612,12 +6631,15 @@ namespace OpenMS
         for (const PeptideHit::PeakAnnotation& pa : top.getPeakAnnotations())
         {
           const std::string& name = pa.annotation;
-          if (name.size() < 3 || (name[0] != 'b' && name[0] != 'y') || pa.charge < 1) { continue; }
-          Size end = 1, ordinal = 0;
-          while (end < name.size() && name[end] >= '0' && name[end] <= '9') { ordinal = ordinal * 10 + static_cast<Size>(name[end] - '0'); ++end; }
-          if (ordinal == 0 || ordinal >= length || name.find_first_not_of('+', end) != std::string::npos) { continue; }
-          const double neutral = name[0] == 'b' ? residue_masses[ordinal] + n_term
-                                                : residue_masses[length] - residue_masses[length - ordinal] + c_term + water_mass;
+          bool prefix = false;
+          Size ordinal = 0;
+          if ((name[0] != 'b' && name[0] != 'y') || pa.charge < 1 || !FragmentIonLikelihoodModel::parseIonName(name, prefix, ordinal)
+              || ordinal >= length || name.find_first_not_of('+', name.find_first_not_of("0123456789", 1)) != std::string::npos)
+          {
+            continue; // another ion, or one with a neutral loss ("y3-H2O1+")
+          }
+          const double neutral = prefix ? residue_masses[ordinal] + n_term
+                                        : residue_masses[length] - residue_masses[length - ordinal] + c_term + water_mass;
           const double theoretical_mz = (neutral + pa.charge * Constants::PROTON_MASS_U) / pa.charge;
           fragment_errors.push_back(Math::getPPM(pa.mz, theoretical_mz));
           any = true;
@@ -6629,12 +6651,8 @@ namespace OpenMS
 
       // Target/decoy of the FINAL (post-FDR) hits, so SearchResult::stats stays consistent
       // for library callers that read it without calling updateFinalStats().
-      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
-      {
-        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
-        if (td == "decoy") { ++n_decoy; }
-        else if (!td.empty()) { ++n_target; }
-      }
+      if (is_decoy) { ++n_decoy; }
+      else if (target_decoy != PeptideHit::TargetDecoyType::UNKNOWN) { ++n_target; }
     }
 
     stats.unique_peptides = unique_peptides.size();
@@ -7019,8 +7037,7 @@ namespace OpenMS
       // Matches the sign used by postProcessHits_'s PRECURSOR_ERROR_PPM annotation.
       double exp_mz = spec.getPrecursors()[0].getMZ();
       double theo_mz = best_seq.getMZ(best_charge);
-      double corrected_exp_mz = exp_mz + static_cast<double>(best_isotope_error)
-                                          * Constants::C13C12_MASSDIFF_U / best_charge;
+      double corrected_exp_mz = monoisotopicPrecursorMZ(exp_mz, best_isotope_error, static_cast<double>(best_charge));
       double prec_err = (precursor_mass_tolerance_unit_ == "ppm")
                           ? Math::getPPM(corrected_exp_mz, theo_mz)
                           : (corrected_exp_mz - theo_mz);

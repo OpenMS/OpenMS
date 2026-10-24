@@ -51,6 +51,27 @@ public:
         const std::vector<float>& nces,
         const std::vector<int64_t>& instrument_indices);
 
+    /// The values per cleavage position of a prediction of predictMS2(), in this order (Channel)
+    static constexpr size_t ION_CHANNELS = 8;
+    /// The channels of a cleavage position: [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2, y_modloss_z1, y_modloss_z2]
+    enum Channel : size_t { B_Z1 = 0, B_Z2 = 1, Y_Z1 = 2, Y_Z2 = 3 };
+    /// ionIndex() of an ion the prediction does not have
+    static constexpr size_t NO_ION = static_cast<size_t>(-1);
+
+    /**
+      @brief The index into a prediction of predictMS2() of the b or y ion of a peptide
+
+      Cleavage position @c pos (0-based) carries b(pos + 1) and y(length - 1 - pos), with @p channels values each.
+
+      @param length The peptide's length (residues)
+      @param type 'b' or 'y'
+      @param ordinal The ion's ordinal, 1 to @p length - 1
+      @param charge 1 or 2
+      @param channels The values per cleavage position (ION_CHANNELS, unless a model has another layout)
+      @return The index, NO_ION for another ion type, ordinal or charge
+    */
+    static size_t ionIndex(size_t length, char type, size_t ordinal, int charge, size_t channels = ION_CHANNELS);
+
 private:
     ONNXPredictorBase model_;
     size_t batch_size_;
