@@ -440,19 +440,35 @@ namespace OpenMS
     return true;
   }
 
-  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(std::string& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(std::string& annotation_string, const std::vector<PeptideHit::PeakAnnotation>& annotations)
   {
     if (annotations.empty()) { return; }
 
-    // sort by mz, charge, ...
-    stable_sort(annotations.begin(), annotations.end());
+    // sort by mz, charge, ... (the annotations in a stable sort of pointers: no copy of the annotations)
+    std::vector<const PeptideHit::PeakAnnotation*> sorted;
+    sorted.reserve(annotations.size());
+    for (const auto& a : annotations) { sorted.push_back(&a); }
+    std::stable_sort(sorted.begin(), sorted.end(), [](const PeptideHit::PeakAnnotation* a, const PeptideHit::PeakAnnotation* b) { return *a < *b; });
 
-    std::string val;
-    for (auto& a : annotations)
+    // "mz,intensity,charge,annotation" per peak, separated by '|'; the annotation quoted as StringUtils::quote()
+    // does (backslash and quote escaped), everything appended in place
+    for (Size k = 0; k < sorted.size(); ++k)
     {
-      { std::string ann = std::string(a.annotation); StringUtils::quote(ann);
-        annotation_string += StringUtils::toStr(a.mz) + "," + StringUtils::toStr(a.intensity) + "," + StringUtils::toStr(a.charge) + "," + ann; }
-      if (&a != &annotations.back()) { annotation_string += "|"; }
+      const PeptideHit::PeakAnnotation& a = *sorted[k];
+      if (k > 0) { annotation_string += '|'; }
+      StringUtils::appendToStr(a.mz, annotation_string);
+      annotation_string += ',';
+      StringUtils::appendToStr(a.intensity, annotation_string);
+      annotation_string += ',';
+      StringUtils::appendToStr(a.charge, annotation_string);
+      annotation_string += ",\"";
+      for (const char c : a.annotation)
+      {
+        if (c == '\\') { annotation_string += "\\\\"; }
+        else if (c == '"') { annotation_string += "\\\""; }
+        else { annotation_string += c; }
+      }
+      annotation_string += '"';
     }
   }
 
