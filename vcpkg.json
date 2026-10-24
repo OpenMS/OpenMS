@@ -47,7 +47,7 @@
     "eigen3",
     "highs",
     "libsvm",
-    { "name": "libxml2", "version>=": "2.13.0" },
+    { "name": "libxml2", "version>=": "2.13.5" },
     "libzip",
     "zlib",
     "zstd"
