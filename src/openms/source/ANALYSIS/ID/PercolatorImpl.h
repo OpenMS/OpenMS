@@ -64,6 +64,7 @@ namespace OpenMS
     int    subset_max_train = 100000;         ///< 0 = no cap; default 100k
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
+    int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)
     bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
 

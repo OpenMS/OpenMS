@@ -17,11 +17,11 @@
 
 #include "CrossValidation.h"
 
+#include <algorithm>
 #include <exception>
 
 #ifdef _OPENMP
 #include <omp.h>
-#include <algorithm>
 #endif
 
 namespace OpenMS { namespace Internal { namespace Percolator {
@@ -56,6 +56,14 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 // see SortLikeStd.h) use at most kMaxTeamThreads threads: more threads would mostly wait for
 // tasks, polling the team's task queue.
 constexpr unsigned int kMaxTeamThreads = 12;
+// OpenMS: Newton and LDA (setSolver) cut the rows of large training sets into blocks that run as
+// tasks (newton_svm.h): the fold chains of training sets of at least kSolverAllThreadsPsms PSMs
+// then run on all threads (numLoopThreads), not kMaxTeamThreads.
+constexpr std::size_t kSolverAllThreadsPsms = std::size_t(1) << 17;
+// OpenMS: Newton's tolerance (as TRON's, the gradient norm relative to that at 0) in the steps
+// before the last one, which solves to EPSILON: the earlier steps only choose the positives
+// of the next.
+constexpr double kNewtonEarlyEpsilon = 1e-4;
 [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
   return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
 }
@@ -397,7 +405,16 @@ void CrossValidation::trainFoldChains() {
   vector<FoldError> foldErrors(numFolds_);
   const bool scored = trainScoresOfWeights_;
   trainScoresOfWeights_ = false;
-#pragma omp parallel num_threads(numChainTeamThreads(numThreads_, trainScores_))
+  // OpenMS: all threads for the fold chains of large training sets: with TRON from
+  // kLargeTrainingSet PSMs on (numChainTeamThreads), with Newton/LDA from kSolverAllThreadsPsms on
+  std::size_t largestTrainSet = 0;
+  for (const Scores& trainScores : trainScores_) {
+    largestTrainSet = std::max<std::size_t>(largestTrainSet, trainScores.size());
+  }
+  const int teamThreads = solver_ != kSolverTron && largestTrainSet >= kSolverAllThreadsPsms
+                              ? numLoopThreads(numThreads_)
+                              : numChainTeamThreads(numThreads_, trainScores_);
+#pragma omp parallel num_threads(teamThreads)
 #pragma omp single
 #pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
@@ -422,26 +439,45 @@ void CrossValidation::trainFoldChains() {
         setupFoldInputs(set, selectionFdr, nestedTestScores, &testSet);
         stage = 2;
         if (step == 0u && useRows) trainScores_[set].getFeatureRows(rows);
+        // Newton solves the steps before the last one to a looser tolerance
+        options stepOptions = pOptions;
+        if (solver_ == kSolverNewton && step + 1u < niter_) stepOptions.epsilon = kNewtonEarlyEpsilon;
+        // the ranking of LDA's weights does not depend on the costs: if the first pair's weights
+        // are LDA's, they serve the others; otherwise the others are trained as well
+        std::size_t pairsBegin = 0;
+        std::size_t numPairsTrained = solver_ == kSolverLda ? 1u : numCpCnPairsPerSet;
         vector<std::exception_ptr> pairErrors(numCpCnPairsPerSet);
-        for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
+        vector<char> pairCostIndependent(numCpCnPairsPerSet, 0);
+        while (true) {
+          for (std::size_t k = pairsBegin; k < numPairsTrained; ++k) {
 #pragma omp task default(shared) firstprivate(k)
-          {
-            try {
-              const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
-              CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
-              trainCpCnPair(cpCnFold, pOptions, svmInputs_[cpCnFold.set]);
-              pairTruePoses[pairIdx] =
-                  useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
-                                                    skipDecoysPlusOneValidation, rows)
-                          : testSet->countPositives(cpCnFold.ww, testFdr_,
-                                                    skipDecoysPlusOneValidation);
-            } catch (...) {
-              pairErrors[k] = std::current_exception();
+            {
+              try {
+                const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
+                CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
+                pairCostIndependent[k] =
+                    trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set]);
+                pairTruePoses[pairIdx] =
+                    useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
+                                                      skipDecoysPlusOneValidation, rows)
+                            : testSet->countPositives(cpCnFold.ww, testFdr_,
+                                                      skipDecoysPlusOneValidation);
+              } catch (...) {
+                pairErrors[k] = std::current_exception();
+              }
             }
           }
-        }
 #pragma omp taskwait
-        rethrowFirstError(pairErrors);
+          rethrowFirstError(pairErrors);
+          if (numPairsTrained == numCpCnPairsPerSet || pairCostIndependent[0]) break;
+          pairsBegin = numPairsTrained;
+          numPairsTrained = numCpCnPairsPerSet;
+        }
+        for (std::size_t k = numPairsTrained; k < numCpCnPairsPerSet; ++k) {
+          const std::size_t first = set * numCpCnPairsPerSet;
+          classWeightsPerFold_[first + k].ww = classWeightsPerFold_[first].ww;
+          pairTruePoses[first + k] = pairTruePoses[first];
+        }
         stage = 3;
         // mergeCpCnPairs without nested cross-validation, for this fold
         int bestTruePoses = 0;
@@ -693,7 +729,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
  * @param pOptions options for the SVM algorithm
  * @param svmInput training data for this particular nested CV fold
  */
-void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
                                     options& pOptions,
                                     AlgIn* svmInput) {
   vector_double pWeights;
@@ -713,19 +749,41 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
   if (VERB > 3)
     cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
          << endl;
+  // OpenMS: Newton and LDA (solver_) start from the pair's weights of the step before (0 at the
+  // first step)
   for (int ix = 0; ix < pWeights.d; ix++) {
-    pWeights.vec[ix] = 0;
+    pWeights.vec[ix] = solver_ == kSolverTron ? 0 : cpCnFold.ww[ix];
   }
   for (int ix = 0; ix < Outputs.d; ix++) {
     Outputs.vec[ix] = 0;
   }
 
   // Call SVM algorithm (see ssl.cpp)
-  L2_SVM_MFN(*svmInput, pOptions, pWeights, Outputs, cpos, cfrac * cpos);
+  const bool costIndependent = trainSvm(*svmInput, pOptions, cpos, cfrac * cpos, pWeights, Outputs);
 
   for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
     cpCnFold.ww[i] = pWeights.vec[i];
   }
+  return costIndependent;
+}
+
+// OpenMS: the solver of the SVMs (setSolver). Newton (newton_svm.h) and LDA start from the
+// weights in w; LDA needs two rows of each class, Newton at most kNewtonMaxColumns columns:
+// otherwise, and if Newton fails or does not converge, TRON solves the SVM (from 0, as with
+// kSolverTron). Returns whether LDA gave the weights (their ranking does not depend on the
+// costs).
+bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double cpos,
+                               double cneg, vector_double& w, vector_double& outputs) {
+  if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.vec)) return true;
+  if (solver_ != kSolverTron &&
+      newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
+    return false;
+  }
+  for (int ix = 0; ix < w.d; ix++) {
+    w.vec[ix] = 0;
+  }
+  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
+  return false;
 }
 
 /**
@@ -828,8 +886,8 @@ int CrossValidation::mergeCpCnPairs(
           Outputs.vec[ix] = 0;
         }
         // Call SVM algorithm (see ssl.cpp)
-        L2_SVM_MFN(*svmInput, pOptions, pWeights, Outputs, bestCposes[set],
-                   bestCposes[set] * bestCfracs[set]);
+        trainSvm(*svmInput, pOptions, bestCposes[set], bestCposes[set] * bestCfracs[set],
+                 pWeights, Outputs);
 
         for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
           weights_[set][i] = pWeights.vec[i];

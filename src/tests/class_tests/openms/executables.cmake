@@ -285,6 +285,7 @@ set(format_executables_list
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
   PercolatorTron_test
+  PercolatorNewton_test
   ProtXMLFile_test
   QcMLFile_test
   SVOutStream_test
