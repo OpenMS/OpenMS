@@ -40,11 +40,173 @@
 #include <streambuf>
 
 #include <memory>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <thread>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 
 namespace OpenMS::Internal
 {
+
+    /**
+      @brief Reads a decompressing stream ahead on a helper thread
+
+      Inflating gzip/bzip2 input costs about as much as parsing it. Reading a few
+      blocks ahead lets both run concurrently. Stream exceptions are rethrown by read().
+    */
+    class PrefetchingReader_
+    {
+public:
+      explicit PrefetchingReader_(InputStream& stream) :
+        stream_(stream),
+        worker_([this] { run_(); })
+      {
+      }
+
+      ~PrefetchingReader_()
+      {
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          stop_ = true;
+        }
+        changed_.notify_all();
+        worker_.join();
+      }
+
+      PrefetchingReader_(const PrefetchingReader_&) = delete;
+      PrefetchingReader_& operator=(const PrefetchingReader_&) = delete;
+
+      /// Copies up to @p capacity bytes; returns 0 at the end of the stream.
+      Size read(unsigned char* target, Size capacity)
+      {
+        Size copied = 0;
+        while (copied < capacity && (offset_ < current_.size || next_()))
+        {
+          const Size count = std::min(capacity - copied, current_.size - offset_);
+          std::memcpy(target + copied, current_.data.get() + offset_, count);
+          offset_ += count;
+          copied += count;
+        }
+        return copied;
+      }
+
+private:
+      static constexpr Size block_size_ = 256 * 1024;
+      static constexpr Size max_blocks_ = 4;
+
+      struct Block
+      {
+        std::unique_ptr<unsigned char[]> data;
+        Size size = 0;
+      };
+
+      /// Moves on to the next filled block; false at the end of the stream.
+      bool next_()
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (current_.data) { spare_.push_back(std::move(current_)); }
+        current_ = Block();
+        offset_ = 0;
+        changed_.notify_all();
+        changed_.wait(lock, [this] { return !filled_.empty() || done_; });
+        if (filled_.empty())
+        {
+          if (error_) { std::rethrow_exception(error_); }
+          return false;
+        }
+        current_ = std::move(filled_.front());
+        filled_.pop_front();
+        changed_.notify_all();
+        return true;
+      }
+
+      void run_()
+      {
+        try
+        {
+          while (true)
+          {
+            Block block;
+            {
+              std::unique_lock<std::mutex> lock(mutex_);
+              changed_.wait(lock, [this] { return stop_ || filled_.size() < max_blocks_; });
+              if (stop_) { return; }
+              if (!spare_.empty())
+              {
+                block = std::move(spare_.back());
+                spare_.pop_back();
+              }
+            }
+            if (!block.data) { block.data.reset(new unsigned char[block_size_]); }
+            block.size = stream_.readBytes(block.data.get(), block_size_);
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (block.size == 0) { done_ = true; }
+            else { filled_.push_back(std::move(block)); }
+            changed_.notify_all();
+            if (done_) { return; }
+          }
+        }
+        catch (...)
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          error_ = std::current_exception();
+          done_ = true;
+          changed_.notify_all();
+        }
+      }
+
+      InputStream& stream_;
+      std::mutex mutex_;
+      std::condition_variable changed_;
+      std::deque<Block> filled_;
+      std::vector<Block> spare_;
+      bool done_ = false;
+      bool stop_ = false;
+      std::exception_ptr error_;
+      // consumer side only
+      Block current_;
+      Size offset_ = 0;
+      // started last, after all members it uses are initialized
+      std::thread worker_;
+    };
+
+    /**
+      @brief Leaves one core to a PrefetchingReader_ thread while it exists
+
+      Handlers decode arrays in OpenMP regions between parsing steps. Idle OpenMP
+      workers spin-wait for the next region and, using all cores, would starve the
+      decompression thread. Affects only parallel regions started by this thread.
+    */
+    class OpenMPThreadReservation_
+    {
+public:
+      OpenMPThreadReservation_()
+      {
+#ifdef _OPENMP
+        previous_ = omp_get_max_threads();
+        if (previous_ > 1) { omp_set_num_threads(previous_ - 1); }
+#endif
+      }
+
+      ~OpenMPThreadReservation_()
+      {
+#ifdef _OPENMP
+        if (previous_ > 1) { omp_set_num_threads(previous_); }
+#endif
+      }
+
+      OpenMPThreadReservation_(const OpenMPThreadReservation_&) = delete;
+      OpenMPThreadReservation_& operator=(const OpenMPThreadReservation_&) = delete;
+
+private:
+      int previous_ = 1;
+    };
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
     /// useful when used in exception handling
@@ -423,7 +585,9 @@ private:
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot open compressed XML stream");
         }
-        parse([&](unsigned char* target, Size capacity) { return stream->readBytes(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
+        OpenMPThreadReservation_ reservation;
+        PrefetchingReader_ reader(*stream);
+        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
       }
       else
       {

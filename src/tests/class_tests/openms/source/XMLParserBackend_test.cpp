@@ -4,6 +4,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLAttributes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
@@ -371,6 +373,45 @@ START_SECTION(Native ASCII attribute lookup and UTF8 fallback)
   TEST_TRUE(attributes.value("β") == attributes.value(u"β"))
   TEST_TRUE(attributes.value("naïve") == attributes.value(u"naïve"))
   TEST_TRUE(attributes.value("βmissing") == nullptr)
+END_SECTION
+START_SECTION(Compressed input is read ahead without changing results or blocking early stops)
+  // Several MiB of decompressed XML: more than the read-ahead queue holds.
+  MSExperiment experiment;
+  for (Size i = 0; i < 300; ++i)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(static_cast<double>(i));
+    spectrum.setNativeID("scan=" + std::to_string(i));
+    for (Size j = 0; j < 2000; ++j) { spectrum.emplace_back(100.0 + static_cast<double>(j) / 7.0, static_cast<float>(i + j)); }
+    experiment.addSpectrum(spectrum);
+  }
+  std::string gz;
+  NEW_TMP_FILE_EXT(gz, ".mzML.gz")
+  MzMLFile().store(gz, experiment);
+  MSExperiment loaded;
+  MzMLFile().load(gz, loaded);
+  TEST_EQUAL(loaded.size(), experiment.size())
+  bool same_peaks = loaded.size() == experiment.size();
+  for (Size i = 0; same_peaks && i < loaded.size(); ++i)
+  {
+    same_peaks = loaded[i].getNativeID() == experiment[i].getNativeID() && loaded[i].size() == experiment[i].size();
+    for (Size j = 0; same_peaks && j < loaded[i].size(); ++j)
+    {
+      same_peaks = loaded[i][j].getMZ() == experiment[i][j].getMZ() && loaded[i][j].getIntensity() == experiment[i][j].getIntensity();
+    }
+  }
+  TEST_TRUE(same_peaks)
+
+  // Stopping at the first element must not wait for the rest of the stream.
+  Reader reader;
+  Handler stopped;
+  stopped.stop = true;
+  reader.parse_(gz, &stopped);
+  TEST_EQUAL(stopped.starts, 1)
+
+  // Decompression errors on the read-ahead thread reach the caller.
+  Handler handler;
+  TEST_EXCEPTION(Exception::ParseError, reader.parse_(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1_corrupt.bz2"), &handler))
 END_SECTION
 START_SECTION(File input handles empty and one-byte files without reading uninitialized magic)
   std::string filename;
