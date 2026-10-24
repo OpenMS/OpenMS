@@ -1929,6 +1929,37 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     TEST_EQUAL(without_meta, 800)
   }
 
+  // ties: a copy of the first hit after it (same features, same new score, different sequence-free identity): the first
+  // of the tied hits is the best, as PeptideIdentification::sort() keeps it first
+  for (const std::string score_type : {"q-value", "svm"})
+  {
+    PeptideIdentificationList all = makeIds(), best = makeIds();
+    for (PeptideIdentificationList* ids : {&all, &best})
+    {
+      for (Size i = 1; i < ids->size(); ++i)
+      {
+        std::vector<PeptideHit>& hits = (*ids)[i].getHits();
+        PeptideHit copy = hits[0];
+        copy.setMetaValue("tie_marker", 1);
+        hits.insert(hits.begin() + 1, copy);
+      }
+    }
+    Percolator perc;
+    perc.rescorePSMs(all, feature_set, "trypsin", 2, 2, score_type);
+    perc.rescorePSMs(best, feature_set, "trypsin", 2, 2, score_type, true);
+    bool same = true;
+    Size tied = 0;
+    for (Size i = 1; i < all.size(); ++i)
+    {
+      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore()) ++tied;
+      all[i].sort();
+      best[i].sort();
+      same = same && all[i].getHits()[0] == best[i].getHits()[0];
+    }
+    TEST_EQUAL(same, true)
+    TEST_EQUAL(tied > 0, true)
+  }
+
   // an old score type named like a Percolator value: the original score kept under that name replaces the Percolator
   // value there, and the canonical fields are those meta values (as when they were read back from the hits)
   for (const std::string old_type : {"percolator_q_value", "percolator_score", "percolator_pep"})
