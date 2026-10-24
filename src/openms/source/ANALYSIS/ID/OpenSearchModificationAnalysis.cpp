@@ -86,6 +86,12 @@ namespace OpenMS
       }
       return joined;
     }
+    /// Whether @p hit is a decoy (target_decoy "decoy"). The statistics are of the target hits: a decoy's delta mass is
+    /// that of a wrong match. A hit without the annotation counts as a target.
+    bool isDecoyHit(const PeptideHit& hit)
+    {
+      return hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy").toString() == "decoy";
+    }
   } // namespace
 
   std::pair<OpenSearchModificationAnalysis::DeltaMassHistogram, OpenSearchModificationAnalysis::DeltaMassToChargeCount>
@@ -93,12 +99,9 @@ namespace OpenMS
                                                           bool use_smoothing, 
                                                           bool /*debug*/) const
   {
-    // Constants
-    constexpr double deltamass_tolerance = 0.0005;
-
-    // Lambda to round values to the specified tolerance
+    // Lambda to round values to the histogram's bins
     auto roundToTolerance = [](double value) {
-      return std::round(value / deltamass_tolerance) * deltamass_tolerance;
+      return deltaMassBin_(value);
     };
 
     // Data structures to store histogram and charge states
@@ -112,10 +115,10 @@ namespace OpenMS
       const auto& hits = peptide_id.getHits();
       for (const auto& hit : hits)
       {
-        // Retrieve delta mass and charge
-        if (!hit.metaValueExists("DeltaMass"))
+        // Retrieve delta mass and charge (of the target hits)
+        if (!hit.metaValueExists("DeltaMass") || isDecoyHit(hit))
           continue;
-          
+
         double delta_mass = (double)hit.getMetaValue("DeltaMass");
         int charge = hit.getCharge();
 
@@ -628,7 +631,6 @@ namespace OpenMS
                                                               bool precursor_mass_tolerance_unit_ppm) const
   {
     DeltaMassStatistics stats;
-    constexpr double min_mass_for_ppm = 0.1; // Minimum mass to avoid division issues with ppm
 
     // Effective tolerance for modification mass matching (capped for open search)
     const double mod_tol = precursor_mass_tolerance_unit_ppm
@@ -638,9 +640,9 @@ namespace OpenMS
     // Build modification lookup
     auto mod_lookup = buildModificationMassLookup_();
 
-    // Count total PSMs and, in the same pass, collect the per-hit data needed for the
-    // unique peptide counts below: the delta mass and a dense id per distinct sequence.
-    std::vector<double> hit_delta_masses;
+    // Count the target PSMs (decoys only counted) and, in the same pass, collect the per-hit data needed for
+    // the unique peptide counts below: the histogram bin of the delta mass and a dense id per distinct sequence.
+    std::vector<double> hit_bins;
     std::vector<UInt32> hit_sequence_ids;
     std::unordered_map<std::string, UInt32> sequence_to_id;
 
@@ -648,6 +650,11 @@ namespace OpenMS
     {
       for (const auto& hit : peptide_id.getHits())
       {
+        if (isDecoyHit(hit))
+        {
+          stats.decoy_psms++;
+          continue;
+        }
         stats.total_psms++;
         if (hit.metaValueExists("DeltaMass"))
         {
@@ -661,7 +668,7 @@ namespace OpenMS
             stats.modified_psms++;
           }
 
-          hit_delta_masses.push_back(delta_mass);
+          hit_bins.push_back(deltaMassBin_(delta_mass));
           auto id_entry = sequence_to_id.emplace(hit.getSequence().toString(),
                                                  static_cast<UInt32>(sequence_to_id.size()));
           hit_sequence_ids.push_back(id_entry.first->second);
@@ -698,21 +705,13 @@ namespace OpenMS
         entry.percentage = (static_cast<double>(entry.count) / stats.modified_psms) * 100.0;
       }
 
-      // Compute tolerance in Da based on unit
-      double tolerance_da = precursor_mass_tolerance;
-      if (precursor_mass_tolerance_unit_ppm)
-      {
-        // For ppm, tolerance depends on the mass being compared
-        // Use the delta_mass as reference, with a minimum to avoid issues near zero
-        double reference_mass = std::max(min_mass_for_ppm, std::abs(delta_mass));
-        tolerance_da = reference_mass * precursor_mass_tolerance * 1e-6;
-      }
-
-      // Count unique peptides
+      // Count the unique peptides of the PSMs of the entry: those whose delta mass falls into its histogram bin, as
+      // they are counted in 'count' (with a smoothed histogram, those of the bin of its maximum). Not those within the
+      // precursor mass tolerance: in an open search that is the whole open window, i.e. nearly all PSMs.
       ++seen_marker;
-      for (size_t i = 0; i < hit_delta_masses.size(); ++i)
+      for (size_t i = 0; i < hit_bins.size(); ++i)
       {
-        if (std::abs(hit_delta_masses[i] - delta_mass) <= tolerance_da &&
+        if (std::abs(hit_bins[i] - delta_mass) < 1e-9 &&
             sequence_seen[hit_sequence_ids[i]] != seen_marker)
         {
           sequence_seen[hit_sequence_ids[i]] = seen_marker;
@@ -788,7 +787,7 @@ namespace OpenMS
     {
       for (const auto& hit : peptide_id.getHits())
       {
-        if (!hit.metaValueExists("PTM"))
+        if (!hit.metaValueExists("PTM") || isDecoyHit(hit)) // (of the target hits)
           continue;
 
         std::string ptm_name = StringUtils::toStr(hit.getMetaValue("PTM"));
@@ -929,9 +928,11 @@ namespace OpenMS
 
     // Write header
     output_stream << "# Delta Mass Statistics Table\n";
+    output_stream << "# Counts of the target PSMs (the decoy PSMs are left out)\n";
     output_stream << "# Total PSMs: " << stats.total_psms << "\n";
     output_stream << "# Modified PSMs: " << stats.modified_psms << "\n";
     output_stream << "# Unmodified PSMs: " << stats.unmodified_psms << "\n";
+    output_stream << "# Decoy PSMs: " << stats.decoy_psms << "\n";
     output_stream << "# Mean Delta Mass: " << stats.mean_delta_mass << "\n";
     output_stream << "# Median Delta Mass: " << stats.median_delta_mass << "\n";
     output_stream << "#\n";
