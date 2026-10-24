@@ -395,7 +395,9 @@ namespace OpenMS
     defaults_.setValue("rescore_solver", "tron",
                        "Solver of Percolator's SVMs with 'rescore' (Percolator's parameter 'solver'): 'tron' (default, "
                        "Percolator's trust region Newton method), 'newton' (explicit-Hessian Newton method with exact line "
-                       "search and warm starts: the same models within the solver tolerance, much faster on large runs) or "
+                       "search and warm starts: the same SVM optimum for a given training set, within the solver tolerance, "
+                       "much faster on large runs; as the earlier iterations of the cross-validation stop at a looser "
+                       "tolerance, they may choose slightly different training sets, so the models can differ) or "
                        "'lda' (Fisher's linear discriminant instead of the SVM: fastest, an approximation).", {"advanced"});
     defaults_.setValidStrings("rescore_solver", {"tron", "newton", "lda"});
 
@@ -4339,6 +4341,7 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
       if (solver != "tron") run_sp.setMetaValue("Percolator:solver", solver);
+      else run_sp.removeMetaValue("Percolator:solver");
       run.setSearchParameters(run_sp);
     }
     outcome.applied = true;

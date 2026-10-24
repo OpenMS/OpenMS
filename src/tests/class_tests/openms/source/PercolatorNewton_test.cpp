@@ -261,6 +261,17 @@ START_SECTION((int newtonSvm(const AlgIn& set, const options& opts, double cpos,
     vector<double> v(2, 0.0);
     TEST_EQUAL(newtonSvm(t.in, opts, 1e160, 1e160, EPSILON, v.data(), nullptr), 1)
     TEST_REAL_SIMILAR(v[0], 1.0)
+    // huge costs and a warm start that I + H would hide in the gradient: the optimum all the same
+    Tiny q({1.0, 1.0, 1.0, 1.0}, {1.0, -1.0, 1.0, -1.0});
+    vector<double> z(2, 0.0), h = {std::ldexp(1.0, 27), -std::ldexp(1.0, 27)};
+    const double huge = std::ldexp(1.0, 52);
+    TEST_EQUAL(newtonSvm(q.in, opts, huge, huge, EPSILON, z.data(), nullptr) >= 0, true)
+    const int rh = newtonSvm(q.in, opts, huge, huge, EPSILON, h.data(), nullptr);
+    if (rh >= 0)
+    {
+      const double fz = svmObjective(q.in, 1.0, huge, huge, z.data());
+      TEST_EQUAL(svmObjective(q.in, 1.0, huge, huge, h.data()) <= fz * (1.0 + 1e-6), true)
+    }
     // infinite costs: -1, w unchanged
     vector<double> u(2, 0.0);
     TEST_EQUAL(newtonSvm(t.in, opts, std::numeric_limits<double>::infinity(), 1.0, EPSILON, u.data(), nullptr), -1)

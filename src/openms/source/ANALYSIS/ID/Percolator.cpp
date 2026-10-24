@@ -210,8 +210,9 @@ Percolator::Percolator()
                      "(TRON) of Percolator, from 0 in every step. 'newton': the modified finite Newton method of "
                      "Keerthi & DeCoste (2005) with the explicit Hessian (one pass over the active PSMs per step) and "
                      "an exact line search, warm-started from the weights of the step before, with a looser tolerance "
-                     "in all steps but the last; it reaches the same optimum as 'tron' (within the tolerance) in far "
-                     "fewer passes over the data, and runs the blocks of large training sets on all threads. 'lda': "
+                     "in all steps but the last; for a given training set it reaches the same optimum as 'tron' (within the "
+                     "tolerance) in far fewer passes over the data (the looser steps may choose slightly different "
+                     "training sets for the next), and runs the blocks of large training sets on all threads. 'lda': "
                      "Fisher's linear discriminant of the positives and the decoys in every step (one pass, no "
                      "optimization; a fast approximation of the SVM). Upstream percolator has no such option.");
   defaults_.setValidStrings("solver", {"tron","newton","lda"});

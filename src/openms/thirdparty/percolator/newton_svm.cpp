@@ -253,7 +253,7 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
   int ret = 0;
   for (int iter = 0;; ++iter) {
     if (!haveH) {
-      // H = I + sum_{t_i o_i < 1} 2 C_i x_i x_i^T, rhs = sum 2 C_i t_i x_i
+      // H = sum_{t_i o_i < 1} 2 C_i x_i x_i^T (the Hessian is I + H), rhs = sum 2 C_i t_i x_i
       forEachBlock(nb, [&](int b) {
         double* ph = partH.data() + b * nn;
         double* pb = partB.data() + static_cast<std::size_t>(b) * n;
@@ -286,14 +286,14 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
         st.hessianRows += partActive[b];
       }
       for (int j = 0; j < n; ++j) {
-        H(j, j) += 1.0;
         for (int k = j + 1; k < n; ++k) H(k, j) = H(j, k);
       }
       haveH = true;
       if (cold && iter == 0) gnorm0 = rhs.stableNorm();
     }
-    // g(w) = w + sum_I 2 C_i x_i (x_i . w - t_i) = H w - rhs
-    const double gnorm = (H * wv - rhs).stableNorm();
+    // g(w) = w + sum_I 2 C_i x_i (x_i . w - t_i) = w + (H w - rhs) (H without the identity: with
+    // huge costs, I + H would round the identity away)
+    const double gnorm = (wv + (H * wv - rhs)).stableNorm();
     if (!std::isfinite(gnorm) || !std::isfinite(gnorm0)) {
       ret = -1;
       break;
@@ -306,7 +306,9 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
     if (iter >= opts.mfnitermax) break;
 
     // the Newton point: the minimum of the regularized least squares problem on the active rows
-    Eigen::LLT<Matrix> llt(H);
+    Matrix Hreg = H;
+    Hreg.diagonal().array() += 1.0;
+    Eigen::LLT<Matrix> llt(Hreg);
     if (llt.info() != Eigen::Success) {
       ret = -1;
       break;
