@@ -248,6 +248,20 @@ namespace OpenMS
   bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
                                                           const AASequence& peptide, Int min_charge, Int max_charge) const
   {
+    return getIonSeriesSpectrum_(spectrum, ion_series, nullptr, nullptr, peptide, min_charge, max_charge);
+  }
+
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                          std::vector<UInt>& ion_ordinals, std::vector<Int>& ion_charges,
+                                                          const AASequence& peptide, Int min_charge, Int max_charge) const
+  {
+    return getIonSeriesSpectrum_(spectrum, ion_series, &ion_ordinals, &ion_charges, peptide, min_charge, max_charge);
+  }
+
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum_(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                           std::vector<UInt>* ion_ordinals, std::vector<Int>* ion_charges,
+                                                           const AASequence& peptide, Int min_charge, Int max_charge) const
+  {
     if (add_isotopes_ || add_losses_ || add_internal_fragments_ || add_precursor_peaks_ || add_abundant_immonium_ions_
         || !sort_by_position_ || peptide.size() < 2)
     {
@@ -284,7 +298,15 @@ namespace OpenMS
 
     // The peaks of each series are appended as addPeaks_() computes them (same operations in the same order), then
     // the ascending chunks are merged stably, which is the order sortByPositionPresorted() gives them.
-    thread_local std::vector<std::pair<Peak1D, uint8_t>> merged, chunk, scratch;
+    // per peak: the peak, its series (0 prefix, 1 suffix), its ordinal (the number of its ion name) and charge
+    struct Ion
+    {
+      Peak1D first;
+      uint8_t second;
+      UInt ordinal;
+      Int charge;
+    };
+    thread_local std::vector<Ion> merged, chunk, scratch;
     merged.clear();
     for (Int charge = min_charge; charge <= max_charge; ++charge)
     {
@@ -302,7 +324,7 @@ namespace OpenMS
           for (; i < n - 1; ++i)
           {
             mono_weight += residue_weights[i];
-            chunk.emplace_back(Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(0));
+            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(0), static_cast<UInt>(i + 1), charge});
           }
         }
         else
@@ -311,7 +333,7 @@ namespace OpenMS
           for (Size i = n - 1; i > 0; --i)
           {
             mono_weight += residue_weights[i];
-            chunk.emplace_back(Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(1));
+            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(1), static_cast<UInt>(n - i), charge});
           }
         }
         for (Size k = 1; k < chunk.size(); ++k)
@@ -340,6 +362,16 @@ namespace OpenMS
     {
       spectrum.push_back(merged[k].first);
       ion_series[k] = merged[k].second;
+    }
+    if (ion_ordinals != nullptr)
+    {
+      ion_ordinals->resize(merged.size());
+      for (Size k = 0; k < merged.size(); ++k) (*ion_ordinals)[k] = merged[k].ordinal;
+    }
+    if (ion_charges != nullptr)
+    {
+      ion_charges->resize(merged.size());
+      for (Size k = 0; k < merged.size(); ++k) (*ion_charges)[k] = merged[k].charge;
     }
     return true;
   }

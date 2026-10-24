@@ -102,12 +102,27 @@ namespace OpenMS
     */
     bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, const AASequence& peptide, Int min_charge, Int max_charge) const;
 
+    /**
+      @brief getIonSeriesSpectrum() that also returns, per peak, the number and the charge of its ion: what getSpectrum()
+      writes into the ion names (e.g. 5 for "y5++") and the charge array (2), without the strings.
+
+      @param[out] ion_ordinals The ordinal of each peak's ion (the number of residues of the fragment)
+      @param[out] ion_charges The charge of each peak's ion
+      @return as getIonSeriesSpectrum()
+    */
+    bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals,
+                              std::vector<Int>& ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
 
     /// overwrite
     void updateMembers_() override;
     //@}
 
     protected:
+    /// getIonSeriesSpectrum(), the ordinals and charges optional (nullptr: not written)
+    bool getIonSeriesSpectrum_(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>* ion_ordinals,
+                               std::vector<Int>* ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, MSSpectrum::Chunks& chunks, const Residue::ResidueType res_type, Int charge = 1) const;

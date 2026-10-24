@@ -1105,6 +1105,28 @@ START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint
           }
           TEST_EQUAL(same, true)
           TEST_EQUAL(spectrum.getStringDataArrays().empty() && spectrum.getIntegerDataArrays().empty(), true)
+
+          // the ordinals and charges of the ion names and the charge array
+          PeakSpectrum spectrum2;
+          std::vector<uint8_t> series2;
+          std::vector<UInt> ordinals;
+          std::vector<Int> charges;
+          TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum2, series2, ordinals, charges, peptide, 1, max_charge), true)
+          bool same2 = spectrum2.size() == expected.size() && series2 == series && ordinals.size() == expected.size()
+                       && charges.size() == expected.size();
+          for (Size i = 0; same2 && i < expected.size(); ++i)
+          {
+            const std::string& name = expected.getStringDataArrays()[0][i];
+            Size pos = 1;
+            while (pos < name.size() && (name[pos] == '.' || name[pos] == '\'')) ++pos;
+            UInt ordinal = 0;
+            for (; pos < name.size() && name[pos] >= '0' && name[pos] <= '9'; ++pos) ordinal = ordinal * 10 + UInt(name[pos] - '0');
+            const std::string charge_str(Size(charges[i] > 0 ? charges[i] : 0), '+');
+            const double mz = spectrum2[i].getMZ(), expected_mz = expected[i].getMZ();
+            same2 = ordinals[i] == ordinal && charges[i] == expected.getIntegerDataArrays()[0][i]
+                    && name.substr(pos) == charge_str && std::memcmp(&mz, &expected_mz, sizeof(double)) == 0;
+          }
+          TEST_EQUAL(same2, true)
         }
       }
     }
@@ -1119,6 +1141,18 @@ START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint
   p.setValue("add_losses", "true");
   generator.setParameters(p);
   TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, AASequence::fromString("PEPTIDEK"), 1, 2), false)
+}
+END_SECTION
+
+START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals, std::vector<Int>& ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const)
+{
+  // tested with the overload above; unsupported configurations
+  TheoreticalSpectrumGenerator generator;
+  PeakSpectrum spectrum;
+  std::vector<uint8_t> series;
+  std::vector<UInt> ordinals;
+  std::vector<Int> charges;
+  TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, ordinals, charges, AASequence::fromString("K"), 1, 2), false)
 }
 END_SECTION
 
