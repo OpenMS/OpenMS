@@ -1553,6 +1553,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     double calc_mass;
   };
   std::vector<std::vector<Row>> rows(peptide_ids.size());
+  std::vector<std::string> file_identifiers(peptide_ids.size()); // of the spectra with rows
   std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 64)
   for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
@@ -1582,6 +1583,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                            static_cast<double>(hit.getMetaValue(exp_mass_index)),
                            PercolatorInfile::getFeatureValue(hit.getMetaValue(calc_mass_index), "CalcMass")});
       }
+      if (!rows[i].empty()) file_identifiers[i] = PercolatorInfile::getFileIdentifier(pid);
     }
     catch (...)
     {
@@ -1604,7 +1606,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     first_row[i + 1] = first_row[i] + rows[i].size();
     if (rows[i].empty()) continue;
     spec_file_of[i] = spec_files.try_emplace(
-      PercolatorInfile::getFileIdentifier(peptide_ids[i]), static_cast<int>(spec_files.size())).first->second;
+      std::move(file_identifiers[i]), static_cast<int>(spec_files.size())).first->second;
   }
   const size_t num_rows = first_row.back();
   ri.features.resize(num_rows);
@@ -1633,6 +1635,7 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   }
   rows.clear();
   rows.shrink_to_fit();
+  std::vector<std::string>().swap(file_identifiers);
   ri.is_decoy.assign(is_decoy.begin(), is_decoy.end());
   if (ri.features.empty())
   {
