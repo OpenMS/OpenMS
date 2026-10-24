@@ -1844,6 +1844,65 @@ START_SECTION(void load and OnDisc skip aux array without a supported binary dat
 }
 END_SECTION
 
+START_SECTION(Malformed imzML reports parser errors on full and index-only reads)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
+  ImzMLFile file;
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".imzML")
+  file.store(filename, exp);
+  std::string xml;
+  { std::ifstream input(filename, std::ios::binary); xml.assign(std::istreambuf_iterator<char>(input), {}); }
+  const auto close = xml.rfind("</mzML>");
+  TEST_TRUE(close != std::string::npos)
+  if (close != std::string::npos)
+  {
+    xml.replace(close, 7, "</broken>");
+    { std::ofstream output(filename, std::ios::binary); output << xml; }
+    MSImagingExperiment image;
+    TEST_EXCEPTION(Exception::ParseError, file.load(filename, image))
+    ImzMLMeta meta;
+    std::vector<ImzMLSpectrumIndex> index;
+    MSExperiment index_spectra;
+    TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index, index_spectra))
+  }
+  remove(ibdPathFor_(filename).c_str());
+}
+END_SECTION
+START_SECTION(Namespace-invalid imzML is rejected on full and index-only reads)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
+  ImzMLFile file;
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".imzML")
+  file.store(filename, exp);
+  std::string original;
+  { std::ifstream input(filename, std::ios::binary); original.assign(std::istreambuf_iterator<char>(input), {}); }
+  const auto root = original.find("<mzML");
+  TEST_TRUE(root != std::string::npos)
+  if (root != std::string::npos)
+  {
+    for (const std::string attributes : {
+        " ghost:flag='1'",
+        " xmlns:a='urn:same' xmlns:b='urn:same' a:value='1' b:value='2'",
+        " xmlns:xml='urn:wrong'"})
+    {
+      std::string xml = original;
+      xml.insert(root + 5, attributes);
+      { std::ofstream output(filename, std::ios::binary); output << xml; }
+      MSImagingExperiment image;
+      TEST_EXCEPTION(Exception::ParseError, file.load(filename, image))
+      ImzMLMeta meta;
+      std::vector<ImzMLSpectrumIndex> index;
+      MSExperiment index_spectra;
+      TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index, index_spectra))
+    }
+  }
+  remove(ibdPathFor_(filename).c_str());
+}
+END_SECTION
 START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the same spectrum metadata with RT -1)
 {
   // four pixels: scan start times 12.34 s / 13.5 s / none / -1 s, MS level 1, ion mobility

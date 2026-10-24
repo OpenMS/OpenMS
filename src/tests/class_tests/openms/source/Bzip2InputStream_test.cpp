@@ -19,7 +19,6 @@ using namespace OpenMS;
 ///////////////////////////
 
 START_TEST(Bzip2InputStream, "$Id$")
-xercesc::XMLPlatformUtils::Initialize();
 Bzip2InputStream* ptr = nullptr;
 Bzip2InputStream* nullPointer = nullptr;
 START_SECTION(Bzip2InputStream(const   char* const     file_name))
@@ -42,30 +41,30 @@ START_SECTION(Bzip2InputStream(const std::string& file_name))
 	delete ptr;
 END_SECTION
 
-START_SECTION(virtual XMLSize_t readBytes(XMLByte *const to_fill, const XMLSize_t max_to_read))
+START_SECTION(virtual Size readBytes(unsigned char *const to_fill, const Size max_to_read))
 	
 	Bzip2InputStream bzip(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	char buffer[31];
 	buffer[30] = buffer[29] = '\0';
-	XMLByte*  xml_buffer = reinterpret_cast<XMLByte* >(buffer);
+	unsigned char*  xml_buffer = reinterpret_cast<unsigned char* >(buffer);
 		TEST_EQUAL(bzip.getIsOpen(),true)
-	TEST_EQUAL(bzip.readBytes(xml_buffer,(XMLSize_t)10),10)
-	TEST_EQUAL(bzip.readBytes(&xml_buffer[10],(XMLSize_t)10),10)
-	TEST_EQUAL(bzip.readBytes(&xml_buffer[20],(XMLSize_t)9),9)
+	TEST_EQUAL(bzip.readBytes(xml_buffer,(Size)10),10)
+	TEST_EQUAL(bzip.readBytes(&xml_buffer[10],(Size)10),10)
+	TEST_EQUAL(bzip.readBytes(&xml_buffer[20],(Size)9),9)
 	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 	TEST_EQUAL(bzip.getIsOpen(),true)
-	TEST_EQUAL(bzip.readBytes(&xml_buffer[30],(XMLSize_t)10),1)
+	TEST_EQUAL(bzip.readBytes(&xml_buffer[30],(Size)10),1)
 	TEST_EQUAL(bzip.getIsOpen(),false)
 
 END_SECTION
 
-START_SECTION(XMLFilePos curPos() const)
+START_SECTION(UInt64 curPos() const)
 	Bzip2InputStream bzip(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
   TEST_EQUAL(bzip.curPos(), 0)
 	char buffer[31];
 	buffer[30] = buffer[29] = '\0';
-	XMLByte*  xml_buffer = reinterpret_cast<XMLByte* >(buffer);
-	bzip.readBytes(xml_buffer,(XMLSize_t)10);
+	unsigned char*  xml_buffer = reinterpret_cast<unsigned char* >(buffer);
+	bzip.readBytes(xml_buffer,(Size)10);
 	TEST_EQUAL(bzip.curPos(),10)
 	
 END_SECTION
@@ -75,12 +74,20 @@ START_SECTION(bool getIsOpen() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(virtual const XMLCh* getContentType() const)
+START_SECTION(virtual const char16_t* getContentType() const)
 	Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-  XMLCh* xmlch_nullPointer = nullptr;
+  char16_t* xmlch_nullPointer = nullptr;
   TEST_EQUAL(bzip2.getContentType(),xmlch_nullPointer)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(Zero byte reads preserve stream position)
+  Bzip2InputStream stream(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
+  TEST_EQUAL(stream.readBytes(nullptr, 0), 0)
+  TEST_EQUAL(stream.curPos(), 0)
+  unsigned char first[3]{};
+  TEST_EQUAL(stream.readBytes(first, 3), 3)
+  TEST_EQUAL(stream.curPos(), 3)
+END_SECTION
 END_TEST

@@ -7,39 +7,213 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XMLFile.h>
-
 #include <OpenMS/CONCEPT/Init.h>
+
 
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLAttributes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/framework/MemBufInputSource.hpp>
+#include <libxml/parser.h>
+#include <libxml/parserInternals.h>
+#include <libxml/encoding.h>
+#include <cstdint>
+#include <string_view>
+#include <vector>
+#include <exception>
+#include <algorithm>
+#include <cstring>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <zlib.h>
 #include <bzlib.h>
 
 #include <fstream>
+#include <filesystem>
 #include <iomanip> // setprecision etc.
 #include <streambuf>
 
 #include <memory>
-#include <xercesc/util/XMLString.hpp>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <thread>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 
 namespace OpenMS::Internal
 {
+
+    /**
+      @brief Reads a decompressing stream ahead on a helper thread
+
+      Inflating gzip/bzip2 input costs about as much as parsing it. Reading a few
+      blocks ahead lets both run concurrently. Stream exceptions are rethrown by read().
+    */
+    class PrefetchingReader_
+    {
+public:
+      explicit PrefetchingReader_(InputStream& stream) :
+        stream_(stream),
+        worker_([this] { run_(); })
+      {
+      }
+
+      ~PrefetchingReader_()
+      {
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          stop_ = true;
+        }
+        changed_.notify_all();
+        worker_.join();
+      }
+
+      PrefetchingReader_(const PrefetchingReader_&) = delete;
+      PrefetchingReader_& operator=(const PrefetchingReader_&) = delete;
+
+      /// Copies up to @p capacity bytes; returns 0 at the end of the stream.
+      Size read(unsigned char* target, Size capacity)
+      {
+        Size copied = 0;
+        while (copied < capacity && (offset_ < current_.size || next_()))
+        {
+          const Size count = std::min(capacity - copied, current_.size - offset_);
+          std::memcpy(target + copied, current_.data.get() + offset_, count);
+          offset_ += count;
+          copied += count;
+        }
+        return copied;
+      }
+
+private:
+      static constexpr Size block_size_ = 256 * 1024;
+      static constexpr Size max_blocks_ = 4;
+
+      struct Block
+      {
+        std::unique_ptr<unsigned char[]> data;
+        Size size = 0;
+      };
+
+      /// Moves on to the next filled block; false at the end of the stream.
+      bool next_()
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (current_.data) { spare_.push_back(std::move(current_)); }
+        current_ = Block();
+        offset_ = 0;
+        changed_.notify_all();
+        changed_.wait(lock, [this] { return !filled_.empty() || done_; });
+        if (filled_.empty())
+        {
+          if (error_) { std::rethrow_exception(error_); }
+          return false;
+        }
+        current_ = std::move(filled_.front());
+        filled_.pop_front();
+        changed_.notify_all();
+        return true;
+      }
+
+      void run_()
+      {
+        try
+        {
+          while (true)
+          {
+            Block block;
+            {
+              std::unique_lock<std::mutex> lock(mutex_);
+              changed_.wait(lock, [this] { return stop_ || filled_.size() < max_blocks_; });
+              if (stop_) { return; }
+              if (!spare_.empty())
+              {
+                block = std::move(spare_.back());
+                spare_.pop_back();
+              }
+            }
+            if (!block.data) { block.data.reset(new unsigned char[block_size_]); }
+            block.size = stream_.readBytes(block.data.get(), block_size_);
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (block.size == 0) { done_ = true; }
+            else { filled_.push_back(std::move(block)); }
+            changed_.notify_all();
+            if (done_) { return; }
+          }
+        }
+        catch (...)
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          error_ = std::current_exception();
+          done_ = true;
+          changed_.notify_all();
+        }
+      }
+
+      InputStream& stream_;
+      std::mutex mutex_;
+      std::condition_variable changed_;
+      std::deque<Block> filled_;
+      std::vector<Block> spare_;
+      bool done_ = false;
+      bool stop_ = false;
+      std::exception_ptr error_;
+      // consumer side only
+      Block current_;
+      Size offset_ = 0;
+      // started last, after all members it uses are initialized
+      std::thread worker_;
+    };
+
+    /**
+      @brief Leaves one core to a PrefetchingReader_ thread while it exists
+
+      Handlers decode arrays in OpenMP regions between parsing steps. Idle OpenMP
+      workers spin-wait for the next region and, using all cores, would starve the
+      decompression thread. A thread count below the core count (e.g. a tool's
+      -threads) already leaves a core free and is kept. Affects only parallel
+      regions started by this thread.
+    */
+    class OpenMPThreadReservation_
+    {
+public:
+      OpenMPThreadReservation_()
+      {
+#ifdef _OPENMP
+        const int threads = omp_get_max_threads();
+        if (threads > 1 && threads >= omp_get_num_procs())
+        {
+          previous_ = threads;
+          omp_set_num_threads(threads - 1);
+        }
+#endif
+      }
+
+      ~OpenMPThreadReservation_()
+      {
+#ifdef _OPENMP
+        if (previous_ > 0) { omp_set_num_threads(previous_); }
+#endif
+      }
+
+      OpenMPThreadReservation_(const OpenMPThreadReservation_&) = delete;
+      OpenMPThreadReservation_& operator=(const OpenMPThreadReservation_&) = delete;
+
+private:
+      int previous_ = 0; ///< thread count to restore, 0 if unchanged
+    };
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
     /// useful when used in exception handling
@@ -78,142 +252,369 @@ private:
       enforced_encoding_ = encoding;
     }
 
-    void parse(xercesc::InputSource* const source, XMLHandler* handler)
+    namespace
     {
-      unique_ptr<xercesc::SAX2XMLReader> parser(xercesc::XMLReaderFactory::createXMLReader());
-
-      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
-      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-
-      // XMLHandler exposes only Xerces-free callbacks; bridge it to the SAX parser.
-      SAX2HandlerAdapter adapter(*handler);
-      parser->setContentHandler(&adapter);
-      parser->setErrorHandler(&adapter);
-
-
-      // try to parse file
-      try
+      bool isASCIIWord(const unsigned char* data)
       {
-        parser->parse(*source);
+        std::uint64_t word;
+        std::memcpy(&word, data, sizeof(word));
+        return (word & 0x8080808080808080ull) == 0;
       }
-      catch (const xercesc::XMLException& toCatch)
+
+      /// End of the ASCII run starting at @p from
+      Size asciiRunEnd(const unsigned char* data, Size from, Size size)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+        while (from + 8 <= size && isASCIIWord(data + from)) from += 8;
+        while (from < size && data[from] < 0x80) ++from;
+        return from;
       }
-      catch (const xercesc::SAXException& toCatch)
+
+      /**
+        @brief Converts an ISO-8859-1 chunk to UTF-8
+
+        Returns @p data itself if the chunk is ASCII (as mzML usually is), otherwise
+        the converted bytes in @p storage. Latin-1 is a single-byte encoding, so
+        chunks convert independently.
+      */
+      const unsigned char* latin1ToUTF8(const unsigned char* data, Size& size, std::vector<unsigned char>& storage)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+        Size in = asciiRunEnd(data, 0, size);
+        if (in == size) return data;
+        storage.resize(2 * size);
+        unsigned char* out = storage.data();
+        std::memcpy(out, data, in);
+        out += in;
+        while (in < size)
+        {
+          const unsigned char c = data[in++];
+          *out++ = static_cast<unsigned char>(0xc0 | (c >> 6));
+          *out++ = static_cast<unsigned char>(0x80 | (c & 0x3f));
+          const Size run = asciiRunEnd(data, in, size);
+          std::memcpy(out, data + in, run - in);
+          out += run - in;
+          in = run;
+        }
+        size = static_cast<Size>(out - storage.data());
+        return storage.data();
       }
-      catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
+
+      /// The encoding named by the XML declaration at the start of @p data, or empty if there is none.
+      std::string declaredEncoding(const unsigned char* data, Size size)
       {
-        // nothing to do here, as this exception is used to softly abort the
-        // parsing for whatever reason.
+        const std::string_view text(reinterpret_cast<const char*>(data), std::min<Size>(size, 1024));
+        if (text.substr(0, 6) != "<?xml " && text.substr(0, 6) != "<?xml\t" && text.substr(0, 6) != "<?xml\n" && text.substr(0, 6) != "<?xml\r") return {};
+        const auto declaration = text.substr(0, text.find("?>"));
+        if (declaration.size() == text.size()) return {};
+        auto pos = declaration.find("encoding");
+        if (pos == std::string_view::npos) return {};
+        pos = declaration.find_first_not_of(" \t\r\n", pos + 8);
+        if (pos == std::string_view::npos || declaration[pos] != '=') return {};
+        pos = declaration.find_first_not_of(" \t\r\n", pos + 1);
+        if (pos == std::string_view::npos || (declaration[pos] != '"' && declaration[pos] != '\'')) return {};
+        const auto close = declaration.find(declaration[pos], pos + 1);
+        if (close == std::string_view::npos) return {};
+        return std::string(declaration.substr(pos + 1, close - pos - 1));
       }
-      catch (...)
+
+      /// Whether libxml2 decodes @p encoding with its built-in ISO-8859-1 decoder
+      bool isLatin1(const std::string& encoding)
       {
-        // re-throw
-        throw;
+        return !encoding.empty() && xmlParseCharEncoding(encoding.c_str()) == XML_CHAR_ENCODING_8859_1;
+      }
+
+      /// Converts parser UTF-8 to UTF-16 into @p result (reusing its capacity).
+      const char16_t* utf16(std::u16string& result, const xmlChar* text, Size length)
+      {
+        if (text) { StringManager::convert(reinterpret_cast<const char*>(text), length, result); }
+        else { result.clear(); }
+        return result.c_str();
+      }
+
+      const char16_t* utf16(std::u16string& result, const xmlChar* text)
+      {
+        return utf16(result, text, text ? static_cast<Size>(xmlStrlen(text)) : 0);
+      }
+
+      /// libxml2 diagnostics end with a line break; OpenMS appends the location itself.
+      std::string diagnostic(const xmlError* error, const char* fallback)
+      {
+        std::string message = error && error->message ? error->message : fallback;
+        while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) { message.pop_back(); }
+        return message;
+      }
+
+      std::string_view view(const xmlChar* text)
+      {
+        return text ? std::string_view(reinterpret_cast<const char*>(text)) : std::string_view();
       }
     }
 
-    void XMLFile::parse_(const std::string & filename, XMLHandler * handler)
+    // C callbacks capture every exception: no C++ exception crosses libxml2 frames.
+    struct LibxmlState
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile
-      // reader, e.g. FeatureXMLFile, is used again)
-      XMLCleaner_ clean(handler);
+      XMLHandler* handler;
+      std::exception_ptr exception;
+      // Reused across callbacks so that a parse does not allocate per element.
+      XMLAttributes::NativeStore attributes;
+      std::string name8;
+      std::u16string name;
+      std::u16string text;
 
-      StringManager sm;
-      //try to open file
+      static LibxmlState& state(void* ctx)
+      {
+        return *static_cast<LibxmlState*>(static_cast<xmlParserCtxt*>(ctx)->_private);
+      }
+      template <typename Callback> static void callback(void* ctx, Callback&& fn)
+      {
+        // Stopping the parser can re-enter an error callback. Keep the original
+        // handler exception rather than replacing it with a parser-stop error.
+        if (state(ctx).exception) { return; }
+        try { fn(state(ctx)); }
+        catch (...)
+        {
+          state(ctx).exception = std::current_exception();
+          xmlStopParser(static_cast<xmlParserCtxt*>(ctx));
+        }
+      }
+      static void startLegacy(void* ctx, const xmlChar* name, const xmlChar** attrs)
+      {
+        callback(ctx, [&](LibxmlState& s)
+        {
+          s.attributes.clear();
+          if (attrs)
+          {
+            for (Size i = 0; attrs[i]; i += 2) s.attributes.add({}, view(attrs[i]), view(attrs[i + 1]));
+          }
+          const XMLAttributes attributes(s.attributes);
+          if (s.handler->tryOnStartElementUTF8(view(name), attributes)) { return; }
+          s.handler->onStartElement(utf16(s.name, name), attributes);
+        });
+      }
+      static void endLegacy(void* ctx, const xmlChar* name)
+      {
+        callback(ctx, [&](LibxmlState& s)
+        {
+          if (s.handler->tryOnEndElementUTF8(view(name))) { return; }
+          s.handler->onEndElement(utf16(s.name, name));
+        });
+      }
+      std::string_view qualifiedNameUTF8(const xmlChar* local, const xmlChar* prefix)
+      {
+        if (!prefix) return view(local);
+        name8.assign(view(prefix)).append(1, ':').append(view(local));
+        return name8;
+      }
+      const char16_t* qualifiedName(const xmlChar* local, const xmlChar* prefix)
+      {
+        if (!prefix) return utf16(name, local);
+        utf16(text, local); // no character data is pending inside a tag
+        utf16(name, prefix);
+        name += u':';
+        name += text;
+        return name.c_str();
+      }
+      static void start(void* ctx, const xmlChar* local, const xmlChar* prefix,
+                        const xmlChar*, int namespace_count, const xmlChar** namespaces,
+                        int attribute_count, int, const xmlChar** attrs)
+      {
+        callback(ctx, [&](LibxmlState& s)
+        {
+          s.attributes.clear();
+          // Existing handlers consume qualified names and can inspect xmlns declarations.
+          for (int i = 0; i < namespace_count; ++i)
+          {
+            if (namespaces[2 * i]) { s.attributes.add("xmlns", view(namespaces[2 * i]), view(namespaces[2 * i + 1])); }
+            else { s.attributes.add({}, "xmlns", view(namespaces[2 * i + 1])); }
+          }
+          for (int i = 0; i < attribute_count; ++i)
+          {
+            const xmlChar** attr = attrs + 5 * i;
+            // SAX2 values are bounded slices, not null-terminated strings.
+            s.attributes.add(view(attr[1]), view(attr[0]),
+                             std::string_view(reinterpret_cast<const char*>(attr[3]), static_cast<Size>(attr[4] - attr[3])));
+          }
+          const XMLAttributes attributes(s.attributes);
+          if (s.handler->tryOnStartElementUTF8(s.qualifiedNameUTF8(local, prefix), attributes)) { return; }
+          s.handler->onStartElement(s.qualifiedName(local, prefix), attributes);
+        });
+      }
+      static void end(void* ctx, const xmlChar* local, const xmlChar* prefix, const xmlChar*)
+      {
+        callback(ctx, [&](LibxmlState& s)
+        {
+          if (s.handler->tryOnEndElementUTF8(s.qualifiedNameUTF8(local, prefix))) { return; }
+          s.handler->onEndElement(s.qualifiedName(local, prefix));
+        });
+      }
+      static void characters(void* ctx, const xmlChar* text, int length)
+      {
+        callback(ctx, [&](LibxmlState& s)
+        {
+          if (s.handler->tryOnCharactersUTF8(reinterpret_cast<const char*>(text), static_cast<Size>(length))) { return; }
+          utf16(s.text, text, static_cast<Size>(length));
+          s.handler->onCharacters(s.text.c_str(), s.text.size());
+        });
+      }
+      static void error(void* ctx, const xmlError* error)
+      {
+        callback(ctx, [&](LibxmlState& s)
+        {
+          const std::string message = diagnostic(error, "libxml2 parse error");
+          if (error->level == XML_ERR_WARNING) { s.handler->warning(XMLHandler::LOAD, message, error->line, error->int2); }
+          else { s.handler->fatalError(XMLHandler::LOAD, message, error->line, error->int2); }
+        });
+      }
+    };
+    template <typename Read>
+    void parse(Read&& read, XMLHandler* handler, const std::string& encoding, const std::string& filename, bool namespace_aware)
+    {
+      libxmlInitialize();
+      LibxmlState state{handler, {}, {}, {}, {}, {}};
+      xmlSAXHandler sax{};
+      if (xmlSAXVersion(&sax, namespace_aware ? 2 : 1) != 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                    "libxml2 could not initialize the requested SAX callbacks");
+      }
+      if (namespace_aware)
+      {
+        sax.startElementNs = LibxmlState::start;
+        sax.endElementNs = LibxmlState::end;
+      }
+      else
+      {
+        // Preserve generic OpenMS XML readers' historical namespace-disabled mode.
+        sax.startElement = LibxmlState::startLegacy;
+        sax.endElement = LibxmlState::endLegacy;
+      }
+      // OpenMS has no comment/PI callbacks. The libxml2 defaults build DOM nodes
+      // even in SAX mode, retaining every comment and PI until the parse ends.
+      sax.comment = nullptr;
+      sax.processingInstruction = nullptr;
+      sax.characters = LibxmlState::characters;
+      sax.cdataBlock = LibxmlState::characters;
+      auto free_parser = [](xmlParserCtxt* ctx)
+      {
+        if (ctx->myDoc) { xmlFreeDoc(ctx->myDoc); }
+        xmlFreeParserCtxt(ctx);
+      };
+      unique_ptr<xmlParserCtxt, decltype(free_parser)> parser(xmlCreatePushParserCtxt(&sax, nullptr, nullptr, 0, filename.c_str()), free_parser);
+      if (!parser) { throw std::bad_alloc(); }
+      parser->_private = &state;
+      parser->userData = parser.get();
+      // Keep diagnostics local to this parser, including namespace errors.
+      xmlCtxtSetErrorHandler(parser.get(), LibxmlState::error, parser.get());
+      // Like Xerces, accept large attribute values and deep nesting (HUGE), but
+      // keep an explicit entity expansion budget, as the DOM-based readers do.
+      xmlCtxtSetMaxAmplification(parser.get(), 5);
+      xmlCtxtUseOptions(parser.get(), XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT | XML_PARSE_HUGE);
+
+      // On the heap: parsers run in deep call stacks and on OpenMP worker threads
+      // (1 MB stacks on Windows), where 64 KiB of stack is a real share.
+      constexpr Size chunk_size = 65536;
+      const std::unique_ptr<unsigned char[]> chunk_buffer(new unsigned char[chunk_size]);
+      unsigned char* const buffer = chunk_buffer.get();
+      Size count = read(buffer, chunk_size);
+      // OpenMS writes ISO-8859-1 declarations. libxml2 would decode those byte by byte;
+      // instead, pass ASCII chunks through unchanged and convert the others here.
+      const bool latin1 = isLatin1(encoding.empty() ? declaredEncoding(buffer, count) : encoding);
+      if (latin1)
+      {
+        // An explicit encoding takes precedence over the declaration.
+        if (xmlSwitchEncodingName(parser.get(), "UTF-8") != 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot switch XML encoding");
+        }
+      }
+      else if (!encoding.empty())
+      {
+        if (xmlSwitchEncodingName(parser.get(), encoding.c_str()) != 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Unsupported XML encoding: " + encoding);
+        }
+      }
+      std::vector<unsigned char> converted;
+      int status = 0;
+      while (!state.exception)
+      {
+        Size size = count;
+        const unsigned char* chunk = latin1 ? latin1ToUTF8(buffer, size, converted) : buffer;
+        status = xmlParseChunk(parser.get(), reinterpret_cast<const char*>(chunk), static_cast<int>(size), count == 0);
+        if (status || count == 0) { break; }
+        count = read(buffer, chunk_size);
+      }
+      if (state.exception)
+      {
+        try { std::rethrow_exception(state.exception); }
+        catch (const XMLHandler::EndParsingSoftly&) { return; }
+      }
+      if (status)
+      {
+        std::string message = "libxml2 rejected XML input";
+        if (const auto* error = xmlCtxtGetLastError(parser.get()))
+        {
+          if (error->message) { message += ": " + diagnostic(error, ""); }
+          message += " (line " + std::to_string(error->line) + ", column " + std::to_string(error->int2) + ")";
+        }
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, message);
+      }
+    }
+
+    void XMLFile::parse_(const std::string& filename, XMLHandler* handler, bool namespace_aware)
+    {
+      XMLCleaner_ clean(handler);
       if (!File::exists(filename))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
-
-      // initialize parser
-      try
+      // UTF-8 or (on Windows) code-page file names, as File::exists() accepts them
+      std::ifstream file(to_path(filename), std::ios::binary);
+      if (!file)
       {
-        Internal::xercesInitialize(); // serialised: Xerces requires it, and parseBuffer_() runs on several threads at once
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot open XML file");
       }
-      catch (const xercesc::XMLException & toCatch)
+      char magic[2]{};
+      file.read(magic, sizeof(magic));
+      const std::string header(magic, static_cast<Size>(file.gcount()));
+      file.clear();
+      file.seekg(0);
+      if (header == "BZ" || header == "PK" || header == std::string("\x1f\x8b", 2))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "",std::string("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
-      }
-
-
-      // peak ahead into the file: is it bzip2 or gzip compressed?
-      std::string bz;
-      {
-        std::ifstream file(filename.c_str());
-        char tmp_bz[3];
-        file.read(tmp_bz, 2);
-        tmp_bz[2] = '\0';
-        bz =std::string(tmp_bz);
-      }
-
-      unique_ptr<xercesc::InputSource> source;
-
-      char g1 = 0x1f;
-      char g2 = 0;
-      g2 |= 1 << 7;
-      g2 |= 1 << 3;
-      g2 |= 1 << 1;
-      g2 |= 1 << 0;
-      //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
-      if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2) || (bz[0] == 'P' && bz[1] == 'K'))
-      {
-        source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
+        file.close();
+        std::unique_ptr<InputStream> stream(CompressedInputSource(filename, header).makeStream());
+        if (!stream)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot open compressed XML stream");
+        }
+        OpenMPThreadReservation_ reservation;
+        PrefetchingReader_ reader(*stream);
+        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
+        parse([&](unsigned char* target, Size capacity)
+        {
+          file.read(reinterpret_cast<char*>(target), static_cast<std::streamsize>(capacity));
+          if (file.bad())
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Error reading XML file");
+          }
+          return static_cast<Size>(file.gcount());
+        }, handler, enforced_encoding_, filename, namespace_aware);
       }
-      // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
-      if (!enforced_encoding_.empty())
-      {
-        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
-        source->setEncoding(s_enc);
-      }
-      
-      parse(source.get(), handler);
     }
 
-    void XMLFile::parseBuffer_(const std::string & buffer, XMLHandler * handler)
+    void XMLFile::parseBuffer_(const std::string& buffer, XMLHandler* handler, bool namespace_aware)
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile
-      // reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
-
-      StringManager sm;
-
-      // initialize parser
-      try
+      Size offset = 0;
+      parse([&](unsigned char* target, Size capacity)
       {
-        Internal::xercesInitialize(); // serialised: Xerces requires it, and parseBuffer_() runs on several threads at once
-      }
-      catch (const xercesc::XMLException & toCatch)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "",std::string("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
-      }
-
-      // TODO: handle non-plain text
-      // peak ahead into the file: is it bzip2 or gzip compressed?
-      // std::string bz = StringUtils::substr(buffer, 0, 2);
-
-      unique_ptr<xercesc::InputSource> source;
-      {
-        auto fake_id = sm.convert("inMemory");
-        source.reset(new xercesc::MemBufInputSource(reinterpret_cast<const unsigned char *>(buffer.c_str()), buffer.size(), fake_id.c_str()));
-      }
-      // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
-      if (!enforced_encoding_.empty())
-      {
-        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
-        source->setEncoding(s_enc);
-      }
-      
-      parse(source.get(), handler);
+        const Size count = std::min(capacity, buffer.size() - offset);
+        std::memcpy(target, buffer.data() + offset, count);
+        offset += count;
+        return count;
+      }, handler, enforced_encoding_, "inMemory", namespace_aware);
     }
 
     void XMLFile::save_(const std::string & filename, XMLHandler * handler) const

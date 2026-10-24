@@ -19,7 +19,7 @@ namespace OpenMS::Internal
     /// Forward declaration: defined below xmlchToString().
     std::string xmlchToString(const char16_t* ch);
 
-    /// Read a Xerces attribute by name (qname), return "" if absent.
+    /// Read an XML attribute by name (qname), return "" if absent.
     std::string attrValue(const XMLAttributes& attrs, const char* name)
     {
       const char16_t* value = attrs.value(name);
@@ -67,7 +67,7 @@ namespace OpenMS::Internal
     }
 
     /// Convert XMLCh* (UTF-16) to std::string in UTF-8 encoding.
-    /// We can't use Xerces's @c XMLString::transcode here because it goes through
+    /// Avoid locale-dependent conversion here because it goes through
     /// the local C-runtime encoding (often Latin-1), which silently maps non-Latin
     /// codepoints to '?' before the consumer has a chance to choose a different
     /// fallback. UniProt taxonomy names contain Greek letters (β, …) and accented
@@ -92,7 +92,7 @@ namespace OpenMS::Internal
       return out;
     }
 
-    /// Append a Xerces UTF-16 character buffer (with explicit length) as UTF-8 to @p out.
+    /// Append an XML UTF-16 character buffer (with explicit length) as UTF-8 to @p out.
     void appendXmlchUtf8(std::string& out, const char16_t* ch, std::size_t length)
     {
       for (std::size_t i = 0; i < length; ++i)
@@ -338,7 +338,7 @@ namespace OpenMS::Internal
   {
     if (capture_ == CaptureTarget::None) return;
     // Use the length-aware UTF-16 → UTF-8 helper so we don't depend on a
-    // NUL-terminated XMLCh* (Xerces guarantees the buffer length, not termination).
+    // NUL-terminated XMLCh* (The callback guarantees the buffer length, not termination).
     appendXmlchUtf8(char_buf_, chars, length);
   }
 

@@ -13,19 +13,16 @@
 
 #include <OpenMS/FORMAT/ZipInputStream.h>
 #include <string>
-#include <xercesc/util/PlatformUtils.hpp>
 
 ///////////////////////////
 
 START_TEST(ZipInputStream, "$Id$")
 
-xercesc::XMLPlatformUtils::Initialize();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
-using namespace xercesc;
 using namespace std;
 
 // A committed fixture: a ZIP archive containing a single mzML (XML) file.
@@ -62,33 +59,33 @@ START_SECTION((bool getIsOpen() const))
 }
 END_SECTION
 
-START_SECTION((XMLFilePos curPos() const))
+START_SECTION((UInt64 curPos() const))
 {
   ZipInputStream zis(zip_file);
   TEST_EQUAL(zis.curPos(), 0)
 
-  XMLByte buf[16];
+  unsigned char buf[16];
   zis.readBytes(buf, 16);
   TEST_EQUAL(zis.curPos(), 16) // advances by the number of bytes read
 }
 END_SECTION
 
-START_SECTION((XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read)))
+START_SECTION((Size readBytes(unsigned char* const to_fill, const Size max_to_read)))
 {
   ZipInputStream zis(zip_file);
 
   // first read decompresses the start of the contained mzML (XML declaration)
-  XMLByte buf[32];
-  XMLSize_t n = zis.readBytes(buf, 32);
+  unsigned char buf[32];
+  Size n = zis.readBytes(buf, 32);
   TEST_EQUAL(n, 32)
   std::string head((const char*)buf, (size_t)n);
   TEST_EQUAL(head.substr(0, 5), "<?xml")
   TEST_EQUAL(zis.curPos(), 32)
 
   // read the rest of the stream; curPos must track the total read
-  XMLSize_t total = n;
-  XMLByte big[4096];
-  XMLSize_t r;
+  Size total = n;
+  unsigned char big[4096];
+  Size r;
   while ((r = zis.readBytes(big, 4096)) > 0)
   {
     total += r;
@@ -103,7 +100,7 @@ START_SECTION((XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_t
 }
 END_SECTION
 
-START_SECTION((const XMLCh* getContentType() const))
+START_SECTION((const char16_t* getContentType() const))
 {
   ZipInputStream zis(zip_file);
   TEST_EQUAL(zis.getContentType() == nullptr, true)
@@ -112,4 +109,12 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(Zero byte reads preserve stream position)
+  ZipInputStream stream(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"));
+  TEST_EQUAL(stream.readBytes(nullptr, 0), 0)
+  TEST_EQUAL(stream.curPos(), 0)
+  unsigned char first[3]{};
+  TEST_EQUAL(stream.readBytes(first, 3), 3)
+  TEST_EQUAL(stream.curPos(), 3)
+END_SECTION
 END_TEST

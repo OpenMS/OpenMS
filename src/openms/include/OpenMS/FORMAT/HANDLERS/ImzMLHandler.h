@@ -29,7 +29,7 @@ namespace Internal
   class ImzMLInterceptConsumer; // defined in ImzMLHandler.cpp
 
   /**
-    @brief SAX2 handler for imzML 1.1.0 files, extending OpenMS MzMLHandler.
+    @brief XML event handler for imzML 1.1.0 files, extending OpenMS MzMLHandler.
 
     @ingroup FileIO
 
@@ -70,7 +70,7 @@ namespace Internal
       @brief Construct an ImzMLHandler.
 
       @param exp       PeakMap that receives @p ExperimentalSettings from MzMLHandler.
-      @param filename  Path to the .imzML file (for error messages and Xerces URI).
+      @param filename  Path to the .imzML file (for error messages and the parser source URI).
       @param logger    ProgressLogger inherited from the owning @p ImzMLFile.
     */
     ImzMLHandler(PeakMap&              exp,
@@ -119,7 +119,7 @@ namespace Internal
                                bool decode_ibd = true);
 
     // ------------------------------------------------------------------
-    // SAX2 overrides (MzMLHandler is called through for MS:* terms)
+    // XML event callbacks (MzMLHandler is called through for MS:* terms)
     // ------------------------------------------------------------------
 
     void onStartElement(const char16_t* qname, const XMLAttributes& attrs) override;

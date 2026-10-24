@@ -56,6 +56,16 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# These tests spell UTF-8 text as narrow string literals. MSVC would encode them in
+# the build machine's code page instead (and read the source as such).
+if (MSVC)
+  foreach(_utf8_test StringManager_test XMLHandler_test XMLParserBackend_test)
+    if (TARGET ${_utf8_test})
+      target_compile_options(${_utf8_test} PRIVATE /utf-8)
+    endif()
+  endforeach()
+endif()
+
 # Class tests of classes that live with a TOPP tool rather than in the library. A tool that
 # has a test/CMakeLists.txt gets it added here, and declares its tests with
 # openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
@@ -133,13 +143,6 @@ endif()
 # 2 - add link dependencies
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
-# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
-# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
-# themselves.
-target_link_libraries(ZipInputStream_test XercesC::XercesC)
-target_link_libraries(GzipInputStream_test XercesC::XercesC)
-target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
-target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test ${LPTARGET})
 target_link_libraries(UniqueIdGenerator_test Threads::Threads)

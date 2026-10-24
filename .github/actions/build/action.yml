@@ -236,8 +236,17 @@ runs:
         cmake --preset "${{ steps.preset.outputs.name }}" \
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
+          -DCMAKE_DISABLE_FIND_PACKAGE_XercesC=ON \
 
         cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
+
+    - name: Verify Xerces removal
+      shell: bash
+      run: |
+        OPENMS_XML_GUARD_PYTHON=python3
+        if [[ "${{ runner.os }}" == "Windows" ]]; then OPENMS_XML_GUARD_PYTHON=python; fi
+        "$OPENMS_XML_GUARD_PYTHON" -m unittest discover -s tools/ci/tests -p test_check_no_xerces.py
+        "$OPENMS_XML_GUARD_PYTHON" tools/ci/check_no_xerces.py --build-dir "build/${{ steps.preset.outputs.name }}"
 
     - name: Verify public headers
       if: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}

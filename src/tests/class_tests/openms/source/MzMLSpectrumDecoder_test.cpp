@@ -389,7 +389,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
             <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
             <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
             <binary>
-              whoPutMeHere: some crazy person, obviously! What if I contain invalid characters like these &- 
+              whoPutMeHere: some crazy person, obviously! What if I contain invalid characters like these &amp;-
             </binary>
           </binaryDataArray>
         </binaryDataArrayList>

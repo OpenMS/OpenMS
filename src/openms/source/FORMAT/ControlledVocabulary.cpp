@@ -139,10 +139,55 @@ namespace OpenMS
 
   ControlledVocabulary::ControlledVocabulary() = default;
 
+  // index_ points into terms_ and is rebuilt for a copy; a move keeps the map nodes it points to.
+  ControlledVocabulary::ControlledVocabulary(const ControlledVocabulary& rhs) :
+    terms_(rhs.terms_),
+    namesToIds_(rhs.namesToIds_),
+    name_(rhs.name_),
+    label_(rhs.label_),
+    version_(rhs.version_),
+    url_(rhs.url_)
+  {
+    rebuildIndex_();
+  }
+
+  ControlledVocabulary::ControlledVocabulary(ControlledVocabulary&& rhs) noexcept = default;
+
+  ControlledVocabulary& ControlledVocabulary::operator=(const ControlledVocabulary& rhs)
+  {
+    if (this != &rhs)
+    {
+      ControlledVocabulary copy(rhs);
+      *this = std::move(copy);
+    }
+    return *this;
+  }
+
+  ControlledVocabulary& ControlledVocabulary::operator=(ControlledVocabulary&& rhs) noexcept = default;
+
+  void ControlledVocabulary::rebuildIndex_()
+  {
+    index_.clear();
+    index_.reserve(terms_.size());
+    for (const auto& [id, term] : terms_) { index_.emplace(id, &term); }
+  }
+
+  const ControlledVocabulary::CVTerm* ControlledVocabulary::findTerm_(std::string_view id) const
+  {
+    const auto it = index_.find(id);
+    return it == index_.end() ? nullptr : it->second;
+  }
+
   ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const std::string& name, const std::string& filename)
   {
+    // keep index_ consistent with terms_ however loading ends
+    struct IndexGuard
+    {
+      ControlledVocabulary& cv;
+      ~IndexGuard() { cv.rebuildIndex_(); }
+    } index_guard{*this};
     bool in_term = false;
     name_ = name;
 
@@ -521,14 +566,12 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const std::string& id) const
   {
-    if (const auto it = terms_.find(id); it == terms_.end())
+    const CVTerm* term = findTerm_(id);
+    if (term == nullptr)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
-    else
-    {
-      return it->second;
-    }
+    return *term;
   }
 
   const std::map<std::string, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
@@ -579,7 +622,7 @@ namespace OpenMS
 
   bool ControlledVocabulary::exists(const std::string& id) const
   {
-    return terms_.contains(id);
+    return findTerm_(id) != nullptr;
   }
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const std::string& name) const

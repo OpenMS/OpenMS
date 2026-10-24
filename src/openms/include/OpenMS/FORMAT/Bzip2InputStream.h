@@ -8,26 +8,23 @@
 
 #pragma once
 
-#include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
+#include <OpenMS/FORMAT/InputStream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
-
 
 namespace OpenMS
 {
   /**
-    * @brief Implements the BinInputStream class of the xerces-c library in order to read bzip2 compressed XML files.
+    * @brief Byte stream for reading bzip2 compressed XML files.
     *
   */
   class OPENMS_DLLAPI Bzip2InputStream :
-    public xercesc::BinInputStream
+    public InputStream
   {
 public:
     ///Constructor
     explicit Bzip2InputStream(const std::string& file_name);
 
     explicit Bzip2InputStream(const char* const file_name);
-
 
     ///Destructor
     ~Bzip2InputStream() override;
@@ -38,14 +35,14 @@ public:
     /**
       * @brief returns the current position in the file
       *
-      * @note Implementation of the xerces-c input stream interface
+      * @note OpenMS byte stream interface
     */
-    XMLFilePos curPos() const override;
+    UInt64 curPos() const override;
 
     /**
       * @brief writes bytes into buffer from file
       *
-      * @note Implementation of the xerces-c input stream interface
+      * @note OpenMS byte stream interface
       *
       * @param[out] to_fill is the buffer which is written to
       * @param[in] max_to_read is the size of the buffer
@@ -53,25 +50,15 @@ public:
       * @return returns the number of bytes which were actually read
       *
     */
-    XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read) override;
+    Size readBytes(unsigned char* const  to_fill, const Size max_to_read) override;
 
-    /**
-      * @brief returns 0
-      *
-      * @note Implementation of the xerces-c input stream interface
-      *
-      * If no content type is provided for the data, 0 is returned (as is the
-      * case here, see xerces docs).
-      *
-    */
-    const XMLCh* getContentType() const override;
 
 
 private:
     ///pointer to an compression stream
     Bzip2Ifstream* bzip2_;
     ///current index of the actual file
-    XMLSize_t       file_current_index_;
+    UInt64     file_current_index_;
 
     //not implemented
     Bzip2InputStream();
@@ -79,7 +66,7 @@ private:
     Bzip2InputStream& operator=(const Bzip2InputStream& stream);
   };
 
-  inline XMLFilePos Bzip2InputStream::curPos() const
+  inline UInt64 Bzip2InputStream::curPos() const
   {
     return file_current_index_;
   }

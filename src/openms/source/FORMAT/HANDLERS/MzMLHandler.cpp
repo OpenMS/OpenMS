@@ -22,12 +22,27 @@
 #include <algorithm>
 #include <atomic>
 #include <map>
-#include <xercesc/util/XMLString.hpp>
+
+#include <typeinfo>
 
 namespace OpenMS::Internal
 {
+  using namespace std::literals;
     namespace
     {
+      /// Number of a PSI-MS accession "MS:nnnnnnn" (seven digits), or -1 for anything else
+      int msAccessionNumber(std::string_view accession)
+      {
+        if (accession.size() != 10 || accession.substr(0, 3) != "MS:"sv) { return -1; }
+        int number = 0;
+        for (const char digit : accession.substr(3))
+        {
+          if (digit < '0' || digit > '9') { return -1; }
+          number = 10 * number + (digit - '0');
+        }
+        return number;
+      }
+
       /**
         @brief Escape an attribute value for the mzML writer.
 
@@ -243,8 +258,11 @@ namespace OpenMS::Internal
           }
           catch (...)
           {
-            ++errCount;
-            error_message = "Unknown exception during spectrum data population";
+            #pragma omp critical(MZMLErrorHandling)
+            {
+              ++errCount;
+              error_message = "Unknown exception during spectrum data population";
+            }
           }
         }
         }
@@ -810,21 +828,44 @@ namespace OpenMS::Internal
     }
 
 
+    bool MzMLHandler::tryOnCharactersUTF8(const char* chars, Size length)
+    {
+      // A subclass may override only onCharacters. Leave that dispatch intact
+      // unless the subclass explicitly opts in by overriding this new hook.
+      if (typeid(*this) != typeid(MzMLHandler)) { return false; }
+      // onCharacters only keeps <binary> content of spectra and chromatograms
+      // that are loaded. Drop everything else without inspecting it.
+      if (skip_spectrum_ || skip_chromatogram_ || !options_.getFillData() || open_tags_.empty() || open_tags_.back() != "binary"sv)
+      {
+        return true;
+      }
+      // Branch-free so that the compiler vectorizes the scan over the payload.
+      unsigned char high_bits = 0;
+      for (Size i = 0; i < length; ++i) { high_bits |= static_cast<unsigned char>(chars[i]); }
+      if (high_bits >= 0x80) { return false; }
+      // XML parsers have normalized entities/line endings. Valid base64 is
+      // ASCII, so no UTF-8 -> UTF-16 -> ASCII round trip is needed here.
+      bin_data_.back().base64.append(chars, length);
+      return true;
+    }
+
     void MzMLHandler::onCharacters(const char16_t* chars, Size length)
     {
-      if (skip_spectrum_ || skip_chromatogram_)
+      // Metadata reads discard binary arrays on closing the spectrum. Avoid
+      // constructing their encoded payloads in the first place.
+      if (skip_spectrum_ || skip_chromatogram_ || !options_.getFillData())
       {
         return;
       }
 
       const std::string& current_tag = open_tags_.back();
 
-      if (current_tag == "binary")
+      if (current_tag == "binary"sv)
       {
         // Since we convert a Base64 string here, it can only contain plain ASCII
         sm_.appendASCII(chars, length, bin_data_.back().base64);
       }
-      else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum")
+      else if (current_tag == "offset"sv || current_tag == "indexListOffset"sv || current_tag == "fileChecksum"sv)
       {
         //do nothing for
         // - index
@@ -847,35 +888,48 @@ namespace OpenMS::Internal
 
     void MzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
-      constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
-      constexpr XMLCh s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
-      constexpr XMLCh s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
-      constexpr XMLCh s_name[] = { 'n','a','m','e' , 0};
-      constexpr XMLCh s_type[] = { 't','y','p','e' , 0};
-      constexpr XMLCh s_value[] = { 'v','a','l','u','e' , 0};
-      constexpr XMLCh s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
-      constexpr XMLCh s_id[] = { 'i','d' , 0};
-      constexpr XMLCh s_ref[] = { 'r','e','f' , 0};
-      constexpr XMLCh s_version[] = { 'v','e','r','s','i','o','n' , 0};
-      constexpr XMLCh s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
-      constexpr XMLCh s_order[] = { 'o','r','d','e','r' , 0};
-      constexpr XMLCh s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
-      constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
-      constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
-      constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
-      constexpr XMLCh s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
-      constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
-      constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
-      constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
-      constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
-      constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
-      constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
-      // constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
-      constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
+      startElement_(sm_.convert(qname), attributes);
+    }
+
+    bool MzMLHandler::tryOnStartElementUTF8(std::string_view qname, const XMLAttributes& attributes)
+    {
+      // A subclass may override only onStartElement (see tryOnCharactersUTF8).
+      if (typeid(*this) != typeid(MzMLHandler)) { return false; }
+      startElement_(qname, attributes);
+      return true;
+    }
+
+    void MzMLHandler::startElement_(std::string_view tag_name, const XMLAttributes& attributes)
+    {
+      constexpr char16_t s_count[] = {'c','o','u','n','t', 0};
+      constexpr char16_t s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr char16_t s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr char16_t s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
+      constexpr char16_t s_name[] = { 'n','a','m','e' , 0};
+      constexpr char16_t s_type[] = { 't','y','p','e' , 0};
+      constexpr char16_t s_value[] = { 'v','a','l','u','e' , 0};
+      constexpr char16_t s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
+      constexpr char16_t s_id[] = { 'i','d' , 0};
+      constexpr char16_t s_ref[] = { 'r','e','f' , 0};
+      constexpr char16_t s_version[] = { 'v','e','r','s','i','o','n' , 0};
+      constexpr char16_t s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
+      constexpr char16_t s_order[] = { 'o','r','d','e','r' , 0};
+      constexpr char16_t s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
+      constexpr char16_t s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
+      constexpr char16_t s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
+      constexpr char16_t s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr char16_t s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
+      constexpr char16_t s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr char16_t s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr char16_t s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr char16_t s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr char16_t s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
+      constexpr char16_t s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
+      // constexpr char16_t s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr char16_t s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
 
 
-      open_tags_.push_back(sm_.convert(qname));
+      open_tags_.emplace_back(tag_name);
       const std::string& tag = open_tags_.back();
 
       // do nothing until a spectrum/chromatogram/spectrumList ends
@@ -896,10 +950,10 @@ namespace OpenMS::Internal
         parent_parent_tag = &(*(open_tags_.end() - 3));
       }
 
-      if (tag == "spectrum")
+      if (tag == "spectrum"sv)
       {
         // for cppcheck
-        constexpr XMLCh s_spot_id[] = { 's','p','o','t','I','D', 0 };
+        constexpr char16_t s_spot_id[] = { 's','p','o','t','I','D', 0 };
 
         //number of peaks
         spec_ = SpectrumType();
@@ -936,7 +990,7 @@ namespace OpenMS::Internal
           spec_.setDataProcessing(processing_[default_processing_]);
         }
       }
-      else if (tag == "chromatogram")
+      else if (tag == "chromatogram"sv)
       {
         if (options_.getSkipChromatograms() || load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
         {
@@ -968,7 +1022,7 @@ namespace OpenMS::Internal
           chromatogram_.setDataProcessing(processing_[default_processing_]);
         }
       }
-      else if (tag == "spectrumList")
+      else if (tag == "spectrumList"sv)
       {
         //default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
@@ -1001,7 +1055,7 @@ namespace OpenMS::Internal
           exp_->reserveSpaceSpectra(scan_count_total_);
         }
       }
-      else if (tag == "chromatogramList")
+      else if (tag == "chromatogramList"sv)
       {
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
@@ -1033,11 +1087,11 @@ namespace OpenMS::Internal
           exp_->reserveSpaceChromatograms(chrom_count_total_);
         }
       }
-      else if (tag == "binaryDataArrayList" /* && in_spectrum_list_*/)
+      else if (tag == "binaryDataArrayList"sv /* && in_spectrum_list_*/)
       {
         bin_data_.reserve(attributeAsInt_(attributes, s_count));
       }
-      else if (tag == "binaryDataArray" /* && in_spectrum_list_*/)
+      else if (tag == "binaryDataArray"sv /* && in_spectrum_list_*/)
       {
         bin_data_.emplace_back();
         bin_data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
@@ -1056,29 +1110,35 @@ namespace OpenMS::Internal
           bin_data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
         }
       }
-      else if (tag == "cvParam")
+      else if (tag == "cvParam"sv)
       {
-        std::string value;
-        optionalAttributeAsString_(value, attributes, s_value);
-        std::string unit_accession;
-        optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        handleCVParam_(*parent_parent_tag, *parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
+        // The most frequent element: read into reused buffers instead of new strings.
+        ParamBuffers_& p = param_buffers_;
+        p.value.clear();
+        optionalAttributeAsString_(p.value, attributes, s_value);
+        p.unit_accession.clear();
+        optionalAttributeAsString_(p.unit_accession, attributes, s_unit_accession);
+        requiredAttributeAsString_(p.accession, attributes, s_accession);
+        requiredAttributeAsString_(p.name, attributes, s_name);
+        handleCVParam_(*parent_parent_tag, *parent_tag, p.accession, p.name, p.value, p.unit_accession);
       }
-      else if (tag == "userParam")
+      else if (tag == "userParam"sv)
       {
-        std::string type;
-        optionalAttributeAsString_(type, attributes, s_type);
-        std::string value;
-        optionalAttributeAsString_(value, attributes, s_value);
-        std::string unit_accession;
-        optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        handleUserParam_(*parent_parent_tag, *parent_tag, attributeAsString_(attributes, s_name), type, value, unit_accession);
+        ParamBuffers_& p = param_buffers_;
+        p.type.clear();
+        optionalAttributeAsString_(p.type, attributes, s_type);
+        p.value.clear();
+        optionalAttributeAsString_(p.value, attributes, s_value);
+        p.unit_accession.clear();
+        optionalAttributeAsString_(p.unit_accession, attributes, s_unit_accession);
+        requiredAttributeAsString_(p.name, attributes, s_name);
+        handleUserParam_(*parent_parent_tag, *parent_tag, p.name, p.type, p.value, p.unit_accession);
       }
-      else if (tag == "referenceableParamGroup")
+      else if (tag == "referenceableParamGroup"sv)
       {
         current_id_ = attributeAsString_(attributes, s_id);
       }
-      else if (tag == "sourceFile")
+      else if (tag == "sourceFile"sv)
       {
         current_id_ = attributeAsString_(attributes, s_id);
         // Name of the source file, without reference to location (either URI or local path). e.g. "control.mzML"
@@ -1138,7 +1198,7 @@ namespace OpenMS::Internal
         source_files_[current_id_].setNameOfFile(name_of_file);
         source_files_[current_id_].setPathToFile(path_to_file);
       }
-      else if (tag == "referenceableParamGroupRef")
+      else if (tag == "referenceableParamGroupRef"sv)
       {
         //call handleCVParam_ with the parent tag for each parameter in the group
         std::string ref = attributeAsString_(attributes, s_ref);
@@ -1147,7 +1207,7 @@ namespace OpenMS::Internal
           handleCVParam_(*parent_parent_tag, *parent_tag, ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
         }
       }
-      else if (tag == "scan")
+      else if (tag == "scan"sv)
       {
         Acquisition tmp;
         //source file => meta data
@@ -1176,7 +1236,7 @@ namespace OpenMS::Internal
 
         spec_.getAcquisitionInfo().push_back(std::move(tmp));
       }
-      else if (tag == "mzML")
+      else if (tag == "mzML"sv)
       {
         scan_count_ = 0;
         chromatogram_count_ = 0;
@@ -1224,11 +1284,11 @@ namespace OpenMS::Internal
         }
         pg_outer.startProgress(0, 1, "loading mzML");
       }
-      else if (tag == "contact")
+      else if (tag == "contact"sv)
       {
         exp_->getContacts().emplace_back();
       }
-      else if (tag == "sample")
+      else if (tag == "sample"sv)
       {
         current_id_ = attributeAsString_(attributes, s_id);
         std::string name;
@@ -1237,7 +1297,7 @@ namespace OpenMS::Internal
           samples_[current_id_].setName(name);
         }
       }
-      else if (tag == "run")
+      else if (tag == "run"sv)
       {
         //sample
         std::string sample_ref;
@@ -1267,16 +1327,16 @@ namespace OpenMS::Internal
         }
         */
       }
-      else if (tag == "software")
+      else if (tag == "software"sv)
       {
         current_id_ = attributeAsString_(attributes, s_id);
         software_[current_id_].setVersion(attributeAsString_(attributes, s_version));
       }
-      else if (tag == "dataProcessing")
+      else if (tag == "dataProcessing"sv)
       {
         current_id_ = attributeAsString_(attributes, s_id);
       }
-      else if (tag == "processingMethod")
+      else if (tag == "processingMethod"sv)
       {
         DataProcessingPtr dp(new DataProcessing);
         // See ticket 452: Do NOT remove this try/catch block until foreign
@@ -1293,7 +1353,7 @@ namespace OpenMS::Internal
         processing_[current_id_].push_back(dp);
         //The order of processing methods is currently ignored
       }
-      else if (tag == "instrumentConfiguration")
+      else if (tag == "instrumentConfiguration"sv)
       {
         current_id_ = attributeAsString_(attributes, s_id);
 
@@ -1304,27 +1364,27 @@ namespace OpenMS::Internal
           warning(LOAD, "Unhandled attribute 'scanSettingsRef' in 'instrumentConfiguration' tag.");
         }
       }
-      else if (tag == "softwareRef")
+      else if (tag == "softwareRef"sv)
       {
         //Set the software of the instrument
         instruments_[current_id_].setSoftware(software_[attributeAsString_(attributes, s_ref)]);
       }
-      else if (tag == "source")
+      else if (tag == "source"sv)
       {
         instruments_[current_id_].getIonSources().emplace_back();
         instruments_[current_id_].getIonSources().back().setOrder(attributeAsInt_(attributes, s_order));
       }
-      else if (tag == "analyzer")
+      else if (tag == "analyzer"sv)
       {
         instruments_[current_id_].getMassAnalyzers().emplace_back();
         instruments_[current_id_].getMassAnalyzers().back().setOrder(attributeAsInt_(attributes, s_order));
       }
-      else if (tag == "detector")
+      else if (tag == "detector"sv)
       {
         instruments_[current_id_].getIonDetectors().emplace_back();
         instruments_[current_id_].getIonDetectors().back().setOrder(attributeAsInt_(attributes, s_order));
       }
-      else if (tag == "precursor")
+      else if (tag == "precursor"sv)
       {
         if (in_spectrum_list_)
         {
@@ -1373,7 +1433,7 @@ namespace OpenMS::Internal
           selected_ion_count_ = 0;
         }
       }
-      else if (tag == "product")
+      else if (tag == "product"sv)
       {
         //initialize
         if (in_spectrum_list_)
@@ -1385,12 +1445,12 @@ namespace OpenMS::Internal
           chromatogram_.setProduct(Product());
         }
       }
-      else if (tag == "selectedIon")
+      else if (tag == "selectedIon"sv)
       {
         //increase selected ion count
         ++selected_ion_count_;
       }
-      else if (tag == "selectedIonList")
+      else if (tag == "selectedIonList"sv)
       {
         //Warn if more than one selected ion is present
         if (attributeAsInt_(attributes, s_count) > 1)
@@ -1398,7 +1458,7 @@ namespace OpenMS::Internal
           warning(LOAD, "OpenMS can currently handle only one selection ion per precursor! Only the first ion is loaded!");
         }
       }
-      else if (tag == "scanWindow")
+      else if (tag == "scanWindow"sv)
       {
         spec_.getInstrumentSettings().getScanWindows().emplace_back();
       }
@@ -1406,16 +1466,21 @@ namespace OpenMS::Internal
 
     void MzMLHandler::onEndElement(const char16_t* qname)
     {
-      constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
-      constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
-      constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
-      constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
-      constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
-      constexpr XMLCh s_sourceFileList[] = { 's','o','u','r','c','e','F','i','l','e','L','i','s','t', 0};
+      endElement_(sm_.convert(qname));
+    }
 
+    bool MzMLHandler::tryOnEndElementUTF8(std::string_view qname)
+    {
+      if (typeid(*this) != typeid(MzMLHandler)) { return false; }
+      endElement_(qname);
+      return true;
+    }
+
+    void MzMLHandler::endElement_(std::string_view tag_name)
+    {
       open_tags_.pop_back();
 
-      if (equal_(qname, s_spectrum))
+      if (tag_name == "spectrum"sv)
       {
         if (!skip_spectrum_)
         {
@@ -1466,7 +1531,7 @@ namespace OpenMS::Internal
         bin_data_.clear();
         default_array_length_ = 0;
       }
-      else if (equal_(qname, s_chromatogram))
+      else if (tag_name == "chromatogram"sv)
       {
         if (!skip_chromatogram_)
         {
@@ -1503,19 +1568,19 @@ namespace OpenMS::Internal
         bin_data_.clear();
         default_array_length_ = 0;
       }
-      else if (equal_(qname, s_spectrum_list))
+      else if (tag_name == "spectrumList"sv)
       {
         skip_spectrum_ = false; // no more spectra to come, so stop skipping (for the LD_RAWCOUNTS case)
         in_spectrum_list_ = false;
         logger_.endProgress();
       }
-      else if (equal_(qname, s_chromatogram_list))
+      else if (tag_name == "chromatogramList"sv)
       {
         skip_chromatogram_ = false; // no more chromatograms to come, so stop skipping
         in_spectrum_list_ = false;
         logger_.endProgress();
       }
-      else if (equal_(qname, s_sourceFileList ))
+      else if (tag_name == "sourceFileList"sv)
       {
         for (auto const& ref_sourcefile : source_files_)
         {
@@ -1527,7 +1592,7 @@ namespace OpenMS::Internal
           }
         }
       }
-      else if (equal_(qname, s_mzml))
+      else if (tag_name == "mzML"sv)
       {
         ref_param_.clear();
         current_id_ = "";
@@ -1540,8 +1605,16 @@ namespace OpenMS::Internal
         // Flush the remaining data
         populateSpectraWithData_();
         populateChromatogramsWithData_();
-        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
+        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it
                                                      // , so we can only report I/O at the very end
+      }
+    }
+
+    void MzMLHandler::requiredAttributeAsString_(std::string& value, const XMLAttributes& attributes, const char16_t* name) const
+    {
+      if (!attributes.valueUTF8(name, value))
+      {
+        fatalError(LOAD, std::string("Required attribute '") + sm_.convert(name) + "' not present!");
       }
     }
 
@@ -1552,16 +1625,19 @@ namespace OpenMS::Internal
                                      const std::string& value,
                                      const std::string& unit_accession)
     {
+      // "MS:" accessions have a fixed width: compare their numbers instead of strings below
+      const int ms_accession = msAccessionNumber(accession);
+
       // the actual value stored in the CVParam
       DataValue termValue = XMLHandler::cvParamToValue(cv_, parent_tag, accession, name, value, unit_accession);
 
       if (termValue == DataValue::EMPTY) return; // conversion failed (warning message was emitted in cvParamToValue())
 
       //------------------------- run ----------------------------
-      if (parent_tag == "run")
+      if (parent_tag == "run"sv)
       {
         //MS:1000857 ! run attribute
-        if (accession == "MS:1000858") //fraction identifier
+        if (ms_accession == 1000858) //fraction identifier
         {
           exp_->setFractionIdentifier(value);
         }
@@ -1571,103 +1647,104 @@ namespace OpenMS::Internal
         }
       }
       //------------------------- binaryDataArray ----------------------------
-      else if (parent_tag == "binaryDataArray")
+      else if (parent_tag == "binaryDataArray"sv)
       {
         // store name for all non-default arrays
-        if (cv_.isChildOf(accession, "MS:1000513")) // other array names as string
+        const bool is_array_type = cv_.isChildOf(accession, "MS:1000513"); // other array names as string
+        if (is_array_type)
         {
           bin_data_.back().meta.setName(cv_.getTerm(accession).name);
-          if (accession == "MS:1000515" && unit_accession == "UO:0000269")
+          if (ms_accession == 1000515 && unit_accession == "UO:0000269"sv)
             bin_data_.back().meta.setMetaValue("mzml intensity array", "absorption");
         }
 
         if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
         {
-          if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
+          if (!is_array_type)
           {
             warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           }
         }
       }
       //------------------------- spectrum ----------------------------
-      else if (parent_tag == "spectrum")
+      else if (parent_tag == "spectrum"sv)
       {
         //spectrum type
-        if (accession == "MS:1000294") //mass spectrum
+        if (ms_accession == 1000294) //mass spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
-        else if (accession == "MS:1000579") //MS1 spectrum
+        else if (ms_accession == 1000579) //MS1 spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MS1SPECTRUM);
         }
-        else if (accession == "MS:1000580") //MSn spectrum
+        else if (ms_accession == 1000580) //MSn spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
         }
-        else if (accession == "MS:1000581") //CRM spectrum
+        else if (ms_accession == 1000581) //CRM spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CRM);
         }
-        else if (accession == "MS:1000582") //SIM spectrum
+        else if (ms_accession == 1000582) //SIM spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
         }
-        else if (accession == "MS:1000583") //SRM spectrum
+        else if (ms_accession == 1000583) //SRM spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
-        else if (accession == "MS:1000804") //electromagnetic radiation spectrum
+        else if (ms_accession == 1000804) //electromagnetic radiation spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMR);
         }
-        else if (accession == "MS:1000805") //emission spectrum
+        else if (ms_accession == 1000805) //emission spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMISSION);
         }
-        else if (accession == "MS:1000806") //absorption spectrum
+        else if (ms_accession == 1000806) //absorption spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
         }
-        else if (accession == "MS:1000325") //constant neutral gain spectrum
+        else if (ms_accession == 1000325) //constant neutral gain spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CNG);
         }
-        else if (accession == "MS:1000326") //constant neutral loss spectrum
+        else if (ms_accession == 1000326) //constant neutral loss spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CNL);
         }
-        else if (accession == "MS:1000341") //precursor ion spectrum
+        else if (ms_accession == 1000341) //precursor ion spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::PRECURSOR);
         }
-        else if (accession == "MS:1000789") //enhanced multiply charged spectrum
+        else if (ms_accession == 1000789) //enhanced multiply charged spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMC);
         }
-        else if (accession == "MS:1000790") //time-delayed fragmentation spectrum
+        else if (ms_accession == 1000790) //time-delayed fragmentation spectrum
         {
           spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::TDF);
         }
         //spectrum representation
-        else if (accession == "MS:1000127") //centroid spectrum
+        else if (ms_accession == 1000127) //centroid spectrum
         {
           spec_.setType(SpectrumSettings::SpectrumType::CENTROID);
         }
-        else if (accession == "MS:1000128") //profile spectrum
+        else if (ms_accession == 1000128) //profile spectrum
         {
           spec_.setType(SpectrumSettings::SpectrumType::PROFILE);
         }
-        else if (accession == "MS:1000525") //spectrum representation
+        else if (ms_accession == 1000525) //spectrum representation
         {
           spec_.setType(SpectrumSettings::SpectrumType::UNKNOWN);
         }
-        else if (accession == "MS:1003441") //ion mobility centroid frame
+        else if (ms_accession == 1003441) //ion mobility centroid frame
         {
           spec_.setIMPeakType(IMPeakType::IM_CENTROIDED);
         }
         // spectrum attribute
-        else if (accession == "MS:1000511") //ms level
+        else if (ms_accession == 1000511) //ms level
         {
           spec_.setMSLevel(StringUtils::toInt32(value));
 
@@ -1685,7 +1762,7 @@ namespace OpenMS::Internal
           }
 
         }
-        else if (accession == "MS:1000497") // deprecated: zoom scan is now a scan attribute
+        else if (ms_accession == 1000497) // deprecated: zoom scan is now a scan attribute
         {
           OPENMS_LOG_DEBUG << "MS:1000497 - zoom scan is now a scan attribute. Reading it for backwards compatibility reasons as spectrum attribute."
                            << " You can make this warning go away by converting this file using FileConverter to a newer version of the PSI ontology."
@@ -1693,61 +1770,61 @@ namespace OpenMS::Internal
                            << std::endl;
           spec_.getInstrumentSettings().setZoomScan(true);
         }
-        else if (accession == "MS:1000285") //total ion current
+        else if (ms_accession == 1000285) //total ion current
         {
           //No member => meta data
           spec_.setMetaValue("total ion current", termValue);
         }
-        else if (accession == "MS:1000504") //base peak m/z
+        else if (ms_accession == 1000504) //base peak m/z
         {
           //No member => meta data
           spec_.setMetaValue("base peak m/z", termValue);
         }
-        else if (accession == "MS:1000618" || accession == "MS:1000619") // observed wavelength limits
+        else if (ms_accession == 1000618 || ms_accession == 1000619) // observed wavelength limits
         {
           spec_.setMetaValue(cv_.getTerm(accession).name, termValue);
         }
-        else if (accession == "MS:1000505") //base peak intensity
+        else if (ms_accession == 1000505) //base peak intensity
         {
           //No member => meta data
           spec_.setMetaValue("base peak intensity", termValue);
         }
-        else if (accession == "MS:1000527") //highest observed m/z
+        else if (ms_accession == 1000527) //highest observed m/z
         {
           //No member => meta data
           spec_.setMetaValue("highest observed m/z", termValue);
         }
-        else if (accession == "MS:1000528") //lowest observed m/z
+        else if (ms_accession == 1000528) //lowest observed m/z
         {
           //No member => meta data
           spec_.setMetaValue("lowest observed m/z", termValue);
         }
-        else if (accession == "MS:1000618") //highest observed wavelength
+        else if (ms_accession == 1000618) //highest observed wavelength
         {
           //No member => meta data
           spec_.setMetaValue("highest observed wavelength", termValue);
         }
-        else if (accession == "MS:1000619") //lowest observed wavelength
+        else if (ms_accession == 1000619) //lowest observed wavelength
         {
           //No member => meta data
           spec_.setMetaValue("lowest observed wavelength", termValue);
         }
-        else if (accession == "MS:1000796") //spectrum title
+        else if (ms_accession == 1000796) //spectrum title
         {
           //No member => meta data
           spec_.setMetaValue("spectrum title", termValue);
         }
-        else if (accession == "MS:1000797") //peak list scans
+        else if (ms_accession == 1000797) //peak list scans
         {
           //No member => meta data
           spec_.setMetaValue("peak list scans", termValue);
         }
-        else if (accession == "MS:1000798") //peak list raw scans
+        else if (ms_accession == 1000798) //peak list raw scans
         {
           //No member => meta data
           spec_.setMetaValue("peak list raw scans", termValue);
         }
-        else if (accession == "MS:1001581") //FAIMS compensation voltage
+        else if (ms_accession == 1001581) //FAIMS compensation voltage
         {
           // According to the PSI-MS ontology this term should be stored below the "scan" and not "spectrum" parent.
           // Some pwiz version put this term on the "spectrum" level so we also read it here.
@@ -1756,11 +1833,11 @@ namespace OpenMS::Internal
           spec_.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
         }
         //scan polarity
-        else if (accession == "MS:1000129") //negative scan
+        else if (ms_accession == 1000129) //negative scan
         {
           spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
         }
-        else if (accession == "MS:1000130") //positive scan
+        else if (ms_accession == 1000130) //positive scan
         {
           spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
         }
@@ -1768,14 +1845,14 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- scanWindow ----------------------------
-      else if (parent_tag == "scanWindow")
+      else if (parent_tag == "scanWindow"sv)
       {
-        if (!unit_accession.empty() && unit_accession != "MS:1000040") spec_.getInstrumentSettings().getScanWindows().back().setMetaValue("unit_accession", unit_accession);
-        if (accession == "MS:1000501") //scan window lower limit
+        if (!unit_accession.empty() && unit_accession != "MS:1000040"sv) spec_.getInstrumentSettings().getScanWindows().back().setMetaValue("unit_accession", unit_accession);
+        if (ms_accession == 1000501) //scan window lower limit
         {
           spec_.getInstrumentSettings().getScanWindows().back().begin = StringUtils::toDouble(value);
         }
-        else if (accession == "MS:1000500") //scan window upper limit
+        else if (ms_accession == 1000500) //scan window upper limit
         {
           spec_.getInstrumentSettings().getScanWindows().back().end = StringUtils::toDouble(value);
         }
@@ -1783,7 +1860,7 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- referenceableParamGroup ----------------------------
-      else if (parent_tag == "referenceableParamGroup")
+      else if (parent_tag == "referenceableParamGroup"sv)
       {
         SemanticValidator::CVTerm term;
         term.accession = accession;
@@ -1793,14 +1870,14 @@ namespace OpenMS::Internal
         ref_param_[current_id_].push_back(std::move(term));
       }
       //------------------------- selectedIon ----------------------------
-      else if (parent_tag == "selectedIon")
+      else if (parent_tag == "selectedIon"sv)
       {
         //parse only the first selected ion
         if (selected_ion_count_ > 1)
         {
           return;
         }
-        if (accession == "MS:1000744") //selected ion m/z
+        if (ms_accession == 1000744) //selected ion m/z
         {
           double this_mz = StringUtils::toDouble(value);
           Precursor& precursor = in_spectrum_list_ ?
@@ -1827,7 +1904,7 @@ namespace OpenMS::Internal
           }
           // don't need to do anything if the two m/z values are the same
         }
-        else if (accession == "MS:1000041") //charge state
+        else if (ms_accession == 1000041) //charge state
         {
           if (in_spectrum_list_)
           {
@@ -1838,13 +1915,13 @@ namespace OpenMS::Internal
             chromatogram_.getPrecursor().setCharge(StringUtils::toInt32(value));
           }
         }
-        else if (accession == "MS:1000042") //peak intensity
+        else if (ms_accession == 1000042) //peak intensity
         {
           Precursor& precursor = in_spectrum_list_ ? spec_.getPrecursors().back() : chromatogram_.getPrecursor();
           precursor.setIntensity(StringUtils::toDouble(value));
-          if (!unit_accession.empty() && unit_accession != "MS:1000132") precursor.setMetaValue("peak intensity unit accession", unit_accession);
+          if (!unit_accession.empty() && unit_accession != "MS:1000132"sv) precursor.setMetaValue("peak intensity unit accession", unit_accession);
         }
-        else if (accession == "MS:1000633") //possible charge state
+        else if (ms_accession == 1000633) //possible charge state
         {
           if (in_spectrum_list_)
           {
@@ -1855,7 +1932,7 @@ namespace OpenMS::Internal
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(StringUtils::toInt32(value));
           }
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581" || accession == "MS:1002954") //ion mobility drift time, FAIMS CV, or CCS
+        else if (ms_accession == 1002476 || ms_accession == 1002815 || ms_accession == 1001581 || ms_accession == 1002954) //ion mobility drift time, FAIMS CV, or CCS
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -1870,19 +1947,19 @@ namespace OpenMS::Internal
           // Note that milliseconds, VSSC, FAIMS CV, and CCS are valid units
 
           auto unit = DriftTimeUnit::MILLISECOND;
-          if (accession == "MS:1002476")
+          if (ms_accession == 1002476)
           {
             unit = DriftTimeUnit::MILLISECOND;
           }
-          else if (accession == "MS:1002815")
+          else if (ms_accession == 1002815)
           {
             unit = DriftTimeUnit::VSSC;
           }
-          else if (accession == "MS:1001581")
+          else if (ms_accession == 1001581)
           {
             unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
-          else if (accession == "MS:1002954")
+          else if (ms_accession == 1002954)
           {
             unit = DriftTimeUnit::CCS;
           }
@@ -1906,139 +1983,139 @@ namespace OpenMS::Internal
         }
       }
       //------------------------- activation ----------------------------
-      else if (parent_tag == "activation")
+      else if (parent_tag == "activation"sv)
       {
         //precursor activation attribute
         if (in_spectrum_list_)
         {
-          if (accession == "MS:1000245") //charge stripping
+          if (ms_accession == 1000245) //charge stripping
           {
             //No member => meta data
             spec_.getPrecursors().back().setMetaValue("charge stripping",std::string("true"));
           }
-          else if (accession == "MS:1000045") //collision energy (ev)
+          else if (ms_accession == 1000045) //collision energy (ev)
           {
             //No member => meta data
             spec_.getPrecursors().back().setMetaValue("collision energy", termValue);
           }
-          else if (accession == "MS:1000412") //buffer gas
+          else if (ms_accession == 1000412) //buffer gas
           {
             //No member => meta data
             spec_.getPrecursors().back().setMetaValue("buffer gas", termValue);
           }
-          else if (accession == "MS:1000419") //collision gas
+          else if (ms_accession == 1000419) //collision gas
           {
             //No member => meta data
             spec_.getPrecursors().back().setMetaValue("collision gas", termValue);
           }
-          else if (accession == "MS:1000509") //activation energy (ev)
+          else if (ms_accession == 1000509) //activation energy (ev)
           {
             spec_.getPrecursors().back().setActivationEnergy(StringUtils::toDouble(value));
           }
-          else if (accession == "MS:1000138") //percent collision energy
+          else if (ms_accession == 1000138) //percent collision energy
           {
             //No member => meta data
             spec_.getPrecursors().back().setMetaValue("percent collision energy", termValue);
           }
-          else if (accession == "MS:1000869") //collision gas pressure
+          else if (ms_accession == 1000869) //collision gas pressure
           {
             //No member => meta data
             spec_.getPrecursors().back().setMetaValue("collision gas pressure", termValue);
           }
           //dissociation method
-          else if (accession == "MS:1000044") //dissociation method
+          else if (ms_accession == 1000044) //dissociation method
           {
             //nothing to do here
           }
-          else if (accession == "MS:1000133") //collision-induced dissociation
+          else if (ms_accession == 1000133) //collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::CID);
           }
-          else if (accession == "MS:1000134") //plasma desorption
+          else if (ms_accession == 1000134) //plasma desorption
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PD);
           }
-          else if (accession == "MS:1000135") //post-source decay
+          else if (ms_accession == 1000135) //post-source decay
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PSD);
           }
-          else if (accession == "MS:1000136") //surface-induced dissociation
+          else if (ms_accession == 1000136) //surface-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::SID);
           }
-          else if (accession == "MS:1000242") //blackbody infrared radiative dissociation
+          else if (ms_accession == 1000242) //blackbody infrared radiative dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
           }
-          else if (accession == "MS:1000250") //electron capture dissociation
+          else if (ms_accession == 1000250) //electron capture dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ECD);
           }
-          else if (accession == "MS:1000262") //infrared multiphoton dissociation
+          else if (ms_accession == 1000262) //infrared multiphoton dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::IMD);
           }
-          else if (accession == "MS:1000282") //sustained off-resonance irradiation
+          else if (ms_accession == 1000282) //sustained off-resonance irradiation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::SORI);
           }
-          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
+          else if (ms_accession == 1000422) //beam-type collision-induced dissociation / HCD
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::HCD);
           }
-          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          else if (ms_accession == 1002472) //trap-type collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::TRAP);
           }
-          else if (accession == "MS:1002481") //high-energy collision-induced dissociation
+          else if (ms_accession == 1002481) //high-energy collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::HCID);
           }
-          else if (accession == "MS:1000433") //low-energy collision-induced dissociation
+          else if (ms_accession == 1000433) //low-energy collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::LCID);
           }
-          else if (accession == "MS:1000435") //photodissociation
+          else if (ms_accession == 1000435) //photodissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PHD);
           }
-          else if (accession == "MS:1000598") //electron transfer dissociation
+          else if (ms_accession == 1000598) //electron transfer dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ETD);
           }
-          else if (accession == "MS:1002679" || accession == "MS:1002678" || accession == "MS:1002680")
+          else if (ms_accession == 1002679 || ms_accession == 1002678 || ms_accession == 1002680)
           {
             // supplemental collision-induced dissociation / supplemental beam-type collision-induced
             // dissociation / supplemental collision energy: keep the terms verbatim for a lossless
             // round trip and also record the combined method (ETciD / EThcD) that downstream
             // consumers expect (see https://github.com/compomics/ThermoRawFileParser/issues/182).
             spec_.getPrecursors().back().setMetaValue(cv_.getTerm(accession).name, termValue);
-            if (accession == "MS:1002679")
+            if (ms_accession == 1002679)
             {
               spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
             }
-            else if (accession == "MS:1002678")
+            else if (ms_accession == 1002678)
             {
               spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
             }
           }
-          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          else if (ms_accession == 1003182) //electron transfer and collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
           }
-          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          else if (ms_accession == 1002631) //electron transfer and higher-energy collision dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
           }
-          else if (accession == "MS:1000599") //pulsed q dissociation
+          else if (ms_accession == 1000599) //pulsed q dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PQD);
           }
-          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          else if (ms_accession == 1001880) //in-source collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::INSOURCE);
           }
-          else if (accession == "MS:1002000") //LIFT
+          else if (ms_accession == 1002000) //LIFT
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::LIFT);
           }
@@ -2051,118 +2128,118 @@ namespace OpenMS::Internal
         }
         else
         {
-          if (accession == "MS:1000245") //charge stripping
+          if (ms_accession == 1000245) //charge stripping
           {
             //No member => meta data
             chromatogram_.getPrecursor().setMetaValue("charge stripping",std::string("true"));
           }
-          else if (accession == "MS:1000045") //collision energy (ev)
+          else if (ms_accession == 1000045) //collision energy (ev)
           {
             //No member => meta data
             chromatogram_.getPrecursor().setMetaValue("collision energy", termValue);
           }
-          else if (accession == "MS:1000412") //buffer gas
+          else if (ms_accession == 1000412) //buffer gas
           {
             //No member => meta data
             chromatogram_.getPrecursor().setMetaValue("buffer gas", termValue);
           }
-          else if (accession == "MS:1000419") //collision gas
+          else if (ms_accession == 1000419) //collision gas
           {
             //No member => meta data
             chromatogram_.getPrecursor().setMetaValue("collision gas", termValue);
           }
-          else if (accession == "MS:1000509") //activation energy (ev)
+          else if (ms_accession == 1000509) //activation energy (ev)
           {
             chromatogram_.getPrecursor().setActivationEnergy(StringUtils::toDouble(value));
           }
-          else if (accession == "MS:1000138") //percent collision energy
+          else if (ms_accession == 1000138) //percent collision energy
           {
             //No member => meta data
             chromatogram_.getPrecursor().setMetaValue("percent collision energy", termValue);
           }
-          else if (accession == "MS:1000869") //collision gas pressure
+          else if (ms_accession == 1000869) //collision gas pressure
           {
             //No member => meta data
             chromatogram_.getPrecursor().setMetaValue("collision gas pressure", termValue);
           }
           //dissociation method
-          else if (accession == "MS:1000044") //dissociation method
+          else if (ms_accession == 1000044) //dissociation method
           {
             //nothing to do here
           }
-          else if (accession == "MS:1000133") //collision-induced dissociation
+          else if (ms_accession == 1000133) //collision-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::CID);
           }
-          else if (accession == "MS:1000134") //plasma desorption
+          else if (ms_accession == 1000134) //plasma desorption
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PD);
           }
-          else if (accession == "MS:1000135") //post-source decay
+          else if (ms_accession == 1000135) //post-source decay
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PSD);
           }
-          else if (accession == "MS:1000136") //surface-induced dissociation
+          else if (ms_accession == 1000136) //surface-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::SID);
           }
-          else if (accession == "MS:1000242") //blackbody infrared radiative dissociation
+          else if (ms_accession == 1000242) //blackbody infrared radiative dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
           }
-          else if (accession == "MS:1000250") //electron capture dissociation
+          else if (ms_accession == 1000250) //electron capture dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::ECD);
           }
-          else if (accession == "MS:1000262") //infrared multiphoton dissociation
+          else if (ms_accession == 1000262) //infrared multiphoton dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::IMD);
           }
-          else if (accession == "MS:1000282") //sustained off-resonance irradiation
+          else if (ms_accession == 1000282) //sustained off-resonance irradiation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::SORI);
           }
-          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
+          else if (ms_accession == 1000422) //beam-type collision-induced dissociation / HCD
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::HCD);
           }
-          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          else if (ms_accession == 1002472) //trap-type collision-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::TRAP);
           }
-          else if (accession == "MS:1002481") //high-energy collision-induced dissociation
+          else if (ms_accession == 1002481) //high-energy collision-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::HCID);
           }
-          else if (accession == "MS:1000433") //low-energy collision-induced dissociation
+          else if (ms_accession == 1000433) //low-energy collision-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::LCID);
           }
-          else if (accession == "MS:1000435") //photodissociation
+          else if (ms_accession == 1000435) //photodissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PHD);
           }
-          else if (accession == "MS:1000598") //electron transfer dissociation
+          else if (ms_accession == 1000598) //electron transfer dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::ETD);
           }
-          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          else if (ms_accession == 1003182) //electron transfer and collision-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
           }
-          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          else if (ms_accession == 1002631) //electron transfer and higher-energy collision dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
           }
-          else if (accession == "MS:1000599") //pulsed q dissociation
+          else if (ms_accession == 1000599) //pulsed q dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PQD);
           }
-          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          else if (ms_accession == 1001880) //in-source collision-induced dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::INSOURCE);
           }
-          else if (accession == "MS:1002000") //LIFT
+          else if (ms_accession == 1002000) //LIFT
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::LIFT);
           }
@@ -2173,11 +2250,11 @@ namespace OpenMS::Internal
         }
       }
       //------------------------- isolationWindow ----------------------------
-      else if (parent_tag == "isolationWindow")
+      else if (parent_tag == "isolationWindow"sv)
       {
-        if (parent_parent_tag == "precursor")
+        if (parent_parent_tag == "precursor"sv)
         {
-          if (accession == "MS:1000827") //isolation window target m/z
+          if (ms_accession == 1000827) //isolation window target m/z
           {
             if (in_spectrum_list_)
             {
@@ -2194,7 +2271,7 @@ namespace OpenMS::Internal
               chromatogram_.getPrecursor().setMZ(StringUtils::toDouble(value));
             }
           }
-          else if (accession == "MS:1000828") //isolation window lower offset
+          else if (ms_accession == 1000828) //isolation window lower offset
           {
             double offset_value = StringUtils::toDouble(value);
             if (offset_value >= 0) // Skip negative values (indicate null/invalid)
@@ -2209,7 +2286,7 @@ namespace OpenMS::Internal
               }
             }
           }
-          else if (accession == "MS:1000829") //isolation window upper offset
+          else if (ms_accession == 1000829) //isolation window upper offset
           {
             double offset_value = StringUtils::toDouble(value);
             if (offset_value >= 0) // Skip negative values (indicate null/invalid)
@@ -2227,9 +2304,9 @@ namespace OpenMS::Internal
           else
             warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
-        else if (parent_parent_tag == "product")
+        else if (parent_parent_tag == "product"sv)
         {
-          if (accession == "MS:1000827") //isolation window target m/z
+          if (ms_accession == 1000827) //isolation window target m/z
           {
             if (in_spectrum_list_)
             {
@@ -2240,7 +2317,7 @@ namespace OpenMS::Internal
               chromatogram_.getProduct().setMZ(StringUtils::toDouble(value));
             }
           }
-          else if (accession == "MS:1000829") //isolation window upper offset
+          else if (ms_accession == 1000829) //isolation window upper offset
           {
             double offset_value = StringUtils::toDouble(value);
             if (offset_value >= 0) // Skip negative values (indicate null/invalid)
@@ -2255,7 +2332,7 @@ namespace OpenMS::Internal
               }
             }
           }
-          else if (accession == "MS:1000828") //isolation window lower offset
+          else if (ms_accession == 1000828) //isolation window lower offset
           {
             double offset_value = StringUtils::toDouble(value);
             if (offset_value >= 0) // Skip negative values (indicate null/invalid)
@@ -2275,7 +2352,7 @@ namespace OpenMS::Internal
         }
       }
       //------------------------- scanList ----------------------------
-      else if (parent_tag == "scanList")
+      else if (parent_tag == "scanList"sv)
       {
         if (cv_.isChildOf(accession, "MS:1000570")) //method of combination as string
         {
@@ -2287,15 +2364,15 @@ namespace OpenMS::Internal
         }
       }
       //------------------------- scan ----------------------------
-      else if (parent_tag == "scan")
+      else if (parent_tag == "scan"sv)
       {
         //scan attributes
-        if (accession == "MS:1000502") //dwell time
+        if (ms_accession == 1000502) //dwell time
         {
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581" || accession == "MS:1002954") //ion mobility drift time, FAIMS CV, or CCS
+        else if (ms_accession == 1002476 || ms_accession == 1002815 || ms_accession == 1001581 || ms_accession == 1002954) //ion mobility drift time, FAIMS CV, or CCS
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -2308,19 +2385,19 @@ namespace OpenMS::Internal
           // Note: this is where pwiz stores the ion mobility for a spectrum
 
           auto unit = DriftTimeUnit::MILLISECOND;
-          if (accession == "MS:1002476")
+          if (ms_accession == 1002476)
           {
             unit = DriftTimeUnit::MILLISECOND;
           }
-          else if (accession == "MS:1002815")
+          else if (ms_accession == 1002815)
           {
             unit = DriftTimeUnit::VSSC;
           }
-          else if (accession == "MS:1001581")
+          else if (ms_accession == 1001581)
           {
             unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
-          else if (accession == "MS:1002954")
+          else if (ms_accession == 1002954)
           {
             unit = DriftTimeUnit::CCS;
           }
@@ -2328,19 +2405,19 @@ namespace OpenMS::Internal
           spec_.setDriftTime(StringUtils::toDouble(value));
           spec_.setDriftTimeUnit(unit);
         }
-        else if (accession == "MS:1000011") //mass resolution
+        else if (ms_accession == 1000011) //mass resolution
         {
           //No member => meta data
           spec_.setMetaValue("mass resolution", termValue);
         }
-        else if (accession == "MS:1000015") //scan rate
+        else if (ms_accession == 1000015) //scan rate
         {
           //No member => meta data
           spec_.setMetaValue("scan rate", termValue);
         }
-        else if (accession == "MS:1000016") //scan start time
+        else if (ms_accession == 1000016) //scan start time
         {
-          if (unit_accession == "UO:0000031") //minutes
+          if (unit_accession == "UO:0000031"sv) //minutes
           {
             spec_.setRT(60.0 * StringUtils::toDouble(value));
           }
@@ -2370,9 +2447,9 @@ namespace OpenMS::Internal
             ++scan_count_;
           }
         }
-        else if (accession == "MS:1000826") //elution time
+        else if (ms_accession == 1000826) //elution time
         {
-          if (unit_accession == "UO:0000031") //minutes
+          if (unit_accession == "UO:0000031"sv) //minutes
           {
             spec_.setMetaValue("elution time (seconds)", 60.0 * StringUtils::toDouble(value));
           }
@@ -2381,59 +2458,59 @@ namespace OpenMS::Internal
             spec_.setMetaValue("elution time (seconds)", StringUtils::toDouble(value));
           }
         }
-        else if (accession == "MS:1000512") //filter string
+        else if (ms_accession == 1000512) //filter string
         {
           //No member => meta data
           spec_.setMetaValue("filter string", termValue);
         }
-        else if (accession == "MS:1000803") //analyzer scan offset
+        else if (ms_accession == 1000803) //analyzer scan offset
         {
           //No member => meta data
           spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIDViewTab()
         }
-        else if (accession == "MS:1000616") //preset scan configuration
+        else if (ms_accession == 1000616) //preset scan configuration
         {
           //No member => meta data
           spec_.setMetaValue("preset scan configuration", termValue);
         }
-        else if (accession == "MS:1000800") //mass resolving power
+        else if (ms_accession == 1000800) //mass resolving power
         {
           //No member => meta data
           spec_.setMetaValue("mass resolving power", termValue);
         }
-        else if (accession == "MS:1000880") //interchannel delay
+        else if (ms_accession == 1000880) //interchannel delay
         {
           //No member => meta data
           spec_.setMetaValue("interchannel delay", termValue);
         }
         //scan direction
-        else if (accession == "MS:1000092") //decreasing m/z scan
+        else if (ms_accession == 1000092) //decreasing m/z scan
         {
           //No member => meta data
           spec_.setMetaValue("scan direction",std::string("decreasing"));
         }
-        else if (accession == "MS:1000093") //increasing m/z scan
+        else if (ms_accession == 1000093) //increasing m/z scan
         {
           //No member => meta data
           spec_.setMetaValue("scan direction",std::string("increasing"));
         }
         //scan law
-        else if (accession == "MS:1000094") //scan law: exponential
+        else if (ms_accession == 1000094) //scan law: exponential
         {
           //No member => meta data
           spec_.setMetaValue("scan law",std::string("exponential"));
         }
-        else if (accession == "MS:1000095") //scan law: linear
+        else if (ms_accession == 1000095) //scan law: linear
         {
           //No member => meta data
           spec_.setMetaValue("scan law",std::string("linear"));
         }
-        else if (accession == "MS:1000096") //scan law: quadratic
+        else if (ms_accession == 1000096) //scan law: quadratic
         {
           //No member => meta data
           spec_.setMetaValue("scan law",std::string("quadratic"));
         }
-        else if (accession == "MS:1000497") // zoom scan
+        else if (ms_accession == 1000497) // zoom scan
         {
           spec_.getInstrumentSettings().setZoomScan(true);
         }
@@ -2444,25 +2521,25 @@ namespace OpenMS::Internal
         }
       }
       //------------------------- contact ----------------------------
-      else if (parent_tag == "contact")
+      else if (parent_tag == "contact"sv)
       {
-        if (accession == "MS:1000586") //contact name
+        if (ms_accession == 1000586) //contact name
         {
           exp_->getContacts().back().setName(value);
         }
-        else if (accession == "MS:1000587") //contact address
+        else if (ms_accession == 1000587) //contact address
         {
           exp_->getContacts().back().setAddress(value);
         }
-        else if (accession == "MS:1000588") //contact URL
+        else if (ms_accession == 1000588) //contact URL
         {
           exp_->getContacts().back().setURL(value);
         }
-        else if (accession == "MS:1000589") //contact email
+        else if (ms_accession == 1000589) //contact email
         {
           exp_->getContacts().back().setEmail(value);
         }
-        else if (accession == "MS:1000590") //contact organization
+        else if (ms_accession == 1000590) //contact organization
         {
           exp_->getContacts().back().setInstitution(value);
         }
@@ -2470,13 +2547,13 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- sourceFile ----------------------------
-      else if (parent_tag == "sourceFile")
+      else if (parent_tag == "sourceFile"sv)
       {
-        if (accession == "MS:1000569") //SHA-1 checksum
+        if (ms_accession == 1000569) //SHA-1 checksum
         {
           source_files_[current_id_].setChecksum(value, SourceFile::ChecksumType::SHA1);
         }
-        else if (accession == "MS:1000568") //MD5 checksum
+        else if (ms_accession == 1000568) //MD5 checksum
         {
           source_files_[current_id_].setChecksum(value, SourceFile::ChecksumType::MD5);
         }
@@ -2493,50 +2570,50 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- sample ----------------------------
-      else if (parent_tag == "sample")
+      else if (parent_tag == "sample"sv)
       {
-        if (accession == "MS:1000004") //sample mass (gram)
+        if (ms_accession == 1000004) //sample mass (gram)
         {
           samples_[current_id_].setMass(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000001") //sample number
+        else if (ms_accession == 1000001) //sample number
         {
           samples_[current_id_].setNumber(value);
         }
-        else if (accession == "MS:1000005") //sample volume (milliliter)
+        else if (ms_accession == 1000005) //sample volume (milliliter)
         {
           samples_[current_id_].setVolume(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000006") //sample concentration (gram per liter)
+        else if (ms_accession == 1000006) //sample concentration (gram per liter)
         {
           samples_[current_id_].setConcentration(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000053") //sample batch
+        else if (ms_accession == 1000053) //sample batch
         {
           //No member => meta data
           samples_[current_id_].setMetaValue("sample batch", termValue);
         }
-        else if (accession == "MS:1000047") //emulsion
+        else if (ms_accession == 1000047) //emulsion
         {
           samples_[current_id_].setState(Sample::SampleState::EMULSION);
         }
-        else if (accession == "MS:1000048") //gas
+        else if (ms_accession == 1000048) //gas
         {
           samples_[current_id_].setState(Sample::SampleState::GAS);
         }
-        else if (accession == "MS:1000049") //liquid
+        else if (ms_accession == 1000049) //liquid
         {
           samples_[current_id_].setState(Sample::SampleState::LIQUID);
         }
-        else if (accession == "MS:1000050") //solid
+        else if (ms_accession == 1000050) //solid
         {
           samples_[current_id_].setState(Sample::SampleState::SOLID);
         }
-        else if (accession == "MS:1000051") //solution
+        else if (ms_accession == 1000051) //solution
         {
           samples_[current_id_].setState(Sample::SampleState::SOLUTION);
         }
-        else if (accession == "MS:1000052") //suspension
+        else if (ms_accession == 1000052) //suspension
         {
           samples_[current_id_].setState(Sample::SampleState::SUSPENSION);
         }
@@ -2559,10 +2636,10 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- instrumentConfiguration ----------------------------
-      else if (parent_tag == "instrumentConfiguration")
+      else if (parent_tag == "instrumentConfiguration"sv)
       {
         //instrument model
-        if (accession == "MS:1000031")
+        if (ms_accession == 1000031)
         {
           //unknown instrument => nothing to do
         }
@@ -2571,82 +2648,82 @@ namespace OpenMS::Internal
           instruments_[current_id_].setName(cv_.getTerm(accession).name);
         }
         //instrument attribute
-        else if (accession == "MS:1000529") //instrument serial number
+        else if (ms_accession == 1000529) //instrument serial number
         {
           //No member => meta data
           instruments_[current_id_].setMetaValue("instrument serial number", termValue);
         }
-        else if (accession == "MS:1000032") //customization
+        else if (ms_accession == 1000032) //customization
         {
           instruments_[current_id_].setCustomizations(value);
         }
-        else if (accession == "MS:1000236") //transmission
+        else if (ms_accession == 1000236) //transmission
         {
           //No member => metadata
           instruments_[current_id_].setMetaValue("transmission", termValue);
         }
         //ion optics type
-        else if (accession == "MS:1000246") //delayed extraction
+        else if (ms_accession == 1000246) //delayed extraction
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::DELAYED_EXTRACTION);
         }
-        else if (accession == "MS:1000221") //magnetic deflection
+        else if (ms_accession == 1000221) //magnetic deflection
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::MAGNETIC_DEFLECTION);
         }
-        else if (accession == "MS:1000275") //collision quadrupole
+        else if (ms_accession == 1000275) //collision quadrupole
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::COLLISION_QUADRUPOLE);
         }
-        else if (accession == "MS:1000281") //selected ion flow tube
+        else if (ms_accession == 1000281) //selected ion flow tube
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::SELECTED_ION_FLOW_TUBE);
         }
-        else if (accession == "MS:1000286") //time lag focusing
+        else if (ms_accession == 1000286) //time lag focusing
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::TIME_LAG_FOCUSING);
         }
-        else if (accession == "MS:1000300") //reflectron
+        else if (ms_accession == 1000300) //reflectron
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::REFLECTRON);
         }
-        else if (accession == "MS:1000307") //einzel lens
+        else if (ms_accession == 1000307) //einzel lens
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::EINZEL_LENS);
         }
-        else if (accession == "MS:1000309") //first stability region
+        else if (ms_accession == 1000309) //first stability region
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::FIRST_STABILITY_REGION);
         }
-        else if (accession == "MS:1000310") //fringing field
+        else if (ms_accession == 1000310) //fringing field
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::FRINGING_FIELD);
         }
-        else if (accession == "MS:1000311") //kinetic energy analyzer
+        else if (ms_accession == 1000311) //kinetic energy analyzer
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::KINETIC_ENERGY_ANALYZER);
         }
-        else if (accession == "MS:1000320") //static field
+        else if (ms_accession == 1000320) //static field
         {
           instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::STATIC_FIELD);
         }
         //ion optics attribute
-        else if (accession == "MS:1000304") //accelerating voltage
+        else if (ms_accession == 1000304) //accelerating voltage
         {
           //No member => metadata
           instruments_[current_id_].setMetaValue("accelerating voltage", termValue);
         }
-        else if (accession == "MS:1000216") //field-free region
+        else if (ms_accession == 1000216) //field-free region
         {
           //No member => metadata
           instruments_[current_id_].setMetaValue("field-free region",std::string("true"));
         }
-        else if (accession == "MS:1000308") //electric field strength
+        else if (ms_accession == 1000308) //electric field strength
         {
           //No member => metadata
           instruments_[current_id_].setMetaValue("electric field strength", termValue);
         }
-        else if (accession == "MS:1000319") //space charge effect
+        else if (ms_accession == 1000319) //space charge effect
         {
           //No member => metadata
           instruments_[current_id_].setMetaValue("space charge effect",std::string("true"));
@@ -2654,377 +2731,377 @@ namespace OpenMS::Internal
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "source")
+      else if (parent_tag == "source"sv)
       {
         //inlet type
-        if (accession == "MS:1000055") //continuous flow fast atom bombardment
+        if (ms_accession == 1000055) //continuous flow fast atom bombardment
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::CONTINUOUSFLOWFASTATOMBOMBARDMENT);
         }
-        else if (accession == "MS:1000056") //direct inlet
+        else if (ms_accession == 1000056) //direct inlet
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::DIRECT);
         }
-        else if (accession == "MS:1000057") //electrospray inlet
+        else if (ms_accession == 1000057) //electrospray inlet
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::ELECTROSPRAYINLET);
         }
-        else if (accession == "MS:1000058") //flow injection analysis
+        else if (ms_accession == 1000058) //flow injection analysis
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::FLOWINJECTIONANALYSIS);
         }
-        else if (accession == "MS:1000059") //inductively coupled plasma
+        else if (ms_accession == 1000059) //inductively coupled plasma
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::INDUCTIVELYCOUPLEDPLASMA);
         }
-        else if (accession == "MS:1000060") //infusion
+        else if (ms_accession == 1000060) //infusion
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::INFUSION);
         }
-        else if (accession == "MS:1000061") //jet separator
+        else if (ms_accession == 1000061) //jet separator
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::JETSEPARATOR);
         }
-        else if (accession == "MS:1000062") //membrane separator
+        else if (ms_accession == 1000062) //membrane separator
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MEMBRANESEPARATOR);
         }
-        else if (accession == "MS:1000063") //moving belt
+        else if (ms_accession == 1000063) //moving belt
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MOVINGBELT);
         }
-        else if (accession == "MS:1000064") //moving wire
+        else if (ms_accession == 1000064) //moving wire
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MOVINGWIRE);
         }
-        else if (accession == "MS:1000065") //open split
+        else if (ms_accession == 1000065) //open split
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::OPENSPLIT);
         }
-        else if (accession == "MS:1000066") //particle beam
+        else if (ms_accession == 1000066) //particle beam
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::PARTICLEBEAM);
         }
-        else if (accession == "MS:1000067") //reservoir
+        else if (ms_accession == 1000067) //reservoir
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::RESERVOIR);
         }
-        else if (accession == "MS:1000068") //septum
+        else if (ms_accession == 1000068) //septum
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::SEPTUM);
         }
-        else if (accession == "MS:1000069") //thermospray inlet
+        else if (ms_accession == 1000069) //thermospray inlet
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::THERMOSPRAYINLET);
         }
-        else if (accession == "MS:1000248") //direct insertion probe
+        else if (ms_accession == 1000248) //direct insertion probe
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::BATCH);
         }
-        else if (accession == "MS:1000249") //direct liquid introduction
+        else if (ms_accession == 1000249) //direct liquid introduction
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::CHROMATOGRAPHY);
         }
-        else if (accession == "MS:1000396") //membrane inlet
+        else if (ms_accession == 1000396) //membrane inlet
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MEMBRANE);
         }
-        else if (accession == "MS:1000485") //nanospray inlet
+        else if (ms_accession == 1000485) //nanospray inlet
         {
           instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::NANOSPRAY);
         }
         //ionization type
-        else if (accession == "MS:1000071") //chemical ionization
+        else if (ms_accession == 1000071) //chemical ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CI);
         }
-        else if (accession == "MS:1000073") //electrospray ionization
+        else if (ms_accession == 1000073) //electrospray ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::ESI);
         }
-        else if (accession == "MS:1000074") //fast atom bombardment ionization
+        else if (ms_accession == 1000074) //fast atom bombardment ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FAB);
         }
-        else if (accession == "MS:1000227") //multiphoton ionization
+        else if (ms_accession == 1000227) //multiphoton ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MPI);
         }
-        else if (accession == "MS:1000240") //atmospheric pressure ionization
+        else if (ms_accession == 1000240) //atmospheric pressure ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::API);
         }
-        else if (accession == "MS:1000247") //desorption ionization
+        else if (ms_accession == 1000247) //desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::DI);
         }
-        else if (accession == "MS:1000255") //flowing afterglow
+        else if (ms_accession == 1000255) //flowing afterglow
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FA);
         }
-        else if (accession == "MS:1000258") //field ionization
+        else if (ms_accession == 1000258) //field ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FII);
         }
-        else if (accession == "MS:1000259") //glow discharge ionization
+        else if (ms_accession == 1000259) //glow discharge ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::GD_MS);
         }
-        else if (accession == "MS:1000271") //Negative ion chemical ionization
+        else if (ms_accession == 1000271) //Negative ion chemical ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NICI);
         }
-        else if (accession == "MS:1000272") //neutralization reionization mass spectrometry
+        else if (ms_accession == 1000272) //neutralization reionization mass spectrometry
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NRMS);
         }
-        else if (accession == "MS:1000273") //photoionization
+        else if (ms_accession == 1000273) //photoionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PI);
         }
-        else if (accession == "MS:1000274") //pyrolysis mass spectrometry
+        else if (ms_accession == 1000274) //pyrolysis mass spectrometry
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PYMS);
         }
-        else if (accession == "MS:1000276") //resonance enhanced multiphoton ionization
+        else if (ms_accession == 1000276) //resonance enhanced multiphoton ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::REMPI);
         }
-        else if (accession == "MS:1000380") //adiabatic ionization
+        else if (ms_accession == 1000380) //adiabatic ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AI);
         }
-        else if (accession == "MS:1000381") //associative ionization
+        else if (ms_accession == 1000381) //associative ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::ASI);
         }
-        else if (accession == "MS:1000383") //autodetachment
+        else if (ms_accession == 1000383) //autodetachment
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AD);
         }
-        else if (accession == "MS:1000384") //autoionization
+        else if (ms_accession == 1000384) //autoionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AUI);
         }
-        else if (accession == "MS:1000385") //charge exchange ionization
+        else if (ms_accession == 1000385) //charge exchange ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CEI);
         }
-        else if (accession == "MS:1000386") //chemi-ionization
+        else if (ms_accession == 1000386) //chemi-ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CHEMI);
         }
-        else if (accession == "MS:1000388") //dissociative ionization
+        else if (ms_accession == 1000388) //dissociative ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::DISSI);
         }
-        else if (accession == "MS:1000389") //electron ionization
+        else if (ms_accession == 1000389) //electron ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::EI);
         }
-        else if (accession == "MS:1000395") //liquid secondary ionization
+        else if (ms_accession == 1000395) //liquid secondary ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::LSI);
         }
-        else if (accession == "MS:1000399") //penning ionization
+        else if (ms_accession == 1000399) //penning ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PEI);
         }
-        else if (accession == "MS:1000400") //plasma desorption ionization
+        else if (ms_accession == 1000400) //plasma desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PD);
         }
-        else if (accession == "MS:1000402") //secondary ionization
+        else if (ms_accession == 1000402) //secondary ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SI);
         }
-        else if (accession == "MS:1000403") //soft ionization
+        else if (ms_accession == 1000403) //soft ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SOI);
         }
-        else if (accession == "MS:1000404") //spark ionization
+        else if (ms_accession == 1000404) //spark ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SPI);
         }
-        else if (accession == "MS:1000406") //surface ionization
+        else if (ms_accession == 1000406) //surface ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SUI);
         }
-        else if (accession == "MS:1000407") //thermal ionization
+        else if (ms_accession == 1000407) //thermal ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::TI);
         }
-        else if (accession == "MS:1000408") //vertical ionization
+        else if (ms_accession == 1000408) //vertical ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::VI);
         }
-        else if (accession == "MS:1000446") //fast ion bombardment
+        else if (ms_accession == 1000446) //fast ion bombardment
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FIB);
         }
-        else if (accession == "MS:1000070") //atmospheric pressure chemical ionization
+        else if (ms_accession == 1000070) //atmospheric pressure chemical ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::APCI);
         }
-        else if (accession == "MS:1000239") //atmospheric pressure matrix-assisted laser desorption ionization
+        else if (ms_accession == 1000239) //atmospheric pressure matrix-assisted laser desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AP_MALDI);
         }
-        else if (accession == "MS:1000382") //atmospheric pressure photoionization
+        else if (ms_accession == 1000382) //atmospheric pressure photoionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::APPI);
         }
-        else if (accession == "MS:1000075") //matrix-assisted laser desorption ionization
+        else if (ms_accession == 1000075) //matrix-assisted laser desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MALDI);
         }
-        else if (accession == "MS:1000257") //field desorption
+        else if (ms_accession == 1000257) //field desorption
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FD);
         }
-        else if (accession == "MS:1000387") //desorption/ionization on silicon
+        else if (ms_accession == 1000387) //desorption/ionization on silicon
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SILI);
         }
-        else if (accession == "MS:1000393") //laser desorption ionization
+        else if (ms_accession == 1000393) //laser desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::LD);
         }
-        else if (accession == "MS:1000405") //surface-assisted laser desorption ionization
+        else if (ms_accession == 1000405) //surface-assisted laser desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SALDI);
         }
-        else if (accession == "MS:1000397") //microelectrospray
+        else if (ms_accession == 1000397) //microelectrospray
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MESI);
         }
-        else if (accession == "MS:1000398") //nanoelectrospray
+        else if (ms_accession == 1000398) //nanoelectrospray
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NESI);
         }
-        else if (accession == "MS:1000278") //surface enhanced laser desorption ionization
+        else if (ms_accession == 1000278) //surface enhanced laser desorption ionization
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SELDI);
         }
-        else if (accession == "MS:1000279") //surface enhanced neat desorption
+        else if (ms_accession == 1000279) //surface enhanced neat desorption
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SEND);
         }
-        else if (accession == "MS:1000008") //ionization type (base term)
+        else if (ms_accession == 1000008) //ionization type (base term)
         {
           instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::IONMETHODNULL);
         }
         //source attribute
-        else if (accession == "MS:1000392") //ionization efficiency
+        else if (ms_accession == 1000392) //ionization efficiency
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("ionization efficiency", termValue);
         }
-        else if (accession == "MS:1000486") //source potential
+        else if (ms_accession == 1000486) //source potential
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("source potential", termValue);
         }
-        else if (accession == "MS:1000875") // declustering potential
+        else if (ms_accession == 1000875) // declustering potential
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("declustering potential", termValue);
         }
-        else if (accession == "MS:1000876") // cone voltage
+        else if (ms_accession == 1000876) // cone voltage
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("cone voltage", termValue);
         }
-        else if (accession == "MS:1000877") // tube lens
+        else if (ms_accession == 1000877) // tube lens
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("tube lens", termValue);
         }
         //laser attribute
-        else if (accession == "MS:1000843") // wavelength
+        else if (ms_accession == 1000843) // wavelength
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("wavelength", termValue);
         }
-        else if (accession == "MS:1000844") // focus diameter x
+        else if (ms_accession == 1000844) // focus diameter x
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("focus diameter x", termValue);
         }
-        else if (accession == "MS:1000845") // focus diameter y
+        else if (ms_accession == 1000845) // focus diameter y
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("focus diameter y", termValue);
         }
-        else if (accession == "MS:1000846") // pulse energy
+        else if (ms_accession == 1000846) // pulse energy
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("pulse energy", termValue);
         }
-        else if (accession == "MS:1000847") // pulse duration
+        else if (ms_accession == 1000847) // pulse duration
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("pulse duration", termValue);
         }
-        else if (accession == "MS:1000848") // attenuation
+        else if (ms_accession == 1000848) // attenuation
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("attenuation", termValue);
         }
-        else if (accession == "MS:1000849") // impact angle
+        else if (ms_accession == 1000849) // impact angle
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("impact angle", termValue);
         }
         //laser type
-        else if (accession == "MS:1000850") // gas laser
+        else if (ms_accession == 1000850) // gas laser
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("laser type", "gas laser");
         }
-        else if (accession == "MS:1000851") // solid-state laser
+        else if (ms_accession == 1000851) // solid-state laser
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("laser type", "solid-state laser");
         }
-        else if (accession == "MS:1000852") // dye-laser
+        else if (ms_accession == 1000852) // dye-laser
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("laser type", "dye-laser");
         }
-        else if (accession == "MS:1000853") // free electron laser
+        else if (ms_accession == 1000853) // free electron laser
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("laser type", "free electron laser");
         }
         //MALDI matrix application
-        else if (accession == "MS:1000834") // matrix solution
+        else if (ms_accession == 1000834) // matrix solution
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix solution", termValue);
         }
-        else if (accession == "MS:1000835") // matrix solution concentration
+        else if (ms_accession == 1000835) // matrix solution concentration
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix solution concentration", termValue);
         }
         // matrix application type
-        else if (accession == "MS:1000836") // dried dropplet
+        else if (ms_accession == 1000836) // dried dropplet
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type", "dried dropplet");
         }
-        else if (accession == "MS:1000837") // printed
+        else if (ms_accession == 1000837) // printed
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type", "printed");
         }
-        else if (accession == "MS:1000838") // sprayed
+        else if (ms_accession == 1000838) // sprayed
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type", "sprayed");
         }
-        else if (accession == "MS:1000839") //  precoated plate
+        else if (ms_accession == 1000839) //  precoated plate
         {
           //No member => meta data
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type", " precoated plate");
@@ -3036,58 +3113,58 @@ namespace OpenMS::Internal
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "analyzer")
+      else if (parent_tag == "analyzer"sv)
       {
         //mass analyzer type
-        if (accession == "MS:1000079") //fourier transform ion cyclotron resonance
+        if (ms_accession == 1000079) //fourier transform ion cyclotron resonance
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::FOURIERTRANSFORM);
         }
-        else if (accession == "MS:1000080") //magnetic sector
+        else if (ms_accession == 1000080) //magnetic sector
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::SECTOR);
         }
-        else if (accession == "MS:1000081") //quadrupole
+        else if (ms_accession == 1000081) //quadrupole
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::QUADRUPOLE);
         }
-        else if (accession == "MS:1000084") //time-of-flight
+        else if (ms_accession == 1000084) //time-of-flight
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::TOF);
         }
-        else if (accession == "MS:1000254") //electrostatic energy analyzer
+        else if (ms_accession == 1000254) //electrostatic energy analyzer
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::ESA);
         }
-        else if (accession == "MS:1000264") //ion trap
+        else if (ms_accession == 1000264) //ion trap
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::IT);
         }
-        else if (accession == "MS:1000284") //stored waveform inverse fourier transform
+        else if (ms_accession == 1000284) //stored waveform inverse fourier transform
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::SWIFT);
         }
-        else if (accession == "MS:1000288") //cyclotron
+        else if (ms_accession == 1000288) //cyclotron
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::CYCLOTRON);
         }
-        else if (accession == "MS:1000484") //orbitrap
+        else if (ms_accession == 1000484) //orbitrap
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::ORBITRAP);
         }
-        else if (accession == "MS:1000078") //axial ejection linear ion trap
+        else if (ms_accession == 1000078) //axial ejection linear ion trap
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::AXIALEJECTIONLINEARIONTRAP);
         }
-        else if (accession == "MS:1000082") //quadrupole ion trap
+        else if (ms_accession == 1000082) //quadrupole ion trap
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::PAULIONTRAP);
         }
-        else if (accession == "MS:1000083") //radial ejection linear ion trap
+        else if (ms_accession == 1000083) //radial ejection linear ion trap
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::RADIALEJECTIONLINEARIONTRAP);
         }
-        else if (accession == "MS:1000291") //linear ion trap
+        else if (ms_accession == 1000291) //linear ion trap
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::LIT);
         }
@@ -3095,251 +3172,251 @@ namespace OpenMS::Internal
         {
           instruments_[current_id_].getMassAnalyzers().back().setMetaValue("mass analyzer accession", accession);
         }
-        else if (accession == "MS:1000443") //mass analyzer type (base term)
+        else if (ms_accession == 1000443) //mass analyzer type (base term)
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::ANALYZERNULL);
         }
         //mass analyzer attribute
-        else if (accession == "MS:1000014") //accuracy (ppm)
+        else if (ms_accession == 1000014) //accuracy (ppm)
         {
           instruments_[current_id_].getMassAnalyzers().back().setAccuracy(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000022") //TOF Total Path Length (meter)
+        else if (ms_accession == 1000022) //TOF Total Path Length (meter)
         {
           instruments_[current_id_].getMassAnalyzers().back().setTOFTotalPathLength(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000024") //final MS exponent
+        else if (ms_accession == 1000024) //final MS exponent
         {
           instruments_[current_id_].getMassAnalyzers().back().setFinalMSExponent(StringUtils::toInt32(value));
         }
-        else if (accession == "MS:1000025") //magnetic field strength (tesla)
+        else if (ms_accession == 1000025) //magnetic field strength (tesla)
         {
           instruments_[current_id_].getMassAnalyzers().back().setMagneticFieldStrength(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000105") //reflectron off
+        else if (ms_accession == 1000105) //reflectron off
         {
           instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ReflectronState::OFF);
         }
-        else if (accession == "MS:1000106") //reflectron on
+        else if (ms_accession == 1000106) //reflectron on
         {
           instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ReflectronState::ON);
         }
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "detector")
+      else if (parent_tag == "detector"sv)
       {
         //detector type
-        if (accession == "MS:1000107") //channeltron
+        if (ms_accession == 1000107) //channeltron
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CHANNELTRON);
         }
-        else if (accession == "MS:1000110") //daly detector
+        else if (ms_accession == 1000110) //daly detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::DALYDETECTOR);
         }
-        else if (accession == "MS:1000112") //faraday cup
+        else if (ms_accession == 1000112) //faraday cup
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FARADAYCUP);
         }
-        else if (accession == "MS:1000114") //microchannel plate detector
+        else if (ms_accession == 1000114) //microchannel plate detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::MICROCHANNELPLATEDETECTOR);
         }
-        else if (accession == "MS:1000115") //multi-collector
+        else if (ms_accession == 1000115) //multi-collector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::MULTICOLLECTOR);
         }
-        else if (accession == "MS:1000116") //photomultiplier
+        else if (ms_accession == 1000116) //photomultiplier
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::PHOTOMULTIPLIER);
         }
-        else if (accession == "MS:1000253") //electron multiplier
+        else if (ms_accession == 1000253) //electron multiplier
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ELECTRONMULTIPLIER);
         }
-        else if (accession == "MS:1000345") //array detector
+        else if (ms_accession == 1000345) //array detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ARRAYDETECTOR);
         }
-        else if (accession == "MS:1000346") //conversion dynode
+        else if (ms_accession == 1000346) //conversion dynode
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODE);
         }
-        else if (accession == "MS:1000347") //dynode
+        else if (ms_accession == 1000347) //dynode
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::DYNODE);
         }
-        else if (accession == "MS:1000348") //focal plane collector
+        else if (ms_accession == 1000348) //focal plane collector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FOCALPLANECOLLECTOR);
         }
-        else if (accession == "MS:1000349") //ion-to-photon detector
+        else if (ms_accession == 1000349) //ion-to-photon detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::IONTOPHOTONDETECTOR);
         }
-        else if (accession == "MS:1000350") //point collector
+        else if (ms_accession == 1000350) //point collector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::POINTCOLLECTOR);
         }
-        else if (accession == "MS:1000351") //postacceleration detector
+        else if (ms_accession == 1000351) //postacceleration detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::POSTACCELERATIONDETECTOR);
         }
-        else if (accession == "MS:1000621") //photodiode array detector
+        else if (ms_accession == 1000621) //photodiode array detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::PHOTODIODEARRAYDETECTOR);
         }
-        else if (accession == "MS:1000624") //inductive detector
+        else if (ms_accession == 1000624) //inductive detector
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::INDUCTIVEDETECTOR);
         }
-        else if (accession == "MS:1000108") //conversion dynode electron multiplier
+        else if (ms_accession == 1000108) //conversion dynode electron multiplier
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER);
         }
-        else if (accession == "MS:1000109") //conversion dynode photomultiplier
+        else if (ms_accession == 1000109) //conversion dynode photomultiplier
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODEPHOTOMULTIPLIER);
         }
-        else if (accession == "MS:1000111") //electron multiplier tube
+        else if (ms_accession == 1000111) //electron multiplier tube
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ELECTRONMULTIPLIERTUBE);
         }
-        else if (accession == "MS:1000113") //focal plane array
+        else if (ms_accession == 1000113) //focal plane array
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FOCALPLANEARRAY);
         }
-        else if (accession == "MS:1000026") //detector type (base term)
+        else if (ms_accession == 1000026) //detector type (base term)
         {
           instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::TYPENULL);
         }
         //detector attribute
-        else if (accession == "MS:1000028") //detector resolution
+        else if (ms_accession == 1000028) //detector resolution
         {
           instruments_[current_id_].getIonDetectors().back().setResolution(StringUtils::toDouble(value));
         }
-        else if (accession == "MS:1000029") //sampling frequency
+        else if (ms_accession == 1000029) //sampling frequency
         {
           instruments_[current_id_].getIonDetectors().back().setADCSamplingFrequency(StringUtils::toDouble(value));
         }
         //detector acquisition mode
-        else if (accession == "MS:1000117") //analog-digital converter
+        else if (ms_accession == 1000117) //analog-digital converter
         {
           instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::ADC);
         }
-        else if (accession == "MS:1000118") //pulse counting
+        else if (ms_accession == 1000118) //pulse counting
         {
           instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
         }
-        else if (accession == "MS:1000119") //time-digital converter
+        else if (ms_accession == 1000119) //time-digital converter
         {
           instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TDC);
         }
-        else if (accession == "MS:1000120") //transient recorder
+        else if (ms_accession == 1000120) //transient recorder
         {
           instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TRANSIENTRECORDER);
         }
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "processingMethod")
+      else if (parent_tag == "processingMethod"sv)
       {
         //data processing parameter
-        if (accession == "MS:1000629") //low intensity threshold (ion count)
+        if (ms_accession == 1000629) //low intensity threshold (ion count)
         {
           processing_[current_id_].back()->setMetaValue("low_intensity_threshold", termValue);
         }
-        else if (accession == "MS:1000631") //high intensity threshold (ion count)
+        else if (ms_accession == 1000631) //high intensity threshold (ion count)
         {
           processing_[current_id_].back()->setMetaValue("high_intensity_threshold", termValue);
         }
-        else if (accession == "MS:1000787") //inclusive low intensity threshold
+        else if (ms_accession == 1000787) //inclusive low intensity threshold
         {
           processing_[current_id_].back()->setMetaValue("inclusive_low_intensity_threshold", termValue);
         }
-        else if (accession == "MS:1000788") //inclusive high intensity threshold
+        else if (ms_accession == 1000788) //inclusive high intensity threshold
         {
           processing_[current_id_].back()->setMetaValue("inclusive_high_intensity_threshold", termValue);
         }
-        else if (accession == "MS:1000747") //completion time
+        else if (ms_accession == 1000747) //completion time
         {
           processing_[current_id_].back()->setCompletionTime(asDateTime_(value));
         }
         //file format conversion
-        else if (accession == "MS:1000530") //file format conversion
+        else if (ms_accession == 1000530) //file format conversion
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::FORMAT_CONVERSION);
         }
-        else if (accession == "MS:1000544") //Conversion to mzML
+        else if (ms_accession == 1000544) //Conversion to mzML
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
         }
-        else if (accession == "MS:1000545") //Conversion to mzXML
+        else if (ms_accession == 1000545) //Conversion to mzXML
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_MZXML);
         }
-        else if (accession == "MS:1000546") //Conversion to mzData
+        else if (ms_accession == 1000546) //Conversion to mzData
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
         }
-        else if (accession == "MS:1000741") //Conversion to DTA
+        else if (ms_accession == 1000741) //Conversion to DTA
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_DTA);
         }
         //data processing action
-        else if (accession == "MS:1000543") //data processing action
+        else if (ms_accession == 1000543) //data processing action
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::DATA_PROCESSING);
         }
-        else if (accession == "MS:1000033") //deisotoping
+        else if (ms_accession == 1000033) //deisotoping
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::DEISOTOPING);
         }
-        else if (accession == "MS:1000034") //charge deconvolution
+        else if (ms_accession == 1000034) //charge deconvolution
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
         }
-        else if (accession == "MS:1000035" || cv_.isChildOf(accession, "MS:1000035")) //peak picking (or child terms, we make no difference)
+        else if (ms_accession == 1000035 || cv_.isChildOf(accession, "MS:1000035")) //peak picking (or child terms, we make no difference)
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::PEAK_PICKING);
         }
-        else if (accession == "MS:1000592" || cv_.isChildOf(accession, "MS:1000592")) //smoothing (or child terms, we make no difference)
+        else if (ms_accession == 1000592 || cv_.isChildOf(accession, "MS:1000592")) //smoothing (or child terms, we make no difference)
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::SMOOTHING);
         }
-        else if (accession == "MS:1000778" || cv_.isChildOf(accession, "MS:1000778")) //charge state calculation (or child terms, we make no difference)
+        else if (ms_accession == 1000778 || cv_.isChildOf(accession, "MS:1000778")) //charge state calculation (or child terms, we make no difference)
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CHARGE_CALCULATION);
         }
-        else if (accession == "MS:1000780" || cv_.isChildOf(accession, "MS:1000780")) //precursor recalculation (or child terms, we make no difference)
+        else if (ms_accession == 1000780 || cv_.isChildOf(accession, "MS:1000780")) //precursor recalculation (or child terms, we make no difference)
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::PRECURSOR_RECALCULATION);
         }
-        else if (accession == "MS:1000593") //baseline reduction
+        else if (ms_accession == 1000593) //baseline reduction
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
         }
-        else if (accession == "MS:1000745") //retention time alignment
+        else if (ms_accession == 1000745) //retention time alignment
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::ALIGNMENT);
         }
-        else if (accession == "MS:1001484") //intensity normalization
+        else if (ms_accession == 1001484) //intensity normalization
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::NORMALIZATION);
         }
-        else if (accession == "MS:1001485") //m/z calibration
+        else if (ms_accession == 1001485) //m/z calibration
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CALIBRATION);
         }
-        else if (accession == "MS:1001486" || cv_.isChildOf(accession, "MS:1001486")) //data filtering (or child terms, we make no difference)
+        else if (ms_accession == 1001486 || cv_.isChildOf(accession, "MS:1001486")) //data filtering (or child terms, we make no difference)
         {
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::FILTERING);
         }
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "fileContent")
+      else if (parent_tag == "fileContent"sv)
       {
         if (cv_.isChildOf(accession, "MS:1000524")) //data file content
         {
@@ -3354,11 +3431,11 @@ namespace OpenMS::Internal
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "software")
+      else if (parent_tag == "software"sv)
       {
         if (cv_.isChildOf(accession, "MS:1000531")) //software as string
         {
-          if (accession == "MS:1000799") //custom unreleased software tool => use value as name
+          if (ms_accession == 1000799) //custom unreleased software tool => use value as name
           {
             software_[current_id_].setName(value);
           }
@@ -3373,60 +3450,60 @@ namespace OpenMS::Internal
         }
         //~ software_[current_id_].addCVTerm(   CVTerm (accession, value, const std::string &cv_identifier_ref, const std::string &value, const Unit &unit)   ); TODO somthing like that
       }
-      else if (parent_tag == "chromatogram")
+      else if (parent_tag == "chromatogram"sv)
       {
-        if (accession == "MS:1000810")
+        if (ms_accession == 1000810)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM);
         }
-        else if (accession == "MS:1000235")
+        else if (ms_accession == 1000235)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
         }
-        else if (accession == "MS:1000627")
+        else if (ms_accession == 1000627)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM);
         }
-        else if (accession == "MS:1000628")
+        else if (ms_accession == 1000628)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
         }
-        else if (accession == "MS:1001472")
+        else if (ms_accession == 1001472)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_MONITORING_CHROMATOGRAM);
         }
-        else if (accession == "MS:1001473")
+        else if (ms_accession == 1001473)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         }
-        else if (accession == "MS:1001474")
+        else if (ms_accession == 1001474)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         }
-        else if (accession == "MS:1000811")
+        else if (ms_accession == 1000811)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM);
         }
-        else if (accession == "MS:1000812")
+        else if (ms_accession == 1000812)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::ABSORPTION_CHROMATOGRAM);
         }
-        else if (accession == "MS:1000813")
+        else if (ms_accession == 1000813)
         {
           chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM);
         }
-        else if (accession == "MS:1003019" || accession == "MS:1003020" || accession == "MS:1000626")
+        else if (ms_accession == 1003019 || ms_accession == 1003020 || ms_accession == 1000626)
         {
           chromatogram_.setMetaValue("chromatogram type accession", accession);
         }
-        else if (accession == "MS:1000809")
+        else if (ms_accession == 1000809)
         {
           chromatogram_.setName(value);
         }
         else
           warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
-      else if (parent_tag == "target")
+      else if (parent_tag == "target"sv)
       {
         //allowed but, not needed
       }
@@ -3463,19 +3540,19 @@ namespace OpenMS::Internal
       }
 
       //find the right MetaInfoInterface
-      if (parent_tag == "run")
+      if (parent_tag == "run"sv)
       {
         exp_->setMetaValue(name, data_value);
       }
-      else if (parent_tag == "instrumentConfiguration")
+      else if (parent_tag == "instrumentConfiguration"sv)
       {
         instruments_[current_id_].setMetaValue(name, data_value);
       }
-      else if (parent_tag == "source")
+      else if (parent_tag == "source"sv)
       {
         instruments_[current_id_].getIonSources().back().setMetaValue(name, data_value);
       }
-      else if (parent_tag == "analyzer")
+      else if (parent_tag == "analyzer"sv)
       {
         // restore a mass analyzer type that was written with the generic term (see hasLegacyAnalyzerType)
         MassAnalyzer& analyzer = instruments_[current_id_].getMassAnalyzers().back();
@@ -3489,55 +3566,55 @@ namespace OpenMS::Internal
           analyzer.setMetaValue(name, data_value);
         }
       }
-      else if (parent_tag == "detector")
+      else if (parent_tag == "detector"sv)
       {
         instruments_[current_id_].getIonDetectors().back().setMetaValue(name, data_value);
       }
-      else if (parent_tag == "sample")
+      else if (parent_tag == "sample"sv)
       {
         if (name == "comment") { samples_[current_id_].setComment(value); }
         else { samples_[current_id_].setMetaValue(name, data_value); }
       }
-      else if (parent_tag == "software")
+      else if (parent_tag == "software"sv)
       {
         software_[current_id_].setMetaValue(name, data_value);
       }
-      else if (parent_tag == "contact")
+      else if (parent_tag == "contact"sv)
       {
         exp_->getContacts().back().setMetaValue(name, data_value);
       }
-      else if (parent_tag == "sourceFile")
+      else if (parent_tag == "sourceFile"sv)
       {
         source_files_[current_id_].setMetaValue(name, data_value);
       }
-      else if (parent_tag == "binaryDataArray")
+      else if (parent_tag == "binaryDataArray"sv)
       {
         bin_data_.back().meta.setMetaValue(name, data_value);
       }
-      else if (parent_tag == "spectrum")
+      else if (parent_tag == "spectrum"sv)
       {
         spec_.setMetaValue(name, data_value);
       }
-      else if (parent_tag == "chromatogram")
+      else if (parent_tag == "chromatogram"sv)
       {
         chromatogram_.setMetaValue(name, data_value);
       }
-      else if (parent_tag == "scanList")
+      else if (parent_tag == "scanList"sv)
       {
         spec_.getAcquisitionInfo().setMetaValue(name, data_value);
       }
-      else if (parent_tag == "scan")
+      else if (parent_tag == "scan"sv)
       {
         spec_.getAcquisitionInfo().back().setMetaValue(name, data_value);
       }
-      else if (parent_tag == "scanWindow")
+      else if (parent_tag == "scanWindow"sv)
       {
         spec_.getInstrumentSettings().getScanWindows().back().setMetaValue(name, data_value);
       }
-      else if (parent_tag == "isolationWindow")
+      else if (parent_tag == "isolationWindow"sv)
       {
         //We don't have this as a separate location => store it in the precursor
-        if (parent_parent_tag == "precursor")
+        if (parent_parent_tag == "precursor"sv)
         {
           if (in_spectrum_list_)
           {
@@ -3548,7 +3625,7 @@ namespace OpenMS::Internal
             chromatogram_.getPrecursor().setMetaValue(name, data_value);
           }
         }
-        else if (parent_parent_tag == "product")
+        else if (parent_parent_tag == "product"sv)
         {
           if (in_spectrum_list_)
           {
@@ -3560,7 +3637,7 @@ namespace OpenMS::Internal
           }
         }
       }
-      else if (parent_tag == "selectedIon")
+      else if (parent_tag == "selectedIon"sv)
       {
         //parse only the first selected ion
         if (selected_ion_count_ > 1)
@@ -3576,7 +3653,7 @@ namespace OpenMS::Internal
           chromatogram_.getPrecursor().setMetaValue(name, data_value);
         }
       }
-      else if (parent_tag == "activation")
+      else if (parent_tag == "activation"sv)
       {
         //We don't have this as a separate location => store it in the precursor
         if (in_spectrum_list_)
@@ -3588,11 +3665,11 @@ namespace OpenMS::Internal
           chromatogram_.getPrecursor().setMetaValue(name, data_value);
         }
       }
-      else if (parent_tag == "processingMethod")
+      else if (parent_tag == "processingMethod"sv)
       {
         processing_[current_id_].back()->setMetaValue(name, data_value);
       }
-      else if (parent_tag == "fileContent")
+      else if (parent_tag == "fileContent"sv)
       {
         //exp_->setMetaValue(name, data_value);
       }
@@ -5439,7 +5516,7 @@ namespace OpenMS::Internal
                                             (first_scan && spec.metaValueExists(key)) ? &spec : nullptr;
           if (source == nullptr) continue;
           DataValue value = source->getMetaValue(key);
-          if (accession == "MS:1000826" && !value.hasUnit())
+          if (accession == "MS:1000826"sv && !value.hasUnit())
           {
             value.setUnit(10); // UO:0000010 second
             value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);

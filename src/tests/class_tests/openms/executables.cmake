@@ -71,6 +71,7 @@ set(datastructures_executables_list
   QTCluster_test
   RangeManager_test
   StringListUtils_test
+  StringManager_test
   StringUtils_test
   String_test
   #ToolDescription_test
@@ -796,6 +797,7 @@ set(TEST_executables
     ${kernel_executables_list}
     ${metadata_executables_list}
     ${format_executables_list}
+    XMLParserBackend_test
     ${math_executables_list}
     ${filtering_executables_list}
     ${comparison_executables_list}
