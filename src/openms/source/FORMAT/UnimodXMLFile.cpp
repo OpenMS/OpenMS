@@ -219,6 +219,10 @@ namespace OpenMS
       {
         const size_t declaration_end = text.find("?>", p);
         if (declaration_end == std::string_view::npos) return std::string_view::npos;
+        // XML 1.0 only: XML 1.1 turns NEL and LSEP into line ends, which the byte scanner below would read as name
+        // characters
+        std::string_view version;
+        if (attributeValue(text.substr(p, declaration_end - p), "version", version) && version != "1.0") return std::string_view::npos;
         // the tags are read from the bytes: UTF-8 (the default) only, not e.g. UTF-7, which can encode '<'
         std::string_view encoding;
         if (attributeValue(text.substr(p, declaration_end - p) , "encoding", encoding))
