@@ -427,6 +427,57 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setValidStrings("rescoring:single_cneg", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
+    defaults_.setValue("rescore_method", "percolator",
+                       "With 'rescore': 'percolator' = Percolator's PSM-level FDR (default); 'reset' = Percolator-RESET "
+                       "(Freestone et al., J Proteome Res 2025): half of the decoy peptides (stems = unmodified sequences, by a "
+                       "random coin per stem) train the model, the other half estimates the FDR, which is controlled at the "
+                       "peptide (stem) level: every rescored hit gets the q-value of its stem as meta value "
+                       "'RESET:peptide_q_value'. The main score (q-value) stays PSM-level, but under RESET it is a heuristic "
+                       "(not FDR-controlled): 2 (estimating decoy PSMs + 1) / target PSMs. Experimental.", {"advanced"});
+    defaults_.setValidStrings("rescore_method", {"percolator", "reset"});
+    defaults_.setValue("reset:salt", "",
+                       "rescore_method 'reset': salt of the decoy coins (unsigned 64-bit integer); empty = random per run. "
+                       "The salt is recorded in the search parameters ('RESET:salt'). Never pick the best of several salts.",
+                       {"advanced"});
+    defaults_.setValue("reset:learner", "svm",
+                       "rescore_method 'reset': 'svm' = linear SVM; 'mlp' = small MLP ensemble (experimental).", {"advanced"});
+    defaults_.setValidStrings("reset:learner", {"svm", "mlp"});
+    defaults_.setValue("reset:mlp_members", 8, "rescore_method 'reset', learner 'mlp': networks per ensemble.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_members", 1);
+    defaults_.setValue("reset:mlp_hidden", 16, "rescore_method 'reset', learner 'mlp': units of each of the two hidden layers.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_hidden", 1);
+    defaults_.setValue("reset:mlp_epochs", 30, "rescore_method 'reset', learner 'mlp': training epochs of the first round.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_epochs", 1);
+    defaults_.setValue("reset:mlp_warm_epochs", 3,
+                       "rescore_method 'reset', learner 'mlp': > 0 = the networks continue from the previous round for this many "
+                       "epochs (warm starts); 0 = trained afresh (mlp_epochs) every round.", {"advanced"});
+    defaults_.setMinInt("reset:mlp_warm_epochs", 0);
+    defaults_.setValue("reset:mlp_crossfit", "true",
+                       "rescore_method 'reset', learner 'mlp': score each peptide by the networks that did not train on it (3 folds "
+                       "by sequence hash); 'false' = one final ensemble (memorizes its training decoys: fewer peptides).", {"advanced"});
+    defaults_.setValidStrings("reset:mlp_crossfit", {"true", "false"});
+    defaults_.setValue("reset:mlp_norm_min_decoys", 1000,
+                       "rescore_method 'reset', learner 'mlp', cross-fitted: normalize the folds' scores (as Percolator) only if every "
+                       "fold has at least this many training decoys (0 = always).", {"advanced"});
+    defaults_.setMinInt("reset:mlp_norm_min_decoys", 0);
+    defaults_.setValue("reset:representative", "model",
+                       "rescore_method 'reset': the PSM that represents a peptide (stem): 'model' (default) = after each training "
+                       "round, best score under the new model (+2 % peptides on DIA; the FDR then also assumes that null targets "
+                       "and decoys are exchangeable over their whole PSM collections, including their sizes); 'search' = best "
+                       "search engine score (the paper).", {"advanced"});
+    defaults_.setValidStrings("reset:representative", {"search", "model"});
+    defaults_.setValue("reset:iterations", 25,
+                       "rescore_method 'reset': training rounds (the paper: 5; on DIA pseudo-spectra 5 rounds stop far from "
+                       "convergence: 82 % of the peptides of 20 rounds on HeLa).", {"advanced"});
+    defaults_.setMinInt("reset:iterations", 1);
+    defaults_.setValue("reset:audit", "false",
+                       "rescore_method 'reset': feature-symmetry audit before training (log).", {"advanced"});
+    defaults_.setValidStrings("reset:audit", {"true", "false"});
+    defaults_.setSectionDescription("reset", "Percolator-RESET options (rescore_method 'reset')");
+    defaults_.setValue("reset:stem_table", "",
+                       "rescore_method 'reset': write the stems with their q-values (tab-separated) to this file, or, if it "
+                       "ends with '/' or is a directory, to <dir>/<spectra file base name>.reset_stems.tsv per run.",
+                       {"advanced"});
 
     defaults_.setValue("FDR:PSM", 0.0,
                        "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR; 0 disables the filter). Target and decoy PSMs are filtered "
@@ -751,6 +802,24 @@ namespace OpenMS
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
     percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     percolator_training_.solver = param_.getValue("rescore_solver").toString();
+    percolator_extra_ = Param();
+    if (param_.getValue("rescore_method").toString() == "reset")
+    {
+      percolator_extra_.setValue("algorithm", "reset");
+      for (const std::string key : {"salt", "learner", "audit", "stem_table", "representative", "mlp_crossfit"})
+      {
+        percolator_extra_.setValue("reset:" + key, param_.getValue("reset:" + key).toString());
+      }
+      for (const std::string key : {"iterations", "mlp_members", "mlp_hidden", "mlp_epochs", "mlp_warm_epochs", "mlp_norm_min_decoys"})
+      {
+        percolator_extra_.setValue("reset:" + key, static_cast<int>(param_.getValue("reset:" + key)));
+      }
+      if (static_cast<double>(param_.getValue("FDR:PSM")) > 0.0)
+      {
+        OPENMS_LOG_WARN << "[ProSE] rescore_method 'reset' with FDR:PSM > 0: the PSM q-values that FDR:PSM filters on are "
+                           "heuristic under RESET (FDR is controlled at the peptide level: RESET:peptide_q_value)." << endl;
+      }
+    }
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -4367,7 +4436,7 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids,
       int threads)
   {
-    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr, PercolatorTraining());
+    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr, PercolatorTraining(), Param());
   }
 
   // static
@@ -4376,7 +4445,8 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids,
       int threads,
       std::vector<std::vector<PeptideHit>>* dropped,
-      const PercolatorTraining& training)
+      const PercolatorTraining& training,
+      const Param& extra)
   {
     PercolatorRescoring outcome;
     if (protein_ids.empty())
@@ -4441,6 +4511,11 @@ namespace OpenMS
     // results do not depend on the threads
     pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 128));
     pp.setValue("solver", training.solver);
+    // rescore_method 'reset': the RESET parameters (see the parameter 'rescore_method')
+    for (auto it = extra.begin(); it != extra.end(); ++it)
+    {
+      pp.setValue(it.getName(), it->value);
+    }
     perc.setParameters(pp);
 
     try
@@ -4525,6 +4600,16 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
       if (training.solver != "tron") run_sp.setMetaValue("Percolator:solver", training.solver);
       else run_sp.removeMetaValue("Percolator:solver");
+      if (const auto rr = perc.getResetOutput())
+      {
+        run_sp.setMetaValue("Percolator:algorithm", "reset");
+        run_sp.setMetaValue("RESET:salt", StringUtils::toStr(rr->salt));
+        run_sp.setMetaValue("RESET:protocol", "PSM-only");
+        run_sp.setMetaValue("RESET:learner", rr->learner);
+        if (!rr->learner_settings.empty()) run_sp.setMetaValue("RESET:learner_settings", rr->learner_settings);
+        run_sp.setMetaValue("RESET:fdr_level", "peptide (stem): RESET:peptide_q_value; PSM q-values heuristic");
+        run_sp.setMetaValue("RESET:target_stems_1pct", static_cast<int>(rr->discoveries_1pct));
+      }
       run.setSearchParameters(run_sp);
     }
     outcome.applied = true;
@@ -4594,8 +4679,20 @@ namespace OpenMS
       const bool release_later = threads > 1;
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
+      // rescore_method 'reset' with a directory as reset:stem_table: one table per run, named after its spectra file
+      Param extra = percolator_extra_;
+      if (extra.exists("reset:stem_table"))
+      {
+        std::string path = extra.getValue("reset:stem_table").toString();
+        if (!path.empty() && (path.back() == '/' || File::isDirectory(path)))
+        {
+          std::string base = reset_run_name_.empty() ? std::string("run") : File::basename(reset_run_name_);
+          if (const auto dot = base.rfind('.'); dot != std::string::npos && dot > 0) base.erase(dot);
+          extra.setValue("reset:stem_table", (path.back() == '/' ? path : path + "/") + base + ".reset_stems.tsv");
+        }
+      }
       rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr,
-                                         percolator_training_);
+                                         percolator_training_, extra);
       if (!dropped.empty())
       {
         try
@@ -5345,6 +5442,7 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
+    reset_run_name_ = in_spectra; // names the RESET stem table of the run (reset:stem_table a directory)
     // load MS2 map
     PeakMap spectra;
 
@@ -6012,6 +6110,7 @@ namespace OpenMS
         // Pre-FDR stats (target/decoy counts + HyperScore distribution).
         capturePreFdrStats_(result.peptide_ids, result.stats);
         // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
+        reset_run_name_ = in_spectra;
         result.percolator = applyPsmFDR_(result.protein_ids, result.peptide_ids, has_decoys, result.stats,
                                          keep_pre_fdr_psms_ ? &result.pre_fdr_peptide_ids : nullptr);
 
@@ -6180,6 +6279,7 @@ namespace OpenMS
         // No file after this one: search() releases the index right after scoring (in parallel, and
         // before the post-processing allocates) instead of the context's destructor at the end.
         ctx.release_fragment_index_after_scoring = i + 1 == in_spectra_files.size();
+        reset_run_name_ = in_spectra_files[i]; // names the RESET stem table of the run (reset:stem_table a directory)
         result.exit_code = search(spectra, ctx, result.protein_ids, result.peptide_ids);
 
         if (result.exit_code != ExitCodes::EXECUTION_OK)

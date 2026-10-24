@@ -70,6 +70,21 @@ namespace OpenMS
     int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)
     bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
+    std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
+    std::string reset_salt;                   ///< empty = random
+    std::string reset_learner = "svm";
+    int    reset_iterations = 25;
+    std::string reset_representative = "model";
+    bool   reset_audit = false;
+    std::string reset_stem_table;             ///< empty = none
+    int    reset_mlp_members = 8;             ///< learner "mlp" (PercolatorReset::Options)
+    int    reset_mlp_hidden = 16;
+    int    reset_mlp_epochs = 30;
+    int    reset_mlp_warm_epochs = 3;
+    bool   reset_mlp_crossfit = true;
+    int    reset_mlp_norm_min_decoys = 1000;
+    /// Result of the last RESET rescorePSMs() call (null otherwise).
+    std::shared_ptr<const PercolatorReset::Output> last_reset;
 
     /// Per-fold, per-feature weights populated after rescore(). Read by
     /// Percolator::getSvmWeights(). Empty before the first rescore().

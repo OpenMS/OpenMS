@@ -1243,6 +1243,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
     PercolatorTraining percolator_training_; ///< rescoring:...: options of Percolator's training
+    Param percolator_extra_; ///< rescore_method 'reset': Percolator's RESET parameters (empty: Percolator)
+    mutable std::string reset_run_name_; ///< spectra file of the run being rescored (names its RESET stem table)
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1331,12 +1333,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     mutable std::shared_ptr<void> released_hits_;
 
     /// rescoreWithPercolator(); with @p dropped, the hits it drops are moved there (as memory allows) instead of
-    /// destroyed; @p training: the options of Percolator's training (parameters 'rescoring:...' and 'rescore_solver')
+    /// destroyed; @p training: the options of Percolator's training (parameters 'rescoring:...' and 'rescore_solver');
+    /// @p extra: further Percolator parameters (rescore_method 'reset': the RESET parameters)
     static PercolatorRescoring rescoreWithPercolator_(std::vector<ProteinIdentification>& protein_ids,
                                                       PeptideIdentificationList& peptide_ids,
                                                       int threads,
                                                       std::vector<std::vector<PeptideHit>>* dropped,
-                                                      const PercolatorTraining& training);
+                                                      const PercolatorTraining& training,
+                                                      const Param& extra);
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback

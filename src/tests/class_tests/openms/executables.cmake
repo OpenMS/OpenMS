@@ -284,6 +284,7 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorReset_test
   PercolatorTron_test
   PercolatorNewton_test
   ProtXMLFile_test

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/PercolatorReset.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -420,10 +421,23 @@ namespace OpenMS
     */
     static PercolatorModel loadModel(const std::string& filename);
 
+    /**
+      @brief Result of the last rescorePSMs() call with parameter 'algorithm' = 'reset' (null otherwise).
+
+      With RESET, rescorePSMs() stores the heuristic PSM-level q-value and PEP (PercolatorReset::Output) where
+      Percolator stores its PSM-level values, the RESET score as SVM score, and on every rescored hit the q-value of
+      its peptide (stem) as meta value "RESET:peptide_q_value" (the FDR-controlled output), on decoy hits
+      "RESET:decoy_role" ("training" or "estimating").
+    */
+    std::shared_ptr<const PercolatorReset::Output> getResetOutput() const;
+
   protected:
     void updateMembers_() override;
 
   private:
+    RescoreOutput rescoreReset_(const PeptideIdentificationList& peptide_ids, RescoreInput& ri,
+                                const std::vector<std::pair<size_t, size_t>>& hit_locs);
+
     struct Impl;
     std::unique_ptr<Impl> impl_;
   };
