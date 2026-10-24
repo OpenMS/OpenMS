@@ -26,11 +26,57 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <vector>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // PSMs for buildFeatureMatrix: 300 spectra of two files with up to 3 hits; hits without evidence or target/decoy
+  // type, decoys, an input CalcMass, both isotope error meta values, an extra feature as a number, as a string and
+  // missing, and an input meta value under a PIN column name ('score')
+  PeptideIdentificationList makeMatrixInput()
+  {
+    const std::vector<std::string> peptides{"SAMPLER", "PEPTIDEK", "ACDEFGHIK", "M(Oxidation)LVEK", ".(Acetyl)SAMPLEK"};
+    PeptideIdentificationList pids;
+    for (int i = 0; i < 300; ++i)
+    {
+      PeptideIdentification pid;
+      pid.setMZ(400.0 + 0.37 * i);
+      pid.setRT(10.0 + i);
+      pid.setSpectrumReference("scan=" + std::to_string(1000 + i % 150));
+      pid.setMetaValue("file_origin", i < 150 ? "a.mzML" : "b.mzML");
+      for (int k = 0; k < 1 + i % 3; ++k)
+      {
+        const int n = i * 3 + k;
+        PeptideHit hit;
+        hit.setSequence(AASequence::fromString(peptides[n % peptides.size()]));
+        hit.setCharge(2 + n % 3);
+        hit.setScore(0.1 * n - 3.0);
+        if (n % 17 != 5) hit.setTargetDecoyType(n % 4 == 1 ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+        if (n % 23 != 7)
+        {
+          PeptideEvidence ev;
+          ev.setProteinAccession(n % 4 == 1 ? "DECOY_P" : "P" + std::to_string(n % 9));
+          ev.setAABefore(n % 5 == 0 ? '[' : 'K');
+          ev.setAAAfter(n % 7 == 0 ? ']' : 'A');
+          hit.addPeptideEvidence(ev);
+        }
+        if (n % 11 == 3) hit.setMetaValue("CalcMass", 777.25 + n);
+        if (n % 13 == 2) hit.setMetaValue("IsotopeError", "1");
+        if (n % 6 == 4) hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, -1);
+        if (n % 19 != 8) hit.setMetaValue("engine_x", n % 2 ? DataValue(0.5 * n) : DataValue(std::to_string(n) + ".25"));
+        if (n % 10 == 9) hit.setMetaValue("score", 42.0);
+        pid.insertHit(hit);
+      }
+      pids.push_back(pid);
+    }
+    return pids;
+  }
+}
 
 START_TEST(PercolatorInfile, "$Id$")
 
@@ -518,6 +564,101 @@ START_SECTION((static double getFeatureValue(const DataValue& value, const std::
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::quiet_NaN()), "f"))
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::infinity()), "f"))
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(-std::numeric_limits<double>::infinity()), "f"))
+}
+END_SECTION
+
+START_SECTION((static Size buildFeatureMatrix(const PeptideIdentificationList& peptide_ids, const StringList& features, const std::string& enz, int min_charge, int max_charge, RescoreInput& input, std::vector<std::pair<size_t, size_t>>& rows)))
+{
+  const PeptideIdentificationList pids = makeMatrixInput();
+  StringList features = PercolatorInfile::getStandardFeatureSet(2, 3);
+  features.erase(std::remove_if(features.begin(), features.end(), [](const std::string& f)
+    { return f == "SpecId" || f == "Label" || f == "ScanNr" || f == "ExpMass"; }), features.end());
+  features.insert(features.end(), {"deltamass", "retentiontime", "score", "engine_x"});
+
+  // reference: the stamped meta values, read back as in-process rescoring formerly did
+  PeptideIdentificationList stamped = pids;
+  const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(stamped, "trypsin", 2, 3);
+  std::vector<std::vector<double>> ref_rows;
+  std::vector<std::pair<size_t, size_t>> ref_locations;
+  std::vector<int> ref_scans, ref_files;
+  std::vector<double> ref_exp, ref_calc;
+  std::vector<bool> ref_decoy;
+  std::map<std::string, int> files;
+  for (size_t i = 0; i < stamped.size(); ++i)
+  {
+    for (size_t j = 0; j < stamped[i].getHits().size(); ++j)
+    {
+      if (skipped.contains({i, j})) continue;
+      const PeptideHit& hit = stamped[i].getHits()[j];
+      std::vector<double> row;
+      bool ok = true;
+      for (const std::string& f : features)
+      {
+        if (!hit.metaValueExists(f)) { ok = false; break; }
+        row.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue(f), f));
+      }
+      if (!ok) continue;
+      ref_rows.push_back(row);
+      ref_locations.emplace_back(i, j);
+      ref_decoy.push_back(static_cast<int>(hit.getMetaValue("Label")) == -1);
+      ref_scans.push_back(static_cast<int>(hit.getMetaValue("ScanNr")));
+      ref_exp.push_back(static_cast<double>(hit.getMetaValue("ExpMass")));
+      ref_calc.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass"));
+      ref_files.push_back(files.try_emplace(PercolatorInfile::getFileIdentifier(stamped[i]), static_cast<int>(files.size())).first->second);
+    }
+  }
+  TEST_EQUAL(skipped.empty(), false)
+  TEST_EQUAL(ref_rows.size() > 300, true)
+
+  RescoreInput input;
+  std::vector<std::pair<size_t, size_t>> rows;
+  TEST_EQUAL(PercolatorInfile::buildFeatureMatrix(pids, features, "trypsin", 2, 3, input, rows), skipped.size())
+  TEST_EQUAL(rows == ref_locations, true)
+  TEST_EQUAL(input.features.empty(), true)
+  TEST_EQUAL(input.feature_names == features, true)
+  ABORT_IF(input.rowCount() != ref_rows.size() || input.featureCount() != features.size())
+  bool same_values = true; // bit for bit
+  for (size_t r = 0; r < ref_rows.size(); ++r)
+  {
+    same_values = same_values && std::equal(ref_rows[r].begin(), ref_rows[r].end(), input.row(r));
+  }
+  TEST_EQUAL(same_values, true)
+  TEST_EQUAL(input.is_decoy == ref_decoy, true)
+  TEST_EQUAL(input.scan_numbers == ref_scans, true)
+  TEST_EQUAL(input.spec_file_numbers == ref_files, true)
+  TEST_EQUAL(input.exp_masses == ref_exp, true)
+  TEST_EQUAL(input.calc_masses == ref_calc, true)
+  // no meta value was added to the hits
+  TEST_EQUAL(pids == makeMatrixInput(), true)
+
+  // errors as by stamping, then by reading the rows: an unknown target/decoy value, a feature that is not a number
+  PeptideIdentificationList bad_td = pids;
+  bad_td[200].getHits()[0].setMetaValue("target_decoy", "neither");
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::buildFeatureMatrix(bad_td, features, "trypsin", 2, 3, input, rows))
+  PeptideIdentificationList bad_feature = pids;
+  bad_feature[100].getHits()[0].setMetaValue("engine_x", "abc");
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::buildFeatureMatrix(bad_feature, features, "trypsin", 2, 3, input, rows))
+  // a string column is not a feature
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::buildFeatureMatrix(pids, StringList{"mass", "Peptide"}, "trypsin", 2, 3, input, rows))
+}
+END_SECTION
+
+START_SECTION((static void refreshPinMetaValues(PeptideIdentificationList& peptide_ids, const std::string& enz, int min_charge, int max_charge)))
+{
+  // as stamping: an input meta value under a PIN column name gets its PIN value; no other meta value is added
+  const PeptideIdentificationList pids = makeMatrixInput();
+  PeptideIdentificationList refreshed = pids;
+  PercolatorInfile::refreshPinMetaValues(refreshed, "trypsin", 2, 3);
+  PeptideIdentificationList stamped = pids;
+  PercolatorInfile::PinFeatureMetaValueMap added;
+  PercolatorInfile::stampPinFeaturesOnHits(stamped, "trypsin", 2, 3, added);
+  for (const auto& [location, keys] : added)
+  {
+    for (const std::string& key : keys) stamped[location.first].getHits()[location.second].removeMetaValue(key);
+  }
+  TEST_EQUAL(refreshed == stamped, true)
+  TEST_EQUAL(refreshed == pids, false)
+  TEST_EQUAL(static_cast<double>(refreshed[3].getHits()[0].getMetaValue("score")), refreshed[3].getHits()[0].getScore())
 }
 END_SECTION
 

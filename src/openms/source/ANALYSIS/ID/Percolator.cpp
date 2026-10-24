@@ -1468,6 +1468,42 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
   }
 }
 
+void Percolator::buildPSMRescoreInput(const PeptideIdentificationList& peptide_ids,
+                                      const StringList& feature_set,
+                                      const std::string& enzyme,
+                                      int min_charge,
+                                      int max_charge,
+                                      RescoreInput& input,
+                                      PSMRowLocations& rows)
+{
+  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass is
+  // used by Percolator for the spectrum key (it goes into RescoreInput.exp_masses), not for training.
+  const std::set<std::string> pin_metadata_not_feature {
+    "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
+  };
+  StringList numeric_features;
+  for (const std::string& f : feature_set)
+  {
+    if (pin_metadata_not_feature.contains(f)) continue;
+    numeric_features.push_back(f);
+  }
+  // (computed first: errors of the PSMs come before a missing feature set, as when the PIN features were stamped)
+  const Size skipped = PercolatorInfile::buildFeatureMatrix(peptide_ids, numeric_features, enzyme, min_charge, max_charge,
+                                                            input, rows);
+  OPENMS_LOG_INFO << "Computed the PIN features; " << skipped
+                  << " PSMs skipped (no evidence or unknown TD)." << std::endl;
+  if (numeric_features.empty())
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No numeric Percolator features in the feature set.");
+  }
+  if (rows.empty())
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No PSM carries all Percolator features.");
+  }
+}
+
 Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              const StringList& feature_set,
                              const std::string& enzyme,
@@ -1487,193 +1523,21 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       "No PSMs to rescore.");
   }
 
+  // A hit that carries a meta value under the name of a PIN column gets its PIN value, as stamping did.
+  PercolatorInfile::refreshPinMetaValues(peptide_ids, enzyme, min_charge, max_charge);
+
   // Training then uses the feature vectors the executable would read from the .pin file, row for row.
-  PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
-  const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
-    peptide_ids, enzyme, min_charge, max_charge, added_pin_meta_values);
-  OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
-                  << skipped.size() << " PSMs skipped (no evidence or unknown TD)." << std::endl;
-
-  // Removes only the stamped meta values that did not exist before, also when rescoring throws.
-  struct PinMetaValueCleanup
-  {
-    PeptideIdentificationList& ids;
-    PercolatorInfile::PinFeatureMetaValueMap& added;
-    ~PinMetaValueCleanup()
-    {
-      // The hits in parallel, removing the meta values by name index (looking names up takes a lock on the
-      // registry, which the threads would contend for); the stamped names are registered. The key sets are
-      // released in the loop as well. A destructor must not throw: if the parallel removal cannot allocate,
-      // the remaining values are removed serially by name, which allocates nothing.
-      bool failed = false;
-      try
-      {
-        std::vector<PercolatorInfile::PinFeatureMetaValueMap::value_type*> entries;
-        entries.reserve(added.size());
-        for (auto& entry : added) entries.push_back(&entry);
-#pragma omp parallel reduction(||: failed)
-        {
-          try
-          {
-            std::unordered_map<std::string, UInt> name_index;
-#pragma omp for schedule(dynamic, 256)
-            for (SignedSize e = 0; e < static_cast<SignedSize>(entries.size()); ++e)
-            {
-              auto& [hit_location, keys] = *entries[e];
-              PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-              for (const std::string& key : keys)
-              {
-                auto it = name_index.find(key);
-                if (it == name_index.end())
-                {
-                  it = name_index.emplace(key, MetaInfoInterface::metaRegistry().getIndex(key)).first;
-                }
-                hit.removeMetaValue(it->second);
-              }
-              keys.clear();
-            }
-          }
-          catch (...)
-          {
-            failed = true;
-          }
-        }
-      }
-      catch (...)
-      {
-        failed = true;
-      }
-      if (failed)
-      {
-        for (const auto& [hit_location, keys] : added)
-        {
-          PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-          for (const std::string& key : keys) hit.removeMetaValue(key);
-        }
-      }
-    }
-  } cleanup{peptide_ids, added_pin_meta_values};
-
-  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass is
-  // used by Percolator for the spectrum key (it goes into RescoreInput.exp_masses), not for training.
-  const std::set<std::string> pin_metadata_not_feature {
-    "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
-  };
-  StringList numeric_features;
-  for (const std::string& f : feature_set)
-  {
-    if (pin_metadata_not_feature.contains(f)) continue;
-    numeric_features.push_back(f);
-  }
-  if (numeric_features.empty())
-  {
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "No numeric Percolator features in the feature set.");
-  }
-
-  // The RescoreInput is built here rather than with fillPINCompatibleFields() so the PIN-compatible
-  // fields stay aligned with the feature rows when hits are skipped (missing target_decoy or feature).
   RescoreInput ri;
-  ri.feature_names = numeric_features;
-  std::vector<std::pair<size_t, size_t>> hit_locs;
-  // The feature rows of each spectrum (PeptideIdentification) in parallel, reading the meta values by name index:
-  // looking names up takes a lock on the registry, which the threads would contend for. An unregistered name (index
-  // -1) exists on no hit.
-  auto index_of = [](const std::string& name) { return MetaInfoInterface::metaRegistry().getIndex(name); };
-  std::vector<UInt> feature_indices;
-  for (const std::string& f : numeric_features) feature_indices.push_back(index_of(f));
-  const UInt scan_nr_index = index_of("ScanNr"), exp_mass_index = index_of("ExpMass"), calc_mass_index = index_of("CalcMass");
-  // A hit is a decoy if its stamped Label is -1: stampPinFeaturesOnHits() stamps it from PeptideHit::isDecoy() on every
-  // hit it does not skip (and stops at a hit whose target_decoy value is unknown); isDecoy() looks its name up twice.
-  const UInt label_index = index_of("Label");
-  struct Row
-  {
-    size_t hit_index;
-    std::vector<double> features;
-    bool is_decoy;
-    int scan_number;
-    double exp_mass;
-    double calc_mass;
-  };
-  std::vector<std::vector<Row>> rows(peptide_ids.size());
-  std::vector<std::exception_ptr> errors(peptide_ids.size());
-#pragma omp parallel for schedule(dynamic, 64)
-  for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
-  {
-    try
-    {
-      const auto& pid = peptide_ids[i];
-      for (size_t j = 0; j < pid.getHits().size(); ++j)
-      {
-        if (skipped.contains({static_cast<size_t>(i), j})) continue;
-        const PeptideHit& hit = pid.getHits()[j];
-
-        std::vector<double> row;
-        row.reserve(numeric_features.size());
-        bool ok = true;
-        for (size_t f = 0; f < numeric_features.size(); ++f)
-        {
-          if (!hit.metaValueExists(feature_indices[f])) { ok = false; break; }
-          // as the executable reads the .pin: search engine scores may be stored as strings
-          row.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue(feature_indices[f]), numeric_features[f]));
-        }
-        if (!ok) continue;
-
-        rows[i].push_back({j, std::move(row), static_cast<int>(hit.getMetaValue(label_index)) == -1,
-                           static_cast<int>(hit.getMetaValue(scan_nr_index)),
-                           static_cast<double>(hit.getMetaValue(exp_mass_index)),
-                           PercolatorInfile::getFeatureValue(hit.getMetaValue(calc_mass_index), "CalcMass")});
-      }
-    }
-    catch (...)
-    {
-      errors[i] = std::current_exception();
-    }
-  }
-  // Spectrum files in order of appearance, as Percolator numbers the FileName column of the pin
-  // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
-  // competition), so spectra of different inputs with the same scan number must not share a file.
-  std::map<std::string, int> spec_files;
-  // (reserved only without an error: an allocation failure must not replace the error rethrown below)
-  size_t num_rows = 0;
-  for (const std::vector<Row>& rows_of_spectrum : rows) num_rows += rows_of_spectrum.size();
-  if (std::any_of(errors.begin(), errors.end(), [](const std::exception_ptr& error) { return bool(error); })) num_rows = 0;
-  ri.features.reserve(num_rows);
-  ri.is_decoy.reserve(num_rows);
-  ri.scan_numbers.reserve(num_rows);
-  ri.spec_file_numbers.reserve(num_rows);
-  ri.exp_masses.reserve(num_rows);
-  ri.calc_masses.reserve(num_rows);
-  hit_locs.reserve(num_rows);
-  for (size_t i = 0; i < peptide_ids.size(); ++i)
-  {
-    if (errors[i]) std::rethrow_exception(errors[i]);
-    if (rows[i].empty()) continue;
-    const int spec_file = spec_files.try_emplace(
-      PercolatorInfile::getFileIdentifier(peptide_ids[i]), static_cast<int>(spec_files.size())).first->second;
-    for (Row& row : rows[i])
-    {
-      ri.features.push_back(std::move(row.features));
-      ri.is_decoy.push_back(row.is_decoy);
-      ri.scan_numbers.push_back(row.scan_number);
-      ri.spec_file_numbers.push_back(spec_file);
-      ri.exp_masses.push_back(row.exp_mass);
-      ri.calc_masses.push_back(row.calc_mass);
-      hit_locs.emplace_back(i, row.hit_index);
-    }
-  }
-  rows.clear();
-  rows.shrink_to_fit();
-  if (ri.features.empty())
-  {
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "No PSM carries all Percolator features.");
-  }
-  OPENMS_LOG_INFO << "Rescoring " << ri.features.size() << " PSMs in-process with "
-                  << numeric_features.size() << " features." << std::endl;
+  PSMRowLocations hit_locs;
+  buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs);
+  OPENMS_LOG_INFO << "Rescoring " << ri.rowCount() << " PSMs in-process with "
+                  << ri.featureCount() << " features." << std::endl;
 
   // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
   const RescoreOutput ro = rescore(ri);
+
+  // looking names up takes a lock on the registry, which threads would contend for: the parallel loops below use indices
+  auto index_of = [](const std::string& name) { return MetaInfoInterface::metaRegistry().getIndex(name); };
 
   // The hits are updated in parallel, except for the first row and the first spectrum with hits: these register the
   // new meta value names in the order of a serial loop, and MetaInfo keeps meta values in the order of their name

@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -137,25 +138,24 @@ namespace OpenMS
       @brief Rescore search engine PSMs in place on the standard Percolator (.pin) feature set.
 
       This is the in-process equivalent of writing a .pin file, running the percolator executable
-      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('Search:rescore')
-      use it. Steps:
-      1. stamp the PIN feature meta values on every hit (PercolatorInfile::stampPinFeaturesOnHits)
-      2. build a RescoreInput from the numeric columns of @p feature_set. Bookkeeping columns
-         (SpecId, Label, ScanNr, ExpMass, Peptide, Proteins) are not used as training features.
-         Scan numbers, spectrum file numbers and experimental/calculated masses are filled the
-         way the executable reads them from a .pin file, so CV folds and target-decoy
-         competition match the external binary.
-      3. call rescore(const RescoreInput&) with the parameters of this instance
-      4. write the results back onto the hits:
+      and reading its results back, without the file and without PIN meta values on the hits.
+      PercolatorAdapter's in-process backend and ProSE ('Search:rescore') use it. Steps:
+      1. build the feature matrix (buildPSMRescoreInput()): the feature vectors the executable
+         would read from the .pin file (PercolatorInfile::store) of @p peptide_ids, row for row,
+         computed straight into a dense RescoreInput, with the hit of every row
+      2. call rescore(const RescoreInput&) with the parameters of this instance
+      3. write the results back onto the hits:
          - the original main score is kept as a meta value named after the old score type
          - MS:1001492 holds the SVM score, MS:1001491 the q-value, MS:1001493 the PEP
          - the main score becomes the one selected by @p score_type, and every
            PeptideIdentification gets the matching score type and orientation
-      5. remove the PIN meta values that step 1 added. Input meta values with the same names
-         (e.g. CalcMass) are kept.
+
+      No PIN column is added to the hits. A meta value that a hit already carries under the name
+      of a PIN column (other than CalcMass, which is read as the hit's calculated mass) is set to
+      its PIN value, as stamping the PIN features did (PercolatorInfile::refreshPinMetaValues).
 
       Hits without peptide evidences, without target/decoy information or with a missing
-      feature are not rescored (see stampPinFeaturesOnHits). Like PSMs missing from the
+      feature are not rescored (see buildPSMRescoreInput()). Like PSMs missing from the
       executable's output, they get q-value = PEP = 1 and SVM score = -100 (meta values and main
       score), so that they rank last under the new score type; their original score is kept as
       a meta value as well.
@@ -181,6 +181,40 @@ namespace OpenMS
                      int min_charge,
                      int max_charge,
                      const std::string& score_type = "q-value");
+
+    /// The hit of every feature row of a PSM RescoreInput (buildPSMRescoreInput(), rescorePSMs()):
+    /// (index of its PeptideIdentification, index of the hit in it)
+    using PSMRowLocations = std::vector<std::pair<size_t, size_t>>;
+
+    /**
+      @brief The feature matrix of PSM rescoring: what rescorePSMs() trains and scores on, without rescoring.
+
+      Computes the feature vectors that the percolator executable reads from the .pin file of @p peptide_ids
+      (PercolatorInfile::store with @p feature_set), row for row and bit for bit, straight into a RescoreInput
+      (PercolatorInfile::buildFeatureMatrix(); no meta values are added to the hits):
+      - feature_names: the numeric columns of @p feature_set. The bookkeeping columns (SpecId, Label, ScanNr,
+        ExpMass, Peptide, Proteins) are not training features.
+      - feature_matrix: the rows, dense (row-major); features stays empty
+      - is_decoy (Label), scan_numbers (ScanNr), exp_masses (ExpMass), calc_masses (CalcMass) and
+        spec_file_numbers (the spectrum files in order of appearance), as the executable reads them from the
+        .pin file, so CV folds and target-decoy competition match the external binary
+      - @p rows: the hit of each row, i.e. its peptide, proteins and spectrum
+
+      This matrix is the input of every rescoring of rescorePSMs(): Percolator's training and scoring copy its
+      rows into their PSMs, and an alternative algorithm on PSMs reads the same RescoreInput and @p rows.
+      Hits without peptide evidences, without target/decoy information or with a missing feature get no row.
+
+      @throws Exception::MissingInformation if @p feature_set has no numeric feature or no hit could be turned into
+              a feature row
+      @throws Exception::InvalidValue for a feature without a finite numeric value or an unknown target/decoy value
+    */
+    static void buildPSMRescoreInput(const PeptideIdentificationList& peptide_ids,
+                                     const StringList& feature_set,
+                                     const std::string& enzyme,
+                                     int min_charge,
+                                     int max_charge,
+                                     RescoreInput& input,
+                                     PSMRowLocations& rows);
 
     /**
       @brief SVM weights trained in the last rescore()/train() call.
