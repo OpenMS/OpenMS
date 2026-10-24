@@ -304,6 +304,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   values, are copied for the count of the feature and are reversed by tasks of blocks of keys
   (each key written once), and the PSMs are put into the final order by such tasks: the same
   keys, the same order of the PSMs.
+  `FeatureMemoryPool::moveRowsInOrder` finds the index of each row by tasks (then checks that each
+  occurs once, in order, as before): the same answer and rows.
 
 ### Regenerating the patch
 
