@@ -376,6 +376,12 @@ hand-editing sources and committing them, to keep sync self-healing.
   costs), its weights and count serve the other pairs, which are trained otherwise; with either solver
   training sets of at least 2^17 PSMs run the fold chains on all threads, whose tasks
   then also take the solvers' row blocks.
+- `patches/15-cv-training-options.patch` — experimental options of the training, off by default
+  (`CrossValidation::setTrainingOptions`, set by the OpenMS wrapper's parameters `tron_epsilon`,
+  `warm_start`, `single_cneg`): TRON's stopping tolerance instead of `EPSILON`; each (Cpos, Cneg)
+  pair starts TRON from its weights of the previous iteration instead of 0; one Cneg candidate (3 x
+  the target/decoy ratio) instead of three. With the defaults the training is unchanged; otherwise
+  the results differ from Percolator's.
 
 ### Regenerating the patch
 

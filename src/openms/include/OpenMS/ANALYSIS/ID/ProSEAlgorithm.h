@@ -153,6 +153,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+     * @brief Options of Percolator's training for the rescoring (the parameters 'rescoring:...'; the defaults are
+     *        ProSE's training: all PSMs, 10 iterations)
+     */
+    struct PercolatorTraining
+    {
+      int subset_max_train = 0;  ///< train on at most this many PSMs (drawn by spectrum, then all are scored; 0 = all)
+      int iterations = 10;       ///< iterations of the cross-validation training
+      double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
+      bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
+      bool single_cneg = false;    ///< one Cneg candidate instead of three
+      std::string solver = "tron"; ///< Percolator's SVM solver (parameter 'rescore_solver')
+    };
+
+    /**
      * @brief Comprehensive search result including modification analysis
      *
      * This structure contains all outputs from an open search including:
@@ -1228,7 +1242,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
-    std::string rescore_solver_{"tron"}; ///< rescore_solver: Percolator's SVM solver
+    PercolatorTraining percolator_training_; ///< rescoring:...: options of Percolator's training
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1317,12 +1331,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     mutable std::shared_ptr<void> released_hits_;
 
     /// rescoreWithPercolator(); with @p dropped, the hits it drops are moved there (as memory allows) instead of
-    /// destroyed; @p solver: Percolator's parameter 'solver' (parameter 'rescore_solver')
+    /// destroyed; @p training: the options of Percolator's training (parameters 'rescoring:...' and 'rescore_solver')
     static PercolatorRescoring rescoreWithPercolator_(std::vector<ProteinIdentification>& protein_ids,
                                                       PeptideIdentificationList& peptide_ids,
                                                       int threads,
                                                       std::vector<std::vector<PeptideHit>>* dropped,
-                                                      const std::string& solver = "tron");
+                                                      const PercolatorTraining& training);
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback

@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index e94a0db472..5b7797c1d1 100644
+index 609c9f4add..3f2b5904ad 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -17,11 +17,11 @@
@@ -30,7 +30,7 @@ index e94a0db472..5b7797c1d1 100644
  [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
    return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
  }
-@@ -395,7 +403,16 @@ void CrossValidation::trainFoldChains() {
+@@ -396,7 +404,16 @@ void CrossValidation::trainFoldChains() {
    vector<FoldError> foldErrors(numFolds_);
    const bool scored = trainScoresOfWeights_;
    trainScoresOfWeights_ = false;
@@ -48,7 +48,7 @@ index e94a0db472..5b7797c1d1 100644
  #pragma omp single
  #pragma omp taskloop grainsize(1)
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-@@ -420,26 +437,45 @@ void CrossValidation::trainFoldChains() {
+@@ -421,26 +438,45 @@ void CrossValidation::trainFoldChains() {
          setupFoldInputs(set, selectionFdr, nestedTestScores, &testSet);
          stage = 2;
          if (step == 0u && useRows) trainScores_[set].getFeatureRows(rows);
@@ -109,7 +109,7 @@ index e94a0db472..5b7797c1d1 100644
          stage = 3;
          // mergeCpCnPairs without nested cross-validation, for this fold
          int bestTruePoses = 0;
-@@ -691,7 +727,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
+@@ -692,7 +728,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
   * @param pOptions options for the SVM algorithm
   * @param svmInput training data for this particular nested CV fold
   */
@@ -118,15 +118,19 @@ index e94a0db472..5b7797c1d1 100644
                                      options& pOptions,
                                      AlgIn* svmInput) {
    vector_double pWeights;
-@@ -711,19 +747,41 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+@@ -712,21 +748,43 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
    if (VERB > 3)
      cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
           << endl;
+-  // OpenMS: with warmStart_ (and no nested cross-validation), from the pair's weights of the
+-  // previous iteration (0 at first)
 +  // OpenMS: Newton and LDA (solver_) start from the pair's weights of the step before (0 at the
-+  // first step)
++  // first step); so does TRON with warmStart_ (and no nested cross-validation)
    for (int ix = 0; ix < pWeights.d; ix++) {
--    pWeights.vec[ix] = 0;
-+    pWeights.vec[ix] = solver_ == kSolverTron ? 0 : cpCnFold.ww[ix];
+-    pWeights.vec[ix] = warmStart_ && nestedXvalBins_ == 1 ? cpCnFold.ww[static_cast<std::size_t>(ix)] : 0;
++    pWeights.vec[ix] = solver_ != kSolverTron || (warmStart_ && nestedXvalBins_ == 1)
++                           ? cpCnFold.ww[static_cast<std::size_t>(ix)]
++                           : 0;
    }
    for (int ix = 0; ix < Outputs.d; ix++) {
      Outputs.vec[ix] = 0;
@@ -162,7 +166,7 @@ index e94a0db472..5b7797c1d1 100644
  }
  
  /**
-@@ -826,8 +884,8 @@ int CrossValidation::mergeCpCnPairs(
+@@ -829,8 +887,8 @@ int CrossValidation::mergeCpCnPairs(
            Outputs.vec[ix] = 0;
          }
          // Call SVM algorithm (see ssl.cpp)
@@ -174,10 +178,10 @@ index e94a0db472..5b7797c1d1 100644
          for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
            weights_[set][i] = pWeights.vec[i];
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
-index b518ce830d..15e300f45f 100644
+index dc72d69f8b..4882e2de3a 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.h
 +++ b/src/openms/thirdparty/percolator/CrossValidation.h
-@@ -30,6 +30,7 @@
+@@ -31,6 +31,7 @@
  #include "SanityCheck.h"
  #include "Scores.h"
  #include "ssl.h"
@@ -185,7 +189,7 @@ index b518ce830d..15e300f45f 100644
  
  namespace OpenMS { namespace Internal { namespace Percolator {
  
-@@ -90,6 +91,8 @@ class CrossValidation {
+@@ -104,6 +105,8 @@ class CrossValidation {
    void inline setReportPerformanceEachIteration(bool on) {
      reportPerformanceEachIteration_ = on;
    }
@@ -194,7 +198,7 @@ index b518ce830d..15e300f45f 100644
  
   protected:
    std::vector<AlgIn*> svmInputs_;
-@@ -126,13 +129,21 @@ class CrossValidation {
+@@ -144,13 +147,21 @@ class CrossValidation {
    // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
    // of mergeCpCnPairs) and have not changed since; see doStep
    bool trainScoresOfWeights_ = false;

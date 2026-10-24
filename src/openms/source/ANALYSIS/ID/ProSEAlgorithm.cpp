@@ -400,6 +400,33 @@ namespace OpenMS
                        "tolerance, they may choose slightly different training sets, so the models can differ) or "
                        "'lda' (Fisher's linear discriminant instead of the SVM: fastest, an approximation).", {"advanced"});
     defaults_.setValidStrings("rescore_solver", {"tron", "newton", "lda"});
+    defaults_.setValue("rescoring:subset_max_train", 0,
+                       "Percolator trains on at most this many PSMs (drawn at random by spectrum: the PSMs of a spectrum "
+                       "stay together) and then scores all PSMs with the learned model, like the percolator executable's "
+                       "--subset-max-train. 0 trains on all PSMs. Faster on large runs; the results differ.",
+                       {"advanced"});
+    defaults_.setMinInt("rescoring:subset_max_train", 0);
+    defaults_.setValue("rescoring:iterations", 10,
+                       "Iterations of Percolator's cross-validation training (the percolator executable's --maxiter). "
+                       "Fewer are faster; the results differ.",
+                       {"advanced"});
+    defaults_.setMinInt("rescoring:iterations", 1);
+    defaults_.setValue("rescoring:tron_epsilon", 1e-7,
+                       "Stopping tolerance of the SVM solver (TRON) of Percolator's training (Percolator: 1e-7). Larger "
+                       "values (e.g. 1e-3) train much faster on large runs; the results differ.",
+                       {"advanced"});
+    defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
+    defaults_.setValue("rescoring:warm_start", "false",
+                       "Each SVM training of an iteration starts from the weights of the previous iteration instead of "
+                       "0 (faster; the results differ).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:warm_start", {"true", "false"});
+    defaults_.setValue("rescoring:single_cneg", "false",
+                       "Percolator trains with one Cneg (3 x the target/decoy ratio x Cpos) instead of selecting among "
+                       "three by cross-validation (faster; the results differ).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:single_cneg", {"true", "false"});
+    defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
 
     defaults_.setValue("FDR:PSM", 0.0,
                        "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR; 0 disables the filter). Target and decoy PSMs are filtered "
@@ -718,7 +745,12 @@ namespace OpenMS
       self_trained_ion_priors_ = false;
     }
     rescore_ = param_.getValue("rescore").toString() == "true";
-    rescore_solver_ = param_.getValue("rescore_solver").toString();
+    percolator_training_.subset_max_train = static_cast<int>(param_.getValue("rescoring:subset_max_train"));
+    percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
+    percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
+    percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
+    percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
+    percolator_training_.solver = param_.getValue("rescore_solver").toString();
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -4335,7 +4367,7 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids,
       int threads)
   {
-    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr);
+    return rescoreWithPercolator_(protein_ids, peptide_ids, threads, nullptr, PercolatorTraining());
   }
 
   // static
@@ -4344,7 +4376,7 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids,
       int threads,
       std::vector<std::vector<PeptideHit>>* dropped,
-      const std::string& solver)
+      const PercolatorTraining& training)
   {
     PercolatorRescoring outcome;
     if (protein_ids.empty())
@@ -4399,12 +4431,16 @@ namespace OpenMS
     Param pp = perc.getDefaults();
     pp.setValue("train_best_positive", "true");
     pp.setValue("post_processing_tdc", "true");
-    pp.setValue("subset_max_train", 0);  // train on all PSMs
+    pp.setValue("subset_max_train", training.subset_max_train);  // 0 (the default): train on all PSMs
+    pp.setValue("num_iterations", training.iterations);
+    pp.setValue("tron_epsilon", training.tron_epsilon);
+    pp.setValue("warm_start", training.warm_start ? "true" : "false");
+    pp.setValue("single_cneg", training.single_cneg ? "true" : "false");
     pp.setValue("pep_method", "nonparametric");  // as the percolator executable
     // cross-validation trains 9 models at a time (3 folds x 3 Cneg values) and sorts on more threads (up to 12); the
     // results do not depend on the threads
     pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 128));
-    pp.setValue("solver", solver);
+    pp.setValue("solver", training.solver);
     perc.setParameters(pp);
 
     try
@@ -4487,7 +4523,7 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
       run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
-      if (solver != "tron") run_sp.setMetaValue("Percolator:solver", solver);
+      if (training.solver != "tron") run_sp.setMetaValue("Percolator:solver", training.solver);
       else run_sp.removeMetaValue("Percolator:solver");
       run.setSearchParameters(run_sp);
     }
@@ -4559,7 +4595,7 @@ namespace OpenMS
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
       rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr,
-                                         rescore_solver_);
+                                         percolator_training_);
       if (!dropped.empty())
       {
         try

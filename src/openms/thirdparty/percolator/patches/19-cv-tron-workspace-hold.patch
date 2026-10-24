@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 5b7797c1d1..a89da09833 100644
+index 3f2b5904ad..bd8f0bf727 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -262,6 +262,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
+@@ -263,6 +263,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
   * @param pNorm Normalization object
   */
  void CrossValidation::train(const Normalizer* pNorm) {

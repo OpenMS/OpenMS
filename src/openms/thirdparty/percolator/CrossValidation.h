@@ -20,6 +20,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 #include "DataSet.h"
@@ -69,6 +70,19 @@ class CrossValidation {
                         FeatureMemoryPool& featurePool);
 
   void train(const Normalizer* pNorm);
+
+  // OpenMS (experimental options of the training; the defaults are Percolator's training): TRON's
+  // stopping tolerance (default EPSILON), warm starts (each (Cpos, Cneg) pair starts TRON from its
+  // weights of the previous iteration instead of 0), one Cneg candidate (3 x the target/decoy
+  // ratio) instead of three. Set before preIterationSetup. A tolerance that is not finite and
+  // positive keeps EPSILON; warm starts apply without nested cross-validation only (its nested
+  // sets are drawn anew in each iteration).
+  void setTrainingOptions(double tronEpsilon, bool warmStart, bool singleCneg) {
+    tronEpsilon_ = tronEpsilon > 0.0 && tronEpsilon < std::numeric_limits<double>::infinity()
+                       ? tronEpsilon : EPSILON;
+    warmStart_ = warmStart;
+    singleCneg_ = singleCneg;
+  }
 
   void postIterationProcessing(Scores& fullset, SanityCheck* pCheck);
 
@@ -125,6 +139,10 @@ class CrossValidation {
   const static double requiredIncreaseOver2Iterations_;
 
   unsigned int numFolds_;  // number of folds for cross validation
+  // OpenMS: see setTrainingOptions
+  double tronEpsilon_ = EPSILON;
+  bool warmStart_ = false;
+  bool singleCneg_ = false;
   std::vector<Scores> trainScores_, testScores_;
   // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
   // of mergeCpCnPairs) and have not changed since; see doStep

@@ -220,9 +220,10 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
   if (selectedCpos_ > 0 && selectedCneg_ > 0) {
     candidatesCfrac_.push_back(selectedCneg_ / selectedCpos_);
   } else {
-    candidatesCfrac_.push_back(1.0 * targetDecoySizeRatio);
+    // OpenMS: with singleCneg_, the middle candidate only
+    if (!singleCneg_) candidatesCfrac_.push_back(1.0 * targetDecoySizeRatio);
     candidatesCfrac_.push_back(3.0 * targetDecoySizeRatio);
-    candidatesCfrac_.push_back(10.0 * targetDecoySizeRatio);
+    if (!singleCneg_) candidatesCfrac_.push_back(10.0 * targetDecoySizeRatio);
     if (VERB > 0) {
       cerr << "Selecting Cneg by cross-validation." << endl;
     }
@@ -382,7 +383,7 @@ void CrossValidation::trainFoldChains() {
   options pOptions;
   pOptions.lambda = 1.0;
   pOptions.lambda_u = 1.0;
-  pOptions.epsilon = EPSILON;
+  pOptions.epsilon = tronEpsilon_;
   pOptions.cgitermax = CGITERMAX;
   pOptions.mfnitermax = MFNITERMAX;
   // the decoys+1 of doStep's training sets and validations, see there
@@ -558,7 +559,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   options pOptions;
   pOptions.lambda = 1.0;
   pOptions.lambda_u = 1.0;
-  pOptions.epsilon = EPSILON;
+  pOptions.epsilon = tronEpsilon_;
   pOptions.cgitermax = CGITERMAX;
   pOptions.mfnitermax = MFNITERMAX;
   int estTruePos = 0;
@@ -750,9 +751,11 @@ bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
     cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
          << endl;
   // OpenMS: Newton and LDA (solver_) start from the pair's weights of the step before (0 at the
-  // first step)
+  // first step); so does TRON with warmStart_ (and no nested cross-validation)
   for (int ix = 0; ix < pWeights.d; ix++) {
-    pWeights.vec[ix] = solver_ == kSolverTron ? 0 : cpCnFold.ww[ix];
+    pWeights.vec[ix] = solver_ != kSolverTron || (warmStart_ && nestedXvalBins_ == 1)
+                           ? cpCnFold.ww[static_cast<std::size_t>(ix)]
+                           : 0;
   }
   for (int ix = 0; ix < Outputs.d; ix++) {
     Outputs.vec[ix] = 0;
