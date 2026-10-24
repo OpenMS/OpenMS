@@ -412,6 +412,112 @@ namespace OpenMS
   }
 
 
+  template <bool with_strings, typename Exists, typename Get, typename Put>
+  double PercolatorInfile::pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
+    double exp_mass, double retention_time, const std::string& enz, int min_charge, int max_charge,
+    Exists&& exists, Get&& get, Put&& put)
+  {
+    if constexpr (with_strings) put(PIN_SPEC_ID, spec_id);
+    put(PIN_SCAN_NR, scan_number);
+    put(PIN_LABEL, decoy ? -1 : 1);
+
+    const int charge = hit.getCharge();
+    const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
+
+    double calc_mass;
+    if (!exists(LOOKUP_CALC_MASS))
+    {
+      calc_mass = hit.getSequence().getMZ(charge);
+      put(PIN_CALC_MASS, calc_mass);
+    }
+    else
+    {
+      calc_mass = getFeatureValue(get(LOOKUP_CALC_MASS), "CalcMass");
+    }
+
+    // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
+    // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
+    // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
+    // different isotope errors would not compete with each other.
+    double isotope_corrected_mass = exp_mass;
+    if (exists(LOOKUP_ISOTOPE_ERROR_LEGACY))  // legacy MSGF+ adapter meta (<2.6)
+    {
+      const float isoErr = StringUtils::toFloat(get(LOOKUP_ISOTOPE_ERROR_LEGACY).toString());
+      isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+    }
+    else if (exists(LOOKUP_ISOTOPE_ERROR))
+    {
+      const float isoErr = StringUtils::toFloat(get(LOOKUP_ISOTOPE_ERROR).toString());
+      isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+    }
+
+    put(PIN_EXP_MASS, exp_mass);
+
+    const double delta_mass = isotope_corrected_mass - calc_mass;
+    put(PIN_DELTAMASS, delta_mass);
+    put(PIN_RETENTIONTIME, retention_time);
+    put(PIN_MASS, exp_mass);
+
+    put(PIN_SCORE, hit.getScore());
+    put(PIN_PEPLEN, static_cast<int>(unmodified_sequence.size()));
+
+    for (int i = min_charge; i <= max_charge; ++i)
+    {
+      put(PIN_CHARGE + (i - min_charge), charge == i);
+    }
+
+    // use first peptide evidence for flanking AAs
+    char aa_before = hit.getPeptideEvidences().front().getAABefore();
+    char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
+
+    const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+    put(PIN_ENZ_N, enzN);
+    const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
+    put(PIN_ENZ_C, enzC);
+    put(PIN_ENZ_INT, static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
+
+    put(PIN_DM, delta_mass);
+    put(PIN_ABSDM, std::abs(delta_mass));
+
+    if constexpr (with_strings)
+    {
+      // Percolator-formatted peptide string with PTM brackets
+      aa_before = aa_before == '[' ? '-' : aa_before;
+      aa_after  = aa_after  == ']' ? '-' : aa_after;
+      std::string sequence;
+      sequence += aa_before;
+      sequence += ".";
+      sequence += hit.getSequence().toBracketString(false, true);
+      sequence += ".";
+      sequence += aa_after;
+      put(PIN_PEPTIDE, sequence);
+
+      StringList proteins;
+      for (const PeptideEvidence& pep : hit.getPeptideEvidences())
+      {
+        proteins.push_back(pep.getProteinAccession());
+      }
+      put(PIN_PROTEINS, ListUtils::concatenate(proteins, "\t"));
+    }
+    return calc_mass;
+  }
+
+  namespace
+  {
+    // The names of the PIN columns (PercolatorInfile::PinColumn_ order; the charge{N} columns from min_charge on)
+    std::vector<std::string> pinColumnNames(int min_charge, int max_charge)
+    {
+      std::vector<std::string> names{"SpecId", "ScanNr", "Label", "CalcMass", "ExpMass", "deltamass", "retentiontime",
+                                     "mass", "score", "peplen", "enzN", "enzC", "enzInt", "dm", "absdm", "Peptide",
+                                     "Proteins"};
+      for (int i = min_charge; i <= max_charge; ++i)
+      {
+        names.push_back("charge" + StringUtils::toStr(i));
+      }
+      return names;
+    }
+  }
+
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
     PeptideIdentificationList& peptide_ids,
     const std::string& enz,
@@ -459,6 +565,9 @@ namespace OpenMS
       const auto it = name_index.find(key);
       return it == name_index.end() ? hit.getMetaValue(key) : hit.getMetaValue(it->second);
     };
+
+    const std::vector<std::string> column_names = pinColumnNames(min_charge, max_charge);
+    const std::string lookup_names[] = {"CalcMass", "IsotopeError", Constants::UserParam::ISOTOPE_ERROR};
 
     // Stamps the hits of one spectrum; returns whether it stamped any.
     auto stamp_spectrum = [&](size_t pid_index)
@@ -513,85 +622,12 @@ namespace OpenMS
             skipped_hits[pid_index].emplace_back(hit_index, UNKNOWN_TARGET_DECOY);
             continue;
           }
-          stamp_meta_value("SpecId", file_identifier + scan_identifier);
-          stamp_meta_value("ScanNr", scan_number);
-          stamp_meta_value("Label", target_decoy == PeptideHit::TargetDecoyType::DECOY ? -1 : 1);
-
-          const int charge = hit.getCharge();
-          const std::string unmodified_sequence = hit.getSequence().toUnmodifiedString();
-
-          double calc_mass;
-          if (!exists(hit, "CalcMass"))
-          {
-            calc_mass = hit.getSequence().getMZ(charge);
-            stamp_meta_value("CalcMass", calc_mass);
-          }
-          else
-          {
-            calc_mass = getFeatureValue(get(hit, "CalcMass"), "CalcMass");
-          }
-
-          // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
-          // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
-          // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
-          // different isotope errors would not compete with each other.
-          double isotope_corrected_mass = exp_mass;
-          if (exists(hit, "IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
-          {
-            const float isoErr = StringUtils::toFloat(get(hit, "IsotopeError").toString());
-            isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
-          }
-          else if (exists(hit, Constants::UserParam::ISOTOPE_ERROR))
-          {
-            const float isoErr = StringUtils::toFloat(get(hit, Constants::UserParam::ISOTOPE_ERROR).toString());
-            isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
-          }
-
-          stamp_meta_value("ExpMass", exp_mass);
-
-          const double delta_mass = isotope_corrected_mass - calc_mass;
-          stamp_meta_value("deltamass", delta_mass);
-          stamp_meta_value("retentiontime", retention_time);
-          stamp_meta_value("mass", exp_mass);
-
-          stamp_meta_value("score", hit.getScore());
-          stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
-
-          for (int i = min_charge; i <= max_charge; ++i)
-          {
-            stamp_meta_value("charge" + StringUtils::toStr(i), charge == i);
-          }
-
-          // use first peptide evidence for flanking AAs
-          char aa_before = hit.getPeptideEvidences().front().getAABefore();
-          char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
-
-          const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
-          stamp_meta_value("enzN", enzN);
-          const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
-          stamp_meta_value("enzC", enzC);
-          stamp_meta_value("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
-
-          stamp_meta_value("dm", delta_mass);
-          stamp_meta_value("absdm", std::abs(delta_mass));
-
-          // Percolator-formatted peptide string with PTM brackets
-          aa_before = aa_before == '[' ? '-' : aa_before;
-          aa_after  = aa_after  == ']' ? '-' : aa_after;
-          std::string sequence;
-          sequence += aa_before;
-          sequence += ".";
-          sequence += hit.getSequence().toBracketString(false, true);
-          sequence += ".";
-          sequence += aa_after;
-          stamp_meta_value("Peptide", sequence);
-
-          StringList proteins;
-          for (const PeptideEvidence& pep : hit.getPeptideEvidences())
-          {
-            proteins.push_back(pep.getProteinAccession());
-          }
-          stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
+          auto put = [&](int column, const auto& value) { stamp_meta_value(column_names[column], value); };
+          auto exists_lookup = [&](int lookup) { return exists(hit, lookup_names[lookup]); };
+          auto get_lookup = [&](int lookup) -> const DataValue& { return get(hit, lookup_names[lookup]); };
+          pinHitColumns_<true>(hit, target_decoy == PeptideHit::TargetDecoyType::DECOY, file_identifier + scan_identifier,
+                               scan_number, exp_mass, retention_time, enz, min_charge, max_charge,
+                               exists_lookup, get_lookup, put);
         }
         catch (...)
         {

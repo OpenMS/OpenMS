@@ -180,6 +180,30 @@ namespace OpenMS
       static double getFeatureValue(const DataValue& value, const std::string& feature);
 
     protected:
+      /// Fixed PIN columns as computed by pinHitColumns_ (the charge{N} columns follow from PIN_CHARGE on)
+      enum PinColumn_ : int
+      {
+        PIN_SPEC_ID, PIN_SCAN_NR, PIN_LABEL, PIN_CALC_MASS, PIN_EXP_MASS, PIN_DELTAMASS, PIN_RETENTIONTIME, PIN_MASS,
+        PIN_SCORE, PIN_PEPLEN, PIN_ENZ_N, PIN_ENZ_C, PIN_ENZ_INT, PIN_DM, PIN_ABSDM, PIN_PEPTIDE, PIN_PROTEINS,
+        PIN_CHARGE
+      };
+
+      /// Meta values of a hit that pinHitColumns_ reads
+      enum PinLookup_ : int { LOOKUP_CALC_MASS, LOOKUP_ISOTOPE_ERROR_LEGACY, LOOKUP_ISOTOPE_ERROR };
+
+      /**
+       * @brief The PIN columns of one hit: the formulas of the .pin file (stampPinFeaturesOnHits).
+       *
+       * Calls put(column, value) for the columns in stamping order (an int, double or bool; the string columns
+       * SpecId, Peptide and Proteins only @p with_strings). CalcMass is put only if the hit has none (exists(
+       * LOOKUP_CALC_MASS) false); otherwise its value is read (get) and returned as well. Defined in the .cpp file.
+       *
+       * @return The calculated mass of the hit (CalcMass)
+       */
+      template <bool with_strings, typename Exists, typename Get, typename Put>
+      static double pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
+        double exp_mass, double retention_time, const std::string& enz, int min_charge, int max_charge,
+        Exists&& exists, Get&& get, Put&& put);
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
       static TextFile preparePin_(
