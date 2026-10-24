@@ -8,7 +8,10 @@ AhoCorasickAmbiguous.cpp
 AScore.cpp
 BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
+CoIsolationDetector.cpp
 ConsensusMapMergerAlgorithm.cpp
+ClassFDR.cpp
+EntrapmentEvaluation.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp

@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
+#include <climits>
 #include <cstddef>
 #include <map>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>

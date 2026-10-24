@@ -587,16 +587,7 @@ namespace OpenMS
 
       // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
       // without a CV are tried at every CV, like identifications without one
-      FeatureMap seeds_cv;
-      static_cast<DocumentIdentifier&>(seeds_cv) = seeds;
-      for (const Feature& seed : seeds)
-      {
-        if (!seed.metaValueExists(Constants::UserParam::FAIMS_CV)
-            || std::abs(static_cast<double>(seed.getMetaValue(Constants::UserParam::FAIMS_CV)) - group_cv) < 0.01)
-        {
-          seeds_cv.push_back(seed);
-        }
-      }
+      const FeatureMap seeds_cv = FAIMSHelper::filterFeaturesByFAIMSCV(seeds, group_cv);
 
       // Run feature detection
       FeatureMap features_cv;
@@ -1217,8 +1208,10 @@ namespace OpenMS
             double rt = rt_pep.second->getRT();
             std::string uid = StringUtils::toStr(rt_pep.second->getMetaValue("SeedFeatureID"));
 
-            // UID should be enough, but let's add the seed count to be sure.
-            std::string peptide_id = peptide.sequence + "[" + uid + "][" + StringUtils::toStr(seedcount) + "]/" + StringUtils::toStr(charge);
+            // The seed count makes it unique. It comes first because the features are sorted by this reference,
+            // and the UID is drawn at random (from a time-dependent seed, unless in test mode): a reference that
+            // started with it would put the seed features in a different order in every process.
+            std::string peptide_id = peptide.sequence + "[" + StringUtils::toStr(seedcount) + "][" + uid + "]/" + StringUtils::toStr(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};

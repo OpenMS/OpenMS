@@ -41,6 +41,10 @@ namespace OpenMS
     (multiple distinct @c ZIndexPos values) are rejected; load each
     section into its own MSImagingExperiment instead.
 
+    Acquisition time: each frame's time is kept as the MetaValue
+    @p imzml:scan_start_time (seconds) and RT is -1, the convention of
+    MSImagingExperiment.
+
     Every function taking a path also accepts a zipped .d directory
     ('.d.zip'); the .d directory in it is the one BrukerTimsFile reads. The
     metadata comes from its @c analysis.tdf, which is extracted alone into a

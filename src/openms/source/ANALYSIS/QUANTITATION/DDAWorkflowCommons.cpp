@@ -22,8 +22,10 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
+#include <algorithm>
+#include <cmath>
 #include <map>
 #include <vector>
 
@@ -32,36 +34,23 @@ namespace OpenMS
 {
     namespace
     {
-        /// The MS1 spectra of each FAIMS compensation voltage, in ascending CV order. In a FAIMS run the CVs alternate
-        /// from one MS1 spectrum to the next, so mass traces and seed features must be found per CV: across CVs a trace
-        /// has a gap at every other spectrum. Empty for data with fewer than two CVs (no FAIMS, or a single CV), which
-        /// is processed as a whole.
-        std::vector<std::pair<double, MSExperiment>> ms1PerCompensationVoltage(const MSExperiment& exp)
+        /// The MS1 spectra of @p exp, one experiment per FAIMS compensation voltage in ascending CV order, or a single
+        /// group with CV NaN for data without FAIMS (see IMDataConverter::splitByFAIMSCV). In a FAIMS run the CVs
+        /// alternate from one MS1 spectrum to the next, so mass traces and seeds must be found per CV: across CVs a
+        /// trace has a gap at every other spectrum. CVs with fewer than three MS1 spectra are dropped: MassTraceDetection
+        /// rejects such input, and the CV has nothing to seed from.
+        std::vector<std::pair<double, MSExperiment>> splitMS1ByFAIMSCV(const MSExperiment& exp)
         {
-            std::vector<std::pair<double, MSExperiment>> result;
-            const std::set<double> cvs = FAIMSHelper::getCompensationVoltages(exp);
-            if (cvs.size() < 2) return result;
-            std::map<double, MSExperiment> by_cv;
-            for (const double cv : cvs)
-            {
-                by_cv[cv].getExperimentalSettings() = exp.getExperimentalSettings();
-            }
+            MSExperiment ms1;
+            ms1.getExperimentalSettings() = exp.getExperimentalSettings();
             for (const MSSpectrum& s : exp)
             {
-                if (s.getMSLevel() != 1 || s.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE) continue;
-                auto it = by_cv.find(s.getDriftTime());
-                if (it != by_cv.end()) it->second.addSpectrum(s);
+                if (s.getMSLevel() == 1) ms1.addSpectrum(s);
             }
-            for (auto& [cv, ms1] : by_cv)
-            {
-                // too few MS1 spectra for a mass trace (a CV seen only on MS2, or a sparse CV): MassTraceDetection
-                // rejects such input, and the CV has nothing to seed from
-                if (ms1.size() < 3) continue;
-                ms1.updateRanges();
-                result.emplace_back(cv, std::move(ms1));
-            }
-            if (result.size() < 2) result.clear(); // a single usable CV needs no splitting
-            return result;
+            auto groups = IMDataConverter::splitByFAIMSCV(std::move(ms1));
+            groups.erase(std::remove_if(groups.begin(), groups.end(),
+                [](const auto& g) { return !std::isnan(g.first) && g.second.size() < 3; }), groups.end());
+            return groups;
         }
     }
 
@@ -150,8 +139,8 @@ namespace OpenMS
 
         OPENMS_LOG_DEBUG << "Parameters passed to MassTraceDetection" << mtd_param << std::endl;
 
-        std::vector<double> fwhm_1000;
-        const auto add_fwhms = [&fwhm_1000, &mt_ext](MSExperiment& exp, Size max_traces)
+        std::vector<double> fwhms;
+        const auto add_fwhms = [&fwhms, &mt_ext](const MSExperiment& exp, Size max_traces)
         {
             std::vector<MassTrace> m_traces;
             mt_ext.run(exp, m_traces, max_traces);
@@ -160,23 +149,23 @@ namespace OpenMS
                 if (m.getSize() == 0) continue;
                 m.updateMeanMZ();
                 m.updateWeightedMZsd();
-                fwhm_1000.push_back(m.estimateFWHM(false));
+                fwhms.push_back(m.estimateFWHM(false));
             }
         };
 
-        // FAIMS: the traces of each compensation voltage (the 1000 most intense traces in all)
-        auto per_cv = ms1PerCompensationVoltage(ms_centroided);
-        if (per_cv.empty())
+        if (FAIMSHelper::getCompensationVoltages(ms_centroided).empty())
         {
-            add_fwhms(ms_centroided, 1000);
+            add_fwhms(ms_centroided, 1000); // MassTraceDetection skips MS2 itself, no MS1 copy needed
         }
         else
         {
-            const Size per_group = std::max<Size>(1, 1000 / per_cv.size());
-            for (auto& [cv, ms1] : per_cv) add_fwhms(ms1, per_group);
+            // FAIMS: the traces of each compensation voltage (the 1000 most intense traces in all)
+            const auto groups = splitMS1ByFAIMSCV(ms_centroided);
+            const Size per_group = 1000 / std::max<Size>(1, groups.size());
+            for (const auto& [cv, ms1] : groups) add_fwhms(ms1, per_group);
         }
 
-        double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
+        double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
 
         return median_fwhm;
     }          
@@ -245,57 +234,41 @@ namespace OpenMS
         tm.setValue("threshold", intensity_threshold); // TODO: derive from data
         threshold_mower_filter.setParameters(tm);
 
-        // Seeds of the MS1 spectra in @p e
-        const auto find_seeds = [&](MSExperiment& e)
-        {
-            threshold_mower_filter.filterPeakMap(e);
-            FeatureFinderMultiplexAlgorithm algorithm;
-            Param p = algorithm.getParameters();
-            p.setValue("algorithm:labels", ""); // unlabeled only
-            p.setValue("algorithm:charge", charge_range);
-            p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-            p.setValue("algorithm:rt_band", rt_band); // max shift between isotopic traces
-            p.setValue("algorithm:rt_min", median_fwhm * 0.5);
-            p.setValue("algorithm:spectrum_type", "centroid");
-            algorithm.setParameters(p);
-            //FIXME progress of FFM is not printed at all
-            const bool progress(true);
-            algorithm.run(e, progress);
-            return algorithm.getFeatureMap();
-        };
+        Param ffm_param = FeatureFinderMultiplexAlgorithm().getParameters();
+        ffm_param.setValue("algorithm:labels", ""); // unlabeled only
+        ffm_param.setValue("algorithm:charge", charge_range);
+        ffm_param.setValue("algorithm:rt_typical", median_fwhm * 3.0);
+        ffm_param.setValue("algorithm:rt_band", rt_band); // max shift between isotopic traces
+        ffm_param.setValue("algorithm:rt_min", median_fwhm * 0.5);
+        ffm_param.setValue("algorithm:spectrum_type", "centroid");
 
         // FAIMS: seeds per compensation voltage, labelled with it (FeatureFinderIdentificationAlgorithm extracts the
         // seeds of each CV from the spectra of that CV only; unlabelled seeds would go to every CV)
-        auto per_cv = ms1PerCompensationVoltage(ms_centroided);
-        if (per_cv.empty())
+        //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
+        seeds = FeatureMap();
+        for (auto& [cv, ms1] : splitMS1ByFAIMSCV(ms_centroided))
         {
-            //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
-            MSExperiment e;
-            for (const auto& s : ms_centroided)
+            threshold_mower_filter.filterPeakMap(ms1);
+            FeatureFinderMultiplexAlgorithm algorithm;
+            algorithm.setParameters(ffm_param);
+            algorithm.run(ms1, true); //FIXME progress of FFM is not printed at all
+            FeatureMap& cv_seeds = algorithm.getFeatureMap();
+            if (!std::isnan(cv))
             {
-                if (s.getMSLevel() == 1)
-                {
-                    e.addSpectrum(s);
-                }
-            }
-            seeds = find_seeds(e);
-        }
-        else
-        {
-            seeds = FeatureMap();
-            for (auto& [cv, ms1] : per_cv)
-            {
-                FeatureMap cv_seeds = find_seeds(ms1);
-                for (Feature& f : cv_seeds)
-                {
-                    f.setMetaValue(Constants::UserParam::FAIMS_CV, cv);
-                    seeds.push_back(std::move(f));
-                }
+                for (Feature& f : cv_seeds) f.setMetaValue(Constants::UserParam::FAIMS_CV, cv);
                 OPENMS_LOG_INFO << "FAIMS CV " << cv << " V: " << cv_seeds.size() << " seeds." << std::endl;
             }
-            seeds.ensureUniqueId();
-            seeds.updateRanges();
+            if (seeds.empty())
+            {
+                seeds = std::move(cv_seeds); // keeps the unique id of the map FeatureFinderMultiplex built
+            }
+            else
+            {
+                for (Feature& f : cv_seeds) seeds.push_back(std::move(f));
+            }
         }
+        seeds.ensureUniqueId();
+        seeds.updateRanges();
         OPENMS_LOG_INFO << "Using " << StringUtils::toStr(seeds.size()) << " seeds from untargeted feature extraction." << std::endl;
     }
 }

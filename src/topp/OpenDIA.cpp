@@ -478,7 +478,8 @@ protected:
     registerFlag_("PeptideQueryParameters:AssayGenerator:enable_identification_unspecific_losses", "IPF: allow unspecific neutral losses for identification transitions.", true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:enable_swath_specifity", "IPF: use precursor-isolation windows instead of precursor m/z-specific identification transitions.", true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_decoy_transitions", "IPF: disable generation of decoy UIS transitions.", true);
-    registerIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", "<int>", -1, "IPF: random seed for decoy shuffle (-1 = time-based).", false, true);
+    registerIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", "<int>", 1, "IPF: random seed for decoy shuffle (default 1 for reproducibility, -1 = time-based).", false, true);
+    setMinInt_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", -1);
 
     registerTOPPSubsection_("PeptideQueryParameters:LibraryPrediction", "FASTA digestion and native PeptDeep prediction parameters used when workflow:library_mode=predicted.");
     registerStringOption_("PeptideQueryParameters:LibraryPrediction:enzyme", "<name>", "Trypsin", "Protease used for in-silico FASTA digestion.", false);
@@ -520,6 +521,8 @@ protected:
     registerTOPPSubsection_("PeptideQueryParameters:DecoyGenerator", "Decoy-generation parameters used when workflow:library_mode=transition_list or predicted.");
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:method", "<type>", "shuffle", "Decoy generation method.", false);
     setValidStrings_("PeptideQueryParameters:DecoyGenerator:method", {"shuffle", "pseudo-reverse", "reverse", "shift"});
+    registerIntOption_("PeptideQueryParameters:DecoyGenerator:shuffle_seed", "<int>", 1, "Shuffle random seed (default 1 for reproducible decoys, -1 for time-based seeding).", false);
+    setMinInt_("PeptideQueryParameters:DecoyGenerator:shuffle_seed", -1);
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:decoy_tag", "<type>", "DECOY_", "Decoy tag.", false);
     registerDoubleOption_("PeptideQueryParameters:DecoyGenerator:min_decoy_fraction", "<double>", 0.8, "Minimum fraction of decoy / target peptides and proteins.", false, true);
     registerDoubleOption_("PeptideQueryParameters:DecoyGenerator:aim_decoy_fraction", "<double>", 1.0, "Requested fraction of decoys to generate.", false, true);
@@ -969,6 +972,7 @@ protected:
     parameters.decoy_tag = getStringOption_("PeptideQueryParameters:DecoyGenerator:decoy_tag");
     parameters.min_decoy_fraction = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:min_decoy_fraction");
     parameters.aim_decoy_fraction = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:aim_decoy_fraction");
+    parameters.shuffle_seed = getIntOption_("PeptideQueryParameters:DecoyGenerator:shuffle_seed");
     parameters.shuffle_max_attempts = getIntOption_("PeptideQueryParameters:DecoyGenerator:shuffle_max_attempts");
     parameters.shuffle_sequence_identity_threshold = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:shuffle_sequence_identity_threshold");
     parameters.shift_precursor_mz_shift = getDoubleOption_("PeptideQueryParameters:DecoyGenerator:shift_precursor_mz_shift");

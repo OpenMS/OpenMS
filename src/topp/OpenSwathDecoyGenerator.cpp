@@ -66,6 +66,8 @@ acid sequence (excluding N-/C-terminal and K/R/P) and shuffles the fragment
 ion intensities accordingly. If the new sequence does not reach a threshold of
 identity within a set number of trials, a random amino acid (not N-/C-terminal
 or modified) is "mutated" to a random other amino acid.
+The shuffle seed defaults to 1 for reproducible decoys. Set @p shuffle_seed to
+-1 to select a time-based seed instead.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_OpenSwathDecoyGenerator.cli
@@ -114,6 +116,8 @@ protected:
     registerDoubleOption_("aim_decoy_fraction", "<double>", 1.0, "Number of decoys the algorithm should generate (if unequal to 1, the algorithm will randomly select N peptides for decoy generation)", false, true);
 
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
+    registerIntOption_("shuffle_seed", "<int>", 1, "Shuffle random seed (default 1 for reproducible decoys, -1 for time-based seeding).", false);
+    setMinInt_("shuffle_seed", -1);
     registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
 
     registerDoubleOption_("shift_precursor_mz_shift", "<double>", 0.0, "shift: precursor ion MZ shift in Thomson for shift decoy method", false, true);
@@ -204,6 +208,7 @@ protected:
     decoy_parameters.min_decoy_fraction = min_decoy_fraction;
     decoy_parameters.aim_decoy_fraction = aim_decoy_fraction;
     decoy_parameters.shuffle_max_attempts = max_attempts;
+    decoy_parameters.shuffle_seed = getIntOption_("shuffle_seed");
     decoy_parameters.shuffle_sequence_identity_threshold = identity_threshold;
     decoy_parameters.shift_precursor_mz_shift = precursor_mz_shift;
     decoy_parameters.shift_product_mz_shift = product_mz_shift;

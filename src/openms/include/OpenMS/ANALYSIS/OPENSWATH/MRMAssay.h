@@ -143,7 +143,7 @@ public:
       @param[in] swathes the swath window settings (to exclude fragment ions falling
       @param[in] round_decPow round product m/z values to decimal power (default: -4)
       @param[in] max_num_alternative_localizations maximum number of allowed peptide sequence permutations
-      @param[in] shuffle_seed set seed for shuffle (-1: select seed based on time)
+      @param[in] shuffle_seed Shuffle seed (default 1 for reproducibility, -1: select seed based on time)
       @param[in] disable_decoy_transitions whether to disable generation of decoy UIS transitions
     */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
@@ -156,7 +156,7 @@ public:
                         const std::vector<std::pair<double, double> >& swathes,
                         int round_decPow = -4,
                         size_t max_num_alternative_localizations = 20,
-                        int shuffle_seed = -1,
+                        int shuffle_seed = 1,
                         bool disable_decoy_transitions = false);
 
     /**
@@ -258,7 +258,7 @@ public:
       @param[in] swathes SWATH isolation windows as (lower, upper) pairs
       @param[in] round_decPow Decimal power for m/z rounding (default -4)
       @param[in] max_num_alternative_localizations Max peptidoform permutations (default 20)
-      @param[in] shuffle_seed Random seed for decoy generation (-1 = time-based)
+      @param[in] shuffle_seed Random seed for decoy generation (default 1 for reproducibility, -1 = time-based)
       @param[in] disable_decoy_transitions Skip decoy transition generation
     */
     void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
@@ -271,7 +271,7 @@ public:
                              const std::vector<std::pair<double, double> >& swathes,
                              int round_decPow = -4,
                              size_t max_num_alternative_localizations = 20,
-                             int shuffle_seed = -1,
+                             int shuffle_seed = 1,
                              bool disable_decoy_transitions = false);
 
 protected:

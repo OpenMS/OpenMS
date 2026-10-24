@@ -14,9 +14,12 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
+#include <functional>
+#include <optional>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -91,6 +94,16 @@ public:
 
 protected:
     /**
+     * @brief an entry of @em blacklist_ (spectrum index and peak index in @em exp_centroided_) and a value read from or written to it
+     */
+    struct BlacklistEntry
+    {
+      size_t rt_idx;
+      size_t mz_idx;
+      int value;
+    };
+
+    /**
      * @brief construct an MS experiment from exp_centroided_ containing
      * peaks which have not been previously blacklisted in blacklist_
      * 
@@ -123,10 +136,11 @@ protected:
      * @param[in] it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band
      * @param[in] pattern    m/z pattern to search for
      * @param[out] peak    filter result output
+     * @param[out] blacklist_reads    if not null, every entry of @em blacklist_ read is appended to it, with the value read
      *
      * @return boolean if this filter was passed i.e. there are @em isotopes_per_peptide_min_ or more mass traces which form the pattern.
      */
-    bool filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
+    bool filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak, std::vector<BlacklistEntry>* blacklist_reads = nullptr) const;
 
     /**
      * @brief blacklist this peak
@@ -148,7 +162,45 @@ protected:
      * @param[in] pattern_idx    index of the pattern in @em patterns_
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-    
+
+    /**
+     * @brief the entries of @em blacklist_ that blacklistPeak_() sets, with their new values, in the order it sets them
+     *
+     * They do not depend on the blacklist.
+     *
+     * @param[in] peak    peak to be blacklisted
+     * @param[in] pattern_idx    index of the pattern in @em patterns_
+     * @param[out] entries    the entries are appended to it
+     */
+    void blacklistEntries_(const MultiplexFilteredPeak& peak, unsigned pattern_idx, std::vector<BlacklistEntry>& entries) const;
+
+    /**
+     * @brief decides on one peak of a 'white' spectrum
+     *
+     * Called with the peak index in the white spectrum and, if not null, the list to which every entry of
+     * @em blacklist_ read is to be appended (see filterPeakPositions_()). Returns the peak with its satellites
+     * if it passes all filters.
+     */
+    typedef std::function<std::optional<MultiplexFilteredPeak>(SignedSize, std::vector<BlacklistEntry>*)> PeakFilter;
+
+    /**
+     * @brief filter all peaks of one 'white' spectrum, add the ones that pass to @p result and blacklist them
+     *
+     * Whether a peak passes depends on the blacklist, which every peak that passes extends. The result is that of
+     * filtering the peaks one after another in order of m/z (as a single thread does), whatever the number of threads:
+     * The peaks are filtered in parallel against the blacklist as it is when the spectrum is reached; every decision
+     * records the blacklist entries it read, and every peak that passes the entries it would blacklist. Then the peaks
+     * are accepted in order of m/z. A decision stands unless a peak accepted before it in this spectrum has changed one
+     * of the entries it read; then the peak is filtered again against the current blacklist. With one thread, the
+     * peaks are simply filtered in order of m/z.
+     *
+     * @param[in] idx_rt    index of the spectrum in @em exp_centroided_white_
+     * @param[in] pattern_idx    index of the pattern in @em patterns_
+     * @param[in] filter_peak    decides on one peak of the spectrum
+     * @param[out] result    filter result the peaks that pass are added to
+     */
+    void filterSpectrum_(size_t idx_rt, unsigned pattern_idx, const PeakFilter& filter_peak, MultiplexFilteredMSExperiment& result);
+
     /**
      * @brief check if the satellite peaks conform with the averagine model
      *
@@ -186,6 +238,18 @@ protected:
      */
     std::vector<std::vector<int> > blacklist_;
     
+    /**
+     * @brief for each peak of the spectrum being filtered, the entries of @em blacklist_ its decision read (see filterSpectrum_())
+     *
+     * Kept from spectrum to spectrum, so that the lists keep their memory.
+     */
+    std::vector<std::vector<BlacklistEntry>> blacklist_reads_;
+
+    /**
+     * @brief for each peak of the spectrum being filtered that passes, the entries of @em blacklist_ it sets (see filterSpectrum_())
+     */
+    std::vector<std::vector<BlacklistEntry>> blacklist_writes_;
+
     /**
      * @brief "white" centroided experimental data
      *

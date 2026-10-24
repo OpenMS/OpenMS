@@ -57,6 +57,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   public:
     ProSEAlgorithm(); 
 
+    /// PSM meta value of a chimeric search (chimeric:enabled): 1 for a PSM of the selected precursor, 2 for one of a
+    /// precursor co-isolated with it
+    static constexpr const char* CHIMERIC_RANK = "chimeric_rank";
+
     /// Exit codes
     enum class ExitCodes
     {
@@ -171,6 +175,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// Outcome of the Percolator rescoring of this run (parameter 'rescore')
       PercolatorRescoring percolator;
       PeptideIdentificationList pre_fdr_peptide_ids; ///< the PSMs before rescoring and FDR:PSM; only filled with setKeepPreFdrPsms(true)
+      /// The PSMs whose q-values pass FDR:protein_inference_PSM but not FDR:PSM (targets and decoys, with the q-value
+      /// as main score): the protein inference and the picked-protein FDR use them with @c peptide_ids, but they are
+      /// not reported (see applyCompleteSetProteinFDR()). The multi-file searches fill it with FDR:protein > 0 and an
+      /// FDR:PSM filter below FDR:protein_inference_PSM, and mergeFileResults() moves it out; the single-file
+      /// searchWithModificationAnalysis() overloads use it for their protein FDR and return it empty.
+      PeptideIdentificationList inference_only_peptide_ids;
     };
 
     /**
@@ -311,31 +321,75 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @brief Finalize protein-level FDR on a COMPLETE protein set (a single input file,
      * or a merged cross-file aggregate).
      *
-     * Runs protein inference (BasicProteinInferenceAlgorithm), picked-protein FDR
+     * Runs protein inference (BasicProteinInferenceAlgorithm, see inferProteins()), picked-protein FDR
      * (Savitski et al. 2015), threshold filtering at @p protein_fdr, then removes decoys
      * and repairs indistinguishable-protein / protein-group / peptide-evidence references
      * so the result stores as schema-valid, decoy-free idXML.
      *
-     * Shared by the file-based single-file search() above and the ProSE TOPP tool's
+     * The inference and the picked-protein FDR use the reported PSMs (@p peptide_ids, e.g. those that pass FDR:PSM)
+     * together with @p inference_only_psms (e.g. those up to FDR:protein_inference_PSM), as ProteomicsLFQ infers
+     * proteins on PSMs of a looser cutoff before it filters them at its PSM FDR: more decoy proteins for the picked
+     * FDR, and the score of a protein is the best PEP of its PSMs (the raw search engine score without a PEP, see
+     * inferProteins()). The reported PSMs stay as they are, but for the decoys that the finalization removes; the
+     * proteins and groups that none of them references afterwards (the decoys, and the proteins only
+     * @p inference_only_psms support) are removed.
+     *
+     * Shared by the file-based single-file search() above, mergeFileResults() and the ProSE TOPP tool's
      * single-file finalization, so the exact IDFilter sequence and ordering live in one
-     * place (they previously existed as two copies that could drift).
+     * place (they previously existed as copies that could drift).
      *
      * Precondition: @p protein_ids is non-empty and the set is statistically complete —
      * picked-protein FDR does not compose across runs. The caller gates on "decoys present"
      * and "FDR requested"; this helper additionally skips (with a warning) when no decoy
      * proteins survive inference, to avoid target-only q-values.
      *
+     * With @p remove_decoys false the decoys are kept, as mergeFileResults() keeps them: the picked-protein FDR keeps
+     * the decoy proteins, with q-values, the filter at @p protein_fdr applies to them as to the targets, the decoy PSMs
+     * stay, and only the references to the proteins the filter removed go.
+     *
      * @param[in,out] protein_ids Protein identifications (operates on protein_ids[0]).
-     * @param[in,out] peptide_ids PSMs feeding inference; decoy PSMs are removed.
+     * @param[in,out] peptide_ids The reported PSMs; only the best hit of each is kept, and decoy PSMs are removed
+     *                            (unless @p remove_decoys is false).
      * @param[in] decoy_string Accession marker identifying decoy proteins.
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
      * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
+     * @param[in] remove_decoys Remove the decoy PSMs and proteins (the finalization, as in the ProSE tool).
+     * @param[in] inference_only_psms PSMs that the inference and the picked-protein FDR use as well, but that are not
+     *                                reported (SearchResult::inference_only_peptide_ids); their identifiers are ignored.
+     *                                No default, so that a caller cannot drop the searches' inference-only PSMs
+     *                                unnoticed: pass the search result's (empty with FDR:PSM 0 or FDR:protein_inference_PSM
+     *                                at or below FDR:PSM), or an empty list for PSMs without them.
+     * @return Whether the picked-protein FDR was applied: false if it was skipped (an empty @p decoy_string, or no decoy
+     *         protein left after the inference, which uses the best hit of each PSM only).
      */
-    static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
+    static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
                                            PeptideIdentificationList& peptide_ids,
                                            const std::string& decoy_string,
                                            bool decoy_is_prefix,
-                                           double protein_fdr);
+                                           double protein_fdr,
+                                           bool remove_decoys,
+                                           const PeptideIdentificationList& inference_only_psms);
+
+    /**
+     * @brief The protein inference of the protein FDR (applyCompleteSetProteinFDR()) and of mergeFileResults().
+     *
+     * Runs BasicProteinInferenceAlgorithm on the best hits of @p peptide_ids and @p inference_only_psms (copies that
+     * hold what the inference reads; the PSMs themselves stay unchanged) for the run protein_ids[0], with the
+     * algorithm's 'score_type': "PEP" if the PSMs carry a posterior error probability (after Percolator rescoring the
+     * main score is the q-value, and the PEP is the meta value MS:1001493), so that a protein scores with the best PEP
+     * of its PSMs (as a posterior probability, 1 - PEP), as in ProteomicsLFQ. Otherwise "RAW", the search engine score
+     * (e.g. 'ln(hyperscore)', also when FDR:PSM made the q-value the main score and kept the search engine score as a
+     * meta value), or the main score if the PSMs carry neither.
+     *
+     * @param[in,out] protein_ids Protein identifications; protein_ids[0] gets the scores and the indistinguishable
+     *                            groups, and loses the proteins without PSMs.
+     * @param[in] peptide_ids PSMs of the run.
+     * @param[in] inference_only_psms Further PSMs of the run (their identifiers are ignored).
+     * @return The 'score_type' used: "PEP", "RAW" or "" (the main score).
+     */
+    static std::string inferProteins(std::vector<ProteinIdentification>& protein_ids,
+                                     const PeptideIdentificationList& peptide_ids,
+                                     const PeptideIdentificationList& inference_only_psms = PeptideIdentificationList());
 
     /**
      * @brief Annotate PSM q-values by target-decoy competition of the best hit of each spectrum, as FDR:PSM does.
@@ -405,6 +459,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                            search engine scores.
      * @param[in] rescored Whether rescoreWithPercolator() rescored @p peptide_ids (its @c applied).
      * @param[in] psm_fdr PSM q-value threshold.
+     * @param[out] inference_only_psms If given, receives the PSMs that the filter removes but whose q-values pass
+     *                                 FDR:protein_inference_PSM of this instance, for the protein inference
+     *                                 (SearchResult::inference_only_peptide_ids); left empty if nothing was filtered.
      *
      * @return False if nothing was filtered: @p psm_fdr <= 0, no runs or no PSMs, or PSMs that were
      *         not rescored without decoy proteins to estimate the FDR with.
@@ -412,7 +469,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool applyDeferredPsmFDR(const std::vector<ProteinIdentification>& protein_ids,
                              PeptideIdentificationList& peptide_ids,
                              bool rescored,
-                             double psm_fdr) const;
+                             double psm_fdr,
+                             PeptideIdentificationList* inference_only_psms = nullptr) const;
 
     /**
      * @brief Search with comprehensive results including modification analysis tables
@@ -652,11 +710,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    their runs are copied and stay with the files. 'id_merge_index' is the input position of a PSM's file (its
      *    index in @p in_spectra_files, for inputs with distinct paths), also when other files failed. The pooled run
      *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
-     *  - Cross-file protein inference (BasicProteinInferenceAlgorithm).
-     *  - With FDR:protein > 0 and decoys in the searched database: picked-protein FDR (Savitski et al. 2015) and the
-     *    filter at FDR:protein, provided the inference identified decoy proteins (otherwise a warning, and nothing is
-     *    filtered). The finalization then removes the decoys and the references to removed proteins, as
-     *    applyCompleteSetProteinFDR() does. With @p remove_decoys false the picked-protein FDR keeps the decoy proteins
+     *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
+     *    search engine score without PEPs) on the best hit of each pooled PSM.
+     *  - With FDR:protein > 0 and decoys in the searched database: applyCompleteSetProteinFDR(), whose inference also
+     *    uses the PSMs of the files between FDR:PSM and FDR:protein_inference_PSM
+     *    (@c per_file[i].inference_only_peptide_ids, which are moved out), with picked-protein FDR (Savitski et al.
+     *    2015) and the filter at FDR:protein, provided the inference identified decoy proteins (otherwise a warning,
+     *    and nothing is filtered). The finalization then removes the decoys, the proteins without a pooled PSM and the
+     *    references to removed proteins. With @p remove_decoys false the picked-protein FDR keeps the decoy proteins
      *    in the run, with q-values (FalseDiscoveryRate's add_decoy_proteins; the q-values of the targets are the
      *    same), and the filter applies to them as to the targets; the decoy PSMs and the decoy proteins that pass are
      *    kept, and only the references to the proteins the filter removed go (peptide evidences, indistinguishable
@@ -1006,8 +1067,61 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
     /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built.
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_; }
+    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know.
+    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
+
+    /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
+    /// The file-based searches then also read the survey scans.
+    bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
+
+    /// The PSM of a precursor co-isolated with the selected one (chimeric:enabled), until its residual spectrum is built
+    struct CoIsolatedPSM_
+    {
+      Size parent = 0;             ///< index of its spectrum in the searched spectra
+      Precursor precursor;         ///< the co-isolated precursor: that of the spectrum with its m/z and charge
+      std::vector<UInt32> removed; ///< the peaks of the spectrum that its residual spectrum leaves out (ascending)
+    };
+
+    /**
+     * @brief Search the precursors co-isolated with the selected one in what the spectrum's other PSMs leave of it
+     * (chimeric:enabled), after the andes chimeric cascade.
+     *
+     * Runs one round per co-isolated precursor rank: round k searches the k-th co-isolated precursor (meta values of
+     * CoIsolationDetector::annotate()) of every spectrum with at least one hit, at its m/z and charge, against the
+     * spectrum without the peaks claimed so far. The best hit of the spectrum claims its peaks first, and the best hit
+     * of each co-isolated precursor (its winner) claims its peaks before the next round: every peak within the
+     * fragment tolerance of one of its theoretical ions. Hits with the best hit's peptide are left out. A co-isolated
+     * precursor is dropped when its winner repeats a PSM of the spectrum (the peptide and charge of a hit of the
+     * spectrum or of an earlier winner). The residual spectra are scored in batches and not kept.
+     *
+     * @param spectra The searched spectra
+     * @param annotated_hits The hits of each spectrum of @p spectra
+     * @param fi The fragment index of the search
+     * @param db The searched database
+     * @param generators Theoretical spectrum generators of the search
+     * @param fragment_tol Fragment mass tolerance
+     * @param fragment_tol_ppm Whether @p fragment_tol is in ppm (else Da)
+     * @param open_search_mode Whether the search is an open search
+     * @param[out] psms The co-isolated PSMs, in spectrum order and, within a spectrum, in detection order
+     * @param[out] hits The hits of each of @p psms (at most chimeric:top_hits and report:top_hits), the winner first
+     * @param[out] pool_stats The candidate-pool statistics of each of @p psms
+     */
+    void searchCoIsolated_(const PeakMap& spectra,
+                           const std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+                           FragmentIndex& fi,
+                           const std::vector<FASTAFile::FASTAEntry>& db,
+                           const SpectrumGenerators_& generators,
+                           double fragment_tol,
+                           bool fragment_tol_ppm,
+                           bool open_search_mode,
+                           std::vector<CoIsolatedPSM_>& psms,
+                           std::vector<std::vector<AnnotatedHit_>>& hits,
+                           std::vector<CandidatePoolStats_>& pool_stats) const;
+
+    /// The residual spectrum of a co-isolated PSM: @p spectrum without the peaks @p removed (ascending indices), with
+    /// @p precursor as its precursor and without the meta values of CoIsolationDetector::annotate()
+    static MSSpectrum residualSpectrum_(const MSSpectrum& spectrum, const std::vector<UInt32>& removed, const Precursor& precursor);
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -1110,6 +1224,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
      * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
      *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
+     * @param[in] evidence_parent For the spectra of @p exp after the first evidence_spectra->size() (the residual
+     *                            spectra of a chimeric search), the index of the spectrum whose peak list in
+     *                            @p evidence_spectra they use; else @p evidence_spectra must be as long as @p exp.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -1128,7 +1245,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_max_charge,
       const std::string& enzyme,
       const std::string& database_name,
-      const PeakMap* evidence_spectra = nullptr) const;
+      const PeakMap* evidence_spectra = nullptr,
+      const std::vector<Size>* evidence_parent = nullptr) const;
 
     /**
      * @brief Adds PeptDeep-prediction-derived rescoring features to the PSMs.
@@ -1199,6 +1317,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
+    double fdr_protein_inference_psm_{0.1}; ///< FDR:protein_inference_PSM: q-value cutoff of the PSMs of the protein inference
 
     StringList annotate_psm_;
 
@@ -1238,6 +1357,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};
+    bool chimeric_enabled_{false};       ///< chimeric:enabled: also search the precursors co-isolated with the selected one
     Size calibration_min_psms_{50};
 
     /**
@@ -1278,6 +1398,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;
+    /// The PSMs of the most recent search(spectra, ctx, ...) that pass FDR:protein_inference_PSM but not FDR:PSM (only
+    /// with FDR:protein, see SearchResult::inference_only_peptide_ids), bridged to the caller like last_run_stats_.
+    mutable PeptideIdentificationList inference_only_peptide_ids_;
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
@@ -1425,13 +1548,21 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
     /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
     /// scores (if @p has_decoys). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
-    /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()).
+    /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()); @p inference_only_psms
+    /// receives the PSMs between FDR:PSM and FDR:protein_inference_PSM (with FDR:protein only, see
+    /// SearchResult::inference_only_peptide_ids; cleared otherwise).
     /// @return The outcome of the rescoring (not applied, no reason with 'rescore' off).
     PercolatorRescoring applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                      PeptideIdentificationList& peptide_ids,
                                      bool has_decoys,
                                      RunStatistics& stats,
-                                     PeptideIdentificationList* pre_fdr_psms = nullptr) const;
+                                     PeptideIdentificationList* pre_fdr_psms = nullptr,
+                                     PeptideIdentificationList* inference_only_psms = nullptr) const;
+
+    /// Helper: copies of the PSMs of @p peptide_ids whose q-values (main scores) are above @p psm_fdr and at most
+    /// FDR:protein_inference_PSM, appended to @p inference_only_psms (nothing if that cutoff is not above @p psm_fdr).
+    void collectInferenceOnlyPsms_(const PeptideIdentificationList& peptide_ids, double psm_fdr,
+                                   PeptideIdentificationList& inference_only_psms) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and
     /// per-run tolerance estimation for one searched file (post-FDR). Silent;
