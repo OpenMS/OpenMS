@@ -143,8 +143,8 @@ constexpr int kBuckets = 2 + 2 * kBucketOctaves * 4;
 constexpr double kQuarter[4] = {0.5, 0.59460355750136053, 0.70710678118654752, 0.84089641525371454};
 
 inline int bucketOf(double d) {
-  if (!(d >= 0x1p-16)) return 0;
-  if (d >= 0x1p16) return kBuckets - 1;
+  if (!(d >= (1.0 / 65536.0))) return 0;
+  if (d >= 65536.0) return kBuckets - 1;
   int e;
   const double f = std::frexp(d, &e);  // d = f 2^e, f in [0.5, 1), e - 1 in [-16, 15]
   const int q = (f >= kQuarter[1]) + (f >= kQuarter[2]) + (f >= kQuarter[3]);
@@ -153,7 +153,7 @@ inline int bucketOf(double d) {
 
 // the lower end of bucket k >= 1 (bucketOf(d) >= k exactly if d >= bucketBegin(k))
 inline double bucketBegin(int k) {
-  if (k == kBuckets - 1) return 0x1p16;
+  if (k == kBuckets - 1) return 65536.0;
   const int e = (k - 1) / 4 - kBucketOctaves + 1;
   return std::ldexp(kQuarter[(k - 1) % 4], e);
 }
