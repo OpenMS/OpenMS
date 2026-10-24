@@ -1804,12 +1804,12 @@ namespace OpenMS
 
           // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
           // ion pairs all iterate the alignment + ion names
-          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
+          if ((annotation_fragment_annotations && !defer_peak_annotations) || annotation_longest_ion_run || annotation_matched_ion_current
             || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
           {
             // (the names and charges of getSpectrum(); none for a coded spectrum)
-            const auto* ion_names = coded ? nullptr : &theoretical_spec.getStringDataArrays()[0];
-            const auto* ion_charges = coded ? nullptr : &theoretical_spec.getIntegerDataArrays()[0];
+            const auto* ion_names = theoretical_spec.getStringDataArrays().empty() ? nullptr : &theoretical_spec.getStringDataArrays()[0];
+            const auto* ion_charges = theoretical_spec.getIntegerDataArrays().empty() ? nullptr : &theoretical_spec.getIntegerDataArrays()[0];
 
             // Build PeakAnnotation vector + collect ion ordinals for longest run.
             // Prefix = a/b/c (N-terminal), suffix = x/y/z (C-terminal). Ordinals
@@ -4047,7 +4047,10 @@ namespace OpenMS
     // spectrum) or the PSM FDR drops hits, they are made after that, for the hits that remain. Not if anything reads
     // them before (PeptDeep features) or keeps the hits of before (the pre-FDR copy). (A search that fails before (e.g.
     // in the protein mapping) returns its error with hits without them.)
-    const bool defer_peak_annotations = (rescore_ || fdr_psm_ > 0.0) && !peptdeep_enable_ && !keep_pre_fdr_psms_;
+    // Only for hits of this search (identifications already in @p peptide_ids keep theirs), found again by their
+    // scan_index (stored as unsigned int).
+    const bool defer_peak_annotations = (rescore_ || fdr_psm_ > 0.0) && !peptdeep_enable_ && !keep_pre_fdr_psms_
+      && peptide_ids.empty() && spectra.size() <= std::numeric_limits<unsigned int>::max();
     ProSEAlgorithm::postProcessHits_(spectra,
       annotated_hits,
       pool_stats,
