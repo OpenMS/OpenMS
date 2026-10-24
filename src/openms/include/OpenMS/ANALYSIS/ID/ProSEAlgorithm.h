@@ -1292,7 +1292,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;
     /// The hits that the most recent rescoring dropped (all but the best per spectrum), destroyed by a helper thread
-    /// meanwhile (see applyPsmFDR_()); the next rescoring and the destruction of this object (its last copy) wait for it.
+    /// meanwhile (see applyPsmFDR_()); the holder joins it when it goes (at the next rescoring of this object, or with
+    /// the last copy of this object that shares it).
     mutable std::shared_ptr<void> released_hits_;
 
     /// rescoreWithPercolator(); with @p dropped, the hits it drops are moved there (as memory allows) instead of

@@ -4388,10 +4388,17 @@ namespace OpenMS
       // The hits that the rescoring drops (all but the best per spectrum) are destroyed on a helper thread while the
       // search and its output continue: destroying the 65,000 dropped hits of an Astral run took the rescoring's 16
       // threads 42-60 ms (allocator contention; 150 ms on one thread) while the search waited. The phases after the
-      // rescoring keep 11-14 of 16 threads busy. The next rescoring, and the destruction of this object, wait for it.
+      // rescoring keep 11-14 of 16 threads busy. The helper is joined when the holder goes: at the next rescoring of
+      // this object, or with this object (its last copy). Not on Windows, where a holder destroyed while a DLL is
+      // unloaded would join under the loader lock, which the ending helper thread may need.
       released_hits_.reset(); // the release of the search before (multi-file search)
+#ifdef OPENMS_WINDOWSPLATFORM
+      constexpr bool release_later = false;
+#else
+      const bool release_later = threads > 1;
+#endif
       std::vector<std::vector<PeptideHit>> dropped;
-      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, threads > 1 ? &dropped : nullptr);
+      rescoring = rescoreWithPercolator_(protein_ids, peptide_ids, threads, release_later ? &dropped : nullptr);
       if (!dropped.empty())
       {
         try
@@ -4400,7 +4407,7 @@ namespace OpenMS
           release->thread = std::thread([hits = std::move(dropped)]() mutable { std::vector<std::vector<PeptideHit>>().swap(hits); });
           released_hits_ = std::move(release);
         }
-        catch (...) {} // if the thread cannot be started, the hits are destroyed here
+        catch (...) {} // if the thread cannot be started, the hits are destroyed in this function
       }
       takeBackThreadsOfEndedRead();
       if (fdr_psm_ > 0.0)
