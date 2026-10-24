@@ -21,8 +21,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -32,6 +34,7 @@
 #include <map>
 #include <numeric>
 #include <queue>
+#include <random>
 #include <set>
 #include <sstream>
 #include <unordered_map>
@@ -205,6 +208,33 @@ Percolator::Percolator()
                      "constructor is the only toggle, matched here.");
   defaults_.setValidStrings("use_pi0", {"true","false"});
 
+  defaults_.setValue("algorithm", "percolator",
+                     "rescorePSMs(): 'percolator' = Percolator's cross-validated PSM-level FDR (default); 'reset' = "
+                     "Percolator-RESET (PercolatorReset): FDR control at the peptide (stem = unmodified sequence) level, "
+                     "PSM-level q-values heuristic. rescore() and train()/score() always use Percolator.");
+  defaults_.setValidStrings("algorithm", {"percolator","reset"});
+  defaults_.setValue("reset:salt", "",
+                     "RESET: salt of the decoy coins (an unsigned 64-bit integer). Empty = a fresh random salt per run "
+                     "(recorded in the log and by ProSE in the search parameters). Never choose the best of several salts.");
+  defaults_.setValue("reset:pairing", "none",
+                     "RESET: 'none' = every stem with a PSM is considered (PSM-only protocol); 'reverse' = a target "
+                     "stem competes with the decoy stem whose sequence without the C-terminal residue is its own reversed "
+                     "(the decoys of protein reversal with C-terminal cleavage), the better by search engine score is kept.");
+  defaults_.setValidStrings("reset:pairing", {"none","reverse"});
+  defaults_.setValue("reset:learner", "svm",
+                     "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
+  defaults_.setValidStrings("reset:learner", {"svm","mlp"});
+  defaults_.setValue("reset:iterations", 5, "RESET: training rounds.");
+  defaults_.setMinInt("reset:iterations", 1);
+  defaults_.setValue("reset:audit", "false",
+                     "RESET: feature-symmetry audit before training (per-feature AUC and KS of training decoys vs "
+                     "low-scoring pseudo-targets), reported in the log.");
+  defaults_.setValidStrings("reset:audit", {"true","false"});
+  defaults_.setValue("reset:stem_table", "",
+                     "RESET: if not empty, rescorePSMs() writes every stem (considered or not) to this tab-separated file: "
+                     "stem, representative peptidoform, label, role, considered, search engine score, RESET score, "
+                     "q-value (peptide level), spectrum reference, charge.");
+
   defaultsToParam_();
 }
 
@@ -233,6 +263,13 @@ void Percolator::updateMembers_()
   impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
+  impl_->algorithm = param_.getValue("algorithm").toString();
+  impl_->reset_salt = param_.getValue("reset:salt").toString();
+  impl_->reset_pairing = param_.getValue("reset:pairing").toString();
+  impl_->reset_learner = param_.getValue("reset:learner").toString();
+  impl_->reset_iterations = static_cast<int>(param_.getValue("reset:iterations"));
+  impl_->reset_audit = param_.getValue("reset:audit").toString() == "true";
+  impl_->reset_stem_table = param_.getValue("reset:stem_table").toString();
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -1654,8 +1691,17 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   OPENMS_LOG_INFO << "Rescoring " << ri.features.size() << " PSMs in-process with "
                   << numeric_features.size() << " features." << std::endl;
 
-  // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
-  const RescoreOutput ro = rescore(ri);
+  impl_->last_reset.reset();
+  RescoreOutput ro;
+  if (impl_->algorithm == "reset")
+  {
+    ro = rescoreReset_(peptide_ids, ri, hit_locs);
+  }
+  else
+  {
+    // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
+    ro = rescore(ri);
+  }
 
   // The hits are updated in parallel, except for the first row and the first spectrum with hits: these register the
   // new meta value names in the order of a serial loop, and MetaInfo keeps meta values in the order of their name
@@ -1795,7 +1841,172 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     }
     rethrowFirstError(errors);
   }
+  if (impl_->last_reset)
+  {
+    // RESET: the q-value of the hit's peptide (stem) - the FDR-controlled output - and the role of decoy hits
+    const PercolatorReset::Output& rr = *impl_->last_reset;
+    const UInt pep_q_index = MetaInfoInterface::metaRegistry().registerName("RESET:peptide_q_value");
+    const UInt role_index = MetaInfoInterface::metaRegistry().registerName("RESET:decoy_role");
+    std::vector<std::exception_ptr> errors(hit_locs.size());
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize row = 0; row < static_cast<SignedSize>(hit_locs.size()); ++row)
+    {
+      try
+      {
+        const auto [pid_i, hit_i] = hit_locs[row];
+        PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+        hit.setMetaValue(pep_q_index, rr.stem_q_values[row]);
+        if (rr.roles[row] != PercolatorReset::Role::TARGET)
+        {
+          hit.setMetaValue(role_index, rr.roles[row] == PercolatorReset::Role::TRAINING_DECOY ? "training" : "estimating");
+        }
+      }
+      catch (...)
+      {
+        errors[row] = std::current_exception();
+      }
+    }
+    rethrowFirstError(errors);
+    if (!impl_->reset_stem_table.empty())
+    {
+      std::ofstream os(impl_->reset_stem_table);
+      if (!os)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->reset_stem_table);
+      }
+      os << "# RESET stem table: salt " << rr.salt << ", pairing " << rr.pairing << ", learner " << rr.learner
+         << "; q_value = peptide (stem) level, FDP = 2 (D_est + 1) / max(T, 1) over targets and estimating decoys\n";
+      os << "stem\tpeptide\tlabel\trole\tconsidered\tsearch_score\treset_score\tq_value\tspectrum_reference\tcharge\n";
+      os.precision(10);
+      for (const PercolatorReset::Stem& st : rr.stems)
+      {
+        const auto [pid_i, hit_i] = hit_locs[st.representative];
+        const PeptideIdentification& pid = peptide_ids[pid_i];
+        const PeptideHit& hit = pid.getHits()[hit_i];
+        os << st.stem << '\t' << hit.getSequence().toString() << '\t' << (st.decoy ? "decoy" : "target") << '\t'
+           << (st.role == PercolatorReset::Role::TARGET ? "target"
+               : st.role == PercolatorReset::Role::TRAINING_DECOY ? "training_decoy" : "estimating_decoy") << '\t'
+           << (st.considered ? 1 : 0) << '\t' << st.search_score << '\t' << st.score << '\t' << st.q_value << '\t'
+           << pid.getSpectrumReference() << '\t' << hit.getCharge() << '\n';
+      }
+      if (!os)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->reset_stem_table);
+      }
+    }
+  }
   return ro.scores.size();
+}
+
+RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide_ids, RescoreInput& ri,
+                                        const std::vector<std::pair<size_t, size_t>>& hit_locs)
+{
+  PercolatorReset::Input in;
+  in.feature_names.assign(ri.feature_names.begin(), ri.feature_names.end());
+  in.is_decoy = ri.is_decoy;
+  in.features = std::move(ri.features);
+  const size_t n = hit_locs.size();
+  in.search_scores.resize(n);
+  in.spectrum.resize(n);
+  in.stems.resize(n);
+  std::vector<std::exception_ptr> errors(n);
+#pragma omp parallel for schedule(dynamic, 1024)
+  for (SignedSize r = 0; r < static_cast<SignedSize>(n); ++r)
+  {
+    try
+    {
+      const auto [pid_i, hit_i] = hit_locs[r];
+      const PeptideIdentification& pid = peptide_ids[pid_i];
+      const PeptideHit& hit = pid.getHits()[hit_i];
+      in.spectrum[r] = pid_i;
+      in.stems[r] = hit.getSequence().toUnmodifiedString();
+      in.search_scores[r] = pid.isHigherScoreBetter() ? hit.getScore() : -hit.getScore();
+    }
+    catch (...)
+    {
+      errors[r] = std::current_exception();
+    }
+  }
+  rethrowFirstError(errors);
+
+  PercolatorReset::Options opt;
+  if (impl_->reset_salt.empty())
+  {
+    std::random_device rd;
+    opt.salt = (static_cast<std::uint64_t>(rd()) << 32) ^ static_cast<std::uint64_t>(rd());
+  }
+  else
+  {
+    try
+    {
+      size_t pos = 0;
+      opt.salt = std::stoull(impl_->reset_salt, &pos);
+      if (pos != impl_->reset_salt.size()) throw std::invalid_argument("trailing characters");
+    }
+    catch (const std::exception&)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "reset:salt must be empty or an unsigned 64-bit integer", impl_->reset_salt);
+    }
+  }
+  opt.pairing = impl_->reset_pairing;
+  opt.learner = impl_->reset_learner;
+  opt.iterations = impl_->reset_iterations;
+  opt.train_fdr = impl_->train_fdr;
+  opt.audit = impl_->reset_audit;
+#ifdef _OPENMP
+  opt.threads = std::max(1, std::min(impl_->num_threads, omp_get_max_threads()));
+#else
+  opt.threads = 1;
+#endif
+  OPENMS_LOG_INFO << "RESET: salt " << opt.salt << ", pairing " << opt.pairing << ", learner " << opt.learner
+                  << ", " << opt.iterations << " rounds." << std::endl;
+  auto rr = std::make_shared<PercolatorReset::Output>(PercolatorReset::run(in, opt));
+  OPENMS_LOG_INFO << "RESET: " << rr->target_stems << " target and " << rr->decoy_stems << " decoy stems considered ("
+                  << rr->training_decoys << " training, " << rr->estimating_decoys << " estimating decoys); features: "
+                  << ListUtils::concatenate(rr->used_features, ",") << std::endl;
+  if (opt.audit)
+  {
+    if (rr->audit.empty())
+    {
+      OPENMS_LOG_INFO << "RESET audit: too few low-scoring stems (fewer than 20 per group), skipped." << std::endl;
+    }
+    // standard error of an AUC of two groups of sizes na, nb under the null: sqrt((na + nb + 1) / (12 na nb))
+    const double na = static_cast<double>(rr->audit_decoys), nb = static_cast<double>(rr->audit_proxy);
+    const double auc_se = na > 0 && nb > 0 ? std::sqrt((na + nb + 1.0) / (12.0 * na * nb)) : 1.0;
+    if (!rr->audit.empty())
+    {
+      OPENMS_LOG_INFO << "RESET audit: " << rr->audit_decoys << " training decoys vs " << rr->audit_proxy
+                      << " pseudo-targets (null proxy), AUC standard error under symmetry " << auc_se << std::endl;
+    }
+    for (const PercolatorReset::AuditFeature& af : rr->audit)
+    {
+      OPENMS_LOG_INFO << "RESET audit: " << af.name << " AUC " << af.auc << " (z " << (af.auc - 0.5) / auc_se << ") KS "
+                      << af.ks << (af.flagged ? "  FLAGGED (|AUC - 0.5| > 0.05)" : "") << std::endl;
+    }
+    if (!rr->audit.empty())
+    {
+      OPENMS_LOG_INFO << "RESET audit: multivariate (cross-fitted logistic regression) AUC " << rr->audit_multivariate_auc
+                      << (rr->audit_flagged ? "  FLAGGED (> 0.55)" : "") << "; null proxy: " << rr->audit_proxy_ratio
+                      << " pseudo-targets per training decoy below the training decoys' median search score (about 3 "
+                         "if all are incorrect; more = correct targets in the proxy, which bias the AUCs)" << std::endl;
+    }
+  }
+  for (const std::string& line : rr->rounds) OPENMS_LOG_INFO << "RESET " << line << std::endl;
+  OPENMS_LOG_INFO << "RESET: " << rr->discoveries_1pct << " target peptides (stems) at q <= 0.01 (peptide level)." << std::endl;
+  RescoreOutput ro;
+  ro.scores = rr->scores;
+  ro.q_values = rr->psm_q_values;
+  ro.peps = rr->psm_peps;
+  impl_->svm_weights.assign(1, rr->weights);
+  impl_->last_used_default_direction = false;
+  impl_->last_reset = std::move(rr);
+  return ro;
+}
+
+std::shared_ptr<const PercolatorReset::Output> Percolator::getResetOutput() const
+{
+  return impl_->last_reset;
 }
 
 } // namespace OpenMS

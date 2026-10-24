@@ -66,6 +66,15 @@ namespace OpenMS
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
     bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
+    std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
+    std::string reset_salt;                   ///< empty = random
+    std::string reset_pairing = "none";
+    std::string reset_learner = "svm";
+    int    reset_iterations = 5;
+    bool   reset_audit = false;
+    std::string reset_stem_table;             ///< empty = none
+    /// Result of the last RESET rescorePSMs() call (null otherwise).
+    std::shared_ptr<const PercolatorReset::Output> last_reset;
 
     /// Per-fold, per-feature weights populated after rescore(). Read by
     /// Percolator::getSvmWeights(). Empty before the first rescore().
