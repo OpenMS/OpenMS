@@ -1864,7 +1864,8 @@ START_SECTION(Malformed imzML reports parser errors on full and index-only reads
     TEST_EXCEPTION(Exception::ParseError, file.load(filename, image))
     ImzMLMeta meta;
     std::vector<ImzMLSpectrumIndex> index;
-    TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index))
+    MSExperiment index_spectra;
+    TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index, index_spectra))
   }
   remove(ibdPathFor_(filename).c_str());
 }
@@ -1895,7 +1896,8 @@ START_SECTION(Namespace-invalid imzML is rejected on full and index-only reads)
       TEST_EXCEPTION(Exception::ParseError, file.load(filename, image))
       ImzMLMeta meta;
       std::vector<ImzMLSpectrumIndex> index;
-      TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index))
+      MSExperiment index_spectra;
+      TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index, index_spectra))
     }
   }
   remove(ibdPathFor_(filename).c_str());
