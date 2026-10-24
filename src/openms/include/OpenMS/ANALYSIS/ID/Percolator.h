@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <functional>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -221,6 +222,28 @@ namespace OpenMS
                                      int max_charge,
                                      RescoreInput& input,
                                      PSMRowLocations& rows);
+
+    /// Scores the feature rows that rescorePSMs() built, in place of rescore(): one score, q-value and PEP per row
+    using PSMScorer = std::function<RescoreOutput(const RescoreInput&, const PSMRowLocations&)>;
+
+    /**
+      @brief As rescorePSMs() above, but the feature rows are scored by @p scorer instead of rescore(input).
+
+      The other steps are those of rescorePSMs() above. @p scorer gets the feature rows (buildPSMRescoreInput()) and
+      the hit of each row; it must return one score, q-value and PEP per row (e.g. from score() with a model trained
+      on other PSMs). It replaces rescore(input) and, with algorithm 'reset', RESET. An empty @p scorer: as
+      rescorePSMs() above.
+
+      @throws Exception::InvalidValue if @p scorer returns another number of rows, or as rescorePSMs() above
+    */
+    Size rescorePSMs(PeptideIdentificationList& peptide_ids,
+                     const StringList& feature_set,
+                     const std::string& enzyme,
+                     int min_charge,
+                     int max_charge,
+                     const std::string& score_type,
+                     const PSMScorer& scorer,
+                     bool best_hit_only = false);
 
     /**
       @brief SVM weights trained in the last rescore()/train() call.

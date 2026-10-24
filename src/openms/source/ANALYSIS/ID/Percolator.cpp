@@ -780,6 +780,10 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   }
   fn.initFeatures();
 
+  // As train() and rescore(): a score distribution that cannot be rescaled at test_fdr (e.g. no target below it) is
+  // shifted instead of failing (Scores::normalizeScores); the q-values and PEPs do not depend on that scale.
+  P::Globals::getInstance()->setNoTerminate(true);
+
   P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
   impl_->synthesized_ids.resize(n_rows);
   impl_->second_pass_psms.reserve(n_rows);
@@ -805,26 +809,41 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   // train()/rescore() — otherwise callers see raw upstream exceptions.
   try
   {
-    all_scores.postMergeStep();
-    all_scores.calcQvals(impl_->test_fdr);
-    // normalizeScores takes a non-const ref and rescales the weight vector in
-    // place (endScoreNormalizeWeights). Use a local copy so the caller's model
-    // is not mutated.
-    std::vector<double> weights_copy = model.weights;
-    all_scores.normalizeScores(impl_->test_fdr, weights_copy);
-
-    if (impl_->post_processing_tdc)
+    // In a parallel region, as in rescore(): the sorts and the bootstraps of the pi0 estimate run as its tasks, with the
+    // same results (see thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
+    std::exception_ptr error;
+#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
+#pragma omp single
     {
-      all_scores.weedOutRedundantTDC();
-    }
+      try
+      {
+        all_scores.postMergeStep();
+        all_scores.calcQvals(impl_->test_fdr);
+        // normalizeScores takes a non-const ref and rescales the weight vector in
+        // place (endScoreNormalizeWeights). Use a local copy so the caller's model
+        // is not mutated.
+        std::vector<double> weights_copy = model.weights;
+        all_scores.normalizeScores(impl_->test_fdr, weights_copy);
 
-    // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
-    // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
-    // internal postMergeStep. Kept unconditional for symmetry with rescore()
-    // — when TDC is off this is a no-op (pi0 and scores are unchanged since
-    // the earlier calcQvals call) but the cost is negligible on already-
-    // sorted scores.
-    all_scores.calcQvals(impl_->test_fdr);
+        if (impl_->post_processing_tdc)
+        {
+          all_scores.weedOutRedundantTDC();
+        }
+
+        // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
+        // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
+        // internal postMergeStep. Kept unconditional for symmetry with rescore()
+        // — when TDC is off this is a no-op (pi0 and scores are unchanged since
+        // the earlier calcQvals call) but the cost is negligible on already-
+        // sorted scores.
+        all_scores.calcQvals(impl_->test_fdr);
+      }
+      catch (...)
+      {
+        error = std::current_exception();
+      }
+    }
+    if (error) std::rethrow_exception(error);
     impl_->last_pi0 = all_scores.getPi0();
 
     if (impl_->pep_method == "isotonic")
@@ -1615,6 +1634,18 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              const std::string& score_type,
                              bool best_hit_only)
 {
+  return rescorePSMs(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, PSMScorer(), best_hit_only);
+}
+
+Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
+                             const StringList& feature_set,
+                             const std::string& enzyme,
+                             int min_charge,
+                             int max_charge,
+                             const std::string& score_type,
+                             const PSMScorer& scorer,
+                             bool best_hit_only)
+{
   if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1640,8 +1671,20 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                   << ri.featureCount() << " features." << std::endl;
 
   impl_->last_reset.reset();
+  const size_t n_rows = ri.rowCount();
   RescoreOutput ro;
-  if (impl_->algorithm == "reset")
+  if (scorer)
+  {
+    // e.g. ProSE's rescore_reuse: a model trained on other PSMs (also with algorithm 'reset')
+    ro = scorer(ri, hit_locs);
+    if (ro.scores.size() != n_rows || ro.q_values.size() != n_rows || ro.peps.size() != n_rows)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The scorer returned " + std::to_string(ro.scores.size()) + " scores for "
+        + std::to_string(n_rows) + " feature rows.", "");
+    }
+  }
+  else if (impl_->algorithm == "reset")
   {
     ro = rescoreReset_(peptide_ids, ri, hit_locs);
   }

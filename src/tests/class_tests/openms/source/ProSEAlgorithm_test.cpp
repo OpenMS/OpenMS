@@ -5466,6 +5466,63 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     TEST_TRUE(psms(mfres.per_file[0].pre_fdr_peptide_ids) == psms(pep_plain))
   }
 
+  // rescore_reuse: the default trains on every run ('per_file', no record of the reuse); 'joint' trains two cross-fitted
+  // models on the runs of all files and rescores each file with them, 'static' trains them on the first file and rescores
+  // the later ones after their search (with the domain-shift check), 'own' trains each file's own models. The file with
+  // too few PSMs is skipped in every mode. q-values come per file.
+  {
+    TEST_EQUAL(ProSEAlgorithm().getParameters().getValue("rescore_reuse:mode").toString(), "per_file")
+    const std::vector<std::string> files{spectra_file, spectra_file, small_spectra_file};
+    auto reuse_record = [](const ProSEAlgorithm::SearchResult& r, const std::string& key) -> std::string
+    {
+      if (r.protein_ids.empty()) return "";
+      const auto& sp = r.protein_ids[0].getSearchParameters();
+      return sp.metaValueExists(key) ? sp.getMetaValue(key).toString() : std::string();
+    };
+    for (const std::string mode : {"per_file", "joint", "static", "own"})
+    {
+      ProSEAlgorithm algo;
+      configure(algo, "", 0.05, 0.0);
+      Param p = algo.getParameters();
+      p.setValue("rescore_reuse:mode", mode);
+      p.setValue("rescore_reuse:max_train", 1000); // fewer than the PSMs of a file: the cap applies
+      algo.setParameters(p);
+      ProSEAlgorithm::MultiFileSearchResult mfres = algo.searchWithModificationAnalysis(files, database_file);
+      ABORT_IF(mfres.per_file.size() != 3)
+      for (Size i = 0; i < 2; ++i)
+      {
+        const ProSEAlgorithm::SearchResult& r = mfres.per_file[i];
+        TEST_TRUE(r.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+        TEST_TRUE(r.percolator.applied)
+        ABORT_IF(r.protein_ids.empty())
+        TEST_EQUAL(r.protein_ids[0].getSearchEngine(), "Percolator")
+        TEST_TRUE(q_value_hits(r.peptide_ids, 0.05) > 0)
+        TEST_TRUE(r.stats.fdr_applied)
+        TEST_TRUE(r.stats.achieved_psm_fdr <= 0.05)
+        if (mode == "per_file")
+        {
+          TEST_EQUAL(r.percolator.model, "")
+          TEST_EQUAL(reuse_record(r, "Percolator:rescore_reuse_mode"), "")
+        }
+        else
+        {
+          TEST_EQUAL(reuse_record(r, "Percolator:rescore_reuse_mode"), mode)
+          TEST_TRUE(r.percolator.model.starts_with(mode + " (cross-fitted models trained on "))
+          TEST_EQUAL(reuse_record(r, "Percolator:rescore_reuse_model"), r.percolator.model)
+          // 'joint': both files train; 'static': the first; 'own': each its own
+          const std::string trained_by = mode == "joint" ? "file(s) 1,2)" : mode == "static" ? "file(s) 1)"
+                                         : i == 0 ? "file(s) 1)" : "file(s) 2)";
+          TEST_TRUE(r.percolator.model.ends_with(trained_by))
+          // the domain-shift check only for a file rescored with the static models of others (the same spectra here)
+          TEST_EQUAL(reuse_record(r, "Percolator:rescore_reuse_shift").empty(), !(mode == "static" && i == 1))
+        }
+      }
+      const ProSEAlgorithm::SearchResult& skipped = mfres.per_file[2];
+      TEST_FALSE(skipped.percolator.applied)
+      TEST_TRUE(skipped.percolator.skipped_reason.starts_with("Only "))
+    }
+  }
+
   // Off: ProSE's own scores, nothing attempted.
   {
     ProSEAlgorithm algo;
