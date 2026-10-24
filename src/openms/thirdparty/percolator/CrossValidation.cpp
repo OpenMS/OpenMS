@@ -59,6 +59,13 @@ constexpr unsigned int kMaxTeamThreads = 12;
 [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
   return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
 }
+// OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
+// whose 31 sorts per fold run one after the other) gains from a few more threads for the tasks
+// of its sorts: at most kMaxSetupTeamThreads.
+constexpr unsigned int kMaxSetupTeamThreads = 16;
+[[maybe_unused]] static int numSetupTeamThreads(unsigned int numThreads) {
+  return numLoopThreads(std::min(numThreads, kMaxSetupTeamThreads));
+}
 
 // OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
 // parallel loop (an exception must not leave an OpenMP region).
@@ -149,7 +156,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
   // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
   std::exception_ptr xvalError;
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
+#pragma omp parallel num_threads(numSetupTeamThreads(numThreads_))
 #pragma omp single
   try {
     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
@@ -163,7 +170,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
   // initialize weights vector for all folds
   weights_ = vector<vector<double> >(
       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
-  pCheck->setNumThreads(static_cast<unsigned int>(numTeamThreads(numThreads_)));
+  pCheck->setNumThreads(static_cast<unsigned int>(numSetupTeamThreads(numThreads_)));
   int numPositive =
       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
                                testFdr_, initialSelectionFdr_);

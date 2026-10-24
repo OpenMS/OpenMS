@@ -1,8 +1,40 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 1b2a576f6b..14057842fe 100644
+index 1b2a576f6b..096dbe9db6 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -253,6 +253,11 @@ void CrossValidation::train(const Normalizer* pNorm) {
+@@ -59,6 +59,13 @@ constexpr unsigned int kMaxTeamThreads = 12;
+ [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
+   return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
+ }
++// OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
++// whose 31 sorts per fold run one after the other) gains from a few more threads for the tasks
++// of its sorts: at most kMaxSetupTeamThreads.
++constexpr unsigned int kMaxSetupTeamThreads = 16;
++[[maybe_unused]] static int numSetupTeamThreads(unsigned int numThreads) {
++  return numLoopThreads(std::min(numThreads, kMaxSetupTeamThreads));
++}
+ 
+ // OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
+ // parallel loop (an exception must not leave an OpenMP region).
+@@ -149,7 +156,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
+   // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
+   std::exception_ptr xvalError;
+-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp parallel num_threads(numSetupTeamThreads(numThreads_))
+ #pragma omp single
+   try {
+     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
+@@ -163,7 +170,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   // initialize weights vector for all folds
+   weights_ = vector<vector<double> >(
+       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
+-  pCheck->setNumThreads(static_cast<unsigned int>(numTeamThreads(numThreads_)));
++  pCheck->setNumThreads(static_cast<unsigned int>(numSetupTeamThreads(numThreads_)));
+   int numPositive =
+       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
+                                testFdr_, initialSelectionFdr_);
+@@ -253,6 +260,11 @@ void CrossValidation::train(const Normalizer* pNorm) {
      cerr << ", initial_fdr=" << initialSelectionFdr_;
      cerr << ", fdr=" << selectionFdr_ << endl;
    }
@@ -14,7 +46,7 @@ index 1b2a576f6b..14057842fe 100644
  
    // iterate
    int foundPositivesOldOld = 0, foundPositivesOld = 0, foundPositives = 0;
-@@ -333,6 +338,155 @@ void CrossValidation::train(const Normalizer* pNorm) {
+@@ -333,6 +345,155 @@ void CrossValidation::train(const Normalizer* pNorm) {
    }
  }
  
@@ -170,7 +202,7 @@ index 1b2a576f6b..14057842fe 100644
  /**
   * Executes a cross validation step
   * @param w_ list of the bins' normal vectors (in linear algebra sense) of the
-@@ -404,46 +558,11 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+@@ -404,46 +565,11 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
    vector<std::exception_ptr> setupErrors(numFolds_);
    const auto setupFold = [&](int set) {
      try {
@@ -222,7 +254,7 @@ index 1b2a576f6b..14057842fe 100644
        }
      } catch (...) {
        setupErrors[set] = std::current_exception();
-@@ -497,6 +616,53 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+@@ -497,6 +623,53 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
    return estTruePos;
  }
  

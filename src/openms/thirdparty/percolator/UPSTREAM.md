@@ -281,6 +281,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   at least (their decoys, all targets): each operation of the FDR's expression is monotone. If
   that bound is not below the threshold, only those PSMs are sorted and walked; otherwise all are
   sorted as before.
+  The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
+  directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
 
 ### Regenerating the patch
 
