@@ -418,6 +418,17 @@ namespace OpenMS
   }
 
 
+  namespace
+  {
+    // StringUtils::toFloat(value.toString()) without the string for an int: its decimal digits parse to the float
+    // nearest to it, which is the conversion of the int
+    float isotopeErrorOf(const DataValue& value)
+    {
+      if (value.valueType() == DataValue::INT_VALUE) return static_cast<float>(static_cast<long long>(value));
+      return StringUtils::toFloat(value.toString());
+    }
+  }
+
   template <bool with_strings, typename Exists, typename Get, typename Put>
   double PercolatorInfile::pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
     double exp_mass, double retention_time, const std::string& enz, int min_charge, int max_charge,
@@ -448,12 +459,12 @@ namespace OpenMS
     double isotope_corrected_mass = exp_mass;
     if (exists(LOOKUP_ISOTOPE_ERROR_LEGACY))  // legacy MSGF+ adapter meta (<2.6)
     {
-      const float isoErr = StringUtils::toFloat(get(LOOKUP_ISOTOPE_ERROR_LEGACY).toString());
+      const float isoErr = isotopeErrorOf(get(LOOKUP_ISOTOPE_ERROR_LEGACY));
       isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
     }
     else if (exists(LOOKUP_ISOTOPE_ERROR))
     {
-      const float isoErr = StringUtils::toFloat(get(LOOKUP_ISOTOPE_ERROR).toString());
+      const float isoErr = isotopeErrorOf(get(LOOKUP_ISOTOPE_ERROR));
       isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
     }
 
@@ -531,7 +542,13 @@ namespace OpenMS
       {
         return PeptideHit::TargetDecoyType::UNKNOWN;
       }
-      std::string td = StringUtils::toLowered(hit.getMetaValue(td_index).toString());
+      const DataValue& value = hit.getMetaValue(td_index);
+      // the values PeptideIndexing writes, compared without a lower-cased copy (any other value as below)
+      static const DataValue decoy_value("decoy"), target_value("target"), target_decoy_value("target+decoy");
+      if (value == decoy_value) return PeptideHit::TargetDecoyType::DECOY;
+      if (value == target_value) return PeptideHit::TargetDecoyType::TARGET;
+      if (value == target_decoy_value) return PeptideHit::TargetDecoyType::TARGET_DECOY;
+      std::string td = StringUtils::toLowered(value.toString());
       if (td == "decoy") return PeptideHit::TargetDecoyType::DECOY;
       if (td == "target+decoy") return PeptideHit::TargetDecoyType::TARGET_DECOY;
       if (td == "target") return PeptideHit::TargetDecoyType::TARGET;
@@ -1031,7 +1048,8 @@ namespace OpenMS
               double value;
               if (c.pin == ENGINE)
               {
-                if (!hit.metaValueExists(c.index))
+                // (a row carries every feature: the first pass looked them up)
+                if (!(s & ROW) && !hit.metaValueExists(c.index))
                 {
                   complete = false;
                   break;
