@@ -472,6 +472,8 @@ class ProSE :
       // here) or the pooled -out_merged set (handled below). Filtering each file of a
       // multi-file run separately would not control the FDR of the combined protein list
       // (false positives accumulate across files), so that is deliberately never done.
+      // the files whose identifications the protein FDR changed (only these need their statistics recomputed below)
+      std::vector<char> protein_fdr_applied(in_list.size(), 0);
       if (user_protein_fdr > 0.0)
       {
         if (in_list.size() == 1)
@@ -489,6 +491,7 @@ class ProSE :
               // survived inference.
               ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
                                                          mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr);
+              protein_fdr_applied[0] = 1;
             }
             else
             {
@@ -522,10 +525,14 @@ class ProSE :
       // result-level stats so the report reflects the final identifications the user
       // receives; the HyperScore distribution and per-phase timing captured during the
       // search are preserved by updateFinalStats().
+      // A closed search of a file without protein FDR left the identifications as the search counted them (with the
+      // same enzyme): the recount would give the same statistics. An open search's modification analysis runs after
+      // the count, so those files are recounted.
       for (Size i = 0; i < in_list.size(); ++i)
       {
         auto& result = mfres.per_file[i];
         if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) { continue; }
+        if (!protein_fdr_applied[i] && !result.is_open_search) { continue; }
         ProSEAlgorithm::updateFinalStats(result.stats, result.peptide_ids, mfres.shared.enzyme,
                                          /*fdr_applied=*/ result.stats.fdr_applied);
       }
