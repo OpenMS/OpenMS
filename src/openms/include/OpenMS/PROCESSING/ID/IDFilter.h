@@ -768,6 +768,10 @@ namespace OpenMS
     static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides);
     /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
     static void removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides);
+    /// Removes protein hits from @p proteins that are referenced by a peptide neither in @p peptides nor in @p more_peptides
+    /// (e.g. PSMs kept apart from the reported ones), matching the runs by identifier as the overloads above
+    static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides,
+                                           const PeptideIdentificationList& more_peptides);
 
     /**
        @brief Removes dangling protein references from peptide hits

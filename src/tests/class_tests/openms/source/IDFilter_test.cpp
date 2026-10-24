@@ -260,6 +260,30 @@ START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentificati
 }
 END_SECTION
 
+START_SECTION((static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides, const PeptideIdentificationList& more_peptides)))
+{
+  // the proteins referenced by either list stay, by run identifier
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test4.idXML"), proteins, peptides);
+  vector<ProteinIdentification> only_first = proteins;
+  IDFilter::removeUnreferencedProteins(only_first, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().size() < 2)
+  // the hits split between the two lists (the last one alone in the second): the same proteins
+  PeptideIdentificationList first = peptides, second = peptides;
+  first[0].getHits().pop_back();
+  second[0].setHits({peptides[0].getHits().back()});
+  vector<ProteinIdentification> both = proteins;
+  IDFilter::removeUnreferencedProteins(both, first, second);
+  TEST_EQUAL(both[0].getHits().size(), only_first[0].getHits().size())
+  // a second list of another run references nothing in this one
+  for (PeptideIdentification& id : second) { id.setIdentifier("another run"); }
+  both = proteins;
+  IDFilter::removeUnreferencedProteins(both, PeptideIdentificationList(), second);
+  TEST_EQUAL(both[0].getHits().size(), 0)
+}
+END_SECTION
+
 START_SECTION((static void removeDanglingProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false)))
 {
   vector<ProteinIdentification> proteins = global_proteins;

@@ -5174,23 +5174,30 @@ foreach(_part a b)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
-# Percolator rescores the first file but not the second (too few PSMs): their runs cannot be pooled,
-# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written. The outputs of an
-# earlier run are removed first, so that only this run's outputs can pass the checks.
-add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -f
+# Percolator rescores the first file but not the second (too few PSMs): -out_merged pools them on ProSE's score (it
+# refused the pooling, exit code 11, after the search), with a warning that names the second file; the merged run
+# reports ProSE as search engine, the files' runs Percolator and ProSE, and the run view which input was rescored. The
+# outputs of an earlier run are removed first, so that only this run's outputs can pass the checks.
+add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
-  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
-add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
-  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
-  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-      ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
-  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
-  -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES WILL_FAIL 1 DEPENDS "TOPP_ProSE_11_rescore_mixed_clean")
-add_test(NAME "TOPP_ProSE_11_rescore_mixed_merged_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged_absent" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed" WILL_FAIL 1)
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx)
+add_test(NAME "TOPP_ProSE_11_rescore_mixed" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML;-out_merged;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx;-qpx_extended"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Percolator rescored 1 of 2 input files; not SimpleSearchEngine_1.mzML: Only [0-9]+ PSMs"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_clean")
+add_test("TOPP_ProSE_11_rescore_mixed_merged" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
+  PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+add_test("TOPP_ProSE_11_rescore_mixed_run" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx/quantms.run.parquet -out_tsv ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_run.tmp.tsv)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_run" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed")
+# psm_fdr_applied, rescoring_applied and rescoring_skipped_reason of the two inputs
+add_test("TOPP_ProSE_11_rescore_mixed_run_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_run.tmp.tsv
+  "-DEXPECTED=psm_fdr_applied\trescoring_applied\trescoring_skipped_reason;\ttrue\ttrue\tnull\t;\ttrue\tfalse\tOnly "
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_run_out" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_run")
 add_test("TOPP_ProSE_11_rescore_mixed_info_a" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_a" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
@@ -5532,7 +5539,7 @@ foreach(_view pg provenance)
     set(_expected "DECOY_sp")
   else()
     set(_file quantms.provenance)
-    set(_expected "key:string = method, value:string = percolator;key:string = psm_fdr, value:string = 0.05;key:string = protein_fdr_applied, value:string = true;key:string = pooled, value:string = false;\"keep_decoys\":\"true\"")
+    set(_expected "key:string = method, value:string = percolator;key:string = psm_fdr, value:string = 0.05;key:string = psm_fdr_applied, value:string = true;key:string = protein_fdr_applied, value:string = true;key:string = pooled, value:string = false;\"keep_decoys\":\"true\"")
   endif()
   add_test("TOPP_${_f}_${_view}" ${TOPP_BIN_PATH}/ParquetDiff
     -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/${_file}.parquet -out_tsv ${TESTS_TEMP_DIR}/${_f}_${_view}.tmp.tsv)
@@ -5643,6 +5650,58 @@ foreach(_view proteins pg)
   set_tests_properties("TOPP_${_f}_${_view}_differ" PROPERTIES WILL_FAIL 1
     DEPENDS "TOPP_${_f}_runs_merged_${_view};TOPP_${_f}_merged_${_view}")
 endforeach()
+
+# Test 18: databases and runs whose FDR ProSE would get wrong, or report without saying so.
+# - A repeated database entry (same accession and sequence: a FASTA file or the contaminants added twice) is searched
+#   once, with a warning; the QPX pg view refused the repeated accession at the end of the search (exit code 12).
+# - Two entries of one accession with different sequences are refused before the search (INPUT_FILE_CORRUPT, 3), and
+#   decoys=auto refuses a database with far fewer decoys than targets (ILLEGAL_PARAMETERS, 6): 'generate' replaces them.
+add_test(NAME "TOPP_ProSE_18_inputs" COMMAND ${CMAKE_COMMAND}
+  -DFASTA=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -DOUT_DIR=${TESTS_TEMP_DIR}
+  -P ${DATA_DIR_TOPP}/ProSE_18_prepare.cmake)
+set(_prose18 ${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML)
+foreach(_case twice conflict few_decoys few_decoys_generate)
+  set(_f ProSE_18_${_case})
+  string(REPLACE "_generate" "" _database ${_case})
+  set(_args "${_prose18};-database;${TESTS_TEMP_DIR}/ProSE_18_${_database}.fasta;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended")
+  if(_case STREQUAL "twice")
+    set(_code 0)
+    set(_regex "repeats 49 entries \\(same accession and sequence")
+  elseif(_case STREQUAL "conflict")
+    set(_code 3)
+    set(_regex "has two entries of the accession '[^']+' with different sequences")
+  elseif(_case STREQUAL "few_decoys")
+    set(_code 6)
+    set(_regex "decoys=auto: the protein database has 1 decoy protein\\(s\\) \\(marker 'DECOY_', prefix\\) for 49 target")
+    set(_args "${_args};-Search:decoys;auto")
+  else()
+    set(_code 0)
+    set(_regex "decoys=generate: removing pre-existing decoys")
+    set(_args "${_args};-Search:decoys;generate")
+  endif()
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND} "-DCOMMAND=${_args}" -DEXPECTED_CODE=${_code}
+    "-DEXPECTED_OUTPUT_REGEX=${_regex}" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs;TOPP_${_f}_clean")
+endforeach()
+add_test("TOPP_ProSE_18_twice_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_18_twice_qpx/quantms.pg.parquet -schema pg -min_rows 1)
+set_tests_properties("TOPP_ProSE_18_twice_pg" PROPERTIES DEPENDS "TOPP_ProSE_18_twice")
+
+# - FDR:PSM without decoys (decoys=ignore) is skipped: the provenance view says so (the run view: psm_fdr_applied false).
+set(_f ProSE_18_psm_fdr_skipped)
+add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${_prose18};-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-Search:decoys;ignore;-Search:FDR:protein;0;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=FDR:PSM is set but the search has no decoys" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+add_test("TOPP_${_f}_provenance" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.provenance.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv)
+set_tests_properties("TOPP_${_f}_provenance" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_provenance.tmp.tsv
+  "-DEXPECTED=key:string = psm_fdr_applied, value:string = false"
+  "-DFORBIDDEN=key:string = psm_fdr_applied, value:string = true" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
