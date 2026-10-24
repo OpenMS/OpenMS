@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <fstream>
 #include <cmath>
+#include <exception>
 #include <iomanip>
 #include <limits>
 #include <new>
