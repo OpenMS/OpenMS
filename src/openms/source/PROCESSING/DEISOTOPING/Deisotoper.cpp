@@ -16,8 +16,49 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <algorithm>
+#include <cmath>
+
 namespace OpenMS
 {
+
+namespace
+{
+  // Whether the m/z values of @p spec are finite and in ascending order: then the searches and the merge below give
+  // what MSSpectrum::findNearest() and MSSpectrum::sortByPosition() give.
+  bool sortedAndFinite(const MSSpectrum& spec)
+  {
+    for (Size i = 0; i < spec.size(); ++i)
+    {
+      if (!std::isfinite(spec[i].getMZ()) || (i > 0 && spec[i].getMZ() < spec[i - 1].getMZ())) { return false; }
+    }
+    return true;
+  }
+
+  // MSSpectrum::findNearest(mz, tolerance) of a spectrum that sortedAndFinite() accepts, when the peaks before @p from
+  // all lie below @p mz: the same peak, found with a search from @p from on (exponential, then binary) instead of a
+  // binary search over all peaks. @p from is set to the first peak at or above @p mz, where the search for a larger
+  // m/z can start.
+  Int findNearestFrom(const MSSpectrum& spec, const double mz, const double tolerance, Size& from)
+  {
+    const Size n = spec.size();
+    Size lo = from, hi = from;
+    for (Size step = 1; hi < n && spec[hi].getMZ() < mz; step *= 2)
+    {
+      lo = hi + 1;
+      hi = lo + step;
+    }
+    hi = std::min(hi, n);
+    from = static_cast<Size>(std::lower_bound(spec.begin() + lo, spec.begin() + hi, mz,
+                                              [](const Peak1D& p, const double x) { return p.getMZ() < x; }) - spec.begin());
+    // as MSSpectrum::findNearest(mz): the peak at or above mz or the one below, the one below if both are as close
+    Size nearest = from;
+    if (from == n) { nearest = n - 1; }
+    else if (from > 0 && !(std::fabs(spec[from].getMZ() - mz) < std::fabs(spec[from - 1].getMZ() - mz))) { nearest = from - 1; }
+    const double found_mz = spec[nearest].getMZ();
+    return found_mz >= mz - tolerance && found_mz <= mz + tolerance ? static_cast<Int>(nearest) : -1;
+  }
+}
 
 // static
 bool Deisotoper::isToleranceSupported(double fragment_tolerance, bool fragment_unit_ppm)
@@ -381,6 +422,8 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   { 
     return; 
   }
+  // the faster searches and merge below need it (it holds for a sorted spectrum, unless an m/z is not finite)
+  const bool sorted_and_finite = min_charge > 0 && min_charge <= max_charge && sortedAndFinite(spec);
 
   Size charge_index{};
   Size iso_peak_count_index{}, feature_number_dataarray_index{};
@@ -467,10 +510,13 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 
         extensions.clear();
         extensions.push_back(current_peak);
+        Size search_from = current_peak; // the peaks before it lie below the expected m/z (findNearestFrom())
         for (unsigned int i = 1; i < max_isopeaks; ++i)
         {
           const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
-          const int p = old_spectrum.findNearest(expected_mz, tolerance_dalton);
+          const int p = sorted_and_finite && (search_from == 0 || old_spectrum[search_from - 1].getMZ() < expected_mz)
+                          ? findNearestFrom(old_spectrum, expected_mz, tolerance_dalton, search_from)
+                          : old_spectrum.findNearest(expected_mz, tolerance_dalton);
           if (p == -1) // test for missing peak
           {
             has_min_isopeaks = (i >= min_isopeaks);
@@ -560,6 +606,36 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
     select_idx.push_back(i);
   }
 
+  // The kept peaks in the order of spec.select(select_idx) followed by spec.sortByPosition() (a stable sort by m/z):
+  // the peaks of each charge (charge 0 and 1: unchanged m/z) are in ascending order of their m/z, as the conversion to
+  // charge one keeps the order (also for a converted m/z that overflows to infinity), so they are merged, a peak of the
+  // same m/z as one of another charge first if it came first in the spectrum.
+  if (sorted_and_finite && make_single_charged)
+  {
+    std::vector<std::vector<Size>> by_charge(static_cast<Size>(max_charge) + 1);
+    for (const Size i : select_idx) { by_charge[std::max<Size>(mono_isotopic_peak[i], 1)].push_back(i); }
+    std::vector<Size> next(by_charge.size(), 0);
+    for (Size& i : select_idx)
+    {
+      Size best = 0; // the charge whose next peak comes first
+      for (Size z = 1; z < by_charge.size(); ++z)
+      {
+        if (next[z] == by_charge[z].size()) { continue; }
+        const Size candidate = by_charge[z][next[z]];
+        if (best == 0)
+        {
+          best = z;
+          continue;
+        }
+        const Size current = by_charge[best][next[best]];
+        const double mz = spec[candidate].getMZ(), best_mz = spec[current].getMZ();
+        if (mz < best_mz || (mz == best_mz && candidate < current)) { best = z; }
+      }
+      i = by_charge[best][next[best]++];
+    }
+    spec.select(select_idx);
+    return;
+  }
   // properly subsets all datapoints (incl. dataArrays)
   spec.select(select_idx);
   spec.sortByPosition();
