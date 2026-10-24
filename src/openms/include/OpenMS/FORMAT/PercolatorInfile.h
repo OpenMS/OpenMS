@@ -103,6 +103,14 @@ namespace OpenMS
       static StringList getStandardFeatureSet(int min_charge, int max_charge);
 
       /**
+       * @brief The names of all PIN columns (meta values) that @ref stampPinFeaturesOnHits sets on a hit.
+       *
+       * SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime, mass, score, peplen, enzN, enzC, enzInt, dm,
+       * absdm, Peptide, Proteins, then charge{min_charge..max_charge}.
+       */
+      static StringList getPinColumnNames(int min_charge, int max_charge);
+
+      /**
        * @brief Compute and stamp PIN-equivalent meta values on every PeptideHit.
        *
        * Runs the same per-hit computation that @ref preparePin_ applies when
@@ -187,7 +195,7 @@ namespace OpenMS
        * the PIN columns are computed by the same functions as there (same arithmetic, so the same doubles), the other
        * features are read from the hits' meta values with @ref getFeatureValue. The rows are the hits that
        * stampPinFeaturesOnHits() does not skip (they have peptide evidences and a known target/decoy type) and that
-       * carry every feature, in the order of the identifications and their hits. Filled per row:
+       * carry every feature, in the order of the identifications and their hits (none without features). Filled per row:
        * - input.feature_names = @p features, input.feature_matrix (dense, row-major), input.features stays empty
        * - input.is_decoy (Label -1), input.scan_numbers (ScanNr), input.exp_masses (ExpMass, the precursor m/z),
        *   input.calc_masses (CalcMass), input.spec_file_numbers (the spectrum files, see @ref getFileIdentifier, in
@@ -256,7 +264,8 @@ namespace OpenMS
        *
        * Calls put(column, value) for the columns in stamping order (an int, double or bool; the string columns
        * SpecId, Peptide and Proteins only @p with_strings). CalcMass is put only if the hit has none (exists(
-       * LOOKUP_CALC_MASS) false); otherwise its value is read (get) and returned as well. Defined in the .cpp file.
+       * LOOKUP_CALC_MASS) false); otherwise its value is read (get) and returned as well. Defined (and so usable) in
+       * PercolatorInfile.cpp only.
        *
        * @return The calculated mass of the hit (CalcMass)
        */

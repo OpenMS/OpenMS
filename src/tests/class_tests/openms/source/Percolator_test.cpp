@@ -1858,4 +1858,63 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
 }
 END_SECTION
 
+START_SECTION(([EXTRA] rescorePSMs: meta values as when the PIN features were stamped and removed again))
+{
+  // 300 target and 300 decoy PSMs with the old score type "score", a PIN column name: the original score that the
+  // write-back keeps under the old score type was removed with the stamped column, unless the hit had that meta value
+  // before (it then holds the score); an input 'mass' meta value got the PIN value (the precursor m/z).
+  auto makeIds = [&]()
+  {
+    PeptideIdentificationList ids;
+    const std::string aas = "ACDEFGHILMNPQSTVWY";
+    for (int i = 0; i < 600; ++i)
+    {
+      const bool decoy = i % 2 == 1;
+      std::string seq;
+      for (int k = 0; k < 8 + i % 5; ++k) seq += aas[(i * 7 + k * 13) % aas.size()];
+      seq += 'K';
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(seq));
+      hit.setCharge(2);
+      hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+      hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+      hit.setPeptideEvidences({PeptideEvidence(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A')});
+      if (i == 4) hit.setMetaValue("score", 99.0);
+      if (i == 6) hit.setMetaValue("mass", 1.0);
+      PeptideIdentification pid;
+      pid.setScoreType("score");
+      pid.setHigherScoreBetter(true);
+      pid.setMZ(hit.getSequence().getMZ(2) + 0.001 * (i % 7));
+      pid.setRT(10.0 * i);
+      pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+      pid.setHits({hit});
+      ids.push_back(pid);
+    }
+    return ids;
+  };
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.insert(feature_set.end(), {"score", "Peptide", "Proteins"});
+  PeptideIdentificationList ids = makeIds();
+  const PeptideIdentificationList before = makeIds();
+  Percolator perc;
+  TEST_EQUAL(perc.rescorePSMs(ids, feature_set, "trypsin", 2, 2, "q-value"), 600)
+  TEST_EQUAL(ids[0].getHits()[0].metaValueExists("score"), false)
+  TEST_EQUAL(double(ids[4].getHits()[0].getMetaValue("score")), before[4].getHits()[0].getScore())
+  TEST_EQUAL(double(ids[6].getHits()[0].getMetaValue("mass")), before[6].getMZ())
+  TEST_EQUAL(ids[6].getHits()[0].metaValueExists("ExpMass"), false)
+
+  // the feature matrix: one row per hit, the input left as it is; the feature names may alias the output
+  RescoreInput input;
+  Percolator::PSMRowLocations rows;
+  Percolator::buildPSMRescoreInput(before, feature_set, "trypsin", 2, 2, input, rows);
+  TEST_EQUAL(input.rowCount(), 600)
+  TEST_EQUAL(rows.size(), 600)
+  TEST_EQUAL(before == makeIds(), true)
+  const StringList numeric = input.feature_names;
+  PercolatorInfile::buildFeatureMatrix(before, input.feature_names, "trypsin", 2, 2, input, rows);
+  TEST_EQUAL(input.feature_names == numeric, true)
+  TEST_EQUAL(input.featureCount(), numeric.size())
+}
+END_SECTION
+
 END_TEST

@@ -40,6 +40,31 @@ namespace OpenMS
     StringList feature_names;
 
     /**
+      @brief Optional per-row PIN-compatible fields.
+
+      When supplied, these override the synthetic defaults
+      (`scan = row_index`, `specFileNr = 0`, `expMass = calcMass = 0.0`)
+      that the wrapper uses internally. Populate them when the in-process
+      output must be bitwise-identical to running the external percolator
+      binary on a .pin file derived from the same PSMs: Percolator's
+      internal PSM sort order (`OrderScanHash` hashes `specFileNr` and
+      `scan`) determines the CV fold assignment, so scan_numbers and
+      spec_file_numbers must match those that `PercolatorInfile::store`
+      would emit.
+
+      Percolator::fillPINCompatibleFields() is a helper that derives all
+      four vectors from a vector of PeptideIdentifications using the same
+      conventions as PercolatorInfile::store.
+
+      Each vector is either empty (in which case the default is used) or
+      contains exactly n_rows entries, one per feature row.
+    */
+    std::vector<int>    scan_numbers;
+    std::vector<int>    spec_file_numbers;
+    std::vector<double> exp_masses;
+    std::vector<double> calc_masses;
+
+    /**
       @brief The feature matrix in one dense block, in place of @ref features.
 
       Row-major: row i holds the values of the feature_names.size() features at
@@ -71,31 +96,6 @@ namespace OpenMS
     {
       return !features.empty() ? features[i].data() : feature_matrix.data() + i * feature_names.size();
     }
-
-    /**
-      @brief Optional per-row PIN-compatible fields.
-
-      When supplied, these override the synthetic defaults
-      (`scan = row_index`, `specFileNr = 0`, `expMass = calcMass = 0.0`)
-      that the wrapper uses internally. Populate them when the in-process
-      output must be bitwise-identical to running the external percolator
-      binary on a .pin file derived from the same PSMs: Percolator's
-      internal PSM sort order (`OrderScanHash` hashes `specFileNr` and
-      `scan`) determines the CV fold assignment, so scan_numbers and
-      spec_file_numbers must match those that `PercolatorInfile::store`
-      would emit.
-
-      Percolator::fillPINCompatibleFields() is a helper that derives all
-      four vectors from a vector of PeptideIdentifications using the same
-      conventions as PercolatorInfile::store.
-
-      Each vector is either empty (in which case the default is used) or
-      contains exactly n_rows entries, one per feature row.
-    */
-    std::vector<int>    scan_numbers;
-    std::vector<int>    spec_file_numbers;
-    std::vector<double> exp_masses;
-    std::vector<double> calc_masses;
   };
 
   /// Output from Percolator::rescore. Aligned 1:1 with RescoreInput::features.

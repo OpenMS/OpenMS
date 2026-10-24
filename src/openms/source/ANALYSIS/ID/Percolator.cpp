@@ -36,6 +36,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <tuple>
 #include <utility>
 
 #ifdef _OPENMP
@@ -1536,6 +1537,35 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
   // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
   const RescoreOutput ro = rescore(ri);
 
+  // When the PIN features were stamped, the PIN columns that a stamped hit (evidence, target/decoy type) did not have
+  // were removed after the write-back below, also the original score that it stores under the old score type if that is
+  // the name of a PIN column (e.g. "score"). Kept that way: these hits lose that meta value again.
+  std::vector<std::tuple<size_t, size_t, std::string>> remove_old_score; // (identification, hit, old score type)
+  {
+    const StringList pin_columns = PercolatorInfile::getPinColumnNames(min_charge, max_charge);
+    const std::string* last_type = nullptr;
+    bool pin_type = false;
+    for (size_t i = 0; i < peptide_ids.size(); ++i)
+    {
+      const std::string& type = peptide_ids[i].getScoreType();
+      if (last_type == nullptr || type != *last_type)
+      {
+        last_type = &type;
+        pin_type = std::find(pin_columns.begin(), pin_columns.end(), type) != pin_columns.end();
+      }
+      if (!pin_type) continue;
+      const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (size_t j = 0; j < hits.size(); ++j)
+      {
+        if (!hits[j].getPeptideEvidences().empty() && hits[j].getTargetDecoyType() != PeptideHit::TargetDecoyType::UNKNOWN
+            && !hits[j].metaValueExists(type))
+        {
+          remove_old_score.emplace_back(i, j, type);
+        }
+      }
+    }
+  }
+
   // looking names up takes a lock on the registry, which threads would contend for: the parallel loops below use indices
   auto index_of = [](const std::string& name) { return MetaInfoInterface::metaRegistry().getIndex(name); };
 
@@ -1676,6 +1706,10 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
       }
     }
     rethrowFirstError(errors);
+  }
+  for (const auto& [i, j, type] : remove_old_score)
+  {
+    peptide_ids[i].getHits()[j].removeMetaValue(type);
   }
   return ro.scores.size();
 }

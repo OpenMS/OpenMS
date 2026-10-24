@@ -507,34 +507,21 @@ namespace OpenMS
     return calc_mass;
   }
 
+  StringList PercolatorInfile::getPinColumnNames(int min_charge, int max_charge)
+  {
+    // PinColumn_ order: the fixed columns, then the charge{N} columns from min_charge on
+    StringList names{"SpecId", "ScanNr", "Label", "CalcMass", "ExpMass", "deltamass", "retentiontime", "mass", "score",
+                     "peplen", "enzN", "enzC", "enzInt", "dm", "absdm", "Peptide", "Proteins"};
+    static_assert(PIN_CHARGE == 17, "a name per fixed PIN column (PinColumn_ order)");
+    for (int i = min_charge; i <= max_charge; ++i)
+    {
+      names.push_back("charge" + StringUtils::toStr(i));
+    }
+    return names;
+  }
+
   namespace
   {
-    // The names of the PIN columns (PercolatorInfile::PinColumn_ order; the charge{N} columns from min_charge on)
-    std::vector<std::string> pinColumnNames(int min_charge, int max_charge)
-    {
-      std::vector<std::string> names{"SpecId", "ScanNr", "Label", "CalcMass", "ExpMass", "deltamass", "retentiontime",
-                                     "mass", "score", "peplen", "enzN", "enzC", "enzInt", "dm", "absdm", "Peptide",
-                                     "Proteins"};
-      for (int i = min_charge; i <= max_charge; ++i)
-      {
-        names.push_back("charge" + StringUtils::toStr(i));
-      }
-      return names;
-    }
-
-    // The names of the PIN columns in the order stamping registers them on its first hit
-    std::vector<std::string> pinColumnNamesInStampingOrder(int min_charge, int max_charge)
-    {
-      std::vector<std::string> names{"SpecId", "ScanNr", "Label", "CalcMass", "ExpMass", "deltamass", "retentiontime",
-                                     "mass", "score", "peplen"};
-      for (int i = min_charge; i <= max_charge; ++i)
-      {
-        names.push_back("charge" + StringUtils::toStr(i));
-      }
-      names.insert(names.end(), {"enzN", "enzC", "enzInt", "dm", "absdm", "Peptide", "Proteins"});
-      return names;
-    }
-
     // PeptideHit::getTargetDecoyType() with the meta value name looked up once (index): the lookup by name takes a
     // lock on the registry, which threads would contend for. An unregistered name (index -1) exists on no hit.
     PeptideHit::TargetDecoyType targetDecoyType(const PeptideHit& hit, UInt td_index)
@@ -600,7 +587,7 @@ namespace OpenMS
       return it == name_index.end() ? hit.getMetaValue(key) : hit.getMetaValue(it->second);
     };
 
-    const std::vector<std::string> column_names = pinColumnNames(min_charge, max_charge);
+    const std::vector<std::string> column_names = getPinColumnNames(min_charge, max_charge);
     const std::string lookup_names[] = {"CalcMass", "IsotopeError", Constants::UserParam::ISOTOPE_ERROR};
 
     // Stamps the hits of one spectrum; returns whether it stamped any.
@@ -795,9 +782,10 @@ namespace OpenMS
     RescoreInput& input,
     std::vector<std::pair<size_t, size_t>>& rows)
   {
+    const StringList feature_list = features; // (features may be input.feature_names)
     input = RescoreInput();
     rows.clear();
-    input.feature_names = features;
+    input.feature_names = feature_list;
 
     // The columns: a PIN column (its PinColumn_) or a meta value of the hit (ENGINE, read by name index; an
     // unregistered name, index -1, exists on no hit), as the stamped feature rows were read.
@@ -807,9 +795,9 @@ namespace OpenMS
       int pin;
       UInt index;
     };
-    const std::vector<std::string> column_names = pinColumnNames(min_charge, max_charge);
+    const std::vector<std::string> column_names = getPinColumnNames(min_charge, max_charge);
     std::vector<Column> columns;
-    for (const std::string& feature : features)
+    for (const std::string& feature : feature_list)
     {
       const auto it = std::find(column_names.begin(), column_names.end(), feature);
       if (it == column_names.end())
@@ -858,13 +846,27 @@ namespace OpenMS
     std::vector<size_t> stamp_error_hit(n_spectra, NONE);
     std::vector<std::exception_ptr> stamp_errors(n_spectra), row_errors(n_spectra);
 
-    // First pass: the hits that are stamped and rows, the number of rows of each spectrum.
+    // First pass: the values of each spectrum, as stamping computes them before its hits (an error there stops the
+    // spectrum before its first hit), and the hits that are stamped and rows, the number of rows of each spectrum.
+    std::vector<Int> scan_numbers(n_spectra, 0);
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize si = 0; si < static_cast<SignedSize>(n_spectra); ++si)
     {
       const size_t i = static_cast<size_t>(si);
       const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
       size_t n_rows = 0;
+      try
+      {
+        const std::string scan_identifier = getScanIdentifier(peptide_ids[i], i + 1);
+        file_identifier[i] = getFileIdentifier(peptide_ids[i]);
+        scan_numbers[i] = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, /*no_error=*/true);
+      }
+      catch (...)
+      {
+        stamp_error_hit[i] = 0;
+        stamp_errors[i] = std::current_exception();
+        continue;
+      }
       for (size_t j = 0; j < hits.size(); ++j)
       {
         try
@@ -883,7 +885,7 @@ namespace OpenMS
           }
           unsigned char s = STAMPED;
           if (target_decoy == PeptideHit::TargetDecoyType::DECOY) s |= DECOY;
-          if (std::all_of(columns.begin(), columns.end(),
+          if (!columns.empty() && std::all_of(columns.begin(), columns.end(),
                           [&](const Column& c) { return c.pin != ENGINE || hit.metaValueExists(c.index); }))
           {
             s |= ROW;
@@ -899,17 +901,6 @@ namespace OpenMS
         }
       }
       row_offset[i + 1] = n_rows;
-      if (n_rows > 0)
-      {
-        try
-        {
-          file_identifier[i] = getFileIdentifier(peptide_ids[i]);
-        }
-        catch (...)
-        {
-          row_errors[i] = std::current_exception();
-        }
-      }
     }
 
     // The first row of each spectrum, and the spectrum files in order of appearance, as Percolator numbers the
@@ -929,22 +920,36 @@ namespace OpenMS
     }
     file_identifier = std::vector<std::string>();
     const size_t n_rows = row_offset[n_spectra];
-    // The rows are allocated only without an error: an allocation failure must not replace the error rethrown below.
+    // The rows are allocated only without an error of the first pass, and an allocation failure is raised only if the
+    // second pass finds no error either: it must not replace an error rethrown below (stamping and reading the stamped
+    // rows raised theirs before the rows were allocated). Without the rows, the second pass only checks.
     auto has_error = [](const std::vector<std::exception_ptr>& errors)
     {
       return std::any_of(errors.begin(), errors.end(), [](const std::exception_ptr& e) { return bool(e); });
     };
-    const bool fill = !has_error(stamp_errors) && !has_error(row_errors);
+    bool fill = !has_error(stamp_errors) && !has_error(row_errors);
+    std::exception_ptr allocation_error;
     std::vector<char> is_decoy;
     if (fill)
     {
-      input.feature_matrix.resize(n_rows * n_features);
-      is_decoy.resize(n_rows);
-      input.scan_numbers.resize(n_rows);
-      input.spec_file_numbers.resize(n_rows);
-      input.exp_masses.resize(n_rows);
-      input.calc_masses.resize(n_rows);
-      rows.resize(n_rows);
+      try
+      {
+        input.feature_matrix.resize(n_rows * n_features);
+        is_decoy.resize(n_rows);
+        input.scan_numbers.resize(n_rows);
+        input.spec_file_numbers.resize(n_rows);
+        input.exp_masses.resize(n_rows);
+        input.calc_masses.resize(n_rows);
+        rows.resize(n_rows);
+      }
+      catch (...)
+      {
+        allocation_error = std::current_exception();
+        fill = false;
+        input = RescoreInput();
+        is_decoy = std::vector<char>();
+        rows = std::vector<std::pair<size_t, size_t>>();
+      }
     }
 
     // Second pass: the PIN columns of every stamped hit (the stamping's errors) and the rows (the rows' errors: a
@@ -974,8 +979,7 @@ namespace OpenMS
       size_t row = row_offset[i];
       try
       {
-        const std::string scan_identifier = getScanIdentifier(pid, i + 1);
-        const Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, /*no_error=*/true);
+        const Int scan_number = scan_numbers[i];
         const double exp_mass = pid.getMZ();
         const double retention_time = pid.getRT();
         // the hits up to an error of the first pass (a target/decoy value)
@@ -1007,7 +1011,9 @@ namespace OpenMS
             stamp_errors[i] = std::current_exception();
             break;
           }
-          if (row_errors[i]) continue; // the stamping goes on: its errors come first
+          // the stamping goes on after a rows' error: its errors come first. (Without features nothing is read: rescoring
+          // stopped at the empty feature set after stamping.)
+          if (row_errors[i] || n_features == 0) continue;
           try
           {
             // the features in the order of the feature set, up to the first missing one
@@ -1025,13 +1031,13 @@ namespace OpenMS
                   complete = false;
                   break;
                 }
-                value = getFeatureValue(hit.getMetaValue(c.index), features[f]);
+                value = getFeatureValue(hit.getMetaValue(c.index), feature_list[f]);
               }
               else
               {
                 value = pin_values[c.pin];
                 // (a value that is not finite is reported as for its stamped meta value)
-                if (!std::isfinite(value)) getFeatureValue(DataValue(value), features[f]);
+                if (!std::isfinite(value)) getFeatureValue(DataValue(value), feature_list[f]);
               }
               out[f] = value;
             }
@@ -1069,10 +1075,13 @@ namespace OpenMS
       if (stamp_error_hit[i] <= first) break; // (also no stamped hit before the error)
       if (first < hit_offset[i + 1] - hit_offset[i])
       {
-        for (const std::string& name : pinColumnNamesInStampingOrder(min_charge, max_charge))
-        {
-          MetaInfoInterface::metaRegistry().registerName(name);
-        }
+        // the order of the put() calls of pinHitColumns_ (the string columns as stamped)
+        const StringList names = getPinColumnNames(min_charge, max_charge);
+        std::vector<int> order{PIN_SPEC_ID, PIN_SCAN_NR, PIN_LABEL, PIN_CALC_MASS, PIN_EXP_MASS, PIN_DELTAMASS,
+                               PIN_RETENTIONTIME, PIN_MASS, PIN_SCORE, PIN_PEPLEN};
+        for (int c = PIN_CHARGE; c < static_cast<int>(names.size()); ++c) order.push_back(c);
+        order.insert(order.end(), {PIN_ENZ_N, PIN_ENZ_C, PIN_ENZ_INT, PIN_DM, PIN_ABSDM, PIN_PEPTIDE, PIN_PROTEINS});
+        for (int c : order) MetaInfoInterface::metaRegistry().registerName(names[c]);
         break;
       }
     }
@@ -1104,6 +1113,7 @@ namespace OpenMS
     {
       if (error) std::rethrow_exception(error);
     }
+    if (allocation_error) std::rethrow_exception(allocation_error);
     input.is_decoy.assign(is_decoy.begin(), is_decoy.end());
     return skipped;
   }
@@ -1116,13 +1126,27 @@ namespace OpenMS
     // The PIN columns that stamping overwrites (all but CalcMass, which it reads): their name indices, if registered.
     // A hit can only carry those that are.
     const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
-    const std::vector<std::string> column_names = pinColumnNames(min_charge, max_charge);
+    const std::vector<std::string> column_names = getPinColumnNames(min_charge, max_charge);
     std::vector<UInt> index(column_names.size(), UInt(-1));
     for (size_t c = 0; c < column_names.size(); ++c)
     {
       if (c != PIN_CALC_MASS) index[c] = registry.getIndex(column_names[c]);
     }
-    if (peptide_ids.empty() || std::all_of(index.begin(), index.end(), [](UInt i) { return i == UInt(-1); })) return;
+    if (std::all_of(index.begin(), index.end(), [](UInt i) { return i == UInt(-1); })) return;
+    auto carries_pin_column = [&](const PeptideHit& hit)
+    {
+      return std::any_of(index.begin(), index.end(), [&](UInt i) { return i != UInt(-1) && hit.metaValueExists(i); });
+    };
+
+    // The spectra with such a hit (no allocation, no error)
+    std::vector<char> refresh(peptide_ids.size(), 0);
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize si = 0; si < static_cast<SignedSize>(peptide_ids.size()); ++si)
+    {
+      const std::vector<PeptideHit>& hits = peptide_ids[si].getHits();
+      refresh[si] = std::any_of(hits.begin(), hits.end(), carries_pin_column);
+    }
+    if (std::none_of(refresh.begin(), refresh.end(), [](char r) { return r != 0; })) return;
 
     const UInt td_index = registry.getIndex("target_decoy");
     const UInt lookup_index[] = {registry.getIndex("CalcMass"), registry.getIndex("IsotopeError"),
@@ -1130,47 +1154,59 @@ namespace OpenMS
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
     RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
-    // A hit whose computation fails is left as it is: the same computation fails in buildFeatureMatrix(), which
-    // reports the error in order.
+    // A hit whose PIN columns cannot be computed (an invalid value, e.g. a CalcMass that is not a number) and the hits
+    // after it are left as they are: buildFeatureMatrix() computes the same numbers, fails the same way and reports
+    // the error in its order.
+    // Any other error (e.g. an allocation failure, also in the string columns) is raised, the first by spectrum.
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize si = 0; si < static_cast<SignedSize>(peptide_ids.size()); ++si)
     {
-      PeptideIdentification& pid = peptide_ids[si];
-      std::optional<std::tuple<std::string, Int>> spectrum; // SpecId and ScanNr, when a hit needs them
-      for (PeptideHit& hit : pid.getHits())
+      if (!refresh[si]) continue;
+      try
       {
-        try
+        PeptideIdentification& pid = peptide_ids[si];
+        std::optional<std::tuple<std::string, Int>> spectrum; // SpecId and ScanNr, when a hit needs them
+        for (PeptideHit& hit : pid.getHits())
         {
-          if (std::none_of(index.begin(), index.end(), [&](UInt i) { return i != UInt(-1) && hit.metaValueExists(i); }))
+          try
           {
-            continue;
+            if (!carries_pin_column(hit) || hit.getPeptideEvidences().empty()) continue;
+            const PeptideHit::TargetDecoyType target_decoy = targetDecoyType(hit, td_index);
+            if (target_decoy == PeptideHit::TargetDecoyType::UNKNOWN) continue;
+            if (!spectrum)
+            {
+              const std::string scan_identifier = getScanIdentifier(pid, static_cast<size_t>(si) + 1);
+              spectrum.emplace(getFileIdentifier(pid) + scan_identifier,
+                               SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, /*no_error=*/true));
+            }
+            auto exists = [&](int lookup)
+            {
+              return lookup_index[lookup] != UInt(-1) && hit.metaValueExists(lookup_index[lookup]);
+            };
+            auto get = [&](int lookup) -> const DataValue& { return hit.getMetaValue(lookup_index[lookup]); };
+            auto put = [&](int column, const auto& value)
+            {
+              if (index[column] != UInt(-1) && hit.metaValueExists(index[column])) hit.setMetaValue(index[column], value);
+            };
+            pinHitColumns_<true>(hit, target_decoy == PeptideHit::TargetDecoyType::DECOY, std::get<0>(*spectrum),
+                                 std::get<1>(*spectrum), pid.getMZ(), pid.getRT(), enz, min_charge, max_charge,
+                                 exists, get, put);
           }
-          if (hit.getPeptideEvidences().empty()) continue;
-          const PeptideHit::TargetDecoyType target_decoy = targetDecoyType(hit, td_index);
-          if (target_decoy == PeptideHit::TargetDecoyType::UNKNOWN) continue;
-          if (!spectrum)
+          catch (const Exception::BaseException&)
           {
-            const std::string scan_identifier = getScanIdentifier(pid, static_cast<size_t>(si) + 1);
-            spectrum.emplace(getFileIdentifier(pid) + scan_identifier,
-                             SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, /*no_error=*/true));
+            break; // (stamping stops the spectrum at this hit)
           }
-          auto exists = [&](int lookup)
-          {
-            return lookup_index[lookup] != UInt(-1) && hit.metaValueExists(lookup_index[lookup]);
-          };
-          auto get = [&](int lookup) -> const DataValue& { return hit.getMetaValue(lookup_index[lookup]); };
-          auto put = [&](int column, const auto& value)
-          {
-            if (index[column] != UInt(-1) && hit.metaValueExists(index[column])) hit.setMetaValue(index[column], value);
-          };
-          pinHitColumns_<true>(hit, target_decoy == PeptideHit::TargetDecoyType::DECOY, std::get<0>(*spectrum),
-                               std::get<1>(*spectrum), pid.getMZ(), pid.getRT(), enz, min_charge, max_charge,
-                               exists, get, put);
-        }
-        catch (...)
-        {
         }
       }
+      catch (...)
+      {
+        errors[si] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors)
+    {
+      if (error) std::rethrow_exception(error);
     }
   }
 
