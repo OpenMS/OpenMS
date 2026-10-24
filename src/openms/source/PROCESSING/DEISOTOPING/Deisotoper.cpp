@@ -612,26 +612,31 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   // same m/z as one of another charge first if it came first in the spectrum.
   if (sorted_and_finite && make_single_charged)
   {
-    std::vector<std::vector<Size>> by_charge(static_cast<Size>(max_charge) + 1);
-    for (const Size i : select_idx) { by_charge[std::max<Size>(mono_isotopic_peak[i], 1)].push_back(i); }
+    std::vector<std::pair<Size, std::vector<Size>>> by_charge; // the kept peaks of each charge (1 for charge 0) that occurs
+    for (const Size i : select_idx)
+    {
+      const Size z = std::max<Size>(mono_isotopic_peak[i], 1);
+      auto group = std::find_if(by_charge.begin(), by_charge.end(), [z](const auto& g) { return g.first == z; });
+      if (group == by_charge.end()) { group = by_charge.emplace(by_charge.end(), z, std::vector<Size>()); }
+      group->second.push_back(i);
+    }
     std::vector<Size> next(by_charge.size(), 0);
     for (Size& i : select_idx)
     {
-      Size best = 0; // the charge whose next peak comes first
-      for (Size z = 1; z < by_charge.size(); ++z)
+      Size best = by_charge.size(); // the group whose next peak comes first
+      for (Size g = 0; g < by_charge.size(); ++g)
       {
-        if (next[z] == by_charge[z].size()) { continue; }
-        const Size candidate = by_charge[z][next[z]];
-        if (best == 0)
+        if (next[g] == by_charge[g].second.size()) { continue; }
+        if (best == by_charge.size())
         {
-          best = z;
+          best = g;
           continue;
         }
-        const Size current = by_charge[best][next[best]];
+        const Size candidate = by_charge[g].second[next[g]], current = by_charge[best].second[next[best]];
         const double mz = spec[candidate].getMZ(), best_mz = spec[current].getMZ();
-        if (mz < best_mz || (mz == best_mz && candidate < current)) { best = z; }
+        if (mz < best_mz || (mz == best_mz && candidate < current)) { best = g; }
       }
-      i = by_charge[best][next[best]++];
+      i = by_charge[best].second[next[best]++];
     }
     spec.select(select_idx);
     return;
