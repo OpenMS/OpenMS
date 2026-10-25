@@ -131,9 +131,18 @@ to caller IDs. `TransitionTSVFile` supplies the real library measurements and
 target/decoy state. Its normalized RT and unit-unspecified IM are deliberately
 not relabelled as raw seconds or known mobility units.
 
+Query checks preserve selection, coordinates, mobility units and FAIMS presence
+from these real acquisitions and distinguish a changed calibration snapshot.
+A separate existing mzML fixture exercises the actual public
+`ChromatogramExtractorAlgorithm`: the original request and a query-value
+round trip must produce exactly equal time/intensity arrays with nonzero signal.
+This checks the supported all-acquisition, all-RT, non-IM SUM request only, not
+production cache integration or a universal query-to-extractor adapter.
+
 The sparse evidence check transfers selected real observations and retains them
 after its raw tile and hypothesis page are destroyed. It does not perform or
 validate scientific matching. The fixture's full-file load, one-window spectra,
 numeric scan mapping, count limits and by-value layout are not the future
 WP-03/04 production adapters, a packed representation, byte-bounded streaming,
-or a performance claim. Keys, alternatives and scores remain later WP-01 steps.
+or a performance claim. Alternatives, scores and the complete v0 handoff remain
+WP-01 step 4.

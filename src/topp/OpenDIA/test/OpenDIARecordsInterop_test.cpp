@@ -6,6 +6,8 @@
 // --------------------------------------------------------------------------
 #include "OpenDIARecords.h"
 
+#include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -15,6 +17,7 @@
 
 #include <array>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -178,6 +181,79 @@ namespace
     return row;
   }
 
+  void consumeQuery(const OpenDIA::RawTile& tile)
+  {
+    const auto source = tile.point(0).coordinates;
+    OpenDIA::ExtractionQuerySpec request;
+    request.context = tile.context();
+    request.acquisitions = std::vector<std::pair<OpenDIA::RecordId, OpenDIA::RecordId>>{{source.frame_id, source.scan_id}};
+    request.ms_level = source.ms_level;
+    request.rt_seconds = OpenDIA::QueryInterval{source.rt_seconds, source.rt_seconds, OpenDIA::EdgePolicy::CLOSED};
+    request.mz = {source.mz, source.mz, OpenDIA::EdgePolicy::CLOSED};
+    if (source.ms_level > 1)
+    {
+      request.isolation_mz = OpenDIA::QueryInterval{source.isolation_lower_mz, source.isolation_upper_mz,
+                                                  OpenDIA::EdgePolicy::LOWER_CLOSED};
+    }
+    if (source.mobility)
+    {
+      request.mobility = OpenDIA::MobilityInterval{{source.mobility->value, source.mobility->value, OpenDIA::EdgePolicy::CLOSED},
+                                                   source.mobility->unit};
+    }
+    request.faims_voltage = source.faims_voltage;
+    const OpenDIA::ExtractionQuery query(request);
+    check(query.specification() == request, "Real acquisition query coordinates or identity changed");
+    ++request.context.calibration_snapshot_id;
+    check(query != OpenDIA::ExtractionQuery(request), "Changed calibration reused a real acquisition key");
+    OPENMS_LOG_INFO << "Preserved real query identity: MS" << source.ms_level
+                    << ", IM=" << source.mobility.has_value() << ", FAIMS=" << source.faims_voltage.has_value() << '\n';
+  }
+
+  void replayExtractionQuery()
+  {
+    // Exercise the existing public extractor, not a replacement algorithm or cache.
+    auto experiment = std::make_shared<OpenMS::MSExperiment>();
+    OpenMS::MzMLFile().load(dataFile("class_tests/openms/data/ChromatogramExtractor_input.mzML"), *experiment);
+    auto access = std::make_shared<OpenMS::SpectrumAccessOpenMS>(experiment);
+    OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates coordinates;
+    coordinates.mz = 618.31;
+    coordinates.rt_start = 0;
+    coordinates.rt_end = -1;
+    coordinates.id = "tr1";
+    OpenDIA::ExtractionQuerySpec request;
+    request.context = context();
+    check(!experiment->empty(), "Public extractor fixture is empty");
+    request.ms_level = (*experiment)[0].getMSLevel();
+    for (const auto& spectrum : *experiment)
+    {
+      check(spectrum.getMSLevel() == request.ms_level, "Extractor fixture spans unselected MS levels");
+    }
+    request.mz = {coordinates.mz - 0.025, coordinates.mz + 0.025, OpenDIA::EdgePolicy::OPEN};
+    request.tolerance = {0.05, OpenDIA::ToleranceUnit::TH};
+    request.aggregation = OpenDIA::QueryAggregation::SUM;
+    const OpenDIA::ExtractionQuery query(request);
+    const auto retained = query.specification();
+    auto restored_coordinates = coordinates;
+    restored_coordinates.mz = (retained.mz.lower + retained.mz.upper) / 2;
+    check(restored_coordinates.mz == coordinates.mz, "Query bounds changed extraction center");
+    std::vector<OpenSwath::ChromatogramPtr> expected{std::make_shared<OpenSwath::Chromatogram>()};
+    std::vector<OpenSwath::ChromatogramPtr> actual{std::make_shared<OpenSwath::Chromatogram>()};
+    OpenMS::ChromatogramExtractorAlgorithm extractor;
+    extractor.extractChromatograms(access, expected, {coordinates}, 0.05, false, -1, "tophat");
+    extractor.extractChromatograms(access, actual, {restored_coordinates}, retained.tolerance.full_width,
+                                  retained.tolerance.unit == OpenDIA::ToleranceUnit::PPM, -1, "tophat");
+    const auto& intensities = actual.front()->getIntensityArray()->data;
+    check(!intensities.empty() && actual.front()->getTimeArray()->data == expected.front()->getTimeArray()->data &&
+          intensities == expected.front()->getIntensityArray()->data, "Query round-trip changed public extraction output");
+    bool observed_signal = false;
+    for (const auto intensity : intensities)
+    {
+      observed_signal = observed_signal || intensity > 0;
+    }
+    check(observed_signal, "Public extraction replay produced no measured signal");
+    OPENMS_LOG_INFO << "Public extractor query replay preserved " << intensities.size() << " chromatogram samples with measured signal\n";
+  }
+
   // Explicit fixture registry. Production IDs must likewise come from a stable caller namespace.
   OpenDIA::RecordId precursorId(const std::string& id)
   {
@@ -339,10 +415,12 @@ int main()
     {
       const auto lease = produceRaw(files[i]);
       consumeRaw(lease, files[i], i == 1, i == 2);
+      consumeQuery(lease);
       const auto evidence = produceEvidence(files[i], library);
       consumeEvidence(evidence, files[i], library);
     }
     consumeHypotheses(produceHypotheses(library), library);
+    replayExtractionQuery();
   }
   catch (const std::exception& error)
   {

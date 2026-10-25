@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #include "OpenDIARecords.h"
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <cmath>
 #include <functional>
 #include <limits>
@@ -116,6 +117,8 @@ int main()
     CHECK(values.at(keys[i]) == i)
   }
   CHECK(values.size() == mutations().size() + 1)
+  OPENMS_LOG_INFO << "Retained " << values.size() << " distinct query payloads under one constant hash after "
+                  << mutations().size() << " independent field mutations\n";
   auto equivalent = baseline();
   equivalent.acquisitions = {{{9, 7}, {1, 4}, {9, 7}}};
   equivalent.faims_voltage = -0.0;
