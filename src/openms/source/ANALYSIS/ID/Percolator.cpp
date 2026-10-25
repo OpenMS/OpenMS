@@ -1362,7 +1362,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       bool usable = true;
       for (unsigned int f = 0; f < num_folds; ++f) usable = usable && targets[f] > 0 && decoys[f] > 0;
       // (a joint feasibility gate: a size is skipped for every fold if some fold lacks sampled targets or decoys; it
-      // reads the class counts of all folds, which at the start size of 100,000 rows never binds on real data)
+      // reads the class counts of all folds; not expected to bind at the default start of 100,000 rows on representative
+      // data, but with tiny starts, sparse classes or extreme spectrum grouping it can change a fold's curve)
       if (!usable)
       {
         OPENMS_LOG_INFO << "Percolator: learning curve: the sample of " << oof.sampled_rows.size()
