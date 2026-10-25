@@ -7454,13 +7454,16 @@ namespace OpenMS
       Size matched = 0, n_target = 0, n_decoy = 0;
       std::map<Int, Size> charges;
       std::map<Size, Size> missed_cleavages;
-      std::set<std::string> peptides, proteins;
+      Size unique_peptides = 0, unique_proteins = 0; // distinct sequence strings and protein accessions
       std::vector<double> precursor_errors, fragment_errors; // top hits in input order (with_errors only)
     };
 
     // One pass over the top hits, in parallel: each thread takes a contiguous range of the identifications, and the
     // ranges are merged in order, so the error lists come out in input order as from a single pass. The regular
     // expression of the missed-cleavage count and the sequence strings made this a serial step of 20 - 40 ms per file.
+    // The distinct peptides and proteins are counted in parallel, too: each range notes its sequence strings (in one
+    // buffer) and accessions in buckets by hash, and the buckets are counted one per thread. Merging sets of strings
+    // per range and freeing them afterwards took 0.6 s on one thread for the 250,000 top hits of a timsTOF run.
     TopHitSummary summarizeTopHits(const PeptideIdentificationList& peptide_ids, const std::string& enzyme, bool with_errors)
     {
       const DigestionEnzymeProtein* protease = ProteaseDB::getInstance()->getEnzyme(enzyme);
@@ -7473,13 +7476,25 @@ namespace OpenMS
 #ifdef _OPENMP
       num_parts = static_cast<int>(std::clamp<SignedSize>(n / 512, 1, omp_get_max_threads()));
 #endif
-      std::vector<TopHitSummary> parts(num_parts);
+      const Size num_buckets = static_cast<Size>(num_parts);
+      struct Part
+      {
+        TopHitSummary summary;
+        std::string sequences;                                             // the sequence strings, one after the other
+        std::vector<std::vector<std::pair<Size, Size>>> peptide_buckets;   // (offset, length) in sequences, by hash
+        std::vector<std::vector<const std::string*>> protein_buckets;      // accessions of the peptide evidences, by hash
+      };
+      std::vector<Part> parts(num_parts);
       std::vector<std::exception_ptr> errors(num_parts); // an exception must not leave the parallel region
 #pragma omp parallel for schedule(static, 1) num_threads(num_parts)
       for (int part = 0; part < num_parts; ++part)
       try
       {
-        TopHitSummary& s = parts[part];
+        Part& p = parts[part];
+        TopHitSummary& s = p.summary;
+        p.peptide_buckets.resize(num_buckets);
+        p.protein_buckets.resize(num_buckets);
+        const std::hash<std::string_view> hash;
         EnzymaticDigestion digestor;
         digestor.setEnzyme(protease);
         for (SignedSize i = n * part / num_parts; i < n * (part + 1) / num_parts; ++i)
@@ -7488,8 +7503,14 @@ namespace OpenMS
           if (pid.getHits().empty()) { continue; }
           ++s.matched;
           const PeptideHit& top = pid.getHits().front();
-          s.peptides.insert(top.getSequence().toString());
-          for (const auto& ev : top.getPeptideEvidences()) { s.proteins.insert(ev.getProteinAccession()); }
+          const std::string sequence = top.getSequence().toString();
+          p.peptide_buckets[hash(sequence) % num_buckets].emplace_back(p.sequences.size(), sequence.size());
+          p.sequences += sequence;
+          for (const auto& ev : top.getPeptideEvidences())
+          {
+            const std::string& accession = ev.getProteinAccession();
+            p.protein_buckets[hash(accession) % num_buckets].push_back(&accession);
+          }
           if (top.getCharge() > 0) { ++s.charges[top.getCharge()]; }
           if (with_errors)
           {
@@ -7521,21 +7542,96 @@ namespace OpenMS
       {
         if (error) { std::rethrow_exception(error); }
       }
-      TopHitSummary& all = parts.front();
+
+      // The distinct strings of each bucket (equal strings have equal hashes, so they share a bucket), and the buffers of
+      // each range freed by a thread of the team
+      std::vector<Size> unique_peptides(num_buckets, 0), unique_proteins(num_buckets, 0);
+      std::vector<std::exception_ptr> bucket_errors(num_buckets);
+#pragma omp parallel num_threads(num_parts)
+      {
+        std::vector<std::string_view> strings;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize sb = 0; sb < static_cast<SignedSize>(num_buckets); ++sb)
+        try
+        {
+          const Size b = static_cast<Size>(sb);
+          strings.clear();
+          for (const Part& p : parts)
+          {
+            for (const auto& [offset, length] : p.peptide_buckets[b]) { strings.emplace_back(p.sequences.data() + offset, length); }
+          }
+          std::sort(strings.begin(), strings.end());
+          unique_peptides[b] = static_cast<Size>(std::unique(strings.begin(), strings.end()) - strings.begin());
+          strings.clear();
+          for (const Part& p : parts)
+          {
+            for (const std::string* accession : p.protein_buckets[b]) { strings.emplace_back(*accession); }
+          }
+          std::sort(strings.begin(), strings.end());
+          unique_proteins[b] = static_cast<Size>(std::unique(strings.begin(), strings.end()) - strings.begin());
+        }
+        catch (...)
+        {
+          bucket_errors[sb] = std::current_exception();
+        }
+#pragma omp for schedule(static, 1)
+        for (int part = 0; part < num_parts; ++part)
+        {
+          std::string().swap(parts[part].sequences);
+          decltype(Part::peptide_buckets)().swap(parts[part].peptide_buckets);
+          decltype(Part::protein_buckets)().swap(parts[part].protein_buckets);
+        }
+      }
+
+      for (const std::exception_ptr& error : bucket_errors)
+      {
+        if (error) { std::rethrow_exception(error); }
+      }
+      TopHitSummary all = std::move(parts.front().summary);
+      all.unique_peptides = std::accumulate(unique_peptides.begin(), unique_peptides.end(), Size(0));
+      all.unique_proteins = std::accumulate(unique_proteins.begin(), unique_proteins.end(), Size(0));
+      Size num_precursor_errors = 0, num_fragment_errors = 0;
+      for (const Part& p : parts)
+      {
+        num_precursor_errors += p.summary.precursor_errors.size();
+        num_fragment_errors += p.summary.fragment_errors.size();
+      }
+      all.precursor_errors.reserve(num_precursor_errors);
+      all.fragment_errors.reserve(num_fragment_errors);
       for (int part = 1; part < num_parts; ++part)
       {
-        TopHitSummary& s = parts[part];
+        TopHitSummary& s = parts[part].summary;
         all.matched += s.matched;
         all.n_target += s.n_target;
         all.n_decoy += s.n_decoy;
         for (const auto& [charge, count] : s.charges) { all.charges[charge] += count; }
         for (const auto& [cleavages, count] : s.missed_cleavages) { all.missed_cleavages[cleavages] += count; }
-        all.peptides.merge(s.peptides);
-        all.proteins.merge(s.proteins);
         all.precursor_errors.insert(all.precursor_errors.end(), s.precursor_errors.begin(), s.precursor_errors.end());
         all.fragment_errors.insert(all.fragment_errors.end(), s.fragment_errors.begin(), s.fragment_errors.end());
       }
-      return std::move(all);
+      return all;
+    }
+    // Math::median() of @p values (reordered), by selection instead of a sort: the same order statistics, so the same
+    // value (a sort of the 250,000 errors of a timsTOF run took 20-30 ms, twice per list with the MAD), unless a NaN (no
+    // strict weak order) or a negative zero (equal to 0, but written differently) lets the value depend on the algorithm:
+    // then Math::median() itself.
+    double medianBySelection(std::vector<double>& values)
+    {
+      const auto ambiguous = [](double v) { return std::isnan(v) || (v == 0.0 && std::signbit(v)); };
+      if (values.empty() || std::any_of(values.begin(), values.end(), ambiguous)) { return Math::median(values.begin(), values.end()); }
+      const auto upper = values.begin() + static_cast<SignedSize>(values.size() / 2);
+      std::nth_element(values.begin(), upper, values.end());
+      if (values.size() % 2 == 1) { return *upper; }
+      return (*std::max_element(values.begin(), upper) + *upper) / 2.0;
+    }
+
+    // Math::MAD() of @p values around @p median, by selection (see medianBySelection())
+    double madBySelection(const std::vector<double>& values, double median)
+    {
+      std::vector<double> diffs;
+      diffs.reserve(values.size());
+      for (const double value : values) { diffs.push_back(fabs(value - median)); }
+      return medianBySelection(diffs);
     }
   }
 
@@ -7554,8 +7650,8 @@ namespace OpenMS
     stats.matched_spectra = summary.matched;
     stats.charge_histogram = summary.charges;
     stats.missed_cleavage_histogram = summary.missed_cleavages;
-    stats.unique_peptides = summary.peptides.size();
-    stats.unique_proteins = summary.proteins.size();
+    stats.unique_peptides = summary.unique_peptides;
+    stats.unique_proteins = summary.unique_proteins;
     stats.target_psms = summary.n_target;
     stats.decoy_psms = summary.n_decoy;
     stats.fdr_applied = fdr_applied;
@@ -7608,8 +7704,8 @@ namespace OpenMS
     stats.matched_spectra = summary.matched;
     for (const auto& [charge, count] : summary.charges) { stats.charge_histogram[charge] += count; }
     for (const auto& [cleavages, count] : summary.missed_cleavages) { stats.missed_cleavage_histogram[cleavages] += count; }
-    stats.unique_peptides = summary.peptides.size();
-    stats.unique_proteins = summary.proteins.size();
+    stats.unique_peptides = summary.unique_peptides;
+    stats.unique_proteins = summary.unique_proteins;
     stats.target_psms = summary.n_target;
     stats.decoy_psms = summary.n_decoy;
     // Per-PSM error values for tolerance estimation (top-ranked hits only)
@@ -7620,8 +7716,8 @@ namespace OpenMS
     const Size min_psms_for_estimation = 10;
     if (precursor_errors.size() >= min_psms_for_estimation)
     {
-      double med = Math::median(precursor_errors.begin(), precursor_errors.end());
-      double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
+      double med = medianBySelection(precursor_errors);
+      double mad = madBySelection(precursor_errors, med);
       stats.prec_err_median = med;
       stats.prec_err_mad = mad;
       stats.prec_err_recommended = std::ceil(med + 3.0 * mad);
@@ -7629,8 +7725,8 @@ namespace OpenMS
     }
     if (fragment_errors.size() >= min_psms_for_estimation)
     {
-      double med = Math::median(fragment_errors.begin(), fragment_errors.end());
-      double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
+      double med = medianBySelection(fragment_errors);
+      double mad = madBySelection(fragment_errors, med);
       stats.frag_err_median = med;
       stats.frag_err_mad = mad;
       stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
