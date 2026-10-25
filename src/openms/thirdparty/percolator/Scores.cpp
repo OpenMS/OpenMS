@@ -303,7 +303,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
   test.resize(xval_fold, Scores(usePi0_));
   size_t approxTestSize = scores_.size() / xval_fold + 1;
   size_t approxTrainSize = (approxTestSize < scores_.size()) ? scores_.size() - approxTestSize : scores_.size();
-  for (unsigned int i = 0; i < xval_fold; ++i) {
+#ifdef _OPENMP
+  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
+#else
+  const bool fillInTasks = false;
+#endif
+  // OpenMS: filled by tasks (below), each fold reserves exactly its sizes there (here, a fold of whole spectra could
+  // outgrow the estimate and reallocate once)
+  for (unsigned int i = 0; i < xval_fold && !fillInTasks; ++i) {
     train[i].reserve(approxTrainSize);
     test[i].reserve(approxTestSize);
   }
@@ -358,11 +365,6 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
   // same order (see below)
   std::vector<unsigned int> foldOfPSM;
   std::vector<LabelType> labelOfPSM;
-#ifdef _OPENMP
-  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
-#else
-  const bool fillInTasks = false;
-#endif
   if (fillInTasks) {
     foldOfPSM.reserve(scores_.size());
     labelOfPSM.reserve(scores_.size());
@@ -421,6 +423,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
 #pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
     for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
       try {
+        const std::size_t testSize = static_cast<std::size_t>(
+            std::count(foldOfPSM.begin(), foldOfPSM.end(), static_cast<unsigned int>(i)));
+        test[static_cast<std::size_t>(i)].reserve(testSize);
+        train[static_cast<std::size_t>(i)].reserve(scores_.size() - testSize);
         for (std::size_t k = 0; k < scores_.size(); ++k) {
           ScoreHolder sh = scores_[k];
           sh.label = labelOfPSM[k];

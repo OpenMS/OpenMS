@@ -19,7 +19,7 @@ index ab7546ea89..ed29053644 100644
    for (std::ptrdiff_t k = 0; k < numRows; ++k) {
      std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 653b2cdf43..88ebe5a701 100644
+index 653b2cdf43..cbac380477 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -25,6 +25,7 @@
@@ -30,7 +30,46 @@ index 653b2cdf43..88ebe5a701 100644
  #include <set>
  #include <sstream>
  #include <string>
-@@ -1147,6 +1148,46 @@ void Scores::weedOutRedundantMixMax() {
+@@ -302,7 +303,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+   test.resize(xval_fold, Scores(usePi0_));
+   size_t approxTestSize = scores_.size() / xval_fold + 1;
+   size_t approxTrainSize = (approxTestSize < scores_.size()) ? scores_.size() - approxTestSize : scores_.size();
+-  for (unsigned int i = 0; i < xval_fold; ++i) {
++#ifdef _OPENMP
++  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
++#else
++  const bool fillInTasks = false;
++#endif
++  // OpenMS: filled by tasks (below), each fold reserves exactly its sizes there (here, a fold of whole spectra could
++  // outgrow the estimate and reallocate once)
++  for (unsigned int i = 0; i < xval_fold && !fillInTasks; ++i) {
+     train[i].reserve(approxTrainSize);
+     test[i].reserve(approxTestSize);
+   }
+@@ -357,11 +365,6 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+   // same order (see below)
+   std::vector<unsigned int> foldOfPSM;
+   std::vector<LabelType> labelOfPSM;
+-#ifdef _OPENMP
+-  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
+-#else
+-  const bool fillInTasks = false;
+-#endif
+   if (fillInTasks) {
+     foldOfPSM.reserve(scores_.size());
+     labelOfPSM.reserve(scores_.size());
+@@ -420,6 +423,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+ #pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
+     for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
+       try {
++        const std::size_t testSize = static_cast<std::size_t>(
++            std::count(foldOfPSM.begin(), foldOfPSM.end(), static_cast<unsigned int>(i)));
++        test[static_cast<std::size_t>(i)].reserve(testSize);
++        train[static_cast<std::size_t>(i)].reserve(scores_.size() - testSize);
+         for (std::size_t k = 0; k < scores_.size(); ++k) {
+           ScoreHolder sh = scores_[k];
+           sh.label = labelOfPSM[k];
+@@ -1147,6 +1154,46 @@ void Scores::weedOutRedundantMixMax() {
  int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
                                 double fdr, bool skipDecoysPlusOne) const {
    std::vector<double> qvals;
@@ -77,7 +116,7 @@ index 653b2cdf43..88ebe5a701 100644
    PosteriorEstimator::setNegative(true);  // also get q-values for decoys
    PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
                                   nullTargetWinProb_);
-@@ -1204,6 +1245,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1204,6 +1251,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
      };
      // the keys after the sort of each feature (until its count), and the labels
      std::vector<std::unique_ptr<ChainKey[]> > keysOfFeature(numFeatures);
@@ -95,7 +134,7 @@ index 653b2cdf43..88ebe5a701 100644
      std::vector<char> isTarget(n);
      // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
      // (each key is written once, so the order of the blocks does not matter)
-@@ -1241,6 +1293,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1241,6 +1299,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
          // written there, so the array is not zero-filled first)
          // (a block of PSMs per task, column by column: consecutive writes)
          const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
@@ -103,7 +142,7 @@ index 653b2cdf43..88ebe5a701 100644
          const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
          const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
  #pragma omp taskloop grainsize(1) shared(columns, isTarget)
-@@ -1274,25 +1327,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1274,25 +1333,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
              return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
            });
            {

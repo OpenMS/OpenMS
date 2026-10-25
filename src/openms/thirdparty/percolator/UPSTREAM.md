@@ -391,7 +391,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   the pairs) are advised for transparent huge pages (`adviseHugePages`, ssl.h), as is the copy buffer of
   `FeatureMemoryPool::moveRowsInOrder`. Without the mix-max correction (pi0 not below 1),
   `countPositivesOfPairs` counts the positives in one walk over the groups of equal scores (as
-  `countPositivesOfTop`) instead of computing all q-values. No change of results.
+  `countPositivesOfTop`) instead of computing all q-values. When `createXvalSetsBySpectrum` fills
+  the folds by tasks, each fold reserves its exact test and training sizes (a fold of whole spectra
+  outgrew the former estimate and reallocated). No change of results.
   (Numbered 21 because two parallel branches each added a patch 20; renumber at integration.)
 
 ### Regenerating the patch
