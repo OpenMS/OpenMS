@@ -5875,8 +5875,16 @@ namespace OpenMS
         f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
       }
       // by retention time, and the peaks of each spectrum by m/z: the chunks of loadMzMLChunked() sorted the peaks of
-      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run)
-      spectra.sortSpectra(!chunked);
+      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run). sortSpectra()
+      // keeps spectra of equal retention time in their order, so spectra listed in retention time order (as mzML files
+      // usually list them) stay where they are: that is checked first (the sort of the 250,000 spectra of a timsTOF run
+      // took 0.2 s on one thread). Without a NaN retention time, which would make the order depend on the sort.
+      const MSSpectrum::RTLess rt_less;
+      const bool in_rt_order = chunked
+        && std::none_of(spectra.begin(), spectra.end(), [](const MSSpectrum& spectrum) { return std::isnan(spectrum.getRT()); })
+        && std::adjacent_find(spectra.begin(), spectra.end(),
+                              [&rt_less](const MSSpectrum& a, const MSSpectrum& b) { return rt_less(b, a); }) == spectra.end();
+      if (!in_rt_order) { spectra.sortSpectra(!chunked); }
       return spectra;
     }
 
