@@ -79,7 +79,7 @@ using namespace std;
 namespace
 {
   /**
-    Opt-in (environment variable OPENMS_FAST_EXIT=1): when a process ends, the kernel releases its memory before the
+    On by default (environment variable OPENMS_FAST_EXIT=0 turns it off): when a process ends, the kernel releases its memory before the
     waiting parent learns of the end: 40-80 ms for the 0.5-1 GB that a search leaves behind, after all outputs are
     written. A helper process that shares the address space (CLONE_VM) takes over that work: it waits until this
     process has ended (end of file on a pipe whose write end only this process holds; a process drops its address
@@ -87,9 +87,11 @@ namespace
     moment after this process ended. This process ends exactly as before (destructors, flushed streams, exit code);
     the helper writes nothing and holds no file of this process once this process continues.
 
-    Off by default: the helper is a process of its own for that moment (a sandbox that forbids creating processes
-    may kill the tool at the end, an init process that does not reap adopted children keeps it as a zombie, a job
-    system that waits for all processes of a job waits for it), and it is not used under a debugger or tracer.
+    The helper is a process of its own for that moment: a parent that does not reap the children it adopts (an init
+    process or subreaper that only waits for its own child) keeps one zombie per run; a job system that waits for all
+    processes of a job waits for it (a moment); if the helper cannot be created, or a sandbox stops it (e.g. a
+    seccomp filter on close_range), the tool ends as without it. Tested: bash, systemd, Slurm and Apptainer (exec,
+    --pid, --containall) reap it; identical outputs. Not used under a debugger or tracer.
   */
   struct HelperFiles
   {
@@ -148,12 +150,12 @@ namespace
     return true;
   }
 
-  /// With OPENMS_FAST_EXIT=1, hands the release of the memory at exit to a helper process (see above); does nothing
+  /// Unless OPENMS_FAST_EXIT=0, hands the release of the memory at exit to a helper process (see above); does nothing
   /// if that fails
   void handOverMemoryAtExit()
   {
     const char* fast_exit = getenv("OPENMS_FAST_EXIT");
-    if (fast_exit == nullptr || strcmp(fast_exit, "1") != 0) { return; }
+    if (fast_exit != nullptr && strcmp(fast_exit, "0") == 0) { return; }
     // Valgrind does not run processes that share memory without being threads
     const char* preload = getenv("LD_PRELOAD");
     if (preload != nullptr && strstr(preload, "vgpreload") != nullptr) { return; }
@@ -196,13 +198,13 @@ namespace
     and it freezes the threshold above which a block is mapped on its own at its value when main() starts (glibc
     otherwise raises it with the mapped blocks that are freed; normally still the default 128 KiB here).
 
-    Not when the user set glibc's malloc tunables (GLIBC_TUNABLES), nor with OPENMS_MALLOC_DEFAULTS=0. No change of
-    results.
+    Not when the user set glibc's top pad (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with
+    OPENMS_MALLOC_DEFAULTS=0; other malloc tunables (e.g. glibc.malloc.hugetlb=1) keep it. No change of results.
   */
   void configureMalloc()
   {
     const char* tunables = getenv("GLIBC_TUNABLES");
-    if (tunables != nullptr && strstr(tunables, "glibc.malloc.") != nullptr) { return; }
+    if (tunables != nullptr && strstr(tunables, "glibc.malloc.top_pad") != nullptr) { return; }
     const char* defaults = getenv("OPENMS_MALLOC_DEFAULTS");
     if (defaults != nullptr && strcmp(defaults, "0") == 0) { return; }
     mallopt(M_TOP_PAD, 64 << 20);
@@ -275,8 +277,8 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file gets the same identifications as when it is searched alone, and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
 @note Threads: '-threads' sets the threads of the search ('-threads 0': the physical cores the process may use, without their hardware threads); an mzML file read while the search runs takes its threads from these if they are fewer than the physical cores the process may use (otherwise it reads with threads of its own). For many files on a machine with many cores, several processes at 16-32 threads, each searching a share of the files, finish sooner than one process at 64 threads. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
-@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets glibc's malloc tunables (GLIBC_TUNABLES=glibc.malloc...), nor with OPENMS_MALLOC_DEFAULTS=0. For large inputs, GLIBC_TUNABLES=glibc.malloc.hugetlb=1 (transparent huge pages for the heaps and large blocks) may make the search faster at a somewhat higher peak memory; it then replaces ProSE's setting, so add glibc.malloc.top_pad=67108864 to keep it.
-@note Exit: with the environment variable OPENMS_FAST_EXIT=1 (Linux), ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end 40-80 ms earlier (exit code and outputs unchanged). Off by default: the helper is a process of its own for that moment, which a sandbox that forbids creating processes, an init process that does not reap adopted children, or a job system that waits for all processes of a job may not expect.
+@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets the top pad itself (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with OPENMS_MALLOC_DEFAULTS=0. Optional speed-up: GLIBC_TUNABLES=glibc.malloc.hugetlb=1 (transparent huge pages for the heaps and large blocks; needs THP 'madvise' or 'always' in /sys/kernel/mm/transparent_hugepage/enabled) made a 64-thread search of a 250,000-spectrum timsTOF run about 15 % faster at +0.2 GiB peak memory (results unchanged); ProSE's top pad stays set with it.
+@note Exit: on Linux, ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end earlier (40-80 ms for a small search, about 0.8 s for a 250,000-spectrum run; exit code and outputs unchanged). OPENMS_FAST_EXIT=0 turns this off. Caveat: the helper is a process of its own for that moment, so a parent that does not reap the children it adopts (an init process or subreaper that waits only for its own child) keeps one zombie process per run; shells, systemd, Slurm and Apptainer reap it. Not used under a debugger or tracer.
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
 <B>The command line parameters of this tool are:</B>
