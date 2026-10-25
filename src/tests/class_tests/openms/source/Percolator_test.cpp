@@ -1317,15 +1317,16 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
 {
   // Negative control: two different seeds must produce different scores
   // (catches seed-not-wired-through bugs) but Pearson r >= 0.9 and
-  // |cA - cB| / max(cA, cB) <= 0.20 at q <= 0.05 (statistical equivalence).
+  // |cA - cB| / max(cA, cB) <= 0.20 at q <= 0.10 (statistical equivalence).
   //
-  // Why q <= 0.05 instead of 0.01: the q-value "cliff" at 0.01 is inherently
-  // unstable across seeds — small score shifts move many targets across the
-  // threshold even when Pearson r is ~0.997. Observed counts on this fixture:
-  //   q <= 0.01: c17=100, c42=0,   ratio=1.00 (unstable, cliff-sensitive)
-  //   q <= 0.05: c17=270, c42=276, ratio=0.02 (stable, larger target mass)
-  //   q <= 0.10: c17=451, c42=460, ratio=0.02
-  // q <= 0.05 measures the same downstream "seed-induced classification drift"
+  // Why q <= 0.10: a q-value threshold that few targets pass is a "cliff",
+  // unstable across seeds — small score shifts move many targets across it
+  // even when Pearson r is ~0.997. Observed counts on this fixture (glibc
+  // std::rand; macOS' std::rand gives another fixture, in parentheses):
+  //   q <= 0.01: c17=100, c42=0,   ratio=1.00 (0, 0)
+  //   q <= 0.05: c17=270, c42=276, ratio=0.02 (103, 144, ratio=0.28)
+  //   q <= 0.10: c17=451, c42=460, ratio=0.02 (288, 280, ratio=0.03)
+  // q <= 0.10 measures the same downstream "seed-induced classification drift"
   // property at a threshold where there's enough accepted targets for the
   // estimate to be stable.
   RescoreInput input = makeModeratelySeparableInput_(800, 789);
@@ -1368,13 +1369,13 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
   const double r = (den > 1e-15) ? num / den : 0.0;
   TEST_TRUE(r >= 0.9)
 
-  // Count ratio at q <= 0.05 (targets only).
+  // Count ratio at q <= 0.10 (targets only).
   int c17 = 0, c42 = 0;
   for (size_t i = 0; i < n; ++i)
   {
     if (input.is_decoy[i]) continue;
-    if (out17.q_values[i] <= 0.05) ++c17;
-    if (out42.q_values[i] <= 0.05) ++c42;
+    if (out17.q_values[i] <= 0.10) ++c17;
+    if (out42.q_values[i] <= 0.10) ++c42;
   }
   const int maxc = std::max(c17, c42);
   const double ratio = (maxc > 0)
