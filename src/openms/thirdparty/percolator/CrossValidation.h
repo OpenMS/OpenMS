@@ -99,9 +99,9 @@ class CrossValidation {
   void setFixedFolds(std::function<unsigned int(const PSMDescription&)> foldOfPsm) {
     fixedFold_ = std::move(foldOfPsm);
   }
-  // OpenMS (learning curve): train only the folds marked active (empty: all). Applies without
-  // nested cross-validation (trainFoldChains); an inactive fold keeps its initial weights and its
-  // model is not to be used.
+  // OpenMS (learning curve): train only the folds marked active (empty: all). Applies where train()
+  // runs trainFoldChains (no nested cross-validation, VERB <= 2); an inactive fold keeps its initial
+  // weights and its model is not to be used; the logged totals then count the active folds only.
   void setActiveFolds(std::vector<char> active) { activeFolds_ = std::move(active); }
   // OpenMS: the PSMs of the training set of fold set (after preIterationSetup)
   void getTrainingPsms(std::size_t set,

@@ -1407,7 +1407,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
           std::set_symmetric_difference(accepted.begin(), accepted.end(), previous_accepted[f].begin(),
                                         previous_accepted[f].end(), std::back_inserter(discordant));
           info.curve_discordant.back()[f] = static_cast<long>(discordant.size());
-          const double needed = std::max(impl_->subset_curve_min_gain * static_cast<double>(std::max(previous[f], 1L)),
+          const double needed = std::max(impl_->subset_curve_min_gain * static_cast<double>(previous[f]),
                                          2.0 * std::sqrt(static_cast<double>(discordant.size())));
           if (static_cast<double>(count - previous[f]) < needed) stopped[f] = 1;
         }

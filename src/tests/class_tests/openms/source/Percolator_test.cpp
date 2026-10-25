@@ -498,8 +498,8 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     std::size_t never_trained = 0;
     for (std::size_t r = 0; r < n_rows; ++r) never_trained += lc.sampled[r] ? 0 : 1;
     TEST_TRUE(never_trained >= lc.validation_rows)
-    // the stop rule: fold f keeps the model of the first size whose gain over the size before is below min_gain (or
-    // the last size); later sizes are not evaluated for it
+    // the stop rule: fold f keeps the model of the first size whose gain over the size before is below
+    // max(min_gain * count, 2 sqrt(discordant)) (or the last size); later sizes are not evaluated for it
     bool rule = lc.chosen_size.size() == 3;
     for (std::size_t f = 0; rule && f < 3; ++f)
     {
@@ -509,18 +509,27 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
         const long before = lc.curve_counts[k - 1][f], now = lc.curve_counts[k][f], d = lc.curve_discordant[k][f];
         rule = rule && d >= std::abs(now - before); // the discordant targets bound the change of the count
         if (static_cast<double>(now - before) <
-            std::max(0.002 * static_cast<double>(std::max(before, 1L)), 2.0 * std::sqrt(static_cast<double>(d)))) { keep = k; break; }
+            std::max(0.002 * static_cast<double>(before), 2.0 * std::sqrt(static_cast<double>(d)))) { keep = k; break; }
       }
       rule = rule && lc.chosen_size[f] == lc.curve_sizes[keep];
       for (std::size_t k = keep + 1; k < lc.curve_sizes.size(); ++k) rule = rule && lc.curve_counts[k][f] == -1;
       for (std::size_t k = 0; k <= keep; ++k) rule = rule && lc.curve_counts[k][f] >= 0;
     }
     TEST_TRUE(rule)
-    // a threshold no doubling reaches: every fold stops at the second size
+    // a threshold no doubling reaches: every fold that accepted validation targets at the first size stops at the
+    // second (a fold at 0 targets needs a gain > 0: 0 < 0 does not stop it, as preregistered)
     Percolator::CappedTrainingInfo lc_stop;
     curve(10.0, 8, 17, &lc_stop, nullptr);
-    TEST_EQUAL(lc_stop.curve_sizes.size(), 2)
-    TEST_TRUE(lc_stop.chosen_size == std::vector<size_t>(3, lc_stop.curve_sizes[1]))
+    bool stops_second = lc_stop.curve_sizes.size() >= 2;
+    std::size_t nonzero = 0;
+    for (std::size_t f = 0; stops_second && f < 3; ++f)
+    {
+      if (lc_stop.curve_counts[0][f] <= 0) continue;
+      ++nonzero;
+      stops_second = stops_second && lc_stop.chosen_size[f] == lc_stop.curve_sizes[1];
+    }
+    TEST_TRUE(stops_second)
+    TEST_TRUE(nonzero > 0)
     // deterministic by seed and threads; another seed, another curve
     bool same_lc = true;
     for (const int threads : {1, 3})
