@@ -809,8 +809,38 @@ int Scores::calcScores(std::vector<double>& w) {
  * already and that have not changed since (in any order): the PSMs are not scored again.
  */
 int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
-  sortScores();
+  // OpenMS: if each PSM compares strictly greater than the next (no two are equivalent, no NaN),
+  // this order is the only sorted one, so every sort leaves it as it is: the sort is skipped
+  // (CrossValidation sorts the same scores again in the next step)
+  if (VERB > 3 || !strictlySortedByScore()) sortScores();
   return calcQvals(fdr, skipDecoysPlusOne);
+}
+
+// OpenMS: whether ScoreHolderGreater holds for every two neighbours (then also no score or mass is
+// NaN: a comparison with NaN is false)
+bool Scores::strictlySortedByScore() const {
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  const ScoreHolderGreater greater;
+  const auto ordered = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+    for (std::ptrdiff_t i = b; i + 1 < e; ++i) {
+      if (!greater(scores_[static_cast<std::size_t>(i)], scores_[static_cast<std::size_t>(i + 1)])) return false;
+    }
+    return true;
+  };
+#ifdef _OPENMP
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
+    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
+    std::vector<char> ok(static_cast<std::size_t>(numBlocks), 1);
+#pragma omp taskloop grainsize(1) shared(ok, ordered)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+      // a block and its link to the next one
+      ok[static_cast<std::size_t>(block)] = ordered(block * blockSize, std::min(n, (block + 1) * blockSize + 1));
+    }
+    return std::all_of(ok.begin(), ok.end(), [](char x) { return x != 0; });
+  }
+#endif
+  return ordered(0, n);
 }
 
 // the sort of calcScores
