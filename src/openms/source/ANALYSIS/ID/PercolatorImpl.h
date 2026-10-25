@@ -78,6 +78,8 @@ namespace OpenMS
     std::string reset_representative = "model";
     bool   reset_audit = false;
     std::string reset_stem_table;             ///< empty = none
+    int    reset_decoy_databases = 1;         ///< 1 or 2 (two-decoy mode, param "reset:decoys")
+    std::string reset_second_decoy_prefix = "DECOY_X_"; ///< two-decoy mode: accession prefix of the second decoy set
     int    reset_mlp_members = 8;             ///< learner "mlp" (PercolatorReset::Options)
     int    reset_mlp_hidden = 16;
     int    reset_mlp_epochs = 30;

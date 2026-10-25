@@ -45,6 +45,16 @@ namespace OpenMS
     The stem-level q-values are the procedure's FDR-controlled output. Everything at PSM level is heuristic (see
     Output::psm_q_values).
 
+    Two-decoy mode (Options::decoy_databases = 2; the paper's two-decoy mode, Algorithms 3a/4 there and the authors'
+    Python with mult = 2): the search ran against the targets and two decoy databases of the same construction, so the
+    PSM-level competition of step 1 is the best of three and a null stem is a target, a decoy of set 1 or a decoy of set
+    2 with probability 1/3 each. The coin of step 3 is drawn for every decoy stem of either set, as in single-decoy
+    mode. Then each training decoy faces on average two null pseudo-targets (one estimating decoy, one incorrect
+    target): the positive set and the cross-validation use SeqStep+ at c = 2/3 (factor 2 instead of 3), and the final
+    ranking FDP = (D_est + 1) / max(T, 1) (c = 1/2, factor 1 instead of 2). Input::decoy_set tells the two sets apart;
+    it only checks that both are present (Output::decoy_stems_second_set: a set that never wins means the database had
+    no second decoy set, and the factors would be wrong).
+
     Feature-symmetry audit (Options::audit, option 2 of the RESET handoff): before training, the training decoys are
     compared with an unlabelled null proxy, the pseudo-targets below the median search engine score of the training
     decoys (the training decoys are restricted to the same score range; the handoff's "lowest third of the targets"
@@ -70,6 +80,9 @@ namespace OpenMS
       std::vector<double> search_scores;         ///< per row: search engine score, higher = better
       std::vector<Size> spectrum;                ///< per row: spectrum (competition unit) of the PSM
       std::vector<std::string> stems;            ///< per row: unmodified peptide sequence
+      /// per row (Options::decoy_databases = 2 only, else may be empty): 1 or 2 = the decoy database of a decoy row,
+      /// 0 for targets
+      std::vector<char> decoy_set;
 
       /// Number of rows: of @ref features, or else of the dense @ref feature_matrix
       Size rowCount() const
@@ -99,6 +112,8 @@ namespace OpenMS
       /// maximum); entrapment validation decides.
       std::string representative = "model";
       bool audit = false;               ///< run the feature-symmetry audit
+      /// decoy databases searched: 1 (default) or 2 (two-decoy mode, see the class description; needs Input::decoy_set)
+      int decoy_databases = 1;
       std::vector<std::string> zero_features = {"enzInt"}; ///< features set to 0 (target-biased, as in the paper)
       int threads = 1;                  ///< threads for the cross-validation solves
       int mlp_members = 8;              ///< MLP ensemble size
@@ -149,12 +164,13 @@ namespace OpenMS
       /// per row, heuristic PSM-level q-value: per spectrum, the hit with the best search engine score is the PSM (the
       /// competition that selects the stems' PSMs, so a stem's representative is always reported); PSMs of
       /// training-decoy sequences (decoy rows whose sequence's coin is "training") are dropped, and the remaining PSMs (targets, estimating decoys) get
-      /// q = min over lower ranks of 2 (D_est + 1) / max(T, 1). 1 for the other hits and for training decoys.
+      /// q = min over lower ranks of 2 (D_est + 1) / max(T, 1) (two-decoy mode: (D_est + 1) / max(T, 1)). 1 for the
+      /// other hits and for training decoys.
       /// Not FDR-controlled (multiplicity of PSMs per peptide).
       std::vector<double> psm_q_values;
-      /// per row, heuristic PSM-level posterior error probability: 2 p / (1 - p) (at most 1), with p the
-      /// estimating-decoy fraction of the ranked PSMs by isotonic (antitonic in score) regression. 1 where q is 1 by
-      /// definition (other hits, training decoys).
+      /// per row, heuristic PSM-level posterior error probability: f p / (1 - p) (at most 1; f = 2, or 1 in two-decoy
+      /// mode), with p the estimating-decoy fraction of the ranked PSMs by isotonic (antitonic in score) regression. 1
+      /// where q is 1 by definition (other hits, training decoys).
       std::vector<double> psm_peps;
       /// per row: q-value of the row's stem (Stem::q_value)
       std::vector<double> stem_q_values;
@@ -170,6 +186,9 @@ namespace OpenMS
       /// training summary per round: chosen C+, C-, held-out discoveries, positives
       std::vector<std::string> rounds;
       Size target_stems = 0, decoy_stems = 0, training_decoys = 0, estimating_decoys = 0;
+      /// two-decoy mode: considered decoy stems whose representative is a decoy of the second set (about half of
+      /// decoy_stems if the two sets are exchangeable)
+      Size decoy_stems_second_set = 0;
       Size discoveries_1pct = 0;  ///< target stems with q <= 0.01
       std::vector<std::string> used_features; ///< features the learner used (non-constant, not zeroed)
       std::vector<double> weights;            ///< linear learner: raw-feature weights of the final model, bias last

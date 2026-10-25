@@ -80,6 +80,39 @@ namespace
     }
     return in;
   }
+
+  // Simulated search against targets and two decoy databases (two-decoy mode): every spectrum has three candidates, a
+  // target (correct for the first @p correct spectra: features shifted), a decoy of set 1 (reversed body) and a decoy of
+  // set 2 (rotated body), all three from the same null distribution unless correct; @p correct_truth per row.
+  PercolatorReset::Input simulateTwoDecoys(uint64_t seed, size_t correct, size_t incorrect, std::vector<bool>& correct_truth,
+                                           double shift = 2.5)
+  {
+    Rng rng{seed};
+    PercolatorReset::Input in;
+    in.feature_names = {"score", "signal", "noise"};
+    for (size_t i = 0; i < correct + incorrect; ++i)
+    {
+      const std::string body = randomSequence(rng, 7 + i % 9);
+      std::string rev = body, rot = body;
+      std::reverse(rev.begin(), rev.end());
+      std::rotate(rot.begin(), rot.begin() + 2, rot.end());
+      const std::string stems[3] = {body + "K", rev + "K", "W" + rot + "R"}; // set 2 stems never equal set 1 stems
+      for (int c = 0; c < 3; ++c)
+      {
+        const bool good = c == 0 && i < correct;
+        const double signal = rng.normal() + (good ? shift : 0.0);
+        const double score = 0.6 * signal + 0.8 * rng.normal();
+        in.features.push_back({score, signal, rng.normal()});
+        in.is_decoy.push_back(c > 0);
+        in.decoy_set.push_back(static_cast<char>(c));
+        in.search_scores.push_back(score);
+        in.spectrum.push_back(i);
+        in.stems.push_back(stems[c]);
+        correct_truth.push_back(good);
+      }
+    }
+    return in;
+  }
 }
 
 START_TEST(PercolatorReset, "$Id$")
@@ -458,4 +491,104 @@ START_SECTION(static Output run(const Input& input, const Options& options))
 END_SECTION
 
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
+{
+  PercolatorReset::Options opt;
+  opt.salt = 31;
+  opt.iterations = 3;
+  opt.threads = 2;
+  std::vector<bool> truth;
+  PercolatorReset::Input in = simulateTwoDecoys(5, 600, 2400, truth);
+  // without decoy_databases = 2 the decoy sets are not read; with it they are required and checked
+  {
+    PercolatorReset::Options o = opt;
+    o.decoy_databases = 3;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(in, o))
+    o.decoy_databases = 2;
+    PercolatorReset::Input no_sets = in;
+    no_sets.decoy_set.clear();
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(no_sets, o))
+    PercolatorReset::Input bad = in;
+    bad.decoy_set[0] = 1; // a target row
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(bad, o))
+    // a search against one decoy database (all decoys of set 1): the two-decoy factors would be wrong
+    PercolatorReset::Input one_set = in;
+    for (char& d : one_set.decoy_set) d = d == 2 ? 1 : d;
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(one_set, o))
+  }
+  PercolatorReset::Options two = opt;
+  two.decoy_databases = 2;
+  const PercolatorReset::Output out2 = PercolatorReset::run(in, two);
+  // the PSM-level competition is the best of three; under the null both decoy sets win about equally often
+  TEST_EQUAL(out2.decoy_stems > 1000, true)
+  const double share = static_cast<double>(out2.decoy_stems_second_set) / static_cast<double>(out2.decoy_stems);
+  STATUS("two-decoy: " << out2.decoy_stems << " decoy stems, share of set 2 " << share << ", discoveries " << out2.discoveries_1pct)
+  TEST_EQUAL(share > 0.45 && share < 0.55, true)
+  // the coin is drawn for the decoys of both sets
+  size_t training[3] = {0, 0, 0}, all[3] = {0, 0, 0};
+  for (const PercolatorReset::Stem& st : out2.stems)
+  {
+    if (!st.decoy) continue;
+    const int set = in.decoy_set[st.representative];
+    ++all[set];
+    training[set] += st.role == PercolatorReset::Role::TRAINING_DECOY ? 1 : 0;
+  }
+  TEST_EQUAL(std::abs(static_cast<double>(training[1]) / all[1] - 0.5) < 0.06, true)
+  TEST_EQUAL(std::abs(static_cast<double>(training[2]) / all[2] - 0.5) < 0.06, true)
+  // final estimate with factor 1: q of a target stem = (D_est + 1) / T over the better-ranked stems, monotonized
+  {
+    std::vector<const PercolatorReset::Stem*> fin;
+    for (const PercolatorReset::Stem& st : out2.stems)
+    {
+      if (st.role != PercolatorReset::Role::TRAINING_DECOY) fin.push_back(&st);
+    }
+    std::stable_sort(fin.begin(), fin.end(), [](const auto* a, const auto* b) { return a->score > b->score; });
+    std::vector<bool> dec;
+    for (const auto* st : fin) dec.push_back(st->decoy);
+    const std::vector<double> q = PercolatorReset::seqStepQValues(dec, 1.0, 1.0);
+    bool same = true;
+    for (size_t r = 0; r < fin.size(); ++r)
+    {
+      // (ties of the final score: ranked in another order inside RESET; the q-value of a tie group can differ only there)
+      if (r + 1 < fin.size() && fin[r]->score == fin[r + 1]->score) continue;
+      if (r > 0 && fin[r]->score == fin[r - 1]->score) continue;
+      same = same && std::fabs(q[r] - fin[r]->q_value) < 1e-12;
+    }
+    TEST_EQUAL(same, true)
+  }
+  // the same search analysed as single-decoy (factor 2 at the end, 3 in training) is conservative: fewer discoveries
+  PercolatorReset::Options one = opt;
+  const PercolatorReset::Output out1 = PercolatorReset::run(in, one);
+  TEST_EQUAL(out1.discoveries_1pct < out2.discoveries_1pct, true)
+  TEST_EQUAL(out1.decoy_stems_second_set, 0) // only counted in two-decoy mode
+
+  // FDR control: mean false discovery proportion over 20 simulated searches and salts at q <= 0.05 near or below 0.05
+  {
+    double fdp_sum = 0.0;
+    for (uint64_t rep = 0; rep < 20; ++rep)
+    {
+      std::vector<bool> t2;
+      const PercolatorReset::Input sim = simulateTwoDecoys(3000 + rep, 400, 2600, t2);
+      PercolatorReset::Options o2;
+      o2.salt = 555 + rep;
+      o2.iterations = 3;
+      o2.decoy_databases = 2;
+      for (const std::string rep_mode : {"search", "model"})
+      {
+        o2.representative = rep_mode;
+        const PercolatorReset::Output r2 = PercolatorReset::run(sim, o2);
+        size_t d2 = 0, f2 = 0;
+        for (size_t i = 0; i < sim.features.size(); ++i)
+        {
+          if (!sim.is_decoy[i] && r2.stem_q_values[i] <= 0.05) { ++d2; if (!t2[i]) ++f2; }
+        }
+        fdp_sum += d2 > 0 ? static_cast<double>(f2) / static_cast<double>(d2) : 0.0;
+      }
+    }
+    STATUS("two-decoy mean FDP at 5 %: " << fdp_sum / 40.0)
+    TEST_EQUAL(fdp_sum / 40.0 < 0.075, true)
+  }
+}
+END_SECTION
+
 END_TEST

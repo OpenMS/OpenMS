@@ -286,6 +286,15 @@ Percolator::Percolator()
                      "RESET: feature-symmetry audit before training (per-feature AUC and KS of training decoys vs "
                      "low-scoring pseudo-targets), reported in the log.");
   defaults_.setValidStrings("reset:audit", {"true","false"});
+  defaults_.setValue("reset:decoys", "single",
+                     "RESET: 'single' = one decoy database (default); 'two' = the two-decoy mode of Percolator-RESET: the PSMs "
+                     "come from a search against the targets and two decoy databases of the same construction (the second "
+                     "with accessions starting with reset:second_decoy_prefix), and the FDR factors change from 3 and 2 to 2 "
+                     "and 1 (see PercolatorReset).");
+  defaults_.setValidStrings("reset:decoys", {"single","two"});
+  defaults_.setValue("reset:second_decoy_prefix", "DECOY_X_",
+                     "RESET 'two' decoys: accession prefix of the proteins of the second decoy database (a decoy hit is of "
+                     "the second set if all its proteins have this prefix).");
   defaults_.setValue("reset:stem_table", "",
                      "RESET: if not empty, rescorePSMs() writes every stem (considered or not) to this tab-separated file: "
                      "stem, representative peptidoform, label, role, considered, search engine score, RESET score, "
@@ -337,6 +346,8 @@ void Percolator::updateMembers_()
   impl_->reset_representative = param_.getValue("reset:representative").toString();
   impl_->reset_audit = param_.getValue("reset:audit").toString() == "true";
   impl_->reset_stem_table = param_.getValue("reset:stem_table").toString();
+  impl_->reset_decoy_databases = param_.getValue("reset:decoys").toString() == "two" ? 2 : 1;
+  impl_->reset_second_decoy_prefix = param_.getValue("reset:second_decoy_prefix").toString();
   impl_->peptide_level = param_.getValue("peptide_level").toString() == "true";
 }
 
@@ -2140,7 +2151,9 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->reset_stem_table);
       }
       os << "# RESET stem table: salt " << rr.salt << ", PSM-only protocol, learner " << rr.learner
-         << "; q_value = peptide (stem) level, FDP = 2 (D_est + 1) / max(T, 1) over targets and estimating decoys\n";
+         << (impl_->reset_decoy_databases == 2 ? ", two decoy databases" : "")
+         << "; q_value = peptide (stem) level, FDP = " << (impl_->reset_decoy_databases == 2 ? "" : "2 ")
+         << "(D_est + 1) / max(T, 1) over targets and estimating decoys\n";
       os << "stem\tpeptide\tlabel\trole\tconsidered\tsearch_score\treset_score\tq_value\tspectrum_reference\tcharge\n";
       os.precision(10);
       for (const PercolatorReset::Stem& st : rr.stems)
@@ -2175,6 +2188,8 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   in.search_scores.resize(n);
   in.spectrum.resize(n);
   in.stems.resize(n);
+  const bool two_decoys = impl_->reset_decoy_databases == 2;
+  if (two_decoys) in.decoy_set.resize(n);
   std::vector<std::exception_ptr> errors(n);
 #pragma omp parallel for schedule(dynamic, 1024)
   for (SignedSize r = 0; r < static_cast<SignedSize>(n); ++r)
@@ -2187,6 +2202,15 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
       in.spectrum[r] = pid_i;
       in.stems[r] = hit.getSequence().toUnmodifiedString();
       in.search_scores[r] = pid.isHigherScoreBetter() ? hit.getScore() : -hit.getScore();
+      if (two_decoys)
+      {
+        // a decoy of the second set: all its proteins are of the second decoy database
+        const std::vector<PeptideEvidence>& evidences = hit.getPeptideEvidences();
+        const std::string& prefix = impl_->reset_second_decoy_prefix;
+        in.decoy_set[r] = !in.is_decoy[r] ? 0
+          : (!evidences.empty() && std::all_of(evidences.begin(), evidences.end(), [&](const PeptideEvidence& ev)
+             { return ev.getProteinAccession().compare(0, prefix.size(), prefix) == 0; }) ? 2 : 1);
+      }
     }
     catch (...)
     {
@@ -2247,6 +2271,7 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   opt.representative = impl_->reset_representative;
   opt.train_fdr = impl_->train_fdr;
   opt.audit = impl_->reset_audit;
+  opt.decoy_databases = impl_->reset_decoy_databases;
 #ifdef _OPENMP
   opt.threads = std::max(1, std::min(impl_->num_threads, omp_get_max_threads()));
 #else
@@ -2259,6 +2284,19 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   OPENMS_LOG_INFO << "RESET: " << rr->target_stems << " target and " << rr->decoy_stems << " decoy stems considered ("
                   << rr->training_decoys << " training, " << rr->estimating_decoys << " estimating decoys); features: "
                   << ListUtils::concatenate(rr->used_features, ",") << std::endl;
+  if (two_decoys)
+  {
+    // under the null both decoy sets win equally often
+    const double share = static_cast<double>(rr->decoy_stems_second_set) / static_cast<double>(std::max<Size>(rr->decoy_stems, 1));
+    OPENMS_LOG_INFO << "RESET two-decoy mode: " << rr->decoy_stems_second_set << " of " << rr->decoy_stems
+                    << " decoy stems from the second decoy set (" << impl_->reset_second_decoy_prefix << "), share " << share
+                    << "." << std::endl;
+    if (rr->decoy_stems >= 1000 && std::fabs(share - 0.5) > 0.05)
+    {
+      OPENMS_LOG_WARN << "RESET two-decoy mode: the two decoy sets do not win equally often (share of the second "
+                      << share << "); the two-decoy FDR estimate assumes decoy sets of the same construction." << std::endl;
+    }
+  }
   if (opt.audit)
   {
     if (rr->audit.empty())
