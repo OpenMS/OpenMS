@@ -7049,12 +7049,10 @@ namespace OpenMS
         // After the last file, its spectra are released by a helper thread, which the caller then writes the results
         // next to (0.5 s for the 250,000 spectra of a timsTOF run at 64 threads, most of it in the kernel returning their
         // memory); the holder joins it like the hits that the rescoring dropped (see released_hits_). Otherwise here.
-        const auto release_later = [this, &spectra]()
+        bool released_later = false;
+#if !defined(OPENMS_WINDOWSPLATFORM) && defined(_OPENMP) // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
+        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024)
         {
-#if defined(OPENMS_WINDOWSPLATFORM) || !defined(_OPENMP)
-          return false; // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
-#else
-          if (spectra.size() < 1024) { return false; }
           try
           {
             auto release = std::make_shared<SpectraRelease>();
@@ -7066,15 +7064,12 @@ namespace OpenMS
               freeInParallel(to_release);
             });
             released_hits_ = std::move(release);
-            return true;
+            released_later = true;
           }
-          catch (...)
-          {
-            return false; // the spectra (if not moved into the thread's function, and released with it) are released here
-          }
+          catch (...) {} // the spectra (if not moved into the thread's function, and released with it) are released here
+        }
 #endif
-        };
-        if (i + 1 != in_spectra_files.size() || !release_later()) { freeInParallel(spectra); }
+        if (!released_later) { freeInParallel(spectra); }
         // after the last file, the database the index was built from
         if (i + 1 == in_spectra_files.size()) { freeInParallel(ctx.db); }
 
