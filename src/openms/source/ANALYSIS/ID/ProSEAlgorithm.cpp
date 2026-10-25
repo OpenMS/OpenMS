@@ -5381,7 +5381,16 @@ namespace OpenMS
         try
         {
           auto release = std::make_shared<HitRelease>();
-          release->thread = std::thread([hits = std::move(dropped)]() mutable { std::vector<std::vector<PeptideHit>>().swap(hits); });
+          // With a quarter of the threads (on one thread, the 2 million hits that the rescoring of a timsTOF run drops took
+          // 2.5 s, longer than the rest of the search: the holder then waited for it)
+          release->thread = std::thread([hits = std::move(dropped), release_threads = std::max(1, threads / 4)]() mutable
+          {
+#ifdef _OPENMP
+            omp_set_num_threads(release_threads);
+#endif
+            (void)release_threads;
+            freeInParallel(hits);
+          });
           released_hits_ = std::move(release);
         }
         catch (...) {} // if the thread cannot be started, the hits are destroyed in this function
