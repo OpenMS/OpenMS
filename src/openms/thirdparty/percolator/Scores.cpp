@@ -812,7 +812,11 @@ int Scores::calcScores(std::vector<double>& w) {
 int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
   // OpenMS: the sort is skipped where it cannot change what any later step sees (CrossValidation sorts
   // the training scores that the step before sorted): see sortedUpToInterchangeable
-  if (VERB > 3 || !comparableScores(scores_.begin(), scores_.end()) || !sortedUpToInterchangeable()) {
+  // (the check is skipped after it has failed once for this set: on tie-heavy sets it costs as much as
+  // part of the sort and does not succeed)
+  if (VERB > 3 || sortCertificateFailed_ || !comparableScores(scores_.begin(), scores_.end()) ||
+      !sortedUpToInterchangeable()) {
+    if (VERB <= 3) sortCertificateFailed_ = true;
     sortScores();
   }
   return calcQvals(fdr, skipDecoysPlusOne);

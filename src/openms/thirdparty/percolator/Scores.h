@@ -183,6 +183,9 @@ class Scores {
 
   std::vector<ScoreHolder> scores_;
   std::map<PSMDescription*, std::vector<PSMDescription*> > peptidePsmMap_;
+  // OpenMS: the certificate of sortScoresAndCalcQvals failed for this set once: later calls sort
+  // without checking (a forced sort is always exact)
+  bool sortCertificateFailed_ = false;
 
   void reorderFeatureRows(
       FeatureMemoryPool& featurePool,

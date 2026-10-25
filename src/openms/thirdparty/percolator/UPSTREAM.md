@@ -419,6 +419,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   PSMs, collects the positives and decoys and fills the SVM rows in blocks, as tasks of an enclosing
   parallel region; the blocks are joined in order (offsets from their counts), with the same check
   of each positive against the one before it. No change of results.
+- `patches/29-cv-certificate-cache.patch` — once the certificate of patches 24/26 has failed for a
+  set, `sortScoresAndCalcQvals` sorts that set without checking again (a forced sort is always
+  exact; the check costs 45-60 ms per step on tie-heavy sets). No change of results.
 
 ### Regenerating the patch
 
