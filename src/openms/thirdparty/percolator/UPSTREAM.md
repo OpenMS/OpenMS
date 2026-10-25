@@ -409,6 +409,12 @@ hand-editing sources and committing them, to keep sync self-healing.
   by the tasks of an enclosing parallel region) instead of (file, scan, label, position) where the
   values fit: the keys compare as OrderScanLabel compares the PSMs, so the sort makes the same moves
   and keeps the same PSM of each group. Otherwise the full keys as before. No change of results.
+- `patches/26-cv-sorted-up-to-interchangeable.patch` — relaxes patch 24: the sort is also skipped
+  when neighbours are not strictly ordered but interchangeable (bit-identical score, equal label,
+  scan, expMass and spectrum file, bit-identical feature rows), e.g. I/L variants of a spectrum's
+  hits. A sort can then only permute holders within runs of interchangeable ones, so every later
+  consumer of the training set sees the same values at every position; training holders never
+  reach the output. With NaN scores or masses it sorts. No change of results.
 
 ### Regenerating the patch
 
