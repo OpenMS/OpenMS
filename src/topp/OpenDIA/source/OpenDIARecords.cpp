@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <map>
+#include <set>
 #include <utility>
 
 namespace OpenDIA
@@ -209,4 +211,138 @@ namespace OpenDIA
     bounds(index, size());
     return storage_->points[index];
   }
+
+  namespace
+  {
+    // Subtract validated counts instead of accumulating potentially overflowing sums.
+    void consume(OpenMS::Size& remaining, OpenMS::Size count)
+    {
+      require(count <= remaining, "Flattened value cap exceeded");
+      remaining -= count;
+    }
+  }
+  struct FamilyBatch::Storage
+  {
+    RecordContext context;
+    std::vector<CandidateFamily> families;
+  };
+  FamilyBatch::FamilyBatch(RecordContext ctx, RecordLimits limits, std::vector<CandidateFamily> families)
+  {
+    OpenDIA::context(ctx);
+    require(families.size() <= limits.records, "Family record cap exceeded");
+    std::set<RecordId> family_ids;
+    auto remaining = limits.values;
+    for (const auto& family : families)
+    {
+      require(family_ids.insert(family.family_id).second, "Duplicate family ID");
+      require(family.region.specification().context == ctx, "Family region context mismatch");
+      require(family.completeness == CandidateCompleteness::UNKNOWN ||
+              family.completeness == CandidateCompleteness::PARTIAL ||
+              family.completeness == CandidateCompleteness::COMPLETE, "Unknown candidate completeness");
+      consume(remaining, family.members.size());
+      consume(remaining, family.alternatives.size());
+      consume(remaining, family.fragments.size());
+      std::set<RecordId> members;
+      for (const auto& member : family.members)
+      {
+        require(members.insert(member.precursor_id).second, "Duplicate family member ID");
+        require(member.target_decoy == TargetDecoy::TARGET || member.target_decoy == TargetDecoy::DECOY,
+                "Unknown target/decoy identity");
+        require(!member.charge || *member.charge != 0, "Present charge must be nonzero");
+        require(!member.adduct || !member.adduct->empty(), "Present adduct must be nonempty");
+      }
+      std::set<RecordId> alternatives;
+      for (const auto& alternative : family.alternatives)
+      {
+        require(alternatives.insert(alternative.alternative_id).second, "Duplicate alternative ID");
+        consume(remaining, alternative.precursor_ids.size());
+        std::set<RecordId> references;
+        for (const auto id : alternative.precursor_ids)
+        {
+          require(members.contains(id), "Dangling alternative member");
+          require(references.insert(id).second, "Duplicate alternative member reference");
+        }
+      }
+      std::set<std::pair<RecordId, RecordId>> incidences;
+      for (const auto& fragment : family.fragments)
+      {
+        require(members.contains(fragment.precursor_id), "Dangling fragment member");
+        require(fragment.role == FragmentRole::SHARED || fragment.role == FragmentRole::DISCRIMINATING,
+                "Unknown fragment role");
+        require(incidences.emplace(fragment.precursor_id, fragment.fragment_id).second, "Duplicate fragment incidence");
+      }
+    }
+    storage_ = std::make_shared<const Storage>(Storage{ctx, std::move(families)});
+  }
+  void FamilyBatch::check_() const { require(bool(storage_), "Invalid family batch lease"); }
+  RecordContext FamilyBatch::context() const { check_(); return storage_->context; }
+  OpenMS::Size FamilyBatch::size() const { check_(); return storage_->families.size(); }
+  CandidateFamily FamilyBatch::family(OpenMS::Size index) const
+  {
+    bounds(index, size());
+    return storage_->families[index];
+  }
+
+  struct ScoreBatch::Storage
+  {
+    FamilyBatch families;
+    EvidenceBlock evidence;
+    std::vector<ScoreRecord> scores;
+  };
+  ScoreBatch::ScoreBatch(RecordLimits limits, FamilyBatch families, EvidenceBlock evidence, std::vector<ScoreRecord> scores)
+  {
+    require(families.context() == evidence.context(), "Score input context mismatch");
+    require(scores.size() <= limits.records, "Score record cap exceeded");
+    // Index once. Validation stays sparse and does not repeatedly scan all families.
+    struct References
+    {
+      std::set<RecordId> members;
+      std::set<RecordId> alternatives;
+    };
+    std::map<RecordId, References> references;
+    for (OpenMS::Size i = 0; i < families.size(); ++i)
+    {
+      const auto family = families.family(i);
+      auto& refs = references[family.family_id];
+      for (const auto& member : family.members) { refs.members.insert(member.precursor_id); }
+      for (const auto& alternative : family.alternatives) { refs.alternatives.insert(alternative.alternative_id); }
+    }
+    std::set<std::pair<RecordId, RecordId>> rows;
+    auto remaining = limits.values;
+    for (const auto& score : scores)
+    {
+      const auto family = references.find(score.family_id);
+      require(family != references.end(), "Dangling score family");
+      require(family->second.alternatives.contains(score.alternative_id), "Dangling score alternative");
+      require(rows.emplace(score.family_id, score.alternative_id).second, "Duplicate score row");
+      require(score.ambiguity == ScoreAmbiguity::UNRESOLVED || score.ambiguity == ScoreAmbiguity::RESOLVED,
+              "Unknown score ambiguity");
+      require(!score.scoring_method.empty(), "Empty scoring method");
+      optionalFinite(score.identification);
+      optionalFinite(score.localization);
+      if (score.quantity)
+      {
+        finite(score.quantity->value);
+        require(!score.quantity->unit.empty(), "Empty quantity unit");
+      }
+      consume(remaining, score.evidence_rows.size());
+      for (const auto row : score.evidence_rows)
+      {
+        const auto point = evidence.point(row);
+        require(point.family_id == score.family_id && family->second.members.contains(point.precursor_id),
+                "Score evidence family/member mismatch");
+      }
+    }
+    storage_ = std::make_shared<const Storage>(Storage{std::move(families), std::move(evidence), std::move(scores)});
+  }
+  void ScoreBatch::check_() const { require(bool(storage_), "Invalid score batch lease"); }
+  RecordContext ScoreBatch::context() const { check_(); return storage_->families.context(); }
+  OpenMS::Size ScoreBatch::size() const { check_(); return storage_->scores.size(); }
+  ScoreRecord ScoreBatch::score(OpenMS::Size index) const
+  {
+    bounds(index, size());
+    return storage_->scores[index];
+  }
+  FamilyBatch ScoreBatch::families() const { check_(); return storage_->families; }
+  EvidenceBlock ScoreBatch::evidence() const { check_(); return storage_->evidence; }
 }

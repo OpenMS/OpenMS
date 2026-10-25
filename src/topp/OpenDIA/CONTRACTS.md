@@ -1,9 +1,9 @@
 # OpenDIA private records, unstable v0
 
-These contracts implement roadmap steps 2 and 3 only. They are tool-local, not installed,
-not a public OpenMS API, and **not frozen**. Scientific freeze is pending the WP-07
-experiment review. Family inference, score semantics and full
-WP-01 completion are deliberately not implemented here.
+These contracts implement roadmap steps 2, 3 and the step 4 private record shapes.
+They are tool-local, not installed, not a public OpenMS API, and **not frozen**.
+Scientific freeze is pending the WP-07 experiment review. Family inference,
+scientific scoring and production adapters are deliberately not implemented here.
 
 ## Extraction-query identity
 
@@ -95,6 +95,58 @@ intensity/evidence units. This v0 does not define an aggregation or score.
 
 ## Ownership and checks
 
+`FamilyBatch` retains caller-declared `CandidateFamily` values. Each region has
+exactly the batch context and uses the extraction-query units above. Family IDs
+are unique within the batch. Member precursor IDs and alternative IDs are unique
+within each family, not globally. They retain stable caller namespaces across
+leases and must not be treated as positions. Zero and the full uint64 range are
+valid IDs. Charge is an optional nonzero signed integer, not a magnitude or an
+inferred charge. A present adduct is a nonempty opaque string. Target/decoy is
+per member, never a derived family label. Provenance retains opaque source and
+optional prediction identities.
+
+An alternative's empty precursor list explicitly represents null. One precursor
+is a singleton, more than one represents coexisting candidates. Several
+alternatives preserve unresolved possibilities, not a selected winner. An empty
+alternative vector declares no alternatives and is different from a null
+alternative. Each alternative references only members of its own family, without
+duplicates within that list. Sparse fragment incidence references family members,
+with unique `(precursor_id, fragment_id)` pairs. The same fragment may support
+several members. SHARED and DISCRIMINATING are caller declarations, not computed
+roles. Fragment IDs use the caller's fragment namespace, no fragment catalogue is
+inferred. UNKNOWN, PARTIAL and COMPLETE likewise record declared candidate
+completeness, not scientific truth, confidence or exhaustive library coverage.
+
+`ScoreBatch` owns family and evidence copy leases and requires equal complete
+contexts. Every score names an existing family and one of its alternatives.
+Duplicate `(family_id, alternative_id)` score rows are rejected. Evidence row
+indices are relative to the retained evidence block. Referenced evidence must
+have that family ID and a precursor belonging to that family. They need not be
+restricted to the alternative's members: surrounding family evidence can inform
+an alternative, including null. Empty evidence references are valid for every
+alternative, including null. Repeated evidence indices are retained, not silently
+deduplicated. Unreferenced evidence is not required to belong to this batch.
+
+Identification, localization and quantity are independent optional observations.
+Absent is not zero. Identification/localization are finite raw method-specific
+scores, not probabilities and not bounded to [0,1]. Quantity is a finite value
+with a nonempty explicit opaque unit, such as detector area. No normalization,
+unit conversion or positivity is inferred. A nonempty `scoring_method` identifies
+the caller's scoring procedure/revision. RESOLVED/UNRESOLVED is an explicit caller
+ambiguity declaration, not a winner inference or calibrated confidence. These
+records supply no scoring algorithm, wire format, cache or production adapter.
+
+Family `records` counts families. Family `values` counts members + alternatives
++ all alternative precursor references + fragment incidence rows across the
+batch. Score `records` counts score rows and score `values` counts flattened
+evidence references only. Counts are checked by subtraction before accumulation
+could overflow. Nested strings, query acquisition selections and retained input
+leases are not a byte budget. Empty family/evidence/score batches are valid with
+zero caps. Family and score accessors return detached values or owning leases,
+including after their producers are destroyed. All malformed enums, duplicates,
+dangling references, context mismatch, caps, bounds and moved-from access fail
+with `InvalidValue` in production, including NDEBUG builds.
+
 Constructors take vectors by value and move them into immutable shared storage.
 Each concrete class is itself a cheap owning copy lease. All accessors return
 values, including strings and optionals, never borrowed references/spans/pointers.
@@ -112,8 +164,9 @@ input allocations and provenance string bytes are not budgeted here.
 
 Construction checks schema, finite coordinates/values, enum values, isolation
 ordering, caps and offsets. It does not impose positivity, global uniqueness,
-ordering of scans, scientific provenance validation, library completeness or
-cross-record referential integrity. Consumers retain their own owning leases,
+ordering of scans, scientific provenance validation or library completeness.
+The family and score types additionally check the local references described below.
+Consumers retain their own owning leases,
 and adapters must establish scientific/unit compatibility before combining data.
 Validation lives in `OpenDIA_impl`, shared by the tool and tests. The same test
 body uses native ClassTest when available and active runtime checks against a
@@ -144,5 +197,5 @@ after its raw tile and hypothesis page are destroyed. It does not perform or
 validate scientific matching. The fixture's full-file load, one-window spectra,
 numeric scan mapping, count limits and by-value layout are not the future
 WP-03/04 production adapters, a packed representation, byte-bounded streaming,
-or a performance claim. Alternatives, scores and the complete v0 handoff remain
-WP-01 step 4.
+or a performance claim. Family and score handoff checks are test-owned fixture
+adapters, not production adapters.

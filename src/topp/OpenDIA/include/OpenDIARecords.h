@@ -234,4 +234,96 @@ namespace OpenDIA
     std::shared_ptr<const Storage> storage_;
     void check_() const;
   };
+
+  struct CandidateMember
+  {
+    RecordId precursor_id = 0;
+    TargetDecoy target_decoy = TargetDecoy::TARGET;
+    std::optional<int> charge;
+    std::optional<std::string> adduct;
+  };
+  /// Empty is explicitly null, one member is singleton, several members coexist.
+  struct FamilyAlternative
+  {
+    RecordId alternative_id = 0;
+    std::vector<RecordId> precursor_ids;
+  };
+  enum class CandidateCompleteness { UNKNOWN, PARTIAL, COMPLETE };
+  enum class FragmentRole { SHARED, DISCRIMINATING };
+  struct FragmentIncidence
+  {
+    RecordId precursor_id = 0;
+    RecordId fragment_id = 0;
+    FragmentRole role = FragmentRole::SHARED;
+  };
+  struct CandidateFamily
+  {
+    RecordId family_id = 0;
+    ExtractionQuery region{ExtractionQuerySpec{}};
+    std::vector<CandidateMember> members;
+    std::vector<FamilyAlternative> alternatives;
+    std::vector<FragmentIncidence> fragments;
+    CandidateCompleteness completeness = CandidateCompleteness::UNKNOWN;
+    Provenance provenance;
+  };
+  /** @brief Private v0 immutable family lease, with no inferred winner or truth. */
+  class FamilyBatch
+  {
+  public:
+    /**
+      @brief Validate and retain families in one caller namespace.
+      @param[in] context Schema and immutable namespace identity.
+      @param[in] limits Maximum families and flattened nested values.
+      @param[in] families Caller-declared candidates and alternatives.
+      @throws OpenMS::Exception::InvalidValue for malformed input.
+    */
+    FamilyBatch(RecordContext context, RecordLimits limits, std::vector<CandidateFamily> families);
+    RecordContext context() const;
+    OpenMS::Size size() const;
+    CandidateFamily family(OpenMS::Size index) const;
+  private:
+    struct Storage;
+    std::shared_ptr<const Storage> storage_;
+    void check_() const;
+  };
+  struct Quantity
+  {
+    double value = 0;
+    std::string unit;
+  };
+  enum class ScoreAmbiguity { UNRESOLVED, RESOLVED };
+  struct ScoreRecord
+  {
+    RecordId family_id = 0;
+    RecordId alternative_id = 0;
+    std::optional<double> identification;
+    std::optional<double> localization;
+    std::optional<Quantity> quantity;
+    ScoreAmbiguity ambiguity = ScoreAmbiguity::UNRESOLVED;
+    std::string scoring_method;
+    std::vector<OpenMS::Size> evidence_rows;
+  };
+  /** @brief Private v0 immutable raw scores retaining family and evidence leases. */
+  class ScoreBatch
+  {
+  public:
+    /**
+      @brief Validate score references and retain all inputs.
+      @param[in] limits Maximum score rows and flattened evidence references.
+      @param[in] families Owning family lease.
+      @param[in] evidence Owning evidence lease in the same context.
+      @param[in] scores Raw scores, not calibrated probabilities.
+      @throws OpenMS::Exception::InvalidValue for malformed input.
+    */
+    ScoreBatch(RecordLimits limits, FamilyBatch families, EvidenceBlock evidence, std::vector<ScoreRecord> scores);
+    RecordContext context() const;
+    OpenMS::Size size() const;
+    ScoreRecord score(OpenMS::Size index) const;
+    FamilyBatch families() const;
+    EvidenceBlock evidence() const;
+  private:
+    struct Storage;
+    std::shared_ptr<const Storage> storage_;
+    void check_() const;
+  };
 }
