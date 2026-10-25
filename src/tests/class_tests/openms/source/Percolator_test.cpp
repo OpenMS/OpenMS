@@ -564,6 +564,17 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     }
     TEST_TRUE(fold0_same)
     TEST_TRUE(others_changed)
+    // no sample that fills the folds (a cap of one row), or the mode inert (start >= rows, also with a cap): trained
+    // and scored as without a cap
+    const RescoreOutput uncapped_lc = run("in_sample", 0, 17, 8, "true");
+    Percolator::CappedTrainingInfo lc_fallback;
+    const RescoreOutput fallback_lc = run("learning_curve", 1, 17, 8, "true", &lc_fallback, nullptr, nullptr,
+                                          [](Param& par) { par.setValue("subset_curve_start", 2000); });
+    TEST_EQUAL(lc_fallback.fold.size(), 0)
+    TEST_TRUE(fallback_lc.scores == uncapped_lc.scores && fallback_lc.q_values == uncapped_lc.q_values)
+    const RescoreOutput inert_lc = run("learning_curve", 5000, 17, 8, "true", nullptr, nullptr, nullptr,
+                                       [n_rows](Param& par) { par.setValue("subset_curve_start", static_cast<int>(n_rows)); });
+    TEST_TRUE(inert_lc.scores == uncapped_lc.scores && inert_lc.q_values == uncapped_lc.q_values)
   }
 
   // the in-sample mode (the percolator executable's) stays: no fold record, one averaged model, other scores

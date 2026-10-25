@@ -277,7 +277,8 @@ namespace OpenMS
     struct CappedTrainingInfo
     {
       std::vector<int> fold;                          ///< per input row: its cross-validation fold, whose model scored it
-      std::vector<char> sampled;                      ///< per input row: whether its spectrum was in the training sample
+      std::vector<char> sampled;                      ///< per input row: whether it is in a fold model's training set (the
+                                                      ///< sample; learning_curve: of a kept model)
       std::vector<std::vector<size_t>> trained_rows;  ///< per fold: the input rows of its model's training set, ascending
       std::vector<int> scorer;                        ///< per input row: the model that scored it (getSvmWeights() index:
                                                       ///< its fold, or 3 = the average of the fold models)

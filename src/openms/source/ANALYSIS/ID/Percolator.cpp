@@ -75,6 +75,8 @@ namespace
     /// per_fold: the fold models as checked (normalized feature space), before the cross-validation's merge rescales
     /// them by their test sets' scores
     std::vector<std::vector<double>> validated_weights;
+    /// per_fold: which folds' models were replaced by their default direction
+    std::vector<char> reset_folds;
 
   private:
     // Per fold, as validateDirection() for all: the learned weights are replaced by the fold's default direction
@@ -86,6 +88,7 @@ namespace
     {
       std::vector<std::vector<double>> w0(w.size(), std::vector<double>(w.empty() ? 0 : w[0].size(), 0.0));
       getDefaultDirection(w0);
+      reset_folds.assign(w.size(), 0);
       for (size_t set = 0; set < w.size(); ++set)
       {
         P::Scores& train = (*pTrainset_)[set];
@@ -104,6 +107,7 @@ namespace
                     << test_fdr_ << ") is replaced by the default direction (" << initial << ")." << std::endl;
           w[set] = w0[set];
           used_default_direction = true;
+          reset_folds[set] = 1;
           // the CV merge rescales each model by its test set's scores (getAvgWeights averages the rescaled models):
           // score the test set with the replacement (the saved fold models below do not depend on this)
           (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
@@ -1125,8 +1129,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   else
   {
     // Reservoir-sample the training subset. When subset_max_train is 0 or
-    // >= n_rows, training_rows is the identity [0..n).
-    training_rows = selectTrainingSubset(input, n_rows, impl_->subset_max_train);
+    // >= n_rows, training_rows is the identity [0..n). (An inert learning_curve trains on all rows.)
+    training_rows = selectTrainingSubset(input, n_rows, impl_->subset_curve ? 0 : impl_->subset_max_train);
   }
   bool did_subsample = training_rows.size() < n_rows;
 
@@ -1139,6 +1143,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     std::vector<double> avg_weights;               // Percolator's average of the fold models (raw feature space)
     std::vector<std::vector<double>> fold_weights; // out-of-fold: each fold's model as checked (raw feature space)
     std::vector<std::vector<size_t>> trained_rows; // out-of-fold: each fold model's training rows, ascending
+    std::vector<char> reset_folds;                 // out-of-fold: the fold models replaced by the default direction
   };
   auto train_rows = [&](const std::vector<size_t>& training_rows) -> Trained
   {
@@ -1279,6 +1284,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     cv.getAvgWeights(avg_weights, normalizer);
     if (out_of_fold)
     {
+      trained.reset_folds = sanity->reset_folds;
       // the fold models as the per-fold sanity check left them (Scores::merge then rescales each by its test set,
       // i.e. by held-out labels; the scorers below are rescaled on their own rows anyway)
       if (sanity->validated_weights.size() != num_folds)
@@ -1322,7 +1328,13 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
                                    : impl_->subset_curve_max > 0 ? static_cast<size_t>(impl_->subset_curve_max) : available;
     const size_t last = std::min(largest_allowed, available);
     std::vector<size_t> sizes;
-    for (size_t size = static_cast<size_t>(impl_->subset_curve_start); size < last; size *= 2) sizes.push_back(size);
+    // (without validation spectra, e.g. one spectrum holding more rows than their budget, there is no curve: the
+    // largest sample only)
+    for (size_t size = static_cast<size_t>(impl_->subset_curve_start); size < last && !oof.validation_rows.empty();
+         size *= 2)
+    {
+      sizes.push_back(size);
+    }
     sizes.push_back(last);
     std::vector<std::vector<size_t>> validation_of_fold(num_folds); // validation rows outside fold k
     for (size_t i : oof.validation_rows)
@@ -1337,6 +1349,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     info.chosen_size.assign(num_folds, 0);
     trained.fold_weights.assign(num_folds, {});
     trained.trained_rows.assign(num_folds, {});
+    trained.reset_folds.assign(num_folds, 0);
     std::vector<char> stopped(num_folds, 0);
     std::vector<long> previous(num_folds, -1);
     const P::OutOfFoldSample folds = oof;
@@ -1348,6 +1361,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       for (size_t i : oof.sampled_rows) ++(input.is_decoy[i] ? decoys : targets)[oof.fold[i]];
       bool usable = true;
       for (unsigned int f = 0; f < num_folds; ++f) usable = usable && targets[f] > 0 && decoys[f] > 0;
+      // (a joint feasibility gate: a size is skipped for every fold if some fold lacks sampled targets or decoys; it
+      // reads the class counts of all folds, which at the start size of 100,000 rows never binds on real data)
       if (!usable)
       {
         OPENMS_LOG_INFO << "Percolator: learning curve: the sample of " << oof.sampled_rows.size()
@@ -1367,6 +1382,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         info.curve_counts.back()[f] = count;
         trained.fold_weights[f] = std::move(at_size.fold_weights[f]);
         trained.trained_rows[f] = std::move(at_size.trained_rows[f]);
+        trained.reset_folds[f] = at_size.reset_folds[f];
         info.chosen_size[f] = oof.sampled_rows.size();
         if (previous[f] >= 0 &&
             static_cast<double>(count - previous[f]) < impl_->subset_curve_min_gain * static_cast<double>(std::max(previous[f], 1L)))
@@ -1389,13 +1405,18 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       info = CappedTrainingInfo();
       impl_->reset();
       P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
+      // (Percolator's uncapped training: its own folds, every row scored by the model of its test fold)
       training_rows.resize(n_rows);
       std::iota(training_rows.begin(), training_rows.end(), size_t{0});
       trained = train_rows(training_rows);
+      did_subsample = false;
     }
     else
     {
       did_subsample = true;
+      // the default direction is reported if a kept fold model is one
+      impl_->last_used_default_direction =
+        std::any_of(trained.reset_folds.begin(), trained.reset_folds.end(), [](char x) { return x != 0; });
     }
   }
   else
