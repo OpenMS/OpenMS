@@ -404,6 +404,11 @@ hand-editing sources and committing them, to keep sync self-healing.
   then the only sorted one, so any sort would leave it unchanged (the fold chains sort the scores
   that the previous step sorted). Checked in blocks by the tasks of an enclosing parallel region.
   No change of results.
+- `patches/25-cv-packed-group-keys.patch` — `Scores::generateTrainingSetsOfSortedSet` sorts one
+  64-bit key per PSM (file << 34 | scan << 2 | 2 - label, with its 32-bit position; built in blocks
+  by the tasks of an enclosing parallel region) instead of (file, scan, label, position) where the
+  values fit: the keys compare as OrderScanLabel compares the PSMs, so the sort makes the same moves
+  and keeps the same PSM of each group. Otherwise the full keys as before. No change of results.
 
 ### Regenerating the patch
 

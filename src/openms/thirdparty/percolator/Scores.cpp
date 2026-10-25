@@ -1020,27 +1020,78 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
   std::vector<char> kept(scores_.size(), 1);
   if (trainBestPositive && !scores_.empty()) {
     if (!comparableScores(scores_.begin(), scores_.end())) return false;
-    struct ScanLabelKey {
-      unsigned int specFileNr, scan;
-      LabelType label;
-      std::size_t index;
+    // OpenMS (CV-A1): one 64-bit key (file, scan, label) per PSM where they fit: file << 34 | scan << 2 |
+    // (2 - label) (labels -1..2: a higher label sorts first, as in OrderScanLabel), with the position; the keys
+    // compare as OrderScanLabel compares the PSMs, so the sort makes the same moves as with the full keys
+    struct PackedKey {
+      std::uint64_t key;
+      std::uint32_t index;
     };
-    std::vector<ScanLabelKey> keys;
-    keys.reserve(scores_.size());
-    for (std::size_t i = 0; i < scores_.size(); ++i) {
-      keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
+    const std::size_t n = scores_.size();
+    bool packable = n < (std::size_t(1) << 32);
+    std::vector<PackedKey> packed;
+    if (packable) {
+      packed.resize(n);
+      std::vector<char> fits;
+      const std::ptrdiff_t sn = static_cast<std::ptrdiff_t>(n);
+      const auto fill = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+        bool ok = true;
+        for (std::ptrdiff_t i = b; i < e; ++i) {
+          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+          const int label = static_cast<int>(sh.label);
+          ok &= sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2;
+          packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
+                                                     (std::uint64_t(sh.pPSM->scan) << 2) |
+                                                     std::uint64_t(2 - label),
+                                                 static_cast<std::uint32_t>(i)};
+        }
+        return ok;
+      };
+#ifdef _OPENMP
+      if (sn >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+        const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
+        const std::ptrdiff_t numBlocks = (sn + blockSize - 1) / blockSize;
+        fits.assign(static_cast<std::size_t>(numBlocks), 1);
+#pragma omp taskloop grainsize(1) shared(fits, fill)
+        for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+          fits[static_cast<std::size_t>(block)] = fill(block * blockSize, std::min(sn, (block + 1) * blockSize));
+        }
+      } else
+#endif
+      {
+        fits.assign(1, fill(0, sn));
+      }
+      packable = std::all_of(fits.begin(), fits.end(), [](char x) { return x != 0; });
     }
-    // the comparison of OrderScanLabel, on the keys
-    sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
-      if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
-      if (x.scan != y.scan) return x.scan < y.scan;
-      return x.label > y.label;
-    });
-    // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
-    for (std::size_t k = 1; k < keys.size(); ++k) {
-      if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
-          keys[k].label == keys[k - 1].label) {
-        kept[keys[k].index] = 0;
+    if (packable) {
+      sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) { return x.key < y.key; });
+      // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
+      for (std::size_t k = 1; k < packed.size(); ++k) {
+        if (packed[k].key == packed[k - 1].key) kept[packed[k].index] = 0;
+      }
+    } else {
+      struct ScanLabelKey {
+        unsigned int specFileNr, scan;
+        LabelType label;
+        std::size_t index;
+      };
+      std::vector<ScanLabelKey> keys;
+      keys.reserve(scores_.size());
+      for (std::size_t i = 0; i < scores_.size(); ++i) {
+        keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
+      }
+      // the comparison of OrderScanLabel, on the keys
+      sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
+        if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
+        if (x.scan != y.scan) return x.scan < y.scan;
+        return x.label > y.label;
+      });
+      // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
+      for (std::size_t k = 1; k < keys.size(); ++k) {
+        if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
+            keys[k].label == keys[k - 1].label) {
+          kept[keys[k].index] = 0;
+        }
       }
     }
   }
