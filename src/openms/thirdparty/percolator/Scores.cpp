@@ -21,6 +21,8 @@
 #include <functional>
 #include <cfloat>
 #include <cmath>
+#include <unordered_set>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -1324,8 +1326,64 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         for (std::size_t i = 0; i < n; ++i) {
           keys.push_back({0.0, tieRank[i], static_cast<unsigned int>(i)});
         }
+        // OpenMS: packed keys. A feature with at most kMaxPackedCodes distinct values is sorted on 64-bit words
+        // (code of the value << (tie bits + index bits) | tieRank << index bits | index), compared on their bits above
+        // the index: the code is the rank of the value among the feature's distinct values (equal values, -0.0 and
+        // +0.0 included, get equal codes, a smaller value a smaller code), so every comparison of the sort has the
+        // outcome of (score, tieRank) and the sort makes the same moves on half the bytes. Afterwards the keys get their
+        // own values back. (No NaN here; the other features are sorted as ChainKeys.)
+        constexpr std::size_t kMaxPackedCodes = std::size_t(1) << 16;
+        const auto bitsFor = [](std::uint64_t maxValue) {
+          unsigned int b = 0;
+          while (b < 64 && (maxValue >> b) != 0) ++b;
+          return b;
+        };
+        const unsigned int indexBits = bitsFor(n - 1);
+        const unsigned int tieBits = bitsFor(rank);
+        const bool packable = indexBits + tieBits + 16 <= 64;
+        std::vector<std::vector<double> > valuesOfFeature(numFeatures);  // sorted distinct values; empty = not packed
+        if (packable) {
+#pragma omp taskloop grainsize(1) shared(valuesOfFeature, columns)
+          for (unsigned int f = 0; f < numFeatures; ++f) {
+            const double* column = &columns[static_cast<std::size_t>(f) * n];
+            std::unordered_set<double> distinct;
+            bool few = true;
+            for (std::size_t i = 0; i < n && few; ++i) {
+              distinct.insert(column[i]);
+              few = distinct.size() <= kMaxPackedCodes;
+            }
+            if (few) {
+              std::vector<double> values(distinct.begin(), distinct.end());
+              std::sort(values.begin(), values.end());
+              valuesOfFeature[f].swap(values);
+            }
+          }
+        }
+        std::vector<std::uint64_t> packed;
         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
           const double* column = &columns[featNo * n];
+          if (!valuesOfFeature[featNo].empty()) {
+            const std::vector<double>& values = valuesOfFeature[featNo];
+            const unsigned int shift = tieBits + indexBits;
+            packed.resize(n);
+#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, values)
+            for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+              const ChainKey& key = keys[static_cast<std::size_t>(i)];
+              const std::uint64_t code = static_cast<std::uint64_t>(
+                  std::lower_bound(values.begin(), values.end(), column[key.index]) - values.begin());
+              packed[static_cast<std::size_t>(i)] =
+                  (code << shift) | (static_cast<std::uint64_t>(key.tieRank) << indexBits) | key.index;
+            }
+            sortLikeStdSort(packed, [indexBits](std::uint64_t x, std::uint64_t y) {
+              return (x >> indexBits) < (y >> indexBits);
+            });
+            const std::uint64_t indexMask = (std::uint64_t(1) << indexBits) - 1;
+#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, tieRank)
+            for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+              const unsigned int index = static_cast<unsigned int>(packed[static_cast<std::size_t>(i)] & indexMask);
+              keys[static_cast<std::size_t>(i)] = {column[index], tieRank[index], index};
+            }
+          } else {
 #pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
           for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
             ChainKey& key = keys[static_cast<std::size_t>(i)];
@@ -1335,6 +1393,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
           sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
             return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
           });
+          }
           {
             // OpenMS: the (score, label) pairs of the count, in the order of the sorted keys, written by tasks from
             // the keys directly (a pooled buffer keeps its n elements and is overwritten)

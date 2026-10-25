@@ -1,13 +1,15 @@
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 653b2cdf43..198686a7fa 100644
+index 653b2cdf43..98fc8780f6 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -19,12 +19,14 @@
+@@ -19,12 +19,16 @@
  #include <cassert>
  #include <exception>
  #include <functional>
 +#include <cfloat>
  #include <cmath>
++#include <unordered_set>
++#include <cstdint>
  #include <fstream>
  #include <iostream>
  #include <limits>
@@ -17,7 +19,7 @@ index 653b2cdf43..198686a7fa 100644
  #include <set>
  #include <sstream>
  #include <string>
-@@ -302,7 +304,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -302,7 +306,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
    test.resize(xval_fold, Scores(usePi0_));
    size_t approxTestSize = scores_.size() / xval_fold + 1;
    size_t approxTrainSize = (approxTestSize < scores_.size()) ? scores_.size() - approxTestSize : scores_.size();
@@ -33,7 +35,7 @@ index 653b2cdf43..198686a7fa 100644
      train[i].reserve(approxTrainSize);
      test[i].reserve(approxTestSize);
    }
-@@ -357,11 +366,6 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -357,11 +368,6 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
    // same order (see below)
    std::vector<unsigned int> foldOfPSM;
    std::vector<LabelType> labelOfPSM;
@@ -45,7 +47,7 @@ index 653b2cdf43..198686a7fa 100644
    if (fillInTasks) {
      foldOfPSM.reserve(scores_.size());
      labelOfPSM.reserve(scores_.size());
-@@ -420,6 +424,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+@@ -420,6 +426,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
  #pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
      for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
        try {
@@ -56,7 +58,7 @@ index 653b2cdf43..198686a7fa 100644
          for (std::size_t k = 0; k < scores_.size(); ++k) {
            ScoreHolder sh = scores_[k];
            sh.label = labelOfPSM[k];
-@@ -1147,6 +1155,50 @@ void Scores::weedOutRedundantMixMax() {
+@@ -1147,6 +1157,50 @@ void Scores::weedOutRedundantMixMax() {
  int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
                                 double fdr, bool skipDecoysPlusOne) const {
    std::vector<double> qvals;
@@ -107,7 +109,7 @@ index 653b2cdf43..198686a7fa 100644
    PosteriorEstimator::setNegative(true);  // also get q-values for decoys
    PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
                                   nullTargetWinProb_);
-@@ -1202,8 +1254,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1202,8 +1256,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
        unsigned int tieRank;
        unsigned int index;
      };
@@ -127,7 +129,7 @@ index 653b2cdf43..198686a7fa 100644
      std::vector<char> isTarget(n);
      // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
      // (each key is written once, so the order of the blocks does not matter)
-@@ -1241,6 +1302,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1241,6 +1304,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
          // written there, so the array is not zero-filled first)
          // (a block of PSMs per task, column by column: consecutive writes)
          const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
@@ -135,9 +137,76 @@ index 653b2cdf43..198686a7fa 100644
          const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
          const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
  #pragma omp taskloop grainsize(1) shared(columns, isTarget)
-@@ -1274,25 +1336,40 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1262,8 +1326,64 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+         for (std::size_t i = 0; i < n; ++i) {
+           keys.push_back({0.0, tieRank[i], static_cast<unsigned int>(i)});
+         }
++        // OpenMS: packed keys. A feature with at most kMaxPackedCodes distinct values is sorted on 64-bit words
++        // (code of the value << (tie bits + index bits) | tieRank << index bits | index), compared on their bits above
++        // the index: the code is the rank of the value among the feature's distinct values (equal values, -0.0 and
++        // +0.0 included, get equal codes, a smaller value a smaller code), so every comparison of the sort has the
++        // outcome of (score, tieRank) and the sort makes the same moves on half the bytes. Afterwards the keys get their
++        // own values back. (No NaN here; the other features are sorted as ChainKeys.)
++        constexpr std::size_t kMaxPackedCodes = std::size_t(1) << 16;
++        const auto bitsFor = [](std::uint64_t maxValue) {
++          unsigned int b = 0;
++          while (b < 64 && (maxValue >> b) != 0) ++b;
++          return b;
++        };
++        const unsigned int indexBits = bitsFor(n - 1);
++        const unsigned int tieBits = bitsFor(rank);
++        const bool packable = indexBits + tieBits + 16 <= 64;
++        std::vector<std::vector<double> > valuesOfFeature(numFeatures);  // sorted distinct values; empty = not packed
++        if (packable) {
++#pragma omp taskloop grainsize(1) shared(valuesOfFeature, columns)
++          for (unsigned int f = 0; f < numFeatures; ++f) {
++            const double* column = &columns[static_cast<std::size_t>(f) * n];
++            std::unordered_set<double> distinct;
++            bool few = true;
++            for (std::size_t i = 0; i < n && few; ++i) {
++              distinct.insert(column[i]);
++              few = distinct.size() <= kMaxPackedCodes;
++            }
++            if (few) {
++              std::vector<double> values(distinct.begin(), distinct.end());
++              std::sort(values.begin(), values.end());
++              valuesOfFeature[f].swap(values);
++            }
++          }
++        }
++        std::vector<std::uint64_t> packed;
+         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+           const double* column = &columns[featNo * n];
++          if (!valuesOfFeature[featNo].empty()) {
++            const std::vector<double>& values = valuesOfFeature[featNo];
++            const unsigned int shift = tieBits + indexBits;
++            packed.resize(n);
++#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, values)
++            for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
++              const ChainKey& key = keys[static_cast<std::size_t>(i)];
++              const std::uint64_t code = static_cast<std::uint64_t>(
++                  std::lower_bound(values.begin(), values.end(), column[key.index]) - values.begin());
++              packed[static_cast<std::size_t>(i)] =
++                  (code << shift) | (static_cast<std::uint64_t>(key.tieRank) << indexBits) | key.index;
++            }
++            sortLikeStdSort(packed, [indexBits](std::uint64_t x, std::uint64_t y) {
++              return (x >> indexBits) < (y >> indexBits);
++            });
++            const std::uint64_t indexMask = (std::uint64_t(1) << indexBits) - 1;
++#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, tieRank)
++            for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
++              const unsigned int index = static_cast<unsigned int>(packed[static_cast<std::size_t>(i)] & indexMask);
++              keys[static_cast<std::size_t>(i)] = {column[index], tieRank[index], index};
++            }
++          } else {
+ #pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+           for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+             ChainKey& key = keys[static_cast<std::size_t>(i)];
+@@ -1273,26 +1393,42 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+           sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
              return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
            });
++          }
            {
 -            keysOfFeature[featNo].reset(new ChainKey[n]);
 -            ChainKey* snapshot = keysOfFeature[featNo].get();
