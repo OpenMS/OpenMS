@@ -1025,7 +1025,8 @@ protected:
 
         Percolator perc;
         Param pp = perc.getDefaults();
-        if (getDoubleOption_("cpos") > 0.0)   pp.setValue("c_pos",    getDoubleOption_("cpos"));
+        // 0: selected by cross-validation, as the executable does without -p (the library default is 0.1)
+        pp.setValue("c_pos", getDoubleOption_("cpos"));
         if (getDoubleOption_("cneg") > 0.0)   pp.setValue("c_neg",    getDoubleOption_("cneg"));
         pp.setValue("test_fdr",       getDoubleOption_("testFDR"));
         pp.setValue("train_fdr",      getDoubleOption_("trainFDR"));
