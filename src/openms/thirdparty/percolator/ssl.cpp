@@ -539,6 +539,12 @@ struct TronPairGroup::State {
   std::atomic<int> nextBuildRow{0};  // the next chunk to build
   int builtRows = 0;                 // rows built (mutex)
   bool finite = true;                // all values of X finite (mutex)
+  // a fingerprint of the set when X was built (a guard: a group serves the solves of one set as it is;
+  // CrossValidation makes one group per fold and step)
+  const double* const* vals = nullptr;
+  const double* firstRow = nullptr;
+  const double* lastRow = nullptr;
+  int positives = 0, negatives = 0;
 #endif
 };
 
@@ -564,6 +570,11 @@ TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& o
     g->mp = mp;
     g->n = n;
     g->np = np;
+    g->vals = set.vals;
+    g->firstRow = set.vals[0];
+    g->lastRow = set.vals[m - 1];
+    g->positives = set.positives;
+    g->negatives = set.negatives;
     lock.unlock();
     bool ok = false;
     try {
@@ -583,7 +594,10 @@ TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& o
   } else {
     g->cv.wait(lock, [g] { return g->build != State::kAllocating; });
   }
-  if (g->ops != &ops || g->m != m || g->n != n) return nullptr;
+  if (g->ops != &ops || g->m != m || g->n != n || g->vals != set.vals || g->firstRow != set.vals[0] ||
+      g->lastRow != set.vals[m - 1] || g->positives != set.positives || g->negatives != set.negatives) {
+    return nullptr;
+  }
   if (g->build == State::kBuilding) {
     lock.unlock();
     int rows = 0;
