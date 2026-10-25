@@ -6,6 +6,8 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
+#include "OpenDIA.h"
+
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
@@ -2621,7 +2623,7 @@ private:
   Rescorer rescoring_defaults_;
 };
 
-int main(int argc, const char** argv)
+int OpenDIA::run(int argc, const char** argv)
 {
   TOPPOpenDIA tool;
   return tool.main(argc, argv);
