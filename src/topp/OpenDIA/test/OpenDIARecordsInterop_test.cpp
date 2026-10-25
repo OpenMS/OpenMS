@@ -10,6 +10,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -181,7 +183,7 @@ namespace
     return row;
   }
 
-  void consumeQuery(const OpenDIA::RawTile& tile)
+  OpenDIA::ExtractionQuery rawQuery(const OpenDIA::RawTile& tile)
   {
     const auto source = tile.point(0).coordinates;
     OpenDIA::ExtractionQuerySpec request;
@@ -203,6 +205,14 @@ namespace
     request.faims_voltage = source.faims_voltage;
     const OpenDIA::ExtractionQuery query(request);
     check(query.specification() == request, "Real acquisition query coordinates or identity changed");
+    return query;
+  }
+
+  void consumeQuery(const OpenDIA::RawTile& tile)
+  {
+    const auto source = tile.point(0).coordinates;
+    const auto query = rawQuery(tile);
+    auto request = query.specification();
     ++request.context.calibration_snapshot_id;
     check(query != OpenDIA::ExtractionQuery(request), "Changed calibration reused a real acquisition key");
     OPENMS_LOG_INFO << "Preserved real query identity: MS" << source.ms_level
@@ -372,13 +382,14 @@ namespace
   }
 
   void consumeEvidence(const OpenDIA::EvidenceBlock& block, const std::string& raw_file,
-                       const std::string& library_file)
+                       const std::string& library_file, bool with_missingness = false)
   {
     const auto reference = produceRaw(raw_file);
     const auto page = produceHypotheses(library_file);
     checkContext(block.context());
-    check(block.size() == (reference.size() + 1) / 2, "Sparse evidence support changed");
-    for (OpenMS::Size i = 0; i < block.size(); ++i)
+    const auto measured_rows = (reference.size() + 1) / 2;
+    check(block.size() == measured_rows + (with_missingness ? 2 : 0), "Sparse evidence support changed");
+    for (OpenMS::Size i = 0; i < measured_rows; ++i)
     {
       const auto actual = block.point(i);
       const auto raw = reference.point(i * 2);
@@ -400,12 +411,240 @@ namespace
     }
     OPENMS_LOG_INFO << "Retained " << block.size() << " sparse evidence rows after raw/page destruction\n";
   }
+
+  OpenDIA::ScoreBatch produceScores(const std::string& raw_file, const std::string& library_file)
+  {
+    const auto tile = produceRaw(raw_file);
+    const auto page = produceHypotheses(library_file);
+    const auto measured = produceEvidence(raw_file, library_file);
+    const auto first = page.hypothesis(0);
+    const auto second = page.hypothesis(1);
+    OpenDIA::CandidateFamily family;
+    family.family_id = first.family_id;
+    family.region = rawQuery(tile);
+    family.provenance = first.provenance;
+    family.members = {{first.precursor_id, first.target_decoy, {}, {}},
+                      {second.precursor_id, second.target_decoy, {}, {}}};
+    // These are explicitly declared boundary examples, not inferred siteform science.
+    family.alternatives = {{0, {}}, {1, {first.precursor_id}}, {2, {second.precursor_id}},
+                           {3, {first.precursor_id, second.precursor_id}}};
+    family.completeness = OpenDIA::CandidateCompleteness::PARTIAL;
+    for (OpenMS::Size i = 0; i < 2; ++i)
+    {
+      for (OpenMS::Size j = 0; j < page.fragmentCount(i); ++j)
+      {
+        family.fragments.push_back({page.hypothesis(i).precursor_id, page.fragment(i, j).fragment_id,
+                                    OpenDIA::FragmentRole::SHARED});
+      }
+    }
+    const auto family_values = family.members.size() + family.alternatives.size() + 4 + family.fragments.size();
+    const OpenDIA::FamilyBatch families(context(), {1, family_values}, {family});
+    std::vector<OpenDIA::EvidencePoint> points;
+    for (OpenMS::Size i = 0; i < measured.size(); ++i)
+    {
+      points.push_back(measured.point(i));
+    }
+    auto missing = measured.point(0);
+    missing.value.reset();
+    points.push_back(missing);
+    missing.value = 0;
+    points.push_back(missing);
+    const auto count = points.size();
+    const OpenDIA::EvidenceBlock evidence(context(), {count, count}, std::move(points));
+    std::vector<OpenDIA::ScoreRecord> scores;
+    for (OpenDIA::RecordId alternative = 0; alternative < 4; ++alternative)
+    {
+      OpenDIA::ScoreRecord score;
+      score.family_id = family.family_id;
+      score.alternative_id = alternative;
+      score.scoring_method = "contract-fixture:no-inference";
+      score.evidence_rows = {0, count - 2, count - 1};
+      if (alternative == 1)
+      {
+        score.quantity = OpenDIA::Quantity{tile.point(0).intensity, "raw_intensity"};
+      }
+      scores.push_back(std::move(score));
+    }
+    return OpenDIA::ScoreBatch({4, 12}, families, evidence, std::move(scores));
+  }
+
+  void consumeScores(const OpenDIA::ScoreBatch& batch, const std::string& raw_file,
+                     const std::string& library_file)
+  {
+    // All raw, page, family and evidence producer leases have left scope.
+    checkContext(batch.context());
+    const auto tile = produceRaw(raw_file);
+    const auto page = produceHypotheses(library_file);
+    const auto family = batch.families().family(0);
+    check(batch.size() == 4 && batch.families().size() == 1, "Family alternatives were dropped");
+    check(family.region == rawQuery(tile) && family.completeness == OpenDIA::CandidateCompleteness::PARTIAL,
+          "Family local region or completeness changed");
+    check(family.members.size() == 2 && family.members[0].precursor_id == page.hypothesis(0).precursor_id &&
+          family.members[1].precursor_id == page.hypothesis(1).precursor_id, "Family member identities changed");
+    check(family.family_id == page.hypothesis(0).family_id && family.provenance.library == library_file &&
+          !family.provenance.prediction, "Family identity or library provenance changed");
+    OpenMS::Size incidence = 0;
+    for (OpenMS::Size i = 0; i < 2; ++i)
+    {
+      check(family.members[i].target_decoy == page.hypothesis(i).target_decoy &&
+            !family.members[i].charge && !family.members[i].adduct, "Family constraints were changed or invented");
+      for (OpenMS::Size j = 0; j < page.fragmentCount(i); ++j)
+      {
+        const auto& fragment = family.fragments.at(incidence++);
+        check(fragment.precursor_id == page.hypothesis(i).precursor_id &&
+              fragment.fragment_id == page.fragment(i, j).fragment_id && fragment.role == OpenDIA::FragmentRole::SHARED,
+              "Sparse family fragment incidence changed");
+      }
+    }
+    check(family.fragments.size() == incidence, "Sparse family incidence count changed");
+    check(family.alternatives.size() == 4 && family.alternatives[0].precursor_ids.empty() &&
+          family.alternatives[1].precursor_ids == std::vector<OpenDIA::RecordId>{family.members[0].precursor_id} &&
+          family.alternatives[2].precursor_ids == std::vector<OpenDIA::RecordId>{family.members[1].precursor_id} &&
+          family.alternatives[3].precursor_ids == std::vector<OpenDIA::RecordId>{family.members[0].precursor_id,
+                                                                                  family.members[1].precursor_id},
+          "Null, competing or coexisting alternatives changed");
+    const auto evidence = batch.evidence();
+    consumeEvidence(evidence, raw_file, library_file, true);
+    check(!evidence.point(evidence.size() - 2).value && evidence.point(evidence.size() - 1).value == 0,
+          "Explicit missing support became measured zero");
+    for (OpenMS::Size i = 0; i < batch.size(); ++i)
+    {
+      const auto score = batch.score(i);
+      check(family.alternatives[i].alternative_id == i && score.family_id == family.family_id &&
+            score.alternative_id == i && !score.identification &&
+            !score.localization && score.ambiguity == OpenDIA::ScoreAmbiguity::UNRESOLVED &&
+            score.scoring_method == "contract-fixture:no-inference" &&
+            score.evidence_rows == std::vector<OpenMS::Size>{0, evidence.size() - 2, evidence.size() - 1},
+            "Score identities, missingness, ambiguity or evidence references changed");
+      check(score.quantity.has_value() == (i == 1), "Unknown quantity was invented");
+      if (score.quantity)
+      {
+        check(score.quantity->value == tile.point(0).intensity && score.quantity->unit == "raw_intensity",
+              "Measured quantity or unit changed");
+      }
+    }
+    OPENMS_LOG_INFO << "Retained complete v0 handoff: 1 partial family, 4 alternatives including null/coexistence, "
+                    << evidence.size() << " evidence rows and 4 unresolved scores after producer destruction\n";
+  }
+
+  std::map<std::string, OpenMS::Size> resultColumns(const OpenMS::CsvFile& table)
+  {
+    OpenMS::StringList header;
+    check(table.rowCount() > 1 && table.getRow(0, header), "Public CLI result is empty");
+    std::map<std::string, OpenMS::Size> columns;
+    for (OpenMS::Size i = 0; i < header.size(); ++i)
+    {
+      check(columns.emplace(header[i], i).second, "Duplicate public result column");
+    }
+    return columns;
+  }
+
+  OpenDIA::ScoreBatch producePublicScores(const std::string& filename)
+  {
+    const OpenMS::CsvFile source(filename, '\t');
+    const auto columns = resultColumns(source);
+    std::vector<OpenDIA::CandidateFamily> families;
+    std::vector<OpenDIA::ScoreRecord> scores;
+    OpenDIA::RecordContext run;
+    for (OpenMS::Size i = 1; i < source.rowCount(); ++i)
+    {
+      OpenMS::StringList row;
+      check(source.getRow(i, row), "Missing public result row");
+      const auto cell = [&](const char* name) -> const std::string& { return row.at(columns.at(name)); };
+      const auto run_id = std::stoull(cell("run_id"));
+      if (i == 1)
+      {
+        run.run_id = run_id;
+      }
+      check(run.run_id == run_id, "Fixture unexpectedly spans multiple runs");
+      OpenDIA::ExtractionQuerySpec region;
+      region.context = run;
+      const auto rt = OpenMS::StringUtils::toDouble(cell("RT"));
+      const auto mz = OpenMS::StringUtils::toDouble(cell("mz"));
+      region.rt_seconds = OpenDIA::QueryInterval{rt, rt, OpenDIA::EdgePolicy::CLOSED};
+      region.mz = {mz, mz, OpenDIA::EdgePolicy::CLOSED};
+      region.ms_level = 2;
+      OpenDIA::CandidateFamily family;
+      family.family_id = std::stoull(cell("feature_id"));
+      const auto precursor = std::stoull(cell("precursor_id"));
+      family.region = OpenDIA::ExtractionQuery(region);
+      family.provenance.library = filename;
+      family.members = {{precursor, cell("decoy") == "1" ? OpenDIA::TargetDecoy::DECOY : OpenDIA::TargetDecoy::TARGET,
+                         OpenMS::StringUtils::toInt32(cell("Charge")), {}}};
+      family.alternatives = {{0, {precursor}}, {1, {}}};
+      // A filtered public export does not establish a complete candidate population.
+      family.completeness = OpenDIA::CandidateCompleteness::UNKNOWN;
+      OpenDIA::ScoreRecord score;
+      score.family_id = family.family_id;
+      score.alternative_id = 0;
+      score.identification = OpenMS::StringUtils::toDouble(cell("d_score"));
+      score.quantity = OpenDIA::Quantity{OpenMS::StringUtils::toDouble(cell("Intensity")), "integrated_intensity"};
+      score.scoring_method = "OpenDIA.results.tsv:d_score";
+      scores.push_back(score);
+      score.alternative_id = 1;
+      score.identification.reset();
+      score.quantity.reset();
+      scores.push_back(std::move(score));
+      families.push_back(std::move(family));
+    }
+    const auto count = families.size();
+    const auto score_count = scores.size();
+    return OpenDIA::ScoreBatch({score_count, 0}, OpenDIA::FamilyBatch(run, {count, count * 4}, std::move(families)),
+                              OpenDIA::EvidenceBlock(run, {0, 0}, {}), std::move(scores));
+  }
+
+  void replayPublicScores(const std::string& filename)
+  {
+    const auto retained = producePublicScores(filename);
+    const OpenMS::CsvFile reference(filename, '\t');
+    const auto columns = resultColumns(reference);
+    check(retained.size() == 2 * (reference.rowCount() - 1), "Public score rows dropped");
+    OpenMS::Size decoys = 0;
+    for (OpenMS::Size i = 1; i < reference.rowCount(); ++i)
+    {
+      OpenMS::StringList row;
+      check(reference.getRow(i, row), "Missing independently reloaded public result row");
+      const auto cell = [&](const char* name) -> const std::string& { return row.at(columns.at(name)); };
+      const auto family = retained.families().family(i - 1);
+      const auto score = retained.score(2 * (i - 1));
+      const auto null_score = retained.score(2 * (i - 1) + 1);
+      const auto region = family.region.specification();
+      check(retained.context().run_id == std::stoull(cell("run_id")) &&
+            family.family_id == std::stoull(cell("feature_id")) &&
+            family.members[0].precursor_id == std::stoull(cell("precursor_id")) &&
+            family.members[0].charge == OpenMS::StringUtils::toInt32(cell("Charge")), "Public IDs or charge changed");
+      const bool decoy = cell("decoy") == "1";
+      decoys += decoy;
+      check((family.members[0].target_decoy == OpenDIA::TargetDecoy::DECOY) == decoy,
+            "Public target/decoy assignment changed");
+      check(family.completeness == OpenDIA::CandidateCompleteness::UNKNOWN && family.provenance.library == filename &&
+            region.rt_seconds->lower == OpenMS::StringUtils::toDouble(cell("RT")) &&
+            region.mz.lower == OpenMS::StringUtils::toDouble(cell("mz")), "Public region/provenance changed");
+      check(score.family_id == family.family_id && score.alternative_id == 0 && score.identification &&
+            *score.identification == OpenMS::StringUtils::toDouble(cell("d_score")) && !score.localization &&
+            score.quantity && score.quantity->value == OpenMS::StringUtils::toDouble(cell("Intensity")) &&
+            score.quantity->unit == "integrated_intensity" && score.scoring_method == "OpenDIA.results.tsv:d_score",
+            "Genuine public identification score/quantity changed or localization was fabricated");
+      check(null_score.family_id == family.family_id && null_score.alternative_id == 1 &&
+            !null_score.identification && !null_score.localization && !null_score.quantity &&
+            family.alternatives[1].precursor_ids.empty(), "Unscored explicit null was lost");
+    }
+    check(decoys > 0 && decoys < reference.rowCount() - 1, "Public fixture did not retain both targets and decoys");
+    OPENMS_LOG_INFO << "Public CLI scored-output handoff preserved " << reference.rowCount() - 1 << " rows ("
+                    << decoys << " decoys), genuine d_score/quantity, absent localization and explicit unscored nulls\n";
+  }
 }
 
-int main()
+int main(int argc, char** argv)
 {
   try
   {
+    if (argc == 2)
+    {
+      replayPublicScores(argv[1]);
+      return 0;
+    }
+    check(argc == 1, "Expected zero arguments or one genuine OpenDIA results.tsv file");
     const auto library = dataFile("topp/OpenSwathWorkflow_17_input.tsv");
     const std::array<std::string, 3> files = {
       dataFile("topp/OpenSwathWorkflow_1_input.mzML"),
@@ -418,6 +657,7 @@ int main()
       consumeQuery(lease);
       const auto evidence = produceEvidence(files[i], library);
       consumeEvidence(evidence, files[i], library);
+      consumeScores(produceScores(files[i], library), files[i], library);
     }
     consumeHypotheses(produceHypotheses(library), library);
     replayExtractionQuery();

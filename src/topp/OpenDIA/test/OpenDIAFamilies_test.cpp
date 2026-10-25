@@ -99,6 +99,16 @@ int main()
   CHECK(f.fragments[2].role == FragmentRole::DISCRIMINATING)
   CHECK(f.completeness == CandidateCompleteness::UNKNOWN)
   CHECK(f.provenance.library == "library/rev" && f.provenance.prediction == "model/rev")
+  auto positive_charge = specimen();
+  positive_charge.members[0].charge = 2;
+  CHECK(FamilyBatch(ctx, cap, {positive_charge}).family(0).members[0].charge == 2)
+  const auto retained_inputs = []
+  {
+    const auto parent = produce();
+    return std::pair{parent.families(), parent.evidence()};
+  }();
+  CHECK(retained_inputs.first.family(0).members[1].precursor_id == large)
+  CHECK(retained_inputs.second.point(1).value == 0)
   CHECK(!batch.evidence().point(0).value)
   CHECK(batch.evidence().point(1).value == 0)
   CHECK(batch.score(0).identification == -3.5)
@@ -228,6 +238,11 @@ int main()
   CHECK(null_batch.score(0).ambiguity == ScoreAmbiguity::RESOLVED)
   auto absent = null_score; absent.localization.reset();
   CHECK(!ScoreBatch(cap, families, support(), {absent}).score(0).localization)
+  auto identification_zero = absent;
+  identification_zero.identification = 0;
+  const ScoreBatch zero_identification(cap, families, support(), {identification_zero});
+  CHECK(zero_identification.score(0).identification == 0 && !zero_identification.score(0).localization)
+  CHECK(!ScoreBatch(cap, families, support(), {absent}).score(0).identification)
   auto repeated = result(); repeated.evidence_rows = {0, 0};
   CHECK(ScoreBatch(cap, families, support(), {repeated}).score(0).evidence_rows.size() == 2)
   auto dead = families; auto alive = std::move(dead);

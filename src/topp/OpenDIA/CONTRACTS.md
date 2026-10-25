@@ -143,7 +143,7 @@ evidence references only. Counts are checked by subtraction before accumulation
 could overflow. Nested strings, query acquisition selections and retained input
 leases are not a byte budget. Empty family/evidence/score batches are valid with
 zero caps. Family and score accessors return detached values or owning leases,
-including after their producers are destroyed. All malformed enums, duplicates,
+including after their producers are destroyed. Malformed enums, duplicate identities,
 dangling references, context mismatch, caps, bounds and moved-from access fail
 with `InvalidValue` in production, including NDEBUG builds.
 
@@ -165,7 +165,7 @@ input allocations and provenance string bytes are not budgeted here.
 Construction checks schema, finite coordinates/values, enum values, isolation
 ordering, caps and offsets. It does not impose positivity, global uniqueness,
 ordering of scans, scientific provenance validation or library completeness.
-The family and score types additionally check the local references described below.
+The family and score types additionally check the local references described above.
 Consumers retain their own owning leases,
 and adapters must establish scientific/unit compatibility before combining data.
 Validation lives in `OpenDIA_impl`, shared by the tool and tests. The same test
@@ -199,3 +199,17 @@ numeric scan mapping, count limits and by-value layout are not the future
 WP-03/04 production adapters, a packed representation, byte-bounded streaming,
 or a performance claim. Family and score handoff checks are test-owned fixture
 adapters, not production adapters.
+
+The complete handoff retains declared singleton, competing, coexisting and null
+alternatives, partial completeness and unresolved scores after raw/page/local
+producer destruction, including explicit missing and zero support in each
+acquisition mode. These declarations do not assert scientific matching or null
+calibration. Two native TOPP checks also consume genuine `results.tsv` exports
+from the existing SQLite and Parquet CLI workflows, using the real `CsvFile`
+interface. They preserve run/feature/precursor IDs, target/decoy, charge, RT/mz,
+`d_score` and integrated intensity against an independent re-read. Localization
+is left absent, not substituted with an identification confidence column.
+Export rows do not establish a complete candidate population, so completeness
+stays UNKNOWN. Unscored null alternatives are explicit test-owned additions,
+not inferred scientific nulls. This test-only conversion is not a production
+results importer or a lossless assay metadata store.

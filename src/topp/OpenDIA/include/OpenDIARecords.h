@@ -239,7 +239,7 @@ namespace OpenDIA
   {
     RecordId precursor_id = 0;
     TargetDecoy target_decoy = TargetDecoy::TARGET;
-    std::optional<int> charge;
+    std::optional<OpenMS::Int> charge;
     std::optional<std::string> adduct;
   };
   /// Empty is explicitly null, one member is singleton, several members coexist.

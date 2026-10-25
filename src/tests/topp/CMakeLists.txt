@@ -3060,6 +3060,18 @@ if(NOT DISABLE_OPENSWATH)
     bash -c "sqlite=${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; parquet=${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] \"\\t\" $h[\"aggr_Fragment_Annotation\"] }' $sqlite | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] \"\\t\" $h[\"aggr_Fragment_Annotation\"] }' $parquet | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && test $(wc -l < ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv) -gt 0 && grep -q '[0-9]_' ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && grep -q '[0-9]_' ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && diff -u ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv")
   set_tests_properties("TOPP_OpenDIA_success_sqlite_parquet_identity" PROPERTIES DEPENDS "TOPP_OpenDIA_success_sqlite_out;TOPP_OpenDIA_success_parquet_out")
 
+  # Transfer genuine public CLI scores through the private v0 contracts. This is
+  # a boundary check, not a production adapter or a new family/scoring algorithm.
+  if(TARGET OpenDIARecordsInterop_test)
+    foreach(_format IN ITEMS sqlite parquet)
+      add_test(NAME TOPP_OpenDIA_${_format}_v0_score_handoff
+        COMMAND OpenDIARecordsInterop_test
+          ${TESTS_TEMP_DIR}/OpenDIA_success_${_format}_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv)
+      set_tests_properties(TOPP_OpenDIA_${_format}_v0_score_handoff PROPERTIES
+        DEPENDS TOPP_OpenDIA_success_${_format}_out)
+    endforeach()
+  endif()
+
   add_test("TOPP_OpenDIA_prepared_missing_decoys_failure"
     bash -c "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_out && \"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${OPENDIA_TARGET_LIBRARY} -workflow:library_mode prepared_pqp -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_out -TargetedDataExtraction:enable_ipf false -TargetedDataExtraction:readOptions workingInMemory -TargetedDataExtraction:ion_mobility_window 0.1 -TargetedDataExtraction:use_ms1_ion_mobility false -TargetedDataExtraction:Calibration:auto_irt:enabled false -TargetedDataExtraction:Calibration:windows:estimate_rt false -TargetedDataExtraction:Calibration:windows:estimate_mz false -TargetedDataExtraction:Calibration:windows:estimate_im false -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true -TargetedDataExtraction:pasef > ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"does not contain decoy transitions\" ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log && test -d ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates || { echo \"TOPP_OpenDIA_prepared_missing_decoys_failure failed; captured log:\"; cat ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log; exit 1; }")
 
