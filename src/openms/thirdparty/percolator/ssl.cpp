@@ -34,6 +34,21 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+// (see ssl.h)
+void adviseHugePages(const void* p, std::size_t bytes) {
+#if defined(__linux__) && defined(MADV_HUGEPAGE)
+  constexpr std::uintptr_t kHuge = std::uintptr_t(2) << 20;
+  if (bytes < 2 * kHuge) return;
+  const std::uintptr_t b = (reinterpret_cast<std::uintptr_t>(p) + kHuge - 1) & ~(kHuge - 1);
+  const std::uintptr_t e = (reinterpret_cast<std::uintptr_t>(p) + bytes) & ~(kHuge - 1);
+  if (e > b) madvise(reinterpret_cast<void*>(b), e - b, MADV_HUGEPAGE);  // (if it fails: small pages, as before)
+#else
+  (void)p;
+  (void)bytes;
+#endif
+}
+
+
 // AlgIn lifecycle — was previously defined in the legacy SVMlin
 // ssl.cpp; carried forward unchanged so existing callers (CrossValidation,
 // tests) keep their construction sites.
@@ -202,23 +217,6 @@ std::atomic<int>& tronKernels() {
 }
 
 #ifdef PERCOLATOR_TRON_KERNELS
-// Transparent huge pages for the 2 MiB pages that lie inside a large block (Linux; a hint, which the kernel follows in
-// its "always" and "madvise" modes): the training matrices of a large data set take hundreds of MB, are written once
-// per solve and read in every iteration; with huge pages they take 512 times fewer page faults to fill and far fewer
-// TLB misses to read. Values are not affected.
-void adviseHugePages(const void* p, size_t bytes) {
-#if defined(__linux__) && defined(MADV_HUGEPAGE)
-  constexpr std::uintptr_t kHuge = std::uintptr_t(2) << 20;
-  if (bytes < 2 * kHuge) return;
-  const std::uintptr_t b = (reinterpret_cast<std::uintptr_t>(p) + kHuge - 1) & ~(kHuge - 1);
-  const std::uintptr_t e = (reinterpret_cast<std::uintptr_t>(p) + bytes) & ~(kHuge - 1);
-  if (e > b) madvise(reinterpret_cast<void*>(b), e - b, MADV_HUGEPAGE);  // (if it fails: small pages, as before)
-#else
-  (void)p;
-  (void)bytes;
-#endif
-}
-
 // Grow-only buffer of doubles, 64-byte aligned (BT4 blocks are loaded with aligned loads), zero-filled when it grows.
 struct AlignedDoubles {
   std::unique_ptr<double[]> v;

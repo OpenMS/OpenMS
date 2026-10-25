@@ -1262,6 +1262,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         // written there, so the array is not zero-filled first)
         // (a block of PSMs per task, column by column: consecutive writes)
         const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
+        adviseHugePages(columns.get(), static_cast<std::size_t>(numFeatures) * n * sizeof(double));  // (ssl.h)
         const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
         const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
 #pragma omp taskloop grainsize(1) shared(columns, isTarget)
@@ -1302,7 +1303,10 @@ int Scores::getInitDirection(const double initialSelectionFdr,
                 freeSnapshots.pop_back();
               }
             }
-            if (!keysOfFeature[featNo]) keysOfFeature[featNo].reset(new ChainKey[n]);
+            if (!keysOfFeature[featNo]) {
+              keysOfFeature[featNo].reset(new ChainKey[n]);
+              adviseHugePages(keysOfFeature[featNo].get(), n * sizeof(ChainKey));
+            }
             ChainKey* snapshot = keysOfFeature[featNo].get();
 #pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
             for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
@@ -1323,7 +1327,10 @@ int Scores::getInitDirection(const double initialSelectionFdr,
             if (!buffers) buffers.reset(new CountBuffers());
             std::vector<pair<double, bool> >& pairs = buffers->pairs;
             pairs.clear();
-            pairs.reserve(n);
+            if (pairs.capacity() < n) {
+              pairs.reserve(n);
+              adviseHugePages(pairs.data(), n * sizeof(pair<double, bool>));
+            }
             const ChainKey* snapshot = keysOfFeature[featNo].get();
             for (std::size_t i = 0; i < n; ++i) {
               pairs.emplace_back(snapshot[i].score, isTarget[snapshot[i].index] != 0);

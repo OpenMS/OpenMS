@@ -387,7 +387,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   take their buffers (the snapshot of the sorted keys, the (score, label) pairs and the q-values)
   from lists of the call and put them back when done, and `countPositivesOfPairs` reserves room
   for all q-values at once, so the 2 x 30 counts of a fold reuse memory instead of new pages
-  for every feature. No change of results.
+  for every feature; the large buffers of the initial direction (the feature columns, the snapshots,
+  the pairs) are advised for transparent huge pages (`adviseHugePages`, ssl.h). No change of results.
+  (Numbered 21 because two parallel branches each added a patch 20; renumber at integration.)
 
 ### Regenerating the patch
 
