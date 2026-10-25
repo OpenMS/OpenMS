@@ -16,7 +16,8 @@ endif()
 
 # Compile the orchestration once for both the executable and private boundary test.
 # This target and its header are deliberately neither installed nor exported.
-add_library(OpenDIA_impl STATIC source/OpenDIA.cpp include/OpenDIA.h)
+add_library(OpenDIA_impl STATIC source/OpenDIA.cpp include/OpenDIA.h
+  source/OpenDIARecords.cpp include/OpenDIARecords.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
 if(COMMAND openms_add_library_compiler_flags)
