@@ -1841,7 +1841,18 @@ namespace OpenMS
     }
 
     // The work per spectrum varies with its number of hits: hand out small blocks
-#pragma omp parallel for schedule(dynamic, 16)
+#pragma omp parallel
+    {
+    // scratch of the theoretical spectra, alignments and local evidence, reused by all hits of all spectra of a thread
+    // (as before by all hits of a spectrum: each use overwrites what it reads)
+    AlignmentScratch_ alignment_scratch;
+    std::vector<double> evidence_alternatives;
+    // the theoretical spectrum without ion names, see below
+    MSSpectrum coded_spec;
+    std::vector<uint8_t> coded_series;
+    std::vector<UInt> coded_ordinals;
+    std::vector<Int> coded_charges;
+#pragma omp for schedule(dynamic, 16)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
@@ -1877,24 +1888,19 @@ namespace OpenMS
         const std::vector<double> local_densities = annotation_local_evidence
           ? localPeakDensities_(evidence_spec) : std::vector<double>{};
 
-        AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
-        std::vector<double> evidence_alternatives; // reused by all hits of this spectrum
-        // the theoretical spectrum without ion names (reused by all hits of this spectrum), see below
-        MSSpectrum coded_spec;
-        std::vector<uint8_t> coded_series;
-        std::vector<UInt> coded_ordinals;
-        std::vector<Int> coded_charges;
-
-        // create full peptide hit structure from annotated hits
+        // create full peptide hit structure from annotated hits (their sequences are moved: the hits are freed after
+        // this function)
         vector<PeptideHit> phs;
-        for (const auto& ah : annotated_hits[scan_index])
+        phs.reserve(annotated_hits[scan_index].size());
+        for (auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
           // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
           const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
           ph.setCharge(used_charge);
           ph.setScore(ah.score);
-          ph.setSequence(ah.sequence);
+          ph.setSequence(std::move(ah.sequence));
+          const AASequence& sequence = ph.getSequence();
 
           // Generate theoretical spectrum + alignment for annotations that need it. Unless the ion names are written
           // (fragment annotations here), the peaks of getSpectrum() come without them, with the series, ordinal and
@@ -1909,8 +1915,8 @@ namespace OpenMS
           if (need_alignment)
           {
             coded = without_ion_names
-                    && tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, ah.sequence, 1, max_frag_z);
-            if (!coded) tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
+                    && tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, sequence, 1, max_frag_z);
+            if (!coded) tsg.getSpectrum(theoretical_spec, sequence, 1, max_frag_z);
             if (sa_absolute)
             {
               alignAbsoluteTolerance_(alignment, coded ? coded_spec : theoretical_spec, spec, sa_tolerance, alignment_scratch);
@@ -1946,7 +1952,7 @@ namespace OpenMS
             // feature, corrupting target/decoy discrimination.
             const double corrected_mz = mz
               + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
-            double theo_mz = ah.sequence.getMZ(used_charge);
+            double theo_mz = sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
             ph.setMetaValue(mv_precursor_error, ppm_difference);
           }
@@ -2010,7 +2016,7 @@ namespace OpenMS
             // isotope), so we must sum each exp_idx at most once. Sized only
             // when MIC is actually requested.
             std::vector<char> counted_exp_peaks(need_mic ? spec.size() : 0, 0);
-            peak_annotations.reserve(alignment.size());
+            if (annotation_fragment_annotations && !defer_peak_annotations) { peak_annotations.reserve(alignment.size()); }
 
             for (const auto& [theo_idx, exp_idx] : alignment)
             {
@@ -2104,7 +2110,7 @@ namespace OpenMS
                 // suffix ion at position (peptide_length - i) (x/y/z at the same cleavage
                 // site). Andromeda-style structural signal, distinct from the independently
                 // computed prefix/suffix fractions above.
-                const int pep_len = static_cast<int>(ah.sequence.size());
+                const int pep_len = static_cast<int>(sequence.size());
                 double complementary_fraction = 0.0;
                 if (pep_len > 1)
                 {
@@ -2134,7 +2140,7 @@ namespace OpenMS
                                : localFragmentEvidence_(evidence_spec, theoretical_spec, evidence_z, local_densities,
                                                         fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
             }
-            else if (tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, ah.sequence, 1, evidence_z))
+            else if (tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, sequence, 1, evidence_z))
             {
               // (the peaks and charges of getSpectrum(), without the names)
               evidence = localFragmentEvidence_(evidence_spec, coded_spec, coded_charges, evidence_z, local_densities,
@@ -2143,7 +2149,7 @@ namespace OpenMS
             else
             {
               MSSpectrum evidence_theory;
-              tsg.getSpectrum(evidence_theory, ah.sequence, 1, evidence_z);
+              tsg.getSpectrum(evidence_theory, sequence, 1, evidence_z);
               evidence = localFragmentEvidence_(evidence_spec, evidence_theory, evidence_z, local_densities,
                 fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
             }
@@ -2202,6 +2208,7 @@ namespace OpenMS
         }
       }
     }
+    } // omp parallel
 
 #ifdef _OPENMP
     // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
