@@ -158,10 +158,13 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
                          const PeptideIdentificationList& pep_ids,
                          AccessionRuns& acc_runs)
   {
+    std::string last_path, last_run; // (qpxRunFileName() of the path of the PSMs before: mostly one path)
     for (const auto& pid : pep_ids)
     {
       if (pid.getHits().empty()) { continue; }
-      const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pid));
+      std::string path = mapper.getPrimaryMSRunPath(pid);
+      if (path != last_path || last_run.empty()) { last_run = ArrowIOHelpers::qpxRunFileName(path); last_path = std::move(path); }
+      const std::string& run = last_run;
       if (run.empty()) { continue; }
       for (const auto& ev : pid.getHits()[0].getPeptideEvidences())
       {
@@ -1242,11 +1245,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         mapper.validateMergeIndex(*pep_ptr, psm_index);
       }
 
+      std::string last_path, last_run; // (qpxRunFileName() of the path of the PSMs before: mostly one path)
       for (const auto& [psm_index, pep_ptr] : bucket->second)
       {
         const auto& pep_id = *pep_ptr;
         if (pep_id.getHits().empty()) continue;
-        const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pep_id));
+        std::string path = mapper.getPrimaryMSRunPath(pep_id);
+        if (path != last_path || last_run.empty()) { last_run = ArrowIOHelpers::qpxRunFileName(path); last_path = std::move(path); }
+        const std::string& run = last_run;
         if (run.empty())
         {
           // The run has files but this PSM resolves to none of them -- e.g. an 'id_merge_index'

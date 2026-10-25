@@ -1805,13 +1805,15 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
                   && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
                   && (i == 0 || !hit.metaValueExists("CalcMass"));
-    if (hit.getScore() <= 0.01) ++(hit.isDecoy() ? confident_decoys : confident_targets);
+    // the score feature separates targets from decoys: the targets reach q <= 0.05 (how many reach q <= 0.01
+    // depends on the other features, and differs from the percolator executable, see #10718), few decoys q <= 0.01
+    if (hit.isDecoy() ? hit.getScore() <= 0.01 : hit.getScore() <= 0.05) ++(hit.isDecoy() ? confident_decoys : confident_targets);
   }
   TEST_EQUAL(all_annotated, true)
   TEST_EQUAL(no_pin_left, true)
   TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
-  TEST_EQUAL(confident_targets > 100, true)
-  TEST_EQUAL(confident_decoys < confident_targets / 10, true)
+  TEST_EQUAL(confident_targets > 250, true)
+  TEST_EQUAL(confident_decoys < 10, true)
 
   // svm and pep as main score
   PeptideIdentificationList ids_pep = makeIds();

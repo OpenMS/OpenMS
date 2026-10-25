@@ -975,6 +975,19 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
+// Test loading from HTTP URL (uses raw GitHub URL for a minimal mzML file)
+// Disabled by default: requires network access and Xerces compiled with network support
+// To enable, uncomment the test body.
+START_SECTION([EXTRA] load from HTTP URL)
+{
+  // Uncomment to test HTTP loading (requires network access):
+  // MzMLFile file;
+  // PeakMap exp;
+  // file.load("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML", exp);
+  // TEST_EQUAL(exp.size(), 0)  // minimal file has no spectra/chromatograms, just metadata
+  NOT_TESTABLE
+}
+END_SECTION
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {

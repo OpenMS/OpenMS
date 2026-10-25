@@ -424,6 +424,49 @@ START_SECTION(generateDeltaMassStatistics)
       TEST_STRING_EQUAL(entry.mapped_modification, "thiocarboxylic acid//" + oxidation)
     }
   }
+
+  // The counts are of the target PSMs, and the unique peptides of an entry are those of its histogram bin (not of all
+  // PSMs within the precursor tolerance, which in an open search is the whole window): an oxidation bin with two PSMs of
+  // one peptide, an acetyl bin with one PSM each of two peptides, an unmodified PSM and a decoy PSM in the oxidation bin.
+  peptide_ids.clear();
+  auto add = [&peptide_ids](const std::string& sequence, double delta_mass, bool decoy)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    hit.setMetaValue("DeltaMass", delta_mass);
+    hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+    PeptideIdentification id;
+    id.setHits({hit});
+    peptide_ids.push_back(id);
+  };
+  add("PEPTIDEK", 15.9951, false);
+  add("PEPTIDEK", 15.9949, false);
+  add("PEPTIDER", 42.0106, false);
+  add("ELVISK", 42.0104, false);
+  add("SAMPLER", 0.001, false);
+  add("KEDITPEP", 15.9950, true);
+  auto [patterns, charges] = analyzer.analyzeDeltaMassPatterns(peptide_ids);
+  stats = analyzer.generateDeltaMassStatistics(patterns, charges, peptide_ids, 500.0, false); // an open search window
+  TEST_EQUAL(stats.total_psms, 5)
+  TEST_EQUAL(stats.modified_psms, 4)
+  TEST_EQUAL(stats.unmodified_psms, 1)
+  TEST_EQUAL(stats.decoy_psms, 1)
+  TEST_EQUAL(stats.entries.size(), 2)
+  for (const auto& entry : stats.entries)
+  {
+    if (std::abs(entry.delta_mass - 15.995) < 1e-6)
+    {
+      TEST_EQUAL(entry.count, 2)
+      TEST_EQUAL(entry.unique_peptides, 1)
+    }
+    else
+    {
+      TEST_REAL_SIMILAR(entry.delta_mass, 42.0105)
+      TEST_EQUAL(entry.count, 2)
+      TEST_EQUAL(entry.unique_peptides, 2)
+    }
+  }
 }
 END_SECTION
 
