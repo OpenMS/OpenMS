@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 9ed52b0240..97005f94cb 100644
+index f49d0a898b..a8c41125ff 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -693,7 +693,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
+@@ -731,7 +731,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
    }
    if (nestedXvalBins_ == 1 &&
        trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
@@ -11,7 +11,7 @@ index 9ed52b0240..97005f94cb 100644
      testSets[0] = &trainScores_[set];
      return;
    }
-@@ -714,7 +714,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
+@@ -752,7 +752,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
      AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
      nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
      nestedTrainScores[nestedFold].generatePositiveTrainingSet(
@@ -20,7 +20,7 @@ index 9ed52b0240..97005f94cb 100644
      if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
        cerr << "Split " << set + 1 << " nested fold " << nestedFold
             << ": Training with " << svmInput->positives << " positives and "
-@@ -875,7 +875,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -919,7 +919,7 @@ int CrossValidation::mergeCpCnPairs(
          AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
          trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
          trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
@@ -30,10 +30,10 @@ index 9ed52b0240..97005f94cb 100644
          // Create storage vector for SVM algorithm
          vector_double Outputs;
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
-index 4882e2de3a..ee288ba9c2 100644
+index 2276176e04..e523988ea7 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.h
 +++ b/src/openms/thirdparty/percolator/CrossValidation.h
-@@ -107,6 +107,10 @@ class CrossValidation {
+@@ -124,6 +124,10 @@ class CrossValidation {
    }
    // OpenMS: the solver of the SVMs (SvmSolver, newton_svm.h; default kSolverTron)
    void inline setSolver(int solver) { solver_ = solver; }
@@ -44,20 +44,20 @@ index 4882e2de3a..ee288ba9c2 100644
  
   protected:
    std::vector<AlgIn*> svmInputs_;
-@@ -149,6 +153,8 @@ class CrossValidation {
-   bool trainScoresOfWeights_ = false;
+@@ -174,6 +178,8 @@ class CrossValidation {
+   unsigned int nestedSteps_ = 0;
    // OpenMS: the solver of the SVMs (SvmSolver)
    int solver_ = kSolverTron;
 +  // OpenMS: see setBestPositiveByScore
 +  bool bestPositiveByScore_ = false;
    std::vector<double> candidatesCpos_, candidatesCfrac_;
- 
-   void initializeGridSearch(double targetDecoySizeRatio);
+   // OpenMS: per fold, with fixed folds (see initializeGridSearch); empty otherwise
+   std::vector<std::vector<double> > candidatesCfracPerFold_;
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 653b2cdf43..6a5983ee44 100644
+index 5962f19fcb..67f7d3d863 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -28,6 +28,7 @@
+@@ -30,6 +30,7 @@
  #include <set>
  #include <sstream>
  #include <string>
@@ -65,7 +65,7 @@ index 653b2cdf43..6a5983ee44 100644
  #include <utility>
  #include <vector>
  
-@@ -933,15 +934,24 @@ void Scores::generateNegativeTrainingSet(AlgIn& data, const double cneg) {
+@@ -950,15 +951,24 @@ void Scores::generateNegativeTrainingSet(AlgIn& data, const double cneg) {
  void Scores::generatePositiveTrainingSet(AlgIn& data,
                                           const double fdr,
                                           const double cpos,
@@ -94,7 +94,7 @@ index 653b2cdf43..6a5983ee44 100644
      lastUniqueIt =
          std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
      if (!comparableScores(scores_.begin(), lastUniqueIt)) {
-@@ -985,10 +995,37 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+@@ -1002,10 +1012,37 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
   *    with a NaN score or mass, false.
   */
  bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
@@ -135,12 +135,12 @@ index 653b2cdf43..6a5983ee44 100644
      struct ScanLabelKey {
        unsigned int specFileNr, scan;
 diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
-index 20a59b532b..95a99362cf 100644
+index e512c6bc4e..d08b9d21b2 100644
 --- a/src/openms/thirdparty/percolator/Scores.h
 +++ b/src/openms/thirdparty/percolator/Scores.h
-@@ -110,14 +110,18 @@ class Scores {
-                                 double decoyFractionTraining = 1.0,
-                                 unsigned int decoysPerTarget = 1u);
+@@ -112,14 +112,18 @@ class Scores {
+                                 unsigned int decoysPerTarget = 1u,
+                                 const std::function<unsigned int(const PSMDescription&)>* fixedFold = nullptr);
  
 +  // OpenMS: bestByScore: with trainBestPositive, the best-scoring PSM of each spectrum and label
 +  // instead of the first one an unstable sort by spectrum and label leaves (see Scores.cpp)
