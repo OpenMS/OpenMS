@@ -27,6 +27,11 @@ universal winner or future end-to-end engine speedup.
 4. Acquisition-factored AoS: metadata once per acquisition, hot numeric point records and offsets.
 5. Acquisition-factored SoA: metadata once per acquisition, contiguous numeric columns and offsets.
 
+Every variant also owns the same acquisition directory and offsets, preserving empty
+spectra. The current point-only `RawTile` cannot represent empty acquisitions by itself.
+Consequently the baseline memory number includes this necessary experimental directory,
+not just the unaugmented `RawTile` object.
+
 No float downcasts, native-ID truncation, coordinate rounding, mobility/FAIMS substitution,
 or dropped rows are allowed. Metadata is not inherently duplicated by SoA. We compare
 factored AoS as well, so savings from deduplication are not misattributed to SoA.
@@ -70,6 +75,8 @@ for all variants, record its baseline, and do not present total process peak as 
 bytes. Linux/glibc allocator statistics include allocator overhead and are not exact
 requested payload bytes. The libc documentation defines `uordblks` as allocated chunks
 and `hblkhd` as mmap allocation size. Memory snapshots are outside timed loops.
+Construction time is diagnostic only: the actual `RawTile` constructor validates inputs,
+whereas experimental packing need not repeat its complete production validation.
 
 ## Decision rule
 
@@ -81,4 +88,28 @@ Construction cost, temporary packing, sparse metadata reads and unsupported futu
 workloads remain visible in the decision. The best tested raw layout does not settle
 hypothesis/evidence/family/score layouts or byte-budget admission.
 
-Reproduction commands and observed results will be recorded here after the local runs.
+## Reproduce on Linux/glibc
+
+Use an out-of-tree build and an existing compatible OpenMS SDK. Replace these placeholders
+with local paths. Output directories/files must be new, the runner refuses to overwrite evidence.
+
+```bash
+cmake -S <planning-checkout>/doc/design/opendia-laptop-first/experiments/layout \
+  -B <scratch>/layout-release -DCMAKE_BUILD_TYPE=Release \
+  -DOPENDIA_SOURCE_DIR=<implementation-checkout> -DOpenMS_DIR=<OpenMS-build>
+cmake --build <scratch>/layout-release -j3
+ctest --test-dir <scratch>/layout-release --output-on-failure
+python3 <experiment>/run.py --self-test
+python3 <experiment>/run.py --binary <scratch>/layout-release/layout_benchmark \
+  --source <implementation-checkout> --output <scratch>/layout-runs --cpu <allowed-CPU>
+python3 <experiment>/summarize.py <scratch>/layout-runs --output <scratch>/layout-summary.json
+```
+
+Default matrix: five layouts, three actual fixtures, native and at-least-1,048,576-point
+scales, plus at-least-4,194,304 IM points, three randomized fresh-process trials per case
+and seven measurements after a warm-up per workload: **105 child processes**.
+Raw stdout/stderr, commands, source/fixture/binary hashes, ordering and CPU settings stay
+in the selected evidence directory. `summarize.py` rejects incomplete/unbalanced cases,
+different geometry/workloads or cross-layout/trial checksum disagreements.
+
+Observed results will be recorded after the local runs.

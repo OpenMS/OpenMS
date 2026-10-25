@@ -30,7 +30,7 @@ def digest(path):
 def parse_result(stdout):
     candidates = []
     for line in stdout.splitlines():
-        line = line.removeprefix('RESULT ').strip()
+        line = line.strip().removeprefix('LAYOUT_JSON ').removeprefix('RESULT ').strip()
         if line.startswith('{'):
             try:
                 candidates.append(json.loads(line))
@@ -54,6 +54,7 @@ def jobs(sizes, trials, large_im, seed):
 
 def self_test():
     assert parse_result('loader message\nRESULT {"ok": true}\n') == {'ok': True}
+    assert parse_result('  LAYOUT_JSON {"schema_version": 1}\n') == {'schema_version': 1}
     try:
         parse_result('{"one": 1}\n{"two": 2}')
     except ValueError:
@@ -102,6 +103,7 @@ def main():
         'benchmark.cpp': Path(__file__).with_name('layout_benchmark.cpp'),
         'CMakeLists.txt': Path(__file__).with_name('CMakeLists.txt'),
         'run.py': Path(__file__),
+        'summarize.py': Path(__file__).with_name('summarize.py'),
     }
     manifest = {
         'started_utc': datetime.now(timezone.utc).isoformat(), 'binary_sha256': digest(args.binary),
