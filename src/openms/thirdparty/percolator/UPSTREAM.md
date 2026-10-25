@@ -399,7 +399,7 @@ hand-editing sources and committing them, to keep sync self-healing.
   ssl.h) instead of building one each. `trainCpCnPair` and `trainSvm` pass the group to
   `L2_SVM_MFN`. No change of results. (Number 21 is used by another branch, memalloc's
   21-initdir-count-buffers.)
-- `patches/23-cv-sorted-certificate.patch` — `Scores::sortScoresAndCalcQvals` skips the sort when
+- `patches/24-cv-sorted-certificate.patch` (23 is memalloc's 23-psm-slab) — `Scores::sortScoresAndCalcQvals` skips the sort when
   every PSM compares strictly greater (score, scan, mass, label) than the next one: that order is
   then the only sorted one, so any sort would leave it unchanged (the fold chains sort the scores
   that the previous step sorted). Checked in blocks by the tasks of an enclosing parallel region.
