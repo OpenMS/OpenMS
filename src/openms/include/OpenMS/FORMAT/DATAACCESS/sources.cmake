@@ -28,3 +28,8 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT\\DATAACCESS" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+
+### S3InputSource.h is an internal byte source (like FORMAT/CompressedInputSource.h): a private header, for XMLFile and
+### IndexedMzMLDecoder in libOpenMS.
+source_group("Header Files\\OpenMS\\FORMAT\\DATAACCESS" FILES ${directory}/S3InputSource.h)
+set(OpenMS_private_headers ${OpenMS_private_headers} ${directory}/S3InputSource.h)

@@ -183,6 +183,7 @@ set(private_headers_list_h
 InputStream.h
 Bzip2InputStream.h
 CompressedInputSource.h
+DecompressingInputStream.h
 GzipInputStream.h
 ZipInputStream.h
 SqliteConnector_impl.h

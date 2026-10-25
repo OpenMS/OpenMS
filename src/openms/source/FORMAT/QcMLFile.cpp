@@ -87,11 +87,11 @@ namespace OpenMS
     }
     if (!unitRef.empty())
     {
-      s += " unitRef=\"" + unitRef + "\"";
+      s += " unitCvRef=\"" + unitRef + "\"";
     }
     if (!unitAcc.empty())
     {
-      s += " unitAcc=\"" + unitAcc + "\"";
+      s += " unitAccession=\"" + unitAcc + "\"";
     }
     if (!flag.empty())
     {
@@ -198,11 +198,11 @@ namespace OpenMS
     }
     if (!unitRef.empty())
     {
-      s += " unitRef=\"" + unitRef + "\"";
+      s += " unitCvRef=\"" + unitRef + "\"";
     }
     if (!unitAcc.empty())
     {
-      s += " unitAcc=\"" + unitAcc + "\"";
+      s += " unitAccession=\"" + unitAcc + "\"";
     }
     if (!qualityRef.empty())
     {

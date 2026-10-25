@@ -502,7 +502,7 @@ protected:
     setValidStrings_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine", {"true", "false"});
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", "<int>", 500, "Number of precursors predicted per materialization batch.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", 1);
-    registerIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads", "<int>", 4, "ONNX Runtime intra-op thread count for each PeptDeep predictor.", false);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads", "<int>", 4, "Threads of each PeptDeep predictor: its ONNX Runtime calls (one per batch of peptides of one length) that run at once, each on one thread.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:inference_threads", 1);
     registerDoubleOption_("PeptideQueryParameters:LibraryPrediction:nce", "<double>", 30.0, "Normalized collision energy supplied to PeptDeep MS2 prediction.", false);
     setMinFloat_("PeptideQueryParameters:LibraryPrediction:nce", 0.0);

@@ -253,7 +253,17 @@ END_SECTION
 
 START_SECTION(([QcMLFile::Attachment] std::string toXMLString(UInt indentation_level) const ))
 {
-	NOT_TESTABLE
+  // CPP-155: same unitRef/unitAcc vs unitCvRef/unitAccession mismatch as QualityParameter::toXMLString.
+  QcMLFile::Attachment at;
+  at.unitRef = "UO";
+  at.unitAcc = "UO:0000169";
+  at.binary = "somebinarydata"; // toXMLString returns "" for an attachment with neither binary nor a table
+
+  std::string xml = at.toXMLString(0);
+  TEST_EQUAL(xml.find("unitCvRef=\"UO\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000169\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitRef=\"") != std::string::npos, false)
+  TEST_EQUAL(xml.find("unitAcc=\"") != std::string::npos, false)
 }
 END_SECTION
 
@@ -343,7 +353,18 @@ END_SECTION
 
 START_SECTION(([QcMLFile::QualityParameter] std::string toXMLString(UInt indentation_level) const ))
 {
-	NOT_TESTABLE
+  // CPP-155: the writer emitted unit information under unitRef/unitAcc, but the reader (and the
+  // qcML schema) look for unitCvRef/unitAccession, so every unit was lost on a store/load round
+  // trip.
+  QcMLFile::QualityParameter qp;
+  qp.unitRef = "UO";
+  qp.unitAcc = "UO:0000169";
+
+  std::string xml = qp.toXMLString(0);
+  TEST_EQUAL(xml.find("unitCvRef=\"UO\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000169\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitRef=\"") != std::string::npos, false)
+  TEST_EQUAL(xml.find("unitAcc=\"") != std::string::npos, false)
 }
 END_SECTION
 

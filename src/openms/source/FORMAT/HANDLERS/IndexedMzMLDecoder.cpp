@@ -11,6 +11,8 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
+
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -71,6 +73,23 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
+    if (S3InputSource::isS3URI(filename))
+    {
+      // S3 object: read from indexoffset to its end
+      const Int64 length = S3InputSource::objectSize(filename);
+      if (indexoffset < 0 || indexoffset > length)
+      {
+        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " << indexoffset
+                  << " (not between 0 and " << length << ").\n";
+        return -1;
+      }
+      const Int64 tail_length = length - static_cast<Int64>(indexoffset);
+      if (tail_length == 0) { return -1; }
+      const std::string tail = S3InputSource::readRange(filename, static_cast<Int64>(indexoffset), tail_length);
+      if (static_cast<Int64>(tail.size()) != tail_length) { return -1; }
+      return domParseIndexedEnd_("<indexedmzML>" + tail + "\n", spectra_offsets, chromatograms_offsets);
+    }
+
     std::ifstream f(filename, std::ios::binary);
     if (!f.is_open())
     {
@@ -113,35 +132,54 @@ namespace OpenMS
     return domParseIndexedEnd_(xml, spectra_offsets, chromatograms_offsets);
   }
 
+  namespace
+  {
+    // The last (at most) @p buffersize bytes of the local file @p filename; false if they cannot be read
+    bool readLocalTail(const std::string& filename, int buffersize, std::string& buffer)
+    {
+      std::ifstream f(filename, std::ios::binary);
+      if (!f.is_open())
+      {
+        if (!File::exists(filename))
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        if (!File::readable(filename))
+        {
+          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+
+      f.seekg(0, std::ios::end);
+      const std::streampos length = f.tellg();
+      if (!f || length < 0) { return false; }
+      const std::streamoff read_length = std::min(static_cast<std::streamoff>(length), static_cast<std::streamoff>(buffersize));
+      if (read_length > std::numeric_limits<std::streamsize>::max() ||
+          static_cast<std::uintmax_t>(read_length) > buffer.max_size()) { return false; }
+      buffer.resize(static_cast<Size>(read_length));
+      f.seekg(-read_length, std::ios::end);
+      if (!f) { return false; }
+      f.read(buffer.data(), static_cast<std::streamsize>(read_length));
+      return f && f.gcount() == read_length;
+    }
+  }
+
   std::streampos IndexedMzMLDecoder::findIndexListOffset(const std::string& filename, int buffersize)
   {
     if (buffersize <= 0) { return -1; }
-    std::ifstream f(filename, std::ios::binary);
-    if (!f.is_open())
-    {
-      if (!File::exists(filename))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      if (!File::readable(filename))
-      {
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-    }
-
-    f.seekg(0, std::ios::end);
-    const std::streampos length = f.tellg();
-    if (!f || length < 0) { return -1; }
-    const std::streamoff read_length = std::min(static_cast<std::streamoff>(length), static_cast<std::streamoff>(buffersize));
     std::string buffer;
-    if (read_length > std::numeric_limits<std::streamsize>::max() ||
-        static_cast<std::uintmax_t>(read_length) > buffer.max_size()) { return -1; }
-    buffer.resize(static_cast<Size>(read_length));
-    f.seekg(-read_length, std::ios::end);
-    if (!f) { return -1; }
-    f.read(buffer.data(), static_cast<std::streamsize>(read_length));
-    if (!f || f.gcount() != read_length) { return -1; }
+    if (S3InputSource::isS3URI(filename))
+    {
+      // S3 object: read its last buffersize bytes
+      const Int64 size = S3InputSource::objectSize(filename);
+      const Int64 start = std::max<Int64>(0, size - buffersize);
+      buffer = S3InputSource::readRange(filename, start, size - start);
+    }
+    else if (!readLocalTail(filename, buffersize, buffer))
+    {
+      return -1;
+    }
 
     // The same namespace/whitespace-tolerant pattern is shared by independent
     // readers; C++ initializes it once and regex_search never mutates it.
@@ -150,7 +188,7 @@ namespace OpenMS
     if (!boost::regex_search(buffer, matches, listoffset_rx) || matches[1].length() == 0)
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
-                << read_length << " bytes. Maybe this is not an indexedMzML.\n";
+                << buffer.size() << " bytes. Maybe this is not an indexedMzML.\n";
       return -1;
     }
     return OpenMS::IndexedMzMLUtils::stringToStreampos(matches[1].str());

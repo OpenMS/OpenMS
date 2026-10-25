@@ -1280,7 +1280,7 @@ namespace OpenMS
         {
           psm_end_index = i;
         }
-        else if (cells[i] == "opt_")
+        else if (StringUtils::hasPrefix(cells[i], "opt_"))
         {
           psm_custom_opt_columns[cells[i]] = i;
         }

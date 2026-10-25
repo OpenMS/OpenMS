@@ -200,6 +200,7 @@ set(format_executables_list
   ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
+  DecompressingInputStream_test
   ConsensusXMLFile_test
   ControlledVocabulary_test
   CsvFile_test
@@ -287,6 +288,7 @@ set(format_executables_list
   PercolatorPosteriorEstimator_test
   ProtXMLFile_test
   QcMLFile_test
+  S3InputSource_test
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
