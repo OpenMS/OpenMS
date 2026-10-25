@@ -1067,8 +1067,9 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     }
     TEST_TRUE(ri.features.size() >= 20)
 
-    // Run subprocess.
-    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -t 0.5 -F 0.5");
+    // Run subprocess. -p 0.1: the library default c_pos (without -p the executable selects Cpos by
+    // cross-validation). Training converges on this fixture, so a different Cpos gives a different model.
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -t 0.5 -F 0.5 -p 0.1");
     TEST_EQUAL(sub.exit_code, 0)
 
     // Run in-process, matching subprocess's CLI defaults. The library has
