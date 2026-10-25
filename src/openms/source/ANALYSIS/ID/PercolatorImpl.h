@@ -62,7 +62,8 @@ namespace OpenMS
     bool   post_processing_tdc = true;
     int    nested_xval_bins = 1;
     int    subset_max_train = 100000;         ///< 0 = no cap; default 100k
-    bool   subset_out_of_fold = false;        ///< subset_mode "out_of_fold" (true) or "in_sample" (false, upstream)
+    bool   subset_out_of_fold = false;        ///< subset_mode "out_of_fold" or "out_of_fold_avg" (true), "in_sample" (false, upstream)
+    bool   subset_oof_avg = false;            ///< subset_mode "out_of_fold_avg": unsampled rows scored by the average model
     /// Out-of-fold capped training of the last rescore() (empty otherwise).
     Percolator::CappedTrainingInfo capped_info;
     double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)

@@ -93,14 +93,12 @@ class CrossValidation {
 
   // OpenMS (out-of-fold capped training): the folds of the PSMs are given by foldOfPsm (0 to
   // numFolds - 1, the same for all PSMs of a spectrum) instead of being drawn; set before
-  // preIterationSetup. Nested cross-validation sets are still drawn.
+  // preIterationSetup. Nested cross-validation sets are still drawn (inside a fold's training
+  // set, from a generator state per fold and step), and each fold's Cneg candidates come from its
+  // training set's target/decoy ratio.
   void setFixedFolds(std::function<unsigned int(const PSMDescription&)> foldOfPsm) {
     fixedFold_ = std::move(foldOfPsm);
   }
-  // OpenMS: the weights of each fold in the raw feature space (bias last), as getAvgWeights
-  // un-normalizes them, without averaging
-  void getRawFoldWeights(std::vector<std::vector<double> >& weights,
-                         const Normalizer* pNorm) const;
   // OpenMS: the PSMs of the training set of fold set (after preIterationSetup)
   void getTrainingPsms(std::size_t set,
                        std::vector<const PSMDescription*>& psms) const;
@@ -164,9 +162,15 @@ class CrossValidation {
   bool trainScoresOfWeights_ = false;
   // OpenMS: see setFixedFolds (empty: the folds are drawn)
   std::function<unsigned int(const PSMDescription&)> fixedFold_;
+  // OpenMS: with fixed folds, the generator state the nested sets of each fold and step are drawn
+  // from derives from this state (at preIterationSetup) and the number of steps (see doStep)
+  uint64_t nestedSeedBase_ = 0;
+  unsigned int nestedSteps_ = 0;
   // OpenMS: the solver of the SVMs (SvmSolver)
   int solver_ = kSolverTron;
   std::vector<double> candidatesCpos_, candidatesCfrac_;
+  // OpenMS: per fold, with fixed folds (see initializeGridSearch); empty otherwise
+  std::vector<std::vector<double> > candidatesCfracPerFold_;
 
   void initializeGridSearch(double targetDecoySizeRatio);
   // OpenMS: returns whether the weights' ranking does not depend on the costs (trainSvm)

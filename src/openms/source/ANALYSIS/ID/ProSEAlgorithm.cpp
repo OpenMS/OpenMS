@@ -411,11 +411,13 @@ namespace OpenMS
                        "(default) assigns every spectrum to one of Percolator's three cross-validation folds first, draws "
                        "the training sample (whole spectra, at random from the entire run, seeded), trains each fold's "
                        "model on the sampled spectra of the other folds only, and scores every PSM with the model of its "
-                       "own fold, which never saw its spectrum. 'in_sample' = the percolator executable's "
-                       "--subset-max-train: cross-validation on the sample and all PSMs scored by the average of the fold "
-                       "models (the sampled PSMs by two models that trained on them).",
+                       "own fold, which never saw its spectrum. 'out_of_fold_avg': the same, but the PSMs of the spectra "
+                       "outside the sample (which no model saw) are scored by the average of the fold models. "
+                       "'in_sample' = the percolator executable's --subset-max-train: cross-validation on the sample and "
+                       "all PSMs scored by the average of the fold models (the sampled PSMs by two models that trained on "
+                       "them).",
                        {"advanced"});
-    defaults_.setValidStrings("rescoring:subset_mode", {"out_of_fold", "in_sample"});
+    defaults_.setValidStrings("rescoring:subset_mode", {"out_of_fold", "out_of_fold_avg", "in_sample"});
     defaults_.setValue("rescoring:iterations", 10,
                        "Iterations of Percolator's cross-validation training (the percolator executable's --maxiter). "
                        "Fewer are faster; the results differ.",
@@ -5150,8 +5152,8 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
       run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
       run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
-      // (only with a cap: the output without one stays as it was)
-      if (static_cast<int>(pp.getValue("subset_max_train")) > 0)
+      // (only with a cap and an out-of-fold mode: the output without a cap, or in_sample, stays as it was)
+      if (static_cast<int>(pp.getValue("subset_max_train")) > 0 && pp.getValue("subset_mode").toString() != "in_sample")
       {
         run_sp.setMetaValue("Percolator:subset_mode", pp.getValue("subset_mode").toString());
       }

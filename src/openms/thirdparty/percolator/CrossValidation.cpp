@@ -163,6 +163,8 @@ int CrossValidation::preIterationSetup(Scores& fullset,
                                        FeatureMemoryPool& featurePool) {
   assert(nestedXvalBins_ >= 1u);
   trainScoresOfWeights_ = false;
+  nestedSeedBase_ = PseudoRandom::getSeed();  // OpenMS: see doStep (fixed folds)
+  nestedSteps_ = 0;
   // One input set per (nested) cross validation bin, to be reused multiple
   // times
   for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
@@ -227,6 +229,18 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
     if (VERB > 0) {
       cerr << "Selecting Cneg by cross-validation." << endl;
     }
+    // OpenMS: with fixed folds (out-of-fold capped training), each fold's candidates from the
+    // target/decoy ratio of its own training set (the ratio of fullset counts the fold's labels)
+    if (fixedFold_) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        const double ratio = trainScores_[set].getTargetDecoySizeRatio();
+        std::vector<double> cfracs;
+        if (!singleCneg_) cfracs.push_back(1.0 * ratio);
+        cfracs.push_back(3.0 * ratio);
+        if (!singleCneg_) cfracs.push_back(10.0 * ratio);
+        candidatesCfracPerFold_.push_back(cfracs);
+      }
+    }
   }
 
   // Form cpos, cneg pairs per nested CV fold
@@ -234,7 +248,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
   for (unsigned int set = 0; set < numFolds_; ++set) {
     for (int nestedSet = 0; nestedSet < nestedXvalBins_; nestedSet++) {
       std::vector<double> candidatesCpos = candidatesCpos_;
-      std::vector<double> candidatesCfrac = candidatesCfrac_;
+      std::vector<double> candidatesCfrac =
+          candidatesCfracPerFold_.empty() ? candidatesCfrac_ : candidatesCfracPerFold_[set];
       if (quickValidation_) {  // in quick validation,
         candidatesCpos = std::vector<double>(1, 1);
         candidatesCfrac = std::vector<double>(1, 1);
@@ -631,7 +646,21 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   };
   if (nestedXvalBins_ > 1) {
     // nested cross-validation draws the nested sets at random: the folds in their order
-    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
+    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+      // OpenMS: with fixed folds, each fold draws its nested sets from a generator state of its own
+      // (from the state at preIterationSetup, the step and the fold), so the draws of the other
+      // folds, whose training sets hold this fold's PSMs, do not reach it
+      if (fixedFold_) {
+        uint64_t x = nestedSeedBase_ ^ (static_cast<uint64_t>(nestedSteps_) << 8) ^ static_cast<uint64_t>(set);
+        x += 0x9E3779B97F4A7C15ULL;
+        x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+        x ^= x >> 31;
+        PseudoRandom::setSeed(static_cast<unsigned long>(1u + x % (PseudoRandom::kRandMax - 1u)));
+      }
+      setupFold(set);
+    }
+    ++nestedSteps_;
   } else {
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
@@ -842,11 +871,14 @@ int CrossValidation::mergeCpCnPairs(
       if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
                                   // (accumulate) tp estimated for each CV bin
         // Now check which achieved best performance among cpos, cneg pairs
+        // OpenMS: the fold's own Cneg candidates with fixed folds (initializeGridSearch)
+        const vector<double>& setCfracCandidates =
+            candidatesCfracPerFold_.empty() ? cfracCandidates : candidatesCfracPerFold_[set];
         std::vector<double>::const_iterator itCpos = cposCandidates.begin();
         for (; itCpos != cposCandidates.end(); ++itCpos) {
           double cpos = *itCpos;
-          std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
-          for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
+          std::vector<double>::const_iterator itCfrac = setCfracCandidates.begin();
+          for (; itCfrac != setCfracCandidates.end(); ++itCfrac) {
             double cfrac = *itCfrac;
             tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
             if (tp >= bestTruePoses[set]) {
@@ -1055,15 +1087,6 @@ void CrossValidation::getAvgWeights(std::vector<double>& weights,
     for (unsigned int ix = 0; ix < FeatureNames::getNumFeatures() + 1; ix++) {
       weights[ix] += ww[ix] / static_cast<double>(weights_.size());
     }
-  }
-}
-
-void CrossValidation::getRawFoldWeights(std::vector<std::vector<double> >& weights,
-                                        const Normalizer* pNorm) const {
-  weights.assign(weights_.size(),
-                 std::vector<double>(FeatureNames::getNumFeatures() + 1));
-  for (std::size_t set = 0; set < weights_.size(); ++set) {
-    pNorm->unnormalizeweight(weights_[set], weights[set]);
   }
 }
 

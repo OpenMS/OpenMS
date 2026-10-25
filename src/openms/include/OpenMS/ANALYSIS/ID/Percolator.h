@@ -264,25 +264,28 @@ namespace OpenMS
       score() leaves the buffer unchanged (empty if this instance has
       never trained).
 
-      After rescore() with an out-of-fold capped training (parameter subset_mode), the three fold models, which scored
-      the rows of their folds, instead of the average.
+      After rescore() with an out-of-fold capped training (parameter subset_mode), the models that scored the rows
+      instead: the three fold models, and with 'out_of_fold_avg' their average (for the unsampled rows) fourth.
 
-      @return Outer size = 1 (averaged; 3 after an out-of-fold capped rescore()); inner size = num_features + 1.
+      @return Outer size = 1 (averaged; 3 or 4 after an out-of-fold capped rescore()); inner size = num_features + 1.
               Empty until rescore()/train() has been called on this instance.
     */
     const std::vector<std::vector<double>>& getSvmWeights() const;
 
-    /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold', cap active).
+    /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold' or 'out_of_fold_avg',
+    ///        cap active).
     struct CappedTrainingInfo
     {
       std::vector<int> fold;                          ///< per input row: its cross-validation fold, whose model scored it
       std::vector<char> sampled;                      ///< per input row: whether its spectrum was in the training sample
       std::vector<std::vector<size_t>> trained_rows;  ///< per fold: the input rows of its model's training set, ascending
+      std::vector<int> scorer;                        ///< per input row: the model that scored it (getSvmWeights() index:
+                                                      ///< its fold, or 3 = the average of the fold models)
     };
 
     /**
       @brief The folds, sample and training sets of the last rescore() if it trained out-of-fold on a capped sample
-             (subset_mode 'out_of_fold' and more rows than subset_max_train); otherwise empty. For tests and diagnostics.
+             (subset_mode 'out_of_fold' or 'out_of_fold_avg', more rows than subset_max_train); otherwise empty. For tests and diagnostics.
     */
     const CappedTrainingInfo& getCappedTrainingInfo() const;
 

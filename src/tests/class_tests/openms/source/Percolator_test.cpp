@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iterator>
 #include <limits>
@@ -255,7 +256,7 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
   }
   auto run = [&input](const std::string& mode, int max_train, int seed, int threads, const std::string& tdc,
                       Percolator::CappedTrainingInfo* info = nullptr, std::vector<std::vector<double>>* weights = nullptr,
-                      bool* default_direction = nullptr)
+                      bool* default_direction = nullptr, const std::function<void(Param&)>& tweak = {})
   {
     Percolator p;
     Param par = p.getDefaults();
@@ -266,6 +267,7 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     par.setValue("post_processing_tdc", tdc);
     // as ProSE (the 'logistic_regression' PEPs differ slightly with one OpenMP thread, also without a cap)
     par.setValue("pep_method", "nonparametric");
+    if (tweak) tweak(par);
     p.setParameters(par);
     RescoreOutput out = p.rescore(input);
     if (info) *info = p.getCappedTrainingInfo();
@@ -354,6 +356,107 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
   run("out_of_fold", static_cast<int>(cap), 18, 8, "true", &info2);
   TEST_TRUE(info2.sampled != info.sampled && info2.fold != info.fold)
 
+  // held-out labels do not reach a fold's model: relabelling the targets of spectra of fold 0 as decoys changes neither
+  // fold 0's model (if the spectra are sampled; the others' models change) nor any model (if not sampled); with
+  // Percolator's training options as well (nested cross-validation, warm starts, the other solvers)
+  const std::vector<std::pair<std::string, std::function<void(Param&)>>> configs{
+    {"default", {}},
+    {"nested_xval_bins 3", [](Param& par) { par.setValue("nested_xval_bins", 3); }},
+    {"warm_start", [](Param& par) { par.setValue("warm_start", "true"); }},
+    {"newton", [](Param& par) { par.setValue("solver", "newton"); }},
+    {"lda", [](Param& par) { par.setValue("solver", "lda"); }}};
+  for (const auto& config : configs)
+  {
+    std::vector<std::vector<double>> weights_config;
+    Percolator::CappedTrainingInfo info_config;
+    run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info_config, &weights_config, nullptr, config.second);
+    TEST_TRUE(info_config.fold == info.fold && info_config.sampled == info.sampled)
+    std::vector<bool> labels = input.is_decoy;
+    std::size_t swapped_sampled = 0, swapped_unsampled = 0;
+    auto swap_fold0 = [&](bool sampled)
+    {
+      input.is_decoy = labels;
+      std::size_t n = 0;
+      for (std::size_t s = 0; s < n_spectra; s += 3)
+      {
+        const std::size_t r = 2 * s;
+        if (info.fold[r] != 0 || static_cast<bool>(info.sampled[r]) != sampled) continue;
+        input.is_decoy[r] = true; // the target becomes a second decoy: the fold's target/decoy ratio changes too
+        ++n;
+      }
+      return n;
+    };
+    auto same = [](const std::vector<double>& a, const std::vector<double>& b)
+    {
+      bool eq = a.size() == b.size();
+      for (std::size_t j = 0; eq && j < a.size(); ++j) eq = std::fabs(a[j] - b[j]) <= 1e-9 * (1.0 + std::fabs(a[j]));
+      return eq;
+    };
+    std::vector<std::vector<double>> w_sampled, w_unsampled;
+    swapped_sampled = swap_fold0(true);
+    run("out_of_fold", static_cast<int>(cap), 17, 8, "false", nullptr, &w_sampled, nullptr, config.second);
+    swapped_unsampled = swap_fold0(false);
+    run("out_of_fold", static_cast<int>(cap), 17, 8, "false", nullptr, &w_unsampled, nullptr, config.second);
+    input.is_decoy = labels;
+    std::cerr << "held-out label check: " << config.first << std::endl;
+    TEST_TRUE(swapped_sampled > 100 && swapped_unsampled > 100)
+    TEST_TRUE(same(w_sampled[0], weights_config[0]))
+    TEST_TRUE(!same(w_sampled[1], weights_config[1]) && !same(w_sampled[2], weights_config[2]))
+    TEST_TRUE(same(w_unsampled[0], weights_config[0]) && same(w_unsampled[1], weights_config[1]) && same(w_unsampled[2], weights_config[2]))
+  }
+
+  // out_of_fold_avg: the sampled rows by their fold's model, the rows of unsampled spectra (which no model saw) by the
+  // average of the fold models; the targets and decoys of a spectrum share their scorer
+  {
+    Percolator::CappedTrainingInfo info_avg;
+    std::vector<std::vector<double>> weights_avg;
+    const RescoreOutput out_avg = run("out_of_fold_avg", static_cast<int>(cap), 17, 8, "false", &info_avg, &weights_avg);
+    TEST_EQUAL(weights_avg.size(), 4)
+    TEST_TRUE(info_avg.fold == info.fold && info_avg.sampled == info.sampled && info_avg.trained_rows == info.trained_rows)
+    bool scorers = info_avg.scorer.size() == n_rows, spectrum_scorer = true, avg_unseen = true;
+    for (std::size_t r = 0; scorers && r < n_rows; ++r)
+    {
+      scorers = scorers && info_avg.scorer[r] == (info_avg.sampled[r] ? info_avg.fold[r] : 3);
+      spectrum_scorer = spectrum_scorer && info_avg.scorer[r] == info_avg.scorer[r ^ 1u];
+      if (!info_avg.sampled[r])
+      {
+        for (int f = 0; f < 3; ++f) avg_unseen = avg_unseen && !std::binary_search(info_avg.trained_rows[f].begin(), info_avg.trained_rows[f].end(), r);
+      }
+    }
+    TEST_TRUE(scorers)
+    TEST_TRUE(spectrum_scorer)
+    TEST_TRUE(avg_unseen)
+    // every scorer's rows are scored by its model (the fourth: the fold models' average, as in_sample's)
+    bool by_scorer = true;
+    for (int g = 0; g < 4; ++g)
+    {
+      std::vector<std::pair<double, double>> raw_and_out;
+      for (std::size_t r = 0; r < n_rows; ++r)
+      {
+        if (info_avg.scorer[r] != g) continue;
+        const std::vector<double>& w = weights_avg[g];
+        raw_and_out.emplace_back(input.features[r][0] * w[0] + input.features[r][1] * w[1] + input.features[r][2] * w[2] + w[3],
+                                 out_avg.scores[r]);
+      }
+      std::sort(raw_and_out.begin(), raw_and_out.end());
+      const double slope = (raw_and_out.back().second - raw_and_out.front().second) / (raw_and_out.back().first - raw_and_out.front().first);
+      by_scorer = by_scorer && slope > 0.0;
+      for (const auto& ro : raw_and_out)
+      {
+        const double predicted = raw_and_out.front().second + slope * (ro.first - raw_and_out.front().first);
+        by_scorer = by_scorer && std::fabs(predicted - ro.second) <= 1e-9 * (1.0 + std::fabs(ro.second));
+      }
+    }
+    TEST_TRUE(by_scorer)
+    // the sampled rows' scores (up to each scorer's rescaling) are those of out_of_fold: same fold models
+    bool same_fold_models = true;
+    for (int f = 0; f < 3; ++f)
+    {
+      for (std::size_t j = 0; j < weights[f].size(); ++j) same_fold_models = same_fold_models && weights_avg[f][j] == weights[f][j];
+    }
+    TEST_TRUE(same_fold_models)
+  }
+
   // the in-sample mode (the percolator executable's) stays: no fold record, one averaged model, other scores
   Percolator::CappedTrainingInfo info_in;
   std::vector<std::vector<double>> weights_in;
@@ -377,6 +480,11 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
   const RescoreOutput fallback_ref = run("out_of_fold", 0, 17, 8, "false");
   std::swap(input, one_spectrum);
   TEST_EQUAL(info_one.fold.size(), 0)
+  // a sample of two spectra cannot fill three folds: trained on all rows, as without a cap
+  Percolator::CappedTrainingInfo info_two;
+  const RescoreOutput two = run("out_of_fold", 4, 17, 8, "true", &info_two);
+  TEST_EQUAL(info_two.fold.size(), 0)
+  TEST_TRUE(two.scores == uncapped.scores && two.q_values == uncapped.q_values)
   TEST_TRUE(fallback.scores == fallback_ref.scores && fallback.q_values == fallback_ref.q_values)
 }
 END_SECTION
