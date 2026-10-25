@@ -3766,7 +3766,8 @@ START_SECTION(([EXTRA] collectRunStatistics_: signed mass errors of the target P
 {
   // 12 target PSMs at -2.1, -2.0 and -1.9 ppm, every fourth matched at its first 13C peak (isotope_error +1, observed
   // minus theoretical, the default report:isotope_error_convention), with a y3+ and a b2++ fragment at +2.5 ppm and a
-  // y3 with a neutral loss (not a fragment error); 5 decoy PSMs at +50 ppm with fragments at +100 ppm, left out
+  // y3 with a neutral loss (not a fragment error); 5 decoy PSMs at +50 ppm and 5 PSMs without target/decoy annotation
+  // at +60 ppm, with fragments at +100 ppm, left out
   ProSEAlgorithm_test algo;
   const AASequence sequence = AASequence::fromString("PEPTIDEK");
   const double precursor_mz = sequence.getMZ(2);
@@ -3778,7 +3779,7 @@ START_SECTION(([EXTRA] collectRunStatistics_: signed mass errors of the target P
     hit.setSequence(sequence);
     hit.setCharge(2);
     hit.setScore(10.0);
-    hit.setMetaValue(Constants::UserParam::TARGET_DECOY, decoy ? "decoy" : "target");
+    if (decoy || ppm < 40.0) { hit.setMetaValue(Constants::UserParam::TARGET_DECOY, decoy ? "decoy" : "target"); }
     hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, isotope_error);
     std::vector<PeptideHit::PeakAnnotation> annotations(3);
     annotations[0].annotation = "y3+"; annotations[0].charge = 1; annotations[0].mz = y3 * (1.0 + fragment_ppm * 1e-6);
@@ -3792,6 +3793,7 @@ START_SECTION(([EXTRA] collectRunStatistics_: signed mass errors of the target P
   };
   for (int i = 0; i < 12; ++i) { add(-2.0 + 0.1 * (i % 3 - 1), i % 4 == 0 ? 1 : 0, 2.5, false); }
   for (int i = 0; i < 5; ++i) { add(50.0, 0, 100.0, true); }
+  for (int i = 0; i < 5; ++i) { add(60.0, 0, 100.0, false); } // without target/decoy annotation: left out too
   ProSEAlgorithm::RunStatistics stats;
   algo.collectRunStatistics_(PeakMap(), {}, ids, stats);
   TEST_EQUAL(stats.target_psms, 12)

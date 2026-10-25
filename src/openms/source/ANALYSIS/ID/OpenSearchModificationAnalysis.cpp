@@ -631,7 +631,7 @@ namespace OpenMS
     auto mod_lookup = buildModificationMassLookup_();
 
     // Count the target PSMs (decoys only counted) and, in the same pass, collect the (histogram bin, sequence) of each
-    // target hit with a delta mass, for the unique peptide counts of the bins below.
+    // modified target hit, for the unique peptide counts of the bins below.
     std::vector<std::pair<Int64, std::string>> bin_sequences;
     for (const auto& peptide_id : peptide_ids)
     {
@@ -648,13 +648,13 @@ namespace OpenMS
           double delta_mass = (double)hit.getMetaValue("DeltaMass");
           if (isUnmodified(delta_mass))
           {
-            stats.unmodified_psms++;
+            stats.unmodified_psms++; // (in no bin of the histogram)
           }
           else
           {
             stats.modified_psms++;
+            bin_sequences.emplace_back(deltaMassBin_(delta_mass), hit.getSequence().toString());
           }
-          bin_sequences.emplace_back(deltaMassBin_(delta_mass), hit.getSequence().toString());
         }
       }
     }

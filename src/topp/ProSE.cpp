@@ -186,13 +186,14 @@ UNKNOWN_ERROR, ILLEGAL_PARAMETERS), 'ms2_spectra_count', 'identified_spectra_cou
 filters), 'decoy_psm_count', 'psm_rows' (its rows in quantms.psm.parquet), int64; 'rescoring_applied' (bool; null:
 the search did not rescore), 'rescoring_skipped_reason', 'rescoring_warning' (string); 'prediction_nce' (double; null:
 no prediction); 'precursor_error_median_ppm', 'precursor_error_mad_ppm', 'precursor_tolerance_recommended_ppm',
-'fragment_error_median_ppm', 'fragment_error_mad_ppm', 'fragment_tolerance_recommended_ppm' (double; null: no
-estimate, fewer than 10 PSMs): the mass errors of the best hits of the run's target PSMs after the FDR filters (decoys
-left out), signed, observed minus theoretical m/z in ppm: of the precursor, its m/z corrected by the hit's isotope error
-(the 13C peak the search matched), in an open search of the PSMs without a delta mass (within 0.05 Da of zero) only;
-of the fragments, every annotated b and y peak (without neutral losses) of these PSMs. The median is that of the signed errors (the bias of the run), the MAD their median absolute deviation from the
-median (unscaled), and the recommended tolerance the symmetric one that covers the bias and three standard deviations
-of a normal distribution estimated robustly: ceil(|median| + 3 * 1.4826 * MAD). The fragment errors are those of the
+'fragment_error_median_ppm', 'fragment_error_mad_ppm', 'fragment_tolerance_recommended_ppm' (double; null: no estimate,
+fewer than 10 PSMs): the mass errors of the best hits of the run's target PSMs after the FDR filters (decoys, and hits
+without a target/decoy annotation, left out), signed, observed minus theoretical m/z in ppm: of the precursor, its m/z
+corrected by the hit's isotope error (the 13C peak the search matched), in an open search of the PSMs without a delta
+mass (within 0.05 Da of zero) only; of the fragments, every annotated b and y peak (without neutral losses) of these
+PSMs. The median is that of the signed errors (the bias of the run), the MAD their median absolute deviation from the
+median (unscaled), and the recommended tolerance the symmetric one that covers the bias and three standard deviations of
+a normal distribution estimated robustly: ceil(|median| + 3 * 1.4826 * MAD). The fragment errors are those of the
 matched peaks, so within the searched fragment tolerance: a recommended fragment tolerance near it says that the
 searched one may be too narrow rather than right (the report's "Tolerance estimate" is the same); 'search_seconds'
 (double).
@@ -1440,9 +1441,13 @@ class ProSE :
         std::future<std::shared_ptr<arrow::Table>> pg_build;
         if (!out_qpx_dir.empty())
         {
-          pg_build = std::async(std::launch::async, [&result, qpx_extended, runs = result.protein_ids]() mutable
+          // (-qpx_extended: a copy of the runs, as the NCE is stored on them meanwhile)
+          std::vector<ProteinIdentification> runs_copy;
+          if (qpx_extended) { runs_copy = result.protein_ids; }
+          pg_build = std::async(std::launch::async, [&result, qpx_extended, runs = std::move(runs_copy)]() mutable
           {
-            if (qpx_extended && !runs.empty() && runs[0].getIndistinguishableProteins().empty())
+            if (!qpx_extended) { return ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids); }
+            if (!runs.empty() && runs[0].getIndistinguishableProteins().empty())
             {
               // -qpx_extended: without protein inference, one group per protein (without a q-value)
               for (const ProteinHit& protein : runs[0].getHits())

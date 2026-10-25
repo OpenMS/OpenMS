@@ -5152,7 +5152,8 @@ namespace OpenMS
         // streamed, so that only the kept spectra are held
         spectra.clear(true);
         MSDataTransformingConsumer consumer;
-        consumer.setSpectraProcessingFunc([&spectra, &keep](MSSpectrum& spectrum) { if (keep(spectrum)) { spectra.addSpectrum(spectrum); } });
+        // (moved: the reader does not use a spectrum once its consumer has it)
+        consumer.setSpectraProcessingFunc([&spectra, &keep](MSSpectrum& spectrum) { if (keep(spectrum)) { spectra.addSpectrum(std::move(spectrum)); } });
         f.transformExperiment(filename, &consumer, {FileTypes::MZML});
       }
       else
@@ -6594,12 +6595,15 @@ namespace OpenMS
 
       const PeptideHit::TargetDecoyType target_decoy = top.getTargetDecoyType();
       const bool is_decoy = target_decoy == PeptideHit::TargetDecoyType::DECOY;
+      // (the error estimates are of the target PSMs: not of a hit without target/decoy annotation either)
+      const bool is_target = target_decoy == PeptideHit::TargetDecoyType::TARGET
+                             || target_decoy == PeptideHit::TargetDecoyType::TARGET_DECOY;
       // Precursor error: always computed inline (cheap), independent of annotate:PSM. Skip hits with unresolved
       // charge (0) - getMZ() would throw - and, in an open search, those with a delta mass (a modification the
       // sequence lacks, not a mass error; as OpenSearchModificationAnalysis tells unmodified PSMs).
       const bool shifted = top.metaValueExists("DeltaMass")
                            && !OpenSearchModificationAnalysis::isUnmodified(static_cast<double>(top.getMetaValue("DeltaMass")));
-      if (!is_decoy && !shifted && top.getCharge() > 0)
+      if (is_target && !shifted && top.getCharge() > 0)
       {
         // The isotope offset the search matched at (theoretical minus observed): the reported 'isotope_error' follows
         // report:isotope_error_convention
@@ -6616,7 +6620,7 @@ namespace OpenMS
       // Fragment errors: of the annotated b and y peaks ("b3+", "y12++"; not those with a neutral loss or of other
       // ions), against their m/z from the hit's sequence: (prefix or suffix residue masses + terminal modification
       // [+ H2O] + charge protons) / charge, the masses TheoreticalSpectrumGenerator gives the annotated ions
-      if (!is_decoy && !top.getPeakAnnotations().empty())
+      if (is_target && !top.getPeakAnnotations().empty())
       {
         const AASequence& sequence = top.getSequence();
         const Size length = sequence.size();
