@@ -681,7 +681,7 @@ private:
 
   /// Macro for fatal errors (processing stops) - includes file and line info
 #define OPENMS_LOG_FATAL_ERROR \
-  OpenMS::getThreadLocalLogFatal() << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS::getThreadLocalLogFatal() << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
   /// Macro for non-fatal errors (processing continues)
 #define OPENMS_LOG_ERROR \

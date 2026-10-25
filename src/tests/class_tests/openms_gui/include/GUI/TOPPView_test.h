@@ -68,6 +68,9 @@ class TestTOPPView: public QObject
     /// an identification layer from an idXML file, and a peak layer annotated with it
     void testIdentifications();
 
+    /// an identification file opened in a window of its own (whose only layer has no intensities)
+    void testIdentificationFile();
+
   private:
     /**
       @brief Schedule a keyboard input using a QTimer signal to direct input to a modal window.

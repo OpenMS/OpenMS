@@ -10,6 +10,8 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <optional>
 
+#include <OpenMS/ANALYSIS/ID/Scores.h>
+
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport_impl.h>
 
@@ -32,6 +34,7 @@
 #include <arrow/builder.h>
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <map>
 #include <optional>
@@ -215,6 +218,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   const auto& prot_id = ids.proteins[0];
   const auto& groups = prot_id.getIndistinguishableProteins();
+  // the group probabilities are q-values only after a protein FDR (it sets the run's score type), otherwise they are the
+  // proteins' scores (e.g. posterior probabilities), which global_qvalue must not report
+  const bool qvalues = Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL);
 
   if (groups.empty())
   {
@@ -580,7 +586,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)gg_qvalue_builder.AppendNull();
 
     // global_qvalue
-    (void)global_qvalue_builder.Append(group.probability);
+    // a group without a q-value (no protein FDR, or NaN, e.g. no inference): null, as the column is nullable
+    if (qvalues && std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
+    else { (void)global_qvalue_builder.AppendNull(); }
 
     // pg_qvalue - not per-run in OpenMS
     (void)pg_qvalue_builder.AppendNull();
@@ -1217,6 +1225,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   for (const auto& prot_id : protein_identifications)
   {
     const auto& groups = prot_id.getIndistinguishableProteins();
+    // q-values only after a protein FDR (see the ConsensusMap overload)
+    const bool qvalues = Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL);
     if (groups.empty()) continue;
     total_groups_found += groups.size();
 
@@ -1359,8 +1369,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         // gg_qvalue - not available
         (void)gg_qvalue_builder.AppendNull();
 
-        // global_qvalue — use group probability
-        (void)global_qvalue_builder.Append(group.probability);
+        // global_qvalue — the group probability, if it is a q-value
+        // a group without a q-value (no protein FDR, or NaN, e.g. no inference): null, as the column is nullable
+        if (qvalues && std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
+        else { (void)global_qvalue_builder.AppendNull(); }
 
         // pg_qvalue - not available for id-only
         (void)pg_qvalue_builder.AppendNull();

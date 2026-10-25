@@ -18,12 +18,15 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 #include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
 
 #include <fstream>
+#include <tuple>
 
 using namespace OpenMS;
 
@@ -224,6 +227,47 @@ void TestTOPPView::testIdentifications()
   tv.loadFiles({"!", broken}, &splash);
   QCOMPARE(run->getSpectrumIdentifications(0).size(), Size(1));
   QCOMPARE(run->getSpectrumIdentifications(0)[0].matches[0]->representation, std::string("PEPTIDE"));
+}
+
+void TestTOPPView::testIdentificationFile()
+{
+  // identifications without a spectrum file: TOPPView opens them in a window of their own
+  QTemporaryDir dir;
+  const std::string path = dir.filePath("identifications.idXML").toStdString();
+  ProteinIdentification proteins;
+  proteins.setIdentifier("search");
+  PeptideIdentificationList peptides;
+  for (const auto& [rt, mz, sequence] : std::vector<std::tuple<double, double, std::string>> {{100.0, 500.0, "PEPTIDE"}, {200.0, 600.0, "SAMPLER"}})
+  {
+    PeptideIdentification peptide;
+    peptide.setIdentifier("search");
+    peptide.setRT(rt);
+    peptide.setMZ(mz);
+    // identification data needs the name of a score
+    peptide.setScoreType("q-value");
+    peptide.setHigherScoreBetter(false);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    peptide.insertHit(hit);
+    peptides.push_back(peptide);
+  }
+  IdXMLFile().store(path, {proteins}, peptides);
+
+  TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
+  tv.show();
+  QApplication::processEvents();
+
+  QCOMPARE(tv.addDataFile(path, false, false), TOPPViewBase::LOAD_RESULT::OK);
+  auto* layer = dynamic_cast<LayerDataIdent*>(tv.getCurrentLayer());
+  QVERIFY(layer != nullptr);
+  QCOMPARE(layer->getIdentificationData().getUnlinked({}, {}).size(), Size(2));
+  // the canvas has an intensity range although its only layer has no intensities
+  QVERIFY(!tv.getActiveCanvas()->getDataRange().RangeIntensity::isEmpty());
+  // and paints the identifications
+  tv.getActiveCanvas()->repaint();
+  QApplication::processEvents();
 }
 
 // expands to a simple main() method that runs all the test functions

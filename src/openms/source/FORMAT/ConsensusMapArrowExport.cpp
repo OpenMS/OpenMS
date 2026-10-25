@@ -35,6 +35,7 @@
 #include <parquet/properties.h>
 
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <functional>
 #include <limits>
@@ -218,8 +219,12 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap, const MapPeptid
       }
     }
 
+    // the group probabilities are q-values only after a protein FDR (it sets the run's score type), otherwise they are
+    // the proteins' scores (e.g. posterior probabilities), which pg_global_qvalue must not report; NaN: no q-value
+    if (!Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL)) { continue; }
     for (const auto& pg : prot_id.getProteinGroups())
     {
+      if (!std::isfinite(pg.probability)) { continue; }
       for (const auto& acc : pg.accessions)
       {
         lut.pg_qvalue[acc] = pg.probability;
@@ -227,6 +232,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap, const MapPeptid
     }
     for (const auto& ig : prot_id.getIndistinguishableProteins())
     {
+      if (!std::isfinite(ig.probability)) { continue; }
       for (const auto& acc : ig.accessions)
       {
         if (!lut.pg_qvalue.contains(acc))

@@ -410,20 +410,10 @@ namespace OpenMS
     bool incl_peak_annotations = false;
     bool incl_usi = false;
     std::string usi_dataset_id;
-    std::string usi_ms_run;
+    const IdentifierMSRunMapper* usi_mapper = nullptr;
     StringList peptide_id_meta_keys;
     StringList peptide_hit_meta_keys;
   };
-
-  // Resolve the MS run file name (basename) for a peptide's USI from the protein
-  // run's 'spectra_data' (selected per identification via the merge index in @p mapper).
-  // When the run path cannot be mapped, getPrimaryMSRunPath() itself falls back to a
-  // legacy per-ID 'base_name' meta value (some pepXML-derived inputs set base_name but
-  // not spectra_data); idXML/consensusXML set neither otherwise.
-  std::string resolveUSIMSRun(const IdentifierMSRunMapper& mapper, const PeptideIdentification& pid)
-  {
-    return USI::extractBasename(mapper.getPrimaryMSRunPath(pid));
-  }
 
   // write the header for peptide data
   void writePeptideHeader(SVOutStream& out, const PeptideWriteOptions& opts = {})
@@ -605,7 +595,7 @@ namespace OpenMS
       // Write USI if requested
       if (opts.incl_usi)
       {
-        out << pid.buildUSI(opts.usi_ms_run, opts.usi_dataset_id, true).toString();
+        out << pid.buildUSI(*opts.usi_mapper, opts.usi_dataset_id, true).toString();
       }
 
       writeMetaValues(out, pid, opts.peptide_id_meta_keys);
@@ -864,6 +854,8 @@ protected:
         peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
 
         IdentifierMSRunMapper usi_mapper = buildUSIMapper_(prot_ids, add_usi);
+        unassigned_opts.usi_mapper = &usi_mapper;
+        peptide_opts.usi_mapper = &usi_mapper;
 
         // write header:
         output.modifyStrings(false);
@@ -909,7 +901,6 @@ protected:
           }
           for (const PeptideIdentification& pep : ids.unassigned)
           {
-            unassigned_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, pep) : "";
             writePeptideId(output, pep, unassigned_opts);
           }
         }
@@ -947,7 +938,6 @@ protected:
           {
             for (const PeptideIdentification& pep : ids.at({feature_index}))
             {
-              peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, pep) : "";
               writePeptideId(output, pep, peptide_opts);
             }
           }
@@ -1336,6 +1326,8 @@ protected:
           peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
 
           IdentifierMSRunMapper usi_mapper = buildUSIMapper_(ids.proteins, add_usi);
+          unassigned_opts.usi_mapper = &usi_mapper;
+          peptide_opts.usi_mapper = &usi_mapper;
 
           FeatureHandle feature_handle_NaN;
           feature_handle_NaN.setRT(std::numeric_limits<
@@ -1445,7 +1437,6 @@ protected:
             // unassigned peptides
             for (PeptideIdentificationList::const_iterator pit = ids.unassigned.begin(); pit != ids.unassigned.end(); ++pit)
             {
-              unassigned_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
               writePeptideId(output, *pit, unassigned_opts);
               // first_dim_... stuff not supported for now
             }
@@ -1484,7 +1475,6 @@ protected:
                      ids.at({Size(cmit - consensus_map.begin())}).begin(); pit !=
                    ids.at({Size(cmit - consensus_map.begin())}).end(); ++pit)
               {
-                peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
                 writePeptideId(output, *pit, peptide_opts);
               }
             }
@@ -1554,6 +1544,7 @@ protected:
         peptide_opts.incl_peak_annotations = true;
         peptide_opts.incl_usi = add_usi;
         peptide_opts.usi_dataset_id = usi_dataset_id;
+        peptide_opts.usi_mapper = &usi_mapper;
         peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
         peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
 
@@ -1601,7 +1592,6 @@ protected:
             {
               if (pit->getIdentifier() == actual_id)
               {
-                peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
                 writePeptideId(output, *pit, peptide_opts);
               }
             }

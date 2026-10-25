@@ -6,6 +6,7 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/ANALYSIS/ID/EntrapmentEvaluation.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
@@ -99,8 +100,11 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/unordered_set.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
@@ -504,6 +508,95 @@ Convert DeconvolvedSpectrum to MSSpectrum.
         .def_rw("rt_end", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::rt_end)
         .def_rw("ion_mobility", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::ion_mobility)
         .def_rw("id", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::id)
+        ;
+
+    // -----------------------------------------------------------------------
+    // EntrapmentEvaluation
+    // -----------------------------------------------------------------------
+    using EE = OpenMS::EntrapmentEvaluation;
+    auto entrapmentevaluation_class = nb::class_<EE>(m, "EntrapmentEvaluation",
+        "Measures the false discovery proportion (FDP) of identifications with an entrapment database: lower-bound, "
+        "combined and paired estimators (Wen et al., Nat. Methods 2025)")
+        .def(nb::init<>())
+        ;
+    nb::enum_<EE::Kind>(entrapmentevaluation_class, "Kind", nb::is_arithmetic(), "How a PSM is counted")
+        .value("TARGET", EE::Kind::TARGET, "Matches at least one target (non-entrapment) protein")
+        .value("ENTRAPMENT", EE::Kind::ENTRAPMENT, "Matches only entrapment proteins")
+        .value("DECOY", EE::Kind::DECOY, "Decoy PSM (ignored)")
+        ;
+    nb::enum_<EE::Level>(entrapmentevaluation_class, "Level", nb::is_arithmetic(), "What is counted as one discovery")
+        .value("PSM", EE::Level::PSM, "The top hit of each spectrum")
+        .value("PEPTIDE", EE::Level::PEPTIDE, "Distinct unmodified peptide sequences (I = L)")
+        ;
+    nb::class_<EE::Result>(entrapmentevaluation_class, "Result", "Result for one class at one q-value threshold and level")
+        .def(nb::init<>())
+        .def(nb::init<const EE::Result &>())
+        .def("__copy__", [](const EE::Result& self) { return EE::Result(self); })
+        .def("__deepcopy__", [](const EE::Result& self, nb::dict) { return EE::Result(self); }, "memo"_a)
+        .def_rw("accepted", &EE::Result::accepted, "N: accepted non-decoy discoveries (targets + entrapment)")
+        .def_rw("entrapment", &EE::Result::entrapment, "N_E: accepted entrapment-only discoveries")
+        .def_rw("entrapment_target_not_accepted", &EE::Result::entrapment_target_not_accepted,
+                "N_{E>=s>T}: accepted entrapment peptides whose paired target is not accepted")
+        .def_rw("entrapment_above_target", &EE::Result::entrapment_above_target,
+                "N_{E>T>=s}: accepted entrapment peptides whose paired target is accepted but does not rank above them")
+        .def_rw("paired", &EE::Result::paired, "Whether the paired counts are available (peptide level, with peptide pairs)")
+        .def_rw("te_ratio", &EE::Result::te_ratio, "T/E used in the combined estimate")
+        .def("lowerBoundFDP", [](const EE::Result& self) { return self.lowerBoundFDP(); }, "Lower bound N_E / N (0 if nothing accepted)")
+        .def("combinedFDP", [](const EE::Result& self) { return self.combinedFDP(); }, "Combined estimate N_E * (1 + T/E) / N (0 if nothing accepted)")
+        .def("pairedFDP", [](const EE::Result& self) { return self.pairedFDP(); },
+             "Paired estimate (N_E + N_{E>=s>T} + 2 * N_{E>T>=s}) / N (0 if nothing accepted, NaN if not available)")
+        .def("__repr__", [](const EE::Result& self) {
+            return "EntrapmentEvaluation.Result(accepted=" + std::to_string(self.accepted) + ", entrapment=" +
+                   std::to_string(self.entrapment) + ", te_ratio=" + std::to_string(self.te_ratio) + ")";
+          })
+        ;
+    entrapmentevaluation_class
+        .def_static("classify", [](const OpenMS::PeptideHit& hit, const std::string& entrapment_prefix,
+                                   const std::string& decoy_string, bool decoy_is_prefix) {
+            return EE::classify(hit, entrapment_prefix, decoy_string, decoy_is_prefix);
+          }, "hit"_a, "entrapment_prefix"_a, "decoy_string"_a = "", "decoy_is_prefix"_a = true,
+          "Classify a peptide hit by its protein accessions; decoy accessions are ignored")
+        .def_static("estimateTERatio", [](const std::vector<OpenMS::FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                                          const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                                          OpenMS::Size missed_cleavages, OpenMS::Size min_length, OpenMS::Size max_length) {
+            return EE::estimateTERatio(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme, missed_cleavages, min_length, max_length);
+          }, "db"_a, "entrapment_prefix"_a, "decoy_string"_a, "decoy_is_prefix"_a, "enzyme"_a = "Trypsin",
+          "missed_cleavages"_a = 2, "min_length"_a = 7, "max_length"_a = 40,
+          "T/E, the ratio of distinct searchable target to entrapment-only peptides of a database (I = L; 1 without entrapment)")
+        .def_static("targetPeptides", [](const std::vector<OpenMS::FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                                         const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                                         OpenMS::Size missed_cleavages, OpenMS::Size min_length, OpenMS::Size max_length) {
+            return EE::targetPeptides(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme, missed_cleavages, min_length, max_length);
+          }, "db"_a, "entrapment_prefix"_a, "decoy_string"_a, "decoy_is_prefix"_a, "enzyme"_a = "Trypsin",
+          "missed_cleavages"_a = 2, "min_length"_a = 7, "max_length"_a = 40,
+          "The distinct searchable peptides of the target proteins of a database, with every I replaced by L (a set)")
+        .def_static("qValue", [](const OpenMS::PeptideIdentification& pep_id, const OpenMS::PeptideHit& hit) {
+            return EE::qValue(pep_id, hit);
+          }, "pep_id"_a, "hit"_a, "The q-value of a hit (its score or a q-value meta value); raises if there is none")
+        .def_static("pairPeptides", [](const std::vector<OpenMS::FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                                       const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                                       OpenMS::Size missed_cleavages, OpenMS::Size min_length, OpenMS::Size max_length) {
+            OpenMS::Size mismatched = 0;
+            EE::PeptidePairs pairs = EE::pairPeptides(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme,
+                                                      missed_cleavages, min_length, max_length, &mismatched);
+            return std::make_pair(std::move(pairs), mismatched);
+          }, "db"_a, "entrapment_prefix"_a, "decoy_string"_a, "decoy_is_prefix"_a, "enzyme"_a = "Trypsin",
+          "missed_cleavages"_a = 2, "min_length"_a = 7, "max_length"_a = 40,
+          "Pair every entrapment peptide with the target peptide it was made from. Returns (pairs, mismatched): a dict "
+          "entrapment peptide -> target peptide and the number of skipped pairs whose composition differs")
+        .def_static("evaluate", [](const OpenMS::PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix,
+                                   double te_ratio, EE::Level level, const std::string& class_meta_value,
+                                   const std::optional<std::unordered_set<std::string>>& target_peptides,
+                                   const std::optional<EE::PeptidePairs>& pairs, const std::string& score_meta_value,
+                                   const std::string& decoy_string, bool decoy_is_prefix) {
+            return EE::evaluate(pep_ids, q_threshold, entrapment_prefix, te_ratio, level, class_meta_value,
+                                target_peptides ? &*target_peptides : nullptr, pairs ? &*pairs : nullptr,
+                                score_meta_value, decoy_string, decoy_is_prefix);
+          }, "pep_ids"_a, "q_threshold"_a, "entrapment_prefix"_a, "te_ratio"_a, "level"_a = EE::Level::PSM,
+          "class_meta_value"_a = "", "target_peptides"_a = nb::none(), "pairs"_a = nb::none(), "score_meta_value"_a = "",
+          "decoy_string"_a = "", "decoy_is_prefix"_a = true,
+          "Evaluate the identifications at a q-value threshold. target_peptides (see targetPeptides()) and pairs (see "
+          "pairPeptides()) are optional. Returns a dict class -> Result; 'all' holds the overall result")
         ;
 
     // -----------------------------------------------------------------------

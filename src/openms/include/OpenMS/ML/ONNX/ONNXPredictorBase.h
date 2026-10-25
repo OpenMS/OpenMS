@@ -27,7 +27,8 @@ namespace OpenMS
     /**
       @brief Owns the ONNX Runtime session of one model file, for the predictors built on it
 
-      Loads the model with all graph optimizations and the given number of intra-op threads, and gives
+      Loads the model with all graph optimizations and the given number of intra-op threads, without
+      ONNX Runtime's memory pattern (the inputs of the models change shape from call to call), and gives
       a predictor (PeptDeepRTInference, PeptDeepCCSInference, PeptDeepMS2Inference) the session and the
       CPU memory info it needs to build input tensors. The ONNX Runtime types are only forward-declared
       here. Available in builds with @c WITH_ONNX.

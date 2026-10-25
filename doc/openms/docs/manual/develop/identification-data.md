@@ -263,6 +263,10 @@ imports other identification formats through the adapter.
 `FileHandler::storeIdentifications(filename, const IdentificationData&)` writes `.idparquet` natively
 and other formats through strict export.
 
+Import needs the score type of every peptide identification with hits, because it names the primary
+score of the run; identifications without one (e.g. a hand-written idXML file) are rejected. TOPPView
+loads identification files through this import and reports such a file as not loadable.
+
 TOPP tools using the owning model: IDMerger and MapAlignerIdentification merge or align native
 bundles when all inputs are native; NucleicAcidSearchEngine writes its digest and results as native
 bundles (`-digest_out`, `-db_out`) and reads digests (`-digest`); AccurateMassSearch as above.
