@@ -166,6 +166,14 @@ struct OPENMS_DLLAPI ParquetWriteConfig
   /// Data page size in bytes (default: 1MB)
   /// Affects granularity of reads within a row group
   int64_t data_page_size = 1024 * 1024;
+
+  /// QPX tables (with QPX schema metadata): allow optional columns after the view's own, which QPX readers ignore
+  /// (each view column is still checked in place); false: the table must have the view's columns exactly
+  bool qpx_extra_columns = false;
+
+  /// Top-level columns whose values are written without dictionary encoding (all their leaves): columns of
+  /// mostly distinct values, e.g. peak m/z, which with small row groups would each get a dictionary page
+  std::vector<std::string> plain_columns;
 };
 
 

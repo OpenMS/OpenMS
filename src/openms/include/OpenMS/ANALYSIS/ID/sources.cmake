@@ -8,7 +8,10 @@ AhoCorasickAmbiguous.h
 AScore.h
 BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
+CoIsolationDetector.h
 ConsensusMapMergerAlgorithm.h
+ClassFDR.h
+EntrapmentEvaluation.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h

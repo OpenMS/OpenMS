@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -505,16 +506,29 @@ namespace OpenMS
       // calibration_quantile as the retention-time fit.
       std::vector<Size> sample(confident.begin(),
                                confident.begin() + std::min(nce_sample_size_, confident.size()));
+      // Each peptide (with its charge) of the sample is predicted once per candidate energy, as
+      // those of the run are below, however many of the sampled PSMs identify it. Predicted PSM
+      // by PSM, a sample that repeats its peptides took several times the inference, in larger
+      // batches.
       std::vector<std::string> s_seq;
       std::vector<float> s_charge;
+      std::vector<Size> s_pred; // position of the prediction for sample[k]
+      constexpr Size not_predicted = std::numeric_limits<Size>::max();
+      std::vector<Size> s_pos(uniq_seq.size(), not_predicted); // key -> position in s_seq
       // The observed spectrum does not depend on the candidate energy, so parse the peak
       // annotations once here rather than once per grid point.
       std::vector<IonMap> s_obs;
-      s_seq.reserve(sample.size()); s_charge.reserve(sample.size()); s_obs.reserve(sample.size());
+      s_pred.reserve(sample.size()); s_obs.reserve(sample.size());
       for (Size i : sample)
       {
-        s_seq.push_back(uniq_seq[rows[i].key]);
-        s_charge.push_back(uniq_charge[rows[i].key]);
+        Size& pos = s_pos[rows[i].key];
+        if (pos == not_predicted)
+        {
+          pos = s_seq.size();
+          s_seq.push_back(uniq_seq[rows[i].key]);
+          s_charge.push_back(uniq_charge[rows[i].key]);
+        }
+        s_pred.push_back(pos);
         s_obs.push_back(observedIons_(peptide_ids[rows[i].pi].getHits()[rows[i].hit]));
       }
 
@@ -533,9 +547,10 @@ namespace OpenMS
         for (Size k = 0; k < sample.size(); ++k)
         {
           const Row& r = rows[sample[k]];
-          Size channels = (r.len > 1 && !pred[k].empty()) ? pred[k].size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
+          const std::vector<float>& p = pred[s_pred[k]];
+          Size channels = (r.len > 1 && !p.empty()) ? p.size() / (r.len - 1) : DEFAULT_ION_CHANNELS;
           if (channels == 0) { channels = DEFAULT_ION_CHANNELS; }
-          cosines.push_back(similarity_(predictedIons_(pred[k], r.len, channels),
+          cosines.push_back(similarity_(predictedIons_(p, r.len, channels),
                                         s_obs[k], ms2_min_ordinal_, r.len, ms2_strong_fraction_).cosine);
         }
         std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
