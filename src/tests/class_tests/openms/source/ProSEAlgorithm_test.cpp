@@ -5624,6 +5624,13 @@ START_SECTION(([EXTRA] rescoring:top_hits: Percolator rescores the top hits of e
     for (const auto& pid : peptide_ids) n = std::max(n, pid.getHits().size());
     return n;
   };
+  // the PSMs without the run identifier (it carries the time of the search)
+  auto same_psms = [](PeptideIdentificationList a, PeptideIdentificationList b)
+  {
+    for (auto& pid : a) pid.setIdentifier("");
+    for (auto& pid : b) pid.setIdentifier("");
+    return a == b;
+  };
   auto record = [](const ProSEAlgorithm::SearchResult& r) -> std::string
   {
     if (r.protein_ids.empty()) return "none";
@@ -5642,13 +5649,14 @@ START_SECTION(([EXTRA] rescoring:top_hits: Percolator rescores the top hits of e
   ProSEAlgorithm::MultiFileSearchResult decoupled = run(10, 2, false, {spectra_file});
   ABORT_IF(decoupled.per_file.size() != 1 || !decoupled.per_file[0].percolator.applied)
   TEST_EQUAL(record(decoupled.per_file[0]), "2")
-  TEST_TRUE(decoupled.per_file[0].peptide_ids == legacy.per_file[0].peptide_ids)
+  TEST_TRUE(same_psms(decoupled.per_file[0].peptide_ids, legacy.per_file[0].peptide_ids))
   std::vector<ProteinIdentification> proteins = decoupled.per_file[0].protein_ids;
   ABORT_IF(proteins.size() != legacy.per_file[0].protein_ids.size())
   for (Size i = 0; i < proteins.size(); ++i)
   {
     proteins[i].getSearchParameters().removeMetaValue("Percolator:top_hits");
     proteins[i].setDateTime(legacy.per_file[0].protein_ids[i].getDateTime()); // (the time of the search)
+    proteins[i].setIdentifier(legacy.per_file[0].protein_ids[i].getIdentifier());
   }
   TEST_TRUE(proteins == legacy.per_file[0].protein_ids)
 
@@ -5661,11 +5669,11 @@ START_SECTION(([EXTRA] rescoring:top_hits: Percolator rescores the top hits of e
   {
     ProSEAlgorithm::MultiFileSearchResult pin = run(report, 2, true, {spectra_file});
     ABORT_IF(pin.per_file.size() != 1 || !pin.per_file[0].percolator.applied)
-    TEST_TRUE(pin.per_file[0].peptide_ids == legacy_pin.per_file[0].peptide_ids)
+    TEST_TRUE(same_psms(pin.per_file[0].peptide_ids, legacy_pin.per_file[0].peptide_ids))
     TEST_TRUE(max_hits(pin.per_file[0].pre_fdr_peptide_ids) <= Size(report))
     ProSEAlgorithm::MultiFileSearchResult plain_pin = run(report, 0, true, {spectra_file});
     ABORT_IF(plain_pin.per_file.size() != 1)
-    TEST_TRUE(pin.per_file[0].pre_fdr_peptide_ids == plain_pin.per_file[0].pre_fdr_peptide_ids)
+    TEST_TRUE(same_psms(pin.per_file[0].pre_fdr_peptide_ids, plain_pin.per_file[0].pre_fdr_peptide_ids))
   }
 
   // a run that Percolator skips (too few PSMs) reports report:top_hits hits per spectrum, not rescoring:top_hits
