@@ -263,6 +263,54 @@ namespace
     return !description_written || cleanPtmDescription(a.description) == cleanPtmDescription(b.description);
   }
 
+  /// True if @p a and @p b are glycosylations of the same residue. UniProt describes one glycosylation
+  /// site in more or less detail (e.g. "N-linked (GlcNAc...) (complex) asparagine" in the canonical entry,
+  /// "N-linked (GlcNAc...) asparagine" on an isoform), so a mapped one next to the isoform's own is redundant.
+  bool sameGlycosylationSite(const UniProtFeature& a, const UniProtFeature& b)
+  {
+    return a.type == "glycosylation site" && b.type == "glycosylation site" && residueSpan(a) == residueSpan(b);
+  }
+
+  /// The linked residues of a disulfide bond or cross-link: both ends of a &lt;begin&gt;/&lt;end&gt; location,
+  /// or the one residue of a &lt;position&gt; (the partner lies in another molecule).
+  std::vector<int> linkedResidues(const UniProtFeature& f)
+  {
+    if (f.has_position) return {f.position};
+    if (f.has_range) return {f.begin, f.end};
+    return {};
+  }
+
+  /// True if UniProt's own annotation @p own of an isoform contradicts the mapped canonical feature
+  /// @p mapped, so that the isoform's annotation wins (-map_canonical_features): a processed region of
+  /// the same type overlapping it, a disulfide bond sharing a cysteine with it (a cysteine forms one
+  /// disulfide bond), or a cross-link sharing a residue with it if one of the two links two residues of
+  /// the protein (that residue's side chain is taken by the intrachain bond).
+  /// Other annotations on the same residues are compatible and written side by side, as in canonical
+  /// entries: alternative modifications of one residue (e.g. SUMO1 and SUMO2 cross-links of a lysine,
+  /// each given as a single position) and different variants of one residue.
+  bool conflictsWith(const UniProtFeature& mapped, const UniProtFeature& own)
+  {
+    if (mapped.type != own.type) return false;
+    if (isProcessingFeature(mapped.type))
+    {
+      const auto [mb, me] = residueSpan(mapped);
+      const auto [ob, oe] = residueSpan(own);
+      return ob != 0 && oe != 0 && mb <= oe && ob <= me;
+    }
+    const bool bond = mapped.type == "disulfide bond" || (mapped.type == "cross-link" && (mapped.has_range || own.has_range));
+    if (!bond) return false;
+    const std::vector<int> a = linkedResidues(mapped);
+    const std::vector<int> b = linkedResidues(own);
+    return std::any_of(a.begin(), a.end(), [&b](int r) { return r != 0 && std::find(b.begin(), b.end(), r) != b.end(); });
+  }
+
+  /// "12" for a position, "12-30" for a range (the coordinates @p f carries), '?' for an unknown one.
+  std::string residueText(const UniProtFeature& f)
+  {
+    const auto [b, e] = residueSpan(f);
+    return f.has_range ? positionOrUnknown(b) + "-" + positionOrUnknown(e) : positionOrUnknown(b);
+  }
+
   // ──────────────────────────────────────────────────────────────────
   // Feature classifier — mirrors C# FromUniProtXML feature switch
   // ──────────────────────────────────────────────────────────────────
@@ -682,7 +730,7 @@ namespace
 
     // With map_canonical_features: the canonical features that became annotations of the canonical
     // entry (mapped onto each isoform below), and the isoform-scoped features written to each
-    // isoform (a mapped copy of one of them is not written again).
+    // isoform (a mapped copy of one of them is not written again, nor is a mapped one they contradict).
     std::vector<const UniProtFeature*> canonical_annotated;
     std::vector<std::vector<const UniProtFeature*>> isoform_scoped(pe.isoforms.size());
 
@@ -747,10 +795,21 @@ namespace
             continue;
           }
           const auto& scoped = isoform_scoped[i];
-          if (std::any_of(scoped.begin(), scoped.end(),
-                          [&mapped](const UniProtFeature* s) { return sameAnnotationFeature(*s, mapped); }))
+          if (std::any_of(scoped.begin(), scoped.end(), [&mapped](const UniProtFeature* s)
+                          { return sameAnnotationFeature(*s, mapped) || sameGlycosylationSite(*s, mapped); }))
           {
             continue;  // UniProt annotates it on the isoform itself; already written
+          }
+          // UniProt's own annotation of the isoform wins over a mapped one it contradicts
+          auto conflict = std::find_if(scoped.begin(), scoped.end(),
+                                       [&mapped](const UniProtFeature* s) { return conflictsWith(mapped, *s); });
+          if (conflict != scoped.end())
+          {
+            ++pe.canonical_unmapped;
+            OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession << " " << f->type << " " << residueText(mapped)
+                            << " (mapped onto " << iso.accession << ") conflicts with the " << (*conflict)->type << " "
+                            << residueText(**conflict) << " UniProt annotates on that isoform; not mapped.\n";
+            continue;
           }
           classifyAndAppend(mapped, ptms, iso.annotations, record_processing, record_aa_mods,
                             record_variants, iso.accession);

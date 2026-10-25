@@ -106,7 +106,14 @@ disulfide bond or cross-link: on either of its residues) are not mapped, nor are
 regions overlapping a splice variant, except processed regions (chain, propeptide,
 signal and transit peptide): those are clipped to the residues they keep, and one
 reaching the canonical N- or C-terminus reaches the isoform's. A mapped annotation
-that UniProt also annotates on the isoform itself is written once. Disable isoform
+that UniProt also annotates on the isoform itself is written once (a glycosylation:
+if the isoform has one on that residue). Other annotations UniProt makes on the
+isoform on the same residues are written side by side with the mapped ones, as in
+canonical entries (e.g. alternative modifications of one residue, or different
+variants), unless they contradict each other: a processed region of the same type
+overlapping it, a disulfide bond sharing a cysteine, or cross-links sharing a
+residue if one of them links two residues of the protein. Then the isoform's own annotation wins,
+the mapped one is not written, and a warning names the entry. Disable isoform
 expansion with @c -omit_isoforms.
 
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
@@ -835,7 +842,7 @@ protected:
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
     registerFlag_("omit_isoforms", "Skip the additional PEFF entries for UniProt isoforms (alternative products whose sequences are reconstructed from splice-variant features).");
-    registerFlag_("map_canonical_features", "Also annotate each isoform entry with the canonical entry's annotations, mapped to isoform coordinates through its splice variants (UniProt does not assert them for the isoform). Annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are clipped. No effect with -omit_isoforms.");
+    registerFlag_("map_canonical_features", "Also annotate each isoform entry with the canonical entry's annotations, mapped to isoform coordinates through its splice variants (UniProt does not assert them for the isoform). Annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are clipped. UniProt's own annotations of the isoform win over mapped ones they contradict. No effect with -omit_isoforms.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -1120,7 +1127,8 @@ protected:
     if (canonical_mapped_tracker.skipped > 0)
     {
       OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.skipped << " canonical annotation(s) lie in or "
-                         "cross a splice variant of an isoform, or have an unknown position, and were not mapped onto it ("
+                         "cross a splice variant of an isoform, have an unknown position, or contradict an annotation "
+                         "UniProt makes on the isoform, and were not mapped onto it ("
                       << canonical_mapped_tracker.skipped_entries << " entries affected).\n";
     }
     return EXECUTION_OK;

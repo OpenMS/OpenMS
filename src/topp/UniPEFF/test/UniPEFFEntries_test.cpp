@@ -11,6 +11,8 @@
 
 #include "UniPEFFEntries.h"
 
+#include <algorithm>
+
 using namespace OpenMS;
 using namespace OpenMS::UniPEFFEntries;
 
@@ -136,6 +138,38 @@ namespace
                   splice("VSP_023086", 369, 389, "PDVNADIVHWLSWTAQGFLSP", "VTIEIYGCPNICLLIHKCSVY"),
                   splice("VSP_023087", 390, 1052),
                   position("sequence variant", "In dbSNP:rs10010188.", 224, "", "T")};
+    return e;
+  }
+
+  /// P77777 (30 aa) with isoform -2: VSP_A deletes 3-6 (26 aa), so canonical residues 7-30 move by -4.
+  /// Each canonical annotation meets an annotation UniProt makes on the isoform at the same residues:
+  /// compatible ones are written side by side, contradicting ones leave the isoform's own.
+  UniProtEntry conflictingFeatures()
+  {
+    const std::string sumo1 = "Glycyl lysine isopeptide (Lys-Gly) (interchain with G-Cter in SUMO1); alternate";
+    const std::string sumo2 = "Glycyl lysine isopeptide (Lys-Gly) (interchain with G-Cter in SUMO2)";
+    UniProtEntry e;
+    e.dataset = "Swiss-Prot";
+    e.accession = "P77777";
+    e.sequence = "MSEQCKTLDAPGRSTWEVQLKDNACYLRGE";
+    e.isoforms = {isoform("P77777-1", "displayed"), isoform("P77777-2", "described", "VSP_A")};
+    e.features = {position("initiator methionine", "Removed", 1),                            // -> 1
+                  range("chain", "Test protein", 2, 30),                                      // -> 2-26, conflicts
+                  range("chain", "Test protein", 2, 20, "P77777-2"),
+                  range("disulfide bond", "", 11, 25),                                        // -> 7-21, conflicts
+                  range("disulfide bond", "", 7, 14, "P77777-2"),                             // shares C7
+                  range("cross-link", "Isoglutamyl lysine isopeptide (Lys-Gln)", 13, 28),     // -> 9-24, conflicts
+                  range("cross-link", "Isoglutamyl lysine isopeptide (Lys-Gln)", 22, 24, "P77777-2"),
+                  position("cross-link", sumo1, 21),                                          // -> 17, compatible
+                  position("cross-link", sumo2, 17, "P77777-2"),
+                  position("cross-link", sumo1, 26),                         // -> 22, in the isoform's 22-24: conflicts
+                  position("modified residue", "Phosphoserine", 14),                          // -> 10, compatible
+                  position("modified residue", "Phosphothreonine", 10, "P77777-2"),
+                  position("glycosylation site", "N-linked (GlcNAc...) (complex) asparagine", 27),  // -> 23, redundant
+                  position("glycosylation site", "N-linked (GlcNAc...) asparagine", 23, "P77777-2"),
+                  position("sequence variant", "In dbSNP.", 24, "", "V"),                     // -> 20, compatible
+                  position("sequence variant", "In dbSNP.", 20, "P77777-2", "I"),
+                  splice("VSP_A", 3, 6)};
     return e;
   }
 
@@ -304,6 +338,50 @@ START_SECTION(([EXTRA] map_canonical_features: canonical annotations in isoform 
   pe = prepare(canonicalFeatures(), false, skipped, true);
   TEST_EQUAL(pe.isoforms.size(), 0)
   TEST_EQUAL(pe.canonical_mapped, 0)
+  TEST_EQUAL(pe.canonical_unmapped, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] map_canonical_features: annotations UniProt makes on the isoform at the same residues))
+{
+  SkippedIsoformCounts skipped;
+  PreparedEntry pe = prepare(conflictingFeatures(), true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 1)
+  const IsoformEntry& iso = pe.isoforms[0];
+  TEST_EQUAL(iso.sequence, "MSTLDAPGRSTWEVQLKDNACYLRGE")
+  TEST_EQUAL(pe.isoform_scoped_applied, 7)
+  // of 9 canonical annotations: the initiator methionine, the SUMO1 cross-link at 17, the phosphoserine and the
+  // variant are mapped; the chain, the disulfide bond, the cross-link between two residues and the SUMO1 cross-link
+  // at 22 (a lysine of the isoform's cross-link 22-24) contradict the isoform's own and are not; the glycosylation is
+  // already on the isoform (described in less detail) and not written again
+  TEST_EQUAL(pe.canonical_mapped, 4)
+  TEST_EQUAL(pe.canonical_unmapped, 4)
+
+  // only the isoform's chain 2-20, plus the mapped initiator methionine
+  ABORT_IF(iso.annotations.processed.size() != 2)
+  TEST_EQUAL(iso.annotations.processed[0].begin, 2)
+  TEST_EQUAL(iso.annotations.processed[0].end, 20)
+  TEST_EQUAL(iso.annotations.processed[1].begin, 1)
+  TEST_EQUAL(iso.annotations.processed[1].end, 1)
+  // half-cystines 7 and 14 of the isoform's bond only (none at 21); phosphothreonine and phosphoserine at 10;
+  // SUMO2 and SUMO1 at 17; one glycosylation at 23; the isoform's cross-link 22-24 only (none at 9, no SUMO1 at 22)
+  TEST_TRUE(modPositions(iso.annotations) == std::vector<int>({7, 10, 10, 14, 17, 17, 22, 23, 24}))
+  ABORT_IF(iso.annotations.disulfides.size() != 1)
+  TEST_TRUE(iso.annotations.disulfides[0].valid)
+  // R20I annotated on the isoform and the mapped A24V, as two variants of residue 20
+  ABORT_IF(iso.annotations.simple_variants.size() != 2)
+  TEST_EQUAL(iso.annotations.simple_variants[0].position, 20)
+  TEST_EQUAL(iso.annotations.simple_variants[0].new_aa, 'I')
+  TEST_EQUAL(iso.annotations.simple_variants[1].position, 20)
+  TEST_EQUAL(iso.annotations.simple_variants[1].new_aa, 'V')
+
+  // without the isoform's own annotations, all 9 are mapped
+  UniProtEntry plain = conflictingFeatures();
+  plain.features.erase(std::remove_if(plain.features.begin(), plain.features.end(),
+                                      [](const UniProtFeature& f) { return !f.location_sequence.empty(); }),
+                       plain.features.end());
+  pe = prepare(plain, true, skipped, true);
+  TEST_EQUAL(pe.canonical_mapped, 9)
   TEST_EQUAL(pe.canonical_unmapped, 0)
 }
 END_SECTION

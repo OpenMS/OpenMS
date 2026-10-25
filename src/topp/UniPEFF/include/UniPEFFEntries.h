@@ -127,7 +127,8 @@ namespace OpenMS::UniPEFFEntries
     /// -map_canonical_features: canonical annotations written to an isoform entry (counted once per isoform)
     size_t canonical_mapped{0};
     /// -map_canonical_features: canonical annotations not written to an isoform entry because they lie in or
-    /// cross one of its splice variants, or have an unknown position (counted once per isoform)
+    /// cross one of its splice variants, have an unknown position, or contradict an annotation UniProt makes
+    /// on that isoform itself (counted once per isoform)
     size_t canonical_unmapped{0};
     std::string prefix;       ///< sp/tr or user override
     std::vector<IsoformEntry> isoforms;  ///< reconstructed alternative products (emitted after the entry)
@@ -137,7 +138,7 @@ namespace OpenMS::UniPEFFEntries
   /// written (applied) and those left out (skipped). Used for the isoform-scoped features (skipped:
   /// the isoform is not written: external, not described, not reconstructable, or -omit_isoforms)
   /// and for the canonical features mapped with -map_canonical_features (skipped: in or across a
-  /// splice variant, or unknown position).
+  /// splice variant, unknown position, or contradicted by the isoform's own annotation).
   struct IsoformScopedTracker
   {
     size_t applied{0};
@@ -167,7 +168,10 @@ namespace OpenMS::UniPEFFEntries
   /// are also mapped onto each isoform through its splice variants: features in a deleted or
   /// replaced region, or regions overlapping one, are not mapped (processed regions are clipped
   /// to the residues they keep), and a copy of a feature UniProt annotates on that isoform itself
-  /// is not added again. Then, per entry, merge halfcys, drop disulfide pairs with out-of-range
+  /// (for a glycosylation: any on that residue) is not added again. UniProt's own isoform annotation
+  /// also wins over a mapped one it contradicts (same-type processed regions that overlap, a disulfide
+  /// bond sharing a cysteine, cross-links sharing a residue if one links two residues): the mapped one is
+  /// not added and a warning is logged. Then, per entry, merge halfcys, drop disulfide pairs with out-of-range
   /// endpoints and stamp annotation IDs (global in Option B, selective disulfide labels otherwise).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
