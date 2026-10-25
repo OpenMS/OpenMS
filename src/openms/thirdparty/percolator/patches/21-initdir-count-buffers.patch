@@ -19,7 +19,7 @@ index ab7546ea89..ed29053644 100644
    for (std::ptrdiff_t k = 0; k < numRows; ++k) {
      std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 653b2cdf43..35457c6f7e 100644
+index 653b2cdf43..88ebe5a701 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -25,6 +25,7 @@
@@ -30,7 +30,7 @@ index 653b2cdf43..35457c6f7e 100644
  #include <set>
  #include <sstream>
  #include <string>
-@@ -1147,6 +1148,15 @@ void Scores::weedOutRedundantMixMax() {
+@@ -1147,6 +1148,46 @@ void Scores::weedOutRedundantMixMax() {
  int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
                                 double fdr, bool skipDecoysPlusOne) const {
    std::vector<double> qvals;
@@ -40,13 +40,44 @@ index 653b2cdf43..35457c6f7e 100644
 +int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
 +                                  double fdr, bool skipDecoysPlusOne,
 +                                  std::vector<double>& qvals) const {
++  // Without the mix-max correction (pi0 not below 1), getQValues gives every PSM of a group of equal scores the
++  // minimum of min(FDR, 1) at the ends of its group and of the groups after it (FDR = decoys * pi0 / max(1, targets)
++  // * decoyFactor, counted from the top as below). So q < fdr exactly for the PSMs up to the end of the last group
++  // with min(FDR, 1) < fdr, and the count is the number of targets up to there: walked without the q-values
++  // (as countPositivesOfTop). A NaN FDR (which the minimum does not order) uses getQValues.
++  if (!(pi0_ < 1.0)) {
++    const double pi0 = pi0_;
++    const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
++    PosteriorEstimator::setNegative(true);  // as below
++    int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;
++    int numPos = 0;
++    bool nanFdr = false;
++    const std::size_t n = combined.size();
++    for (std::size_t i = 0; i < n; ++i) {
++      if (combined[i].second) {
++        ++n_w_ge_w;
++      } else {
++        ++n_z_ge_w;
++      }
++      if (i + 1 == n || combined[i].first != combined[i + 1].first) {
++        const double groupFdr = (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
++        const double q = (std::min)(groupFdr, 1.0);
++        if (std::isnan(q)) {
++          nanFdr = true;
++          break;
++        }
++        if (q < fdr) numPos = n_w_ge_w;
++      }
++    }
++    if (!nanFdr) return numPos;
++  }
 +  // (one q-value per pair: room for all of them at once, instead of growing while they are added)
 +  qvals.clear();
 +  qvals.reserve(combined.size());
    PosteriorEstimator::setNegative(true);  // also get q-values for decoys
    PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
                                   nullTargetWinProb_);
-@@ -1204,6 +1214,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1204,6 +1245,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
      };
      // the keys after the sort of each feature (until its count), and the labels
      std::vector<std::unique_ptr<ChainKey[]> > keysOfFeature(numFeatures);
@@ -64,7 +95,7 @@ index 653b2cdf43..35457c6f7e 100644
      std::vector<char> isTarget(n);
      // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
      // (each key is written once, so the order of the blocks does not matter)
-@@ -1241,6 +1262,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1241,6 +1293,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
          // written there, so the array is not zero-filled first)
          // (a block of PSMs per task, column by column: consecutive writes)
          const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
@@ -72,7 +103,7 @@ index 653b2cdf43..35457c6f7e 100644
          const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
          const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
  #pragma omp taskloop grainsize(1) shared(columns, isTarget)
-@@ -1274,25 +1296,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+@@ -1274,25 +1327,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
              return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
            });
            {

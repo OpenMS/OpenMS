@@ -389,7 +389,9 @@ hand-editing sources and committing them, to keep sync self-healing.
   for all q-values at once, so the 2 x 30 counts of a fold reuse memory instead of new pages
   for every feature; the large buffers of the initial direction (the feature columns, the snapshots,
   the pairs) are advised for transparent huge pages (`adviseHugePages`, ssl.h), as is the copy buffer of
-  `FeatureMemoryPool::moveRowsInOrder`. No change of results.
+  `FeatureMemoryPool::moveRowsInOrder`. Without the mix-max correction (pi0 not below 1),
+  `countPositivesOfPairs` counts the positives in one walk over the groups of equal scores (as
+  `countPositivesOfTop`) instead of computing all q-values. No change of results.
   (Numbered 21 because two parallel branches each added a patch 20; renumber at integration.)
 
 ### Regenerating the patch

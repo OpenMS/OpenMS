@@ -1154,6 +1154,37 @@ int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combin
 int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
                                   double fdr, bool skipDecoysPlusOne,
                                   std::vector<double>& qvals) const {
+  // Without the mix-max correction (pi0 not below 1), getQValues gives every PSM of a group of equal scores the
+  // minimum of min(FDR, 1) at the ends of its group and of the groups after it (FDR = decoys * pi0 / max(1, targets)
+  // * decoyFactor, counted from the top as below). So q < fdr exactly for the PSMs up to the end of the last group
+  // with min(FDR, 1) < fdr, and the count is the number of targets up to there: walked without the q-values
+  // (as countPositivesOfTop). A NaN FDR (which the minimum does not order) uses getQValues.
+  if (!(pi0_ < 1.0)) {
+    const double pi0 = pi0_;
+    const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
+    PosteriorEstimator::setNegative(true);  // as below
+    int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;
+    int numPos = 0;
+    bool nanFdr = false;
+    const std::size_t n = combined.size();
+    for (std::size_t i = 0; i < n; ++i) {
+      if (combined[i].second) {
+        ++n_w_ge_w;
+      } else {
+        ++n_z_ge_w;
+      }
+      if (i + 1 == n || combined[i].first != combined[i + 1].first) {
+        const double groupFdr = (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
+        const double q = (std::min)(groupFdr, 1.0);
+        if (std::isnan(q)) {
+          nanFdr = true;
+          break;
+        }
+        if (q < fdr) numPos = n_w_ge_w;
+      }
+    }
+    if (!nanFdr) return numPos;
+  }
   // (one q-value per pair: room for all of them at once, instead of growing while they are added)
   qvals.clear();
   qvals.reserve(combined.size());
