@@ -31,6 +31,7 @@
 #include <cstring>
 #include <exception>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -254,15 +255,17 @@ Percolator::Percolator()
                      "spectra; the validation spectra (the end of the random order, at most subset_curve_validation rows "
                      "and 20 % of the rows) are never trained on. Fold k's model is measured by the targets at q <= "
                      "train_fdr among the validation spectra of the OTHER folds; fold k stops at the first doubling that "
-                     "adds less than subset_curve_min_gain (relative) and keeps that model. Every row is scored by its "
-                     "fold's model, as 'out_of_fold'. Inert with at most subset_curve_start rows.",
+                     "adds less than max(subset_curve_min_gain (relative), 2 standard errors of the paired difference "
+                     "(sqrt of the validation targets accepted by only one of the two models)) and keeps that model; a "
+                     "stopped fold is not trained further. Every row is scored by its fold's model, as 'out_of_fold'. "
+                     "Inert with at most subset_curve_start rows.",
                      {"advanced"});
   defaults_.setMinInt("subset_curve_start", 1);
   defaults_.setValue("subset_curve_min_gain", 0.002, "subset_mode 'learning_curve': see subset_curve_start.", {"advanced"});
   defaults_.setMinFloat("subset_curve_min_gain", 0.0);
   defaults_.setValue("subset_curve_validation", 250000, "subset_mode 'learning_curve': see subset_curve_start.", {"advanced"});
   defaults_.setMinInt("subset_curve_validation", 1);
-  defaults_.setValue("subset_curve_max", 4000000,
+  defaults_.setValue("subset_curve_max", 1000000,
                      "subset_mode 'learning_curve': largest sample if subset_max_train is 0 (0 = all rows).", {"advanced"});
   defaults_.setMinInt("subset_curve_max", 0);
 
@@ -1002,9 +1005,10 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 }
 
 // The learning curve's measure: the targets at q <= fdr among @p rows scored by @p w (raw feature space, bias last),
-// with q = (decoys + 1) / targets (Percolator's convention), ties ordered decoys first, then by row.
-static size_t countAcceptedTargets_(const RescoreInput& input, const std::vector<size_t>& rows,
-                                    const std::vector<double>& w, double fdr)
+// with q = (decoys + 1) / targets (Percolator's convention), ties ordered decoys first, then by row; returns their
+// rows, ascending.
+static std::vector<size_t> acceptedTargets_(const RescoreInput& input, const std::vector<size_t>& rows,
+                                           const std::vector<double>& w, double fdr)
 {
   const size_t n_feat = input.featureCount();
   struct Scored
@@ -1035,13 +1039,14 @@ static size_t countAcceptedTargets_(const RescoreInput& input, const std::vector
     ++(scored[k].decoy ? decoys : targets);
     fdp[k] = static_cast<double>(decoys + 1) / static_cast<double>(std::max<size_t>(targets, 1));
   }
-  size_t accepted = 0;
+  std::vector<size_t> accepted;
   double q = std::numeric_limits<double>::infinity();
   for (size_t k = scored.size(); k-- > 0;)
   {
     q = std::min(q, fdp[k]);
-    if (!scored[k].decoy && q <= fdr) ++accepted;
+    if (!scored[k].decoy && q <= fdr) accepted.push_back(scored[k].row);
   }
+  std::sort(accepted.begin(), accepted.end());
   return accepted;
 }
 
@@ -1138,6 +1143,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // sets), as a function: the learning-curve mode trains on several nested samples. all_scores: the merged test sets
   // of the cross-validation (the scores of the uncapped and in_sample paths).
   P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
+  std::vector<char> active_folds; // learning curve: the folds still trained (empty: all)
   struct Trained
   {
     std::vector<double> avg_weights;               // Percolator's average of the fold models (raw feature space)
@@ -1268,6 +1274,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   {
     cv.setFixedFolds([&row_of_psm, &oof](const P::PSMDescription& psm)
                      { return static_cast<unsigned int>(oof.fold[row_of_psm.at(&psm)]); });
+    cv.setActiveFolds(active_folds);
   }
 
   std::vector<double>& avg_weights = trained.avg_weights;
@@ -1352,6 +1359,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     trained.reset_folds.assign(num_folds, 0);
     std::vector<char> stopped(num_folds, 0);
     std::vector<long> previous(num_folds, -1);
+    std::vector<std::vector<size_t>> previous_accepted(num_folds);
     const P::OutOfFoldSample folds = oof;
     for (size_t size : sizes)
     {
@@ -1372,25 +1380,39 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       }
       impl_->reset();
       P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
+      // only the folds that have not stopped are trained (each fold's chain is independent of the others')
+      active_folds.assign(stopped.size(), 0);
+      for (unsigned int f = 0; f < num_folds; ++f) active_folds[f] = stopped[f] ? 0 : 1;
       Trained at_size = train_rows(oof.sampled_rows);
+      active_folds.clear();
       info.curve_sizes.push_back(oof.sampled_rows.size());
       info.curve_counts.emplace_back(num_folds, -1);
+      info.curve_discordant.emplace_back(num_folds, -1);
       for (unsigned int f = 0; f < num_folds; ++f)
       {
         if (stopped[f]) continue;
-        const long count = static_cast<long>(
-          countAcceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], impl_->train_fdr));
+        std::vector<size_t> accepted =
+          acceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], impl_->train_fdr);
+        const long count = static_cast<long>(accepted.size());
         info.curve_counts.back()[f] = count;
         trained.fold_weights[f] = std::move(at_size.fold_weights[f]);
         trained.trained_rows[f] = std::move(at_size.trained_rows[f]);
         trained.reset_folds[f] = at_size.reset_folds[f];
         info.chosen_size[f] = oof.sampled_rows.size();
-        if (previous[f] >= 0 &&
-            static_cast<double>(count - previous[f]) < impl_->subset_curve_min_gain * static_cast<double>(std::max(previous[f], 1L)))
+        if (previous[f] >= 0)
         {
-          stopped[f] = 1;
+          // the paired difference's standard error: sqrt(discordant validation targets), McNemar (both counts are on
+          // the same validation spectra)
+          std::vector<size_t> discordant;
+          std::set_symmetric_difference(accepted.begin(), accepted.end(), previous_accepted[f].begin(),
+                                        previous_accepted[f].end(), std::back_inserter(discordant));
+          info.curve_discordant.back()[f] = static_cast<long>(discordant.size());
+          const double needed = std::max(impl_->subset_curve_min_gain * static_cast<double>(std::max(previous[f], 1L)),
+                                         2.0 * std::sqrt(static_cast<double>(discordant.size())));
+          if (static_cast<double>(count - previous[f]) < needed) stopped[f] = 1;
         }
         previous[f] = count;
+        previous_accepted[f] = std::move(accepted);
       }
       OPENMS_LOG_INFO << "Percolator: learning curve: " << oof.sampled_rows.size() << " PSMs: validation targets "
                       << info.curve_counts.back()[0] << ", " << info.curve_counts.back()[1] << ", "

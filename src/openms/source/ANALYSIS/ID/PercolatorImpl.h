@@ -68,7 +68,7 @@ namespace OpenMS
     int    subset_curve_start = 100000;
     double subset_curve_min_gain = 0.002;
     int    subset_curve_validation = 250000;
-    int    subset_curve_max = 4000000;
+    int    subset_curve_max = 1000000;
     /// Out-of-fold capped training of the last rescore() (empty otherwise).
     Percolator::CappedTrainingInfo capped_info;
     double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)

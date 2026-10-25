@@ -389,7 +389,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   outer split (nested sets are still drawn, each fold from a generator state of its own per step)
   and makes `initializeGridSearch` take each fold's Cneg
   candidates from its own training set's target/decoy ratio (`mergeCpCnPairs`' nested path looks
-  them up per fold); `getTrainingPsms` returns a fold's training PSMs. Without fixed folds (the
+  them up per fold); `getTrainingPsms` returns a fold's training PSMs; `setActiveFolds` lets `trainFoldChains`
+  skip folds (the learning curve's stopped folds). Without fixed folds (the
   default) nothing changes.
 
 ### Regenerating the patch

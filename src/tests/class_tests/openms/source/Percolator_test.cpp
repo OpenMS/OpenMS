@@ -506,8 +506,10 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
       std::size_t keep = lc.curve_sizes.size() - 1;
       for (std::size_t k = 1; k < lc.curve_sizes.size(); ++k)
       {
-        const long before = lc.curve_counts[k - 1][f], now = lc.curve_counts[k][f];
-        if (static_cast<double>(now - before) < 0.002 * static_cast<double>(std::max(before, 1L))) { keep = k; break; }
+        const long before = lc.curve_counts[k - 1][f], now = lc.curve_counts[k][f], d = lc.curve_discordant[k][f];
+        rule = rule && d >= std::abs(now - before); // the discordant targets bound the change of the count
+        if (static_cast<double>(now - before) <
+            std::max(0.002 * static_cast<double>(std::max(before, 1L)), 2.0 * std::sqrt(static_cast<double>(d)))) { keep = k; break; }
       }
       rule = rule && lc.chosen_size[f] == lc.curve_sizes[keep];
       for (std::size_t k = keep + 1; k < lc.curve_sizes.size(); ++k) rule = rule && lc.curve_counts[k][f] == -1;

@@ -286,6 +286,8 @@ namespace OpenMS
       size_t validation_rows = 0;                     ///< rows of the validation spectra (never trained on)
       std::vector<size_t> curve_sizes;                ///< training-sample rows of each trained size, in order
       std::vector<std::vector<long>> curve_counts;    ///< per size and fold: validation targets (-1: fold had stopped)
+      std::vector<std::vector<long>> curve_discordant; ///< per size and fold: validation targets accepted by only one of
+                                                       ///< this and the previous size's models (-1: none compared)
       std::vector<size_t> chosen_size;                ///< per fold: the sample rows of its kept model
     };
 

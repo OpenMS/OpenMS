@@ -417,10 +417,10 @@ namespace OpenMS
                        "all PSMs scored by the average of the fold models (the sampled PSMs by two models that trained on "
                        "them). 'learning_curve' (also without a cap): out-of-fold training on nested samples of "
                        "'rescoring:curve_start', twice, four times ... as many PSMs, up to 'rescoring:subset_max_train' (0: "
-                       "4,000,000) or the whole run but the validation spectra (the end of the random order, at most "
+                       "1,000,000) or the whole run but the validation spectra (the end of the random order, at most "
                        "250,000 PSMs or 20 %); each fold's model stops at the first doubling that adds less than "
-                       "'rescoring:curve_min_gain' targets at 1 % among the validation spectra of the other folds (no label "
-                       "of its own fold is used); every PSM is scored by its fold's model. The sizes and the curve are "
+                       "'rescoring:curve_min_gain' or 2 standard errors of targets at 1 % among the validation spectra of the "
+                       "other folds (no label of its own fold is used), and is not trained further; every PSM is scored by its fold's model. The sizes and the curve are "
                        "recorded as Percolator:subset_curve.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:subset_mode", {"out_of_fold", "out_of_fold_avg", "in_sample", "learning_curve"});

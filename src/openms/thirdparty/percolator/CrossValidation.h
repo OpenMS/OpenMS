@@ -99,6 +99,10 @@ class CrossValidation {
   void setFixedFolds(std::function<unsigned int(const PSMDescription&)> foldOfPsm) {
     fixedFold_ = std::move(foldOfPsm);
   }
+  // OpenMS (learning curve): train only the folds marked active (empty: all). Applies without
+  // nested cross-validation (trainFoldChains); an inactive fold keeps its initial weights and its
+  // model is not to be used.
+  void setActiveFolds(std::vector<char> active) { activeFolds_ = std::move(active); }
   // OpenMS: the PSMs of the training set of fold set (after preIterationSetup)
   void getTrainingPsms(std::size_t set,
                        std::vector<const PSMDescription*>& psms) const;
@@ -162,6 +166,8 @@ class CrossValidation {
   bool trainScoresOfWeights_ = false;
   // OpenMS: see setFixedFolds (empty: the folds are drawn)
   std::function<unsigned int(const PSMDescription&)> fixedFold_;
+  // OpenMS: see setActiveFolds
+  std::vector<char> activeFolds_;
   // OpenMS: with fixed folds, the generator state the nested sets of each fold and step are drawn
   // from derives from this state (at preIterationSetup) and the number of steps (see doStep)
   uint64_t nestedSeedBase_ = 0;

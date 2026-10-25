@@ -434,6 +434,8 @@ void CrossValidation::trainFoldChains() {
 #pragma omp single
 #pragma omp taskloop grainsize(1)
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+    // OpenMS: a fold set inactive (setActiveFolds) is not trained; its weights stay the initial ones
+    if (!activeFolds_.empty() && !activeFolds_[static_cast<std::size_t>(set)]) continue;
     unsigned int step = 0;
     int stage = 0;
     // the feature rows of the training set (its PSMs and labels do not change during the training;
