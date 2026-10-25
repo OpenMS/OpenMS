@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <string_view>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -540,11 +542,23 @@ namespace OpenMS
     char aa_before = hit.getPeptideEvidences().front().getAABefore();
     char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
 
-    const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+    // The modifier "+termini" (e.g. "trypsinp+termini"): OpenMS' protein-terminus marks '[' and ']' are
+    // Percolator's '-', which isEnz_ counts as an enzymatic site. Without it they are compared as residues
+    // (the former features: enzN = 0 at a protein N-terminus, enzC = 0 at a C-terminus not after a
+    // cleavage residue).
+    static constexpr std::string_view termini_modifier = "+termini";
+    const bool termini = enz.size() > termini_modifier.size()
+                         && std::string_view(enz).substr(enz.size() - termini_modifier.size()) == termini_modifier;
+    const std::string termini_enz = termini ? enz.substr(0, enz.size() - termini_modifier.size()) : std::string();
+    const std::string& enzyme = termini ? termini_enz : enz;
+    const char n_site = termini && aa_before == '[' ? '-' : aa_before;
+    const char c_site = termini && aa_after == ']' ? '-' : aa_after;
+
+    const bool enzN = isEnz_(n_site, StringUtils::prefix(unmodified_sequence, 1)[0], enzyme);
     put(PIN_ENZ_N, enzN);
-    const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
+    const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], c_site, enzyme);
     put(PIN_ENZ_C, enzC);
-    put(PIN_ENZ_INT, static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
+    put(PIN_ENZ_INT, static_cast<int>(countEnzymatic_(unmodified_sequence, enzyme)));
 
     put(PIN_DM, delta_mass);
     put(PIN_ABSDM, std::abs(delta_mass));
