@@ -834,6 +834,52 @@ START_SECTION(([EXTRA] store and load a PeptideHit with an empty sequence))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] store and load a PeptideHit with a C-terminal modification))
+{
+  // mzIdentML puts a C-terminal modification at location length + 1; length is the last residue
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), protein_ids, peptide_ids);
+  ABORT_IF(peptide_ids.empty() || peptide_ids[0].getHits().empty())
+
+  PeptideHit cterm_hit(0.5, 3, 2, AASequence::fromString("PEPTIDEK.(Methyl)"));
+  cterm_hit.setPeptideEvidences(peptide_ids[0].getHits()[0].getPeptideEvidences());
+  peptide_ids[0].insertHit(cterm_hit);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  TextFile stored;
+  stored.load(filename, true);
+  bool c_term_location = false, last_residue_location = false;
+  for (const std::string& line : stored)
+  {
+    if (line == "<Modification location=\"9\">") c_term_location = true;
+    if (line == "<Modification location=\"8\">") last_residue_location = true;
+  }
+  TEST_EQUAL(c_term_location, true)
+  TEST_EQUAL(last_residue_location, false)
+
+  std::vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+  Size n_found = 0;
+  for (const PeptideIdentification& pid : peptide_ids2)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      if (hit.getSequence().toUnmodifiedString() == "PEPTIDEK")
+      {
+        ++n_found;
+        TEST_STRING_EQUAL(hit.getSequence().toString(), "PEPTIDEK.(Methyl)")
+      }
+    }
+  }
+  TEST_EQUAL(n_found, 1)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] score selection with Comet:expectation value and PSM-level q-value))
 {
   // Comet:expectation value (MS:1002257) is lower-is-better and must not displace a PSM-level q-value.
