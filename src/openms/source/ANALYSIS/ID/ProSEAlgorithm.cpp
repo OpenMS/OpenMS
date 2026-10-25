@@ -426,6 +426,27 @@ namespace OpenMS
                        "three by cross-validation (faster; the results differ).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:single_cneg", {"true", "false"});
+    defaults_.setValue("rescoring:best_positive", "first",
+                       "Which PSM of a spectrum Percolator's training takes as the positive candidate (ProSE trains on one "
+                       "PSM per spectrum). 'first' (default, as the percolator executable with --train-best-positive): the "
+                       "first one an unstable sort by spectrum leaves, often not the best-scoring of the reported hits, so "
+                       "that most positives are missing from the training; 'score': the best-scoring one (more PSMs at the "
+                       "same FDR on the benchmark files; the results differ).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:best_positive", {"first", "score"});
+    defaults_.setValue("rescoring:use_pi0", "true",
+                       "Percolator's q-values and PEPs with its pi0 estimate (default) or with pi0 = 1, as the percolator "
+                       "executable computes them with target-decoy competition (-Y). 'false' gives slightly fewer PSMs and "
+                       "a lower measured false discovery proportion; the results differ.",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:use_pi0", {"true", "false"});
+    defaults_.setValue("rescoring:fixed_enzyme_termini", "false",
+                       "A protein terminus counts as an enzymatic site for the enzN/enzC features of the rescoring and of "
+                       "'-out_pin' (Percolator's convention). Default 'false' keeps the former features, in which a peptide "
+                       "at a protein N-terminus has enzN = 0 and one at a protein C-terminus that does not end in a "
+                       "cleavage residue has enzC = 0; the results differ.",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:fixed_enzyme_termini", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
     defaults_.setValue("rescore_method", "percolator",
                        "With 'rescore': 'percolator' = Percolator's PSM-level FDR (default); 'reset' = Percolator-RESET "
@@ -835,6 +856,9 @@ namespace OpenMS
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
     percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     percolator_training_.solver = param_.getValue("rescore_solver").toString();
+    percolator_training_.best_positive_by_score = param_.getValue("rescoring:best_positive").toString() == "score";
+    percolator_training_.use_pi0 = param_.getValue("rescoring:use_pi0").toString() == "true";
+    percolator_training_.fixed_enzyme_termini = param_.getValue("rescoring:fixed_enzyme_termini").toString() == "true";
     percolator_extra_ = Param();
     if (param_.getValue("rescore_method").toString() == "reset")
     {
@@ -4559,11 +4583,20 @@ namespace OpenMS
       // results do not depend on the threads
       pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 128));
       pp.setValue("solver", training.solver);
+      pp.setValue("best_positive", training.best_positive_by_score ? "score" : "first");
+      pp.setValue("use_pi0", training.use_pi0 ? "true" : "false");
       for (auto it = extra.begin(); it != extra.end(); ++it)
       {
         pp.setValue(it.getName(), it->value);
       }
       return pp;
+    }
+
+    // The enzyme name of the PIN features of the rescoring: Percolator's name of the search's enzyme, with
+    // PercolatorInfile's "+termini" modifier for 'rescoring:fixed_enzyme_termini'.
+    std::string rescoringEnzyme(const std::string& enzyme, const ProSEAlgorithm::PercolatorTraining& training)
+    {
+      return ProSEAlgorithm::pinEnzymeName(enzyme) + (training.fixed_enzyme_termini ? "+termini" : "");
     }
 
     // The standard PIN features, the search engine's own features, and the bookkeeping columns.
@@ -4693,7 +4726,7 @@ namespace OpenMS
     model->max_charge = max_charge;
     const ProteinIdentification::SearchParameters& sp = used.front()->protein_ids->front().getSearchParameters();
     const StringList feature_set = rescoringFeatureSet(sp, min_charge, max_charge);
-    const std::string enzyme = ProSEAlgorithm::pinEnzymeName(sp.digestion_enzyme.getName());
+    const std::string enzyme = rescoringEnzyme(sp.digestion_enzyme.getName(), percolator_training_);
 
     // The training PSMs of a half: max_train shared equally by the files, a file with fewer PSMs gives all of them (the
     // hits of a spectrum count, as an estimate of its feature rows).
@@ -5058,12 +5091,12 @@ namespace OpenMS
       // (only the best hit of each spectrum is kept below: the others need no Percolator meta values)
       if (reuse == nullptr)
       {
-        perc.rescorePSMs(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()),
+        perc.rescorePSMs(peptide_ids, feature_set, rescoringEnzyme(sp.digestion_enzyme.getName(), training),
                          min_charge, max_charge, "q-value", /*best_hit_only=*/true);
       }
       else
       {
-        perc.rescorePSMsWithScorer(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()),
+        perc.rescorePSMsWithScorer(peptide_ids, feature_set, rescoringEnzyme(sp.digestion_enzyme.getName(), training),
                                    min_charge, max_charge, "q-value", reuse->scorer, /*best_hit_only=*/true);
       }
     }

@@ -167,6 +167,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "tron"; ///< Percolator's SVM solver (parameter 'rescore_solver')
+      bool best_positive_by_score = false; ///< train on the best-scoring PSM of each spectrum ('rescoring:best_positive' score)
+      bool use_pi0 = true;         ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0'; the executable with TDC: false)
+      bool fixed_enzyme_termini = false; ///< protein termini are enzymatic sites for enzN/enzC ('rescoring:fixed_enzyme_termini')
     };
 
     /**

@@ -433,7 +433,10 @@ class ProSE :
           else
           {
             const auto& sp = result.protein_ids.front().getSearchParameters();
-            const std::string enz_str = ProSEAlgorithm::pinEnzymeName(sp.digestion_enzyme.getName());
+            // (with 'rescoring:fixed_enzyme_termini', as the rescoring computes enzN/enzC)
+            const std::string enz_str = ProSEAlgorithm::pinEnzymeName(sp.digestion_enzyme.getName())
+                                        + (search_params.getValue("rescoring:fixed_enzyme_termini").toString() == "true"
+                                             ? "+termini" : "");
             const auto colon = sp.charges.find(':');
             const int min_charge = (colon != std::string::npos)
                                      ? StringUtils::toInt32(sp.charges.substr(0, colon))
