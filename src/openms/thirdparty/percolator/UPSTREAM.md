@@ -401,6 +401,11 @@ hand-editing sources and committing them, to keep sync self-healing.
   training PSMs in one block that it owns and destroys, gives each the pool row that the k-th
   `allocate()` would have returned, and registers them in the same order. No change of results.
   (22 is used by a parallel branch; renumber at integration.)
+- `patches/29-normalize-row-blocks.patch` — `Normalizer::normalizeRowsByFeature` applies the
+  normalisation by static blocks of rows (each row's features together) instead of by feature
+  (each thread walking a column through all rows); every value is computed by the same expression.
+  The statistics are unchanged. No change of results. (Numbered 29: 22 and 24-28 are cvmem's; int14 renumbers at integration.)
+
 ### Regenerating the patch
 
 Whenever you hand-fix a downstream issue in the vendored tree, capture it in
