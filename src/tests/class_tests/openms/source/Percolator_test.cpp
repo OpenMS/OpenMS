@@ -448,6 +448,26 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
       }
     }
     TEST_TRUE(by_scorer)
+    // relabelling rows of unsampled spectra changes none of the four models
+    {
+      std::vector<bool> labels = input.is_decoy;
+      for (std::size_t s = 0; s < n_spectra; s += 3)
+      {
+        if (!info_avg.sampled[2 * s]) input.is_decoy[2 * s] = true;
+      }
+      std::vector<std::vector<double>> weights_relabel;
+      run("out_of_fold_avg", static_cast<int>(cap), 17, 8, "false", nullptr, &weights_relabel);
+      input.is_decoy = labels;
+      bool unchanged = weights_relabel.size() == 4;
+      for (std::size_t g = 0; unchanged && g < 4; ++g)
+      {
+        for (std::size_t j = 0; j < weights_avg[g].size(); ++j)
+        {
+          unchanged = unchanged && std::fabs(weights_relabel[g][j] - weights_avg[g][j]) <= 1e-9 * (1.0 + std::fabs(weights_avg[g][j]));
+        }
+      }
+      TEST_TRUE(unchanged)
+    }
     // the sampled rows' scores (up to each scorer's rescaling) are those of out_of_fold: same fold models
     bool same_fold_models = true;
     for (int f = 0; f < 3; ++f)

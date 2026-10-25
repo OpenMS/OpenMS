@@ -79,8 +79,9 @@ namespace
   private:
     // Per fold, as validateDirection() for all: the learned weights are replaced by the fold's default direction
     // (getDefaultDirection: from its training set) if they find fewer targets at q < test_fdr on the fold's training
-    // set than the default direction does, or give the initial direction's feature the wrong sign. The test sets
-    // are not scored (their merge is not used); returns true.
+    // set than the default direction does, or give the initial direction's feature the wrong sign; the test set of a
+    // replaced model is scored again (for the merge), its labels decide nothing. getInitDirection's count over the
+    // test sets (initPositives_) is not used here. Returns true.
     bool validateFolds_(std::vector<std::vector<double>>& w)
     {
       std::vector<std::vector<double>> w0(w.size(), std::vector<double>(w.empty() ? 0 : w[0].size(), 0.0));
@@ -103,6 +104,9 @@ namespace
                     << test_fdr_ << ") is replaced by the default direction (" << initial << ")." << std::endl;
           w[set] = w0[set];
           used_default_direction = true;
+          // the CV merge rescales each model by its test set's scores (getAvgWeights averages the rescaled models):
+          // score the test set with the replacement (the saved fold models below do not depend on this)
+          (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
         }
       }
       validated_weights = w;
@@ -230,7 +234,8 @@ Percolator::Percolator()
                      "scored by the model of its fold only; the folds' scores are merged as in the cross-validation "
                      "(rescaled per fold). 'out_of_fold_avg': as 'out_of_fold', but the rows of the spectra that are NOT "
                      "in the sample, which no model has seen, are scored by the average of the fold models (as "
-                     "'in_sample' scores them); the sampled rows only by their own fold's model. Both are out-of-sample "
+                     "'in_sample' scores them; with fewer than 100 targets or decoys there, by their folds' models); "
+                     "the sampled rows only by their own fold's model. Both are out-of-sample "
                      "for every row, and the targets and decoys of a spectrum always share their scorer (a spectrum is "
                      "sampled or not as a whole); the four scorers' scores are merged as the folds' (rescaled per "
                      "scorer). Out-of-fold modes: the model of a fold is also checked (sanity check against the default "
@@ -1200,7 +1205,14 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       info.sampled.assign(n_rows, 0);
       for (size_t i : training_rows) info.sampled[i] = 1;
       scorer_of_row.assign(oof.fold.begin(), oof.fold.end());
-      if (impl_->subset_oof_avg)
+      size_t unsampled_targets = 0, unsampled_decoys = 0;
+      for (size_t i = 0; i < n_rows; ++i)
+      {
+        if (!info.sampled[i]) ++(input.is_decoy[i] ? unsampled_decoys : unsampled_targets);
+      }
+      // (a scorer needs enough targets and decoys for its rescaling at train_fdr; a small remainder of unsampled rows
+      // stays with the fold scorers)
+      if (impl_->subset_oof_avg && unsampled_targets >= 100 && unsampled_decoys >= 100)
       {
         // the unsampled rows (no model saw their spectra): the average of the fold models, as in_sample scores them
         // (getAvgWeights: each fold model rescaled by its sampled test set first, as Percolator averages them)
@@ -1251,8 +1263,9 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       std::vector<double> scores(n_rows);
       std::exception_ptr score_error;
       size_t score_error_row = n_rows;
+      int score_threads = std::max(1, impl_->num_threads);
 #ifdef _OPENMP
-      const int score_threads = std::max(1, std::min(impl_->num_threads, omp_get_max_threads()));
+      score_threads = std::min(score_threads, omp_get_max_threads());
 #endif
 #pragma omp parallel for schedule(dynamic, 4096) num_threads(score_threads)
       for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)

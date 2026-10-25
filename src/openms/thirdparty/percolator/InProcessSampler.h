@@ -81,10 +81,10 @@ struct OutOfFoldSample
 /// sampled together. Each spectrum gets a 64-bit priority and a fold from a hash of (@p seed, spec_file, scan): the
 /// draw depends neither on the order of the rows nor on the threads. The sample is the spectra of the lowest priorities
 /// (ties by spec_file, scan) for as long as their rows fit into @p max_train (it stops at the first spectrum that does
-/// not fit): a random-priority prefix of the spectra within a row budget. Every spectrum before the boundary is drawn
-/// with the same probability whatever its size; only the spectrum at the boundary depends on size (a spectrum larger
-/// than the remaining budget ends the sample, so the sample may hold fewer rows than @p max_train, by less than one
-/// spectrum's rows), which matters only when spectra are not small against the cap. The cap is global (one
+/// not fit): a random-priority prefix of the spectra within a row budget. The inclusion probability depends on a
+/// spectrum's size only through the boundary (a spectrum larger than the remaining budget ends the sample, so the
+/// sample may hold fewer rows than @p max_train, by less than one spectrum's rows), which matters only when spectra are
+/// not small against the cap. The cap is global (one
 /// sample for the cross-validation, as Percolator's --subset-max-train): each fold's model trains on the sampled
 /// spectra of the other folds (about 2/3 of the sample).
 ///
