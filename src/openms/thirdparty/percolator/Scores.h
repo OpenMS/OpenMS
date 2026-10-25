@@ -88,7 +88,7 @@ class Scores {
   // OpenMS: see Scores.cpp
   int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
   // OpenMS: see Scores.cpp
-  bool strictlySortedByScore() const;
+  bool sortedUpToInterchangeable() const;
   // OpenMS: see Scores.cpp
   int countPositives(const std::vector<double>& w, double fdr,
                      bool skipDecoysPlusOne = false) const;
