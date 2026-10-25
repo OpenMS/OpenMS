@@ -34,6 +34,7 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <new>
 #include <numeric>
 #include <queue>
 #include <set>
@@ -51,6 +52,8 @@ namespace OpenMS
 {
 
 namespace P = OpenMS::Internal::Percolator;
+
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors);
 
 namespace
 {
@@ -90,8 +93,16 @@ namespace
       std::vector<std::vector<double>> w0(w.size(), std::vector<double>(w.empty() ? 0 : w[0].size(), 0.0));
       getDefaultDirection(w0);
       reset_folds.assign(w.size(), 0);
-      for (size_t set = 0; set < w.size(); ++set)
+      // the folds in parallel, each on its own training set (as Percolator's validateDirection scores its test sets);
+      // the sorts of the scorings run as tasks of this region
+      std::vector<std::exception_ptr> errors(w.size());
+#pragma omp parallel num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
+#pragma omp single
+#pragma omp taskloop grainsize(1)
+      for (SignedSize task = 0; task < static_cast<SignedSize>(w.size()); ++task)
+      try
       {
+        const size_t set = static_cast<size_t>(task);
         P::Scores& train = (*pTrainset_)[set];
         const int learned = train.calcScoresAndQvals(w[set], test_fdr_);
         const int initial = train.calcScoresAndQvals(w0[set], test_fdr_);
@@ -107,17 +118,42 @@ namespace
           std::cerr << "Fold " << set + 1 << ": the learned model (" << learned << " training set PSMs with q<"
                     << test_fdr_ << ") is replaced by the default direction (" << initial << ")." << std::endl;
           w[set] = w0[set];
-          used_default_direction = true;
           reset_folds[set] = 1;
           // the CV merge rescales each model by its test set's scores (getAvgWeights averages the rescaled models):
           // score the test set with the replacement (the saved fold models below do not depend on this)
           (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
         }
       }
+      catch (...)
+      {
+        errors[static_cast<size_t>(task)] = std::current_exception();
+      }
+      rethrowFirstError(errors);
+      for (char reset : reset_folds) used_default_direction = used_default_direction || reset != 0;
       validated_weights = w;
       return true;
     }
   };
+}
+
+// The PSMs of a scoring pass in one block: constructed and destroyed by the OpenMP threads in static parts (one
+// allocation instead of one per row; the pages are touched in parallel). Their strings ("row_" and 8 digits) fit into
+// the strings' own buffers, so filling them allocates nothing either.
+static P::PSMDescription* makePsmSlab_(size_t n)
+{
+  auto* slab = static_cast<P::PSMDescription*>(
+    ::operator new(n * sizeof(P::PSMDescription), std::align_val_t(alignof(P::PSMDescription))));
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i) new (slab + i) P::PSMDescription();
+  return slab;
+}
+
+static void destroyPsmSlab_(P::PSMDescription* slab, size_t n)
+{
+  if (slab == nullptr) return;
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i) slab[i].~PSMDescription();
+  ::operator delete(slab, std::align_val_t(alignof(P::PSMDescription)));
 }
 
 void Percolator::Impl::reset()
@@ -131,6 +167,9 @@ void Percolator::Impl::reset()
   }
   second_pass_psms.clear();
   second_pass_pool.reset();
+  destroyPsmSlab_(second_pass_slab, second_pass_slab_size);
+  second_pass_slab = nullptr;
+  second_pass_slab_size = 0;
 
   // First-pass (training) PSM ownership lives with DataSet: DataSet::~DataSet()
   // calls PSMDescription::deletePtr on each PSM. Don't double-free.
@@ -1306,13 +1345,25 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       }
       // each fold model's training rows (getCappedTrainingInfo)
       trained.trained_rows.assign(num_folds, {});
-      std::vector<const P::PSMDescription*> psms;
-      for (unsigned int f = 0; f < num_folds; ++f)
+      std::vector<std::exception_ptr> fold_row_errors(num_folds);
+#pragma omp parallel for schedule(static, 1) num_threads(static_cast<int>(num_folds))
+      for (SignedSize f = 0; f < static_cast<SignedSize>(num_folds); ++f)
       {
-        cv.getTrainingPsms(f, psms);
-        for (const P::PSMDescription* psm : psms) trained.trained_rows[f].push_back(row_of_psm.at(psm));
-        std::sort(trained.trained_rows[f].begin(), trained.trained_rows[f].end());
+        try
+        {
+          std::vector<const P::PSMDescription*> psms;
+          cv.getTrainingPsms(static_cast<size_t>(f), psms);
+          std::vector<size_t>& rows = trained.trained_rows[static_cast<size_t>(f)];
+          rows.reserve(psms.size());
+          for (const P::PSMDescription* psm : psms) rows.push_back(row_of_psm.at(psm));
+          std::sort(rows.begin(), rows.end());
+        }
+        catch (...)
+        {
+          fold_row_errors[static_cast<size_t>(f)] = std::current_exception();
+        }
       }
+      rethrowFirstError(fold_row_errors);
     }
   }
   catch (const std::exception& e)
@@ -1502,8 +1553,9 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       // the scorers' scores are merged as the cross-validation merges its test sets (CrossValidation::
       // postIterationProcessing: per set q-values and rescaling at the selection FDR, Scores::merge). The PSMs are
       // allocated by this thread, in row order (see above), and filled and scored in parallel.
-      impl_->second_pass_psms.reserve(n_rows);
-      for (size_t i = 0; i < n_rows; ++i) impl_->second_pass_psms.push_back(new P::PSMDescription());
+      impl_->second_pass_slab = makePsmSlab_(n_rows);
+      impl_->second_pass_slab_size = n_rows;
+      P::PSMDescription* const slab = impl_->second_pass_slab;
       std::vector<double> scores(n_rows);
       std::exception_ptr score_error;
       size_t score_error_row = n_rows;
@@ -1517,7 +1569,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         const size_t i = static_cast<size_t>(k);
         try
         {
-          fillPSMFromRow(*impl_->second_pass_psms[i], nullptr, 0, makeRowKeys(input, i), i, impl_->synthesized_ids[i]);
+          fillPSMFromRow(slab[i], nullptr, 0, makeRowKeys(input, i), i, impl_->synthesized_ids[i]);
           // as Scores::scoreAndAddPSM: the features in order, then the bias
           const std::vector<double>& w = fold_weights[scorer_of_row[i]];
           const double* feats = input.row(i);
@@ -1536,13 +1588,26 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         }
       }
       if (score_error) std::rethrow_exception(score_error);
-      std::vector<P::Scores> fold_scores(fold_weights.size(), P::Scores(impl_->use_pi0));
-      for (size_t i = 0; i < n_rows; ++i)
+      // each scorer's score holders in the order of the rows (as one after the other would add them), built in parallel
+      const size_t num_scorers = fold_weights.size();
+      std::vector<size_t> scorer_size(num_scorers, 0);
+      std::vector<uint32_t> rank_in_scorer(n_rows);
+      for (size_t i = 0; i < n_rows; ++i) rank_in_scorer[i] = static_cast<uint32_t>(scorer_size[scorer_of_row[i]]++);
+      std::vector<std::vector<P::ScoreHolder>> holders(num_scorers);
+      for (size_t g = 0; g < num_scorers; ++g) holders[g].resize(scorer_size[g]);
+#pragma omp parallel for schedule(static) num_threads(score_threads)
+      for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)
       {
-        fold_scores[scorer_of_row[i]].addScoreHolder(P::ScoreHolder(
-          scores[i], input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET, impl_->second_pass_psms[i]));
+        const size_t i = static_cast<size_t>(k);
+        holders[scorer_of_row[i]][rank_in_scorer[i]] =
+          P::ScoreHolder(scores[i], input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET, slab + i);
       }
-      for (P::Scores& fs : fold_scores) fs.recalculateSizes();
+      std::vector<P::Scores> fold_scores(num_scorers, P::Scores(impl_->use_pi0));
+      for (size_t g = 0; g < num_scorers; ++g)
+      {
+        fold_scores[g].setScoreHolders(std::move(holders[g]));
+        fold_scores[g].recalculateSizes();
+      }
 
       all_scores = P::Scores(impl_->use_pi0);
       std::vector<std::vector<double>> merge_weights = fold_weights; // Scores::merge rescales them

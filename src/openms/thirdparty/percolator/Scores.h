@@ -146,6 +146,8 @@ class Scores {
   inline unsigned int negSize() const { return totalNumberOfDecoys_; }
 
   inline void addScoreHolder(const ScoreHolder& sh) { scores_.push_back(sh); }
+  // OpenMS: replaces the score holders (built elsewhere, e.g. in parallel); call recalculateSizes after
+  inline void setScoreHolders(std::vector<ScoreHolder>&& scores) { scores_ = std::move(scores); }
   inline void reserve(size_t n) { scores_.reserve(n); }
 
   inline void setNullTargetWinProb(const double nullTargetWinProb) {
