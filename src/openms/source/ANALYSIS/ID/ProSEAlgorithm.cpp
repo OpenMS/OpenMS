@@ -123,6 +123,17 @@ namespace OpenMS
       freeInParallel(spectra.getSpectra());
       spectra.clear(true);
     }
+
+    // Whether MSExperiment::sortSpectra(false) would leave @p spectra as they are: their retention times ascend (equal ones
+    // keep their order in its sort) and none is NaN (which would make the order depend on the sort). An O(n) check that
+    // saves the O(n log n) sort (0.1-0.2 s for the 250,000 spectra of a timsTOF run).
+    bool inRetentionTimeOrder(const PeakMap& spectra)
+    {
+      const MSSpectrum::RTLess rt_less;
+      return std::none_of(spectra.begin(), spectra.end(), [](const MSSpectrum& spectrum) { return std::isnan(spectrum.getRT()); })
+             && std::adjacent_find(spectra.begin(), spectra.end(),
+                                   [&rt_less](const MSSpectrum& a, const MSSpectrum& b) { return rt_less(b, a); }) == spectra.end();
+    }
   }
 
   ProSEAlgorithm::ProSEAlgorithm() :
@@ -1204,7 +1215,7 @@ namespace OpenMS
     // sort by rt; done before the loop because sortSpectra(false) only permutes whole
     // spectra (it does not touch peak order, see MSExperiment::sortSpectra) and therefore
     // commutes with the per-spectrum filters that now run inside the loop.
-    exp.sortSpectra(false);
+    if (!inRetentionTimeOrder(exp)) { exp.sortSpectra(false); } // the spectra of loadMS2Spectra() are sorted already
     if (ion_evidence != nullptr) { ion_evidence->reset(exp.size()); }
     if (evidence_spectra != nullptr)
     {
@@ -5925,16 +5936,9 @@ namespace OpenMS
         f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
       }
       // by retention time, and the peaks of each spectrum by m/z: the chunks of loadMzMLChunked() sorted the peaks of
-      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run). sortSpectra()
-      // keeps spectra of equal retention time in their order, so spectra listed in retention time order (as mzML files
-      // usually list them) stay where they are: that is checked first (the sort of the 250,000 spectra of a timsTOF run
-      // took 0.2 s on one thread). Without a NaN retention time, which would make the order depend on the sort.
-      const MSSpectrum::RTLess rt_less;
-      const bool in_rt_order = chunked
-        && std::none_of(spectra.begin(), spectra.end(), [](const MSSpectrum& spectrum) { return std::isnan(spectrum.getRT()); })
-        && std::adjacent_find(spectra.begin(), spectra.end(),
-                              [&rt_less](const MSSpectrum& a, const MSSpectrum& b) { return rt_less(b, a); }) == spectra.end();
-      if (!in_rt_order) { spectra.sortSpectra(!chunked); }
+      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run); spectra listed in
+      // retention time order (as mzML files usually list them) are not sorted again (see inRetentionTimeOrder())
+      if (!chunked || !inRetentionTimeOrder(spectra)) { spectra.sortSpectra(!chunked); }
       return spectra;
     }
 
@@ -6388,6 +6392,7 @@ namespace OpenMS
 
     MultiFileSearchResult mfres;
     mfres.aggregate.is_open_search = isOpenSearchMode_();
+    released_hits_.reset(); // the releases of a search before (see the end of the loop below), so that they do not pile up
 
     if (in_spectra_files.empty())
     {
@@ -7060,14 +7065,15 @@ namespace OpenMS
         // memory); the holder joins it like the hits that the rescoring dropped (see released_hits_). Otherwise here.
         bool released_later = false;
 #if !defined(OPENMS_WINDOWSPLATFORM) && defined(_OPENMP) // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
-        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024)
+        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024 && omp_get_max_threads() > 1)
         {
           try
           {
             auto release = std::make_shared<SpectraRelease>();
             release->before = released_hits_;
-            // with the OpenMP threads of this thread: what follows (the output) does not keep them busy
-            release->thread = std::thread([to_release = std::move(spectra), threads = omp_get_max_threads()]() mutable
+            // with a quarter of the threads of this thread, as the dropped hits (the release of the database and the
+            // output after this use parallel regions of their own)
+            release->thread = std::thread([to_release = std::move(spectra), threads = std::max(1, omp_get_max_threads() / 4)]() mutable
             {
               omp_set_num_threads(threads);
               freeInParallel(to_release);
@@ -7579,6 +7585,7 @@ namespace OpenMS
         const std::hash<std::string_view> hash;
         EnzymaticDigestion digestor;
         digestor.setEnzyme(protease);
+        std::unordered_map<std::string, Size> missed_cleavages_of; // by unmodified sequence
         for (SignedSize i = n * part / num_parts; i < n * (part + 1) / num_parts; ++i)
         {
           const PeptideIdentification& pid = peptide_ids[i];
@@ -7607,7 +7614,16 @@ namespace OpenMS
               s.fragment_errors.push_back(static_cast<double>(top.getMetaValue(fragment_error_index)));
             }
           }
-          ++s.missed_cleavages[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
+          // counted once per sequence of the range: the regular expression takes a block from boost's process-wide
+          // memory cache per search, which the threads contended for (93 ms at 16 and 64 threads for a timsTOF run)
+          std::string unmodified = top.getSequence().toUnmodifiedString();
+          auto cleavages = missed_cleavages_of.find(unmodified);
+          if (cleavages == missed_cleavages_of.end())
+          {
+            const Size count = digestor.countInternalCleavageSites(unmodified);
+            cleavages = missed_cleavages_of.emplace(std::move(unmodified), count).first;
+          }
+          ++s.missed_cleavages[cleavages->second];
           if (top.metaValueExists(target_decoy_index))
           {
             const std::string td = top.getMetaValue(target_decoy_index).toString();
@@ -7669,15 +7685,15 @@ namespace OpenMS
       {
         if (error) { std::rethrow_exception(error); }
       }
-      TopHitSummary all = std::move(parts.front().summary);
-      all.unique_peptides = std::accumulate(unique_peptides.begin(), unique_peptides.end(), Size(0));
-      all.unique_proteins = std::accumulate(unique_proteins.begin(), unique_proteins.end(), Size(0));
       Size num_precursor_errors = 0, num_fragment_errors = 0;
       for (const Part& p : parts)
       {
         num_precursor_errors += p.summary.precursor_errors.size();
         num_fragment_errors += p.summary.fragment_errors.size();
       }
+      TopHitSummary all = std::move(parts.front().summary);
+      all.unique_peptides = std::accumulate(unique_peptides.begin(), unique_peptides.end(), Size(0));
+      all.unique_proteins = std::accumulate(unique_proteins.begin(), unique_proteins.end(), Size(0));
       all.precursor_errors.reserve(num_precursor_errors);
       all.fragment_errors.reserve(num_fragment_errors);
       for (int part = 1; part < num_parts; ++part)
@@ -7693,27 +7709,31 @@ namespace OpenMS
       }
       return all;
     }
-    // Math::median() of @p values (reordered), by selection instead of a sort: the same order statistics, so the same
-    // value (a sort of the 250,000 errors of a timsTOF run took 20-30 ms, twice per list with the MAD), unless a NaN (no
-    // strict weak order) or a negative zero (equal to 0, but written differently) lets the value depend on the algorithm:
-    // then Math::median() itself.
-    double medianBySelection(std::vector<double>& values)
+    // Math::median() and Math::MAD() of @p values (reordered), by selection instead of sorts: the same order statistics,
+    // so the same values (the sorts of the 250,000 errors of a timsTOF run took 20-30 ms each). Unless a value is not
+    // finite (a NaN is not ordered; an infinite median gives NaN deviations) or a negative zero (equal to 0, but written
+    // differently), where the result may depend on the algorithm or on the order the sort left: then Math itself.
+    std::pair<double, double> medianAndMADBySelection(std::vector<double>& values)
     {
-      const auto ambiguous = [](double v) { return std::isnan(v) || (v == 0.0 && std::signbit(v)); };
-      if (values.empty() || std::any_of(values.begin(), values.end(), ambiguous)) { return Math::median(values.begin(), values.end()); }
-      const auto upper = values.begin() + static_cast<SignedSize>(values.size() / 2);
-      std::nth_element(values.begin(), upper, values.end());
-      if (values.size() % 2 == 1) { return *upper; }
-      return (*std::max_element(values.begin(), upper) + *upper) / 2.0;
-    }
-
-    // Math::MAD() of @p values around @p median, by selection (see medianBySelection())
-    double madBySelection(const std::vector<double>& values, double median)
-    {
+      const auto ambiguous = [](double v) { return !std::isfinite(v) || (v == 0.0 && std::signbit(v)); };
+      if (values.empty() || std::any_of(values.begin(), values.end(), ambiguous))
+      {
+        const double median = Math::median(values.begin(), values.end());
+        return {median, Math::MAD(values.begin(), values.end(), median)};
+      }
+      // the median of finite values without a negative zero; their deviations are not negative zeros and not NaN
+      const auto median_of = [](std::vector<double>& v)
+      {
+        const auto upper = v.begin() + static_cast<SignedSize>(v.size() / 2);
+        std::nth_element(v.begin(), upper, v.end());
+        if (v.size() % 2 == 1) { return *upper; }
+        return (*std::max_element(v.begin(), upper) + *upper) / 2.0;
+      };
+      const double median = median_of(values);
       std::vector<double> diffs;
       diffs.reserve(values.size());
       for (const double value : values) { diffs.push_back(fabs(value - median)); }
-      return medianBySelection(diffs);
+      return {median, median_of(diffs)};
     }
   }
 
@@ -7798,8 +7818,7 @@ namespace OpenMS
     const Size min_psms_for_estimation = 10;
     if (precursor_errors.size() >= min_psms_for_estimation)
     {
-      double med = medianBySelection(precursor_errors);
-      double mad = madBySelection(precursor_errors, med);
+      const auto [med, mad] = medianAndMADBySelection(precursor_errors);
       stats.prec_err_median = med;
       stats.prec_err_mad = mad;
       stats.prec_err_recommended = std::ceil(med + 3.0 * mad);
@@ -7807,8 +7826,7 @@ namespace OpenMS
     }
     if (fragment_errors.size() >= min_psms_for_estimation)
     {
-      double med = medianBySelection(fragment_errors);
-      double mad = madBySelection(fragment_errors, med);
+      const auto [med, mad] = medianAndMADBySelection(fragment_errors);
       stats.frag_err_median = med;
       stats.frag_err_mad = mad;
       stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
