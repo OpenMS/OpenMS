@@ -18,7 +18,7 @@ The caller must preserve that namespace when combining libraries. These records
 neither generate IDs nor assert that different provenance namespaces are equal.
 
 `Coordinates` preserves exact supplied double values: RT in **seconds**, m/z in
-Th, frame/scan identities, MS level (nonzero), and isolation lower/upper absolute
+Th, frame/scan identities, exact source `native_id` string, MS level (nonzero), and isolation lower/upper absolute
 m/z bounds (ordered, equal bounds allowed). No binning, calibration, aggregation,
 or tolerance is applied. Non-isolated scans use equal isolation bounds supplied
 by the producer (typically zero), not an invented precursor window.
@@ -35,6 +35,10 @@ precursor m/z, library provenance string and optional prediction provenance
 string. Provenance strings are opaque source/revision or model identifiers,
 not paths to be opened by this contract. Optional RT predictions use seconds,
 optional mobility predictions use the same explicit units as coordinates.
+Normalized/iRT values must not be put into the seconds field without conversion
+to the run's reference. Unit-unspecified library IM must likewise remain absent
+until the producer establishes units. Original library metadata stays with the
+source/provenance store, this is not a lossless replacement for that store.
 `Fragment` keeps a stable fragment ID, m/z and optional predicted intensity in
 producer-defined units. No intensity normalization is inferred.
 
@@ -76,3 +80,22 @@ and adapters must establish scientific/unit compatibility before combining data.
 Validation lives in `OpenDIA_impl`, shared by the tool and tests. The same test
 body uses native ClassTest when available and active runtime checks against a
 standalone SDK, including under NDEBUG.
+
+## Real-loader boundary check
+
+`OpenDIARecordsInterop_test` reads the existing workflow-1 non-IM, workflow-23 IM
+and `IM_FAIMS_test.mzML` fixtures through the actual `MzMLFile` public interface.
+The consumer checks every retained raw point against a separate load after the
+producer experiment is destroyed, including exact source native IDs and all
+coordinate fields. The mzML loader already converts source RT units to seconds.
+An explicit test-owned identity registry maps workflow-17 transition source IDs
+to caller IDs. `TransitionTSVFile` supplies the real library measurements and
+target/decoy state. Its normalized RT and unit-unspecified IM are deliberately
+not relabelled as raw seconds or known mobility units.
+
+The sparse evidence check transfers selected real observations and retains them
+after its raw tile and hypothesis page are destroyed. It does not perform or
+validate scientific matching. The fixture's full-file load, one-window spectra,
+numeric scan mapping, count limits and by-value layout are not the future
+WP-03/04 production adapters, a packed representation, byte-bounded streaming,
+or a performance claim. Keys, alternatives and scores remain later WP-01 steps.

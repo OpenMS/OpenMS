@@ -33,7 +33,8 @@ namespace
   }
   Coordinates coordinate()
   {
-    return {-1.25, 501.23456789, 1234567, 9876543, 2, 490.125, 510.875, std::nullopt, std::nullopt};
+    return {-1.25, 501.23456789, 1234567, 9876543, 2, 490.125, 510.875,
+            std::nullopt, std::nullopt, "controllerType=0 controllerNumber=1 scan=731"};
   }
   RecordContext context() { return {0, 101, 202, 303}; }
   RawTile produceRaw()
@@ -94,6 +95,7 @@ int main()
   const auto c = raw_last.point(0).coordinates;
   CHECK(c.rt_seconds == -1.25 && c.mz == 501.23456789)
   CHECK(c.frame_id == 1234567 && c.scan_id == 9876543 && c.ms_level == 2)
+  CHECK(c.native_id == "controllerType=0 controllerNumber=1 scan=731")
   CHECK(c.isolation_lower_mz == 490.125 && c.isolation_upper_mz == 510.875)
   CHECK(!c.mobility && !c.faims_voltage)
   CHECK(raw_last.point(0).intensity == -10.5)
@@ -149,6 +151,7 @@ int main()
   CHECK(!evidence_last.point(0).coordinates.mobility && evidence_last.point(1).coordinates.mobility->value == 0.0)
   CHECK(evidence_last.point(1).coordinates.faims_voltage == 0.0)
   CHECK(evidence_last.point(0).family_id == 404 && evidence_last.point(0).precursor_id == 505 && evidence_last.point(0).fragment_id == 606)
+  CHECK(evidence_last.point(0).coordinates.native_id == c.native_id)
   CHECK(evidence_last.context().run_id == 101)
   CHECK(invalid([&] { evidence_copy.size(); }))
   CHECK(invalid([&] { evidence_copy.context(); }))

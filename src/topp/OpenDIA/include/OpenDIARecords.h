@@ -52,6 +52,8 @@ namespace OpenDIA
     double isolation_upper_mz = 0;
     std::optional<Mobility> mobility;
     std::optional<double> faims_voltage;
+    /// Exact source acquisition ID, independent of the caller's numeric namespace.
+    std::string native_id;
   };
 
   struct RawPoint
