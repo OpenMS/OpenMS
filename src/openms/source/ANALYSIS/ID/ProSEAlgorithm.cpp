@@ -543,7 +543,10 @@ namespace OpenMS
                        "A protein terminus counts as an enzymatic site for the enzN/enzC features of the rescoring and of "
                        "'-out_pin' (Percolator's convention). Default 'false' keeps the former features, in which a peptide "
                        "at a protein N-terminus has enzN = 0 and one at a protein C-terminus that does not end in a "
-                       "cleavage residue has enzC = 0; the results differ.",
+                       "cleavage residue has enzC = 0; the results differ. UNSAFE, do not use: with the decoys of the database (reversed "
+                       "proteins rarely start with M) and peptide:clip_nterm_methionine, enzN = 0 is then left almost only to "
+                       "Met-clipped N-terminal peptides of targets, so the feature tells targets from decoys and the FDR is no "
+                       "longer controlled (entrapment FDP 13-24 % at 1 % q).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:fixed_enzyme_termini", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");

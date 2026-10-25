@@ -172,7 +172,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
       bool best_positive_by_score = false; ///< train on the best-scoring PSM of each spectrum ('rescoring:best_positive' score)
       bool use_pi0 = true;         ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0'; the executable with TDC: false)
-      bool fixed_enzyme_termini = false; ///< protein termini are enzymatic sites for enzN/enzC ('rescoring:fixed_enzyme_termini')
+      bool fixed_enzyme_termini = false; ///< protein termini are enzymatic sites for enzN/enzC ('rescoring:fixed_enzyme_termini'; UNSAFE: breaks FDR control with Met clipping, keep false)
     };
 
     /**
