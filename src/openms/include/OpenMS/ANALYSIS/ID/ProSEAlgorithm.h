@@ -762,7 +762,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /**
      * @brief Running summary of the *complete* candidate pool of one spectrum.
      *
-     * scoreSpectraAgainstIndex_() prunes each spectrum to max(report_top_hits_, 2)
+     * scoreSpectraAgainstIndex_() prunes each spectrum to max(searchTopHits_(), 2)
      * candidates as soon as it has scored them, so by the time postProcessHits_()
      * runs the surviving hits are no longer a sample of the search space: with the
      * default report:top_hits=1 only two candidates remain, and derived features
@@ -1107,7 +1107,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * Shared by the non-chunked and chunked search paths. Appends per-scan
      * AnnotatedHit_ entries to annotated_hits and prunes each spectrum to
-     * max(report_top_hits_, 2) candidates to bound memory. Expects a pre-built
+     * max(searchTopHits_(), 2) candidates to bound memory. Expects a pre-built
      * FragmentIndex whose parameters already reflect any calibrated tolerances
      * the caller wants to apply.
      *
@@ -1153,7 +1153,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *            (delta score, z-score, candidate count). Must match @p annotated_hits in size.
      * @param[out] protein_ids Output container for protein-level identification and search metadata.
      * @param[out] peptide_ids Output container for spectrum-level peptide identifications (PSMs).
-     * @param[in] top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
+     * @param[in] top_hits Number of top-scoring hits to retain per spectrum (searchTopHits_()).
      * @param[in] modifications_fixed Fixed modifications (by name) used during the search.
      * @param[in] modifications_variable Variable modifications (by name) used during the search.
      * @param[in] peptide_missed_cleavages Allowed missed cleavages in digestion.

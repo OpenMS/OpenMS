@@ -412,8 +412,8 @@ namespace OpenMS
                        "more hits cost time and memory. 0 = 'report:top_hits' (as earlier "
                        "ProSE versions, whose Percolator rescored the reported hits). The search keeps these hits for "
                        "Percolator (with -out_pin also the reported ones): a run that Percolator does not rescore (fewer "
-                       "than 100 PSMs, no decoy PSM, a failure) reports at most min(report:top_hits, rescoring:top_hits) "
-                       "hits per spectrum; with decoys 'ignore' (no rescoring) report:top_hits.",
+                       "than 100 PSMs, no decoy PSM, a failure) reports at most the smaller of report:top_hits and "
+                       "rescoring:top_hits hits per spectrum; with decoys 'ignore' (no rescoring) report:top_hits.",
                        {"advanced"});
     defaults_.setMinInt("rescoring:top_hits", 0);
     defaults_.setValue("rescoring:subset_max_train", 0,
@@ -5279,7 +5279,7 @@ namespace OpenMS
   {
     // A run that Percolator did not rescore reports at most report:top_hits hits per spectrum, which can be fewer than
     // the rescoring:top_hits that the search kept for Percolator.
-    if (!rescored) keepTopHits_(peptide_ids, report_top_hits_);
+    if (!rescored && rescore_top_hits_ > 0) keepTopHits_(peptide_ids, report_top_hits_);
     // The hits per spectrum that Percolator rescored; not recorded with rescoring:top_hits 0 (= report:top_hits, as
     // earlier ProSE versions, which recorded nothing).
     if (rescored && rescore_top_hits_ > 0)
@@ -5400,12 +5400,14 @@ namespace OpenMS
     {
       *pre_fdr_psms = peptide_ids;
       // (with rescoring:top_hits above report:top_hits the search kept more hits, for Percolator)
-      keepTopHits_(*pre_fdr_psms, report_top_hits_);
+      if (rescore_top_hits_ > 0) keepTopHits_(*pre_fdr_psms, report_top_hits_);
     }
     if (rescore_)
     {
-      // Percolator rescores the first rescoring:top_hits hits of each spectrum (the search kept more for the .pin copy)
-      keepTopHits_(peptide_ids, rescoreTopHits_());
+      // Percolator rescores the first rescoring:top_hits hits of each spectrum (the search kept more for the .pin copy).
+      // Not with decoys 'ignore': the search kept report:top_hits, and Percolator skips the run (no decoys). Nothing is
+      // cut with rescoring:top_hits 0 (identifications that the caller's list held before the search included).
+      if (rescore_top_hits_ > 0 && decoy_mode_ != DecoyMode_::IGNORE) keepTopHits_(peptide_ids, rescoreTopHits_());
       // Percolator gets all target and decoy PSMs; the PSM FDR follows on its q-values (or, if it
       // skipped the run, on the search engine scores).
       startDeferredRead(); // the next file of a multi-file search, with threads Percolator leaves idle
