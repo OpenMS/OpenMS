@@ -235,9 +235,9 @@ namespace
     if (!opened.ok()) { return -1; }
     auto reader = parquet::arrow::OpenFile(opened.ValueOrDie(), arrow::default_memory_pool());
     if (!reader.ok()) { return -1; }
-    const auto table = reader.ValueOrDie()->ReadTable();
-    if (!table.ok()) { return -1; }
-    return table.ValueOrDie()->num_rows();
+    shared_ptr<arrow::Table> table;
+    if (!reader.ValueOrDie()->ReadTable(&table).ok()) { return -1; }
+    return table->num_rows();
   }
 
   /// The mz view of a run @p run_file_name with one MS2 spectrum and PSM per native ID of @p native_ids
