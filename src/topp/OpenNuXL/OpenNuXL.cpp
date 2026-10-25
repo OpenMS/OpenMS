@@ -4727,6 +4727,7 @@ static void scoreXLIons_(
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
     Size decoy_factor = static_cast<Size>(getIntOption_("NuXL:decoy_factor"));
 
@@ -5005,6 +5006,7 @@ static void scoreXLIons_(
         if (autotune)
         {
           fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
+          fragment_mass_tolerance_unit_ppm = true; // new tolerance is in ppm
         }
         OPENMS_LOG_INFO << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
         OPENMS_LOG_INFO << "Global fragment mass shift (ppm): " << global_fragment_error << endl;
@@ -5050,8 +5052,6 @@ static void scoreXLIons_(
 
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
-
-    bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
     double marker_ions_tolerance = getDoubleOption_("NuXL:marker_ions_tolerance");
 
