@@ -766,17 +766,29 @@ namespace OpenMS
             errors[i] = std::current_exception();
           }
         }
+        const auto restore_after = [&](const SignedSize i)
+        {
+          for (SignedSize j = i + 1; j < num_spectra; ++j)
+          {
+            static_cast<SpectrumType::RangeManagerType&>(spectra_[j]) = before[j];
+          }
+        };
         for (SignedSize i = 0; i < num_spectra; ++i)
         {
           if (errors[i])
           {
-            for (SignedSize j = i + 1; j < num_spectra; ++j)
-            {
-              static_cast<SpectrumType::RangeManagerType&>(spectra_[j]) = before[j];
-            }
+            restore_after(i);
             std::rethrow_exception(errors[i]);
           }
-          add_spectrum(spectra_[i]);
+          try
+          {
+            add_spectrum(spectra_[i]);
+          }
+          catch (...)
+          {
+            restore_after(i);
+            throw;
+          }
         }
       }
     }
