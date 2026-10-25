@@ -1,7 +1,7 @@
 # WP-01: Contracts and scientific semantics
 
 - **Track:** data handling.
-- **Status:** in progress, private-engine boundary and owning-record increment implemented and validated 25 October 2026. **Owner / reviewer:** ownership is tracked in GitHub.
+- **Status:** in progress, private boundary, owning records and extraction-query identity implemented and validated 25 October 2026. Families/scores and full v0 handoff remain. **Owner / reviewer:** ownership is tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10663](https://github.com/OpenMS/OpenMS/issues/10663).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
@@ -19,7 +19,7 @@ Provide small, explicitly unstable v0 interfaces that unblock independent adapte
 
 ## Implementation roadmap
 
-Deliver small, reviewable commits in the order below. The first two increments are
+Deliver small, reviewable commits in the order below. The first three increments are
 implemented on `feature/opendia-wp01-private-engine`, based on clean upstream
 `3e47bc7e7468656d0d53237f11fc4f049d278efe`, with standalone, full native
 in-tree and installed-SDK workflow validation complete. Keep implementation
@@ -51,7 +51,7 @@ Do not include the optional WP-00 profiler.
   data across producer destruction, and reject invalid offsets, dimensions,
   schema versions and invalid views. Round trips here need not invent a wire format.
 
-### 3. Complete extraction query identity (pending)
+### 3. Complete extraction query identity (implemented and locally validated)
 
 - Define a value key covering run/lane and acquisition selection, MS level and
   isolation geometry, RT/mz/IM bounds and units, discrete FAIMS selection,
@@ -127,8 +127,8 @@ and its incremental continuation completed successfully.
 **Still outside this check:** other platforms and optional RAW/opentims build
 configurations. `clang-format` is not available locally. No implementation PR has
 been opened. This mechanical move did not deliver coordinates/ownership. The
-separate step-2 increment below now does. Extraction keys, families and scores
-remain subsequent increments.
+separate step-2 increment below now does. Step 3 below adds extraction keys.
+Families and scores remain the final increment.
 
 ## Observed owning-record increment, 25 October 2026
 
@@ -187,8 +187,59 @@ The real-loader test is a boundary fixture, not a production WP-03/04/05 adapter
 streaming implementation or end-to-end scientific extractor. No existing workflow
 algorithm/default changed. Other platforms, optional RAW/opentims configurations
 and self-contained runtime relocation remain untested. `clang-format` is unavailable.
-No implementation PR is open. **Next: step 3, complete extraction-query identity.**
-Step 4 still owns alternatives/nulls, scores and the complete v0 handoff.
+No implementation PR is open. Step 3 below now adds complete extraction-query
+identity. Step 4 still owns alternatives/nulls, scores and the complete v0 handoff.
+
+## Observed extraction-query increment, 25 October 2026
+
+Implementation [b71ce465a7](https://github.com/OpenMS/OpenMS/commit/b71ce465a7)
+adds one checked `ExtractionQuery` value in the existing private implementation.
+Follow-up [cfbb419390](https://github.com/OpenMS/OpenMS/commit/cfbb419390)
+adds real-loader and actual public-extractor interoperability checks.
+Its detached specification covers caller context/calibration, opaque acquisition
+selection, MS level, isolation geometry, RT/mz/IM intervals and edge policies,
+mobility units, discrete FAIMS, tolerance, aggregation and isotope policy.
+Only acquisition-set order/duplicates are canonicalized. Physical values are
+finite and exact, with signed zero equal and adjacent doubles distinct.
+Schema 0 is the only supported version. The contract specifies a fixed tophat
+profile, full-width tolerance units, absent/all versus present-empty selection,
+and producer responsibility for canonical physical bounds.
+
+Observed checks over the complete result, including all earlier WP-01 changes:
+
+- The production key test retains **33 distinct payloads under one constant
+  hash**, covering **32 independent valid field mutations**, including changed
+  calibration identity. All payload lookups remain distinct. Reordered/duplicate
+  acquisition IDs and signed zero compare equal, without overwriting the original
+  payload. Missing axes/FAIMS differ from present zero. Caller/getter mutations
+  cannot change a retained key.
+- Constructors reject unknown schema/enums, nonfinite values on every interval
+  endpoint, FAIMS and tolerance, reversed intervals, negative tolerance, zero
+  MS level and ambiguous isotope policy. All four edge policies and zero-width
+  requests remain explicit. These checks also pass with `-DNDEBUG`.
+- Actual mzML-loaded non-IM, continuous IM and discrete FAIMS records preserve
+  query coordinates, units, acquisition IDs and context. Changing only the
+  calibration snapshot produces an unequal key. Existing full raw/evidence/TSV
+  ownership checks still pass with the counts reported for step 2.
+- A query round trip through the actual public `ChromatogramExtractorAlgorithm`
+  preserves **all 59 time/intensity samples exactly**, with measured nonzero
+  signal, on its existing mzML fixture. This exercises one supported all-RT,
+  all-acquisition, non-IM SUM request, not a new production adapter.
+- **35 selected native CTests pass**, including all **28 public OpenDIA TOPP
+  workflows**, all four private tests, INI and registry checks. The actual
+  installed-SDK fixture passes **12/12**, for **47/47 combined**, plus **6/6**
+  nested consumers. Standalone SDK tests pass **4/4** and separate final NDEBUG
+  record/query tests pass **3/3**. No private headers/archive/interface are
+  installed or exported. All use the same production `OpenDIA_impl` target.
+
+There is no cache, production hasher, new extraction algorithm, dependency,
+scientific/default change or performance claim. Equality conservatively retains
+the whole request, including tolerance even when physical bounds coincide.
+Consumers must honor every field or reject unsupported requests. Production
+sharing/calibration adapters belong to WP-05. Optional platforms/RAW configurations
+and self-contained runtime relocation remain outside this Linux check, and
+`clang-format` is unavailable. **Next: step 4, families, scores and v0 handoff.**
+WP-01 remains open and scientific freeze remains pending WP-07 review.
 
 ## Requirement-to-check map
 
@@ -197,7 +248,7 @@ Step 4 still owns alternatives/nulls, scores and the complete v0 handoff.
 | One real private implementation, no public API | Native target graph and link commands show executable/test linking the same target. Build-tree and standalone tool builds work. Installation/export files contain no OpenDIA interface. |
 | Behavior-preserving first move | Existing TOPP workflow tests pass with the relocated binary. Parameter/INI output matches the baseline apart from declared executable/build provenance fields and unordered protease allowed-value ordering. |
 | Coordinate and missingness semantics | Step-2 production record tests and actual mzML/TSV producer/consumer checks pass, with exact counts and fields reported above. Family alternatives remain step 4. |
-| No false query sharing | Pending step 3: per-field key mutations and a constant-hasher container must retain unequal scientific queries separately. |
+| No false query sharing | Step-3 production tests retain 33 distinct payloads under one constant hash after 32 field mutations, including calibration. Real-loader identity checks and actual 59-sample public extraction replay pass. Production cache integration remains WP-05. |
 | Checked ownership/schema/bounds | Actual production validators and native/standalone/NDEBUG tests pass all declared rejection and ownership checks. Real-loaded evidence survives producer/tile/page destruction. |
 | Family ambiguity preserved | Pending step 4: round trips must retain all declared alternatives/nulls and separate identification/localization/quantification fields. Freeze remains pending WP-07, not a local closure blocker. |
 
@@ -211,12 +262,12 @@ Step 4 still owns alternatives/nulls, scores and the complete v0 handoff.
 
 - [x] An out-of-tree build links the tool and private tests against the same static/OBJECT implementation, with no installed OpenDIA interface.
 - [ ] Round trips preserve IDs, exact coordinate references, missing versus zero, discrete FAIMS strata and unresolved family alternatives.
-- [ ] Query-key tests vary every scientific field, including calibration identity, and reject false sharing under forced hash collisions.
+- [x] Query-key tests vary every scientific field, including calibration identity, and reject false sharing under forced hash collisions.
 - [x] Tests reject malformed offsets, unknown schema versions and invalid ownership/lifetime use.
 - [ ] A producer/consumer fixture passes using v0 records, and the contract document marks freeze pending WP-07 experiment review rather than blocking local closure.
 
 The raw/hypothesis/evidence producer/consumer path and unstable contract document
-now pass. The final fixture/handoff checkbox remains open for complete v0 keys,
-family alternatives/nulls and scores in steps 3 and 4, not for WP-07 freeze.
+now pass, as do complete extraction keys. The final fixture/handoff checkbox
+remains open for family alternatives/nulls and scores in step 4, not for WP-07 freeze.
 
 **Integration gates:** WP-09 owns public workflow checks, and WP-10 owns representative quality/resource/performance acceptance.

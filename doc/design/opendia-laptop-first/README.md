@@ -32,10 +32,19 @@ evidence after producer destruction. All **34 selected native CTests**, standalo
 **3/3**, final NDEBUG record **2/2**, and the repeated installed-SDK **12-step / six
 nested-consumer** checks pass. These are count-bounded v0 boundary contracts,
 not production streaming adapters or a memory/performance improvement claim.
-Next is complete extraction-query identity, followed by families/scores and the
-complete v0 handoff. WP-01 stays open. No implementation PR is open. Detailed
-observations and optional-platform/runtime limitations are recorded in
-[WP-01](work-packages/01-contracts.md#observed-owning-record-increment-25-october-2026).
+Step 3 is also implemented in
+[b71ce465a7](https://github.com/OpenMS/OpenMS/commit/b71ce465a7): one checked,
+complete extraction-query value, with exact equality and no cache or extractor.
+Real public-interface checks are in [cfbb419390](https://github.com/OpenMS/OpenMS/commit/cfbb419390).
+Tests retain **33 distinct payloads despite one constant hash**, and an actual
+public extractor round trip preserves **59 chromatogram samples exactly**.
+The complete result passes **35 native tests**, all **12 installed-SDK fixture
+steps / six nested consumers**, **4 standalone** and **3 NDEBUG** tests, including
+all 28 existing public OpenDIA workflows. Next is **step 4: families, scores and
+the complete v0 handoff**. WP-01 stays open, with three of five local merge
+criteria satisfied. No implementation PR is open. Detailed observations and
+optional-platform/runtime limitations are recorded in
+[WP-01](work-packages/01-contracts.md#observed-extraction-query-increment-25-october-2026).
 
 ## Current verification status
 
