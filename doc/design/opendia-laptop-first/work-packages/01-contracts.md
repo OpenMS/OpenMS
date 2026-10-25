@@ -1,7 +1,7 @@
 # WP-01: Contracts and scientific semantics
 
 - **Track:** data handling.
-- **Status:** in progress, all four v0 increments implemented and locally validated 25 October 2026, pending implementation review/integration. Scientific freeze remains a separate WP-07 milestone. **Owner / reviewer:** ownership is tracked in GitHub.
+- **Status:** locally complete and final adversarial review passed 25 October 2026, ready for upstream integration. Issue remains open and project status is **In review**. No implementation PR is open or merge performed. Scientific freeze remains a separate WP-07 milestone. **Owner / reviewer:** ownership is tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10663](https://github.com/OpenMS/OpenMS/issues/10663).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
@@ -290,7 +290,7 @@ No scientific algorithm, production adapter, public API or dependency was added.
   frozen baseline, third-party or vcpkg trees.
 
 All **five local merge criteria** are now satisfied on the implementation branch.
-WP-01 remains open for review/integration, with no implementation PR opened.
+WP-01 remains open for upstream integration after the final adversarial review below, with no implementation PR opened.
 Downstream WP-02/03/04/05/08 and early WP-09 can consume the documented **unstable v0**
 now. Start the next implementation increment with WP-02 resource accounting and
 admission, not more record scaffolding. Count caps are not byte budgeting, packed
@@ -301,15 +301,52 @@ self-contained runtime relocation. `clang-format` remains unavailable. **Scienti
 family/null/decoy/confidence freeze stays pending WP-07 experiment review**, not
 an extra local v0 closure requirement.
 
+## Final adversarial review (25 October 2026)
+
+Reviewed the entire WP-01 change set from baseline
+`3e47bc7e7468656d0d53237f11fc4f049d278efe` through
+[7dcbcea35e](https://github.com/OpenMS/OpenMS/commit/7dcbcea35e85c10e3c6291c6a7134668e83a2207),
+including every production validator, ownership/query/family/score contract,
+existing caller, native/standalone target and installed-consumer boundary.
+**No blocking production defect was found.** The orchestration relocation remains
+an include/entry-point change, not a scientific algorithm rewrite.
+
+The concrete test gap was multi-family namespace and cumulative-cap coverage.
+The test-only commit above adds 17 executed assertions: non-positional family IDs
+including UINT64_MAX, family-local alternative IDs, cross-family member/evidence
+rejection, all context axes, repeated evidence references and exact cumulative
+family/score cap boundaries. No production abstraction or dependency was added.
+
+The predeclared whole-result acceptance loop was then run over the final commit:
+
+| Requirement / boundary | Observed final result |
+|---|---|
+| Real native tool, regressions and installed SDK | Fresh build and **50/50 CTests** passed on 25 October 2026, **14:26:19–14:26:45 UTC**: 38 native plus 12 installed-consumer fixture steps, including all 28 existing TOPP workflows and both genuine score handoffs. Six nested installed consumers passed again independently. |
+| Standalone SDK and release-style validation | **5/5 standalone** and **4/4 explicit NDEBUG** tests passed. Both actual SQLite/Parquet exports also passed the NDEBUG handoff. |
+| New adversarial family/reference/cap checks | The strengthened test passed in native, standalone, NDEBUG and sanitizer builds. A family cannot borrow a member or evidence row from another family. Cumulative family bounds accept 22 and reject 21, and score references accept 3 and reject 2. |
+| Owning raw-to-score handoff | Real non-IM/IM/FAIMS loaders retained exactly **513 / 32,750 / 44,354 raw points** and **259 / 16,377 / 22,179 evidence rows**, with four unresolved alternatives/scores after producer destruction. Missing/zero, null and coexistence semantics remain explicit. |
+| Real extraction and scored public outputs | The real public extractor retained **59 samples** exactly. Each independently consumed SQLite/Parquet CLI export preserved **four genuine rows, two decoys**, exact d_score/intensity and absent localization. Query tests retained **33 distinct payloads** under one forced hash. |
+| Instrumented actual production archive | A separate GNU 13 ASan/UBSan build instrumented the real private implementation and tests, not copied source or a mock. **5/5 tests** plus both genuine CLI output handoffs passed with no sanitizer diagnostics or suppressions. OpenMS core/external shared dependencies were not transitively instrumented, so this is not whole-stack sanitizer coverage. |
+| Unchanged CLI parameters and capabilities | A fresh comparison initially exposed different SDK build dates and enabled optional RAW readers. Rebuilding the actual relocated tool against the **same frozen baseline SDK** resolved that comparison mismatch. Every INI option/default/attribute then matched, sorting only unordered enzyme allowed-value order. Canonical SHA-256: `3c080bc948989187266f91181a89acdd43f3c5a5b70baf62d0983d9ded600fbd`. Capability/provenance differences were not normalized away. |
+| Private packaging and real linkage | Native/installed runtime bindings and native production-archive linkage passed. No private OpenDIA header/archive/target leaked into installed headers or CMake exports. Header-only include compilation and whitespace checks passed. |
+
+These checks close the local review loop for all five merge criteria below.
+The implementation branch is ready for upstream integration, not merged.
+No Windows/macOS, GUI/opentims/Thermo native configuration, fully self-contained
+runtime relocation or whole-stack sanitizer result is claimed. `clang-format`
+was unavailable. This review does not approve new scientific acceptance margins,
+prove byte-admission/resource targets, freeze contracts or reopen WP-00.
+WP-02 accounting/admission is the next implementation increment.
+
 ## Requirement-to-check map
 
 | Requirement | Acceptance check and current observation |
 |---|---|
 | One real private implementation, no public API | Native target graph and link commands show executable/test linking the same target. Build-tree and standalone tool builds work. Installation/export files contain no OpenDIA interface. |
-| Behavior-preserving first move | Existing TOPP workflow tests pass with the relocated binary. Parameter/INI output matches the baseline apart from declared executable/build provenance fields and unordered protease allowed-value ordering. |
+| Behavior-preserving first move | All 28 existing TOPP workflow tests pass with the relocated binary. Against the identical baseline SDK, every parameter/INI option/default/attribute matches after sorting only unordered enzyme allowed-value order. Different optional-reader configurations are not compared as equivalent. |
 | Coordinate and missingness semantics | Step-2 production records and full step-4 mzML/TSV family/score handoffs pass with exact coordinates/IDs, missing/zero support and all alternatives retained. |
 | No false query sharing | Step-3 production tests retain 33 distinct payloads under one constant hash after 32 field mutations, including calibration. Real-loader identity checks and actual 59-sample public extraction replay pass. Production cache integration remains WP-05. |
-| Checked ownership/schema/bounds | Actual production validators and native/standalone/NDEBUG tests pass all declared rejection and ownership checks. Real-loaded evidence survives producer/tile/page destruction. |
+| Checked ownership/schema/bounds | Actual production validators and native/standalone/NDEBUG/sanitizer tests pass declared rejection, ownership, family-local reference and cumulative-cap checks. Real-loaded evidence survives producer/tile/page destruction. |
 | Family ambiguity preserved | Step-4 production and real-loader/public CLI checks preserve declared singleton/competing/coexisting/null alternatives, completeness and independent identification/localization/quantity. Freeze remains WP-07, not a local v0 blocker. |
 
 ## Dependencies
@@ -328,7 +365,8 @@ an extra local v0 closure requirement.
 
 The complete raw/hypothesis/query/family/evidence/score producer/consumer handoff
 and unstable contract document now pass, as do both genuine public CLI output
-handoffs. All five criteria are locally verified. Review/integration remains,
-not further WP-01 record implementation or the separate WP-07 scientific freeze.
+handoffs. All five criteria and the final adversarial review are locally verified.
+Upstream integration remains, not further WP-01 record implementation or the
+separate WP-07 scientific freeze.
 
 **Integration gates:** WP-09 owns public workflow checks, and WP-10 owns representative quality/resource/performance acceptance.

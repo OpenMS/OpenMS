@@ -29,6 +29,13 @@ experiment. WP-09/10 own candidate workflow and scientific/resource acceptance,
 including agreed prospective thresholds and complete peak-disk measurement.
 The optional profiling branch remains a work tool, not planned production code.
 
+**Implementation handoff, 25 October 2026:** [WP-01's final adversarial review](01-contracts.md#final-adversarial-review-25-october-2026)
+passed the rebuilt native/public/installed-SDK workflows, standalone/NDEBUG and
+private-implementation sanitizer checks. Its unstable v0 contracts are locally
+complete and ready for upstream integration, not merged. WP-02 resource
+accounting/admission is next. This does not reopen WP-00, require a 4 GiB baseline,
+freeze scientific contracts or claim candidate resource/scientific acceptance.
+
 ## Scope
 
 - Pin an upstream/CI `develop` revision and the applicable #10642 revision/state, commands, dependencies and input checksums.

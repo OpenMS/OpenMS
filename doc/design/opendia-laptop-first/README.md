@@ -1,6 +1,6 @@
 # OpenDIA: laptop-first implementation plan
 
-**Status:** implementation started, WP-00 baseline done and WP-01 v0 locally complete pending review/integration, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
+**Status:** implementation started, WP-00 baseline done and WP-01 v0 locally complete with final adversarial review passed, ready for upstream integration, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
 
@@ -52,13 +52,22 @@ The final whole-result replay passes **38 native plus 12 actual installed-SDK
 tests, 50/50 combined**, **six nested consumers**, **5 standalone** and **4 NDEBUG**
 tests, plus both genuine public-output handoffs under NDEBUG. All **28 existing**
 public workflows and **two new** score handoffs pass. All **five local WP-01 merge
-criteria are satisfied**. WP-01 remains open for implementation review/integration,
-not for more record scaffolding or scientific freeze. No implementation PR is open.
+criteria are satisfied**. The final adversarial review found no blocking production
+defect. Focused multi-family reference and cumulative-cap checks were added in
+[7dcbcea35e](https://github.com/OpenMS/OpenMS/commit/7dcbcea35e85c10e3c6291c6a7134668e83a2207).
+The complete result was rebuilt and replayed on 25 October 2026 at 14:26 UTC with
+the same passing totals above. A separate ASan/UBSan build of the actual private
+implementation passed **5/5 tests** and both genuine CLI export handoffs without
+diagnostics. The full parameter/INI comparison matches the baseline using the
+same SDK, normalizing only unordered enzyme choices. WP-01 is locally reviewed
+and ready for upstream integration, with its issue open and project **In review**.
+No implementation PR is open or merge performed. This is not a request for more
+record scaffolding or a scientific freeze.
 Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now. **Next
 implementation increment: WP-02 resource accounting/admission.** Family/null/decoy
 scientific freeze remains a separate WP-07 milestone. Detailed observations and
 optional-platform/runtime limits are recorded in
-[WP-01](work-packages/01-contracts.md#observed-familyscore-increment-and-complete-v0-handoff-25-october-2026).
+[WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).
 
 ## Current verification status
 
