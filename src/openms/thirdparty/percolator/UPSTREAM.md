@@ -383,6 +383,18 @@ hand-editing sources and committing them, to keep sync self-healing.
 - `patches/19-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
   `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
   the local replacement above). No change of results.
+- `patches/21-initdir-count-buffers.patch` — the counts of `Scores::getInitDirection` (patch 08)
+  take their buffers (the snapshot of the sorted keys, the (score, label) pairs and the q-values)
+  from lists of the call and put them back when done, and `countPositivesOfPairs` reserves room
+  for all q-values at once, so the 2 x 30 counts of a fold reuse memory instead of new pages
+  for every feature; the large buffers of the initial direction (the feature columns, the snapshots,
+  the pairs) are advised for transparent huge pages (`adviseHugePages`, ssl.h), as is the copy buffer of
+  `FeatureMemoryPool::moveRowsInOrder`. Without the mix-max correction (pi0 not below 1),
+  `countPositivesOfPairs` counts the positives in one walk over the groups of equal scores (as
+  `countPositivesOfTop`) instead of computing all q-values. When `createXvalSetsBySpectrum` fills
+  the folds by tasks, each fold reserves its exact test and training sizes (a fold of whole spectra
+  outgrew the former estimate and reallocated). No change of results.
+  (Numbered 21 because two parallel branches each added a patch 20; renumber at integration.)
 
 ### Regenerating the patch
 

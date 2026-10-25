@@ -17,6 +17,10 @@
 
 #include <Eigen/Dense>
 
+#if defined(__linux__)
+#include <sys/mman.h>
+#endif
+
 #include "tron.h"
 
 // OpenMS: the fast function object (FastTronFunction, tron_kernels.h) reproduces the bits of
@@ -29,6 +33,21 @@
 #endif
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
+// (see ssl.h)
+void adviseHugePages(const void* p, std::size_t bytes) {
+#if defined(__linux__) && defined(MADV_HUGEPAGE)
+  constexpr std::uintptr_t kHuge = std::uintptr_t(2) << 20;
+  if (bytes < 2 * kHuge) return;
+  const std::uintptr_t b = (reinterpret_cast<std::uintptr_t>(p) + kHuge - 1) & ~(kHuge - 1);
+  const std::uintptr_t e = (reinterpret_cast<std::uintptr_t>(p) + bytes) & ~(kHuge - 1);
+  if (e > b) madvise(reinterpret_cast<void*>(b), e - b, MADV_HUGEPAGE);  // (if it fails: small pages, as before)
+#else
+  (void)p;
+  (void)bytes;
+#endif
+}
+
 
 // AlgIn lifecycle — was previously defined in the legacy SVMlin
 // ssl.cpp; carried forward unchanged so existing callers (CrossValidation,
@@ -198,25 +217,27 @@ std::atomic<int>& tronKernels() {
 }
 
 #ifdef PERCOLATOR_TRON_KERNELS
-// Grow-only buffer of doubles, 64-byte aligned (BT4 blocks are loaded with aligned loads).
+// Grow-only buffer of doubles, 64-byte aligned (BT4 blocks are loaded with aligned loads), zero-filled when it grows.
 struct AlignedDoubles {
-  std::vector<double> v;
+  std::unique_ptr<double[]> v;
   double* p = nullptr;
   size_t cap = 0;
   // the old contents are not kept; if the allocation throws, the buffer is empty
   double* get(size_t n) {
     if (n > cap) {
       const size_t c = std::max(n, cap + cap / 2);
-      std::vector<double>().swap(v);
+      v.reset();
       p = nullptr;
       cap = 0;
-      v.resize(c + 8);
-      p = reinterpret_cast<double*>((reinterpret_cast<std::uintptr_t>(v.data()) + 63) & ~std::uintptr_t(63));
+      v.reset(new double[c + 8]);  // (not yet written: the huge pages are advised before the first write)
+      adviseHugePages(v.get(), (c + 8) * sizeof(double));
+      std::fill_n(v.get(), c + 8, 0.0);
+      p = reinterpret_cast<double*>((reinterpret_cast<std::uintptr_t>(v.get()) + 63) & ~std::uintptr_t(63));
       cap = c;
     }
     return p;
   }
-  size_t bytes() const { return v.capacity() * sizeof(double); }
+  size_t bytes() const { return v ? (cap + 8) * sizeof(double) : 0; }
 };
 
 // Workspace of a solve of tron(). The cross-validation runs many solves one after the other (on

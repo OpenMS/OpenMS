@@ -41,8 +41,174 @@
 #include <omp.h>
 #endif
 
+#if defined(__linux__) && defined(__GLIBC__)
+#include <cstdlib>
+#include <cstring>
+#include <malloc.h>
+#define PROSE_GLIBC_MALLOC
+#endif
+
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer) || __has_feature(memory_sanitizer)
+#define PROSE_SANITIZED
+#endif
+#endif
+#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__)) && !defined(__ILP32__) && \
+    !defined(__SANITIZE_ADDRESS__) && !defined(__SANITIZE_THREAD__) && !defined(PROSE_SANITIZED)
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
+#include <fstream>
+#include <poll.h>
+#include <pthread.h>
+#include <sched.h>
+#include <signal.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#define PROSE_HAND_OVER_MEMORY
+#ifndef SYS_close_range
+#define SYS_close_range 436 // Linux 5.9; the same number on all architectures
+#endif
+#endif
+
 using namespace OpenMS;
 using namespace std;
+
+#ifdef PROSE_HAND_OVER_MEMORY
+namespace
+{
+  /**
+    Opt-in (environment variable OPENMS_FAST_EXIT=1): when a process ends, the kernel releases its memory before the
+    waiting parent learns of the end: 40-80 ms for the 0.5-1 GB that a search leaves behind, after all outputs are
+    written. A helper process that shares the address space (CLONE_VM) takes over that work: it waits until this
+    process has ended (end of file on a pipe whose write end only this process holds; a process drops its address
+    space before it closes its files) and ends itself, so the memory goes back to the system with the helper, a
+    moment after this process ended. This process ends exactly as before (destructors, flushed streams, exit code);
+    the helper writes nothing and holds no file of this process once this process continues.
+
+    Off by default: the helper is a process of its own for that moment (a sandbox that forbids creating processes
+    may kill the tool at the end, an init process that does not reap adopted children keeps it as a zombie, a job
+    system that waits for all processes of a job waits for it), and it is not used under a debugger or tracer.
+  */
+  struct HelperFiles
+  {
+    long end_pipe; ///< read end: end of file when this process has ended
+    long end_pipe_write; ///< this process's write end (closed in the helper)
+    long ready_pipe_write; ///< the helper closes it (with all other files) when it holds no file but end_pipe
+  };
+  HelperFiles memory_helper_files{-1, -1, -1};
+  alignas(64) char memory_helper_stack[16384];
+
+  /// a system call without the C library: the helper shares the memory of this process, but not its thread state
+  /// (errno)
+  long rawSyscall(long n, long a = 0, long b = 0, long c = 0)
+  {
+#if defined(__x86_64__)
+    long ret;
+    asm volatile("syscall" : "=a"(ret) : "a"(n), "D"(a), "S"(b), "d"(c) : "rcx", "r11", "memory");
+    return ret;
+#else
+    register long x8 asm("x8") = n;
+    register long x0 asm("x0") = a;
+    register long x1 asm("x1") = b;
+    register long x2 asm("x2") = c;
+    asm volatile("svc 0" : "+r"(x0) : "r"(x8), "r"(x1), "r"(x2) : "memory");
+    return x0;
+#endif
+  }
+
+  int memoryHelper(void*)
+  {
+    // signals are blocked (by this process before clone()); keep no file of this process open (e.g. the pipe of a
+    // caller that reads its output until the end), else end now and leave the memory to this process
+    const long fd = memory_helper_files.end_pipe;
+    if (rawSyscall(SYS_close, memory_helper_files.end_pipe_write) != 0 ||
+        (fd > 0 && rawSyscall(SYS_close_range, 0, fd - 1, 0) != 0) ||
+        rawSyscall(SYS_close_range, fd + 1, ~0U, 0) != 0) // also closes ready_pipe_write: this process continues
+    {
+      rawSyscall(SYS_exit, 0);
+    }
+    char c;
+    long r;
+    do { r = rawSyscall(SYS_read, fd, long(&c), 1); } while (r > 0 || r == -EINTR); // 0 when this process has ended
+    rawSyscall(SYS_exit, 0);
+    return 0;
+  }
+
+  /// Is a debugger or tracer attached (it would not follow the helper, see CLONE_UNTRACED)?
+  bool traced()
+  {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line))
+    {
+      if (line.rfind("TracerPid:", 0) == 0) return std::atol(line.c_str() + 10) != 0;
+    }
+    return true;
+  }
+
+  /// With OPENMS_FAST_EXIT=1, hands the release of the memory at exit to a helper process (see above); does nothing
+  /// if that fails
+  void handOverMemoryAtExit()
+  {
+    const char* fast_exit = getenv("OPENMS_FAST_EXIT");
+    if (fast_exit == nullptr || strcmp(fast_exit, "1") != 0) { return; }
+    // Valgrind does not run processes that share memory without being threads
+    const char* preload = getenv("LD_PRELOAD");
+    if (preload != nullptr && strstr(preload, "vgpreload") != nullptr) { return; }
+    if (traced()) { return; }
+    int end_pipe[2], ready_pipe[2];
+    if (pipe2(end_pipe, O_CLOEXEC) != 0) { return; } // close-on-exec: no program started later holds the write end
+    if (pipe2(ready_pipe, O_CLOEXEC) != 0) { close(end_pipe[0]); close(end_pipe[1]); return; }
+    memory_helper_files = {end_pipe[0], end_pipe[1], ready_pipe[1]};
+    // the helper starts with all signals blocked: no handler of this process runs in it
+    sigset_t all, previous;
+    sigfillset(&all);
+    pthread_sigmask(SIG_SETMASK, &all, &previous);
+    const bool started = clone(memoryHelper, memory_helper_stack + sizeof(memory_helper_stack), CLONE_VM | CLONE_UNTRACED, nullptr) != -1;
+    pthread_sigmask(SIG_SETMASK, &previous, nullptr);
+    close(end_pipe[0]);
+    close(ready_pipe[1]);
+    if (!started) { close(end_pipe[1]); }
+    else
+    {
+      // wait (at most 0.1 s) until the helper holds no file of this process but the pipe (end of file on ready_pipe)
+      pollfd ready{ready_pipe[0], POLLIN, 0};
+      while (poll(&ready, 1, 100) < 0 && errno == EINTR) {}
+    }
+    close(ready_pipe[0]);
+    // end_pipe[1] stays open until this process ends
+  }
+}
+#endif
+
+#ifdef PROSE_GLIBC_MALLOC
+namespace
+{
+  /**
+    glibc's malloc: the arena of a thread other than the main thread grows its heap (a 64 MiB reservation) by just
+    the pages that an allocation lacks, with one mprotect() each, and mprotect() blocks the page faults of all other
+    threads while it runs. A search keeps several GB of peak lists that its threads allocate in small blocks, so at
+    64 threads the preprocessing of the spectra spent most of its time in the kernel (HeLa 25pc_50_25: 1.2 million
+    mprotect() calls, 76 % system time). With a top pad of 64 MiB a new heap is made writable in one call when it is
+    created. The pad also applies to the main arena (64 MiB more address space per sbrk(), touched only when used)
+    and it freezes the threshold above which a block is mapped on its own at its value when main() starts (glibc
+    otherwise raises it with the mapped blocks that are freed; normally still the default 128 KiB here).
+
+    Not when the user set glibc's malloc tunables (GLIBC_TUNABLES), nor with OPENMS_MALLOC_DEFAULTS=0. No change of
+    results.
+  */
+  void configureMalloc()
+  {
+    const char* tunables = getenv("GLIBC_TUNABLES");
+    if (tunables != nullptr && strstr(tunables, "glibc.malloc.") != nullptr) { return; }
+    const char* defaults = getenv("OPENMS_MALLOC_DEFAULTS");
+    if (defaults != nullptr && strcmp(defaults, "0") == 0) { return; }
+    mallopt(M_TOP_PAD, 64 << 20);
+  }
+}
+#endif
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -109,6 +275,8 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file gets the same identifications as when it is searched alone, and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
 @note Threads: '-threads' sets the threads of the search ('-threads 0': the physical cores the process may use, without their hardware threads); an mzML file read while the search runs takes its threads from these if they are fewer than the physical cores the process may use (otherwise it reads with threads of its own). For many files on a machine with many cores, several processes at 16-32 threads, each searching a share of the files, finish sooner than one process at 64 threads. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
+@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets glibc's malloc tunables (GLIBC_TUNABLES=glibc.malloc...), nor with OPENMS_MALLOC_DEFAULTS=0. For large inputs, GLIBC_TUNABLES=glibc.malloc.hugetlb=1 (transparent huge pages for the heaps and large blocks) may make the search faster at a somewhat higher peak memory; it then replaces ProSE's setting, so add glibc.malloc.top_pad=67108864 to keep it.
+@note Exit: with the environment variable OPENMS_FAST_EXIT=1 (Linux), ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end 40-80 ms earlier (exit code and outputs unchanged). Off by default: the helper is a process of its own for that moment, which a sandbox that forbids creating processes, an init process that does not reap adopted children, or a job system that waits for all processes of a job may not expect.
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
 <B>The command line parameters of this tool are:</B>
@@ -1035,8 +1203,15 @@ class ProSE :
 
 int main(int argc, const char** argv)
 {
+#ifdef PROSE_GLIBC_MALLOC
+  configureMalloc();
+#endif
   ProSE tool;
-  return tool.main(argc, argv);
+  const int exit_code = tool.main(argc, argv);
+#ifdef PROSE_HAND_OVER_MEMORY
+  handOverMemoryAtExit();
+#endif
+  return exit_code;
 }
 
 ///@endcond

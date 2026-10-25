@@ -1,0 +1,232 @@
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index ab7546ea89..ed29053644 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -16,6 +16,7 @@
+  *******************************************************************************/
+ 
+ #include "FeatureMemoryPool.h"
++#include "ssl.h"  // OpenMS: adviseHugePages
+ 
+ #include <algorithm>
+ #include <cstdint>
+@@ -162,6 +163,7 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
+   // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
+   // if there is one (the blocks are disjoint)
+   const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
++  adviseHugePages(moved.get(), n * numFeatures_ * sizeof(double));  // OpenMS (ssl.h): written once, read once
+ #pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
+   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+     std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 653b2cdf43..a728aeeba6 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -19,12 +19,14 @@
+ #include <cassert>
+ #include <exception>
+ #include <functional>
++#include <cfloat>
+ #include <cmath>
+ #include <fstream>
+ #include <iostream>
+ #include <limits>
+ #include <map>
+ #include <memory>
++#include <mutex>
+ #include <set>
+ #include <sstream>
+ #include <string>
+@@ -302,7 +304,14 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+   test.resize(xval_fold, Scores(usePi0_));
+   size_t approxTestSize = scores_.size() / xval_fold + 1;
+   size_t approxTrainSize = (approxTestSize < scores_.size()) ? scores_.size() - approxTestSize : scores_.size();
+-  for (unsigned int i = 0; i < xval_fold; ++i) {
++#ifdef _OPENMP
++  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
++#else
++  const bool fillInTasks = false;
++#endif
++  // OpenMS: filled by tasks (below), each fold reserves exactly its sizes there (here, a fold of whole spectra could
++  // outgrow the estimate and reallocate once)
++  for (unsigned int i = 0; i < xval_fold && !fillInTasks; ++i) {
+     train[i].reserve(approxTrainSize);
+     test[i].reserve(approxTestSize);
+   }
+@@ -357,11 +366,6 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+   // same order (see below)
+   std::vector<unsigned int> foldOfPSM;
+   std::vector<LabelType> labelOfPSM;
+-#ifdef _OPENMP
+-  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
+-#else
+-  const bool fillInTasks = false;
+-#endif
+   if (fillInTasks) {
+     foldOfPSM.reserve(scores_.size());
+     labelOfPSM.reserve(scores_.size());
+@@ -420,6 +424,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+ #pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
+     for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
+       try {
++        const std::size_t testSize = static_cast<std::size_t>(
++            std::count(foldOfPSM.begin(), foldOfPSM.end(), static_cast<unsigned int>(i)));
++        test[static_cast<std::size_t>(i)].reserve(testSize);
++        train[static_cast<std::size_t>(i)].reserve(scores_.size() - testSize);
+         for (std::size_t k = 0; k < scores_.size(); ++k) {
+           ScoreHolder sh = scores_[k];
+           sh.label = labelOfPSM[k];
+@@ -1147,6 +1155,50 @@ void Scores::weedOutRedundantMixMax() {
+ int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
+                                double fdr, bool skipDecoysPlusOne) const {
+   std::vector<double> qvals;
++  return countPositivesOfPairs(combined, fdr, skipDecoysPlusOne, qvals);
++}
++
++int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
++                                  double fdr, bool skipDecoysPlusOne,
++                                  std::vector<double>& qvals) const {
++  // Without the mix-max correction (pi0 not below 1), getQValues gives every PSM of a group of equal scores the
++  // minimum of min(FDR, 1) at the ends of its group and of the groups after it (FDR = decoys * pi0 / max(1, targets)
++  // * decoyFactor, counted from the top as below). So q < fdr exactly for the PSMs up to the end of the last group
++  // with min(FDR, 1) < fdr, and the count is the number of targets up to there: walked without the q-values
++  // (as countPositivesOfTop). A NaN FDR (which the minimum does not order) uses getQValues. Only where doubles are
++  // evaluated in double precision (FLT_EVAL_METHOD 0, e.g. SSE2 / AArch64): getQValues rounds every q-value to double
++  // when it stores it, which an x87 build with excess precision would not do in registers.
++#if defined(FLT_EVAL_METHOD) && FLT_EVAL_METHOD == 0
++  if (!(pi0_ < 1.0)) {
++    const double pi0 = pi0_;
++    const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
++    PosteriorEstimator::setNegative(true);  // as below
++    int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;
++    int numPos = 0;
++    bool nanFdr = false;
++    const std::size_t n = combined.size();
++    for (std::size_t i = 0; i < n; ++i) {
++      if (combined[i].second) {
++        ++n_w_ge_w;
++      } else {
++        ++n_z_ge_w;
++      }
++      if (i + 1 == n || combined[i].first != combined[i + 1].first) {
++        const double groupFdr = (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
++        const double q = (std::min)(groupFdr, 1.0);
++        if (std::isnan(q)) {
++          nanFdr = true;
++          break;
++        }
++        if (q < fdr) numPos = n_w_ge_w;
++      }
++    }
++    if (!nanFdr) return numPos;
++  }
++#endif
++  // (one q-value per pair: room for all of them at once, instead of growing while they are added)
++  qvals.clear();
++  qvals.reserve(combined.size());
+   PosteriorEstimator::setNegative(true);  // also get q-values for decoys
+   PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
+                                  nullTargetWinProb_);
+@@ -1204,6 +1256,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+     };
+     // the keys after the sort of each feature (until its count), and the labels
+     std::vector<std::unique_ptr<ChainKey[]> > keysOfFeature(numFeatures);
++    // OpenMS: the buffers of the counts (a snapshot of n keys; the n (score, label) pairs and their q-values), taken
++    // from these lists and put back when a count is done, so the counts of later features reuse memory that is
++    // already in use (instead of new pages for 2 x 16 + 8 bytes per PSM and feature, freed again right after);
++    // released at the end of this call
++    struct CountBuffers {
++      std::vector<pair<double, bool> > pairs;
++      std::vector<double> qvals;
++    };
++    std::mutex buffersMutex;
++    std::vector<std::unique_ptr<ChainKey[]> > freeSnapshots;
++    std::vector<std::unique_ptr<CountBuffers> > freeCountBuffers;
+     std::vector<char> isTarget(n);
+     // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
+     // (each key is written once, so the order of the blocks does not matter)
+@@ -1241,6 +1304,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+         // written there, so the array is not zero-filled first)
+         // (a block of PSMs per task, column by column: consecutive writes)
+         const std::unique_ptr<double[]> columns(new double[static_cast<std::size_t>(numFeatures) * n]);
++        adviseHugePages(columns.get(), static_cast<std::size_t>(numFeatures) * n * sizeof(double));  // (ssl.h)
+         const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
+         const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
+ #pragma omp taskloop grainsize(1) shared(columns, isTarget)
+@@ -1274,25 +1338,54 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+             return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
+           });
+           {
+-            keysOfFeature[featNo].reset(new ChainKey[n]);
++            {
++              std::lock_guard<std::mutex> lock(buffersMutex);
++              if (!freeSnapshots.empty()) {
++                keysOfFeature[featNo] = std::move(freeSnapshots.back());
++                freeSnapshots.pop_back();
++              }
++            }
++            if (!keysOfFeature[featNo]) {
++              keysOfFeature[featNo].reset(new ChainKey[n]);
++              adviseHugePages(keysOfFeature[featNo].get(), n * sizeof(ChainKey));
++            }
+             ChainKey* snapshot = keysOfFeature[featNo].get();
+ #pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+             for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
+               snapshot[i] = keys[static_cast<std::size_t>(i)];
+             }
+           }
+-#pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
++#pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne, \
++                                             buffersMutex, freeSnapshots, freeCountBuffers)
+           try {
+-            std::vector<pair<double, bool> > pairs;
+-            pairs.reserve(n);
++            std::unique_ptr<CountBuffers> buffers;
++            {
++              std::lock_guard<std::mutex> lock(buffersMutex);
++              if (!freeCountBuffers.empty()) {
++                buffers = std::move(freeCountBuffers.back());
++                freeCountBuffers.pop_back();
++              }
++            }
++            if (!buffers) buffers.reset(new CountBuffers());
++            std::vector<pair<double, bool> >& pairs = buffers->pairs;
++            pairs.clear();
++            if (pairs.capacity() < n) {
++              pairs.reserve(n);
++              adviseHugePages(pairs.data(), n * sizeof(pair<double, bool>));
++            }
+             const ChainKey* snapshot = keysOfFeature[featNo].get();
+             for (std::size_t i = 0; i < n; ++i) {
+               pairs.emplace_back(snapshot[i].score, isTarget[snapshot[i].index] != 0);
+             }
+-            keysOfFeature[featNo].reset();
+-            positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
++            {
++              std::lock_guard<std::mutex> lock(buffersMutex);
++              freeSnapshots.push_back(std::move(keysOfFeature[featNo]));
++            }
++            positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne, buffers->qvals);
+             reverse(pairs.begin(), pairs.end());
+-            positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
++            positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne, buffers->qvals);
++            std::lock_guard<std::mutex> lock(buffersMutex);
++            freeCountBuffers.push_back(std::move(buffers));
+           } catch (...) {
+             errors[featNo] = std::current_exception();
+           }
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 20a59b532b..178d914d25 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -168,6 +168,10 @@ class Scores {
+   // OpenMS: see Scores.cpp
+   int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
+                          double fdr, bool skipDecoysPlusOne) const;
++  // OpenMS: the same, with qvals as scratch for the q-values when they are computed (its capacity is reused; its
++  // contents afterwards are unspecified)
++  int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
++                            double fdr, bool skipDecoysPlusOne, std::vector<double>& qvals) const;
+   int countPositivesOfScores(std::vector<std::pair<double, bool> >& combined,
+                              const std::vector<double>& w, double fdr,
+                              bool skipDecoysPlusOne) const;

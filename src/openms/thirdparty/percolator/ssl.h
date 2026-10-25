@@ -14,6 +14,7 @@
 #ifndef _svmlin_H
 #define _svmlin_H
 
+#include <cstddef>
 #include <vector>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
@@ -87,6 +88,13 @@ struct options {
 int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
          double cpos, double cneg, double* gradRatio = nullptr);
+
+// OpenMS: asks Linux to back the 2 MiB pages that lie inside [p, p + bytes) with transparent huge pages (a hint, which
+// the kernel follows in its "always" and "madvise" THP modes; nothing elsewhere, and nothing for blocks under 4 MiB).
+// For large buffers that are written once and read many times (the training matrices of a large data set): 512
+// times fewer page faults to fill them, far fewer TLB misses to read them. Call it before the first write. Values are
+// not affected.
+void adviseHugePages(const void* p, std::size_t bytes);
 
 // OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
 // of any size for the next solves (otherwise those above 64 MB are freed after the solve); the

@@ -785,6 +785,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// Exact peptide/charge/isotope keys already scored in earlier database chunks.
       /// Empty in non-chunked searches; full keys resolve hash collisions by equality.
       std::unordered_set<std::string> seen_candidates;
+      /// OpenMP thread number that last scored this spectrum (its hits are freed on that thread: see search())
+      int scoring_thread = 0;
 
       /// Fold one freshly scored candidate into the summary.
       void add(double score)

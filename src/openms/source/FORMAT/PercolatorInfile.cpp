@@ -34,6 +34,11 @@
 #include <omp.h>
 #endif
 
+#if defined(__linux__)
+#include <cstdint>
+#include <sys/mman.h> // madvise (adviseHugePages_)
+#endif
+
 namespace OpenMS
 {
   using namespace std;
@@ -844,6 +849,25 @@ namespace OpenMS
     return number;
   }
 
+  namespace
+  {
+    // Asks Linux to back the 2 MB pages inside the first @p count elements of a large buffer (capacity reserved, not
+    // yet written) with transparent huge pages (with THP in "madvise" mode only advised buffers get them): filling it
+    // then takes a 512th of the page faults, and the rescoring reads it with fewer TLB misses. Values are not affected.
+    void adviseHugePages_(std::vector<double>& buffer, size_t count)
+    {
+#if defined(__linux__) && defined(MADV_HUGEPAGE)
+      constexpr std::uintptr_t huge_page = std::uintptr_t(2) << 20;
+      const std::uintptr_t begin = (reinterpret_cast<std::uintptr_t>(buffer.data()) + huge_page - 1) / huge_page * huge_page;
+      const std::uintptr_t end = (reinterpret_cast<std::uintptr_t>(buffer.data()) + count * sizeof(double)) / huge_page * huge_page;
+      if (end > begin) { madvise(reinterpret_cast<void*>(begin), end - begin, MADV_HUGEPAGE); }
+#else
+      (void) buffer;
+      (void) count;
+#endif
+    }
+  }
+
   Size PercolatorInfile::buildFeatureMatrix(const PeptideIdentificationList& peptide_ids,
     const StringList& features,
     const std::string& enz,
@@ -1008,6 +1032,8 @@ namespace OpenMS
         {
           throw std::length_error("PercolatorInfile::buildFeatureMatrix: too many feature values");
         }
+        input.feature_matrix.reserve(n_rows * n_features);
+        adviseHugePages_(input.feature_matrix, n_rows * n_features);
         input.feature_matrix.resize(n_rows * n_features);
         is_decoy.resize(n_rows);
         input.scan_numbers.resize(n_rows);

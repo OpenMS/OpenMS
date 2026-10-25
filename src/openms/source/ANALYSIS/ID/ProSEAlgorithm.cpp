@@ -106,16 +106,63 @@ namespace OpenMS
     // Destroys the elements of a large container with the OpenMP threads, then the container itself. Destroying the
     // spectra, hits and identifications of a search one after the other is a serial step of 10 - 100 ms each at the
     // end of a search; the elements own their memory, so they can be destroyed in any order.
+    // In equal static parts per thread: glibc returns a block to the arena of the thread that allocated it, under that
+    // arena's lock. The peak lists were made by the static loop of preprocessSpectra_ (the same parts of the same
+    // team), so each thread frees into its own arena; in dynamic chunks most frees waited for the lock of another
+    // thread's arena (futex system calls: HeLa 25pc_50_25 at 64 threads 0.44 s for the query spectra instead of 0.06).
+    // (Only where the memory goes back depends on this: with another team size or a container changed in between,
+    // some frees cross arenas, with the same result.)
     template <typename Container>
     void freeInParallel(Container& container)
     {
       const SignedSize n = static_cast<SignedSize>(container.size());
-#pragma omp parallel for schedule(dynamic, 64) if (n >= 256)
+#pragma omp parallel for schedule(static) if (n >= 256)
       for (SignedSize i = 0; i < n; ++i)
       {
         [[maybe_unused]] const auto released = std::move(container[i]);
       }
       Container().swap(container);
+    }
+
+    // Destroys the elements of a large container on the OpenMP threads that allocated them (owner(i): the thread
+    // number of element i in a team of the same size; other numbers are spread over the team), then the container:
+    // as freeInParallel(), for elements that a dynamically scheduled loop made. Each thread looks at all owners and
+    // frees its own elements, into its own arena.
+    template <typename Container, typename Owner>
+    void freeOnOwnerThreads(Container& container, const Owner& owner)
+    {
+      const SignedSize n = static_cast<SignedSize>(container.size());
+#pragma omp parallel if (n >= 256)
+      {
+#ifdef _OPENMP
+        const int team = omp_get_num_threads();
+        const int me = omp_get_thread_num();
+#else
+        const int team = 1;
+        const int me = 0;
+#endif
+        for (SignedSize i = 0; i < n; ++i)
+        {
+          const int o = owner(i);
+          if ((o >= 0 ? o % team : 0) == me) { [[maybe_unused]] const auto released = std::move(container[i]); }
+        }
+      }
+      Container().swap(container);
+    }
+
+    // The peak list and native ID of @p from into the empty spectrum @p to (and, if @p with_precursors, its MS level and
+    // precursors): a full MSSpectrum copy also copies the meta values, the data arrays and the other settings, heap blocks
+    // per spectrum that the readers of these copies never look at (the native ID identifies the copy).
+    void copyPeakList_(const MSSpectrum& from, MSSpectrum& to, bool with_precursors)
+    {
+      to.reserve(from.size());
+      to.insert(to.end(), from.begin(), from.end());
+      to.setNativeID(from.getNativeID());
+      if (with_precursors)
+      {
+        to.setMSLevel(from.getMSLevel());
+        to.setPrecursors(from.getPrecursors());
+      }
     }
 
     void freeInParallel(PeakMap& spectra)
@@ -1272,7 +1319,8 @@ namespace OpenMS
     // first one is rethrown after the loop.
     std::exception_ptr preprocessing_error;
     std::atomic<bool> preprocessing_failed{false};
-#pragma omp parallel for default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
+    // (static: freeInParallel() frees the copies made here in the same parts, each in its own thread's arena)
+#pragma omp parallel for schedule(static) default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
                                                 fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, \
                                                 deisotoping, ion_evidence, ion_evidence_scored_peaks, \
                                                 threshold_mower_filters, normalizers, nlargest_filters, \
@@ -1295,7 +1343,8 @@ namespace OpenMS
       exp[exp_index].sortByPosition();
 
       // fragment:query_spectrum=raw retrieves candidates with this peak list (before deisotoping and local filtering).
-      if (query_spectra != nullptr) { (*query_spectra)[exp_index] = exp[exp_index]; }
+      // (only what the candidate query reads: the peaks, MS level and precursors; not the meta data and data arrays)
+      if (query_spectra != nullptr) { copyPeakList_(exp[exp_index], (*query_spectra)[exp_index], true); }
 
       // deisotope (skipped for low-resolution data; see do_deisotope above)
       // Isotope intensities must fall from the monoisotopic peak on (start_intensity_check = 1).
@@ -1337,7 +1386,8 @@ namespace OpenMS
       if (ion_evidence != nullptr && !ion_evidence_scored_peaks) { ion_evidence->assign(exp_index, exp[exp_index]); }
       // Local fragment evidence uses this peak list: after deisotoping, so that densities and
       // matching share the m/z space of the scoring spectrum, but before local and top-N filtering.
-      if (evidence_spectra != nullptr) { (*evidence_spectra)[exp_index] = exp[exp_index]; }
+      // (only what localPeakDensities_ and localFragmentEvidence_ read: the peaks)
+      if (evidence_spectra != nullptr) { copyPeakList_(exp[exp_index], (*evidence_spectra)[exp_index], false); }
 
       // remove noise
       if (full_window_quota) { filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top)); }
@@ -1425,7 +1475,7 @@ namespace OpenMS
 
   namespace
   {
-    /// Scratch buffers of alignAbsoluteTolerance_(), reused across the hits of one spectrum.
+    /// Scratch buffers of alignAbsoluteTolerance_(), reused across the hits and spectra of a thread (rewritten by every call).
     struct AlignmentScratch_
     {
       std::vector<double> prev;         ///< scores of the computed cells of row i - 1
@@ -1792,6 +1842,13 @@ namespace OpenMS
       }
     }
 
+    // The meta values a hit gets below, and later in the search (protein mapping: 2, ion priors: 2): reserved at once.
+    const Size hit_meta_values = Size(annotation_fragment_error_ppm) + annotation_precursor_error_ppm + annotation_prefix_fraction
+      + annotation_suffix_fraction + annotation_num_matched_peaks + annotation_matched_prefix_ions + annotation_matched_suffix_ions
+      + 1 /* delta score */ + annotation_hyperscore_zscore + annotation_ln_num_candidates + annotation_matched_ion_current
+      + annotation_matched_ion_current_fraction + annotation_longest_ion_run + annotation_complementary_ions_fraction
+      + 2 * Size(annotation_local_evidence) + 1 /* isotope error */ + open_search_mode + 1 /* rank */ + 4;
+
     // With an empty list to start from, every spectrum with hits gets a slot in scan order: the identifications
     // end up in scan order without a lock and without the sort below (which orders them by scan_index, i.e. the
     // same order). Otherwise they are appended under a lock and sorted, as before.
@@ -1810,7 +1867,18 @@ namespace OpenMS
     }
 
     // The work per spectrum varies with its number of hits: hand out small blocks
-#pragma omp parallel for schedule(dynamic, 16)
+#pragma omp parallel
+    {
+    // scratch of the theoretical spectra, alignments and local evidence, reused by all hits of all spectra of a thread
+    // (as before by all hits of a spectrum: each use overwrites what it reads)
+    AlignmentScratch_ alignment_scratch;
+    std::vector<double> evidence_alternatives;
+    // the theoretical spectrum without ion names, see below
+    MSSpectrum coded_spec;
+    std::vector<uint8_t> coded_series;
+    std::vector<UInt> coded_ordinals;
+    std::vector<Int> coded_charges;
+#pragma omp for schedule(dynamic, 16)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
@@ -1846,24 +1914,20 @@ namespace OpenMS
         const std::vector<double> local_densities = annotation_local_evidence
           ? localPeakDensities_(evidence_spec) : std::vector<double>{};
 
-        AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
-        std::vector<double> evidence_alternatives; // reused by all hits of this spectrum
-        // the theoretical spectrum without ion names (reused by all hits of this spectrum), see below
-        MSSpectrum coded_spec;
-        std::vector<uint8_t> coded_series;
-        std::vector<UInt> coded_ordinals;
-        std::vector<Int> coded_charges;
-
-        // create full peptide hit structure from annotated hits
+        // create full peptide hit structure from annotated hits (their sequences are moved: the hits are freed after
+        // this function)
         vector<PeptideHit> phs;
-        for (const auto& ah : annotated_hits[scan_index])
+        phs.reserve(annotated_hits[scan_index].size());
+        for (auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
+          ph.reserveMetaValues(hit_meta_values); // (one block instead of growing by doubling)
           // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
           const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
           ph.setCharge(used_charge);
           ph.setScore(ah.score);
-          ph.setSequence(ah.sequence);
+          ph.setSequence(std::move(ah.sequence));
+          const AASequence& sequence = ph.getSequence();
 
           // Generate theoretical spectrum + alignment for annotations that need it. Unless the ion names are written
           // (fragment annotations here), the peaks of getSpectrum() come without them, with the series, ordinal and
@@ -1878,8 +1942,8 @@ namespace OpenMS
           if (need_alignment)
           {
             coded = without_ion_names
-                    && tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, ah.sequence, 1, max_frag_z);
-            if (!coded) tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
+                    && tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, sequence, 1, max_frag_z);
+            if (!coded) tsg.getSpectrum(theoretical_spec, sequence, 1, max_frag_z);
             if (sa_absolute)
             {
               alignAbsoluteTolerance_(alignment, coded ? coded_spec : theoretical_spec, spec, sa_tolerance, alignment_scratch);
@@ -1915,7 +1979,7 @@ namespace OpenMS
             // feature, corrupting target/decoy discrimination.
             const double corrected_mz = mz
               + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
-            double theo_mz = ah.sequence.getMZ(used_charge);
+            double theo_mz = sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
             ph.setMetaValue(mv_precursor_error, ppm_difference);
           }
@@ -1979,7 +2043,7 @@ namespace OpenMS
             // isotope), so we must sum each exp_idx at most once. Sized only
             // when MIC is actually requested.
             std::vector<char> counted_exp_peaks(need_mic ? spec.size() : 0, 0);
-            peak_annotations.reserve(alignment.size());
+            if (annotation_fragment_annotations && !defer_peak_annotations) { peak_annotations.reserve(alignment.size()); }
 
             for (const auto& [theo_idx, exp_idx] : alignment)
             {
@@ -2073,7 +2137,7 @@ namespace OpenMS
                 // suffix ion at position (peptide_length - i) (x/y/z at the same cleavage
                 // site). Andromeda-style structural signal, distinct from the independently
                 // computed prefix/suffix fractions above.
-                const int pep_len = static_cast<int>(ah.sequence.size());
+                const int pep_len = static_cast<int>(sequence.size());
                 double complementary_fraction = 0.0;
                 if (pep_len > 1)
                 {
@@ -2103,7 +2167,7 @@ namespace OpenMS
                                : localFragmentEvidence_(evidence_spec, theoretical_spec, evidence_z, local_densities,
                                                         fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
             }
-            else if (tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, ah.sequence, 1, evidence_z))
+            else if (tsg.getIonSeriesSpectrum(coded_spec, coded_series, coded_ordinals, coded_charges, sequence, 1, evidence_z))
             {
               // (the peaks and charges of getSpectrum(), without the names)
               evidence = localFragmentEvidence_(evidence_spec, coded_spec, coded_charges, evidence_z, local_densities,
@@ -2112,7 +2176,7 @@ namespace OpenMS
             else
             {
               MSSpectrum evidence_theory;
-              tsg.getSpectrum(evidence_theory, ah.sequence, 1, evidence_z);
+              tsg.getSpectrum(evidence_theory, sequence, 1, evidence_z);
               evidence = localFragmentEvidence_(evidence_spec, evidence_theory, evidence_z, local_densities,
                 fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
             }
@@ -2171,6 +2235,7 @@ namespace OpenMS
         }
       }
     }
+    } // omp parallel
 
 #ifdef _OPENMP
     // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
@@ -2991,6 +3056,9 @@ namespace OpenMS
       // scores are independent of the chunk a candidate came from: a hit outside
       // the top-N here can never re-enter it.
       auto& hits = annotated_hits[scan_index];
+#ifdef _OPENMP
+      pool_stats[scan_index].scoring_thread = omp_get_thread_num();
+#endif
       if (hits.size() > keep)
       {
         std::partial_sort(hits.begin(), hits.begin() + keep, hits.end(), AnnotatedHit_::hasBetterScore);
@@ -3181,7 +3249,6 @@ namespace OpenMS
 
     // 4. Allocate per-spectrum hit accumulator (persists across chunks).
     vector<vector<AnnotatedHit_>> annotated_hits(spectra.size());
-    for (auto& a : annotated_hits) { a.reserve(report_top_hits_); }
     // Accumulates across chunks: every chunk contributes its own candidates for the
     // same spectrum, and the pool features must see all of them.
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
@@ -3270,7 +3337,7 @@ namespace OpenMS
       evidence_ptr
       );
     // Release the hits and the additional peak list before PeptideIndexing.
-    freeInParallel(annotated_hits);
+    freeOnOwnerThreads(annotated_hits, [&pool_stats](SignedSize i) { return pool_stats[i].scoring_thread; }); // (where scored)
     freeInParallel(pool_stats);
     freeInParallel(evidence_spectra);
     endProgress();
@@ -4139,7 +4206,6 @@ namespace OpenMS
 
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
-    for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
 
     bool open_search_mode = open_search;
@@ -4225,7 +4291,7 @@ namespace OpenMS
       defer_peak_annotations
       );
     // Release the hits and the additional peak list before PeptideIndexing.
-    freeInParallel(annotated_hits);
+    freeOnOwnerThreads(annotated_hits, [&pool_stats](SignedSize i) { return pool_stats[i].scoring_thread; }); // (where scored)
     freeInParallel(pool_stats);
     freeInParallel(evidence_spectra);
     endProgress();
@@ -6608,7 +6674,6 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         per_file_hits[i].resize(all_spectra[i].size());
-        for (auto& a : per_file_hits[i]) a.reserve(report_top_hits_);
         per_file_pool_stats[i].resize(all_spectra[i].size());
       }
       OPENMS_LOG_INFO << "[ProSE] Chunk-major multi-file: " << full_db.size()
