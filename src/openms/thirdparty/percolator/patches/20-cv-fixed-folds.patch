@@ -1,0 +1,234 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 9ed52b0240..974d74432a 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -163,6 +163,8 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+                                        FeatureMemoryPool& featurePool) {
+   assert(nestedXvalBins_ >= 1u);
+   trainScoresOfWeights_ = false;
++  nestedSeedBase_ = PseudoRandom::getSeed();  // OpenMS: see doStep (fixed folds)
++  nestedSteps_ = 0;
+   // One input set per (nested) cross validation bin, to be reused multiple
+   // times
+   for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
+@@ -179,7 +181,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   try {
+     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
+                                      featurePool, decoyFractionTraining_,
+-                                     decoysPerTarget);
++                                     decoysPerTarget, &fixedFold_);
+   } catch (...) {
+     xvalError = std::current_exception();
+   }
+@@ -227,6 +229,18 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
+     if (VERB > 0) {
+       cerr << "Selecting Cneg by cross-validation." << endl;
+     }
++    // OpenMS: with fixed folds (out-of-fold capped training), each fold's candidates from the
++    // target/decoy ratio of its own training set (the ratio of fullset counts the fold's labels)
++    if (fixedFold_) {
++      for (unsigned int set = 0; set < numFolds_; ++set) {
++        const double ratio = trainScores_[set].getTargetDecoySizeRatio();
++        std::vector<double> cfracs;
++        if (!singleCneg_) cfracs.push_back(1.0 * ratio);
++        cfracs.push_back(3.0 * ratio);
++        if (!singleCneg_) cfracs.push_back(10.0 * ratio);
++        candidatesCfracPerFold_.push_back(cfracs);
++      }
++    }
+   }
+ 
+   // Form cpos, cneg pairs per nested CV fold
+@@ -234,7 +248,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
+   for (unsigned int set = 0; set < numFolds_; ++set) {
+     for (int nestedSet = 0; nestedSet < nestedXvalBins_; nestedSet++) {
+       std::vector<double> candidatesCpos = candidatesCpos_;
+-      std::vector<double> candidatesCfrac = candidatesCfrac_;
++      std::vector<double> candidatesCfrac =
++          candidatesCfracPerFold_.empty() ? candidatesCfrac_ : candidatesCfracPerFold_[set];
+       if (quickValidation_) {  // in quick validation,
+         candidatesCpos = std::vector<double>(1, 1);
+         candidatesCfrac = std::vector<double>(1, 1);
+@@ -419,6 +434,8 @@ void CrossValidation::trainFoldChains() {
+ #pragma omp single
+ #pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++    // OpenMS: a fold set inactive (setActiveFolds) is not trained; its weights stay the initial ones
++    if (!activeFolds_.empty() && !activeFolds_[static_cast<std::size_t>(set)]) continue;
+     unsigned int step = 0;
+     int stage = 0;
+     // the feature rows of the training set (its PSMs and labels do not change during the training;
+@@ -631,7 +648,21 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   };
+   if (nestedXvalBins_ > 1) {
+     // nested cross-validation draws the nested sets at random: the folds in their order
+-    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
++    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++      // OpenMS: with fixed folds, each fold draws its nested sets from a generator state of its own
++      // (from the state at preIterationSetup, the step and the fold), so the draws of the other
++      // folds, whose training sets hold this fold's PSMs, do not reach it
++      if (fixedFold_) {
++        uint64_t x = nestedSeedBase_ ^ (static_cast<uint64_t>(nestedSteps_) << 8) ^ static_cast<uint64_t>(set);
++        x += 0x9E3779B97F4A7C15ULL;
++        x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
++        x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
++        x ^= x >> 31;
++        PseudoRandom::setSeed(static_cast<unsigned long>(1u + x % (PseudoRandom::kRandMax - 1u)));
++      }
++      setupFold(set);
++    }
++    ++nestedSteps_;
+   } else {
+ #pragma omp parallel num_threads(numTeamThreads(numThreads_))
+ #pragma omp single
+@@ -842,11 +873,14 @@ int CrossValidation::mergeCpCnPairs(
+       if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
+                                   // (accumulate) tp estimated for each CV bin
+         // Now check which achieved best performance among cpos, cneg pairs
++        // OpenMS: the fold's own Cneg candidates with fixed folds (initializeGridSearch)
++        const vector<double>& setCfracCandidates =
++            candidatesCfracPerFold_.empty() ? cfracCandidates : candidatesCfracPerFold_[set];
+         std::vector<double>::const_iterator itCpos = cposCandidates.begin();
+         for (; itCpos != cposCandidates.end(); ++itCpos) {
+           double cpos = *itCpos;
+-          std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
+-          for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
++          std::vector<double>::const_iterator itCfrac = setCfracCandidates.begin();
++          for (; itCfrac != setCfracCandidates.end(); ++itCfrac) {
+             double cfrac = *itCfrac;
+             tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
+             if (tp >= bestTruePoses[set]) {
+@@ -1058,6 +1092,16 @@ void CrossValidation::getAvgWeights(std::vector<double>& weights,
+   }
+ }
+ 
++void CrossValidation::getTrainingPsms(
++    std::size_t set, std::vector<const PSMDescription*>& psms) const {
++  psms.clear();
++  if (set >= trainScores_.size()) return;
++  psms.reserve(trainScores_[set].size());
++  for (const ScoreHolder& sh : trainScores_[set]) {
++    psms.push_back(sh.pPSM);
++  }
++}
++
+ void CrossValidation::printAllWeightsColumns(
+     std::vector<std::vector<double> > weightMatrix,
+     ostream& outputStream) {
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index 4882e2de3a..c78d2473c7 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -18,6 +18,7 @@
+ #define CROSSVALIDATION_H_
+ 
+ 
++#include <functional>
+ #include <iomanip>
+ #include <iostream>
+ #include <limits>
+@@ -90,6 +91,22 @@ class CrossValidation {
+ 
+   void getAvgWeights(std::vector<double>& weights, const Normalizer* pNorm);
+ 
++  // OpenMS (out-of-fold capped training): the folds of the PSMs are given by foldOfPsm (0 to
++  // numFolds - 1, the same for all PSMs of a spectrum) instead of being drawn; set before
++  // preIterationSetup. Nested cross-validation sets are still drawn (inside a fold's training
++  // set, from a generator state per fold and step), and each fold's Cneg candidates come from its
++  // training set's target/decoy ratio.
++  void setFixedFolds(std::function<unsigned int(const PSMDescription&)> foldOfPsm) {
++    fixedFold_ = std::move(foldOfPsm);
++  }
++  // OpenMS (learning curve): train only the folds marked active (empty: all). Applies where train()
++  // runs trainFoldChains (no nested cross-validation, VERB <= 2); an inactive fold keeps its initial
++  // weights and its model is not to be used; the logged totals then count the active folds only.
++  void setActiveFolds(std::vector<char> active) { activeFolds_ = std::move(active); }
++  // OpenMS: the PSMs of the training set of fold set (after preIterationSetup)
++  void getTrainingPsms(std::size_t set,
++                       std::vector<const PSMDescription*>& psms) const;
++
+   void inline setSelectedCpos(double cpos) { selectedCpos_ = cpos; }
+   double inline getSelectedCpos() { return selectedCpos_; }
+   void inline setSelectedCneg(double cneg) { selectedCneg_ = cneg; }
+@@ -147,9 +164,19 @@ class CrossValidation {
+   // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
+   // of mergeCpCnPairs) and have not changed since; see doStep
+   bool trainScoresOfWeights_ = false;
++  // OpenMS: see setFixedFolds (empty: the folds are drawn)
++  std::function<unsigned int(const PSMDescription&)> fixedFold_;
++  // OpenMS: see setActiveFolds
++  std::vector<char> activeFolds_;
++  // OpenMS: with fixed folds, the generator state the nested sets of each fold and step are drawn
++  // from derives from this state (at preIterationSetup) and the number of steps (see doStep)
++  uint64_t nestedSeedBase_ = 0;
++  unsigned int nestedSteps_ = 0;
+   // OpenMS: the solver of the SVMs (SvmSolver)
+   int solver_ = kSolverTron;
+   std::vector<double> candidatesCpos_, candidatesCfrac_;
++  // OpenMS: per fold, with fixed folds (see initializeGridSearch); empty otherwise
++  std::vector<std::vector<double> > candidatesCfracPerFold_;
+ 
+   void initializeGridSearch(double targetDecoySizeRatio);
+   // OpenMS: returns whether the weights' ranking does not depend on the costs (trainSvm)
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 653b2cdf43..db98c46d13 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -296,7 +296,8 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+                                       unsigned int xval_fold,
+                                       FeatureMemoryPool& featurePool,
+                                       double decoyFractionTraining,
+-                                      unsigned int decoysPerTarget) {
++                                      unsigned int decoysPerTarget,
++                                      const std::function<unsigned int(const PSMDescription&)>* fixedFold) {
+   // set the number of cross validation folds for train and test to xval_fold
+   train.resize(xval_fold, Scores(usePi0_));
+   test.resize(xval_fold, Scores(usePi0_));
+@@ -367,7 +368,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     labelOfPSM.reserve(scores_.size());
+   }
+   unsigned int previousSpectrum = scores_.begin()->pPSM->scan;
+-  size_t randIndex = PseudoRandom::lcg_rand() % xval_fold;
++  // OpenMS: with fixedFold (out-of-fold capped training), each PSM's fold is given (the caller
++  // keeps the PSMs of a spectrum in one fold); no fold is drawn
++  const bool foldsFixed = fixedFold != nullptr && static_cast<bool>(*fixedFold);
++  size_t randIndex = foldsFixed ? 0u : PseudoRandom::lcg_rand() % xval_fold;
+   for (std::vector<ScoreHolder>::iterator it = scores_.begin();
+        it != scores_.end(); ++it) {
+     const unsigned int curScan = (*it).pPSM->scan;
+@@ -375,7 +379,12 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+ 
+     // if current score is from a different spectra than the one encountered in
+     // the previous iteration, choose new fold
+-    if (previousSpectrum != curScan) {
++    if (foldsFixed) {
++      randIndex = (*fixedFold)(*sh.pPSM);
++      if (randIndex >= xval_fold) {
++        throw MyException("Error: a fixed cross-validation fold is out of range.\n");
++      }
++    } else if (previousSpectrum != curScan) {
+       randIndex = PseudoRandom::lcg_rand() % xval_fold;
+       // allow only indexes of folds that are non-full
+       while (remain[randIndex] <= 0) {
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 20a59b532b..0466fb44ad 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -24,6 +24,7 @@
+ #include <algorithm>
+ #include <cfloat>
+ #include <cstdlib>
++#include <functional>
+ #include <iostream>
+ #include <map>
+ #include <vector>
+@@ -108,7 +109,8 @@ class Scores {
+                                 unsigned int xval_fold,
+                                 FeatureMemoryPool& featurePool,
+                                 double decoyFractionTraining = 1.0,
+-                                unsigned int decoysPerTarget = 1u);
++                                unsigned int decoysPerTarget = 1u,
++                                const std::function<unsigned int(const PSMDescription&)>* fixedFold = nullptr);
+ 
+   void generatePositiveTrainingSet(AlgIn& data,
+                                    const double fdr,

@@ -383,6 +383,15 @@ hand-editing sources and committing them, to keep sync self-healing.
 - `patches/19-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
   `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
   the local replacement above). No change of results.
+- `patches/20-cv-fixed-folds.patch` — out-of-fold capped training (OpenMS `Percolator` parameter
+  `subset_mode` `out_of_fold`): `Scores::createXvalSetsBySpectrum` takes an optional function that
+  gives each PSM's fold (no fold is drawn then); `CrossValidation::setFixedFolds` passes it to the
+  outer split (nested sets are still drawn, each fold from a generator state of its own per step)
+  and makes `initializeGridSearch` take each fold's Cneg
+  candidates from its own training set's target/decoy ratio (`mergeCpCnPairs`' nested path looks
+  them up per fold); `getTrainingPsms` returns a fold's training PSMs; `setActiveFolds` lets `trainFoldChains`
+  skip folds (the learning curve's stopped folds). Without fixed folds (the
+  default) nothing changes.
 
 ### Regenerating the patch
 
