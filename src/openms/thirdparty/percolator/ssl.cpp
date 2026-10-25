@@ -256,11 +256,20 @@ TronWorkspacePool& tronWorkspacePool() {
 // TronWorkspaceHold exists)
 class TronWorkspaceLease {
  public:
-  TronWorkspaceLease() {
+  // forX: the workspace's X buffer will be used (a TronPairGroup's X): the idle workspace with the largest X
+  // buffer is taken; otherwise (a solve on a group's X) the one with the smallest, so that the large X buffers
+  // stay for the groups and are not allocated (and page-faulted) again at every step
+  explicit TronWorkspaceLease(bool forX = true) {
     TronWorkspacePool& pool = tronWorkspacePool();
     {
       std::lock_guard<std::mutex> lock(pool.mutex);
       if (!pool.idle.empty()) {
+        size_t best = pool.idle.size() - 1;
+        for (size_t k = 0; k < pool.idle.size(); ++k) {
+          const size_t a = pool.idle[k]->xb.bytes(), b = pool.idle[best]->xb.bytes();
+          if (forX ? a > b : a < b) best = k;
+        }
+        std::swap(pool.idle[best], pool.idle.back());
         ws_ = std::move(pool.idle.back());
         pool.idle.pop_back();
       }
@@ -604,7 +613,7 @@ int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vecto
   const int num_real = n - 1;
   const double inv_2lambda = 1.0 / (2.0 * opts.lambda);
   TronPairGroup::State* g = tronGroupX(group, ops, set, n);
-  TronWorkspaceLease lease;
+  TronWorkspaceLease lease(g == nullptr);
   TronWorkspace& ws = lease.get();
   const int np = (n + 3) & ~3;
   const int mp = (m + 31) & ~31;
