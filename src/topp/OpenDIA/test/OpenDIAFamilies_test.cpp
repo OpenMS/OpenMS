@@ -186,6 +186,48 @@ int main()
   }
   auto other = specimen(); other.family_id = 9;
   CHECK(FamilyBatch(ctx, cap, {specimen(), other}).size() == 2)
+  // Family IDs are keys, not positions, and alternative IDs are family-local.
+  auto first_family = specimen(); first_family.family_id = large;
+  auto second_family = specimen(); second_family.family_id = 9;
+  second_family.members[0].precursor_id = 42;
+  second_family.members[1].precursor_id = 43;
+  second_family.alternatives[1].precursor_ids = {42};
+  second_family.alternatives[2].precursor_ids = {42, 43};
+  second_family.fragments[0].precursor_id = 42;
+  second_family.fragments[1].precursor_id = 43;
+  second_family.fragments[2].precursor_id = 42;
+  const FamilyBatch multiple(ctx, {2, 22}, {second_family, first_family});
+  CHECK(multiple.size() == 2)
+  CHECK(multiple.family(0).family_id == 9 && multiple.family(1).family_id == large)
+  CHECK(multiple.family(0).alternatives[2].alternative_id == multiple.family(1).alternatives[2].alternative_id)
+  CHECK(rejects([&] { FamilyBatch invalid(ctx, {2, 21}, {second_family, first_family}); }))
+  // An ID elsewhere in the batch must not satisfy a local member reference.
+  auto leaked_family = second_family;
+  leaked_family.alternatives[1].precursor_ids = {0};
+  CHECK(rejects([&] { FamilyBatch invalid(ctx, cap, {leaked_family, first_family}); }))
+  leaked_family = second_family;
+  leaked_family.fragments[0].precursor_id = 0;
+  CHECK(rejects([&] { FamilyBatch invalid(ctx, cap, {leaked_family, first_family}); }))
+  EvidencePoint first_point; first_point.family_id = large; first_point.precursor_id = 0;
+  EvidencePoint second_point; second_point.family_id = 9; second_point.precursor_id = 42;
+  const EvidenceBlock multi_evidence(ctx, cap, {first_point, second_point});
+  auto first_score = result(); first_score.family_id = large; first_score.evidence_rows = {0, 0};
+  auto second_score = result(); second_score.family_id = 9; second_score.evidence_rows = {1};
+  const ScoreBatch multi_scores({2, 3}, multiple, multi_evidence, {first_score, second_score});
+  CHECK(multi_scores.size() == 2 && multi_scores.evidence().size() == 2)
+  CHECK(multi_scores.score(0).family_id == large && multi_scores.score(1).family_id == 9)
+  CHECK(multi_scores.score(0).alternative_id == multi_scores.score(1).alternative_id)
+  CHECK(multi_scores.score(0).evidence_rows == (std::vector<OpenMS::Size>{0, 0}))
+  CHECK(multi_scores.score(1).evidence_rows == std::vector<OpenMS::Size>{1})
+  CHECK(rejects([&] { ScoreBatch invalid({2, 2}, multiple, multi_evidence, {first_score, second_score}); }))
+  auto leaked_point = second_point; leaked_point.precursor_id = 0;
+  CHECK(rejects([&] { ScoreBatch invalid(cap, multiple, EvidenceBlock(ctx, cap, {first_point, leaked_point}), {first_score, second_score}); }))
+  auto wrong_family_score = second_score; wrong_family_score.evidence_rows = {0};
+  CHECK(rejects([&] { ScoreBatch invalid(cap, multiple, multi_evidence, {first_score, wrong_family_score}); }))
+  for (auto changed : {RecordContext{0, 9, 2, 3}, RecordContext{0, 1, 9, 3}, RecordContext{0, 1, 2, 9}})
+  {
+    CHECK(rejects([&] { ScoreBatch invalid(cap, multiple, EvidenceBlock(changed, cap, {first_point, second_point}), {first_score, second_score}); }))
+  }
   auto no_members = specimen(); no_members.members.clear(); no_members.fragments.clear(); no_members.alternatives = {{0, {}}};
   CHECK(FamilyBatch(ctx, {1, 1}, {no_members}).family(0).alternatives[0].precursor_ids.empty())
   auto no_alternatives = specimen(); no_alternatives.alternatives.clear();
