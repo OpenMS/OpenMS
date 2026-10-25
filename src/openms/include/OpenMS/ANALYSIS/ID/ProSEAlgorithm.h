@@ -166,7 +166,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
       bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
       bool single_cneg = false;    ///< one Cneg candidate instead of three
-      std::string solver = "tron"; ///< Percolator's SVM solver (parameter 'rescore_solver')
+      std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
     };
 
     /**
@@ -1291,6 +1291,21 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string peptide_motif_;
 
     Size report_top_hits_;
+    /// rescoring:top_hits: the hits per spectrum that the Percolator rescoring gets (0 = report_top_hits_)
+    Size rescore_top_hits_{0};
+    /// The hits per spectrum that Percolator rescores: rescoring:top_hits, or report:top_hits if that is 0.
+    Size rescoreTopHits_() const
+    {
+      return rescore_top_hits_ > 0 ? rescore_top_hits_ : report_top_hits_;
+    }
+    /// The hits per spectrum that the search keeps (before the rescoring): without 'rescore' (or with decoys 'ignore',
+    /// which leaves Percolator no decoys) report:top_hits; with it the hits Percolator rescores, and with a copy for a
+    /// .pin (setKeepPreFdrPsms()) also the reported ones.
+    Size searchTopHits_() const
+    {
+      if (!rescore_ || decoy_mode_ == DecoyMode_::IGNORE) return report_top_hits_;
+      return keep_pre_fdr_psms_ ? std::max(report_top_hits_, rescoreTopHits_()) : rescoreTopHits_();
+    }
     /// report:isotope_error_convention: the PSMs report isotope_error as observed minus theoretical (true) or with the
     /// sign of the search offset, theoretical minus observed (false)
     bool isotope_error_observed_minus_theoretical_{true};
@@ -1393,8 +1408,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                int threads,
                                                std::vector<std::vector<PeptideHit>>* dropped) const;
 
-    /// FDR:PSM on the PSMs of a run after its rescoring (see applyPsmFDR_())
-    void applyRescoredPsmFDR_(const std::vector<ProteinIdentification>& protein_ids,
+    /// FDR:PSM on the PSMs of a run after its rescoring (see applyPsmFDR_()); a rescored run records rescoring:top_hits
+    /// (if not 0) as 'Percolator:top_hits', a run that was not rescored keeps report:top_hits hits per spectrum
+    void applyRescoredPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                               PeptideIdentificationList& peptide_ids,
                               bool has_decoys,
                               RunStatistics& stats,
@@ -1553,11 +1569,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// (-1.0 if empty).
     static double maxRetainedScore_(const PeptideIdentificationList& peptide_ids);
 
+    /// Helper: keeps the first @p n hits of each spectrum (the top n of the search engine score, in the order of
+    /// postProcessHits_()); changes nothing if no spectrum has more.
+    static void keepTopHits_(PeptideIdentificationList& peptide_ids, Size n);
+
     /// Helper: the PSM-level FDR of one search run, the last step of every search path. With
     /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
     /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
     /// scores (if @p has_decoys). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
-    /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()).
+    /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()), with report:top_hits hits per
+    /// spectrum; Percolator rescores rescoring:top_hits hits per spectrum (see searchTopHits_()).
     /// @return The outcome of the rescoring (not applied, no reason with 'rescore' off).
     PercolatorRescoring applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                      PeptideIdentificationList& peptide_ids,

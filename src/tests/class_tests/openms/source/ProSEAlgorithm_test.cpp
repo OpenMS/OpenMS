@@ -3878,6 +3878,7 @@ START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and 
   p.setValue("peptide:missed_cleavages", 0);
   p.setValue("scoring:max_candidates_per_spectrum", 3);
   p.setValue("report:top_hits", 10);
+  p.setValue("rescore", "false"); // the search's hits (a run with rescoring keeps rescoring:top_hits for Percolator)
   p.setValue("calibration:enabled", "false");
   p.setValue("FDR:PSM", 0.0);
   p.setValue("FDR:protein", 0.0);
@@ -5581,6 +5582,100 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     TEST_EQUAL(decoy_proteins, 0) // the protein FDR's finalization removes the decoys
     TEST_EQUAL(decoy_psms, 0)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] rescoring:top_hits: Percolator rescores the top hits of each spectrum, independently of report:top_hits))
+{
+  // the defaults: Percolator's Newton solver on the best two hits of each spectrum
+  TEST_EQUAL(ProSEAlgorithm().getParameters().getValue("rescore_solver").toString(), "newton")
+  TEST_EQUAL(static_cast<int>(ProSEAlgorithm().getParameters().getValue("rescoring:top_hits")), 2)
+  TEST_EQUAL(ProSEAlgorithm::PercolatorTraining().solver, "newton")
+
+  const std::string spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+  const std::string database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta");
+  const std::string small_spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.mzML");
+  std::string db = database_file; // of the next searches
+  // the settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini), without FDR filters
+  auto run = [&](int report_top_hits, int rescore_top_hits, bool keep_pre_fdr, const std::vector<std::string>& files)
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    p.setValue("precursor:mass_tolerance_lower", 20.0);
+    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 10.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+    p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+    p.setValue("FDR:PSM", 0.0);
+    p.setValue("FDR:protein", 0.0);
+    p.setValue("report:top_hits", report_top_hits);
+    p.setValue("rescoring:top_hits", rescore_top_hits);
+    algo.setParameters(p);
+    algo.setLogType(ProgressLogger::NONE);
+    algo.setKeepPreFdrPsms(keep_pre_fdr);
+    return algo.searchWithModificationAnalysis(files, db);
+  };
+  auto max_hits = [](const PeptideIdentificationList& peptide_ids)
+  {
+    Size n = 0;
+    for (const auto& pid : peptide_ids) n = std::max(n, pid.getHits().size());
+    return n;
+  };
+  auto record = [](const ProSEAlgorithm::SearchResult& r) -> std::string
+  {
+    if (r.protein_ids.empty()) return "none";
+    const auto& sp = r.protein_ids[0].getSearchParameters();
+    return sp.metaValueExists("Percolator:top_hits") ? sp.getMetaValue("Percolator:top_hits").toString() : std::string();
+  };
+
+  // 0 = report:top_hits (earlier ProSE versions): Percolator rescores the two reported hits, nothing is recorded
+  ProSEAlgorithm::MultiFileSearchResult legacy = run(2, 0, false, {spectra_file});
+  ABORT_IF(legacy.per_file.size() != 1 || !legacy.per_file[0].percolator.applied)
+  TEST_EQUAL(record(legacy.per_file[0]), "")
+  TEST_EQUAL(max_hits(legacy.per_file[0].peptide_ids), 1)
+
+  // report:top_hits 10 does not change what Percolator rescores (the same PSMs, scores and meta values); the rescored
+  // run records rescoring:top_hits
+  ProSEAlgorithm::MultiFileSearchResult decoupled = run(10, 2, false, {spectra_file});
+  ABORT_IF(decoupled.per_file.size() != 1 || !decoupled.per_file[0].percolator.applied)
+  TEST_EQUAL(record(decoupled.per_file[0]), "2")
+  TEST_TRUE(decoupled.per_file[0].peptide_ids == legacy.per_file[0].peptide_ids)
+  std::vector<ProteinIdentification> proteins = decoupled.per_file[0].protein_ids;
+  ABORT_IF(proteins.size() != legacy.per_file[0].protein_ids.size())
+  for (Size i = 0; i < proteins.size(); ++i)
+  {
+    proteins[i].getSearchParameters().removeMetaValue("Percolator:top_hits");
+    proteins[i].setDateTime(legacy.per_file[0].protein_ids[i].getDateTime()); // (the time of the search)
+  }
+  TEST_TRUE(proteins == legacy.per_file[0].protein_ids)
+
+  // with a .pin copy: the copy holds report:top_hits hits per spectrum (as without rescoring), Percolator still rescores
+  // two; with more reported hits than rescored ones the search keeps the reported ones for the copy. (A search with a
+  // .pin copy stores the peak annotations of the hits at once instead of deferring them: compared with such a search.)
+  ProSEAlgorithm::MultiFileSearchResult legacy_pin = run(2, 0, true, {spectra_file});
+  ABORT_IF(legacy_pin.per_file.size() != 1 || !legacy_pin.per_file[0].percolator.applied)
+  for (const int report : {1, 3})
+  {
+    ProSEAlgorithm::MultiFileSearchResult pin = run(report, 2, true, {spectra_file});
+    ABORT_IF(pin.per_file.size() != 1 || !pin.per_file[0].percolator.applied)
+    TEST_TRUE(pin.per_file[0].peptide_ids == legacy_pin.per_file[0].peptide_ids)
+    TEST_TRUE(max_hits(pin.per_file[0].pre_fdr_peptide_ids) <= Size(report))
+    ProSEAlgorithm::MultiFileSearchResult plain_pin = run(report, 0, true, {spectra_file});
+    ABORT_IF(plain_pin.per_file.size() != 1)
+    TEST_TRUE(pin.per_file[0].pre_fdr_peptide_ids == plain_pin.per_file[0].pre_fdr_peptide_ids)
+  }
+
+  // a run that Percolator skips (too few PSMs) reports report:top_hits hits per spectrum, not rescoring:top_hits
+  db = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.fasta");
+  ProSEAlgorithm::MultiFileSearchResult skipped = run(1, 3, false, {small_spectra_file});
+  ABORT_IF(skipped.per_file.size() != 1)
+  TEST_FALSE(skipped.per_file[0].percolator.applied)
+  TEST_FALSE(skipped.per_file[0].peptide_ids.empty())
+  TEST_EQUAL(max_hits(skipped.per_file[0].peptide_ids), 1)
+  TEST_EQUAL(record(skipped.per_file[0]), "")
 }
 END_SECTION
 

@@ -369,7 +369,10 @@ namespace OpenMS
       "spectrum, the more the wider the precursor window.");
     defaults_.setValidStrings("low_memory", {"true", "false"});
 
-    defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setValue("report:top_hits", 1,
+                       "Maximum number of top scoring hits per spectrum that are reported. With 'rescore', only the best "
+                       "hit per spectrum is reported after the rescoring, and the hits that Percolator rescores are set by "
+                       "'rescoring:top_hits' (report:top_hits then applies to a run that is not rescored and to -out_pin).");
     defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
                        "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
                        "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
@@ -386,20 +389,33 @@ namespace OpenMS
     defaults_.setValue("rescore", "true",
                        "Rescore the PSMs of every search run (input file) in-process with Percolator (OpenMS' built-in "
                        "implementation, as PercolatorAdapter uses by default) before the FDR filters: Percolator q-values become "
-                       "the main score (the SVM score and PEP are kept as meta values), only the best hit per spectrum is kept, "
+                       "the main score (the SVM score and PEP are kept as meta values), Percolator rescores the top "
+                       "'rescoring:top_hits' hits of each spectrum and only its best one per spectrum is kept, "
                        "and FDR:PSM and FDR:protein are applied to the rescored PSMs. Needs decoys (see 'decoys') and at least "
                        "100 PSMs: a run without them, or for which Percolator fails, is not rescored and keeps its search engine "
                        "scores, which the FDR filters then use (the ProSE tool warns). Set to 'false' to report the search engine "
                        "scores.");
     defaults_.setValidStrings("rescore", {"true", "false"});
-    defaults_.setValue("rescore_solver", "tron",
-                       "Solver of Percolator's SVMs with 'rescore' (Percolator's parameter 'solver'): 'tron' (default, "
-                       "Percolator's trust region Newton method), 'newton' (explicit-Hessian Newton method with exact line "
-                       "search and warm starts: the same SVM optimum for a given training set, within the solver tolerance, "
-                       "much faster on large runs; as the earlier iterations of the cross-validation stop at a looser "
-                       "tolerance, they may choose slightly different training sets, so the models can differ) or "
+    defaults_.setValue("rescore_solver", "newton",
+                       "Solver of Percolator's SVMs with 'rescore' (Percolator's parameter 'solver'): 'newton' (default; "
+                       "explicit-Hessian Newton method with exact line search and warm starts: the same SVM optimum for a "
+                       "given training set as TRON, within the solver tolerance, much faster on large runs; as the earlier "
+                       "iterations of the cross-validation stop at a looser tolerance, they may choose slightly different "
+                       "training sets, so the models can differ from TRON's), 'tron' (Percolator's trust region Newton "
+                       "method, the solver of the percolator executable and of earlier ProSE versions) or "
                        "'lda' (Fisher's linear discriminant instead of the SVM: fastest, an approximation).", {"advanced"});
-    defaults_.setValidStrings("rescore_solver", {"tron", "newton", "lda"});
+    defaults_.setValidStrings("rescore_solver", {"newton", "tron", "lda"});
+    defaults_.setValue("rescoring:top_hits", 2,
+                       "With 'rescore': the top scoring hits per spectrum (by the search engine score) that Percolator "
+                       "rescores: its training and scoring rows, of which its target-decoy competition keeps the best per "
+                       "spectrum, which is reported. 2 (default) gives Percolator the runner-up of each spectrum as well; "
+                       "more hits cost time and memory. 0 = 'report:top_hits' (as earlier "
+                       "ProSE versions, whose Percolator rescored the reported hits). The search keeps these hits for "
+                       "Percolator (with -out_pin also the reported ones): a run that Percolator does not rescore (fewer "
+                       "than 100 PSMs, no decoy PSM, a failure) reports at most min(report:top_hits, rescoring:top_hits) "
+                       "hits per spectrum; with decoys 'ignore' (no rescoring) report:top_hits.",
+                       {"advanced"});
+    defaults_.setMinInt("rescoring:top_hits", 0);
     defaults_.setValue("rescoring:subset_max_train", 0,
                        "Percolator trains on at most this many PSMs (drawn at random by spectrum: the PSMs of a spectrum "
                        "stay together) and then scores all PSMs with the learned model, like the percolator executable's "
@@ -792,6 +808,7 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
 
     report_top_hits_ = param_.getValue("report:top_hits");
+    rescore_top_hits_ = static_cast<Size>(static_cast<int>(param_.getValue("rescoring:top_hits")));
     isotope_error_observed_minus_theoretical_ =
       param_.getValue("report:isotope_error_convention").toString() == "observed_minus_theoretical";
 
@@ -2862,7 +2879,7 @@ namespace OpenMS
     // incremented by every thread and read by the master thread for the progress display: atomic for both
     std::atomic<Size> count_spectra{0};
     const double proton_mass_u = Constants::PROTON_MASS_U;
-    const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+    const Size keep = std::max(searchTopHits_(), Size(2)); // keep ≥2 for delta score
     const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0;
 
     // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
@@ -3181,7 +3198,7 @@ namespace OpenMS
 
     // 4. Allocate per-spectrum hit accumulator (persists across chunks).
     vector<vector<AnnotatedHit_>> annotated_hits(spectra.size());
-    for (auto& a : annotated_hits) { a.reserve(report_top_hits_); }
+    for (auto& a : annotated_hits) { a.reserve(searchTopHits_()); }
     // Accumulates across chunks: every chunk contributes its own candidates for the
     // same spectrum, and the pool features must see all of them.
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
@@ -3224,7 +3241,7 @@ namespace OpenMS
       // peptide databases with many chunks. The pruning is correct because
       // scores are independent across chunks: a hit that fails to place in the
       // current top-N cannot improve when more chunks are added.
-      const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+      const Size keep = std::max(searchTopHits_(), Size(2)); // keep ≥2 for delta score
 #pragma omp parallel for default(none) shared(annotated_hits, keep)
       for (SignedSize si = 0; si < (SignedSize)annotated_hits.size(); ++si)
       {
@@ -3255,7 +3272,7 @@ namespace OpenMS
       pool_stats,
       protein_ids,
       peptide_ids,
-      report_top_hits_,
+      searchTopHits_(),
       modifications_fixed_,
       modifications_variable_,
       peptide_missed_cleavages_,
@@ -4139,7 +4156,7 @@ namespace OpenMS
 
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
-    for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
+    for (auto & a : annotated_hits) { a.reserve(searchTopHits_()); }
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
 
     bool open_search_mode = open_search;
@@ -4209,7 +4226,7 @@ namespace OpenMS
       pool_stats,
       protein_ids,
       peptide_ids,
-      report_top_hits_,
+      searchTopHits_(),
       modifications_fixed_,
       modifications_variable_,
       peptide_missed_cleavages_,
@@ -5196,12 +5213,24 @@ namespace OpenMS
     return true;
   }
 
-  void ProSEAlgorithm::applyRescoredPsmFDR_(const std::vector<ProteinIdentification>& protein_ids,
+  void ProSEAlgorithm::applyRescoredPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                             PeptideIdentificationList& peptide_ids,
                                             bool has_decoys,
                                             RunStatistics& stats,
                                             bool rescored) const
   {
+    // A run that Percolator did not rescore reports at most report:top_hits hits per spectrum, which can be fewer than
+    // the rescoring:top_hits that the search kept for Percolator.
+    if (!rescored) keepTopHits_(peptide_ids, report_top_hits_);
+    // The hits per spectrum that Percolator rescored; not recorded with rescoring:top_hits 0 (= report:top_hits, as
+    // earlier ProSE versions, which recorded nothing).
+    if (rescored && rescore_top_hits_ > 0)
+    {
+      for (ProteinIdentification& run : protein_ids)
+      {
+        run.getSearchParameters().setMetaValue("Percolator:top_hits", static_cast<int>(rescoreTopHits_()));
+      }
+    }
     if (fdr_psm_ > 0.0)
     {
       StopWatch sw_fdr; sw_fdr.start();
@@ -5282,6 +5311,24 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] rescore_reuse: " << deferred.size() << " file(s) rescored in " << sw.getClockTime() << " s" << std::endl;
   }
 
+  // static
+  void ProSEAlgorithm::keepTopHits_(PeptideIdentificationList& peptide_ids, Size n)
+  {
+    // The hits of a spectrum are in the order of postProcessHits_() (best search engine score first): the first n
+    // are its top n. Nothing changes if no spectrum has more (e.g. always with rescoring:top_hits 0).
+    if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
+                     [n](const PeptideIdentification& pid) { return pid.getHits().size() > n; }))
+    {
+      return;
+    }
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      if (hits.size() > n) hits.erase(hits.begin() + n, hits.end()); // (destroys hits only: cannot throw)
+    }
+  }
+
   ProSEAlgorithm::PercolatorRescoring ProSEAlgorithm::applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                                                    PeptideIdentificationList& peptide_ids,
                                                                    bool has_decoys,
@@ -5291,9 +5338,16 @@ namespace OpenMS
     PercolatorRescoring rescoring;
     // The copy for a Percolator .pin (setKeepPreFdrPsms()) holds the search engine scores, every reported hit and the
     // decoys: it is the input of a later rescoring, so it is taken before the rescoring as well as before FDR:PSM.
-    if (pre_fdr_psms != nullptr) { *pre_fdr_psms = peptide_ids; }
+    if (pre_fdr_psms != nullptr)
+    {
+      *pre_fdr_psms = peptide_ids;
+      // (with rescoring:top_hits above report:top_hits the search kept more hits, for Percolator)
+      keepTopHits_(*pre_fdr_psms, report_top_hits_);
+    }
     if (rescore_)
     {
+      // Percolator rescores the first rescoring:top_hits hits of each spectrum (the search kept more for the .pin copy)
+      keepTopHits_(peptide_ids, rescoreTopHits_());
       // Percolator gets all target and decoy PSMs; the PSM FDR follows on its q-values (or, if it
       // skipped the run, on the search engine scores).
       startDeferredRead(); // the next file of a multi-file search, with threads Percolator leaves idle
@@ -6608,7 +6662,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         per_file_hits[i].resize(all_spectra[i].size());
-        for (auto& a : per_file_hits[i]) a.reserve(report_top_hits_);
+        for (auto& a : per_file_hits[i]) a.reserve(searchTopHits_());
         per_file_pool_stats[i].resize(all_spectra[i].size());
       }
       OPENMS_LOG_INFO << "[ProSE] Chunk-major multi-file: " << full_db.size()
@@ -6664,7 +6718,7 @@ namespace OpenMS
           chunk_fi.setParameters(base_fi_params);
 
         // Per-chunk pruning for each file.
-        const Size keep = std::max(report_top_hits_, Size(2));
+        const Size keep = std::max(searchTopHits_(), Size(2));
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
 #pragma omp parallel for default(none) shared(per_file_hits, i, keep)
@@ -6705,7 +6759,7 @@ namespace OpenMS
 
         postProcessHits_(all_spectra[i], per_file_hits[i], per_file_pool_stats[i],
           result.protein_ids, result.peptide_ids,
-          report_top_hits_, modifications_fixed_, modifications_variable_,
+          searchTopHits_(), modifications_fixed_, modifications_variable_,
           peptide_missed_cleavages_,
           std::max(per_file_cal[i].effective_precursor_tol_lower,
                    per_file_cal[i].effective_precursor_tol_upper),
