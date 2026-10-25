@@ -21,12 +21,12 @@ Provide small, explicitly unstable v0 interfaces that unblock independent adapte
 
 Deliver small, reviewable commits in the order below. The first increment is
 implemented on `feature/opendia-wp01-private-engine`, based on clean upstream
-`3e47bc7e7468656d0d53237f11fc4f049d278efe`, with standalone/public-workflow
-validation complete and full in-tree integration validation still pending. Keep
-implementation commits separate from this scratch-only planning branch.
+`3e47bc7e7468656d0d53237f11fc4f049d278efe`, with standalone, full native
+in-tree and installed-SDK workflow validation complete. Keep implementation
+commits separate from this scratch-only planning branch.
 Do not include the optional WP-00 profiler.
 
-### 1. Private engine boundary (implemented, native integration check pending)
+### 1. Private engine boundary (implemented and locally validated)
 
 - Relocate the current tool into `src/topp/OpenDIA/` without changing its CLI,
   parameter defaults, scientific algorithms or output policy.
@@ -99,12 +99,35 @@ Observed local checks, independently repeated by the coordinator:
 - Link rules and archive symbols confirm both consumers share `OpenDIA::run`.
   Standalone install produced an empty manifest. Git whitespace checks passed.
 
-**Not yet verified:** a full in-tree build and execution of its automatically
-registered private test, installed-SDK consumption and other platforms. The in-tree
-discovery path was inspected, not executed. `clang-format` is not available locally.
-No implementation PR has been opened. Keep the merge checklist unchecked until
-its complete checks are met. Coordinates/ownership, extraction keys, families and
-scores are subsequent increments, not delivered by the mechanical move.
+**Deeper native and installed-consumer validation:** a fresh root OpenMS Debug
+build compiled the real core, CLI layer, production tool and automatically
+registered private test, without importing a substitute OpenMS core. All **32
+selected native CTests passed**: the 28 public workflows, shared-entry test,
+INI generation/section check and real tool-registry readability. Generated test
+backtraces identify `openms_add_tool_class_test`, and runtime library bindings
+point to the freshly built native libraries.
+
+This exposed and fixed one missed integration edge: the installed-consumer fixture
+still referenced the removed `src/topp/OpenDIA.cpp`. With the original declaration,
+a real configure against the newly installed SDK failed with `Cannot find source
+file: ../../topp/OpenDIA.cpp`. Fix [094bf09ef8](https://github.com/OpenMS/OpenMS/commit/094bf09ef8)
+adds the production tool subdirectory instead. The same configuration then built
+and its existing `TestExternalOpenDIA` INI test passed. The full real SDK fixture
+passed **12 setup/configure/build/run CTests**, including **all six nested consumer
+tests** for CLI, Qt, OSWPQ, OpenDIA, core code and PeptDeep. Installed headers and
+CMake exports contain no private OpenDIA interface or archive.
+
+The native configuration used ONNX enabled and GUI, opentims and Thermo RAW disabled.
+Models were staged into the new tree. Existing Eigen/HiGHS and ONNX dependencies
+were reused read-only, with ONNX runtime still resolved from that dependency
+location. This verifies installed-SDK consumption, not a self-contained relocated
+runtime bundle. The first native build invocation hit the tool's 600-second cap,
+and its incremental continuation completed successfully.
+
+**Still outside this check:** other platforms and optional RAW/opentims build
+configurations. `clang-format` is not available locally. No implementation PR has
+been opened. Coordinates/ownership, extraction keys, families and scores remain
+subsequent increments, not delivered by this mechanical move.
 
 ## Requirement-to-check map
 
@@ -125,7 +148,7 @@ scores are subsequent increments, not delivered by the mechanical move.
 
 ## Local merge criteria
 
-- [ ] An out-of-tree build links the tool and private tests against the same static/OBJECT implementation, with no installed OpenDIA interface.
+- [x] An out-of-tree build links the tool and private tests against the same static/OBJECT implementation, with no installed OpenDIA interface.
 - [ ] Round trips preserve IDs, exact coordinate references, missing versus zero, discrete FAIMS strata and unresolved family alternatives.
 - [ ] Query-key tests vary every scientific field, including calibration identity, and reject false sharing under forced hash collisions.
 - [ ] Tests reject malformed offsets, unknown schema versions and invalid ownership/lifetime use.

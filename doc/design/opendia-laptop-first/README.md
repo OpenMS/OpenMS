@@ -18,9 +18,13 @@ then small v0 records, complete query keys, and a producer/consumer fixture.
 See the [WP-01 roadmap](work-packages/01-contracts.md#implementation-roadmap).
 The boundary starter is pushed as [e7e67276ce](https://github.com/OpenMS/OpenMS/commit/e7e67276ce099a92e08780b9f7235863d0f9b891):
 standalone Debug build, shared-entry test and all 28 existing OpenDIA TOPP regressions
-passed. Full in-tree integration validation and the v0 contract increments remain
-pending. No implementation PR is open. Detailed observations and limitations are
-recorded in [WP-01](work-packages/01-contracts.md#observed-starter-implementation-25-october-2026).
+passed. Deeper checks also built the native core/tool/private test and passed all
+32 selected native CTests plus the 12-step installed-SDK consumer fixture, including
+six nested consumer tests. They exposed and fixed a stale single-file source path
+in the SDK fixture, committed as [094bf09ef8](https://github.com/OpenMS/OpenMS/commit/094bf09ef8).
+The v0 contract increments remain pending. No implementation PR is open. Detailed
+observations and optional-platform/runtime limitations are recorded in
+[WP-01](work-packages/01-contracts.md#observed-starter-implementation-25-october-2026).
 
 ## Current verification status
 
