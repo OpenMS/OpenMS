@@ -41,6 +41,13 @@
 #include <omp.h>
 #endif
 
+#if defined(__linux__) && defined(__GLIBC__)
+#include <cstdlib>
+#include <cstring>
+#include <malloc.h>
+#define PROSE_GLIBC_MALLOC
+#endif
+
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer) || __has_feature(memory_sanitizer)
 #define PROSE_SANITIZED
@@ -176,6 +183,33 @@ namespace
 }
 #endif
 
+#ifdef PROSE_GLIBC_MALLOC
+namespace
+{
+  /**
+    glibc's malloc: the arena of a thread other than the main thread grows its heap (a 64 MiB reservation) by just
+    the pages that an allocation lacks, with one mprotect() each, and mprotect() blocks the page faults of all other
+    threads while it runs. A search keeps several GB of peak lists that its threads allocate in small blocks, so at
+    64 threads the preprocessing of the spectra spent most of its time in the kernel (HeLa 25pc_50_25: 1.2 million
+    mprotect() calls, 76 % system time). With a top pad of 64 MiB a new heap is made writable in one call when it is
+    created. The pad also applies to the main arena (64 MiB more address space per sbrk(), touched only when used)
+    and it fixes the threshold above which a block is mapped on its own at the default 128 KiB (glibc otherwise
+    raises it with the blocks that are freed).
+
+    Not when the user set glibc's malloc tunables (GLIBC_TUNABLES), nor with OPENMS_MALLOC_DEFAULTS=0. No change of
+    results.
+  */
+  void configureMalloc()
+  {
+    const char* tunables = getenv("GLIBC_TUNABLES");
+    if (tunables != nullptr && strstr(tunables, "glibc.malloc.") != nullptr) { return; }
+    const char* defaults = getenv("OPENMS_MALLOC_DEFAULTS");
+    if (defaults != nullptr && strcmp(defaults, "0") == 0) { return; }
+    mallopt(M_TOP_PAD, 64 << 20);
+  }
+}
+#endif
+
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
@@ -241,6 +275,7 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file gets the same identifications as when it is searched alone, and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
 @note Threads: '-threads' sets the threads of the search ('-threads 0': the physical cores the process may use, without their hardware threads); an mzML file read while the search runs takes its threads from these if they are fewer than the physical cores the process may use (otherwise it reads with threads of its own). For many files on a machine with many cores, several processes at 16-32 threads, each searching a share of the files, finish sooner than one process at 64 threads. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
+@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets glibc's malloc tunables (GLIBC_TUNABLES=glibc.malloc...), nor with OPENMS_MALLOC_DEFAULTS=0. For large inputs, GLIBC_TUNABLES=glibc.malloc.hugetlb=1 (transparent huge pages for the heaps and large blocks) may make the search faster at a somewhat higher peak memory; it then replaces ProSE's setting, so add glibc.malloc.top_pad=67108864 to keep it.
 @note Exit: with the environment variable OPENMS_FAST_EXIT=1 (Linux), ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end 40-80 ms earlier (exit code and outputs unchanged). Off by default: the helper is a process of its own for that moment, which a sandbox that forbids creating processes, an init process that does not reap adopted children, or a job system that waits for all processes of a job may not expect.
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
@@ -1168,6 +1203,9 @@ class ProSE :
 
 int main(int argc, const char** argv)
 {
+#ifdef PROSE_GLIBC_MALLOC
+  configureMalloc();
+#endif
   ProSE tool;
   const int exit_code = tool.main(argc, argv);
 #ifdef PROSE_HAND_OVER_MEMORY
