@@ -422,6 +422,12 @@ hand-editing sources and committing them, to keep sync self-healing.
 - `patches/29-cv-certificate-cache.patch` — once the certificate of patches 24/26 has failed for a
   set, `sortScoresAndCalcQvals` sorts that set without checking again (a forced sort is always
   exact; the check costs 45-60 ms per step on tie-heavy sets). No change of results.
+- `patches/30-cv-reuse-validation-scores.patch` — in the fold chains, each pair's validation on the
+  training set (`countPositives` with the feature rows) also keeps the score of every row; the step's
+  rescoring with the chosen pair's weights (`calcScoresOfRowsAndQvals`) gives each PSM the score of
+  its row (the same `calcScore` of the same row and weights) instead of scoring all PSMs again, then
+  sorts and computes the q-values as before. A PSM whose row is not found makes it score as before.
+  No change of results.
 
 ### Regenerating the patch
 

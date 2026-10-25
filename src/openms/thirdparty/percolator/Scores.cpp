@@ -657,26 +657,87 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
  * (the count does not depend on the order of the scores, see countPositives).
  */
 int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
-                           const std::vector<pair<const double*, bool> >& rows) const {
+                           const std::vector<pair<const double*, bool> >& rows,
+                           std::vector<double>* rowScores) const {
   std::vector<pair<double, bool> > combined;
   const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(rows.size());
+  if (rowScores != nullptr) rowScores->resize(rows.size());
+  double* const rs = rowScores != nullptr ? rowScores->data() : nullptr;
 #ifdef _OPENMP
   if (numRows >= kLargeSet && omp_in_parallel()) {
     combined.resize(rows.size());
 #pragma omp taskloop grainsize(numRows / 64) shared(combined, rows, w)
     for (std::ptrdiff_t i = 0; i < numRows; ++i) {
       const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
-      combined[static_cast<std::size_t>(i)] = {calcScore(row.first, w), row.second};
+      const double score = calcScore(row.first, w);
+      combined[static_cast<std::size_t>(i)] = {score, row.second};
+      if (rs != nullptr) rs[i] = score;
     }
   } else
 #endif
   {
     combined.reserve(rows.size());
-    for (const pair<const double*, bool>& row : rows) {
-      combined.emplace_back(calcScore(row.first, w), row.second);
+    for (std::ptrdiff_t i = 0; i < numRows; ++i) {
+      const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
+      const double score = calcScore(row.first, w);
+      combined.emplace_back(score, row.second);
+      if (rs != nullptr) rs[i] = score;
     }
   }
   return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
+}
+
+/**
+ * OpenMS (CV-A2): calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
+ * already, by countPositives(w, ..., rows, &rowScores) on the rows of getFeatureRows of this set:
+ * each PSM gets the score of its row (calcScore of the same row and weights, the same bits), found by
+ * its address; then the sort and the q-values as calcScoresAndQvals. A PSM whose row is not in rows
+ * (the set changed) makes it score all PSMs with w instead.
+ */
+int Scores::calcScoresOfRowsAndQvals(std::vector<double>& w,
+                                     const std::vector<pair<const double*, bool> >& rows,
+                                     const std::vector<double>& rowScores, double fdr,
+                                     bool skipDecoysPlusOne) {
+  if (rowScores.size() != rows.size() || rows.size() != scores_.size()) {
+    return calcScoresAndQvals(w, fdr, skipDecoysPlusOne);
+  }
+  const auto byAddress = [](const pair<const double*, bool>& a, const double* b) {
+    return std::less<const double*>()(a.first, b);
+  };
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  std::vector<char> found;
+  const auto assign = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+    bool ok = true;
+    for (std::ptrdiff_t i = b; i < e; ++i) {
+      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+      const auto it = std::lower_bound(rows.begin(), rows.end(), sh.pPSM->features, byAddress);
+      if (it == rows.end() || it->first != sh.pPSM->features) {
+        ok = false;
+        continue;
+      }
+      sh.score = rowScores[static_cast<std::size_t>(it - rows.begin())];
+    }
+    return ok;
+  };
+#ifdef _OPENMP
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
+    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
+    found.assign(static_cast<std::size_t>(numBlocks), 1);
+#pragma omp taskloop grainsize(1) shared(found, assign)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+      found[static_cast<std::size_t>(block)] = assign(block * blockSize, std::min(n, (block + 1) * blockSize));
+    }
+  } else
+#endif
+  {
+    found.assign(1, assign(0, n));
+  }
+  if (!std::all_of(found.begin(), found.end(), [](char x) { return x != 0; })) {
+    return calcScoresAndQvals(w, fdr, skipDecoysPlusOne);
+  }
+  sortScores();
+  return calcQvals(fdr, skipDecoysPlusOne);
 }
 
 // OpenMS: countPositives from the (score, isTarget) pairs of the PSMs, in any order

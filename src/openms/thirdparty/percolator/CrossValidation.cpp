@@ -426,6 +426,9 @@ void CrossValidation::trainFoldChains() {
     // the feature rows of the training set (its PSMs and labels do not change during the training;
     // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
     std::vector<std::pair<const double*, bool> > rows;
+    // OpenMS (CV-A2): the scores of each pair's weights on the rows (from its validation), so that the
+    // step's rescoring with the chosen pair's weights does not score the PSMs again
+    std::vector<std::vector<double> > pairRowScores(numCpCnPairsPerSet);
     try {
       for (; step < niter_; ++step) {
         const double selectionFdr = step == 0u ? initialSelectionFdr_ : selectionFdr_;
@@ -465,7 +468,8 @@ void CrossValidation::trainFoldChains() {
                     trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set], &tronGroup);
                 pairTruePoses[pairIdx] =
                     useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
-                                                      skipDecoysPlusOneValidation, rows)
+                                                      skipDecoysPlusOneValidation, rows,
+                                                      testSet == &trainScores_[set] ? &pairRowScores[k] : nullptr)
                             : testSet->countPositives(cpCnFold.ww, testFdr_,
                                                       skipDecoysPlusOneValidation);
               } catch (...) {
@@ -487,6 +491,7 @@ void CrossValidation::trainFoldChains() {
         stage = 3;
         // mergeCpCnPairs without nested cross-validation, for this fold
         int bestTruePoses = 0;
+        std::size_t bestPair = numCpCnPairsPerSet;
         for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
           const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
           CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
@@ -495,11 +500,18 @@ void CrossValidation::trainFoldChains() {
           if (tp >= bestTruePoses) {
             bestTruePoses = tp;
             weights_[set] = cpCnFold.ww;
+            bestPair = k;
           }
         }
+        // the pairs that were not trained have the weights of the first (LDA)
+        if (bestPair >= numPairsTrained) bestPair = 0;
         stage = 4;
         stepPositives[step][set] =
-            trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+            bestPair < numCpCnPairsPerSet && useRows && !pairRowScores[bestPair].empty() &&
+                    testSet == &trainScores_[set]
+                ? trainScores_[set].calcScoresOfRowsAndQvals(weights_[set], rows,
+                                                             pairRowScores[bestPair], testFdr_)
+                : trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
       }
       stage = 0;
       testPositives[set] = testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
