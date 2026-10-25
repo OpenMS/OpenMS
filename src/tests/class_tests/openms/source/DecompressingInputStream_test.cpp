@@ -10,9 +10,11 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FORMAT/DecompressingInputStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/GzipInputStream.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <string>
