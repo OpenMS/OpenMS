@@ -386,6 +386,8 @@ void CrossValidation::trainFoldChains() {
   pOptions.epsilon = tronEpsilon_;
   pOptions.cgitermax = CGITERMAX;
   pOptions.mfnitermax = MFNITERMAX;
+  // OpenMS: the pairs use the weights only (not the SVM outputs or convergence flag)
+  pOptions.weightsOnly = true;
   // the decoys+1 of doStep's training sets and validations, see there
   const bool skipDecoysPlusOne = true;
   const bool skipDecoysPlusOneValidation = true;
@@ -449,6 +451,9 @@ void CrossValidation::trainFoldChains() {
         std::size_t numPairsTrained = solver_ == kSolverLda ? 1u : numCpCnPairsPerSet;
         vector<std::exception_ptr> pairErrors(numCpCnPairsPerSet);
         vector<char> pairCostIndependent(numCpCnPairsPerSet, 0);
+        // OpenMS: the TRON solves of the pairs (same training set, at the same time) share one copy of the
+        // features in the solver's layout, built once (ssl.h); the results are those of solves alone
+        TronPairGroup tronGroup(*svmInputs_[set]);
         while (true) {
           for (std::size_t k = pairsBegin; k < numPairsTrained; ++k) {
 #pragma omp task default(shared) firstprivate(k)
@@ -457,7 +462,7 @@ void CrossValidation::trainFoldChains() {
                 const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
                 CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
                 pairCostIndependent[k] =
-                    trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set]);
+                    trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set], &tronGroup);
                 pairTruePoses[pairIdx] =
                     useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
                                                       skipDecoysPlusOneValidation, rows)
@@ -562,6 +567,8 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   pOptions.epsilon = tronEpsilon_;
   pOptions.cgitermax = CGITERMAX;
   pOptions.mfnitermax = MFNITERMAX;
+  // OpenMS: the pairs use the weights only (not the SVM outputs or convergence flag)
+  pOptions.weightsOnly = true;
   int estTruePos = 0;
 
   // for determining an appropriate positive training set, the decoys+1 in the
@@ -732,7 +739,8 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
  */
 bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
                                     options& pOptions,
-                                    AlgIn* svmInput) {
+                                    AlgIn* svmInput,
+                                    TronPairGroup* tronGroup) {
   vector_double pWeights;
   pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
   pWeights.vec = new double[pWeights.d];
@@ -762,7 +770,8 @@ bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
   }
 
   // Call SVM algorithm (see ssl.cpp)
-  const bool costIndependent = trainSvm(*svmInput, pOptions, cpos, cfrac * cpos, pWeights, Outputs);
+  const bool costIndependent =
+      trainSvm(*svmInput, pOptions, cpos, cfrac * cpos, pWeights, Outputs, tronGroup);
 
   for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
     cpCnFold.ww[i] = pWeights.vec[i];
@@ -776,7 +785,8 @@ bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
 // kSolverTron, TRON starts from w as given (0, or the pair's previous weights with warmStart_).
 // Returns whether LDA gave the weights (their ranking does not depend on the costs).
 bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double cpos,
-                               double cneg, vector_double& w, vector_double& outputs) {
+                               double cneg, vector_double& w, vector_double& outputs,
+                               TronPairGroup* tronGroup) {
   if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.vec)) return true;
   if (solver_ != kSolverTron) {
     if (newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
@@ -787,7 +797,7 @@ bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double 
       w.vec[ix] = 0;
     }
   }
-  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
+  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg, tronGroup);
   return false;
 }
 

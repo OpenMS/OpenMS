@@ -244,10 +244,19 @@ static int fun_bt(const double* XB, int n, int np, const double* w, const double
   return c;
 }
 
-static void build_bt(const double* const* rows, int m, int nf, int np, double* XB)
+// returns whether all m x nf values are finite: the sum of x * 0.0 over all values is +-0, or NaN if one is not
+static int build_bt(const double* const* rows, int m, int nf, int np, double* XB)
 {
   const int mp = (m + 31) & ~31;
   const std::ptrdiff_t bs = (std::ptrdiff_t)np * 4;
+  double zs = 0.0;
+#ifdef __AVX2__
+  const __m256d zero = _mm256_setzero_pd();
+  __m256d zv = zero;
+#else
+  const __m128d zero = _mm_setzero_pd();
+  __m128d zv = zero;
+#endif
   for (int b = 0; b < mp / 4; ++b)
   {
     double* B = XB + (std::ptrdiff_t)b * bs;
@@ -262,6 +271,7 @@ static void build_bt(const double* const* rows, int m, int nf, int np, double* X
       for (; j + 4 <= nf; j += 4)
       {
         const __m256d a0 = _mm256_loadu_pd(r0 + j), a1 = _mm256_loadu_pd(r1 + j), a2 = _mm256_loadu_pd(r2 + j), a3 = _mm256_loadu_pd(r3 + j);
+        zv = _mm256_add_pd(zv, _mm256_add_pd(_mm256_add_pd(_mm256_mul_pd(a0, zero), _mm256_mul_pd(a1, zero)), _mm256_add_pd(_mm256_mul_pd(a2, zero), _mm256_mul_pd(a3, zero))));
         const __m256d t0 = _mm256_unpacklo_pd(a0, a1), t1 = _mm256_unpackhi_pd(a0, a1), t2 = _mm256_unpacklo_pd(a2, a3), t3 = _mm256_unpackhi_pd(a2, a3);
         _mm256_store_pd(B + 4 * j, _mm256_permute2f128_pd(t0, t2, 0x20)); _mm256_store_pd(B + 4 * j + 4, _mm256_permute2f128_pd(t1, t3, 0x20));
         _mm256_store_pd(B + 4 * j + 8, _mm256_permute2f128_pd(t0, t2, 0x31)); _mm256_store_pd(B + 4 * j + 12, _mm256_permute2f128_pd(t1, t3, 0x31));
@@ -270,11 +280,16 @@ static void build_bt(const double* const* rows, int m, int nf, int np, double* X
       for (; j + 2 <= nf; j += 2)
       {
         const __m128d a0 = _mm_loadu_pd(r0 + j), a1 = _mm_loadu_pd(r1 + j), a2 = _mm_loadu_pd(r2 + j), a3 = _mm_loadu_pd(r3 + j);
+        zv = _mm_add_pd(zv, _mm_add_pd(_mm_add_pd(_mm_mul_pd(a0, zero), _mm_mul_pd(a1, zero)), _mm_add_pd(_mm_mul_pd(a2, zero), _mm_mul_pd(a3, zero))));
         _mm_store_pd(B + 4 * j, _mm_unpacklo_pd(a0, a1)); _mm_store_pd(B + 4 * j + 2, _mm_unpacklo_pd(a2, a3));
         _mm_store_pd(B + 4 * j + 4, _mm_unpackhi_pd(a0, a1)); _mm_store_pd(B + 4 * j + 6, _mm_unpackhi_pd(a2, a3));
       }
 #endif
-      for (; j < nf; ++j) { B[4 * j] = r0[j]; B[4 * j + 1] = r1[j]; B[4 * j + 2] = r2[j]; B[4 * j + 3] = r3[j]; }
+      for (; j < nf; ++j)
+      {
+        B[4 * j] = r0[j]; B[4 * j + 1] = r1[j]; B[4 * j + 2] = r2[j]; B[4 * j + 3] = r3[j];
+        zs += ((r0[j] * 0.0 + r1[j] * 0.0) + (r2[j] * 0.0 + r3[j] * 0.0));
+      }
       for (int r = 0; r < 4; ++r) B[4 * nf + r] = 1.0;
       for (std::ptrdiff_t k = 4 * (nf + 1); k < 4 * (std::ptrdiff_t)np; ++k) B[k] = 0.0;
     }
@@ -285,7 +300,7 @@ static void build_bt(const double* const* rows, int m, int nf, int np, double* X
         const int i = 4 * b + r;
         if (i < m)
         {
-          for (int j = 0; j < nf; ++j) B[4 * j + r] = rows[i][j];
+          for (int j = 0; j < nf; ++j) { B[4 * j + r] = rows[i][j]; zs += rows[i][j] * 0.0; }
           B[4 * nf + r] = 1.0;
           for (int j = nf + 1; j < np; ++j) B[4 * j + r] = 0.0;
         }
@@ -294,6 +309,16 @@ static void build_bt(const double* const* rows, int m, int nf, int np, double* X
       }
     }
   }
+#ifdef __AVX2__
+  double zl[4];
+  _mm256_storeu_pd(zl, zv);
+  zs += (zl[0] + zl[1]) + (zl[2] + zl[3]);
+#else
+  double zl[2];
+  _mm_storeu_pd(zl, zv);
+  zs += zl[0] + zl[1];
+#endif
+  return zs == zs;
 }
 
 static void pack_bt(const double* XB, int np, const int* idx, int na, int qb, int qe, double* A)

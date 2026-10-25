@@ -153,14 +153,16 @@ class CrossValidation {
 
   void initializeGridSearch(double targetDecoySizeRatio);
   // OpenMS: returns whether the weights' ranking does not depend on the costs (trainSvm)
+  // OpenMS: TRON solves of the same svmInput at the same time may share their copy of it (tronGroup, ssl.h)
   bool trainCpCnPair(CandidateCposCfrac& cpCnFold,
                      options& pOptions,
-                     AlgIn* svmInput);
+                     AlgIn* svmInput,
+                     TronPairGroup* tronGroup = nullptr);
 
   // OpenMS: solves the SVM of svmInput with the solver (solver_), from the weights in w
   // (Newton, LDA; TRON starts from 0); returns whether LDA gave the weights
   bool trainSvm(const AlgIn& svmInput, options& pOptions, double cpos, double cneg,
-                vector_double& w, vector_double& outputs);
+                vector_double& w, vector_double& outputs, TronPairGroup* tronGroup = nullptr);
 
   int mergeCpCnPairs(double selectionFdr,
                      options& pOptions,

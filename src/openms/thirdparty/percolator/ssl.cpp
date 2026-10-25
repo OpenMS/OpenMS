@@ -12,6 +12,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <condition_variable>
 #include <mutex>
 #include <vector>
 
@@ -276,11 +277,20 @@ TronWorkspacePool& tronWorkspacePool() {
 // TronWorkspaceHold exists)
 class TronWorkspaceLease {
  public:
-  TronWorkspaceLease() {
+  // forX: the workspace's X buffer will be used (a TronPairGroup's X): the idle workspace with the largest X
+  // buffer is taken; otherwise (a solve on a group's X) the one with the smallest, so that the large X buffers
+  // stay for the groups and are not allocated (and page-faulted) again at every step
+  explicit TronWorkspaceLease(bool forX = true) {
     TronWorkspacePool& pool = tronWorkspacePool();
     {
       std::lock_guard<std::mutex> lock(pool.mutex);
       if (!pool.idle.empty()) {
+        size_t best = pool.idle.size() - 1;
+        for (size_t k = 0; k < pool.idle.size(); ++k) {
+          const size_t a = pool.idle[k]->xb.bytes(), b = pool.idle[best]->xb.bytes();
+          if (forX ? a > b : a < b) best = k;
+        }
+        std::swap(pool.idle[best], pool.idle.back());
         ws_ = std::move(pool.idle.back());
         pool.idle.pop_back();
       }
@@ -316,10 +326,11 @@ template <class T> void growTo(std::vector<T>& v, size_t n) {
 //  - with all rows active, grad and Hv use X itself.
 class FastTronFunction : public function {
  public:
+  // finite: all values of X are finite (build_bt)
   FastTronFunction(const TronKernels::Ops& ops, TronWorkspace& ws, const double* XB,
-                   int m, int n, const double* t, const double* C)
+                   int m, int n, const double* t, const double* C, bool finite)
       : ops_(ops), ws_(ws), XB_(XB), t_(t), C_(C), m_(m), mp_((m + 31) & ~31),
-        n_(n), np_((n + 3) & ~3), g0_(n) {
+        n_(n), np_((n + 3) & ~3), g0_(n), finite_(finite) {
     growTo(ws_.margin, mp_);
     growTo(ws_.c2, mp_);
     growTo(ws_.z, mp_);
@@ -346,10 +357,29 @@ class FastTronFunction : public function {
     const std::int64_t est = std::max<std::int64_t>(est_, 1024) * 5 / 4;
     const int capRows = (int)std::min<std::int64_t>(mp_, (est + 31) & ~std::int64_t(31));
     double* Ap = zero ? nullptr : ws_.a[pend_].get((size_t)capRows * np_);
-    int packed = 0;
-    nfa_ = ops_.fun_bt(XB_, n_, np_, w_raw, t_, C_, m_, ws_.margin.data(), ws_.idx.data(),
-                       Ap, capRows, &f, &packed);
-    packed_ = packed != 0;
+    if (zero && finite_) {
+      // w = 0 and X finite: every product is +-0 and every partial sum +0 (sums start at +0), so the margin of
+      // row i is (0 + +0) * t_i = +0 * t_i, all rows are active (+-0 < 1) and f adds C_i * 1 * 1 in row order:
+      // the pass of fun_bt without reading X
+      double* mg = ws_.margin.data();
+      int* idx = ws_.idx.data();
+      double fs = f;
+      for (int i = 0; i < m_; ++i) {
+        mg[i] = (0.0 + 0.0) * t_[i];
+        const double d = 1.0 - mg[i];
+        fs += C_[i] * d * d;
+        idx[i] = i;
+      }
+      for (int i = m_; i < mp_; ++i) mg[i] = (0.0 + 0.0) * t_[i];
+      f = fs;
+      nfa_ = m_;
+      packed_ = false;
+    } else {
+      int packed = 0;
+      nfa_ = ops_.fun_bt(XB_, n_, np_, w_raw, t_, C_, m_, ws_.margin.data(), ws_.idx.data(),
+                         Ap, capRows, &f, &packed);
+      packed_ = packed != 0;
+    }
     if (zero) f0_ = f;
     else est_ = nfa_;
     return f;
@@ -438,6 +468,7 @@ class FastTronFunction : public function {
   bool packed_ = false, zero_ = false, memo_ = false, have0_ = false;
   double f0_ = 0.0;
   std::vector<double> g0_;
+  const bool finite_;
 };
 #endif
 
@@ -488,6 +519,7 @@ int tronRef(const AlgIn& set, options& opts, vector_double& Weights, vector_doub
   TRON tron_solver(&fn, opts.epsilon, kTronEpsCg, opts.mfnitermax);
   tron_solver.set_print_string(silent_print);
   tron_solver.tron(Weights.vec);
+  if (opts.weightsOnly) return 1;
 
   // Reconstruct Outputs[i] = X.row(i) . w  (bias is already inside w[n-1]).
   Eigen::Map<const Eigen::VectorXd> w_eig(Weights.vec, n);
@@ -507,34 +539,133 @@ int tronRef(const AlgIn& set, options& opts, vector_double& Weights, vector_doub
 const TronKernels::Ops& tronOps(int kernels) {
   return kernels == kTronAvx2 ? TronKernels::avx2::ops : TronKernels::sse2::ops;
 }
+#endif
 
-// the same with FastTronFunction on X in BT4 layout (m >= 2)
+}  // namespace
+
+// The X of the solves of a TronPairGroup (ssl.h): BT4, built in chunks of kTronGroupBuildRows rows by the solves
+// that join while it is built (the first allocates it), read-only afterwards.
+struct TronPairGroup::State {
+  const AlgIn* set = nullptr;
+#ifdef PERCOLATOR_TRON_KERNELS
+  std::mutex mutex;
+  std::condition_variable cv;
+  enum { kNone, kAllocating, kBuilding, kBuilt, kFailed } build = kNone;
+  const TronKernels::Ops* ops = nullptr;
+  int m = 0, mp = 0, n = 0, np = 0;
+  std::unique_ptr<TronWorkspaceLease> lease;  // xb (X) and t (the labels)
+  double* XB = nullptr;
+  const double* t = nullptr;
+  std::atomic<int> nextBuildRow{0};  // the next chunk to build
+  int builtRows = 0;                 // rows built (mutex)
+  bool finite = true;                // all values of X finite (mutex)
+#endif
+};
+
+namespace {
+
+#ifdef PERCOLATOR_TRON_KERNELS
+// Rows per chunk of the build of a group's X (a multiple of 32).
+constexpr int kTronGroupBuildRows = 8192;
+
+// The group's X for a solve of set with n columns (built by this solve and the others that join while it is
+// built), or nullptr if the solve must build its own (another set or size, other kernels, or no memory).
+TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& ops, const AlgIn& set, int n) {
+  if (group == nullptr) return nullptr;
+  TronPairGroup::State* g = group->state();
+  using State = TronPairGroup::State;
+  if (g->set != &set) return nullptr;
+  const int m = set.m, np = (n + 3) & ~3, mp = (m + 31) & ~31;
+  std::unique_lock<std::mutex> lock(g->mutex);
+  if (g->build == State::kNone) {
+    g->build = State::kAllocating;
+    g->ops = &ops;
+    g->m = m;
+    g->mp = mp;
+    g->n = n;
+    g->np = np;
+    lock.unlock();
+    bool ok = false;
+    try {
+      auto lease = std::make_unique<TronWorkspaceLease>();
+      TronWorkspace& ws = lease->get();
+      g->XB = ws.xb.get((size_t)mp * (size_t)np);
+      ws.t.assign(mp, 0.0);
+      for (int i = 0; i < m; ++i) ws.t[i] = set.Y[i];
+      g->t = ws.t.data();
+      g->lease = std::move(lease);
+      ok = true;
+    } catch (...) {  // (std::bad_alloc) every solve builds its own
+    }
+    lock.lock();
+    g->build = ok ? State::kBuilding : State::kFailed;
+    g->cv.notify_all();
+  } else {
+    g->cv.wait(lock, [g] { return g->build != State::kAllocating; });
+  }
+  if (g->ops != &ops || g->m != m || g->n != n) return nullptr;
+  if (g->build == State::kBuilding) {
+    lock.unlock();
+    int rows = 0;
+    bool finite = true;
+    for (int r0; (r0 = g->nextBuildRow.fetch_add(kTronGroupBuildRows)) < mp;) {
+      const int r1 = std::min(mp, r0 + kTronGroupBuildRows);
+      // rows [r0, min(r1, m)), zero rows up to r1 (a multiple of 32, or mp)
+      finite &= ops.build_bt(set.vals + r0, std::min(r1, m) - r0, n - 1, np, g->XB + (std::ptrdiff_t)r0 * np) != 0;
+      rows += r1 - r0;
+    }
+    lock.lock();
+    g->finite = g->finite && finite;
+    g->builtRows += rows;
+    if (g->builtRows == mp) {
+      g->build = State::kBuilt;
+      g->cv.notify_all();
+    }
+    g->cv.wait(lock, [g] { return g->build != State::kBuilding; });
+  }
+  return g->build == State::kBuilt ? g : nullptr;
+}
+
+// the same with FastTronFunction on X in BT4 layout (m >= 2); X is the group's if it can serve the solve
 int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vector_double& Weights,
-             vector_double& Outputs, double cpos, double cneg, double* gradRatio) {
+             vector_double& Outputs, double cpos, double cneg, double* gradRatio, TronPairGroup* group) {
   const int m = set.m;
   const int n = Weights.d;
   const int num_real = n - 1;
   const double inv_2lambda = 1.0 / (2.0 * opts.lambda);
-  TronWorkspaceLease lease;
+  TronPairGroup::State* g = tronGroupX(group, ops, set, n);
+  TronWorkspaceLease lease(g == nullptr);
   TronWorkspace& ws = lease.get();
   const int np = (n + 3) & ~3;
   const int mp = (m + 31) & ~31;
-  int ret;
+  int ret = 1;
   {
-    // X (m, n) with the 1.0 bias column, in BT4 layout, zero-padded to (mp, np)
-    double* XB = ws.xb.get((size_t)mp * (size_t)np);
-    ops.build_bt(set.vals, m, num_real, np, XB);
-    ws.t.assign(mp, 0.0);
+    const double* XB;
+    const double* t;
+    bool finite;
+    if (g != nullptr) {
+      XB = g->XB;
+      t = g->t;
+      finite = g->finite;
+    } else {
+      // X (m, n) with the 1.0 bias column, in BT4 layout, zero-padded to (mp, np)
+      double* xb = ws.xb.get((size_t)mp * (size_t)np);
+      finite = ops.build_bt(set.vals, m, num_real, np, xb) != 0;
+      ws.t.assign(mp, 0.0);
+      for (int i = 0; i < m; ++i) ws.t[i] = set.Y[i];
+      XB = xb;
+      t = ws.t.data();
+    }
     ws.C.assign(mp, 0.0);
     for (int i = 0; i < m; ++i) {
-      ws.t[i] = set.Y[i];
       ws.C[i] = (set.Y[i] > 0.0 ? cpos : cneg) * inv_2lambda;
     }
 
-    FastTronFunction fn(ops, ws, XB, m, n, ws.t.data(), ws.C.data());
+    FastTronFunction fn(ops, ws, XB, m, n, t, ws.C.data(), finite);
     TRON tron_solver(&fn, opts.epsilon, kTronEpsCg, opts.mfnitermax);
     tron_solver.set_print_string(silent_print);
     tron_solver.tron(Weights.vec);
+    if (opts.weightsOnly) return 1;
 
     // Outputs = X * w: the margins with t = 1 ((0 + cc) * 1, as Eigen's 0 + 1 * cc)
     ws.ones.assign(mp, 1.0);
@@ -589,7 +720,7 @@ bool selfCheckOnce(const TronKernels::Ops& ops) {
       out[k].vec = new double[m]();
     }
     conv[0] = tronRef(in, opts, w[0], out[0], 1.0, 3.0, &ratio[0]);
-    conv[1] = tronFast(ops, in, opts, w[1], out[1], 1.0, 3.0, &ratio[1]);
+    conv[1] = tronFast(ops, in, opts, w[1], out[1], 1.0, 3.0, &ratio[1], nullptr);
     if (conv[0] != conv[1] || std::memcmp(&ratio[0], &ratio[1], sizeof(double)) != 0 ||
         std::memcmp(w[0].vec, w[1].vec, sizeof(double) * (nf + 1)) != 0 ||
         std::memcmp(out[0].vec, out[1].vec, sizeof(double) * m) != 0) {
@@ -636,6 +767,10 @@ TronWorkspaceHold::~TronWorkspaceHold() {
   }
 #endif
 }
+
+TronPairGroup::TronPairGroup(const AlgIn& set) : state_(std::make_unique<State>()) { state_->set = &set; }
+
+TronPairGroup::~TronPairGroup() = default;
 
 bool tronSelectKernels(const char* isa) {
   int k;
@@ -698,14 +833,14 @@ bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double 
   TronWorkspace ws;
   const int np = (n + 3) & ~3, mp = (m + 31) & ~31;
   double* XB = ws.xb.get((size_t)mp * (size_t)np);
-  ops.build_bt(set.vals, m, n - 1, np, XB);
+  const bool finite = ops.build_bt(set.vals, m, n - 1, np, XB) != 0;
   ws.t.assign(mp, 0.0);
   ws.C.assign(mp, 0.0);
   for (int i = 0; i < m; ++i) {
     ws.t[i] = set.Y[i];
     ws.C[i] = (set.Y[i] > 0.0 ? cpos : cneg) * inv_2lambda;
   }
-  FastTronFunction fn(ops, ws, XB, m, n, ws.t.data(), ws.C.data());
+  FastTronFunction fn(ops, ws, XB, m, n, ws.t.data(), ws.C.data(), finite);
   evaluate(fn);
   return true;
 #else
@@ -715,7 +850,7 @@ bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double 
 
 int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
-         double cpos, double cneg, double* gradRatio) {
+         double cpos, double cneg, double* gradRatio, TronPairGroup* group) {
   if (opts.lambda <= 0.0) {
     std::fprintf(stderr,
                  "TRON adapter: opts.lambda must be > 0 (got %g); aborting.\n",
@@ -727,9 +862,10 @@ int tron(const AlgIn& set, options& opts,
   const int kernels = tronKernels().load(std::memory_order_relaxed);
   const int m = set.m, n = Weights.d;
   if (kernels != kTronRef && fastDimensions(m, n) && kernelsVerified(kernels)) {
-    return tronFast(tronOps(kernels), set, opts, Weights, Outputs, cpos, cneg, gradRatio);
+    return tronFast(tronOps(kernels), set, opts, Weights, Outputs, cpos, cneg, gradRatio, group);
   }
 #endif
+  (void)group;
   return tronRef(set, opts, Weights, Outputs, cpos, cneg, gradRatio);
 }
 

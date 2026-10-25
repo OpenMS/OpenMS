@@ -50,8 +50,8 @@ struct Ops
   int (*fun_bt)(const double* XB, int n, int np, const double* w, const double* t, const double* C, int m,
                 double* margin, int* idx, double* A, int capA, double* f, int* packed);
   // BT4 X from m row pointers (nf features each), bias column nf = 1.0, zero columns up to np, zero rows up
-  // to a multiple of 32
-  void (*build_bt)(const double* const* rows, int m, int nf, int np, double* XB);
+  // to a multiple of 32; returns whether all values are finite
+  int (*build_bt)(const double* const* rows, int m, int nf, int np, double* XB);
   // out[4g .. 4g+3] for groups g in [gb, ge): sum over rows q < nq (multiple of 32) in order of sc[q] * A(q, j)
   void (*scatter)(const double* A, int np, const double* sc, int nq, int gb, int ge, double* out);
   // Hs[0..np) = scatter(sc), sc[q] = c2[q] * dot(A row q, s); sc is scratch of nq (multiple of 32) values
