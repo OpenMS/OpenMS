@@ -109,8 +109,8 @@ namespace OpenMS
         /**
           @brief Reads the next FASTA entry from file.
 
-          A header without sequence (followed by the next header or the end of the file) gives an entry with an empty
-          sequence, and a warning. The errors name the file and the line (or, after setPosition(), the byte offset)
+          An entry without sequence (a header followed by the next header or the end of the file) is skipped with a
+          warning. The errors name the file and the line (or, after setPosition(), the byte offset)
           of the entry that could not be read.
 
           If you want to read all entries in one go, use load().
@@ -176,6 +176,9 @@ namespace OpenMS
          @return Return true if the protein entry was read and saved successfully, false otherwise (error_ says why)
          */
         bool readEntry_(std::string& id, std::string& description, std::string& seq);
+
+        /// The position for the progress logger: the file size once the end of the file is reached (tellg() is -1 then)
+        std::streampos progressPosition_();
 
         /// Where the entry that readEntry_() read last starts: its line if known, otherwise its byte offset
         std::string errorLocation_() const;

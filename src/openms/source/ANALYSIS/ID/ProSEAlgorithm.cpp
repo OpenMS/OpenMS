@@ -4761,11 +4761,12 @@ namespace OpenMS
     // FASTAFile::load() with the OpenMP threads: the file is cut into pieces at starts of entries,
     // the threads read the pieces with FASTAFile::readNext(), and the pieces are joined in file
     // order. Same entries as load(): readNext() reads an entry from its '>' up to a line break
-    // followed by '>'. A piece starts at a '>' after a line break whose line holds no '>': that
-    // line is not a header (whose line break would not end an entry), so the reader of load()
-    // starts an entry there as well, and the reader of the piece before stops when it arrives
-    // there. Whenever this does not work out (small file, no such place, a reader that fails or
-    // does not arrive at the next piece), load() reads the file and reports errors as before.
+    // followed by '>'. A piece starts at a '>' after a line break whose line holds no '>' (not a
+    // header line, so usually the last line of a sequence), where the reader of load() starts an
+    // entry as well, and the reader of the piece before stops when it arrives there. Whenever this
+    // does not work out (small file, no such place, a reader that fails or does not arrive at the
+    // next piece, e.g. as it skipped an entry without sequence there), load() reads the file and
+    // reports errors as before.
     void loadFASTA(const std::string& filename, std::vector<FASTAFile::FASTAEntry>& entries)
     {
       std::vector<std::streamoff> pieces{0}; // where each piece starts; the first one where readStart() starts

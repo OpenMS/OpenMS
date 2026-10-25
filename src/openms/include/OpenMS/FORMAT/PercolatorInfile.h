@@ -35,8 +35,9 @@ namespace OpenMS
        *
        * @p enz names the enzyme of the enzN, enzC and enzInt features: a name of PercolatorAdapter's 'enzyme' option
        * (no_enzyme, elastase, pepsin, proteinasek, thermolysin, chymotrypsin, lys-n, lys-c, arg-c, asp-n, glu-c,
-       * trypsin, trypsinp) or of ProteaseDB (e.g. 'Trypsin/P', 'Lys-C', 'PepsinA'), which is mapped to it; any other
-       * enzyme counts every site as enzymatic.
+       * trypsin, trypsinp) or of ProteaseDB (e.g. 'Trypsin/P', 'Lys-C', 'PepsinA'), which is mapped to it; another
+       * enzyme of ProteaseDB (e.g. 'Lys-C/P', 'V8-E') gives the features by its own cleavage rule. Any other enzyme
+       * counts every site as enzymatic.
        */
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 

@@ -186,9 +186,10 @@ namespace OpenMS
     while ((c = sb->sgetc()) != std::streambuf::traits_type::eof())
     {
       if (c == '#')
-      {
-        infile_.ignore(numeric_limits<streamsize>::max(), '\n');
-        ++line_;
+      { // through the stream buffer, as the rest: a last line without line break must not set eofbit (readNext()
+        // would then report no error for a file without entries)
+        while ((c = sb->sbumpc()) != std::streambuf::traits_type::eof() && c != '\n') {}
+        if (c == '\n') ++line_;
       }
       else if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
       {
@@ -210,44 +211,54 @@ namespace OpenMS
 
   bool FASTAFile::readNext(FASTAEntry &protein)
   {
-    if (infile_.eof())
+    // entries without sequence are skipped (with a warning): callers rely on a non-empty sequence
+    do
     {
-      return false;
-    }
+      if (infile_.eof())
+      {
+        return false;
+      }
 
-    seq_.clear(); // Note: it is fine to clear() after std::move as it will turn the "valid but unspecified state" into a specified (the empty) one
-    id_.clear();
-    description_.clear();
+      seq_.clear(); // Note: it is fine to clear() after std::move as it will turn the "valid but unspecified state" into a specified (the empty) one
+      id_.clear();
+      description_.clear();
 
-    if (!readEntry_(id_, description_, seq_))
-    {
-      std::string read = entries_read_ == 0 ? std::string("The first entry could not be read")
-                                            : "Only " + StringUtils::toStr(entries_read_) + " proteins could be read";
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_,
-                                  "Error while parsing FASTA file, " + errorLocation_() + ": " + error_ + ". " + read
-                                  + ". Please check the file!");
-    }
-    if (seq_.empty())
-    {
-      OPENMS_LOG_WARN << "Warning: the FASTA entry '" << id_ << "' (" << filename_ << ", " << errorLocation_()
-                      << ") has no sequence." << std::endl;
-    }
+      if (!readEntry_(id_, description_, seq_))
+      {
+        std::string read = entries_read_ == 0 ? std::string("The first entry could not be read")
+                                              : "Only " + StringUtils::toStr(entries_read_) + " proteins could be read";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_,
+                                    "Error while parsing FASTA file, " + errorLocation_() + ": " + error_ + ". " + read
+                                    + ". Please check the file!");
+      }
+      if (seq_.empty())
+      {
+        OPENMS_LOG_WARN << "Warning: the FASTA entry '" << id_ << "' (" << filename_ << ", " << errorLocation_()
+                        << ") has no sequence and is skipped." << std::endl;
+      }
+    } while (seq_.empty());
     ++entries_read_;
 
     protein.identifier = std::move(id_);
     protein.description = std::move(description_);
     protein.sequence = std::move(seq_);
 
-    setProgress(infile_.tellg());
+    setProgress(progressPosition_());
 
     return true;
+  }
+
+  std::streampos FASTAFile::progressPosition_()
+  {
+    // after the last entry, eofbit is set and tellg() gives -1
+    return infile_.eof() ? fileSize_ : infile_.tellg();
   }
 
   bool FASTAFile::readNextWithProgress(FASTAEntry& protein)
   {
     if (readNext(protein))
     {
-      setProgress(position());
+      setProgress(progressPosition_());
       return true;
     }
     else

@@ -271,7 +271,7 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
 {
   // The enzyme features of a tryptic peptide with a missed cleavage, preceded by M and followed by S: the C-terminus
   // and one internal site are tryptic
-  auto stamp = [](const std::string& enz)
+  auto stamp = [](const std::string& enz, char aa_before = 'M')
   {
     PeptideHit hit;
     hit.setSequence(AASequence::fromString("PEPKTIDER"));
@@ -280,7 +280,7 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
     hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
     PeptideEvidence ev;
     ev.setProteinAccession("PROT1");
-    ev.setAABefore('M');
+    ev.setAABefore(aa_before);
     ev.setAAAfter('S');
     hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
     PeptideIdentification pid;
@@ -302,9 +302,19 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
   }
   TEST_TRUE(stamp("Lys-C") == std::make_tuple(0, 0, 1)) // K|T inside; M|P and R|S are not Lys-C sites
   TEST_TRUE(stamp("lys-c") == std::make_tuple(0, 0, 1))
+  // ProteaseDB enzymes without a Percolator name use the rule of ProteaseDB (they used to count every site: 1, 1, 8)
+  TEST_TRUE(stamp("Lys-C/P") == std::make_tuple(0, 0, 1))
+  TEST_TRUE(stamp("Arg-C/P") == std::make_tuple(0, 1, 0)) // R|S
+  TEST_TRUE(stamp("glutamyl endopeptidase") == std::make_tuple(0, 0, 3)) // E|P, D|E and E|R inside
+  TEST_TRUE(stamp("V8-E") == std::make_tuple(0, 0, 1)) // E|R (E|P is not a site)
+  TEST_TRUE(stamp("unspecific cleavage") == std::make_tuple(1, 1, 8))
+  TEST_TRUE(stamp("no cleavage") == std::make_tuple(0, 0, 0))
   // an enzyme the features do not know counts every site
   TEST_TRUE(stamp("no_enzyme") == std::make_tuple(1, 1, 8))
-  TEST_TRUE(stamp("unspecific cleavage") == std::make_tuple(1, 1, 8))
+  TEST_TRUE(stamp("not an enzyme") == std::make_tuple(1, 1, 8))
+  // a flank of '-' is a terminus, by either rule
+  TEST_TRUE(stamp("Trypsin/P", '-') == std::make_tuple(1, 1, 1))
+  TEST_TRUE(stamp("Lys-C/P", '-') == std::make_tuple(1, 0, 1))
 }
 END_SECTION
 

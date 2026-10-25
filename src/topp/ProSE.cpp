@@ -1019,15 +1019,6 @@ class ProSE :
       ProSEAlgorithm sse;
       sse.setParameters(search_params);
 
-      // The output directories hold the files of this run only: the Parquet files of an earlier run into the same
-      // directory (of other inputs, or views this run does not write, e.g. a pg file without protein inference) would
-      // otherwise be read as part of this dataset. Removed once the parameters are known to be valid.
-      if (!removeEarlierParquetFiles_(out_qpx_dir, {QPX_AGGREGATE_STEM})
-          || !removeEarlierParquetFiles_(out_parquet_dir, {PARQUET_AGGREGATE_STEM, PARQUET_POOLED_STEM}))
-      {
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-
       // -out_pin is the input of a later rescoring: the PSMs before the rescoring and before any FDR filter. Both
       // Search:rescore (Percolator q-values as scores, only the best hit per spectrum) and FDR:PSM (removes PSMs,
       // q-values as scores) change the PSMs in the search, so the search also hands back each file's PSMs before them.
@@ -1108,6 +1099,16 @@ class ProSE :
         OPENMS_LOG_ERROR << "Internal error: per-file result count (" << mfres.per_file.size()
                          << ") does not match input file count (" << in_list.size() << ")." << endl;
         return INTERNAL_ERROR;
+      }
+
+      // The output directories hold the files of this run only: the Parquet files of an earlier run into the same
+      // directory (of other inputs, or views this run does not write, e.g. a pg file without protein inference) would
+      // otherwise be read as part of this dataset. Removed once the search succeeded, right before the new files are
+      // written: a run refused for its parameters or failing earlier leaves the earlier result as it is.
+      if (!removeEarlierParquetFiles_(out_qpx_dir, {QPX_AGGREGATE_STEM})
+          || !removeEarlierParquetFiles_(out_parquet_dir, {PARQUET_AGGREGATE_STEM, PARQUET_POOLED_STEM}))
+      {
+        return CANNOT_WRITE_OUTPUT_FILE;
       }
 
       // .pin output feeds an EXTERNAL Percolator, which also needs decoys for target/decoy
