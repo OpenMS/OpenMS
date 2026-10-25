@@ -396,6 +396,11 @@ hand-editing sources and committing them, to keep sync self-healing.
   outgrew the former estimate and reallocated). No change of results.
   (Numbered 21 because two parallel branches each added a patch 20; renumber at integration.)
 
+- `patches/23-psm-slab.patch` — `DataSet::setOwnsPsms` / `reservePsms` and
+  `FeatureMemoryPool::claimRows` / `rowOfClaim`: `Percolator::rescore` (OpenMS) builds the
+  training PSMs in one block that it owns and destroys, gives each the pool row that the k-th
+  `allocate()` would have returned, and registers them in the same order. No change of results.
+  (22 is used by a parallel branch; renumber at integration.)
 ### Regenerating the patch
 
 Whenever you hand-fix a downstream issue in the vendored tree, capture it in

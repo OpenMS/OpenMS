@@ -4204,7 +4204,7 @@ namespace OpenMS
     // spectrum generators with the ion series of the FragmentIndex
     const SpectrumGenerators_ generators = spectrumGenerators_();
 
-    // preallocate storage for PSMs
+    // storage for the PSMs of every spectrum (each grows on the thread that scores the spectrum)
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
 

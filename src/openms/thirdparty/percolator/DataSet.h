@@ -80,11 +80,15 @@ class DataSet {
     PSMDescription*& myPsm, FeatureMemoryPool& featurePool, std::string decoyPrefix);
   
   void registerPsm(PSMDescription* myPsm);
+  // OpenMS: room for n PSMs; and whether the destructor deletes the PSMs (default) or their owner is elsewhere
+  void reservePsms(std::size_t n) { psms_.reserve(n); }
+  void setOwnsPsms(bool owns) { ownsPsms_ = owns; }
   
  protected:   
   
   std::vector<PSMDescription*> psms_;
   LabelType label_;
+  bool ownsPsms_ = true;  // OpenMS
   
   static FeatureNames featureNames_;
   static bool decoyWarningTripped_;

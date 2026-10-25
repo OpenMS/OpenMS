@@ -16,6 +16,8 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include "PercolatorImpl.h"
+#include "ssl.h" // vendored: adviseHugePages
+#include <new>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -70,6 +72,37 @@ namespace
   };
 }
 
+void Percolator::Impl::PsmSlab::create(std::size_t n)
+{
+  destroy();
+  if (n == 0) return;
+  // one block for all PSMs (the default constructor allocates nothing: empty strings, no features), constructed in
+  // static parts by the threads that fill them below
+  void* raw = ::operator new(n * sizeof(P::PSMDescription));
+  P::adviseHugePages(raw, n * sizeof(P::PSMDescription));
+  data = static_cast<P::PSMDescription*>(raw);
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i)
+  {
+    new (data + i) P::PSMDescription();
+  }
+  size = n;
+}
+
+void Percolator::Impl::PsmSlab::destroy()
+{
+  if (data == nullptr) return;
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(size); ++i)
+  {
+    data[i].deleteRetentionFeatures(); // as PSMDescription::deletePtr
+    data[i].~PSMDescription();
+  }
+  ::operator delete(data);
+  data = nullptr;
+  size = 0;
+}
+
 void Percolator::Impl::reset()
 {
   // Second-pass PSMs are NOT owned by any DataSet — delete explicitly.
@@ -96,6 +129,7 @@ void Percolator::Impl::reset()
   // SetHandler with something that doesn't cascade through, FeatureNames
   // must be reset manually here.
   set_handler.reset();
+  psm_slab.destroy(); // (after the DataSets, which do not own them)
 
   // svm_weights is intentionally NOT cleared here — getSvmWeights() is
   // documented to retain the last training's weights across subsequent
@@ -951,24 +985,43 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // thread, in the order of the rows, and filled in parallel. (The data sets
   // delete the PSMs in this thread; PSMs allocated by other threads would take
   // much longer to free.)
+  // The PSMs are made in one block (psm_slab) and get the pool's rows in the order of the rows, as one allocate() per
+  // PSM did (claimRows; the pool's blocks zero-filled in parallel); the data sets get them in the same order and do not
+  // own them. (Before: one new and one allocate() per PSM on this thread, ~0.5 s for 5.3 M rows.)
   impl_->synthesized_ids.resize(n_rows);
-  impl_->owned_psms.reserve(training_rows.size());
-  pool.reserveRows(training_rows.size()); // the pool's blocks for these rows, zero-filled in parallel
-  for (size_t i : training_rows)
+  const size_t n_train = training_rows.size();
+  impl_->psm_slab.create(n_train);
+  impl_->owned_psms.resize(n_train);
+  std::size_t first_row = 0;
+  if (!pool.claimRows(n_train, first_row))
   {
-    auto* psm = new P::PSMDescription();
-    psm->features = pool.allocate();
-    impl_->owned_psms.push_back(psm);
-    if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
-    else                   impl_->target_ds->registerPsm(psm);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Percolator: too many rows for the feature pool.",
+                                  std::to_string(n_train));
   }
-  std::vector<std::exception_ptr> row_errors(training_rows.size());
-#pragma omp parallel for schedule(dynamic, 1024)
-  for (SignedSize k = 0; k < static_cast<SignedSize>(training_rows.size()); ++k)
+  impl_->target_ds->setOwnsPsms(false);
+  impl_->decoy_ds->setOwnsPsms(false);
+  {
+    size_t n_decoys = 0;
+    for (size_t i : training_rows) n_decoys += input.is_decoy[i] ? 1 : 0;
+    impl_->decoy_ds->reservePsms(n_decoys);
+    impl_->target_ds->reservePsms(n_train - n_decoys);
+  }
+  for (size_t k = 0; k < n_train; ++k)
+  {
+    P::PSMDescription* psm = impl_->psm_slab.data + k;
+    impl_->owned_psms[k] = psm;
+    if (input.is_decoy[training_rows[k]]) impl_->decoy_ds->registerPsm(psm);
+    else                                  impl_->target_ds->registerPsm(psm);
+  }
+  std::vector<std::exception_ptr> row_errors(n_train);
+  // (static: the threads that constructed the PSMs fill them)
+#pragma omp parallel for schedule(static)
+  for (SignedSize k = 0; k < static_cast<SignedSize>(n_train); ++k)
   {
     try
     {
       const size_t i = training_rows[k];
+      impl_->owned_psms[k]->features = pool.rowOfClaim(first_row + static_cast<size_t>(k));
       fillPSMFromRow(*impl_->owned_psms[k], input.row(i), n_feat, makeRowKeys(input, i), i,
                      impl_->synthesized_ids[i]);
     }
