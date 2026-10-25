@@ -288,6 +288,7 @@ set(format_executables_list
   PercolatorTron_test
   PercolatorNewton_test
   PercolatorSampler_test
+  PercolatorBestPositive_test
   ProtXMLFile_test
   QcMLFile_test
   SVOutStream_test

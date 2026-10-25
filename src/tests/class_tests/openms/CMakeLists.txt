@@ -154,6 +154,7 @@ target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
 target_link_libraries(PercolatorTron_test OpenMS_Percolator)
 target_link_libraries(PercolatorNewton_test OpenMS_Percolator)
 target_link_libraries(PercolatorSampler_test OpenMS_Percolator)
+target_link_libraries(PercolatorBestPositive_test OpenMS_Percolator)
 
 
 if (WITH_HDF5)

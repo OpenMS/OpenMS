@@ -107,6 +107,10 @@ class CrossValidation {
   }
   // OpenMS: the solver of the SVMs (SvmSolver, newton_svm.h; default kSolverTron)
   void inline setSolver(int solver) { solver_ = solver; }
+  // OpenMS: with trainBestPositive, the best-scoring PSM of each spectrum and label is the positive
+  // candidate (Scores::generatePositiveTrainingSet's bestByScore) instead of the first one Percolator's
+  // unstable sort by spectrum and label leaves (default, Percolator's training). Set before train.
+  void inline setBestPositiveByScore(bool on) { bestPositiveByScore_ = on; }
 
  protected:
   std::vector<AlgIn*> svmInputs_;
@@ -149,6 +153,8 @@ class CrossValidation {
   bool trainScoresOfWeights_ = false;
   // OpenMS: the solver of the SVMs (SvmSolver)
   int solver_ = kSolverTron;
+  // OpenMS: see setBestPositiveByScore
+  bool bestPositiveByScore_ = false;
   std::vector<double> candidatesCpos_, candidatesCfrac_;
 
   void initializeGridSearch(double targetDecoySizeRatio);

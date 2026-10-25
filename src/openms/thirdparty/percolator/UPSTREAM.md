@@ -384,7 +384,20 @@ hand-editing sources and committing them, to keep sync self-healing.
   `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
   the local replacement above). No change of results.
 
-### Regenerating the patch
+- `patches/20-best-positive-by-score.patch` — an option of the training, off by default
+  (`CrossValidation::setBestPositiveByScore`, set by the OpenMS wrapper's parameter `best_positive`
+  `score`): with `trainBestPositive`, the positive candidate of a spectrum is its best-scoring PSM.
+  Percolator (`Scores::generatePositiveTrainingSet`) sorts the set by spectrum and label with an unstable
+  sort and keeps the first PSM of each group, which is not necessarily the best-scoring one: with many
+  PSMs per spectrum (ProSE reports 10) most of the kept targets are weaker hits above the training FDR,
+  so that most positives are missing (on a Velos file of the 20-file benchmark 296/373/438 positives
+  per fold in the first iteration with the percolator executable, 130/153/162 with this tree's order of
+  the set, 642/734/867 with the best-scoring PSMs). With the option, stable sorts by score and then by
+  spectrum and label put the best-scoring PSM of each group first; `generateTrainingSetsOfSortedSet`
+  keeps the first PSM of each group of the set if the set is sorted by score (else the fallback).
+  Default: unchanged results.
+
+
 
 Whenever you hand-fix a downstream issue in the vendored tree, capture it in
 this patch rather than leaving it only in the source commit. The later patches

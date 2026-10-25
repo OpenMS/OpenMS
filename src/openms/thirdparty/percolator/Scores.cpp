@@ -28,6 +28,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -933,15 +934,24 @@ void Scores::generateNegativeTrainingSet(AlgIn& data, const double cneg) {
 void Scores::generatePositiveTrainingSet(AlgIn& data,
                                          const double fdr,
                                          const double cpos,
-                                         const bool trainBestPositive) {
+                                         const bool trainBestPositive,
+                                         const bool bestByScore) {
   std::size_t ix2 = static_cast<std::size_t>(data.negatives);
   int p = 0;
 
   std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
   if (trainBestPositive) {
-    // OpenMS: sorted like std::sort (see SortLikeStd.h); file and scan numbers and labels are
-    // no NaN
-    sortLikeStdSort(scores_, OrderScanLabel());
+    if (bestByScore) {
+      // OpenMS: the best-scoring PSM of each (file, scan, label) group first: stable sorts, by score and
+      // then by spectrum and label, keep the PSMs of a group in the order of their scores (with a NaN
+      // score the order of the scores is unspecified, as in the sort by score below)
+      std::stable_sort(scores_.begin(), scores_.end(), greater<ScoreHolder>());
+      std::stable_sort(scores_.begin(), scores_.end(), OrderScanLabel());
+    } else {
+      // OpenMS: sorted like std::sort (see SortLikeStd.h); file and scan numbers and labels are
+      // no NaN
+      sortLikeStdSort(scores_, OrderScanLabel());
+    }
     lastUniqueIt =
         std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
     if (!comparableScores(scores_.begin(), lastUniqueIt)) {
@@ -985,10 +995,37 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
  *    with a NaN score or mass, false.
  */
 bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
-                                             const bool trainBestPositive) const {
+                                             const bool trainBestPositive,
+                                             const bool bestByScore) const {
   // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
   std::vector<char> kept(scores_.size(), 1);
-  if (trainBestPositive && !scores_.empty()) {
+  if (trainBestPositive && bestByScore && !scores_.empty()) {
+    // the best-scoring PSM of each (file, scan, label) group: the first of the group in this order if
+    // the set is sorted by score (as generatePositiveTrainingSet's stable sorts keep it); otherwise false
+    if (!comparableScores(scores_.begin(), scores_.end())) return false;
+    for (std::size_t i = 1; i < scores_.size(); ++i) {
+      if (scores_[i].score > scores_[i - 1].score) return false;
+    }
+    struct GroupKey {
+      unsigned int specFileNr, scan;
+      LabelType label;
+      bool operator==(const GroupKey& o) const {
+        return specFileNr == o.specFileNr && scan == o.scan && label == o.label;
+      }
+    };
+    struct GroupHash {
+      std::size_t operator()(const GroupKey& k) const {
+        return (static_cast<std::size_t>(k.specFileNr) * 1000003u + k.scan) * 4u +
+               static_cast<std::size_t>(static_cast<int>(k.label) + 1);
+      }
+    };
+    std::unordered_set<GroupKey, GroupHash> seen;
+    seen.reserve(scores_.size());
+    for (std::size_t i = 0; i < scores_.size(); ++i) {
+      const ScoreHolder& sh = scores_[i];
+      kept[i] = seen.insert({sh.pPSM->specFileNr, sh.pPSM->scan, sh.label}).second ? 1 : 0;
+    }
+  } else if (trainBestPositive && !scores_.empty()) {
     if (!comparableScores(scores_.begin(), scores_.end())) return false;
     struct ScanLabelKey {
       unsigned int specFileNr, scan;

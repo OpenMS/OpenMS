@@ -65,6 +65,7 @@ namespace OpenMS
     double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)
     bool   warm_start = false;                ///< pairs start from their previous iteration's weights
     bool   single_cneg = false;               ///< one Cneg candidate (3 x ratio) instead of three
+    bool   best_positive_by_score = false;    ///< train_best_positive: best-scoring PSM per spectrum (best_positive 'score')
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
     int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)

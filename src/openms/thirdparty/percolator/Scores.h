@@ -110,14 +110,18 @@ class Scores {
                                 double decoyFractionTraining = 1.0,
                                 unsigned int decoysPerTarget = 1u);
 
+  // OpenMS: bestByScore: with trainBestPositive, the best-scoring PSM of each spectrum and label
+  // instead of the first one an unstable sort by spectrum and label leaves (see Scores.cpp)
   void generatePositiveTrainingSet(AlgIn& data,
                                    const double fdr,
                                    const double cpos,
-                                   const bool trainBestPositive);
+                                   const bool trainBestPositive,
+                                   const bool bestByScore = false);
   void generateNegativeTrainingSet(AlgIn& data, const double cneg);
   // OpenMS: see Scores.cpp
   bool generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
-                                       const bool trainBestPositive) const;
+                                       const bool trainBestPositive,
+                                       const bool bestByScore = false) const;
 
   void recalculateSizes();
   void normalizeScores(double fdr, std::vector<double>& weights);

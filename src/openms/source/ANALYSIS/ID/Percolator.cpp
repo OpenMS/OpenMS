@@ -194,6 +194,13 @@ Percolator::Percolator()
                      "and 10 x by cross-validation (faster; the results differ).",
                      {"advanced"});
   defaults_.setValidStrings("single_cneg", {"true", "false"});
+  defaults_.setValue("best_positive", "first",
+                     "With train_best_positive: which PSM of a spectrum is the positive training candidate. 'first' "
+                     "(default, as the percolator executable): the first one an unstable sort by spectrum and label "
+                     "leaves, often not the best-scoring one (with many PSMs per spectrum most of the best positives are "
+                     "then missing from the training); 'score': the best-scoring one (the results differ from Percolator's).",
+                     {"advanced"});
+  defaults_.setValidStrings("best_positive", {"first", "score"});
 
   defaults_.setValue("report_as_main_score", "none",
                      "Which Percolator output to stamp as the main PeptideHit score after rescoring. "
@@ -309,6 +316,7 @@ void Percolator::updateMembers_()
   impl_->tron_epsilon        = static_cast<double>(param_.getValue("tron_epsilon"));
   impl_->warm_start          = (param_.getValue("warm_start").toString() == "true");
   impl_->single_cneg         = (param_.getValue("single_cneg").toString() == "true");
+  impl_->best_positive_by_score = (param_.getValue("best_positive").toString() == "score");
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
@@ -703,6 +711,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*numFolds=*/3);
   cv.setSolver(impl_->solver);
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
+  cv.setBestPositiveByScore(impl_->best_positive_by_score);
 
   std::vector<double> avg_weights;
   try
@@ -1031,6 +1040,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*numFolds=*/3);
   cv.setSolver(impl_->solver);
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
+  cv.setBestPositiveByScore(impl_->best_positive_by_score);
 
   std::vector<double> avg_weights;
   try

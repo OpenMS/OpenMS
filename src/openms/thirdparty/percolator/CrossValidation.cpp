@@ -693,7 +693,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
   }
   if (nestedXvalBins_ == 1 &&
       trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
-                                                        trainBestPositive_)) {
+                                                        trainBestPositive_, bestPositiveByScore_)) {
     testSets[0] = &trainScores_[set];
     return;
   }
@@ -714,7 +714,7 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
     AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
     nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
     nestedTrainScores[nestedFold].generatePositiveTrainingSet(
-        *svmInput, selectionFdr, 1.0, trainBestPositive_);
+        *svmInput, selectionFdr, 1.0, trainBestPositive_, bestPositiveByScore_);
     if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
       cerr << "Split " << set + 1 << " nested fold " << nestedFold
            << ": Training with " << svmInput->positives << " positives and "
@@ -875,7 +875,7 @@ int CrossValidation::mergeCpCnPairs(
         AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
         trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
         trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
-                                                      1.0, trainBestPositive_);
+                                                      1.0, trainBestPositive_, bestPositiveByScore_);
 
         // Create storage vector for SVM algorithm
         vector_double Outputs;
