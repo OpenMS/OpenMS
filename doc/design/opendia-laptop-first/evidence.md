@@ -16,7 +16,9 @@ instrumented cold/warm followups produced valid stage summaries and passed froze
 output-equivalence comparisons across results and all three matrices. Standalone
 TimSim rescoring completed. Astral rescoring completed on a disposable copy of the
 frozen database and its WAL/SHM sidecars. It exited successfully in 9m09s with
-10.27 GiB maximum RSS. Checks confirmed that the frozen source files did not change.
+10.27 GiB maximum RSS. Recorded sizes and modification times of the frozen source
+database and sidecars were unchanged. No before/after content hashes were captured
+for those files.
 This single rescore is descriptive, not a baseline, repeatability result or acceptance
 evidence. These are separate-binary measurements, not same-binary repeats, exact
 resource peaks for the full workflow, or candidate acceptance.
@@ -42,6 +44,29 @@ rerunning merged develop. #10698 merged on 23 October 2026 and corrects Parquet
 scientific score values, so affected earlier scores are not an equivalent
 corrected-source baseline. Preserve original logs and failures rather than
 retrospectively replacing them with successful corrected results.
+
+## Final verification replay (25 October 2026)
+
+The pinned clean build passed all 86 affected CTests again. These tests execute
+OpenDIA producers, SQLite/Parquet output and identity checks, export, rescoring,
+prediction and seeded decoy generation. The separate profiler build passed all
+29 OpenDIA TOPP checks again, including successful workflows and lifecycle/path
+failure cases. The full repository suite and optional vendor-data tests were not run.
+
+The production repeat-comparison CLI passed all 12 frozen A/B output files again.
+The production metric CLIs regenerated both TimSim and Astral A/B summaries, and
+all four JSON files matched the captured summaries byte for byte. All 462 frozen
+input, model, binary, harness and dependency checksum entries passed a fresh check.
+Both original evidence archives passed their bundled verifier and GNU checksums
+after extraction into new directories. All 51 harness tests also passed.
+
+Supplemental checks of the actual recorded outputs confirmed all 16 instrumented
+cold/warm table comparisons and four stage/resource timelines. They do not replace
+the native CTests or fresh representative producer runs. No new multi-hour baseline
+search or standalone rescore was run for these documentation changes. The measured
+Astral memory target failure, sampled-disk limits, publication safety issue and
+missing scientific approvals/truth remain open. This replay does not approve a
+candidate engine or establish a performance gain.
 
 ## Historical project baseline selection for WP-00
 
