@@ -370,10 +370,12 @@ namespace OpenMS
                        "and FDR:PSM and FDR:protein are applied to the rescored PSMs. Needs decoys (see 'decoys') and at least "
                        "100 PSMs: a run without them, or for which Percolator fails, is not rescored and keeps its search engine "
                        "scores, which the FDR filters then use (the ProSE tool warns). If that happens to some files of a "
-                       "multi-file search, each PSM keeps the q-value of its file, and the pooled evaluation of the files "
-                       "(the ProSE tool's -out_merged) scores the proteins by ProSE's score 'ln(hyperscore)' of all PSMs "
-                       "instead of Percolator's PEP, which the other files' PSMs lack. Set to 'false' to report the search "
-                       "engine scores.");
+                       "multi-file search, the PSMs of all files are rescored together with one (cross-validated) model, "
+                       "so that every PSM has its score and PEP; each file's q-values are those of target-decoy "
+                       "competition of its PSMs on that score (FDR per file). Only if that fails too (e.g. fewer than 100 "
+                       "PSMs in all), the files keep their own outcome, and the pooled evaluation of the files (the ProSE "
+                       "tool's -out_merged) scores the proteins by ProSE's score 'ln(hyperscore)' of all PSMs instead of "
+                       "Percolator's PEP. Set to 'false' to report the search engine scores.");
     defaults_.setValidStrings("rescore", {"true", "false"});
 
     defaults_.setValue("FDR:PSM", 0.0,
@@ -4348,7 +4350,7 @@ namespace OpenMS
 
     // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
     last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_,
-                                    keep_pre_fdr_psms_ ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
+                                    keep_pre_fdr_psms_ || pool_rescoring_ ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
 
     restore_fi_params();
 
@@ -4572,6 +4574,41 @@ namespace OpenMS
     return true;
   }
 
+  // static
+  bool ProSEAlgorithm::hasPSMs_(const PeptideIdentificationList& ids)
+  {
+    return std::any_of(ids.begin(), ids.end(), [](const PeptideIdentification& id) { return !id.getHits().empty(); });
+  }
+
+  // static
+  void ProSEAlgorithm::tdcQValues_(PeptideIdentificationList& peptide_ids)
+  {
+    FalseDiscoveryRate fdr;
+    Param fdr_params = fdr.getParameters();
+    fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+    fdr.setParameters(fdr_params);
+    // Without a decoy PSM, FalseDiscoveryRate's D/T is 0 for every PSM, which would let any threshold pass PSMs
+    // whose FDR nothing estimates. Use the +1-corrected estimate (D + 1) / T instead: 1/T for every PSM (the q-value
+    // of the best of T targets, and of all below it), so that a threshold below 1/T reports no PSM, as an
+    // unattainable protein FDR reports no protein.
+    fdr.apply(peptide_ids); // keeps the best hit of each PSM, decoys included (add_decoy_peptides)
+    Size targets = 0, decoys = 0;
+    for (const PeptideIdentification& id : peptide_ids)
+    {
+      if (!id.getHits().empty()) { (id.getHits()[0].isDecoy() ? decoys : targets) += 1; }
+    }
+    if (decoys == 0 && targets > 0)
+    {
+      OPENMS_LOG_WARN << "[ProSE] FDR:PSM: none of the " << targets << " PSMs matched a decoy; their q-value is the "
+                      << "conservative estimate 1/" << targets << " = " << 1.0 / static_cast<double>(targets)
+                      << " (no PSM passes a lower threshold)." << std::endl;
+      for (PeptideIdentification& id : peptide_ids)
+      {
+        for (PeptideHit& hit : id.getHits()) { hit.setScore(1.0 / static_cast<double>(targets)); }
+      }
+    }
+  }
+
   void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
   {
     FalseDiscoveryRate fdr;
@@ -4618,26 +4655,7 @@ namespace OpenMS
     }
     if (! separate)
     {
-      // Without a decoy PSM, FalseDiscoveryRate's D/T is 0 for every PSM, which would let any threshold pass PSMs
-      // whose FDR nothing estimates. Use the +1-corrected estimate (D + 1) / T instead: 1/T for every PSM (the q-value
-      // of the best of T targets, and of all below it), so that a threshold below 1/T reports no PSM, as an
-      // unattainable protein FDR reports no protein.
-      fdr.apply(peptide_ids); // keeps the best hit of each PSM, decoys included (add_decoy_peptides)
-      Size targets = 0, decoys = 0;
-      for (const PeptideIdentification& id : peptide_ids)
-      {
-        if (!id.getHits().empty()) { (id.getHits()[0].isDecoy() ? decoys : targets) += 1; }
-      }
-      if (decoys == 0 && targets > 0)
-      {
-        OPENMS_LOG_WARN << "[ProSE] FDR:PSM: none of the " << targets << " PSMs matched a decoy; their q-value is the "
-                        << "conservative estimate 1/" << targets << " = " << 1.0 / static_cast<double>(targets)
-                        << " (no PSM passes a lower threshold)." << std::endl;
-        for (PeptideIdentification& id : peptide_ids)
-        {
-          for (PeptideHit& hit : id.getHits()) { hit.setScore(1.0 / static_cast<double>(targets)); }
-        }
-      }
+      tdcQValues_(peptide_ids);
       return;
     }
     for (const auto& [group, indices] : groups)
@@ -4864,7 +4882,12 @@ namespace OpenMS
 
     // The proteins of the run are those its PSMs reference: PeptideIndexing added the proteins of all hits, and the
     // filters above removed PSMs and hits. Those of the PSMs for the protein inference stay until the protein FDR.
-    removeUnreportedProteins(protein_ids, peptide_ids, inference_only != nullptr ? *inference_only : PeptideIdentificationList());
+    // (A multi-file search that may rescore its files together does this at the end, rescoreFilesTogether_(): the
+    // PSMs may change.)
+    if (!pool_rescoring_)
+    {
+      removeUnreportedProteins(protein_ids, peptide_ids, inference_only != nullptr ? *inference_only : PeptideIdentificationList());
+    }
     return rescoring;
   }
 
@@ -5561,6 +5584,10 @@ namespace OpenMS
 
     MultiFileSearchResult mfres;
     mfres.aggregate.is_open_search = isOpenSearchMode_();
+    // 'rescore' with several files: keep each file's PSMs before the rescoring until all files are searched, for
+    // rescoreFilesTogether_() (in case Percolator cannot rescore some file on its own)
+    pool_rescoring_ = rescore_ && in_spectra_files.size() > 1;
+    const OnScopeExit end_pool_rescoring([this]() { pool_rescoring_ = false; });
 
     if (in_spectra_files.empty())
     {
@@ -5957,7 +5984,7 @@ namespace OpenMS
         capturePreFdrStats_(result.peptide_ids, result.stats);
         // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
         result.percolator = applyPsmFDR_(result.protein_ids, result.peptide_ids, has_decoys, result.stats,
-                                         keep_pre_fdr_psms_ ? &result.pre_fdr_peptide_ids : nullptr,
+                                         keep_pre_fdr_psms_ || pool_rescoring_ ? &result.pre_fdr_peptide_ids : nullptr,
                                          &result.inference_only_peptide_ids);
 
         result.exit_code = ExitCodes::EXECUTION_OK;
@@ -6136,7 +6163,7 @@ namespace OpenMS
         result.stats = last_run_stats_;
         result.percolator = last_percolator_;
         result.stats.input_file = File::basename(in_spectra);
-        if (keep_pre_fdr_psms_) { result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_); }
+        if (keep_pre_fdr_psms_ || pool_rescoring_) { result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_); }
         pre_fdr_peptide_ids_ = PeptideIdentificationList();
         result.inference_only_peptide_ids = std::move(inference_only_peptide_ids_);
         inference_only_peptide_ids_ = PeptideIdentificationList();
@@ -6161,6 +6188,9 @@ namespace OpenMS
         mfres.per_file.push_back(std::move(result));
       }
     }
+
+    // 'rescore': the files that Percolator could not rescore on their own are rescored with all others, with one model.
+    if (pool_rescoring_) { rescoreFilesTogether_(mfres, in_spectra_files); }
 
     // Build the aggregate result by pooling per-file PSMs.
     // If every per-file run failed, propagate the first non-OK exit code into the
@@ -6312,23 +6342,23 @@ namespace OpenMS
                                           std::vector<ProteinIdentification>& protein_ids,
                                           PeptideIdentificationList& peptide_ids)
   {
-    // IDMergerAlgorithm merges only runs of one search engine (and version). With 'rescore', a run that Percolator could
-    // not rescore keeps ProSE as its search engine, while the rescored ones report Percolator: if both occur, the copies
-    // of the runs that are pooled get ProSE's engine (the pooled evaluation then scores all files by ProSE's score, see
+    // IDMergerAlgorithm merges only runs of one search engine (and version). With 'rescore', a run that Percolator did
+    // not rescore keeps ProSE as its search engine, while the rescored ones report Percolator. The copies of the runs
+    // that are pooled all get the engine of the files with PSMs: Percolator's if it rescored all of them (a file without
+    // PSMs is not rescored), else ProSE's (the pooled evaluation then scores all files by ProSE's score, see
     // mergeFileResults()); the runs of the files stay as they are.
-    std::string engine, engine_version; // of a run that Percolator did not rescore
-    bool rescored = false, not_rescored = false;
+    std::string engine, engine_version, rescored_engine, rescored_version;
     for (const SearchResult& pf : per_file)
     {
-      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
-      (pf.percolator.applied ? rescored : not_rescored) = true;
-      if (!pf.percolator.applied && engine.empty())
+      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty() || !hasPSMs_(pf.peptide_ids)) { continue; }
+      std::string& name = pf.percolator.applied ? rescored_engine : engine;
+      if (name.empty())
       {
-        engine = pf.protein_ids[0].getSearchEngine();
-        engine_version = pf.protein_ids[0].getSearchEngineVersion();
+        name = pf.protein_ids[0].getSearchEngine();
+        (pf.percolator.applied ? rescored_version : engine_version) = pf.protein_ids[0].getSearchEngineVersion();
       }
     }
-    if (!rescored || !not_rescored) { engine.clear(); } // one engine: nothing to set
+    if (engine.empty()) { engine = rescored_engine; engine_version = rescored_version; }
 
     IDMergerAlgorithm merger;
     std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
@@ -6373,6 +6403,139 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // 'rescore' of a multi-file search: the files that Percolator could not rescore on their own (e.g. fewer than 100
+  // PSMs) are rescored together with all others, with one model.
+  // =====================================================================
+  void ProSEAlgorithm::rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const
+  {
+    // Each file ends as a search without pooling would leave it: its proteins those of its PSMs (and of the PSMs only
+    // for the protein inference), no copy of its PSMs before the rescoring unless asked for (setKeepPreFdrPsms()).
+    const auto finish = [this](SearchResult& pf)
+    {
+      removeUnreportedProteins(pf.protein_ids, pf.peptide_ids, pf.inference_only_peptide_ids);
+      if (!keep_pre_fdr_psms_) { pf.pre_fdr_peptide_ids = PeptideIdentificationList(); }
+    };
+    std::vector<Size> searched;
+    StringList alone; // the files with PSMs that Percolator did not rescore, and why
+    for (Size i = 0; i < mfres.per_file.size(); ++i)
+    {
+      const SearchResult& pf = mfres.per_file[i];
+      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
+      searched.push_back(i);
+      if (!pf.percolator.applied && hasPSMs_(pf.pre_fdr_peptide_ids))
+      {
+        alone.push_back(File::basename(in_spectra_files[i]) + " (" + pf.percolator.skipped_reason + ")");
+      }
+    }
+    if (alone.empty())
+    {
+      for (Size i : searched) { finish(mfres.per_file[i]); }
+      return;
+    }
+
+    // One model for the PSMs of all files, with Percolator's cross-validation (every PSM is scored by a model trained
+    // without its fold), as Percolator on the .pin files of all runs at once. Its PEPs then rank the PSMs of all files
+    // on one scale, which the pooled protein inference (mergeFileResults()) uses. 'id_merge_index' keeps the files
+    // apart (the spectrum file of each PSM, for the folds and the target-decoy competition of each spectrum).
+    PeptideIdentificationList pooled;
+    std::vector<Size> file_of; // per element of pooled
+    std::vector<ProteinIdentification> runs = mfres.per_file[searched[0]].protein_ids; // the search parameters
+    for (Size i : searched)
+    {
+      for (const PeptideIdentification& id : mfres.per_file[i].pre_fdr_peptide_ids)
+      {
+        PeptideIdentification& copy = pooled.emplace_back(id);
+        copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(i));
+        file_of.push_back(i);
+      }
+    }
+    OPENMS_LOG_INFO << "[ProSE] Percolator could not rescore " << alone.size() << " of " << searched.size()
+                    << " input files on their own: " << ListUtils::concatenate(alone, ", ")
+                    << ". Rescoring the " << pooled.size() << " PSMs of all " << searched.size()
+                    << " files together, with one model." << std::endl;
+#ifdef _OPENMP
+    const int threads = omp_get_max_threads();
+#else
+    const int threads = 1;
+#endif
+    const PercolatorRescoring outcome = rescoreWithPercolator(runs, pooled, threads);
+    if (!outcome.applied)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Percolator cannot rescore the PSMs of all input files together either ("
+                      << outcome.skipped_reason << "); each file keeps the outcome of its own rescoring." << std::endl;
+      for (Size i : searched) { finish(mfres.per_file[i]); }
+      return;
+    }
+
+    // Back to the files: the scores and PEPs of the one model; q-values per file (FDR per run, as for a file rescored on
+    // its own), by target-decoy competition of the file's PSMs on the model's SVM score (MS:1001492), with the
+    // conservative 1/T of a file without a decoy PSM (tdcQValues_()); FDR:PSM filters on them.
+    std::vector<PeptideIdentificationList> parts(mfres.per_file.size());
+    for (Size k = 0; k < pooled.size(); ++k)
+    {
+      pooled[k].removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      parts[file_of[k]].push_back(std::move(pooled[k]));
+    }
+    pooled = PeptideIdentificationList();
+    const std::string svm_score = "MS:1001492";
+    const std::string warning = "Rescored together with the other input files, with one Percolator model of the PSMs "
+      "of all " + StringUtils::toStr(searched.size()) + " inputs, as Percolator could not rescore " + StringUtils::toStr(alone.size())
+      + " of them on their own; the q-values are those of target-decoy competition of this input's PSMs on that "
+      "model's score." + (outcome.warning.empty() ? std::string() : " " + outcome.warning);
+    for (Size i : searched)
+    {
+      SearchResult& pf = mfres.per_file[i];
+      PeptideIdentificationList& ids = parts[i];
+      for (PeptideIdentification& id : ids)
+      {
+        for (PeptideHit& hit : id.getHits()) { hit.setScore(static_cast<double>(hit.getMetaValue(svm_score))); }
+        id.setScoreType(svm_score);
+        id.setHigherScoreBetter(true);
+      }
+      if (!ids.empty()) { tdcQValues_(ids); }
+      for (PeptideIdentification& id : ids)
+      {
+        for (PeptideHit& hit : id.getHits())
+        {
+          hit.removeMetaValue(svm_score + "_score"); // (FalseDiscoveryRate's copy of the SVM score)
+          hit.setMetaValue("MS:1001491", hit.getScore());
+          hit.setMetaValue("percolator_q_value", hit.getScore());
+        }
+      }
+      pf.inference_only_peptide_ids = PeptideIdentificationList();
+      bool filtered = false;
+      if (fdr_psm_ > 0.0)
+      {
+        if (fdr_protein_ > 0.0) { collectInferenceOnlyPsms_(ids, fdr_psm_, pf.inference_only_peptide_ids); }
+        IDFilter::filterHitsByScore(ids, fdr_psm_);
+        filtered = true;
+      }
+      pf.peptide_ids = std::move(ids);
+      // the runs of the file as rescoreWithPercolator() marks them
+      for (ProteinIdentification& run : pf.protein_ids)
+      {
+        run.setSearchEngine(runs[0].getSearchEngine());
+        run.setSearchEngineVersion(runs[0].getSearchEngineVersion());
+        run.setMetaValue("percolator", runs[0].getMetaValue("percolator"));
+        ProteinIdentification::SearchParameters sp = run.getSearchParameters();
+        std::vector<std::string> keys;
+        runs[0].getSearchParameters().getKeys(keys);
+        for (const std::string& key : keys)
+        {
+          if (StringUtils::hasPrefix(key, "Percolator:")) { sp.setMetaValue(key, runs[0].getSearchParameters().getMetaValue(key)); }
+        }
+        run.setSearchParameters(sp);
+      }
+      pf.percolator.applied = true;
+      pf.percolator.skipped_reason.clear();
+      pf.percolator.warning = warning;
+      updateFinalStats(pf.stats, pf.peptide_ids, enzyme_, filtered || pf.stats.fdr_applied);
+      // (an open search keeps the modification analysis of the PSMs of the file's own scoring)
+      finish(pf);
+    }
+  }
+
+  // =====================================================================
   // The pooled evaluation of a multi-file search (the ProSE tool's -out_merged):
   // pooling, cross-file protein inference and the optional picked-protein FDR.
   // =====================================================================
@@ -6401,7 +6564,7 @@ namespace OpenMS
     for (Size i = 0; i < result.per_file.size(); ++i)
     {
       const SearchResult& pf = result.per_file[i];
-      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+      if (pf.exit_code != ExitCodes::EXECUTION_OK || !hasPSMs_(pf.peptide_ids)) { continue; } // (no PSM to compare)
       ++n_searched;
       if (pf.percolator.applied) { ++n_rescored; }
       else { not_rescored.push_back(File::basename(in_spectra_files[i]) + ": " + pf.percolator.skipped_reason); }

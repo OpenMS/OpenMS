@@ -5174,38 +5174,36 @@ foreach(_part a b)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
-# Percolator rescores the first file but not the second (too few PSMs): -out_merged pools them on ProSE's score (it
-# refused the pooling, exit code 11, after the search), with a warning that names the second file; the merged run
-# reports ProSE as search engine, the files' runs Percolator and ProSE, and the run view which input was rescored. The
+# Percolator cannot rescore the second file on its own (60 spectra, too few PSMs): the PSMs of both files are rescored
+# together, with one model (before, -out_merged refused the pooling with exit code 11, after the search, and then pooled
+# on ProSE's score). Both runs report Percolator, the run view says why, and the merge ranks the proteins by PEP. The
 # outputs of an earlier run are removed first, so that only this run's outputs can pass the checks.
 add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx)
 add_test(NAME "TOPP_ProSE_11_rescore_mixed" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML;-out_merged;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx;-qpx_extended"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Percolator rescored 1 of 2 input files; not SimpleSearchEngine_1.mzML: Only [0-9]+ PSMs"
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML;-out_merged;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx;-qpx_extended"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Percolator could not rescore 1 of 2 input files on their own: ProSE_18_small.mzML \\(Only [0-9]+ PSMs.*protein score PEP"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_clean")
-add_test("TOPP_ProSE_11_rescore_mixed_merged" ${TOPP_BIN_PATH}/FileInfo -test
-  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
-  PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_clean;TOPP_ProSE_18_inputs")
+add_test("TOPP_ProSE_11_rescore_mixed_merged" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML
+  "-DEXPECTED=search_engine=\"Percolator\";name=\"Posterior Probability_score\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed")
 add_test("TOPP_ProSE_11_rescore_mixed_run" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx/quantms.run.parquet -out_tsv ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_run.tmp.tsv)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_run" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed")
-# psm_fdr_applied, rescoring_applied and rescoring_skipped_reason of the two inputs
+# psm_fdr_applied, rescoring_applied, rescoring_skipped_reason and rescoring_warning of the inputs
 add_test("TOPP_ProSE_11_rescore_mixed_run_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_run.tmp.tsv
-  "-DEXPECTED=psm_fdr_applied\trescoring_applied\trescoring_skipped_reason;\ttrue\ttrue\tnull\t;\ttrue\tfalse\tOnly "
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  "-DEXPECTED=psm_fdr_applied\trescoring_applied\trescoring_skipped_reason\trescoring_warning;\ttrue\ttrue\tnull\tRescored together with the other input files"
+  "-DFORBIDDEN=\tfalse\tOnly " -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_run_out" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_run")
-add_test("TOPP_ProSE_11_rescore_mixed_info_a" ${TOPP_BIN_PATH}/FileInfo -test
-  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_a" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
-  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
-add_test("TOPP_ProSE_11_rescore_mixed_info_b" ${TOPP_BIN_PATH}/FileInfo -test
-  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_b" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
-  PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+foreach(_part a b)
+  add_test("TOPP_ProSE_11_rescore_mixed_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_${_part}.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
+    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+endforeach()
 # Too few PSMs to train on: the file is not rescored, keeps its HyperScores and ProSE still succeeds.
 add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
@@ -5729,7 +5727,8 @@ endforeach()
 # - Two entries of one accession with different sequences are refused before the search (INPUT_FILE_CORRUPT, 3), and
 #   decoys=auto refuses a database with far fewer decoys than targets (ILLEGAL_PARAMETERS, 6): 'generate' replaces them.
 add_test(NAME "TOPP_ProSE_18_inputs" COMMAND ${CMAKE_COMMAND}
-  -DFASTA=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -DOUT_DIR=${TESTS_TEMP_DIR}
+  -DFASTA=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -DMZML=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -DOUT_DIR=${TESTS_TEMP_DIR}
   -P ${DATA_DIR_TOPP}/ProSE_18_prepare.cmake)
 set(_prose18 ${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML)
 foreach(_case twice conflict few_decoys few_decoys_generate)

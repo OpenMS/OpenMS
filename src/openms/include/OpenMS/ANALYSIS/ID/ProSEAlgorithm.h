@@ -217,9 +217,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    @c aggregate.modification_analysis is populated as usual and only
      *    @c aggregate.protein_ids / @c aggregate.peptide_ids are released
      *    afterwards. In closed search nothing is pooled at all.
-     *  - When Percolator (parameter 'rescore') rescored only some of the files,
-     *    their runs report different search engines (Percolator / ProSE): the
-     *    pooled copies of the runs all get ProSE's engine, so that
+     *  - With 'rescore', a file that Percolator cannot rescore on its own
+     *    (e.g. fewer than 100 PSMs) is rescored together with all others, with
+     *    one model (see rescoreFilesTogether_()). Only if that fails too, the
+     *    runs report different search engines (Percolator / ProSE): the pooled
+     *    copies of the runs then all get ProSE's engine, so that
      *    IDMergerAlgorithm merges them (see mergeFileResults() for the
      *    scores); the runs of @p per_file stay as they are.
      *
@@ -755,8 +757,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
      *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
      *    search engine score without PEPs) on the best hit of each pooled PSM.
-     *  - Percolator ('rescore') rescored only some files (e.g. one with fewer than 100 PSMs; a warning names the
-     *    others): each PSM keeps the q-value of its file (Percolator's, or
+     *  - Percolator ('rescore') rescored only some files with PSMs (which the multi-file search avoids by rescoring all
+     *    files together, unless that fails too; a warning names the others): each PSM keeps the q-value of its file (Percolator's, or
      *    target-decoy q-values of ProSE's score), on which FDR:PSM filtered it, but the proteins are scored by
      *    ProSE's score 'ln(hyperscore)' of all PSMs, as only the rescored ones have a PEP; with FDR:PSM 0 every pooled
      *    PSM also gets 'ln(hyperscore)' as main score (instead of Percolator's q-value), so that all PSMs are on one
@@ -1441,6 +1443,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// SearchResult::percolator as last_run_stats_ is to SearchResult::stats.
     mutable PercolatorRescoring last_percolator_;
     bool keep_pre_fdr_psms_ = false; ///< see setKeepPreFdrPsms()
+    /// Set by the multi-file searches with 'rescore' while their files are searched: the PSMs of each file before the
+    /// rescoring are kept (SearchResult::pre_fdr_peptide_ids) and its proteins are not reduced to those of its PSMs yet,
+    /// for rescoreFilesTogether_()
+    mutable bool pool_rescoring_ = false;
     /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;
@@ -1625,6 +1631,26 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                      RunStatistics& stats,
                                      PeptideIdentificationList* pre_fdr_psms = nullptr,
                                      PeptideIdentificationList* inference_only_psms = nullptr) const;
+
+    /// Helper: whether a PSM of @p ids has a hit
+    static bool hasPSMs_(const PeptideIdentificationList& ids);
+
+    /// Helper: target-decoy q-values of the PSMs of @p peptide_ids by their main scores, competing all together
+    /// (FalseDiscoveryRate, decoys kept), and without a decoy PSM the conservative 1/T of the T PSMs instead of 0
+    static void tdcQValues_(PeptideIdentificationList& peptide_ids);
+
+    /**
+      @brief The end of a multi-file search with 'rescore' (with pool_rescoring_): if Percolator could not rescore some
+      file with PSMs on its own (e.g. one with fewer than 100 PSMs), rescores the PSMs of all files (their PSMs before
+      the rescoring, SearchResult::pre_fdr_peptide_ids) together with one cross-validated Percolator model
+      (rescoreWithPercolator()), so that every PSM has a score and PEP of that model. Back in its file, each PSM gets
+      the q-value of target-decoy competition of the file's PSMs on the model's SVM score (tdcQValues_(); FDR per run),
+      on which FDR:PSM filters (and FDR:protein_inference_PSM collects); the runs are marked as rescored by Percolator,
+      and @c percolator of each file says so in its @c warning. If the pooled PSMs cannot be rescored either (e.g.
+      fewer than 100), every file keeps its own outcome. In any case the proteins of each file become those of its PSMs
+      and the copies are released (unless setKeepPreFdrPsms()).
+    */
+    void rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const;
 
     /// Helper: copies of the PSMs of @p peptide_ids whose q-values (main scores) are above @p psm_fdr and at most
     /// FDR:protein_inference_PSM, appended to @p inference_only_psms (nothing if that cutoff is not above @p psm_fdr).

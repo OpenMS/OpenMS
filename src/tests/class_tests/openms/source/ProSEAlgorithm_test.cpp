@@ -5767,8 +5767,10 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     return hits;
   };
 
-  // Default, several files: each run is rescored on its own and reports the outcome; FDR:PSM is applied
-  // to Percolator's q-values. The second file has too few PSMs: it keeps ProSE's scores, with the reason.
+  // Default, several files: each run is rescored on its own and reports the outcome; FDR:PSM is applied to
+  // Percolator's q-values. The second file has no PSM against this database: it keeps ProSE's scores, with the reason,
+  // and is no reason to rescore the files together (a file with PSMs too few for a model of its own is, see the
+  // section of mergeFileResults() below).
   {
     ProSEAlgorithm algo;
     configure(algo, "", 0.05, 0.0);
@@ -5785,16 +5787,19 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     TEST_TRUE(rescored.stats.fdr_applied)
     TEST_TRUE(rescored.stats.achieved_psm_fdr <= 0.05)
 
-    const ProSEAlgorithm::SearchResult& skipped = mfres.per_file[1];
-    TEST_TRUE(skipped.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
-    TEST_FALSE(skipped.percolator.applied)
-    TEST_TRUE(skipped.percolator.skipped_reason.starts_with("Only "))
-    ABORT_IF(skipped.protein_ids.empty())
-    TEST_EQUAL(skipped.protein_ids[0].getSearchEngine(), "ProSE")
-    // runs of different search engines are pooled under ProSE's (see mergeFileResults() for the scores)
+    TEST_EQUAL(rescored.percolator.warning, "")
+    TEST_TRUE(rescored.pre_fdr_peptide_ids.empty()) // the copy for a pooled rescoring is released
+
+    const ProSEAlgorithm::SearchResult& small = mfres.per_file[1];
+    TEST_TRUE(small.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(small.percolator.applied)
+    TEST_TRUE(small.percolator.skipped_reason.starts_with("Only 0 PSMs"))
+    ABORT_IF(small.protein_ids.empty())
+    TEST_EQUAL(small.protein_ids[0].getSearchEngine(), "ProSE")
+    // pooled under the engine of the files with PSMs
     ABORT_IF(mfres.aggregate.protein_ids.size() != 1)
-    TEST_EQUAL(mfres.aggregate.protein_ids[0].getSearchEngine(), "ProSE")
-    TEST_EQUAL(mfres.aggregate.peptide_ids.size(), rescored.peptide_ids.size() + skipped.peptide_ids.size())
+    TEST_EQUAL(mfres.aggregate.protein_ids[0].getSearchEngine(), "Percolator")
+    TEST_EQUAL(mfres.aggregate.peptide_ids.size(), rescored.peptide_ids.size() + small.peptide_ids.size())
   }
 
   // The copy for a Percolator .pin (setKeepPreFdrPsms) is taken before the rescoring: ProSE's own scores, every
@@ -6039,11 +6044,11 @@ START_SECTION(([EXTRA] mergeFileResults keeps files apart that share a basename)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] mergeFileResults pools runs of which Percolator rescored only some, on the search engine score))
+START_SECTION(([EXTRA] a file too small for its own Percolator model is rescored with the others, and mergeFileResults ranks the proteins by PEP))
 {
-  // The second input has 60 spectra: fewer than 100 PSMs, which Percolator does not rescore. The search pools both
-  // runs (under ProSE's engine), the merge scores the proteins of both by 'ln(hyperscore)', and every PSM keeps the
-  // q-value of its file.
+  // The second input has 60 spectra: fewer than 100 PSMs, too few for a Percolator model of its own. The PSMs of both
+  // inputs are rescored together: every PSM has the score and PEP of one model, the q-values are those of each file
+  // (target-decoy competition of its PSMs on the model's score), and the merge ranks the proteins by PEP.
   PeakMap all, some;
   FileHandler().loadExperiment(merge_spectra_file, all, {FileTypes::MZML});
   for (const MSSpectrum& spectrum : all)
@@ -6063,35 +6068,87 @@ START_SECTION(([EXTRA] mergeFileResults pools runs of which Percolator rescored 
     algo.setParameters(p);
     ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
     ABORT_IF(result.per_file.size() != 2)
-    TEST_TRUE(result.per_file[0].percolator.applied)
-    TEST_FALSE(result.per_file[1].percolator.applied)
-    TEST_FALSE(result.per_file[1].peptide_ids.empty())
-    TEST_STRING_EQUAL(result.per_file[0].protein_ids[0].getSearchEngine(), "Percolator") // the files' runs stay
-    TEST_STRING_EQUAL(result.per_file[1].protein_ids[0].getSearchEngine(), "ProSE")
-    ABORT_IF(result.aggregate.protein_ids.size() != 1) // pooled
-    TEST_STRING_EQUAL(result.aggregate.protein_ids[0].getSearchEngine(), "ProSE")
+    for (const ProSEAlgorithm::SearchResult& file : result.per_file)
+    {
+      TEST_TRUE(file.percolator.applied)
+      TEST_TRUE(file.percolator.warning.starts_with("Rescored together"))
+      TEST_STRING_EQUAL(file.protein_ids[0].getSearchEngine(), "Percolator")
+    }
+    const PeptideIdentificationList& small_psms = result.per_file[1].peptide_ids;
+    TEST_FALSE(small_psms.empty())
+    // the small file's PSMs: Percolator's score and PEP, and q-values of their own competition on that score
+    Size without_pep = 0;
+    PeptideIdentificationList by_svm;
+    for (const PeptideIdentification& id : small_psms)
+    {
+      if (id.getHits().empty()) { continue; }
+      without_pep += !id.getHits()[0].metaValueExists("MS:1001493") || !id.getHits()[0].metaValueExists("MS:1001492");
+      TEST_STRING_EQUAL(id.getScoreType(), "q-value")
+      TEST_REAL_SIMILAR(double(id.getHits()[0].getMetaValue("MS:1001491")), id.getHits()[0].getScore())
+      PeptideIdentification copy = id;
+      copy.getHits()[0].setScore(double(id.getHits()[0].getMetaValue("MS:1001492")));
+      copy.setScoreType("svm");
+      copy.setHigherScoreBetter(true);
+      by_svm.push_back(copy);
+    }
+    TEST_EQUAL(without_pep, 0)
+    if (psm_fdr == 0.0) // all PSMs of the file: its own target-decoy q-values
+    {
+      FalseDiscoveryRate fdr;
+      Param fp = fdr.getParameters();
+      fp.setValue("add_decoy_peptides", "true");
+      fdr.setParameters(fp);
+      fdr.apply(by_svm);
+      bool any_decoy = false;
+      for (const PeptideIdentification& id : by_svm) { any_decoy = any_decoy || id.getHits()[0].isDecoy(); }
+      Size other_q = 0;
+      for (Size i = 0, k = 0; i < small_psms.size(); ++i)
+      {
+        if (small_psms[i].getHits().empty()) { continue; }
+        const double expected = any_decoy ? by_svm[k].getHits()[0].getScore() : 1.0 / static_cast<double>(by_svm.size());
+        other_q += std::fabs(small_psms[i].getHits()[0].getScore() - expected) > 1e-12;
+        ++k;
+      }
+      TEST_EQUAL(other_q, 0)
+    }
 
-    const Size in_second = target_psms(result.per_file[1].peptide_ids).size();
     ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, files);
     TEST_TRUE(merged.protein_fdr_applied)
     ABORT_IF(merged.protein_ids.size() != 1)
-    TEST_STRING_EQUAL(merged.protein_ids[0].getSearchEngine(), "ProSE")
+    TEST_STRING_EQUAL(merged.protein_ids[0].getSearchEngine(), "Percolator")
     TEST_FALSE(merged.protein_ids[0].getHits().empty())
     for (const ProteinHit& hit : merged.protein_ids[0].getHits())
     {
-      TEST_TRUE(hit.metaValueExists("ln(hyperscore)_score")) // the inference's score, kept by the picked FDR
+      TEST_TRUE(hit.metaValueExists("Posterior Probability_score")) // the inference ranked the proteins by PEP
     }
-    // q-values (FDR:PSM) or, without FDR:PSM, ProSE's score as main score of every PSM
+    std::string out_file;
+    NEW_TMP_FILE_EXT(out_file, ".idXML")
+    FileHandler().storeIdentifications(out_file, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
+
+    // Had the file not been rescored (as when the PSMs of all files are too few for a model): the merge scores the
+    // proteins of all files by ProSE's score, and with FDR:PSM 0 every PSM gets it as main score.
+    ProSEAlgorithm alone;
+    configure_merge(alone, "generate");
+    alone.setParameters(p);
+    ProSEAlgorithm::MultiFileSearchResult small_alone = alone.searchWithModificationAnalysis(StringList{small_file}, merge_database_file);
+    ABORT_IF(small_alone.per_file.size() != 1)
+    TEST_FALSE(small_alone.per_file[0].percolator.applied)
+    ProSEAlgorithm::MultiFileSearchResult mixed = algo.searchWithModificationAnalysis(StringList{merge_spectra_file}, merge_database_file);
+    mixed.per_file.push_back(small_alone.per_file[0]);
+    merged = algo.mergeFileResults(mixed, files);
+    TEST_TRUE(merged.protein_fdr_applied)
+    ABORT_IF(merged.protein_ids.size() != 1)
+    TEST_STRING_EQUAL(merged.protein_ids[0].getSearchEngine(), "ProSE")
+    for (const ProteinHit& hit : merged.protein_ids[0].getHits())
+    {
+      TEST_TRUE(hit.metaValueExists("ln(hyperscore)_score"))
+    }
     Size other_score_types = 0;
     for (const PeptideIdentification& id : merged.peptide_ids)
     {
       other_score_types += id.getScoreType() != (psm_fdr > 0.0 ? "q-value" : "ln(hyperscore)");
     }
     TEST_EQUAL(other_score_types, 0)
-    if (in_second > 0 && psm_fdr > 0.0) { TEST_TRUE(merge_indices(merged.peptide_ids).contains(0)) }
-    std::string out_file;
-    NEW_TMP_FILE_EXT(out_file, ".idXML")
-    FileHandler().storeIdentifications(out_file, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
   }
 }
 END_SECTION
