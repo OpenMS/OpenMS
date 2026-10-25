@@ -61,6 +61,12 @@ nor patches these files):
   GCC 14.4 -O3 (conda-forge, Linux); MSVC and Apple Clang are covered only by
   the self-check. (With infinite or huge feature values, TRON's conjugate
   gradient does not terminate, in both function objects alike.)
+  `build_bt` also reports whether all values of X are finite; then `fun` at w = 0 (all bits 0) is
+  computed without reading X: every margin is (0 + +0) * t_i, all rows are active and f adds
+  C_i * 1 * 1 in row order, the bits of the pass. Solves that pass the same `TronPairGroup` use one
+  BT4 copy of X, built in chunks of 8192 rows by the solves that join while it is built (patch 22).
+  With `options::weightsOnly` tron() stops after TRON (no Outputs, no convergence check; returns 1).
+  Bits as before (`PercolatorTron_test`).
 
 ### Local addition: Newton and LDA solvers (`newton_svm.{h,cpp}`)
 
@@ -383,6 +389,13 @@ hand-editing sources and committing them, to keep sync self-healing.
 - `patches/19-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
   `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
   the local replacement above). No change of results.
+- `patches/22-cv-tron-weights-only-shared-x.patch` — the cross-validation's SVM solves ask TRON for
+  the weights only (`options::weightsOnly`, ssl.h: it skips the Outputs and the post-solve
+  convergence check, which the training discarded), and in the fold chains the solves of a fold's
+  (Cpos, Cneg) pairs share one copy of the training set in TRON's layout per step (`TronPairGroup`,
+  ssl.h) instead of building one each. `trainCpCnPair` and `trainSvm` pass the group to
+  `L2_SVM_MFN`. No change of results. (Number 21 is used by another branch, memalloc's
+  21-initdir-count-buffers.)
 
 ### Regenerating the patch
 

@@ -14,6 +14,7 @@
 #ifndef _svmlin_H
 #define _svmlin_H
 
+#include <memory>
 #include <vector>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
@@ -67,6 +68,9 @@ struct options {
   double epsilon;
   int cgitermax;
   int mfnitermax;
+  // OpenMS: the caller needs the weights only (tron(): the Outputs are not computed, the convergence check after
+  // the solve is skipped and tron() returns 1); the weights are the same
+  bool weightsOnly = false;
 };
 
 // TRON solver — the real implementation. Returns 1 if the post-solve
@@ -84,9 +88,30 @@ struct options {
 // function object runs on kernels for SSE2 or AVX2 (chosen at run time), with the
 // same results bit for bit (tron_kernels.h). gradRatio (optional) receives the
 // gradient-norm ratio (0 if ||g(w_0)|| = 0).
+class TronPairGroup;
 int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
-         double cpos, double cneg, double* gradRatio = nullptr);
+         double cpos, double cneg, double* gradRatio = nullptr,
+         TronPairGroup* group = nullptr);
+
+// OpenMS: solves of tron() on the same set (e.g. the (Cpos, Cneg) pairs of a cross-validation fold, which run at
+// the same time) that pass the same group share one copy of the set's features in the solver's layout: it is
+// built once, by the solves that start while it is built, instead of once per solve. Results are bit-identical to
+// solves alone. A solve waits only while the copy is being built by running solves; solves with another set or
+// size, or on the reference solver, build their own. The group must outlive its solves, and the set must not
+// change while they run.
+class TronPairGroup {
+ public:
+  explicit TronPairGroup(const AlgIn& set);
+  ~TronPairGroup();
+  TronPairGroup(const TronPairGroup&) = delete;
+  TronPairGroup& operator=(const TronPairGroup&) = delete;
+  struct State;
+  State* state() { return state_.get(); }  // (ssl.cpp)
+
+ private:
+  std::unique_ptr<State> state_;
+};
 
 // OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
 // of any size for the next solves (otherwise those above 64 MB are freed after the solve); the
@@ -130,8 +155,8 @@ bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double 
 // compile unchanged.
 inline int L2_SVM_MFN(const AlgIn& set, options& opts,
                       vector_double& Weights, vector_double& Outputs,
-                      double cpos, double cneg) {
-  return tron(set, opts, Weights, Outputs, cpos, cneg);
+                      double cpos, double cneg, TronPairGroup* group = nullptr) {
+  return tron(set, opts, Weights, Outputs, cpos, cneg, nullptr, group);
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

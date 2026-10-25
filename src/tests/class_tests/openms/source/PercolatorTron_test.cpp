@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <cstring>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -108,6 +109,42 @@ namespace
     Result res;
     res.ratio = -1.0;
     res.converged = tron(in, opts, w, out, cpos, cneg, &res.ratio);
+    res.w.assign(w.vec, w.vec + w.d);
+    res.out.assign(out.vec, out.vec + out.d);
+    return res;
+  }
+
+  // an AlgIn on the rows of p (shared by the solves of a TronPairGroup)
+  unique_ptr<AlgIn> makeInput(const Problem& p)
+  {
+    unique_ptr<AlgIn> in(new AlgIn(p.m, p.nf + 1));
+    in->m = p.m;
+    for (int i = 0; i < p.m; ++i)
+    {
+      in->vals[i] = const_cast<double*>(p.vals.data() + size_t(i) * p.nf);
+      in->Y[i] = p.y[i];
+    }
+    return in;
+  }
+
+  // tron() on in (weights from 0), in the group (nullptr: alone), weights only or not
+  Result solveInput(const AlgIn& in, double cpos, double cneg, TronPairGroup* group, bool weightsOnly)
+  {
+    options opts;
+    opts.lambda = 1.0;
+    opts.lambda_u = 1.0;
+    opts.epsilon = EPSILON;
+    opts.cgitermax = CGITERMAX;
+    opts.mfnitermax = MFNITERMAX;
+    opts.weightsOnly = weightsOnly;
+    vector_double w, out;
+    w.d = in.n;
+    w.vec = new double[w.d]();
+    out.d = in.m;
+    out.vec = new double[out.d]();
+    Result res;
+    res.ratio = -1.0;
+    res.converged = tron(in, opts, w, out, cpos, cneg, &res.ratio, group);
     res.w.assign(w.vec, w.vec + w.d);
     res.out.assign(out.vec, out.vec + out.d);
     return res;
@@ -353,6 +390,66 @@ START_SECTION([EXTRA] tron: concurrent solves)
     for (size_t k = 0; k < problems.size(); ++k) identical += sameResult(res[k], ref[k]);
     TEST_EQUAL(identical, (int)problems.size())
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] tron: solves sharing X in a TronPairGroup and weights only give the bits of solves alone)
+{
+  // The solves of a group use one copy of X, built in chunks (8192 rows) by the solves that join while it is
+  // built; their results must equal the reference solved alone, for any number of threads (with fewer threads than
+  // solves they run one after the other), sizes around the chunk size, NaN values (X not finite: no closed-form
+  // f(0)), and a solve of another set passing the group. With weightsOnly the weights must be the same.
+  KernelGuard guard;
+  const vector<string> isas = availableKernels();
+  vector<Problem> problems;
+  problems.push_back(makeProblem(2, 3, 0, 501));
+  problems.push_back(makeProblem(33, 6, 2, 503));
+  problems.push_back(makeProblem(1025, 30, 0, 505));
+  problems.push_back(makeProblem(8192 + 33, 9, 1, 507));
+  problems.push_back(makeProblem(20000, 5, 2, 508));
+  {
+    Problem nan = makeProblem(9000, 7, 0, 509);
+    nan.vals[size_t(8500) * 7 + 2] = std::numeric_limits<double>::quiet_NaN();
+    problems.push_back(nan);  // (with an infinite value TRON does not terminate, see above)
+  }
+  const double costs[][2] = {{0.1, 0.0106}, {0.1, 0.0318}, {0.1, 0.106}, {1.0, 3.0}};
+  int solves = 0, identical = 0;
+  for (const Problem& p : problems)
+  {
+    unique_ptr<AlgIn> in = makeInput(p);
+    unique_ptr<AlgIn> other = makeInput(p);  // the same values, another set
+    tronSelectKernels("ref");
+    vector<Result> ref(4);
+    for (int k = 0; k < 4; ++k) ref[k] = solveInput(*in, costs[k][0], costs[k][1], nullptr, false);
+    for (const string& isa : isas)
+    {
+      tronSelectKernels(isa.c_str());
+      for (int threads : {1, 2, 3, 5})
+      {
+        vector<Result> res(4);
+        TronPairGroup group(*in);
+#pragma omp parallel num_threads(threads)
+#pragma omp single
+        for (int k = 0; k < 4; ++k)
+        {
+#pragma omp task firstprivate(k) shared(res, group, in, other, costs)
+          res[k] = solveInput(k == 3 ? *other : *in, costs[k][0], costs[k][1], &group, threads == 3);
+        }
+        for (int k = 0; k < 4; ++k)
+        {
+          ++solves;
+          const bool same = threads == 3 ? sameBits(res[k].w, ref[k].w) : sameResult(res[k], ref[k]);
+          identical += same;
+          if (!same)
+          {
+            STATUS("differs: " << isa << " m " << p.m << " features " << p.nf << " threads " << threads << " solve " << k)
+          }
+        }
+      }
+    }
+  }
+  STATUS(identical << " of " << solves << " solves identical")
+  TEST_EQUAL(identical, solves)
 }
 END_SECTION
 
