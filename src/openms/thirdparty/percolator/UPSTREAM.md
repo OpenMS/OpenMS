@@ -420,6 +420,10 @@ hand-editing sources and committing them, to keep sync self-healing.
   permutes the holders: the keys compare as ScoreHolderGreater compares their holders, so the sort
   makes the same moves, without reading the PSMs during the sort. With a NaN score or mass, as
   before. No change of results.
+- `patches/28-cv-setup-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` marks the kept
+  PSMs, collects the positives and decoys and fills the SVM rows in blocks, as tasks of an enclosing
+  parallel region; the blocks are joined in order (offsets from their counts), with the same check
+  of each positive against the one before it. No change of results.
 
 ### Regenerating the patch
 
