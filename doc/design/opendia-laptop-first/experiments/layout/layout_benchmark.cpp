@@ -340,7 +340,8 @@ template<class L> double extraction(const L& l,const std::vector<Target>& ts,dou
 // Exercise the existing public contiguous-array kernel, including adapter work.
 // AoS packs each scan once. SoA passes its actual numeric vectors directly.
 // IM optionals must be packed, with mixed/missing units filtered explicitly.
-// Iterators restart per target, so this is not the production pipeline schedule.
+// Reuse cursors across sorted targets as the production extractor does. Only
+// mixed/missing-unit fallback arrays need independent cursors per target.
 template<int K> double publicKernel(const Layout<K>& l,const std::vector<Target>& ts,double width,
                                     std::vector<double>* results=nullptr)
 {
@@ -373,15 +374,19 @@ template<int K> double publicKernel(const Layout<K>& l,const std::vector<Target>
       std::all_of(optional_im.begin(),optional_im.end(),[&](const auto& im){return im && im->unit==optional_im.front()->unit;});
     if(all_im) {for(const auto& im:optional_im) {packed_im.push_back(im->value);}}
     std::vector<double> filtered_mz, filtered_intensity, filtered_im;
+    const auto begin=mz->cbegin()+base, end=begin+count;
+    auto mz_it=begin, int_it=intensity->cbegin()+base, im_it=packed_im.cbegin();
     for(const auto& t:ts)
     {
-      auto begin=mz->cbegin()+base, end=begin+count, mz_it=begin;
-      auto int_it=intensity->cbegin()+base;
       double value=0;
-      if(!t.mobility) {extractor.extract_value_tophat(begin,mz_it,end,int_it,t.mz,value,width,false);}
+      if(!t.mobility)
+      {
+        const auto previous=mz_it;
+        extractor.extract_value_tophat(begin,mz_it,end,int_it,t.mz,value,width,false);
+        if(all_im) {im_it+=mz_it-previous;}
+      }
       else if(all_im && optional_im.front()->unit==t.mobility->unit)
       {
-        auto im_it=packed_im.cbegin();
         extractor.extract_value_tophat(begin,mz_it,end,int_it,im_it,t.mz,t.mobility->value,value,width,0.1,false);
       }
       else
@@ -657,7 +662,7 @@ template<int K> void run(const Source& source,const Source& original,const std::
             << ",\"memory_snapshot_stage\":\"after-construction-before-layout-validation-and-timed-kernels\""
             << ",\"build_validation\":\"" << (K==0 ? "actual-RawTile-validation-included" : "candidate-packing-only-no-RawTile-validation") << '"'
             << ",\"build_comparison\":\"not-equivalent-validation-work-do-not-rank-as-fair-construction-speed\""
-            << ",\"public_kernel_adapter\":\"AoS-per-scan-pack-SoA-direct-numeric-vectors-optional-IM-pack-iterators-reset-per-target\""
+            << ",\"public_kernel_adapter\":\"AoS-per-scan-pack-SoA-direct-numeric-vectors-optional-IM-pack-sorted-cursor-reuse-filtered-unit-fallback\""
             << ",\"sizeof_raw_point\":" << sizeof(RawPoint) << ",\"sizeof_coordinates\":" << sizeof(Coordinates)
             << ",\"sizeof_hot_point\":" << sizeof(HotPoint) << ",\"sizeof_scan_metadata\":" << sizeof(ScanMetadata)
             << ",\"sparse_rows\":" << ids.size() << ",\"fullrow_rows\":" << ids.size()
