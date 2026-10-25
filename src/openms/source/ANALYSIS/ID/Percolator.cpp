@@ -33,7 +33,6 @@
 #include <queue>
 #include <set>
 #include <sstream>
-#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -199,7 +198,7 @@ Percolator::Percolator()
                      "pi0 is fixed at 1.0 (pure target-decoy FDR, no bootstrap estimation). "
                      "Affects both Scores::calcQvals and Scores::calcPep. 'auto' (default) decides as "
                      "the percolator executable, which uses pi0 only for mix-max: true without "
-                     "post_processing_tdc when a spectrum (file, scan, mass) has both target and decoy "
+                     "post_processing_tdc when a spectrum (scan, mass) has both target and decoy "
                      "PSMs (separate searches), false otherwise.");
   defaults_.setValidStrings("use_pi0", {"auto","true","false"});
 
@@ -306,18 +305,17 @@ static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
 // Whether to estimate pi0 for the q-values and PEPs (use_pi0). 'auto' decides as the percolator executable
 // (Caller.cpp: Scores and CrossValidation get usePi0 = useMixMax_): pi0 belongs to its mix-max procedure, which it
 // uses without target-decoy competition when the input looks like separate target and decoy searches, i.e. a
-// spectrum (file, scan, mass) has both target and decoy PSMs. With pi0 < 1 the q-values come from mix-max counts,
-// which do not hold for a concatenated search.
+// spectrum has both target and decoy PSMs. A spectrum is (scan, mass) as in its SetHandler::getScanId, without the
+// file. With pi0 < 1 the q-values come from mix-max counts, which do not hold for a concatenated search.
 static bool resolveUsePi0(const std::string& use_pi0, bool post_processing_tdc, const RescoreInput& input)
 {
   if (use_pi0 != "auto") return use_pi0 == "true";
   if (post_processing_tdc) return false;
-  std::map<std::tuple<int, int, double>, bool> decoy_by_spectrum;
+  std::map<std::pair<int, double>, bool> decoy_by_spectrum;
   for (size_t i = 0; i < input.features.size(); ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
-    const auto [it, inserted] = decoy_by_spectrum.emplace(
-      std::make_tuple(keys.spec_file, keys.scan, keys.exp_mass), input.is_decoy[i]);
+    const auto [it, inserted] = decoy_by_spectrum.emplace(std::make_pair(keys.scan, keys.exp_mass), input.is_decoy[i]);
     if (!inserted && it->second != input.is_decoy[i]) return true;
   }
   return false;
