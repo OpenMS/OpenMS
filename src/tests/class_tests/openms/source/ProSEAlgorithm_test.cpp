@@ -5597,13 +5597,14 @@ START_SECTION(([EXTRA] rescoring:top_hits: Percolator rescores the top hits of e
   const std::string small_spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.mzML");
   std::string db = database_file; // of the next searches
   // the settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini), without FDR filters
-  auto run = [&](int report_top_hits, int rescore_top_hits, bool keep_pre_fdr, const std::vector<std::string>& files)
+  auto run = [&](int report_top_hits, int rescore_top_hits, bool keep_pre_fdr, const std::vector<std::string>& files,
+                 const std::string& decoys = "generate", double precursor_ppm = 20.0)
   {
     ProSEAlgorithm algo;
     Param p = algo.getParameters();
-    p.setValue("decoys", "generate");
-    p.setValue("precursor:mass_tolerance_lower", 20.0);
-    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("decoys", decoys);
+    p.setValue("precursor:mass_tolerance_lower", precursor_ppm);
+    p.setValue("precursor:mass_tolerance_upper", precursor_ppm);
     p.setValue("precursor:mass_tolerance_unit", "ppm");
     p.setValue("fragment:mass_tolerance", 10.0);
     p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -5684,6 +5685,18 @@ START_SECTION(([EXTRA] rescoring:top_hits: Percolator rescores the top hits of e
   TEST_FALSE(skipped.per_file[0].peptide_ids.empty())
   TEST_EQUAL(max_hits(skipped.per_file[0].peptide_ids), 1)
   TEST_EQUAL(record(skipped.per_file[0]), "")
+
+  // a target-only search (decoys 'ignore': Percolator cannot rescore it) reports report:top_hits hits, as without
+  // rescoring (review round 1: the hits were cut to rescoring:top_hits before Percolator skipped the run). A wide precursor
+  // window gives the spectra more candidates.
+  db = database_file;
+  ProSEAlgorithm::MultiFileSearchResult target_only = run(4, 2, false, {spectra_file}, "ignore", 1000.0);
+  ABORT_IF(target_only.per_file.size() != 1)
+  TEST_FALSE(target_only.per_file[0].percolator.applied)
+  ProSEAlgorithm::MultiFileSearchResult target_only_legacy = run(4, 0, false, {spectra_file}, "ignore", 1000.0);
+  ABORT_IF(target_only_legacy.per_file.size() != 1)
+  TEST_TRUE(max_hits(target_only_legacy.per_file[0].peptide_ids) > 2) // (spectra with more hits than rescoring:top_hits)
+  TEST_TRUE(same_psms(target_only.per_file[0].peptide_ids, target_only_legacy.per_file[0].peptide_ids))
 }
 END_SECTION
 
