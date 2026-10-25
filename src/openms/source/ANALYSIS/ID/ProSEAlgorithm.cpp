@@ -122,6 +122,32 @@ namespace OpenMS
       Container().swap(container);
     }
 
+    // Destroys the elements of a large container on the OpenMP threads that allocated them (owner(i): the thread
+    // number of element i in a team of the same size; other numbers are spread over the team), then the container:
+    // as freeInParallel(), for elements that a dynamically scheduled loop made. Each thread looks at all owners and
+    // frees its own elements, into its own arena.
+    template <typename Container, typename Owner>
+    void freeOnOwnerThreads(Container& container, const Owner& owner)
+    {
+      const SignedSize n = static_cast<SignedSize>(container.size());
+#pragma omp parallel if (n >= 256)
+      {
+#ifdef _OPENMP
+        const int team = omp_get_num_threads();
+        const int me = omp_get_thread_num();
+#else
+        const int team = 1;
+        const int me = 0;
+#endif
+        for (SignedSize i = 0; i < n; ++i)
+        {
+          const int o = owner(i);
+          if ((o >= 0 ? o % team : 0) == me) { [[maybe_unused]] const auto released = std::move(container[i]); }
+        }
+      }
+      Container().swap(container);
+    }
+
     void freeInParallel(PeakMap& spectra)
     {
       freeInParallel(spectra.getSpectra());
@@ -2996,6 +3022,9 @@ namespace OpenMS
       // scores are independent of the chunk a candidate came from: a hit outside
       // the top-N here can never re-enter it.
       auto& hits = annotated_hits[scan_index];
+#ifdef _OPENMP
+      pool_stats[scan_index].scoring_thread = omp_get_thread_num();
+#endif
       if (hits.size() > keep)
       {
         std::partial_sort(hits.begin(), hits.begin() + keep, hits.end(), AnnotatedHit_::hasBetterScore);
@@ -3275,7 +3304,7 @@ namespace OpenMS
       evidence_ptr
       );
     // Release the hits and the additional peak list before PeptideIndexing.
-    freeInParallel(annotated_hits);
+    freeOnOwnerThreads(annotated_hits, [&pool_stats](SignedSize i) { return pool_stats[i].scoring_thread; }); // (where scored)
     freeInParallel(pool_stats);
     freeInParallel(evidence_spectra);
     endProgress();
@@ -4230,7 +4259,7 @@ namespace OpenMS
       defer_peak_annotations
       );
     // Release the hits and the additional peak list before PeptideIndexing.
-    freeInParallel(annotated_hits);
+    freeOnOwnerThreads(annotated_hits, [&pool_stats](SignedSize i) { return pool_stats[i].scoring_thread; }); // (where scored)
     freeInParallel(pool_stats);
     freeInParallel(evidence_spectra);
     endProgress();
