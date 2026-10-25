@@ -98,7 +98,7 @@ namespace OpenMS
     }
   };
 
-  /// Output from Percolator::rescore. Aligned 1:1 with RescoreInput::features.
+  /// Output from Percolator::rescore. Aligned 1:1 with the rows of the RescoreInput (RescoreInput::rowCount()).
   struct OPENMS_DLLAPI RescoreOutput
   {
     std::vector<double> scores;     ///< SVM discriminant score per row

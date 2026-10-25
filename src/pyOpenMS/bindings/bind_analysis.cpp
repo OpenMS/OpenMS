@@ -2456,7 +2456,7 @@ Probability ties resolved by taking protein with largest number of peptides
         ;
 
     nb::class_<OpenMS::RescoreOutput>(m, "RescoreOutput",
-        "Output from Percolator.rescore(). Aligned 1:1 with RescoreInput.features.")
+        "Output from Percolator.rescore(). Aligned 1:1 with the rows of the RescoreInput (features or feature_matrix).")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RescoreOutput &>())
         .def("__copy__",     [](const OpenMS::RescoreOutput& self) { return OpenMS::RescoreOutput(self); })
