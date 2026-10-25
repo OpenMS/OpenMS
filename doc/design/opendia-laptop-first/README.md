@@ -16,6 +16,11 @@ candidate workflow and release acceptance.
 WP-01 starts with a behavior-preserving tool-private executable/library boundary,
 then small v0 records, complete query keys, and a producer/consumer fixture.
 See the [WP-01 roadmap](work-packages/01-contracts.md#implementation-roadmap).
+The boundary starter is pushed as [e7e67276ce](https://github.com/OpenMS/OpenMS/commit/e7e67276ce099a92e08780b9f7235863d0f9b891):
+standalone Debug build, shared-entry test and all 28 existing OpenDIA TOPP regressions
+passed. Full in-tree integration validation and the v0 contract increments remain
+pending. No implementation PR is open. Detailed observations and limitations are
+recorded in [WP-01](work-packages/01-contracts.md#observed-starter-implementation-25-october-2026).
 
 ## Current verification status
 
