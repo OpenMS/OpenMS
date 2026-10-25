@@ -2,7 +2,7 @@
 
 [Plan index](README.md) | [Architecture](architecture.md)
 
-## Current verification status (24 October 2026)
+## Current verification status (updated 25 October 2026, searches ran 24 October 2026)
 
 The selected clean merged source is `3e47bc7e7468656d0d53237f11fc4f049d278efe`,
 including #10642 and #10698, with harness `5a804f5e7c92f5c7e541050123a66f2978d23368`
@@ -32,7 +32,7 @@ lower bounds, not exact filesystem peaks. See the [measurement contract](https:/
 These semantics do not establish resource-target compliance or exact peak disk.
 The two full Astral baseline searches used 13,875.97 and 13,858.52 MiB
 single-process peak RSS, above the proposed 4 GiB process target. Their dedicated
-cgroup peaks were 20.55 and 22.37 GiB. The 2 GiB low-memory mode was not tested.
+cgroup peaks were about 20.5 and 22.4 GiB. The 2 GiB low-memory mode was not tested.
 Sampled disk values are lower bounds and do not prove peak-disk compliance.
 
 The 21 October dirty-source searches and failed repeats remain historical. The
