@@ -25,6 +25,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <sstream>
 #include <string>
@@ -1147,6 +1148,15 @@ void Scores::weedOutRedundantMixMax() {
 int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
                                double fdr, bool skipDecoysPlusOne) const {
   std::vector<double> qvals;
+  return countPositivesOfPairs(combined, fdr, skipDecoysPlusOne, qvals);
+}
+
+int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combined,
+                                  double fdr, bool skipDecoysPlusOne,
+                                  std::vector<double>& qvals) const {
+  // (one q-value per pair: room for all of them at once, instead of growing while they are added)
+  qvals.clear();
+  qvals.reserve(combined.size());
   PosteriorEstimator::setNegative(true);  // also get q-values for decoys
   PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
                                  nullTargetWinProb_);
@@ -1204,6 +1214,17 @@ int Scores::getInitDirection(const double initialSelectionFdr,
     };
     // the keys after the sort of each feature (until its count), and the labels
     std::vector<std::unique_ptr<ChainKey[]> > keysOfFeature(numFeatures);
+    // OpenMS: the buffers of the counts (a snapshot of n keys; the n (score, label) pairs and their q-values), taken
+    // from these lists and put back when a count is done, so the counts of later features reuse memory that is
+    // already in use (instead of new pages for 2 x 16 + 8 bytes per PSM and feature, freed again right after);
+    // released at the end of this call
+    struct CountBuffers {
+      std::vector<pair<double, bool> > pairs;
+      std::vector<double> qvals;
+    };
+    std::mutex buffersMutex;
+    std::vector<std::unique_ptr<ChainKey[]> > freeSnapshots;
+    std::vector<std::unique_ptr<CountBuffers> > freeCountBuffers;
     std::vector<char> isTarget(n);
     // OpenMS: the copies and moves of keys of a large set below are tasks of blocks of this size
     // (each key is written once, so the order of the blocks does not matter)
@@ -1274,25 +1295,48 @@ int Scores::getInitDirection(const double initialSelectionFdr,
             return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
           });
           {
-            keysOfFeature[featNo].reset(new ChainKey[n]);
+            {
+              std::lock_guard<std::mutex> lock(buffersMutex);
+              if (!freeSnapshots.empty()) {
+                keysOfFeature[featNo] = std::move(freeSnapshots.back());
+                freeSnapshots.pop_back();
+              }
+            }
+            if (!keysOfFeature[featNo]) keysOfFeature[featNo].reset(new ChainKey[n]);
             ChainKey* snapshot = keysOfFeature[featNo].get();
 #pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
             for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
               snapshot[i] = keys[static_cast<std::size_t>(i)];
             }
           }
-#pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
+#pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne, \
+                                             buffersMutex, freeSnapshots, freeCountBuffers)
           try {
-            std::vector<pair<double, bool> > pairs;
+            std::unique_ptr<CountBuffers> buffers;
+            {
+              std::lock_guard<std::mutex> lock(buffersMutex);
+              if (!freeCountBuffers.empty()) {
+                buffers = std::move(freeCountBuffers.back());
+                freeCountBuffers.pop_back();
+              }
+            }
+            if (!buffers) buffers.reset(new CountBuffers());
+            std::vector<pair<double, bool> >& pairs = buffers->pairs;
+            pairs.clear();
             pairs.reserve(n);
             const ChainKey* snapshot = keysOfFeature[featNo].get();
             for (std::size_t i = 0; i < n; ++i) {
               pairs.emplace_back(snapshot[i].score, isTarget[snapshot[i].index] != 0);
             }
-            keysOfFeature[featNo].reset();
-            positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
+            {
+              std::lock_guard<std::mutex> lock(buffersMutex);
+              freeSnapshots.push_back(std::move(keysOfFeature[featNo]));
+            }
+            positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne, buffers->qvals);
             reverse(pairs.begin(), pairs.end());
-            positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
+            positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne, buffers->qvals);
+            std::lock_guard<std::mutex> lock(buffersMutex);
+            freeCountBuffers.push_back(std::move(buffers));
           } catch (...) {
             errors[featNo] = std::current_exception();
           }

@@ -168,6 +168,9 @@ class Scores {
   // OpenMS: see Scores.cpp
   int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
                          double fdr, bool skipDecoysPlusOne) const;
+  // OpenMS: the same, with the q-values in qvals (cleared first; its capacity is reused)
+  int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
+                            double fdr, bool skipDecoysPlusOne, std::vector<double>& qvals) const;
   int countPositivesOfScores(std::vector<std::pair<double, bool> >& combined,
                              const std::vector<double>& w, double fdr,
                              bool skipDecoysPlusOne) const;

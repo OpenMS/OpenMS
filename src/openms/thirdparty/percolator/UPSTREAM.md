@@ -383,6 +383,11 @@ hand-editing sources and committing them, to keep sync self-healing.
 - `patches/19-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
   `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
   the local replacement above). No change of results.
+- `patches/21-initdir-count-buffers.patch` — the counts of `Scores::getInitDirection` (patch 08)
+  take their buffers (the snapshot of the sorted keys, the (score, label) pairs and the q-values)
+  from lists of the call and put them back when done, and `countPositivesOfPairs` reserves room
+  for all q-values at once, so the 2 x 30 counts of a fold reuse memory instead of new pages
+  for every feature. No change of results.
 
 ### Regenerating the patch
 
