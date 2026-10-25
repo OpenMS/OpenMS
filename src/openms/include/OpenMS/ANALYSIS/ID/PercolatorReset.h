@@ -53,7 +53,10 @@ namespace OpenMS
     target): the positive set and the cross-validation use SeqStep+ at c = 2/3 (factor 2 instead of 3), and the final
     ranking FDP = (D_est + 1) / max(T, 1) (c = 1/2, factor 1 instead of 2). Input::decoy_set tells the two sets apart;
     it only checks that both are present (Output::decoy_stems_second_set: a set that never wins means the database had
-    no second decoy set, and the factors would be wrong) and counts shared decoy sequences. Equal shares do not prove
+    no second decoy set, and the factors would be wrong) and counts shared decoy sequences: a stem whose decoy rows (all
+    rows of its sequence, also competition losers) come from both sets is one decoy for its hypotheses, which win as a
+    decoy with probability 1/2 instead of 2/3; such stems count twice in the positive-set and final estimates (training
+    and estimating decoy 1/4 each against 1/2 for the null target). Equal shares do not prove
     exchangeability: the two sets must be built so that a null hypothesis really has two independent decoys of the
     target's distribution (e.g. no sequences shared between the sets, the same multiplicity of sequences in both).
 

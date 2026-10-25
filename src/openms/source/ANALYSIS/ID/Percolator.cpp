@@ -2123,6 +2123,23 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
     }
     rethrowFirstError(errors);
   }
+  else
+  {
+    // no peptide-level estimates this time: values from an earlier rescoring of these hits would be stale (review r2)
+    const UInt pep_q_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_q_value");
+    const UInt pep_pep_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_pep");
+    if (pep_q_index != UInt(-1) || pep_pep_index != UInt(-1)) // (never registered: no hit has them)
+    {
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize row = 0; row < static_cast<SignedSize>(n_rows); ++row)
+      {
+        const auto [pid_i, hit_i] = hit_locs[row];
+        PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+        if (pep_q_index != UInt(-1)) hit.removeMetaValue(pep_q_index);
+        if (pep_pep_index != UInt(-1)) hit.removeMetaValue(pep_pep_index);
+      }
+    }
+  }
   if (impl_->last_reset)
   {
     // RESET: the q-value of the hit's peptide (stem) - the FDR-controlled output - and the role of decoy hits

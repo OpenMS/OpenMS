@@ -407,6 +407,24 @@ bool PercolatorReset::isTrainingDecoy(std::uint64_t salt, const std::string& ste
   return (keyedHash(salt, COIN, fnv1a64(stem)) & 1ULL) == 1ULL;
 }
 
+// seqStepQValues with a weight per decoy (two-decoy mode: decoy sequences of both decoy sets count twice)
+static std::vector<double> seqStepQValuesWeighted(const std::vector<bool>& is_decoy, const std::vector<double>& weight,
+                                                  double factor, double plus_one)
+{
+  std::vector<double> q(is_decoy.size(), 1.0);
+  double decoys = 0.0, targets = 0.0;
+  for (Size k = 0; k < is_decoy.size(); ++k)
+  {
+    if (is_decoy[k]) decoys += weight[k]; else targets += 1.0;
+    q[k] = std::min(1.0, factor * (decoys + plus_one) / std::max(targets, 1.0));
+  }
+  for (Size k = q.size(); k-- > 1;)
+  {
+    q[k - 1] = std::min(q[k - 1], q[k]);
+  }
+  return q;
+}
+
 std::vector<double> PercolatorReset::seqStepQValues(const std::vector<bool>& is_decoy, double factor, double plus_one)
 {
   std::vector<double> q(is_decoy.size(), 1.0);
@@ -610,6 +628,23 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     s.role = !s.decoy ? Role::TARGET : (isTrainingDecoy(salt, s.stem) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
     s.considered = true;
   }
+  // two-decoy mode: the decoy sets of each stem, from ALL its decoy rows (also those that lost a competition; review r2:
+  // a sequence of both sets may win as a set-1 row on one spectrum and as a set-2 row on another): bit 0 = set 1, bit 1 =
+  // set 2 (Input::decoy_set 3 = both)
+  std::vector<unsigned char> stem_sets(two_decoys ? out.stems.size() : 0, 0);
+  if (two_decoys)
+  {
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (!in.is_decoy[i]) continue;
+      const auto it = stem_index.find(in.stems[i]);
+      if (it != stem_index.end()) stem_sets[it->second] |= static_cast<unsigned char>(in.decoy_set[i]);
+    }
+  }
+  // decoy weight of a stem in the two-decoy estimates: a sequence of both decoy sets is ONE decoy of its hypotheses, which
+  // then win as a decoy with probability 1/2 (not 2/3) and as a training or estimating decoy with 1/4 each against 1/2 for
+  // the null target, so it counts twice (unbiased for these hypotheses; 1 for all other decoys, as without sharing)
+  auto decoyWeight = [&](Size s) { return two_decoys && stem_sets[s] == 3 ? 2.0 : 1.0; };
   // considered stems; counts
   std::vector<Size> cs; // considered stem indices
   for (Size s = 0; s < out.stems.size(); ++s)
@@ -622,8 +657,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       ++out.decoy_stems;
       if (st.role == Role::TRAINING_DECOY) ++out.training_decoys; else ++out.estimating_decoys;
-      if (two_decoys && in.decoy_set[st.representative] == 2) ++out.decoy_stems_second_set;
-      if (two_decoys && in.decoy_set[st.representative] == 3) ++out.decoy_stems_both_sets;
+      if (two_decoys && stem_sets[s] == 2) ++out.decoy_stems_second_set;
+      if (two_decoys && stem_sets[s] == 3) ++out.decoy_stems_both_sets;
     }
   }
   if (two_decoys && (out.decoy_stems_second_set == 0
@@ -863,7 +898,14 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   {
     std::vector<bool> dec(ranked.size());
     for (Size r = 0; r < ranked.size(); ++r) dec[r] = training_decoy[ranked[r]];
-    const std::vector<double> q = seqStepQValues(dec, train_factor, plus_one);
+    std::vector<double> q;
+    if (out.decoy_stems_both_sets == 0) q = seqStepQValues(dec, train_factor, plus_one);
+    else
+    {
+      std::vector<double> w(ranked.size(), 0.0);
+      for (Size r = 0; r < ranked.size(); ++r) w[r] = dec[r] ? decoyWeight(cs[ranked[r]]) : 0.0;
+      q = seqStepQValuesWeighted(dec, w, train_factor, plus_one);
+    }
     std::vector<Size> pos;
     for (Size r = 0; r < ranked.size(); ++r)
     {
@@ -1282,7 +1324,14 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     rankByScore(fin, cur, tie);
     std::vector<bool> dec(fin.size());
     for (Size r = 0; r < fin.size(); ++r) dec[r] = out.stems[cs[fin[r]]].decoy;
-    const std::vector<double> q = seqStepQValues(dec, final_factor, 1.0);
+    std::vector<double> q;
+    if (out.decoy_stems_both_sets == 0) q = seqStepQValues(dec, final_factor, 1.0);
+    else
+    {
+      std::vector<double> w(fin.size(), 0.0);
+      for (Size r = 0; r < fin.size(); ++r) w[r] = dec[r] ? decoyWeight(cs[fin[r]]) : 0.0;
+      q = seqStepQValuesWeighted(dec, w, final_factor, 1.0);
+    }
     for (Size r = 0; r < fin.size(); ++r)
     {
       Stem& st = out.stems[cs[fin[r]]];

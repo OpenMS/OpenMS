@@ -5172,6 +5172,10 @@ namespace OpenMS
       {
         run_sp.setMetaValue("Percolator:peptide_q_values", "percolator_peptide_q_value, percolator_peptide_pep");
       }
+      else
+      {
+        run_sp.removeMetaValue("Percolator:peptide_q_values");
+      }
       if (const auto rr = perc.getResetOutput())
       {
         run_sp.setMetaValue("Percolator:algorithm", "reset");

@@ -539,6 +539,13 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
     }
     const PercolatorReset::Output po = PercolatorReset::run(part, o);
     TEST_EQUAL(po.decoy_stems_both_sets > 0 && po.decoy_stems_both_sets <= shared, true)
+    // review r2 (Codex MAJOR 2): a sequence of both sets seen as a set-1 row on one spectrum and as a set-2 row on another
+    // (no row marked 3) is shared, too
+    PercolatorReset::Input across = in;
+    size_t moved = 0;
+    for (size_t i = 0; i + 5 < across.is_decoy.size(); i += 30, ++moved) across.stems[i + 5] = across.stems[i + 1];
+    const PercolatorReset::Output ao = PercolatorReset::run(across, o);
+    TEST_EQUAL(ao.decoy_stems_both_sets > 0 && ao.decoy_stems_both_sets <= moved, true)
   }
   PercolatorReset::Options two = opt;
   two.decoy_databases = 2;
@@ -589,6 +596,7 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
   // FDR control: mean false discovery proportion over 20 simulated searches and salts at q <= 0.05 near or below 0.05
   {
     double fdp_sum = 0.0;
+    double shared_fdp_sum = 0.0;
     for (uint64_t rep = 0; rep < 20; ++rep)
     {
       std::vector<bool> t2;
@@ -597,6 +605,26 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
       o2.salt = 555 + rep;
       o2.iterations = 3;
       o2.decoy_databases = 2;
+      // review r2: 30 % of the hypotheses with ONE decoy shared by both sets (same sequence, features and score; rows
+      // marked 3): counted twice, the estimate stays valid
+      PercolatorReset::Input shared_sim = sim;
+      for (size_t i = 0; i + 2 < shared_sim.is_decoy.size(); i += 3)
+      {
+        if ((i / 3) % 10 >= 3) continue;
+        shared_sim.features[i + 2] = shared_sim.features[i + 1];
+        shared_sim.search_scores[i + 2] = shared_sim.search_scores[i + 1];
+        shared_sim.stems[i + 2] = shared_sim.stems[i + 1];
+        shared_sim.decoy_set[i + 1] = shared_sim.decoy_set[i + 2] = 3;
+      }
+      {
+        const PercolatorReset::Output r3 = PercolatorReset::run(shared_sim, o2);
+        size_t d3 = 0, f3 = 0;
+        for (size_t i = 0; i < shared_sim.features.size(); ++i)
+        {
+          if (!shared_sim.is_decoy[i] && r3.stem_q_values[i] <= 0.05) { ++d3; if (!t2[i]) ++f3; }
+        }
+        shared_fdp_sum += d3 > 0 ? static_cast<double>(f3) / static_cast<double>(d3) : 0.0;
+      }
       for (const std::string rep_mode : {"search", "model"})
       {
         o2.representative = rep_mode;
@@ -611,6 +639,8 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
     }
     STATUS("two-decoy mean FDP at 5 %: " << fdp_sum / 40.0)
     TEST_EQUAL(fdp_sum / 40.0 < 0.075, true)
+    STATUS("two-decoy, 30 % shared decoys: mean FDP at 5 % " << shared_fdp_sum / 20.0)
+    TEST_EQUAL(shared_fdp_sum / 20.0 < 0.075, true)
   }
 }
 END_SECTION
