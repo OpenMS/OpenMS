@@ -271,7 +271,7 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
 {
   // The enzyme features of a tryptic peptide with a missed cleavage, preceded by M and followed by S: the C-terminus
   // and one internal site are tryptic
-  auto stamp = [](const std::string& enz, char aa_before = 'M', const std::string& peptide = "PEPKTIDER")
+  auto stamp = [](const std::string& enz, char aa_before = 'M', const std::string& peptide = "PEPKTIDER", char aa_after = 'S')
   {
     PeptideHit hit;
     hit.setSequence(AASequence::fromString(peptide));
@@ -281,7 +281,7 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
     PeptideEvidence ev;
     ev.setProteinAccession("PROT1");
     ev.setAABefore(aa_before);
-    ev.setAAAfter('S');
+    ev.setAAAfter(aa_after);
     hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
     PeptideIdentification pid;
     pid.setMZ(hit.getSequence().getMZ(2));
@@ -319,6 +319,11 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
   // a flank of '-' is a terminus, by either rule
   TEST_TRUE(stamp("Trypsin/P", '-') == std::make_tuple(1, 1, 1))
   TEST_TRUE(stamp("Lys-C/P", '-') == std::make_tuple(1, 0, 1))
+  // so is a protein terminus as OpenMS marks it ('[', ']'), which used to count as no cleavage site
+  TEST_TRUE(stamp("Trypsin/P", PeptideEvidence::N_TERMINAL_AA) == std::make_tuple(1, 1, 1))
+  TEST_TRUE(stamp("Lys-C/P", PeptideEvidence::N_TERMINAL_AA) == std::make_tuple(1, 0, 1))
+  TEST_TRUE(stamp("Lys-C", 'M', "PEPKTIDER", PeptideEvidence::C_TERMINAL_AA) == std::make_tuple(0, 1, 1))
+  TEST_TRUE(stamp("Lys-C/P", 'M', "PEPKTIDER", PeptideEvidence::C_TERMINAL_AA) == std::make_tuple(0, 1, 1))
 }
 END_SECTION
 
