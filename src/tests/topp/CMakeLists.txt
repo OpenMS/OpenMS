@@ -5347,6 +5347,18 @@ else()
   set_tests_properties("TOPP_ProSE_peptdeep_requires_onnx" PROPERTIES WILL_FAIL TRUE)
 endif()
 
+# -out_pin computes enzN/enzC/enzInt for the enzyme of the search (Trypsin/P), not for an unknown one.
+add_test("TOPP_ProSE_pin_enzyme" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -Search:enzyme Trypsin/P
+  -out_pin ${TESTS_TEMP_DIR}/ProSE_pin_enzyme.tmp.tsv)
+add_test("TOPP_ProSE_pin_enzyme_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_pin_enzyme.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_pin_enzyme.tsv)
+set_tests_properties("TOPP_ProSE_pin_enzyme_out" PROPERTIES DEPENDS "TOPP_ProSE_pin_enzyme")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format

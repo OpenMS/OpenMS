@@ -24,6 +24,12 @@ namespace OpenMS
   /**
      @brief Class for storing Percolator tab-delimited input files.
 
+     The enzyme name of the enzN/enzC/enzInt features (@p enz of the functions below) is one of Percolator's
+     lower-case names (trypsin, trypsinp, chymotrypsin, thermolysin, proteinasek, pepsin, elastase, lys-n,
+     lys-c, arg-c, asp-n, glu-c); any other name makes every site enzymatic. The suffix "+termini" (e.g.
+     "trypsinp+termini") makes a protein terminus an enzymatic site for enzN/enzC, as Percolator counts it;
+     without it OpenMS' protein-terminus marks are compared as residues (enzN = 0 at a protein N-terminus).
+
   */
   class OPENMS_DLLAPI PercolatorInfile
   {

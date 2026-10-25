@@ -664,4 +664,59 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(([EXTRA] enzyme name "+termini": a protein terminus counts as an enzymatic site for enzN/enzC))
+{
+  // SAMPLE does not end in K/R. Its flanks: protein N-terminus '[' / C-terminus ']', or residues. Percolator writes
+  // a terminus as '-' and counts it as an enzymatic site; with "+termini" the features do so as well, without it
+  // they keep the former values (the terminus marks compared as residues). Stamping and the feature matrix agree.
+  struct Case { char before, after; std::string enzN, enzC, enzN_former, enzC_former; };
+  const std::vector<Case> cases = {
+    {PeptideEvidence::N_TERMINAL_AA, PeptideEvidence::C_TERMINAL_AA, "1", "1", "0", "0"},
+    {PeptideEvidence::N_TERMINAL_AA, 'S', "1", "0", "0", "0"},
+    {'K', PeptideEvidence::C_TERMINAL_AA, "1", "1", "1", "0"},
+    {'A', 'S', "0", "0", "0", "0"}};
+  PeptideIdentificationList pids;
+  for (const Case& c : cases)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("SAMPLE"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore(c.before);
+    ev.setAAAfter(c.after);
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setMZ(300.0);
+    pid.setSpectrumReference("scan=" + std::to_string(pids.size() + 1));
+    pid.setHits(std::vector<PeptideHit>{hit});
+    pids.push_back(pid);
+  }
+  for (const std::string enz : {"trypsin+termini", "trypsin"})
+  {
+    const bool termini = enz == "trypsin+termini";
+    PeptideIdentificationList stamped = pids;
+    TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(stamped, enz, 2, 3).size(), 0)
+    RescoreInput ri;
+    std::vector<std::pair<size_t, size_t>> rows;
+    PercolatorInfile::buildFeatureMatrix(pids, ListUtils::create<std::string>("enzN,enzC,enzInt"), enz, 2, 3, ri, rows);
+    TEST_EQUAL(ri.rowCount(), cases.size())
+    for (Size i = 0; i < cases.size(); ++i)
+    {
+      const PeptideHit& hit = stamped[i].getHits()[0];
+      const std::string& n = termini ? cases[i].enzN : cases[i].enzN_former;
+      const std::string& c = termini ? cases[i].enzC : cases[i].enzC_former;
+      TEST_STRING_EQUAL(hit.getMetaValue("enzN").toString(), n)
+      TEST_STRING_EQUAL(hit.getMetaValue("enzC").toString(), c)
+      TEST_STRING_EQUAL(hit.getMetaValue("enzInt").toString(), "0")
+      TEST_REAL_SIMILAR(ri.row(i)[0], n == "1" ? 1.0 : 0.0)
+      TEST_REAL_SIMILAR(ri.row(i)[1], c == "1" ? 1.0 : 0.0)
+      TEST_REAL_SIMILAR(ri.row(i)[2], 0.0)
+    }
+  }
+}
+END_SECTION
+
 END_TEST
