@@ -1,0 +1,59 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Julianus Pfeuffer, Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+#pragma once
+
+#include <OpenMS/FORMAT/InputStream.h>
+#include <OpenMS/config.h>
+
+#include <memory>
+#include <string>
+
+namespace OpenMS
+{
+  /**
+    @brief Source for reading XML files from HTTP, HTTPS and FTP URLs, with libcurl.
+
+    The resource is streamed to the parser; gzip and bzip2 compressed resources (recognized by their magic bytes) are
+    decompressed on the fly. HTTP transfer compression (Content-Encoding) is decoded by libcurl.
+
+    Redirects to HTTP, HTTPS and FTP URLs are followed. Proxies come from the usual environment variables
+    (http_proxy, https_proxy, no_proxy). file:// URLs are accepted too, but XMLFile reads local files directly.
+
+    @ingroup Format
+  */
+  class OPENMS_DLLAPI HTTPInputSource
+  {
+public:
+    /**
+      @brief A source for @p url.
+
+      @param[in] url An HTTP, HTTPS, FTP or file URL
+
+      @throws Exception::IllegalArgument if @p url is no such URL
+    */
+    explicit HTTPInputSource(const std::string& url);
+
+    /**
+      @brief Starts a transfer of the resource and returns a stream of its (decompressed) content, for the parser.
+
+      Transfer errors of the stream throw Exception::IOException; corrupt compressed data throws Exception::ParseError.
+
+      @throws Exception::FileNotFound if the server reports that the resource does not exist (e.g. HTTP 404)
+      @throws Exception::IOException if the transfer fails (e.g. the host cannot be reached)
+    */
+    std::unique_ptr<InputStream> makeStream() const;
+
+    /// Whether @p url is an HTTP, HTTPS or FTP URL (starts with "http://", "https://" or "ftp://")
+    static bool isURL(const std::string& url);
+
+private:
+    std::string url_;
+  };
+
+} // namespace OpenMS

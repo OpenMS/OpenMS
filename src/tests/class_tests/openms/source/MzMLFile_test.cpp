@@ -23,6 +23,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cstdlib>
 #include <fstream>
 
 using namespace OpenMS;
@@ -975,14 +976,25 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
-// HTTP, HTTPS and FTP URLs are not read by the libxml2 reader yet: a clear error, without network access
+// Loading from an HTTP server needs network access: set OPENMS_TEST_HTTP_URL to the URL of a copy of MzMLFile_1.mzML
+// (or of a gzip/bzip2 compressed copy), e.g. https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_1.mzML
 START_SECTION([EXTRA] load from HTTP URL)
 {
   MzMLFile file;
   PeakMap exp;
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("https://example.org/run.mzML", exp),
-    "IllegalArgument: Cannot read 'https://example.org/run.mzML': XML input from HTTP, HTTPS or FTP URLs is not supported."
-    " in: https://example.org/run.mzML")
+  // a server that cannot be reached is a load error (port 1 on the local host: no network access needed)
+  TEST_EXCEPTION(Exception::ParseError, file.load("http://127.0.0.1:1/run.mzML", exp))
+  const char* url = std::getenv("OPENMS_TEST_HTTP_URL");
+  if (url != nullptr)
+  {
+    PeakMap local, remote;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), local);
+    file.load(url, remote);
+    TEST_EQUAL(remote.size(), local.size())
+    TEST_EQUAL(remote.getChromatograms().size(), local.getChromatograms().size())
+    TEST_TRUE(remote.getSpectra() == local.getSpectra())
+    TEST_EQUAL(remote.getLoadedFilePath(), url)
+  }
 }
 END_SECTION
 

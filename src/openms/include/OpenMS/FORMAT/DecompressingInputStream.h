@@ -51,6 +51,9 @@ public:
     /// Reads up to @p max_to_read decompressed bytes into @p to_fill; 0 at the end of the data
     Size readBytes(unsigned char* to_fill, Size max_to_read) override;
 
+    /// Cancels a blocking read of the source stream
+    void cancel() override;
+
     DecompressingInputStream(const DecompressingInputStream&) = delete;
     DecompressingInputStream& operator=(const DecompressingInputStream&) = delete;
 

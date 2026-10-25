@@ -293,8 +293,9 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
-find_package(CURL REQUIRED)
+# libcurl (used for HTTP in OpenMS core, e.g. HTTPInputSource, which needs curl_multi_poll() of 7.66; also needed by
+# Apache Arrow 23+)
+find_package(CURL 7.66 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Apache Arrow and Parquet (required dependency).

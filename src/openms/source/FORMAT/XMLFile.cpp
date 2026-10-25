@@ -14,6 +14,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLAttributes.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
@@ -78,6 +79,8 @@ public:
           stop_ = true;
         }
         changed_.notify_all();
+        // a parse that ends early (e.g. EndParsingSoftly) must not wait for a stalled remote read
+        stream_.cancel();
         worker_.join();
       }
 
@@ -564,19 +567,24 @@ private:
     void XMLFile::parse_(const std::string& filename, XMLHandler* handler, bool namespace_aware)
     {
       XMLCleaner_ clean(handler);
+      // Streams (decompressing, remote) are read ahead on a helper thread
+      auto parseStream = [&](InputStream& stream)
+      {
+        OpenMPThreadReservation_ reservation;
+        PrefetchingReader_ reader(stream);
+        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
+      };
       if (S3InputSource::isS3URI(filename))
       {
         // S3 object via Arrow's S3 filesystem (throws if OpenMS has no S3 support); gzip/bzip2 is decompressed by its stream
-        std::unique_ptr<InputStream> stream = S3InputSource(filename).makeStream();
-        OpenMPThreadReservation_ reservation;
-        PrefetchingReader_ reader(*stream);
-        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
+        parseStream(*S3InputSource(filename).makeStream());
         return;
       }
-      if (StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://") || StringUtils::hasPrefix(filename, "ftp://"))
+      if (HTTPInputSource::isURL(filename))
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Cannot read '" + filename + "': XML input from HTTP, HTTPS or FTP URLs is not supported.");
+        // HTTP, HTTPS or FTP resource via libcurl; gzip/bzip2 is decompressed by its stream
+        parseStream(*HTTPInputSource(filename).makeStream());
+        return;
       }
       if (!File::exists(filename))
       {
@@ -601,9 +609,7 @@ private:
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot open compressed XML stream");
         }
-        OpenMPThreadReservation_ reservation;
-        PrefetchingReader_ reader(*stream);
-        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
+        parseStream(*stream);
       }
       else
       {

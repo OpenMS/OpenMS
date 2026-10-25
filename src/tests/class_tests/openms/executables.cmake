@@ -222,6 +222,7 @@ set(format_executables_list
   GNPSQuantificationFile_test
   GzipIfstream_test
   GzipInputStream_test
+  HTTPInputSource_test
   IBSpectraFile_test
   IdXMLFile_test
   IndentedStream_test

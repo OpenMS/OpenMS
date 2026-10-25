@@ -18,6 +18,9 @@ namespace OpenMS
     virtual ~InputStream() = default;
     virtual UInt64 curPos() const = 0;
     virtual Size readBytes(unsigned char* to_fill, Size max_to_read) = 0;
+    /// Asks a readBytes() that blocks on another thread (e.g. on the network) to return soon; the stream is not read
+    /// afterwards. Thread-safe. Streams that never block for long need not implement it.
+    virtual void cancel() {}
     virtual const char16_t* getContentType() const { return nullptr; }
   };
 }
