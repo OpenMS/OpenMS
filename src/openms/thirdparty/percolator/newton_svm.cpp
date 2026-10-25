@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstring>
 #include <limits>
+#include <memory>
+#include <mutex>
 #include <vector>
 
 #include <Eigen/Dense>
@@ -201,7 +203,86 @@ double lineSearch(std::vector<Breakpoint>& bp, double L, double R, std::size_t& 
   return R > 0.0 ? std::max(0.0, -L / R) : 1.0;
 }
 
+// The per-row buffers of a solve (margins X w and X wbar, breakpoints): grow-only and not initialised (every
+// value is written before it is read), taken from a pool and given back, so that the solves of a training do not
+// allocate and page-fault them again (about 40 bytes per row). Buffers above kNewtonKeepBytes are freed at the end
+// of their solve unless a TronWorkspaceHold exists (then when the last hold ends: newtonReleaseWorkspaces).
+struct NewtonWorkspace {
+  std::unique_ptr<double[]> o, obar;
+  std::unique_ptr<Breakpoint[]> bp;
+  std::size_t cap = 0;
+  void reserve(std::size_t m) {
+    if (m <= cap) return;
+    const std::size_t c = std::max(m, cap + cap / 2);
+    o.reset();
+    obar.reset();
+    bp.reset();
+    cap = 0;
+    o.reset(new double[c]);
+    obar.reset(new double[c]);
+    bp.reset(new Breakpoint[c]);
+    cap = c;
+  }
+  std::size_t bytes() const { return cap * (2 * sizeof(double) + sizeof(Breakpoint)); }
+};
+constexpr std::size_t kNewtonKeepBytes = std::size_t(64) << 20;
+
+struct NewtonWorkspacePool {
+  std::mutex mutex;
+  std::vector<std::unique_ptr<NewtonWorkspace> > idle;
+};
+// never destroyed: a solve may end during the destruction of statics
+NewtonWorkspacePool& newtonWorkspacePool() {
+  static NewtonWorkspacePool* pool = new NewtonWorkspacePool();
+  return *pool;
+}
+
+// a workspace with room for m rows (the idle one with the most room), given back at the end
+class NewtonWorkspaceLease {
+ public:
+  explicit NewtonWorkspaceLease(std::size_t m) {
+    NewtonWorkspacePool& pool = newtonWorkspacePool();
+    {
+      std::lock_guard<std::mutex> lock(pool.mutex);
+      if (!pool.idle.empty()) {
+        std::size_t best = pool.idle.size() - 1;
+        for (std::size_t k = 0; k < pool.idle.size(); ++k) {
+          if (pool.idle[k]->cap > pool.idle[best]->cap) best = k;
+        }
+        std::swap(pool.idle[best], pool.idle.back());
+        ws_ = std::move(pool.idle.back());
+        pool.idle.pop_back();
+      }
+    }
+    if (!ws_) ws_ = std::make_unique<NewtonWorkspace>();
+    ws_->reserve(m);
+  }
+  ~NewtonWorkspaceLease() {
+    if (!ws_ || (ws_->bytes() > kNewtonKeepBytes && !tronWorkspacesHeld())) return;  // freed
+    NewtonWorkspacePool& pool = newtonWorkspacePool();
+    std::lock_guard<std::mutex> lock(pool.mutex);
+    try {
+      pool.idle.push_back(std::move(ws_));
+    } catch (...) {  // (freed)
+    }
+  }
+  NewtonWorkspaceLease(const NewtonWorkspaceLease&) = delete;
+  NewtonWorkspaceLease& operator=(const NewtonWorkspaceLease&) = delete;
+  NewtonWorkspace* operator->() { return ws_.get(); }
+
+ private:
+  std::unique_ptr<NewtonWorkspace> ws_;
+};
+
 }  // namespace
+
+void newtonReleaseWorkspaces() {
+  NewtonWorkspacePool& pool = newtonWorkspacePool();
+  std::lock_guard<std::mutex> lock(pool.mutex);
+  pool.idle.erase(std::remove_if(pool.idle.begin(), pool.idle.end(),
+                                 [](const std::unique_ptr<NewtonWorkspace>& ws) { return ws->bytes() > kNewtonKeepBytes; }),
+                  pool.idle.end());
+}
 
 int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, double eps,
               double* w, double* outputs, NewtonStats* stats) {
@@ -212,14 +293,17 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
   const int nb = p.numBlocks();
   const std::size_t nn = static_cast<std::size_t>(n) * n;
 
-  std::vector<double> o(m), obar(m);              // X w and X wbar
+  NewtonWorkspaceLease ws(static_cast<std::size_t>(m));
+  double* const o = ws->o.get();        // X w
+  double* const obar = ws->obar.get();  // X wbar
   std::vector<double> partH(nb * nn), partB(static_cast<std::size_t>(nb) * n);
   std::vector<double> partL(nb), partR(nb);
   std::vector<long long> partActive(nb);
   std::vector<int> partCount(nb);
   std::vector<BucketSum> partBuckets(static_cast<std::size_t>(nb) * kBuckets);
   std::vector<std::size_t> partOffset(nb);
-  std::vector<Breakpoint> bpBlocks(m), bp;
+  Breakpoint* const bpBlocks = ws->bp.get();  // the breakpoints of each block, from its first row on
+  std::vector<Breakpoint> bp;
 
   Vector wv = Eigen::Map<const Vector>(w, n);
   const Vector wStart = wv;
@@ -227,12 +311,12 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
   double gnorm0 = 0.0;
   const bool cold = wv.isZero(0.0);
   if (cold) {
-    std::fill(o.begin(), o.end(), 0.0);  // all rows active: the first Hessian pass gives g(0) = -b
+    std::fill(o, o + m, 0.0);  // all rows active: the first Hessian pass gives g(0) = -b
   } else {
     // X w, and g(0) = -sum_i 2 C_i t_i x_i
     forEachBlock(nb, [&](int b) {
       const int i0 = p.blockBegin(b), i1 = p.blockEnd(b);
-      dots(p, i0, i1, w, o.data());
+      dots(p, i0, i1, w, o);
       double* pb = partB.data() + static_cast<std::size_t>(b) * n;
       std::fill(pb, pb + n, 0.0);
       double x[kNewtonMaxColumns];
@@ -321,9 +405,9 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
     // X wbar, and the breakpoints of phi(delta) = F(w + delta (wbar - w))
     forEachBlock(nb, [&](int b) {
       const int i0 = p.blockBegin(b), i1 = p.blockEnd(b);
-      dots(p, i0, i1, wbar.data(), obar.data());
+      dots(p, i0, i1, wbar.data(), obar);
       double sL = 0.0, sR = 0.0;
-      Breakpoint* q = bpBlocks.data() + i0;
+      Breakpoint* q = bpBlocks + i0;
       BucketSum* buckets = partBuckets.data() + static_cast<std::size_t>(b) * kBuckets;
       std::fill(buckets, buckets + kBuckets, BucketSum());
       int count = 0;
@@ -388,7 +472,7 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
     }
     bp.resize(numRoot);
     forEachBlock(nb, [&](int b) {
-      const Breakpoint* q = bpBlocks.data() + p.blockBegin(b);
+      const Breakpoint* q = bpBlocks + p.blockBegin(b);
       const Breakpoint* qEnd = q + partCount[b];
       Breakpoint* out = bp.data() + partOffset[b];
       for (; q != qEnd; ++q) {
@@ -414,7 +498,7 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
     return -1;
   }
   Eigen::Map<Vector>(w, n) = wv;
-  if (outputs) std::copy(o.begin(), o.end(), outputs);
+  if (outputs) std::copy(o, o + m, outputs);
   if (stats) *stats = st;
   return ret;
 }

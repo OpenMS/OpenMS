@@ -116,6 +116,9 @@ class TronPairGroup {
 // OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
 // of any size for the next solves (otherwise those above 64 MB are freed after the solve); the
 // last one to end frees them. CrossValidation holds one during its training.
+// OpenMS: whether a TronWorkspaceHold exists (the Newton solver keeps its buffers then as well)
+bool tronWorkspacesHeld();
+
 class TronWorkspaceHold {
  public:
   TronWorkspaceHold();

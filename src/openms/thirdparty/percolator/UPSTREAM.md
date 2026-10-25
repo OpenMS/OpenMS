@@ -80,7 +80,10 @@ side (rank-4 updates), a Cholesky factorization gives the Newton point, one pass
 all rows gives its margins, and the exact line search on the breakpoints of the
 piecewise quadratic objective (selection by partitioning) gives the step; the margins
 are updated without another pass. It stops on TRON's criterion
-(`||g(w)|| <= eps ||g(0)||`) and takes at most 128 columns. `ldaSvm` is Fisher's
+(`||g(w)|| <= eps ||g(0)||`) and takes at most 128 columns. The per-row buffers of a Newton solve (the margins X w and X wbar, the
+breakpoints; about 40 bytes per row) come from a pool and are not initialised (every value is written
+before it is read); buffers above 64 MB are kept only while a `TronWorkspaceHold` exists and freed when the
+last one ends (`newtonReleaseWorkspaces`). `ldaSvm` is Fisher's
 discriminant (pooled within-class scatter, small ridge) from one pass, scaled and
 shifted along its direction as in the paper's beta-seeding (eq. 8/9). Rows are cut
 into fixed blocks of 8192 whose partial sums are added in block order, so the results

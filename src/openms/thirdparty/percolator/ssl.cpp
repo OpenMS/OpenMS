@@ -18,6 +18,7 @@
 
 #include <Eigen/Dense>
 
+#include "newton_svm.h"
 #include "tron.h"
 
 // OpenMS: the fast function object (FastTronFunction, tron_kernels.h) reproduces the bits of
@@ -725,25 +726,52 @@ bool kernelsVerified(int kernels) {
 
 }  // namespace
 
+#ifndef PERCOLATOR_TRON_KERNELS
+// the holds when TRON has no workspace pool (the Newton solver's pool still follows them)
+static std::atomic<int>& tronHoldsWithoutKernels() {
+  static std::atomic<int> holds{0};
+  return holds;
+}
+#endif
+
 TronWorkspaceHold::TronWorkspaceHold() {
 #ifdef PERCOLATOR_TRON_KERNELS
   TronWorkspacePool& pool = tronWorkspacePool();
   std::lock_guard<std::mutex> lock(pool.mutex);
   ++pool.holds;
+#else
+  ++tronHoldsWithoutKernels();
 #endif
 }
 
 TronWorkspaceHold::~TronWorkspaceHold() {
+  bool last = false;
+#ifdef PERCOLATOR_TRON_KERNELS
+  {
+    TronWorkspacePool& pool = tronWorkspacePool();
+    std::lock_guard<std::mutex> lock(pool.mutex);
+    last = --pool.holds == 0;
+    if (last) {  // the large workspaces are freed
+      pool.idle.erase(std::remove_if(pool.idle.begin(), pool.idle.end(),
+                                     [](const std::unique_ptr<TronWorkspace>& ws) {
+                                       return ws->bytes() > kTronWorkspaceKeepBytes;
+                                     }),
+                      pool.idle.end());
+    }
+  }
+#else
+  last = --tronHoldsWithoutKernels() == 0;
+#endif
+  if (last) newtonReleaseWorkspaces();
+}
+
+bool tronWorkspacesHeld() {
 #ifdef PERCOLATOR_TRON_KERNELS
   TronWorkspacePool& pool = tronWorkspacePool();
   std::lock_guard<std::mutex> lock(pool.mutex);
-  if (--pool.holds == 0) {  // the large workspaces are freed
-    pool.idle.erase(std::remove_if(pool.idle.begin(), pool.idle.end(),
-                                   [](const std::unique_ptr<TronWorkspace>& ws) {
-                                     return ws->bytes() > kTronWorkspaceKeepBytes;
-                                   }),
-                    pool.idle.end());
-  }
+  return pool.holds > 0;
+#else
+  return tronHoldsWithoutKernels() > 0;
 #endif
 }
 
