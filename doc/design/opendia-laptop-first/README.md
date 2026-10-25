@@ -73,6 +73,15 @@ scientific freeze remains a separate WP-07 milestone. Detailed observations and
 optional-platform/runtime limits are recorded in
 [WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).
 
+## Raw-point layout experiment
+
+The [measured AoS/SoA comparison](experiments/layout/RESULTS.md) completed 105
+randomized fresh-process runs against real loaders and extraction interfaces.
+Metadata factoring reduced retained layout allocation by 70-92% in the tested large
+cases. SoA improved dense streaming, but IM extraction and sparse/full-row results
+were mixed. This is planning evidence, not a production-layout change, a whole-engine
+speedup claim or a new WP-01 completion gate.
+
 ## Current verification status
 
 Full fresh workstation A/B output comparisons passed at selected clean merged source

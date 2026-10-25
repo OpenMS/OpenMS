@@ -112,4 +112,7 @@ Raw stdout/stderr, commands, source/fixture/binary hashes, ordering and CPU sett
 in the selected evidence directory. `summarize.py` rejects incomplete/unbalanced cases,
 different geometry/workloads or cross-layout/trial checksum disagreements.
 
-Observed results will be recorded after the local runs.
+Observed results: [measured tradeoffs and recommendation](RESULTS.md), with
+[all 35 summarized cases and individual samples](results-20261025.json).
+The 105-process comparison favors metadata factoring, not a universal SoA migration.
+No production layout was changed.
