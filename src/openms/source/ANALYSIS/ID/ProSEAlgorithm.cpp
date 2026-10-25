@@ -110,6 +110,8 @@ namespace OpenMS
     // arena's lock. The peak lists were made by the static loop of preprocessSpectra_ (the same parts of the same
     // team), so each thread frees into its own arena; in dynamic chunks most frees waited for the lock of another
     // thread's arena (futex system calls: HeLa 25pc_50_25 at 64 threads 0.44 s for the query spectra instead of 0.06).
+    // (Only where the memory goes back depends on this: with another team size or a container changed in between,
+    // some frees cross arenas, with the same result.)
     template <typename Container>
     void freeInParallel(Container& container)
     {
@@ -1473,7 +1475,7 @@ namespace OpenMS
 
   namespace
   {
-    /// Scratch buffers of alignAbsoluteTolerance_(), reused across the hits of one spectrum.
+    /// Scratch buffers of alignAbsoluteTolerance_(), reused across the hits and spectra of a thread (rewritten by every call).
     struct AlignmentScratch_
     {
       std::vector<double> prev;         ///< scores of the computed cells of row i - 1
