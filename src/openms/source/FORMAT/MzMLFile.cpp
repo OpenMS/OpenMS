@@ -116,15 +116,14 @@ namespace OpenMS
     {
       parse_(filename, handler);
     }
+    catch (Exception::ParseError&)
+    {
+      throw; // names the file and the problem (e.g. XMLHandler::fatalError())
+    }
     catch (Exception::BaseException& e)
     {
-      std::string expr;
-      expr += e.getFile();
-      expr += "@";
-      expr += e.getLine();
-      expr += "-";
-      expr += e.getFunction();
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr,std::string("- due to that error of type ") + e.getName());
+      // the problem and the file, not the source location of the exception (debug output, see TOPPBase)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, std::string(e.getName()) + ": " + e.what());
     }
   }
 

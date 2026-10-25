@@ -78,6 +78,14 @@ foreach(_topp_tool ${TOPP_TOOLS})
   endif()
 endforeach()
 
+# FragmentIndex_test: its main() holds about a hundred FragmentIndex objects of 7 KB each, one or more per section.
+# MSVC does not share the stack slots of the sections, so the frame alone comes close to the 1 MB default stack of
+# Windows (938 KB without slot reuse at the time of writing), and the singletons initialised in the first section
+# overflowed it. Give the test the 8 MB of a Linux main thread.
+if (MSVC)
+  target_link_options(FragmentIndex_test PRIVATE "/STACK:8388608")
+endif()
+
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 

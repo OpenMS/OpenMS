@@ -90,6 +90,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::string input_file;                  ///< spectrum file this run searched (basename or path)
       Size ms2_spectra = 0;                    ///< number of MS2 spectra in the input
+      Size profile_spectra = 0;                ///< MS2 spectra recorded as profile (not centroided) spectra
+      Size charge_out_of_range_spectra = 0;    ///< MS2 spectra not searched: their charge is outside precursor:min/max_charge
       Size matched_spectra = 0;                ///< spectra with >=1 retained PSM in the final IDs (after FDR, if applied)
       Size target_psms = 0;                    ///< target PSMs in the final IDs (after FDR, if applied)
       Size decoy_psms = 0;                     ///< decoy PSMs in the final IDs (after FDR, if applied)
@@ -408,7 +410,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @brief Removes the proteins that no PSM references, and them from the protein groups.
      *
      * Keeps the protein hits of each run of @p protein_ids whose accession a peptide evidence of a hit of a PSM of the
-     * run (by identifier) in @p peptide_ids or @p also_referencing names (IDFilter::removeUnreferencedProteins()), and
+     * run (by identifier) in @p peptide_ids or @p also_referencing names (IDFilter::removeUnreferencedProteins() for one list), and
      * updates the indistinguishable groups and the protein groups of each run (IDFilter::updateProteinGroups()). Every search does this after its PSM filters (with the PSMs that only the
      * protein inference uses as @p also_referencing), and the protein FDR after its own.
      */
@@ -458,8 +460,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * "Percolator:*" search parameter meta values PercolatorAdapter writes).
      *
      * The searches of this class call it for every run when the parameter 'rescore' is on (the
-     * default), in place of their PSM-level FDR, which then follows on the rescored PSMs
-     * (applyDeferredPsmFDR()). Call it directly only to rescore PSMs of a search with 'rescore'
+     * default), before their PSM-level FDR, which then filters on the rescored PSMs' q-values.
+     * Call it directly only to rescore PSMs of a search with 'rescore'
      * off, whose FDR filtering must then be off too (FDR:PSM and FDR:protein 0), so that
      * Percolator gets all target and decoy PSMs.
      *
@@ -482,17 +484,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                      int threads);
 
     /**
-     * @brief Apply the PSM-level FDR that a search with Percolator rescoring deferred.
+     * @brief Apply the PSM-level FDR to PSMs that were rescored separately, e.g. with rescoreWithPercolator() on the
+     * result of a search with 'rescore' and the FDR filters off.
      *
      * For PSMs that rescoreWithPercolator() rescored (@p rescored), the scores are Percolator
      * q-values already. Otherwise they get q-values by annotatePsmQValues() first (FDR:PSM_groups
-     * of this instance), provided the run has decoy proteins (protein hits with 'target_decoy'
-     * "decoy"). The PSMs are then filtered at @p psm_fdr (IDFilter::filterHitsByScore); target and
-     * decoy PSMs are filtered alike, decoys are not removed (that is the protein FDR's
-     * finalization, see applyCompleteSetProteinFDR()).
+     * of this instance; without a decoy PSM the conservative 1/T), provided the run has decoy proteins
+     * (protein hits with 'target_decoy' "decoy"). The PSMs are then filtered at @p psm_fdr
+     * (IDFilter::filterHitsByScore); target and decoy PSMs are filtered alike, decoys are not removed
+     * (that is the protein FDR's finalization, see applyCompleteSetProteinFDR()).
      *
-     * The searches of this class apply it after rescoreWithPercolator() when the parameter
-     * 'rescore' is on.
+     * The searches of this class do not call it: their own PSM-level FDR (after the rescoring with 'rescore') takes
+     * the decoys of the searched database, so that a run without a decoy PSM is filtered too, with q-values 1/T.
+     * Here the run's protein hits are all that tells whether the search had decoys.
      *
      * @param[in] protein_ids The runs of the search; the first one tells whether there are decoys.
      * @param[in,out] peptide_ids PSMs of the run, rescored by rescoreWithPercolator() or with their
@@ -1379,7 +1383,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peptide_missed_cleavages_;
     EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
-    std::string peptide_motif_;
 
     Size report_top_hits_;
     /// report:isotope_error_convention: the PSMs report isotope_error as observed minus theoretical (true) or with the
@@ -1563,6 +1566,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static bool accessionHasDecoyMarker_(const std::string& accession,
                                          const std::string& marker, bool is_prefix);
 
+    /// Helper of removeUnreportedProteins() with PSMs besides the reported ones: keeps the protein hits of each run of
+    /// @p protein_ids that a PSM of the run (by identifier) in @p peptide_ids or @p also_referencing references, as
+    /// IDFilter::removeUnreferencedProteins() does for one list (the protein groups are not updated)
+    static void removeProteinsReferencedByNeither_(std::vector<ProteinIdentification>& protein_ids,
+                                                   const PeptideIdentificationList& peptide_ids,
+                                                   const PeptideIdentificationList& also_referencing);
+
     /// ProSE's own PSM score (HyperScore, in log space): the main score of its PSMs, and after Percolator rescoring or
     /// FDR:PSM a meta value of this name (or with the suffix "_score", as FalseDiscoveryRate keeps it)
     static constexpr const char* SEARCH_ENGINE_SCORE = "ln(hyperscore)";
@@ -1601,9 +1611,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static double maxRetainedScore_(const PeptideIdentificationList& peptide_ids);
 
     /// Helper: the PSM-level FDR of one search run, the last step of every search path. With
-    /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
-    /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
-    /// scores (if @p has_decoys). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
+    /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()). Then applies
+    /// FDR:PSM to Percolator's q-values, or to target-decoy q-values of the search engine scores
+    /// (annotatePsmQValues(); if @p has_decoys, also without a decoy PSM), and removes the proteins
+    /// that no remaining PSM references (removeUnreportedProteins()). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
     /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()); @p inference_only_psms
     /// receives the PSMs between FDR:PSM and FDR:protein_inference_PSM (with FDR:protein only, see
     /// SearchResult::inference_only_peptide_ids; cleared otherwise).
@@ -1629,6 +1640,26 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                const std::vector<ProteinIdentification>& protein_ids,
                                const PeptideIdentificationList& peptide_ids,
                                RunStatistics& stats) const;
+
+    /// The MS2 spectra of a spectrum file, those recorded as profile spectra and those that are not searched
+    /// because their precursor charge lies outside of precursor:min_charge..max_charge (FragmentIndex::precursorCharges())
+    struct SpectraCounts_
+    {
+      Size ms2 = 0;
+      Size profile = 0;
+      Size charge_out_of_range = 0;
+    };
+
+    /// Helper: the SpectraCounts_ of @p spectra
+    SpectraCounts_ countSpectra_(const PeakMap& spectra) const;
+
+    /// Helper: preprocessSpectra_() with the settings of the search, after warning about @p spectra (of @p input;
+    /// empty: not named) that cannot be searched as intended: no MS2 spectra (e.g. an MS1-only file), MS2 spectra
+    /// recorded as profile spectra, MS2 spectra whose precursor charge lies outside of the charge range (not searched).
+    /// @p ion_evidence is filled with annotate:self_trained_ion_priors only.
+    void preprocessSearchedSpectra_(PeakMap& spectra, const std::string& input,
+                                    FragmentIonLikelihoodModel::PeakLists& ion_evidence,
+                                    PeakMap* evidence_spectra, PeakMap* query_spectra) const;
 
   public:
     /// Recompute result-level statistics (matched count, unique peptide/protein

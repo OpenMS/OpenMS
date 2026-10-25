@@ -6695,6 +6695,17 @@ START_SECTION((static void removeUnreportedProteins(std::vector<ProteinIdentific
   ProSEAlgorithm::removeUnreportedProteins(proteins, run.reported);
   TEST_STRING_EQUAL(accessions_of(proteins[0]), "T1,T2,T3")
   TEST_TRUE(proteins[0].getIndistinguishableProteins().empty())
+
+  // The runs are matched by identifier, in both lists: PSMs of another run keep no protein of this one.
+  run = make_inference_run(true);
+  for (PeptideIdentification& id : run.inference_only) { id.setIdentifier("another run"); }
+  proteins = run.proteins;
+  ProSEAlgorithm::removeUnreportedProteins(proteins, run.reported, run.inference_only);
+  TEST_STRING_EQUAL(accessions_of(proteins[0]), "T1,T2,T3")
+  for (PeptideIdentification& id : run.reported) { id.setIdentifier("another run"); }
+  proteins = run.proteins;
+  ProSEAlgorithm::removeUnreportedProteins(proteins, run.reported, run.inference_only);
+  TEST_TRUE(proteins[0].getHits().empty())
 }
 END_SECTION
 
