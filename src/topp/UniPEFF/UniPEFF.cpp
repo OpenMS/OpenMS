@@ -111,8 +111,9 @@ if the isoform has one on that residue). Other annotations UniProt makes on the
 isoform on the same residues are written side by side with the mapped ones, as in
 canonical entries (e.g. alternative modifications of one residue, or different
 variants), unless they contradict each other: a processed region of the same type
-overlapping it, a disulfide bond sharing a cysteine, or cross-links sharing a
-residue if one of them links two residues of the protein. Then the isoform's own annotation wins,
+overlapping it, a disulfide bond sharing a cysteine, or a cross-link sharing a
+residue with a disulfide bond or cross-link if one of the two links two residues of
+the protein. Then the isoform's own annotation wins,
 the mapped one is not written, and a warning names the entry. Disable isoform
 expansion with @c -omit_isoforms.
 

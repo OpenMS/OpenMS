@@ -169,8 +169,9 @@ namespace OpenMS::UniPEFFEntries
   /// replaced region, or regions overlapping one, are not mapped (processed regions are clipped
   /// to the residues they keep), and a copy of a feature UniProt annotates on that isoform itself
   /// (for a glycosylation: any on that residue) is not added again. UniProt's own isoform annotation
-  /// also wins over a mapped one it contradicts (same-type processed regions that overlap, a disulfide
-  /// bond sharing a cysteine, cross-links sharing a residue if one links two residues): the mapped one is
+  /// also wins over a mapped one it contradicts (same-type processed regions that overlap, disulfide bonds
+  /// sharing a cysteine, a cross-link sharing a residue with a disulfide bond or cross-link if one of the
+  /// two links two residues): the mapped one is
   /// not added and a warning is logged. Then, per entry, merge halfcys, drop disulfide pairs with out-of-range
   /// endpoints and stamp annotation IDs (global in Option B, selective disulfide labels otherwise).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,

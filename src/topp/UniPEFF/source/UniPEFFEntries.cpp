@@ -280,28 +280,36 @@ namespace
     return {};
   }
 
+  /// True for the annotations that link residues: disulfide bonds and cross-links.
+  bool isBond(const UniProtFeature& f)
+  {
+    return f.type == "disulfide bond" || f.type == "cross-link";
+  }
+
   /// True if UniProt's own annotation @p own of an isoform contradicts the mapped canonical feature
   /// @p mapped, so that the isoform's annotation wins (-map_canonical_features): a processed region of
-  /// the same type overlapping it, a disulfide bond sharing a cysteine with it (a cysteine forms one
-  /// disulfide bond), or a cross-link sharing a residue with it if one of the two links two residues of
-  /// the protein (that residue's side chain is taken by the intrachain bond).
+  /// the same type overlapping it, or a bond sharing a residue with it: two disulfide bonds sharing a
+  /// cysteine, and otherwise a disulfide bond or cross-link sharing a residue with a cross-link if one of
+  /// the two links two residues of the protein (e.g. a disulfide bond on the cysteine of an intrachain
+  /// thioether cross-link). A residue takes part in one such bond at a time; a canonical entry may list
+  /// alternatives (e.g. MASP1_MOUSE C441), but the bond UniProt gives for the isoform is the one it has.
   /// Other annotations on the same residues are compatible and written side by side, as in canonical
   /// entries: alternative modifications of one residue (e.g. SUMO1 and SUMO2 cross-links of a lysine,
   /// each given as a single position) and different variants of one residue.
   bool conflictsWith(const UniProtFeature& mapped, const UniProtFeature& own)
   {
-    if (mapped.type != own.type) return false;
-    if (isProcessingFeature(mapped.type))
+    if (isBond(mapped) && isBond(own))
     {
-      const auto [mb, me] = residueSpan(mapped);
-      const auto [ob, oe] = residueSpan(own);
-      return ob != 0 && oe != 0 && mb <= oe && ob <= me;
+      const bool both_disulfide = mapped.type == "disulfide bond" && own.type == "disulfide bond";
+      if (!both_disulfide && !mapped.has_range && !own.has_range) return false;  // alternative interchain links
+      const std::vector<int> a = linkedResidues(mapped);
+      const std::vector<int> b = linkedResidues(own);
+      return std::any_of(a.begin(), a.end(), [&b](int r) { return r != 0 && std::find(b.begin(), b.end(), r) != b.end(); });
     }
-    const bool bond = mapped.type == "disulfide bond" || (mapped.type == "cross-link" && (mapped.has_range || own.has_range));
-    if (!bond) return false;
-    const std::vector<int> a = linkedResidues(mapped);
-    const std::vector<int> b = linkedResidues(own);
-    return std::any_of(a.begin(), a.end(), [&b](int r) { return r != 0 && std::find(b.begin(), b.end(), r) != b.end(); });
+    if (mapped.type != own.type || !isProcessingFeature(mapped.type)) return false;
+    const auto [mb, me] = residueSpan(mapped);
+    const auto [ob, oe] = residueSpan(own);
+    return ob != 0 && oe != 0 && mb <= oe && ob <= me;
   }
 
   /// "12" for a position, "12-30" for a range (the coordinates @p f carries), '?' for an unknown one.
