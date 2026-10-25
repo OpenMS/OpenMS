@@ -5186,6 +5186,7 @@ namespace OpenMS
           run_sp.setMetaValue("RESET:decoys", "two (second set: " + pp.getValue("reset:second_decoy_prefix").toString() + ")");
           run_sp.setMetaValue("RESET:decoy_stems_second_set", static_cast<int>(rr->decoy_stems_second_set));
           run_sp.setMetaValue("RESET:decoy_stems", static_cast<int>(rr->decoy_stems));
+          run_sp.setMetaValue("RESET:decoy_stems_both_sets", static_cast<int>(rr->decoy_stems_both_sets));
         }
       }
       if (reuse != nullptr)

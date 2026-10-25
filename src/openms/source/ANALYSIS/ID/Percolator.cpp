@@ -1287,6 +1287,11 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         std::string("Percolator peptide-level estimation failed: ") + e.what(), "");
     }
+    catch (...)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Percolator peptide-level estimation failed.", "");
+    }
   }
   return out;
 }
@@ -1300,6 +1305,7 @@ namespace
   {
     static const std::vector<std::string> blocklist {
       "percolator_score", "percolator_q_value", "percolator_pep",
+      "percolator_peptide_q_value", "percolator_peptide_pep",
       "q-value", "q-value_score", "score", "RT", "MZ",
       "target_decoy", "isDecoy"
     };
@@ -2204,12 +2210,14 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
       in.search_scores[r] = pid.isHigherScoreBetter() ? hit.getScore() : -hit.getScore();
       if (two_decoys)
       {
-        // a decoy of the second set: all its proteins are of the second decoy database
+        // the decoy set(s) of a decoy hit: 2 if all its proteins are of the second decoy database, 3 if it has proteins of
+        // both (a sequence shared by the sets), else 1 (also without protein evidence)
         const std::vector<PeptideEvidence>& evidences = hit.getPeptideEvidences();
         const std::string& prefix = impl_->reset_second_decoy_prefix;
+        const auto second = std::count_if(evidences.begin(), evidences.end(), [&](const PeptideEvidence& ev)
+                                          { return ev.getProteinAccession().compare(0, prefix.size(), prefix) == 0; });
         in.decoy_set[r] = !in.is_decoy[r] ? 0
-          : (!evidences.empty() && std::all_of(evidences.begin(), evidences.end(), [&](const PeptideEvidence& ev)
-             { return ev.getProteinAccession().compare(0, prefix.size(), prefix) == 0; }) ? 2 : 1);
+          : second == 0 ? 1 : (static_cast<size_t>(second) == evidences.size() ? 2 : 3);
       }
     }
     catch (...)
@@ -2286,15 +2294,24 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
                   << ListUtils::concatenate(rr->used_features, ",") << std::endl;
   if (two_decoys)
   {
-    // under the null both decoy sets win equally often
-    const double share = static_cast<double>(rr->decoy_stems_second_set) / static_cast<double>(std::max<Size>(rr->decoy_stems, 1));
-    OPENMS_LOG_INFO << "RESET two-decoy mode: " << rr->decoy_stems_second_set << " of " << rr->decoy_stems
-                    << " decoy stems from the second decoy set (" << impl_->reset_second_decoy_prefix << "), share " << share
-                    << "." << std::endl;
-    if (rr->decoy_stems >= 1000 && std::fabs(share - 0.5) > 0.05)
+    // under the null both decoy sets win equally often (a diagnostic only: equal shares do not prove exchangeability)
+    const Size one_set = rr->decoy_stems - rr->decoy_stems_both_sets;
+    const double share = static_cast<double>(rr->decoy_stems_second_set) / static_cast<double>(std::max<Size>(one_set, 1));
+    OPENMS_LOG_INFO << "RESET two-decoy mode: " << rr->decoy_stems_second_set << " of " << one_set
+                    << " decoy stems of one set from the second decoy set (" << impl_->reset_second_decoy_prefix << "), share "
+                    << share << "; " << rr->decoy_stems_both_sets << " decoy stems of both sets." << std::endl;
+    // beyond 3 binomial standard deviations plus 2 points
+    if (one_set >= 100 && std::fabs(share - 0.5) > 0.02 + 1.5 / std::sqrt(static_cast<double>(one_set)))
     {
       OPENMS_LOG_WARN << "RESET two-decoy mode: the two decoy sets do not win equally often (share of the second "
                       << share << "); the two-decoy FDR estimate assumes decoy sets of the same construction." << std::endl;
+    }
+    if (rr->decoy_stems_both_sets * 100 > rr->decoy_stems)
+    {
+      OPENMS_LOG_WARN << "RESET two-decoy mode: " << rr->decoy_stems_both_sets << " of " << rr->decoy_stems
+                      << " decoy stems are sequences of both decoy sets; such a hypothesis has one decoy, not two, and the "
+                         "two-decoy estimate is anti-conservative for them. Build the second set without shared sequences."
+                      << std::endl;
     }
   }
   if (opt.audit)

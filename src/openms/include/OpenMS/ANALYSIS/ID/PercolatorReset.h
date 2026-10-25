@@ -53,7 +53,9 @@ namespace OpenMS
     target): the positive set and the cross-validation use SeqStep+ at c = 2/3 (factor 2 instead of 3), and the final
     ranking FDP = (D_est + 1) / max(T, 1) (c = 1/2, factor 1 instead of 2). Input::decoy_set tells the two sets apart;
     it only checks that both are present (Output::decoy_stems_second_set: a set that never wins means the database had
-    no second decoy set, and the factors would be wrong).
+    no second decoy set, and the factors would be wrong) and counts shared decoy sequences. Equal shares do not prove
+    exchangeability: the two sets must be built so that a null hypothesis really has two independent decoys of the
+    target's distribution (e.g. no sequences shared between the sets, the same multiplicity of sequences in both).
 
     Feature-symmetry audit (Options::audit, option 2 of the RESET handoff): before training, the training decoys are
     compared with an unlabelled null proxy, the pseudo-targets below the median search engine score of the training
@@ -80,8 +82,9 @@ namespace OpenMS
       std::vector<double> search_scores;         ///< per row: search engine score, higher = better
       std::vector<Size> spectrum;                ///< per row: spectrum (competition unit) of the PSM
       std::vector<std::string> stems;            ///< per row: unmodified peptide sequence
-      /// per row (Options::decoy_databases = 2 only, else may be empty): 1 or 2 = the decoy database of a decoy row,
-      /// 0 for targets
+      /// per row (Options::decoy_databases = 2 only, else may be empty): 1 or 2 = the decoy database of a decoy row, 3 =
+      /// a decoy sequence of both databases (shared; then that hypothesis has fewer than two distinct decoys), 0 for
+      /// targets
       std::vector<char> decoy_set;
 
       /// Number of rows: of @ref features, or else of the dense @ref feature_matrix
@@ -187,8 +190,9 @@ namespace OpenMS
       std::vector<std::string> rounds;
       Size target_stems = 0, decoy_stems = 0, training_decoys = 0, estimating_decoys = 0;
       /// two-decoy mode: considered decoy stems whose representative is a decoy of the second set (about half of
-      /// decoy_stems if the two sets are exchangeable)
-      Size decoy_stems_second_set = 0;
+      /// decoy_stems if the two sets are exchangeable), and those whose representative is in both sets (Input::decoy_set
+      /// 3; should be rare: a decoy sequence shared by the sets is one decoy, not two, for its spectra)
+      Size decoy_stems_second_set = 0, decoy_stems_both_sets = 0;
       Size discoveries_1pct = 0;  ///< target stems with q <= 0.01
       std::vector<std::string> used_features; ///< features the learner used (non-constant, not zeroed)
       std::vector<double> weights;            ///< linear learner: raw-feature weights of the final model, bias last

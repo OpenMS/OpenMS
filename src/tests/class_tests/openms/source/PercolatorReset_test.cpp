@@ -515,6 +515,30 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
     PercolatorReset::Input one_set = in;
     for (char& d : one_set.decoy_set) d = d == 2 ? 1 : d;
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(one_set, o))
+    // review r1 (Codex MAJOR 1): the two "sets" offer the same decoy (identical sequence, features and score), i.e. one
+    // decoy per hypothesis; marked as shared (decoy_set 3, as Percolator::rescorePSMs does for a hit with proteins of
+    // both sets): no stem of the second set alone -> refused
+    PercolatorReset::Input same = in;
+    for (size_t i = 0; i + 2 < same.is_decoy.size(); i += 3)
+    {
+      same.features[i + 2] = same.features[i + 1];
+      same.search_scores[i + 2] = same.search_scores[i + 1];
+      same.stems[i + 2] = same.stems[i + 1];
+      same.decoy_set[i + 1] = same.decoy_set[i + 2] = 3;
+    }
+    TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(same, o))
+    // partly shared (every 10th hypothesis): counted
+    PercolatorReset::Input part = in;
+    size_t shared = 0;
+    for (size_t i = 0; i + 2 < part.is_decoy.size(); i += 30, ++shared)
+    {
+      part.features[i + 2] = part.features[i + 1];
+      part.search_scores[i + 2] = part.search_scores[i + 1];
+      part.stems[i + 2] = part.stems[i + 1];
+      part.decoy_set[i + 1] = part.decoy_set[i + 2] = 3;
+    }
+    const PercolatorReset::Output po = PercolatorReset::run(part, o);
+    TEST_EQUAL(po.decoy_stems_both_sets > 0 && po.decoy_stems_both_sets <= shared, true)
   }
   PercolatorReset::Options two = opt;
   two.decoy_databases = 2;

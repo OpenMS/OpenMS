@@ -481,10 +481,10 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     }
     for (Size i = 0; i < n_rows; ++i)
     {
-      if (in.is_decoy[i] ? (in.decoy_set[i] != 1 && in.decoy_set[i] != 2) : in.decoy_set[i] != 0)
+      if (in.is_decoy[i] ? (in.decoy_set[i] < 1 || in.decoy_set[i] > 3) : in.decoy_set[i] != 0)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "RESET: decoy_set must be 1 or 2 for decoy rows and 0 for target rows.", StringUtils::toStr(i));
+          "RESET: decoy_set must be 1, 2 or 3 for decoy rows and 0 for target rows.", StringUtils::toStr(i));
       }
     }
   }
@@ -623,14 +623,19 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       ++out.decoy_stems;
       if (st.role == Role::TRAINING_DECOY) ++out.training_decoys; else ++out.estimating_decoys;
       if (two_decoys && in.decoy_set[st.representative] == 2) ++out.decoy_stems_second_set;
+      if (two_decoys && in.decoy_set[st.representative] == 3) ++out.decoy_stems_both_sets;
     }
   }
-  if (two_decoys && (out.decoy_stems_second_set == 0 || out.decoy_stems_second_set == out.decoy_stems))
+  if (two_decoys && (out.decoy_stems_second_set == 0
+                     || out.decoy_stems_second_set + out.decoy_stems_both_sets == out.decoy_stems))
   {
-    // one set never wins: the database did not hold two decoy sets, and the two-decoy factors would be wrong
+    // one set never wins alone: no evidence that the database held two decoy sets (or too few decoys won); the
+    // two-decoy factors would then be wrong (anti-conservative), so no estimate is made
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "RESET two-decoy mode: all " + StringUtils::toStr(out.decoy_stems) + " decoy stems are from one decoy set; the "
-      "database must hold two decoy sets of the same construction.", StringUtils::toStr(out.decoy_stems_second_set));
+      "RESET two-decoy mode: none of the " + StringUtils::toStr(out.decoy_stems) + " decoy stems is from the "
+      + (out.decoy_stems_second_set == 0 ? "second" : "first") + " decoy set alone; either the database has no second "
+      "decoy set or too few decoys won to tell. Two-decoy mode needs two decoy sets of the same construction.",
+      StringUtils::toStr(out.decoy_stems_second_set));
   }
   if (out.training_decoys == 0 || out.estimating_decoys + out.target_stems == 0)
   {
