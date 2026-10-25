@@ -5174,16 +5174,17 @@ foreach(_part a b)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
-# Percolator cannot rescore the second file on its own (60 spectra, too few PSMs): the PSMs of both files are rescored
-# together, with one model (before, -out_merged refused the pooling with exit code 11, after the search, and then pooled
-# on ProSE's score). Both runs report Percolator, the run view says why, and the merge ranks the proteins by PEP. The
-# outputs of an earlier run are removed first, so that only this run's outputs can pass the checks.
+# Percolator cannot rescore the second file on its own (60 spectra, too few PSMs): the first file keeps its own
+# rescoring, the second gets the scores of a model trained on the first one's PSMs (before, -out_merged refused the
+# pooling with exit code 11, after the search). Both runs report Percolator, the run view says how the second was
+# rescored, and the merge ranks the proteins by PEP. The outputs of an earlier run are removed first, so that only this
+# run's outputs can pass the checks.
 add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx)
 add_test(NAME "TOPP_ProSE_11_rescore_mixed" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML;-out_merged;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_qpx;-qpx_extended"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Percolator could not rescore 1 of 2 input files on their own: ProSE_18_small.mzML \\(Only [0-9]+ PSMs.*protein score PEP"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Percolator could not rescore 1 of 2 input files on their own: ProSE_18_small.mzML \\(Only [0-9]+ PSMs[^\n]*Scoring them with a model trained on.*protein score PEP"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_clean;TOPP_ProSE_18_inputs")
 add_test("TOPP_ProSE_11_rescore_mixed_merged" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML
@@ -5195,7 +5196,7 @@ add_test("TOPP_ProSE_11_rescore_mixed_run" ${TOPP_BIN_PATH}/ParquetDiff
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_run" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed")
 # psm_fdr_applied, rescoring_applied, rescoring_skipped_reason and rescoring_warning of the inputs
 add_test("TOPP_ProSE_11_rescore_mixed_run_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_run.tmp.tsv
-  "-DEXPECTED=psm_fdr_applied\trescoring_applied\trescoring_skipped_reason\trescoring_warning;\ttrue\ttrue\tnull\tRescored together with the other input files"
+  "-DEXPECTED=psm_fdr_applied\trescoring_applied\trescoring_skipped_reason\trescoring_warning;\ttrue\ttrue\tnull\tnull\t;\ttrue\ttrue\tnull\tPercolator could not rescore this input on its own (Only "
   "-DFORBIDDEN=\tfalse\tOnly " -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_run_out" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_run")
 foreach(_part a b)

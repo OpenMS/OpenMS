@@ -168,6 +168,7 @@ public:
   using ProSEAlgorithm::fragment_mass_tolerance_;
   using ProSEAlgorithm::poolSearchedFiles_;
   using ProSEAlgorithm::residualSpectrum_;
+  using ProSEAlgorithm::stratifiedQuotas_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -6044,11 +6045,12 @@ START_SECTION(([EXTRA] mergeFileResults keeps files apart that share a basename)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] a file too small for its own Percolator model is rescored with the others, and mergeFileResults ranks the proteins by PEP))
+START_SECTION(([EXTRA] a file too small for its own Percolator model gets the scores of a model of the other files, and mergeFileResults ranks the proteins by PEP))
 {
-  // The second input has 60 spectra: fewer than 100 PSMs, too few for a Percolator model of its own. The PSMs of both
-  // inputs are rescored together: every PSM has the score and PEP of one model, the q-values are those of each file
-  // (target-decoy competition of its PSMs on the model's score), and the merge ranks the proteins by PEP.
+  // The second input has 60 spectra: fewer than 100 PSMs, too few for a Percolator model of its own. The first input is
+  // rescored on its own, exactly as when it is searched alone; the second gets the scores of a model trained on the
+  // first one's PSMs, on that model's scale, with its PEPs, and q-values of its own (target-decoy competition of its
+  // PSMs on that score); the merge ranks the proteins by PEP.
   PeakMap all, some;
   FileHandler().loadExperiment(merge_spectra_file, all, {FileTypes::MZML});
   for (const MSSpectrum& spectrum : all)
@@ -6059,6 +6061,16 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model is rescored
   NEW_TMP_FILE_EXT(small_file, ".mzML")
   FileHandler().storeExperiment(small_file, some, {FileTypes::MZML});
   const StringList files = {merge_spectra_file, small_file};
+  // the PSMs as (spectrum, sequence, score)
+  const auto psms = [](const PeptideIdentificationList& ids)
+  {
+    std::vector<std::tuple<std::string, std::string, double>> out;
+    for (const PeptideIdentification& id : ids)
+    {
+      for (const PeptideHit& hit : id.getHits()) { out.emplace_back(id.getSpectrumReference(), hit.getSequence().toString(), hit.getScore()); }
+    }
+    return out;
+  };
   for (const double psm_fdr : {0.05, 0.0})
   {
     ProSEAlgorithm algo;
@@ -6068,14 +6080,20 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model is rescored
     algo.setParameters(p);
     ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
     ABORT_IF(result.per_file.size() != 2)
-    for (const ProSEAlgorithm::SearchResult& file : result.per_file)
-    {
-      TEST_TRUE(file.percolator.applied)
-      TEST_TRUE(file.percolator.warning.starts_with("Rescored together"))
-      TEST_STRING_EQUAL(file.protein_ids[0].getSearchEngine(), "Percolator")
-    }
-    const PeptideIdentificationList& small_psms = result.per_file[1].peptide_ids;
-    TEST_FALSE(small_psms.empty())
+    ProSEAlgorithm::MultiFileSearchResult large_alone = algo.searchWithModificationAnalysis(StringList{merge_spectra_file}, merge_database_file);
+    ABORT_IF(large_alone.per_file.size() != 1)
+    // the large file: as alone
+    TEST_TRUE(result.per_file[0].percolator.applied)
+    TEST_EQUAL(result.per_file[0].percolator.warning, "")
+    TEST_TRUE(psms(result.per_file[0].peptide_ids) == psms(large_alone.per_file[0].peptide_ids))
+    // the small file: the transferred model, and a note in its outcome (the run view's rescoring_warning)
+    const ProSEAlgorithm::SearchResult& small = result.per_file[1];
+    TEST_TRUE(small.percolator.applied)
+    TEST_TRUE(small.percolator.warning.starts_with("Percolator could not rescore this input on its own (Only "))
+    TEST_TRUE(small.percolator.warning.find("model trained on the PSMs of the 1 input(s)") != std::string::npos)
+    TEST_STRING_EQUAL(small.protein_ids[0].getSearchEngine(), "Percolator")
+    const PeptideIdentificationList& small_psms = small.peptide_ids;
+    if (psm_fdr == 0.0) { TEST_FALSE(small_psms.empty()) }
     // the small file's PSMs: Percolator's score and PEP, and q-values of their own competition on that score
     Size without_pep = 0;
     PeptideIdentificationList by_svm;
@@ -6150,6 +6168,87 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model is rescored
     }
     TEST_EQUAL(other_score_types, 0)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] files all too small for their own Percolator model are rescored together))
+{
+  // Eight inputs of 80 spectra each: none has PSMs enough for a model of its own, together they have. One model for the
+  // PSMs of all of them (cross-validated), q-values per file.
+  PeakMap all;
+  FileHandler().loadExperiment(merge_spectra_file, all, {FileTypes::MZML});
+  StringList files;
+  std::string base;
+  NEW_TMP_FILE_EXT(base, ".mzML")
+  for (Size f = 0; f < 8; ++f)
+  {
+    PeakMap part;
+    Size seen = 0;
+    for (const MSSpectrum& spectrum : all)
+    {
+      if (spectrum.getMSLevel() != 2) { continue; }
+      if (seen >= f * 80 && seen < (f + 1) * 80) { part.addSpectrum(spectrum); }
+      ++seen;
+    }
+    const std::string file = base + "_" + std::to_string(f) + ".mzML";
+    FileHandler().storeExperiment(file, part, {FileTypes::MZML});
+    files.push_back(file);
+  }
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
+  ABORT_IF(result.per_file.size() != 8)
+  Size with_psms = 0;
+  for (const ProSEAlgorithm::SearchResult& file : result.per_file)
+  {
+    TEST_TRUE(file.percolator.applied)
+    TEST_TRUE(file.percolator.warning.starts_with("Percolator could not rescore any input on its own"))
+    with_psms += !file.peptide_ids.empty();
+    for (const PeptideIdentification& id : file.peptide_ids)
+    {
+      for (const PeptideHit& hit : id.getHits()) { TEST_TRUE(hit.metaValueExists("MS:1001493")) }
+    }
+  }
+  TEST_TRUE(with_psms > 0)
+}
+END_SECTION
+
+START_SECTION((static std::vector<Size> stratifiedQuotas_(const std::vector<Size>& sizes, Size cap)))
+{
+  // equal shares, the share a smaller stratum leaves to the others; no cap, or all below it: everything
+  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 300) == (std::vector<Size>{10, 190, 100}))
+  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({500, 500}, 300) == (std::vector<Size>{150, 150}))
+  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 0) == (std::vector<Size>{10, 1000, 100}))
+  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 1110) == (std::vector<Size>{10, 1000, 100}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] percolator:max_train_psms caps the PSMs Percolator trains on, and every PSM is scored))
+{
+  // Below the cap (the default) nothing changes; with a cap of 300 Percolator trains on a sample of the PSMs, scores
+  // all of them, and finds about as many at the FDR.
+  const auto targets_at_fdr = [](const PeptideIdentificationList& ids)
+  {
+    Size n = 0;
+    for (const PeptideIdentification& id : ids) { n += !id.getHits().empty() && !id.getHits()[0].isDecoy(); }
+    return n;
+  };
+  ProSEAlgorithm uncapped, capped, zero;
+  for (ProSEAlgorithm* algo : {&uncapped, &capped, &zero}) { configure_merge(*algo, "generate"); }
+  Param p = capped.getParameters();
+  TEST_EQUAL(int(p.getValue("percolator:max_train_psms")), 500000)
+  p.setValue("percolator:max_train_psms", 300);
+  capped.setParameters(p);
+  p.setValue("percolator:max_train_psms", 0);
+  zero.setParameters(p);
+  const ProSEAlgorithm::SearchResult a = uncapped.searchWithModificationAnalysis(merge_spectra_file, merge_database_file);
+  const ProSEAlgorithm::SearchResult b = capped.searchWithModificationAnalysis(merge_spectra_file, merge_database_file);
+  const ProSEAlgorithm::SearchResult c = zero.searchWithModificationAnalysis(merge_spectra_file, merge_database_file);
+  TEST_TRUE(a.percolator.applied && b.percolator.applied && c.percolator.applied)
+  TEST_EQUAL(targets_at_fdr(a.peptide_ids), targets_at_fdr(c.peptide_ids)) // the default cap is above this run
+  const double ratio = static_cast<double>(targets_at_fdr(b.peptide_ids)) / static_cast<double>(targets_at_fdr(a.peptide_ids));
+  TEST_TRUE(ratio > 0.8 && ratio < 1.2)
+  TEST_EQUAL(int(b.protein_ids[0].getSearchParameters().getMetaValue("Percolator:subset_max_train")), 300)
 }
 END_SECTION
 

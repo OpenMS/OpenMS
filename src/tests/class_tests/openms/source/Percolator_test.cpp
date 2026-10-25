@@ -929,6 +929,48 @@ START_SECTION([EXTRA] train then score on same overlapping input)
 }
 END_SECTION
 
+START_SECTION((RescoreOutput score(const RescoreInput& input, const PercolatorModel& model, const RescoreInput& reference)))
+{
+  // A model scores rows on the scale of a reference (its training set): a row of the reference gets the score and PEP
+  // that the reference's own scoring gives it, whatever other rows are scored with it, and the PEPs of other rows come
+  // from the reference's score -> PEP function (non-increasing in the score), not from their own few rows.
+  RescoreInput reference = makeModeratelySeparableInput_(300, 42);
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+  const PercolatorModel model = p.train(reference);
+  const RescoreOutput ref = p.score(reference, model);
+
+  RescoreInput some;
+  some.feature_names = reference.feature_names;
+  std::vector<size_t> rows;
+  for (size_t i = 0; i < reference.features.size(); i += 37) { rows.push_back(i); }
+  for (size_t i : rows)
+  {
+    some.features.push_back(reference.features[i]);
+    some.is_decoy.push_back(reference.is_decoy[i]);
+  }
+  const RescoreOutput out = p.score(some, model, reference);
+  ABORT_IF(out.scores.size() != rows.size())
+  for (size_t k = 0; k < rows.size(); ++k)
+  {
+    TEST_REAL_SIMILAR(out.scores[k], ref.scores[rows[k]])
+    TEST_REAL_SIMILAR(out.peps[k], ref.peps[rows[k]])
+  }
+  // other rows, e.g. of a second, small set: a PEP that does not increase with the score
+  const RescoreInput small = makeModeratelySeparableInput_(20, 99);
+  const RescoreOutput small_out = p.score(small, model, reference);
+  ABORT_IF(small_out.scores.size() != small.features.size())
+  std::vector<std::pair<double, double>> by_score;
+  for (size_t i = 0; i < small_out.scores.size(); ++i) { by_score.emplace_back(small_out.scores[i], small_out.peps[i]); }
+  std::sort(by_score.begin(), by_score.end());
+  bool non_increasing = true;
+  for (size_t i = 1; i < by_score.size(); ++i) { non_increasing = non_increasing && by_score[i].second <= by_score[i - 1].second + 1e-12; }
+  TEST_TRUE(non_increasing)
+}
+END_SECTION
+
 START_SECTION([EXTRA] score rejects feature-count mismatch)
 {
   RescoreInput input = makeModeratelySeparableInput_(300, 42);
@@ -1820,6 +1862,67 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
   TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(untouched, StringList{"SpecId", "Label", "Peptide"}, "trypsin", 2, 2))
   TEST_EQUAL(untouched[0].getScoreType(), "hyperscore")
   TEST_EQUAL(untouched[0].getHits()[0].metaValueExists("ScanNr"), false)
+}
+END_SECTION
+
+START_SECTION((PercolatorModel trainPSMs(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge)))
+{
+  // see scorePSMs()
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((Size scorePSMs(PeptideIdentificationList& peptide_ids, const PercolatorModel& model, PeptideIdentificationList& reference_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge, const std::string& score_type)))
+{
+  // 300 target and 300 decoy PSMs; a model trained on them scores a few of them again: the scores and PEPs that the
+  // whole set gives them, the PSMs of the reference unchanged, no PIN meta values left
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  PeptideIdentificationList ids;
+  for (int i = 0; i < 600; ++i)
+  {
+    const bool decoy = i % 2 == 1;
+    std::string seq;
+    for (int k = 0; k < 8 + i % 5; ++k) seq += aas[(i * 7 + k * 13) % aas.size()];
+    seq += 'K';
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setCharge(2);
+    hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+    hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+    hit.setPeptideEvidences({PeptideEvidence(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A')});
+    PeptideIdentification pid;
+    pid.setScoreType("hyperscore");
+    pid.setHigherScoreBetter(true);
+    pid.setMZ(hit.getSequence().getMZ(2));
+    pid.setRT(10.0 * i);
+    pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+    pid.setHits({hit});
+    ids.push_back(pid);
+  }
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  Percolator perc;
+  PeptideIdentificationList training = ids;
+  const PercolatorModel model = perc.trainPSMs(training, feature_set, "trypsin", 2, 2);
+  TEST_TRUE(training == ids) // not changed
+  PeptideIdentificationList all = ids, some;
+  for (Size i = 0; i < ids.size(); i += 50) { some.push_back(ids[i]); }
+  TEST_EQUAL(perc.scorePSMs(all, model, training, feature_set, "trypsin", 2, 2, "q-value"), 600)
+  TEST_EQUAL(perc.scorePSMs(some, model, training, feature_set, "trypsin", 2, 2, "pep"), some.size())
+  TEST_TRUE(training == ids)
+  for (Size k = 0; k < some.size(); ++k)
+  {
+    const PeptideHit& hit = some[k].getHits()[0];
+    const PeptideHit& among_all = all[k * 50].getHits()[0];
+    TEST_REAL_SIMILAR(double(hit.getMetaValue("MS:1001492")), double(among_all.getMetaValue("MS:1001492")))
+    TEST_REAL_SIMILAR(double(hit.getMetaValue("MS:1001493")), double(among_all.getMetaValue("MS:1001493")))
+    TEST_STRING_EQUAL(some[k].getScoreType(), "Posterior Error Probability")
+    TEST_REAL_SIMILAR(hit.getScore(), double(hit.getMetaValue("MS:1001493")))
+    TEST_FALSE(hit.metaValueExists("ScanNr") || hit.metaValueExists("enzN") || hit.metaValueExists("peplen"))
+  }
 }
 END_SECTION
 

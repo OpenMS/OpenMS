@@ -86,6 +86,7 @@
 #include <ostream>
 #include <map>
 #include <optional>
+#include <random>
 #include <set>
 #include <sstream>
 #include <string_view>
@@ -370,13 +371,24 @@ namespace OpenMS
                        "and FDR:PSM and FDR:protein are applied to the rescored PSMs. Needs decoys (see 'decoys') and at least "
                        "100 PSMs: a run without them, or for which Percolator fails, is not rescored and keeps its search engine "
                        "scores, which the FDR filters then use (the ProSE tool warns). If that happens to some files of a "
-                       "multi-file search, the PSMs of all files are rescored together with one (cross-validated) model, "
-                       "so that every PSM has its score and PEP; each file's q-values are those of target-decoy "
-                       "competition of its PSMs on that score (FDR per file). Only if that fails too (e.g. fewer than 100 "
-                       "PSMs in all), the files keep their own outcome, and the pooled evaluation of the files (the ProSE "
-                       "tool's -out_merged) scores the proteins by ProSE's score 'ln(hyperscore)' of all PSMs instead of "
-                       "Percolator's PEP. Set to 'false' to report the search engine scores.");
+                       "multi-file search, the files rescored on their own keep their results, and the others get the "
+                       "scores of a model trained on the PSMs of those (on the scale of its training PSMs, with their PEP "
+                       "at the same score; q-values by target-decoy competition of each file's PSMs on that score); if "
+                       "Percolator can rescore no file on its own, all files are rescored together with one model. Only "
+                       "if that fails too, the files keep their search engine scores, and the pooled evaluation of the "
+                       "files (the ProSE tool's -out_merged) scores the proteins by ProSE's score 'ln(hyperscore)' of all "
+                       "PSMs instead of Percolator's PEP. See percolator:max_train_psms for the training PSMs. Set to "
+                       "'false' to report the search engine scores.");
     defaults_.setValidStrings("rescore", {"true", "false"});
+    defaults_.setValue("percolator:max_train_psms", 500000,
+                       "With 'rescore': the most PSMs Percolator trains a model on (0: all). Every PSM is scored, also "
+                       "beyond the cap. For a run with more PSMs, Percolator samples the training PSMs by spectrum; for "
+                       "the model of the files of a multi-file search too small for a model of their own (trained on the "
+                       "files rescored on their own), each of these files contributes an equal share, so that none "
+                       "dominates. The run log says when the training PSMs were sampled. Searches below the cap are not "
+                       "affected.", {"advanced"});
+    defaults_.setMinInt("percolator:max_train_psms", 0);
+    defaults_.setSectionDescription("percolator", "Percolator rescoring ('rescore')");
 
     defaults_.setValue("FDR:PSM", 0.0,
                        "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR; 0 disables the filter). Target and decoy PSMs are filtered "
@@ -745,6 +757,7 @@ namespace OpenMS
       self_trained_ion_priors_ = false;
     }
     rescore_ = param_.getValue("rescore").toString() == "true";
+    max_train_psms_ = static_cast<Size>(static_cast<int>(param_.getValue("percolator:max_train_psms")));
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -4674,10 +4687,68 @@ namespace OpenMS
   // WebAssembly bindings); it was a copy in the tool before.
   // =====================================================================
   // static
+  // static
+  StringList ProSEAlgorithm::percolatorFeatureSet_(const ProteinIdentification& run, int min_charge, int max_charge)
+  {
+    // The standard PIN features, the search engine's own features, and the bookkeeping columns.
+    const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
+    StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
+    if (sp.metaValueExists("extra_features"))
+    {
+      StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
+      feature_set.insert(feature_set.end(), extra.begin(), extra.end());
+    }
+    else
+    {
+      feature_set.push_back("score");
+    }
+    feature_set.push_back("Peptide");
+    feature_set.push_back("Proteins");
+    return feature_set;
+  }
+
+  // static
+  Param ProSEAlgorithm::percolatorParameters_(int threads, Size max_train_psms)
+  {
+    Param pp = Percolator().getDefaults();
+    pp.setValue("train_best_positive", "true");
+    pp.setValue("post_processing_tdc", "true");
+    // 0: train on all PSMs
+    pp.setValue("subset_max_train", static_cast<int>(std::min<Size>(max_train_psms, std::numeric_limits<int>::max())));
+    pp.setValue("pep_method", "nonparametric");  // as the percolator executable
+    // one model per cross-validation fold: more than 3 threads do not help
+    pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 3));
+    return pp;
+  }
+
+  // static
+  void ProSEAlgorithm::markRescoredByPercolator_(std::vector<ProteinIdentification>& protein_ids, const Param& pp)
+  {
+    // Mark the runs as post-processed by Percolator, as PercolatorAdapter does.
+    for (ProteinIdentification& run : protein_ids)
+    {
+      run.setSearchEngine("Percolator");
+      run.setSearchEngineVersion("3.08-vendored");
+      run.setMetaValue("percolator", "ProSE");
+      ProteinIdentification::SearchParameters run_sp = run.getSearchParameters();
+      run_sp.setMetaValue("Percolator:peptide_level_fdrs", "false");
+      run_sp.setMetaValue("Percolator:protein_level_fdrs", "false");
+      run_sp.setMetaValue("Percolator:testFDR", static_cast<double>(pp.getValue("test_fdr")));
+      run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
+      run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
+      run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
+      run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
+      run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
+      run_sp.setMetaValue("Percolator:train_best_positive", "true");
+      run.setSearchParameters(run_sp);
+    }
+  }
+
   ProSEAlgorithm::PercolatorRescoring ProSEAlgorithm::rescoreWithPercolator(
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
-      int threads)
+      int threads,
+      Size max_train_psms)
   {
     PercolatorRescoring outcome;
     if (protein_ids.empty())
@@ -4713,30 +4784,16 @@ namespace OpenMS
       return outcome;
     }
 
-    // The standard PIN features, the search engine's own features, and the bookkeeping columns.
     const ProteinIdentification::SearchParameters& sp = protein_ids.front().getSearchParameters();
-    StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
-    if (sp.metaValueExists("extra_features"))
-    {
-      StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
-      feature_set.insert(feature_set.end(), extra.begin(), extra.end());
-    }
-    else
-    {
-      feature_set.push_back("score");
-    }
-    feature_set.push_back("Peptide");
-    feature_set.push_back("Proteins");
-
+    const StringList feature_set = percolatorFeatureSet_(protein_ids.front(), min_charge, max_charge);
     Percolator perc;
-    Param pp = perc.getDefaults();
-    pp.setValue("train_best_positive", "true");
-    pp.setValue("post_processing_tdc", "true");
-    pp.setValue("subset_max_train", 0);  // train on all PSMs
-    pp.setValue("pep_method", "nonparametric");  // as the percolator executable
-    // one model per cross-validation fold: more than 3 threads do not help
-    pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 3));
+    const Param pp = percolatorParameters_(threads, max_train_psms);
     perc.setParameters(pp);
+    if (max_train_psms > 0 && peptide_ids.size() > max_train_psms)
+    {
+      OPENMS_LOG_INFO << "[ProSE] Percolator trains on " << max_train_psms << " of the " << peptide_ids.size()
+                      << " PSMs (Search:percolator:max_train_psms) and scores all of them." << std::endl;
+    }
 
     try
     {
@@ -4757,24 +4814,7 @@ namespace OpenMS
                           "PSMs), so the PSMs are scored with that feature alone.";
     }
 
-    // Mark the runs as post-processed by Percolator, as PercolatorAdapter does.
-    for (ProteinIdentification& run : protein_ids)
-    {
-      run.setSearchEngine("Percolator");
-      run.setSearchEngineVersion("3.08-vendored");
-      run.setMetaValue("percolator", "ProSE");
-      ProteinIdentification::SearchParameters run_sp = run.getSearchParameters();
-      run_sp.setMetaValue("Percolator:peptide_level_fdrs", "false");
-      run_sp.setMetaValue("Percolator:protein_level_fdrs", "false");
-      run_sp.setMetaValue("Percolator:testFDR", static_cast<double>(pp.getValue("test_fdr")));
-      run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
-      run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
-      run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
-      run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
-      run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
-      run_sp.setMetaValue("Percolator:train_best_positive", "true");
-      run.setSearchParameters(run_sp);
-    }
+    markRescoredByPercolator_(protein_ids, pp);
     outcome.applied = true;
     return outcome;
   }
@@ -4854,7 +4894,7 @@ namespace OpenMS
       const int threads = 1;
 #endif
       OPENMS_LOG_INFO << "[ProSE] Rescoring the PSMs with Percolator..." << std::endl;
-      rescoring = rescoreWithPercolator(protein_ids, peptide_ids, threads);
+      rescoring = rescoreWithPercolator(protein_ids, peptide_ids, threads, max_train_psms_);
     }
 
     if (fdr_psm_ > 0.0 && (rescoring.applied || has_decoys))
@@ -6404,8 +6444,29 @@ namespace OpenMS
 
   // =====================================================================
   // 'rescore' of a multi-file search: the files that Percolator could not rescore on their own (e.g. fewer than 100
-  // PSMs) are rescored together with all others, with one model.
+  // PSMs) get the scores of a model trained on the files that it could rescore, or, if it could rescore none, all
+  // files are rescored together.
   // =====================================================================
+  // static
+  std::vector<Size> ProSEAlgorithm::stratifiedQuotas_(const std::vector<Size>& sizes, Size cap)
+  {
+    std::vector<Size> quotas = sizes;
+    Size total = std::accumulate(sizes.begin(), sizes.end(), Size(0));
+    if (cap == 0 || total <= cap) { return quotas; }
+    // water filling: equal shares, the share a small stratum leaves goes to the others
+    std::vector<Size> order(sizes.size());
+    std::iota(order.begin(), order.end(), Size(0));
+    std::sort(order.begin(), order.end(), [&](Size a, Size b) { return sizes[a] < sizes[b]; });
+    Size left = cap;
+    for (Size k = 0; k < order.size(); ++k)
+    {
+      const Size share = left / (order.size() - k);
+      quotas[order[k]] = std::min(sizes[order[k]], share);
+      left -= quotas[order[k]];
+    }
+    return quotas;
+  }
+
   void ProSEAlgorithm::rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const
   {
     // Each file ends as a search without pooling would leave it: its proteins those of its PSMs (and of the PSMs only
@@ -6415,77 +6476,41 @@ namespace OpenMS
       removeUnreportedProteins(pf.protein_ids, pf.peptide_ids, pf.inference_only_peptide_ids);
       if (!keep_pre_fdr_psms_) { pf.pre_fdr_peptide_ids = PeptideIdentificationList(); }
     };
-    std::vector<Size> searched;
-    StringList alone; // the files with PSMs that Percolator did not rescore, and why
+    std::vector<Size> searched, own, alone; // files searched; rescored on their own; with PSMs, but not rescored
+    StringList alone_names;
     for (Size i = 0; i < mfres.per_file.size(); ++i)
     {
       const SearchResult& pf = mfres.per_file[i];
       if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
       searched.push_back(i);
-      if (!pf.percolator.applied && hasPSMs_(pf.pre_fdr_peptide_ids))
+      if (pf.percolator.applied) { own.push_back(i); }
+      else if (hasPSMs_(pf.pre_fdr_peptide_ids))
       {
-        alone.push_back(File::basename(in_spectra_files[i]) + " (" + pf.percolator.skipped_reason + ")");
+        alone.push_back(i);
+        alone_names.push_back(File::basename(in_spectra_files[i]) + " (" + pf.percolator.skipped_reason + ")");
       }
     }
+    const auto finish_all = [&]() { for (Size i : searched) { finish(mfres.per_file[i]); } };
     if (alone.empty())
     {
-      for (Size i : searched) { finish(mfres.per_file[i]); }
+      finish_all();
       return;
     }
-
-    // One model for the PSMs of all files, with Percolator's cross-validation (every PSM is scored by a model trained
-    // without its fold), as Percolator on the .pin files of all runs at once. Its PEPs then rank the PSMs of all files
-    // on one scale, which the pooled protein inference (mergeFileResults()) uses. 'id_merge_index' keeps the files
-    // apart (the spectrum file of each PSM, for the folds and the target-decoy competition of each spectrum).
-    PeptideIdentificationList pooled;
-    std::vector<Size> file_of; // per element of pooled
-    std::vector<ProteinIdentification> runs = mfres.per_file[searched[0]].protein_ids; // the search parameters
-    for (Size i : searched)
-    {
-      for (const PeptideIdentification& id : mfres.per_file[i].pre_fdr_peptide_ids)
-      {
-        PeptideIdentification& copy = pooled.emplace_back(id);
-        copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(i));
-        file_of.push_back(i);
-      }
-    }
-    OPENMS_LOG_INFO << "[ProSE] Percolator could not rescore " << alone.size() << " of " << searched.size()
-                    << " input files on their own: " << ListUtils::concatenate(alone, ", ")
-                    << ". Rescoring the " << pooled.size() << " PSMs of all " << searched.size()
-                    << " files together, with one model." << std::endl;
 #ifdef _OPENMP
     const int threads = omp_get_max_threads();
 #else
     const int threads = 1;
 #endif
-    const PercolatorRescoring outcome = rescoreWithPercolator(runs, pooled, threads);
-    if (!outcome.applied)
-    {
-      OPENMS_LOG_WARN << "[ProSE] Percolator cannot rescore the PSMs of all input files together either ("
-                      << outcome.skipped_reason << "); each file keeps the outcome of its own rescoring." << std::endl;
-      for (Size i : searched) { finish(mfres.per_file[i]); }
-      return;
-    }
+    const Param pp = percolatorParameters_(threads, max_train_psms_);
 
-    // Back to the files: the scores and PEPs of the one model; q-values per file (FDR per run, as for a file rescored on
-    // its own), by target-decoy competition of the file's PSMs on the model's SVM score (MS:1001492), with the
-    // conservative 1/T of a file without a decoy PSM (tdcQValues_()); FDR:PSM filters on them.
-    std::vector<PeptideIdentificationList> parts(mfres.per_file.size());
-    for (Size k = 0; k < pooled.size(); ++k)
-    {
-      pooled[k].removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-      parts[file_of[k]].push_back(std::move(pooled[k]));
-    }
-    pooled = PeptideIdentificationList();
+    // A file back from the rescoring (its PSMs before the rescoring, now with Percolator's score, q-value and PEP):
+    // q-values per file (FDR per run, as for a file rescored on its own), by target-decoy competition of the file's
+    // PSMs on the SVM score (MS:1001492), with the conservative 1/T of a file without a decoy PSM (tdcQValues_());
+    // FDR:PSM filters on them.
     const std::string svm_score = "MS:1001492";
-    const std::string warning = "Rescored together with the other input files, with one Percolator model of the PSMs "
-      "of all " + StringUtils::toStr(searched.size()) + " inputs, as Percolator could not rescore " + StringUtils::toStr(alone.size())
-      + " of them on their own; the q-values are those of target-decoy competition of this input's PSMs on that "
-      "model's score." + (outcome.warning.empty() ? std::string() : " " + outcome.warning);
-    for (Size i : searched)
+    const auto adopt = [&](Size i, PeptideIdentificationList&& ids, const std::string& warning)
     {
       SearchResult& pf = mfres.per_file[i];
-      PeptideIdentificationList& ids = parts[i];
       for (PeptideIdentification& id : ids)
       {
         for (PeptideHit& hit : id.getHits()) { hit.setScore(static_cast<double>(hit.getMetaValue(svm_score))); }
@@ -6511,28 +6536,145 @@ namespace OpenMS
         filtered = true;
       }
       pf.peptide_ids = std::move(ids);
-      // the runs of the file as rescoreWithPercolator() marks them
-      for (ProteinIdentification& run : pf.protein_ids)
-      {
-        run.setSearchEngine(runs[0].getSearchEngine());
-        run.setSearchEngineVersion(runs[0].getSearchEngineVersion());
-        run.setMetaValue("percolator", runs[0].getMetaValue("percolator"));
-        ProteinIdentification::SearchParameters sp = run.getSearchParameters();
-        std::vector<std::string> keys;
-        runs[0].getSearchParameters().getKeys(keys);
-        for (const std::string& key : keys)
-        {
-          if (StringUtils::hasPrefix(key, "Percolator:")) { sp.setMetaValue(key, runs[0].getSearchParameters().getMetaValue(key)); }
-        }
-        run.setSearchParameters(sp);
-      }
+      markRescoredByPercolator_(pf.protein_ids, pp);
       pf.percolator.applied = true;
       pf.percolator.skipped_reason.clear();
       pf.percolator.warning = warning;
-      updateFinalStats(pf.stats, pf.peptide_ids, enzyme_, filtered || pf.stats.fdr_applied);
+      updateFinalStats(pf.stats, pf.peptide_ids, enzyme_, filtered);
       // (an open search keeps the modification analysis of the PSMs of the file's own scoring)
-      finish(pf);
+    };
+
+    // The precursor charges of the charge features: of all PSMs the model sees, for one feature set
+    int min_charge = std::numeric_limits<int>::max(), max_charge = std::numeric_limits<int>::min();
+    for (Size i : searched)
+    {
+      for (const PeptideIdentification& id : mfres.per_file[i].pre_fdr_peptide_ids)
+      {
+        for (const PeptideHit& hit : id.getHits())
+        {
+          min_charge = std::min(min_charge, hit.getCharge());
+          max_charge = std::max(max_charge, hit.getCharge());
+        }
+      }
     }
+    const ProteinIdentification& first_run = mfres.per_file[searched[0]].protein_ids[0];
+    const StringList feature_set = percolatorFeatureSet_(first_run, min_charge, max_charge);
+    const std::string enzyme = first_run.getSearchParameters().digestion_enzyme.getName();
+
+    if (!own.empty())
+    {
+      // Transfer: the files rescored on their own keep their results. A model trained on their PSMs (before the
+      // rescoring; each file an equal share of at most percolator:max_train_psms, so that none dominates) scores the
+      // others, on the scale of its training PSMs: a PSM gets the score it would get among them, and the PEP of the
+      // training PSMs at that score (Percolator::scorePSMs()), not one estimated on a file too small for that.
+      // 'id_merge_index' keeps the spectra of the training files apart (spectrum file numbers).
+      std::vector<Size> sizes;
+      for (Size i : own)
+      {
+        const PeptideIdentificationList& ids = mfres.per_file[i].pre_fdr_peptide_ids;
+        sizes.push_back(static_cast<Size>(std::count_if(ids.begin(), ids.end(), [](const PeptideIdentification& id) { return !id.getHits().empty(); })));
+      }
+      const std::vector<Size> quotas = stratifiedQuotas_(sizes, max_train_psms_);
+      PeptideIdentificationList training;
+      for (Size k = 0; k < own.size(); ++k)
+      {
+        const PeptideIdentificationList& ids = mfres.per_file[own[k]].pre_fdr_peptide_ids;
+        std::vector<Size> rows;
+        for (Size r = 0; r < ids.size(); ++r) { if (!ids[r].getHits().empty()) { rows.push_back(r); } }
+        if (quotas[k] < rows.size())
+        {
+          std::mt19937 rng(static_cast<std::mt19937::result_type>(own[k] + 1)); // reproducible
+          std::shuffle(rows.begin(), rows.end(), rng);
+          rows.resize(quotas[k]);
+          std::sort(rows.begin(), rows.end());
+        }
+        for (Size r : rows)
+        {
+          PeptideIdentification& copy = training.emplace_back(ids[r]);
+          copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(own[k]));
+        }
+      }
+      const Size available = std::accumulate(sizes.begin(), sizes.end(), Size(0));
+      OPENMS_LOG_INFO << "[ProSE] Percolator could not rescore " << alone.size() << " of " << searched.size()
+                      << " input files on their own: " << ListUtils::concatenate(alone_names, ", ")
+                      << ". Scoring them with a model trained on " << training.size() << " PSMs of the " << own.size()
+                      << " files it rescored on their own";
+      if (training.size() < available)
+      {
+        OPENMS_LOG_INFO << " (sampled from " << available << ", an equal share of each file, Search:percolator:max_train_psms "
+                        << max_train_psms_ << ")";
+      }
+      OPENMS_LOG_INFO << "." << std::endl;
+      try
+      {
+        Percolator perc;
+        perc.setParameters(pp);
+        const PercolatorModel model = perc.trainPSMs(training, feature_set, enzyme, min_charge, max_charge);
+        const std::string transferred = "its PSMs are scored with a model trained on the PSMs of the "
+          + StringUtils::toStr(own.size()) + " input(s) that Percolator rescored on their own, on the scale of that "
+          "model's training PSMs (their PEP at the same score); the q-values are those of target-decoy competition of "
+          "this input's PSMs on that score." + (perc.usedDefaultDirection() ? " Percolator's sanity check rejected "
+          "the learned model, so the PSMs are scored with the best single feature." : "");
+        for (Size i : alone)
+        {
+          const std::string warning = "Percolator could not rescore this input on its own (" + mfres.per_file[i].percolator.skipped_reason
+                                      + "): " + transferred;
+          PeptideIdentificationList ids = std::move(mfres.per_file[i].pre_fdr_peptide_ids);
+          if (keep_pre_fdr_psms_) { mfres.per_file[i].pre_fdr_peptide_ids = ids; }
+          perc.scorePSMs(ids, model, training, feature_set, enzyme, min_charge, max_charge, "q-value");
+          IDFilter::keepNBestHits(ids, 1);
+          adopt(i, std::move(ids), warning);
+        }
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Percolator cannot score the files too small for a model of their own with a model "
+                        << "of the other files either (" << e.what() << "); they keep their search engine scores."
+                        << std::endl;
+      }
+      finish_all();
+      return;
+    }
+
+    // No file could be rescored on its own: the PSMs of all files together, with one model, cross-validated as for one
+    // file (Percolator samples at most percolator:max_train_psms PSMs to train on; every file has too few PSMs for a
+    // model of its own, so none can dominate). 'id_merge_index' keeps the files apart (spectrum file numbers, for the
+    // folds and the target-decoy competition of each spectrum).
+    PeptideIdentificationList pooled;
+    std::vector<Size> file_of; // per element of pooled
+    std::vector<ProteinIdentification> runs = mfres.per_file[searched[0]].protein_ids; // the search parameters
+    for (Size i : searched)
+    {
+      for (const PeptideIdentification& id : mfres.per_file[i].pre_fdr_peptide_ids)
+      {
+        PeptideIdentification& copy = pooled.emplace_back(id);
+        copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(i));
+        file_of.push_back(i);
+      }
+    }
+    OPENMS_LOG_INFO << "[ProSE] Percolator could not rescore any of the " << searched.size()
+                    << " input files on its own: " << ListUtils::concatenate(alone_names, ", ")
+                    << ". Rescoring the " << pooled.size() << " PSMs of all files together, with one model." << std::endl;
+    const PercolatorRescoring outcome = rescoreWithPercolator(runs, pooled, threads, max_train_psms_);
+    if (!outcome.applied)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Percolator cannot rescore the PSMs of all input files together either ("
+                      << outcome.skipped_reason << "); they keep their search engine scores." << std::endl;
+      finish_all();
+      return;
+    }
+    std::vector<PeptideIdentificationList> parts(mfres.per_file.size());
+    for (Size k = 0; k < pooled.size(); ++k)
+    {
+      pooled[k].removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      parts[file_of[k]].push_back(std::move(pooled[k]));
+    }
+    pooled = PeptideIdentificationList();
+    const std::string warning = "Percolator could not rescore any input on its own (too few PSMs or decoys); the PSMs of "
+      "all " + StringUtils::toStr(searched.size()) + " inputs are rescored together, with one model; the q-values are "
+      "those of target-decoy competition of this input's PSMs on that model's score." + (outcome.warning.empty() ? std::string() : " " + outcome.warning);
+    for (Size i : searched) { adopt(i, std::move(parts[i]), warning); }
+    finish_all();
   }
 
   // =====================================================================

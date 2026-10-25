@@ -183,6 +183,44 @@ namespace OpenMS
                      const std::string& score_type = "q-value");
 
     /**
+      @brief Train a model on search engine PSMs (the .pin features of rescorePSMs()), for scorePSMs() on other PSMs.
+
+      Builds the rows as rescorePSMs() does (the PIN feature meta values it stamps are removed again) and calls
+      train() on all of them (subsetting, e.g. to a training cap, is the caller's). The PSMs are not changed.
+
+      @throws Exception::MissingInformation as rescorePSMs()
+      @throws Exception::InvalidValue if training fails
+    */
+    PercolatorModel trainPSMs(PeptideIdentificationList& peptide_ids,
+                              const StringList& feature_set,
+                              const std::string& enzyme,
+                              int min_charge,
+                              int max_charge);
+
+    /**
+      @brief Rescore PSMs with a model trained on other PSMs (trainPSMs()), on the scale of those (@p reference_ids,
+      e.g. the training PSMs).
+
+      The rows are built as in rescorePSMs() and scored with score(input, model, reference): the scores of @p model on
+      the reference's scale, and the q-values and PEPs of the reference at these scores. The results are written onto
+      the hits as rescorePSMs() writes them (meta values percolator_score/q_value/pep and MS:1001492/1/3, main score
+      by @p score_type). Every hit with all features is scored: no target-decoy competition among @p peptide_ids.
+      @p reference_ids is not changed.
+
+      @return The number of rescored hits
+      @throws Exception::MissingInformation as rescorePSMs(), for either list
+      @throws Exception::InvalidValue if @p score_type is unknown or the scoring fails
+    */
+    Size scorePSMs(PeptideIdentificationList& peptide_ids,
+                   const PercolatorModel& model,
+                   PeptideIdentificationList& reference_ids,
+                   const StringList& feature_set,
+                   const std::string& enzyme,
+                   int min_charge,
+                   int max_charge,
+                   const std::string& score_type = "q-value");
+
+    /**
       @brief SVM weights trained in the last rescore()/train() call.
 
       A single fold-averaged weight vector in raw feature space, with the
@@ -303,6 +341,27 @@ namespace OpenMS
     RescoreOutput score(const RescoreInput& input, const PercolatorModel& model);
 
     /**
+      @brief Score feature rows with a pre-trained model on the scale of a reference set (e.g. its training set).
+
+      For rows too few to calibrate scores and PEPs on their own (e.g. a small run scored with a model trained on other
+      runs). The reference is scored as score(reference, model) scores it; the rows of @p input then get:
+      - the score that the reference's scoring would give them: raw weights x raw features + bias, with the rescaling
+        of the reference (its score at `test_fdr` maps to 1, its median decoy score to 0), so that a row of the
+        reference gets the same score here as in score(reference, model);
+      - the q-value and PEP of the reference at that score (linear interpolation between the neighbouring reference
+        scores, constant beyond them; the rows that target-decoy competition eliminated from the reference are not
+        used), i.e. through the score -> q-value and score -> PEP functions estimated on the reference, not
+        re-estimated on @p input. q-values of @p input itself (e.g. target-decoy competition on the scores) are the
+        caller's.
+
+      No target-decoy competition among the rows of @p input: every row is scored.
+
+      @throws Exception::InvalidValue on malformed input, a model that does not match @p input or @p reference, or a
+              reference whose scoring fails (see score()).
+    */
+    RescoreOutput score(const RescoreInput& input, const PercolatorModel& model, const RescoreInput& reference);
+
+    /**
       @brief Fill PIN-compatible optional fields on a RescoreInput.
 
       Populates `input.scan_numbers`, `input.spec_file_numbers`,
@@ -385,6 +444,9 @@ namespace OpenMS
     void updateMembers_() override;
 
   private:
+    /// score(); with @p rescaled_weights, also the model's weights rescaled as the scores (Scores::normalizeScores)
+    RescoreOutput score_(const RescoreInput& input, const PercolatorModel& model, std::vector<double>* rescaled_weights);
+
     struct Impl;
     std::unique_ptr<Impl> impl_;
   };
