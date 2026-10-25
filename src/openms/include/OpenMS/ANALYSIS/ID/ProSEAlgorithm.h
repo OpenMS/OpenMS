@@ -162,7 +162,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     struct PercolatorTraining
     {
       int subset_max_train = 0;  ///< train on at most this many PSMs (drawn by spectrum, then all are scored; 0 = all)
-      std::string subset_mode = "out_of_fold"; ///< with a cap: Percolator's 'subset_mode' ("out_of_fold" | "out_of_fold_avg" | "in_sample")
+      std::string subset_mode = "out_of_fold"; ///< with a cap: Percolator's 'subset_mode' ("out_of_fold" | "out_of_fold_avg" | "in_sample" | "learning_curve")
+      int curve_start = 100000;                ///< learning_curve: rows of the first sample
+      double curve_min_gain = 0.002;           ///< learning_curve: relative gain below which a fold stops
       int iterations = 10;       ///< iterations of the cross-validation training
       double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
       bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights

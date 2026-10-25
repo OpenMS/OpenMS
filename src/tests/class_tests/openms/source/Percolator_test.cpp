@@ -477,6 +477,95 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     TEST_TRUE(same_fold_models)
   }
 
+  // learning_curve: nested samples of 2000, 4000, ... rows; fold k's curve on the validation spectra of the other folds
+  {
+    auto curve = [&](double min_gain, int threads, int seed, Percolator::CappedTrainingInfo* ci, std::vector<std::vector<double>>* cw)
+    {
+      return run("learning_curve", 0, seed, threads, "true", ci, cw, nullptr, [min_gain](Param& par)
+      {
+        par.setValue("subset_curve_start", 2000);
+        par.setValue("subset_curve_min_gain", min_gain);
+      });
+    };
+    Percolator::CappedTrainingInfo lc;
+    std::vector<std::vector<double>> lc_w;
+    const RescoreOutput lc_out = curve(0.002, 8, 17, &lc, &lc_w);
+    TEST_EQUAL(lc.validation_rows, n_rows / 5)
+    TEST_TRUE(!lc.curve_sizes.empty() && lc.curve_sizes[0] <= 2000 && lc.curve_sizes[0] + 2 > 2000)
+    TEST_EQUAL(lc_w.size(), 3)
+    // the folds are out_of_fold's; the validation spectra (the rows in no training set) are about 20 % of the rows
+    TEST_TRUE(lc.fold == info.fold)
+    std::size_t never_trained = 0;
+    for (std::size_t r = 0; r < n_rows; ++r) never_trained += lc.sampled[r] ? 0 : 1;
+    TEST_TRUE(never_trained >= lc.validation_rows)
+    // the stop rule: fold f keeps the model of the first size whose gain over the size before is below min_gain (or
+    // the last size); later sizes are not evaluated for it
+    bool rule = lc.chosen_size.size() == 3;
+    for (std::size_t f = 0; rule && f < 3; ++f)
+    {
+      std::size_t keep = lc.curve_sizes.size() - 1;
+      for (std::size_t k = 1; k < lc.curve_sizes.size(); ++k)
+      {
+        const long before = lc.curve_counts[k - 1][f], now = lc.curve_counts[k][f];
+        if (static_cast<double>(now - before) < 0.002 * static_cast<double>(std::max(before, 1L))) { keep = k; break; }
+      }
+      rule = rule && lc.chosen_size[f] == lc.curve_sizes[keep];
+      for (std::size_t k = keep + 1; k < lc.curve_sizes.size(); ++k) rule = rule && lc.curve_counts[k][f] == -1;
+      for (std::size_t k = 0; k <= keep; ++k) rule = rule && lc.curve_counts[k][f] >= 0;
+    }
+    TEST_TRUE(rule)
+    // a threshold no doubling reaches: every fold stops at the second size
+    Percolator::CappedTrainingInfo lc_stop;
+    curve(10.0, 8, 17, &lc_stop, nullptr);
+    TEST_EQUAL(lc_stop.curve_sizes.size(), 2)
+    TEST_TRUE(lc_stop.chosen_size == std::vector<size_t>(3, lc_stop.curve_sizes[1]))
+    // deterministic by seed and threads; another seed, another curve
+    bool same_lc = true;
+    for (const int threads : {1, 3})
+    {
+#ifdef _OPENMP
+      const int max_threads = omp_get_max_threads();
+      omp_set_num_threads(threads);
+#endif
+      Percolator::CappedTrainingInfo lc_t;
+      const RescoreOutput again = curve(0.002, threads, 17, &lc_t, nullptr);
+#ifdef _OPENMP
+      omp_set_num_threads(max_threads);
+#endif
+      same_lc = same_lc && again.scores == lc_out.scores && again.q_values == lc_out.q_values && again.peps == lc_out.peps &&
+                lc_t.curve_counts == lc.curve_counts && lc_t.chosen_size == lc.chosen_size;
+    }
+    TEST_TRUE(same_lc)
+    Percolator::CappedTrainingInfo lc_seed;
+    curve(0.002, 8, 18, &lc_seed, nullptr);
+    TEST_TRUE(lc_seed.fold != lc.fold)
+    // no label of fold 0 reaches fold 0's curve, size or model: relabelling targets of fold-0 spectra as decoys (in the
+    // samples, in the validation spectra, anywhere) leaves them unchanged; the other folds' curves change
+    std::vector<bool> labels = input.is_decoy;
+    for (std::size_t s = 0; s < n_spectra; s += 2)
+    {
+      if (lc.fold[2 * s] == 0) input.is_decoy[2 * s] = true;
+    }
+    Percolator::CappedTrainingInfo lc_relabel;
+    std::vector<std::vector<double>> lc_relabel_w;
+    curve(0.002, 8, 17, &lc_relabel, &lc_relabel_w);
+    input.is_decoy = labels;
+    bool fold0_same = lc_relabel.chosen_size[0] == lc.chosen_size[0] && lc_relabel.curve_sizes == lc.curve_sizes;
+    bool others_changed = false;
+    for (std::size_t k = 0; fold0_same && k < lc.curve_sizes.size(); ++k)
+    {
+      fold0_same = fold0_same && lc_relabel.curve_counts[k][0] == lc.curve_counts[k][0];
+      others_changed = others_changed || lc_relabel.curve_counts[k][1] != lc.curve_counts[k][1] ||
+                       lc_relabel.curve_counts[k][2] != lc.curve_counts[k][2];
+    }
+    for (std::size_t j = 0; fold0_same && j < lc_w[0].size(); ++j)
+    {
+      fold0_same = fold0_same && std::fabs(lc_relabel_w[0][j] - lc_w[0][j]) <= 1e-9 * (1.0 + std::fabs(lc_w[0][j]));
+    }
+    TEST_TRUE(fold0_same)
+    TEST_TRUE(others_changed)
+  }
+
   // the in-sample mode (the percolator executable's) stays: no fold record, one averaged model, other scores
   Percolator::CappedTrainingInfo info_in;
   std::vector<std::vector<double>> weights_in;

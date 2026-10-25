@@ -272,8 +272,8 @@ namespace OpenMS
     */
     const std::vector<std::vector<double>>& getSvmWeights() const;
 
-    /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold' or 'out_of_fold_avg',
-    ///        cap active).
+    /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold', 'out_of_fold_avg' or
+    ///        'learning_curve', active).
     struct CappedTrainingInfo
     {
       std::vector<int> fold;                          ///< per input row: its cross-validation fold, whose model scored it
@@ -281,6 +281,11 @@ namespace OpenMS
       std::vector<std::vector<size_t>> trained_rows;  ///< per fold: the input rows of its model's training set, ascending
       std::vector<int> scorer;                        ///< per input row: the model that scored it (getSvmWeights() index:
                                                       ///< its fold, or 3 = the average of the fold models)
+      // subset_mode 'learning_curve':
+      size_t validation_rows = 0;                     ///< rows of the validation spectra (never trained on)
+      std::vector<size_t> curve_sizes;                ///< training-sample rows of each trained size, in order
+      std::vector<std::vector<long>> curve_counts;    ///< per size and fold: validation targets (-1: fold had stopped)
+      std::vector<size_t> chosen_size;                ///< per fold: the sample rows of its kept model
     };
 
     /**

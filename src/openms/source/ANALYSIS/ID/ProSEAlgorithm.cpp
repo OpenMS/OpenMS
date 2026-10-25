@@ -415,9 +415,22 @@ namespace OpenMS
                        "outside the sample (which no model saw) are scored by the average of the fold models. "
                        "'in_sample' = the percolator executable's --subset-max-train: cross-validation on the sample and "
                        "all PSMs scored by the average of the fold models (the sampled PSMs by two models that trained on "
-                       "them).",
+                       "them). 'learning_curve' (also without a cap): out-of-fold training on nested samples of "
+                       "'rescoring:curve_start', twice, four times ... as many PSMs, up to 'rescoring:subset_max_train' (0: "
+                       "4,000,000) or the whole run but the validation spectra (the end of the random order, at most "
+                       "250,000 PSMs or 20 %); each fold's model stops at the first doubling that adds less than "
+                       "'rescoring:curve_min_gain' targets at 1 % among the validation spectra of the other folds (no label "
+                       "of its own fold is used); every PSM is scored by its fold's model. The sizes and the curve are "
+                       "recorded as Percolator:subset_curve.",
                        {"advanced"});
-    defaults_.setValidStrings("rescoring:subset_mode", {"out_of_fold", "out_of_fold_avg", "in_sample"});
+    defaults_.setValidStrings("rescoring:subset_mode", {"out_of_fold", "out_of_fold_avg", "in_sample", "learning_curve"});
+    defaults_.setValue("rescoring:curve_start", 100000, "'rescoring:subset_mode' learning_curve: PSMs of the first sample.",
+                       {"advanced"});
+    defaults_.setMinInt("rescoring:curve_start", 1);
+    defaults_.setValue("rescoring:curve_min_gain", 0.002,
+                       "'rescoring:subset_mode' learning_curve: a fold stops at the first doubling that adds less than "
+                       "this fraction of validation targets.", {"advanced"});
+    defaults_.setMinFloat("rescoring:curve_min_gain", 0.0);
     defaults_.setValue("rescoring:iterations", 10,
                        "Iterations of Percolator's cross-validation training (the percolator executable's --maxiter). "
                        "Fewer are faster; the results differ.",
@@ -843,6 +856,8 @@ namespace OpenMS
     rescore_ = param_.getValue("rescore").toString() == "true";
     percolator_training_.subset_max_train = static_cast<int>(param_.getValue("rescoring:subset_max_train"));
     percolator_training_.subset_mode = param_.getValue("rescoring:subset_mode").toString();
+    percolator_training_.curve_start = static_cast<int>(param_.getValue("rescoring:curve_start"));
+    percolator_training_.curve_min_gain = static_cast<double>(param_.getValue("rescoring:curve_min_gain"));
     percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
     percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
@@ -4564,6 +4579,8 @@ namespace OpenMS
       pp.setValue("post_processing_tdc", "true");
       pp.setValue("subset_max_train", training.subset_max_train);  // 0 (the default): train on all PSMs
       pp.setValue("subset_mode", training.subset_mode);
+      pp.setValue("subset_curve_start", training.curve_start);
+      pp.setValue("subset_curve_min_gain", training.curve_min_gain);
       pp.setValue("num_iterations", training.iterations);
       pp.setValue("tron_epsilon", training.tron_epsilon);
       pp.setValue("warm_start", training.warm_start ? "true" : "false");
@@ -5152,12 +5169,33 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
       run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
       run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
-      // (only with a cap and an out-of-fold mode: the output without a cap, or in_sample, stays as it was)
-      if (static_cast<int>(pp.getValue("subset_max_train")) > 0 && pp.getValue("subset_mode").toString() != "in_sample")
+      // (only with a cap and an out-of-fold mode, or the learning curve: the output without a cap, or in_sample, stays
+      // as it was)
+      const std::string subset_mode = pp.getValue("subset_mode").toString();
+      if (subset_mode == "learning_curve" ||
+          (static_cast<int>(pp.getValue("subset_max_train")) > 0 && subset_mode != "in_sample"))
       {
-        run_sp.setMetaValue("Percolator:subset_mode", pp.getValue("subset_mode").toString());
+        run_sp.setMetaValue("Percolator:subset_mode", subset_mode);
       }
       else run_sp.removeMetaValue("Percolator:subset_mode");
+      // the learning curve: "validation=<rows>; <sample rows>:<validation targets per fold>; ...; chosen=<rows per fold>"
+      const Percolator::CappedTrainingInfo& capped = perc.getCappedTrainingInfo();
+      if (subset_mode == "learning_curve" && !capped.curve_sizes.empty())
+      {
+        std::string curve = "validation=" + std::to_string(capped.validation_rows);
+        for (size_t k = 0; k < capped.curve_sizes.size(); ++k)
+        {
+          curve += "; " + std::to_string(capped.curve_sizes[k]) + ":";
+          for (size_t f = 0; f < capped.curve_counts[k].size(); ++f)
+          {
+            curve += (f ? "/" : "") + std::to_string(capped.curve_counts[k][f]);
+          }
+        }
+        curve += "; chosen=";
+        for (size_t f = 0; f < capped.chosen_size.size(); ++f) curve += (f ? "/" : "") + std::to_string(capped.chosen_size[f]);
+        run_sp.setMetaValue("Percolator:subset_curve", curve);
+      }
+      else run_sp.removeMetaValue("Percolator:subset_curve");
       run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
       run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
       run_sp.setMetaValue("Percolator:train_best_positive", "true");

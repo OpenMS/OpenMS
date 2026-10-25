@@ -71,6 +71,8 @@ struct OutOfFoldSample
   /// spectra in the input and among the sampled rows
   std::size_t num_spectra = 0;
   std::size_t num_sampled_spectra = 0;
+  /// the rows of the validation spectra (@p validation_rows > 0), ascending; never sampled
+  std::vector<std::size_t> validation_rows;
 };
 
 /// @brief Out-of-fold capped training: assigns every spectrum of the input to a cross-validation fold and draws a
@@ -92,11 +94,18 @@ struct OutOfFoldSample
 /// @param scans      length n_rows: each row's scan number
 /// @param max_train  cap on the sampled rows (> 0)
 /// @param seed       the seed of the draw (Percolator's seed)
+/// With @p validation_rows > 0 (the learning-curve mode), the spectra at the END of the priority order are set aside
+/// first, for as long as their rows fit into @p validation_rows (from the last spectrum backwards, stopping at the first
+/// that does not fit), and the sample is drawn from the other spectra. The validation spectra do not depend on
+/// @p max_train, and the samples of increasing @p max_train are nested (prefixes of the same order).
+///
 /// @param num_folds  number of cross-validation folds (> 0)
+/// @param validation_rows  rows set aside as validation spectra (0 = none)
 OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_files,
                                    const std::vector<int>& scans,
                                    std::size_t max_train,
                                    std::uint64_t seed,
-                                   unsigned int num_folds);
+                                   unsigned int num_folds,
+                                   std::size_t validation_rows = 0);
 
 }}}  // namespace OpenMS::Internal::Percolator

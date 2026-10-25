@@ -99,7 +99,8 @@ OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_files,
                                    const std::vector<int>& scans,
                                    std::size_t max_train,
                                    std::uint64_t seed,
-                                   unsigned int num_folds)
+                                   unsigned int num_folds,
+                                   std::size_t validation_rows)
 {
   if (spec_files.size() != scans.size() || max_train == 0 || num_folds == 0 || num_folds > 255)
   {
@@ -113,6 +114,7 @@ OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_files,
     std::size_t rows = 0;
     unsigned char fold = 0;
     bool sampled = false;
+    bool validation = false;
   };
   std::vector<Spectrum> spectra;
   std::vector<std::size_t> spectrum_of_row(n_rows);
@@ -146,9 +148,17 @@ OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_files,
   });
   OutOfFoldSample out;
   out.num_spectra = spectra.size();
+  std::size_t set_aside = 0;
+  for (auto it = order.rbegin(); validation_rows > 0 && it != order.rend(); ++it)
+  {
+    if (spectra[*it].rows > validation_rows - set_aside) break;
+    set_aside += spectra[*it].rows;
+    spectra[*it].validation = true;
+  }
   std::size_t taken = 0;
   for (std::size_t s : order)
   {
+    if (spectra[s].validation) break;
     if (spectra[s].rows > max_train - taken) break;
     taken += spectra[s].rows;
     spectra[s].sampled = true;
@@ -161,6 +171,7 @@ OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_files,
     const Spectrum& s = spectra[spectrum_of_row[i]];
     out.fold[i] = s.fold;
     if (s.sampled) out.sampled_rows.push_back(i);
+    if (s.validation) out.validation_rows.push_back(i);
   }
   return out;
 }

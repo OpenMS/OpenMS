@@ -163,6 +163,33 @@ START_SECTION((OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_
   TEST_EQUAL(one.sampled_rows.size(), 0)
   TEST_EQUAL(one.num_spectra, 1)
   TEST_EXCEPTION(std::invalid_argument, drawOutOfFoldSample(files, scans, 0, 1, 3))
+  // validation spectra (learning curve): set aside first, the same for every cap, never sampled, whole spectra; the
+  // samples of growing caps are nested and leave the folds unchanged
+  {
+    const OutOfFoldSample small = drawOutOfFoldSample(files, scans, 5000, 1, 3, 8000);
+    const OutOfFoldSample large = drawOutOfFoldSample(files, scans, 20000, 1, 3, 8000);
+    TEST_TRUE(small.validation_rows == large.validation_rows)
+    TEST_TRUE(small.validation_rows.size() <= 8000 && small.validation_rows.size() + 3 > 8000)
+    TEST_TRUE(small.fold == oof.fold && large.fold == oof.fold)
+    std::vector<char> in_validation(n_rows, 0), in_large(n_rows, 0);
+    for (std::size_t r : large.validation_rows) in_validation[r] = 1;
+    for (std::size_t r : large.sampled_rows) in_large[r] = 1;
+    bool disjoint = true, nested = true, whole = true;
+    for (std::size_t r : large.sampled_rows) disjoint = disjoint && !in_validation[r];
+    for (std::size_t r : small.sampled_rows) nested = nested && in_large[r];
+    std::map<std::pair<int, int>, int> v_of_spectrum;
+    for (std::size_t r = 0; r < n_rows; ++r)
+    {
+      auto it = v_of_spectrum.emplace(std::make_pair(files[r], scans[r]), in_validation[r]).first;
+      whole = whole && it->second == in_validation[r];
+    }
+    TEST_TRUE(disjoint)
+    TEST_TRUE(nested)
+    TEST_TRUE(whole)
+    TEST_TRUE(large.sampled_rows.size() <= 20000 && large.sampled_rows.size() + 3 > 20000)
+    // without validation spectra, the sample of a cap is the same as before
+    TEST_TRUE(drawOutOfFoldSample(files, scans, max_train, 1, 3, 0).sampled_rows == oof.sampled_rows)
+  }
 }
 END_SECTION
 
