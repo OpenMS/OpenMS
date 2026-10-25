@@ -22,9 +22,20 @@ passed. Deeper checks also built the native core/tool/private test and passed al
 32 selected native CTests plus the 12-step installed-SDK consumer fixture, including
 six nested consumer tests. They exposed and fixed a stale single-file source path
 in the SDK fixture, committed as [094bf09ef8](https://github.com/OpenMS/OpenMS/commit/094bf09ef8).
-The v0 contract increments remain pending. No implementation PR is open. Detailed
+The step-2 owning-coordinate increment is now implemented in
+[919681d30b](https://github.com/OpenMS/OpenMS/commit/919681d30b) and
+[6d4801f95a](https://github.com/OpenMS/OpenMS/commit/6d4801f95a): private raw tiles,
+sparse hypothesis/evidence records, explicit units/identities, missingness,
+schema rejection and safe ownership. Real-loader producer/consumer checks
+preserve all 513 non-IM, 32,750 IM and 44,354 FAIMS points, plus retained sparse
+evidence after producer destruction. All **34 selected native CTests**, standalone
+**3/3**, final NDEBUG record **2/2**, and the repeated installed-SDK **12-step / six
+nested-consumer** checks pass. These are count-bounded v0 boundary contracts,
+not production streaming adapters or a memory/performance improvement claim.
+Next is complete extraction-query identity, followed by families/scores and the
+complete v0 handoff. WP-01 stays open. No implementation PR is open. Detailed
 observations and optional-platform/runtime limitations are recorded in
-[WP-01](work-packages/01-contracts.md#observed-starter-implementation-25-october-2026).
+[WP-01](work-packages/01-contracts.md#observed-owning-record-increment-25-october-2026).
 
 ## Current verification status
 

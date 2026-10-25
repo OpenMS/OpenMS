@@ -1,7 +1,7 @@
 # WP-01: Contracts and scientific semantics
 
 - **Track:** data handling.
-- **Status:** in progress, first private-engine increment started 25 October 2026. **Owner / reviewer:** ownership is tracked in GitHub.
+- **Status:** in progress, private-engine boundary and owning-record increment implemented and validated 25 October 2026. **Owner / reviewer:** ownership is tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10663](https://github.com/OpenMS/OpenMS/issues/10663).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
@@ -19,7 +19,7 @@ Provide small, explicitly unstable v0 interfaces that unblock independent adapte
 
 ## Implementation roadmap
 
-Deliver small, reviewable commits in the order below. The first increment is
+Deliver small, reviewable commits in the order below. The first two increments are
 implemented on `feature/opendia-wp01-private-engine`, based on clean upstream
 `3e47bc7e7468656d0d53237f11fc4f049d278efe`, with standalone, full native
 in-tree and installed-SDK workflow validation complete. Keep implementation
@@ -38,7 +38,7 @@ Do not include the optional WP-00 profiler.
   Build out of tree and rerun the existing public OpenDIA TOPP producers,
   SQLite/Parquet comparisons, predicted mode and failure-path tests.
 
-### 2. Coordinates, identities and ownership (pending)
+### 2. Coordinates, identities and ownership (implemented and locally validated)
 
 - Add minimal v0 raw tile, hypothesis-page and sparse evidence value records.
   Document units and exact coordinate references, stable run/precursor/family IDs,
@@ -126,19 +126,80 @@ and its incremental continuation completed successfully.
 
 **Still outside this check:** other platforms and optional RAW/opentims build
 configurations. `clang-format` is not available locally. No implementation PR has
-been opened. Coordinates/ownership, extraction keys, families and scores remain
-subsequent increments, not delivered by this mechanical move.
+been opened. This mechanical move did not deliver coordinates/ownership. The
+separate step-2 increment below now does. Extraction keys, families and scores
+remain subsequent increments.
+
+## Observed owning-record increment, 25 October 2026
+
+Implementation [919681d30b](https://github.com/OpenMS/OpenMS/commit/919681d30b)
+adds concrete `RawTile`, CSR `HypothesisPage` and sparse `EvidenceBlock` records
+to the same private `OpenDIA_impl` archive. Follow-up
+[6d4801f95a](https://github.com/OpenMS/OpenMS/commit/6d4801f95a) preserves exact
+native acquisition IDs and adds real-loader interoperability coverage. Both are
+on `feature/opendia-wp01-private-engine`, separate from this planning branch.
+The tool-local [contract document](https://github.com/OpenMS/OpenMS/blob/feature/opendia-wp01-private-engine/src/topp/OpenDIA/CONTRACTS.md)
+specifies units, caller identity namespaces, immutable owning copy leases,
+count limits, sparse missingness and schema rejection. Scientific freeze remains
+pending WP-07 review.
+
+Observed checks over the complete step-2 result:
+
+- Actual native ClassTest checks pass copies, moves, assignment, producer
+  destruction, detached value independence, empty records, exact limits and
+  invalid access. Production validators reject unknown schemas/enums, nonfinite
+  values, malformed/overflowing CSR offsets, reversed geometry and exceeded caps.
+  Explicit missing evidence, measured zero, absent mobility, both continuous IM
+  units, zero FAIMS and negative baseline-corrected intensity remain distinct.
+- `OpenDIARecordsInterop_test` loads existing mzML files using the real public
+  `MzMLFile`, destroys the producer experiment, and compares **every retained raw
+  point** against an independent load. Observed counts are **513 non-IM points
+  from 114 spectra**, **32,750 IM points from 150 spectra**, and **44,354 discrete
+  FAIMS points from 19 spectra**. RT/mz/intensity, caller frame/scan IDs, source
+  native ID, MS level, isolation edges, continuous IM units/values and FAIMS
+  presence/voltage compare exactly. The source RT conversion to seconds is kept.
+- Sparse evidence retains **257 / 16,375 / 22,177** selected observations after
+  its originating tile and hypothesis page are destroyed, with exact identities,
+  coordinates and values. This tests transfer/ownership, not scientific matching.
+- The actual `TransitionTSVFile` loads the workflow-17 library. A fixed caller
+  identity registry, independent of page position, preserves **six hypotheses
+  and 18 transitions**, their mz/intensity, target/decoy state and provenance.
+  Normalized library RT and unit-unspecified IM are deliberately absent from
+  physical prediction fields, not silently relabelled as seconds or known IM.
+  Original metadata remains in the library store.
+- **34/34 selected native CTests pass**, including all 28 existing public OpenDIA
+  workflows, entry/INI/registry checks and both new record tests. Standalone Debug
+  SDK build/tests pass **3/3**. A separate final `-DNDEBUG` build passes both
+  record tests **2/2**, so rejection and test checks do not disappear with asserts.
+- The real installed-SDK fixture again passes **12/12** setup/configure/build/run
+  CTests and **6/6** nested consumers. No private OpenDIA headers, archive or CMake
+  interface are installed/exported. Native archive/link inspection confirms the
+  tests use the production validators and real class-test helper, not copied code.
+- The first real-loader run correctly rejected the assumption that workflow-17
+  mzML was non-IM. The non-IM case now uses existing workflow-1, and the acquisition
+  coverage assertion remains active. Legacy library label-group and FAIMS-file
+  metadata warnings are emitted by the real loaders, not hidden or treated as a
+  changed scientific result. Git whitespace checks pass, no new compiler warnings.
+
+**Limits of this increment:** count caps are not byte accounting or run-level
+memory admission. The by-value record layout is not a packed performance design.
+The real-loader test is a boundary fixture, not a production WP-03/04/05 adapter,
+streaming implementation or end-to-end scientific extractor. No existing workflow
+algorithm/default changed. Other platforms, optional RAW/opentims configurations
+and self-contained runtime relocation remain untested. `clang-format` is unavailable.
+No implementation PR is open. **Next: step 3, complete extraction-query identity.**
+Step 4 still owns alternatives/nulls, scores and the complete v0 handoff.
 
 ## Requirement-to-check map
 
-| Requirement | Planned acceptance check |
+| Requirement | Acceptance check and current observation |
 |---|---|
 | One real private implementation, no public API | Native target graph and link commands show executable/test linking the same target. Build-tree and standalone tool builds work. Installation/export files contain no OpenDIA interface. |
 | Behavior-preserving first move | Existing TOPP workflow tests pass with the relocated binary. Parameter/INI output matches the baseline apart from declared executable/build provenance fields and unordered protease allowed-value ordering. |
-| Coordinate and missingness semantics | Producer/consumer record round trips preserve IDs, exact RT/mz/IM coordinates, absent/zero masks and discrete FAIMS strata. |
-| No false query sharing | Per-field key mutations and a constant-hasher container retain unequal scientific queries separately. |
-| Checked ownership/schema/bounds | Invalid lifetime/view access, offsets, nonfinite coordinates and unknown versions fail explicitly. Owned output survives producer/tile destruction. |
-| Family ambiguity preserved | Round trips retain all declared alternatives/nulls and separate identification/localization/quantification fields. Freeze remains pending WP-07, not a local closure blocker. |
+| Coordinate and missingness semantics | Step-2 production record tests and actual mzML/TSV producer/consumer checks pass, with exact counts and fields reported above. Family alternatives remain step 4. |
+| No false query sharing | Pending step 3: per-field key mutations and a constant-hasher container must retain unequal scientific queries separately. |
+| Checked ownership/schema/bounds | Actual production validators and native/standalone/NDEBUG tests pass all declared rejection and ownership checks. Real-loaded evidence survives producer/tile/page destruction. |
+| Family ambiguity preserved | Pending step 4: round trips must retain all declared alternatives/nulls and separate identification/localization/quantification fields. Freeze remains pending WP-07, not a local closure blocker. |
 
 ## Dependencies
 
@@ -151,7 +212,11 @@ subsequent increments, not delivered by this mechanical move.
 - [x] An out-of-tree build links the tool and private tests against the same static/OBJECT implementation, with no installed OpenDIA interface.
 - [ ] Round trips preserve IDs, exact coordinate references, missing versus zero, discrete FAIMS strata and unresolved family alternatives.
 - [ ] Query-key tests vary every scientific field, including calibration identity, and reject false sharing under forced hash collisions.
-- [ ] Tests reject malformed offsets, unknown schema versions and invalid ownership/lifetime use.
+- [x] Tests reject malformed offsets, unknown schema versions and invalid ownership/lifetime use.
 - [ ] A producer/consumer fixture passes using v0 records, and the contract document marks freeze pending WP-07 experiment review rather than blocking local closure.
+
+The raw/hypothesis/evidence producer/consumer path and unstable contract document
+now pass. The final fixture/handoff checkbox remains open for complete v0 keys,
+family alternatives/nulls and scores in steps 3 and 4, not for WP-07 freeze.
 
 **Integration gates:** WP-09 owns public workflow checks, and WP-10 owns representative quality/resource/performance acceptance.
