@@ -5553,12 +5553,17 @@ namespace OpenMS
       }
 
       /// By the waiting thread: runs the work (with the OpenMP threads of this thread) if the reader opens it, or returns
-      /// once the reader closes.
+      /// once the reader closes. The thread then waits for the spectra.
       void help()
       {
         std::function<void()> work;
         {
           std::unique_lock<std::mutex> lock(mutex_);
+#ifdef _OPENMP
+          waiting_threads_ = omp_get_max_threads();
+#else
+          waiting_threads_ = 1;
+#endif
           changed_.wait(lock, [this]() { return work_ || done_; });
           if (!work_) { return; }
           work = work_;
@@ -5573,12 +5578,27 @@ namespace OpenMS
         work();
       }
 
+      /// By the reader: whether the reader took its threads from the thread that waits (see readBorrowsThreads())
+      void setLent(const bool lent) { lent_ = lent; }
+
+      /// By the reader, after the chunks: the OpenMP threads for its remaining parallel work, its own @p reader_threads
+      /// and, once the thread that waits for the spectra does (help() was called; it does nothing else until it has
+      /// them), those of that thread, too (if they were lent: the threads of both; otherwise as many as the larger team)
+      int joinThreads(const int reader_threads)
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (waiting_threads_ == 0) { return reader_threads; }
+        return lent_ ? reader_threads + waiting_threads_ : std::max(reader_threads, waiting_threads_);
+      }
+
     private:
       std::mutex mutex_;
       std::condition_variable changed_;
       std::function<void()> work_;
       int helpers_ = 0;
       bool done_ = false;
+      int waiting_threads_ = 0; // OpenMP threads of the thread that waits for the spectra; 0: it does not wait yet
+      bool lent_ = false;
     };
 
     // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
@@ -5840,7 +5860,15 @@ namespace OpenMS
       exp.setChromatograms(std::move(chromatograms));
       exp.setLoadedFileType(filename);
       exp.setLoadedFilePath(filename);
-      exp.updateRanges();
+      {
+        // in parallel (MSExperiment::updateRanges()), also with the threads of a thread that waits for the spectra
+#ifdef _OPENMP
+        const int own_threads = omp_get_max_threads();
+        omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads);
+        const OnScopeExit restore([own_threads]() { omp_set_num_threads(own_threads); });
+#endif
+        exp.updateRanges();
+      }
       return true;
     }
 
@@ -5978,6 +6006,7 @@ namespace OpenMS
         const int threads = !borrow ? chunk_threads : reader_threads > 0 ? reader_threads : readerThreads(true);
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
         help_ = std::make_shared<ChunkHelp>();
+        help_->setLent(borrow);
         spectra_ = std::async(std::launch::async, [&filename, threads, chunk_threads, help = help_]()
         {
           const OnScopeExit done([&help]() { help->close(); }); // get() waits no longer for chunks to parse
