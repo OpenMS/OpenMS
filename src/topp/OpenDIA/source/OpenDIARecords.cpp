@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #include "OpenDIARecords.h"
 #include <OpenMS/CONCEPT/Exception.h>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <utility>
@@ -61,7 +62,48 @@ namespace OpenDIA
     {
       require(index < size, "Record index out of bounds");
     }
+    void interval(const QueryInterval& value)
+    {
+      finite(value.lower);
+      finite(value.upper);
+      require(value.lower <= value.upper, "Reversed query interval");
+      require(value.edges == EdgePolicy::OPEN || value.edges == EdgePolicy::CLOSED ||
+              value.edges == EdgePolicy::LOWER_CLOSED || value.edges == EdgePolicy::UPPER_CLOSED,
+              "Unknown interval edge policy");
+    }
   }
+
+  ExtractionQuery::ExtractionQuery(ExtractionQuerySpec specification) : specification_(std::move(specification))
+  {
+    auto& value = specification_;
+    OpenDIA::context(value.context);
+    require(value.ms_level > 0, "MS level must be nonzero");
+    interval(value.mz);
+    if (value.isolation_mz) { interval(*value.isolation_mz); }
+    if (value.rt_seconds) { interval(*value.rt_seconds); }
+    if (value.mobility)
+    {
+      interval(value.mobility->interval);
+      mobility(Mobility{value.mobility->interval.lower, value.mobility->unit});
+    }
+    optionalFinite(value.faims_voltage);
+    finite(value.tolerance.full_width);
+    require(value.tolerance.full_width >= 0, "Negative full-width tolerance");
+    require(value.tolerance.unit == ToleranceUnit::TH || value.tolerance.unit == ToleranceUnit::PPM,
+            "Unknown tolerance unit");
+    require(value.aggregation == QueryAggregation::RAW_POINTS || value.aggregation == QueryAggregation::SUM,
+            "Unknown aggregation");
+    require((value.isotope.mode == IsotopeMode::NONE && value.isotope.index == 0 && value.isotope.charge == 0) ||
+            (value.isotope.mode == IsotopeMode::SELECTED && value.isotope.charge > 0), "Invalid isotope policy");
+    // Acquisition order has no scientific meaning. No physical value is rounded or converted.
+    if (value.acquisitions)
+    {
+      auto& selection = *value.acquisitions;
+      std::sort(selection.begin(), selection.end());
+      selection.erase(std::unique(selection.begin(), selection.end()), selection.end());
+    }
+  }
+  ExtractionQuerySpec ExtractionQuery::specification() const { return specification_; }
 
   struct RawTile::Storage
   {

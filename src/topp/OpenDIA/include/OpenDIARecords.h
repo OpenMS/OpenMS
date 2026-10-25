@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace OpenDIA
@@ -24,6 +25,7 @@ namespace OpenDIA
     RecordId run_id = 0;
     RecordId lane_id = 0;
     RecordId calibration_snapshot_id = 0;
+    bool operator==(const RecordContext&) const = default;
   };
 
   /// Caller-specified maximum record and flattened value counts (zero is valid).
@@ -34,6 +36,72 @@ namespace OpenDIA
   };
 
   enum class MobilityUnit { MILLISECOND, INVERSE_REDUCED };
+  enum class EdgePolicy { OPEN, CLOSED, LOWER_CLOSED, UPPER_CLOSED };
+  /// Absolute physical bounds. Equal endpoints are allowed, including empty open intervals.
+  struct QueryInterval
+  {
+    double lower = 0;
+    double upper = 0;
+    EdgePolicy edges = EdgePolicy::OPEN;
+    bool operator==(const QueryInterval&) const = default;
+  };
+  struct MobilityInterval
+  {
+    QueryInterval interval;
+    MobilityUnit unit = MobilityUnit::MILLISECOND;
+    bool operator==(const MobilityInterval&) const = default;
+  };
+  enum class ToleranceUnit { TH, PPM };
+  struct QueryTolerance
+  {
+    double full_width = 0;
+    ToleranceUnit unit = ToleranceUnit::TH;
+    bool operator==(const QueryTolerance&) const = default;
+  };
+  enum class QueryAggregation { RAW_POINTS, SUM };
+  enum class IsotopeMode { NONE, SELECTED };
+  /// SELECTED records a nonnegative isotope index and positive charge magnitude.
+  /// NONE requires index and charge to be zero. Bounds are never derived here.
+  struct IsotopePolicy
+  {
+    IsotopeMode mode = IsotopeMode::NONE;
+    unsigned index = 0;
+    unsigned charge = 0;
+    bool operator==(const IsotopePolicy&) const = default;
+  };
+  /// Unstable v0 tophat-only request. Producers supply canonical physical bounds.
+  struct ExtractionQuerySpec
+  {
+    RecordContext context;
+    /// Absent means all acquisitions, present empty means none. IDs are opaque pairs.
+    std::optional<std::vector<std::pair<RecordId, RecordId>>> acquisitions;
+    unsigned ms_level = 1;
+    std::optional<QueryInterval> isolation_mz;
+    std::optional<QueryInterval> rt_seconds;
+    QueryInterval mz;
+    std::optional<MobilityInterval> mobility;
+    std::optional<double> faims_voltage;
+    QueryTolerance tolerance;
+    QueryAggregation aggregation = QueryAggregation::RAW_POINTS;
+    IsotopePolicy isotope;
+    bool operator==(const ExtractionQuerySpec&) const = default;
+  };
+  /** @brief Checked, tool-private v0 value key. No extraction or cache integration. */
+  class ExtractionQuery
+  {
+  public:
+    /**
+      @brief Validate a specification and sort/deduplicate only its acquisition set.
+      @param[in] specification Physical request and immutable caller snapshot identity.
+      @throws OpenMS::Exception::InvalidValue for malformed input.
+    */
+    explicit ExtractionQuery(ExtractionQuerySpec specification);
+    ExtractionQuerySpec specification() const;
+    bool operator==(const ExtractionQuery&) const = default;
+  private:
+    ExtractionQuerySpec specification_;
+  };
+
   struct Mobility
   {
     double value = 0;

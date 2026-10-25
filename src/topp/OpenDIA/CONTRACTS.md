@@ -1,9 +1,47 @@
 # OpenDIA private records, unstable v0
 
-These contracts implement roadmap step 2 only. They are tool-local, not installed,
+These contracts implement roadmap steps 2 and 3 only. They are tool-local, not installed,
 not a public OpenMS API, and **not frozen**. Scientific freeze is pending the WP-07
-experiment review. Extraction keys, family inference, score semantics and full
+experiment review. Family inference, score semantics and full
 WP-01 completion are deliberately not implemented here.
+
+## Extraction-query identity
+
+`ExtractionQuery` is a checked plain value key, not an extractor, storage layer or
+cache integration. `specification()` returns a detached value. All nested equality
+is standard defaulted equality: exact finite doubles, signed zero equal, adjacent
+representable doubles unequal. Equality is conservative, not proof of scientific
+interchangeability. No fuzzy bins, unit conversions or inferred calibration apply.
+Caller calibration snapshot IDs must name immutable snapshots in their namespace.
+
+The specification includes context, acquisition selection, nonzero MS level,
+optional absolute isolation m/z interval, optional RT interval in seconds,
+absolute m/z interval in Th, optional continuous mobility interval with explicit
+existing unit, optional discrete FAIMS voltage, full-width nonnegative tolerance
+in Th or ppm, aggregation and isotope policy. Absent isolation means no isolation
+restriction, absent RT means all RT, absent mobility means no mobility restriction,
+and absent FAIMS means no voltage restriction, not 0 V. Acquisition selection is
+an optional set of opaque `(frame_id, scan_id)` pairs, not ordinal ranges. Absent
+means all acquisitions, present empty means none. Only this set is sorted and
+deduplicated. Neither caller inputs nor getter copies can mutate a retained key.
+
+Each interval explicitly selects OPEN, CLOSED, LOWER_CLOSED or UPPER_CLOSED edges.
+Bounds must be finite and ordered, with equal bounds allowed. LOWER_CLOSED includes
+only the lower endpoint and UPPER_CLOSED only the upper endpoint. Existing tophat
+extraction uses CLOSED RT and OPEN m/z and mobility edges. This unstable v0 supports
+only the fixed tophat profile. Unsupported filters require a contract extension,
+not a speculative enum or silent fallback. RAW_POINTS retains individual points
+and SUM requests their intensity sum over the selected support. These are request
+semantics only, with no algorithm supplied here.
+
+Isotope NONE requires index and charge zero. SELECTED identifies one nonnegative
+isotope index (zero is monoisotopic) and positive charge magnitude. The producer
+supplies the corresponding canonical physical bounds. No isotope shift, widening,
+calibration or tolerance arithmetic is inferred. Tolerance remains request policy
+even when bounds coincide: consumers must honor every field or reject unsupported
+requests, never silently ignore one. Invalid schema, enum, nonfinite values,
+reversed bounds, negative tolerance and ambiguous isotope state are rejected.
+There is deliberately no production hasher until a real WP-05 consumer exists.
 
 ## Coordinates and identities
 
