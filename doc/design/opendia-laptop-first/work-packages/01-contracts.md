@@ -71,8 +71,9 @@ Do not include the optional WP-00 profiler.
   Do not freeze new family partitioning, null/decoy science or confidence semantics.
 - Exercise the complete v0 producer/consumer path with non-IM, IM and discrete
   FAIMS examples, absent versus zero support, alternatives and malformed records.
-- Publish a short contract document with field units, ownership, validators and
-  schema rejection. Mark scientific freeze pending the WP-07 experiment review.
+- Keep the [contract narrative](../contracts-v0.md) with field units, ownership,
+  validators and schema rejection on this planning branch, not in the implementation
+  branch or its pull request. Mark scientific freeze pending WP-07 experiment review.
   Hand v0 to WP-02/03/04/05/08 and early WP-09 without waiting for that freeze.
 
 ## Observed starter implementation, 25 October 2026
@@ -138,7 +139,7 @@ to the same private `OpenDIA_impl` archive. Follow-up
 [6d4801f95a](https://github.com/OpenMS/OpenMS/commit/6d4801f95a) preserves exact
 native acquisition IDs and adds real-loader interoperability coverage. Both are
 on `feature/opendia-wp01-private-engine`, separate from this planning branch.
-The tool-local [contract document](https://github.com/OpenMS/OpenMS/blob/feature/opendia-wp01-private-engine/src/topp/OpenDIA/CONTRACTS.md)
+The planning-only [contract document](../contracts-v0.md)
 specifies units, caller identity namespaces, immutable owning copy leases,
 count limits, sparse missingness and schema rejection. Scientific freeze remains
 pending WP-07 review.
@@ -368,5 +369,15 @@ and unstable contract document now pass, as do both genuine public CLI output
 handoffs. All five criteria and the final adversarial review are locally verified.
 Upstream integration remains, not further WP-01 record implementation or the
 separate WP-07 scientific freeze.
+
+## Next WP-01 action
+
+Open an implementation-only pull request from `feature/opendia-wp01-private-engine`
+against `develop`, obtain upstream review and passing CI, then integrate and close
+#10663 / move its project item to Done. No PR or merge has been performed yet.
+Keep this master plan and the [v0 contract narrative](../contracts-v0.md) on the
+planning branch, outside that PR. No additional v0 record scaffolding is needed.
+WP-02 resource accounting/admission is the next development package and can use v0
+without waiting for the separate WP-07 scientific freeze.
 
 **Integration gates:** WP-09 owns public workflow checks, and WP-10 owns representative quality/resource/performance acceptance.

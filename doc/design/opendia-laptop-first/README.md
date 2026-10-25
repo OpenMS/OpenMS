@@ -63,6 +63,10 @@ same SDK, normalizing only unordered enzyme choices. WP-01 is locally reviewed
 and ready for upstream integration, with its issue open and project **In review**.
 No implementation PR is open or merge performed. This is not a request for more
 record scaffolding or a scientific freeze.
+The [v0 contract narrative](contracts-v0.md) stays on this planning branch only,
+outside the implementation branch and its future pull request. WP-01's next
+step is an implementation-only PR against `develop`, upstream review/CI and
+integration, then issue/project closure.
 Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now. **Next
 implementation increment: WP-02 resource accounting/admission.** Family/null/decoy
 scientific freeze remains a separate WP-07 milestone. Detailed observations and
