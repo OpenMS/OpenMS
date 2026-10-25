@@ -2896,37 +2896,79 @@ namespace OpenMS
     // searchDifferentPrecursorRanges() and getPeptidesInMassWindow(). The margin only covers a different
     // rounding of the same expressions (e.g. fused multiply-adds in one place only); it is far smaller
     // than a window.
-    std::vector<std::pair<float, float>> windows;
-    std::vector<uint16_t> charges;
-    for (const MSSpectrum& spectrum : spectra)
+    // The windows of the spectra in parallel, each thread those of a contiguous range of the spectra, joined in spectrum
+    // order, and sorted in parallel (pairs of floats without NaN: equal ones are alike but for the sign of a zero, which no
+    // comparison below tells apart). On one thread the 250,000 spectra of a timsTOF run took 0.12 s, mostly in the sort.
+    const SignedSize num_spectra = static_cast<SignedSize>(spectra.size());
+    int num_parts = 1;
+#ifdef _OPENMP
+    num_parts = static_cast<int>(std::clamp<SignedSize>(num_spectra / 4096, 1, omp_get_max_threads()));
+#endif
+    std::vector<std::vector<std::pair<float, float>>> part_windows(num_parts);
+    std::vector<char> part_nan(num_parts, 0); // the range has a NaN bound, its ranges after it were not looked at
+    std::vector<std::exception_ptr> part_errors(num_parts); // an exception must not leave the parallel region
+#pragma omp parallel for schedule(static, 1) num_threads(num_parts)
+    for (int part = 0; part < num_parts; ++part)
+    try
     {
-      if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) { continue; } // not searched
-      const Precursor& precursor = spectrum.getPrecursors()[0];
-      charges.clear();
-      if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
-      else
+      std::vector<std::pair<float, float>>& windows = part_windows[part];
+      std::vector<uint16_t> charges;
+      for (SignedSize s = num_spectra * part / num_parts; s < num_spectra * (part + 1) / num_parts; ++s)
       {
-        for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
-      }
-      for (const uint16_t charge : charges)
-      {
-        const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
-        for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+        const MSSpectrum& spectrum = spectra[s];
+        if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) { continue; } // not searched
+        const Precursor& precursor = spectrum.getPrecursors()[0];
+        charges.clear();
+        if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
+        else
         {
-          const float shifted_mass = precursor_mass
-            + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
-          const auto window = computeMassWindow_(shifted_mass);
-          const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
-          const float lo = shifted_mass + window.first - margin;
-          const float hi = shifted_mass + window.second + margin;
-          // a NaN bound gives the query an arbitrary peptide range: keep them all
-          if (std::isnan(lo) || std::isnan(hi)) { return; }
-          windows.emplace_back(lo, hi);
+          for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
         }
+        for (const uint16_t charge : charges)
+        {
+          const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
+          for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+          {
+            const float shifted_mass = precursor_mass
+              + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+            const auto window = computeMassWindow_(shifted_mass);
+            const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
+            const float lo = shifted_mass + window.first - margin;
+            const float hi = shifted_mass + window.second + margin;
+            // a NaN bound gives the query an arbitrary peptide range: keep them all
+            if (std::isnan(lo) || std::isnan(hi)) { part_nan[part] = 1; break; }
+            windows.emplace_back(lo, hi);
+          }
+          if (part_nan[part]) { break; }
+        }
+        if (part_nan[part]) { break; }
       }
     }
-    if (windows.empty()) { return; } // nothing will be searched
+    catch (...)
+    {
+      part_errors[part] = std::current_exception();
+    }
+    // what the first range in spectrum order with a NaN bound or an error had stopped at, on one thread
+    Size num_windows = 0;
+    for (int part = 0; part < num_parts; ++part)
+    {
+      if (part_errors[part]) { std::rethrow_exception(part_errors[part]); }
+      if (part_nan[part]) { return; }
+      num_windows += part_windows[part].size();
+    }
+    if (num_windows == 0) { return; } // nothing will be searched
+    std::vector<std::pair<float, float>> windows;
+    windows.reserve(num_windows);
+    for (std::vector<std::pair<float, float>>& w : part_windows)
+    {
+      windows.insert(windows.end(), w.begin(), w.end());
+      std::vector<std::pair<float, float>>().swap(w);
+    }
+#ifdef _OPENMP
+    boost::sort::block_indirect_sort(windows.begin(), windows.end(), static_cast<uint32_t>(std::max(1, omp_get_max_threads())));
+#else
     std::sort(windows.begin(), windows.end());
+#endif
 
     // Moves the peptides of the merged windows to the front, in their order (the windows ascend).
     const size_t num_peptides = fi_peptides_.size();
