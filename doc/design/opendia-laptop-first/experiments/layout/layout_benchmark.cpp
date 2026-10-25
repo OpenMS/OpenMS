@@ -212,10 +212,13 @@ template<int Kind> struct Layout
     }
     if constexpr (Kind==4)
     {
-      mz_values.reserve(n); intensities.reserve(n); mobilities.reserve(n);
+      const bool has_mobility=std::any_of(s.rows.begin(),s.rows.end(),[](const auto& p){return p.coordinates.mobility.has_value();});
+      mz_values.reserve(n); intensities.reserve(n);
+      if(has_mobility) {mobilities.reserve(n);}
       for (const auto& p : s.rows)
       {
-        mz_values.push_back(p.coordinates.mz); intensities.push_back(p.intensity); mobilities.push_back(p.coordinates.mobility);
+        mz_values.push_back(p.coordinates.mz); intensities.push_back(p.intensity);
+        if(has_mobility) {mobilities.push_back(p.coordinates.mobility);}
       }
     }
   }
@@ -242,7 +245,7 @@ template<int Kind> struct Layout
     if constexpr (Kind==1) { return points[i].coordinates.mobility; }
     if constexpr (Kind==2) { return columns->mobility[i]; }
     if constexpr (Kind==3) { return hot[i].mobility; }
-    if constexpr (Kind==4) { return mobilities[i]; }
+    if constexpr (Kind==4) { return mobilities.empty() ? std::nullopt : mobilities[i]; }
   }
   HotPoint numeric(Index i) const
   {
@@ -334,6 +337,78 @@ template<class L> double extraction(const L& l,const std::vector<Target>& ts,dou
   { for(const auto& t:ts) {sum+=extract(l,scan,t,width,im);} }
   return sum;
 }
+// Exercise the existing public contiguous-array kernel, including adapter work.
+// AoS packs each scan once. SoA passes its actual numeric vectors directly.
+// IM optionals must be packed, with mixed/missing units filtered explicitly.
+// Iterators restart per target, so this is not the production pipeline schedule.
+template<int K> double publicKernel(const Layout<K>& l,const std::vector<Target>& ts,double width,
+                                    std::vector<double>* results=nullptr)
+{
+  OpenMS::ChromatogramExtractorAlgorithm extractor;
+  const bool need_im=std::any_of(ts.begin(),ts.end(),[](const auto& t){return t.mobility.has_value();});
+  double checksum=0;
+  for(Index scan=0;scan<l.metadata.size();++scan)
+  {
+    const auto first=l.offsets[scan], last=l.offsets[scan+1], count=last-first;
+    std::vector<double> packed_mz, packed_intensity, packed_im;
+    std::vector<std::optional<Mobility>> optional_im;
+    const std::vector<double>* mz=nullptr;
+    const std::vector<double>* intensity=nullptr;
+    Index base=0;
+    if constexpr(K==2) {mz=&l.columns->mz; intensity=&l.columns->intensity; base=first;}
+    else if constexpr(K==4) {mz=&l.mz_values; intensity=&l.intensities; base=first;}
+    else {packed_mz.reserve(count); packed_intensity.reserve(count); mz=&packed_mz; intensity=&packed_intensity;}
+    if(need_im) {optional_im.reserve(count); packed_im.reserve(count);}
+    for(Index i=first;i<last;++i)
+    {
+      if constexpr(K!=2 && K!=4)
+      {
+        const auto p=l.numeric(i);
+        packed_mz.push_back(p.mz); packed_intensity.push_back(p.intensity);
+        if(need_im) {optional_im.push_back(p.mobility);}
+      }
+      else if(need_im) {optional_im.push_back(l.mobility(i));}
+    }
+    const bool all_im=need_im && !optional_im.empty() && optional_im.front() &&
+      std::all_of(optional_im.begin(),optional_im.end(),[&](const auto& im){return im && im->unit==optional_im.front()->unit;});
+    if(all_im) {for(const auto& im:optional_im) {packed_im.push_back(im->value);}}
+    std::vector<double> filtered_mz, filtered_intensity, filtered_im;
+    for(const auto& t:ts)
+    {
+      auto begin=mz->cbegin()+base, end=begin+count, mz_it=begin;
+      auto int_it=intensity->cbegin()+base;
+      double value=0;
+      if(!t.mobility) {extractor.extract_value_tophat(begin,mz_it,end,int_it,t.mz,value,width,false);}
+      else if(all_im && optional_im.front()->unit==t.mobility->unit)
+      {
+        auto im_it=packed_im.cbegin();
+        extractor.extract_value_tophat(begin,mz_it,end,int_it,im_it,t.mz,t.mobility->value,value,width,0.1,false);
+      }
+      else
+      {
+        // The public API has no optional IM or unit column. Filter only actual
+        // points with a compatible unit, never fill missing IM with a number.
+        filtered_mz.clear(); filtered_intensity.clear(); filtered_im.clear();
+        filtered_mz.reserve(count); filtered_intensity.reserve(count); filtered_im.reserve(count);
+        for(Index i=0;i<count;++i)
+        {
+          const auto& im=optional_im[i];
+          if(im && im->unit==t.mobility->unit)
+          {
+            filtered_mz.push_back((*mz)[base+i]); filtered_intensity.push_back((*intensity)[base+i]); filtered_im.push_back(im->value);
+          }
+        }
+        auto filtered_begin=filtered_mz.cbegin(), filtered_end=filtered_mz.cend(), filtered_it=filtered_begin;
+        auto filtered_int=filtered_intensity.cbegin(), filtered_mobility=filtered_im.cbegin();
+        extractor.extract_value_tophat(filtered_begin,filtered_it,filtered_end,filtered_int,filtered_mobility,
+                                      t.mz,t.mobility->value,value,width,0.1,false);
+      }
+      checksum+=value;
+      if(results) {results->push_back(value);}
+    }
+  }
+  return checksum;
+}
 uint64_t mix(uint64_t h,uint64_t v) {return (h^v)*1099511628211ULL;}
 uint64_t hashRow(const RawPoint& p)
 {
@@ -380,6 +455,18 @@ template<class L> void validate(const L& l,const Source& s,const std::vector<Tar
     for(Index scan=0;scan<s.scans.size();++scan)
     {
       for(const auto& t:ts) {check(near(extract(l,scan,t,width,true),extract(oracle,scan,t,width,true)),"Extraction mismatch");}
+    }
+  }
+  // Check every individual public result, not only the aggregate checksum.
+  for(double width:{0.05,10.0})
+  {
+    std::vector<double> values;
+    values.reserve(s.scans.size()*ts.size());
+    publicKernel(l,ts,width,&values);
+    Index index=0;
+    for(Index scan=0;scan<s.scans.size();++scan)
+    {
+      for(const auto& t:ts) {check(near(values[index++],extract(oracle,scan,t,width,true)),"Public array kernel mismatch");}
     }
   }
   const auto ids=sparseIds(s.rows.size());
@@ -475,6 +562,12 @@ void selfTest()
 {
   const auto s=tiny();
   tinyCheck<0>(s); tinyCheck<1>(s); tinyCheck<2>(s); tinyCheck<3>(s); tinyCheck<4>(s);
+  auto absent=s;
+  for(auto& row:absent.rows) {row.coordinates.mobility.reset();}
+  for(auto& scan:absent.scans) {scan.mobility.reset();}
+  Layout<4> no_im(absent);
+  check(no_im.mobilities.empty() && no_im.mobilities.capacity()==0,"Absent IM must not allocate a factored SoA column");
+  validate(no_im,absent,targets(absent));
 }
 uint64_t allocated()
 {
@@ -548,6 +641,9 @@ template<int K> void run(const Source& source,const Source& original,const std::
   const auto wide=measure(repeats,[&]{return extraction(layout,ts,10.0);});
   const auto gather=measure(repeats,[&]{return sparse(layout,ids);});
   const auto audit=measure(repeats,[&]{return fullrow(layout,ids);});
+  const auto public_narrow=measure(repeats,[&]{return publicKernel(layout,ts,0.05);});
+  const auto public_wide=measure(repeats,[&]{return publicKernel(layout,ts,10.0);});
+  const auto final_peak=peakRss();
   std::cout << std::setprecision(17) << "LAYOUT_JSON {\"schema_version\":1,\"variant\":\"" << variant
             << "\",\"rows\":" << source.rows.size() << ",\"scans\":" << source.scans.size()
             << ",\"source_rows\":" << original.rows.size() << ",\"source_scans\":" << original.scans.size()
@@ -556,6 +652,12 @@ template<int K> void run(const Source& source,const Source& original,const std::
             << ",\"allocator_before_bytes\":" << before << ",\"allocator_after_bytes\":" << after
             << ",\"allocator_delta_bytes\":" << int64_t(after)-int64_t(before)
             << ",\"baseline_rss_bytes\":" << baseline << ",\"rss_bytes\":" << resident << ",\"peak_rss_bytes\":" << peak
+            << ",\"construction_rss_bytes\":" << resident << ",\"construction_peak_rss_bytes\":" << peak
+            << ",\"final_peak_rss_bytes\":" << final_peak
+            << ",\"memory_snapshot_stage\":\"after-construction-before-layout-validation-and-timed-kernels\""
+            << ",\"build_validation\":\"" << (K==0 ? "actual-RawTile-validation-included" : "candidate-packing-only-no-RawTile-validation") << '"'
+            << ",\"build_comparison\":\"not-equivalent-validation-work-do-not-rank-as-fair-construction-speed\""
+            << ",\"public_kernel_adapter\":\"AoS-per-scan-pack-SoA-direct-numeric-vectors-optional-IM-pack-iterators-reset-per-target\""
             << ",\"sizeof_raw_point\":" << sizeof(RawPoint) << ",\"sizeof_coordinates\":" << sizeof(Coordinates)
             << ",\"sizeof_hot_point\":" << sizeof(HotPoint) << ",\"sizeof_scan_metadata\":" << sizeof(ScanMetadata)
             << ",\"sparse_rows\":" << ids.size() << ",\"fullrow_rows\":" << ids.size()
@@ -564,7 +666,17 @@ template<int K> void run(const Source& source,const Source& original,const std::
             << ",\"public_reference\":\"unreplicated-nonempty-all-MS-levels-mz-and-perpeak-IM-unit-subsets\",\"kernel\":\"experimental-open-tophat-with-IM-where-target-present\",\"timings\":{";
   printTiming("dense",dense,false); printTiming("narrow",narrow,true); printTiming("wide",wide,true);
   printTiming("sparse",gather,true); printTiming("fullrow",audit,true);
+  printTiming("public_kernel_narrow",public_narrow,true); printTiming("public_kernel_wide",public_wide,true);
   std::cout << "}}\n";
+}
+Index parseCount(const std::string& value)
+{
+  check(!value.empty() && std::all_of(value.begin(),value.end(),[](unsigned char c){return c>='0' && c<='9';}),
+        "Counts must be unsigned decimal integers");
+  Index consumed=0;
+  const auto result=std::stoull(value,&consumed);
+  check(consumed==value.size() && result<=std::numeric_limits<Index>::max(),"Count out of range");
+  return static_cast<Index>(result);
 }
 int main(int argc,char** argv)
 {
@@ -575,7 +687,7 @@ int main(int argc,char** argv)
     check(argc==5,"Usage: layout_benchmark <mzML> <rawtile|aos|soa|factored-aos|factored-soa> <min_points> <repeats>");
     const std::string variant=argv[2];
     check(variant=="rawtile" || variant=="aos" || variant=="soa" || variant=="factored-aos" || variant=="factored-soa","Unknown variant");
-    const Index minimum=std::stoull(argv[3]), repeats=std::stoull(argv[4]);
+    const Index minimum=parseCount(argv[3]), repeats=parseCount(argv[4]);
     check(repeats>0,"repeats must be positive");
     auto experiment=std::make_shared<OpenMS::MSExperiment>();
     OpenMS::MzMLFile().load(argv[1],*experiment);

@@ -2,11 +2,15 @@ cmake_minimum_required(VERSION 3.24)
 project(OpenDIALayoutExperiment LANGUAGES CXX)
 # $Maintainer: Justin Sing $
 # Build out of tree. The WP01 checkout is read-only input, not a vendored copy.
-set(WP01_SOURCE_DIR "/home/singjc/Documents/github/OpenMS-wp01" CACHE PATH "WP01 checkout at 3cd24a2502")
+set(OPENDIA_SOURCE_DIR "" CACHE PATH "Required read-only WP01 checkout at 3cd24a2502")
+if(NOT EXISTS "${OPENDIA_SOURCE_DIR}/src/topp/OpenDIA/source/OpenDIARecords.cpp")
+  message(FATAL_ERROR "Set OPENDIA_SOURCE_DIR to the WP01 source checkout")
+endif()
 find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)
 add_executable(layout_benchmark layout_benchmark.cpp
-  "${WP01_SOURCE_DIR}/src/topp/OpenDIA/source/OpenDIARecords.cpp")
-target_include_directories(layout_benchmark PRIVATE "${WP01_SOURCE_DIR}/src/topp/OpenDIA/include")
+  "${OPENDIA_SOURCE_DIR}/src/topp/OpenDIA/source/OpenDIARecords.cpp"
+  "${OPENDIA_SOURCE_DIR}/src/openms/source/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.cpp")
+target_include_directories(layout_benchmark PRIVATE "${OPENDIA_SOURCE_DIR}/src/topp/OpenDIA/include")
 target_link_libraries(layout_benchmark PRIVATE OpenMS::OpenMS_CLI)
 target_compile_features(layout_benchmark PRIVATE cxx_std_23)
 # Apply identical optimization to benchmark and actual production record implementation.
@@ -18,7 +22,7 @@ if(BUILD_TESTING)
     foreach(fixture topp/OpenSwathWorkflow_1_input topp/OpenSwathWorkflow_23_input class_tests/openms/data/IM_FAIMS_test class_tests/openms/data/ChromatogramExtractor_input)
       string(REPLACE "/" "_" test_name "${fixture}")
       add_test(NAME "layout_${variant}_${test_name}" COMMAND layout_benchmark
-        "${WP01_SOURCE_DIR}/src/tests/${fixture}.mzML" "${variant}" 0 1)
+        "${OPENDIA_SOURCE_DIR}/src/tests/${fixture}.mzML" "${variant}" 0 1)
     endforeach()
   endforeach()
 endif()
