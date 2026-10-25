@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -108,7 +109,8 @@ class Scores {
                                 unsigned int xval_fold,
                                 FeatureMemoryPool& featurePool,
                                 double decoyFractionTraining = 1.0,
-                                unsigned int decoysPerTarget = 1u);
+                                unsigned int decoysPerTarget = 1u,
+                                const std::function<unsigned int(const PSMDescription&)>* fixedFold = nullptr);
 
   void generatePositiveTrainingSet(AlgIn& data,
                                    const double fdr,

@@ -296,7 +296,8 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
                                       unsigned int xval_fold,
                                       FeatureMemoryPool& featurePool,
                                       double decoyFractionTraining,
-                                      unsigned int decoysPerTarget) {
+                                      unsigned int decoysPerTarget,
+                                      const std::function<unsigned int(const PSMDescription&)>* fixedFold) {
   // set the number of cross validation folds for train and test to xval_fold
   train.resize(xval_fold, Scores(usePi0_));
   test.resize(xval_fold, Scores(usePi0_));
@@ -367,7 +368,10 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
     labelOfPSM.reserve(scores_.size());
   }
   unsigned int previousSpectrum = scores_.begin()->pPSM->scan;
-  size_t randIndex = PseudoRandom::lcg_rand() % xval_fold;
+  // OpenMS: with fixedFold (out-of-fold capped training), each PSM's fold is given (the caller
+  // keeps the PSMs of a spectrum in one fold); no fold is drawn
+  const bool foldsFixed = fixedFold != nullptr && static_cast<bool>(*fixedFold);
+  size_t randIndex = foldsFixed ? 0u : PseudoRandom::lcg_rand() % xval_fold;
   for (std::vector<ScoreHolder>::iterator it = scores_.begin();
        it != scores_.end(); ++it) {
     const unsigned int curScan = (*it).pPSM->scan;
@@ -375,7 +379,12 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
 
     // if current score is from a different spectra than the one encountered in
     // the previous iteration, choose new fold
-    if (previousSpectrum != curScan) {
+    if (foldsFixed) {
+      randIndex = (*fixedFold)(*sh.pPSM);
+      if (randIndex >= xval_fold) {
+        throw MyException("Error: a fixed cross-validation fold is out of range.\n");
+      }
+    } else if (previousSpectrum != curScan) {
       randIndex = PseudoRandom::lcg_rand() % xval_fold;
       // allow only indexes of folds that are non-full
       while (remain[randIndex] <= 0) {

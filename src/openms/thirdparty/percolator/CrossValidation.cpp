@@ -179,7 +179,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
   try {
     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
                                      featurePool, decoyFractionTraining_,
-                                     decoysPerTarget);
+                                     decoysPerTarget, &fixedFold_);
   } catch (...) {
     xvalError = std::current_exception();
   }
@@ -1055,6 +1055,25 @@ void CrossValidation::getAvgWeights(std::vector<double>& weights,
     for (unsigned int ix = 0; ix < FeatureNames::getNumFeatures() + 1; ix++) {
       weights[ix] += ww[ix] / static_cast<double>(weights_.size());
     }
+  }
+}
+
+void CrossValidation::getRawFoldWeights(std::vector<std::vector<double> >& weights,
+                                        const Normalizer* pNorm) const {
+  weights.assign(weights_.size(),
+                 std::vector<double>(FeatureNames::getNumFeatures() + 1));
+  for (std::size_t set = 0; set < weights_.size(); ++set) {
+    pNorm->unnormalizeweight(weights_[set], weights[set]);
+  }
+}
+
+void CrossValidation::getTrainingPsms(
+    std::size_t set, std::vector<const PSMDescription*>& psms) const {
+  psms.clear();
+  if (set >= trainScores_.size()) return;
+  psms.reserve(trainScores_[set].size());
+  for (const ScoreHolder& sh : trainScores_[set]) {
+    psms.push_back(sh.pPSM);
   }
 }
 

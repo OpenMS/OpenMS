@@ -383,6 +383,12 @@ hand-editing sources and committing them, to keep sync self-healing.
 - `patches/19-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
   `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
   the local replacement above). No change of results.
+- `patches/20-cv-fixed-folds.patch` — out-of-fold capped training (OpenMS `Percolator` parameter
+  `subset_mode` `out_of_fold`): `Scores::createXvalSetsBySpectrum` takes an optional function that
+  gives each PSM's fold (no fold is drawn then); `CrossValidation::setFixedFolds` passes it to the
+  outer split (nested sets are still drawn), `getRawFoldWeights` returns each fold's weights in the
+  raw feature space, `getTrainingPsms` a fold's training PSMs. Without fixed folds (the default)
+  nothing changes.
 
 ### Regenerating the patch
 

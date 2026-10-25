@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -177,6 +178,18 @@ Percolator::Percolator()
                      "CLI contract by passing its own int option (CLI default 0) through to "
                      "this param.");
   defaults_.setMinInt("subset_max_train", 0);
+  defaults_.setValue("subset_mode", "in_sample",
+                     "How rescore() trains when subset_max_train caps the training set. 'in_sample' (default, as the "
+                     "percolator executable's --subset-max-train): the cross-validation runs on the sample, and all rows "
+                     "are scored by the average of the fold models, so a sampled row is scored by two models that "
+                     "trained on it. 'out_of_fold': every spectrum (spectrum file, scan) is assigned to one of the "
+                     "cross-validation folds first; a seeded random sample of whole spectra of at most "
+                     "subset_max_train rows is drawn from the entire input (one sample: each fold's model trains on the "
+                     "sampled spectra of the other folds); each fold's model is trained (positive selection and Cpos/Cneg "
+                     "choice inside its training set) without the spectra of its fold, and every row, sampled or not, is "
+                     "scored by the model of its fold only; the folds' scores are merged as in the cross-validation "
+                     "(rescaled per fold). Inert when the input has at most subset_max_train rows.");
+  defaults_.setValidStrings("subset_mode", {"in_sample", "out_of_fold"});
 
   defaults_.setValue("tron_epsilon", 1e-7,
                      "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "
@@ -306,6 +319,7 @@ void Percolator::updateMembers_()
   impl_->post_processing_tdc = (param_.getValue("post_processing_tdc").toString() == "true");
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
+  impl_->subset_out_of_fold  = param_.getValue("subset_mode").toString() == "out_of_fold";
   impl_->tron_epsilon        = static_cast<double>(param_.getValue("tron_epsilon"));
   impl_->warm_start          = (param_.getValue("warm_start").toString() == "true");
   impl_->single_cneg         = (param_.getValue("single_cneg").toString() == "true");
@@ -333,6 +347,11 @@ void Percolator::updateMembers_()
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
 {
   return impl_->svm_weights;
+}
+
+const Percolator::CappedTrainingInfo& Percolator::getCappedTrainingInfo() const
+{
+  return impl_->capped_info;
 }
 
 double Percolator::getPi0() const
@@ -917,10 +936,55 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
-  // Reservoir-sample the training subset. When subset_max_train is 0 or
-  // >= n_rows, training_rows is the identity [0..n).
-  const std::vector<size_t> training_rows =
-    selectTrainingSubset(input, n_rows, impl_->subset_max_train);
+  impl_->capped_info = CappedTrainingInfo();
+  // subset_mode 'out_of_fold' with an active cap: every spectrum gets its fold first, then a random sample of whole
+  // spectra is drawn from the entire input (InProcessSampler.h: drawOutOfFoldSample); the cross-validation keeps these
+  // folds, and every row is scored by its fold's model below. No draw of the reservoir sampler (PseudoRandom) here.
+  const unsigned int num_folds = 3;
+  bool out_of_fold = false;
+  P::OutOfFoldSample oof;
+  std::vector<size_t> training_rows;
+  if (impl_->subset_out_of_fold && impl_->subset_max_train > 0 &&
+      static_cast<size_t>(impl_->subset_max_train) < n_rows)
+  {
+    std::vector<int> spec_files(n_rows), scans(n_rows);
+    for (size_t i = 0; i < n_rows; ++i)
+    {
+      const RowKeys k = makeRowKeys(input, i);
+      spec_files[i] = k.spec_file;
+      scans[i] = k.scan;
+    }
+    oof = P::drawOutOfFoldSample(spec_files, scans, static_cast<size_t>(impl_->subset_max_train),
+                                 static_cast<std::uint64_t>(static_cast<std::uint32_t>(impl_->seed)), num_folds);
+    // each fold needs sampled targets and decoys (its test set; the other folds' training sets)
+    std::vector<size_t> targets(num_folds, 0), decoys(num_folds, 0);
+    for (size_t i : oof.sampled_rows) ++(input.is_decoy[i] ? decoys : targets)[oof.fold[i]];
+    out_of_fold = true;
+    for (unsigned int f = 0; f < num_folds; ++f) out_of_fold = out_of_fold && targets[f] > 0 && decoys[f] > 0;
+    if (out_of_fold)
+    {
+      training_rows = oof.sampled_rows;
+      OPENMS_LOG_INFO << "Percolator: out-of-fold capped training on " << training_rows.size() << " of " << n_rows
+                      << " PSMs (" << oof.num_sampled_spectra << " of " << oof.num_spectra << " spectra); sampled "
+                      << "targets/decoys per fold: " << targets[0] << "/" << decoys[0] << ", " << targets[1] << "/"
+                      << decoys[1] << ", " << targets[2] << "/" << decoys[2] << std::endl;
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "Percolator: the sample of subset_max_train = " << impl_->subset_max_train << " PSMs ("
+                      << oof.sampled_rows.size() << " PSMs of " << oof.num_sampled_spectra << " spectra) lacks the "
+                      << "targets or decoys of a cross-validation fold; training on all " << n_rows << " PSMs."
+                      << std::endl;
+      training_rows.resize(n_rows);
+      std::iota(training_rows.begin(), training_rows.end(), size_t{0});
+    }
+  }
+  else
+  {
+    // Reservoir-sample the training subset. When subset_max_train is 0 or
+    // >= n_rows, training_rows is the identity [0..n).
+    training_rows = selectTrainingSubset(input, n_rows, impl_->subset_max_train);
+  }
   const bool did_subsample = training_rows.size() < n_rows;
 
   impl_->set_handler = std::make_unique<P::SetHandler>(0);
@@ -978,6 +1042,13 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     }
   }
   rethrowFirstError(row_errors);
+  // out-of-fold: the input row of each training PSM (the cross-validation's folds and training sets are looked up)
+  std::unordered_map<const P::PSMDescription*, size_t> row_of_psm;
+  if (out_of_fold)
+  {
+    row_of_psm.reserve(training_rows.size());
+    for (size_t k = 0; k < training_rows.size(); ++k) row_of_psm.emplace(impl_->owned_psms[k], training_rows[k]);
+  }
 
   impl_->set_handler->push_back_dataset(impl_->target_ds.release());
   impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
@@ -1031,8 +1102,14 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*numFolds=*/3);
   cv.setSolver(impl_->solver);
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
+  if (out_of_fold)
+  {
+    cv.setFixedFolds([&row_of_psm, &oof](const P::PSMDescription& psm)
+                     { return static_cast<unsigned int>(oof.fold[row_of_psm.at(&psm)]); });
+  }
 
   std::vector<double> avg_weights;
+  std::vector<std::vector<double>> fold_weights; // out-of-fold: each fold's model (raw feature space)
   try
   {
     // CV uses sanity transiently per call (no storage); the unique_ptr in
@@ -1043,6 +1120,23 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     cv.postIterationProcessing(all_scores, sanity.get());
     impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
+    if (out_of_fold)
+    {
+      cv.getRawFoldWeights(fold_weights, normalizer);
+      // the record of the folds, the sample and each fold model's training rows (getCappedTrainingInfo)
+      CappedTrainingInfo& info = impl_->capped_info;
+      info.fold.assign(oof.fold.begin(), oof.fold.end());
+      info.sampled.assign(n_rows, 0);
+      for (size_t i : training_rows) info.sampled[i] = 1;
+      info.trained_rows.assign(num_folds, {});
+      std::vector<const P::PSMDescription*> psms;
+      for (unsigned int f = 0; f < num_folds; ++f)
+      {
+        cv.getTrainingPsms(f, psms);
+        for (const P::PSMDescription* psm : psms) info.trained_rows[f].push_back(row_of_psm.at(psm));
+        std::sort(info.trained_rows[f].begin(), info.trained_rows[f].end());
+      }
+    }
   }
   catch (const std::exception& e)
   {
@@ -1051,7 +1145,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   }
 
   impl_->svm_weights.clear();
-  if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+  if (out_of_fold) impl_->svm_weights = fold_weights;
+  else if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
 
   try
   {
@@ -1060,7 +1155,68 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     // lines 1196-1236): reset allScores, rebuild via readAndScoreTab, then
     // postMergeStep + calcQvals + normalizeScores. Makes the subset_max_train
     // docstring claim "trained model applied to ALL PSMs" true.
-    if (did_subsample)
+    if (did_subsample && out_of_fold)
+    {
+      // Out-of-fold: every row (sampled or not) is scored by the model of its fold only, which never trained on the
+      // spectra of that fold; then the folds' scores are merged as the cross-validation merges its test sets
+      // (CrossValidation::postIterationProcessing: per fold q-values and rescaling, Scores::merge). The PSMs are allocated
+      // by this thread, in row order (see above), and filled and scored in parallel.
+      impl_->second_pass_psms.reserve(n_rows);
+      for (size_t i = 0; i < n_rows; ++i) impl_->second_pass_psms.push_back(new P::PSMDescription());
+      std::vector<double> scores(n_rows);
+      std::exception_ptr score_error;
+      size_t score_error_row = n_rows;
+#pragma omp parallel for schedule(dynamic, 4096)
+      for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)
+      {
+        const size_t i = static_cast<size_t>(k);
+        try
+        {
+          fillPSMFromRow(*impl_->second_pass_psms[i], nullptr, 0, makeRowKeys(input, i), i, impl_->synthesized_ids[i]);
+          // as Scores::scoreAndAddPSM: the features in order, then the bias
+          const std::vector<double>& w = fold_weights[oof.fold[i]];
+          const double* feats = input.row(i);
+          double score = 0.0;
+          for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+          scores[i] = score + w[n_feat];
+        }
+        catch (...)
+        {
+#pragma omp critical(percolator_oof_score_error)
+          if (i < score_error_row)
+          {
+            score_error_row = i;
+            score_error = std::current_exception();
+          }
+        }
+      }
+      if (score_error) std::rethrow_exception(score_error);
+      std::vector<P::Scores> fold_scores(num_folds, P::Scores(impl_->use_pi0));
+      for (size_t i = 0; i < n_rows; ++i)
+      {
+        fold_scores[oof.fold[i]].addScoreHolder(P::ScoreHolder(
+          scores[i], input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET, impl_->second_pass_psms[i]));
+      }
+      for (P::Scores& fs : fold_scores) fs.recalculateSizes();
+
+      all_scores = P::Scores(impl_->use_pi0);
+      std::vector<std::vector<double>> merge_weights = fold_weights; // Scores::merge rescales them
+      std::exception_ptr merge_error;
+#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
+#pragma omp single
+      {
+        try
+        {
+          all_scores.merge(fold_scores, impl_->test_fdr, /*skipNormalizeScores=*/false, merge_weights);
+        }
+        catch (...)
+        {
+          merge_error = std::current_exception();
+        }
+      }
+      if (merge_error) std::rethrow_exception(merge_error);
+    }
+    else if (did_subsample)
     {
       impl_->second_pass_pool = std::make_unique<P::FeatureMemoryPool>();
       impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));

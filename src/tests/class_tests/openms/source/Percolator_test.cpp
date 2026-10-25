@@ -36,6 +36,9 @@
 #include <random>
 #include <set>
 #include <sstream>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -225,6 +228,156 @@ START_SECTION([EXTRA] num_threads does not change the results)
     TEST_EQUAL(outs[0].q_values == outs[i].q_values, true)
     TEST_EQUAL(outs[0].peps == outs[i].peps, true)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that trained on it)
+{
+  // 20000 spectra with a target and a decoy hit each (rows 2s, 2s + 1); half of the targets are correct
+  const std::size_t n_spectra = 20000, n_rows = 2 * n_spectra, cap = 10000;
+  RescoreInput input;
+  input.feature_names = StringList{"signal", "signal2", "noise"};
+  std::mt19937 gen(11);
+  std::normal_distribution<double> nd(0.0, 0.6);
+  std::uniform_real_distribution<double> ud(0.0, 1.0);
+  for (std::size_t s = 0; s < n_spectra; ++s)
+  {
+    const bool correct = ud(gen) < 0.5;
+    input.features.push_back({(correct ? 1.0 : 0.0) + nd(gen), (correct ? 0.8 : 0.0) + nd(gen), ud(gen)});
+    input.is_decoy.push_back(false);
+    input.features.push_back({nd(gen), nd(gen), ud(gen)});
+    input.is_decoy.push_back(true);
+    for (int k = 0; k < 2; ++k)
+    {
+      input.scan_numbers.push_back(static_cast<int>(s));
+      input.exp_masses.push_back(500.0 + 0.01 * static_cast<double>(s));
+    }
+  }
+  auto run = [&input](const std::string& mode, int max_train, int seed, int threads, const std::string& tdc,
+                      Percolator::CappedTrainingInfo* info = nullptr, std::vector<std::vector<double>>* weights = nullptr,
+                      bool* default_direction = nullptr)
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", seed);
+    par.setValue("subset_max_train", max_train);
+    par.setValue("subset_mode", mode);
+    par.setValue("num_threads", threads);
+    par.setValue("post_processing_tdc", tdc);
+    // as ProSE (the 'logistic_regression' PEPs differ slightly with one OpenMP thread, also without a cap)
+    par.setValue("pep_method", "nonparametric");
+    p.setParameters(par);
+    RescoreOutput out = p.rescore(input);
+    if (info) *info = p.getCappedTrainingInfo();
+    if (weights) *weights = p.getSvmWeights();
+    if (default_direction) *default_direction = p.usedDefaultDirection();
+    return out;
+  };
+
+  Percolator::CappedTrainingInfo info;
+  std::vector<std::vector<double>> weights;
+  bool default_direction = true;
+  const RescoreOutput out = run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info, &weights, &default_direction);
+  TEST_FALSE(default_direction) // the learned fold models are kept (they differ from fold to fold)
+  TEST_EQUAL(info.fold.size(), n_rows)
+  TEST_EQUAL(info.sampled.size(), n_rows)
+  TEST_EQUAL(info.trained_rows.size(), 3)
+  TEST_EQUAL(weights.size(), 3)
+  // the sample: whole spectra, at most cap rows, spread over the whole input
+  std::size_t n_sampled = 0;
+  bool together = true;
+  std::vector<std::size_t> per_decile(10, 0);
+  for (std::size_t r = 0; r < n_rows; ++r)
+  {
+    together = together && info.fold[r] == info.fold[r ^ 1u] && info.sampled[r] == info.sampled[r ^ 1u];
+    if (info.sampled[r]) { ++n_sampled; ++per_decile[r * 10 / n_rows]; }
+  }
+  TEST_TRUE(together)
+  TEST_TRUE(n_sampled <= cap && n_sampled + 2 > cap)
+  for (std::size_t d : per_decile) TEST_TRUE(std::fabs(static_cast<double>(d) - n_sampled / 10.0) < 0.2 * n_sampled / 10.0)
+  // each fold's model trained on exactly the sampled spectra of the other folds
+  bool training_sets = true;
+  for (int f = 0; f < 3; ++f)
+  {
+    std::vector<size_t> expected;
+    for (std::size_t r = 0; r < n_rows; ++r) if (info.sampled[r] && info.fold[r] != f) expected.push_back(r);
+    training_sets = training_sets && info.trained_rows[f] == expected;
+  }
+  TEST_TRUE(training_sets)
+  // no row (sampled or not) is scored by a model that saw it, and every row is scored by its fold's model: the scores
+  // of a fold are an increasing linear function of its model's raw score (the folds are rescaled when they are merged)
+  bool unseen = true, by_fold_model = true;
+  for (int f = 0; f < 3; ++f)
+  {
+    const std::vector<size_t>& trained = info.trained_rows[f];
+    std::vector<std::pair<double, double>> raw_and_out; // (w_f . x + bias, output score)
+    for (std::size_t r = 0; r < n_rows; ++r)
+    {
+      if (info.fold[r] != f) continue;
+      unseen = unseen && !std::binary_search(trained.begin(), trained.end(), r);
+      const std::vector<double>& w = weights[f];
+      raw_and_out.emplace_back(input.features[r][0] * w[0] + input.features[r][1] * w[1] + input.features[r][2] * w[2] + w[3],
+                               out.scores[r]);
+    }
+    std::sort(raw_and_out.begin(), raw_and_out.end());
+    const auto& lo = raw_and_out.front();
+    const auto& hi = raw_and_out.back();
+    const double slope = (hi.second - lo.second) / (hi.first - lo.first);
+    by_fold_model = by_fold_model && slope > 0.0;
+    for (const auto& ro : raw_and_out)
+    {
+      const double predicted = lo.second + slope * (ro.first - lo.first);
+      by_fold_model = by_fold_model && std::fabs(predicted - ro.second) <= 1e-9 * (1.0 + std::fabs(ro.second));
+    }
+  }
+  TEST_TRUE(unseen)
+  TEST_TRUE(by_fold_model)
+  TEST_TRUE(medianTargetBeatsDecoy_(out, input))
+
+  // deterministic: by the seed, for any number of threads; another seed draws another sample
+  const RescoreOutput out_tdc = run("out_of_fold", static_cast<int>(cap), 17, 8, "true");
+  bool same_threads = true;
+  for (const int threads : {1, 3})
+  {
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    const RescoreOutput again = run("out_of_fold", static_cast<int>(cap), 17, threads, "true");
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    same_threads = same_threads && again.scores == out_tdc.scores && again.q_values == out_tdc.q_values && again.peps == out_tdc.peps;
+  }
+  TEST_TRUE(same_threads)
+  Percolator::CappedTrainingInfo info2;
+  run("out_of_fold", static_cast<int>(cap), 18, 8, "true", &info2);
+  TEST_TRUE(info2.sampled != info.sampled && info2.fold != info.fold)
+
+  // the in-sample mode (the percolator executable's) stays: no fold record, one averaged model, other scores
+  Percolator::CappedTrainingInfo info_in;
+  std::vector<std::vector<double>> weights_in;
+  const RescoreOutput in_sample = run("in_sample", static_cast<int>(cap), 17, 8, "true", &info_in, &weights_in);
+  TEST_EQUAL(info_in.fold.size(), 0)
+  TEST_EQUAL(weights_in.size(), 1)
+  TEST_TRUE(in_sample.scores != out_tdc.scores)
+
+  // an inactive cap (at least the rows) and a sample that cannot fill the folds (one spectrum larger than the cap)
+  // train on all rows: as without a cap
+  const RescoreOutput uncapped = run("out_of_fold", 0, 17, 8, "true");
+  const RescoreOutput above = run("out_of_fold", static_cast<int>(n_rows), 17, 8, "true");
+  TEST_TRUE(above.scores == uncapped.scores && above.q_values == uncapped.q_values && above.peps == uncapped.peps)
+  const RescoreOutput uncapped_in = run("in_sample", 0, 17, 8, "true");
+  TEST_TRUE(uncapped_in.scores == uncapped.scores && uncapped_in.q_values == uncapped.q_values)
+  RescoreInput one_spectrum = input;
+  std::fill(one_spectrum.scan_numbers.begin(), one_spectrum.scan_numbers.end(), 1);
+  std::swap(input, one_spectrum);
+  Percolator::CappedTrainingInfo info_one;
+  const RescoreOutput fallback = run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info_one);
+  const RescoreOutput fallback_ref = run("out_of_fold", 0, 17, 8, "false");
+  std::swap(input, one_spectrum);
+  TEST_EQUAL(info_one.fold.size(), 0)
+  TEST_TRUE(fallback.scores == fallback_ref.scores && fallback.q_values == fallback_ref.q_values)
 }
 END_SECTION
 

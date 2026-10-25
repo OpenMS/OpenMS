@@ -18,6 +18,7 @@
 #define CROSSVALIDATION_H_
 
 
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -90,6 +91,20 @@ class CrossValidation {
 
   void getAvgWeights(std::vector<double>& weights, const Normalizer* pNorm);
 
+  // OpenMS (out-of-fold capped training): the folds of the PSMs are given by foldOfPsm (0 to
+  // numFolds - 1, the same for all PSMs of a spectrum) instead of being drawn; set before
+  // preIterationSetup. Nested cross-validation sets are still drawn.
+  void setFixedFolds(std::function<unsigned int(const PSMDescription&)> foldOfPsm) {
+    fixedFold_ = std::move(foldOfPsm);
+  }
+  // OpenMS: the weights of each fold in the raw feature space (bias last), as getAvgWeights
+  // un-normalizes them, without averaging
+  void getRawFoldWeights(std::vector<std::vector<double> >& weights,
+                         const Normalizer* pNorm) const;
+  // OpenMS: the PSMs of the training set of fold set (after preIterationSetup)
+  void getTrainingPsms(std::size_t set,
+                       std::vector<const PSMDescription*>& psms) const;
+
   void inline setSelectedCpos(double cpos) { selectedCpos_ = cpos; }
   double inline getSelectedCpos() { return selectedCpos_; }
   void inline setSelectedCneg(double cneg) { selectedCneg_ = cneg; }
@@ -147,6 +162,8 @@ class CrossValidation {
   // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
   // of mergeCpCnPairs) and have not changed since; see doStep
   bool trainScoresOfWeights_ = false;
+  // OpenMS: see setFixedFolds (empty: the folds are drawn)
+  std::function<unsigned int(const PSMDescription&)> fixedFold_;
   // OpenMS: the solver of the SVMs (SvmSolver)
   int solver_ = kSolverTron;
   std::vector<double> candidatesCpos_, candidatesCfrac_;

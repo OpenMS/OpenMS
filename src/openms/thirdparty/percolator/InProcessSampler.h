@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
@@ -59,5 +60,40 @@ std::vector<std::size_t> sampleTrainingRowIndices(
     const std::vector<int>& scan_numbers,
     const std::vector<double>& exp_masses,
     std::size_t max_train);
+
+/// @brief The spectra of an out-of-fold capped training (OpenMS; not upstream).
+struct OutOfFoldSample
+{
+  /// per row: its cross-validation fold (0 to num_folds - 1), the same for all rows of a spectrum
+  std::vector<unsigned char> fold;
+  /// the rows of the sampled spectra, ascending
+  std::vector<std::size_t> sampled_rows;
+  /// spectra in the input and among the sampled rows
+  std::size_t num_spectra = 0;
+  std::size_t num_sampled_spectra = 0;
+};
+
+/// @brief Out-of-fold capped training: assigns every spectrum of the input to a cross-validation fold and draws a
+///        random sample of whole spectra of at most @p max_train rows from the entire input.
+///
+/// A spectrum is a (spec_file, scan) pair, Percolator's own key of its cross-validation folds (CrossValidation:
+/// createXvalSetsBySpectrum), so all PSMs of a spectrum (also with different precursor masses) share a fold and are
+/// sampled together. Each spectrum gets a 64-bit priority and a fold from a hash of (@p seed, spec_file, scan): the
+/// draw depends neither on the order of the rows nor on the threads. The sample is the spectra of the lowest priorities
+/// (ties by spec_file, scan) for as long as their rows fit into @p max_train (it stops at the first spectrum that does
+/// not fit): a uniform random draw of spectra, without preference for spectra with few PSMs. The cap is global (one
+/// sample for the cross-validation, as Percolator's --subset-max-train): each fold's model trains on the sampled
+/// spectra of the other folds (about 2/3 of the sample).
+///
+/// @param spec_files length n_rows: each row's spectrum file number
+/// @param scans      length n_rows: each row's scan number
+/// @param max_train  cap on the sampled rows (> 0)
+/// @param seed       the seed of the draw (Percolator's seed)
+/// @param num_folds  number of cross-validation folds (> 0)
+OutOfFoldSample drawOutOfFoldSample(const std::vector<int>& spec_files,
+                                   const std::vector<int>& scans,
+                                   std::size_t max_train,
+                                   std::uint64_t seed,
+                                   unsigned int num_folds);
 
 }}}  // namespace OpenMS::Internal::Percolator
