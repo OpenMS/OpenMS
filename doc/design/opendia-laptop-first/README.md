@@ -14,6 +14,13 @@ with zero changed numeric cells or scientific identities. Raw rows per repeat
 are 11,484 / 6,783 / 6,274 and standard accepted counts 6,000 / 5,919 / 4,343.
 Independent provenance review, comprehensive resource/stage acceptance, and owner-approved candidate gates remain open. The separate profiling branch builds and passes its profile fixture plus all 29 OpenDIA TOPP checks. The branch is for refactoring work and is not planned for integration. Four instrumented cold/warm followups passed frozen-output equivalence and produced stage summaries. Standalone TimSim rescoring processed 16,441 rows and wrote 13,421,129 apparent bytes. Astral standalone rescoring completed on a disposable copy of the frozen SQLite database and its WAL/SHM sidecars. It exited successfully in 9m09s with 10.27 GiB maximum RSS; checks confirmed that the frozen source files did not change. This single rescore is descriptive, not a baseline or acceptance result. A local evidence archive passed clean-extraction verification, but durable public publication remains open. These separate-binary results are not same-binary repeat or candidate-acceptance evidence.
 
+The two measured full Astral baseline searches used 13,876 MiB and 13,859 MiB
+single-process peak RSS. Both are above the proposed 4 GiB process target. Their
+dedicated-scope cgroup peaks were 20.55 GiB and 22.37 GiB. The 2 GiB low-memory
+mode was not tested. Sampled disk values are lower bounds, so they do not prove
+peak-disk compliance. These measurements describe the current baseline, not a
+candidate implementation or an approved release decision.
+
 PXD004573's 579 published strings are authenticated, but raw retrieval, site
 mapping, purity and blank interpretation remain unresolved. See WP-00 for the
 requirement-specific map. Earlier failed repeats remain historical evidence; the

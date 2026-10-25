@@ -30,6 +30,10 @@ overhead; sampled RSS/cgroup counters are diagnostics. Inner workload timing is
 separate from outer scope/keeper timing. Sampled apparent output/temp sizes are
 lower bounds, not exact filesystem peaks. See the [measurement contract](https://github.com/singjc/OpenMS/blob/9abc264f4c95cb550d67490030dcac649750060c/tools/scripts/opendia_benchmark/README.md#dedicated-workload-accounting-and-limitations).
 These semantics do not establish resource-target compliance or exact peak disk.
+The two full Astral baseline searches used 13,875.97 and 13,858.52 MiB
+single-process peak RSS, above the proposed 4 GiB process target. Their dedicated
+cgroup peaks were 20.55 and 22.37 GiB. The 2 GiB low-memory mode was not tested.
+Sampled disk values are lower bounds and do not prove peak-disk compliance.
 
 The 21 October dirty-source searches and failed repeats remain historical. The
 22 October premerge same-binary comparisons reported in #10662 passed all 12
