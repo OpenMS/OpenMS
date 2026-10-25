@@ -1,8 +1,21 @@
 # OpenDIA: laptop-first implementation plan
 
-**Status:** proposed, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
+**Status:** implementation started, WP-00 baseline done and WP-01 in progress, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
+
+## Baseline complete, implementation started
+
+WP-00 is done: the current baseline, repeatability checks and reproducible benchmark
+scripts are established. Its memory use is descriptive. The 4 GiB process and
+2 GiB low-memory goals apply to the rewritten engine, not to WP-00 closure.
+Evidence sanitization/publication remains a follow-up, not a prerequisite for
+refactoring. WP-07 owns localization truth/experiment work, and WP-09/10 own
+candidate workflow and release acceptance.
+
+WP-01 starts with a behavior-preserving tool-private executable/library boundary,
+then small v0 records, complete query keys, and a producer/consumer fixture.
+See the [WP-01 roadmap](work-packages/01-contracts.md#implementation-roadmap).
 
 ## Current verification status
 
@@ -12,10 +25,12 @@ Full fresh workstation A/B output comparisons passed at selected clean merged so
 TimSim target-only, mixed and all-three Astral comparisons passed all 12 files
 with zero changed numeric cells or scientific identities. Raw rows per repeat
 are 11,484 / 6,783 / 6,274 and standard accepted counts 6,000 / 5,919 / 4,343.
-Independent provenance review, comprehensive resource/stage acceptance, and owner-approved candidate gates remain open. The separate profiling branch builds and passes its profile fixture plus all 29 OpenDIA TOPP checks. The branch is for refactoring work and is not planned for integration. Four instrumented cold/warm followups passed frozen-output equivalence and produced stage summaries. Standalone TimSim rescoring processed 16,441 rows and wrote 13,421,129 apparent bytes. Astral standalone rescoring completed on a disposable copy of the frozen SQLite database and its WAL/SHM sidecars. It exited successfully in about 9m09s with 10,515 MiB (about 10.27 GiB) peak RSS; recorded sizes and modification times of the frozen source database and sidecars were unchanged. No before/after content hashes were captured for those files. This single rescore is descriptive, not a baseline or acceptance result. Both local evidence archives passed clean-extraction verification, but a safety scan found workstation-specific paths, so neither archive is ready for public release. These separate-binary results are not same-binary repeat or candidate-acceptance evidence.
+Independent provenance review, comprehensive candidate resource/stage acceptance, and owner-approved candidate gates remain separate from completed baseline collection. The separate profiling branch builds and passes its profile fixture plus all 29 OpenDIA TOPP checks. The branch is for refactoring work and is not planned for integration. Four instrumented cold/warm followups passed frozen-output equivalence and produced stage summaries. Standalone TimSim rescoring processed 16,441 rows and wrote 13,421,129 apparent bytes. Astral standalone rescoring completed on a disposable copy of the frozen SQLite database and its WAL/SHM sidecars. It exited successfully in about 9m09s with 10,515 MiB (about 10.27 GiB) peak RSS; recorded sizes and modification times of the frozen source database and sidecars were unchanged. No before/after content hashes were captured for those files. This single rescore is descriptive, not a baseline or acceptance result. Both local evidence archives passed clean-extraction verification, but a safety scan found workstation-specific paths, so neither archive is ready for public release. These separate-binary results are not same-binary repeat or candidate-acceptance evidence.
 
 The two measured full Astral baseline searches used 13,876 MiB and 13,859 MiB
-single-process peak RSS. Both are above the proposed 4 GiB process target. Their
+single-process peak RSS.
+The 4 GiB process and 2 GiB low-memory targets apply to the rewritten engine.
+These higher baseline observations establish the reference to improve. Their
 dedicated-scope cgroup peaks were about 20.5 GiB and 22.4 GiB. The 2 GiB low-memory
 mode was not tested. Sampled disk values are lower bounds, so they do not prove
 peak-disk compliance. These measurements describe the current baseline, not a
@@ -38,11 +53,11 @@ followups additionally provide stage timing and aligned sampled-resource summari
 but these are descriptive observations, not exact peaks or acceptance evidence.
 
 [WP-00](work-packages/00-acceptance-baseline.md) records the frozen existing
-repeat-comparator policy, the exact pending evidence and the owner/reviewer
-decision matrix. Proposed candidate no-regression/runtime/footprint gates are
-not approved thresholds. Scientific accuracy margins and known-site localization
-truth remain open. Freeze reviewed gates before candidate evaluation, complete
-adversarial review before any PR, and keep public GitHub updates pending evidence.
+repeat-comparator policy, baseline handoff and future owner/reviewer decision
+matrix. Proposed candidate no-regression/runtime/footprint gates are not approved
+thresholds. WP-07/09/10 must freeze the applicable gates before candidate evaluation.
+Scientific accuracy margins and known-site localization truth remain future work,
+not reasons to reopen baseline collection.
 
 Build a CPU-first DIA engine for large predicted libraries on a 16 GiB laptop. Target 4 GiB process memory and a 2 GiB low-memory mode, with compact output and preserved scientific quality. These are acceptance targets, not demonstrated capabilities.
 
@@ -62,7 +77,7 @@ Numbers identify packages, not a serial implementation order. Local merge checks
 
 | Track | Work packages | Start / integration dependencies |
 |---|---|---|
-| Baseline | [WP-00](work-packages/00-acceptance-baseline.md) | Start now. Pin develop + #10642 and the established TimSim diaPASEF fixture and exploratory Astral inputs below. |
+| Baseline | [WP-00](work-packages/00-acceptance-baseline.md) | Done, 25 October 2026. Pinned current pipeline and representative TimSim/Astral baseline, reproducible scripts and frozen repeat checks. |
 | Data handling | [WP-01](work-packages/01-contracts.md), [WP-02](work-packages/02-resource-budget.md), [WP-03](work-packages/03-raw-tiles.md), [WP-05](work-packages/05-shared-extraction.md) | WP-01 starts independently of baseline. Others start on v0 contracts, without waiting for hardened admission. WP-05 owns the existing-calibration adapter. |
 | Library preparation | [WP-04](work-packages/04-hypothesis-store.md) | Start on WP-01 contracts. Integrate streamed preparation into the current engine. |
 | Science | [WP-06](work-packages/06-candidate-retrieval.md), [WP-07](work-packages/07-family-scoring.md) | Start WP-07 null/decoy experiment now. Retrieval integrates WP-03/04/05. Final family scoring integrates extraction/retrieval. |
@@ -76,7 +91,7 @@ See [issue map](issue-posting.md) for live tickets and native dependency relatio
 - **Astral:** three HeLa 50 ng, 15 min technical replicates. The current FASTA is a randomly sampled 100k-peptide database. This is exploratory, not official full ProteoBench global precursor validation. Current exports lack global precursor q-values and the exact modified-peptide pair mapping needed for paired FDP. Global peptide/protein scores do not fill those gaps.
 - [Benchmark scripts](https://github.com/singjc/OpenMS/blob/9abc264f4c95cb550d67490030dcac649750060c/tools/scripts/opendia_benchmark/README.md) establish build, runners, metrics and report generation. System-resource monitoring records machine, RAM, logical threads and available RAM/idle CPU during each search. Fresh full TimSim and three-file Astral runs completed successfully on 21 October 2026 at source `d3b00d382efc`, with a regenerated report/PDF. See [WP-00 #10662](https://github.com/OpenMS/OpenMS/issues/10662) for results. This is a measured current-pipeline baseline, not completion of acceptance gates.
 
-Neither dataset supplies known-site localization truth. WP-00 must select separate known-site data before localization acceptance.
+Neither dataset supplies known-site localization truth. WP-07 owns the separate known-site dataset and null/decoy experiment, with WP-10 owning final acceptance.
 
 Reproducibility packaging and strict repeat-comparison tools are now established.
 Historically, the 21 October independent TimSim target repeat preserved all 6,000 accepted precursor
@@ -96,7 +111,7 @@ A verified bundle is not proof that the scientific repeat gate passes.
 
 ## Shared acceptance rules
 
-- WP-00 pins provenance, numerical tolerances, scientific margins and performance/size targets before comparisons. Local scratch experiments are historical evidence only.
+- WP-00 supplies pinned provenance, representative reference outputs, observed resources and frozen repeat tolerances. It is complete. WP-07/09/10 agree prospective scientific and performance/size gates before candidate evaluation. Current baseline memory is not required to meet rewrite targets.
 - Every implementation PR builds locally out of tree and runs relevant tests. Packages close on their local merge checks, without waiting for all end-to-end gates.
 - Scheduling/storage changes preserve results. Science changes require measured retrieval recall, separate identification/localization error, ambiguity and quantitative quality. Never truncate hypotheses to meet a resource target.
 - WP-09 owns integration, real artifact reopening/rescoring and failure paths. WP-10 owns representative cold/warm timing, whole-process memory, peak disk/output size and release compatibility. No default switch before those gates pass.
@@ -104,7 +119,7 @@ A verified bundle is not proof that the scientific repeat gate passes.
 ## Decisions still requiring review
 
 - WP-07 with WP-01/08: family partition, localization nulls/decoys and confidence model, before freezing contracts.
-- WP-00/03/08/10: initial acquisition coverage, storage format and numerical quality/runtime/size gates, based on representative measurements.
+- WP-03/07/08/10: initial acquisition coverage, storage format and numerical quality/runtime/size gates, using the completed WP-00 baseline.
 - Multi-run extension: experiment-level inference and its retained population must be designed before extending the new single-run path.
 
 [Shared architecture and invariants](architecture.md) · [Historical measurements](evidence.md)

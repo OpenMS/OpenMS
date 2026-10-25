@@ -20,7 +20,7 @@ Decide adoption from representative end-to-end quality, runtime, memory and disk
 
 ## Dependencies
 
-- **Acceptance execution / completion:** WP-00 and WP-09.
+- **Acceptance execution / completion:** completed WP-00 baseline plus WP-09 integration. WP-10 agrees prospective candidate thresholds before acceptance runs. The current baseline need not meet rewrite resource targets.
 - Benchmark tooling may be prepared earlier, but neither tiny fixtures nor component-only timing closes these gates.
 
 ## Local merge criteria
@@ -39,7 +39,7 @@ Selected merged-source workstation verification is in progress, not release
 acceptance. Complete adversarial review before any PR.
 
 - [ ] A machine-readable matrix records exact commands, source/input hashes, hardware, repetitions and pass/fail/blocked results for Astral and diaPASEF.
-- [ ] Cold/warm runtime, memory, swap, final bytes and actual peak disk meet the predeclared WP-00 gates, with rescoring and output costs separately reported.
+- [ ] Cold/warm runtime, memory, swap, final bytes and actual peak disk meet prospective candidate gates agreed by WP-10 using the WP-00 baseline, with rescoring and output costs separately reported.
 - [ ] Known-site/mixture and held-out/entrapment checks meet separate identification, localization and quantitative-error margins at matched search scope.
 - [ ] Tile/worker/budget variations preserve identities and tolerance-equal scores/quantities, while oversized, low-disk and interruption cases fail safely.
 - [ ] Public CLI reopen/export/rescore and unchanged existing multi-input/matrix regressions pass from the tested build.

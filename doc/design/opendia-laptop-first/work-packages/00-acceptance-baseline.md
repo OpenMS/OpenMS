@@ -1,20 +1,40 @@
 # WP-00: Acceptance baseline and datasets
 
 - **Track:** baseline.
-- **Status:** proposed, full workstation A/B output comparisons passed, public evidence release blocked by archive path cleanup, updated 25 October 2026. **Owner / reviewer:** unassigned.
+- **Status:** done, baseline and reproducible benchmark tooling complete, closed 25 October 2026. **Owner / reviewer:** ownership remains tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10662](https://github.com/OpenMS/OpenMS/issues/10662).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
 ## Objective
 
-Establish reproducible scientific, runtime and storage comparisons without blocking independent implementation.
+Establish the current OpenDIA baseline and reproducible benchmark scripts for later refactoring comparisons.
+
+## Completion decision (25 October 2026)
+
+WP-00 is complete as baseline and tooling work. The current engine is not required
+to meet the rewritten engine's proposed 4 GiB process or 2 GiB low-memory targets.
+Its measured memory use is the reference to improve, not a reason to keep WP-00 open.
+
+- Clean engine and separate harness pins, inputs, commands and environment are recorded.
+- Full TimSim target-only/mixed and three-file Astral A/B searches completed.
+- All 12 frozen result/matrix comparisons passed with zero identity or numeric changes.
+- Build/run, monitoring, scientific metric, reporting, comparison and package scripts exist.
+- Runtime, process/cgroup memory, stage observations, rescoring and artifact sizes are recorded with their measurement limits.
+- Final replay passed 86 native CTests, 29 separate-profiler CTests, 51 harness tests and 462 frozen-file checksum checks. Four regenerated metric summaries matched the captured JSON.
+
+Evidence archives remain local until sanitized. This publication follow-up does not
+block implementation or reopen baseline collection. Independent provenance review
+is not implied by checksum validity. WP-07 owns the known-site localization
+experiment. WP-09/10 own candidate workflow and scientific/resource acceptance,
+including agreed prospective thresholds and complete peak-disk measurement.
+The optional profiling branch remains a work tool, not planned production code.
 
 ## Scope
 
 - Pin an upstream/CI `develop` revision and the applicable #10642 revision/state, commands, dependencies and input checksums.
-- Pin the established TimSim and exploratory Astral inputs below. Select separate known-site data for localization validation, which neither current dataset supplies.
-- Record cold preparation and warm reuse, stage/total runtime, peak memory, actual peak disk and output row cardinalities.
-- Inventory OSW `FEATURE_TRANSITION` fanout and rescoring cost for WP-08, alongside identification, localization and quantitative error.
+- Pin the established TimSim and exploratory Astral inputs below. Record the lack of known-site localization truth and hand separate localization data selection to WP-07.
+- Record cold preparation and warm reuse, stage/total runtime, process/cgroup memory, observed disk use and output row cardinalities. Label sampled values and unavailable exact peaks.
+- Inventory OSW `FEATURE_TRANSITION` fanout and rescoring cost for WP-08, alongside available identification, abundance and entrapment metrics.
 - The local 600pt fixture is a regression aid, not the baseline. Repairing local `libnethost` is not a prerequisite.
 
 ## Established datasets and scripts
@@ -169,27 +189,27 @@ and independently verify frozen input/model/binary/dependency/harness hashes.
 Standard accepted sets use the three 1% filters described above. These filters
 are not proof of calibrated 1% error control or localization accuracy.
 
-### Requirement-to-check map after full A/B output comparison
+### Baseline completion and later acceptance handoff
 
-| Merge requirement | Evidence still required for the selected source |
+| Requirement | Completion evidence or explicitly owned follow-up |
 |---|---|
-| Pinned provenance | Complete clean-source/build/input/environment manifest and explicit CI status. Keep historical dirty-tree/dependency gaps labelled, not retroactively repaired. |
-| Fresh producers and reference artifacts | Full fresh A/B target/mixed TimSim and all-three Astral producers completed and all 12 output comparisons passed. The local evidence archives passed clean-extraction checks, but a safety review found workstation paths and ownership metadata. They are not ready for public release. Four separate instrumented cold/warm followups also passed output-equivalence against their frozen outputs; they do not replace same-binary repeats. |
-| Repeat baseline | Output reproduction is demonstrated under the unchanged frozen policy with zero differences. Independent input/settings/model/dependency/harness provenance review remains separate before full requirement sign-off. |
-| Complete measurement table | Cold/warm and stage/total runtime, stage memory, process/cgroup peaks including children, swap, rescoring share, table cardinalities, final bytes and observed peak disk including sidecars/staging. Sampled directory sizes and configured limits alone do not close this check. Instrumented TimSim/Astral cold/warm stage records and standalone rescoring for both datasets exist. The Astral rescore ran on a copy because the frozen source has WAL/SHM sidecars. Both local evidence bundles passed clean-extraction verification, but contain workstation-specific absolute paths and are not safe to publish as-is. The two full Astral baseline runs used 13,875.97 and 13,858.52 MiB single-process peak RSS, above the proposed 4 GiB process target. Their cgroup peaks were about 20.5 and 22.4 GiB. The 2 GiB low-memory mode was not tested. Comprehensive peak-disk measurement and resource acceptance remain open. |
-| Predeclared quality/resource/size gates | Numerical identification, retrieval, localization and quantitative-error margins, runtime and matched-population results/rescore size limits require explicit review and freezing before candidate-engine evaluation. No such undecided margin is accepted by this update. |
+| Pinned provenance | Clean source, local build, input/model/binary/harness/dependency manifests and executable commands are retained. The final 462-entry checksum replay passed. No CI-run attestation or independent provenance sign-off is claimed. Historical dirty-tree gaps remain labelled. |
+| Fresh producers and reference artifacts | Full fresh A/B target/mixed TimSim and all-three Astral producers completed. All 12 output comparisons passed. Local evidence archives passed clean-extraction verification but need sanitization before public release. |
+| Repeat baseline | Scientific and accepted identities plus scores/quantities reproduce under the unchanged frozen policy with zero differences. Separate instrumented runs are explicitly different-binary observations. |
+| Measurement table | Stage/total runtime, process/cgroup memory, rescoring, table cardinalities and final/observed disk bytes are recorded. Sampled stage/disk values remain lower bounds. Exact peak disk and candidate memory acceptance belong to WP-10, not a requirement to shrink the baseline. |
+| Future quality/resource/size gates | WP-07/09/10 must agree applicable scientific and runtime/footprint thresholds before evaluating candidates. No undecided margin is approved by closing this baseline package. |
 
 ### Owner/reviewer decision matrix
 
 | Decision | Recorded policy or proposal | Status / decision owner |
 |---|---|---|
 | Repeat comparator | Existing frozen tolerances, exact scientific/accepted identities, matching missingness and finite values | Enforced repeat check; do not widen after results |
-| Behavior-preserving candidate refactors | Exact accepted identity sets, numeric results within the frozen comparator, no added missing/nonfinite cells | Proposed candidate gate; WP-00 owner/reviewer agreement required before evaluation |
-| Runtime | Median wall time no greater than matched same-host baseline, separating cold preparation and warm reuse | Proposed, not accepted or demonstrated; WP-00/WP-10 owners must agree repetitions and matched configuration before evaluation |
-| Output footprint | Final results plus rescore bytes no greater than matched-population baseline | Proposed, not accepted or demonstrated; WP-00/WP-08/WP-10 owners must agree artifact capabilities/population |
-| Peak memory and disk | Observed complete-process/cgroup memory and peak disk no greater than matched same-host/configuration baseline | Proposed, not accepted or demonstrated; WP-00/WP-10 owners must approve measurement scope |
+| Behavior-preserving candidate refactors | Exact accepted identity sets, numeric results within the frozen comparator, no added missing/nonfinite cells | Proposed candidate gate; WP-09/WP-10 owner/reviewer agreement required before evaluation |
+| Runtime | Median wall time no greater than matched same-host baseline, separating cold preparation and warm reuse | Proposed, not accepted or demonstrated; WP-10 owners must agree repetitions and matched configuration before evaluation |
+| Output footprint | Final results plus rescore bytes no greater than matched-population baseline | Proposed, not accepted or demonstrated; WP-08/WP-10 owners must agree artifact capabilities/population |
+| Peak memory and disk | Observed complete-process/cgroup memory and peak disk no greater than matched same-host/configuration baseline | Proposed, not accepted or demonstrated; WP-10 owners must approve measurement scope |
 | Scientific accuracy and FDP | Report observed identification, abundance and entrapment metrics; no new numerical truth-accuracy or FDP cutoff is invented here | Numerical acceptance margins await scientific owner/reviewer agreement; unavailable truth remains blocked |
-| Localization truth | Select and pin separate known-site DIA data and truth mapping, then review exhaustive/IPF and null/decoy experiment | Open decision for WP-00/WP-07 owners; neither existing dataset closes it |
+| Localization truth | Select and pin separate known-site DIA data and truth mapping, then review exhaustive/IPF and null/decoy experiment | Open decision for WP-07/WP-10 owners; neither existing dataset closes it |
 
 These proposals are recorded before future candidate evaluation, not approved by
 being documented. A behavior-changing scientific candidate needs separately
@@ -215,24 +235,22 @@ not abundance truth or biological-protein validation. Missing global precursor
 q-values, exact modified-peptide pairing and independently verified effective
 entrapment:target search-space ratio keep the respective Astral checks blocked.
 
-The comparison subcheck is passed, not pending. Full merge sign-off still awaits
-the requirement-specific evidence and approvals above, rather than a claim that
-all five requirements remain wholly untested.
-Complete evidence checks and adversarial review before opening a PR. This
-workstation-verification update does not approve candidate acceptance or close
-any open scientific, resource or provenance gates.
+Baseline collection and tooling are complete. Candidate scientific/performance
+acceptance and public evidence publication remain separate follow-ups with the
+owners above. Do not treat baseline closure as candidate acceptance or publish
+the unsanitized archives. This planning branch remains scratch-only, without a PR.
 
 ## Dependencies
 
 - **Start / local merge:** none.
-- Supply pinned inputs and thresholds to WP-10. WP-01 and the WP-07 early experiment can proceed independently.
+- Supply pinned inputs, observed measurements and the frozen repeat policy to WP-10. WP-01 and the WP-07 early experiment can proceed independently.
 
-## Local merge criteria
+## Baseline completion criteria
 
-- [ ] A manifest records exact source/CI and #10642 provenance, checksums, parameters and executable commands for both representative datasets.
-- [ ] Fresh successful producer logs and reference outputs are attached for Astral and diaPASEF, with no stale-output reuse.
-- [ ] A repeat baseline run reproduces identities and scores/quantities within recorded numerical tolerances.
-- [ ] The measurement table includes stage runtime and memory, process/cgroup peak memory, rescoring share, table row counts, final bytes and observed peak disk including sidecars/staging.
-- [ ] Numerical quality, runtime and results/rescore size gates are recorded before candidate-engine evaluation, with unavailable truth explicitly blocked.
+- [x] Manifests record the clean source, applicable #10642 state, local build/CI status, input checksums, parameters and commands for both datasets.
+- [x] Fresh successful Astral and diaPASEF producer logs and reference outputs are retained, with no stale-output reuse. Public archive publication remains a separate sanitization task.
+- [x] Full A/B repeats reproduce scientific identities and scores/quantities under the frozen numerical policy.
+- [x] Baseline runtime, memory, stage/rescoring, row counts and artifact sizes are recorded, with sampled disk and other measurement limitations stated explicitly.
+- [x] Benchmark scripts, reporting, comparison and evidence-package verification are exercised. Candidate thresholds, localization truth and complete release-resource checks are assigned to later owners, not claimed passed here.
 
 **Integration gates:** WP-09 owns public workflow checks, and WP-10 owns representative quality/resource/performance acceptance.
