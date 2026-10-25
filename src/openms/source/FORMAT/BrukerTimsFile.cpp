@@ -3113,6 +3113,28 @@ namespace OpenMS
       return im;
     };
 
+    // The ion mobility isolation window of a precursor around @p precursor_im: the quadrupole isolated it only in
+    // the mobility scans [ScanNumBegin, ScanNumEnd) of its PASEF entries (their union, converted with the mobility
+    // calibration of each entry's frame). Sets it as the drift time window offsets of @p prec; precursor purity
+    // (PrecursorPurity) counts only the survey peaks in it. Nothing is set without a valid scan range.
+    const auto setIonMobilityWindow = [&handle](const std::vector<const DDAPrecursorInfo*>& entries, double precursor_im, Precursor& prec)
+    {
+      double im_lo = std::numeric_limits<double>::infinity();
+      double im_hi = -std::numeric_limits<double>::infinity();
+      for (const DDAPrecursorInfo* e : entries)
+      {
+        if (e->scan_end <= e->scan_begin) continue;
+        const uint32_t scans[2] = {e->scan_begin, e->scan_end - 1};
+        double ims[2] = {0.0, 0.0};
+        handle.scan2inv_ion_mobility_converter->convert(e->frame_id, ims, scans, 2);
+        im_lo = std::min({im_lo, ims[0], ims[1]});
+        im_hi = std::max({im_hi, ims[0], ims[1]});
+      }
+      if (!(im_lo < im_hi) || precursor_im < im_lo || precursor_im > im_hi) return;
+      prec.setDriftTimeWindowLowerOffset(precursor_im - im_lo);
+      prec.setDriftTimeWindowUpperOffset(im_hi - precursor_im);
+    };
+
     // Config::rt_selects_spectra: keep the precursors whose spectra lie in the retention time range, with all of their
     // frames. A precursor spectrum gets the mean time of its frames, summed in the same order as emit_precursor does.
     // Config::im_min/im_max: leave out the precursors whose ion mobility (precursorIonMobility()) lies outside the ion
@@ -3513,6 +3535,7 @@ namespace OpenMS
           prec.setIntensity(static_cast<float>(first_entry->intensity));
         prec.setDriftTime(precursor_im);
         prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        setIonMobilityWindow(entries, precursor_im, prec);
         double iso_offset_lower = first_entry->isolation_width / 2.0 +
                                   (precursor_mz - first_entry->isolation_mz);
         double iso_offset_upper = first_entry->isolation_width / 2.0 -
@@ -3694,6 +3717,7 @@ namespace OpenMS
         prec.setIntensity(static_cast<float>(first_entry->intensity));
       prec.setDriftTime(precursor_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      setIonMobilityWindow(entries, precursor_im, prec);
 
       // Isolation window offsets relative to the selected ion m/z
       double iso_offset_lower = first_entry->isolation_width / 2.0 +

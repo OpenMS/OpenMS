@@ -199,7 +199,7 @@ namespace OpenMS
     return false;
   }
 
-  double IsobaricChannelExtractor::computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const
+  double IsobaricChannelExtractor::computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& survey_spec) const
   {
 
     typedef PeakMap::SpectrumType::ConstIterator const_spec_iterator;
@@ -215,6 +215,13 @@ namespace OpenMS
 
     const double fuzzy_lower_mz = strict_lower_mz - (strict_lower_mz * max_precursor_isotope_deviation_ / 1000000);
     const double fuzzy_upper_mz = strict_upper_mz + (strict_upper_mz * max_precursor_isotope_deviation_ / 1000000);
+
+    // with an ion mobility isolation window (timsTOF PASEF), only the survey peaks inside it were co-isolated
+    PeakMap::SpectrumType im_window_peaks;
+    const PeakMap::SpectrumType& precursor_spec =
+      PrecursorPurity::peaksInIonMobilityWindow(survey_spec, ms2_spec->getPrecursors()[0], fuzzy_lower_mz, fuzzy_upper_mz, im_window_peaks)
+      ? im_window_peaks : survey_spec;
+    if (precursor_spec.empty()) return -1.0; // nothing isolated: no signal in the window, as below
 
     // first find the actual precursor peak
     Size precursor_peak_idx = precursor_spec.findNearest(ms2_spec->getPrecursors()[0].getMZ());

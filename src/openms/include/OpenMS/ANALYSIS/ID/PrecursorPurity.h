@@ -29,6 +29,8 @@ namespace OpenMS
       Using this information it calculates an intensity ratio for the relative intensity of the target
       compared to other sources.
       These metrics are combined over the previous and the next MS1 spectrum.
+      If the precursor has an ion mobility isolation window and the MS1 spectrum an ion mobility value per peak
+      (timsTOF PASEF), only the MS1 peaks inside that window count (see peaksInIonMobilityWindow()).
       @note: If an MS1 spectrum does not contain the target peak within the given tolerance, all values are returned as 0.
 
       @ingroup Analysis_ID
@@ -79,6 +81,25 @@ namespace OpenMS
       see PeakFileOptions::getPrecursorMZSelectedIon()). Returns getMZ() without that meta value.
     */
     static double isolationWindowCenter(const Precursor& precursor);
+
+    /**
+      @brief The peaks of @p spectrum in the m/z range [@p mz_lower, @p mz_upper] that lie in the ion mobility isolation window of @p precursor
+
+      Instruments that isolate precursors in ion mobility as well as in m/z (timsTOF PASEF) co-isolate only the ions
+      inside the precursor's ion mobility window, so only these count for its purity. The window goes from
+      getDriftTime() - getDriftTimeWindowLowerOffset() to getDriftTime() + getDriftTimeWindowUpperOffset() of
+      @p precursor. The ion mobility of each peak comes from the ion mobility data array of @p spectrum
+      (see MSSpectrum::getIMData()).
+
+      @param[in] spectrum The survey spectrum, with an ion mobility value per peak
+      @param[in] precursor The precursor with its ion mobility isolation window
+      @param[in] mz_lower Lower end of the m/z range to keep
+      @param[in] mz_upper Upper end of the m/z range to keep
+      @param[out] out The peaks of @p spectrum in the m/z range and in the ion mobility window, in m/z order
+      @return false (leaving @p out unchanged) if @p precursor has no ion mobility window, or @p spectrum has no ion
+              mobility per peak in the unit of the window: then all peaks of @p spectrum count, as without ion mobility
+    */
+    static bool peaksInIonMobilityWindow(const MSSpectrum& spectrum, const Precursor& precursor, double mz_lower, double mz_upper, MSSpectrum& out);
 
     /**
      * @brief Computes a simple purity score aggregate for all Precursors (and their windows) of spectrum at @p ms2_spec_idx in the precursor spectrum at @p precursor_spec_idx

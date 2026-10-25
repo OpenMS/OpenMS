@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 
 START_TEST(PrecursorPurity, "$Id$")
@@ -279,6 +280,78 @@ START_SECTION(([EXTRA] computeSingleScanPrecursorPurities: only intensity inside
   exp[0][1].setIntensity(0.0f);
   purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
   TEST_REAL_SIMILAR(purities[0], 0.0)
+}
+END_SECTION
+
+START_SECTION((static bool peaksInIonMobilityWindow(const MSSpectrum& spectrum, const Precursor& precursor, double mz_lower, double mz_upper, MSSpectrum& out)))
+{
+  // timsTOF PASEF: an interferent in the m/z isolation window but at another ion mobility was not co-isolated
+  const double d = Constants::C13C12_MASSDIFF_U / 2.0;
+  PeakMap exp;
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(10.0);
+  ms1.push_back(Peak1D(500.0, 100.0f));     // precursor, 1/K0 1.00
+  ms1.push_back(Peak1D(500.3, 100.0f));     // interferent at 1/K0 0.80, outside the mobility window
+  ms1.push_back(Peak1D(500.4, 40.0f));      // interferent at 1/K0 1.01, inside the mobility window
+  ms1.push_back(Peak1D(500.0 + d, 60.0f));  // the precursor's second isotope, 1/K0 1.00
+  ms1.push_back(Peak1D(510.0, 1000.0f));    // outside the m/z window
+  MSSpectrum::FloatDataArray im;
+  im.assign({1.00f, 0.80f, 1.01f, 1.00f, 1.00f});
+  IMDataConverter::setIMUnit(im, DriftTimeUnit::VSSC);
+  ms1.getFloatDataArrays().push_back(im);
+  ms1.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  TEST_EQUAL(ms1.containsIMData(), true)
+
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(10.1);
+  Precursor pre;
+  pre.setMZ(500.0);
+  pre.setCharge(2);
+  pre.setIsolationWindowLowerOffset(1.0);
+  pre.setIsolationWindowUpperOffset(1.0);
+  pre.setDriftTime(1.0);
+  pre.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  ms2.setPrecursors({pre});
+  exp.addSpectrum(ms1);
+  exp.addSpectrum(ms2);
+
+  // without a mobility window, all peaks of the m/z window count: 160 / 300
+  std::vector<double> purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+  TEST_REAL_SIMILAR(purities[0], 160.0 / 300.0)
+  MSSpectrum out;
+  TEST_EQUAL(PrecursorPurity::peaksInIonMobilityWindow(exp[0], exp[1].getPrecursors()[0], 499.0, 501.0, out), false)
+
+  // with the mobility window 0.95 - 1.05 only the precursor and the interferent at 1.01 count: 160 / 200
+  exp[1].getPrecursors()[0].setDriftTimeWindowLowerOffset(0.05);
+  exp[1].getPrecursors()[0].setDriftTimeWindowUpperOffset(0.05);
+  TEST_EQUAL(PrecursorPurity::peaksInIonMobilityWindow(exp[0], exp[1].getPrecursors()[0], 499.0, 501.0, out), true)
+  TEST_EQUAL(out.size(), 3)
+  TEST_REAL_SIMILAR(out[1].getMZ(), 500.4)
+  purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+  TEST_REAL_SIMILAR(purities[0], 160.0 / 200.0)
+  PrecursorPurity::PurityScores score = PrecursorPurity::computePrecursorPurity(exp[0], exp[1].getPrecursors()[0], 10.0, true);
+  TEST_REAL_SIMILAR(score.total_intensity, 200.0)
+  TEST_REAL_SIMILAR(score.target_intensity, 160.0)
+
+  // interpolation: the next survey scan holds the precursor only at another mobility, i.e. nothing in the window
+  MSSpectrum next_ms1 = ms1;
+  next_ms1.setRT(10.2);
+  next_ms1.getFloatDataArrays()[0].assign({0.70f, 0.80f, 0.70f, 0.70f, 1.00f});
+  exp.addSpectrum(next_ms1);
+  purities = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, 2, exp, 10.0);
+  TEST_REAL_SIMILAR(purities[0], 160.0 / 200.0)
+
+  // no signal in the mobility window at all: purity 0
+  std::vector<double> single = PrecursorPurity::computeSingleScanPrecursorPurities(1, 2, exp, 10.0);
+  TEST_REAL_SIMILAR(single[0], 0.0)
+
+  // a precursor mobility window in another unit than the survey peaks' mobility is ignored
+  exp[1].getPrecursors()[0].setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(PrecursorPurity::peaksInIonMobilityWindow(exp[0], exp[1].getPrecursors()[0], 499.0, 501.0, out), false)
+  purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+  TEST_REAL_SIMILAR(purities[0], 160.0 / 300.0)
 }
 END_SECTION
 

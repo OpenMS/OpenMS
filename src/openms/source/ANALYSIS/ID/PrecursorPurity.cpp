@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <algorithm>
@@ -26,7 +27,9 @@ namespace OpenMS
       const double center = PrecursorPurity::isolationWindowCenter(precursor);
       const double lower = (center - precursor.getIsolationWindowLowerOffset()) * (1 - max_precursor_isotope_deviation / 1e6);
       const double upper = (center + precursor.getIsolationWindowUpperOffset()) * (1 + max_precursor_isotope_deviation / 1e6);
-      for (auto it = spec.MZBegin(lower); it != spec.end() && it->getMZ() < upper; ++it)
+      MSSpectrum im_window_peaks;
+      const MSSpectrum& peaks = PrecursorPurity::peaksInIonMobilityWindow(spec, precursor, lower, upper, im_window_peaks) ? im_window_peaks : spec;
+      for (auto it = peaks.MZBegin(lower); it != peaks.end() && it->getMZ() < upper; ++it)
       {
         if (it->getIntensity() > 0) return true;
       }
@@ -44,12 +47,36 @@ namespace OpenMS
     return precursor.getMZ();
   }
 
+  bool PrecursorPurity::peaksInIonMobilityWindow(const MSSpectrum& spectrum, const Precursor& precursor, double mz_lower, double mz_upper, MSSpectrum& out)
+  {
+    const double lower_offset = precursor.getDriftTimeWindowLowerOffset();
+    const double upper_offset = precursor.getDriftTimeWindowUpperOffset();
+    if (precursor.getDriftTime() == IMTypes::DRIFTTIME_NOT_SET || (lower_offset <= 0.0 && upper_offset <= 0.0)) return false;
+    if (!spectrum.containsIMData()) return false;
+    const auto [im_index, im_unit] = spectrum.getIMData();
+    if (im_unit != precursor.getDriftTimeUnit()) return false;
+    const auto& im = spectrum.getFloatDataArrays()[im_index];
+    if (im.size() != spectrum.size()) return false;
+
+    const double im_lower = precursor.getDriftTime() - lower_offset;
+    const double im_upper = precursor.getDriftTime() + upper_offset;
+    out.clear(true);
+    out.setRT(spectrum.getRT());
+    out.setMSLevel(spectrum.getMSLevel());
+    for (auto it = spectrum.MZBegin(mz_lower); it != spectrum.end() && it->getMZ() <= mz_upper; ++it)
+    {
+      const double peak_im = im[it - spectrum.begin()];
+      if (peak_im >= im_lower && peak_im <= im_upper) out.push_back(*it);
+    }
+    return true;
+  }
+
   std::vector<double> PrecursorPurity::computeSingleScanPrecursorPurities(int ms2_spec_idx, int precursor_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation)
   {
     const auto& ms2_spec = exp[ms2_spec_idx];
-    const auto& precursor_spec = exp[precursor_spec_idx];
+    const auto& survey_spec = exp[precursor_spec_idx];
     std::vector<double> purities(ms2_spec.getPrecursors().size(), 1.0);
-    if (precursor_spec.empty()) return purities; // TODO fail instead?
+    if (survey_spec.empty()) return purities; // TODO fail instead?
 
     Size precursor_idx = 0;
     for (const auto& precursor_info : ms2_spec.getPrecursors())
@@ -74,6 +101,16 @@ namespace OpenMS
       const double dev_ppm = max_precursor_isotope_deviation / 1e6;
       const double fuzzy_lower_mz = strict_lower_mz * (1 - dev_ppm);
       const double fuzzy_upper_mz = strict_upper_mz * (1 + dev_ppm);
+
+      // with an ion mobility isolation window (timsTOF PASEF), only the survey peaks inside it were co-isolated
+      MSSpectrum im_window_peaks;
+      const MSSpectrum& precursor_spec = peaksInIonMobilityWindow(survey_spec, precursor_info, fuzzy_lower_mz, fuzzy_upper_mz, im_window_peaks)
+                                         ? im_window_peaks : survey_spec;
+      if (precursor_spec.empty())
+      {
+        purities[precursor_idx++] = 0.0; // nothing isolated
+        continue;
+      }
 
       // first find the actual precursor peak
       Size precursor_peak_idx = precursor_spec.findNearest(precursor_info.getMZ());
@@ -273,10 +310,12 @@ namespace OpenMS
 
     double precursor_tolerance_abs = precursor_mass_tolerance_unit_ppm ? (target_mz * precursor_mass_tolerance*2 * 1e-6) : precursor_mass_tolerance*2;
 
-    auto lower_it = ms1.MZBegin(lower);
-    auto upper_it = ms1.MZEnd(upper);
-
     PeakSpectrum isolated_window;
+    // with an ion mobility isolation window (timsTOF PASEF), only the peaks inside it were co-isolated
+    MSSpectrum im_window_peaks;
+    const MSSpectrum& window_source = peaksInIonMobilityWindow(ms1, pre, lower, upper, im_window_peaks) ? im_window_peaks : ms1;
+    auto lower_it = window_source.MZBegin(lower);
+    auto upper_it = window_source.MZEnd(upper);
     while (lower_it != upper_it)
     {
       isolated_window.push_back(*lower_it);
