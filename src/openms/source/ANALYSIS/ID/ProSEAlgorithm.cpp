@@ -106,11 +106,15 @@ namespace OpenMS
     // Destroys the elements of a large container with the OpenMP threads, then the container itself. Destroying the
     // spectra, hits and identifications of a search one after the other is a serial step of 10 - 100 ms each at the
     // end of a search; the elements own their memory, so they can be destroyed in any order.
+    // In equal static parts per thread: glibc returns a block to the arena of the thread that allocated it, under that
+    // arena's lock. The peak lists were made by the static loop of preprocessSpectra_ (the same parts of the same
+    // team), so each thread frees into its own arena; in dynamic chunks most frees waited for the lock of another
+    // thread's arena (futex system calls: HeLa 25pc_50_25 at 64 threads 0.44 s for the query spectra instead of 0.06).
     template <typename Container>
     void freeInParallel(Container& container)
     {
       const SignedSize n = static_cast<SignedSize>(container.size());
-#pragma omp parallel for schedule(dynamic, 64) if (n >= 256)
+#pragma omp parallel for schedule(static) if (n >= 256)
       for (SignedSize i = 0; i < n; ++i)
       {
         [[maybe_unused]] const auto released = std::move(container[i]);
@@ -1272,7 +1276,8 @@ namespace OpenMS
     // first one is rethrown after the loop.
     std::exception_ptr preprocessing_error;
     std::atomic<bool> preprocessing_failed{false};
-#pragma omp parallel for default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
+    // (static: freeInParallel() frees the copies made here in the same parts, each in its own thread's arena)
+#pragma omp parallel for schedule(static) default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
                                                 fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, \
                                                 deisotoping, ion_evidence, ion_evidence_scored_peaks, \
                                                 threshold_mower_filters, normalizers, nlargest_filters, \

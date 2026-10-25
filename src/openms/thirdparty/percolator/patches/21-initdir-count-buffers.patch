@@ -1,3 +1,23 @@
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index ab7546ea89..ed29053644 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -16,6 +16,7 @@
+  *******************************************************************************/
+ 
+ #include "FeatureMemoryPool.h"
++#include "ssl.h"  // OpenMS: adviseHugePages
+ 
+ #include <algorithm>
+ #include <cstdint>
+@@ -162,6 +163,7 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
+   // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
+   // if there is one (the blocks are disjoint)
+   const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
++  adviseHugePages(moved.get(), n * numFeatures_ * sizeof(double));  // OpenMS (ssl.h): written once, read once
+ #pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
+   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
+     std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
 index 653b2cdf43..35457c6f7e 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
