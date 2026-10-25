@@ -623,7 +623,7 @@ START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.g
 }
 END_SECTION
 
-START_SECTION([EXTRA] use_pi0: true, false and auto)
+START_SECTION([EXTRA] use_pi0: true or false forces pi0 and auto decides as the executable)
 {
   // Build a dataset where pi0 correction clearly matters: plenty of well-
   // separated targets mixed with decoys. With usePi0=true q-values
