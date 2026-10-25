@@ -1,6 +1,6 @@
 # OpenDIA: laptop-first implementation plan
 
-**Status:** implementation started, WP-00 baseline done and WP-01 in progress, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
+**Status:** implementation started, WP-00 baseline done and WP-01 v0 locally complete pending review/integration, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
 
@@ -40,11 +40,25 @@ Tests retain **33 distinct payloads despite one constant hash**, and an actual
 public extractor round trip preserves **59 chromatogram samples exactly**.
 The complete result passes **35 native tests**, all **12 installed-SDK fixture
 steps / six nested consumers**, **4 standalone** and **3 NDEBUG** tests, including
-all 28 existing public OpenDIA workflows. Next is **step 4: families, scores and
-the complete v0 handoff**. WP-01 stays open, with three of five local merge
-criteria satisfied. No implementation PR is open. Detailed observations and
-optional-platform/runtime limitations are recorded in
-[WP-01](work-packages/01-contracts.md#observed-extraction-query-increment-25-october-2026).
+all 28 existing public OpenDIA workflows. Step 4 is now implemented in
+[3a8b2a64db](https://github.com/OpenMS/OpenMS/commit/3a8b2a64db9ad9b311a327f0f3d60eb5deeea307)
+and [49deb7c5c5](https://github.com/OpenMS/OpenMS/commit/49deb7c5c58e03b92445c73e22ff0a37e28a3cfd):
+minimal owning families/scores, explicit null/competing/coexisting alternatives,
+candidate completeness, independent identification/localization/quantity and the
+complete non-IM/IM/FAIMS v0 handoff. Actual public SQLite and Parquet CLI exports
+each retain four genuine scored rows, including two decoys, through the records
+with exact d_score/intensity and no invented localization confidence.
+The final whole-result replay passes **38 native plus 12 actual installed-SDK
+tests, 50/50 combined**, **six nested consumers**, **5 standalone** and **4 NDEBUG**
+tests, plus both genuine public-output handoffs under NDEBUG. All **28 existing**
+public workflows and **two new** score handoffs pass. All **five local WP-01 merge
+criteria are satisfied**. WP-01 remains open for implementation review/integration,
+not for more record scaffolding or scientific freeze. No implementation PR is open.
+Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now. **Next
+implementation increment: WP-02 resource accounting/admission.** Family/null/decoy
+scientific freeze remains a separate WP-07 milestone. Detailed observations and
+optional-platform/runtime limits are recorded in
+[WP-01](work-packages/01-contracts.md#observed-familyscore-increment-and-complete-v0-handoff-25-october-2026).
 
 ## Current verification status
 
