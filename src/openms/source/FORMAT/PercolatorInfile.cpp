@@ -568,11 +568,14 @@ namespace OpenMS
         Size enzInt;
         if (digestion)
         { // the peptide is a product of the enzyme at its N- (C-)terminus, when preceded (followed) by the flanking AA
-          // ('-' is a terminus, as for isEnz_())
+          // ('-' is a terminus, as for isEnz_()). An unknown residue (X) before the flanking AA serves the rules that
+          // look at two residues (proline endopeptidase cuts after HP, KP, RP): the evidence holds one.
           const int length = static_cast<int>(unmodified_sequence.size());
-          enzN = aa_before == '-' || digestion->isValidProduct(aa_before + unmodified_sequence, 1, length);
+          const std::string with_before = std::string("X") + aa_before + unmodified_sequence;
+          enzN = aa_before == '-' || digestion->isValidProduct(with_before, 2, length);
           enzC = aa_after == '-' || digestion->isValidProduct(unmodified_sequence + aa_after, 0, length);
-          enzInt = digestion->countInternalCleavageSites(unmodified_sequence);
+          // the sites inside the peptide, in the same context: all sites but those before its first residue
+          enzInt = digestion->countInternalCleavageSites(with_before) - digestion->countInternalCleavageSites(with_before.substr(0, 3));
         }
         else
         {

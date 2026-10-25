@@ -271,10 +271,10 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
 {
   // The enzyme features of a tryptic peptide with a missed cleavage, preceded by M and followed by S: the C-terminus
   // and one internal site are tryptic
-  auto stamp = [](const std::string& enz, char aa_before = 'M')
+  auto stamp = [](const std::string& enz, char aa_before = 'M', const std::string& peptide = "PEPKTIDER")
   {
     PeptideHit hit;
-    hit.setSequence(AASequence::fromString("PEPKTIDER"));
+    hit.setSequence(AASequence::fromString(peptide));
     hit.setCharge(2);
     hit.setScore(1.0);
     hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
@@ -309,6 +309,10 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
   TEST_TRUE(stamp("V8-E") == std::make_tuple(0, 0, 1)) // E|R (E|P is not a site)
   TEST_TRUE(stamp("unspecific cleavage") == std::make_tuple(1, 1, 8))
   TEST_TRUE(stamp("no cleavage") == std::make_tuple(0, 0, 0))
+  // a rule that looks at two residues (after HP, KP, RP, unless before P): the residue before the flanking P is unknown,
+  // so P|A counts; K-P|E inside the peptide does, with the flanking AA as context
+  TEST_TRUE(stamp("proline endopeptidase", 'P', "AKPEPK") == std::make_tuple(1, 0, 1))
+  TEST_TRUE(stamp("proline endopeptidase", 'K', "PEPK") == std::make_tuple(0, 0, 1)) // K|P is no site, K-P|E is
   // an enzyme the features do not know counts every site
   TEST_TRUE(stamp("no_enzyme") == std::make_tuple(1, 1, 8))
   TEST_TRUE(stamp("not an enzyme") == std::make_tuple(1, 1, 8))
