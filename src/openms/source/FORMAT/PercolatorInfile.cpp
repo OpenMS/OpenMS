@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -418,13 +420,38 @@ namespace OpenMS
     return stampPinFeaturesOnHits(peptide_ids, enz, min_charge, max_charge, added_meta_values);
   }
 
+  namespace
+  {
+    // The name of the enzyme @p enzyme (of the .pin features, or of ProteaseDB: 'Trypsin/P' etc.) that isEnz_() knows:
+    // lowercase without spaces, 'trypsin/p' as 'trypsinp', 'pepsina' as 'pepsin'; "no_enzyme" if it knows none (then
+    // stampPinFeaturesOnHits() uses the rule of ProteaseDB, if it knows the enzyme)
+    std::string pinEnzymeName(const std::string& enzyme)
+    {
+      std::string name = StringUtils::toLowered(enzyme);
+      StringUtils::remove(name, ' ');
+      if (name == "trypsin/p") return "trypsinp";
+      if (name == "pepsina") return "pepsin";
+      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+      return pin_enzymes.contains(name) ? name : "no_enzyme";
+    }
+  }
+
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
     PeptideIdentificationList& peptide_ids,
-    const std::string& enz,
+    const std::string& enzyme,
     int min_charge,
     int max_charge,
     PinFeatureMetaValueMap& added_meta_values)
   {
+    const std::string enz = pinEnzymeName(enzyme); // store() and the in-process rescoring pass ProteaseDB names as well
+    // an enzyme of ProteaseDB without a Percolator name (e.g. 'Lys-C/P', 'V8-E'): its own cleavage rule
+    std::optional<ProteaseDigestion> digestion;
+    if (enz == "no_enzyme" && ProteaseDB::getInstance()->hasEnzyme(enzyme))
+    {
+      digestion.emplace();
+      digestion->setEnzyme(enzyme);
+    }
     std::set<std::pair<size_t, size_t>> skipped;
     added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
@@ -537,11 +564,28 @@ namespace OpenMS
         char aa_before = hit.getPeptideEvidences().front().getAABefore();
         char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
 
-        const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+        bool enzN, enzC;
+        Size enzInt;
+        if (digestion)
+        { // the peptide is a product of the enzyme at its N- (C-)terminus, when preceded (followed) by the flanking AA
+          // ('-' is a terminus, as for isEnz_()). An unknown residue (X) before the flanking AA serves the rules that
+          // look at two residues (proline endopeptidase cuts after HP, KP, RP): the evidence holds one.
+          const int length = static_cast<int>(unmodified_sequence.size());
+          const std::string with_before = std::string("X") + aa_before + unmodified_sequence;
+          enzN = aa_before == '-' || digestion->isValidProduct(with_before, 2, length);
+          enzC = aa_after == '-' || digestion->isValidProduct(unmodified_sequence + aa_after, 0, length);
+          // the sites inside the peptide, in the same context: all sites but those before its first residue
+          enzInt = digestion->countInternalCleavageSites(with_before) - digestion->countInternalCleavageSites(with_before.substr(0, 3));
+        }
+        else
+        {
+          enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+          enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
+          enzInt = countEnzymatic_(unmodified_sequence, enz);
+        }
         stamp_meta_value("enzN", enzN);
-        const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
         stamp_meta_value("enzC", enzC);
-        stamp_meta_value("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
+        stamp_meta_value("enzInt", static_cast<int>(enzInt));
 
         stamp_meta_value("dm", delta_mass);
         stamp_meta_value("absdm", std::abs(delta_mass));

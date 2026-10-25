@@ -5416,14 +5416,16 @@ if(WITH_ONNX)
   set_tests_properties("TOPP_ProSE_peptdeep" PROPERTIES PASS_REGULAR_EXPRESSION
     "\\[PeptDeepRescoring\\] Predicted features added: [1-9][0-9]* / [0-9]+ PSMs")
   # Without fragment annotations no PSM can get MS2 features: hard error.
-  add_test("TOPP_ProSE_peptdeep_no_annotation_fails" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
-    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
-    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-    -Search:peptdeep:enable true
-    -Search:annotate:PSM num_matched_peaks
-    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_no_annotation_out.tmp.idXML)
-  set_tests_properties("TOPP_ProSE_peptdeep_no_annotation_fails" PROPERTIES WILL_FAIL TRUE)
+  # A parameter error before the search (exit code 6), also with no annotation at all.
+  foreach(_annotations "num_matched_peaks" "")
+    set(_name no_annotation)
+    if(_annotations STREQUAL "")
+      set(_name empty_annotation)
+    endif()
+    add_test("TOPP_ProSE_peptdeep_${_name}_fails" ${CMAKE_COMMAND}
+      "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_peptdeep_${_name}_out.tmp.idXML;-Search:annotate:PSM;${_annotations};-Search:peptdeep:enable;true"
+      -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=peptdeep:enable needs the fragment annotation of the PSMs" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  endforeach()
   # A missing model is a hard error, not a fallback to search-engine features only.
   add_test("TOPP_ProSE_peptdeep_missing_model_fails" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
@@ -5589,6 +5591,76 @@ set_tests_properties("TOPP_ProSE_14_same_name" PROPERTIES DEPENDS "TOPP_ProSE_14
 add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_14_needs_qpx.tmp.idXML;-qpx_extended"
   -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=-qpx_extended extends the QPX output" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
+# Test 17: parameters that cannot be searched are refused before the search with exit code 6 (ILLEGAL_PARAMETERS) and a
+# message naming them: values outside of their restrictions (negative counts used to end in an internal error, charges
+# and isotope errors of 65535/32767 in unbounded memory growth, report:top_hits 2147483647 in an abort), inverted
+# ranges and an invalid peptide:motif.
+set(_prose17 ${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_17_refused.tmp.idXML)
+foreach(_case
+    "missed_cleavages|-Search:peptide:missed_cleavages;-1|value '-1' for parameter 'missed_cleavages'.*valid range is: .0:"
+    "max_charge|-Search:precursor:max_charge;65535|value '65535' for parameter 'max_charge'.*valid range is: .1:20."
+    "isotope_error|-Search:precursor:isotope_error_max;32767|valid range is: .-5:5."
+    "top_hits|-Search:report:top_hits;0|value '0' for parameter 'top_hits'.*valid range is: .1:100."
+    "variable_mods|-Search:modifications:variable_max_per_peptide;2147483647|valid range is: .0:5."
+    "charge_range|-Search:precursor:min_charge;6|precursor:min_charge .6. is larger than precursor:max_charge .5."
+    "size_range|-Search:peptide:min_size;41|peptide:min_size .41. is larger than peptide:max_size .40."
+    "motif|-Search:peptide:motif;(A|peptide:motif '.A' is not a valid regular expression")
+  string(REPLACE "|" ";" _parts "${_case}")
+  list(GET _parts 0 _name)
+  list(GET _parts -1 _regex)
+  list(REMOVE_AT _parts 0 -1)
+  add_test("TOPP_ProSE_17_refuses_${_name}" ${CMAKE_COMMAND} "-DCOMMAND=${_prose17};${_parts}"
+    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=${_regex}" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+endforeach()
+# An input without MS2 spectra (an MS1 file) is searched without error, with a warning (also in the summary).
+add_test("TOPP_ProSE_17_ms1_only" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/BaselineFilter_input.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_17_ms1_only.tmp.idXML"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=the input holds no MS2 spectra" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+# -out_qpx into the folder of an earlier result: the Parquet files of that run (runs/ of another input, a pg file this
+# run does not write) are removed, other files are left alone.
+set(_f ProSE_17_stale_qpx)
+add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f})
+add_test(NAME "TOPP_${_f}_prepare" COMMAND ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/${_f}/runs)
+set_tests_properties("TOPP_${_f}_prepare" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+add_test(NAME "TOPP_${_f}_prepare_files" COMMAND ${CMAKE_COMMAND} -E touch ${TESTS_TEMP_DIR}/${_f}/runs/earlier_input.psm.parquet
+  ${TESTS_TEMP_DIR}/${_f}/quantms.pg.parquet ${TESTS_TEMP_DIR}/${_f}/notes.txt)
+set_tests_properties("TOPP_${_f}_prepare_files" PROPERTIES DEPENDS "TOPP_${_f}_prepare")
+add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -out_qpx ${TESTS_TEMP_DIR}/${_f})
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_prepare_files"
+  PASS_REGULAR_EXPRESSION "Removed 2 Parquet files of an earlier run")
+foreach(_stale runs/earlier_input.psm.parquet quantms.pg.parquet)
+  string(MAKE_C_IDENTIFIER "${_stale}" _id)
+  add_test(NAME "TOPP_${_f}_${_id}_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/${_f}/${_stale})
+  set_tests_properties("TOPP_${_f}_${_id}_absent" PROPERTIES DEPENDS "TOPP_${_f}" WILL_FAIL 1)
+endforeach()
+add_test(NAME "TOPP_${_f}_other_file_kept" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/${_f}/notes.txt)
+set_tests_properties("TOPP_${_f}_other_file_kept" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_psm_exists" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/${_f}/runs/SimpleSearchEngine_1.psm.parquet -schema psm -min_rows 3)
+set_tests_properties("TOPP_${_f}_psm_exists" PROPERTIES DEPENDS "TOPP_${_f}")
+# A run that fails (here: a database that is no FASTA file, exit code 3, INPUT_FILE_CORRUPT) leaves the Parquet files
+# of an earlier run in place: they are removed only once the search succeeded.
+set(_f ProSE_17_failed_run_keeps_qpx)
+add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f})
+add_test(NAME "TOPP_${_f}_prepare" COMMAND ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/${_f}/runs)
+set_tests_properties("TOPP_${_f}_prepare" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+add_test(NAME "TOPP_${_f}_prepare_files" COMMAND ${CMAKE_COMMAND} -E touch ${TESTS_TEMP_DIR}/${_f}/runs/earlier_input.psm.parquet
+  ${TESTS_TEMP_DIR}/${_f}/quantms.psm.parquet)
+set_tests_properties("TOPP_${_f}_prepare_files" PROPERTIES DEPENDS "TOPP_${_f}_prepare")
+add_test(NAME "TOPP_${_f}_database" COMMAND ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  ${TESTS_TEMP_DIR}/${_f}_no_fasta.fasta)
+add_test("TOPP_${_f}" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${TESTS_TEMP_DIR}/${_f}_no_fasta.fasta;-out_qpx;${TESTS_TEMP_DIR}/${_f}"
+  -DEXPECTED_CODE=3 "-DEXPECTED_OUTPUT_REGEX=expected a header line starting with '>'" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_prepare_files;TOPP_${_f}_database")
+foreach(_kept runs/earlier_input.psm.parquet quantms.psm.parquet)
+  string(MAKE_C_IDENTIFIER "${_kept}" _id)
+  add_test(NAME "TOPP_${_f}_${_id}_kept" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/${_f}/${_kept})
+  set_tests_properties("TOPP_${_f}_${_id}_kept" PROPERTIES DEPENDS "TOPP_${_f}")
+endforeach()
 
 if(WITH_ONNX)
   # A failed prediction (an MS2 model that ONNX Runtime cannot load) does not fail the input: it is logged, and the
