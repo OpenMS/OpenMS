@@ -4452,6 +4452,19 @@ namespace OpenMS
       }
     };
 
+    // A helper thread that releases spectra, joined when this goes, after the release held before (see
+    // releaseSpectraLater_())
+    struct SpectraRelease
+    {
+      std::shared_ptr<void> before;
+      std::thread thread;
+
+      ~SpectraRelease()
+      {
+        if (thread.joinable()) { thread.join(); }
+      }
+    };
+
     // Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
     std::string pinEnzymeName(const std::string& enzyme)
     {
@@ -7033,7 +7046,35 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "[ProSE] Closed search mode - per-file modification analysis skipped" << std::endl;
         }
-        freeInParallel(spectra);
+        // After the last file, its spectra are released by a helper thread, which the caller then writes the results
+        // next to (0.5 s for the 250,000 spectra of a timsTOF run at 64 threads, most of it in the kernel returning their
+        // memory); the holder joins it like the hits that the rescoring dropped (see released_hits_). Otherwise here.
+        const auto release_later = [this, &spectra]()
+        {
+#if defined(OPENMS_WINDOWSPLATFORM) || !defined(_OPENMP)
+          return false; // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
+#else
+          if (spectra.size() < 1024) { return false; }
+          try
+          {
+            auto release = std::make_shared<SpectraRelease>();
+            release->before = released_hits_;
+            // with the OpenMP threads of this thread: what follows (the output) does not keep them busy
+            release->thread = std::thread([to_release = std::move(spectra), threads = omp_get_max_threads()]() mutable
+            {
+              omp_set_num_threads(threads);
+              freeInParallel(to_release);
+            });
+            released_hits_ = std::move(release);
+            return true;
+          }
+          catch (...)
+          {
+            return false; // the spectra (if not moved into the thread's function, and released with it) are released here
+          }
+#endif
+        };
+        if (i + 1 != in_spectra_files.size() || !release_later()) { freeInParallel(spectra); }
         // after the last file, the database the index was built from
         if (i + 1 == in_spectra_files.size()) { freeInParallel(ctx.db); }
 
