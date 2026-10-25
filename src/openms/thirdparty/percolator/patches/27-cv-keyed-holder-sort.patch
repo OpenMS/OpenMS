@@ -1,0 +1,53 @@
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index b6965be3ea..8e90bfdc31 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -863,7 +863,47 @@ bool Scores::sortedUpToInterchangeable() const {
+ // the sort of calcScores
+ int Scores::sortScores() {
+   std::size_t ix;
+-  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
++  // OpenMS (CV-KEY): large sets sort 32 B keys (score, expMass, scan, label, position) instead of the
++  // 56 B ScoreHolders: the keys compare as ScoreHolderGreater compares their holders (the same
++  // expressions on copies of the same values; no NaN: comparableScores), so the sort makes the same
++  // moves (see permuteScores), without reading the PSMs during the sort
++  const std::size_t n = scores_.size();
++  if (n >= static_cast<std::size_t>(kLargeSet) && n < (std::size_t(1) << 32) &&
++      comparableScores(scores_.begin(), scores_.end())) {
++    struct HolderKey {
++      double score, expMass;
++      unsigned int scan;
++      int label;
++      std::uint32_t index;
++    };
++    std::vector<HolderKey> keys(n);
++    const std::ptrdiff_t sn = static_cast<std::ptrdiff_t>(n);
++    const auto fill = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
++      for (std::ptrdiff_t i = b; i < e; ++i) {
++        const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++        keys[static_cast<std::size_t>(i)] = {sh.score, sh.pPSM->expMass, sh.pPSM->scan,
++                                             static_cast<int>(sh.label), static_cast<std::uint32_t>(i)};
++      }
++    };
++#ifdef _OPENMP
++    if (sn >= 2 * kMinPairTaskSize && omp_in_parallel()) {
++#pragma omp taskloop grainsize(loopGrain(sn, kMinPairTaskSize)) shared(fill)
++      for (std::ptrdiff_t i = 0; i < sn; ++i) fill(i, i + 1);
++    } else
++#endif
++    {
++      fill(0, sn);
++    }
++    sortLikeStdSort(keys, [](const HolderKey& one, const HolderKey& other) {
++      return (one.score > other.score) || (one.score == other.score && one.scan > other.scan) ||
++             (one.score == other.score && one.scan == other.scan && one.expMass > other.expMass) ||
++             (one.score == other.score && one.scan == other.scan && one.expMass == other.expMass &&
++              one.label > other.label);
++    });
++    permuteScores(scores_, keys);
++  } else {
++    sortScoresLikeStdSort(scores_, ScoreHolderGreater());
++  }
+   if (VERB > 3) {
+     if (scores_.size() >= 10) {
+       cerr << "10 best scores and labels" << endl;

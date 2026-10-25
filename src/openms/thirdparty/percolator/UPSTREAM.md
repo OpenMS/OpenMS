@@ -415,6 +415,11 @@ hand-editing sources and committing them, to keep sync self-healing.
   hits. A sort can then only permute holders within runs of interchangeable ones, so every later
   consumer of the training set sees the same values at every position; training holders never
   reach the output. With NaN scores or masses it sorts. No change of results.
+- `patches/27-cv-keyed-holder-sort.patch` — `Scores::sortScores` sorts 32 B keys (score, expMass,
+  scan, label, position) of sets of at least 2^17 PSMs instead of the 56 B ScoreHolders, then
+  permutes the holders: the keys compare as ScoreHolderGreater compares their holders, so the sort
+  makes the same moves, without reading the PSMs during the sort. With a NaN score or mass, as
+  before. No change of results.
 
 ### Regenerating the patch
 
