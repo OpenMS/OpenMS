@@ -170,6 +170,17 @@ namespace OpenMS
       freeInParallel(spectra.getSpectra());
       spectra.clear(true);
     }
+
+    // Whether MSExperiment::sortSpectra(false) would leave @p spectra as they are: their retention times ascend (equal ones
+    // keep their order in its sort) and none is NaN (which would make the order depend on the sort). An O(n) check that
+    // saves the O(n log n) sort (0.1-0.2 s for the 250,000 spectra of a timsTOF run).
+    bool inRetentionTimeOrder(const PeakMap& spectra)
+    {
+      const MSSpectrum::RTLess rt_less;
+      return std::none_of(spectra.begin(), spectra.end(), [](const MSSpectrum& spectrum) { return std::isnan(spectrum.getRT()); })
+             && std::adjacent_find(spectra.begin(), spectra.end(),
+                                   [&rt_less](const MSSpectrum& a, const MSSpectrum& b) { return rt_less(b, a); }) == spectra.end();
+    }
   }
 
   ProSEAlgorithm::ProSEAlgorithm() :
@@ -1268,7 +1279,7 @@ namespace OpenMS
     // sort by rt; done before the loop because sortSpectra(false) only permutes whole
     // spectra (it does not touch peak order, see MSExperiment::sortSpectra) and therefore
     // commutes with the per-spectrum filters that now run inside the loop.
-    exp.sortSpectra(false);
+    if (!inRetentionTimeOrder(exp)) { exp.sortSpectra(false); } // the spectra of loadMS2Spectra() are sorted already
     if (ion_evidence != nullptr) { ion_evidence->reset(exp.size()); }
     if (evidence_spectra != nullptr)
     {
@@ -4535,6 +4546,19 @@ namespace OpenMS
       }
     };
 
+    // A helper thread that releases spectra, joined when this goes, after the release held before (see
+    // releaseSpectraLater_())
+    struct SpectraRelease
+    {
+      std::shared_ptr<void> before;
+      std::thread thread;
+
+      ~SpectraRelease()
+      {
+        if (thread.joinable()) { thread.join(); }
+      }
+    };
+
     // Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
     std::string pinEnzymeName(const std::string& enzyme)
     {
@@ -5488,7 +5512,16 @@ namespace OpenMS
         try
         {
           auto release = std::make_shared<HitRelease>();
-          release->thread = std::thread([hits = std::move(dropped)]() mutable { std::vector<std::vector<PeptideHit>>().swap(hits); });
+          // With a quarter of the threads (on one thread, the 2 million hits that the rescoring of a timsTOF run drops took
+          // 2.5 s, longer than the rest of the search: the holder then waited for it)
+          release->thread = std::thread([hits = std::move(dropped), release_threads = std::max(1, threads / 4)]() mutable
+          {
+#ifdef _OPENMP
+            omp_set_num_threads(release_threads);
+#endif
+            (void)release_threads;
+            freeInParallel(hits);
+          });
           released_hits_ = std::move(release);
         }
         catch (...) {} // if the thread cannot be started, the hits are destroyed in this function
@@ -5673,12 +5706,17 @@ namespace OpenMS
       }
 
       /// By the waiting thread: runs the work (with the OpenMP threads of this thread) if the reader opens it, or returns
-      /// once the reader closes.
+      /// once the reader closes. The thread then waits for the spectra.
       void help()
       {
         std::function<void()> work;
         {
           std::unique_lock<std::mutex> lock(mutex_);
+#ifdef _OPENMP
+          waiting_threads_ = omp_get_max_threads();
+#else
+          waiting_threads_ = 1;
+#endif
           changed_.wait(lock, [this]() { return work_ || done_; });
           if (!work_) { return; }
           work = work_;
@@ -5693,12 +5731,27 @@ namespace OpenMS
         work();
       }
 
+      /// By the reader: whether the reader took its threads from the thread that waits (see readBorrowsThreads())
+      void setLent(const bool lent) { lent_ = lent; }
+
+      /// By the reader, after the chunks: the OpenMP threads for its remaining parallel work, its own @p reader_threads
+      /// and, once the thread that waits for the spectra does (help() was called; it does nothing else until it has
+      /// them), those of that thread, too (if they were lent: the threads of both; otherwise as many as the larger team)
+      int joinThreads(const int reader_threads)
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (waiting_threads_ == 0) { return reader_threads; }
+        return lent_ ? reader_threads + waiting_threads_ : std::max(reader_threads, waiting_threads_);
+      }
+
     private:
       std::mutex mutex_;
       std::condition_variable changed_;
       std::function<void()> work_;
       int helpers_ = 0;
       bool done_ = false;
+      int waiting_threads_ = 0; // OpenMP threads of the thread that waits for the spectra; 0: it does not wait yet
+      bool lent_ = false;
     };
 
     // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
@@ -5960,7 +6013,15 @@ namespace OpenMS
       exp.setChromatograms(std::move(chromatograms));
       exp.setLoadedFileType(filename);
       exp.setLoadedFilePath(filename);
-      exp.updateRanges();
+      {
+        // in parallel (MSExperiment::updateRanges()), also with the threads of a thread that waits for the spectra
+#ifdef _OPENMP
+        const int own_threads = omp_get_max_threads();
+        omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads);
+        const OnScopeExit restore([own_threads]() { omp_set_num_threads(own_threads); });
+#endif
+        exp.updateRanges();
+      }
       return true;
     }
 
@@ -5995,8 +6056,9 @@ namespace OpenMS
         f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
       }
       // by retention time, and the peaks of each spectrum by m/z: the chunks of loadMzMLChunked() sorted the peaks of
-      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run)
-      spectra.sortSpectra(!chunked);
+      // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run); spectra listed in
+      // retention time order (as mzML files usually list them) are not sorted again (see inRetentionTimeOrder())
+      if (!chunked || !inRetentionTimeOrder(spectra)) { spectra.sortSpectra(!chunked); }
       return spectra;
     }
 
@@ -6090,6 +6152,7 @@ namespace OpenMS
         const int threads = !borrow ? chunk_threads : reader_threads > 0 ? reader_threads : readerThreads(true);
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
         help_ = std::make_shared<ChunkHelp>();
+        help_->setLent(borrow);
         spectra_ = std::async(std::launch::async, [&filename, threads, chunk_threads, help = help_]()
         {
           const OnScopeExit done([&help]() { help->close(); }); // get() waits no longer for chunks to parse
@@ -6449,6 +6512,7 @@ namespace OpenMS
 
     MultiFileSearchResult mfres;
     mfres.aggregate.is_open_search = isOpenSearchMode_();
+    released_hits_.reset(); // the releases of a search before (see the end of the loop below), so that they do not pile up
 
     if (in_spectra_files.empty())
     {
@@ -7115,7 +7179,31 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "[ProSE] Closed search mode - per-file modification analysis skipped" << std::endl;
         }
-        freeInParallel(spectra);
+        // After the last file, its spectra are released by a helper thread, which the caller then writes the results
+        // next to (0.5 s for the 250,000 spectra of a timsTOF run at 64 threads, most of it in the kernel returning their
+        // memory); the holder joins it like the hits that the rescoring dropped (see released_hits_). Otherwise here.
+        bool released_later = false;
+#if !defined(OPENMS_WINDOWSPLATFORM) && defined(_OPENMP) // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
+        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024 && omp_get_max_threads() > 1)
+        {
+          try
+          {
+            auto release = std::make_shared<SpectraRelease>();
+            release->before = released_hits_;
+            // with a quarter of the threads of this thread, as the dropped hits (the release of the database and the
+            // output after this use parallel regions of their own)
+            release->thread = std::thread([to_release = std::move(spectra), threads = std::max(1, omp_get_max_threads() / 4)]() mutable
+            {
+              omp_set_num_threads(threads);
+              freeInParallel(to_release);
+            });
+            released_hits_ = std::move(release);
+            released_later = true;
+          }
+          catch (...) {} // the spectra (if not moved into the thread's function, and released with it) are released here
+        }
+#endif
+        if (!released_later) { freeInParallel(spectra); }
         // after the last file, the database the index was built from
         if (i + 1 == in_spectra_files.size()) { freeInParallel(ctx.db); }
 
@@ -7573,13 +7661,16 @@ namespace OpenMS
       Size matched = 0, n_target = 0, n_decoy = 0;
       std::map<Int, Size> charges;
       std::map<Size, Size> missed_cleavages;
-      std::set<std::string> peptides, proteins;
+      Size unique_peptides = 0, unique_proteins = 0; // distinct sequence strings and protein accessions
       std::vector<double> precursor_errors, fragment_errors; // top hits in input order (with_errors only)
     };
 
     // One pass over the top hits, in parallel: each thread takes a contiguous range of the identifications, and the
     // ranges are merged in order, so the error lists come out in input order as from a single pass. The regular
     // expression of the missed-cleavage count and the sequence strings made this a serial step of 20 - 40 ms per file.
+    // The distinct peptides and proteins are counted in parallel, too: each range notes its sequence strings (in one
+    // buffer) and accessions in buckets by hash, and the buckets are counted one per thread. Merging sets of strings
+    // per range and freeing them afterwards took 0.6 s on one thread for the 250,000 top hits of a timsTOF run.
     TopHitSummary summarizeTopHits(const PeptideIdentificationList& peptide_ids, const std::string& enzyme, bool with_errors)
     {
       const DigestionEnzymeProtein* protease = ProteaseDB::getInstance()->getEnzyme(enzyme);
@@ -7592,23 +7683,42 @@ namespace OpenMS
 #ifdef _OPENMP
       num_parts = static_cast<int>(std::clamp<SignedSize>(n / 512, 1, omp_get_max_threads()));
 #endif
-      std::vector<TopHitSummary> parts(num_parts);
+      const Size num_buckets = static_cast<Size>(num_parts);
+      struct Part
+      {
+        TopHitSummary summary;
+        std::string sequences;                                             // the sequence strings, one after the other
+        std::vector<std::vector<std::pair<Size, Size>>> peptide_buckets;   // (offset, length) in sequences, by hash
+        std::vector<std::vector<const std::string*>> protein_buckets;      // accessions of the peptide evidences, by hash
+      };
+      std::vector<Part> parts(num_parts);
       std::vector<std::exception_ptr> errors(num_parts); // an exception must not leave the parallel region
 #pragma omp parallel for schedule(static, 1) num_threads(num_parts)
       for (int part = 0; part < num_parts; ++part)
       try
       {
-        TopHitSummary& s = parts[part];
+        Part& p = parts[part];
+        TopHitSummary& s = p.summary;
+        p.peptide_buckets.resize(num_buckets);
+        p.protein_buckets.resize(num_buckets);
+        const std::hash<std::string_view> hash;
         EnzymaticDigestion digestor;
         digestor.setEnzyme(protease);
+        std::unordered_map<std::string, Size> missed_cleavages_of; // by unmodified sequence
         for (SignedSize i = n * part / num_parts; i < n * (part + 1) / num_parts; ++i)
         {
           const PeptideIdentification& pid = peptide_ids[i];
           if (pid.getHits().empty()) { continue; }
           ++s.matched;
           const PeptideHit& top = pid.getHits().front();
-          s.peptides.insert(top.getSequence().toString());
-          for (const auto& ev : top.getPeptideEvidences()) { s.proteins.insert(ev.getProteinAccession()); }
+          const std::string sequence = top.getSequence().toString();
+          p.peptide_buckets[hash(sequence) % num_buckets].emplace_back(p.sequences.size(), sequence.size());
+          p.sequences += sequence;
+          for (const auto& ev : top.getPeptideEvidences())
+          {
+            const std::string& accession = ev.getProteinAccession();
+            p.protein_buckets[hash(accession) % num_buckets].push_back(&accession);
+          }
           if (top.getCharge() > 0) { ++s.charges[top.getCharge()]; }
           if (with_errors)
           {
@@ -7623,7 +7733,16 @@ namespace OpenMS
               s.fragment_errors.push_back(static_cast<double>(top.getMetaValue(fragment_error_index)));
             }
           }
-          ++s.missed_cleavages[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
+          // counted once per sequence of the range: the regular expression takes a block from boost's process-wide
+          // memory cache per search, which the threads contended for (93 ms at 16 and 64 threads for a timsTOF run)
+          std::string unmodified = top.getSequence().toUnmodifiedString();
+          auto cleavages = missed_cleavages_of.find(unmodified);
+          if (cleavages == missed_cleavages_of.end())
+          {
+            const Size count = digestor.countInternalCleavageSites(unmodified);
+            cleavages = missed_cleavages_of.emplace(std::move(unmodified), count).first;
+          }
+          ++s.missed_cleavages[cleavages->second];
           if (top.metaValueExists(target_decoy_index))
           {
             const std::string td = top.getMetaValue(target_decoy_index).toString();
@@ -7640,21 +7759,100 @@ namespace OpenMS
       {
         if (error) { std::rethrow_exception(error); }
       }
-      TopHitSummary& all = parts.front();
+
+      // The distinct strings of each bucket (equal strings have equal hashes, so they share a bucket), and the buffers of
+      // each range freed by a thread of the team
+      std::vector<Size> unique_peptides(num_buckets, 0), unique_proteins(num_buckets, 0);
+      std::vector<std::exception_ptr> bucket_errors(num_buckets);
+#pragma omp parallel num_threads(num_parts)
+      {
+        std::vector<std::string_view> strings;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize sb = 0; sb < static_cast<SignedSize>(num_buckets); ++sb)
+        try
+        {
+          const Size b = static_cast<Size>(sb);
+          strings.clear();
+          for (const Part& p : parts)
+          {
+            for (const auto& [offset, length] : p.peptide_buckets[b]) { strings.emplace_back(p.sequences.data() + offset, length); }
+          }
+          std::sort(strings.begin(), strings.end());
+          unique_peptides[b] = static_cast<Size>(std::unique(strings.begin(), strings.end()) - strings.begin());
+          strings.clear();
+          for (const Part& p : parts)
+          {
+            for (const std::string* accession : p.protein_buckets[b]) { strings.emplace_back(*accession); }
+          }
+          std::sort(strings.begin(), strings.end());
+          unique_proteins[b] = static_cast<Size>(std::unique(strings.begin(), strings.end()) - strings.begin());
+        }
+        catch (...)
+        {
+          bucket_errors[sb] = std::current_exception();
+        }
+#pragma omp for schedule(static, 1)
+        for (int part = 0; part < num_parts; ++part)
+        {
+          std::string().swap(parts[part].sequences);
+          decltype(Part::peptide_buckets)().swap(parts[part].peptide_buckets);
+          decltype(Part::protein_buckets)().swap(parts[part].protein_buckets);
+        }
+      }
+
+      for (const std::exception_ptr& error : bucket_errors)
+      {
+        if (error) { std::rethrow_exception(error); }
+      }
+      Size num_precursor_errors = 0, num_fragment_errors = 0;
+      for (const Part& p : parts)
+      {
+        num_precursor_errors += p.summary.precursor_errors.size();
+        num_fragment_errors += p.summary.fragment_errors.size();
+      }
+      TopHitSummary all = std::move(parts.front().summary);
+      all.unique_peptides = std::accumulate(unique_peptides.begin(), unique_peptides.end(), Size(0));
+      all.unique_proteins = std::accumulate(unique_proteins.begin(), unique_proteins.end(), Size(0));
+      all.precursor_errors.reserve(num_precursor_errors);
+      all.fragment_errors.reserve(num_fragment_errors);
       for (int part = 1; part < num_parts; ++part)
       {
-        TopHitSummary& s = parts[part];
+        TopHitSummary& s = parts[part].summary;
         all.matched += s.matched;
         all.n_target += s.n_target;
         all.n_decoy += s.n_decoy;
         for (const auto& [charge, count] : s.charges) { all.charges[charge] += count; }
         for (const auto& [cleavages, count] : s.missed_cleavages) { all.missed_cleavages[cleavages] += count; }
-        all.peptides.merge(s.peptides);
-        all.proteins.merge(s.proteins);
         all.precursor_errors.insert(all.precursor_errors.end(), s.precursor_errors.begin(), s.precursor_errors.end());
         all.fragment_errors.insert(all.fragment_errors.end(), s.fragment_errors.begin(), s.fragment_errors.end());
       }
-      return std::move(all);
+      return all;
+    }
+    // Math::median() and Math::MAD() of @p values (reordered), by selection instead of sorts: the same order statistics,
+    // so the same values (the sorts of the 250,000 errors of a timsTOF run took 20-30 ms each). Unless a value is not
+    // finite (a NaN is not ordered; an infinite median gives NaN deviations) or a negative zero (equal to 0, but written
+    // differently), where the result may depend on the algorithm or on the order the sort left: then Math itself.
+    std::pair<double, double> medianAndMADBySelection(std::vector<double>& values)
+    {
+      const auto ambiguous = [](double v) { return !std::isfinite(v) || (v == 0.0 && std::signbit(v)); };
+      if (values.empty() || std::any_of(values.begin(), values.end(), ambiguous))
+      {
+        const double median = Math::median(values.begin(), values.end());
+        return {median, Math::MAD(values.begin(), values.end(), median)};
+      }
+      // the median of finite values without a negative zero; their deviations are not negative zeros and not NaN
+      const auto median_of = [](std::vector<double>& v)
+      {
+        const auto upper = v.begin() + static_cast<SignedSize>(v.size() / 2);
+        std::nth_element(v.begin(), upper, v.end());
+        if (v.size() % 2 == 1) { return *upper; }
+        return (*std::max_element(v.begin(), upper) + *upper) / 2.0;
+      };
+      const double median = median_of(values);
+      std::vector<double> diffs;
+      diffs.reserve(values.size());
+      for (const double value : values) { diffs.push_back(fabs(value - median)); }
+      return {median, median_of(diffs)};
     }
   }
 
@@ -7673,8 +7871,8 @@ namespace OpenMS
     stats.matched_spectra = summary.matched;
     stats.charge_histogram = summary.charges;
     stats.missed_cleavage_histogram = summary.missed_cleavages;
-    stats.unique_peptides = summary.peptides.size();
-    stats.unique_proteins = summary.proteins.size();
+    stats.unique_peptides = summary.unique_peptides;
+    stats.unique_proteins = summary.unique_proteins;
     stats.target_psms = summary.n_target;
     stats.decoy_psms = summary.n_decoy;
     stats.fdr_applied = fdr_applied;
@@ -7727,8 +7925,8 @@ namespace OpenMS
     stats.matched_spectra = summary.matched;
     for (const auto& [charge, count] : summary.charges) { stats.charge_histogram[charge] += count; }
     for (const auto& [cleavages, count] : summary.missed_cleavages) { stats.missed_cleavage_histogram[cleavages] += count; }
-    stats.unique_peptides = summary.peptides.size();
-    stats.unique_proteins = summary.proteins.size();
+    stats.unique_peptides = summary.unique_peptides;
+    stats.unique_proteins = summary.unique_proteins;
     stats.target_psms = summary.n_target;
     stats.decoy_psms = summary.n_decoy;
     // Per-PSM error values for tolerance estimation (top-ranked hits only)
@@ -7739,8 +7937,7 @@ namespace OpenMS
     const Size min_psms_for_estimation = 10;
     if (precursor_errors.size() >= min_psms_for_estimation)
     {
-      double med = Math::median(precursor_errors.begin(), precursor_errors.end());
-      double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
+      const auto [med, mad] = medianAndMADBySelection(precursor_errors);
       stats.prec_err_median = med;
       stats.prec_err_mad = mad;
       stats.prec_err_recommended = std::ceil(med + 3.0 * mad);
@@ -7748,8 +7945,7 @@ namespace OpenMS
     }
     if (fragment_errors.size() >= min_psms_for_estimation)
     {
-      double med = Math::median(fragment_errors.begin(), fragment_errors.end());
-      double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
+      const auto [med, mad] = medianAndMADBySelection(fragment_errors);
       stats.frag_err_median = med;
       stats.frag_err_mad = mad;
       stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
