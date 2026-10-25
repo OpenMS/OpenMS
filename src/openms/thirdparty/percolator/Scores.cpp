@@ -19,6 +19,7 @@
 #include <cassert>
 #include <exception>
 #include <functional>
+#include <cfloat>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -1164,7 +1165,10 @@ int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combin
   // minimum of min(FDR, 1) at the ends of its group and of the groups after it (FDR = decoys * pi0 / max(1, targets)
   // * decoyFactor, counted from the top as below). So q < fdr exactly for the PSMs up to the end of the last group
   // with min(FDR, 1) < fdr, and the count is the number of targets up to there: walked without the q-values
-  // (as countPositivesOfTop). A NaN FDR (which the minimum does not order) uses getQValues.
+  // (as countPositivesOfTop). A NaN FDR (which the minimum does not order) uses getQValues. Only where doubles are
+  // evaluated in double precision (FLT_EVAL_METHOD 0, e.g. SSE2 / AArch64): getQValues rounds every q-value to double
+  // when it stores it, which an x87 build with excess precision would not do in registers.
+#if defined(FLT_EVAL_METHOD) && FLT_EVAL_METHOD == 0
   if (!(pi0_ < 1.0)) {
     const double pi0 = pi0_;
     const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
@@ -1191,6 +1195,7 @@ int Scores::countPositivesOfPairs(const std::vector<pair<double, bool> >& combin
     }
     if (!nanFdr) return numPos;
   }
+#endif
   // (one q-value per pair: room for all of them at once, instead of growing while they are added)
   qvals.clear();
   qvals.reserve(combined.size());

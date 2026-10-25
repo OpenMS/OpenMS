@@ -193,8 +193,8 @@ namespace
     64 threads the preprocessing of the spectra spent most of its time in the kernel (HeLa 25pc_50_25: 1.2 million
     mprotect() calls, 76 % system time). With a top pad of 64 MiB a new heap is made writable in one call when it is
     created. The pad also applies to the main arena (64 MiB more address space per sbrk(), touched only when used)
-    and it fixes the threshold above which a block is mapped on its own at the default 128 KiB (glibc otherwise
-    raises it with the blocks that are freed).
+    and it freezes the threshold above which a block is mapped on its own at its value when main() starts (glibc
+    otherwise raises it with the mapped blocks that are freed; normally still the default 128 KiB here).
 
     Not when the user set glibc's malloc tunables (GLIBC_TUNABLES), nor with OPENMS_MALLOC_DEFAULTS=0. No change of
     results.
