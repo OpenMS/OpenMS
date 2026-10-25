@@ -167,6 +167,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "tron"; ///< Percolator's SVM solver (parameter 'rescore_solver')
+      bool peptide_level = false;  ///< also Percolator's peptide-level q-values and PEPs (parameter 'rescoring:peptide_level')
     };
 
     /**

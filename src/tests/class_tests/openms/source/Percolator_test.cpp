@@ -32,6 +32,7 @@
 #include <iomanip>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <random>
 #include <set>
@@ -2124,6 +2125,197 @@ START_SECTION(([EXTRA] rescorePSMs: meta values as when the PIN features were st
   PercolatorInfile::buildFeatureMatrix(before, input.feature_names, "trypsin", 2, 2, input, rows);
   TEST_EQUAL(input.feature_names == numeric, true)
   TEST_EQUAL(input.featureCount(), numeric.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptide_level: Percolator peptide-level q-values and PEPs, as the executable without -U))
+{
+  RescoreInput in = makeModeratelySeparableInput_(600, 7);
+  const size_t n = in.features.size();
+  // peptides: 4 PSMs per peptide (keys repeat); decoy peptides are separate entries, also with a target's key
+  in.peptide_keys.resize(n);
+  for (size_t i = 0; i < n; ++i) in.peptide_keys[i] = std::string(in.is_decoy[i] ? "D" : "T") + std::to_string(i % 150);
+  in.peptide_keys[n - 1] = "T7";
+  // target-decoy competition: the first 40 decoys share the spectrum of the first 40 targets
+  in.scan_numbers.resize(n);
+  in.exp_masses.assign(n, 500.0);
+  for (size_t i = 0; i < n; ++i) in.scan_numbers[i] = static_cast<int>(i >= 600 && i < 640 ? i - 600 : i);
+
+  Percolator p;
+  Param prm = p.getDefaults();
+  prm.setValue("seed", 3);
+  prm.setValue("pep_method", "nonparametric");
+  p.setParameters(prm);
+  const RescoreOutput off = p.rescore(in);
+  TEST_EQUAL(off.peptide_q_values.empty() && off.peptide_peps.empty(), true)
+  prm.setValue("peptide_level", "true");
+  p.setParameters(prm);
+  const RescoreOutput on = p.rescore(in);
+  // the PSM level is unchanged
+  TEST_EQUAL(on.scores == off.scores && on.q_values == off.q_values && on.peps == off.peps, true)
+  TEST_EQUAL(on.peptide_q_values.size(), n)
+  TEST_EQUAL(on.peptide_peps.size(), n)
+  // without keys: nothing at the peptide level
+  RescoreInput no_keys = in;
+  no_keys.peptide_keys.clear();
+  TEST_EQUAL(p.rescore(no_keys).peptide_q_values.empty(), true)
+  // wrong number of keys
+  RescoreInput bad_keys = in;
+  bad_keys.peptide_keys.pop_back();
+  TEST_EXCEPTION(Exception::InvalidValue, p.rescore(bad_keys))
+
+  // reference: the TDC winners (losers: score 0, q-value 1, PEP 1), best score per (label, key), q-values
+  // (D + 1) / max(T, 1) per group of tied scores (pi0 = 1), the minimum over the lower ranks, at most 1
+  std::vector<bool> winner(n);
+  size_t losers = 0;
+  for (size_t i = 0; i < n; ++i)
+  {
+    winner[i] = !(on.scores[i] == 0.0 && on.q_values[i] == 1.0 && on.peps[i] == 1.0);
+    losers += winner[i] ? 0 : 1;
+  }
+  TEST_EQUAL(losers, 40)
+  std::map<std::pair<bool, std::string>, double> best;
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (!winner[i]) continue;
+    auto [it, inserted] = best.emplace(std::make_pair(bool(in.is_decoy[i]), in.peptide_keys[i]), on.scores[i]);
+    if (!inserted) it->second = std::max(it->second, on.scores[i]);
+  }
+  std::vector<std::pair<double, std::pair<bool, std::string>>> peps;
+  for (const auto& [k, sc] : best) peps.emplace_back(sc, k);
+  std::sort(peps.begin(), peps.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+  std::vector<double> q(peps.size());
+  double targets = 0.0, decoys = 1.0;
+  for (size_t r = 0; r < peps.size();)
+  {
+    size_t e = r;
+    while (e < peps.size() && peps[e].first == peps[r].first) { (peps[e].second.first ? decoys : targets) += 1.0; ++e; }
+    for (size_t k = r; k < e; ++k) q[k] = std::min(1.0, decoys / std::max(1.0, targets));
+    r = e;
+  }
+  for (size_t r = q.size(); r-- > 1;) q[r - 1] = std::min(q[r - 1], q[r]);
+  std::map<std::pair<bool, std::string>, double> expected;
+  for (size_t r = 0; r < peps.size(); ++r) expected[peps[r].second] = q[r];
+  TEST_EQUAL(expected.size(), 301) // 150 target and 150 decoy keys, and the decoy with a target's key
+  double max_diff = 0.0;
+  bool pep_ok = true;
+  for (size_t i = 0; i < n; ++i)
+  {
+    const auto it = expected.find(std::make_pair(bool(in.is_decoy[i]), in.peptide_keys[i]));
+    const double want = it == expected.end() ? 1.0 : it->second;
+    max_diff = std::max(max_diff, std::fabs(on.peptide_q_values[i] - want));
+    pep_ok = pep_ok && on.peptide_peps[i] >= 0.0 && on.peptide_peps[i] <= 1.0;
+  }
+  TEST_REAL_SIMILAR(max_diff, 0.0)
+  TEST_EQUAL(pep_ok, true)
+  // rows of one peptide share its values
+  bool shared = true;
+  for (size_t i = 0; i < n; ++i)
+  {
+    for (size_t j = i + 1; j < n; j += 150)
+    {
+      if (in.peptide_keys[i] == in.peptide_keys[j] && in.is_decoy[i] == in.is_decoy[j])
+      {
+        shared = shared && on.peptide_q_values[i] == on.peptide_q_values[j] && on.peptide_peps[i] == on.peptide_peps[j];
+      }
+    }
+  }
+  TEST_EQUAL(shared, true)
+  // fewer peptides than distinct peptides of the PSMs at the same q-value (the roll-up counts each peptide once)
+  std::set<std::string> psm_peptides, peptide_level;
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (in.is_decoy[i]) continue;
+    if (on.q_values[i] <= 0.05) psm_peptides.insert(in.peptide_keys[i]);
+    if (on.peptide_q_values[i] <= 0.05) peptide_level.insert(in.peptide_keys[i]);
+  }
+  STATUS("peptides at 5 %: distinct of the PSMs " << psm_peptides.size() << ", peptide level " << peptide_level.size())
+  TEST_EQUAL(peptide_level.size() > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] rescorePSMs with peptide_level: percolator_peptide_q_value and percolator_peptide_pep on the hits))
+{
+  // 900 spectra, each peptide (sequence and label) seen in 3 of them; target search engine scores higher on average
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  auto makeIds = [&]()
+  {
+    PeptideIdentificationList ids;
+    for (int i = 0; i < 900; ++i)
+    {
+      const bool decoy = i % 2 == 1;
+      const int pep = (i / 2) % 150;
+      // distinct sequences: two residues encode the peptide; decoys are the reversed bodies
+      std::string body = std::string(1, aas[pep % aas.size()]) + aas[(pep / aas.size()) % aas.size()] + "GALSTVE";
+      if (decoy) std::reverse(body.begin(), body.end());
+      const std::string seq = body + 'K';
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(pep % 10 == 0 ? "M(Oxidation)" + seq : seq));
+      hit.setCharge(2);
+      hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+      hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+      PeptideEvidence ev(decoy ? "DECOY_P" + std::to_string(pep) : "P" + std::to_string(pep), 0, 0, 'K', 'A');
+      hit.setPeptideEvidences({ev});
+      PeptideIdentification pid;
+      pid.setScoreType("hyperscore");
+      pid.setHigherScoreBetter(true);
+      pid.setMZ(hit.getSequence().getMZ(2));
+      pid.setRT(10.0 * i);
+      pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+      pid.setHits({hit});
+      ids.push_back(pid);
+    }
+    return ids;
+  };
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  Percolator perc;
+  PeptideIdentificationList ids_off = makeIds();
+  perc.rescorePSMs(ids_off, feature_set, "trypsin", 2, 2, "q-value");
+  TEST_EQUAL(ids_off[0].getHits()[0].metaValueExists("percolator_peptide_q_value"), false)
+  Param prm = perc.getParameters();
+  prm.setValue("peptide_level", "true");
+  perc.setParameters(prm);
+  PeptideIdentificationList ids = makeIds();
+  TEST_EQUAL(perc.rescorePSMs(ids, feature_set, "trypsin", 2, 2, "q-value"), 900)
+  std::map<std::pair<bool, std::string>, std::pair<double, double>> of_peptide;
+  bool all = true, consistent = true, psm_level_same = true;
+  size_t targets_1pct = 0;
+  std::set<std::string> psm_peptides_1pct;
+  for (size_t i = 0; i < ids.size(); ++i)
+  {
+    const PeptideHit& hit = ids[i].getHits()[0];
+    const PeptideHit& hit_off = ids_off[i].getHits()[0];
+    psm_level_same = psm_level_same && hit.getScore() == hit_off.getScore()
+                     && double(hit.getMetaValue("MS:1001492")) == double(hit_off.getMetaValue("MS:1001492"));
+    all = all && hit.metaValueExists("percolator_peptide_q_value") && hit.metaValueExists("percolator_peptide_pep");
+    if (!all) break;
+    const double q = hit.getMetaValue("percolator_peptide_q_value"), pep = hit.getMetaValue("percolator_peptide_pep");
+    auto [it, inserted] = of_peptide.emplace(std::make_pair(hit.isDecoy(), hit.getSequence().toString()), std::make_pair(q, pep));
+    consistent = consistent && (inserted || it->second == std::make_pair(q, pep));
+    if (!hit.isDecoy() && hit.getScore() <= 0.05) psm_peptides_1pct.insert(hit.getSequence().toString());
+  }
+  // (at 5 %: with 150 target peptides, q <= 1 % would need 100 targets above the first decoy)
+  for (const auto& [k, v] : of_peptide) targets_1pct += !k.first && v.first <= 0.05 ? 1 : 0;
+  TEST_EQUAL(all, true)
+  TEST_EQUAL(consistent, true)
+  TEST_EQUAL(psm_level_same, true)
+  TEST_EQUAL(of_peptide.size(), 300)
+  STATUS("target peptides at 5 %: peptide level " << targets_1pct << ", distinct of the 5 % PSMs " << psm_peptides_1pct.size())
+  TEST_EQUAL(targets_1pct > 50, true)
+
+  // algorithm 'reset': its own peptide-level q-value only
+  prm.setValue("algorithm", "reset");
+  prm.setValue("reset:salt", "5");
+  prm.setValue("reset:iterations", 2);
+  perc.setParameters(prm);
+  PeptideIdentificationList ids_reset = makeIds();
+  perc.rescorePSMs(ids_reset, feature_set, "trypsin", 2, 2, "q-value");
+  TEST_EQUAL(ids_reset[0].getHits()[0].metaValueExists("percolator_peptide_q_value"), false)
+  TEST_EQUAL(ids_reset[0].getHits()[0].metaValueExists("RESET:peptide_q_value"), true)
 }
 END_SECTION
 

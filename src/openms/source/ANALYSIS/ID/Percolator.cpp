@@ -241,6 +241,15 @@ Percolator::Percolator()
                      "Percolator-RESET (PercolatorReset): FDR control at the peptide (stem = unmodified sequence) level, "
                      "PSM-level q-values heuristic. rescore() and train()/score() always use Percolator.");
   defaults_.setValidStrings("algorithm", {"percolator","reset"});
+  defaults_.setValue("peptide_level", "false",
+                     "rescore(): also estimate peptide-level q-values and PEPs as the percolator executable does without "
+                     "-U (its peptide output): after the target-decoy competition the best PSM of each peptide and label "
+                     "(RescoreInput::peptide_keys, the PIN 'Peptide' string between the flanks) is kept and q-values (pi0 = 1 "
+                     "with post_processing_tdc, as the executable) and PEPs are computed on these peptides "
+                     "(RescoreOutput::peptide_q_values, peptide_peps). rescorePSMs() then writes them to the rescored hits as "
+                     "'percolator_peptide_q_value' and 'percolator_peptide_pep'. Not with algorithm 'reset' (its own "
+                     "peptide-level q-value) or a scorer.");
+  defaults_.setValidStrings("peptide_level", {"true","false"});
   defaults_.setValue("reset:salt", "",
                      "RESET: salt of the decoy coins (an unsigned 64-bit integer). Empty = a fresh random salt per run "
                      "(recorded in the log and by ProSE in the search parameters). Never choose the best of several salts.");
@@ -328,6 +337,7 @@ void Percolator::updateMembers_()
   impl_->reset_representative = param_.getValue("reset:representative").toString();
   impl_->reset_audit = param_.getValue("reset:audit").toString() == "true";
   impl_->reset_stem_table = param_.getValue("reset:stem_table").toString();
+  impl_->peptide_level = param_.getValue("peptide_level").toString() == "true";
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -374,6 +384,92 @@ static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
   for (const std::exception_ptr& error : errors)
   {
     if (error) std::rethrow_exception(error);
+  }
+}
+
+// The row of a PSM that rescore() or score() made from row i of the input (id "row_<i>"), or n_rows for another id
+static size_t rowOfPSM(const P::ScoreHolder& sh, size_t n_rows)
+{
+  if (sh.pPSM == nullptr) return n_rows;
+  const std::string& id = sh.pPSM->getFullPeptide();
+  if (id.size() < 12 || id.compare(0, 4, "row_") != 0) return n_rows;
+  char* end = nullptr;
+  const char* num_begin = id.c_str() + 4;
+  const unsigned long row = std::strtoul(num_begin, &end, 10);
+  if (end == nullptr || end == num_begin || *end != '\0' || row >= n_rows) return n_rows;
+  return static_cast<size_t>(row);
+}
+
+// Percolator's peptide level, as the executable computes it without -U (Caller::calcAndOutputResult, second
+// calculatePSMProb pass): the PSM-level set @p psms after the target-decoy competition is reduced to the best PSM of each
+// peptide and label (Scores::weedOutRedundant; its lexicOrderProb keys the PSMs by the peptide string between the flanks,
+// here RescoreInput::peptide_keys, and by the label: target and decoy peptides are separate entries, not paired), then
+// the q-values (at @p test_fdr) and PEPs are computed on these peptides. The executable's Scores has usePi0 = mix-max,
+// i.e. false with target-decoy competition (@p use_pi0). Fills out.peptide_q_values / peptide_peps for every row
+// (1 for a row whose peptide and label have no PSM in @p psms).
+static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& input, bool use_pi0, double test_fdr,
+                                  const std::string& pep_method, int team_threads, RescoreOutput& out)
+{
+  const size_t n_rows = input.rowCount();
+  // best PSM of each (label, peptide): the first of the highest score (as weedOutRedundant, which keeps one of equal
+  // scores; the q-value and PEP of the peptide do not depend on which)
+  std::unordered_map<std::string, size_t> best[2]; // [decoy] peptide -> index into reps
+  std::vector<const P::ScoreHolder*> reps;
+  for (const P::ScoreHolder& sh : psms)
+  {
+    const size_t row = rowOfPSM(sh, n_rows);
+    if (row == n_rows) continue;
+    auto [it, inserted] = best[input.is_decoy[row] ? 1 : 0].try_emplace(input.peptide_keys[row], reps.size());
+    if (inserted) reps.push_back(&sh);
+    else if (sh.score > reps[it->second]->score) reps[it->second] = &sh;
+  }
+  P::Scores peptides(use_pi0);
+  peptides.reserve(reps.size());
+  for (const P::ScoreHolder* sh : reps) peptides.addScoreHolder(*sh);
+  // as rescore(): the sort and the bootstraps of a pi0 estimate as the tasks of a parallel region
+  std::exception_ptr error;
+#pragma omp parallel num_threads(team_threads)
+#pragma omp single
+  {
+    try
+    {
+      peptides.postMergeStep();
+      peptides.calcQvals(test_fdr);
+    }
+    catch (...)
+    {
+      error = std::current_exception();
+    }
+  }
+  if (error) std::rethrow_exception(error);
+  if (pep_method == "isotonic")
+  {
+    peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
+  }
+  else if (pep_method == "nonparametric")
+  {
+    peptides.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
+  }
+  else
+  {
+    peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
+  }
+  std::unordered_map<std::string, std::pair<double, double>> estimates[2]; // [decoy] peptide -> (q-value, PEP)
+  for (const P::ScoreHolder& sh : peptides)
+  {
+    const size_t row = rowOfPSM(sh, n_rows);
+    estimates[input.is_decoy[row] ? 1 : 0][input.peptide_keys[row]] = {sh.q, sh.pep};
+  }
+  out.peptide_q_values.assign(n_rows, 1.0);
+  out.peptide_peps.assign(n_rows, 1.0);
+#pragma omp parallel for schedule(static) num_threads(team_threads)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+  {
+    const auto& m = estimates[input.is_decoy[i] ? 1 : 0];
+    const auto it = m.find(input.peptide_keys[i]);
+    if (it == m.end()) continue;
+    out.peptide_q_values[i] = it->second.first;
+    out.peptide_peps[i] = it->second.second;
   }
 }
 
@@ -543,6 +639,7 @@ static void validateRescoreInput_(const RescoreInput& input)
   validate_opt(input.spec_file_numbers,  "spec_file_numbers");
   validate_opt(input.exp_masses,         "exp_masses");
   validate_opt(input.calc_masses,        "calc_masses");
+  validate_opt(input.peptide_keys,       "peptide_keys");
 }
 
 // Feature-count + feature-names compatibility between a scoring input and a
@@ -1167,6 +1264,19 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
                    << "score range [" << score_min << ", " << score_max << "]"
                    << std::endl;
 
+  if (impl_->peptide_level && !input.peptide_keys.empty())
+  {
+    try
+    {
+      peptideLevelEstimates(all_scores, input, impl_->use_pi0 && !impl_->post_processing_tdc, impl_->test_fdr,
+                            impl_->pep_method, teamThreads(impl_->num_threads), out);
+    }
+    catch (const std::exception& e)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        std::string("Percolator peptide-level estimation failed: ") + e.what(), "");
+    }
+  }
   return out;
 }
 
@@ -1691,8 +1801,34 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
   }
   else
   {
+    if (impl_->peptide_level)
+    {
+      // peptide-level estimates: the PIN 'Peptide' string between the flanks (PercolatorInfile::store), by which the
+      // executable groups the PSMs of a peptide
+      ri.peptide_keys.resize(n_rows);
+      std::vector<std::exception_ptr> errors(n_rows);
+#pragma omp parallel for schedule(dynamic, 1024)
+      for (SignedSize r = 0; r < static_cast<SignedSize>(n_rows); ++r)
+      {
+        try
+        {
+          const auto [pid_i, hit_i] = hit_locs[r];
+          ri.peptide_keys[r] = peptide_ids[pid_i].getHits()[hit_i].getSequence().toBracketString(false, true);
+        }
+        catch (...)
+        {
+          errors[r] = std::current_exception();
+        }
+      }
+      rethrowFirstError(errors);
+    }
     // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
     ro = rescore(ri);
+  }
+  if (impl_->peptide_level && ro.peptide_q_values.empty())
+  {
+    OPENMS_LOG_WARN << "Percolator: no peptide-level q-values with " << (scorer ? "a scorer" : "algorithm 'reset' (see "
+                       "RESET:peptide_q_value)") << "." << std::endl;
   }
 
   // When the PIN features were stamped, the PIN columns that a stamped hit (evidence, target/decoy type) did not have
@@ -1943,6 +2079,29 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
       catch (...)
       {
         errors[i] = std::current_exception();
+      }
+    }
+    rethrowFirstError(errors);
+  }
+  if (ro.peptide_q_values.size() == n_rows && ro.peptide_peps.size() == n_rows)
+  {
+    // the q-value and PEP of the hit's peptide (Percolator's peptide level, parameter 'peptide_level')
+    const UInt pep_q_index = MetaInfoInterface::metaRegistry().registerName("percolator_peptide_q_value");
+    const UInt pep_pep_index = MetaInfoInterface::metaRegistry().registerName("percolator_peptide_pep");
+    std::vector<std::exception_ptr> errors(n_rows);
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize row = 0; row < static_cast<SignedSize>(n_rows); ++row)
+    {
+      try
+      {
+        const auto [pid_i, hit_i] = hit_locs[row];
+        PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+        hit.setMetaValue(pep_q_index, ro.peptide_q_values[row]);
+        hit.setMetaValue(pep_pep_index, ro.peptide_peps[row]);
+      }
+      catch (...)
+      {
+        errors[row] = std::current_exception();
       }
     }
     rethrowFirstError(errors);

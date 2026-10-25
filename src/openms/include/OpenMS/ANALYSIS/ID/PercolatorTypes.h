@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -78,6 +79,11 @@ namespace OpenMS
     */
     std::vector<double> feature_matrix;
 
+    /// Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'): rows with the
+    /// same key and label are one peptide, as the percolator executable groups PSMs by the PIN 'Peptide' string
+    /// between the flanks (incl. modifications). Empty, or one entry per row.
+    std::vector<std::string> peptide_keys;
+
     /// Number of rows: of @ref features, or else of the dense @ref feature_matrix
     size_t rowCount() const
     {
@@ -104,6 +110,11 @@ namespace OpenMS
     std::vector<double> scores;     ///< SVM discriminant score per row
     std::vector<double> q_values;   ///< q-value per row
     std::vector<double> peps;       ///< posterior error probability per row
+    /// With Percolator parameter 'peptide_level' (and RescoreInput::peptide_keys): per row, the q-value and PEP of its
+    /// peptide (key and label) at the peptide level; 1 for a row whose peptide has no PSM left after the target-decoy
+    /// competition. Empty otherwise.
+    std::vector<double> peptide_q_values;
+    std::vector<double> peptide_peps;
   };
 
   /**

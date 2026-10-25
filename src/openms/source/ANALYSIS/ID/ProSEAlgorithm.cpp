@@ -426,6 +426,17 @@ namespace OpenMS
                        "three by cross-validation (faster; the results differ).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:single_cneg", {"true", "false"});
+    defaults_.setValue("rescoring:peptide_level", "false",
+                       "Also Percolator's peptide-level q-values, as the percolator executable reports peptides (without -U): "
+                       "after the target-decoy competition of the spectra, the best PSM of each peptide (modified sequence) "
+                       "and label competes, and q-values and PEPs are estimated on these peptides. Every rescored hit gets "
+                       "the values of its peptide as meta values 'percolator_peptide_q_value' and 'percolator_peptide_pep'; "
+                       "a list of peptides at an FDR is the target peptides with percolator_peptide_q_value at most that FDR "
+                       "(the distinct peptides of the PSMs at an FDR are not FDR-controlled at the peptide level). The main "
+                       "score stays the PSM-level q-value. Default Percolator rescoring only (not with rescore_method 'reset', "
+                       "which reports RESET:peptide_q_value, nor with rescore_reuse models).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:peptide_level", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
     defaults_.setValue("rescore_method", "percolator",
                        "With 'rescore': 'percolator' = Percolator's PSM-level FDR (default); 'reset' = Percolator-RESET "
@@ -835,6 +846,7 @@ namespace OpenMS
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
     percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     percolator_training_.solver = param_.getValue("rescore_solver").toString();
+    percolator_training_.peptide_level = param_.getValue("rescoring:peptide_level").toString() == "true";
     percolator_extra_ = Param();
     if (param_.getValue("rescore_method").toString() == "reset")
     {
@@ -4559,6 +4571,7 @@ namespace OpenMS
       // results do not depend on the threads
       pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 128));
       pp.setValue("solver", training.solver);
+      if (training.peptide_level) pp.setValue("peptide_level", "true");
       for (auto it = extra.begin(); it != extra.end(); ++it)
       {
         pp.setValue(it.getName(), it->value);
@@ -5143,6 +5156,10 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
       if (training.solver != "tron") run_sp.setMetaValue("Percolator:solver", training.solver);
       else run_sp.removeMetaValue("Percolator:solver");
+      if (training.peptide_level && reuse == nullptr && !perc.getResetOutput())
+      {
+        run_sp.setMetaValue("Percolator:peptide_q_values", "percolator_peptide_q_value, percolator_peptide_pep");
+      }
       if (const auto rr = perc.getResetOutput())
       {
         run_sp.setMetaValue("Percolator:algorithm", "reset");
