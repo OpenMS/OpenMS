@@ -30,7 +30,7 @@ index f49d0a898b..a8c41125ff 100644
          // Create storage vector for SVM algorithm
          vector_double Outputs;
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
-index 2276176e04..e523988ea7 100644
+index 09f3885d42..a53bbcb977 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.h
 +++ b/src/openms/thirdparty/percolator/CrossValidation.h
 @@ -124,6 +124,10 @@ class CrossValidation {
