@@ -412,13 +412,13 @@ namespace OpenMS
                        "more hits cost time and memory. 0 = 'report:top_hits' (as earlier "
                        "ProSE versions, whose Percolator rescored the reported hits). The search keeps these hits for "
                        "Percolator (with -out_pin also the reported ones): a run that Percolator does not rescore (fewer "
-                       "than 100 PSMs, no decoy PSM, a failure) reports at most the smaller of report:top_hits and "
-                       "rescoring:top_hits hits per spectrum; with decoys 'ignore' (no rescoring) report:top_hits.",
+                       "than 100 PSMs, no decoy PSM, a failure) reports at most rescoring:top_hits (if above 0) of its "
+                       "report:top_hits hits per spectrum; with decoys 'ignore' (no rescoring) report:top_hits.",
                        {"advanced"});
     defaults_.setMinInt("rescoring:top_hits", 0);
     defaults_.setValue("rescoring:subset_max_train", 0,
-                       "Percolator trains on at most this many PSMs (drawn at random by spectrum: the PSMs of a spectrum "
-                       "stay together) and then scores all PSMs with the learned model, like the percolator executable's "
+                       "Percolator trains on at most this many PSMs (rows: 'rescoring:top_hits' per spectrum; drawn at "
+                       "random by spectrum: the PSMs of a spectrum stay together) and then scores all PSMs with the learned model, like the percolator executable's "
                        "--subset-max-train. 0 trains on all PSMs. Faster on large runs; the results differ.",
                        {"advanced"});
     defaults_.setMinInt("rescoring:subset_max_train", 0);
