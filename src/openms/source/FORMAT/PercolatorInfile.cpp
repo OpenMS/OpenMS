@@ -560,9 +560,12 @@ namespace OpenMS
           stamp_meta_value("charge" + StringUtils::toStr(i), charge == i);
         }
 
-        // use first peptide evidence for flanking AAs
+        // use first peptide evidence for flanking AAs; a protein terminus ('[', ']' in OpenMS) is '-', as Percolator
+        // writes it: the enzyme features count it as a cleavage site, and the Peptide column shows it
         char aa_before = hit.getPeptideEvidences().front().getAABefore();
         char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
+        aa_before = aa_before == PeptideEvidence::N_TERMINAL_AA ? '-' : aa_before;
+        aa_after  = aa_after  == PeptideEvidence::C_TERMINAL_AA ? '-' : aa_after;
 
         bool enzN, enzC;
         Size enzInt;
@@ -591,8 +594,6 @@ namespace OpenMS
         stamp_meta_value("absdm", std::abs(delta_mass));
 
         // Percolator-formatted peptide string with PTM brackets
-        aa_before = aa_before == '[' ? '-' : aa_before;
-        aa_after  = aa_after  == ']' ? '-' : aa_after;
         std::string sequence;
         sequence += aa_before;
         sequence += ".";

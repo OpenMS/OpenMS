@@ -1420,10 +1420,11 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     }
   } cleanup{peptide_ids, added_pin_meta_values};
 
-  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass is
-  // used by Percolator for the spectrum key (it goes into RescoreInput.exp_masses), not for training.
+  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass and
+  // CalcMass are read by the percolator executable as such, not as features (it goes into
+  // RescoreInput.exp_masses / calc_masses), so they are not trained on here either.
   const std::set<std::string> pin_metadata_not_feature {
-    "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
+    "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "Peptide", "Proteins"
   };
   StringList numeric_features;
   for (const std::string& f : feature_set)
