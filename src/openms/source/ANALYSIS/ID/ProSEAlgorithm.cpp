@@ -406,6 +406,16 @@ namespace OpenMS
                        "--subset-max-train. 0 trains on all PSMs. Faster on large runs; the results differ.",
                        {"advanced"});
     defaults_.setMinInt("rescoring:subset_max_train", 0);
+    defaults_.setValue("rescoring:subset_mode", "out_of_fold",
+                       "With 'rescoring:subset_max_train' > 0 (Percolator's parameter 'subset_mode'): 'out_of_fold' "
+                       "(default) assigns every spectrum to one of Percolator's three cross-validation folds first, draws "
+                       "the training sample (whole spectra, at random from the entire run, seeded), trains each fold's "
+                       "model on the sampled spectra of the other folds only, and scores every PSM with the model of its "
+                       "own fold, which never saw its spectrum. 'in_sample' = the percolator executable's "
+                       "--subset-max-train: cross-validation on the sample and all PSMs scored by the average of the fold "
+                       "models (the sampled PSMs by two models that trained on them).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:subset_mode", {"out_of_fold", "in_sample"});
     defaults_.setValue("rescoring:iterations", 10,
                        "Iterations of Percolator's cross-validation training (the percolator executable's --maxiter). "
                        "Fewer are faster; the results differ.",
@@ -830,6 +840,7 @@ namespace OpenMS
     }
     rescore_ = param_.getValue("rescore").toString() == "true";
     percolator_training_.subset_max_train = static_cast<int>(param_.getValue("rescoring:subset_max_train"));
+    percolator_training_.subset_mode = param_.getValue("rescoring:subset_mode").toString();
     percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
     percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
@@ -4550,6 +4561,7 @@ namespace OpenMS
       pp.setValue("train_best_positive", "true");
       pp.setValue("post_processing_tdc", "true");
       pp.setValue("subset_max_train", training.subset_max_train);  // 0 (the default): train on all PSMs
+      pp.setValue("subset_mode", training.subset_mode);
       pp.setValue("num_iterations", training.iterations);
       pp.setValue("tron_epsilon", training.tron_epsilon);
       pp.setValue("warm_start", training.warm_start ? "true" : "false");
@@ -5138,6 +5150,12 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
       run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
       run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
+      // (only with a cap: the output without one stays as it was)
+      if (static_cast<int>(pp.getValue("subset_max_train")) > 0)
+      {
+        run_sp.setMetaValue("Percolator:subset_mode", pp.getValue("subset_mode").toString());
+      }
+      else run_sp.removeMetaValue("Percolator:subset_mode");
       run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
       run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
