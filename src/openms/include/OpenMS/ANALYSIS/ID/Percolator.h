@@ -264,10 +264,38 @@ namespace OpenMS
       score() leaves the buffer unchanged (empty if this instance has
       never trained).
 
-      @return Outer size = 1 (averaged); inner size = num_features + 1.
+      After rescore() with an out-of-fold capped training (parameter subset_mode), the models that scored the rows
+      instead: the three fold models, and with 'out_of_fold_avg' their average (for the unsampled rows) fourth.
+
+      @return Outer size = 1 (averaged; 3 or 4 after an out-of-fold capped rescore()); inner size = num_features + 1.
               Empty until rescore()/train() has been called on this instance.
     */
     const std::vector<std::vector<double>>& getSvmWeights() const;
+
+    /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold', 'out_of_fold_avg' or
+    ///        'learning_curve', active).
+    struct CappedTrainingInfo
+    {
+      std::vector<int> fold;                          ///< per input row: its cross-validation fold, whose model scored it
+      std::vector<char> sampled;                      ///< per input row: whether it is in a fold model's training set (the
+                                                      ///< sample; learning_curve: of a kept model)
+      std::vector<std::vector<size_t>> trained_rows;  ///< per fold: the input rows of its model's training set, ascending
+      std::vector<int> scorer;                        ///< per input row: the model that scored it (getSvmWeights() index:
+                                                      ///< its fold, or 3 = the average of the fold models)
+      // subset_mode 'learning_curve':
+      size_t validation_rows = 0;                     ///< rows of the validation spectra (never trained on)
+      std::vector<size_t> curve_sizes;                ///< training-sample rows of each trained size, in order
+      std::vector<std::vector<long>> curve_counts;    ///< per size and fold: validation targets (-1: fold had stopped)
+      std::vector<std::vector<long>> curve_discordant; ///< per size and fold: validation targets accepted by only one of
+                                                       ///< this and the previous size's models (-1: none compared)
+      std::vector<size_t> chosen_size;                ///< per fold: the sample rows of its kept model
+    };
+
+    /**
+      @brief The folds, sample and training sets of the last rescore() if it trained out-of-fold on a capped sample
+             (subset_mode 'out_of_fold' or 'out_of_fold_avg', more rows than subset_max_train); otherwise empty. For tests and diagnostics.
+    */
+    const CappedTrainingInfo& getCappedTrainingInfo() const;
 
     /**
       @brief Pi0 (null fraction) from the last rescore()/score() call.

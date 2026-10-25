@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iterator>
 #include <limits>
@@ -36,6 +37,9 @@
 #include <random>
 #include <set>
 #include <sstream>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -225,6 +229,385 @@ START_SECTION([EXTRA] num_threads does not change the results)
     TEST_EQUAL(outs[0].q_values == outs[i].q_values, true)
     TEST_EQUAL(outs[0].peps == outs[i].peps, true)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that trained on it)
+{
+  // 20000 spectra with a target and a decoy hit each (rows 2s, 2s + 1); half of the targets are correct
+  const std::size_t n_spectra = 20000, n_rows = 2 * n_spectra, cap = 10000;
+  RescoreInput input;
+  input.feature_names = StringList{"signal", "signal2", "noise"};
+  std::mt19937 gen(11);
+  std::normal_distribution<double> nd(0.0, 0.6);
+  std::uniform_real_distribution<double> ud(0.0, 1.0);
+  for (std::size_t s = 0; s < n_spectra; ++s)
+  {
+    const bool correct = ud(gen) < 0.5;
+    input.features.push_back({(correct ? 1.0 : 0.0) + nd(gen), (correct ? 0.8 : 0.0) + nd(gen), ud(gen)});
+    input.is_decoy.push_back(false);
+    input.features.push_back({nd(gen), nd(gen), ud(gen)});
+    input.is_decoy.push_back(true);
+    for (int k = 0; k < 2; ++k)
+    {
+      input.scan_numbers.push_back(static_cast<int>(s));
+      input.exp_masses.push_back(500.0 + 0.01 * static_cast<double>(s));
+    }
+  }
+  auto run = [&input](const std::string& mode, int max_train, int seed, int threads, const std::string& tdc,
+                      Percolator::CappedTrainingInfo* info = nullptr, std::vector<std::vector<double>>* weights = nullptr,
+                      bool* default_direction = nullptr, const std::function<void(Param&)>& tweak = {})
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", seed);
+    par.setValue("subset_max_train", max_train);
+    par.setValue("subset_mode", mode);
+    par.setValue("num_threads", threads);
+    par.setValue("post_processing_tdc", tdc);
+    // as ProSE (the 'logistic_regression' PEPs differ slightly with one OpenMP thread, also without a cap)
+    par.setValue("pep_method", "nonparametric");
+    if (tweak) tweak(par);
+    p.setParameters(par);
+    RescoreOutput out = p.rescore(input);
+    if (info) *info = p.getCappedTrainingInfo();
+    if (weights) *weights = p.getSvmWeights();
+    if (default_direction) *default_direction = p.usedDefaultDirection();
+    return out;
+  };
+
+  Percolator::CappedTrainingInfo info;
+  std::vector<std::vector<double>> weights;
+  bool default_direction = true;
+  const RescoreOutput out = run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info, &weights, &default_direction);
+  TEST_FALSE(default_direction) // the learned fold models are kept (they differ from fold to fold)
+  TEST_EQUAL(info.fold.size(), n_rows)
+  TEST_EQUAL(info.sampled.size(), n_rows)
+  TEST_EQUAL(info.trained_rows.size(), 3)
+  TEST_EQUAL(weights.size(), 3)
+  // the sample: whole spectra, at most cap rows, spread over the whole input
+  std::size_t n_sampled = 0;
+  bool together = true;
+  std::vector<std::size_t> per_decile(10, 0);
+  for (std::size_t r = 0; r < n_rows; ++r)
+  {
+    together = together && info.fold[r] == info.fold[r ^ 1u] && info.sampled[r] == info.sampled[r ^ 1u];
+    if (info.sampled[r]) { ++n_sampled; ++per_decile[r * 10 / n_rows]; }
+  }
+  TEST_TRUE(together)
+  TEST_TRUE(n_sampled <= cap && n_sampled + 2 > cap)
+  for (std::size_t d : per_decile) TEST_TRUE(std::fabs(static_cast<double>(d) - n_sampled / 10.0) < 0.2 * n_sampled / 10.0)
+  // each fold's model trained on exactly the sampled spectra of the other folds
+  bool training_sets = true;
+  for (int f = 0; f < 3; ++f)
+  {
+    std::vector<size_t> expected;
+    for (std::size_t r = 0; r < n_rows; ++r) if (info.sampled[r] && info.fold[r] != f) expected.push_back(r);
+    training_sets = training_sets && info.trained_rows[f] == expected;
+  }
+  TEST_TRUE(training_sets)
+  // no row (sampled or not) is scored by a model that saw it, and every row is scored by its fold's model: the scores
+  // of a fold are an increasing linear function of its model's raw score (the folds are rescaled when they are merged)
+  bool unseen = true, by_fold_model = true;
+  for (int f = 0; f < 3; ++f)
+  {
+    const std::vector<size_t>& trained = info.trained_rows[f];
+    std::vector<std::pair<double, double>> raw_and_out; // (w_f . x + bias, output score)
+    for (std::size_t r = 0; r < n_rows; ++r)
+    {
+      if (info.fold[r] != f) continue;
+      unseen = unseen && !std::binary_search(trained.begin(), trained.end(), r);
+      const std::vector<double>& w = weights[f];
+      raw_and_out.emplace_back(input.features[r][0] * w[0] + input.features[r][1] * w[1] + input.features[r][2] * w[2] + w[3],
+                               out.scores[r]);
+    }
+    std::sort(raw_and_out.begin(), raw_and_out.end());
+    const auto& lo = raw_and_out.front();
+    const auto& hi = raw_and_out.back();
+    const double slope = (hi.second - lo.second) / (hi.first - lo.first);
+    by_fold_model = by_fold_model && slope > 0.0;
+    for (const auto& ro : raw_and_out)
+    {
+      const double predicted = lo.second + slope * (ro.first - lo.first);
+      by_fold_model = by_fold_model && std::fabs(predicted - ro.second) <= 1e-9 * (1.0 + std::fabs(ro.second));
+    }
+  }
+  TEST_TRUE(unseen)
+  TEST_TRUE(by_fold_model)
+  TEST_TRUE(medianTargetBeatsDecoy_(out, input))
+
+  // deterministic: by the seed, for any number of threads; another seed draws another sample
+  const RescoreOutput out_tdc = run("out_of_fold", static_cast<int>(cap), 17, 8, "true");
+  bool same_threads = true;
+  for (const int threads : {1, 3})
+  {
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    const RescoreOutput again = run("out_of_fold", static_cast<int>(cap), 17, threads, "true");
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    same_threads = same_threads && again.scores == out_tdc.scores && again.q_values == out_tdc.q_values && again.peps == out_tdc.peps;
+  }
+  TEST_TRUE(same_threads)
+  Percolator::CappedTrainingInfo info2;
+  run("out_of_fold", static_cast<int>(cap), 18, 8, "true", &info2);
+  TEST_TRUE(info2.sampled != info.sampled && info2.fold != info.fold)
+
+  // held-out labels do not reach a fold's model: relabelling the targets of spectra of fold 0 as decoys changes neither
+  // fold 0's model (if the spectra are sampled; the others' models change) nor any model (if not sampled); with
+  // Percolator's training options as well (nested cross-validation, warm starts, the other solvers)
+  const std::vector<std::pair<std::string, std::function<void(Param&)>>> configs{
+    {"default", {}},
+    {"nested_xval_bins 3", [](Param& par) { par.setValue("nested_xval_bins", 3); }},
+    {"warm_start", [](Param& par) { par.setValue("warm_start", "true"); }},
+    {"newton", [](Param& par) { par.setValue("solver", "newton"); }},
+    {"lda", [](Param& par) { par.setValue("solver", "lda"); }}};
+  for (const auto& config : configs)
+  {
+    std::vector<std::vector<double>> weights_config;
+    Percolator::CappedTrainingInfo info_config;
+    run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info_config, &weights_config, nullptr, config.second);
+    TEST_TRUE(info_config.fold == info.fold && info_config.sampled == info.sampled)
+    std::vector<bool> labels = input.is_decoy;
+    std::size_t swapped_sampled = 0, swapped_unsampled = 0;
+    auto swap_fold0 = [&](bool sampled)
+    {
+      input.is_decoy = labels;
+      std::size_t n = 0;
+      for (std::size_t s = 0; s < n_spectra; s += 3)
+      {
+        const std::size_t r = 2 * s;
+        if (info.fold[r] != 0 || static_cast<bool>(info.sampled[r]) != sampled) continue;
+        input.is_decoy[r] = true; // the target becomes a second decoy: the fold's target/decoy ratio changes too
+        ++n;
+      }
+      return n;
+    };
+    auto same = [](const std::vector<double>& a, const std::vector<double>& b)
+    {
+      bool eq = a.size() == b.size();
+      for (std::size_t j = 0; eq && j < a.size(); ++j) eq = std::fabs(a[j] - b[j]) <= 1e-9 * (1.0 + std::fabs(a[j]));
+      return eq;
+    };
+    std::vector<std::vector<double>> w_sampled, w_unsampled;
+    swapped_sampled = swap_fold0(true);
+    run("out_of_fold", static_cast<int>(cap), 17, 8, "false", nullptr, &w_sampled, nullptr, config.second);
+    swapped_unsampled = swap_fold0(false);
+    run("out_of_fold", static_cast<int>(cap), 17, 8, "false", nullptr, &w_unsampled, nullptr, config.second);
+    input.is_decoy = labels;
+    std::cerr << "held-out label check: " << config.first << std::endl;
+    TEST_TRUE(swapped_sampled > 100 && swapped_unsampled > 100)
+    TEST_TRUE(same(w_sampled[0], weights_config[0]))
+    TEST_TRUE(!same(w_sampled[1], weights_config[1]) && !same(w_sampled[2], weights_config[2]))
+    TEST_TRUE(same(w_unsampled[0], weights_config[0]) && same(w_unsampled[1], weights_config[1]) && same(w_unsampled[2], weights_config[2]))
+  }
+
+  // out_of_fold_avg: the sampled rows by their fold's model, the rows of unsampled spectra (which no model saw) by the
+  // average of the fold models; the targets and decoys of a spectrum share their scorer
+  {
+    Percolator::CappedTrainingInfo info_avg;
+    std::vector<std::vector<double>> weights_avg;
+    const RescoreOutput out_avg = run("out_of_fold_avg", static_cast<int>(cap), 17, 8, "false", &info_avg, &weights_avg);
+    TEST_EQUAL(weights_avg.size(), 4)
+    TEST_TRUE(info_avg.fold == info.fold && info_avg.sampled == info.sampled && info_avg.trained_rows == info.trained_rows)
+    bool scorers = info_avg.scorer.size() == n_rows, spectrum_scorer = true, avg_unseen = true;
+    for (std::size_t r = 0; scorers && r < n_rows; ++r)
+    {
+      scorers = scorers && info_avg.scorer[r] == (info_avg.sampled[r] ? info_avg.fold[r] : 3);
+      spectrum_scorer = spectrum_scorer && info_avg.scorer[r] == info_avg.scorer[r ^ 1u];
+      if (!info_avg.sampled[r])
+      {
+        for (int f = 0; f < 3; ++f) avg_unseen = avg_unseen && !std::binary_search(info_avg.trained_rows[f].begin(), info_avg.trained_rows[f].end(), r);
+      }
+    }
+    TEST_TRUE(scorers)
+    TEST_TRUE(spectrum_scorer)
+    TEST_TRUE(avg_unseen)
+    // every scorer's rows are scored by its model (the fourth: the fold models' average, as in_sample's)
+    bool by_scorer = true;
+    for (int g = 0; g < 4; ++g)
+    {
+      std::vector<std::pair<double, double>> raw_and_out;
+      for (std::size_t r = 0; r < n_rows; ++r)
+      {
+        if (info_avg.scorer[r] != g) continue;
+        const std::vector<double>& w = weights_avg[g];
+        raw_and_out.emplace_back(input.features[r][0] * w[0] + input.features[r][1] * w[1] + input.features[r][2] * w[2] + w[3],
+                                 out_avg.scores[r]);
+      }
+      std::sort(raw_and_out.begin(), raw_and_out.end());
+      const double slope = (raw_and_out.back().second - raw_and_out.front().second) / (raw_and_out.back().first - raw_and_out.front().first);
+      by_scorer = by_scorer && slope > 0.0;
+      for (const auto& ro : raw_and_out)
+      {
+        const double predicted = raw_and_out.front().second + slope * (ro.first - raw_and_out.front().first);
+        by_scorer = by_scorer && std::fabs(predicted - ro.second) <= 1e-9 * (1.0 + std::fabs(ro.second));
+      }
+    }
+    TEST_TRUE(by_scorer)
+    // relabelling rows of unsampled spectra changes none of the four models
+    {
+      std::vector<bool> labels = input.is_decoy;
+      for (std::size_t s = 0; s < n_spectra; s += 3)
+      {
+        if (!info_avg.sampled[2 * s]) input.is_decoy[2 * s] = true;
+      }
+      std::vector<std::vector<double>> weights_relabel;
+      run("out_of_fold_avg", static_cast<int>(cap), 17, 8, "false", nullptr, &weights_relabel);
+      input.is_decoy = labels;
+      bool unchanged = weights_relabel.size() == 4;
+      for (std::size_t g = 0; unchanged && g < 4; ++g)
+      {
+        for (std::size_t j = 0; j < weights_avg[g].size(); ++j)
+        {
+          unchanged = unchanged && std::fabs(weights_relabel[g][j] - weights_avg[g][j]) <= 1e-9 * (1.0 + std::fabs(weights_avg[g][j]));
+        }
+      }
+      TEST_TRUE(unchanged)
+    }
+    // the sampled rows' scores (up to each scorer's rescaling) are those of out_of_fold: same fold models
+    bool same_fold_models = true;
+    for (int f = 0; f < 3; ++f)
+    {
+      for (std::size_t j = 0; j < weights[f].size(); ++j) same_fold_models = same_fold_models && weights_avg[f][j] == weights[f][j];
+    }
+    TEST_TRUE(same_fold_models)
+  }
+
+  // learning_curve: nested samples of 2000, 4000, ... rows; fold k's curve on the validation spectra of the other folds
+  {
+    auto curve = [&](double min_gain, int threads, int seed, Percolator::CappedTrainingInfo* ci, std::vector<std::vector<double>>* cw)
+    {
+      return run("learning_curve", 0, seed, threads, "true", ci, cw, nullptr, [min_gain](Param& par)
+      {
+        par.setValue("subset_curve_start", 2000);
+        par.setValue("subset_curve_min_gain", min_gain);
+      });
+    };
+    Percolator::CappedTrainingInfo lc;
+    std::vector<std::vector<double>> lc_w;
+    const RescoreOutput lc_out = curve(0.002, 8, 17, &lc, &lc_w);
+    TEST_EQUAL(lc.validation_rows, n_rows / 5)
+    TEST_TRUE(!lc.curve_sizes.empty() && lc.curve_sizes[0] <= 2000 && lc.curve_sizes[0] + 2 > 2000)
+    TEST_EQUAL(lc_w.size(), 3)
+    // the folds are out_of_fold's; the validation spectra (the rows in no training set) are about 20 % of the rows
+    TEST_TRUE(lc.fold == info.fold)
+    std::size_t never_trained = 0;
+    for (std::size_t r = 0; r < n_rows; ++r) never_trained += lc.sampled[r] ? 0 : 1;
+    TEST_TRUE(never_trained >= lc.validation_rows)
+    // the stop rule: fold f keeps the model of the first size whose gain over the size before is below min_gain (or
+    // the last size); later sizes are not evaluated for it
+    bool rule = lc.chosen_size.size() == 3;
+    for (std::size_t f = 0; rule && f < 3; ++f)
+    {
+      std::size_t keep = lc.curve_sizes.size() - 1;
+      for (std::size_t k = 1; k < lc.curve_sizes.size(); ++k)
+      {
+        const long before = lc.curve_counts[k - 1][f], now = lc.curve_counts[k][f], d = lc.curve_discordant[k][f];
+        rule = rule && d >= std::abs(now - before); // the discordant targets bound the change of the count
+        if (static_cast<double>(now - before) <
+            std::max(0.002 * static_cast<double>(std::max(before, 1L)), 2.0 * std::sqrt(static_cast<double>(d)))) { keep = k; break; }
+      }
+      rule = rule && lc.chosen_size[f] == lc.curve_sizes[keep];
+      for (std::size_t k = keep + 1; k < lc.curve_sizes.size(); ++k) rule = rule && lc.curve_counts[k][f] == -1;
+      for (std::size_t k = 0; k <= keep; ++k) rule = rule && lc.curve_counts[k][f] >= 0;
+    }
+    TEST_TRUE(rule)
+    // a threshold no doubling reaches: every fold stops at the second size
+    Percolator::CappedTrainingInfo lc_stop;
+    curve(10.0, 8, 17, &lc_stop, nullptr);
+    TEST_EQUAL(lc_stop.curve_sizes.size(), 2)
+    TEST_TRUE(lc_stop.chosen_size == std::vector<size_t>(3, lc_stop.curve_sizes[1]))
+    // deterministic by seed and threads; another seed, another curve
+    bool same_lc = true;
+    for (const int threads : {1, 3})
+    {
+#ifdef _OPENMP
+      const int max_threads = omp_get_max_threads();
+      omp_set_num_threads(threads);
+#endif
+      Percolator::CappedTrainingInfo lc_t;
+      const RescoreOutput again = curve(0.002, threads, 17, &lc_t, nullptr);
+#ifdef _OPENMP
+      omp_set_num_threads(max_threads);
+#endif
+      same_lc = same_lc && again.scores == lc_out.scores && again.q_values == lc_out.q_values && again.peps == lc_out.peps &&
+                lc_t.curve_counts == lc.curve_counts && lc_t.chosen_size == lc.chosen_size;
+    }
+    TEST_TRUE(same_lc)
+    Percolator::CappedTrainingInfo lc_seed;
+    curve(0.002, 8, 18, &lc_seed, nullptr);
+    TEST_TRUE(lc_seed.fold != lc.fold)
+    // no label of fold 0 reaches fold 0's curve, size or model: relabelling targets of fold-0 spectra as decoys (in the
+    // samples, in the validation spectra, anywhere) leaves them unchanged; the other folds' curves change
+    std::vector<bool> labels = input.is_decoy;
+    for (std::size_t s = 0; s < n_spectra; s += 2)
+    {
+      if (lc.fold[2 * s] == 0) input.is_decoy[2 * s] = true;
+    }
+    Percolator::CappedTrainingInfo lc_relabel;
+    std::vector<std::vector<double>> lc_relabel_w;
+    curve(0.002, 8, 17, &lc_relabel, &lc_relabel_w);
+    input.is_decoy = labels;
+    bool fold0_same = lc_relabel.chosen_size[0] == lc.chosen_size[0] && lc_relabel.curve_sizes == lc.curve_sizes;
+    bool others_changed = false;
+    for (std::size_t k = 0; fold0_same && k < lc.curve_sizes.size(); ++k)
+    {
+      fold0_same = fold0_same && lc_relabel.curve_counts[k][0] == lc.curve_counts[k][0];
+      others_changed = others_changed || lc_relabel.curve_counts[k][1] != lc.curve_counts[k][1] ||
+                       lc_relabel.curve_counts[k][2] != lc.curve_counts[k][2];
+    }
+    for (std::size_t j = 0; fold0_same && j < lc_w[0].size(); ++j)
+    {
+      fold0_same = fold0_same && std::fabs(lc_relabel_w[0][j] - lc_w[0][j]) <= 1e-9 * (1.0 + std::fabs(lc_w[0][j]));
+    }
+    TEST_TRUE(fold0_same)
+    TEST_TRUE(others_changed)
+    // no sample that fills the folds (a cap of one row), or the mode inert (start >= rows, also with a cap): trained
+    // and scored as without a cap
+    const RescoreOutput uncapped_lc = run("in_sample", 0, 17, 8, "true");
+    Percolator::CappedTrainingInfo lc_fallback;
+    const RescoreOutput fallback_lc = run("learning_curve", 1, 17, 8, "true", &lc_fallback, nullptr, nullptr,
+                                          [](Param& par) { par.setValue("subset_curve_start", 2000); });
+    TEST_EQUAL(lc_fallback.fold.size(), 0)
+    TEST_TRUE(fallback_lc.scores == uncapped_lc.scores && fallback_lc.q_values == uncapped_lc.q_values)
+    const RescoreOutput inert_lc = run("learning_curve", 5000, 17, 8, "true", nullptr, nullptr, nullptr,
+                                       [n_rows](Param& par) { par.setValue("subset_curve_start", static_cast<int>(n_rows)); });
+    TEST_TRUE(inert_lc.scores == uncapped_lc.scores && inert_lc.q_values == uncapped_lc.q_values)
+  }
+
+  // the in-sample mode (the percolator executable's) stays: no fold record, one averaged model, other scores
+  Percolator::CappedTrainingInfo info_in;
+  std::vector<std::vector<double>> weights_in;
+  const RescoreOutput in_sample = run("in_sample", static_cast<int>(cap), 17, 8, "true", &info_in, &weights_in);
+  TEST_EQUAL(info_in.fold.size(), 0)
+  TEST_EQUAL(weights_in.size(), 1)
+  TEST_TRUE(in_sample.scores != out_tdc.scores)
+
+  // an inactive cap (at least the rows) and a sample that cannot fill the folds (one spectrum larger than the cap)
+  // train on all rows: as without a cap
+  const RescoreOutput uncapped = run("out_of_fold", 0, 17, 8, "true");
+  const RescoreOutput above = run("out_of_fold", static_cast<int>(n_rows), 17, 8, "true");
+  TEST_TRUE(above.scores == uncapped.scores && above.q_values == uncapped.q_values && above.peps == uncapped.peps)
+  const RescoreOutput uncapped_in = run("in_sample", 0, 17, 8, "true");
+  TEST_TRUE(uncapped_in.scores == uncapped.scores && uncapped_in.q_values == uncapped.q_values)
+  RescoreInput one_spectrum = input;
+  std::fill(one_spectrum.scan_numbers.begin(), one_spectrum.scan_numbers.end(), 1);
+  std::swap(input, one_spectrum);
+  Percolator::CappedTrainingInfo info_one;
+  const RescoreOutput fallback = run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info_one);
+  const RescoreOutput fallback_ref = run("out_of_fold", 0, 17, 8, "false");
+  std::swap(input, one_spectrum);
+  TEST_EQUAL(info_one.fold.size(), 0)
+  // a sample of two spectra cannot fill three folds: trained on all rows, as without a cap
+  Percolator::CappedTrainingInfo info_two;
+  const RescoreOutput two = run("out_of_fold", 4, 17, 8, "true", &info_two);
+  TEST_EQUAL(info_two.fold.size(), 0)
+  TEST_TRUE(two.scores == uncapped.scores && two.q_values == uncapped.q_values)
+  TEST_TRUE(fallback.scores == fallback_ref.scores && fallback.q_values == fallback_ref.q_values)
 }
 END_SECTION
 
