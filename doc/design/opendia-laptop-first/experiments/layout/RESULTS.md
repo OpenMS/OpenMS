@@ -107,6 +107,33 @@ Separate experimental lower-bound extraction results are retained in JSON as `na
 - Runner self-checks passed. The result validator accepted the full real matrix, matched all cross-layout/trial workload checksums, and independently rejected 12 corrupted/incomplete result cases. These reporting tests are not a substitute for public-interface correctness.
 - Existing native/public CLI and installed-SDK regression paths also passed **50/50** and **6/6**, respectively. This guards the unchanged implementation and integration environment, not production acceptance of an unimplemented layout migration.
 
+## Requirement-to-observation closure
+
+A follow-up on **October 25, 2026 at 18:54-18:55 UTC** exercised the native project path as well as rechecking the experimental evidence. The actual native targets `ChromatogramExtractorAlgorithm_test`, `ChromatogramExtractor_test`, `SpectrumAccessOpenMS_test`, `MzMLFile_test` and `OpenSwathChromatogramExtractor` were built successfully. The tests and CLI use the actual shared `libOpenMS`, verified by linkage, not the benchmark's optimized extractor translation unit.
+
+```bash
+cmake --build <native-build> --target ChromatogramExtractorAlgorithm_test \
+  ChromatogramExtractor_test SpectrumAccessOpenMS_test MzMLFile_test \
+  OpenSwathChromatogramExtractor -j3
+ctest --test-dir <native-build> \
+  -R '^(ChromatogramExtractorAlgorithm|ChromatogramExtractor|SpectrumAccessOpenMS|MzMLFile)_test$|^TOPP_OpenSwathChromatogramExtractor' \
+  -V -j2
+```
+
+**Observed: 14/14 passed in 6.48 seconds.** This includes four native class tests and five genuine extraction CLI runs, each with its existing FuzzyDiff output comparison. Every generated chromatogram file matched its expected project fixture. Nonblocking existing INI version warnings and an existing range-loop compiler warning were retained in the logs, not treated as failures. These are native regression observations, not timing results or proof that an unimplemented candidate layout is integrated into the CLI.
+
+| Requested property | Executed check and observed outcome |
+| --- | --- |
+| Compare current implementation with alternatives | All five layouts completed all 105 randomized processes. Complete rows, acquisition boundaries and workload checksums matched across layouts. |
+| Reflect actual access rather than only a synthetic loop | Actual public tophat calls, including adaptation and sorted cursor reuse, were measured. Public `extractChromatograms` semantic checks passed, and the separate native shared-library tests plus five real extraction CLI/output comparisons passed 14/14. |
+| Improve numeric speed where claimed | Across all four large fixture/size cases, factored-SoA dense process-median ranges were entirely below direct-AoS ranges. At 4,224,750 IM points: 4.901-6.995 ms versus 29.759-31.042 ms. |
+| Reduce memory where claimed | Across all four large cases, the maximum factored-SoA retained allocation was below the minimum RawTile retained allocation. Large IM: 163.55 versus 550.33 MiB. This excludes retained source and does not claim whole-process reduction. |
+| Expose less favorable access costs | Large IM factored AoS beat factored SoA on actual public narrow extraction across all process medians: 115.80-118.11 versus 125.94-174.49 ms. Direct AoS full-row access was faster in every trial. Universal SoA superiority was rejected. |
+| Preserve semantics and report uncertainty | Full-field bit-exact reconstruction and per-result extractor comparisons passed. All timing samples and broad noisy trial ranges were retained, with no outlier deletion. |
+| Reproduce the reported result | The full 105-process summary was regenerated after completion and matched the committed JSON byte-for-byte. All 65 published table cells were independently matched to that result. |
+
+This closes the **requested comparison experiment** with observed improvements and observed counterexamples. It does not close a production-layout migration: none was requested or implemented, and no full future-engine acceptance path exists yet for these alternative layouts. The lack of that adapter is a scope limit, not a successful full-engine validation or an externally blocked test hidden as a pass.
+
 ## Limits and next decision boundary
 
 This measures raw-point layouts only. It does not settle hypothesis/evidence/family/score layouts, byte-budget admission, streaming lifetime, multithreading, large diaPASEF-frame shapes, larger target libraries, full-run throughput or end-to-end scientific results. Million-point inputs repeat whole real acquisitions without inventing new peak distributions. The target set has only 34 queries, so the balance of adaptation versus extraction work can differ for a real library.
