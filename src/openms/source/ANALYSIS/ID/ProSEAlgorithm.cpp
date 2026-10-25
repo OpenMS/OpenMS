@@ -148,6 +148,21 @@ namespace OpenMS
       Container().swap(container);
     }
 
+    // The peak list and native ID of @p from into the empty spectrum @p to (and, if @p with_precursors, its MS level and
+    // precursors): a full MSSpectrum copy also copies the meta values, the data arrays and the other settings, heap blocks
+    // per spectrum that the readers of these copies never look at (the native ID identifies the copy).
+    void copyPeakList_(const MSSpectrum& from, MSSpectrum& to, bool with_precursors)
+    {
+      to.reserve(from.size());
+      to.insert(to.end(), from.begin(), from.end());
+      to.setNativeID(from.getNativeID());
+      if (with_precursors)
+      {
+        to.setMSLevel(from.getMSLevel());
+        to.setPrecursors(from.getPrecursors());
+      }
+    }
+
     void freeInParallel(PeakMap& spectra)
     {
       freeInParallel(spectra.getSpectra());
@@ -1326,7 +1341,8 @@ namespace OpenMS
       exp[exp_index].sortByPosition();
 
       // fragment:query_spectrum=raw retrieves candidates with this peak list (before deisotoping and local filtering).
-      if (query_spectra != nullptr) { (*query_spectra)[exp_index] = exp[exp_index]; }
+      // (only what the candidate query reads: the peaks, MS level and precursors; not the meta data and data arrays)
+      if (query_spectra != nullptr) { copyPeakList_(exp[exp_index], (*query_spectra)[exp_index], true); }
 
       // deisotope (skipped for low-resolution data; see do_deisotope above)
       // Isotope intensities must fall from the monoisotopic peak on (start_intensity_check = 1).
@@ -1368,7 +1384,8 @@ namespace OpenMS
       if (ion_evidence != nullptr && !ion_evidence_scored_peaks) { ion_evidence->assign(exp_index, exp[exp_index]); }
       // Local fragment evidence uses this peak list: after deisotoping, so that densities and
       // matching share the m/z space of the scoring spectrum, but before local and top-N filtering.
-      if (evidence_spectra != nullptr) { (*evidence_spectra)[exp_index] = exp[exp_index]; }
+      // (only what localPeakDensities_ and localFragmentEvidence_ read: the peaks)
+      if (evidence_spectra != nullptr) { copyPeakList_(exp[exp_index], (*evidence_spectra)[exp_index], false); }
 
       // remove noise
       if (full_window_quota) { filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top)); }
@@ -1823,6 +1840,13 @@ namespace OpenMS
       }
     }
 
+    // The meta values a hit gets below, and later in the search (protein mapping: 2, ion priors: 2): reserved at once.
+    const Size hit_meta_values = Size(annotation_fragment_error_ppm) + annotation_precursor_error_ppm + annotation_prefix_fraction
+      + annotation_suffix_fraction + annotation_num_matched_peaks + annotation_matched_prefix_ions + annotation_matched_suffix_ions
+      + 1 /* delta score */ + annotation_hyperscore_zscore + annotation_ln_num_candidates + annotation_matched_ion_current
+      + annotation_matched_ion_current_fraction + annotation_longest_ion_run + annotation_complementary_ions_fraction
+      + 2 * Size(annotation_local_evidence) + 1 /* isotope error */ + open_search_mode + 1 /* rank */ + 4;
+
     // With an empty list to start from, every spectrum with hits gets a slot in scan order: the identifications
     // end up in scan order without a lock and without the sort below (which orders them by scan_index, i.e. the
     // same order). Otherwise they are appended under a lock and sorted, as before.
@@ -1895,6 +1919,7 @@ namespace OpenMS
         for (auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
+          ph.reserveMetaValues(hit_meta_values); // (one block instead of growing by doubling)
           // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
           const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
           ph.setCharge(used_charge);
@@ -3222,7 +3247,6 @@ namespace OpenMS
 
     // 4. Allocate per-spectrum hit accumulator (persists across chunks).
     vector<vector<AnnotatedHit_>> annotated_hits(spectra.size());
-    for (auto& a : annotated_hits) { a.reserve(report_top_hits_); }
     // Accumulates across chunks: every chunk contributes its own candidates for the
     // same spectrum, and the pool features must see all of them.
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
@@ -4180,7 +4204,6 @@ namespace OpenMS
 
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
-    for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
     std::vector<CandidatePoolStats_> pool_stats(spectra.size());
 
     bool open_search_mode = open_search;
@@ -6649,7 +6672,6 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         per_file_hits[i].resize(all_spectra[i].size());
-        for (auto& a : per_file_hits[i]) a.reserve(report_top_hits_);
         per_file_pool_stats[i].resize(all_spectra[i].size());
       }
       OPENMS_LOG_INFO << "[ProSE] Chunk-major multi-file: " << full_db.size()
