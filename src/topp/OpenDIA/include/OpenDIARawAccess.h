@@ -69,7 +69,7 @@ namespace OpenDIA
       int id;
       std::shared_ptr<const RawScan> scan;
     };
-    std::optional<ByteReservation> reserve_();
+    std::optional<ByteReservation> reserve_(ByteCount bytes);
     mutable std::mutex mutex_;
     ByteBudget budget_;
     ByteCount max_scan_bytes_;

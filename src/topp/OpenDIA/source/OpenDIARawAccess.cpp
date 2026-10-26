@@ -130,15 +130,15 @@ namespace OpenDIA
     if (max_scan_bytes == 0 || max_scan_bytes > total_bytes - native_reserve) { invalid("Invalid maximum scan size"); }
   }
 
-  std::optional<ByteReservation> RawCache::reserve_()
+  std::optional<ByteReservation> RawCache::reserve_(ByteCount bytes)
   {
     // Evict on pressure. Pinned scans keep leases, so admission can still fail.
-    auto reservation = budget_.tryReserve(max_scan_bytes_);
+    auto reservation = budget_.tryReserve(bytes);
     while (!reservation && !entries_.empty() && !budget_.snapshot().cancelled)
     {
       entries_.pop_back();
       ++evictions_;
-      reservation = budget_.tryReserve(max_scan_bytes_);
+      reservation = budget_.tryReserve(bytes);
     }
     return reservation;
   }
@@ -187,7 +187,7 @@ namespace OpenDIA
     }
     ++cache_->misses_;
     // Reserve the full scan bound before the native decoder runs.
-    auto reservation = cache_->reserve_();
+    auto reservation = cache_->reserve_(cache_->max_scan_bytes_);
     if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
     // Native decode is outside private capacity enforcement. Check before conversion.
     const auto native = metadata_source_->getSpectrumPeaks(index);
@@ -210,12 +210,12 @@ namespace OpenDIA
   {
     const auto scan = acquire(id);
     std::lock_guard lock(cache_->mutex_);
-    // Reserve before the detached columns are copied.
-    auto reservation = cache_->reserve_();
-    if (!reservation) { invalid("Mutable scan admission failed"); }
+    // Bound the detached copy from the pinned columns, not the maximum scan size.
     const auto copy_bound = checkedByteAdd(checkedByteAdd(charge(*scan->columns_), sizeof(MutableColumns)),
       checkedByteAdd(sizeof(MutableSpectrum), checkedByteMultiply(scan->arrayCount(), sizeof(OpenSwath::BinaryDataArrayPtr))));
     if (copy_bound > cache_->max_scan_bytes_) { invalid("Mutable scan exceeds maximum scan bytes"); }
+    auto reservation = cache_->reserve_(copy_bound);
+    if (!reservation) { invalid("Mutable scan admission failed"); }
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
     auto& out = owner->spectrum->getDataArrays();
@@ -234,9 +234,9 @@ namespace OpenDIA
     const auto column_bytes = checkedByteAdd(charge(*owner->spectrum), sizeof(MutableColumns));
     const auto result_bytes = checkedByteAdd(sizeof(MutableSpectrum),
       checkedByteMultiply(aliases.capacity(), sizeof(OpenSwath::BinaryDataArrayPtr)));
-    if (checkedByteAdd(column_bytes, result_bytes) > cache_->max_scan_bytes_)
+    if (checkedByteAdd(column_bytes, result_bytes) > copy_bound)
     {
-      invalid("Mutable scan exceeds maximum scan bytes");
+      invalid("Mutable scan exceeds reserved copy bytes");
     }
     // Split ownership. A caller can clear every array but retain the spectrum.
     auto columns_reservation = reservation->split(column_bytes);
