@@ -147,18 +147,17 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
-        #pragma omp parallel for
-        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
+        filterSpectrum_(idx_rt, pattern_idx, [&](SignedSize s, std::vector<BlacklistEntry>* blacklist_reads) -> std::optional<MultiplexFilteredPeak>
         {
           double mz = it_rt[s].getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][s], idx_rt);
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt].at(s), idx_rt);
           
-          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak, blacklist_reads)))
           {
-            continue;
+            return std::nullopt;
           }
           
-          size_t mz_idx = exp_centroided_mapping_[idx_rt][s];
+          size_t mz_idx = exp_centroided_mapping_[idx_rt].at(s);
           double peak_min = boundaries_[idx_rt][mz_idx].mz_min;
           double peak_max = boundaries_[idx_rt][mz_idx].mz_max;
           
@@ -223,14 +222,10 @@ namespace OpenMS
           // If some satellite data points passed all filters, we can add the peak to the filter result.
           if (peak.sizeProfile() > 0)
           {
-            #pragma omp critical
-            {
-              result.addPeak(peak);
-              blacklistPeak_(peak, pattern_idx);
-            };
+            return peak;
           }
-          
-        }
+          return std::nullopt;
+        }, result);
         
       }
  

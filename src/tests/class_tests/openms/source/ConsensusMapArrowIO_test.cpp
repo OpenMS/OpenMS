@@ -980,6 +980,8 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   cmap.setMetaValue("spectra_data_like", DataValue(StringList{"sample_A.mzML", "sample_B.mzML"}));
   cmap.setMetaValue("scan_counts", DataValue(IntList{100, 200, 300}));
   cmap.setMetaValue("rt_offsets", DataValue(DoubleList{1.5, -0.5}));
+  // doubles that 15 decimals do not represent come back as the same doubles
+  cmap.setMetaValue("exact_offsets", DataValue(DoubleList{0.30000000000000004, -3.6414734172058556}));
 
   ConsensusFeature cf;
   cf.setRT(100.0);
@@ -987,6 +989,7 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   cf.setIntensity(1000.0f);
   cf.setCharge(2);
   cf.setUniqueId(9999);
+  cf.setMetaValue("exact_double", 7.3296492739417545);
   cmap.push_back(cf);
 
   ProteinIdentification prot_id;
@@ -1022,6 +1025,10 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   TEST_EQUAL(out_dl.size(), 2)
   TEST_REAL_SIMILAR(out_dl[0], 1.5)
   TEST_REAL_SIMILAR(out_dl[1], -0.5)
+
+  TEST_EQUAL(imported.getMetaValue("exact_offsets").toDoubleList() == DoubleList({0.30000000000000004, -3.6414734172058556}), true)
+  TEST_EQUAL(imported.size(), 1)
+  TEST_EQUAL(double(imported[0].getMetaValue("exact_double")) == 7.3296492739417545, true)
 }
 END_SECTION
 

@@ -14,6 +14,7 @@
  limitations under the License.
 
  *******************************************************************************/
+#include<cmath>
 #include<iterator>
 #include<vector>
 #include<algorithm>
@@ -101,5 +102,38 @@ void LogisticRegression::initg() {
 #endif
 }
 
+
+// OpenMS: the spline needs at least 4 strictly increasing x (initiateQR), and
+// keeps their distances in sparse vectors that treat |dx| <= 1e-15 as 0. Merge
+// the points it cannot tell apart and pad to 4 points spaced like the data.
+// Both happen in the transformed coordinates the spline fits in, which
+// setData chose from the real data, so the padding cannot change the
+// transform. Expects x in ascending order.
+void LogisticRegression::mergeTiesAndPad() {
+  std::size_t n = 0;
+  for (std::size_t ix = 0; ix < x.size(); ++ix) {
+    if (n > 0 && x[ix] - x[n - 1] <= 1e-12 * max(1.0, fabs(x[ix]))) {
+      y[n - 1] += y[ix];
+      m[n - 1] += m[ix];
+    } else {
+      x[n] = x[ix];
+      y[n] = y[ix];
+      m[n] = m[ix];
+      ++n;
+    }
+  }
+  x.resize(n);
+  y.resize(n);
+  m.resize(n);
+  if (n == 0) {
+    return;
+  }
+  double offset = n > 1 ? x.back() - x.front() : max(1.0, fabs(x.back()));
+  for (std::size_t ix = n; ix < 4; ++ix) {
+    x.push_back(x.back() + static_cast<double>(ix) * offset);
+    y.push_back(y.back());
+    m.push_back(m.back());
+  }
+}
 
 }}}  // namespace OpenMS::Internal::Percolator

@@ -644,9 +644,22 @@ protected:
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
-            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " Please use the merge_proteins_add_PSMs option if you used IDMerger. Alternatively, pass"
             " all original single-run idXML inputs as list to this tool.",
             "# runs: " + StringUtils::toStr(protein_ids.size()));
+      }
+
+      // PercolatorInfile removes the precursor isotope error as observed minus theoretical. ProSE before
+      // report:isotope_error_convention (and with its setting 'theoretical_minus_observed') wrote the opposite sign
+      // and no 'isotope_error_convention' search parameter.
+      if (protein_ids.front().getSearchEngine() == "ProSE"
+          && !protein_ids.front().getSearchParameters().metaValueExists("isotope_error_convention"))
+      {
+        OPENMS_LOG_WARN << "Warning: '" << in << "' comes from a ProSE search without the search parameter "
+                        << "'isotope_error_convention' (ProSE before OpenMS 3.7, or report:isotope_error_convention="
+                        << "theoretical_minus_observed). Its 'isotope_error' has the opposite sign, so dm and absdm of "
+                        << "PSMs with a nonzero isotope error contain twice the isotope offset instead of none. Search "
+                        << "again with the default report:isotope_error_convention to correct this." << endl;
       }
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
@@ -698,7 +711,7 @@ protected:
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
-                         ". Use TOPP_ConsensusID to combine results from different search engines if desired. Aborting!");
+                         ". Results from different search engines cannot be rescored together. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         
@@ -1010,7 +1023,8 @@ protected:
 
         Percolator perc;
         Param pp = perc.getDefaults();
-        if (getDoubleOption_("cpos") > 0.0)   pp.setValue("c_pos",    getDoubleOption_("cpos"));
+        // 0: selected by cross-validation, as the executable does without -p (the library default is 0.1)
+        pp.setValue("c_pos", getDoubleOption_("cpos"));
         if (getDoubleOption_("cneg") > 0.0)   pp.setValue("c_neg",    getDoubleOption_("cneg"));
         pp.setValue("test_fdr",       getDoubleOption_("testFDR"));
         pp.setValue("train_fdr",      getDoubleOption_("trainFDR"));

@@ -14,6 +14,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/StreamHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 ///////////////////////////
 
 #include <sstream>
@@ -124,6 +125,23 @@ START_SECTION((bool hasStream(const StreamType type, const std::string &stream_n
   TEST_EQUAL(handler.hasStream(StreamHandler::STRING, "this_is_a_test_stream"), true)
   TEST_EQUAL(handler.hasStream(StreamHandler::FILE, "this_is_a_test_stream"), false)
   TEST_EQUAL(handler.hasStream(StreamHandler::STRING, "this_is_not_the_same_stream"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a stream is removed from the global log streams before it is deleted))
+{
+  std::ostream* deleted = nullptr;
+  {
+    StreamHandler local_handler;
+    local_handler.registerStream(StreamHandler::STRING, "attached_to_the_debug_log");
+    std::ostream& attached = local_handler.getStream(StreamHandler::STRING, "attached_to_the_debug_log");
+    getGlobalLogDebug().insert(attached);
+    OPENMS_LOG_DEBUG_NOFILE << "while attached" << std::endl;
+    TEST_TRUE(static_cast<std::ostringstream&>(attached).str().find("while attached") != std::string::npos)
+    deleted = &attached;
+  } // deletes the stream
+  TEST_FALSE(getGlobalLogDebug().hasStream(*deleted)) // compares addresses only
+  OPENMS_LOG_DEBUG_NOFILE << "after the handler" << std::endl; // wrote to the deleted stream before
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

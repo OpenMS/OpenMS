@@ -21,6 +21,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -929,8 +930,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification\n";
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(it->getIdentifier()));
           }
         }
 
@@ -1368,7 +1368,7 @@ namespace OpenMS::Internal
             const ResidueModification* c_term_mod = hit.getSequence().getCTerminalModification();
             if (c_term_mod != nullptr)
             {
-              p += "\t\t<Modification location=\"" + StringUtils::toStr(hit.getSequence().size()) + "\">\n";
+              p += "\t\t<Modification location=\"" + StringUtils::toStr(hit.getSequence().size() + 1) + "\">\n"; // C-terminus is length + 1
               std::string acc = c_term_mod->getUniModAccession();
               p += "\t\t\t<cvParam accession=\"UNIMOD:" + StringUtils::suffix(acc, ':');
               p += "\" name=\"" + c_term_mod->getId();
@@ -1763,7 +1763,7 @@ namespace OpenMS::Internal
         const ResidueModification* c_term_mod = peptide_sequence.getCTerminalModification();
         if (c_term_mod != nullptr)
         {
-          p += "\t\t<Modification location=\"" + StringUtils::toStr(peptide_sequence.size()) + "\">\n";
+          p += "\t\t<Modification location=\"" + StringUtils::toStr(peptide_sequence.size() + 1) + "\">\n"; // C-terminus is length + 1
           std::string acc = c_term_mod->getUniModAccession();
           bool unimod = true;
           if (!acc.empty())

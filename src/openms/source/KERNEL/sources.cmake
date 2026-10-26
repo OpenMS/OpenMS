@@ -16,6 +16,8 @@ DPeak.cpp
 Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
+FeatureUniqueIds.cpp
+IMSExperimentRandomAccess.cpp
 MassTrace.cpp
 MobilityPeak1D.cpp
 MobilityPeak2D.cpp

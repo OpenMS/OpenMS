@@ -236,7 +236,16 @@ namespace OpenMS
           }
           else if constexpr (std::is_floating_point_v<T>)
           {
-            appendNumeric(v, r, std::numeric_limits<T>::digits10, false); // full precision, like toStr(v, true)
+#ifdef _LIBCPP_VERSION
+            if constexpr (std::is_same_v<T, long double>) // libc++ formats long double as double, see StringUtils::appendToStr(long double)
+            {
+              appendNumeric(static_cast<double>(v), r, std::numeric_limits<double>::digits10, false);
+            }
+            else
+#endif
+            {
+              appendNumeric(v, r, std::numeric_limits<T>::digits10, false); // full precision, like toStr(v, true)
+            }
           }
           else
           {

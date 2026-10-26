@@ -41,6 +41,7 @@ namespace OpenMS
     
       /* 
           @brief reverses the protein's peptide sequences between enzymatic cutting positions. 
+          With 'unspecific cleavage' (no enzymatic termini to keep), the whole protein is reversed (reverseProtein()).
           note: modifications are discarded
       */
       AASequence reversePeptides(const AASequence& protein, const std::string& protease) const;
@@ -50,7 +51,8 @@ namespace OpenMS
         
         Digests the protein using the specified protease and shuffles each resulting peptide
         to minimize sequence identity with the target. For top-down proteomics, use "no cleavage"
-        as the protease to shuffle the entire protein as a single sequence.
+        as the protease to shuffle the entire protein as a single sequence. With 'unspecific cleavage'
+        (no enzymatic termini to keep), the entire protein is shuffled as a single sequence as well.
 
         @param[in] protein The protein sequence to generate decoys from
         @param[in] protease The enzyme name (e.g., "Trypsin", "Trypsin/P", "no cleavage")
@@ -69,6 +71,7 @@ namespace OpenMS
       /*
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
           each peptide is shuffled @p max_attempts times to minimize sequence identity.
+          With 'unspecific cleavage' (no enzymatic termini to keep), the whole protein is shuffled as one sequence.
 
           Note: 
             - Generated decoys are retrieved from a cache to prevent that same peptide (in different proteins) 

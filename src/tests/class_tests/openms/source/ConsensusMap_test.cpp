@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
@@ -302,6 +303,55 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
       TEST_EQUAL(h.getMapIndex(), 2);
     }
     ++element;
+  }
+
+  // match-between-runs transfers (as written by PipEchoAlgorithm) are shifted like the features,
+  // e.g. when ProteomicsLFQ merges the consensus maps of its fractions
+  {
+    const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
+    ConsensusMap lhs, rhs;
+    lhs.getColumnHeaders()[0].filename = "fraction1_run1";
+    lhs.getColumnHeaders()[1].filename = "fraction1_run2";
+    rhs.getColumnHeaders()[0].filename = "fraction2_run1";
+    rhs.getColumnHeaders()[1].filename = "fraction2_run2";
+
+    ConsensusFeature lhs_cf;
+    lhs_cf.insert(0, f1, 0);
+    lhs_cf.insert(1, f2, 1);
+    lhs_cf.setMetaValue(key, IntList{1});
+    lhs.push_back(lhs_cf);
+
+    ConsensusFeature rhs_cf_transfer, rhs_cf_no_transfer;
+    rhs_cf_transfer.insert(0, f1, 0);
+    rhs_cf_transfer.insert(1, f2, 1);
+    rhs_cf_transfer.setMetaValue(key, IntList{0, 1});
+    rhs_cf_transfer.setMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES, DoubleList{0.01, 0.02});
+    rhs_cf_no_transfer.insert(1, f3, 2);
+    rhs.push_back(rhs_cf_transfer);
+    rhs.push_back(rhs_cf_no_transfer);
+
+    lhs.appendColumns(rhs);
+
+    TEST_EQUAL(lhs.size(), 3);
+    TEST_EQUAL(lhs.getColumnHeaders().size(), 4);
+    // the features of lhs keep their map indices
+    TEST_EQUAL(lhs[0].getMetaValue(key) == DataValue(IntList{1}), true);
+    // those of rhs now reference the third and fourth map, as their features do
+    IntList shifted = lhs[1].getMetaValue(key);
+    TEST_EQUAL(shifted.size(), 2);
+    TEST_EQUAL(shifted[0], 2);
+    TEST_EQUAL(shifted[1], 3);
+    for (const FeatureHandle& h : lhs[1].getFeatures())
+    {
+      TEST_EQUAL(std::find(shifted.begin(), shifted.end(), static_cast<Int>(h.getMapIndex())) != shifted.end(), true);
+    }
+    // the q-values do not reference maps and stay as they are
+    DoubleList q_values = lhs[1].getMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES);
+    TEST_EQUAL(q_values.size(), 2);
+    TEST_REAL_SIMILAR(q_values[0], 0.01);
+    TEST_REAL_SIMILAR(q_values[1], 0.02);
+    // a feature without transfers does not get any
+    TEST_EQUAL(lhs[2].metaValueExists(key), false);
   }
 }
 END_SECTION
@@ -704,7 +754,14 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   cf1.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
   cf1.insert(FeatureHandle(1, Peak2D({ 11, 434.33 }, 200000), 0));
 
+  ProteinIdentification run0, run1, unused;
+  run0.setIdentifier("run_0");
+  run1.setIdentifier("run_1");
+  unused.setIdentifier("unused");
+  cm.setProteinIdentifications({run0, run1, unused});
+
   PeptideIdentification id1, id2;
+  id1.setIdentifier("run_0");
   id1.setRT(10);
   id1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("AAA")));
   id1.setMetaValue("map_index", 0);
@@ -714,6 +771,7 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
 
   cf2.insert(FeatureHandle(0, Peak2D({ 20, 433.33 }, 300000), 0));
   cf2.insert(FeatureHandle(1, Peak2D({ 21, 433.33 }, 400000), 0));
+  id2.setIdentifier("run_1");
   id2.setRT(20);
   id2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("WWW")));
   id2.setMetaValue("map_index", 1);
@@ -722,6 +780,8 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   cm.push_back(cf2);
 
   PeptideIdentification uid1, uid2;
+  uid1.setIdentifier("run_0");
+  uid2.setIdentifier("run_1");
   uid1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("LLL")));
   uid1.setMetaValue("map_index", 0);
   uid2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("KKK")));
@@ -753,6 +813,12 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   TEST_EQUAL(fmaps[1][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "WWW");
   TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LLL");
   TEST_EQUAL(fmaps[1].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KKK");
+  // every peptide identification keeps its protein identification run (search run)
+  for (const FeatureMap& fmap : fmaps)
+  {
+    TEST_EQUAL(fmap.getProteinIdentifications().size(), 1)
+    TEST_EQUAL(fmap.getProteinIdentifications()[0].getIdentifier(), "run_" + std::to_string(&fmap - fmaps.data()))
+  }
 
   // test with iso analyze data
   DataProcessing p;
@@ -907,6 +973,28 @@ START_SECTION([EXTRA] split() throws Exception::ElementNotFound for a map index 
     cm_iso.getDataProcessing().push_back(p);
     TEST_EXCEPTION(Exception::ElementNotFound, cm_iso.split());
   }
+}
+END_SECTION
+
+START_SECTION((void setPrimaryMSRunPath(const StringList& s)))
+{
+  // CPP-113: column_description_ is keyed by map index, and the keys need not be contiguous
+  // (e.g. after 'FileFilter -consensus:map 0 3'). column_description_[i] for a sequential i
+  // used to silently create a new entry at key i instead of updating the real i-th column by
+  // key order, growing the map and leaving the intended column's filename unset.
+  ConsensusMap cm;
+  cm.getColumnHeaders()[0].filename = "";
+  cm.getColumnHeaders()[3].filename = "";
+
+  StringList s;
+  s.push_back("first.mzML");
+  s.push_back("second.mzML");
+  cm.setPrimaryMSRunPath(s);
+
+  TEST_EQUAL(cm.getColumnHeaders().size(), 2)
+  TEST_EQUAL(cm.getColumnHeaders().contains(1), false)
+  TEST_EQUAL(cm.getColumnHeaders()[0].filename, "first.mzML")
+  TEST_EQUAL(cm.getColumnHeaders()[3].filename, "second.mzML")
 }
 END_SECTION
 

@@ -18,6 +18,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
+#include <utility>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
 
@@ -176,10 +182,67 @@ public:
         trans_map[transition_exp_used.getTransitions()[i].getNativeID()] = &transition_exp_used.getTransitions()[i];
       }
 
+      // The lookups of the peptide / compound (and the data processing) are not thread-safe: collect
+      // them first, then build the chromatograms in parallel (if called from a single thread).
+      struct ChromatogramIds
+      {
+        const typename TransitionExpT::Transition* transition = nullptr;
+        bool has_id = false;
+        int prec_charge = 0;
+        std::string sequence;
+      };
+      std::vector<ChromatogramIds> ids(chromatograms.size());
       for (Size i = 0; i < chromatograms.size(); i++)
+      {
+        const ChromatogramExtractor::ExtractionCoordinates & coord = coordinates[i];
+        ChromatogramIds& id = ids[i];
+        if (ms1)
+        {
+          // extract compound / peptide id from transition and store in
+          // more-or-less default field
+          std::string transition_group_id = OpenSwathHelper::computeTransitionGroupId(coord.id);
+          if (!transition_group_id.empty())
+          {
+            id.has_id = true;
+            id.sequence = extract_id_(transition_exp_used, transition_group_id, id.prec_charge);
+          }
+        }
+        else
+        {
+          id.transition = trans_map[coord.id];
+          // extract compound / peptide id from transition and store in
+          // more-or-less default field
+          id.has_id = true;
+          if (!id.transition->getPeptideRef().empty())
+          {
+            id.sequence = extract_id_(transition_exp_used, id.transition->getPeptideRef(), id.prec_charge);
+          }
+          else
+          {
+            id.sequence = extract_id_(transition_exp_used, id.transition->getCompoundRef(), id.prec_charge);
+          }
+        }
+      }
+      if (!chromatograms.empty())
+      {
+        for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
+        {
+          settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
+        }
+      }
+
+      const Size offset = output_chromatograms.size();
+      output_chromatograms.resize(offset + chromatograms.size());
+      [[maybe_unused]] bool parallel = false;
+#ifdef _OPENMP
+      parallel = omp_in_parallel() == 0 && chromatograms.size() >= 256;
+#pragma omp parallel for schedule(dynamic, 64) if (parallel)
+#endif
+      for (SignedSize i = 0; i < static_cast<SignedSize>(chromatograms.size()); i++)
       {
         const OpenSwath::ChromatogramPtr & chromptr = chromatograms[i];
         const ChromatogramExtractor::ExtractionCoordinates & coord = coordinates[i];
+        const ChromatogramIds& id = ids[i];
 
         // copy data
         OpenMS::MSChromatogram chrom;
@@ -195,21 +258,10 @@ public:
         {
           prec.setMZ(coord.mz);
           chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
-
-          // extract compound / peptide id from transition and store in
-          // more-or-less default field
-          std::string transition_group_id = OpenSwathHelper::computeTransitionGroupId(coord.id);
-          if (!transition_group_id.empty())
-          {
-            int prec_charge = 0;
-            std::string r = extract_id_(transition_exp_used, transition_group_id, prec_charge);
-            prec.setCharge(prec_charge);
-            prec.setMetaValue("peptide_sequence", r);
-          }
         }
         else 
         {
-          typename TransitionExpT::Transition transition = (*trans_map[coord.id]);
+          const typename TransitionExpT::Transition& transition = *id.transition;
 
           prec.setMZ(transition.getPrecursorMZ());
           if (!settings.getPrecursors().empty())
@@ -223,23 +275,11 @@ public:
           prod.setMZ(transition.getProductMZ());
           chrom.setProduct(prod);
           chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-
-          // extract compound / peptide id from transition and store in
-          // more-or-less default field
-          if (!transition.getPeptideRef().empty())
-          {
-            int prec_charge = 0;
-            std::string r = extract_id_(transition_exp_used, transition.getPeptideRef(), prec_charge);
-            prec.setCharge(prec_charge);
-            prec.setMetaValue("peptide_sequence", r);
-          }
-          else
-          {
-            int prec_charge = 0;
-            std::string r = extract_id_(transition_exp_used, transition.getCompoundRef(), prec_charge);
-            prec.setCharge(prec_charge);
-            prec.setMetaValue("peptide_sequence", r);
-          }
+        }
+        if (id.has_id)
+        {
+          prec.setCharge(id.prec_charge);
+          prec.setMetaValue("peptide_sequence", id.sequence);
         }
 
         if (coord.ion_mobility >= 0 && im_extraction_width > 0.0)
@@ -257,10 +297,9 @@ public:
 
         for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
         {
-          settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
           chrom.getDataProcessing().push_back(settings.getDataProcessing()[j]);
         }
-        output_chromatograms.push_back(chrom);
+        output_chromatograms[offset + i] = std::move(chrom);
       }
     }
 
@@ -382,7 +421,7 @@ private:
                                                                                        const std::string& id,
                                                                                        int & prec_charge)
   {
-    const OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id);
+    const OpenSwath::LightCompound& comp = transition_exp_used.getCompoundByRef(id);
     prec_charge = comp.charge;
     if (!comp.sequence.empty())
     {

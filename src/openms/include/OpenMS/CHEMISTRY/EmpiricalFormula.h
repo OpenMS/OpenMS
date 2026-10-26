@@ -62,8 +62,32 @@ namespace OpenMS
   {
 
 protected:
-	  /// Internal typedef for the used map type
-	  typedef std::map<const Element*, SignedSize> MapType_;
+    /**
+      @brief Orders the elements of a formula independently of where the Element objects are in memory
+
+      By atomic number, then by the length and the text of the symbol: an element ("C") comes before its isotopes, which
+      ElementDB names by their mass number ("(12)C", "(13)C"), and the isotopes come in the order of their mass numbers.
+      Iterating over a formula (e.g. to sum up its weight) therefore visits the elements in the same order in every run;
+      the addresses of the Element objects differ between runs (e.g. with the randomized heap of Windows), and a
+      different order of the additions changes the last bits of the weights. ElementDB keeps atomic number and symbol
+      when it updates an element. Only distinct elements with the same atomic number and symbol are ordered by address.
+    */
+    struct ElementLess_
+    {
+      bool operator()(const Element* a, const Element* b) const
+      {
+        if (a == nullptr || b == nullptr) return std::less<const Element*>()(a, b);
+        if (a->getAtomicNumber() != b->getAtomicNumber()) return a->getAtomicNumber() < b->getAtomicNumber();
+        const std::string& symbol_a = a->getSymbol();
+        const std::string& symbol_b = b->getSymbol();
+        if (symbol_a.size() != symbol_b.size()) return symbol_a.size() < symbol_b.size();
+        if (symbol_a != symbol_b) return symbol_a < symbol_b;
+        return std::less<const Element*>()(a, b);
+      }
+    };
+
+	  /// Internal typedef for the used map type (elements in the order of ElementLess_)
+	  typedef std::map<const Element*, SignedSize, ElementLess_> MapType_;
 
 public:
     /** @name Typedefs
@@ -302,7 +326,7 @@ public:
     /// returns true if the formulas differ in elements composition
     bool operator!=(const EmpiricalFormula& rhs) const;
 
-    /// less operator
+    /// less operator: by number of elements, then charge, then the elements and their counts (elements ordered by atomic number, see begin())
     bool operator<(const EmpiricalFormula& rhs) const;
 
     //@}
@@ -311,6 +335,9 @@ public:
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
     /** @name Iterators
+
+      The elements are visited in order of atomic number; an element comes before its isotopes ("C", "(12)C", "(13)C").
+      The order does not depend on the addresses of the Element objects.
     */
     //@{
     inline ConstIterator begin() const { return formula_.begin(); }
@@ -342,7 +369,7 @@ protected:
 
     Int charge_;
 
-    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const std::string& formula) const;
+    Int parseFormula_(MapType_& ef, const std::string& formula) const;
 
   };
 

@@ -19,6 +19,15 @@ namespace OpenMS
     Parses the legacy TSV format used for custom RNA modifications and
     returns ribonucleotide entries as RibonucleotideEntry objects.
 
+    An optional column named @c baseloss_formula specifies the formula retained
+    after nucleobase loss, including the sugar modification (e.g. @c C6H10O5
+    for LNA or @c C5H9FO4 for 2'-fluorodeoxyribose). This is the hydrated
+    base-loss formula used by Ribonucleotide::getBaselossFormula(), before the
+    water losses needed to form an a-B ion. Append this column after the
+    optional @c alternatives column, leaving alternatives empty for unambiguous
+    modifications. An explicit formula overrides inference from the code;
+    an absent, empty, or @c - value retains the legacy inference.
+
     @ingroup Chemistry
   */
   class OPENMS_DLLAPI RibonucleotideTSVDataProvider : public RibonucleotideDataProvider

@@ -5,6 +5,88 @@
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="A2MG" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="AACT" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="APOA" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="APOA1" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="APOB" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="APOE" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="B2MG" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="C1QA" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="C1QB" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="C1QC" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="C1R" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="CADH5" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="CCNH" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="CFAB" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="CLUS" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="CO3" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="CO4A" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="CO5" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="CO6" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="CO7" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="FN1" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="GELS" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="HPT" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="IC1" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="IGF2" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="ITIH4" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="PLMN" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="PON1" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="PZP" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="RET4" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="SHBG" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="TETN" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="THBG" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="THRB" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_34" accession="Tr_peps_set2" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_35" accession="TRFE" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_36" accession="TTHY" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_37" accession="VTNC" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
 	<featureList count="3">
 		<feature id="f_17749660155506638460">
 			<position dim="0">497.30645057559002</position>
@@ -118,6 +200,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-31.0074910135513" sequence="VNHVTLSQPK" charge="0" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="-0.966691882047495"/>
 			<UserParam type="float" name="total_xic" value="2.21807e05"/>
@@ -264,6 +350,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-31.7718861078673" sequence="VNHVTLSQPK" charge="0" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.086543073603543"/>
 			<UserParam type="float" name="total_xic" value="2.21807e05"/>
@@ -410,6 +500,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-34.4738438227944" sequence="VNHVTLSQPK" charge="0" protein_refs="PH_6">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5"/>
 			<UserParam type="float" name="initialPeakQuality" value="-0.158645696257351"/>
 			<UserParam type="float" name="total_xic" value="2.21807e05"/>

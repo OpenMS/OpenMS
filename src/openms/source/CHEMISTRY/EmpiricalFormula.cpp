@@ -447,7 +447,7 @@ namespace OpenMS
     return os;
   }
 
-  Int EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const std::string& input_formula) const
+  Int EmpiricalFormula::parseFormula_(MapType_& ef, const std::string& input_formula) const
   {
     Int charge{0};
     std::string formula(input_formula);
@@ -679,7 +679,15 @@ namespace OpenMS
       return charge_ < rhs.charge_;
     }
     
-    return formula_ < rhs.formula_;
+    // compare the elements with the order of the map, not by address (std::map's operator< compares the keys with <)
+    const auto element_less = formula_.key_comp();
+    return std::lexicographical_compare(formula_.begin(), formula_.end(), rhs.formula_.begin(), rhs.formula_.end(),
+                                        [&element_less](const auto& a, const auto& b)
+                                        {
+                                          if (element_less(a.first, b.first)) return true;
+                                          if (element_less(b.first, a.first)) return false;
+                                          return a.second < b.second;
+                                        });
   }
 
   EmpiricalFormula EmpiricalFormula::hydrogen(int n_atoms)

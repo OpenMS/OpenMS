@@ -132,6 +132,18 @@ public:
                         const std::vector<OpenSwath::SwathMap>& swath_maps,
                         TransitionGroupMapType& transition_group_map);
 
+    /** @brief Adds the protein identification run (search run) that the peptide identifications of the features reference
+
+     The run has the proteins of @p transition_exp. pickExperiment() adds it; call this when scoring with scorePeakgroups()
+     directly, since every peptide identification needs its protein identification run. If @p output already has the run
+     (e.g. from another part of the transition list), the proteins it does not have yet are added to it, in the order of
+     @p transition_exp.
+
+     @param[in] transition_exp The transition list describing the experiment
+     @param[in,out] output The output features
+    */
+    static void addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output);
+
     /** @brief Prepares the internal mappings of peptides and proteins.
      *
      * Calling this method _is_ required before calling scorePeakgroups.
@@ -146,6 +158,11 @@ public:
      *
      * Iterate through all features found along the chromatograms of the
      * transition group and score each one individually.
+     *
+     * If only the best peak groups are reported (parameter stop_report_after_feature) and they are
+     * ranked by the SWATH prescore (DIA scores, but no ion mobility or UIS scores), the peak groups
+     * that are not reported only get the scores of the ranking: their OpenSwath_Scores in
+     * @p transition_group lack e.g. the MI, MS1 and DIA isotope (dot product / Manhattan) scores.
      *
      * @param[in] transition_group The MRMTransitionGroup to be scored (input)
      * @param[in] trafo Optional transformation of the experimental retention time
@@ -320,6 +337,9 @@ private:
         ind_points_across_half_height.clear();
       }
     };
+
+    /// The inverse of @p trafo (cached per thread: a run scores all transition groups with one transformation)
+    static const TransformationDescription& invertedTransformation_(const TransformationDescription& trafo);
 
     /** @brief Splits combined transition groups into detection transition groups
      *

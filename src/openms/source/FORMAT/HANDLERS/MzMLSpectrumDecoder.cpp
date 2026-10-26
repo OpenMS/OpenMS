@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -281,6 +282,10 @@ namespace OpenMS
                   x_precision_64, int_precision_64,
                   x_index, int_index, default_array_length_);
 
+    // meta data of the m/z and intensity arrays (e.g. absorbance intensities) is stored in the spectrum, as in MzMLHandler
+    spectrum.addMetaValues(data[x_index].meta);
+    spectrum.addMetaValues(data[int_index].meta);
+
     if (data.size() > 2) 
     {
       fillDataArrays(data, spectrum);
@@ -535,6 +540,10 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
+    // Xerces has to be initialised; CONCEPT/Init.cpp does so on loading the library, but a
+    // static library (WebAssembly) links that object file only if something else calls into it
+    static const bool xerces_initialized = (Internal::xercesInitialize(), true);
+    (void)xerces_initialized;
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     std::unique_ptr<xercesc::XercesDOMParser> parser = std::make_unique<xercesc::XercesDOMParser>(); // make sure it is deleted even in case of exceptions
     parser->setDoNamespaces(false);

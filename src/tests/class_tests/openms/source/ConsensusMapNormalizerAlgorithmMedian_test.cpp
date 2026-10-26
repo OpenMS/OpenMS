@@ -38,18 +38,19 @@ namespace
   }
 
   /// Three maps, three features. Per-map medians are 200 / 400 / 800.
-  ConsensusMap makeMap(const vector<Size>& header_sizes)
+  /// The maps get the map indices @p ids (default 0, 1, 2; FileFilter -consensus:map keeps other indices).
+  ConsensusMap makeMap(const vector<Size>& header_sizes, const vector<UInt64>& ids = {0, 1, 2})
   {
     ConsensusMap map;
     for (Size i = 0; i < header_sizes.size(); ++i)
     {
-      map.getColumnHeaders()[i].filename = "map" + std::to_string(i) + ".mzML";
-      map.getColumnHeaders()[i].size = header_sizes[i];
+      map.getColumnHeaders()[ids[i]].filename = "map" + std::to_string(ids[i]) + ".mzML";
+      map.getColumnHeaders()[ids[i]].size = header_sizes[i];
     }
     UInt64 uid = 0;
-    map.push_back(makeCF({{0, 100.0}, {1, 200.0}, {2, 400.0}}, 100.0, 500.0, uid));
-    map.push_back(makeCF({{0, 300.0}, {1, 600.0}, {2, 1200.0}}, 200.0, 600.0, uid));
-    map.push_back(makeCF({{0, 200.0}, {1, 400.0}, {2, 800.0}}, 300.0, 700.0, uid));
+    map.push_back(makeCF({{ids[0], 100.0}, {ids[1], 200.0}, {ids[2], 400.0}}, 100.0, 500.0, uid));
+    map.push_back(makeCF({{ids[0], 300.0}, {ids[1], 600.0}, {ids[2], 1200.0}}, 200.0, 600.0, uid));
+    map.push_back(makeCF({{ids[0], 200.0}, {ids[1], 400.0}, {ids[2], 800.0}}, 300.0, 700.0, uid));
     return map;
   }
 
@@ -156,14 +157,27 @@ START_SECTION((static Size computeMedians(const ConsensusMap & map, std::vector<
     for (Size i = 0; i < medians.size(); ++i) { TEST_REAL_SIMILAR(medians[i], 1.0) }
   }
 
-  // A column header missing from the map is an error, not a silently skipped map.
+  // A feature handle whose map has no column header is an error, not a silently skipped map.
   {
     ConsensusMap map = makeMap({3, 3, 3});
     map.getColumnHeaders().erase(1);
-    map.getColumnHeaders()[7].filename = "map7.mzML"; // keeps the count at 3, but index 1 is gone
+    map.getColumnHeaders()[7].filename = "map7.mzML"; // keeps the count at 3, but the handles of map 1 have no header
     vector<double> medians;
     TEST_EXCEPTION(Exception::ElementNotFound,
                    ConsensusMapNormalizerAlgorithmMedian::computeMedians(map, medians, "", ""))
+  }
+
+  // Map indices need not be consecutive: FileFilter -consensus:map keeps them. The medians (and the
+  // returned reference) are numbered by the position of a map among the column headers.
+  {
+    ConsensusMap map = makeMap({3, 9, 3}, {1, 3, 4});
+    TEST_EQUAL(map.isMapConsistent(), true)
+    vector<double> medians;
+    TEST_EQUAL(ConsensusMapNormalizerAlgorithmMedian::computeMedians(map, medians, "", ""), 1)
+    TEST_EQUAL(medians.size(), 3)
+    TEST_REAL_SIMILAR(medians[0], 200.0)
+    TEST_REAL_SIMILAR(medians[1], 400.0)
+    TEST_REAL_SIMILAR(medians[2], 800.0)
   }
 }
 END_SECTION
@@ -226,6 +240,24 @@ START_SECTION((static void normalizeMaps(ConsensusMap & map, NormalizationMethod
     TEST_REAL_SIMILAR(m2[1], 1200.0)
   }
 
+  // Non-consecutive map indices (FileFilter -consensus:map): the same result as for maps 0, 1, 2.
+  {
+    ConsensusMap map = makeMap({3, 9, 3}, {1, 3, 4});
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, "", "");
+    for (UInt64 map_index : {1, 3, 4})
+    {
+      const vector<double> m = intensitiesOf(map, map_index);
+      TEST_EQUAL(m.size(), 3)
+      TEST_REAL_SIMILAR(m[0], 200.0)
+      TEST_REAL_SIMILAR(m[1], 600.0)
+      TEST_REAL_SIMILAR(m[2], 400.0)
+    }
+    map = makeMap({3, 9, 3}, {1, 3, 4});
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, "", "");
+    TEST_REAL_SIMILAR(intensitiesOf(map, 1)[0], 700.0)
+    TEST_REAL_SIMILAR(intensitiesOf(map, 4)[0], 400.0)
+  }
+
   // The bail-out is a no-op, not an error: unchanged intensities, no exception.
   {
     ConsensusMap map = makeMap({3, 3, 3});
@@ -264,6 +296,26 @@ START_SECTION((static bool passesFilters_(ConsensusMap::ConstIterator cf_it, con
 }
 END_SECTION
 
+
+START_SECTION((static std::map<UInt64, Size> mapPositions_(const ConsensusMap& map)))
+{
+  ConsensusMap map = makeMap({3, 3, 3}, {1, 3, 4});
+  const std::map<UInt64, Size> positions = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(map);
+  TEST_EQUAL(positions.size(), 3)
+  TEST_EQUAL(positions.at(1), 0)
+  TEST_EQUAL(positions.at(3), 1)
+  TEST_EQUAL(positions.at(4), 2)
+  TEST_EQUAL(ConsensusMapNormalizerAlgorithmMedian::mapPositions_(ConsensusMap()).empty(), true)
+}
+END_SECTION
+
+START_SECTION((static Size mapPosition_(const std::map<UInt64, Size>& positions, UInt64 map_index)))
+{
+  const std::map<UInt64, Size> positions = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(makeMap({3, 3, 3}, {1, 3, 4}));
+  TEST_EQUAL(ConsensusMapNormalizerAlgorithmMedian::mapPosition_(positions, 4), 2)
+  TEST_EXCEPTION(Exception::ElementNotFound, ConsensusMapNormalizerAlgorithmMedian::mapPosition_(positions, 2))
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

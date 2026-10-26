@@ -12,7 +12,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
+#include <algorithm>
 #include <iostream>
+#include <limits>
 #include <cmath>
 
 #include <arrow/api.h>
@@ -245,6 +247,82 @@ START_SECTION(void load(const std::string& oswpq_dir))
   }
 
     
+  // A NaN between two finite RTs used to break comparator transitivity within one group.
+  // Every physical row permutation must preserve finite RT order and sort unknown RT last.
+  for (const int rt_mode : {0, 1, 2}) // finite, NaN, NULL
+  {
+  std::vector<int64_t> order{1, 2, 3};
+  do
+  {
+    arrow::Int64Builder ids, runs, precursors, transition_ids;
+    arrow::DoubleBuilder times, areas;
+    for (const auto id : order)
+    {
+      appendOk_(ids, id);
+      appendOk_(runs, (int64_t)1);
+      appendOk_(precursors, (int64_t)1);
+      appendOk_(transition_ids, (int64_t)1);
+      if (id == 2 && rt_mode == 2)
+      {
+        TEST_TRUE(times.AppendNull().ok())
+      }
+      else
+      {
+        appendOk_(times, id == 2 ? (rt_mode == 1 ? std::numeric_limits<double>::quiet_NaN() : 3.0) : (id == 1 ? 1.0 : 2.0));
+      }
+      appendOk_(areas, 100.0);
+    }
+    const auto id_values = finishArray_(ids);
+    const auto features = arrow::Table::Make(features_schema,
+      {id_values, finishArray_(runs), finishArray_(precursors), finishArray_(times)});
+    TEST_TRUE(writeParquetTable_(features, run_subdir + "/features.parquet").ok())
+    const auto transitions = arrow::Table::Make(ft_schema,
+      {id_values, finishArray_(transition_ids), finishArray_(areas)});
+    TEST_TRUE(writeParquetTable_(transitions, run_subdir + "/feature_transition.parquet").ok())
+    const auto peak_rows = reader.fetchPeakGroupFeatures(base_dir);
+    const auto transition_rows = reader.fetchTransitionFeatures(base_dir);
+    TEST_EQUAL(peak_rows.feature_id.size(), 3)
+    TEST_EQUAL(transition_rows.feature_id.size(), 3)
+    for (Size i = 0; i < 3; ++i)
+    {
+      const int64_t expected = i == 0 ? 1 : (i == 1 ? 3 : 2);
+      TEST_EQUAL(peak_rows.feature_id[i], expected)
+      TEST_EQUAL(transition_rows.feature_id[i], expected)
+    }
+    TEST_REAL_SIMILAR(peak_rows.exp_rt[0], 1.0)
+    TEST_REAL_SIMILAR(peak_rows.exp_rt[1], 2.0)
+    TEST_REAL_SIMILAR(transition_rows.exp_rt[0], 1.0)
+    TEST_REAL_SIMILAR(transition_rows.exp_rt[1], 2.0)
+    if (rt_mode != 0)
+    {
+      TEST_TRUE(std::isnan(peak_rows.exp_rt.back()))
+      TEST_TRUE(std::isnan(transition_rows.exp_rt.back()))
+    }
+    else
+    {
+      TEST_REAL_SIMILAR(peak_rows.exp_rt.back(), 3.0)
+      TEST_REAL_SIMILAR(transition_rows.exp_rt.back(), 3.0)
+    }
+    reader.load(base_dir);
+    TEST_EQUAL(reader.rows().size(), 3)
+    for (const auto& row : reader.rows())
+    {
+      if (row.feature_id == 2)
+      {
+        if (rt_mode == 0)
+        {
+          TEST_REAL_SIMILAR(row.exp_rt, 3.0)
+        }
+        else
+        {
+          TEST_TRUE(std::isnan(row.exp_rt))
+        }
+      }
+    }
+  }
+  while (std::next_permutation(order.begin(), order.end()));
+  }
+
   // Test using test file
   const std::string real_path = OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq");
 

@@ -6,6 +6,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -58,10 +59,10 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    // initialize parser
+    // initialize parser (serialised with the other users of Xerces, which may parse on other threads)
     try
     {
-      XMLPlatformUtils::Initialize();
+      Internal::xercesInitialize();
     }
     catch (const XMLException & toCatch)
     {

@@ -8,6 +8,7 @@ BaseSuperimposer.cpp
 ConsensusMapNormalizerAlgorithmThreshold.cpp
 ConsensusMapNormalizerAlgorithmMedian.cpp
 ConsensusMapNormalizerAlgorithmQuantile.cpp
+ConsensusMapNormalizerAlgorithmRTLocal.cpp
 FeatureDistance.cpp
 FeatureGroupingAlgorithm.cpp
 FeatureGroupingAlgorithmLabeled.cpp

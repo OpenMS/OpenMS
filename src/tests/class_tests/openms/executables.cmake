@@ -4,7 +4,7 @@ set(concept_executables_list
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
-  #GlobalExceptionHandler_test
+  GlobalExceptionHandler_test
   PrecisionWrapper_test
   ProgressLogger_test
   RAIICleanup_test
@@ -121,6 +121,7 @@ set(metadata_executables_list
   ProteinHit_test
   ProteinIdentification_test
   ProteinModificationSummary_test
+  ProteinRunReferences_test
   IdentifierMSRunMapper_test
   Sample_test
   ScanWindow_test
@@ -161,6 +162,7 @@ set(kernel_executables_list
   DimMapper_test
   DPeak_test
   FeatureMap_test
+  FeatureUniqueIds_test
   Feature_test
   MassTrace_test
   Mobilogram_test
@@ -187,6 +189,7 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BedRModFile_test
   BrukerTimsFile_test
   BrukerTimsImagingFile_test
   PASEFHillCentroider_test
@@ -280,8 +283,10 @@ set(format_executables_list
   PercolatorAdapter_parity_test
   PercolatorInfile_test
   PercolatorOutfile_test
+  PercolatorPosteriorEstimator_test
   ProtXMLFile_test
   QcMLFile_test
+  S3InputSource_test
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
@@ -291,6 +296,7 @@ set(format_executables_list
   SqliteConnector_test
   MRMFile_test
   ThermoRawFile_test
+  OnDiscThermoRawExperiment_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -322,6 +328,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SpectrumAccessOnDisc_test
   SpectrumAccessOpenMS_test
   SpectrumAccessOpenMSInMemory_test
   MRMFeatureAccessOpenMS_test
@@ -333,7 +340,7 @@ if(WITH_HDF5)
 endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
-  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test QPXDatasetExport_test
   QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
@@ -533,19 +540,18 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
+  CoIsolationDetector_test
   ConfidenceScoring_test
-  ConsensusIDAlgorithmAverage_test
-  ConsensusIDAlgorithmBest_test
-  ConsensusIDAlgorithmPEPIons_test
-  ConsensusIDAlgorithmPEPMatrix_test
-  ConsensusIDAlgorithmRanks_test
-  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapNormalizerAlgorithmRTLocal_test
+  ConsensusElutionWidth_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
+  ClassFDR_test
+  EntrapmentEvaluation_test
   FalseDiscoveryRate_test
   Scores_test
   FeatureDeconvolution_test
@@ -624,6 +630,7 @@ set(analysis_executables_list
   PeakGroup_test
   PScore_test
   FragmentIndex_test
+  FragmentIonLikelihoodModel_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
@@ -652,6 +659,10 @@ set(analysis_executables_list
 
 if(WITH_WNETALIGN)
   list(APPEND analysis_executables_list FeatureGroupingAlgorithmWNet_test WNetMatcher_test)
+endif()
+
+if(WITH_ONNX)
+  list(APPEND analysis_executables_list PeptDeepRescoring_test)
 endif()
 
 set(applications_executables_list

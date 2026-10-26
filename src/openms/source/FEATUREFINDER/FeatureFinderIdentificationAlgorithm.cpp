@@ -449,6 +449,19 @@ namespace OpenMS
     return StringUtils::hasPrefix(hit.getSequence().toUnmodifiedString(), "XXX");
   }
 
+  bool FeatureFinderIdentificationAlgorithm::isPseudoID_(const PeptideIdentification& pid)
+  {
+    // set on the pseudo IDs of seeds and offset peptides (see addSeeds_() and addOffsetPeptides_())
+    return pid.metaValueExists("SeedFeatureID");
+  }
+
+  bool FeatureFinderIdentificationAlgorithm::isEmptyPseudoID_(const PeptideIdentification& pid)
+  {
+    // pseudo IDs carry the identifier of their protein identification run, so they are not
+    // PeptideIdentification::empty() without their hits
+    return pid.empty() || (pid.getHits().empty() && isPseudoID_(pid));
+  }
+
   void FeatureFinderIdentificationAlgorithm::removeSeedPseudoIDs_(FeatureMap& features)
   {
     // Remove all hits with pseudo ids (seeds) from features
@@ -472,9 +485,8 @@ namespace OpenMS
         hits.erase(it, hits.end());
       }
 
-      // remove empty PeptideIdentifications
-      auto it = remove_if(ids.begin(), ids.end(),
-        [](const PeptideIdentification& pid) { return pid.empty(); });
+      // remove empty PeptideIdentifications, i.e. the pseudo IDs of seeds and offset peptides without their hits
+      auto it = remove_if(ids.begin(), ids.end(), isEmptyPseudoID_);
       ids.erase(it, ids.end());
     }
 
@@ -487,9 +499,8 @@ namespace OpenMS
       hits.erase(it, hits.end());
     }
 
-    // remove empty PeptideIdentifications
-    auto it = remove_if(ids.begin(), ids.end(),
-      [](const PeptideIdentification& pid) { return pid.empty(); });
+    // remove empty PeptideIdentifications, i.e. the pseudo IDs of seeds and offset peptides without their hits
+    auto it = remove_if(ids.begin(), ids.end(), isEmptyPseudoID_);
     ids.erase(it, ids.end());
   }
 
@@ -574,9 +585,13 @@ namespace OpenMS
       ffid_group.setParameters(this->getParameters());
       ffid_group.setMSData(std::move(faims_group));
 
+      // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
+      // without a CV are tried at every CV, like identifications without one
+      const FeatureMap seeds_cv = FAIMSHelper::filterFeaturesByFAIMSCV(seeds, group_cv);
+
       // Run feature detection
       FeatureMap features_cv;
-      ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds, spectra_file);
+      ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds_cv, spectra_file);
 
       // Annotate features with FAIMS CV and add to results
       for (auto& feat : features_cv)
@@ -714,6 +729,7 @@ namespace OpenMS
 
     // TODO make sure that only assembled traces (more than one trace -> has a charge) if FFMetabo is used
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    const Size n_real_peptides = peptides.size();
     Size seeds_added = addSeeds_(peptides, seeds);
     OPENMS_LOG_INFO << "#Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
 
@@ -721,6 +737,24 @@ namespace OpenMS
     {
       Size n_added = addOffsetPeptides_(peptides, add_mass_offset_peptides_);
       OPENMS_LOG_INFO << "#Offset peptides without RT and m/z overlap with other peptides added: " << n_added << endl;
+    }
+
+    // Every peptide identification needs its protein identification run, including the pseudo IDs of seeds and
+    // offset peptides (they are written with the feature candidates): they use the first run, which is added if
+    // there is none (and removed again with the pseudo IDs).
+    vector<ProteinIdentification> runs = proteins;
+    const bool pseudo_ID_run_added = runs.empty() && peptides.size() > n_real_peptides;
+    if (peptides.size() > n_real_peptides)
+    {
+      if (pseudo_ID_run_added)
+      {
+        runs.emplace_back();
+        runs.back().setIdentifier("FeatureFinderIdentification_pseudo_IDs");
+      }
+      for (Size i = n_real_peptides; i < peptides.size(); ++i)
+      {
+        peptides[i].setIdentifier(runs.front().getIdentifier());
+      }
     }
 
     n_peptides_ = peptide_map_.size();
@@ -796,7 +830,7 @@ namespace OpenMS
       std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
       if (debug_level_ < 1)
       {
-        log_guard.emplace(getGlobalLogInfo(), cout);
+        log_guard.emplace(getThreadLocalLogInfo(), cout);
       }
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
@@ -837,13 +871,18 @@ namespace OpenMS
          peptide_compare_);
     sort(features.begin(), features.end(), feature_compare_);
 
+    // the identification runs of the peptide identifications, before the feature candidates are written
+    features.setProteinIdentifications(runs);
+
     postProcess_(features);
     statistics_(features);
 
-    features.setProteinIdentifications(proteins);
-
-    // remove all hits with pseudo ids (seeds)
+    // remove all hits with pseudo ids (seeds), and the run added for them
     removeSeedPseudoIDs_(features);
+    if (pseudo_ID_run_added)
+    {
+      features.getProteinIdentifications().clear();
+    }
 
     // add back ignored PSMs
     features.getUnassignedPeptideIdentifications().insert(features.getUnassignedPeptideIdentifications().end(),
@@ -927,6 +966,8 @@ namespace OpenMS
 
     statistics_(features);
 
+    // remove all hits with pseudo ids (seeds and offset peptides), which the candidates keep
+    removeSeedPseudoIDs_(features);
   }
 
   void FeatureFinderIdentificationAlgorithm::statistics_(FeatureMap const & features) const
@@ -1167,8 +1208,10 @@ namespace OpenMS
             double rt = rt_pep.second->getRT();
             std::string uid = StringUtils::toStr(rt_pep.second->getMetaValue("SeedFeatureID"));
 
-            // UID should be enough, but let's add the seed count to be sure.
-            std::string peptide_id = peptide.sequence + "[" + uid + "][" + StringUtils::toStr(seedcount) + "]/" + StringUtils::toStr(charge);
+            // The seed count makes it unique. It comes first because the features are sorted by this reference,
+            // and the UID is drawn at random (from a time-dependent seed, unless in test mode): a reference that
+            // started with it would put the seed features in a different order in every process.
+            std::string peptide_id = peptide.sequence + "[" + StringUtils::toStr(seedcount) + "][" + uid + "]/" + StringUtils::toStr(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};
@@ -1621,7 +1664,7 @@ namespace OpenMS
     {
       if (hit.isDecoy())
       {
-        unassignedIDs_.push_back(peptide);
+        if (!isPseudoID_(peptide)) unassignedIDs_.push_back(peptide); // pseudo IDs are no PSMs to report
         return;
       }
     }
@@ -1630,7 +1673,7 @@ namespace OpenMS
       if ( (peptide.isHigherScoreBetter() && hit.getScore() < psm_score_cutoff_) ||
            (!peptide.isHigherScoreBetter() && hit.getScore() > psm_score_cutoff_) )
       {
-        unassignedIDs_.push_back(peptide);
+        if (!isPseudoID_(peptide)) unassignedIDs_.push_back(peptide); // pseudo IDs are no PSMs to report
         return;
       }
     }
@@ -1702,7 +1745,7 @@ namespace OpenMS
     use_psm_cutoff_ = param_.getValue("min_psm_cutoff") != "none";
     if (use_psm_cutoff_)
     {
-      psm_score_cutoff_ = double(param_.getValue("min_psm_cutoff"));
+      psm_score_cutoff_ = StringUtils::toDouble(param_.getValue("min_psm_cutoff").toString()); // string parameter ("none" or a number)
     }
 
     add_mass_offset_peptides_ = double(param_.getValue("add_mass_offset_peptides"));

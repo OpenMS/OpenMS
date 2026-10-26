@@ -14,6 +14,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 
@@ -50,7 +51,7 @@ namespace OpenMS
 
     This class provides a unified interface to different linear programming solvers,
     including GLPK (GNU Linear Programming Kit), COIN-OR, and HiGHS (selected via the
-    LP_SOLVER CMake variable: AUTO, COIN, GLPK, or HIGHS).
+    LP_SOLVER CMake variable: HIGHS (default), or the deprecated COIN and GLPK).
     
     Linear programming is a method to find the best outcome in a mathematical model
     whose requirements are represented by linear relationships. It is used for
@@ -191,8 +192,8 @@ public:
     /**
       @brief Default constructor
       
-      Initializes a new LP problem with the default solver (COIN-OR, HiGHS, or GLPK,
-      depending on which LP solver was selected at build time via LP_SOLVER).
+      Initializes a new LP problem with the solver selected at build time via LP_SOLVER
+      (HiGHS by default, or the deprecated COIN-OR or GLPK).
     */
     LPWrapper();
     
@@ -370,6 +371,8 @@ public:
 
       @param[in] index
       @param[in] type 1- continuous, 2- integer, 3- binary variable
+
+      @exception Exception::IndexOverflow if @p index is not a valid column index (HiGHS backend)
      */
     void setColumnType(Int index, VariableType type);
 
@@ -523,7 +526,7 @@ public:
     /**
       @brief Get the currently active solver backend
       
-      @return Currently active solver (GLPK or COIN-OR)
+      @return Currently active solver (SOLVER_HIGHS by default, SOLVER_COINOR or SOLVER_GLPK if selected via LP_SOLVER)
     */
     SOLVER getSolver() const;
 
@@ -535,6 +538,11 @@ protected:
 #elif defined(OPENMS_HAS_HIGHS)
     std::unique_ptr<Highs> highs_;     ///< HiGHS solver instance
     std::vector<double> solution_;     ///< Solution vector when using HiGHS
+    /// Column integrality staged by setColumnType() (values of HighsVarType; empty = nothing pending).
+    /// Highs::changeColIntegrality() is expensive per call, so changes are applied in one batch by flushIntegrality_().
+    mutable std::vector<uint8_t> staged_integrality_;
+    /// Apply staged_integrality_ to the HiGHS model (const: also needed by writeProblem())
+    void flushIntegrality_() const;
 #else
     glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
 #endif

@@ -114,10 +114,10 @@
 
 
   <b>Identification Processing</b>
-  - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_Digestor - Digests a protein database in-silico.
   - @subpage TOPP_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage TOPP_Epifany - Bayesian protein inference based on PSM probabilities.
+  - @subpage TOPP_EntrapmentEvaluator - Measures the false discovery proportion of identifications with an entrapment database.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
   - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
   - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.

@@ -18,6 +18,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
+#include <cmath>
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -44,6 +47,72 @@ END_SECTION
 START_SECTION(~HyperScore())
 {
   delete ptr;
+}
+END_SECTION
+
+START_SECTION((static double computeMassAccuracy(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const PeakSpectrum &theo_spectrum, double mass_error_sd_ppm, PSMDetail &detail)))
+{
+  // Exact matches score as HyperScore; a uniform error of one kernel SD weights every match by exp(-0.5).
+  MSSpectrum theory;
+  theory.getStringDataArrays().emplace_back();
+  for (Size i = 0; i < 4; ++i)
+  {
+    theory.emplace_back(500.0 + i * 100.0, 1.0);
+    theory.getStringDataArrays()[0].push_back(i < 2 ? "b2+" : "y2+");
+  }
+  HyperScore::PSMDetail detail, original;
+  const double baseline = HyperScore::computeWithDetail(20.0, true, theory, theory, original);
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, theory, theory, 7.0, detail), baseline)
+  TEST_EQUAL(detail.matched_prefix_ions, 2)
+  TEST_EQUAL(detail.matched_suffix_ions, 2)
+  TEST_REAL_SIMILAR(detail.mean_error, 0.0)
+  for (double sign : {-1.0, 1.0})
+  {
+    MSSpectrum shifted = theory;
+    for (auto& peak : shifted)
+    {
+      peak.setMZ(peak.getMZ() * (1.0 + sign * 7e-6));
+    }
+    const double weight = std::exp(-0.5);
+    const double expected = std::log1p(4.0 * weight) + 2.0 * std::lgamma(2.0 * weight + 1.0);
+    const double score = HyperScore::computeMassAccuracy(20.0, true, shifted, theory, 7.0, detail);
+    TEST_REAL_SIMILAR(score, expected)
+    TEST_TRUE(score < baseline)
+    // the match counts and the error stay unweighted
+    TEST_EQUAL(detail.matched_prefix_ions, 2)
+    TEST_EQUAL(detail.matched_suffix_ions, 2)
+    TEST_REAL_SIMILAR(detail.mean_error, 7.0)
+    // a Da tolerance matches the same peaks; the kernel stays in ppm
+    TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(0.02, false, shifted, theory, 7.0, detail), expected)
+    TEST_REAL_SIMILAR(detail.mean_error, 0.00455)
+  }
+  // partial evidence (weight < 1) is no penalty: lgamma(1 + w) < 0 is clamped to 0
+  MSSpectrum singleton;
+  singleton.emplace_back(500.0035, 1.0);
+  const double single = HyperScore::computeMassAccuracy(20.0, true, singleton, theory, 7.0, detail);
+  TEST_REAL_SIMILAR(single, std::log1p(std::exp(-0.5)))
+  TEST_TRUE(single > 0.0)
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, MSSpectrum {}, theory, 7.0, detail), 0.0)
+  TEST_EQUAL(detail.matched_prefix_ions, 0)
+  TEST_REAL_SIMILAR(detail.mean_error, 0.0)
+  MSSpectrum outside;
+  outside.emplace_back(100.0, 1.0);
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, outside, theory, 7.0, detail), 0.0)
+  for (double invalid : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::computeMassAccuracy(20.0, true, theory, theory, invalid, detail))
+    TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::computeMassAccuracy(invalid, true, theory, theory, 7.0, detail))
+  }
+  theory.getStringDataArrays().clear();
+  TEST_EXCEPTION(Exception::InvalidValue, HyperScore::computeMassAccuracy(20.0, true, theory, theory, 7.0, detail))
+
+  // a TheoreticalSpectrumGenerator spectrum with multiply charged ions (ion names "b3++") is scored as HyperScore
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, AASequence::fromString("PEPTIDEK"), 1, 2);
+  HyperScore::PSMDetail plain;
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, theo, theo, 7.0, detail), HyperScore::computeWithDetail(20.0, true, theo, theo, plain))
+  TEST_EQUAL(detail.matched_prefix_ions, plain.matched_prefix_ions)
+  TEST_EQUAL(detail.matched_suffix_ions, plain.matched_suffix_ions)
 }
 END_SECTION
 

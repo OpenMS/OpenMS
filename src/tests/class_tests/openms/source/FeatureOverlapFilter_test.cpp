@@ -540,6 +540,35 @@ START_SECTION(mergeFAIMSFeatures - no-op on non-FAIMS data)
 }
 END_SECTION
 
+START_SECTION(mergeFAIMSFeatures - features without unique ids)
+{
+  // FeatureFinderCentroided merges before it assigns unique ids, so all ids are 0
+  FeatureMap fmap;
+  Feature f1 = createTestFeature(100.0, 500.0, 1000.0, 2);
+  f1.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);
+  Feature f2 = createTestFeature(101.0, 500.01, 500.0, 2);
+  f2.setMetaValue(Constants::UserParam::FAIMS_CV, -60.0); // same analyte, other CV: merged into f1
+  Feature f3 = createTestFeature(300.0, 800.0, 700.0, 2);
+  f3.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0); // unrelated analyte: kept
+  fmap.push_back(f1);
+  fmap.push_back(f2);
+  fmap.push_back(f3);
+  TEST_EQUAL(fmap[0].getUniqueId(), 0)
+
+  FeatureOverlapFilter::mergeFAIMSFeatures(fmap, 5.0, 0.05);
+
+  TEST_EQUAL(fmap.size(), 2)
+  double merged_intensity = 0.0, other_rt = 0.0;
+  for (const auto& f : fmap)
+  {
+    if (f.metaValueExists("merged_centroid_IMs")) merged_intensity = f.getIntensity();
+    else other_rt = f.getRT();
+  }
+  TEST_REAL_SIMILAR(merged_intensity, 1500.0)
+  TEST_REAL_SIMILAR(other_rt, 300.0)
+}
+END_SECTION
+
 START_SECTION(static Size mergeCoincidentFeatures(FeatureMap& feature_map))
 {
   // Positional isomers identified from the HCD and ETD scans of one precursor: FFId reports the

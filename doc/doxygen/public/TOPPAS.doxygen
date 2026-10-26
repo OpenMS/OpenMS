@@ -433,10 +433,6 @@
 		@image html TOPPAS_Ecoli_Identification.png
 		@image latex TOPPAS_Ecoli_Identification.png "" width=12cm
 		
-		Extensions to this pipeline would be to do the annotation of the spectra with
-		multiple search engines and combine the results afterwards, using the @ref TOPP_ConsensusID
-		TOPP tool.
-
 		The results may be exported using the @ref TOPP_TextExporter tool, for further downstream analysis with
 		non-OpenMS tools.
 	

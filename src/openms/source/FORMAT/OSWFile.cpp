@@ -1829,39 +1829,73 @@ namespace OpenMS
       std::unordered_map<Int64, std::tuple<std::string, std::string, std::string>> transitions_by_feature;
       if (config.transition_quantification && conn.tableExists("FEATURE_TRANSITION") && conn.tableExists("TRANSITION"))
       {
-        const std::string transition_query =
-          conn.tableExists("SCORE_TRANSITION") ?
+        // The aggregates are only looked up for the exported peak groups. With a q-value filter
+        // these are a small part of all peak groups, and aggregating every peak group of the file
+        // (GROUP BY over all of FEATURE_TRANSITION) took most of the export time: ask for the
+        // exported ones one by one instead, unless most of the file is exported anyway.
+        const bool per_feature = rows.size() <= 100000;
+        const bool has_score_transition = conn.tableExists("SCORE_TRANSITION");
+        std::string transition_query =
           "SELECT FEATURE_TRANSITION.FEATURE_ID, "
           "       GROUP_CONCAT(FEATURE_TRANSITION.AREA_INTENSITY, ';'), "
           "       GROUP_CONCAT(FEATURE_TRANSITION.APEX_INTENSITY, ';'), "
           "       GROUP_CONCAT(TRANSITION.ID || '_' || TRANSITION.TYPE || TRANSITION.ORDINAL || '_' || TRANSITION.CHARGE, ';') "
           "FROM FEATURE_TRANSITION "
-          "INNER JOIN TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
-          "INNER JOIN SCORE_TRANSITION ON FEATURE_TRANSITION.FEATURE_ID = SCORE_TRANSITION.FEATURE_ID "
-          "  AND FEATURE_TRANSITION.TRANSITION_ID = SCORE_TRANSITION.TRANSITION_ID "
-          "WHERE TRANSITION.DECOY = 0 AND SCORE_TRANSITION.PEP < ? "
-          "GROUP BY FEATURE_TRANSITION.FEATURE_ID;"
-          :
-          "SELECT FEATURE_TRANSITION.FEATURE_ID, "
-          "       GROUP_CONCAT(FEATURE_TRANSITION.AREA_INTENSITY, ';'), "
-          "       GROUP_CONCAT(FEATURE_TRANSITION.APEX_INTENSITY, ';'), "
-          "       GROUP_CONCAT(TRANSITION.ID || '_' || TRANSITION.TYPE || TRANSITION.ORDINAL || '_' || TRANSITION.CHARGE, ';') "
-          "FROM FEATURE_TRANSITION "
-          "INNER JOIN TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
-          "GROUP BY FEATURE_TRANSITION.FEATURE_ID;";
+          "INNER JOIN TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID ";
+        if (has_score_transition)
+        {
+          transition_query +=
+            "INNER JOIN SCORE_TRANSITION ON FEATURE_TRANSITION.FEATURE_ID = SCORE_TRANSITION.FEATURE_ID "
+            "  AND FEATURE_TRANSITION.TRANSITION_ID = SCORE_TRANSITION.TRANSITION_ID "
+            "WHERE TRANSITION.DECOY = 0 AND SCORE_TRANSITION.PEP < ?1 ";
+          if (per_feature) transition_query += "AND FEATURE_TRANSITION.FEATURE_ID = ?2 ";
+        }
+        else if (per_feature)
+        {
+          transition_query += "WHERE FEATURE_TRANSITION.FEATURE_ID = ?1 ";
+        }
+        transition_query += "GROUP BY FEATURE_TRANSITION.FEATURE_ID;";
+        sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
         sqlite3_stmt* stmt = nullptr;
         Internal::SqliteHelper::prepareStatement(conn, &stmt, transition_query);
-        if (conn.tableExists("SCORE_TRANSITION"))
+        auto bindTransitionPep = [&]()
         {
-          checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.max_transition_pep),
-                                 "Failed to bind max_transition_pep for export transition aggregation");
+          if (has_score_transition)
+          {
+            checkSqliteReturnCode_(db, sqlite3_bind_double(stmt, 1, config.max_transition_pep),
+                                   "Failed to bind max_transition_pep for export transition aggregation");
+          }
+        };
+        auto readAggregates = [&]()
+        {
+          Sql::SqlState state = Sql::nextRow(stmt);
+          while (state == Sql::SqlState::SQL_ROW)
+          {
+            transitions_by_feature[Sql::extractInt64(stmt, 0)] =
+              std::make_tuple(Sql::extractString(stmt, 1), Sql::extractString(stmt, 2), Sql::extractString(stmt, 3));
+            state = Sql::nextRow(stmt, state);
+          }
+        };
+        if (per_feature)
+        {
+          const int feature_parameter = has_score_transition ? 2 : 1;
+          for (const auto& row : rows)
+          {
+            if (transitions_by_feature.count(row.feature_id) > 0)
+            {
+              continue; // a peak group can be exported in several rows
+            }
+            bindTransitionPep();
+            checkSqliteReturnCode_(db, sqlite3_bind_int64(stmt, feature_parameter, static_cast<sqlite3_int64>(row.feature_id)),
+                                   "Failed to bind feature id for export transition aggregation");
+            readAggregates();
+            checkSqliteReturnCode_(db, sqlite3_reset(stmt), "Failed to reset export transition aggregation");
+          }
         }
-        Sql::SqlState state = Sql::nextRow(stmt);
-        while (state == Sql::SqlState::SQL_ROW)
+        else
         {
-          transitions_by_feature[Sql::extractInt64(stmt, 0)] =
-            std::make_tuple(Sql::extractString(stmt, 1), Sql::extractString(stmt, 2), Sql::extractString(stmt, 3));
-          state = Sql::nextRow(stmt, state);
+          bindTransitionPep();
+          readAggregates();
         }
         sqlite3_finalize(stmt);
       }

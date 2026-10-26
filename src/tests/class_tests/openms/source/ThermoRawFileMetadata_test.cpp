@@ -59,15 +59,60 @@ START_TEST(ThermoRawFileMetadata, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static std::optional<double> number(const std::string& value)))
+START_SECTION((static std::optional<double> number(std::string_view value)))
 {
   TEST_FALSE(ThermoRawFileMetadata::number("").has_value())        // missing values remain missing
+  TEST_FALSE(ThermoRawFileMetadata::number("   ").has_value())
   TEST_FALSE(ThermoRawFileMetadata::number("NaN").has_value())     // nonfinite values remain missing
+  TEST_FALSE(ThermoRawFileMetadata::number("inf").has_value())
   TEST_FALSE(ThermoRawFileMetadata::number("2,5").has_value())     // do not guess decimal separators
   TEST_FALSE(ThermoRawFileMetadata::number("12.3abc").has_value()) // trailing garbage is not a number
+  TEST_FALSE(ThermoRawFileMetadata::number("1 2").has_value())
+  TEST_FALSE(ThermoRawFileMetadata::number("++1").has_value())
   TEST_TRUE(ThermoRawFileMetadata::number(" 0 ").has_value())      // zero is not missing
   TEST_EQUAL(ThermoRawFileMetadata::number(" 0 ").value(), 0.0)
   TEST_EQUAL(ThermoRawFileMetadata::number("499.5").value(), 499.5)
+  TEST_EQUAL(ThermoRawFileMetadata::number("+499.5").value(), 499.5)
+  TEST_EQUAL(ThermoRawFileMetadata::number("-2").value(), -2.0)
+  TEST_EQUAL(ThermoRawFileMetadata::number("1e3").value(), 1000.0)
+  TEST_EQUAL(ThermoRawFileMetadata::number("\t836.40478516\r\n").value(), 836.40478516)
+}
+END_SECTION
+
+START_SECTION((static std::string filterKey(const std::string& filter)))
+{
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey("FTMS + c NSI Full ms2 500.00@hcd30.00 [100.0000-1000.0000]"), "500.00@hcd30.00")
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey("FTMS + p NSI sps d Full ms3 438.2455@cid35.00 402.0930@hcd65.00 [100.0000-500.0000]"),
+                    "438.2455@cid35.00 402.0930@hcd65.00")
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey("FTMS + c NSI Full ms [350.0000-1400.0000]"), "") // MS1 has no key
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey("ITMS + c NSI d Full ms2 500.00@cid35.00"), "")   // no mass range
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey("Full ms2  [100-200]"), "")                         // key needs one char before " ["
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey("Full ms2 a\nb [1-2] ms3 c [3-4]"), "c")            // no line breaks
+  TEST_STRING_EQUAL(ThermoRawFileMetadata::filterKey(""), "")
+}
+END_SECTION
+
+START_SECTION([EXTRA] ThermoTrailerIndex learns and re-learns label positions)
+{
+  ThermoTrailerIndex index;
+  const ThermoTrailerIndex::Key charge = index.add("Charge State:");
+  const ThermoTrailerIndex::Key mono = index.add("Monoisotopic M/Z:");
+  ThermoScan a = scan(1, 2, "");
+  trailer(a, "Charge State:", "2");
+  trailer(a, "Monoisotopic M/Z:", "500.25");
+  TEST_STRING_EQUAL(index.value(a, charge), "2")
+  TEST_STRING_EQUAL(index.value(a, mono), "500.25")
+  ThermoScan b = scan(2, 2, ""); // different layout: falls back to a search
+  trailer(b, "Monoisotopic M/Z:", "600.5");
+  trailer(b, "Other:", "x");
+  trailer(b, "Charge State:", "3");
+  TEST_STRING_EQUAL(index.value(b, charge), "3")
+  TEST_STRING_EQUAL(index.value(b, mono), "600.5")
+  TEST_STRING_EQUAL(index.value(a, charge), "2")
+  ThermoScan c = scan(3, 1, ""); // label missing
+  trailer(c, "Other:", "x");
+  TEST_EQUAL(index.find(c, charge) == nullptr, true)
+  TEST_STRING_EQUAL(index.value(c, mono), "")
 }
 END_SECTION
 

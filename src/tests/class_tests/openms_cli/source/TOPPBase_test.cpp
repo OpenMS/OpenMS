@@ -12,17 +12,19 @@
 
 ///////////////////////////
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <cstdlib>
-
+#include <sstream>
+#include <thread>
+#include <utility>
 #include <vector>
 ///////////////////////////
 
@@ -166,6 +168,26 @@ class TOPPBaseTest
       return parseRange_(text, low, high);
     }
 
+};
+
+// Emit library debug messages independently of TOPPBase::writeDebug_'s level check.
+class TOPPBaseDebugTest : public TOPPBase
+{
+public:
+  TOPPBaseDebugTest(): TOPPBase("TOPPBaseDebugTest", "A test class for debug logging", {}, false)
+  {
+  }
+
+  void registerOptionsAndFlags_() override
+  {
+  }
+
+  ExitCodes main_(int, const char**) override
+  {
+    OPENMS_LOG_DEBUG << "main-thread debug marker" << std::endl;
+    std::thread([] { OPENMS_LOG_DEBUG << "worker-thread debug marker" << std::endl; }).join();
+    return EXECUTION_OK;
+  }
 };
 
 // Test class for no-optional parameters
@@ -1201,6 +1223,64 @@ START_SECTION(([EXTRA] -log writes a log file))
   for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it) { content += *it + "\n"; }
   TEST_FALSE(content.empty())
   TEST_TRUE(content.find("TOPPBaseTest:1:") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] debug logging honors command line and INI settings))
+{
+  // Initialize this thread's debug logger before '-debug' is known, as the command line parser does.
+  getGlobalLogDebug().remove(cout);
+  getThreadLocalLogDebug().remove(cout);
+
+  auto runAndCapture = [](int argc, const char** argv) {
+    std::ostringstream captured;
+    struct CoutGuard
+    {
+      std::streambuf* previous;
+      ~CoutGuard()
+      { cout.rdbuf(previous); }
+    } guard {cout.rdbuf(captured.rdbuf())};
+    TOPPBaseDebugTest tool;
+    auto exit_code = tool.main(argc, argv);
+    return std::make_pair(exit_code, captured.str());
+  };
+
+  const char* plain[] = {"TOPPBaseDebugTest", "-test"};
+  auto disabled = runAndCapture(2, plain);
+  TEST_EQUAL(disabled.first, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(disabled.second.find("debug marker") == std::string::npos)
+
+  const char* debug[] = {"TOPPBaseDebugTest", "-debug", "10", "-test"};
+  auto enabled = runAndCapture(4, debug);
+  TEST_EQUAL(enabled.first, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(enabled.second.find("main-thread debug marker") != std::string::npos)
+  TEST_TRUE(enabled.second.find("worker-thread debug marker") != std::string::npos)
+  TEST_TRUE(enabled.second.find("Debug level: 10") != std::string::npos)
+
+  // A second tool in the same process must not inherit the first tool's console debug output,
+  // including the parser's debug messages that precede the '-debug' evaluation.
+  disabled = runAndCapture(2, plain);
+  TEST_EQUAL(disabled.first, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(disabled.second.find("debug marker") == std::string::npos)
+  TEST_TRUE(disabled.second.find("Command line: setting parameter value") == std::string::npos)
+
+  std::string ini_filename;
+  NEW_TMP_FILE(ini_filename)
+  Param ini;
+  ini.setValue("TOPPBaseDebugTest:1:debug", 10);
+  ParamXMLFile().store(ini_filename, ini);
+  const char* from_ini[] = {"TOPPBaseDebugTest", "-ini", ini_filename.c_str(), "-test"};
+  enabled = runAndCapture(4, from_ini);
+  TEST_EQUAL(enabled.first, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(enabled.second.find("Debug level (after ini file): 10") != std::string::npos)
+  TEST_TRUE(enabled.second.find("main-thread debug marker") != std::string::npos)
+  TEST_TRUE(enabled.second.find("worker-thread debug marker") != std::string::npos)
+
+  // Explicit command-line values take precedence over the INI's debug level.
+  const char* override_ini[] = {"TOPPBaseDebugTest", "-ini", ini_filename.c_str(), "-debug", "0", "-test"};
+  disabled = runAndCapture(6, override_ini);
+  TEST_EQUAL(disabled.first, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(disabled.second.find("debug marker") == std::string::npos)
 }
 END_SECTION
 

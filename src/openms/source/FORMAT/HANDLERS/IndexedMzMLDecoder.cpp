@@ -7,8 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/CONCEPT/Init.h>
 
 #include <OpenMS/SYSTEM/File.h>
+
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -68,6 +71,27 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
+    std::string buffer_str;
+    long long length = 0;
+
+    if (S3InputSource::isS3URI(filename))
+    {
+      //-------------------------------------------------------------
+      // S3 object: read from indexoffset to its end
+      //-------------------------------------------------------------
+      length = S3InputSource::objectSize(filename);
+
+      if (indexoffset < 0 || indexoffset > length)
+      {
+        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
+          indexoffset << " (not between 0 and " << length << ")." << std::endl;
+        return -1;
+      }
+
+      buffer_str = S3InputSource::readRange(filename, indexoffset, length - indexoffset);
+    }
+    else
+    {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------
@@ -90,7 +114,7 @@ namespace OpenMS
 
     // get length of file:
     f.seekg(0, f.end);
-    std::streampos length = f.tellg();
+    length = f.tellg();
 
     if (indexoffset < 0 || indexoffset > length)
     {
@@ -111,7 +135,6 @@ namespace OpenMS
     // catch case where not enough memory is available
     if (buffer == nullptr)
     {
-      // Warning: Index takes up more than 10 % of the whole file, please check your input file.\n";
       std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
       std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
         ", consequently tried to read into memory " << readl << " bytes." << std::endl;
@@ -122,15 +145,16 @@ namespace OpenMS
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
+    buffer_str = buffer;
+    delete[] buffer;
+    }
 
     //-------------------------------------------------------------
     // Add a sane start element and then give it to a DOM parser
     //-------------------------------------------------------------
     // http://stackoverflow.com/questions/4691039/making-xerces-parse-a-string-insted-of-a-file
-    std::string tmp_fixed_xml = "<indexedmzML>" +  std::string(buffer) + "\n";
+    std::string tmp_fixed_xml = "<indexedmzML>" + buffer_str + "\n";
     int res = domParseIndexedEnd_(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
-
-    delete[] buffer;
 
     return res;
   }
@@ -139,7 +163,19 @@ namespace OpenMS
   {
     // return value
     std::streampos indexoffset = -1;
+    std::string buffer_str;
 
+    if (S3InputSource::isS3URI(filename))
+    {
+      //-------------------------------------------------------------
+      // S3 object: read its last buffersize bytes
+      //-------------------------------------------------------------
+      const Int64 size = S3InputSource::objectSize(filename);
+      const Int64 start = std::max<Int64>(0, size - buffersize);
+      buffer_str = S3InputSource::readRange(filename, start, size - start);
+    }
+    else
+    {
     //-------------------------------------------------------------
     // Open file, jump to end and read last n bytes into buffer.
     //-------------------------------------------------------------
@@ -166,10 +202,12 @@ namespace OpenMS
     f.seekg(-buffersize, f.end);
     f.read(buffer.get(), buffersize);
     buffer.get()[buffersize] = '\0';
+    buffer_str = buffer.get();
+    }
 
 #ifdef DEBUG_READER
     std::cout << " reading file " << filename  << " with size " << buffersize << '\n';
-    std::cout << buffer << '\n';
+    std::cout << buffer_str << '\n';
 #endif
 
     //-------------------------------------------------------------
@@ -177,8 +215,8 @@ namespace OpenMS
     // indexListOffset and read its content.
     //-------------------------------------------------------------
     boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
-    boost::cmatch matches;
-    boost::regex_search(buffer.get(), matches, listoffset_rx);
+    boost::smatch matches;
+    boost::regex_search(buffer_str, matches, listoffset_rx);
     std::string thismatch(matches[1].first, matches[1].second);
     if (!thismatch.empty())
     {
@@ -197,7 +235,7 @@ namespace OpenMS
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
                 << buffersize << " bytes. Maybe this is not a indexedMzML."
-                << buffer.get() << std::endl;
+                << buffer_str << std::endl;
     }
 
     return indexoffset;
@@ -225,6 +263,10 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
+    // Xerces has to be initialised; CONCEPT/Init.cpp does so on loading the library, but a
+    // static library (WebAssembly) links that object file only if something else calls into it
+    static const bool xerces_initialized = (Internal::xercesInitialize(), true);
+    (void)xerces_initialized;
     xercesc::MemBufInputSource myxml_buf(
         reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     xercesc::XercesDOMParser parser;
@@ -277,21 +319,15 @@ namespace OpenMS
       {
         std::vector<std::pair<std::string, std::streampos> > result;
 
-        xercesc::DOMNode* firstChild = currentNode->getFirstChild();
-        xercesc::DOMNode* lastChild = currentNode->getLastChild();
-        xercesc::DOMNode* iter = firstChild;
-
         // Iterate through children
         // NOTE: Using xercesc::DOMNodeList and "item" is a very bad idea since
         //       each "item" call has complexity of O(n), see the
         //       implementation in DOMNodeListImpl.cpp :
         //       https://svn.apache.org/repos/asf/xerces/c/trunk/src/xercesc/dom/impl/DOMNodeListImpl.cpp
         //
-        while (iter != lastChild)
+        for (xercesc::DOMNode* currentONode = currentNode->getFirstChild(); currentONode != nullptr;
+             currentONode = currentONode->getNextSibling())
         {
-          iter = iter->getNextSibling();
-          xercesc::DOMNode* currentONode = iter;
-
           if (currentONode->getNodeType() && // true is not NULL
               currentONode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
           {

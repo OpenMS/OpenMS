@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessingUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <map>
@@ -230,6 +231,17 @@ namespace OpenMS
       }
       cf.setFeatures(std::move(new_handles));
       new_handles.clear();
+
+      // match-between-runs transfers (PipEchoAlgorithm) name their target runs by map index, too
+      if (cf.metaValueExists(Constants::UserParam::MBR_TRANSFER_MAP_INDICES))
+      {
+        IntList transfer_map_indices = cf.getMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES);
+        for (Int& map_index : transfer_map_indices)
+        {
+          map_index += static_cast<Int>(lhs_map_size);
+        }
+        cf.setMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES, transfer_map_indices);
+      }
 
       // update IDs (new format):
       cf.updateIDReferences(trans);
@@ -522,6 +534,12 @@ namespace OpenMS
         ") must match number of columns (" + StringUtils::toStr(column_description_.size()) + ").");
     }
 
+    // column_description_ is keyed by map index, and the keys need not be contiguous (e.g.
+    // after 'FileFilter -consensus:map 0 3'). When columns already exist, column_description_[i]
+    // would silently create a new entry at key i instead of updating the real i-th column by key
+    // order, growing the map and leaving the intended column's filename unset.
+    bool had_existing_columns = !column_description_.empty();
+    auto it = column_description_.begin();
     Size i(0);
     for (auto const & p : s)
     {
@@ -531,7 +549,15 @@ namespace OpenMS
                         << "Filename: '" << p << "'" << std::endl;
       }
 
-      column_description_[i].filename = p;
+      if (had_existing_columns)
+      {
+        it->second.filename = p;
+        ++it;
+      }
+      else
+      {
+        column_description_[i].filename = p;
+      }
       ++i;
     }
   }
@@ -821,6 +847,21 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
             "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
         }
         fmaps[positionOf(static_cast<UInt64>(upep_id.getMetaValue("map_index")))].getUnassignedPeptideIdentifications().push_back(upep_id);
+      }
+
+      // every peptide identification needs its protein identification run: copy the runs each FeatureMap refers to
+      for (auto& fm : fmaps)
+      {
+        std::set<std::string> identifiers;
+        for (const Feature& f : fm)
+        {
+          for (const PeptideIdentification& pep_id : f.getPeptideIdentifications()) identifiers.insert(pep_id.getIdentifier());
+        }
+        for (const PeptideIdentification& pep_id : fm.getUnassignedPeptideIdentifications()) identifiers.insert(pep_id.getIdentifier());
+        for (const ProteinIdentification& run : this->getProteinIdentifications())
+        {
+          if (identifiers.contains(run.getIdentifier())) fm.getProteinIdentifications().push_back(run);
+        }
       }
     }
 

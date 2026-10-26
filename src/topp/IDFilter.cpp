@@ -57,7 +57,7 @@ using namespace std;
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier (for spectral counting) </td>
   </tr>
  </table>
@@ -585,7 +585,7 @@ protected:
       if (!score_type.empty())
       {
         IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type);
-        IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
+        IDFilter::filterHitsByScore(peptides.getData(), pep_score, score_type_enum);
       }
       else
       {

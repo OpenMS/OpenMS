@@ -1217,12 +1217,10 @@ namespace OpenMS
         // We loop over the filenames in the design file, as this is the order we expect in the output.
         for (const auto& [group_id, fraction_to_filename_map] : design_group_fraction_filename)
         {
-          for (auto [fraction, design_filename] : fraction_to_filename_map)
+          // design_filename is already stripped of path and extension (see above). Stripping it
+          // again would cut a dotted stem ("run.v2") short and miss the quantified file.
+          for (const auto& [fraction, design_filename] : fraction_to_filename_map)
           {
-            // Process each filename within the fraction group
-            // important: strip file extension and path to find the entry
-            design_filename = File::stemName(design_filename);
-            
             #ifdef DEBUG_PROTEINQUANTIFIER
             std::cout 
               << "Experimental design: fraction group: " << group_id 

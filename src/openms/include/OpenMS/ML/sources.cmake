@@ -3,6 +3,10 @@ set(directory include/OpenMS/ML)
 
 ### list all header files of the directory here
 set(sources_list_h
+    # Constants mirrored from peptdeep plus small helpers over them. Header-only and free of
+    # ONNX, and ProSE registers the same 'peptdeep:instrument' values with and without ONNX
+    # support, so an ini file stays portable between the two builds.
+    PEPTDEEP/PeptDeepUtils.h
 )
 
 if (WITH_ONNX)
@@ -12,7 +16,6 @@ if (WITH_ONNX)
         PEPTDEEP/PeptDeepInput.h
         PEPTDEEP/PeptDeepMS2Inference.h
         PEPTDEEP/PeptDeepRTInference.h
-        PEPTDEEP/PeptDeepUtils.h
     )
 endif()
 

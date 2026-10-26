@@ -16,6 +16,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+#include <algorithm>
 #include <atomic>
 #include <unordered_map>
 #include <array>
@@ -141,7 +142,12 @@ using namespace std;
 
 
   // free function (not exported) used to add hits
-  void search(ACTrie& trie, ACTrieState& state, const std::string& prot, const std::string& full_prot, size_t prot_offset, Hit::T idx_prot, 
+  //
+  // @param prot (Sub-)sequence which is searched for peptides; may be I/L-substituted (see 'IL_equivalent')
+  // @param full_prot The *original* full protein sequence (never I/L-substituted), used to evaluate enzyme
+  //                  specificity and to report the flanking residues. Since the I/L substitution preserves
+  //                  length, positions from the search are directly applicable here.
+  void search(ACTrie& trie, ACTrieState& state, const std::string& prot, const std::string& full_prot, size_t prot_offset, Hit::T idx_prot,
               FoundProteinFunctor& func_threads, const bool allow_nterm_protein_cleavage)
   {
     state.setQuery(prot);
@@ -277,12 +283,6 @@ bool PeptideIndexing::isPrefix() const
 template<typename T>
 PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
 {
-  if ((enzyme_name_ == "Chymotrypsin" || enzyme_name_ == "Chymotrypsin/P" || enzyme_name_ == "TrypChymo")
-    && IL_equivalent_)
-  {
-    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "The used enzyme " + enzyme_name_ + "differentiates between I and L, therefore the IL_equivalent option cannot be used.");
-  }
   // no decoy string provided? try to deduce from data
   if (decoy_string_.empty())
   {
@@ -446,7 +446,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
 
     OPENMS_LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acid(s) and " << mm_max_ << " mismatch(es)!\n";
 
-    uint16_t count_j_proteins(0);
+    Size count_j_proteins(0); // not uint16_t: databases can easily hold more than 65k 'J' proteins, and the counter would wrap silently
     bool has_active_data = true; // becomes false if end of FASTA file is reached
     const std::string jumpX(aaa_max_ + mm_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because AXXA is a valid hit for aaa_max == 2 (cannot split it)
     // use very large target value for progress if DB size is unknown (did not fit into first chunk)
@@ -458,7 +458,8 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
       FoundProteinFunctor func_threads(enzyme, xtandem_fix_parameters);
       std::unordered_map<std::string, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
       ACTrieState ac_state;
-      std::string prot;
+      std::string prot;    ///< original protein sequence (only '*' removed); used for enzyme specificity and flanking residues
+      std::string prot_IL; ///< I/L-substituted copy of 'prot'; only filled when 'IL_equivalent_' is set (otherwise stays empty)
 
       while (true) 
       {
@@ -506,10 +507,13 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
           }
           
           // convert  L/J to I; also replace 'J' in proteins
+          // Note: the substitution is done on a *copy*, since the original sequence is required to correctly
+          //       evaluate enzyme specificity (some enzymes, e.g. Chymotrypsin, cleave after 'L', but not after 'I')
+          //       and to report the true flanking residues; see https://github.com/OpenMS/OpenMS/issues/1793
           if (IL_equivalent_)
-          {
-            StringUtils::substitute(prot, 'L', 'I');
-            StringUtils::substitute(prot, 'J', 'I');
+          { // single pass: copy and map 'L'/'J' to 'I' in one go (this is in the hot loop over all proteins)
+            prot_IL.resize(prot.size());
+            std::transform(prot.begin(), prot.end(), prot_IL.begin(), [](const char c) { return (c == 'L' || c == 'J') ? 'I' : c; });
           }
           else
           { // warn if 'J' is found (it eats into aaa_max)
@@ -519,6 +523,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
               ++count_j_proteins;
             }
           }
+          // the sequence which is fed to the Aho-Corasick search; aliases 'prot' if no substitution took place
+          // (i.e. no extra memory is used unless 'IL_equivalent' is enabled)
+          const std::string& prot_search = IL_equivalent_ ? prot_IL : prot;
 
           const Hit::T prot_idx = Hit::T(i + proteins.getChunkOffset());
           
@@ -526,29 +533,29 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
           const Size hits_total = func_threads.filter_passed + func_threads.filter_rejected;
 
           // check if there are stretches of 'X' in the protein, but not in the peptide
-          if (!peptide_has_X && StringUtils::has(prot, 'X'))
+          if (!peptide_has_X && StringUtils::has(prot_search, 'X'))
           {
             // create chunks of the protein (splitting it at stretches of 'X..X') and feed them to AC one by one
             size_t offset = -1, start = 0;
-            while ((offset = prot.find(jumpX, offset + 1)) != std::string::npos)
+            while ((offset = prot_search.find(jumpX, offset + 1)) != std::string::npos)
             {
               //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
-              search(ac_trie, ac_state, StringUtils::substr(prot, start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads,
+              search(ac_trie, ac_state, StringUtils::substr(prot_search, start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads,
                      allow_nterm_protein_cleavage_);
               // skip ahead while we encounter more X...
-              while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
+              while (offset + jumpX.size() < prot_search.size() && prot_search[offset + jumpX.size()] == 'X') ++offset;
               start = offset;
               //std::cout << "  new start: " << start << "\n";
             }
             // last chunk
-            if (start < prot.size())
+            if (start < prot_search.size())
             {
-              search(ac_trie, ac_state, StringUtils::substr(prot, start), prot, start, prot_idx, func_threads, allow_nterm_protein_cleavage_);
+              search(ac_trie, ac_state, StringUtils::substr(prot_search, start), prot, start, prot_idx, func_threads, allow_nterm_protein_cleavage_);
             }
           }
           else // search the whole protein at once
           {
-            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads, allow_nterm_protein_cleavage_);
+            search(ac_trie, ac_state, prot_search, prot, 0, prot_idx, func_threads, allow_nterm_protein_cleavage_);
           }
           // was protein found?
           if (hits_total < func_threads.filter_passed + func_threads.filter_rejected)

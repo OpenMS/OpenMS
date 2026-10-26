@@ -34,6 +34,25 @@ namespace OpenMS::Internal
 
     namespace Sql = Internal::SqliteHelper;
 
+    namespace
+    {
+      /// Spectrum native IDs as stored in the SPECTRUM table, in the order the spectra were written.
+      std::vector<std::string> storedSpectrumNativeIDs(SqliteConnector& conn)
+      {
+        std::vector<std::string> native_ids;
+        sqlite3_stmt* stmt;
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT NATIVE_ID FROM SPECTRUM ORDER BY ID;");
+        Sql::SqlState state = Sql::SqlState::SQL_ROW;
+        while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+        {
+          const unsigned char* text = sqlite3_column_text(stmt, 0);
+          native_ids.emplace_back(text == nullptr ? std::string() : std::string(reinterpret_cast<const char*>(text), sqlite3_column_bytes(stmt, 0)));
+        }
+        sqlite3_finalize(stmt);
+        return native_ids;
+      }
+    }
+
   /**
    * @brief Helper function to concatenate integers with "," for SQL IN(...) lists.
    *
@@ -200,6 +219,11 @@ namespace OpenMS::Internal
           {
             containers[curr_id].resize(data.size());
           }
+          else if (containers[curr_id].size() != data.size())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Intensity array length does not match the length of a previously read data array for the same spectrum / chromatogram");
+          }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
@@ -210,15 +234,20 @@ namespace OpenMS::Internal
         else if (data_type == 0)
         {
           // mz (should only occur in spectra)
-          if (boost::is_same<ContainerT, MSChromatogram>::value) 
+          if (boost::is_same<ContainerT, MSChromatogram>::value)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Found m/z data type for chromatogram (instead of retention time)");
           }
 
           if (containers[curr_id].empty())
           {
             containers[curr_id].resize(data.size());
+          }
+          else if (containers[curr_id].size() != data.size())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "m/z array length does not match the length of a previously read data array for the same spectrum");
           }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
@@ -230,12 +259,20 @@ namespace OpenMS::Internal
         else if (data_type == 2)
         {
           // rt (should only occur in chromatograms)
-          if (boost::is_same<ContainerT, MSSpectrum >::value) 
+          if (boost::is_same<ContainerT, MSSpectrum >::value)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Found retention time data type for spectrum (instead of m/z)");
           }
-          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
+          if (containers[curr_id].empty())
+          {
+            containers[curr_id].resize(data.size());
+          }
+          else if (containers[curr_id].size() != data.size())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Retention time array length does not match the length of a previously read data array for the same chromatogram");
+          }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
@@ -348,6 +385,20 @@ namespace OpenMS::Internal
         prepareSpectra_(conn, spectra);
         exp.setChromatograms(chromatograms);
         exp.setSpectra(spectra);
+      }
+      else
+      {
+        // The mzML writer replaces all spectrum native IDs by "spectrum=<index>" as soon as one of them
+        // lacks '=', so the full-metadata snapshot can carry renamed IDs. The SPECTRUM table keeps the
+        // original IDs, and the data below is matched against those, so restore them.
+        const std::vector<std::string> native_ids = storedSpectrumNativeIDs(conn);
+        if (native_ids.size() == exp.getNrSpectra())
+        {
+          for (Size i = 0; i < native_ids.size(); ++i)
+          {
+            exp.getSpectra()[i].setNativeID(native_ids[i]);
+          }
+        }
       }
 
       exp.setSqlRunID(getRunID());
@@ -706,10 +757,18 @@ namespace OpenMS::Internal
             product.setIsolationWindowUpperOffset(offset_value);
           }
         }
-        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
-            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
+          // Read as 64-bit so a stored value that doesn't fit in 32 bits can't wrap into
+          // the valid [0, SIZE_OF_ACTIVATIONMETHOD) range; only -1 means "no method", any
+          // other negative value is invalid and must not be cast to the enum (it would
+          // later index the activation-method name tables out of bounds).
+          sqlite3_int64 activation_method = sqlite3_column_int64(stmt, 12);
+          if (activation_method >= 0
+              && activation_method < static_cast<sqlite3_int64>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+          {
+            precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(activation_method));
+          }
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
         {
@@ -850,10 +909,15 @@ namespace OpenMS::Internal
             spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
         }
-        if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
-            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        if (sqlite3_column_type(stmt, 15) != SQLITE_NULL)
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
+          // See the matching comment in prepareChroms_ above.
+          sqlite3_int64 activation_method = sqlite3_column_int64(stmt, 15);
+          if (activation_method >= 0
+              && activation_method < static_cast<sqlite3_int64>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+          {
+            precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(activation_method));
+          }
         }
         if (sqlite3_column_type(stmt, 16) != SQLITE_NULL)
         {

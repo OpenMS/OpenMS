@@ -8,31 +8,124 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 ///////////////////////////
 
+#include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <functional>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <random>
 #include <set>
+#include <sstream>
+#include <iomanip>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <exception>
+#include <new>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+// The allocation-failure section below starts this test program as a child process (by /proc/self/exe) and replaces
+// the global operator new of this program; the replacement must also receive the allocations of libOpenMS. That is the
+// case on Linux (and checked at run time, see allocFaultReachesLibOpenMS()); elsewhere, without /proc, or if
+// OPENMS_TEST_NO_FAULT_INJECTION is defined, the section is skipped with a message.
+#if defined(__linux__) && !defined(OPENMS_TEST_NO_FAULT_INJECTION)
+#define FAULT_INJECTION_TESTS 1
+#else
+#define FAULT_INJECTION_TESTS 0
+#endif
+
+#if FAULT_INJECTION_TESTS
+#ifndef OPENMS_TEST_SELF_EXE
+#define OPENMS_TEST_SELF_EXE "/proc/self/exe" // the running test program (another path checks the skip without /proc)
+#endif
+#include <OpenMS/SYSTEM/File.h>
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+extern char** environ;
+#endif
+
+#if FAULT_INJECTION_TESTS
+// Fault injection for the allocation tests below. Armed on one thread, the n-th allocation of that thread after arming
+// runs action() or, without an action, throws std::bad_alloc; allocations made inside action() are not counted. A
+// failed nothrow allocation returns nullptr to its caller and sets nothrow_failed. Over-aligned allocations (operator
+// new with std::align_val_t) are not replaced and not counted.
+namespace AllocFault
+{
+  thread_local long countdown = 0;
+  thread_local bool fired = false;
+  thread_local bool nothrow_failed = false;
+  thread_local bool in_action = false;
+  thread_local void (*action)() = nullptr;
+  void arm(long n, void (*on_fire)() = nullptr) { fired = false; nothrow_failed = false; action = on_fire; countdown = n; }
+  void disarm() { countdown = 0; action = nullptr; }
+}
+void* operator new(std::size_t size)
+{
+  if (AllocFault::countdown > 0 && !AllocFault::in_action && --AllocFault::countdown == 0)
+  {
+    AllocFault::fired = true;
+    if (AllocFault::action == nullptr) throw std::bad_alloc();
+    AllocFault::in_action = true;
+    AllocFault::action();
+    AllocFault::in_action = false;
+  }
+  if (void* p = std::malloc(size == 0 ? 1 : size)) return p;
+  throw std::bad_alloc();
+}
+void* operator new[](std::size_t size) { return ::operator new(size); }
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept
+{
+  try { return ::operator new(size); } catch (...) { AllocFault::nothrow_failed = true; return nullptr; }
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept
+{
+  try { return ::operator new(size); } catch (...) { AllocFault::nothrow_failed = true; return nullptr; }
+}
+void operator delete(void* p) noexcept { std::free(p); }
+void operator delete[](void* p) noexcept { std::free(p); }
+void operator delete(void* p, std::size_t) noexcept { std::free(p); }
+void operator delete[](void* p, std::size_t) noexcept { std::free(p); }
+void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
+#endif
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -59,12 +152,194 @@ public:
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::mass_accuracy_score_;
+  using ProSEAlgorithm::DeisotopingSettings_;
+  using ProSEAlgorithm::deisotoping_;
   using ProSEAlgorithm::localFragmentEvidence_;
   using ProSEAlgorithm::localPeakDensities_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::ProteinMapping_;
+  using ProSEAlgorithm::buildProteinMapping_;
+  using ProSEAlgorithm::applyProteinMapping_;
+  using ProSEAlgorithm::annotateIonPriors_;
+  using ProSEAlgorithm::reversedNoiseSequence_;
+  using ProSEAlgorithm::fragment_mass_tolerance_;
+  using ProSEAlgorithm::poolSearchedFiles_;
+  using ProSEAlgorithm::residualSpectrum_;
+  using ProSEAlgorithm::collectRunStatistics_;
 };
+
+// A progress display that counts how often a progress display starts and ends, and throws when one with the label
+// prefix throw_at starts (the scoring of the main search: after the calibration pass).
+class CountingProgressLogger : public ProgressLogger::ProgressLoggerImpl
+{
+public:
+  CountingProgressLogger(int& starts, int& ends, const std::string& throw_at = "") :
+    starts_(starts), ends_(ends), throw_at_(throw_at)
+  {
+  }
+  void startProgress(const SignedSize, const SignedSize, const std::string& label, const int) const override
+  {
+    if (!throw_at_.empty() && label.rfind(throw_at_, 0) == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "injected by the test", label);
+    }
+    ++starts_;
+  }
+  void setProgress(const SignedSize, const int) const override {}
+  SignedSize nextProgress() const override { return 0; }
+  void endProgress(const int, UInt64) const override { ++ends_; }
+
+private:
+  int& starts_;
+  int& ends_;
+  std::string throw_at_;
+};
+
+// A progress display that records its events: the kind ('s' start, 'e' end), the recursion depth that the ProgressLogger
+// passes (the nesting level of the step: 0 for an outer step) and the label of a start.
+struct ProgressEvent
+{
+  char kind;
+  int depth;
+  std::string label;
+};
+class RecordingProgressLogger : public ProgressLogger::ProgressLoggerImpl
+{
+public:
+  explicit RecordingProgressLogger(std::vector<ProgressEvent>& events) : events_(events) {}
+  void startProgress(const SignedSize, const SignedSize, const std::string& label, const int depth) const override
+  {
+    events_.push_back({'s', depth, label});
+  }
+  void setProgress(const SignedSize, const int) const override {}
+  SignedSize nextProgress() const override { return 0; }
+  void endProgress(const int depth, UInt64) const override { events_.push_back({'e', depth, ""}); }
+
+private:
+  std::vector<ProgressEvent>& events_;
+};
+
+// Sets the number of OpenMP threads of the calling thread for its scope. With one thread the multi-file search reads no
+// file in the background: the mzML reader shares the (static, unsynchronized) step depth of the ProgressLogger with the
+// search, so with threads the depths that the search sees are not reliable.
+class ScopedOpenMPThreads
+{
+public:
+  explicit ScopedOpenMPThreads([[maybe_unused]] int threads)
+  {
+#ifdef _OPENMP
+    saved_ = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+  }
+  ~ScopedOpenMPThreads()
+  {
+#ifdef _OPENMP
+    omp_set_num_threads(saved_);
+#endif
+  }
+  ScopedOpenMPThreads(const ScopedOpenMPThreads&) = delete;
+  ScopedOpenMPThreads& operator=(const ScopedOpenMPThreads&) = delete;
+
+private:
+  [[maybe_unused]] int saved_ = 1;
+};
+
+#if FAULT_INJECTION_TESTS
+// whether the replacement of operator new above receives an allocation made inside libOpenMS (it does not, e.g., with
+// a statically linked C++ runtime)
+static void noAllocFaultAction() {}
+static bool allocFaultReachesLibOpenMS()
+{
+  AllocFault::arm(1, &noAllocFaultAction);
+  const std::string name = File::getUniqueName(false);
+  const bool fired = AllocFault::fired;
+  AllocFault::disarm();
+  return fired && !name.empty();
+}
+
+// The child process of the section "preprocessSpectra_ - an allocation failure ... reaches the caller": every allocation
+// of the calling thread in preprocessSpectra_() fails once, one after the other. Exit code 0: every failure reached the
+// caller as an exception, at least one as std::bad_alloc; only a failed nothrow allocation (reported to its caller as
+// nullptr, e.g. the temporary buffer of std::stable_sort) may be handled inside. A failure that leaves an OpenMP region
+// terminates the process.
+static long alloc_fault_child_n = 0;
+static int preprocessAllocFaultChild()
+{
+  std::set_terminate([] {
+    std::fprintf(stderr, "alloc-fault child: std::terminate at allocation %ld\n", alloc_fault_child_n);
+    std::fflush(stderr);
+    std::abort();
+  });
+#ifdef _OPENMP
+  omp_set_num_threads(4);
+#endif
+  const auto make_exp = []
+  {
+    PeakMap exp;
+    for (int s = 0; s < 8; ++s)
+    {
+      MSSpectrum spec;
+      spec.setMSLevel(2);
+      spec.setRT(1.0 + s);
+      Precursor prec;
+      prec.setMZ(500.0 + s);
+      prec.setCharge(2);
+      spec.getPrecursors().push_back(prec);
+      for (double mz : {110.07, 120.08, 130.10, 200.10, 201.10, 300.20, 350.25, 500.30})
+      {
+        Peak1D p;
+        p.setMZ(mz + s);
+        p.setIntensity(1000.0f);
+        spec.push_back(p);
+      }
+      exp.addSpectrum(spec);
+    }
+    return exp;
+  };
+  {
+    PeakMap warm_up = make_exp(); // singletons and caches that are built on first use
+    ProSEAlgorithm_test::preprocessSpectra_(warm_up, 0.05, false, true, 0, 20);
+  }
+  long caught = 0, other = 0, nothrow = 0, swallowed = 0, first_swallowed = 0;
+  for (alloc_fault_child_n = 1; alloc_fault_child_n < 10000000; ++alloc_fault_child_n)
+  {
+    PeakMap exp = make_exp();
+    bool threw = false;
+    AllocFault::arm(alloc_fault_child_n);
+    try
+    {
+      ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true, 0, 20);
+    }
+    catch (const std::bad_alloc&)
+    {
+      ++caught;
+      threw = true;
+    }
+    catch (...)
+    {
+      ++other;
+      threw = true;
+    }
+    const bool fired = AllocFault::fired;
+    const bool nothrow_failed = AllocFault::nothrow_failed;
+    AllocFault::disarm();
+    if (!fired) break; // past the last allocation of preprocessSpectra_()
+    if (threw) continue;
+    if (nothrow_failed) ++nothrow;
+    else if (swallowed++ == 0) first_swallowed = alloc_fault_child_n;
+  }
+  std::printf("alloc-fault child: %ld allocations failed one at a time; std::bad_alloc reached the caller %ld times, "
+              "another exception %ld times; a failed nothrow allocation was handled %ld times; another failure did not "
+              "reach the caller %ld times (first at allocation %ld)\n",
+              alloc_fault_child_n - 1, caught, other, nothrow, swallowed, first_swallowed);
+  std::fflush(stdout);
+  return caught > 0 && swallowed == 0 ? 0 : 2;
+}
+#endif
 
 // --- Shared calibration fixture -------------------------------------------------
 //
@@ -471,7 +746,194 @@ static Size count_annotations_(const PeptideHit& hit, const std::string& prefix)
   return n;
 }
 
+// ---------------------------------------------------------------------------
+// annotate:self_trained_ion_priors
+// ---------------------------------------------------------------------------
+static const std::vector<std::string> ion_prior_features_ = {
+  Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED, Constants::UserParam::ION_PRIOR_TOPK_OBSERVED};
+
+// The synthetic protein-FDR problem (targets, generated decoys, decoy spectra) with ion priors on
+// and no PSM filtering, so every scored hit is reported.
+static void configure_ion_prior_params_(ProSEAlgorithm& algo, Size min_psms, double train_fdr, const std::string& decoys = "generate")
+{
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", decoys);
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("report:top_hits", 3);
+  p.setValue("annotate:self_trained_ion_priors", "true");
+  p.setValue("annotate:ion_prior_min_psms", static_cast<Int>(min_psms));
+  p.setValue("annotate:ion_prior_train_fdr", train_fdr);
+  p.setValue("annotate:ion_prior_features", ion_prior_features_);
+  p.setValue("rescore", "false"); // the native scores of every hit (Percolator keeps the best hit and replaces them)
+  algo.setParameters(p);
+}
+
+// Hits and violations: a hit violates when a feature is missing, not finite, out of [0, 1] for the
+// fractions, or (with expect_zero) not 0.
+static std::pair<Size, Size> check_ion_prior_annotations_(const PeptideIdentificationList& pep_ids, bool expect_zero)
+{
+  Size hits = 0, violations = 0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      ++hits;
+      bool complete = true;
+      for (const std::string& feature : ion_prior_features_) complete = complete && hit.metaValueExists(feature);
+      if (! complete)
+      {
+        ++violations;
+        continue;
+      }
+      const double llr = hit.getMetaValue(Constants::UserParam::ION_PRIOR_LLR);
+      const double explained = hit.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED);
+      const double topk = hit.getMetaValue(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED);
+      bool valid = std::isfinite(llr) && explained >= 0.0 && explained <= 1.0 && topk >= 0.0 && topk <= 1.0;
+      if (expect_zero) valid = valid && llr == 0.0 && explained == 0.0 && topk == 0.0;
+      if (! valid) ++violations;
+    }
+  }
+  return {hits, violations};
+}
+
+static std::string extra_features_(const ProteinIdentification& protein_id)
+{
+  const auto& sp = protein_id.getSearchParameters();
+  return sp.metaValueExists("extra_features") ? sp.getMetaValue("extra_features").toString() : std::string();
+}
+
+static bool lists_feature_(const ProteinIdentification& protein_id, const std::string& feature)
+{
+  const StringList features = ListUtils::create<std::string>(extra_features_(protein_id));
+  return std::find(features.begin(), features.end(), feature) != features.end();
+}
+
+// One line per hit: spectrum, sequence, charge, native score and the three ion-prior features (17 digits)
+static std::vector<std::string> ion_prior_rows_(const PeptideIdentificationList& pep_ids)
+{
+  std::vector<std::string> rows;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      std::ostringstream row;
+      row << std::setprecision(17) << pid.getSpectrumReference() << ' ' << hit.getSequence().toString() << ' ' << hit.getCharge()
+          << ' ' << hit.getScore();
+      for (const std::string& feature : ion_prior_features_)
+      {
+        row << ' ' << (hit.metaValueExists(feature) ? static_cast<double>(hit.getMetaValue(feature)) : std::nan(""));
+      }
+      rows.push_back(row.str());
+    }
+  }
+  return rows;
+}
+
+// Protein mapping tests: a fragment index of c.db and a hit for each of its peptides without ambiguous residues
+// (three per identification), with the parameters PeptideIndexing runs with
+struct MappingCase
+{
+  vector<FASTAFile::FASTAEntry> db;
+  FragmentIndex index;
+  vector<UInt32> candidates;
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  Param indexer_parameters;
+};
+
+static void prepareMappingCase(MappingCase& c, const string& enzyme, const string& clip, const string& deduplicate,
+                               const vector<string>& fixed, const vector<string>& variable, Int aaa_max)
+{
+  Param p = c.index.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("enzyme", enzyme);
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("peptide:clip_nterm_methionine", clip);
+  p.setValue("peptide:deduplicate", deduplicate);
+  p.setValue("modifications:fixed", fixed);
+  p.setValue("modifications:variable", variable);
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  c.index.setParameters(p);
+  c.index.build(c.db);
+  c.candidates.clear();
+  c.peptides.clear();
+  c.proteins.assign(1, ProteinIdentification());
+  c.proteins[0].setIdentifier("run");
+  c.proteins[0].setSearchEngine("ProSE");
+  vector<PeptideHit> hits;
+  for (UInt32 i = 0; i < c.index.getPeptides().size(); ++i)
+  {
+    const FragmentIndex::Peptide& peptide = c.index.getPeptides()[i];
+    const string residues = c.db[peptide.protein_idx].sequence.substr(peptide.sequence_.first, peptide.sequence_.second);
+    if (residues.find_first_of("BJZX") != string::npos) continue;
+    c.candidates.push_back(i);
+    PeptideHit hit;
+    hit.setSequence(c.index.reconstructModifiedSequence(peptide, c.db));
+    hit.setScore(static_cast<double>(i));
+    hits.push_back(hit);
+    if (hits.size() == 3)
+    {
+      c.peptides.push_back(PeptideIdentification());
+      c.peptides.back().setIdentifier("run");
+      c.peptides.back().setHits(hits);
+      hits.clear();
+    }
+  }
+  PeptideIndexing indexer;
+  Param pi = indexer.getParameters();
+  pi.setValue("decoy_string", "DECOY_");
+  pi.setValue("decoy_string_position", "prefix");
+  pi.setValue("enzyme:name", enzyme);
+  pi.setValue("enzyme:specificity", "full");
+  pi.setValue("missing_decoy_action", "silent");
+  pi.setValue("aaa_max", aaa_max);
+  c.indexer_parameters = pi;
+}
+
+// The sequences that the protein mapping looks up for the spans of @p protein over ambiguous residues, by brute force:
+// every span of one of the @p lengths with 1 to @p aaa_max ambiguous residues, once per combination of the residues
+// they stand for (B, J, Z: 2; X: the 22 letters other than B, J, Z, X)
+static Size ambiguousSpanLookups(const string& protein, const std::set<Size>& lengths, Size aaa_max)
+{
+  const auto stands_for = [](char c) -> Size { return (c == 'B' || c == 'J' || c == 'Z') ? 2 : (c == 'X' ? 22 : 1); };
+  Size total = 0;
+  for (const Size length : lengths)
+  {
+    for (Size start = 0; start + length <= protein.size(); ++start)
+    {
+      Size ambiguous = 0, combinations = 1;
+      for (Size i = start; i < start + length; ++i)
+      {
+        if (stands_for(protein[i]) == 1) continue;
+        ++ambiguous;
+        combinations *= stands_for(protein[i]);
+      }
+      if (ambiguous >= 1 && ambiguous <= aaa_max) total += combinations;
+    }
+  }
+  return total;
+}
+
+
 START_TEST(ProSEAlgorithm, "$Id$")
+
+#if FAULT_INJECTION_TESTS
+// child process of the allocation-failure section below
+if (std::getenv("OPENMS_PROSE_TEST_ALLOC_FAULT_CHILD") != nullptr)
+{
+  const int child_rc = preprocessAllocFaultChild();
+  std::fflush(nullptr);
+  std::_Exit(child_rc);
+}
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -1148,6 +1610,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
   p.setValue("report:top_hits", 1);
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   vector<ProteinIdentification> prot_ids;
@@ -1297,6 +1760,206 @@ START_SECTION(([EXTRA] Closed search baseline))
   TEST_TRUE(pep_ids.size() > 0)
   TEST_EQUAL(prot_ids.size(), 1)
   TEST_EQUAL(prot_ids[0].getSearchEngine(), "ProSE")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] chimeric:enabled identifies a co-isolated precursor in what the best hit leaves of the spectrum))
+{
+  // VLGFHQR (2+) is selected; SDDEFYYTDK (3+) lies 0.57 Th below it in the isolation window
+  vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "GASPRSDDEFYYTDKVLGFHQRGEPTIDENWK"}};
+  const AASequence selected = AASequence::fromString("VLGFHQR");
+  const AASequence coisolated = AASequence::fromString("SDDEFYYTDK");
+
+  // survey scan with the averagine envelopes of both precursors
+  auto add_envelope = [](MSSpectrum& s, double mono_mz, int charge, double total)
+  {
+    const IsotopeDistribution dist = CoarseIsotopePatternGenerator(5).estimateFromPeptideWeight((mono_mz - Constants::PROTON_MASS_U) * charge);
+    for (Size k = 0; k < dist.size(); ++k)
+    {
+      s.emplace_back(mono_mz + k * Constants::C13C12_MASSDIFF_U / charge, total * dist[k].getIntensity());
+    }
+  };
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(99.0);
+  ms1.setNativeID("scan=1");
+  add_envelope(ms1, selected.getMZ(2), 2, 1e7);
+  add_envelope(ms1, coisolated.getMZ(3), 3, 5e6);
+  ms1.sortByPosition();
+
+  // MS2 spectrum with the b and y ions of both, those of the co-isolated precursor at half intensity
+  TheoreticalSpectrumGenerator tsg;
+  MSSpectrum ms2, ions;
+  tsg.getSpectrum(ms2, selected, 1, 1);
+  tsg.getSpectrum(ions, coisolated, 1, 1);
+  for (Peak1D peak : ions)
+  {
+    peak.setIntensity(peak.getIntensity() * 0.5f);
+    ms2.push_back(peak);
+  }
+  ms2.sortByPosition();
+  ms2.setMSLevel(2);
+  ms2.setRT(100.0);
+  ms2.setNativeID("scan=2");
+  Precursor precursor;
+  precursor.setMZ(selected.getMZ(2));
+  precursor.setCharge(2);
+  precursor.setIsolationWindowLowerOffset(1.0);
+  precursor.setIsolationWindowUpperOffset(1.0);
+  ms2.setPrecursors({precursor});
+
+  auto configure = [](ProSEAlgorithm& algo, bool chimeric)
+  {
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("decoys", "ignore");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("chimeric:enabled", chimeric ? "true" : "false");
+    algo.setParameters(p);
+  };
+  auto search = [&](bool chimeric, bool with_survey_scan, PeakMap& spectra)
+  {
+    spectra.clear(true);
+    if (with_survey_scan) spectra.addSpectrum(ms1);
+    spectra.addSpectrum(ms2);
+    ProSEAlgorithm algo;
+    configure(algo, chimeric);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    return std::make_pair(prot_ids, pep_ids);
+  };
+
+  PeakMap spectra;
+  const auto [plain_proteins, plain] = search(false, false, spectra);
+  TEST_EQUAL(plain.size(), 1)
+  ABORT_IF(plain.empty())
+  TEST_EQUAL(plain[0].getHits()[0].getSequence(), selected)
+  TEST_EQUAL(plain[0].getHits()[0].metaValueExists(ProSEAlgorithm::CHIMERIC_RANK), false)
+
+  const auto [proteins, chimeric] = search(true, true, spectra);
+  TEST_EQUAL(spectra.size(), 1) // the survey scan is not searched and the residual spectrum is removed again
+  TEST_EQUAL(chimeric.size(), 2)
+  ABORT_IF(chimeric.size() != 2)
+  TEST_EQUAL(chimeric[0].getHits()[0].getSequence(), selected)
+  TEST_EQUAL(int(chimeric[0].getHits()[0].getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 1)
+  TEST_EQUAL(chimeric[1].getHits()[0].getSequence(), coisolated)
+  TEST_EQUAL(chimeric[1].getHits()[0].getCharge(), 3)
+  TEST_EQUAL(int(chimeric[1].getHits()[0].getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)
+  TEST_REAL_SIMILAR(chimeric[1].getMZ(), coisolated.getMZ(3))
+  TEST_EQUAL(chimeric[1].getSpectrumReference(), "scan=2")
+  TEST_EQUAL(int(chimeric[1].getMetaValue("scan_index")), 0)
+  TEST_EQUAL(extra_features_(proteins[0]).find(ProSEAlgorithm::CHIMERIC_RANK) != std::string::npos, true)
+
+  // without survey scans, nothing is co-isolated
+  const auto [no_survey_proteins, no_survey] = search(true, false, spectra);
+  TEST_EQUAL(no_survey.size(), 1)
+
+  // the file-based search reads the survey scans
+  spectra.clear(true);
+  spectra.addSpectrum(ms1);
+  spectra.addSpectrum(ms2);
+  std::string tmp_mzml, tmp_fasta;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  FASTAFile().store(tmp_fasta, fasta_db);
+  ProSEAlgorithm from_file;
+  configure(from_file, true);
+  vector<ProteinIdentification> file_proteins;
+  PeptideIdentificationList file_peptides;
+  TEST_EQUAL(from_file.search(tmp_mzml, tmp_fasta, file_proteins, file_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(file_peptides.size(), 2)
+  ABORT_IF(file_peptides.size() != 2)
+  TEST_EQUAL(file_peptides[1].getHits()[0].getSequence(), coisolated)
+  TEST_EQUAL(file_peptides[1].getSpectrumReference(), "scan=2")
+
+  // a second co-isolated precursor, GEPTIDENWK (3+, 31.9 Th below the selected one, less intense): searched after
+  // SDDEFYYTDK, in what both other PSMs leave; a co-isolated precursor has at most chimeric:top_hits hits, none with
+  // the best hit's peptide
+  const AASequence second = AASequence::fromString("GEPTIDENWK");
+  MSSpectrum ms1_two = ms1;
+  add_envelope(ms1_two, second.getMZ(3), 3, 3e6);
+  ms1_two.sortByPosition();
+  MSSpectrum ms2_two = ms2, second_ions;
+  tsg.getSpectrum(second_ions, second, 1, 1);
+  for (Peak1D peak : second_ions)
+  {
+    peak.setIntensity(peak.getIntensity() * 0.3f);
+    ms2_two.push_back(peak);
+  }
+  ms2_two.sortByPosition();
+  Precursor wide = precursor;
+  wide.setIsolationWindowLowerOffset(33.0);
+  ms2_two.setPrecursors({wide});
+  PeakMap two;
+  two.addSpectrum(ms1_two);
+  two.addSpectrum(ms2_two);
+  ProSEAlgorithm two_algo;
+  configure(two_algo, true);
+  Param two_param = two_algo.getParameters();
+  two_param.setValue("report:top_hits", 5);
+  two_param.setValue("chimeric:top_hits", 2);
+  two_algo.setParameters(two_param);
+  vector<ProteinIdentification> two_proteins;
+  PeptideIdentificationList two_peptides;
+  TEST_EQUAL(two_algo.search(two, fasta_db, two_proteins, two_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(two_peptides.size(), 3)
+  ABORT_IF(two_peptides.size() != 3)
+  TEST_EQUAL(two_peptides[0].getHits()[0].getSequence(), selected)
+  TEST_EQUAL(two_peptides[1].getHits()[0].getSequence(), coisolated)
+  TEST_EQUAL(two_peptides[2].getHits()[0].getSequence(), second)
+  TEST_EQUAL(two_peptides[2].getHits()[0].getCharge(), 3)
+  for (Size i = 1; i < 3; ++i)
+  {
+    TEST_EQUAL(two_peptides[i].getHits().empty() || two_peptides[i].getHits().size() > 2, false)
+    for (const PeptideHit& hit : two_peptides[i].getHits())
+    {
+      TEST_EQUAL(int(hit.getMetaValue(ProSEAlgorithm::CHIMERIC_RANK)), 2)
+      TEST_EQUAL(hit.getSequence() == selected, false)
+    }
+    TEST_EQUAL(int(two_peptides[i].getMetaValue("scan_index")), 0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] residualSpectrum_ leaves out the claimed peaks and keeps the data arrays aligned))
+{
+  MSSpectrum spectrum;
+  spectrum.setNativeID("scan=7");
+  spectrum.getFloatDataArrays().resize(1);
+  for (int k = 0; k < 5; ++k)
+  {
+    spectrum.emplace_back(100.0 + k, 10.0f * (k + 1));
+    spectrum.getFloatDataArrays()[0].push_back(static_cast<float>(k));
+  }
+  spectrum.setMetaValue(CoIsolationDetector::META_MZ, DoubleList{500.0});
+  spectrum.setMetaValue(CoIsolationDetector::META_CHARGE, IntList{2});
+  Precursor coisolated;
+  coisolated.setMZ(500.0);
+  coisolated.setCharge(2);
+  const MSSpectrum residual = ProSEAlgorithm_test::residualSpectrum_(spectrum, {1, 3}, coisolated);
+  TEST_EQUAL(residual.size(), 3)
+  ABORT_IF(residual.size() != 3)
+  TEST_REAL_SIMILAR(residual[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(residual[1].getMZ(), 102.0)
+  TEST_REAL_SIMILAR(residual[2].getMZ(), 104.0)
+  TEST_EQUAL(residual.getFloatDataArrays()[0].size(), 3)
+  TEST_REAL_SIMILAR(residual.getFloatDataArrays()[0][1], 2.0)
+  TEST_EQUAL(residual.getPrecursors().size(), 1)
+  TEST_REAL_SIMILAR(residual.getPrecursors()[0].getMZ(), 500.0)
+  TEST_EQUAL(residual.getPrecursors()[0].getCharge(), 2)
+  TEST_EQUAL(residual.getNativeID(), "scan=7")
+  TEST_EQUAL(residual.metaValueExists(CoIsolationDetector::META_MZ), false)
+  TEST_EQUAL(residual.metaValueExists(CoIsolationDetector::META_CHARGE), false)
+  TEST_EQUAL(ProSEAlgorithm_test::residualSpectrum_(spectrum, {}, coisolated).size(), 5)
 }
 END_SECTION
 
@@ -1785,6 +2448,88 @@ START_SECTION(([EXTRA] Ion mobility annotation))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] FAIMS compensation voltage annotation))
+{
+  // A FAIMS compensation voltage is the spectrum's drift time with unit FAIMS_COMPENSATION_VOLTAGE (as the
+  // Thermo and mzML readers set it). It is written as FAIMS_CV, which the FAIMS-aware tools read, not as IM.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  vector<string> test_seqs = {"VLGFHQR", "EGFVRTHQPSANLDIK"};
+  vector<double> test_cvs = {-45.0, -65.0};
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (Size i = 0; i < test_seqs.size(); ++i)
+  {
+    AASequence seq = AASequence::fromString(test_seqs[i]);
+    int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(rt);
+    rt += 1.0;
+    spec.setDriftTime(test_cvs[i]);
+    spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge));
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+  TEST_EQUAL(pep_ids.size(), 2)
+
+  bool has_45 = false, has_65 = false;
+  for (const auto& pid : pep_ids)
+  {
+    TEST_FALSE(pid.metaValueExists(Constants::UserParam::IM))
+    TEST_TRUE(pid.metaValueExists(Constants::UserParam::FAIMS_CV))
+    const double cv = pid.getMetaValue(Constants::UserParam::FAIMS_CV);
+    if (fabs(cv + 45.0) < 1e-6) has_45 = true;
+    if (fabs(cv + 65.0) < 1e-6) has_65 = true;
+  }
+  TEST_TRUE(has_45)
+  TEST_TRUE(has_65)
+
+  // No ion mobility values, so no IM unit on the run
+  TEST_FALSE(prot_ids[0].metaValueExists(Constants::UserParam::IM))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Edge cases - empty inputs))
 {
   // Empty spectra
@@ -1914,6 +2659,7 @@ START_SECTION((ExitCodes search(const std::string &, const std::string &, std::v
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.05);
   p.setValue("FDR:protein", 0.5);   // lenient: keep proteins but exercise the picked-FDR path
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -1978,6 +2724,7 @@ START_SECTION(([EXTRA] file-based single-file search retains decoys when protein
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient, so decoys survive the q-value cut) ...
   p.setValue("FDR:protein", 0.0);   // ... but protein FDR OFF -> decoys must be retained
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2039,6 +2786,7 @@ START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protei
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.0);       // no PSM filtering, so decoys are retained...
   p.setValue("FDR:protein", 0.5);   // ...and this overload must NOT remove them via protein FDR
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2079,6 +2827,7 @@ START_SECTION(([EXTRA] in-memory search retains decoys after PSM-level FDR filte
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient) ...
   p.setValue("FDR:protein", 0.0);   // ... protein FDR OFF -> decoys retained
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2103,7 +2852,200 @@ END_SECTION
 
 START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, const std::string &, const std::string &) const))
 {
-  NOT_TESTABLE // tested via TOPP tool
+  // A single input is a complete experiment: both single-file overloads apply FDR:protein as search(file) does
+  // (protein inference, picked-protein FDR, decoys removed), after the modification analysis.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("rescore", "false"); // ProSE's own FDR (the rescoring has its own section)
+  p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.5);
+  algo.setParameters(p);
+
+  const auto accessions = [](const std::vector<ProteinIdentification>& runs)
+  {
+    std::vector<std::string> acc;
+    for (const ProteinHit& hit : runs.at(0).getHits()) { acc.push_back(hit.getAccession() + "=" + std::to_string(hit.getScore())); }
+    std::sort(acc.begin(), acc.end());
+    return runs.at(0).getScoreType() + ":" + ListUtils::concatenate(acc, ",");
+  };
+  const auto matched = [](const PeptideIdentificationList& peptide_ids)
+  {
+    return static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(), [](const auto& pid) { return !pid.getHits().empty(); }));
+  };
+  const auto decoy_psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    Size n = 0;
+    for (const auto& pid : peptide_ids) { for (const auto& hit : pid.getHits()) { n += hit.isDecoy(); } }
+    return n;
+  };
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(decoy_psms(pep_ids), 0)
+  TEST_EQUAL(prot_ids.at(0).getHits().size(), 10) // P01-P10
+
+  ProSEAlgorithm::SearchResult from_file = algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
+  TEST_EQUAL(from_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(from_file.is_open_search, true)
+  TEST_EQUAL(accessions(from_file.protein_ids), accessions(prot_ids))
+  TEST_EQUAL(decoy_psms(from_file.peptide_ids), 0)
+  // the statistics describe the returned identifications (after protein FDR)
+  TEST_EQUAL(from_file.stats.decoy_psms, 0)
+  TEST_EQUAL(from_file.stats.matched_spectra, matched(from_file.peptide_ids))
+
+  PeakMap spectra_baseline = spectra; // the in-memory overload takes its spectra by non-const reference
+  ProSEAlgorithm::SearchResult in_memory = algo.searchWithModificationAnalysis(spectra, fasta_db);
+  TEST_EQUAL(in_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(accessions(in_memory.protein_ids), accessions(prot_ids))
+  TEST_EQUAL(decoy_psms(in_memory.peptide_ids), 0)
+  TEST_EQUAL(in_memory.stats.decoy_psms, 0)
+  TEST_EQUAL(in_memory.stats.matched_spectra, matched(in_memory.peptide_ids))
+
+  // The modification analysis runs before protein FDR, so its tables equal those of the same search
+  // without FDR:protein, although the identifications differ (the baseline keeps the decoy PSMs).
+  const auto tables = [](const ProSEAlgorithm::SearchResult& r)
+  {
+    const auto& dm = r.modification_analysis.delta_mass_stats;
+    const auto& ptm = r.modification_analysis.ptm_stats;
+    std::vector<std::string> rows;
+    for (const auto& e : dm.entries)
+    {
+      std::ostringstream row;
+      row << std::setprecision(10) << "dm " << e.delta_mass << ' ' << e.count << ' ' << e.unique_peptides << ' '
+          << e.num_charge_states << ' ' << e.percentage << ' ' << e.mapped_modification;
+      rows.push_back(row.str());
+    }
+    for (const auto& e : ptm.entries)
+    {
+      std::ostringstream row;
+      row << std::setprecision(10) << "ptm " << e.name << ' ' << e.theoretical_mass << ' ' << e.observed_mass << ' '
+          << e.count << ' ' << e.unique_peptides << ' ' << e.num_charge_states << ' ' << e.percentage << ' ' << e.target_residues;
+      for (const auto& rc : e.residue_counts) { row << ' ' << rc.first << '=' << rc.second; }
+      rows.push_back(row.str());
+    }
+    std::sort(rows.begin(), rows.end());
+    std::ostringstream totals;
+    totals << std::setprecision(10) << dm.total_psms << ' ' << dm.modified_psms << ' ' << dm.unmodified_psms << ' '
+           << dm.mean_delta_mass << ' ' << dm.median_delta_mass << ' ' << ptm.total_modified_psms << ' '
+           << ptm.unknown_modification_psms << ' ' << ptm.num_unique_modifications << '|';
+    return totals.str() + ListUtils::concatenate(rows, ";");
+  };
+  p.setValue("FDR:protein", 0.0);
+  ProSEAlgorithm baseline_algo;
+  baseline_algo.setParameters(p);
+  ProSEAlgorithm::SearchResult baseline_file = baseline_algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
+  TEST_EQUAL(baseline_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(decoy_psms(baseline_file.peptide_ids) > 0)
+  TEST_EQUAL(tables(from_file), tables(baseline_file))
+  ProSEAlgorithm::SearchResult baseline_memory = baseline_algo.searchWithModificationAnalysis(spectra_baseline, fasta_db);
+  TEST_EQUAL(baseline_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(decoy_psms(baseline_memory.peptide_ids) > 0)
+  TEST_EQUAL(tables(in_memory), tables(baseline_memory))
+}
+END_SECTION
+
+START_SECTION((void setKeepPreFdrPsms(bool keep)))
+{
+  // The multi-file search returns the PSMs of each file from before FDR:PSM only when asked to, and only
+  // those of that file: a snapshot left by an earlier search of the same object must not be handed out.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("rescore", "false"); // ProSE's own FDR (the rescoring has its own section)
+  p.setValue("FDR:PSM", 0.05);
+  algo.setParameters(p);
+
+  const auto decoy_psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    Size n = 0;
+    for (const auto& pid : peptide_ids) { for (const auto& hit : pid.getHits()) { n += hit.isDecoy(); } }
+    return n;
+  };
+  const std::vector<std::string> files = {tmp_mzml};
+
+  // default: no copy
+  ProSEAlgorithm::MultiFileSearchResult plain = algo.searchWithModificationAnalysis(files, tmp_fasta);
+  ABORT_IF(plain.per_file.size() != 1)
+  TEST_EQUAL(plain.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(plain.per_file[0].pre_fdr_peptide_ids.empty(), true)
+
+  // asked for: the PSMs before FDR:PSM, decoys included
+  algo.setKeepPreFdrPsms(true);
+  ProSEAlgorithm::MultiFileSearchResult kept = algo.searchWithModificationAnalysis(files, tmp_fasta);
+  ABORT_IF(kept.per_file.size() != 1)
+  TEST_EQUAL(kept.per_file[0].peptide_ids.size(), plain.per_file[0].peptide_ids.size())
+  TEST_EQUAL(kept.per_file[0].pre_fdr_peptide_ids.size() >= kept.per_file[0].peptide_ids.size(), true)
+  TEST_EQUAL(decoy_psms(kept.per_file[0].pre_fdr_peptide_ids) > 0, true)
+  // oracle: the same file searched without FDR:PSM (search scores, not q-values; nothing filtered)
+  const auto psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    std::vector<std::string> out;
+    for (const auto& pid : peptide_ids)
+    {
+      for (const auto& hit : pid.getHits())
+      {
+        out.push_back(pid.getSpectrumReference() + " " + hit.getSequence().toString() + " " + std::to_string(hit.getScore()) + (hit.isDecoy() ? " decoy" : ""));
+      }
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+  };
+  ProSEAlgorithm no_fdr;
+  Param p0 = p;
+  p0.setValue("FDR:PSM", 0.0);
+  no_fdr.setParameters(p0);
+  std::vector<ProteinIdentification> prot_0;
+  PeptideIdentificationList pep_0;
+  TEST_EQUAL(no_fdr.search(tmp_mzml, tmp_fasta, prot_0, pep_0) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(psms(kept.per_file[0].pre_fdr_peptide_ids) == psms(pep_0), true)
+  TEST_EQUAL(psms(kept.per_file[0].peptide_ids) == psms(pep_0), false) // FDR:PSM did change the result
+
+  // a search of the same object with the copy on, then the copy off: the next result has no copy
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  algo.setKeepPreFdrPsms(false);
+  ProSEAlgorithm::MultiFileSearchResult after = algo.searchWithModificationAnalysis(files, tmp_fasta);
+  ABORT_IF(after.per_file.size() != 1)
+  TEST_EQUAL(after.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(after.per_file[0].pre_fdr_peptide_ids.size(), 0)
 }
 END_SECTION
 
@@ -2249,7 +3191,113 @@ END_SECTION
 
 START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&, bool) const))
 {
-  NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
+  // With several threads, the file-based searches read an mzML file on a helper thread while the
+  // index is built (the multi-file search the next file while the current one is searched), in
+  // chunks of spectra parsed in parallel. Two files with MS1 spectra between the MS2 spectra and a
+  // chromatogram, the first one indexed: each must get exactly the PSMs of the in-memory search of
+  // its MS2 spectra, read with FileHandler: from search(file) those of search(spectra, ...), from the
+  // multi-file search those of searchWithModificationAnalysis(spectra, ...), which, like it, also
+  // annotates the PSMs of an open search with the modification analysis.
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap synthetic;
+  buildSyntheticProteinFDRData(fasta_db, synthetic);
+  std::string fasta_file;
+  NEW_TMP_FILE(fasta_file)
+  fasta_file += ".fasta";
+  FASTAFile().store(fasta_file, fasta_db);
+
+  vector<std::string> files(2);
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap run;
+    for (Size i = f; i < synthetic.size(); i += files.size())
+    {
+      if (i % 4 == f) // an MS1 spectrum before every other MS2 spectrum
+      {
+        MSSpectrum ms1 = synthetic[i];
+        ms1.setMSLevel(1);
+        ms1.setPrecursors({});
+        ms1.setNativeID(synthetic[i].getNativeID() + " ms1");
+        run.addSpectrum(std::move(ms1));
+      }
+      run.addSpectrum(synthetic[i]);
+    }
+    MSChromatogram tic;
+    tic.setNativeID("TIC");
+    tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+    for (const MSSpectrum& spectrum : run) { tic.push_back(ChromatogramPeak(spectrum.getRT(), spectrum.calculateTIC())); }
+    run.addChromatogram(std::move(tic));
+    NEW_TMP_FILE(files[f])
+    files[f] += "_" + StringUtils::toStr(f) + ".mzML";
+    MzMLFile mzml;
+    mzml.getOptions().setWriteIndex(f == 0);
+    mzml.store(files[f], run);
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0); // the spectra carry modification mass shifts
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
+  algo.setParameters(p);
+
+  // the run identifier holds the time of the search
+  const auto same_psms = [](PeptideIdentificationList a, PeptideIdentificationList b)
+  {
+    if (a.size() != b.size()) { return false; }
+    for (Size i = 0; i < a.size(); ++i)
+    {
+      a[i].setIdentifier("");
+      b[i].setIdentifier("");
+      if (a[i] != b[i]) { return false; }
+    }
+    return true;
+  };
+  vector<PeptideIdentificationList> expected(files.size()), expected_analysed(files.size());
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap spectra;
+    FileHandler fh;
+    fh.getOptions().clearMSLevels();
+    fh.getOptions().addMSLevel(2);
+    fh.loadExperiment(files[f], spectra, {FileTypes::MZML});
+    spectra.sortSpectra(true);
+    PeakMap spectra_copy = spectra; // the searches preprocess the spectra in place
+    vector<ProteinIdentification> prot_ids;
+    algo.search(spectra, fasta_db, prot_ids, expected[f]);
+    TEST_TRUE(expected[f].size() > 500)
+    expected_analysed[f] = algo.searchWithModificationAnalysis(spectra_copy, fasta_db, "").peptide_ids;
+  }
+
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  omp_set_num_threads(8);
+#endif
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(files[f], fasta_file, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(pep_ids, expected[f]), true)
+  }
+  ProSEAlgorithm::MultiFileSearchResult res = algo.searchWithModificationAnalysis(files, fasta_file, vector<std::string>{}, "", false);
+#ifdef _OPENMP
+  omp_set_num_threads(threads);
+#endif
+  ABORT_IF(res.per_file.size() != files.size())
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    TEST_EQUAL(res.per_file[f].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(res.per_file[f].peptide_ids, expected_analysed[f]), true)
+    TEST_EQUAL(res.per_file[f].protein_ids[0].getSearchParameters().db, fasta_file)
+  }
 }
 END_SECTION
 
@@ -2482,7 +3530,7 @@ START_SECTION(([EXTRA] local fragment evidence - density, ambiguity, charge and 
     spectrum.emplace_back(100.0 * i + 50.0, 1.0);
     search_spectra.addSpectrum(spectrum);
   }
-  ProSEAlgorithm_test::preprocessSpectra_(search_spectra, 0.5, false, false, 1, 20, "auto", &evidence_spectra);
+  ProSEAlgorithm_test::preprocessSpectra_(search_spectra, 0.5, false, false, 1, 20, "auto", ProSEAlgorithm_test::DeisotopingSettings_{}, nullptr, false, &evidence_spectra);
   TEST_EQUAL(search_spectra.size(), evidence_spectra.size())
   TEST_EQUAL(search_spectra[0].getNativeID(), "scan=1")
   for (Size i = 0; i < search_spectra.size(); ++i)
@@ -2494,6 +3542,41 @@ START_SECTION(([EXTRA] local fragment evidence - density, ambiguity, charge and 
   const auto weak_ion = theory({150.0}, {1});
   TEST_REAL_SIMILAR(evidence(search_spectra[0], weak_ion, 0.5).chance_match_surprise, 0.0)
   TEST_REAL_SIMILAR(evidence(evidence_spectra[0], weak_ion, 0.5).chance_match_surprise, -std::log(0.02))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] local fragment evidence on the ions of the scored charges of an annotation spectrum))
+{
+  // Annotation reuses its theoretical spectrum (charges 1..Z) and restricts the evidence to the scored
+  // charges; the result must equal the evidence on a spectrum generated with only those charges, bit for bit.
+  TheoreticalSpectrumGenerator tsg;
+  Param p = tsg.getParameters();
+  p.setValue("add_first_prefix_ion", "true");
+  p.setValue("add_metainfo", "true");
+  tsg.setParameters(p);
+  const AASequence peptide = AASequence::fromString("PEPTIDEKAM(Oxidation)R");
+  MSSpectrum all;
+  tsg.getSpectrum(all, peptide, 1, 3);
+  MSSpectrum observed;
+  for (Size i = 0; i < all.size(); i += 2) observed.emplace_back(all[i].getMZ() + 0.003, 1.0);
+  for (double mz = 120.0; mz < 1500.0; mz += 7.3) observed.emplace_back(mz, 0.5);
+  observed.sortByPosition();
+  const auto densities = ProSEAlgorithm_test::localPeakDensities_(observed);
+  std::vector<double> buffer;
+  for (int z : {1, 2, 3})
+  {
+    MSSpectrum exact;
+    tsg.getSpectrum(exact, peptide, 1, z);
+    for (bool ppm : {false, true})
+    {
+      const double tolerance = ppm ? 20.0 : 0.02;
+      const auto expected = ProSEAlgorithm_test::localFragmentEvidence_(observed, exact, densities, tolerance, ppm);
+      const auto restricted = ProSEAlgorithm_test::localFragmentEvidence_(observed, all, z, densities, tolerance, ppm, buffer);
+      TEST_EQUAL(expected.mass_competition_evidence > 0.0, true)
+      TEST_EQUAL(restricted.chance_match_surprise == expected.chance_match_surprise, true)
+      TEST_EQUAL(restricted.mass_competition_evidence == expected.mass_competition_evidence, true)
+    }
+  }
 }
 END_SECTION
 
@@ -2679,6 +3762,72 @@ START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] collectRunStatistics_: signed mass errors of the target PSMs, of the precursor corrected by the isotope error))
+{
+  // 12 target PSMs at -2.1, -2.0 and -1.9 ppm, every fourth matched at its first 13C peak (isotope_error +1, observed
+  // minus theoretical, the default report:isotope_error_convention), with a y3+ and a b2++ fragment at +2.5 ppm and a
+  // y3 with a neutral loss (not a fragment error); 5 decoy PSMs at +50 ppm and 5 PSMs without target/decoy annotation
+  // at +60 ppm, with fragments at +100 ppm, left out
+  ProSEAlgorithm_test algo;
+  const AASequence sequence = AASequence::fromString("PEPTIDEK");
+  const double precursor_mz = sequence.getMZ(2);
+  const double y3 = sequence.getSuffix(3).getMZ(1, Residue::YIon), b2 = sequence.getPrefix(2).getMZ(2, Residue::BIon);
+  PeptideIdentificationList ids;
+  auto add = [&](double ppm, int isotope_error, double fragment_ppm, bool decoy)
+  {
+    PeptideHit hit;
+    hit.setSequence(sequence);
+    hit.setCharge(2);
+    hit.setScore(10.0);
+    if (decoy || ppm < 40.0) { hit.setMetaValue(Constants::UserParam::TARGET_DECOY, decoy ? "decoy" : "target"); }
+    hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, isotope_error);
+    std::vector<PeptideHit::PeakAnnotation> annotations(3);
+    annotations[0].annotation = "y3+"; annotations[0].charge = 1; annotations[0].mz = y3 * (1.0 + fragment_ppm * 1e-6);
+    annotations[1].annotation = "b2++"; annotations[1].charge = 2; annotations[1].mz = b2 * (1.0 + fragment_ppm * 1e-6);
+    annotations[2].annotation = "y3-H2O1+"; annotations[2].charge = 1; annotations[2].mz = y3 - 1.0;
+    hit.setPeakAnnotations(annotations);
+    PeptideIdentification id;
+    id.setMZ(precursor_mz * (1.0 + ppm * 1e-6) + isotope_error * Constants::C13C12_MASSDIFF_U / 2.0);
+    id.setHits({hit});
+    ids.push_back(id);
+  };
+  for (int i = 0; i < 12; ++i) { add(-2.0 + 0.1 * (i % 3 - 1), i % 4 == 0 ? 1 : 0, 2.5, false); }
+  for (int i = 0; i < 5; ++i) { add(50.0, 0, 100.0, true); }
+  for (int i = 0; i < 5; ++i) { add(60.0, 0, 100.0, false); } // without target/decoy annotation: left out too
+  ProSEAlgorithm::RunStatistics stats;
+  algo.collectRunStatistics_(PeakMap(), {}, ids, stats);
+  TEST_EQUAL(stats.target_psms, 12)
+  TEST_EQUAL(stats.decoy_psms, 5)
+  TEST_EQUAL(stats.prec_tol_valid, true)
+  TEST_REAL_SIMILAR(stats.prec_err_median, -2.0)
+  TEST_REAL_SIMILAR(stats.prec_err_mad, 0.1)
+  TEST_REAL_SIMILAR(stats.prec_err_recommended, 3.0) // ceil(2.0 + 3 * 1.4826 * 0.1)
+  TEST_EQUAL(stats.frag_tol_valid, true)
+  TEST_REAL_SIMILAR(stats.frag_err_median, 2.5)
+  TEST_REAL_SIMILAR(stats.frag_err_mad, 0.0)
+  TEST_REAL_SIMILAR(stats.frag_err_recommended, 3.0)
+
+  // fewer than 10 target PSMs: no estimate
+  ids.erase(ids.begin() + 3, ids.begin() + 12);
+  ProSEAlgorithm::RunStatistics few;
+  algo.collectRunStatistics_(PeakMap(), {}, ids, few);
+  TEST_EQUAL(few.prec_tol_valid, false)
+  TEST_EQUAL(few.frag_tol_valid, false)
+}
+END_SECTION
+
+START_SECTION((static std::string renderTotalTime(const SharedSearchStats& sh)))
+{
+  ProSEAlgorithm::SharedSearchStats sh;
+  sh.seconds_total = 28.14;
+  sh.seconds_output = 18.1;
+  TEST_STRING_EQUAL(ProSEAlgorithm::renderTotalTime(sh), "total 28.1s | search of the file(s) 10.0s | outputs 18.1s")
+  sh.seconds_qpx_extended = 12.71;
+  TEST_STRING_EQUAL(ProSEAlgorithm::renderTotalTime(sh),
+                    "total 28.1s | search of the file(s) 10.0s | outputs 18.1s (of which -qpx_extended 12.7s)")
+}
+END_SECTION
+
 START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
 {
   // Pure unit test — no search, no calibration. Pins the min() reduction rule
@@ -2769,6 +3918,54 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
 }
 END_SECTION
 
+START_SECTION(([EXTRA] preprocessSpectra_ - an allocation failure, also in the per-thread filter copies, reaches the caller))
+{
+#if FAULT_INJECTION_TESTS
+  // The filters were copied per thread on entry to the OpenMP region (firstprivate), outside the exception guard of
+  // the loop body, so a failing copy (std::bad_alloc) terminated the process. A child process (this test program, see
+  // preprocessAllocFaultChild()) fails every allocation of preprocessSpectra_() on the calling thread once, one after
+  // the other; it must exit normally.
+  if (::access(OPENMS_TEST_SELF_EXE, X_OK) != 0)
+  {
+    STATUS("SKIPPED: " OPENMS_TEST_SELF_EXE " is not available (e.g. /proc is not mounted), so this test program "
+           "cannot start itself as the child process")
+  }
+  else if (!allocFaultReachesLibOpenMS())
+  {
+    STATUS("SKIPPED: the replacement of operator new in this test program does not receive the allocations of "
+           "libOpenMS (e.g. a statically linked C++ runtime)")
+  }
+  else
+  {
+    std::vector<std::string> env_strings;
+    for (char** e = environ; *e != nullptr; ++e) env_strings.emplace_back(*e);
+    env_strings.emplace_back("OPENMS_PROSE_TEST_ALLOC_FAULT_CHILD=1");
+    std::vector<char*> envp;
+    for (std::string& e : env_strings) envp.push_back(&e[0]);
+    envp.push_back(nullptr);
+    char arg0[] = "ProSEAlgorithm_test";
+    char* child_argv[] = {arg0, nullptr};
+    pid_t pid = 0;
+    const int spawn_rc = ::posix_spawn(&pid, OPENMS_TEST_SELF_EXE, nullptr, nullptr, child_argv, envp.data());
+    TEST_EQUAL(spawn_rc, 0)
+    int status = 0;
+    pid_t waited = -1;
+    if (spawn_rc == 0)
+    {
+      do { waited = ::waitpid(pid, &status, 0); } while (waited < 0 && errno == EINTR);
+    }
+    TEST_EQUAL(waited, pid) // the status below is the child's (e.g. not ECHILD after an ignored SIGCHLD)
+    TEST_FALSE(waited == pid && WIFSIGNALED(status)) // e.g. SIGABRT: std::terminate
+    TEST_EQUAL(waited == pid && WIFEXITED(status) ? WEXITSTATUS(status) : -1, 0)
+  }
+#else
+  STATUS("SKIPPED: fault injection (a replacement of the global operator new that also receives the allocations "
+         "of libOpenMS, in a child process started by /proc/self/exe) is available on Linux only, and not if "
+         "OPENMS_TEST_NO_FAULT_INJECTION is defined")
+#endif
+}
+END_SECTION
+
 START_SECTION(([EXTRA] deisotoping keeps a fragment ion that has a small peak one isotope spacing below it))
 {
   // b2 of TMTpro-YMATQLLAK-TMTpro (eclipse_tmtpro_10855, scan 30241): the TMTpro label's isotope
@@ -2802,6 +3999,109 @@ START_SECTION(([EXTRA] deisotoping keeps a fragment ion that has a small peak on
   TEST_EQUAL(has_peak(702.4067), false)
   TEST_EQUAL(has_peak(450.2500), false)  // 2+ envelope converted ...
   TEST_EQUAL(has_peak(450.2500 * 2.0 - Constants::PROTON_MASS_U), true)  // ... to its 1+ m/z
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fragment:deisotope_* settings: two-peak envelopes, summed intensity, charges up to the precursor charge))
+{
+  // One spectrum of a 2+ precursor (20 ppm) with four isotope situations:
+  //  - a singly charged ion with its M+1 peak only (two-peak 1+ envelope),
+  //  - a regular three-peak 2+ envelope,
+  //  - an ion with a weaker peak 1/3 Th above it by chance (a two-peak "3+" envelope),
+  //  - an ion with its M+1 peak 1/2 Th above it (a two-peak 2+ envelope).
+  using Settings = ProSEAlgorithm_test::DeisotopingSettings_;
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  const std::vector<std::pair<double, float>> peaks = {
+    {400.2000, 1.00f}, {400.2000 + c13, 0.40f},                              // 1+ ion and M+1
+    {450.2500, 0.50f}, {450.2500 + c13 / 2, 0.20f}, {450.2500 + c13, 0.05f}, // 2+ envelope, three peaks
+    {600.0000, 0.80f}, {600.0000 + c13 / 3, 0.10f},                          // 1+ ion and a chance peak 1/3 Th above
+    {750.0000, 0.60f}, {750.0000 + c13 / 2, 0.20f}};                         // two-peak 2+ envelope
+  auto run = [&peaks](const Settings& settings, int precursor_charge, double precursor_mz)
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(precursor_mz);
+    prec.setCharge(precursor_charge);
+    s.getPrecursors().push_back(prec);
+    for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+    exp.addSpectrum(s);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, true, 0, 20, "auto", settings);
+    return exp[0];
+  };
+  // intensity of the peak at mz, or -1 if there is none
+  auto intensity = [](const MSSpectrum& s, double mz)
+  {
+    for (const Peak1D& p : s) { if (std::fabs(p.getMZ() - mz) <= 20e-6 * mz) return static_cast<double>(p.getIntensity()); }
+    return -1.0;
+  };
+  const double two_plus_mz = 450.2500 * 2 - Constants::PROTON_MASS_U;
+  const double chance_three_plus_mz = 600.0 * 3 - 2 * Constants::PROTON_MASS_U;
+  const double two_peak_two_plus_mz = 750.0 * 2 - Constants::PROTON_MASS_U;
+
+  // Earlier behaviour (the defaults of DeisotopingSettings_): three peaks, charges 1-3, own intensity.
+  {
+    const MSSpectrum s = run(Settings{}, 2, 1000.0);
+    TEST_EQUAL(s.size(), 7)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.0)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000 + c13), 0.4)  // M+1 of the two-peak envelope stays
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.5)     // the three-peak 2+ envelope is converted, own intensity
+    TEST_REAL_SIMILAR(intensity(s, 600.0), 0.8)
+    TEST_REAL_SIMILAR(intensity(s, 750.0), 0.6)
+  }
+  // Two-peak envelopes with summed intensity, charges 1-3.
+  Settings two_peaks;
+  two_peaks.min_peaks = 2;
+  two_peaks.sum_intensity = true;
+  {
+    const MSSpectrum s = run(two_peaks, 2, 1000.0);
+    TEST_EQUAL(s.size(), 4)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.4)        // the monoisotopic peak carries the envelope's intensity ...
+    TEST_REAL_SIMILAR(intensity(s, 400.2000 + c13), -1.0) // ... and its M+1 peak is gone
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.75)
+    TEST_REAL_SIMILAR(intensity(s, 600.0), -1.0)          // the chance pair moves the 1+ ion to a "3+" m/z
+    TEST_REAL_SIMILAR(intensity(s, chance_three_plus_mz), 0.9)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), 0.8) // the two-peak 2+ envelope is converted
+  }
+  // Charges up to the precursor charge (2): the chance "3+" pair is not tried; 2+ envelopes still are.
+  Settings capped = two_peaks;
+  capped.charge_cap_precursor = true;
+  {
+    const MSSpectrum s = run(capped, 2, 1000.0);
+    TEST_EQUAL(s.size(), 5)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.4)
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.75)
+    TEST_REAL_SIMILAR(intensity(s, 600.0), 0.8)
+    TEST_REAL_SIMILAR(intensity(s, 600.0 + c13 / 3), 0.1)
+    TEST_REAL_SIMILAR(intensity(s, chance_three_plus_mz), -1.0)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), 0.8)
+  }
+  // A 1+ precursor admits singly charged envelopes only; an unknown precursor charge (0) admits charges 1-3.
+  {
+    const MSSpectrum s = run(capped, 1, 2000.0);
+    TEST_REAL_SIMILAR(intensity(s, 750.0), 0.6)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), -1.0)
+    const MSSpectrum u = run(capped, 0, 2000.0);
+    TEST_REAL_SIMILAR(intensity(u, 750.0), -1.0)
+    TEST_REAL_SIMILAR(intensity(u, two_peak_two_plus_mz), 0.8)
+    TEST_REAL_SIMILAR(intensity(u, chance_three_plus_mz), 0.9)
+  }
+
+  // Parameters: the defaults are the Sage-like rule; the earlier rule (= DeisotopingSettings_{}) maps as named.
+  ProSEAlgorithm_test algo;
+  TEST_EQUAL(algo.deisotoping_.min_peaks, 2)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, true)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, true)
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope_min_peaks", 3);
+  p.setValue("fragment:deisotope_charge_cap", "none");
+  p.setValue("fragment:deisotope_sum_intensity", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.deisotoping_.min_peaks, Settings{}.min_peaks)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, Settings{}.charge_cap_precursor)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, Settings{}.sum_intensity)
 }
 END_SECTION
 
@@ -2962,7 +4262,8 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps separate charge and isoto
         TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::LN_NUM_CANDIDATES)), std::log1p(2.0))
         hypotheses.insert(unknown_charge ? hit.getCharge() : static_cast<int>(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)));
       }
-      TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, 1}))
+      // isotope errors 0 and +1 searched (added to the observed mass) are reported as observed minus theoretical
+      TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, -1}))
     }
   }
 }
@@ -3084,6 +4385,10 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   search(p, 3, proteins);
   ABORT_IF(proteins.size() != 1)
   TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+  // the deisotoping rule is recorded with the search parameters
+  TEST_EQUAL(static_cast<int>(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_min_peaks")), 2)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_charge_cap").toString(), "precursor")
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_sum_intensity").toString(), "true")
 
   // The precursor-calibration pass scores with the same fragment charges.
   p.setValue("fragment:deisotope", "false");
@@ -3508,6 +4813,2888 @@ START_SECTION(([EXTRA] generated decoys preserve initial methionine when clippin
         }
       }
     }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] report:isotope_error_convention: isotope_error is reported as observed minus theoretical))
+{
+  // Three tryptic peptides of one protein; their precursors are selected one 13C spacing above the monoisotopic
+  // peak (+1, observed heavier), at it (0) and one 13C spacing below it (-1). The search window covers -1..+1.
+  const vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  const vector<pair<string, int>> expected = {{"GWSADELK", 1}, {"THQPSANLDIK", 0}, {"HPFNQGTIC(Carbamidomethyl)MSYR", -1}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  for (const auto& [sequence, observed_minus_theoretical] : expected)
+  {
+    const AASequence seq = AASequence::fromString(sequence);
+    const int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge) + observed_minus_theoretical * Constants::C13C12_MASSDIFF_U / charge);
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("scan=" + StringUtils::toStr(spectra.size() + 1));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_STRING_EQUAL(p.getValue("report:isotope_error_convention").toString(), "observed_minus_theoretical")
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", 1);
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:missed_cleavages", 0);
+  for (const string convention : {"observed_minus_theoretical", "theoretical_minus_observed"})
+  {
+    p.setValue("report:isotope_error_convention", convention);
+    algo.setParameters(p);
+    PeakMap input = spectra;
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_TRUE(algo.search(input, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_EQUAL(pep_ids.size(), expected.size())
+    const int sign = convention == "observed_minus_theoretical" ? 1 : -1;
+    for (const auto& pid : pep_ids)
+    {
+      const Size i = static_cast<Size>(std::stoi(pid.getSpectrumReference().substr(5)) - 1);
+      ABORT_IF(pid.getHits().empty() || i >= expected.size())
+      const PeptideHit& hit = pid.getHits()[0];
+      TEST_STRING_EQUAL(hit.getSequence().toString(), expected[i].first)
+      TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)), sign * expected[i].second)
+      // the precursor error is the isotope-corrected one under either convention
+      TEST_TRUE(std::abs(static_cast<double>(hit.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))) < 0.1)
+    }
+    // the search parameters record the convention unless it is the legacy one
+    ABORT_IF(prot_ids.size() != 1)
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_EQUAL(sp.metaValueExists("isotope_error_convention"), sign == 1)
+    if (sign == 1) { TEST_STRING_EQUAL(sp.getMetaValue("isotope_error_convention").toString(), "observed_minus_theoretical") }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] scoring:method=mass_accuracy agrees with HyperScore for exact matches and discounts shifted ones in every search path))
+{
+  // One noise-free spectrum of THQPSANLDIK: with exact fragment m/z every matched ion has weight 1
+  // and the weighted score equals HyperScore; a uniform +7 ppm error (one kernel SD) discounts it.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
+  auto make_input = [&peptide](double shift_ppm)
+  {
+    MSSpectrum spectrum;
+    TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+    for (auto& peak : spectrum) { peak.setMZ(peak.getMZ() * (1.0 + shift_ppm * 1e-6)); }
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=1");
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    PeakMap input;
+    input.addSpectrum(spectrum);
+    return input;
+  };
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("scoring:method").toString(), "auto")
+  TEST_REAL_SIMILAR(static_cast<double>(p.getValue("scoring:mass_error_sd")), 7.0)
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("decoys", "ignore");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+
+  // score of the single top hit for (method, shift, chunk size); the multi-file path must agree
+  auto top_score = [&](const std::string& method, double shift_ppm, Int chunk_size)
+  {
+    p.setValue("scoring:method", method);
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+    PeakMap spectra = make_input(shift_ppm);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    algo.search(spectra, db, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    if (peptides.empty() || proteins.empty()) return -1.0;
+    TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+    const bool weighted = method != "hyperscore"; // 'auto' resolves to mass_accuracy at 20 ppm
+    TEST_EQUAL(peptides[0].getScoreType(), "ln(hyperscore)") // the weighted score keeps the score type
+    const auto& search_parameters = proteins[0].getSearchParameters();
+    // recorded only when the weighted score is used; HyperScore searches keep their parameter list
+    TEST_EQUAL(search_parameters.metaValueExists("scoring:method"), weighted)
+    if (weighted)
+    {
+      TEST_EQUAL(search_parameters.getMetaValue("scoring:method").toString(), method)
+      TEST_EQUAL(search_parameters.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+      TEST_REAL_SIMILAR(static_cast<double>(search_parameters.getMetaValue("scoring:mass_error_sd")), 7.0)
+    }
+
+    // chunk-major multi-file path
+    std::string input_file;
+    NEW_TMP_FILE(input_file)
+    FileHandler().storeExperiment(input_file, make_input(shift_ppm), {FileTypes::MZML});
+    const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+    TEST_EQUAL(files.per_file.size(), 2)
+    for (const auto& result : files.per_file)
+    {
+      TEST_EQUAL(result.peptide_ids.size(), 1)
+      if (! result.peptide_ids.empty())
+      {
+        TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), peptides[0].getHits()[0].getScore())
+      }
+    }
+    return peptides[0].getHits()[0].getScore();
+  };
+
+  for (Int chunk_size : {0, 1})
+  {
+    const double hyperscore = top_score("hyperscore", 0.0, chunk_size);
+    TEST_REAL_SIMILAR(top_score("mass_accuracy", 0.0, chunk_size), hyperscore)
+    TEST_REAL_SIMILAR(top_score("auto", 0.0, chunk_size), hyperscore)
+    // HyperScore does not see an error inside the tolerance; the mass-accuracy score does.
+    TEST_REAL_SIMILAR(top_score("hyperscore", 7.0, chunk_size), hyperscore)
+    const double shifted = top_score("mass_accuracy", 7.0, chunk_size);
+    TEST_TRUE(shifted > 0.0)
+    TEST_TRUE(shifted < hyperscore)
+    TEST_REAL_SIMILAR(top_score("auto", 7.0, chunk_size), shifted)
+  }
+
+  // 'auto' uses HyperScore at Da and at low-resolution ppm tolerances; 'mass_accuracy' applies everywhere.
+  ProSEAlgorithm_test resolved;
+  auto resolve = [&](const std::string& method, double tolerance, const std::string& unit)
+  {
+    Param q = resolved.getParameters();
+    q.setValue("scoring:method", method);
+    q.setValue("fragment:mass_tolerance", tolerance);
+    q.setValue("fragment:mass_tolerance_unit", unit);
+    resolved.setParameters(q);
+    return resolved.mass_accuracy_score_;
+  };
+  TEST_TRUE(resolve("auto", 20.0, "ppm"))
+  TEST_TRUE(resolve("auto", 100.0, "ppm"))
+  TEST_FALSE(resolve("auto", 150.0, "ppm"))
+  TEST_FALSE(resolve("auto", 0.02, "Da"))
+  TEST_FALSE(resolve("auto", 0.5, "Da"))
+  TEST_TRUE(resolve("mass_accuracy", 0.5, "Da"))
+  TEST_FALSE(resolve("hyperscore", 20.0, "ppm"))
+
+  for (double invalid : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    Param invalid_param = p;
+    invalid_param.setValue("scoring:method", "mass_accuracy");
+    invalid_param.setValue("scoring:mass_error_sd", invalid);
+    TEST_EXCEPTION(Exception::BaseException, algo.setParameters(invalid_param))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors annotate every hit without changing the native search))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // The reference: the same search without ion priors.
+  ProSEAlgorithm plain;
+  configure_ion_prior_params_(plain, 5, 0.5);
+  Param plain_param = plain.getParameters();
+  plain_param.setValue("annotate:self_trained_ion_priors", "false");
+  plain.setParameters(plain_param);
+  PeakMap plain_spectra = spectra;
+  std::vector<ProteinIdentification> plain_prot_ids;
+  PeptideIdentificationList plain_pep_ids;
+  TEST_EQUAL(plain.search(plain_spectra, fasta_db, plain_prot_ids, plain_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(plain_prot_ids.empty() || plain_pep_ids.empty())
+  Size plain_annotated = 0;
+  for (const auto& pid : plain_pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      for (const std::string& feature : ion_prior_features_) if (hit.metaValueExists(feature)) ++plain_annotated;
+    }
+  }
+  // switched off: no feature, nothing recorded
+  TEST_EQUAL(plain_annotated, 0)
+  TEST_EQUAL(lists_feature_(plain_prot_ids[0], Constants::UserParam::ION_PRIOR_LLR), false)
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("ion_prior:trained"), false)
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("annotate:self_trained_ion_priors"), false)
+
+  ProSEAlgorithm algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  PeakMap algo_spectra = spectra;
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(algo_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+
+  // recorded in the search parameters, features appended to the ones the search already reports
+  const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:self_trained_ion_priors").toString(), "true")
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:ion_prior_model").toString(), "rich")
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:ion_prior_peaks").toString(), "all")
+  // every setting that determines the features is recorded
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("annotate:ion_prior_max_fragment_charge")), 2)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("annotate:ion_prior_train_fdr")), 0.5)
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("annotate:ion_prior_min_psms")), 5)
+  TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+  const int training_psms = sp.getMetaValue("ion_prior:training_psms");
+  const IntList fold_training_psms = sp.getMetaValue("ion_prior:fold_training_psms");
+  ABORT_IF(fold_training_psms.size() != 2)
+  TEST_EQUAL(fold_training_psms[0] + fold_training_psms[1], training_psms)
+  TEST_TRUE(fold_training_psms[0] >= 5)
+  TEST_TRUE(fold_training_psms[1] >= 5)
+  for (const std::string& feature : ion_prior_features_)
+  {
+    TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
+  }
+  const std::string plain_extra = extra_features_(plain_prot_ids[0]);
+  TEST_EQUAL(extra_features_(prot_ids[0]).rfind(plain_extra, 0), 0)
+  TEST_TRUE(extra_features_(prot_ids[0]).size() > plain_extra.size())
+
+  // every hit annotated, values in range
+  const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
+
+  // Native scores and candidate lists are those of the plain search.
+  ABORT_IF(pep_ids.size() != plain_pep_ids.size())
+  Size same = 0;
+  for (Size i = 0; i < pep_ids.size(); ++i)
+  {
+    const std::vector<PeptideHit>& a = pep_ids[i].getHits();
+    const std::vector<PeptideHit>& b = plain_pep_ids[i].getHits();
+    if (a.size() != b.size()) continue;
+    bool equal = true;
+    for (Size h = 0; h < a.size(); ++h)
+    {
+      equal = equal && a[h].getSequence() == b[h].getSequence() && a[h].getCharge() == b[h].getCharge() && a[h].getScore() == b[h].getScore()
+              && a[h].getMetaValue("target_decoy") == b[h].getMetaValue("target_decoy");
+    }
+    if (equal) ++same;
+  }
+  TEST_EQUAL(same, pep_ids.size())
+
+  // The best hits follow the run's fragmentation pattern: positive evidence for most of them, and
+  // more on average than the lower-ranked candidates of the same spectra.
+  Size top = 0, positive = 0, others = 0;
+  double top_llr = 0.0, other_llr = 0.0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    const std::vector<PeptideHit>& hits_of = pid.getHits();
+    if (hits_of.empty()) continue;
+    const double llr = hits_of[0].getMetaValue(Constants::UserParam::ION_PRIOR_LLR);
+    ++top;
+    top_llr += llr;
+    if (llr > 0.0) ++positive;
+    for (Size h = 1; h < hits_of.size(); ++h)
+    {
+      other_llr += static_cast<double>(hits_of[h].getMetaValue(Constants::UserParam::ION_PRIOR_LLR));
+      ++others;
+    }
+  }
+  TEST_TRUE(top > 0)
+  TEST_TRUE(positive * 2 > top)
+  TEST_TRUE(top_llr / static_cast<double>(top) > 0.0)
+  TEST_TRUE(others > 0)
+  TEST_TRUE(top_llr / static_cast<double>(top) > other_llr / static_cast<double>(std::max<Size>(others, 1)))
+
+  // The default features: ion_prior_llr and ion_prior_explained, with the values of the run that writes all three.
+  {
+    ProSEAlgorithm defaults;
+    configure_ion_prior_params_(defaults, 5, 0.5);
+    Param dp = defaults.getParameters();
+    dp.setValue("annotate:ion_prior_features", ProSEAlgorithm().getParameters().getValue("annotate:ion_prior_features"));
+    defaults.setParameters(dp);
+    PeakMap default_spectra = spectra;
+    std::vector<ProteinIdentification> default_prot_ids;
+    PeptideIdentificationList default_pep_ids;
+    TEST_EQUAL(defaults.search(default_spectra, fasta_db, default_prot_ids, default_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(default_prot_ids.empty() || default_pep_ids.size() != pep_ids.size())
+    TEST_STRING_EQUAL(default_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_features").toString(),
+                      Constants::UserParam::ION_PRIOR_LLR + "," + Constants::UserParam::ION_PRIOR_EXPLAINED)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_LLR), true)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_EXPLAINED), true)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_TOPK_OBSERVED), false)
+    TEST_EQUAL(extra_features_(default_prot_ids[0]), plain_extra + "," + Constants::UserParam::ION_PRIOR_LLR + "," + Constants::UserParam::ION_PRIOR_EXPLAINED)
+    Size same_values = 0, default_hits = 0, with_topk = 0;
+    for (Size i = 0; i < default_pep_ids.size(); ++i)
+    {
+      for (Size h = 0; h < default_pep_ids[i].getHits().size() && h < pep_ids[i].getHits().size(); ++h)
+      {
+        const PeptideHit& a = default_pep_ids[i].getHits()[h];
+        const PeptideHit& b = pep_ids[i].getHits()[h];
+        ++default_hits;
+        if (a.metaValueExists(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED)) ++with_topk;
+        if (a.getMetaValue(Constants::UserParam::ION_PRIOR_LLR) == b.getMetaValue(Constants::UserParam::ION_PRIOR_LLR)
+            && a.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED) == b.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED)) ++same_values;
+      }
+    }
+    TEST_EQUAL(default_hits, hits)
+    TEST_EQUAL(same_values, hits)
+    TEST_EQUAL(with_topk, 0)
+
+    // no feature selected: no ion priors
+    dp.setValue("annotate:ion_prior_features", std::vector<std::string>{});
+    defaults.setParameters(dp);
+    PeakMap none_spectra = spectra;
+    std::vector<ProteinIdentification> none_prot_ids;
+    PeptideIdentificationList none_pep_ids;
+    TEST_EQUAL(defaults.search(none_spectra, fasta_db, none_prot_ids, none_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(none_prot_ids.empty())
+    TEST_EQUAL(extra_features_(none_prot_ids[0]), plain_extra)
+    TEST_EQUAL(none_prot_ids[0].getSearchParameters().metaValueExists("ion_prior:trained"), false)
+  }
+
+  // The other model and peak choice: annotated as well, recorded, the native search unchanged.
+  for (const auto& [model, peaks] : std::vector<std::pair<std::string, std::string>>{{"basic", "all"}, {"rich", "scored"}, {"basic", "scored"}})
+  {
+    ProSEAlgorithm variant;
+    configure_ion_prior_params_(variant, 5, 0.5);
+    Param vp = variant.getParameters();
+    vp.setValue("annotate:ion_prior_model", model);
+    vp.setValue("annotate:ion_prior_peaks", peaks);
+    variant.setParameters(vp);
+    PeakMap variant_spectra = spectra;
+    std::vector<ProteinIdentification> variant_prot_ids;
+    PeptideIdentificationList variant_pep_ids;
+    TEST_EQUAL(variant.search(variant_spectra, fasta_db, variant_prot_ids, variant_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(variant_prot_ids.empty() || variant_pep_ids.size() != pep_ids.size())
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_model").toString(), model)
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_peaks").toString(), peaks)
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    const auto [variant_hits, variant_violations] = check_ion_prior_annotations_(variant_pep_ids, false);
+    TEST_EQUAL(variant_hits, hits)
+    TEST_EQUAL(variant_violations, 0)
+    Size variant_same = 0;
+    for (Size i = 0; i < variant_pep_ids.size(); ++i)
+    {
+      if (variant_pep_ids[i].getHits().size() == pep_ids[i].getHits().size()
+          && variant_pep_ids[i].getHits()[0].getSequence() == pep_ids[i].getHits()[0].getSequence()
+          && variant_pep_ids[i].getHits()[0].getScore() == pep_ids[i].getHits()[0].getScore()) ++variant_same;
+    }
+    TEST_EQUAL(variant_same, pep_ids.size())
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fixed terminal modifications that apply to some peptides only are rejected with the parameters))
+{
+  // FragmentIndex::checkFixedModifications() at setParameters(), before any input is read
+  for (const StringList& fixed : vector<StringList>{{"Acetyl (Protein N-term)"}, {"Gln->pyro-Glu (N-term Q)"},
+                                                    {"TMT6plex (N-term)", "Acetyl (N-term)"}})
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("modifications:fixed", StringList {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)"});
+  algo.setParameters(p);
+  TEST_EQUAL(ListUtils::toStringList<std::string>(algo.getParameters().getValue("modifications:fixed")).size(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoys=auto warns when the supplied decoys do not start with M as often as the targets))
+{
+  // With initial-Met clipping, reversed decoys (which end with the target's Met) leave the clipped N-terminal
+  // peptides without decoy counterparts. Generated decoys keep the initial Met; supplied ones are only reported.
+  const vector<FASTAFile::FASTAEntry> reversed {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "RLIHGAKEDCAM"}, {"DECOY_t2", "", "REDITPEPLKM"}};
+  const vector<FASTAFile::FASTAEntry> met_kept {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "MRLIHGAKEDCA"}, {"DECOY_t2", "", "MREDITPEPLK"}};
+  auto warnings = [](const vector<FASTAFile::FASTAEntry>& db, const string& clip)
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("peptide:clip_nterm_methionine", clip);
+    algo.setParameters(p);
+    std::ostringstream log;
+    OPENMS_LOG_WARN.insert(log);
+    const auto strategy = algo.resolveDecoyStrategy_(db);
+    const auto result = algo.buildDecoyAugmentedDB_(db, strategy);
+    OPENMS_LOG_WARN.remove(log);
+    TEST_EQUAL(result.size(), db.size())
+    return log.str();
+  };
+  const string warning = warnings(reversed, "true");
+  TEST_TRUE(warning.find("2 of 2 target proteins but only 0 of 2 decoy proteins") != string::npos)
+  TEST_EQUAL(warnings(reversed, "false"), "")
+  TEST_EQUAL(warnings(met_kept, "true"), "")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mass accuracy scoring retains its kernel during calibration))
+{
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("scoring:method", "mass_accuracy");
+  p.setValue("scoring:mass_error_sd", 9.0);
+  algo.setParameters(p);
+  PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  TEST_TRUE(algo.search(spectra, calibration_fasta_db_(), proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_FALSE(peptides.empty())
+  ABORT_IF(proteins.empty())
+  const auto& params = proteins[0].getSearchParameters();
+  TEST_EQUAL(params.getMetaValue("scoring:method").toString(), "mass_accuracy")
+  TEST_REAL_SIMILAR(static_cast<double>(params.getMetaValue("scoring:mass_error_sd")), 9.0)
+  TEST_EQUAL(params.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+  for (const auto& peptide : peptides)
+  {
+    TEST_EQUAL(peptide.getScoreType(), "ln(hyperscore)")
+  }
+}
+END_SECTION
+
+START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const))
+{
+  // Best hits of 2+ and 3+ precursors. When fragment charges 1..2 are scored for 3+ precursors, their scores run
+  // higher for targets and decoys alike: here every 3+ decoy outscores every 2+ PSM.
+  auto make_ids = []()
+  {
+    PeptideIdentificationList ids;
+    auto add = [&ids](int charge, double score, bool decoy)
+    {
+      PeptideIdentification id;
+      id.setScoreType("ln(hyperscore)");
+      id.setHigherScoreBetter(true);
+      id.setIdentifier("run");
+      PeptideHit hit(score, 1, charge, AASequence::fromString(decoy ? "KEDITPEP" : "PEPTIDEK"));
+      hit.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+      // a lower-ranked hit of the other label, which must not change the competition
+      PeptideHit second(score - 5.0, 2, charge, AASequence::fromString(decoy ? "PEPTIDER" : "REDITPEP"));
+      second.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::TARGET : PeptideHit::TargetDecoyType::DECOY);
+      id.setHits({second, hit}); // unsorted on purpose
+      ids.push_back(id);
+    };
+    for (int i = 0; i < 300; ++i) { add(2, 20.0 - i * 0.05, false); }       // 2+ targets: 20 .. 5.05
+    for (int i = 0; i < 30; ++i) { add(2, 4.0 - i * 0.1, true); }           // 2+ decoys below all 2+ targets
+    for (int i = 0; i < 300; ++i) { add(3, 60.0 - i * 0.1, false); }        // 3+ targets: 60 .. 30.1
+    for (int i = 0; i < 30; ++i) { add(3, 30.0 - i * 0.2, true); }          // 3+ decoys: 30 .. 24.2
+    add(4, 70.0, false); // 4+ scores two fragment charges too: it competes with the 3+ PSMs
+    ids.push_back(PeptideIdentification()); // a spectrum without hits
+    return ids;
+  };
+  // q-values FalseDiscoveryRate gives the PSMs selected by @p keep, competing alone (by spectrum index)
+  auto reference = [&make_ids](const std::function<bool(const PeptideIdentification&)>& keep)
+  {
+    PeptideIdentificationList all = make_ids(), part;
+    std::vector<Size> index;
+    for (Size i = 0; i < all.size(); ++i)
+    {
+      if (keep(all[i])) { part.push_back(all[i]); index.push_back(i); }
+    }
+    FalseDiscoveryRate fdr;
+    Param fp = fdr.getParameters();
+    fp.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(fp);
+    fdr.apply(part);
+    std::map<Size, double> q;
+    for (Size k = 0; k < part.size(); ++k) { q[index[k]] = part[k].getHits()[0].getScore(); }
+    return q;
+  };
+  auto best_charge = [](const PeptideIdentification& id) { return id.getHits().empty() ? 0 : std::max_element(id.getHits().begin(), id.getHits().end(), [](const PeptideHit& a, const PeptideHit& b) { return a.getScore() < b.getScore(); })->getCharge(); };
+  const auto q_pooled = reference([](const PeptideIdentification& id) { return ! id.getHits().empty(); });
+  const auto q_two = reference([&](const PeptideIdentification& id) { return best_charge(id) == 2; });
+  const auto q_more = reference([&](const PeptideIdentification& id) { return best_charge(id) >= 3; });
+
+  auto annotate = [&make_ids](double tolerance, const std::string& unit, const std::string& groups, int max_charge = 2)
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    TEST_EQUAL(p.getValue("FDR:PSM_groups").toString(), "scored_charges")
+    p.setValue("fragment:mass_tolerance", tolerance);
+    p.setValue("fragment:mass_tolerance_unit", unit);
+    p.setValue("fragment:max_charge", max_charge);
+    p.setValue("FDR:PSM_groups", groups);
+    algo.setParameters(p);
+    PeptideIdentificationList ids = make_ids();
+    algo.annotatePsmQValues(ids);
+    return ids;
+  };
+  auto accepted = [](const PeptideIdentificationList& ids)
+  {
+    Size n = 0;
+    for (const auto& id : ids) { n += ! id.getHits().empty() && ! id.getHits()[0].isDecoy() && id.getHits()[0].getScore() <= 0.01; }
+    return n;
+  };
+
+  // 0.5 Da: spectra are not deisotoped, 3+ and 4+ precursors are scored with two fragment charges.
+  const PeptideIdentificationList original = make_ids();
+  const PeptideIdentificationList grouped = annotate(0.5, "Da", "scored_charges");
+  ABORT_IF(grouped.size() != 662)
+  for (Size i = 0; i + 1 < grouped.size(); ++i)
+  {
+    TEST_EQUAL(grouped[i].getHits().size(), 1) // FalseDiscoveryRate keeps the best hit
+    TEST_EQUAL(grouped[i].getScoreType(), "q-value")
+    const auto& q = best_charge(original[i]) == 2 ? q_two : q_more;
+    TEST_REAL_SIMILAR(grouped[i].getHits()[0].getScore(), q.at(i))
+  }
+  TEST_EQUAL(grouped.back().getHits().size(), 0)
+  TEST_EQUAL(grouped.back().getScoreType(), "q-value")
+  TEST_EQUAL(accepted(grouped), 601) // all 2+, 3+ and 4+ targets
+
+  // fragment:max_charge 3: the 4+ PSM is scored with three fragment charges, so it forms a competition of its own.
+  // That competition has no decoy here, so all PSMs compete together.
+  const PeptideIdentificationList grouped_three = annotate(0.5, "Da", "scored_charges", 3);
+  ABORT_IF(grouped_three.size() != grouped.size())
+  for (Size i = 0; i + 1 < grouped_three.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(grouped_three[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+  TEST_EQUAL(accepted(grouped_three), 301)
+
+  const PeptideIdentificationList pooled = annotate(0.5, "Da", "pooled");
+  for (Size i = 0; i + 1 < pooled.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(pooled[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+  TEST_EQUAL(accepted(pooled), 301) // the 3+ decoys lift every 2+ q-value above 1%
+
+  // 20 ppm: deisotoped spectra are scored with charge-1 fragments only, so there is one group.
+  const PeptideIdentificationList high_resolution = annotate(20.0, "ppm", "scored_charges");
+  for (Size i = 0; i + 1 < high_resolution.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(high_resolution[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+
+  // A group without decoys falls back to one competition.
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("fragment:mass_tolerance", 0.5);
+    p.setValue("fragment:mass_tolerance_unit", "Da");
+    algo.setParameters(p);
+    PeptideIdentificationList ids = make_ids(), no_two_decoys;
+    for (auto& id : ids)
+    {
+      if (best_charge(id) == 2 && id.getHits().size() == 2 && std::max(id.getHits()[0].getScore(), id.getHits()[1].getScore()) < 5.0) { continue; }
+      no_two_decoys.push_back(id);
+    }
+    PeptideIdentificationList expected = no_two_decoys;
+    FalseDiscoveryRate fdr;
+    Param fp = fdr.getParameters();
+    fp.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(fp);
+    fdr.apply(expected);
+    algo.annotatePsmQValues(no_two_decoys);
+    ABORT_IF(expected.size() != no_two_decoys.size())
+    for (Size i = 0; i < expected.size(); ++i)
+    {
+      TEST_EQUAL(no_two_decoys[i].getHits() == expected[i].getHits(), true)
+    }
+  }
+}
+END_SECTION
+
+// Search results shared by the rescoreWithPercolator() and applyDeferredPsmFDR() sections: the ProSE search of
+// TOPP_ProSE_11_rescore, before and after Percolator rescoring.
+std::vector<ProteinIdentification> percolator_search_proteins;
+PeptideIdentificationList percolator_search_peptides;
+std::vector<ProteinIdentification> percolator_rescored_proteins;
+PeptideIdentificationList percolator_rescored_peptides;
+
+START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, int threads)))
+{
+  // n PSMs of one run with peptide evidences, every third one a decoy (if decoys)
+  auto make_ids = [](Size n, bool decoys, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
+  {
+    proteins.assign(1, ProteinIdentification());
+    proteins[0].setIdentifier("run");
+    proteins[0].setSearchEngine("ProSE");
+    peptides.clear();
+    for (Size i = 0; i < n; ++i)
+    {
+      const bool decoy = decoys && i % 3 == 0;
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("ln(hyperscore)");
+      id.setHigherScoreBetter(true);
+      PeptideHit hit(20.0 - 0.01 * i, 1, 2, AASequence::fromString(decoy ? "KEDITPEP" : "PEPTIDEK"));
+      hit.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+      id.setHits({hit});
+      peptides.push_back(id);
+    }
+  };
+  auto unchanged = [](const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides,
+                      const std::vector<ProteinIdentification>& proteins_before, const PeptideIdentificationList& peptides_before)
+  {
+    return proteins == proteins_before && peptides == peptides_before;
+  };
+
+  std::vector<ProteinIdentification> proteins, proteins_before;
+  PeptideIdentificationList peptides, peptides_before;
+
+  // too few PSMs
+  make_ids(99, true, proteins, peptides);
+  proteins_before = proteins;
+  peptides_before = peptides;
+  ProSEAlgorithm::PercolatorRescoring rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 1);
+  TEST_FALSE(rescoring.applied)
+  TEST_EQUAL(rescoring.skipped_reason, "Only 99 PSMs, Percolator rescoring needs at least 100.")
+  TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
+
+  // no run
+  make_ids(150, true, proteins, peptides);
+  proteins.clear();
+  peptides_before = peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 1);
+  TEST_FALSE(rescoring.applied)
+  TEST_EQUAL(rescoring.skipped_reason, "No search run (protein identification) to rescore the PSMs of.")
+  TEST_TRUE(peptides == peptides_before)
+
+  // no decoys
+  make_ids(150, false, proteins, peptides);
+  proteins_before = proteins;
+  peptides_before = peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 0);
+  TEST_FALSE(rescoring.applied)
+  TEST_TRUE(rescoring.skipped_reason.starts_with("No decoy PSMs"))
+  TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
+
+  // Percolator fails: without peptide evidences no PSM gets the PIN features
+  make_ids(150, true, proteins, peptides);
+  proteins_before = proteins;
+  peptides_before = peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 1);
+  TEST_FALSE(rescoring.applied)
+  TEST_TRUE(rescoring.skipped_reason.starts_with("Percolator failed: "))
+  TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
+
+  // A real search, as TOPP_ProSE_11_rescore (ProSE_6_fdr.ini) without its FDR and without the rescoring
+  // of the search itself: Percolator gets all PSMs with ProSE's scores.
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("rescore", "false");
+  p.setValue("decoys", "generate");
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 10.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  algo.setParameters(p);
+  algo.setLogType(ProgressLogger::NONE);
+  const auto ec = algo.search(OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML"),
+                              OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta"),
+                              percolator_search_proteins, percolator_search_peptides);
+  TEST_TRUE(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_EQUAL(percolator_search_proteins.size(), 1)
+  TEST_TRUE(percolator_search_peptides.size() >= 100)
+  ABORT_IF(percolator_search_proteins.size() != 1 || percolator_search_peptides.size() < 100)
+
+  percolator_rescored_proteins = percolator_search_proteins;
+  percolator_rescored_peptides = percolator_search_peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(percolator_rescored_proteins, percolator_rescored_peptides, 2);
+  TEST_TRUE(rescoring.applied)
+  TEST_EQUAL(rescoring.skipped_reason, "")
+  TEST_EQUAL(rescoring.warning, "") // the learned model passed Percolator's sanity check
+  TEST_EQUAL(percolator_rescored_peptides.size(), percolator_search_peptides.size())
+
+  // q-values as main scores, the best hit per spectrum, and Percolator's SVM score and PEP as meta values
+  Size hits = 0, decoy_hits = 0, accepted = 0;
+  bool scores_are_q_values = true, svm_and_pep = true;
+  for (const PeptideIdentification& id : percolator_rescored_peptides)
+  {
+    TEST_EQUAL(id.getScoreType(), "q-value")
+    TEST_FALSE(id.isHigherScoreBetter())
+    TEST_TRUE(id.getHits().size() <= 1)
+    for (const PeptideHit& hit : id.getHits())
+    {
+      ++hits;
+      decoy_hits += hit.isDecoy();
+      accepted += !hit.isDecoy() && hit.getScore() <= 0.01;
+      scores_are_q_values = scores_are_q_values && hit.getScore() >= 0.0 && hit.getScore() <= 1.0;
+      svm_and_pep = svm_and_pep && hit.metaValueExists("MS:1001492") && hit.metaValueExists("MS:1001493");
+    }
+  }
+  TEST_TRUE(hits > 0)
+  TEST_TRUE(decoy_hits > 0) // no FDR filter yet
+  TEST_TRUE(accepted > 0)
+  TEST_TRUE(scores_are_q_values)
+  TEST_TRUE(svm_and_pep)
+
+  // the run is marked as post-processed by Percolator
+  const ProteinIdentification& run = percolator_rescored_proteins[0];
+  TEST_EQUAL(run.getSearchEngine(), "Percolator")
+  TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+  TEST_EQUAL(run.getMetaValue("percolator").toString(), "ProSE")
+  const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
+  TEST_EQUAL(sp.getMetaValue("Percolator:peptide_level_fdrs").toString(), "false")
+  TEST_EQUAL(sp.getMetaValue("Percolator:protein_level_fdrs").toString(), "false")
+  TEST_EQUAL(sp.getMetaValue("Percolator:post_processing_tdc").toString(), "true")
+  TEST_EQUAL(sp.getMetaValue("Percolator:train_best_positive").toString(), "true")
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("Percolator:subset_max_train")), 0)
+  TEST_TRUE(sp.metaValueExists("Percolator:testFDR"))
+  TEST_TRUE(sp.metaValueExists("Percolator:trainFDR"))
+  TEST_TRUE(sp.metaValueExists("Percolator:maxiter"))
+  TEST_TRUE(sp.metaValueExists("Percolator:seed"))
+  // the search engine's own search parameters are kept
+  TEST_EQUAL(sp.db, percolator_search_proteins[0].getSearchParameters().db)
+  TEST_TRUE(sp.metaValueExists("extra_features"))
+}
+END_SECTION
+
+START_SECTION((bool applyDeferredPsmFDR(const std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, bool rescored, double psm_fdr, PeptideIdentificationList* inference_only_psms = nullptr) const))
+{
+  ABORT_IF(percolator_search_peptides.empty() || percolator_rescored_peptides.empty())
+  ProSEAlgorithm algo;
+  auto all_hits_within = [](const PeptideIdentificationList& peptides, double fdr)
+  {
+    Size hits = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (id.getScoreType() != "q-value" || hit.getScore() > fdr) { return Size(0); }
+        ++hits;
+      }
+    }
+    return hits;
+  };
+
+  // rescored: filtered on Percolator's q-values, targets and decoys alike
+  {
+    PeptideIdentificationList peptides = percolator_rescored_peptides;
+    Size expected = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits()) { expected += hit.getScore() <= 0.05; }
+    }
+    TEST_TRUE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, peptides, true, 0.05))
+    TEST_TRUE(expected > 0)
+    TEST_EQUAL(all_hits_within(peptides, 0.05), expected)
+  }
+
+  // not rescored: q-values from the search engine scores first (annotatePsmQValues), then the filter
+  {
+    PeptideIdentificationList peptides = percolator_search_peptides;
+    PeptideIdentificationList expected = percolator_search_peptides;
+    algo.annotatePsmQValues(expected);
+    IDFilter::filterHitsByScore(expected, 0.05);
+    TEST_TRUE(algo.applyDeferredPsmFDR(percolator_search_proteins, peptides, false, 0.05))
+    TEST_TRUE(all_hits_within(peptides, 0.05) > 0)
+    TEST_TRUE(peptides == expected)
+  }
+
+  // The PSMs between psm_fdr and FDR:protein_inference_PSM (default 0.1), for the protein inference: together with the
+  // filtered PSMs, those of the filter at 0.1.
+  for (const bool rescored : {true, false})
+  {
+    const std::vector<ProteinIdentification>& proteins = rescored ? percolator_rescored_proteins : percolator_search_proteins;
+    PeptideIdentificationList peptides = rescored ? percolator_rescored_peptides : percolator_search_peptides;
+    PeptideIdentificationList looser = peptides, inference_only;
+    TEST_TRUE(algo.applyDeferredPsmFDR(proteins, looser, rescored, 0.1))
+    TEST_TRUE(algo.applyDeferredPsmFDR(proteins, peptides, rescored, 0.001, &inference_only))
+    TEST_TRUE(!inference_only.empty())
+    TEST_EQUAL(all_hits_within(inference_only, 0.1), inference_only.size())
+    Size above = 0;
+    for (const PeptideIdentification& id : inference_only) { above += id.getHits()[0].getScore() > 0.001; }
+    TEST_EQUAL(above, inference_only.size())
+    const auto with_hits = [](const PeptideIdentificationList& ids)
+    {
+      return static_cast<Size>(std::count_if(ids.begin(), ids.end(), [](const PeptideIdentification& id) { return !id.getHits().empty(); }));
+    };
+    TEST_EQUAL(with_hits(peptides) + inference_only.size(), with_hits(looser))
+    // nothing with FDR:protein_inference_PSM at or below psm_fdr, or without a filter
+    ProSEAlgorithm same;
+    Param p = same.getParameters();
+    p.setValue("FDR:protein_inference_PSM", 0.001);
+    same.setParameters(p);
+    peptides = rescored ? percolator_rescored_peptides : percolator_search_peptides;
+    TEST_TRUE(same.applyDeferredPsmFDR(proteins, peptides, rescored, 0.001, &inference_only))
+    TEST_EQUAL(inference_only.size(), 0)
+    inference_only.resize(1);
+    TEST_FALSE(algo.applyDeferredPsmFDR(proteins, peptides, rescored, 0.0, &inference_only))
+    TEST_EQUAL(inference_only.size(), 0)
+  }
+
+  // not rescored and no decoy proteins: nothing changes
+  {
+    std::vector<ProteinIdentification> proteins = percolator_search_proteins;
+    std::vector<ProteinHit> targets;
+    for (const ProteinHit& hit : proteins[0].getHits())
+    {
+      if (hit.getMetaValue("target_decoy").toString() != "decoy") { targets.push_back(hit); }
+    }
+    TEST_TRUE(targets.size() < proteins[0].getHits().size())
+    proteins[0].setHits(targets);
+    PeptideIdentificationList peptides = percolator_search_peptides;
+    TEST_FALSE(algo.applyDeferredPsmFDR(proteins, peptides, false, 0.05))
+    TEST_TRUE(peptides == percolator_search_peptides)
+  }
+
+  // no FDR, no runs or no PSMs: nothing changes
+  {
+    PeptideIdentificationList peptides = percolator_rescored_peptides;
+    TEST_FALSE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, peptides, true, 0.0))
+    TEST_TRUE(peptides == percolator_rescored_peptides)
+    TEST_FALSE(algo.applyDeferredPsmFDR({}, peptides, true, 0.05))
+    TEST_TRUE(peptides == percolator_rescored_peptides)
+    PeptideIdentificationList none;
+    TEST_FALSE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, none, true, 0.05))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator before the FDR filters, by default))
+{
+  TEST_EQUAL(ProSEAlgorithm().getParameters().getValue("rescore").toString(), "true")
+
+  const std::string spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+  const std::string database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta");
+  const std::string small_spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.mzML");
+  const std::string small_database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.fasta");
+  // the settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini); 'rescore' as given (empty: the default)
+  auto configure = [](ProSEAlgorithm& algo, const std::string& rescore, double psm_fdr, double protein_fdr)
+  {
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    p.setValue("precursor:mass_tolerance_lower", 20.0);
+    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 10.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+    p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+    p.setValue("FDR:PSM", psm_fdr);
+    p.setValue("FDR:protein", protein_fdr);
+    if (!rescore.empty()) { p.setValue("rescore", rescore); }
+    algo.setParameters(p);
+    algo.setLogType(ProgressLogger::NONE);
+  };
+  // hits whose score is a q-value <= max_q in a q-value identification (0 if any is not)
+  auto q_value_hits = [](const PeptideIdentificationList& peptides, double max_q)
+  {
+    Size hits = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      if (id.getScoreType() != "q-value" || id.isHigherScoreBetter() || id.getHits().size() > 1) { return Size(0); }
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (hit.getScore() < 0.0 || hit.getScore() > max_q) { return Size(0); }
+        ++hits;
+      }
+    }
+    return hits;
+  };
+
+  // Default, several files: each run is rescored on its own and reports the outcome; FDR:PSM is applied
+  // to Percolator's q-values. The second file has too few PSMs: it keeps ProSE's scores, with the reason.
+  {
+    ProSEAlgorithm algo;
+    configure(algo, "", 0.05, 0.0);
+    ProSEAlgorithm::MultiFileSearchResult mfres =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, small_spectra_file}, database_file);
+    ABORT_IF(mfres.per_file.size() != 2)
+    const ProSEAlgorithm::SearchResult& rescored = mfres.per_file[0];
+    TEST_TRUE(rescored.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_TRUE(rescored.percolator.applied)
+    TEST_EQUAL(rescored.percolator.skipped_reason, "")
+    ABORT_IF(rescored.protein_ids.empty())
+    TEST_EQUAL(rescored.protein_ids[0].getSearchEngine(), "Percolator")
+    TEST_TRUE(q_value_hits(rescored.peptide_ids, 0.05) > 0)
+    TEST_TRUE(rescored.stats.fdr_applied)
+    TEST_TRUE(rescored.stats.achieved_psm_fdr <= 0.05)
+
+    const ProSEAlgorithm::SearchResult& skipped = mfres.per_file[1];
+    TEST_TRUE(skipped.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(skipped.percolator.applied)
+    TEST_TRUE(skipped.percolator.skipped_reason.starts_with("Only "))
+    ABORT_IF(skipped.protein_ids.empty())
+    TEST_EQUAL(skipped.protein_ids[0].getSearchEngine(), "ProSE")
+    // runs of different search engines are not pooled
+    TEST_TRUE(mfres.aggregate.protein_ids.empty())
+    TEST_TRUE(mfres.aggregate.peptide_ids.empty())
+  }
+
+  // The copy for a Percolator .pin (setKeepPreFdrPsms) is taken before the rescoring: ProSE's own scores, every
+  // reported hit and the decoys, i.e. the PSMs of the same search without rescoring and without FDR:PSM.
+  {
+    const auto psms = [](const PeptideIdentificationList& peptide_ids)
+    {
+      std::vector<std::string> out;
+      for (const auto& pid : peptide_ids)
+      {
+        for (const auto& hit : pid.getHits())
+        {
+          out.push_back(pid.getSpectrumReference() + " " + pid.getScoreType() + " " + hit.getSequence().toString() + " "
+                        + std::to_string(hit.getScore()) + (hit.isDecoy() ? " decoy" : ""));
+        }
+      }
+      std::sort(out.begin(), out.end());
+      return out;
+    };
+    ProSEAlgorithm algo;
+    configure(algo, "", 0.05, 0.0);
+    algo.setKeepPreFdrPsms(true);
+    ProSEAlgorithm::MultiFileSearchResult mfres =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file}, database_file);
+    ABORT_IF(mfres.per_file.size() != 1)
+    TEST_TRUE(mfres.per_file[0].percolator.applied)
+    ProSEAlgorithm plain;
+    configure(plain, "false", 0.0, 0.0);
+    std::vector<ProteinIdentification> prot_plain;
+    PeptideIdentificationList pep_plain;
+    TEST_TRUE(plain.search(spectra_file, database_file, prot_plain, pep_plain) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(pep_plain.empty())
+    TEST_TRUE(psms(mfres.per_file[0].pre_fdr_peptide_ids) == psms(pep_plain))
+  }
+
+  // Off: ProSE's own scores, nothing attempted.
+  {
+    ProSEAlgorithm algo;
+    configure(algo, "false", 0.0, 0.0);
+    ProSEAlgorithm::SearchResult native = algo.searchWithModificationAnalysis(spectra_file, database_file);
+    TEST_TRUE(native.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(native.percolator.applied)
+    TEST_EQUAL(native.percolator.skipped_reason, "")
+    ABORT_IF(native.protein_ids.empty() || native.peptide_ids.empty())
+    TEST_EQUAL(native.protein_ids[0].getSearchEngine(), "ProSE")
+    bool native_scores = true;
+    for (const PeptideIdentification& id : native.peptide_ids)
+    {
+      native_scores = native_scores && id.getScoreType() == "ln(hyperscore)" && id.isHigherScoreBetter();
+    }
+    TEST_TRUE(native_scores)
+  }
+
+  // Too few PSMs: the default search gives the reason and exactly the PSMs of the search with 'rescore' off.
+  {
+    ProSEAlgorithm on, off;
+    configure(on, "", 0.0, 0.0);
+    configure(off, "false", 0.0, 0.0);
+    ProSEAlgorithm::SearchResult on_result = on.searchWithModificationAnalysis(small_spectra_file, small_database_file);
+    ProSEAlgorithm::SearchResult off_result = off.searchWithModificationAnalysis(small_spectra_file, small_database_file);
+    TEST_TRUE(on_result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(on_result.percolator.applied)
+    TEST_TRUE(on_result.percolator.skipped_reason.starts_with("Only "))
+    TEST_TRUE(on_result.percolator.skipped_reason.find("Percolator rescoring needs at least 100") != std::string::npos)
+    TEST_FALSE(on_result.peptide_ids.empty())
+    // the run identifier holds the time of the search
+    for (ProSEAlgorithm::SearchResult* result : {&on_result, &off_result})
+    {
+      for (PeptideIdentification& id : result->peptide_ids) { id.setIdentifier(""); }
+    }
+    TEST_TRUE(on_result.peptide_ids == off_result.peptide_ids)
+  }
+
+  // The file-based search(): rescoring, then FDR:PSM and the protein FDR on the rescored PSMs.
+  {
+    ProSEAlgorithm algo;
+    configure(algo, "", 0.05, 0.05);
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_TRUE(algo.search(spectra_file, database_file, proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    ABORT_IF(proteins.size() != 1)
+    TEST_EQUAL(proteins[0].getSearchEngine(), "Percolator")
+    TEST_TRUE(q_value_hits(peptides, 0.05) > 0)
+    TEST_TRUE(proteins[0].getHits().size() > 0)
+    Size decoy_proteins = 0, decoy_psms = 0;
+    for (const ProteinHit& hit : proteins[0].getHits()) { decoy_proteins += hit.getAccession().starts_with("DECOY_"); }
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+    }
+    TEST_EQUAL(decoy_proteins, 0) // the protein FDR's finalization removes the decoys
+    TEST_EQUAL(decoy_psms, 0)
+  }
+}
+END_SECTION
+
+// mergeFileResults(), the pooled evaluation of the ProSE tool's -out_merged, on the search of TOPP_ProSE_13_merged: the
+// settings of ProSE_6_fdr.ini (generated decoys, Percolator rescoring, FDR:PSM 0.05) with FDR:protein 0.05, on the TOPP
+// file and a copy of it. The first section runs the search, and the [EXTRA] sections merge copies of its result, but
+// for the two on files that share a basename and without decoys, which merge a target-only search of such files.
+const std::string merge_spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+const std::string merge_database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta");
+const auto configure_merge = [](ProSEAlgorithm& algo, const std::string& decoys)
+{
+  Param p = algo.getParameters();
+  p.setValue("decoys", decoys);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 10.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.05);
+  algo.setParameters(p);
+  algo.setLogType(ProgressLogger::NONE);
+};
+// the 'id_merge_index' values of the PSMs (-1: none)
+const auto merge_indices = [](const PeptideIdentificationList& peptides)
+{
+  std::set<int> indices;
+  for (const PeptideIdentification& id : peptides)
+  {
+    indices.insert(id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)
+                     ? static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)) : -1);
+  }
+  return indices;
+};
+// the target PSMs (spectrum and sequence), sorted: what the protein FDR's finalization keeps, as it removes the decoy hits
+const auto target_psms = [](const PeptideIdentificationList& peptides)
+{
+  std::vector<std::string> psms;
+  for (const PeptideIdentification& id : peptides)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      if (!hit.isDecoy()) { psms.push_back(id.getSpectrumReference() + " " + hit.getSequence().toString()); }
+    }
+  }
+  std::sort(psms.begin(), psms.end());
+  return psms;
+};
+StringList merge_files;
+ProSEAlgorithm::MultiFileSearchResult merge_search;
+
+START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files, bool remove_decoys = true) const))
+{
+  std::string copy_file;
+  NEW_TMP_FILE_EXT(copy_file, ".mzML")
+  File::remove(copy_file); // left over if an earlier run failed; File::copy() does not overwrite
+  TEST_TRUE(File::copy(merge_spectra_file, copy_file))
+  merge_files = {merge_spectra_file, copy_file};
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  merge_search = algo.searchWithModificationAnalysis(merge_files, merge_database_file);
+  ABORT_IF(merge_search.per_file.size() != 2)
+  for (const ProSEAlgorithm::SearchResult& file : merge_search.per_file)
+  {
+    TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_TRUE(file.percolator.applied)
+  }
+  ABORT_IF(merge_search.aggregate.protein_ids.size() != 1) // the search pooled the files
+  // the pooled run has decoy proteins and decoy PSMs, which the protein FDR's finalization removes
+  const auto& pooled_proteins = merge_search.aggregate.protein_ids[0].getHits();
+  TEST_TRUE(std::any_of(pooled_proteins.begin(), pooled_proteins.end(),
+                        [](const ProteinHit& hit) { return hit.getAccession().starts_with("DECOY_"); }))
+  TEST_TRUE(target_psms(merge_search.aggregate.peptide_ids).size() < merge_search.aggregate.peptide_ids.size())
+
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+
+  // the PSMs of both files, but for the decoy PSMs
+  const Size psms_0 = target_psms(merge_search.per_file[0].peptide_ids).size();
+  const Size psms_1 = target_psms(merge_search.per_file[1].peptide_ids).size();
+  TEST_TRUE(psms_0 > 0 && psms_1 > 0)
+  TEST_EQUAL(merged.peptide_ids.size(), psms_0 + psms_1)
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  StringList run_paths;
+  merged.protein_ids[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == merge_files)
+
+  // no decoys left, and every peptide evidence references a protein of the run
+  std::set<std::string> accessions;
+  for (const ProteinHit& hit : merged.protein_ids[0].getHits()) { accessions.insert(hit.getAccession()); }
+  TEST_FALSE(accessions.empty())
+  Size other_runs = 0, decoy_hits = 0, evidences = 0, dangling = 0;
+  for (const PeptideIdentification& id : merged.peptide_ids)
+  {
+    other_runs += id.getIdentifier() != merged.protein_ids[0].getIdentifier();
+    for (const PeptideHit& hit : id.getHits())
+    {
+      decoy_hits += hit.isDecoy();
+      for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+      {
+        ++evidences;
+        dangling += !accessions.contains(evidence.getProteinAccession());
+      }
+    }
+  }
+  TEST_EQUAL(other_runs, 0)
+  TEST_EQUAL(decoy_hits, 0)
+  TEST_TRUE(evidences > 0)
+  TEST_EQUAL(dangling, 0)
+  TEST_FALSE(std::any_of(accessions.begin(), accessions.end(), [](const std::string& acc) { return acc.starts_with("DECOY_"); }))
+
+  // the identifications were moved out of the pooled aggregate
+  TEST_TRUE(result.aggregate.protein_ids.empty())
+  TEST_TRUE(result.aggregate.peptide_ids.empty())
+}
+END_SECTION
+
+// the target-only search of the next section, merged again in the section without decoys
+StringList merge_same_name_files;
+ProSEAlgorithm::MultiFileSearchResult merge_target_only_search;
+
+START_SECTION(([EXTRA] mergeFileResults keeps files apart that share a basename))
+{
+  // Copies of the same name in two directories, searched target-only (decoys 'ignore'), which needs no Percolator run.
+  // The search pools them, and without its pooled aggregate the merge pools the runs of the files itself: either way
+  // the PSMs keep apart by file.
+  TempDir dir_a, dir_b;
+  merge_same_name_files = {dir_a.getPath() + "/ProSE_merge.mzML", dir_b.getPath() + "/ProSE_merge.mzML"};
+  for (const std::string& file : merge_same_name_files) { TEST_TRUE(File::copy(merge_spectra_file, file)) }
+  ProSEAlgorithm algo;
+  configure_merge(algo, "ignore");
+  merge_target_only_search = algo.searchWithModificationAnalysis(merge_same_name_files, merge_database_file);
+  ABORT_IF(merge_target_only_search.per_file.size() != 2 || merge_target_only_search.aggregate.protein_ids.empty())
+
+  ProSEAlgorithm::MultiFileSearchResult pooled = merge_target_only_search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(pooled, merge_same_name_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+
+  ProSEAlgorithm::MultiFileSearchResult unpooled = merge_target_only_search;
+  unpooled.aggregate.protein_ids.clear();
+  unpooled.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(unpooled, merge_same_name_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults rejects runs of which only some were rescored))
+{
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[1].percolator.applied = false;
+  TEST_EXCEPTION(Exception::InvalidValue, algo.mergeFileResults(result, merge_files))
+  // nothing was moved out
+  TEST_EQUAL(result.aggregate.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_EQUAL(result.per_file[0].peptide_ids.size(), merge_search.per_file[0].peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults skips failed files))
+{
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  // A failed second file, and no pooled aggregate (as with build_pooled_aggregate false; the search itself would pool
+  // the file that was searched): the merge pools the runs of the searched files.
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[1].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  TEST_TRUE(target_psms(merged.peptide_ids) == target_psms(merge_search.per_file[0].peptide_ids))
+  TEST_EQUAL(merged.peptide_ids.size(), target_psms(merge_search.per_file[0].peptide_ids).size())
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0}))
+
+  // no file searched: nothing to pool
+  result = merge_search;
+  for (ProSEAlgorithm::SearchResult& file : result.per_file) { file.exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY; }
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merged.protein_ids.empty())
+  TEST_TRUE(merged.peptide_ids.empty())
+  TEST_FALSE(merged.protein_fdr_applied)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults rejects input files that are not those of the search))
+{
+  // The run lists the input files, and 'id_merge_index' indexes them: one entry per file of the search.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  const StringList too_few = {merge_files[0]};
+  const StringList too_many = {merge_files[0], merge_files[1], merge_files[1]};
+  TEST_EXCEPTION(Exception::IllegalArgument, algo.mergeFileResults(result, too_few))
+  TEST_EXCEPTION(Exception::IllegalArgument, algo.mergeFileResults(result, too_many))
+  // nothing was moved out
+  TEST_EQUAL(result.aggregate.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_EQUAL(result.per_file[0].peptide_ids.size(), merge_search.per_file[0].peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults of a single file keeps the run of the file))
+{
+  // The search of one file builds no pooled aggregate, so the merge always pools the runs of the files itself. It moves
+  // only their PSMs out of the result: the runs (search parameters, meta values such as 'peptdeep_nce', run paths) stay.
+  // 'rescore' is not needed here, and would add a Percolator run.
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  Param p = algo.getParameters();
+  p.setValue("rescore", "false");
+  algo.setParameters(p);
+  const StringList single_file = {merge_spectra_file};
+  const ProSEAlgorithm::MultiFileSearchResult search = algo.searchWithModificationAnalysis(single_file, merge_database_file);
+  ABORT_IF(search.per_file.size() != 1)
+  TEST_TRUE(search.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(search.aggregate.protein_ids.empty())
+  ABORT_IF(search.per_file[0].protein_ids.empty())
+  const Size psms = target_psms(search.per_file[0].peptide_ids).size();
+  TEST_TRUE(psms > 0)
+
+  ProSEAlgorithm::MultiFileSearchResult result = search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, single_file);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_FALSE(merged.protein_ids[0].getHits().empty())
+  StringList run_paths;
+  merged.protein_ids[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == single_file)
+  TEST_EQUAL(merged.peptide_ids.size(), psms) // the decoy PSMs are removed
+  TEST_TRUE(target_psms(merged.peptide_ids) == target_psms(search.per_file[0].peptide_ids))
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0}))
+
+  // the run of the file is kept as the search returned it, its PSMs were moved out
+  TEST_FALSE(result.per_file[0].protein_ids.empty())
+  TEST_TRUE(result.per_file[0].protein_ids == search.per_file[0].protein_ids)
+  TEST_TRUE(result.per_file[0].peptide_ids.empty())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults and the pooled aggregate give each PSM the input position of its file, also after a failed file))
+{
+  // IDMergerAlgorithm numbers only the files it pools, while the pooled run lists all input files: with the first file
+  // failed, the PSMs of the second one must carry index 1 (the second file of the run), not 0.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  const std::vector<std::string> file_1_psms = target_psms(merge_search.per_file[1].peptide_ids);
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+
+  // the pooling of the search's aggregate, which copies the identifications of the files
+  std::vector<ProteinIdentification> pooled_proteins;
+  PeptideIdentificationList pooled_peptides;
+  ProSEAlgorithm_test::poolSearchedFiles_(result.per_file, false, merge_files, pooled_proteins, pooled_peptides);
+  ABORT_IF(pooled_proteins.size() != 1)
+  StringList run_paths;
+  pooled_proteins[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == merge_files)
+  TEST_EQUAL(pooled_peptides.size(), merge_search.per_file[1].peptide_ids.size())
+  TEST_TRUE(merge_indices(pooled_peptides) == (std::set<int>{1}))
+  TEST_EQUAL(result.per_file[1].peptide_ids.size(), merge_search.per_file[1].peptide_ids.size()) // copied
+
+  // mergeFileResults on such a pooled aggregate (the search's) keeps the indices
+  result.aggregate.protein_ids = pooled_proteins;
+  result.aggregate.peptide_ids = pooled_peptides;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{1}))
+  TEST_TRUE(target_psms(merged.peptide_ids) == file_1_psms)
+
+  // mergeFileResults without an aggregate pools the files itself
+  result = merge_search;
+  result.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{1}))
+  TEST_TRUE(target_psms(merged.peptide_ids) == file_1_psms)
+
+  // a failed file between two others: the third file keeps index 2
+  result = merge_search;
+  result.per_file.insert(result.per_file.begin() + 1, merge_search.per_file[1]);
+  result.per_file[1].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  const StringList three_files = {merge_files[0], "failed.mzML", merge_files[1]};
+  merged = algo.mergeFileResults(result, three_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 2}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults without decoys infers proteins but applies no protein FDR))
+{
+  // the target-only search of the section on files that share a basename
+  ABORT_IF(merge_target_only_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "ignore");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_target_only_search;
+  TEST_FALSE(result.have_decoys)
+  const Size psms = result.per_file[0].peptide_ids.size() + result.per_file[1].peptide_ids.size();
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_same_name_files);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_FALSE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_FALSE(merged.protein_ids[0].getHits().empty())
+  TEST_EQUAL(merged.protein_ids[0].getInferenceEngine(), "TOPPProteinInference")
+  TEST_FALSE(merged.protein_ids[0].getIndistinguishableProteins().empty())
+  TEST_TRUE(psms > 0)
+  TEST_EQUAL(merged.peptide_ids.size(), psms) // nothing removed
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 1}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults keeps decoys when asked))
+{
+  // With remove_decoys false the merge infers the proteins and applies the picked-protein FDR and its filter as by
+  // default, but keeps the decoy PSMs and the decoy proteins that pass; it only drops the references to the proteins
+  // the filter removed, so that the result can still be stored.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  const ProSEAlgorithm::MergedResult with_decoys = algo.mergeFileResults(result, merge_files, false);
+  result = merge_search;
+  const ProSEAlgorithm::MergedResult without_decoys = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(with_decoys.protein_fdr_applied)
+  TEST_TRUE(without_decoys.protein_fdr_applied)
+  ABORT_IF(with_decoys.protein_ids.size() != 1 || without_decoys.protein_ids.size() != 1)
+
+  // every PSM of the pooled aggregate is kept, the decoys among them, and the targets are those of the default
+  Size decoy_psms = 0;
+  for (const PeptideIdentification& id : with_decoys.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+  }
+  TEST_TRUE(decoy_psms > 0)
+  TEST_EQUAL(with_decoys.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_TRUE(target_psms(with_decoys.peptide_ids) == target_psms(without_decoys.peptide_ids))
+  TEST_TRUE(merge_indices(with_decoys.peptide_ids) == (std::set<int>{0, 1}))
+
+  // the proteins carry the q-values of the picked-protein FDR, all within FDR:protein; the decoys among them are kept,
+  // and the targets are those of the default
+  const ProteinIdentification& run = with_decoys.protein_ids[0];
+  TEST_STRING_EQUAL(run.getScoreType(), "q-value")
+  TEST_FALSE(run.getHits().empty())
+  std::set<std::string> accessions, target_accessions, default_accessions;
+  Size above_fdr = 0;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    accessions.insert(hit.getAccession());
+    if (!hit.getAccession().starts_with("DECOY_")) { target_accessions.insert(hit.getAccession()); }
+    above_fdr += hit.getScore() > 0.05;
+  }
+  std::map<std::string, double> default_q_values;
+  for (const ProteinHit& hit : without_decoys.protein_ids[0].getHits())
+  {
+    default_accessions.insert(hit.getAccession());
+    default_q_values[hit.getAccession()] = hit.getScore();
+  }
+  TEST_EQUAL(above_fdr, 0)
+  TEST_TRUE(accessions.size() > target_accessions.size()) // decoy proteins passed the filter
+  TEST_TRUE(target_accessions == default_accessions)
+  Size other_q_values = 0;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    const auto it = default_q_values.find(hit.getAccession());
+    other_q_values += it != default_q_values.end() && it->second != hit.getScore();
+  }
+  TEST_EQUAL(other_q_values, 0) // keeping the decoys does not change the q-values of the targets
+
+  // no dangling references: every evidence and every group names a protein of the run, and the result can be stored
+  Size evidences = 0, dangling = 0;
+  for (const PeptideIdentification& id : with_decoys.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+      {
+        ++evidences;
+        dangling += !accessions.contains(evidence.getProteinAccession());
+      }
+    }
+  }
+  TEST_TRUE(evidences > 0)
+  TEST_EQUAL(dangling, 0)
+  Size dangling_in_groups = 0;
+  for (const auto* groups : {&run.getIndistinguishableProteins(), &run.getProteinGroups()})
+  {
+    for (const ProteinIdentification::ProteinGroup& group : *groups)
+    {
+      for (const std::string& accession : group.accessions) { dangling_in_groups += !accessions.contains(accession); }
+    }
+  }
+  TEST_EQUAL(dangling_in_groups, 0)
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, with_decoys.protein_ids, with_decoys.peptide_ids, {FileTypes::IDXML});
+  std::vector<ProteinIdentification> stored_proteins;
+  PeptideIdentificationList stored_peptides;
+  FileHandler().loadIdentifications(out_file, stored_proteins, stored_peptides, {FileTypes::IDXML});
+  TEST_EQUAL(stored_proteins.size(), 1)
+  TEST_EQUAL(stored_peptides.size(), with_decoys.peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION((static bool applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& decoy_string, bool decoy_is_prefix, double protein_fdr, bool remove_decoys, const PeptideIdentificationList& inference_only_psms)))
+{
+  // One file of the merge search is a complete set on its own. With remove_decoys false the decoy PSMs and the decoy
+  // proteins that pass stay, as in mergeFileResults(); the targets and their q-values are those of the default.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  const ProSEAlgorithm::SearchResult& file = merge_search.per_file[0];
+  std::vector<ProteinIdentification> kept_proteins = file.protein_ids, removed_proteins = file.protein_ids;
+  PeptideIdentificationList kept_peptides = file.peptide_ids, removed_peptides = file.peptide_ids;
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(kept_proteins, kept_peptides, "DECOY_", true, 0.05, false, {}), true)
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(removed_proteins, removed_peptides, "DECOY_", true, 0.05, true, {}), true)
+  TEST_STRING_EQUAL(kept_proteins[0].getScoreType(), "q-value")
+  TEST_STRING_EQUAL(removed_proteins[0].getScoreType(), "q-value")
+  Size decoy_psms = 0;
+  for (const PeptideIdentification& id : kept_peptides)
+  {
+    for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+  }
+  TEST_TRUE(decoy_psms > 0)
+  TEST_TRUE(target_psms(kept_peptides) == target_psms(removed_peptides))
+  TEST_TRUE(target_psms(removed_peptides).size() == removed_peptides.size()) // the default removes the decoys
+  std::map<std::string, double> q_values;
+  for (const ProteinHit& hit : removed_proteins[0].getHits()) { q_values[hit.getAccession()] = hit.getScore(); }
+  Size decoy_proteins = 0, targets = 0, other_q_values = 0;
+  for (const ProteinHit& hit : kept_proteins[0].getHits())
+  {
+    if (hit.getAccession().starts_with("DECOY_")) { ++decoy_proteins; continue; }
+    ++targets;
+    const auto it = q_values.find(hit.getAccession());
+    other_q_values += it == q_values.end() || it->second != hit.getScore();
+  }
+  TEST_TRUE(decoy_proteins > 0)
+  TEST_EQUAL(targets, q_values.size())
+  TEST_EQUAL(other_q_values, 0)
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, kept_proteins, kept_peptides, {FileTypes::IDXML});
+
+  // Skipped, and false: no decoy protein is left after the inference, which uses the best hit of each PSM only (the
+  // decoy here is the second hit of the only PSM; the PSM's evidence of a decoy does not make the FDR applied), or an
+  // empty decoy marker.
+  std::vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("run");
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("run");
+  peptides[0].setScoreType("ln(hyperscore)");
+  peptides[0].setHigherScoreBetter(true);
+  for (const std::string accession : {"P1", "DECOY_P1"})
+  {
+    const std::string target_decoy = accession.starts_with("DECOY_") ? "decoy" : "target";
+    ProteinHit protein;
+    protein.setAccession(accession);
+    protein.setMetaValue("target_decoy", target_decoy);
+    proteins[0].insertHit(protein);
+    PeptideHit hit(target_decoy == "target" ? 10.0 : 5.0, 0, 2,
+                   AASequence::fromString(target_decoy == "target" ? "PEPTIDEK" : "EDITPEPK"));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession(accession);
+    hit.addPeptideEvidence(evidence);
+    hit.setMetaValue("target_decoy", target_decoy);
+    peptides[0].insertHit(hit);
+  }
+  std::vector<ProteinIdentification> unmarked_proteins = proteins;
+  PeptideIdentificationList unmarked_peptides = peptides;
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(proteins, peptides, "DECOY_", true, 0.05, true, {}), false)
+  TEST_EQUAL(proteins[0].getHits().size(), 1)
+  TEST_STRING_EQUAL(proteins[0].getHits()[0].getAccession(), "P1")
+  TEST_EQUAL(ProSEAlgorithm::applyCompleteSetProteinFDR(unmarked_proteins, unmarked_peptides, "", true, 0.05, true, {}), false)
+}
+END_SECTION
+
+// A run of five target proteins and the decoy of a sixth, for the protein inference and the protein FDR on PSMs of a
+// looser cutoff. The PSMs carry q-values as main score (as after FDR:PSM or Percolator), and the PEP (Percolator's meta
+// value MS:1001493) or the search engine score (meta value 'ln(hyperscore)_score', as FDR:PSM keeps it).
+struct InferenceRun
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList reported;       // q <= 0.01 (FDR:PSM)
+  PeptideIdentificationList inference_only; // 0.01 < q <= 0.1 (FDR:protein_inference_PSM)
+};
+const auto make_inference_run = [](bool pep)
+{
+  InferenceRun run;
+  run.proteins.resize(1);
+  run.proteins[0].setIdentifier("run");
+  for (const std::string accession : {"T1", "T2", "T3", "T4", "T5", "DECOY_T6"})
+  {
+    ProteinHit protein;
+    protein.setAccession(accession);
+    protein.setMetaValue("target_decoy", accession.starts_with("DECOY_") ? "decoy" : "target");
+    run.proteins[0].insertHit(protein);
+  }
+  const auto add = [&](PeptideIdentificationList& list, const std::string& sequence, const std::string& accession,
+                       double q_value, double posterior_error_probability)
+  {
+    PeptideIdentification id;
+    id.setIdentifier("run");
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    PeptideHit hit(q_value, 1, 2, AASequence::fromString(sequence));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession(accession);
+    hit.addPeptideEvidence(evidence);
+    hit.setMetaValue("target_decoy", accession.starts_with("DECOY_") ? "decoy" : "target");
+    if (pep) { hit.setMetaValue("MS:1001493", posterior_error_probability); }
+    else { hit.setMetaValue("ln(hyperscore)_score", 100.0 * (1.0 - posterior_error_probability)); } // same order
+    id.setHits({hit});
+    list.push_back(id);
+  };
+  // The q-values rank T1 and T2 first (a tie), the PEPs (or search engine scores) rank T2 below the decoy. T4 has a
+  // reported PSM only with a q-value in the looser set (the protein must not be reported), T5 none at all.
+  add(run.reported, "PEPTIDEAK", "T1", 0.0, 0.001);
+  add(run.reported, "PEPTIDEBK", "T2", 0.0, 0.3);
+  add(run.reported, "PEPTIDECK", "T3", 0.005, 0.05);
+  add(run.inference_only, "PEPTIDEDK", "T4", 0.02, 0.01);
+  add(run.inference_only, "PEPTIDEFK", "DECOY_T6", 0.05, 0.2);
+  return run;
+};
+const auto accessions_of = [](const ProteinIdentification& run)
+{
+  std::vector<std::string> accessions;
+  for (const ProteinHit& hit : run.getHits()) { accessions.push_back(hit.getAccession()); }
+  std::sort(accessions.begin(), accessions.end());
+  return ListUtils::concatenate(accessions, ",");
+};
+
+START_SECTION((static std::string inferProteins(std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const PeptideIdentificationList& inference_only_psms = PeptideIdentificationList())))
+{
+  // the best score of each protein over the best hits of the PSMs that reference it
+  const auto best_scores = [](const PeptideIdentificationList& peptides, const std::function<double(const PeptideHit&)>& score)
+  {
+    std::map<std::string, double> best;
+    for (const PeptideIdentification& id : peptides)
+    {
+      if (id.getHits().empty()) { continue; }
+      const PeptideHit& hit = id.getHits()[0];
+      for (const std::string& accession : hit.extractProteinAccessionsSet())
+      {
+        auto [it, inserted] = best.emplace(accession, score(hit));
+        if (!inserted) { it->second = std::max(it->second, score(hit)); }
+      }
+    }
+    return best;
+  };
+  // the proteins with a score other than the expected one
+  const auto other_scores = [](const ProteinIdentification& run, const std::map<std::string, double>& expected)
+  {
+    Size other = 0;
+    for (const ProteinHit& hit : run.getHits())
+    {
+      const auto it = expected.find(hit.getAccession());
+      other += it == expected.end() || std::fabs(it->second - hit.getScore()) > 1e-9;
+    }
+    return other;
+  };
+
+  // Rescored by Percolator: q-values as main score, the PEP as meta value MS:1001493. A protein scores with the
+  // posterior probability (1 - PEP) of its best PSM, i.e. the lowest PEP. The PSMs stay unchanged.
+  {
+    ABORT_IF(percolator_rescored_peptides.empty())
+    std::vector<ProteinIdentification> proteins = percolator_rescored_proteins;
+    PeptideIdentificationList peptides = percolator_rescored_peptides;
+    ProSEAlgorithm().applyDeferredPsmFDR(proteins, peptides, true, 0.05); // the reported PSMs of FDR:PSM 0.05
+    const PeptideIdentificationList before = peptides;
+    TEST_EQUAL(peptides[0].getScoreType(), "q-value")
+    TEST_STRING_EQUAL(ProSEAlgorithm::inferProteins(proteins, peptides), "PEP")
+    TEST_TRUE(peptides == before)
+    TEST_EQUAL(proteins[0].getScoreType(), "Posterior Probability")
+    TEST_TRUE(proteins[0].isHigherScoreBetter())
+    const auto expected = best_scores(peptides, [](const PeptideHit& hit) { return 1.0 - double(hit.getMetaValue("MS:1001493")); });
+    TEST_TRUE(proteins[0].getHits().size() > 10)
+    TEST_EQUAL(proteins[0].getHits().size(), expected.size()) // the proteins without PSMs are gone
+    TEST_EQUAL(other_scores(proteins[0], expected), 0)
+  }
+
+  // Not rescored, after FDR:PSM: q-values as main score, the search engine score as meta value 'ln(hyperscore)_score'.
+  // A protein scores with the best (highest) HyperScore of its PSMs.
+  {
+    ABORT_IF(percolator_search_peptides.empty())
+    std::vector<ProteinIdentification> proteins = percolator_search_proteins;
+    PeptideIdentificationList peptides = percolator_search_peptides;
+    ProSEAlgorithm().applyDeferredPsmFDR(proteins, peptides, false, 0.05);
+    TEST_EQUAL(peptides[0].getScoreType(), "q-value")
+    TEST_STRING_EQUAL(ProSEAlgorithm::inferProteins(proteins, peptides), "RAW")
+    TEST_EQUAL(proteins[0].getScoreType(), "ln(hyperscore)")
+    TEST_TRUE(proteins[0].isHigherScoreBetter())
+    const auto expected = best_scores(peptides, [](const PeptideHit& hit) { return double(hit.getMetaValue("ln(hyperscore)_score")); });
+    TEST_TRUE(proteins[0].getHits().size() > 10)
+    TEST_EQUAL(other_scores(proteins[0], expected), 0)
+  }
+
+  // Not rescored, without FDR:PSM: the search engine score is the main score.
+  {
+    std::vector<ProteinIdentification> proteins = percolator_search_proteins;
+    PeptideIdentificationList peptides = percolator_search_peptides;
+    IDFilter::keepNBestHits(peptides, 1);
+    TEST_STRING_EQUAL(ProSEAlgorithm::inferProteins(proteins, peptides), "RAW")
+    TEST_EQUAL(proteins[0].getScoreType(), "ln(hyperscore)")
+    const auto expected = best_scores(peptides, [](const PeptideHit& hit) { return hit.getScore(); });
+    TEST_EQUAL(other_scores(proteins[0], expected), 0)
+  }
+
+  // The inference-only PSMs count as evidence (T4 and the decoy), with their own identifiers ignored.
+  for (const bool pep : {true, false})
+  {
+    InferenceRun run = make_inference_run(pep);
+    for (PeptideIdentification& id : run.inference_only) { id.setIdentifier("another run"); }
+    TEST_STRING_EQUAL(ProSEAlgorithm::inferProteins(run.proteins, run.reported), pep ? "PEP" : "RAW")
+    TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T2,T3")
+    run = make_inference_run(pep);
+    TEST_STRING_EQUAL(ProSEAlgorithm::inferProteins(run.proteins, run.reported, run.inference_only), pep ? "PEP" : "RAW")
+    TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "DECOY_T6,T1,T2,T3,T4")
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] applyCompleteSetProteinFDR infers the proteins on the reported and the inference-only PSMs, by PEP or search engine score))
+{
+  for (const bool pep : {true, false})
+  {
+    // Only the inference-only PSMs have a decoy: without them, the picked-protein FDR has no decoy protein and is
+    // skipped; the reported proteins are those of the reported PSMs.
+    InferenceRun run = make_inference_run(pep);
+    TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, true, {}))
+    TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T2,T3")
+
+    // With them, the decoy (PEP 0.2) ranks above T2 (PEP 0.3, although its q-value is 0). With FalseDiscoveryRate's
+    // conservative estimate (D + 1) / (T + 1), T2 gets the q-value 2/5 and fails the protein FDR of 30 %, T1 and T3 (1/4)
+    // pass. T4 passes too (PEP 0.01), but has no reported PSM: it is not reported, nor are the decoy and T5. Ranked by
+    // the q-values, all targets would rank above the decoy (T2 tied with T1) and pass, with q-value 1/5.
+    run = make_inference_run(pep);
+    const PeptideIdentificationList reported = run.reported;
+    TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, true, run.inference_only))
+    TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T3")
+    TEST_EQUAL(run.proteins[0].getScoreType(), "q-value")
+    for (const ProteinHit& hit : run.proteins[0].getHits())
+    {
+      // the score of the inference, which the picked-protein FDR keeps as meta value
+      TEST_TRUE(hit.metaValueExists(pep ? "Posterior Probability_score" : "ln(hyperscore)_score"))
+      TEST_REAL_SIMILAR(hit.getScore(), 0.25)
+    }
+    // the reported PSMs stay (T2's loses the reference to its protein), and every group holds reported proteins only
+    TEST_EQUAL(run.reported.size(), reported.size())
+    for (Size i = 0; i < reported.size() && i < run.reported.size(); ++i)
+    {
+      TEST_EQUAL(run.reported[i].getHits()[0].getSequence(), reported[i].getHits()[0].getSequence())
+      TEST_EQUAL(run.reported[i].getHits()[0].getScore(), reported[i].getHits()[0].getScore())
+    }
+    TEST_EQUAL(run.reported[1].getHits()[0].getPeptideEvidences().size(), 0)
+    Size grouped = 0;
+    for (const auto& group : run.proteins[0].getIndistinguishableProteins())
+    {
+      for (const std::string& accession : group.accessions) { grouped += accession == "T1" || accession == "T3"; }
+      TEST_EQUAL(group.accessions.size(), 1)
+    }
+    TEST_EQUAL(grouped, 2)
+    std::string out_file;
+    NEW_TMP_FILE_EXT(out_file, ".idXML")
+    FileHandler().storeIdentifications(out_file, run.proteins, run.reported, {FileTypes::IDXML});
+
+    // The decoys kept (remove_decoys false): the decoy fails the filter, and the targets are as above.
+    run = make_inference_run(pep);
+    TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, false, run.inference_only))
+    TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T3")
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FDR:protein_inference_PSM: the protein inference of the searches uses the PSMs up to it, the reported PSMs stay those of FDR:PSM))
+{
+  TEST_EQUAL(double(ProSEAlgorithm().getParameters().getValue("FDR:protein_inference_PSM")), 0.1)
+  const std::string spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+  const std::string database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta");
+  // the settings of TOPP_ProSE_6_fdr (ProSE_6_fdr.ini) with ProSE's own scores, and an FDR:PSM that leaves PSMs between it
+  // and FDR:protein_inference_PSM
+  const auto configure = [](ProSEAlgorithm& algo, double protein_fdr, double inference_psm_fdr)
+  {
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    p.setValue("rescore", "false");
+    p.setValue("precursor:mass_tolerance_lower", 20.0);
+    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 10.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+    p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+    p.setValue("FDR:PSM", 0.001);
+    p.setValue("FDR:protein", protein_fdr);
+    p.setValue("FDR:protein_inference_PSM", inference_psm_fdr);
+    algo.setParameters(p);
+    algo.setLogType(ProgressLogger::NONE);
+  };
+  const auto psms = [](const PeptideIdentificationList& peptides)
+  {
+    std::vector<std::string> list;
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        std::ostringstream psm;
+        psm << id.getSpectrumReference() << ' ' << hit.getSequence().toString() << ' ' << hit.getScore();
+        list.push_back(psm.str());
+      }
+    }
+    std::sort(list.begin(), list.end());
+    return list;
+  };
+  // the q-values of the inference-only PSMs are above FDR:PSM and at most FDR:protein_inference_PSM
+  const auto within = [](const PeptideIdentificationList& peptides, double low, double high)
+  {
+    Size hits = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      if (!id.getHits().empty() && id.getScoreType() != "q-value") { return Size(0); }
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (hit.getScore() <= low || hit.getScore() > high) { return Size(0); }
+        ++hits;
+      }
+    }
+    return hits;
+  };
+
+  // The multi-file search keeps the PSMs between FDR:PSM and FDR:protein_inference_PSM for the protein FDR (only with
+  // FDR:protein), and the PSMs it reports are those of FDR:PSM either way.
+  ProSEAlgorithm looser, same, no_protein_fdr;
+  configure(looser, 0.05, 0.1);
+  configure(same, 0.05, 0.0);
+  configure(no_protein_fdr, 0.0, 0.1);
+  const std::vector<std::string> files{spectra_file};
+  ProSEAlgorithm::MultiFileSearchResult looser_search = looser.searchWithModificationAnalysis(files, database_file);
+  ProSEAlgorithm::MultiFileSearchResult same_search = same.searchWithModificationAnalysis(files, database_file);
+  ProSEAlgorithm::MultiFileSearchResult no_fdr_search = no_protein_fdr.searchWithModificationAnalysis(files, database_file);
+  ABORT_IF(looser_search.per_file.size() != 1 || same_search.per_file.size() != 1 || no_fdr_search.per_file.size() != 1)
+  const Size inference_only = within(looser_search.per_file[0].inference_only_peptide_ids, 0.001, 0.1);
+  TEST_TRUE(inference_only > 0)
+  TEST_EQUAL(inference_only, looser_search.per_file[0].inference_only_peptide_ids.size())
+  TEST_EQUAL(same_search.per_file[0].inference_only_peptide_ids.size(), 0)
+  TEST_EQUAL(no_fdr_search.per_file[0].inference_only_peptide_ids.size(), 0)
+  TEST_TRUE(psms(looser_search.per_file[0].peptide_ids) == psms(same_search.per_file[0].peptide_ids))
+  TEST_TRUE(within(looser_search.per_file[0].peptide_ids, -1.0, 0.001) > 0)
+
+  // The single-file searches finalize the protein FDR on the looser set: the same reported PSMs, the protein scores of
+  // the inference are the search engine scores (no rescoring), and the proteins are those of the reported PSMs.
+  const auto check_single_file = [&](const std::vector<ProteinIdentification>& looser_proteins, const PeptideIdentificationList& looser_peptides,
+                                     const std::vector<ProteinIdentification>& same_proteins, const PeptideIdentificationList& same_peptides)
+  {
+    TEST_TRUE(psms(looser_peptides) == psms(same_peptides))
+    TEST_TRUE(!looser_peptides.empty())
+    TEST_EQUAL(looser_proteins.size(), 1)
+    TEST_EQUAL(same_proteins.size(), 1)
+    if (looser_proteins.size() != 1) { return; }
+    TEST_EQUAL(looser_proteins[0].getScoreType(), "q-value")
+    std::set<std::string> referenced;
+    for (const PeptideIdentification& id : looser_peptides)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        for (const std::string& accession : hit.extractProteinAccessionsSet()) { referenced.insert(accession); }
+      }
+    }
+    Size unreferenced = 0, inference_scores = 0;
+    for (const ProteinHit& hit : looser_proteins[0].getHits())
+    {
+      unreferenced += !referenced.contains(hit.getAccession());
+      inference_scores += hit.metaValueExists("ln(hyperscore)_score");
+    }
+    TEST_EQUAL(unreferenced, 0)
+    TEST_EQUAL(inference_scores, looser_proteins[0].getHits().size())
+  };
+  // Each single-file path hands the search's inference-only PSMs to the protein FDR: its inference reports them (the
+  // INFO line of applyCompleteSetProteinFDR()), as many as the multi-file search kept, and none with the cutoff at 0.
+  const auto inference_log = [](const std::function<void()>& run)
+  {
+    std::ostringstream captured;
+    OPENMS_LOG_INFO.insert(captured);
+    run();
+    OPENMS_LOG_INFO.remove(captured);
+    return captured.str();
+  };
+  const std::string used = "(" + StringUtils::toStr(inference_only) + " of them up to FDR:protein_inference_PSM";
+  const std::string unused = "(0 of them up to FDR:protein_inference_PSM";
+  {
+    std::vector<ProteinIdentification> looser_proteins, same_proteins;
+    PeptideIdentificationList looser_peptides, same_peptides;
+    const std::string looser_log = inference_log([&]() {
+      TEST_TRUE(looser.search(spectra_file, database_file, looser_proteins, looser_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    });
+    const std::string same_log = inference_log([&]() {
+      TEST_TRUE(same.search(spectra_file, database_file, same_proteins, same_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    });
+    TEST_TRUE(looser_log.find(used) != std::string::npos)
+    TEST_TRUE(same_log.find(unused) != std::string::npos)
+    check_single_file(looser_proteins, looser_peptides, same_proteins, same_peptides);
+  }
+  {
+    ProSEAlgorithm::SearchResult looser_result, same_result;
+    const std::string looser_log = inference_log([&]() { looser_result = looser.searchWithModificationAnalysis(spectra_file, database_file); });
+    const std::string same_log = inference_log([&]() { same_result = same.searchWithModificationAnalysis(spectra_file, database_file); });
+    TEST_TRUE(looser_log.find(used) != std::string::npos)
+    TEST_TRUE(same_log.find(unused) != std::string::npos)
+    TEST_EQUAL(looser_result.inference_only_peptide_ids.size(), 0) // used and released
+    check_single_file(looser_result.protein_ids, looser_result.peptide_ids, same_result.protein_ids, same_result.peptide_ids);
+  }
+  {
+    // the in-memory overload
+    PeakMap looser_spectra, same_spectra;
+    FileHandler().loadExperiment(spectra_file, looser_spectra, {FileTypes::MZML});
+    same_spectra = looser_spectra;
+    std::vector<FASTAFile::FASTAEntry> fasta_db;
+    FASTAFile().load(database_file, fasta_db);
+    ProSEAlgorithm::SearchResult looser_result, same_result;
+    const std::string looser_log = inference_log([&]() { looser_result = looser.searchWithModificationAnalysis(looser_spectra, fasta_db); });
+    const std::string same_log = inference_log([&]() { same_result = same.searchWithModificationAnalysis(same_spectra, fasta_db); });
+    TEST_TRUE(looser_log.find(used) != std::string::npos)
+    TEST_TRUE(same_log.find(unused) != std::string::npos)
+    TEST_EQUAL(looser_result.inference_only_peptide_ids.size(), 0) // used and released
+    check_single_file(looser_result.protein_ids, looser_result.peptide_ids, same_result.protein_ids, same_result.peptide_ids);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults infers the proteins with the inference-only PSMs of the files))
+{
+  // The search of the first mergeFileResults section (FDR:PSM 0.05, FDR:protein 0.05, Percolator): its files keep the
+  // PSMs up to FDR:protein_inference_PSM (0.1) for the protein FDR, which the merge uses and moves out. Two
+  // inference-only PSMs are added to the first file: a decoy PSM of the decoy of the weakest reported protein, with the
+  // best PEP, so that the decoy wins their picked pair and ranks first (the picked FDR estimates the FDR from the winner
+  // of each pair: one more decoy above every protein raises every q-value), and a target PSM of a new protein, which is
+  // not reported (no reported PSM). The pooled PSMs do not depend on them.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  const auto inference_log = [](const std::function<void()>& run)
+  {
+    std::ostringstream captured;
+    OPENMS_LOG_INFO.insert(captured);
+    run();
+    OPENMS_LOG_INFO.remove(captured);
+    return captured.str();
+  };
+
+  ProSEAlgorithm::MultiFileSearchResult plain = merge_search;
+  plain.aggregate = ProSEAlgorithm::SearchResult(); // pool the files in the merge
+  for (ProSEAlgorithm::SearchResult& file : plain.per_file) { file.inference_only_peptide_ids.clear(); }
+  ProSEAlgorithm::MergedResult merged_plain = algo.mergeFileResults(plain, merge_files);
+  TEST_TRUE(merged_plain.protein_fdr_applied)
+  ABORT_IF(merged_plain.protein_ids.size() != 1 || merged_plain.protein_ids[0].getHits().empty())
+  // the weakest reported protein (lowest posterior probability of the inference)
+  const ProteinHit* weakest = nullptr;
+  for (const ProteinHit& protein : merged_plain.protein_ids[0].getHits())
+  {
+    TEST_TRUE(protein.metaValueExists("Posterior Probability_score")) // scored with the PEP (Percolator rescored the files)
+    if (weakest == nullptr || double(protein.getMetaValue("Posterior Probability_score")) < double(weakest->getMetaValue("Posterior Probability_score")))
+    {
+      weakest = &protein;
+    }
+  }
+  ABORT_IF(weakest == nullptr)
+  const std::string target = weakest->getAccession();
+  ABORT_IF(double(weakest->getMetaValue("Posterior Probability_score")) >= 1.0)
+
+  ProSEAlgorithm::MultiFileSearchResult with_extra = merge_search;
+  with_extra.aggregate = ProSEAlgorithm::SearchResult();
+  ProSEAlgorithm::SearchResult& first = with_extra.per_file[0];
+  ABORT_IF(first.peptide_ids.empty() || first.peptide_ids[0].getHits().empty())
+  const auto add_inference_only = [&first](const std::string& sequence, const std::string& accession, bool decoy)
+  {
+    PeptideIdentification extra = first.peptide_ids[0];
+    PeptideHit& hit = extra.getHits()[0];
+    hit.setScore(0.08);
+    hit.setSequence(AASequence::fromString(sequence));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession(accession);
+    hit.setPeptideEvidences({evidence});
+    hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+    hit.setMetaValue("MS:1001493", 0.0);
+    first.inference_only_peptide_ids.push_back(extra);
+    std::vector<ProteinHit>& proteins = first.protein_ids[0].getHits();
+    if (std::none_of(proteins.begin(), proteins.end(), [&](const ProteinHit& p) { return p.getAccession() == accession; }))
+    {
+      ProteinHit protein;
+      protein.setAccession(accession);
+      protein.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+      proteins.push_back(protein);
+    }
+  };
+  Size inference_only = 2;
+  for (const ProSEAlgorithm::SearchResult& file : merge_search.per_file) { inference_only += file.inference_only_peptide_ids.size(); }
+  add_inference_only("PEPTIDEXTRAK", "EXTRA_PROTEIN", false);
+  add_inference_only("KARTXEDITPEP", "DECOY_" + target, true);
+
+  ProSEAlgorithm::MergedResult merged_with_extra;
+  const std::string log = inference_log([&]() { merged_with_extra = algo.mergeFileResults(with_extra, merge_files); });
+  TEST_TRUE(log.find("(" + StringUtils::toStr(inference_only) + " of them up to FDR:protein_inference_PSM") != std::string::npos)
+  TEST_TRUE(merged_with_extra.protein_fdr_applied)
+  for (const ProSEAlgorithm::SearchResult& file : with_extra.per_file) { TEST_EQUAL(file.inference_only_peptide_ids.size(), 0) }
+  TEST_TRUE(target_psms(merged_with_extra.peptide_ids) == target_psms(merged_plain.peptide_ids))
+  ABORT_IF(merged_with_extra.protein_ids.size() != 1)
+  std::map<std::string, double> plain_q, extra_q;
+  for (const ProteinHit& protein : merged_plain.protein_ids[0].getHits()) { plain_q[protein.getAccession()] = protein.getScore(); }
+  for (const ProteinHit& protein : merged_with_extra.protein_ids[0].getHits()) { extra_q[protein.getAccession()] = protein.getScore(); }
+  TEST_FALSE(extra_q.empty())
+  TEST_FALSE(extra_q.contains("EXTRA_PROTEIN"))
+  Size lower = 0, higher = 0, new_proteins = 0;
+  for (const auto& [accession, q] : extra_q)
+  {
+    const auto it = plain_q.find(accession);
+    if (it == plain_q.end()) { ++new_proteins; continue; }
+    lower += q < it->second - 1e-12;
+    higher += q > it->second + 1e-12;
+  }
+  TEST_EQUAL(new_proteins, 0)
+  TEST_EQUAL(lower, 0)
+  TEST_EQUAL(higher, extra_q.size()) // the inference-only decoy ranks above every protein
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the multi-file search reports one outer progress step per file))
+{
+  // The search reports an outer step per input file, "Searching <file> (i of n)...", so that a caller can tell which
+  // file is being searched; the steps of the search of the file (index build, filtering, scoring, ...) nest one level
+  // below it. The searches here run with a progress display that records its events, and with one OpenMP thread (see
+  // ScopedOpenMPThreads), unless said otherwise.
+  // The depth that the ProgressLogger passes is its static step counter, which threaded searches before (also those of
+  // other sections of this test) can leave off zero. So the depths are taken relative to the first event of a search,
+  // the start of the step of its first file.
+  TempDir dir;
+  const StringList files = {dir.getPath() + "/ProSE_13_a.mzML", dir.getPath() + "/ProSE_13_b.mzML"};
+  for (const std::string& file : files)
+  {
+    File::remove(file); // File::copy() does not overwrite
+    TEST_TRUE(File::copy(merge_spectra_file, file))
+  }
+  const std::vector<std::string> outer_steps = {"Searching ProSE_13_a.mzML (1 of 2)...", "Searching ProSE_13_b.mzML (2 of 2)..."};
+
+  // 'rescore' is not needed here, and would add a Percolator run
+  const auto configure_progress = [&](ProSEAlgorithm& algo, std::vector<ProgressEvent>& events)
+  {
+    configure_merge(algo, "generate");
+    Param p = algo.getParameters();
+    p.setValue("rescore", "false");
+    algo.setParameters(p);
+    algo.setLogger(new RecordingProgressLogger(events)); // after configure_merge(), which sets the log type
+  };
+  // the depth of the first event, to which the others are relative
+  const auto base_depth = [](const std::vector<ProgressEvent>& events) { return events.empty() ? 0 : events.front().depth; };
+  // the labels of the starts of the steps of a depth, relative to the first event (-1: all depths)
+  const auto labels = [&](const std::vector<ProgressEvent>& events, int depth)
+  {
+    const int base = base_depth(events);
+    std::vector<std::string> result;
+    for (const ProgressEvent& event : events)
+    {
+      if (event.kind == 's' && (depth < 0 || event.depth - base == depth)) { result.push_back(event.label); }
+    }
+    return result;
+  };
+  // Events that break the nesting of the steps: a start has the depth of the steps open, an end that of its start, and
+  // an end has a start; plus the steps that are still open at the end. Depths relative to the first event.
+  const auto nesting_errors = [&](const std::vector<ProgressEvent>& events)
+  {
+    const int base = base_depth(events);
+    Size errors = 0;
+    int open = 0;
+    for (const ProgressEvent& event : events)
+    {
+      if (event.kind == 's')
+      {
+        errors += event.depth - base != open;
+        ++open;
+      }
+      else if (open == 0)
+      {
+        ++errors;
+      }
+      else
+      {
+        --open;
+        errors += event.depth - base != open;
+      }
+    }
+    return errors + static_cast<Size>(open);
+  };
+
+  {
+    // two files: one outer step each, in input order, with the steps of the file inside it
+    ScopedOpenMPThreads one_thread(1);
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
+    ABORT_IF(result.per_file.size() != 2)
+    for (const ProSEAlgorithm::SearchResult& file : result.per_file)
+    {
+      TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    }
+    TEST_TRUE(labels(events, 0) == outer_steps)
+    TEST_EQUAL(nesting_errors(events), 0)
+    // the first event starts the first file, the last one ends the second; each has steps of its own inside
+    ABORT_IF(events.empty())
+    const int base = base_depth(events);
+    TEST_TRUE(events.front().kind == 's')
+    TEST_STRING_EQUAL(events.front().label, outer_steps[0])
+    TEST_TRUE(events.back().kind == 'e' && events.back().depth == base)
+    Size inner_steps_of_file[2] = {0, 0};
+    Size file_index = 0;
+    for (const ProgressEvent& event : events)
+    {
+      if (event.kind != 's') { continue; }
+      if (event.depth == base) { ++file_index; }
+      else if (file_index >= 1 && file_index <= 2) { ++inner_steps_of_file[file_index - 1]; }
+    }
+    TEST_TRUE(inner_steps_of_file[0] > 0)
+    TEST_TRUE(inner_steps_of_file[1] > 0)
+  }
+
+  {
+    // With the threads of the machine, a file is read in the background, and the index is built while the first one is
+    // read; that build is inside the step of the first file as well. The depths are not reliable then (see
+    // ScopedOpenMPThreads), but the steps of the files, their order and the balance of starts and ends are.
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, merge_database_file);
+    TEST_EQUAL(result.per_file.size(), 2)
+    std::vector<std::string> searching;
+    for (const std::string& label : labels(events, -1))
+    {
+      if (label.starts_with("Searching ")) { searching.push_back(label); }
+    }
+    TEST_TRUE(searching == outer_steps)
+    ABORT_IF(events.empty())
+    TEST_STRING_EQUAL(events.front().label, outer_steps[0])
+    TEST_EQUAL(std::count_if(events.begin(), events.end(), [](const ProgressEvent& e) { return e.kind == 's'; }),
+               std::count_if(events.begin(), events.end(), [](const ProgressEvent& e) { return e.kind == 'e'; }))
+  }
+
+  {
+    // Files whose search fails (here: an empty database) end their step as well, before the next file.
+    ScopedOpenMPThreads one_thread(1);
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const std::vector<FASTAFile::FASTAEntry> no_proteins;
+    const ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, no_proteins);
+    ABORT_IF(result.per_file.size() != 2)
+    for (const ProSEAlgorithm::SearchResult& file : result.per_file)
+    {
+      TEST_FALSE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    }
+    TEST_TRUE(labels(events, 0) == outer_steps)
+    TEST_EQUAL(nesting_errors(events), 0)
+  }
+
+  {
+    // ... and so does a file that throws: its step ends while the exception leaves the search, and the next search
+    // starts at the depth of the first one again (no step was left open).
+    ScopedOpenMPThreads one_thread(1);
+    ProSEAlgorithm algo;
+    std::vector<ProgressEvent> events;
+    configure_progress(algo, events);
+    const std::string missing_file = dir.getPath() + "/ProSE_13_missing.mzML";
+    TEST_EXCEPTION(Exception::FileNotFound, algo.searchWithModificationAnalysis(StringList{missing_file}, merge_database_file))
+    TEST_TRUE(labels(events, 0) == std::vector<std::string>{"Searching ProSE_13_missing.mzML (1 of 1)..."})
+    TEST_EQUAL(nesting_errors(events), 0)
+    const int first_search_depth = base_depth(events);
+    events.clear();
+    algo.searchWithModificationAnalysis(StringList{files[0]}, std::vector<FASTAFile::FASTAEntry>{});
+    TEST_TRUE(labels(events, 0) == std::vector<std::string>{"Searching ProSE_13_a.mzML (1 of 1)..."})
+    TEST_EQUAL(nesting_errors(events), 0)
+    TEST_EQUAL(base_depth(events), first_search_depth)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors write zero features without enough confident PSMs in either half, and nothing in target-only searches))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  auto run = [&](Size min_psms, double train_fdr, const std::string& decoys, IntList& fold_training_psms)
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, min_psms, train_fdr, decoys);
+    PeakMap run_spectra = spectra;
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(run_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(prot_ids.empty() || pep_ids.empty(), false)
+    if (prot_ids.empty() || pep_ids.empty()) return;
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "false")
+    fold_training_psms = sp.getMetaValue("ion_prior:fold_training_psms");
+    // the columns stay complete for Percolator
+    for (const std::string& feature : ion_prior_features_)
+    {
+      TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
+    }
+    const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, true);
+    TEST_TRUE(hits > 0)
+    TEST_EQUAL(violations, 0)
+  };
+
+  IntList fold_training_psms;
+  // more training PSMs required than the run has; the confident ones are still counted
+  run(1000000, 0.5, "generate", fold_training_psms);
+  ABORT_IF(fold_training_psms.size() != 2)
+  TEST_TRUE(fold_training_psms[0] > 0)
+  TEST_TRUE(fold_training_psms[1] > 0)
+  // the minimum applies to each half: one half above it does not suffice
+  const Size larger = static_cast<Size>(std::max(fold_training_psms[0], fold_training_psms[1]));
+  const Size smaller = static_cast<Size>(std::min(fold_training_psms[0], fold_training_psms[1]));
+  if (larger > smaller)
+  {
+    run(smaller + 1, 0.5, "generate", fold_training_psms);
+    TEST_EQUAL(static_cast<Size>(std::max(fold_training_psms[0], fold_training_psms[1])), larger)
+  }
+  // a q-value threshold nothing reaches
+  run(5, 0.0, "generate", fold_training_psms);
+  TEST_EQUAL(fold_training_psms[0] + fold_training_psms[1], 0)
+
+  // A target-only search (decoys=ignore) has no target-decoy competition to select training PSMs, and Percolator cannot
+  // use it: nothing is learned or written, and the output equals the one with the ion priors off.
+  auto target_only = [&](bool ion_priors, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, 5, 0.5, "ignore");
+    Param p = algo.getParameters();
+    p.setValue("annotate:self_trained_ion_priors", ion_priors ? "true" : "false");
+    algo.setParameters(p);
+    PeakMap run_spectra = spectra;
+    TEST_EQUAL(algo.search(run_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  };
+  std::vector<ProteinIdentification> on_prot_ids, off_prot_ids;
+  PeptideIdentificationList on_pep_ids, off_pep_ids;
+  target_only(true, on_prot_ids, on_pep_ids);
+  target_only(false, off_prot_ids, off_pep_ids);
+  ABORT_IF(on_prot_ids.empty() || off_prot_ids.empty() || on_pep_ids.empty() || on_pep_ids.size() != off_pep_ids.size())
+  const auto& on_sp = on_prot_ids[0].getSearchParameters();
+  TEST_EQUAL(on_sp.metaValueExists("annotate:self_trained_ion_priors"), false)
+  TEST_EQUAL(on_sp.metaValueExists("ion_prior:trained"), false)
+  TEST_EQUAL(extra_features_(on_prot_ids[0]), extra_features_(off_prot_ids[0]))
+  for (const std::string& feature : ion_prior_features_)
+  {
+    TEST_EQUAL(lists_feature_(on_prot_ids[0], feature), false)
+  }
+  Size target_only_hits = 0, target_only_annotated = 0, target_only_same = 0;
+  for (Size i = 0; i < on_pep_ids.size(); ++i)
+  {
+    const std::vector<PeptideHit>& a = on_pep_ids[i].getHits();
+    const std::vector<PeptideHit>& b = off_pep_ids[i].getHits();
+    bool equal = a.size() == b.size();
+    for (Size h = 0; h < a.size(); ++h)
+    {
+      ++target_only_hits;
+      for (const std::string& feature : ion_prior_features_) if (a[h].metaValueExists(feature)) ++target_only_annotated;
+      equal = equal && h < b.size() && a[h].getSequence() == b[h].getSequence() && a[h].getScore() == b[h].getScore();
+    }
+    if (equal) ++target_only_same;
+  }
+  TEST_TRUE(target_only_hits > 0)
+  TEST_EQUAL(target_only_annotated, 0)
+  TEST_EQUAL(target_only_same, on_pep_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors are cross-fitted: the features of a PSM do not depend on its own half of the spectra))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // The identifications, labelled by PeptideIndexing, without ion priors.
+  ProSEAlgorithm_test plain;
+  configure_ion_prior_params_(plain, 5, 0.5);
+  Param p = plain.getParameters();
+  p.setValue("annotate:self_trained_ion_priors", "false");
+  plain.setParameters(p);
+  PeakMap searched = spectra;
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(plain.search(searched, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+
+  // The spectra and peak lists as the search with ion priors sees them.
+  ProSEAlgorithm_test algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  PeakMap preprocessed = spectra;
+  FragmentIonLikelihoodModel::PeakLists evidence;
+  ProSEAlgorithm_test::preprocessSpectra_(preprocessed, 20.0, true, true, 0, 20, "auto", ProSEAlgorithm_test::DeisotopingSettings_{}, &evidence, false);
+  TEST_EQUAL(evidence.size(), preprocessed.size())
+  TEST_TRUE(evidence.totalPeaks() > 0)
+
+  auto annotate = [&algo, &preprocessed, &evidence, &prot_ids](PeptideIdentificationList ids) {
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, ids);
+    TEST_STRING_EQUAL(proteins[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    return ids;
+  };
+  const PeptideIdentificationList reference = annotate(pep_ids);
+  const auto [hits, violations] = check_ion_prior_annotations_(reference, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
+
+  // Flip the target/decoy label of the best target of each half in turn. The features of the PSMs of
+  // that half stay exactly the same (they are scored by the model of the other half); the other half's
+  // features change (its model lost a training PSM).
+  for (Size fold = 0; fold < 2; ++fold)
+  {
+    PeptideIdentificationList flipped = pep_ids;
+    Size best = flipped.size();
+    double best_score = -std::numeric_limits<double>::infinity();
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      const PeptideHit& top_hit = flipped[i].getHits()[0];
+      if (scan % 2 != fold || top_hit.getMetaValue("target_decoy").toString() == "decoy") continue;
+      if (top_hit.getScore() > best_score) { best_score = top_hit.getScore(); best = i; }
+    }
+    ABORT_IF(best == flipped.size())
+    flipped[best].getHits()[0].setMetaValue("target_decoy", "decoy");
+    const PeptideIdentificationList result = annotate(flipped);
+    ABORT_IF(result.size() != reference.size())
+    Size same_half_changed = 0, other_half_changed = 0;
+    for (Size i = 0; i < result.size(); ++i)
+    {
+      if (result[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(result[i].getMetaValue("scan_index"));
+      bool changed = false;
+      for (Size h = 0; h < result[i].getHits().size(); ++h)
+      {
+        for (const std::string& feature : ion_prior_features_)
+        {
+          changed = changed || static_cast<double>(result[i].getHits()[h].getMetaValue(feature))
+                                 != static_cast<double>(reference[i].getHits()[h].getMetaValue(feature));
+        }
+      }
+      if (changed) ++(scan % 2 == fold ? same_half_changed : other_half_changed);
+    }
+    TEST_EQUAL(same_half_changed, 0)
+    TEST_TRUE(other_half_changed > 0)
+  }
+
+  // The run-level gate (annotate:ion_prior_min_psms applies to each half) is where the labels of a half reach its own
+  // features. With the minimum at the training count of the smaller half, the search is trained and its features are
+  // those of any lower minimum; flipping the label of that half's best target leaves the half below the minimum, and
+  // every feature of BOTH halves falls back to 0, those of the half whose label changed included.
+  {
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    PeptideIdentificationList ids = pep_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, ids);
+    const IntList folds = proteins[0].getSearchParameters().getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(folds.size() != 2)
+    const Size gate_fold = folds[0] <= folds[1] ? 0 : 1;
+    const Size min_psms = static_cast<Size>(folds[gate_fold]);
+    ABORT_IF(min_psms < 1)
+
+    ProSEAlgorithm_test gated;
+    configure_ion_prior_params_(gated, min_psms, 0.5);
+    std::vector<ProteinIdentification> at_gate_proteins = prot_ids;
+    PeptideIdentificationList at_gate = pep_ids;
+    gated.annotateIonPriors_(preprocessed, evidence, at_gate_proteins, at_gate);
+    TEST_STRING_EQUAL(at_gate_proteins[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    TEST_EQUAL(ion_prior_rows_(at_gate) == ion_prior_rows_(reference), true)
+
+    PeptideIdentificationList flipped = pep_ids;
+    Size best = flipped.size();
+    double best_score = -std::numeric_limits<double>::infinity();
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      const PeptideHit& top_hit = flipped[i].getHits()[0];
+      if (scan % 2 != gate_fold || top_hit.getMetaValue("target_decoy").toString() == "decoy") continue;
+      if (top_hit.getScore() > best_score) { best_score = top_hit.getScore(); best = i; }
+    }
+    ABORT_IF(best == flipped.size())
+    flipped[best].getHits()[0].setMetaValue("target_decoy", "decoy");
+    std::vector<ProteinIdentification> flipped_proteins = prot_ids;
+    gated.annotateIonPriors_(preprocessed, evidence, flipped_proteins, flipped);
+    const auto& sp = flipped_proteins[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "false")
+    const IntList flipped_folds = sp.getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(flipped_folds.size() != 2)
+    TEST_TRUE(static_cast<Size>(flipped_folds[gate_fold]) < min_psms)
+    // the all-zero fallback: every hit keeps the complete feature columns, all of them 0
+    const auto [flipped_hits, flipped_violations] = check_ion_prior_annotations_(flipped, true);
+    TEST_EQUAL(flipped_hits, hits)
+    TEST_EQUAL(flipped_violations, 0)
+    // ... which changes features in both halves: the trained features were not all 0
+    ABORT_IF(flipped.size() != reference.size())
+    std::array<Size, 2> changed{0, 0};
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      bool differs = false;
+      for (Size h = 0; h < flipped[i].getHits().size(); ++h)
+      {
+        for (const std::string& feature : ion_prior_features_)
+        {
+          differs = differs || static_cast<double>(flipped[i].getHits()[h].getMetaValue(feature))
+                                 != static_cast<double>(reference[i].getHits()[h].getMetaValue(feature));
+        }
+      }
+      if (differs) ++changed[scan % 2];
+    }
+    TEST_TRUE(changed[0] > 0)
+    TEST_TRUE(changed[1] > 0)
+  }
+
+  // A half without a decoy hit still has the target-decoy estimate (0 + 1) / T of a search with decoys: with every
+  // best hit of the odd half labelled target, all of its scorable PSMs train (T >= 2 reaches q <= 0.5).
+  {
+    PeptideIdentificationList no_decoy_half = pep_ids;
+    Size odd_psms = 0;
+    for (PeptideIdentification& pid : no_decoy_half)
+    {
+      if (pid.getHits().empty()) continue;
+      const Size scan = static_cast<int>(pid.getMetaValue("scan_index"));
+      if (scan % 2 != 1) continue;
+      for (PeptideHit& hit : pid.getHits()) hit.setMetaValue("target_decoy", "target");
+      if (scan < evidence.size() && evidence.peaks(scan) > 0) ++odd_psms;
+    }
+    TEST_TRUE(odd_psms >= 2)
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, no_decoy_half);
+    const auto& sp = proteins[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+    const IntList folds = sp.getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(folds.size() != 2)
+    TEST_EQUAL(static_cast<Size>(folds[1]), odd_psms)
+  }
+
+  // Annotation is deterministic: the same input gives bit-identical features.
+  TEST_EQUAL(ion_prior_rows_(annotate(pep_ids)) == ion_prior_rows_(reference), true)
+
+  // the noise hypothesis: all but the C-terminal residue reversed, modifications kept
+  TEST_STRING_EQUAL(ProSEAlgorithm_test::reversedNoiseSequence_(AASequence::fromString("PEPM(Oxidation)TIDEK")).toString(), "EDITM(Oxidation)PEPK")
+  TEST_STRING_EQUAL(ProSEAlgorithm_test::reversedNoiseSequence_(AASequence::fromString("AK")).toString(), "AK")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors are learned per file and agree between the single-file, chunked and multi-file searches))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string spectra_file;
+  NEW_TMP_FILE(spectra_file)
+  spectra_file += ".mzML";
+  FileHandler().storeExperiment(spectra_file, spectra, {FileTypes::MZML});
+  PeakMap stored;
+  FileHandler().loadExperiment(spectra_file, stored, {FileTypes::MZML});
+
+  for (const int chunk_size : {0, 3})
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, 5, 0.5);
+    Param p = algo.getParameters();
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+
+    // single file, in memory: search(spectra, ctx) without chunks, searchChunked_ with chunks
+    PeakMap single_spectra = stored;
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(single_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(prot_ids.empty() || pep_ids.empty())
+    TEST_STRING_EQUAL(prot_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+    TEST_TRUE(hits > 0)
+    TEST_EQUAL(violations, 0)
+    const std::vector<std::string> single_rows = ion_prior_rows_(pep_ids);
+
+    // The same file twice in one multi-file search (per file with a shared index without chunks,
+    // chunk-major with chunks): each file trains its own models on identical data and gets the
+    // features of the single-file search.
+    ProSEAlgorithm::MultiFileSearchResult result =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, spectra_file}, fasta_db, std::vector<std::string>{}, "", false);
+    ABORT_IF(result.per_file.size() != 2 || result.per_file[0].protein_ids.empty() || result.per_file[1].protein_ids.empty())
+    for (const auto& per_file : result.per_file)
+    {
+      TEST_STRING_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+      TEST_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"),
+                 prot_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"))
+      TEST_EQUAL(ion_prior_rows_(per_file.peptide_ids) == single_rows, true)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein mapping from the fragment index writes what PeptideIndexing writes))
+{
+  // Peptides in several target and decoy proteins, at position 1 and 2 of proteins that start with M (also after a
+  // residue that is no cleavage site), behind non-cleavage sites (A, KP), and across ambiguous residues B, J, Z, X.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK", "AWDLKPEPK"};
+  const vector<string> ambiguous = {"QPEPTXDEMR", "AMBEQK", "AMDZQK", "PEPTJDEK", "GGXMSTMK", "PEPTXDBK", "PXPTXDXK", "CMQEDX", "ZPEPTIDEK"};
+  std::mt19937 rng(5);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 80; ++i)
+  {
+    const vector<string> starts = {"M", "MA", "MAS", "", ""};
+    string sequence = starts[i % starts.size()];
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b)
+    {
+      sequence += (rng() % 5 == 0) ? ambiguous[rng() % ambiguous.size()] : blocks[rng() % blocks.size()];
+      if (rng() % 5 == 0) sequence += "A";
+    }
+    db.push_back({(i % 3 == 0 ? "DECOY_P" : "P") + std::to_string(i), "", sequence});
+  }
+  struct Config { string enzyme, clip, deduplicate; vector<string> fixed, variable; Int aaa_max; };
+  const vector<Config> configs = {
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "false", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "true", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin/P", "true", "true", {}, {}, 3},
+    {"Trypsin/P", "false", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)"}, 1},
+    {"Lys-C", "true", "true", {"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}, 2}}; // deduplicated as strings
+  Size mapped = 0, m_start = 0, over_ambiguous = 0, shared = 0;
+  for (const Config& config : configs)
+  {
+    MappingCase c;
+    c.db = db;
+    prepareMappingCase(c, config.enzyme, config.clip, config.deduplicate, config.fixed, config.variable, config.aaa_max);
+    TEST_TRUE(c.peptides.size() > 10)
+    vector<ProteinIdentification> proteins = c.proteins;
+    PeptideIdentificationList peptides = c.peptides;
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    TEST_STRING_EQUAL(mapping.fallback_reason, "")
+    string reason;
+    TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_STRING_EQUAL(reason, "")
+
+    PeptideIndexing indexer;
+    indexer.setParameters(c.indexer_parameters);
+    vector<FASTAFile::FASTAEntry> db_copy = c.db;
+    TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+    TEST_TRUE(peptides == c.peptides)
+    TEST_TRUE(proteins == c.proteins)
+    // what the database exercised
+    for (const auto& id : c.peptides)
+    {
+      for (const auto& hit : id.getHits())
+      {
+        ++mapped;
+        shared += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
+        for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+        {
+          const string& protein = std::find_if(c.db.begin(), c.db.end(), [&](const auto& e) { return e.identifier == evidence.getProteinAccession(); })->sequence;
+          const string span = protein.substr(evidence.getStart(), evidence.getEnd() - evidence.getStart() + 1);
+          over_ambiguous += span.find_first_of("BJZX") != string::npos ? 1 : 0;
+          m_start += (evidence.getStart() == 2 && protein[0] == 'M' && protein[1] != 'K' && protein[1] != 'R') ? 1 : 0;
+        }
+      }
+    }
+  }
+  TEST_TRUE(mapped > 1000)
+  TEST_TRUE(shared > 0)
+  TEST_TRUE(m_start > 0)
+  TEST_TRUE(over_ambiguous > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein mapping from the fragment index leaves PeptideIndexing what it cannot reproduce))
+{
+  const vector<FASTAFile::FASTAEntry> base = {{"P1", "", "MAPEPTIDEKAMDEQKGGQMSTMK"}, {"P2", "", "QPEPTIDEMRPEPTIDEK"},
+                                              {"DECOY_P3", "", "KEDITPEPRMEDTPEPQ"}, {"P4", "", "PEPTIDEKAMXEQK"}};
+  // {database change, index modifications, PeptideIndexing parameter change}
+  struct Case { string what; vector<FASTAFile::FASTAEntry> db; vector<string> variable; string key; ParamValue value; };
+  vector<Case> cases;
+  cases.push_back({"stretch of more than aaa_max X", base, {}, "", ParamValue()});
+  cases.back().db[3].sequence = "PEPTIDEKAMXXXXEQK";
+  cases.push_back({"symbol", base, {}, "", ParamValue()});
+  cases.back().db[1].sequence = "QPEPTIDEMR*";
+  cases.push_back({"protein-terminal modification", base, {"Acetyl (Protein N-term)"}, "", ParamValue()});
+  cases.push_back({"mismatches", base, {}, "mismatches_max", ParamValue(1)});
+  cases.push_back({"I/L", base, {}, "IL_equivalent", ParamValue("true")});
+  cases.push_back({"no N-terminal cleavage", base, {}, "allow_nterm_protein_cleavage", ParamValue("false")});
+  cases.push_back({"semi-specific", base, {}, "enzyme:specificity", ParamValue("semi")});
+  cases.push_back({"other enzyme", base, {}, "enzyme:name", ParamValue("Lys-C")});
+  cases.push_back({"protein sequences", base, {}, "write_protein_sequence", ParamValue("true")});
+  cases.push_back({"decoy detection", base, {}, "decoy_string", ParamValue("")});
+  for (const Case& test_case : cases)
+  {
+    MappingCase c;
+    c.db = test_case.db;
+    prepareMappingCase(c, "Trypsin", "true", "true", {}, test_case.variable, 3);
+    if (!test_case.key.empty()) c.indexer_parameters.setValue(test_case.key, test_case.value);
+    vector<ProteinIdentification> proteins = c.proteins;
+    PeptideIdentificationList peptides = c.peptides;
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    string reason;
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(!reason.empty())
+    TEST_TRUE(peptides == c.peptides) // unchanged
+    TEST_TRUE(proteins == c.proteins)
+  }
+  // more spans over ambiguous residues than the lookup budget (2^22): decided before any lookup, from an exact count.
+  // Proteins without cleavage sites (no peptides of their own) with B, Z, J and isolated X around them, added up to the
+  // budget and one more.
+  {
+    const string ambiguous_protein = string(25, 'A') + "BGZJAX" + string(3, 'G') + "X" + string(25, 'A');
+    MappingCase probe;
+    probe.db = base;
+    probe.db.push_back({"AMB", "", ambiguous_protein});
+    prepareMappingCase(probe, "Trypsin", "true", "true", {}, {}, 3);
+    std::set<Size> lengths;
+    for (const UInt32 candidate : probe.candidates) lengths.insert(probe.index.getPeptides()[candidate].sequence_.second);
+    const Size per_protein = ambiguousSpanLookups(ambiguous_protein, lengths, 3);
+    TEST_TRUE(per_protein > 0)
+    Size in_base = 0;
+    for (const auto& entry : base) in_base += ambiguousSpanLookups(entry.sequence, lengths, 3);
+    const Size budget = Size(1) << 22;
+    const Size under = (budget - in_base) / per_protein; // proteins that fit
+    for (const Size copies : {under, under + 1})
+    {
+      MappingCase c;
+      c.db = base;
+      for (Size i = 0; i < copies; ++i) c.db.push_back({"AMB" + std::to_string(i), "", ambiguous_protein});
+      prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+      TEST_TRUE(c.candidates.size() == probe.candidates.size()) // the same lengths
+      const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+      vector<ProteinIdentification> proteins = c.proteins;
+      PeptideIdentificationList peptides = c.peptides;
+      string reason;
+      if (copies == under)
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "")
+        TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        PeptideIndexing indexer;
+        indexer.setParameters(c.indexer_parameters);
+        vector<FASTAFile::FASTAEntry> db_copy = c.db;
+        TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+      else
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "too many spans over ambiguous residues in the database")
+        TEST_TRUE(mapping.sequences.empty()) // nothing built
+        TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+    }
+  }
+  // identifications the mapping does not cover
+  {
+    MappingCase c;
+    c.db = base;
+    prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    TEST_STRING_EQUAL(mapping.fallback_reason, "")
+    string reason;
+    // a hit whose sequence was not among the candidates
+    PeptideIdentificationList peptides = c.peptides;
+    vector<ProteinIdentification> proteins = c.proteins;
+    peptides[0].getHits()[0].setSequence(AASequence::fromString("GGQMSTMKQPEPTIDEMR"));
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(proteins == c.proteins)
+    // no hits, two runs, results of X! Tandem
+    peptides.clear();
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    peptides = c.peptides;
+    proteins.push_back(proteins[0]);
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    proteins = c.proteins;
+    proteins[0].setSearchEngine("XTandem");
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(peptides == c.peptides)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptide:protein_mapping index and PeptideIndexing give the same search results))
+{
+  // Target and decoy proteins share peptides; one protein starts with M followed by a residue that is no cleavage site
+  const vector<string> peptides = {"THQPSANLDIK", "VLGFHQRMPNASTICYWDLK", "EGFVRTHQPSANLDIK", "GWSADELK", "HPFNQGTICMSYR"};
+  vector<FASTAFile::FASTAEntry> db = {
+    {"P1", "", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"},
+    {"P2", "", "MATHQPSANLDIKHASGDFLKPIVEQNCTMYRGWSADELK"},
+    {"P3", "", "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYR"},
+    {"DECOY_P4", "", "KDLWYCITSANPMRQHFGLVKERTHQPSANLDIK"}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  for (const string& sequence : peptides)
+  {
+    const AASequence peptide = AASequence::fromString(sequence);
+    MSSpectrum spectrum;
+    tsg.getSpectrum(spectrum, peptide, 1, 1);
+    spectrum.setMSLevel(2);
+    spectrum.setRT(100.0 + spectra.size());
+    spectrum.setNativeID("scan=" + std::to_string(spectra.size()));
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    spectra.addSpectrum(spectrum);
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("report:top_hits", 10);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)"});
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("decoys", "auto");
+  vector<ProteinIdentification> proteins[2];
+  PeptideIdentificationList ids[2];
+  for (int i = 0; i < 2; ++i)
+  {
+    p.setValue("peptide:protein_mapping", i == 0 ? "index" : "PeptideIndexing");
+    algo.setParameters(p);
+    PeakMap input = spectra;
+    TEST_EQUAL(algo.search(input, db, proteins[i], ids[i]) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    // the run identifier and date are those of the moment of the search
+    for (auto& id : ids[i]) id.setIdentifier("");
+    proteins[i][0].setIdentifier("");
+    proteins[i][0].setDateTime(DateTime());
+  }
+  TEST_EQUAL(ids[0].size(), peptides.size())
+  TEST_EQUAL(ids[1].size(), peptides.size())
+  TEST_TRUE(ids[0] == ids[1])
+  TEST_TRUE(proteins[0] == proteins[1])
+  Size target_decoy = 0;
+  for (const auto& id : ids[0])
+  {
+    for (const auto& hit : id.getHits()) target_decoy += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
+  }
+  TEST_TRUE(target_decoy > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolveDecoyStrategy_ detects the decoy marker of large databases as DecoyHelper does))
+{
+  // Large enough for the parallel detection; checked against DecoyHelper::findDecoyString()
+  const auto make_db = [](const std::function<string(Size)>& identifier)
+  {
+    vector<FASTAFile::FASTAEntry> db;
+    for (Size i = 0; i < 10000; ++i) db.push_back({identifier(i), "", "PEPTIDEK"});
+    return db;
+  };
+  const vector<vector<FASTAFile::FASTAEntry>> dbs = {
+    make_db([](Size i) { return (i % 2 ? "DECOY_" : "") + string("P") + std::to_string(i); }),
+    make_db([](Size i) { return (i % 2 ? (i < 9000 ? "DECOY_" : "decoy_") : "") + string("P") + std::to_string(i); }), // last spelling
+    make_db([](Size i) { return (i % 5 < 3 ? "rev_" : "") + string("sp|P") + std::to_string(i); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_REVERSED" : ""); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_rev" : ""); }),
+    make_db([](Size i) { return (i % 4 == 1 ? "DECOY_" : "") + string("P") + std::to_string(i) + (i % 4 == 3 ? "_decoy" : ""); }), // as often
+    make_db([](Size i) { return (i % 10 == 1 ? "XXX_" : "") + string("P") + std::to_string(i); }), // too few
+    make_db([](Size i) { return (i % 2 ? (i % 3 ? "DECOY_" : "REV_") : "") + string("P") + std::to_string(i); })}; // no single one
+  for (const auto& db : dbs)
+  {
+    FASTAContainer<TFI_Vector> container(db);
+    const DecoyHelper::Result expected = DecoyHelper::findDecoyString(container, true);
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("decoy_prefix", "NOT_IN_THE_DATABASE_");
+    algo.setParameters(p);
+    const ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(db);
+    TEST_EQUAL(s.generate, !expected.success)
+    if (expected.success)
+    {
+      TEST_STRING_EQUAL(s.decoy_string, expected.name)
+      TEST_EQUAL(s.is_prefix, expected.is_prefix)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fragment:mass_tolerance must be finite and positive for every scoring method))
+{
+  // HyperScore::computeMassAccuracy() rejects such a tolerance; it is checked when the parameters are set, not
+  // on a worker thread of the parallel scoring loop (where it terminated the process). HyperScore and the fragment
+  // index cannot match with it either: 0, negative and NaN tolerances gave no hits and infinity inflated scores, so
+  // 'auto' and 'hyperscore' reject it too.
+  for (const std::string method : {"mass_accuracy", "auto", "hyperscore"})
+  {
+    for (const std::string unit : {"ppm", "Da"})
+    {
+      for (const double tolerance : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+      {
+        for (const std::string local_evidence : {"false", "true"})
+        {
+          ProSEAlgorithm_test prose;
+          Param p = prose.getParameters();
+          p.setValue("scoring:method", method);
+          p.setValue("fragment:mass_tolerance", tolerance);
+          p.setValue("fragment:mass_tolerance_unit", unit);
+          p.setValue("annotate:local_fragment_evidence", local_evidence);
+          p.setValue("fragment:deisotope", "false");
+          p.setValue("calibration:enabled", "false");
+          TEST_EXCEPTION(Exception::InvalidParameter, prose.setParameters(p))
+        }
+      }
+    }
+  }
+  ProSEAlgorithm_test prose;
+  Param p = prose.getParameters();
+  p.setValue("scoring:method", "auto");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  prose.setParameters(p);
+  TEST_EQUAL(prose.mass_accuracy_score_, true)
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  prose.setParameters(p);
+  TEST_EQUAL(prose.mass_accuracy_score_, false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] every variable modification that a fixed one excludes is reported))
+{
+  // A residue and a terminus carry one modification each, so the index does not apply a variable modification where a
+  // fixed one sits on the same residue (Carbamidomethyl (C) fixed and variable, Glutathione (C) with Carbamidomethyl
+  // (C) fixed) or terminus (also one with a residue preference, Gln->pyro-Glu (N-term Q) with TMT6plex (N-term)
+  // fixed). Each is reported. For a modification that is fixed as well, the remedy is to remove the fixed one.
+  const auto warnings = [](const std::vector<std::string>& fixed, const std::vector<std::string>& variable)
+  {
+    std::ostringstream captured;
+    OPENMS_LOG_WARN.insert(captured);
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", variable);
+    algo.setParameters(p);
+    OPENMS_LOG_WARN.remove(captured);
+    return captured.str();
+  };
+  const std::string fixed_too = "remove it from modifications:fixed";
+  {
+    const std::string w = warnings({"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)"});
+    TEST_EQUAL(w.find("'Carbamidomethyl (C)' is not searched") != std::string::npos, true)
+    TEST_EQUAL(w.find(fixed_too) != std::string::npos, true)
+  }
+  {
+    const std::string w = warnings({"Carbamidomethyl (C)"}, {"Glutathione (C)", "Oxidation (M)"});
+    TEST_EQUAL(w.find("'Glutathione (C)' is not searched") != std::string::npos, true)
+    TEST_EQUAL(w.find(fixed_too) == std::string::npos, true)
+    TEST_EQUAL(w.find("'Oxidation (M)'") == std::string::npos, true)
+  }
+  {
+    const std::string w = warnings({"TMT6plex (N-term)"}, {"Gln->pyro-Glu (N-term Q)"});
+    TEST_EQUAL(w.find("'Gln->pyro-Glu (N-term Q)' is not searched") != std::string::npos, true)
+  }
+  {
+    const std::string w = warnings({"TMT6plex (N-term)"}, {"TMT6plex (N-term)", "Deamidated (N)"});
+    TEST_EQUAL(w.find("'TMT6plex (N-term)' is not searched") != std::string::npos, true)
+    TEST_EQUAL(w.find(fixed_too) != std::string::npos, true)
+  }
+  {
+    // searched: a residue-specific terminal modification next to a fixed modification of the residue
+    const std::string w = warnings({"Carbamidomethyl (C)"}, {"Ammonia-loss (N-term C)", "Oxidation (M)", "Acetyl (N-term)"});
+    TEST_EQUAL(w.find("is not searched") == std::string::npos, true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] an exception after the calibration pass leaves the tolerances and the progress display as they were))
+{
+  // Calibration narrows the precursor tolerances of the instance (and of the index of the search context) for the main
+  // search; they were restored only on the return paths. An exception after the calibration pass (a worker exception
+  // that the scoring loop rethrows, std::bad_alloc, ...) left them narrowed for the next search of a caller that
+  // catches it. Here the progress display throws when the scoring starts. Both search paths: one search context and
+  // database chunks (database:chunk_size).
+  const vector<double> ppm_shifts = {0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0};
+  vector<FASTAFile::FASTAEntry> fasta_db = calibration_fasta_db_();
+  fasta_db.push_back({"P02", "Test", "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVK"});
+  for (const Int chunk_size : {0, 1})
+  {
+    const auto configure = [chunk_size](ProSEAlgorithm& algo)
+    {
+      configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+      Param p = algo.getParameters();
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+    };
+    ProSEAlgorithm_test fresh;
+    configure(fresh);
+    PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+    vector<ProteinIdentification> fresh_proteins;
+    PeptideIdentificationList fresh_peptides;
+    fresh.search(spectra, fasta_db, fresh_proteins, fresh_peptides);
+
+    ProSEAlgorithm_test algo;
+    configure(algo);
+    int starts = 0, ends = 0;
+    algo.setLogger(new CountingProgressLogger(starts, ends, "Scoring"));
+    std::ostringstream info;
+    OPENMS_LOG_INFO.insert(info);
+    spectra = build_calibration_spectra_(ppm_shifts);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_EXCEPTION(Exception::InvalidValue, algo.search(spectra, fasta_db, proteins, peptides))
+    OPENMS_LOG_INFO.remove(info);
+    TEST_EQUAL(info.str().find("-> window [-") != std::string::npos, true) // the calibration narrowed the window
+    TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
+    TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+    TEST_EQUAL(starts, ends)
+
+    // the instance searches as a fresh one
+    algo.setLogType(ProgressLogger::NONE);
+    spectra = build_calibration_spectra_(ppm_shifts);
+    proteins.clear();
+    peptides.clear();
+    algo.search(spectra, fasta_db, proteins, peptides);
+    TEST_EQUAL(peptides.size(), fresh_peptides.size())
+    ABORT_IF(peptides.size() != fresh_peptides.size())
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      TEST_EQUAL(peptides[i].getHits().size(), fresh_peptides[i].getHits().size())
+      if (!peptides[i].getHits().empty() && !fresh_peptides[i].getHits().empty())
+      {
+        TEST_EQUAL(peptides[i].getHits()[0].getSequence(), fresh_peptides[i].getHits()[0].getSequence())
+        TEST_REAL_SIMILAR(peptides[i].getHits()[0].getScore(), fresh_peptides[i].getHits()[0].getScore())
+      }
+    }
+  }
+
+  // A worker exception of the scoring or calibration loop (HyperScore::computeMassAccuracy() rejects the tolerance,
+  // set here past setParameters()) is rethrown after the loop; the progress display it started ends as well.
+  for (const std::string calibration : {"false", "true"})
+  {
+    ProSEAlgorithm_test algo;
+    configure_calibration_params_(algo, 20.0, 30.0, 3);
+    Param p = algo.getParameters();
+    p.setValue("scoring:method", "mass_accuracy");
+    p.setValue("calibration:enabled", calibration);
+    algo.setParameters(p);
+    algo.fragment_mass_tolerance_ = 0.0;
+    int starts = 0, ends = 0;
+    algo.setLogger(new CountingProgressLogger(starts, ends));
+    PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.search(spectra, fasta_db, proteins, peptides))
+    TEST_EQUAL(starts > 0, true)
+    TEST_EQUAL(starts, ends)
   }
 }
 END_SECTION

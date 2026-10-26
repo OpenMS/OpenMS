@@ -38,6 +38,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "nanobind_autodoc",
     "sphinx.ext.mathjax",
     "sphinx_remove_toctrees",
     "chemrole",
@@ -46,6 +47,13 @@ extensions = [
 ## warn about invalid references (e.g. invalid class names)
 nitpicky = True
 nitpick_ignore = []
+# types from outside pyOpenMS that appear in the nanobind signatures
+nitpick_ignore_regex = [
+    (
+        "py:class",
+        r"(collections\.abc|typing|enum|os|ctypes|numpy|pandas|pyarrow|matplotlib)\..*",
+    ),
+]
 
 autosummary_generate = True
 autosummary_imported_members = True

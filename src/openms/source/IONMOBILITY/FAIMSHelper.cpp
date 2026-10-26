@@ -11,12 +11,24 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <algorithm>
 #include <cmath>
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// Whether @p item belongs to the FAIMS CV group @p target_cv: its FAIMS_CV matches, or it has none (such items
+    /// go to every group, for backward compatibility)
+    bool inFAIMSCVGroup(const MetaInfoInterface& item, double target_cv, double cv_tolerance)
+    {
+      return !item.metaValueExists(Constants::UserParam::FAIMS_CV)
+             || std::abs(static_cast<double>(item.getMetaValue(Constants::UserParam::FAIMS_CV)) - target_cv) < cv_tolerance;
+    }
+  }
+
   std::set<double> FAIMSHelper::getCompensationVoltages(const PeakMap& exp)
   {
     std::set<double> CVs;
@@ -62,24 +74,24 @@ namespace OpenMS
   {
     PeptideIdentificationList filtered;
     filtered.reserve(peptides.size()); // Optimistic reservation
-
     for (const auto& pep : peptides)
     {
-      if (pep.metaValueExists(Constants::UserParam::FAIMS_CV))
-      {
-        double pep_cv = (double)pep.getMetaValue(Constants::UserParam::FAIMS_CV);
-        if (std::abs(pep_cv - target_cv) < cv_tolerance)
-        {
-          filtered.push_back(pep);
-        }
-      }
-      else
-      {
-        // IDs without FAIMS_CV annotation - include in all groups (backward compatibility)
-        filtered.push_back(pep);
-      }
+      if (inFAIMSCVGroup(pep, target_cv, cv_tolerance)) filtered.push_back(pep);
     }
+    return filtered;
+  }
 
+  FeatureMap FAIMSHelper::filterFeaturesByFAIMSCV(
+    const FeatureMap& features,
+    double target_cv,
+    double cv_tolerance)
+  {
+    FeatureMap filtered;
+    static_cast<DocumentIdentifier&>(filtered) = features;
+    for (const Feature& f : features)
+    {
+      if (inFAIMSCVGroup(f, target_cv, cv_tolerance)) filtered.push_back(f);
+    }
     return filtered;
   }
 

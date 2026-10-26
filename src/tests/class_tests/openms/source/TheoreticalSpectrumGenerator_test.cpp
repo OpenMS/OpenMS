@@ -978,6 +978,49 @@ START_SECTION([EXTRA] b-ion and a-ion neutral-loss m/z values)
 }
 END_SECTION
 
+START_SECTION([EXTRA] internal fragments include the one next to the C-terminal residue)
+{
+  // Only internal fragments: no ion series, precursor or immonium peaks
+  TheoreticalSpectrumGenerator gen;
+  Param p = gen.getParameters();
+  p.setValue("add_a_ions", "false");
+  p.setValue("add_b_ions", "false");
+  p.setValue("add_c_ions", "false");
+  p.setValue("add_x_ions", "false");
+  p.setValue("add_y_ions", "false");
+  p.setValue("add_z_ions", "false");
+  p.setValue("add_precursor_peaks", "false");
+  p.setValue("add_abundant_immonium_ions", "false");
+  p.setValue("add_losses", "false");
+  p.setValue("add_internal_fragments", "true");
+  p.setValue("add_metainfo", "true");
+  gen.setParameters(p);
+
+  // GASP: the only internal fragment is AS (and its a-type AS-CO)
+  {
+    PeakSpectrum spec;
+    gen.getSpectrum(spec, AASequence::fromString("GASP"), 1, 1);
+    const PeakSpectrum::StringDataArray& anno = spec.getStringDataArrays()[0];
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "AS") != anno.end(), true)
+  }
+  // GASPK: AS, ASP and SP
+  {
+    PeakSpectrum spec;
+    gen.getSpectrum(spec, AASequence::fromString("GASPK"), 1, 1);
+    const PeakSpectrum::StringDataArray& anno = spec.getStringDataArrays()[0];
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "AS") != anno.end(), true)
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "ASP") != anno.end(), true)
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "SP") != anno.end(), true)
+  }
+  // GAS has no internal fragment of 2 or more residues
+  {
+    PeakSpectrum spec;
+    gen.getSpectrum(spec, AASequence::fromString("GAS"), 1, 1);
+    TEST_EQUAL(spec.empty(), true)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] add_internal_fragments on very short peptides does not hang (unsigned underflow regression))
 {
   // Regression for the unsigned underflow in addInternalFragmentPeaks_():

@@ -19,6 +19,7 @@ set(sources_list_h
 AbsoluteQuantitationMethodFile.h
 AbsoluteQuantitationStandardsFile.h
 Base64.h
+BedRModFile.h
 Bzip2Ifstream.h
 CachedMzML.h
 ChromeleonFile.h
@@ -133,6 +134,7 @@ list(APPEND sources_list_h QPXIdentity.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
 list(APPEND sources_list_h QPXCollectionExport.h)
 list(APPEND sources_list_h QPXValueValidation.h)
+list(APPEND sources_list_h QPXDatasetExport.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
@@ -145,7 +147,7 @@ if (WITH_OPENTIMS)
 endif()
 
 if (WITH_THERMO_RAW)
-  list(APPEND sources_list_h ThermoRawFile.h)
+  list(APPEND sources_list_h OnDiscThermoRawExperiment.h ThermoRawFile.h)
 endif()
 
 ### add path to the filenames
@@ -191,12 +193,13 @@ ParquetFile.h
 ZipRandomAccessFile.h
 )
 
-### RationalScan2ImConverter derives from OpenTIMS' Scan2InvIonMobilityConverter, so its
-### header includes <opentims++/...> and needs OpenTIMS' development files. Only
-### BrukerTimsFile.cpp and the class test use it; BrukerTimsFile.h itself hands out
-### OpenMS types, so OpenTIMS stays PRIVATE.
+### RationalScan2ImConverter and MzCalibrationTof2MzConverter derive from OpenTIMS'
+### Scan2InvIonMobilityConverter / Tof2MzConverter, so their headers include
+### <opentims++/...> and need OpenTIMS' development files. Only BrukerTimsFile.cpp and the
+### class test use them; BrukerTimsFile.h itself hands out OpenMS types, so OpenTIMS stays PRIVATE.
 if (WITH_OPENTIMS)
   list(APPEND private_headers_list_h RationalScan2ImConverter.h)
+  list(APPEND private_headers_list_h MzCalibrationTof2MzConverter.h)
 endif()
 
 set(private_sources_h)

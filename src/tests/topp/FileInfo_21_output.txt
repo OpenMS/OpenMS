@@ -1,0 +1,30 @@
+
+-- General information --
+
+File name: C:/dev/openms/src/tests/topp/FileInfo_21_input.consensusXML
+File type: consensusXML
+
+Number of consensus features:
+  of size 2: 2	 (features: 4 )	 with at least one ID: 2	 (features: 4 )
+  peptides (with different mod. and charge) observed in 2 maps: 2	 (features: 4 )
+  total consensus features:    2  with at least one ID: 2
+  total features:              4  with at least one ID:  4
+Ranges:
+  retention time: 9.90 .. 20.10 sec (0.2 min)
+  mass-to-charge: 499.90 .. 600.10
+  intensity: 90.00 .. 210.00
+
+File descriptions:
+  map_1.featureXML:
+    identifier: 1
+    label:      label_1
+    size:       7
+  map_2.featureXML:
+    identifier: 2
+    label:      label_2
+    size:       7
+
+Assigned peptide identifications: 2
+Unassigned peptide identifications: 0
+
+

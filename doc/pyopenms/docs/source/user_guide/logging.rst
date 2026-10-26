@@ -15,6 +15,9 @@ Logging in the wrapped C extension part can be controlled by the following:
 
    pyoms.LogConfigHandler.getInstance().setLogLevel("ERROR")
 
+By default, info messages go to stdout and warnings and errors to stderr. Debug messages are off;
+``setLogLevel("DEBUG")`` writes them to stdout as well.
+
 Unfortunately, there are still some limitations: `OpenMS issue 6827 <https://github.com/OpenMS/OpenMS/issues/6827>`_
 Controlling logging inside the C extension is only supported globally per process. That means, once you change the log level,
 it will stay changed for all subsequent calls, until you change it back or the program terminates.

@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <climits>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

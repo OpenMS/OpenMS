@@ -134,7 +134,7 @@ int main(int argc, const char** argv)
     if (param.exists("debug"))
     {
       OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
-      getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+      setConsoleDebugLogging(true); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
     }
 
     // test if unknown options were given

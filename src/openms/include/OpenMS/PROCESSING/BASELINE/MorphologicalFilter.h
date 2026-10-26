@@ -125,6 +125,9 @@ namespace OpenMS
 
       @note The data must be sorted according to ascending m/z!
 
+      @note Distinct instances may be used concurrently from different threads. A single instance
+      must not be shared across threads because it carries per-call state.
+
       @htmlinclude OpenMS_MorphologicalFilter.parameters
 
       @ingroup SignalProcessing
@@ -167,8 +170,8 @@ namespace OpenMS
     template<typename InputIterator, typename OutputIterator>
     void filterRange(InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)
     {
-      // the buffer is static only to avoid reallocation
-      static std::vector<typename InputIterator::value_type> buffer;
+      // Reuse scratch storage without sharing it across threads.
+      static thread_local std::vector<typename InputIterator::value_type> buffer;
       const UInt size = input_end - input_begin;
 
       // determine the struct size in data points if not already set
@@ -327,7 +330,8 @@ namespace OpenMS
       const Int size = input_end - input;
       const Int struc_size_half = struc_size / 2; // yes, integer division
 
-      static std::vector<ValueType> buffer;
+      // Reuse scratch storage without sharing it across threads.
+      static thread_local std::vector<ValueType> buffer;
       if (Int(buffer.size()) < struc_size)
         buffer.resize(struc_size);
 
@@ -437,7 +441,8 @@ namespace OpenMS
       const Int size = input_end - input;
       const Int struc_size_half = struc_size / 2; // yes, integer division
 
-      static std::vector<ValueType> buffer;
+      // Reuse scratch storage without sharing it across threads.
+      static thread_local std::vector<ValueType> buffer;
       if (Int(buffer.size()) < struc_size)
         buffer.resize(struc_size);
 

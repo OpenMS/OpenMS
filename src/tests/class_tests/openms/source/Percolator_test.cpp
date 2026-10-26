@@ -177,6 +177,30 @@ START_SECTION([EXTRA] reproducibility with fixed seed is bit-identical)
 }
 END_SECTION
 
+START_SECTION([EXTRA] num_threads does not change the results)
+{
+  // num_threads limits the threads of the cross-validation loops; each fold and
+  // (Cpos, Cneg) pair is trained on its own, so the result does not depend on it
+  const RescoreInput input = makeModeratelySeparableInput_(500, 7);
+  std::vector<RescoreOutput> outs;
+  for (const int threads : {1, 3, 8})
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("num_threads", threads);
+    p.setParameters(par);
+    outs.push_back(p.rescore(input));
+  }
+  for (Size i = 1; i < outs.size(); ++i)
+  {
+    TEST_EQUAL(outs[0].scores == outs[i].scores, true)
+    TEST_EQUAL(outs[0].q_values == outs[i].q_values, true)
+    TEST_EQUAL(outs[0].peps == outs[i].peps, true)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] q-values in expected range)
 {
   // Moderately separable data. Verify q-values are bounded [0, 1] and that
@@ -599,10 +623,10 @@ START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.g
 }
 END_SECTION
 
-START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
+START_SECTION([EXTRA] use_pi0: true or false forces pi0 and auto decides as the executable)
 {
   // Build a dataset where pi0 correction clearly matters: plenty of well-
-  // separated targets mixed with decoys. With usePi0=true (default) q-values
+  // separated targets mixed with decoys. With usePi0=true q-values
   // get multiplied by a pi0 < 1 estimate, so turning pi0 off raises every
   // q-value at a given rank. Asserting strict "all q_off >= q_on" is too
   // brittle (Percolator's merge step can reshuffle ties), so instead check
@@ -639,7 +663,10 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
     p->setParameters(par);
   }
   {
-    Param par = p_off.getParameters();
+    Param par = p_on.getParameters();
+    par.setValue("use_pi0", "true");
+    p_on.setParameters(par);
+    par = p_off.getParameters();
     par.setValue("use_pi0", "false");
     p_off.setParameters(par);
   }
@@ -651,9 +678,30 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
   // pi0 estimation is bypassed and pi0 stays at the Scores constructor's
   // default 1.0 — matches the header doc claim.
   TEST_REAL_SIMILAR(p_off.getPi0(), 1.0)
-  // And with use_pi0=true (default), pi0 is estimated from the data, so it
+  // And with use_pi0=true, pi0 is estimated from the data, so it
   // must be strictly < 1.0 on a fixture with any null fraction at all.
   TEST_TRUE(p_on.getPi0() < 1.0)
+
+  // use_pi0=auto (default) decides as the percolator executable: pi0 only for its mix-max procedure, i.e. without
+  // post_processing_tdc on input from separate target and decoy searches (a spectrum with target and decoy PSMs).
+  {
+    Percolator p_auto;
+    Param par = p_auto.getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("test_fdr",  0.05);
+    par.setValue("train_fdr", 0.05);
+    p_auto.setParameters(par);
+    p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0) // post_processing_tdc (default)
+    par.setValue("post_processing_tdc", "false");
+    p_auto.setParameters(par);
+    p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0) // each row its own spectrum: concatenated search
+    RescoreInput separate = input;
+    for (size_t i = 0; i < input.features.size(); ++i) separate.scan_numbers.push_back(static_cast<int>(i % 600));
+    p_auto.rescore(separate);
+    TEST_TRUE(p_auto.getPi0() < 1.0) // target i and decoy i share a spectrum: separate searches
+  }
 
   // Mean target q over top-100 ranked targets should be strictly lower when
   // pi0 is on (because q is scaled by pi0 < 1).
@@ -672,6 +720,89 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
   }
   TEST_EQUAL(counted, 100)
   TEST_TRUE(mean_on < mean_off)
+}
+END_SECTION
+
+START_SECTION((bool usedDefaultDirection() const))
+{
+  Percolator p;
+  Param param = p.getDefaults();
+  param.setValue("seed", 42);
+  p.setParameters(param);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Separable targets: the learned model identifies at least as many targets as the best single feature
+  // and passes the sanity check. With fewer targets it would not: q-values count the decoys + 1, so a
+  // held-out fold needs about 1 / test_fdr targets above its first decoy for any q < test_fdr.
+  RescoreInput separable;
+  separable.feature_names = StringList{"separator", "noise"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({+1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 7)});
+    separable.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({-1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 11)});
+    separable.is_decoy.push_back(true);
+  }
+  p.rescore(separable);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Targets and decoys with the same feature values (like a blank run; low-discrepancy sequences, so targets
+  // and decoys interleave): no target at q < test_fdr, so the sanity check replaces the learned model by the
+  // default direction.
+  RescoreInput noise;
+  noise.feature_names = StringList{"f0", "f1"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    noise.features.push_back({std::fmod(0.6180339887 * static_cast<double>(i), 1.0),
+                              std::fmod(0.7548776662 * static_cast<double>(i), 1.0)});
+    noise.is_decoy.push_back(i % 2 == 1);
+  }
+  p.rescore(noise);
+  TEST_TRUE(p.usedDefaultDirection())
+
+  // Each call reports its own outcome.
+  p.train(separable);
+  TEST_FALSE(p.usedDefaultDirection())
+}
+END_SECTION
+
+START_SECTION([EXTRA] nonparametric PEP with fewer than 4 distinct scores)
+{
+  // A feature that does not separate targets from decoys and takes only two
+  // values yields fewer than 4 PEP bins, which are padded to 4 for the PEP
+  // spline. They used to be padded with tied scores, so the spline asserted
+  // (BaseSpline::initiateQR: dx > 0) in Debug builds and divided by zero in
+  // Release builds. Seen with ProSE -rescore, which uses these settings.
+  RescoreInput input;
+  input.feature_names = StringList{"f0"};
+  for (size_t i = 0; i < 200; ++i)
+  {
+    input.features.push_back({static_cast<double>(i % 2)});
+    input.is_decoy.push_back(i >= 100);
+  }
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  par.setValue("train_best_positive", "true");
+  par.setValue("post_processing_tdc", "true");
+  par.setValue("subset_max_train", 0);
+  par.setValue("pep_method", "nonparametric");
+  p.setParameters(par);
+
+  RescoreOutput out = p.rescore(input);
+  TEST_EQUAL(out.peps.size(), input.features.size())
+  std::set<double> distinct_scores(out.scores.begin(), out.scores.end());
+  TEST_TRUE(distinct_scores.size() < 4)
+  bool peps_valid = true;
+  for (double pep : out.peps)
+  {
+    peps_valid = peps_valid && std::isfinite(pep) && pep >= 0.0 && pep <= 1.0;
+  }
+  TEST_TRUE(peps_valid)
 }
 END_SECTION
 
@@ -1092,7 +1223,8 @@ START_SECTION([EXTRA] input-order invariance Jaccard characterization)
 {
   // Documents the input-order dependence the docstring calls out. Asserts
   // Pearson r >= 0.99 on scores (after un-permuting) and Jaccard >= 0.95
-  // on accepted-target sets at q <= 0.01.
+  // on accepted-target sets at q <= 0.05 (without pi0, no target of this
+  // fixture reaches q <= 0.01).
   //
   // Prerequisite: populate stable scan_numbers on `base` BEFORE shuffling.
   // The CV fold hash incorporates scan_numbers (defaults to row_index when
@@ -1161,14 +1293,15 @@ START_SECTION([EXTRA] input-order invariance Jaccard characterization)
   const double r = (den > 1e-15) ? num / den : 0.0;
   TEST_TRUE(r >= 0.99)
 
-  // Jaccard on accepted-target set at q <= 0.01.
+  // Jaccard on accepted-target set at q <= 0.05.
   std::set<size_t> a, b;
   for (size_t i = 0; i < n; ++i)
   {
     if (base.is_decoy[i]) continue;
-    if (out1.q_values[i]  <= 0.01) a.insert(i);
-    if (qvals2_aligned[i] <= 0.01) b.insert(i);
+    if (out1.q_values[i]  <= 0.05) a.insert(i);
+    if (qvals2_aligned[i] <= 0.05) b.insert(i);
   }
+  TEST_EQUAL(a.empty(), false)
   std::set<size_t> inter, uni;
   std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
                         std::inserter(inter, inter.begin()));
@@ -1184,15 +1317,16 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
 {
   // Negative control: two different seeds must produce different scores
   // (catches seed-not-wired-through bugs) but Pearson r >= 0.9 and
-  // |cA - cB| / max(cA, cB) <= 0.20 at q <= 0.05 (statistical equivalence).
+  // |cA - cB| / max(cA, cB) <= 0.20 at q <= 0.10 (statistical equivalence).
   //
-  // Why q <= 0.05 instead of 0.01: the q-value "cliff" at 0.01 is inherently
-  // unstable across seeds — small score shifts move many targets across the
-  // threshold even when Pearson r is ~0.985. Observed counts on this fixture:
-  //   q <= 0.01: c17=123, c42=171, ratio=0.28 (unstable, cliff-sensitive)
-  //   q <= 0.05: c17=394, c42=356, ratio=0.10 (stable, larger target mass)
-  //   q <= 0.10: c17=657, c42=652, ratio=0.01
-  // q <= 0.05 measures the same downstream "seed-induced classification drift"
+  // Why q <= 0.10: a q-value threshold that few targets pass is a "cliff",
+  // unstable across seeds — small score shifts move many targets across it
+  // even when Pearson r is ~0.997. Observed counts on this fixture (glibc
+  // std::rand; macOS' std::rand gives another fixture, in parentheses):
+  //   q <= 0.01: c17=100, c42=0,   ratio=1.00 (0, 0)
+  //   q <= 0.05: c17=270, c42=276, ratio=0.02 (103, 144, ratio=0.28)
+  //   q <= 0.10: c17=451, c42=460, ratio=0.02 (288, 280, ratio=0.03)
+  // q <= 0.10 measures the same downstream "seed-induced classification drift"
   // property at a threshold where there's enough accepted targets for the
   // estimate to be stable.
   RescoreInput input = makeModeratelySeparableInput_(800, 789);
@@ -1235,13 +1369,13 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
   const double r = (den > 1e-15) ? num / den : 0.0;
   TEST_TRUE(r >= 0.9)
 
-  // Count ratio at q <= 0.05 (targets only).
+  // Count ratio at q <= 0.10 (targets only).
   int c17 = 0, c42 = 0;
   for (size_t i = 0; i < n; ++i)
   {
     if (input.is_decoy[i]) continue;
-    if (out17.q_values[i] <= 0.05) ++c17;
-    if (out42.q_values[i] <= 0.05) ++c42;
+    if (out17.q_values[i] <= 0.10) ++c17;
+    if (out42.q_values[i] <= 0.10) ++c42;
   }
   const int maxc = std::max(c17, c42);
   const double ratio = (maxc > 0)
@@ -1656,13 +1790,15 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
                   && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
                   && (i == 0 || !hit.metaValueExists("CalcMass"));
+    // the score feature separates targets from decoys: as with the percolator executable (210 targets, 1 decoy at
+    // q <= 0.01 with -Y on the .pin of these PSMs), most targets and few decoys reach q <= 0.01
     if (hit.getScore() <= 0.01) ++(hit.isDecoy() ? confident_decoys : confident_targets);
   }
   TEST_EQUAL(all_annotated, true)
   TEST_EQUAL(no_pin_left, true)
   TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
-  TEST_EQUAL(confident_targets > 100, true)
-  TEST_EQUAL(confident_decoys < confident_targets / 10, true)
+  TEST_EQUAL(confident_targets > 200, true)
+  TEST_EQUAL(confident_decoys < 5, true)
 
   // svm and pep as main score
   PeptideIdentificationList ids_pep = makeIds();

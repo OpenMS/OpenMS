@@ -6,6 +6,7 @@ set(sources_list_h
 DataAccessHelper.h
 MRMFeatureAccessOpenMS.h
 SimpleOpenMSSpectraAccessFactory.h
+SpectrumAccessOnDisc.h
 SpectrumAccessOpenMS.h
 SpectrumAccessOpenMSCached.h
 SpectrumAccessOpenMSInMemory.h

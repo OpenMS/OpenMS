@@ -72,6 +72,17 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
   defaults_.setMinFloat("fdr", 0.0);
   defaults_.setMaxFloat("fdr", 1.0);
 
+  defaults_.setValue("donor_max_q", 1.0,
+                     "Transfer a precursor (sequence and charge) to other runs only if its best"
+                     " identification over all runs has a q-value at or below this value (e.g."
+                     " 0.001). Its own identified features are kept either way. Identifications"
+                     " whose q-value is unknown (score type without 'q-value' and no 'q-value'"
+                     " meta value) pass. 1.0 disables the gate. A false identification in one run"
+                     " is otherwise copied into every other run, where no decoy transfer can"
+                     " reveal it, since the transfer itself may well be to the right peak.");
+  defaults_.setMinFloat("donor_max_q", 0.0);
+  defaults_.setMaxFloat("donor_max_q", 1.0);
+
   defaults_.setValue("random_seed", 0,
                      "Seed for the random number generator used to select decoy"
                      " donors. A fixed seed makes results reproducible.");
@@ -186,6 +197,7 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
   PipEcho::RunMap runs;
 
   impl.partition_features(feature_maps, runs);
+  impl.set_transferable_precursors(runs);
 
   // Ion mobility is used as a scoring feature only when EVERY run can build an
   // IM tolerance (>= 2 identified features carrying an IM width). The decision

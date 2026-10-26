@@ -49,21 +49,23 @@ namespace OpenMS
     // V = c2 + ((c3 - c2) / c1) * (scan - c4 - c0)
     double V = c.c2 + ((c.c3 - c.c2) / c.c1) * (scan - c.c4 - c.c0);
     if (V == 0.0) V = 1e-10; // guard against division by zero (physically unreachable)
-    // 1/K0 = 1 / (c6 + c7 / V)
-    double denom = c.c6 + c.c7 / V;
+    // 1/K0 = 1 / (c6 + c7 / |V|)  (V is negative in neg mode but 1/K0 is reported positive)
+    double denom = c.c6 + c.c7 / std::abs(V);
     if (denom == 0.0) denom = 1e-10; // guard
     return 1.0 / denom;
   }
 
   double RationalScan2ImConverter::invertFormula(const Coefficients& c, double inv_k0)
   {
-    // scan = c0 + c4 + (c1 / (c3 - c2)) * (c7 / (1/inv_k0 - c6) - c2)
+    // |V| = c7 / (1/inv_k0 - c6), V = sign(c2) * |V|, apply the sign from c2 to match polarity
+    // scan = c0 + c4 + (c1 / (c3 - c2)) * (V - c2)
     double recip = 1.0 / inv_k0;
     double inner_denom = recip - c.c6;
     if (inner_denom == 0.0) inner_denom = 1e-10; // guard
+    double V = std::copysign(c.c7 / inner_denom, c.c2);
     double slope_denom = c.c3 - c.c2;
     if (slope_denom == 0.0) slope_denom = 1e-10; // guard
-    return c.c0 + c.c4 + (c.c1 / slope_denom) * (c.c7 / inner_denom - c.c2);
+    return c.c0 + c.c4 + (c.c1 / slope_denom) * (V - c.c2);
   }
 
   void RationalScan2ImConverter::convert(uint32_t frame_id,

@@ -214,7 +214,6 @@ Usage:
   MzMLFile().store("testfile.mzML", exp)
 )doc")
         .def(nb::init<>())
-        .def(nb::init<std::initializer_list<OpenMS::Peak1D>>())
         .def(nb::init<const OpenMS::MSSpectrum &>())
         .def("__copy__", [](const OpenMS::MSSpectrum& self) { return OpenMS::MSSpectrum(self); })
         .def("__deepcopy__", [](const OpenMS::MSSpectrum& self, nb::dict) { return OpenMS::MSSpectrum(self); }, "memo"_a)

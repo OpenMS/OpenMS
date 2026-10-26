@@ -42,6 +42,26 @@ namespace OpenMS
 
 namespace P = OpenMS::Internal::Percolator;
 
+namespace
+{
+  // Percolator's sanity check, recording whether it replaced the learned
+  // weights by the default direction (the best single feature): validateDirection()
+  // does that whenever it returns false, i.e. no target at q < test_fdr, fewer
+  // targets than the default direction, or a wrong sign of the initial direction.
+  class RecordingSanityCheck : public P::SanityCheck
+  {
+  public:
+    bool validateDirection(std::vector<std::vector<double>>& w) override
+    {
+      const bool valid = P::SanityCheck::validateDirection(w);
+      used_default_direction = used_default_direction || !valid;
+      return valid;
+    }
+
+    bool used_default_direction = false;
+  };
+}
+
 void Percolator::Impl::reset()
 {
   // Second-pass PSMs are NOT owned by any DataSet — delete explicitly.
@@ -164,20 +184,23 @@ Percolator::Percolator()
   defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
 
   defaults_.setValue("num_threads",       3,
-                     "Number of OpenMP threads for cross-validation "
-                     "(one per CV fold; max useful = 3). Matches upstream's default.");
+                     "Maximum number of OpenMP threads for cross-validation; never more than the "
+                     "threads the tool may use (-threads). With the default settings, cross-validation "
+                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream.");
   defaults_.setMinInt("num_threads",      1);
-  defaults_.setMaxInt("num_threads",      3);
+  defaults_.setMaxInt("num_threads",      128);
 
-  defaults_.setValue("use_pi0", "true",
-                     "Enable pi0 correction when computing q-values and PEPs (default). "
+  defaults_.setValue("use_pi0", "auto",
+                     "Enable pi0 correction when computing q-values and PEPs. "
                      "When true, pi0 is estimated per CV fold via bootstrap spline fit on "
-                     "the target score distribution using decoys as the null. When false, "
+                     "the target score distribution using decoys as the null, and q-values "
+                     "follow the mix-max procedure for separate target and decoy searches. When false, "
                      "pi0 is fixed at 1.0 (pure target-decoy FDR, no bootstrap estimation). "
-                     "Affects both Scores::calcQvals and Scores::calcPep. Upstream percolator "
-                     "has no CLI flag for this; the in-library Scores(bool usePi0) "
-                     "constructor is the only toggle, matched here.");
-  defaults_.setValidStrings("use_pi0", {"true","false"});
+                     "Affects both Scores::calcQvals and Scores::calcPep. 'auto' (default) decides as "
+                     "the percolator executable, which uses pi0 only for mix-max: true without "
+                     "post_processing_tdc when a spectrum (scan, mass) has both target and decoy "
+                     "PSMs (separate searches), false otherwise.");
+  defaults_.setValidStrings("use_pi0", {"auto","true","false"});
 
   defaultsToParam_();
 }
@@ -204,7 +227,7 @@ void Percolator::updateMembers_()
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
-  impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
+  impl_->use_pi0             = param_.getValue("use_pi0").toString();
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
 }
@@ -217,6 +240,11 @@ const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
 double Percolator::getPi0() const
 {
   return impl_->last_pi0;
+}
+
+bool Percolator::usedDefaultDirection() const
+{
+  return impl_->last_used_default_direction;
 }
 
 struct RowKeys
@@ -272,6 +300,25 @@ static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
   keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
   keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
   return keys;
+}
+
+// Whether to estimate pi0 for the q-values and PEPs (use_pi0). 'auto' decides as the percolator executable
+// (Caller.cpp: Scores and CrossValidation get usePi0 = useMixMax_): pi0 belongs to its mix-max procedure, which it
+// uses without target-decoy competition when the input looks like separate target and decoy searches, i.e. a
+// spectrum has both target and decoy PSMs. A spectrum is (scan, mass) as in its SetHandler::getScanId, without the
+// file. With pi0 < 1 the q-values come from mix-max counts, which do not hold for a concatenated search.
+static bool resolveUsePi0(const std::string& use_pi0, bool post_processing_tdc, const RescoreInput& input)
+{
+  if (use_pi0 != "auto") return use_pi0 == "true";
+  if (post_processing_tdc) return false;
+  std::map<std::pair<int, double>, bool> decoy_by_spectrum;
+  for (size_t i = 0; i < input.features.size(); ++i)
+  {
+    const RowKeys keys = makeRowKeys(input, i);
+    const auto [it, inserted] = decoy_by_spectrum.emplace(std::make_pair(keys.scan, keys.exp_mass), input.is_decoy[i]);
+    if (!inserted && it->second != input.is_decoy[i]) return true;
+  }
+  return false;
 }
 
 // Materialize the (scan, exp_mass) arrays and hand off to the vendored
@@ -421,8 +468,10 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // value left over from a prior successful rescore()/score() call).
   // Also covers throws from validateRescoreInput_ below.
   impl_->last_pi0 = -1.0;
+  impl_->last_used_default_direction = false;
 
   validateRescoreInput_(input);
+  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
@@ -483,15 +532,10 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // SanityCheck: reset static state so successive calls don't leak configuration.
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  // initialize() returns a heap-allocated SanityCheck the caller owns.
-  // Wrap it in unique_ptr so it's released on every exit path (including
-  // throws) without manual delete.
-  auto sanity = std::unique_ptr<P::SanityCheck>(P::SanityCheck::initialize(""));
-  if (!sanity)
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "Could not initialize Percolator SanityCheck", "");
-  }
+  // The plain SanityCheck that SanityCheck::initialize() returns, recording
+  // whether it replaced the learned weights (see usedDefaultDirection()).
+  // unique_ptr releases it on every exit path (including throws).
+  auto sanity = std::make_unique<RecordingSanityCheck>();
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -505,7 +549,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
-  P::Scores train_scores(/*usePi0=*/impl_->use_pi0);
+  P::Scores train_scores(/*usePi0=*/use_pi0);
   train_scores.populateWithPSMs(*impl_->set_handler);
 
   P::CrossValidation cv(
@@ -517,7 +561,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*selectedCpos=*/impl_->c_pos,
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
-    /*usePi0=*/impl_->use_pi0,
+    /*usePi0=*/use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
@@ -534,6 +578,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
     cv.postIterationProcessing(train_scores, sanity.get());
+    impl_->last_used_default_direction = sanity->used_default_direction;
     // getAvgWeights returns un-normalized (raw feature space) averaged weights:
     // size = n_features + 1, bias last. This is what score() will use.
     cv.getAvgWeights(avg_weights, normalizer);
@@ -575,6 +620,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 
   validateRescoreInput_(input);
   validateModelCompat_(input, model);
+  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   impl_->reset();
 
@@ -600,7 +646,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   }
   fn.initFeatures();
 
-  P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
+  P::Scores all_scores(/*usePi0=*/use_pi0);
   impl_->synthesized_ids.resize(n_rows);
   impl_->second_pass_psms.reserve(n_rows);
 
@@ -708,8 +754,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // last_pi0 in a "no usable value from this call" state, instead of stale
   // from a prior successful call.
   impl_->last_pi0 = -1.0;
+  impl_->last_used_default_direction = false;
 
   validateRescoreInput_(input);
+  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   const size_t n_rows = input.features.size();
   const size_t n_feat = input.features.front().size();
@@ -773,15 +821,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  // initialize() returns a heap-allocated SanityCheck the caller owns.
-  // Wrap it in unique_ptr so it's released on every exit path (including
-  // throws) without manual delete.
-  auto sanity = std::unique_ptr<P::SanityCheck>(P::SanityCheck::initialize(""));
-  if (!sanity)
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "Could not initialize Percolator SanityCheck", "");
-  }
+  // The plain SanityCheck that SanityCheck::initialize() returns, recording
+  // whether it replaced the learned weights (see usedDefaultDirection()).
+  // unique_ptr releases it on every exit path (including throws).
+  auto sanity = std::make_unique<RecordingSanityCheck>();
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -795,7 +838,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
-  P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
+  P::Scores all_scores(/*usePi0=*/use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
 
   P::CrossValidation cv(
@@ -807,7 +850,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*selectedCpos=*/impl_->c_pos,
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
-    /*usePi0=*/impl_->use_pi0,
+    /*usePi0=*/use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
@@ -824,6 +867,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
     cv.postIterationProcessing(all_scores, sanity.get());
+    impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
   }
   catch (const std::exception& e)
@@ -848,7 +892,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));
       P::FeatureMemoryPool& full_pool = *impl_->second_pass_pool;
 
-      all_scores = P::Scores(impl_->use_pi0);
+      all_scores = P::Scores(use_pi0);
       impl_->second_pass_psms.reserve(n_rows);
 
       for (size_t i = 0; i < n_rows; ++i)
@@ -1400,10 +1444,11 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     }
   } cleanup{peptide_ids, added_pin_meta_values};
 
-  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass is
-  // used by Percolator for the spectrum key (it goes into RescoreInput.exp_masses), not for training.
+  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass and
+  // CalcMass are read by the percolator executable as such, not as features (it goes into
+  // RescoreInput.exp_masses / calc_masses), so they are not trained on here either.
   const std::set<std::string> pin_metadata_not_feature {
-    "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
+    "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "Peptide", "Proteins"
   };
   StringList numeric_features;
   for (const std::string& f : feature_set)
