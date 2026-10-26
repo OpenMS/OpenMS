@@ -8,6 +8,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -185,6 +188,173 @@ namespace
       workflow.performExtraction(input.maps, OpenMS::TransformationDescription(), parameters, parameters,
         OpenMS::MRMFeatureFinderScoring().getParameters(), assay, result, false, writer, nullptr, batch, 0, load_into_memory);
     });
+  }
+
+  void scoringOwnership(int path)
+  {
+    const char* names[] = {"all", "ranking", "remainder", "precursor", "ID", "fetch-access", "fetch-maps", "MS1-IM-reuse", "exception"};
+    OPENMS_LOG_INFO << "Native scoring ownership check: " << names[path] << '\n';
+    Input input(false, false);
+    auto assay = library();
+    assay.transitions.front().fragment_charge = 1;
+    assay.transitions.front().library_intensity = 1000;
+    if (path == 7)
+    {
+      auto transition = assay.transitions.front();
+      transition.transition_name = "tr2";
+      transition.product_mz += 1.0033548;
+      assay.transitions.push_back(transition);
+    }
+    if (path == 8) { assay.compounds.front().sequence = "?"; }
+    OpenMS::MSExperiment experiment;
+    for (int level : {1, 2})
+    {
+      OpenMS::MSSpectrum spectrum;
+      spectrum.setMSLevel(level);
+      spectrum.setRT(25.2);
+      spectrum.setNativeID("scan=" + std::to_string(level));
+      if (level == 2)
+      {
+        OpenMS::Precursor precursor;
+        precursor.setMZ(412.5);
+        precursor.setIsolationWindowLowerOffset(20);
+        precursor.setIsolationWindowUpperOffset(20);
+        spectrum.getPrecursors().push_back(precursor);
+      }
+      OpenMS::DataArrays::FloatDataArray im;
+      OpenMS::IMDataConverter::setIMUnit(im, OpenMS::DriftTimeUnit::MILLISECOND);
+      im.setName(OpenMS::Constants::UserParam::ION_MOBILITY);
+      for (int isotope = 0; isotope < 3; ++isotope)
+      {
+        OpenMS::Peak1D peak;
+        peak.setMZ((level == 1 ? 412.5 : 500.0) + 0.001 + isotope * 1.0033548 / (level == 1 ? 2 : 1));
+        for (int point = 0; point < (path == 7 ? 3 : 1); ++point)
+        {
+          peak.setIntensity((point == 0 ? 250.0 : point == 1 ? 1000.0 : 500.0) / (isotope + 1));
+          spectrum.push_back(peak);
+          im.push_back(path == 7 ? 0.18 + point * 0.02 : 0.2);
+        }
+      }
+      spectrum.getFloatDataArrays().push_back(im);
+      experiment.addSpectrum(spectrum);
+    }
+    input.indexed_path = (std::filesystem::current_path() / ("OpenDIARawFailure_" + OpenMS::File::getUniqueName(false) + ".mzML")).string();
+    OpenMS::MzMLFile writer;
+    writer.getOptions().setWriteIndex(true);
+    writer.store(input.indexed_path, experiment);
+    std::shared_ptr<OpenMS::ExperimentalSettings> metadata;
+    input.maps = OpenMS::SwathFile().loadOnDisc(input.indexed_path, metadata);
+    check(input.maps.size() == 2, "Expected indexed scoring MS1 and MS2 maps");
+
+    auto run = [&](const std::vector<OpenSwath::SwathMap>& maps)
+    {
+      OpenSwath::SpectrumAccessPtr ms1;
+      std::vector<OpenSwath::SwathMap> fragments;
+      for (const auto& map : maps)
+      {
+        if (map.ms1) { ms1 = map.sptr; }
+        else { fragments.push_back(map); }
+      }
+      check(ms1 && fragments.size() == 1, "Missing native scoring maps");
+      OpenMS::MRMFeature feature;
+      feature.setRT(25.2);
+      feature.setIntensity(1000);
+      OpenMS::Feature fragment;
+      fragment.setIntensity(1000);
+      feature.addFeature(fragment, "tr");
+      if (path == 7) { feature.addFeature(fragment, "tr2"); }
+      OpenMS::MRMFeatureOpenMS access(feature);
+      OpenMS::OpenSwathScoring scorer;
+      OpenMS::OpenSwath_Scores_Usage usage;
+      usage.use_im_scores = path == 7;
+      usage.use_ionseries_scores = path != 8;
+      scorer.initialize(1.0, 1, 0.005, 0.2, 0.0, usage, path == 5 || path == 6 ? "resample" : "simple", "fixed", path == 7, false);
+      OpenMS::DIAScoring dia;
+      OpenMS::OpenSwath_Scores scores;
+      OpenMS::RangeMobility im_range;
+      if (path == 7) { im_range = OpenMS::RangeMobility(0.15, 0.25); }
+      std::vector<double> errors;
+      if (path == 5 || path == 6)
+      {
+        // Keep the IM array. The one-scan merge can return the raw copy.
+        auto spectra = path == 5 ? scorer.fetchSpectrumSwath(fragments.front().sptr, 25.2, 1, im_range)
+                                 : scorer.fetchSpectrumSwath(fragments, 25.2, 1, im_range);
+        check(spectra.size() == 1, "Missing fetched scoring spectrum");
+        auto result = spectra.front()->getMZArray()->data;
+        const auto& intensities = spectra.front()->getIntensityArray()->data;
+        result.insert(result.end(), intensities.begin(), intensities.end());
+        check(result.size() == 6 && result[3] > 0, "Fetched spectrum has no signal");
+        return result;
+      }
+      if (path == 3)
+      {
+        scorer.calculatePrecursorDIAScores(ms1, dia, 412.5, 25.2, assay.compounds.front(), im_range, scores);
+      }
+      else if (path == 4)
+      {
+        OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType group;
+        group.addTransition(assay.transitions.front(), "tr");
+        scorer.calculateDIAIdScores(&access, assay.transitions.front(), group, fragments, im_range, dia, scores, -1, nullptr, -1);
+      }
+      else
+      {
+        const auto subset = path == 1 ? OpenMS::OpenSwathScoring::ScoreSubset::RANKING
+          : path == 2 ? OpenMS::OpenSwathScoring::ScoreSubset::REMAINDER : OpenMS::OpenSwathScoring::ScoreSubset::ALL;
+        bool rejected = false;
+        try
+        {
+          scorer.calculateDIAScores(&access, assay.transitions, std::vector<double>(assay.transitions.size(), 1.0 / assay.transitions.size()), fragments, ms1, dia,
+            assay.compounds.front(), scores, errors, 0.2, im_range, nullptr, -1, subset);
+        }
+        catch (const OpenMS::Exception::ParseError&)
+        {
+          if (path != 8) { throw; }
+          rejected = true;
+        }
+        // Invalid peptide text must fail after both raw scans have been read.
+        check(rejected == (path == 8), "Missing native precursor sequence parse error");
+      }
+      if (path != 2 && path != 3) { check(scores.massdev_score > 0, "Fragment mass score has no signal"); }
+      if (path == 0 || path == 2 || path == 3) { check(scores.ms1_ppm_score > 0, "Precursor mass score has no signal"); }
+      std::vector<double> result{scores.massdev_score, scores.weighted_massdev_score, scores.isotope_correlation,
+        scores.isotope_overlap, scores.dotprod_score_dia, scores.manhatt_score_dia, scores.bseries_score,
+        scores.yseries_score, scores.ms1_ppm_score, scores.ms1_isotope_correlation, scores.ms1_isotope_overlap};
+      result.insert(result.end(), errors.begin(), errors.end());
+      if (path == 7)
+      {
+        check(scores.im_drift > 0 && scores.im_ms1_drift > 0, "Missing native MS2 or MS1 IM evidence");
+        result.insert(result.end(), {scores.im_drift, scores.im_drift_weighted, scores.im_delta_score,
+          scores.im_ms1_drift, scores.im_ms1_delta_score, scores.im_ms1_contrast_coelution,
+          scores.im_ms1_contrast_shape, scores.im_ms1_sum_contrast_coelution, scores.im_ms1_sum_contrast_shape});
+      }
+      return result;
+    };
+    const auto reference = run(input.maps);
+    input.cache = std::make_shared<OpenDIA::RawCache>(4 * MIB, MIB, MIB);
+    for (auto& map : input.maps)
+    {
+      auto native = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
+      check(native != nullptr, "Expected indexed scoring source");
+      map.sptr = std::make_shared<OpenDIA::RawAccess>(native, input.cache);
+    }
+    const auto bounded = run(input.maps);
+    check(reference.size() == bounded.size(), "Native scoring result size changed");
+    for (OpenMS::Size i = 0; i < reference.size(); ++i)
+    {
+      if (!std::isfinite(bounded[i]) || std::abs(reference[i] - bounded[i]) >= 1e-10)
+      {
+        OPENMS_LOG_ERROR << "Scoring value path=" << names[path] << " field=" << i
+          << " native=" << reference[i] << " raw=" << bounded[i] << '\n';
+      }
+      check(std::isfinite(bounded[i]) && std::abs(reference[i] - bounded[i]) < 1e-10, "Raw access changed native scoring values");
+    }
+    check(input.cache->snapshot().misses > 0, "Scoring did not read raw scans");
+    input.cache->clear();
+    const auto state = input.cache->snapshot();
+    OPENMS_LOG_INFO << "Scoring ownership path=" << names[path] << " native_reference=equal committed="
+      << state.budget.committed_bytes << " reserved=" << state.budget.reserved_bytes << '\n';
+    check(state.cache_entries == 0 && state.budget.committed_bytes == 0 && state.budget.reserved_bytes == 0,
+      "Native scoring retained a final charge");
   }
 
   void calibrationOwnership(bool mobility)
@@ -374,6 +544,15 @@ int main()
       catch (const std::exception& error)
       {
         OPENMS_LOG_ERROR << "Calibration ownership IM=" << mobility << ": " << error.what() << '\n';
+        if (!failure) { failure = std::current_exception(); }
+      }
+    }
+    for (int path = 0; path < 9; ++path)
+    {
+      try { scoringOwnership(path); }
+      catch (const std::exception& error)
+      {
+        OPENMS_LOG_ERROR << "Scoring ownership path=" << path << ": " << error.what() << '\n';
         if (!failure) { failure = std::current_exception(); }
       }
     }
