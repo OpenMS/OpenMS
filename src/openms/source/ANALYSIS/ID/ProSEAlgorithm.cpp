@@ -7491,9 +7491,9 @@ namespace OpenMS
     };
 
     // The consumer of the multi-file search's results (ProSEAlgorithm::setFileResultConsumer()), one result at a time, on a
-    // helper thread with a quarter of the OpenMP threads of this thread, which lends them (lowers its own) until it takes
-    // them back where it starts a phase after the helper has ended (takeBackThreadsOfEndedRead()), when it starts the
-    // next consumer, or at the end (finish(), destruction). Only if a read in the background never takes threads from
+    // helper thread with two of the OpenMP threads of this thread (one if it has fewer than 8), which lends them (lowers
+    // its own) until it takes them back where it starts a phase after the helper has ended
+    // (takeBackThreadsOfEndedRead()), when it starts the next consumer, or at the end (finish(), destruction). Only if a read in the background never takes threads from
     // this thread (readBorrowsThreads() false): this thread's number of threads is then changed here only, so it can be
     // set back as it was. Otherwise, or with a single thread, or outside of the top level, the consumer runs here.
     class BackgroundConsumer;
@@ -7514,7 +7514,15 @@ namespace OpenMS
         int helper_threads = 0;
 #ifdef _OPENMP
         const int threads = omp_get_max_threads();
-        if (omp_get_level() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::max(1, threads / 4); }
+        // Two threads, not a quarter: the consumer (the idXML output of ProSE) has the search of the next file to run
+        // next to, and with glibc's malloc (default arena settings) each further thread of its team can populate an
+        // arena of its own, whose freed memory may remain resident. Search of 6 timsTOF HeLa runs in one process at
+        // 64 threads (kim, 64 cores; 16 / 2 helper threads):
+        // max RSS 25.9 / 24.5 GiB, wall time 38.2 / 37.2 s, identical output (the idXML of the largest run written in
+        // about 2.5 s instead of 1.5 s, still during the search of the next one). The next consumer waits for the one
+        // before, so searches shorter than that write wait for it: that run followed by two small ones (0.4 GB) took
+        // 17.4 instead of 15.4 s (4 / 8 helper threads: 15.9 / 15.6 s, and less of the memory saved).
+        if (omp_get_level() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
 #endif
         if (helper_threads > 0)
         {

@@ -860,7 +860,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * the results of the files later: the rescoring is deferred (rescore_reuse 'joint' or 'static', for the files of
      * the training), or the database is chunked. (The pooled aggregate is built from copies, after the consumers.) The results lack what the file-path
      * overload sets after the search (SearchParameters::db of the first ProteinIdentification). The consumer runs on a
-     * helper thread with a quarter of the OpenMP threads of the searching thread (at least one), which the search takes
+     * helper thread with two of the OpenMP threads of the searching thread (one if it has fewer than 8), which the search takes
      * back after the consumer returned, where it starts its next phase; the next file's search goes on meanwhile. Only
      * one consumer runs at a time, and the search waits for the last one before it returns. If the searching thread
      * has fewer threads than the machine has cores (then a read in the background takes threads from it, see
