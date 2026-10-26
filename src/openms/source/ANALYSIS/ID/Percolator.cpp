@@ -596,6 +596,10 @@ static size_t rowOfPSM(const P::ScoreHolder& sh, size_t n_rows)
   return static_cast<size_t>(row);
 }
 
+// OpenMS (PL-PAR): the PSMs (at least this many, and more than one thread) whose peptide-level representatives
+// peptideLevelEstimates finds with threads
+constexpr size_t kMinParallelPeptidePSMs = size_t(1) << 14;
+
 // Percolator's peptide level, as the executable computes it without -U (Caller::calcAndOutputResult, second
 // calculatePSMProb pass): the PSM-level set @p psms after the target-decoy competition is reduced to the best PSM of each
 // peptide and label (Scores::weedOutRedundant; its lexicOrderProb keys the PSMs by the peptide string between the flanks,
@@ -603,21 +607,133 @@ static size_t rowOfPSM(const P::ScoreHolder& sh, size_t n_rows)
 // the q-values (at @p test_fdr) and PEPs are computed on these peptides. The executable's Scores has usePi0 = mix-max,
 // i.e. false with target-decoy competition (@p use_pi0). Fills out.peptide_q_values / peptide_peps for every row
 // (1 for a row whose peptide and label have no PSM in @p psms).
+//
+// The groups (label = input.is_decoy of the row, peptide key; full string equality) and their representatives: walking
+// the PSMs in the order of @p psms (rows that are not "row_<i>" of the input skipped), the first PSM of a group makes it
+// (the groups in the order of their first PSMs), and a later PSM of the group replaces the representative if it scores
+// strictly higher (operator>: a NaN score never replaces, nor is it replaced). With @p team_threads > 1 and many PSMs
+// (PL-PAR) the groups are partitioned by a hash of their key; the thread of a partition walks the PSMs of its groups in
+// the order of @p psms, so each group gets the same first PSM and the same chain of replacements as in one walk; the
+// groups are then put in the order of their first PSMs (positions in @p psms, distinct per group). The same
+// representatives in the same order give the same input to the q-values and PEPs, which are computed as before; every
+// row then takes the estimates of its group by a group number instead of a second map of peptide strings.
 static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& input, bool use_pi0, double test_fdr,
                                   const std::string& pep_method, int team_threads, RescoreOutput& out)
 {
   const size_t n_rows = input.rowCount();
-  // best PSM of each (label, peptide): the first of the highest score (as weedOutRedundant, which keeps one of equal
-  // scores; the q-value and PEP of the peptide do not depend on which)
-  std::unordered_map<std::string, size_t> best[2]; // [decoy] peptide -> index into reps
+  const size_t n_psms = psms.size();
+  constexpr uint32_t kNone = std::numeric_limits<uint32_t>::max();
   std::vector<const P::ScoreHolder*> reps;
-  for (const P::ScoreHolder& sh : psms)
+  // PL-PAR: the group of each input row (kNone: no PSM of its peptide and label)
+  std::vector<uint32_t> group_of_row;
+  bool by_group = false;
+#ifdef _OPENMP
+  by_group = team_threads > 1 && n_psms >= kMinParallelPeptidePSMs && n_rows < size_t(kNone) && n_psms < size_t(kNone);
+#endif
+  if (by_group)
   {
-    const size_t row = rowOfPSM(sh, n_rows);
-    if (row == n_rows) continue;
-    auto [it, inserted] = best[input.is_decoy[row] ? 1 : 0].try_emplace(input.peptide_keys[row], reps.size());
-    if (inserted) reps.push_back(&sh);
-    else if (sh.score > reps[it->second]->score) reps[it->second] = &sh;
+    const P::ScoreHolder* const base = &*psms.begin();
+    const size_t num_parts = std::min<size_t>(static_cast<size_t>(team_threads), 64); // fits part_of_psm
+    std::vector<size_t> hash_of_row(n_rows);
+    std::vector<uint32_t> row_of_psm(n_psms);
+    std::vector<unsigned char> part_of_psm(n_psms);
+    const auto row_hash = [&hash_of_row](uint32_t r) { return hash_of_row[r]; };
+    const auto row_equal = [&input](uint32_t a, uint32_t b) {
+      return input.is_decoy[a] == input.is_decoy[b] && input.peptide_keys[a] == input.peptide_keys[b];
+    };
+    using GroupMap = std::unordered_map<uint32_t, uint32_t, decltype(row_hash), decltype(row_equal)>;
+    std::vector<GroupMap> map_of_part;
+    map_of_part.reserve(num_parts);
+    for (size_t p = 0; p < num_parts; ++p) map_of_part.emplace_back(16, row_hash, row_equal);
+    struct Group
+    {
+      uint32_t first; ///< position of its first PSM in psms
+      uint32_t rep;   ///< position of its representative
+    };
+    std::vector<std::vector<Group>> groups_of_part(num_parts);
+    std::vector<std::exception_ptr> errors(num_parts);
+#pragma omp parallel num_threads(team_threads)
+    {
+      // the hash of each row's (label, peptide), then the row and partition of each PSM
+#pragma omp for schedule(static)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+      {
+        const size_t h = std::hash<std::string>{}(input.peptide_keys[i]);
+        hash_of_row[i] = input.is_decoy[i] ? h ^ size_t(0x9e3779b97f4a7c15ull) : h;
+      }
+#pragma omp for schedule(static)
+      for (SignedSize j = 0; j < static_cast<SignedSize>(n_psms); ++j)
+      {
+        const size_t row = rowOfPSM(base[j], n_rows);
+        row_of_psm[j] = row == n_rows ? kNone : static_cast<uint32_t>(row);
+        part_of_psm[j] = row == n_rows ? 0 : static_cast<unsigned char>(hash_of_row[row] % num_parts);
+      }
+      // the groups of each partition, walking the PSMs in order
+#pragma omp for schedule(dynamic, 1)
+      for (SignedSize sp = 0; sp < static_cast<SignedSize>(num_parts); ++sp)
+      {
+        const size_t p = static_cast<size_t>(sp);
+        try
+        {
+          GroupMap& groups_map = map_of_part[p];
+          std::vector<Group>& groups = groups_of_part[p];
+          for (size_t j = 0; j < n_psms; ++j)
+          {
+            if (part_of_psm[j] != p || row_of_psm[j] == kNone) continue;
+            const auto [it, inserted] = groups_map.try_emplace(row_of_psm[j], static_cast<uint32_t>(groups.size()));
+            if (inserted) groups.push_back({static_cast<uint32_t>(j), static_cast<uint32_t>(j)});
+            else if (base[j].score > base[groups[it->second].rep].score) groups[it->second].rep = static_cast<uint32_t>(j);
+          }
+        }
+        catch (...)
+        {
+          errors[p] = std::current_exception();
+        }
+      }
+    }
+    rethrowFirstError(errors);
+    // the groups in the order of their first PSMs; the local group numbers of each partition -> global ones
+    std::vector<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>> order; // (first, (partition, local group))
+    for (size_t p = 0; p < num_parts; ++p)
+    {
+      for (size_t g = 0; g < groups_of_part[p].size(); ++g)
+      {
+        order.push_back({groups_of_part[p][g].first, {static_cast<uint32_t>(p), static_cast<uint32_t>(g)}});
+      }
+    }
+    std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    std::vector<std::vector<uint32_t>> global_of_part(num_parts);
+    for (size_t p = 0; p < num_parts; ++p) global_of_part[p].resize(groups_of_part[p].size());
+    reps.resize(order.size());
+    for (size_t g = 0; g < order.size(); ++g)
+    {
+      const auto [p, local] = order[g].second;
+      global_of_part[p][local] = static_cast<uint32_t>(g);
+      reps[g] = base + groups_of_part[p][local].rep;
+    }
+    // the group of every input row (also of rows without a PSM in psms: by their peptide and label)
+    group_of_row.assign(n_rows, kNone);
+#pragma omp parallel for schedule(static) num_threads(team_threads)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+    {
+      const size_t p = hash_of_row[i] % num_parts;
+      const auto it = map_of_part[p].find(static_cast<uint32_t>(i));
+      if (it != map_of_part[p].end()) group_of_row[i] = global_of_part[p][it->second];
+    }
+  }
+  std::unordered_map<std::string, size_t> best[2]; // [decoy] peptide -> index into reps
+  if (!by_group)
+  {
+    // best PSM of each (label, peptide): the first of the highest score (as weedOutRedundant, which keeps one of equal
+    // scores; the q-value and PEP of the peptide do not depend on which)
+    for (const P::ScoreHolder& sh : psms)
+    {
+      const size_t row = rowOfPSM(sh, n_rows);
+      if (row == n_rows) continue;
+      auto [it, inserted] = best[input.is_decoy[row] ? 1 : 0].try_emplace(input.peptide_keys[row], reps.size());
+      if (inserted) reps.push_back(&sh);
+      else if (sh.score > reps[it->second]->score) reps[it->second] = &sh;
+    }
   }
   P::Scores peptides(use_pi0);
   peptides.reserve(reps.size());
@@ -650,14 +766,34 @@ static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& inp
   {
     peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
   }
+  out.peptide_q_values.assign(n_rows, 1.0);
+  out.peptide_peps.assign(n_rows, 1.0);
+  if (by_group)
+  {
+    // (q-value, PEP) of each group: from its peptide-level entry (each group has one; a group without one keeps 1, 1)
+    std::vector<std::pair<double, double>> estimates(reps.size(), {1.0, 1.0});
+    for (const P::ScoreHolder& sh : peptides)
+    {
+      const size_t row = rowOfPSM(sh, n_rows);
+      if (row == n_rows || group_of_row[row] == kNone) continue;
+      estimates[group_of_row[row]] = {sh.q, sh.pep};
+    }
+#pragma omp parallel for schedule(static) num_threads(team_threads)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+    {
+      const uint32_t g = group_of_row[i];
+      if (g == kNone) continue;
+      out.peptide_q_values[i] = estimates[g].first;
+      out.peptide_peps[i] = estimates[g].second;
+    }
+    return;
+  }
   std::unordered_map<std::string, std::pair<double, double>> estimates[2]; // [decoy] peptide -> (q-value, PEP)
   for (const P::ScoreHolder& sh : peptides)
   {
     const size_t row = rowOfPSM(sh, n_rows);
     estimates[input.is_decoy[row] ? 1 : 0][input.peptide_keys[row]] = {sh.q, sh.pep};
   }
-  out.peptide_q_values.assign(n_rows, 1.0);
-  out.peptide_peps.assign(n_rows, 1.0);
 #pragma omp parallel for schedule(static) num_threads(team_threads)
   for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
   {

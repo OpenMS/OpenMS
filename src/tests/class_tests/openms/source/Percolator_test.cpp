@@ -2626,6 +2626,46 @@ START_SECTION(([EXTRA] peptide_level: Percolator peptide-level q-values and PEPs
 }
 END_SECTION
 
+START_SECTION(([EXTRA] peptide_level: the same estimates with one thread and with several (PL-PAR, from 16384 PSMs on)))
+{
+  // 40,000 rows: scores with many ties (features rounded), keys shared by many PSMs and by targets and decoys, and
+  // target-decoy competition (losers stay in the input, not in the PSM set: they take the estimates of their peptide)
+  RescoreInput in = makeModeratelySeparableInput_(20000, 11);
+  const size_t n = in.features.size();
+  for (auto& f : in.features)
+  {
+    f[0] = std::round(f[0] * 20.0) / 20.0;
+    f[1] = std::round(f[1] * 4.0) / 4.0;
+  }
+  in.peptide_keys.resize(n);
+  for (size_t i = 0; i < n; ++i) in.peptide_keys[i] = "PEP" + std::to_string((i * 7919) % 3001);
+  in.scan_numbers.resize(n);
+  in.exp_masses.assign(n, 500.0);
+  for (size_t i = 0; i < n; ++i) in.scan_numbers[i] = static_cast<int>(i >= 20000 && i < 22000 ? i - 20000 : i);
+  std::vector<RescoreOutput> outs;
+  for (const int threads : {1, 3, 8})
+  {
+    Percolator p;
+    Param prm = p.getDefaults();
+    prm.setValue("seed", 5);
+    prm.setValue("num_threads", threads);
+    prm.setValue("peptide_level", "true");
+    p.setParameters(prm);
+    outs.push_back(p.rescore(in));
+  }
+  TEST_EQUAL(outs[0].peptide_q_values.size(), n)
+  for (size_t k = 1; k < outs.size(); ++k)
+  {
+    TEST_EQUAL(outs[0].scores == outs[k].scores && outs[0].q_values == outs[k].q_values, true)
+    TEST_EQUAL(outs[0].peptide_q_values == outs[k].peptide_q_values, true)
+    TEST_EQUAL(outs[0].peptide_peps == outs[k].peptide_peps, true)
+  }
+  size_t below_one = 0;
+  for (double q : outs[0].peptide_q_values) below_one += q < 1.0 ? 1 : 0;
+  TEST_EQUAL(below_one > n / 2, true)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] rescorePSMs with peptide_level: percolator_peptide_q_value and percolator_peptide_pep on the hits))
 {
   // 900 spectra, each peptide (sequence and label) seen in 3 of them; target search engine scores higher on average
