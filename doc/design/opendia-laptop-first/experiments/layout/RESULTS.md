@@ -1,6 +1,6 @@
 # Measured raw-point layout tradeoffs
 
-Measured October 25, 2026. Planning-only experiment, not a production migration.
+Measured October 25, 2026. The comparison below was a planning-only experiment, not a production migration. The [October 26 workflow follow-through](#production-scan-view-workflow-follow-through) separately traces the later WP-03 adapter into complete searches.
 Protocol, code and reproduction commands: [README](README.md).
 All 35 cases, 105 processes, individual timing samples and hashes: [results](results-20261025.json).
 
@@ -132,12 +132,31 @@ ctest --test-dir <native-build> \
 | Preserve semantics and report uncertainty | Full-field bit-exact reconstruction and per-result extractor comparisons passed. All timing samples and broad noisy trial ranges were retained, with no outlier deletion. |
 | Reproduce the reported result | The full 105-process summary was regenerated after completion and matched the committed JSON byte-for-byte. All 65 published table cells were independently matched to that result. |
 
-This closes the **requested comparison experiment** with observed improvements and observed counterexamples. It does not close a production-layout migration: none was requested or implemented, and no full future-engine acceptance path exists yet for these alternative layouts. The lack of that adapter is a scope limit, not a successful full-engine validation or an externally blocked test hidden as a pass.
+This closes the **requested comparison experiment** with observed improvements and observed counterexamples. At the time of that experiment, no production-layout migration was implemented. The later workflow below validates the production factored scan adapter, not a complete-engine comparison of all five experimental layouts.
+
+## Production scan-view workflow follow-through
+
+**October 26, 2026.** The stacked WP-03 implementation `4024bc8325d4fecc35a300891ec7937d10c35624` now carries metadata factoring through a real production reader and complete OpenDIA searches. It does **not** migrate the v0 `RawTile` contract or instantiate the five experimental representations in the engine. The [requirement and public-output observations](../../VALIDATION.md) record the individual checks, exact output dimensions and remaining package gates.
+
+The actual path is `OpenDIA(readOptions=tiled)` -> indexed `SpectrumAccessOnDisc` -> `RawAccess::acquire` -> `RawScan` -> the mutable `ISpectrumAccess` compatibility bridge -> calibration, extraction and scoring -> production rescoring/inference -> SQLite tables, result export and three matrices. These are the native Release executable and project interfaces, not the benchmark's copied extractor translation unit.
+
+| Layout decision / integration boundary | Concrete check and observed result | What this does not establish |
+|---|---|---|
+| Keep acquisition metadata once and expose bulk numeric columns | `OpenDIARawAccess.h` stores one peak-free `MSSpectrum` metadata object and numeric columns per `RawScan`; `array()` exposes a const column. Actual `OpenDIARawAccess_test` compares all metadata and arrays against native reads for 114 non-IM, 150 IM and 19 FAIMS scans, including missing/zero IM and empty scans. | Native decoder/metadata allocations are outside the private numeric charge. No v0 per-point ABI change. |
+| Avoid per-point `optional<Mobility>` in this scan bridge | `OpenDIARawAccess.cpp` converts native numeric arrays and retains their descriptions with the scan. IM is a numeric column, not the experiment's repeated optional/unit object. Actual public extraction matches native RT/intensity arrays at 1/16/4,096 queries, with and without IM filtering. | No controlled whole-engine comparison isolates this packing decision from reader/cache changes. |
+| Preserve ownership at the public mutable boundary | `getSpectrumById()` makes a separately admitted deep copy. Actual clone, eviction, array/container lifetime, mutation-isolation and exhaustion checks pass. Real m/z transformation mutates that detached copy. | The current legacy workflow is **not zero-copy**. Native decode and repeated extraction can still allocate/copy, and later mutable growth is not intercepted. |
+| Carry the candidate through the complete scientific workflow | Nine full-library Release searches, three each normal/tiled256/tiled1024, complete with 2,000 targets, 2,000 decoys and all 24,000 transitions. The project's comparator reopens every result/feature/score table, verifies finite nonzero IM, and compares all three matrices. All outputs match under the declared numeric tolerances. | One complete converted TimSim control input, not native diaPASEF geometry, lane-aware FAIMS or the complete cohort. |
+| Observe whole-process costs rather than extrapolate allocation deltas | Normal median 162.44 s / 1,834,100 KiB RSS; tiled256 374.40 s / 982,188 KiB; tiled1024 173.53 s / 1,852,132 KiB. Thus tiled256 saves 46.45% RSS at 2.305x elapsed time; the larger cache has no clear RSS benefit. Every run is retained. | Reader/index/cache/copy/scheduling/layout effects are confounded. These are **not isolated SoA speedups or a global memory bound**. |
+| Exercise admission failure without dropping scientific work | The unchanged current 128 MiB/eight-thread search completes calibration but returns exit 8 on extraction admission, with no final exports. Oversize and twelve native reader-failure paths also return explicit errors. | Failure correctness is not successful 128 MiB workflow acceptance. |
+
+The independent post-publication replay at **19:19 UTC** reopened all nine completed searches, rechecked the complete outputs, private caps, exact commands and unchanged source/binary/input/library provenance, and still rejected the original failed performance matrix. Supporting actual native/public/installed-consumer checks passed 204/204 plus 6/6. These counts complement, rather than replace, the boundary-specific observations above. Local raw artifacts remain under `representative-1312/acceptance-recheck-1908` and `scoring-balanced-1740`; they are not presented as publicly downloadable evidence.
+
+**Decision:** metadata factoring plus a simple owning numeric scan view is now exercised through a complete production workflow on one converted input. Keep it as the opt-in adapter. Do not infer that factored SoA universally beats AoS, remove the mutable compatibility copy, or change unrelated record layouts. A controlled complete-engine AoS/SoA experiment and shared read-only extraction remain separate, unvalidated work.
 
 ## Limits and next decision boundary
 
 This measures raw-point layouts only. It does not settle hypothesis/evidence/family/score layouts, byte-budget admission, streaming lifetime, multithreading, large diaPASEF-frame shapes, larger target libraries, full-run throughput or end-to-end scientific results. Million-point inputs repeat whole real acquisitions without inventing new peak distributions. The target set has only 34 queries, so the balance of adaptation versus extraction work can differ for a real library.
 
-There is not yet a production consumer of the v0 records. Consequently the measured real legacy access pattern is a constraint, not a complete trace of the future engine. A future IM scan view could share unit/presence metadata, avoid per-point optional objects and avoid repacking. That could improve both memory and extraction, but is **unmeasured**, not a claim made by this report.
+The v0 raw-point records still have no production extraction consumer. The later `RawScan` bridge does share scan metadata and uses numeric IM columns, but its legacy mutable interface still copies, so it does not realize the proposed copy-free future extractor. Its whole-workflow observations above supersede the earlier lack of any production scan adapter, not the experimental AoS/SoA ranking limits.
 
-The experiment supports a concrete decision now: separate acquisition metadata from numeric points, preserve full semantics, and provide a simple bulk view. Choose the final IM hot layout when that real adapter exists. Do not add a generic layout framework or rewrite unrelated contracts to chase these microbenchmark ratios.
+The experiment supports a concrete decision now: separate acquisition metadata from numeric points, preserve full semantics, and provide a simple bulk view. Choose the final copy-free extractor's IM hot layout when that path is implemented and measured. Do not add a generic layout framework or rewrite unrelated contracts to chase these microbenchmark ratios.

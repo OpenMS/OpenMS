@@ -34,6 +34,10 @@
 | Preserve frozen inputs and separate conversion cost | Before/after source/binary/dependency/flags/input/library/comparator/archive hashes match. Complete 2,000-target/2,000-decoy library retained. Conversion separately measured **16.33 s / 299,904 KiB RSS**. | One converted TimSim control run only. Astral and remaining cohort are untested, not declared externally blocked. |
 | Native vendor inputs and downstream integration | Current build has Thermo/Bruker readers disabled. Existing separate vendor-enabled FileConverter produced indexed mzML without changing frozen data. | Concrete native-input acceptance constraint. Tiled adapter itself requires indexed mzML. WP-05/06 private scan-view integration and WP-09/10 acceptance remain **open**, not replaced by conversion. |
 
+## Layout decision through the production workflow
+
+The [production scan-view follow-through](experiments/layout/RESULTS.md#production-scan-view-workflow-follow-through) maps metadata factoring, numeric IM columns, mutable compatibility ownership, complete scientific outputs and process costs to the actual adapter/public interfaces above. It connects the original layout experiment to nine completed native Release searches without presenting reader/cache/copy/scheduling effects as an isolated AoS/SoA improvement. The v0 `RawTile` contract is unchanged and the legacy bridge still deep-copies numeric arrays.
+
 ## Changed native scoring and calibration outputs
 
 `OpenDIARawFailure_test` calls the actual native APIs with a generated indexed pressure fixture, compared with unrestricted native references. This is a precise lifetime regression, not a substitute for the complete CLI searches. Old-core final-charge assertions fail on all nine scoring paths with **1,304 to 2,896** committed bytes. Fresh fixed-core observations report `native_reference=equal committed=0 reserved=0` on every path:

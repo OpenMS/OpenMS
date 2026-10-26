@@ -115,4 +115,4 @@ different geometry/workloads or cross-layout/trial checksum disagreements.
 Observed results: [measured tradeoffs and recommendation](RESULTS.md), with
 [all 35 summarized cases and individual samples](results-20261025.json).
 The 105-process comparison favors metadata factoring, not a universal SoA migration.
-No production layout was changed.
+No production layout was changed by that comparison. The later [WP-03 production scan-view follow-through](RESULTS.md#production-scan-view-workflow-follow-through) traces metadata factoring and numeric columns through complete native OpenDIA searches, including scientific outputs, RSS/runtime costs and the remaining mutable-copy boundary.
