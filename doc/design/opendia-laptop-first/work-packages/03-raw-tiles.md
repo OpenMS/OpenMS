@@ -185,7 +185,13 @@ A fresh nine-process matrix then used the same native Release build and balanced
 
 The 256 MiB setting uses about 46% less median RSS but takes about 2.3 times as long. The 1,024 MiB setting has no clear speed or RSS gain. All tiled private peaks stay within their usable caps. Each final cache diagnostic reports zero live copy bytes. This does not prove a native allocation or process limit.
 
-These warm-cache measurements cover one converted TimSim run on a shared host. The original failed matrix remains rejected. The 128 MiB setting was not retested. Native acquisition and wider cohort checks remain open. Next, reduce repeated decoding through WP-05 and test whole-job admission without changing the scientific population. Keep the reader lock until measurement justifies a change. Local commands, raw trials and requirement checks are under `representative-1312/optimized-setup`, `scoring-acceptance-1740` and `scoring-balanced-1740`.
+These warm-cache measurements cover one converted TimSim run on a shared host. The original failed matrix remains rejected. The 128 MiB setting was checked separately below. Native acquisition and wider cohort checks remain open. Next, reduce repeated decoding through WP-05 and test whole-job admission without changing the scientific population. Keep the reader lock until measurement justifies a change. Local commands, raw trials and requirement checks are under `representative-1312/optimized-setup`, `scoring-acceptance-1740` and `scoring-balanced-1740`.
+
+### Current 128 MiB check
+
+A separate Release check on `4024bc8325` uses the same full input, library, eight threads and science settings, with a 128 MiB declared budget and the unchanged 32 MiB scan bound. Calibration completes. Extraction returns `Scan admission failed: pinned views or cancellation`. The service wrapper and timed engine both exit 8 after 78.74 seconds. No final exports exist. The strict checker rejects the run, so its partial RSS is not a completed-run memory comparison.
+
+Before/after source, binaries, dependencies, flags, commands, input, library and frozen archive provenance match the successful nine-run matrix. The earlier 128 MiB Debug failure remains retained. The build differs, so this does not isolate the scoring repair as the cause of later progress. The lower-cap workflow is still not accepted. Commands, logs and the rejection record are under `representative-1312/current-128-1900`.
 
 ## Limits
 
@@ -200,7 +206,7 @@ These warm-cache measurements cover one converted TimSim run on a shared host. T
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
 - [x] Match complete-library outputs for the converted TimSim control run at the 1,024 MiB setting. This closes one correctness check, not representative resource acceptance.
-- [ ] Reduce repeated decoding and retained-copy costs. Checked-copy, calibration and scoring-owner repairs preserve complete outputs. All nine new Release trials complete, but the lower-memory setting is slower. Integrate shared extraction and whole-job admission without changing the scientific population. Retest the earlier 128 MiB calibration failure. Query-grid tests do not bound full-engine output or hypothesis memory.
+- [ ] Reduce repeated decoding and retained-copy costs. Checked-copy, calibration and scoring-owner repairs preserve complete outputs. All nine new Release trials complete, but the lower-memory setting is slower. Integrate shared extraction and whole-job admission without changing the scientific population. Resolve the current 128 MiB extraction admission failure without weakening its cap. Query-grid tests do not bound full-engine output or hypothesis memory.
 - [ ] Extend pinned input coverage beyond the converted TimSim control run. Test Astral and the remaining cohort. Keep conversion cost separate. Measure native decoder/metadata, downstream workspace memory, runtime and peak RSS. Do not change the frozen WP-00 files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 

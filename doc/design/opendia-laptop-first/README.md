@@ -118,9 +118,11 @@ At 256 MiB, median RSS is **982,188 KiB**, against **1,834,100 KiB** for normal.
 Median wall time is **374.40 seconds**, against **162.44 seconds**. This saves
 memory but takes about 2.3 times as long. The 1,024 MiB setting has no clear
 speed or RSS gain. These are warm-cache checks on one converted input and a
-shared host. The original failed matrix is retained. Next, reduce repeated
-reads with WP-05 and test whole-job admission. Native acquisition, broader input
-coverage and whole-process bounds remain open. Keep all packages stacked.
+shared host. The original failed matrix is retained. A current 128 MiB check
+completes calibration but fails decoder admission during extraction, with no
+final output. Next, reduce repeated reads with WP-05 and test whole-job admission.
+Native acquisition, broader input coverage and whole-process bounds remain open.
+Keep all packages stacked.
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
