@@ -64,6 +64,7 @@
 #include <pthread.h>
 #include <sched.h>
 #include <signal.h>
+#include <strings.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 #define PROSE_HAND_OVER_MEMORY
@@ -79,7 +80,8 @@ using namespace std;
 namespace
 {
   /**
-    On by default (environment variable OPENMS_FAST_EXIT=0 turns it off): when a process ends, the kernel releases its memory before the
+    On by default (environment variable OPENMS_FAST_EXIT=0, false, no or off turns it off): when a process ends, the
+    kernel releases its memory before the
     waiting parent learns of the end: 40-80 ms for the 0.5-1 GB that a search leaves behind, after all outputs are
     written. A helper process that shares the address space (CLONE_VM) takes over that work: it waits until this
     process has ended (end of file on a pipe whose write end only this process holds; a process drops its address
@@ -91,7 +93,8 @@ namespace
     process or subreaper that only waits for its own child) keeps one zombie per run; a job system that waits for all
     processes of a job waits for it (a moment); if the helper cannot be created, or a sandbox stops it (e.g. a
     seccomp filter on close_range), the tool ends as without it. Tested: bash, systemd, Slurm and Apptainer (exec,
-    --pid, --containall) reap it; identical outputs. Not used under a debugger or tracer.
+    --pid, --containall) reap it; identical outputs. Not used under a debugger or tracer, nor under a seccomp filter
+    (a filter may kill the whole process for a clone() that is not a thread, after all outputs are written).
   */
   struct HelperFiles
   {
@@ -138,28 +141,50 @@ namespace
     return 0;
   }
 
-  /// Is a debugger or tracer attached (it would not follow the helper, see CLONE_UNTRACED)?
-  bool traced()
+  /// Is a debugger or tracer attached (it would not follow the helper, see CLONE_UNTRACED), or does a seccomp filter
+  /// run (it might kill the process for the helper's clone(), review int14 r2)? True if /proc/self/status cannot tell.
+  bool tracedOrFiltered()
   {
     std::ifstream status("/proc/self/status");
     std::string line;
+    bool tracer_known = false, seccomp_known = false;
     while (std::getline(status, line))
     {
-      if (line.rfind("TracerPid:", 0) == 0) return std::atol(line.c_str() + 10) != 0;
+      if (line.rfind("TracerPid:", 0) == 0)
+      {
+        if (std::atol(line.c_str() + 10) != 0) return true;
+        tracer_known = true;
+      }
+      else if (line.rfind("Seccomp:", 0) == 0)
+      {
+        if (std::atol(line.c_str() + 8) != 0) return true;
+        seccomp_known = true;
+      }
     }
-    return true;
+    return !(tracer_known && seccomp_known);
   }
 
-  /// Unless OPENMS_FAST_EXIT=0, hands the release of the memory at exit to a helper process (see above); does nothing
-  /// if that fails
+  /// OPENMS_FAST_EXIT turns the hand-over off with 0, false, no or off (any case)
+  bool fastExitDisabled()
+  {
+    const char* v = getenv("OPENMS_FAST_EXIT");
+    if (v == nullptr) return false;
+    for (const char* off : {"0", "false", "no", "off"})
+    {
+      if (strcasecmp(v, off) == 0) return true;
+    }
+    return false;
+  }
+
+  /// Unless OPENMS_FAST_EXIT turns it off, hands the release of the memory at exit to a helper process (see above);
+  /// does nothing if that fails
   void handOverMemoryAtExit()
   {
-    const char* fast_exit = getenv("OPENMS_FAST_EXIT");
-    if (fast_exit != nullptr && strcmp(fast_exit, "0") == 0) { return; }
+    if (fastExitDisabled()) { return; }
     // Valgrind does not run processes that share memory without being threads
     const char* preload = getenv("LD_PRELOAD");
     if (preload != nullptr && strstr(preload, "vgpreload") != nullptr) { return; }
-    if (traced()) { return; }
+    if (tracedOrFiltered()) { return; }
     int end_pipe[2], ready_pipe[2];
     if (pipe2(end_pipe, O_CLOEXEC) != 0) { return; } // close-on-exec: no program started later holds the write end
     if (pipe2(ready_pipe, O_CLOEXEC) != 0) { close(end_pipe[0]); close(end_pipe[1]); return; }
@@ -204,7 +229,13 @@ namespace
   void configureMalloc()
   {
     const char* tunables = getenv("GLIBC_TUNABLES");
-    if (tunables != nullptr && strstr(tunables, "glibc.malloc.top_pad") != nullptr) { return; }
+    // an entry glibc.malloc.top_pad=... of the colon-separated list (not a longer name that contains it)
+    for (const char* p = tunables; p != nullptr && *p != '\0';)
+    {
+      if (strncmp(p, "glibc.malloc.top_pad=", 21) == 0) { return; }
+      p = strchr(p, ':');
+      if (p != nullptr) { ++p; }
+    }
     const char* defaults = getenv("OPENMS_MALLOC_DEFAULTS");
     if (defaults != nullptr && strcmp(defaults, "0") == 0) { return; }
     mallopt(M_TOP_PAD, 64 << 20);
@@ -278,7 +309,7 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Threads: '-threads' sets the threads of the search ('-threads 0': the physical cores the process may use, without their hardware threads); an mzML file read while the search runs takes its threads from these if they are fewer than the physical cores the process may use (otherwise it reads with threads of its own). For many files on a machine with many cores, several processes at 16-32 threads, each searching a share of the files, finish sooner than one process at 64 threads. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets the top pad itself (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with OPENMS_MALLOC_DEFAULTS=0. Optional speed-up: GLIBC_TUNABLES=glibc.malloc.hugetlb=1 (transparent huge pages for the heaps and large blocks; needs THP 'madvise' or 'always' in /sys/kernel/mm/transparent_hugepage/enabled) made a 64-thread search of a 250,000-spectrum timsTOF run about 15 % faster at +0.2 GiB peak memory (results unchanged); ProSE's top pad stays set with it.
-@note Exit: on Linux, ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end earlier (40-80 ms for a small search, about 0.8 s for a 250,000-spectrum run; exit code and outputs unchanged). OPENMS_FAST_EXIT=0 turns this off. Caveat: the helper is a process of its own for that moment, so a parent that does not reap the children it adopts (an init process or subreaper that waits only for its own child) keeps one zombie process per run; shells, systemd, Slurm and Apptainer reap it. Not used under a debugger or tracer.
+@note Exit: on Linux, ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end earlier (40-80 ms for a small search, about 0.8 s for a 250,000-spectrum run; exit code and outputs unchanged). OPENMS_FAST_EXIT=0 (or false, no, off) turns this off. Caveat: the helper is a process of its own for that moment, so a parent that does not reap the children it adopts (an init process or subreaper that waits only for its own child) keeps one zombie process per run; shells, systemd, Slurm and Apptainer reap it. Not used under a debugger or tracer, nor under a seccomp filter (as in some container runtimes and systemd services).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
 <B>The command line parameters of this tool are:</B>
