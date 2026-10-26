@@ -522,12 +522,13 @@ namespace OpenMS
                        "three by cross-validation (faster; the results differ).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:single_cneg", {"true", "false"});
-    defaults_.setValue("rescoring:best_positive", "first",
+    defaults_.setValue("rescoring:best_positive", "score",
                        "Which PSM of a spectrum Percolator's training takes as the positive candidate (ProSE trains on one "
-                       "PSM per spectrum). 'first' (default, as the percolator executable with --train-best-positive): the "
-                       "first one an unstable sort by spectrum leaves, often not the best-scoring of the reported hits, so "
-                       "that most positives are missing from the training; 'score': the best-scoring one (more PSMs at the "
-                       "same FDR on the benchmark files; the results differ).",
+                       "PSM per spectrum). 'score' (default): the best-scoring one (+1.2 % PSMs at 1 % FDR on the 20-file "
+                       "benchmark, +1.4 % on HeLa, entrapment-estimated false discovery proportion not higher); 'first' (the "
+                       "former default, as the percolator executable with --train-best-positive): the first one an unstable "
+                       "sort by spectrum leaves, often not the best-scoring of the reported hits, so that most positives are "
+                       "missing from the training. The results differ.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:best_positive", {"first", "score"});
     defaults_.setValue("rescoring:use_pi0", "true",
