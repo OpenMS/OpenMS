@@ -80,7 +80,10 @@ side (rank-4 updates), a Cholesky factorization gives the Newton point, one pass
 all rows gives its margins, and the exact line search on the breakpoints of the
 piecewise quadratic objective (selection by partitioning) gives the step; the margins
 are updated without another pass. It stops on TRON's criterion
-(`||g(w)|| <= eps ||g(0)||`) and takes at most 128 columns. `ldaSvm` is Fisher's
+(`||g(w)|| <= eps ||g(0)||`) and takes at most 128 columns. The per-row buffers of a Newton solve (the margins X w and X wbar, the
+breakpoints; about 40 bytes per row) come from a pool and are not initialised (every value is written
+before it is read); buffers above 64 MB are kept only while a `TronWorkspaceHold` exists and freed when the
+last one ends (`newtonReleaseWorkspaces`). `ldaSvm` is Fisher's
 discriminant (pooled within-class scatter, small ridge) from one pass, scaled and
 shifted along its direction as in the paper's beta-seeding (eq. 8/9). Rows are cut
 into fixed blocks of 8192 whose partial sums are added in block order, so the results
@@ -444,6 +447,37 @@ date use the old numbers.
   normalisation by static blocks of rows (each row's features together) instead of by feature
   (each thread walking a column through all rows); every value is computed by the same expression.
   The statistics are unchanged. No change of results. (Numbered 29: 22 and 24-28 are cvmem's; int14 renumbers at integration.)
+  `L2_SVM_MFN`. No change of results. (Number 21 is used by another branch, memalloc's
+  21-initdir-count-buffers.)
+- `patches/24-cv-sorted-certificate.patch` (23 is memalloc's 23-psm-slab) — `Scores::sortScoresAndCalcQvals` skips the sort when
+  every PSM compares strictly greater (score, scan, mass, label) than the next one: that order is
+  then the only sorted one, so any sort would leave it unchanged (the fold chains sort the scores
+  that the previous step sorted). Checked in blocks by the tasks of an enclosing parallel region.
+  No change of results.
+- `patches/25-cv-packed-group-keys.patch` — `Scores::generateTrainingSetsOfSortedSet` sorts one
+  64-bit key per PSM (file << 34 | scan << 2 | 2 - label, with its 32-bit position; built in blocks
+  by the tasks of an enclosing parallel region) instead of (file, scan, label, position) where the
+  values fit: the keys compare as OrderScanLabel compares the PSMs, so the sort makes the same moves
+  and keeps the same PSM of each group. Otherwise the full keys as before. No change of results.
+- `patches/26-cv-sorted-up-to-interchangeable.patch` — relaxes patch 24: the sort is also skipped
+  when neighbours are not strictly ordered but interchangeable (bit-identical score, equal label,
+  scan, expMass and spectrum file, bit-identical feature rows), e.g. I/L variants of a spectrum's
+  hits. A sort can then only permute holders within runs of interchangeable ones, so every later
+  consumer of the training set sees the same values at every position; training holders never
+  reach the output. With NaN scores or masses it sorts. No change of results.
+- `patches/28-cv-setup-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` marks the kept
+  PSMs, collects the positives and decoys and fills the SVM rows in blocks, as tasks of an enclosing
+  parallel region; the blocks are joined in order (offsets from their counts), with the same check
+  of each positive against the one before it. No change of results.
+- `patches/29-cv-certificate-cache.patch` — once the certificate of patches 24/26 has failed for a
+  set, `sortScoresAndCalcQvals` sorts that set without checking again (a forced sort is always
+  exact; the check costs 45-60 ms per step on tie-heavy sets). No change of results.
+- `patches/30-cv-reuse-validation-scores.patch` — in the fold chains, each pair's validation on the
+  training set (`countPositives` with the feature rows) also keeps the score of every row; the step's
+  rescoring with the chosen pair's weights (`calcScoresOfRowsAndQvals`) gives each PSM the score of
+  its row (the same `calcScore` of the same row and weights) instead of scoring all PSMs again, then
+  sorts and computes the q-values as before. A PSM whose row is not found makes it score as before.
+  No change of results.
 
 ### Regenerating the patch
 

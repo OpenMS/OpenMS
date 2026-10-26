@@ -17,6 +17,7 @@
 
 #include <boost/assign.hpp>
 #include <cassert>
+#include <cstring>
 #include <exception>
 #include <functional>
 #include <cfloat>
@@ -676,26 +677,87 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
  * (the count does not depend on the order of the scores, see countPositives).
  */
 int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
-                           const std::vector<pair<const double*, bool> >& rows) const {
+                           const std::vector<pair<const double*, bool> >& rows,
+                           std::vector<double>* rowScores) const {
   std::vector<pair<double, bool> > combined;
   const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(rows.size());
+  if (rowScores != nullptr) rowScores->resize(rows.size());
+  double* const rs = rowScores != nullptr ? rowScores->data() : nullptr;
 #ifdef _OPENMP
   if (numRows >= kLargeSet && omp_in_parallel()) {
     combined.resize(rows.size());
 #pragma omp taskloop grainsize(numRows / 64) shared(combined, rows, w)
     for (std::ptrdiff_t i = 0; i < numRows; ++i) {
       const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
-      combined[static_cast<std::size_t>(i)] = {calcScore(row.first, w), row.second};
+      const double score = calcScore(row.first, w);
+      combined[static_cast<std::size_t>(i)] = {score, row.second};
+      if (rs != nullptr) rs[i] = score;
     }
   } else
 #endif
   {
     combined.reserve(rows.size());
-    for (const pair<const double*, bool>& row : rows) {
-      combined.emplace_back(calcScore(row.first, w), row.second);
+    for (std::ptrdiff_t i = 0; i < numRows; ++i) {
+      const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
+      const double score = calcScore(row.first, w);
+      combined.emplace_back(score, row.second);
+      if (rs != nullptr) rs[i] = score;
     }
   }
   return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
+}
+
+/**
+ * OpenMS (CV-A2): calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
+ * already, by countPositives(w, ..., rows, &rowScores) on the rows of getFeatureRows of this set:
+ * each PSM gets the score of its row (calcScore of the same row and weights, the same bits), found by
+ * its address; then the sort and the q-values as calcScoresAndQvals. A PSM whose row is not in rows
+ * (the set changed) makes it score all PSMs with w instead.
+ */
+int Scores::calcScoresOfRowsAndQvals(std::vector<double>& w,
+                                     const std::vector<pair<const double*, bool> >& rows,
+                                     const std::vector<double>& rowScores, double fdr,
+                                     bool skipDecoysPlusOne) {
+  if (rowScores.size() != rows.size() || rows.size() != scores_.size()) {
+    return calcScoresAndQvals(w, fdr, skipDecoysPlusOne);
+  }
+  const auto byAddress = [](const pair<const double*, bool>& a, const double* b) {
+    return std::less<const double*>()(a.first, b);
+  };
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  std::vector<char> found;
+  const auto assign = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+    bool ok = true;
+    for (std::ptrdiff_t i = b; i < e; ++i) {
+      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+      const auto it = std::lower_bound(rows.begin(), rows.end(), sh.pPSM->features, byAddress);
+      if (it == rows.end() || it->first != sh.pPSM->features) {
+        ok = false;
+        continue;
+      }
+      sh.score = rowScores[static_cast<std::size_t>(it - rows.begin())];
+    }
+    return ok;
+  };
+#ifdef _OPENMP
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
+    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
+    found.assign(static_cast<std::size_t>(numBlocks), 1);
+#pragma omp taskloop grainsize(1) shared(found, assign)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+      found[static_cast<std::size_t>(block)] = assign(block * blockSize, std::min(n, (block + 1) * blockSize));
+    }
+  } else
+#endif
+  {
+    found.assign(1, assign(0, n));
+  }
+  if (!std::all_of(found.begin(), found.end(), [](char x) { return x != 0; })) {
+    return calcScoresAndQvals(w, fdr, skipDecoysPlusOne);
+  }
+  sortScores();
+  return calcQvals(fdr, skipDecoysPlusOne);
 }
 
 // OpenMS: countPositives from the (score, isTarget) pairs of the PSMs, in any order
@@ -829,8 +891,58 @@ int Scores::calcScores(std::vector<double>& w) {
  * already and that have not changed since (in any order): the PSMs are not scored again.
  */
 int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
-  sortScores();
+  // OpenMS: the sort is skipped where it cannot change what any later step sees (CrossValidation sorts
+  // the training scores that the step before sorted): see sortedUpToInterchangeable
+  // (the check is skipped after it has failed once for this set: on tie-heavy sets it costs as much as
+  // part of the sort and does not succeed)
+  if (VERB > 3 || sortCertificateFailed_ || !comparableScores(scores_.begin(), scores_.end()) ||
+      !sortedUpToInterchangeable()) {
+    if (VERB <= 3) sortCertificateFailed_ = true;
+    sortScores();
+  }
   return calcQvals(fdr, skipDecoysPlusOne);
+}
+
+// OpenMS: whether every two neighbours are either strictly ordered (ScoreHolderGreater) or
+// interchangeable: bit-identical score, equal label, scan, expMass, spectrum file and bit-identical feature rows
+// (only the PSM objects differ). A sort of such an order can only permute holders within runs of
+// interchangeable ones (the equalities are transitive), so every later consumer of the training set
+// (q-values by position, the selection of the best positive per spectrum with the same moves and
+// value-identical representatives, the SVM rows in the same order, the counts) sees the same values
+// at every position as after the sort; the identity of a training holder never reaches the output.
+// (With NaN scores or masses the caller sorts: comparableScores.)
+bool Scores::sortedUpToInterchangeable() const {
+  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+  const ScoreHolderGreater greater;
+  const std::size_t featureBytes = FeatureNames::getNumFeatures() * sizeof(double);
+  const auto interchangeable = [featureBytes](const ScoreHolder& a, const ScoreHolder& b) {
+    return std::memcmp(&a.score, &b.score, sizeof(double)) == 0 && a.label == b.label && a.pPSM->scan == b.pPSM->scan &&
+           a.pPSM->expMass == b.pPSM->expMass && a.pPSM->specFileNr == b.pPSM->specFileNr &&
+           (a.pPSM->features == b.pPSM->features ||
+            std::memcmp(a.pPSM->features, b.pPSM->features, featureBytes) == 0);
+  };
+  const auto ordered = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+    for (std::ptrdiff_t i = b; i + 1 < e; ++i) {
+      const ScoreHolder& x = scores_[static_cast<std::size_t>(i)];
+      const ScoreHolder& y = scores_[static_cast<std::size_t>(i + 1)];
+      if (!greater(x, y) && !interchangeable(x, y)) return false;
+    }
+    return true;
+  };
+#ifdef _OPENMP
+  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
+    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
+    std::vector<char> ok(static_cast<std::size_t>(numBlocks), 1);
+#pragma omp taskloop grainsize(1) shared(ok, ordered)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+      // a block and its link to the next one
+      ok[static_cast<std::size_t>(block)] = ordered(block * blockSize, std::min(n, (block + 1) * blockSize + 1));
+    }
+    return std::all_of(ok.begin(), ok.end(), [](char x) { return x != 0; });
+  }
+#endif
+  return ordered(0, n);
 }
 
 // the sort of calcScores
@@ -1046,57 +1158,186 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
     }
   } else if (trainBestPositive && !scores_.empty()) {
     if (!comparableScores(scores_.begin(), scores_.end())) return false;
-    struct ScanLabelKey {
-      unsigned int specFileNr, scan;
-      LabelType label;
-      std::size_t index;
+    // OpenMS (CV-A1): one 64-bit key (file, scan, label) per PSM where they fit: file << 34 | scan << 2 |
+    // (2 - label) (labels -1..2: a higher label sorts first, as in OrderScanLabel), with the position; the keys
+    // compare as OrderScanLabel compares the PSMs, so the sort makes the same moves as with the full keys
+    struct PackedKey {
+      std::uint64_t key;
+      std::uint32_t index;
     };
-    std::vector<ScanLabelKey> keys;
-    keys.reserve(scores_.size());
-    for (std::size_t i = 0; i < scores_.size(); ++i) {
-      keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
+    const std::size_t n = scores_.size();
+    bool packable = n < (std::size_t(1) << 32);
+    std::vector<PackedKey> packed;
+    const std::ptrdiff_t sn = static_cast<std::ptrdiff_t>(n);
+    if (packable) {
+      packed.resize(n);
+      std::vector<char> fits;
+      const auto fill = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+        bool ok = true;
+        for (std::ptrdiff_t i = b; i < e; ++i) {
+          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+          const int label = static_cast<int>(sh.label);
+          ok &= sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2;
+          packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
+                                                     (std::uint64_t(sh.pPSM->scan) << 2) |
+                                                     std::uint64_t(2 - label),
+                                                 static_cast<std::uint32_t>(i)};
+        }
+        return ok;
+      };
+#ifdef _OPENMP
+      if (sn >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+        const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
+        const std::ptrdiff_t numBlocks = (sn + blockSize - 1) / blockSize;
+        fits.assign(static_cast<std::size_t>(numBlocks), 1);
+#pragma omp taskloop grainsize(1) shared(fits, fill)
+        for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+          fits[static_cast<std::size_t>(block)] = fill(block * blockSize, std::min(sn, (block + 1) * blockSize));
+        }
+      } else
+#endif
+      {
+        fits.assign(1, fill(0, sn));
+      }
+      packable = std::all_of(fits.begin(), fits.end(), [](char x) { return x != 0; });
     }
-    // the comparison of OrderScanLabel, on the keys
-    sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
-      if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
-      if (x.scan != y.scan) return x.scan < y.scan;
-      return x.label > y.label;
-    });
-    // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
-    for (std::size_t k = 1; k < keys.size(); ++k) {
-      if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
-          keys[k].label == keys[k - 1].label) {
-        kept[keys[k].index] = 0;
+    if (packable) {
+      sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) { return x.key < y.key; });
+      // std::unique with UniqueScanLabel: keeps the first of each run of equal keys (each position once:
+      // in blocks as tasks inside a parallel region)
+      const auto mark = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+        for (std::ptrdiff_t k = std::max<std::ptrdiff_t>(b, 1); k < e; ++k) {
+          if (packed[static_cast<std::size_t>(k)].key == packed[static_cast<std::size_t>(k - 1)].key) {
+            kept[packed[static_cast<std::size_t>(k)].index] = 0;
+          }
+        }
+      };
+#ifdef _OPENMP
+      if (sn >= 2 * kMinPairTaskSize && omp_in_parallel()) {
+        const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
+        const std::ptrdiff_t numMarkBlocks = (sn + blockSize - 1) / blockSize;
+#pragma omp taskloop grainsize(1) shared(mark)
+        for (std::ptrdiff_t b = 0; b < numMarkBlocks; ++b) mark(b * blockSize, std::min(sn, (b + 1) * blockSize));
+      } else
+#endif
+      {
+        mark(0, sn);
+      }
+    } else {
+      struct ScanLabelKey {
+        unsigned int specFileNr, scan;
+        LabelType label;
+        std::size_t index;
+      };
+      std::vector<ScanLabelKey> keys;
+      keys.reserve(scores_.size());
+      for (std::size_t i = 0; i < scores_.size(); ++i) {
+        keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
+      }
+      // the comparison of OrderScanLabel, on the keys
+      sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
+        if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
+        if (x.scan != y.scan) return x.scan < y.scan;
+        return x.label > y.label;
+      });
+      // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
+      for (std::size_t k = 1; k < keys.size(); ++k) {
+        if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
+            keys[k].label == keys[k - 1].label) {
+          kept[keys[k].index] = 0;
+        }
       }
     }
   }
-  std::vector<std::size_t> positives;
-  for (std::size_t i = 0; i < scores_.size(); ++i) {
-    const ScoreHolder& sh = scores_[i];
-    if (kept[i] && sh.isTarget() && sh.q <= fdr) {
-      if (trainBestPositive && !positives.empty() && !(scores_[positives.back()] > sh)) {
-        return false;
+  // OpenMS (SETUP-PAR): the positives and the decoys of blocks of PSMs (as tasks inside a parallel region),
+  // then the blocks in order: the same positives, the same check, the same rows in the same order
+  const std::ptrdiff_t total = static_cast<std::ptrdiff_t>(scores_.size());
+  std::ptrdiff_t blockSize = total > 0 ? total : 1;
+#ifdef _OPENMP
+  const bool inTasks = total >= 2 * kMinPairTaskSize && omp_in_parallel();
+  if (inTasks) blockSize = loopGrain(total, kMinPairTaskSize);
+#endif
+  const std::ptrdiff_t numBlocks = (total + blockSize - 1) / blockSize;
+  std::vector<std::vector<std::size_t> > positivesOfBlock(static_cast<std::size_t>(numBlocks));
+  std::vector<std::size_t> decoysOfBlock(static_cast<std::size_t>(numBlocks), 0);
+  std::vector<char> orderedBlock(static_cast<std::size_t>(numBlocks), 1);
+  const auto collect = [&](std::ptrdiff_t block) {
+    std::vector<std::size_t>& pos = positivesOfBlock[static_cast<std::size_t>(block)];
+    std::size_t decoys = 0;
+    const std::ptrdiff_t last = std::min(total, (block + 1) * blockSize);
+    for (std::ptrdiff_t j = block * blockSize; j < last; ++j) {
+      const std::size_t i = static_cast<std::size_t>(j);
+      const ScoreHolder& sh = scores_[i];
+      if (sh.isDecoy()) ++decoys;
+      if (kept[i] && sh.isTarget() && sh.q <= fdr) {
+        if (trainBestPositive && !pos.empty() && !(scores_[pos.back()] > sh)) {
+          orderedBlock[static_cast<std::size_t>(block)] = 0;
+        }
+        pos.push_back(i);
       }
-      positives.push_back(i);
     }
+    decoysOfBlock[static_cast<std::size_t>(block)] = decoys;
+  };
+#ifdef _OPENMP
+  if (inTasks) {
+#pragma omp taskloop grainsize(1) shared(collect)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) collect(block);
+  } else
+#endif
+  {
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) collect(block);
   }
-
-  std::size_t ix2 = 0;
-  for (const ScoreHolder& sh : scores_) {
-    if (sh.isDecoy()) {
-      data.vals[ix2] = sh.pPSM->features;
-      data.Y[ix2] = -1;
+  // the check of each positive against the one before it: inside the blocks, and across them
+  std::size_t numNeg = 0, numPos = 0;
+  const std::size_t* prev = nullptr;
+  for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
+    const std::vector<std::size_t>& pos = positivesOfBlock[static_cast<std::size_t>(block)];
+    if (!orderedBlock[static_cast<std::size_t>(block)]) return false;
+    if (trainBestPositive && prev != nullptr && !pos.empty() && !(scores_[*prev] > scores_[pos.front()])) {
+      return false;
+    }
+    if (!pos.empty()) prev = &pos.back();
+    numNeg += decoysOfBlock[static_cast<std::size_t>(block)];
+    numPos += pos.size();
+  }
+  // the rows: the decoys in order, then the positives in order, at the offsets of their blocks
+  std::vector<std::size_t> negOffset(static_cast<std::size_t>(numBlocks)), posOffset(static_cast<std::size_t>(numBlocks));
+  for (std::size_t block = 0, neg = 0, pos = numNeg; block < static_cast<std::size_t>(numBlocks); ++block) {
+    negOffset[block] = neg;
+    posOffset[block] = pos;
+    neg += decoysOfBlock[block];
+    pos += positivesOfBlock[block].size();
+  }
+  const auto emit = [&](std::ptrdiff_t block) {
+    std::size_t ix2 = negOffset[static_cast<std::size_t>(block)];
+    const std::ptrdiff_t last = std::min(total, (block + 1) * blockSize);
+    for (std::ptrdiff_t j = block * blockSize; j < last; ++j) {
+      const ScoreHolder& sh = scores_[static_cast<std::size_t>(j)];
+      if (sh.isDecoy()) {
+        data.vals[ix2] = sh.pPSM->features;
+        data.Y[ix2] = -1;
+        ix2++;
+      }
+    }
+    ix2 = posOffset[static_cast<std::size_t>(block)];
+    for (std::size_t i : positivesOfBlock[static_cast<std::size_t>(block)]) {
+      data.vals[ix2] = scores_[i].pPSM->features;
+      data.Y[ix2] = 1;
       ix2++;
     }
+  };
+#ifdef _OPENMP
+  if (inTasks) {
+#pragma omp taskloop grainsize(1) shared(emit)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) emit(block);
+  } else
+#endif
+  {
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) emit(block);
   }
-  data.negatives = static_cast<int>(ix2);
-  for (std::size_t i : positives) {
-    data.vals[ix2] = scores_[i].pPSM->features;
-    data.Y[ix2] = 1;
-    ix2++;
-  }
-  data.positives = static_cast<int>(positives.size());
-  data.m = static_cast<int>(ix2);
+  data.negatives = static_cast<int>(numNeg);
+  data.positives = static_cast<int>(numPos);
+  data.m = static_cast<int>(numNeg + numPos);
   return true;
 }
 

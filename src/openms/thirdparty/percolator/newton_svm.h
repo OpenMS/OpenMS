@@ -69,6 +69,9 @@ bool ldaSvm(const AlgIn& set, const options& opts, double cpos, double cneg, dou
 // F(w) (above), for tests and diagnostics (one pass, in row order)
 double svmObjective(const AlgIn& set, double lambda, double cpos, double cneg, const double* w);
 
+// OpenMS: frees the large pooled buffers of the Newton solves (called when the last TronWorkspaceHold ends)
+void newtonReleaseWorkspaces();
+
 }}}  // namespace OpenMS::Internal::Percolator
 
 #endif

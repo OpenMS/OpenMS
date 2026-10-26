@@ -89,13 +89,23 @@ class Scores {
   // OpenMS: see Scores.cpp
   int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
   // OpenMS: see Scores.cpp
+  bool sortedUpToInterchangeable() const;
+  // OpenMS: see Scores.cpp
   int countPositives(const std::vector<double>& w, double fdr,
                      bool skipDecoysPlusOne = false) const;
   // OpenMS: the feature rows of the PSMs with their isTarget(), in the order of the rows in
   // memory, and countPositives from these (see Scores.cpp)
   void getFeatureRows(std::vector<std::pair<const double*, bool> >& rows) const;
+  // (rowScores != nullptr: also receives the score of each row, in the order of rows)
   int countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
-                     const std::vector<std::pair<const double*, bool> >& rows) const;
+                     const std::vector<std::pair<const double*, bool> >& rows,
+                     std::vector<double>* rowScores = nullptr) const;
+  // OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) with the scores of w already computed for
+  // the rows of getFeatureRows (rowScores, from countPositives); see Scores.cpp
+  int calcScoresOfRowsAndQvals(std::vector<double>& w,
+                               const std::vector<std::pair<const double*, bool> >& rows,
+                               const std::vector<double>& rowScores, double fdr,
+                               bool skipDecoysPlusOne = false);
   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
  
@@ -191,6 +201,9 @@ class Scores {
 
   std::vector<ScoreHolder> scores_;
   std::map<PSMDescription*, std::vector<PSMDescription*> > peptidePsmMap_;
+  // OpenMS: the certificate of sortScoresAndCalcQvals failed for this set once: later calls sort
+  // without checking (a forced sort is always exact)
+  bool sortCertificateFailed_ = false;
 
   void reorderFeatureRows(
       FeatureMemoryPool& featurePool,
