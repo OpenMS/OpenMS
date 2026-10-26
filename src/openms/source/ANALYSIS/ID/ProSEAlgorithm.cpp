@@ -7434,10 +7434,12 @@ namespace OpenMS
 #ifdef _OPENMP
         const int threads = omp_get_max_threads();
         // Two threads, not a quarter: the consumer (the idXML output of ProSE) has the search of the next file to run
-        // next to, and every thread of its team allocates in a glibc arena of its own, whose freed memory stays with
-        // the process. Search of 6 timsTOF HeLa runs in one process at 64 threads (kim, 64 cores; 16 / 2 helper threads):
-        // max RSS 25.6 / 24.2 GiB, wall time 37.7 / 37.1 s, identical output (the idXML of the largest run written in
-        // about 2.5 s instead of 1.5 s, still during the search of the next one).
+        // next to, and with glibc's malloc (default arena settings) each further thread of its team can populate an
+        // arena of its own, whose freed memory then stays resident. Search of 6 timsTOF HeLa runs in one process at
+        // 64 threads (kim, 64 cores; 16 / 2 helper threads):
+        // max RSS 25.9 / 24.5 GiB, wall time 38.2 / 37.2 s, identical output (the idXML of the largest run written in
+        // about 2.5 s instead of 1.5 s, still during the search of the next one). The next consumer waits for the one
+        // before: a file whose search is shorter than that write waits up to about 1 s longer for it than before.
         if (omp_get_level() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
 #endif
         if (helper_threads > 0)
