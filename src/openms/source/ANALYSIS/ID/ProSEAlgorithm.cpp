@@ -8386,7 +8386,12 @@ namespace OpenMS
     }
     std::vector<Row>().swap(candidate);
     std::array<std::vector<Size>, 2> training;
-#pragma omp parallel for schedule(static, 1) num_threads(2)
+    // (two threads, if this thread has them; declared without OpenMP, too: -fopenmp-simd parses the clause)
+    [[maybe_unused]] int sort_threads = 1;
+#ifdef _OPENMP
+    sort_threads = std::min(2, omp_get_max_threads());
+#endif
+#pragma omp parallel for schedule(static, 1) num_threads(sort_threads)
     for (int fold = 0; fold < 2; ++fold)
     {
       std::vector<Row>& fold_rows = rows[fold];
