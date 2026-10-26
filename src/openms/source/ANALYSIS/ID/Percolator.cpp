@@ -190,15 +190,17 @@ Percolator::Percolator()
   defaults_.setMinInt("num_threads",      1);
   defaults_.setMaxInt("num_threads",      128);
 
-  defaults_.setValue("use_pi0", "true",
-                     "Enable pi0 correction when computing q-values and PEPs (default). "
+  defaults_.setValue("use_pi0", "auto",
+                     "Enable pi0 correction when computing q-values and PEPs. "
                      "When true, pi0 is estimated per CV fold via bootstrap spline fit on "
-                     "the target score distribution using decoys as the null. When false, "
+                     "the target score distribution using decoys as the null, and q-values "
+                     "follow the mix-max procedure for separate target and decoy searches. When false, "
                      "pi0 is fixed at 1.0 (pure target-decoy FDR, no bootstrap estimation). "
-                     "Affects both Scores::calcQvals and Scores::calcPep. Upstream percolator "
-                     "has no CLI flag for this; the in-library Scores(bool usePi0) "
-                     "constructor is the only toggle, matched here.");
-  defaults_.setValidStrings("use_pi0", {"true","false"});
+                     "Affects both Scores::calcQvals and Scores::calcPep. 'auto' (default) decides as "
+                     "the percolator executable, which uses pi0 only for mix-max: true without "
+                     "post_processing_tdc when a spectrum (scan, mass) has both target and decoy "
+                     "PSMs (separate searches), false otherwise.");
+  defaults_.setValidStrings("use_pi0", {"auto","true","false"});
 
   defaultsToParam_();
 }
@@ -225,7 +227,7 @@ void Percolator::updateMembers_()
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
-  impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
+  impl_->use_pi0             = param_.getValue("use_pi0").toString();
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
 }
@@ -298,6 +300,25 @@ static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
   keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
   keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
   return keys;
+}
+
+// Whether to estimate pi0 for the q-values and PEPs (use_pi0). 'auto' decides as the percolator executable
+// (Caller.cpp: Scores and CrossValidation get usePi0 = useMixMax_): pi0 belongs to its mix-max procedure, which it
+// uses without target-decoy competition when the input looks like separate target and decoy searches, i.e. a
+// spectrum has both target and decoy PSMs. A spectrum is (scan, mass) as in its SetHandler::getScanId, without the
+// file. With pi0 < 1 the q-values come from mix-max counts, which do not hold for a concatenated search.
+static bool resolveUsePi0(const std::string& use_pi0, bool post_processing_tdc, const RescoreInput& input)
+{
+  if (use_pi0 != "auto") return use_pi0 == "true";
+  if (post_processing_tdc) return false;
+  std::map<std::pair<int, double>, bool> decoy_by_spectrum;
+  for (size_t i = 0; i < input.features.size(); ++i)
+  {
+    const RowKeys keys = makeRowKeys(input, i);
+    const auto [it, inserted] = decoy_by_spectrum.emplace(std::make_pair(keys.scan, keys.exp_mass), input.is_decoy[i]);
+    if (!inserted && it->second != input.is_decoy[i]) return true;
+  }
+  return false;
 }
 
 // Materialize the (scan, exp_mass) arrays and hand off to the vendored
@@ -450,6 +471,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   impl_->last_used_default_direction = false;
 
   validateRescoreInput_(input);
+  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
@@ -527,7 +549,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
-  P::Scores train_scores(/*usePi0=*/impl_->use_pi0);
+  P::Scores train_scores(/*usePi0=*/use_pi0);
   train_scores.populateWithPSMs(*impl_->set_handler);
 
   P::CrossValidation cv(
@@ -539,7 +561,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*selectedCpos=*/impl_->c_pos,
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
-    /*usePi0=*/impl_->use_pi0,
+    /*usePi0=*/use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
@@ -598,6 +620,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 
   validateRescoreInput_(input);
   validateModelCompat_(input, model);
+  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   impl_->reset();
 
@@ -623,7 +646,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   }
   fn.initFeatures();
 
-  P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
+  P::Scores all_scores(/*usePi0=*/use_pi0);
   impl_->synthesized_ids.resize(n_rows);
   impl_->second_pass_psms.reserve(n_rows);
 
@@ -734,6 +757,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->last_used_default_direction = false;
 
   validateRescoreInput_(input);
+  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   const size_t n_rows = input.features.size();
   const size_t n_feat = input.features.front().size();
@@ -814,7 +838,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
-  P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
+  P::Scores all_scores(/*usePi0=*/use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
 
   P::CrossValidation cv(
@@ -826,7 +850,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*selectedCpos=*/impl_->c_pos,
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
-    /*usePi0=*/impl_->use_pi0,
+    /*usePi0=*/use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
@@ -868,7 +892,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));
       P::FeatureMemoryPool& full_pool = *impl_->second_pass_pool;
 
-      all_scores = P::Scores(impl_->use_pi0);
+      all_scores = P::Scores(use_pi0);
       impl_->second_pass_psms.reserve(n_rows);
 
       for (size_t i = 0; i < n_rows; ++i)
@@ -1420,10 +1444,11 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     }
   } cleanup{peptide_ids, added_pin_meta_values};
 
-  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass is
-  // used by Percolator for the spectrum key (it goes into RescoreInput.exp_masses), not for training.
+  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass and
+  // CalcMass are read by the percolator executable as such, not as features (it goes into
+  // RescoreInput.exp_masses / calc_masses), so they are not trained on here either.
   const std::set<std::string> pin_metadata_not_feature {
-    "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
+    "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "Peptide", "Proteins"
   };
   StringList numeric_features;
   for (const std::string& f : feature_set)

@@ -42,9 +42,9 @@ namespace
 {
   using NoiseEstimator = OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator;
 
-  // NoiseEstimator::get_noise_even/odd only assert() their window index, so an m/z
-  // outside the estimated range reads past the window vector in a release build.
-  // `window` is the fractional window number that the C++ truncates to an int.
+  // NoiseEstimator::get_noise_even/odd throw Exception::IndexUnderflow/IndexOverflow
+  // for an m/z outside the estimated range; check here as well so Python gets an IndexError.
+  // `window` is the fractional window number that the C++ truncates to an index.
   void check_noise_window(double window, size_t n_windows)
   {
     if (!(window > -1.0 && window < static_cast<double>(n_windows)))

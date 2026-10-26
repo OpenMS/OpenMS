@@ -1357,7 +1357,10 @@ namespace OpenMS
     struct DDAPrecursorInfo
     {
       int precursor_id;
-      double monoisotopic_mz;
+      double monoisotopic_mz; // NaN if the acquisition software determined none (NULL), see selectedMZ()
+      double largest_peak_mz; // m/z of the most intense peak of the precursor's isotope pattern (NaN if NULL)
+      double scan_number;     // precursor position on the mobility axis, a fractional scan number (NaN if NULL)
+      int parent_frame;       // the MS1 frame the precursor was selected in (-1 if NULL)
       int charge;
       double intensity;      // precursor intensity (may be NaN/NULL)
       uint32_t frame_id;
@@ -1365,6 +1368,16 @@ namespace OpenMS
       uint32_t scan_end;
       double isolation_mz;
       double isolation_width;
+
+      /// The selected ion m/z: the monoisotopic m/z, or for a precursor without one (its charge state could not be
+      /// determined, so Charge is NULL as well) the m/z of its most intense peak, as Bruker's own and other readers
+      /// (timsrust, alphatims) report it. 0 if neither is known.
+      double selectedMZ() const
+      {
+        if (std::isfinite(monoisotopic_mz) && monoisotopic_mz > 0.0) return monoisotopic_mz;
+        if (std::isfinite(largest_peak_mz) && largest_peak_mz > 0.0) return largest_peak_mz;
+        return 0.0;
+      }
     };
 
     // Whether analysis.tdf has the DDA-PASEF precursor tables. TDF data without PASEF precursors, such as
@@ -1383,7 +1396,8 @@ namespace OpenMS
       SQLite::Statement q(db,
         "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
         "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
-        "       pfm.IsolationMz, pfm.IsolationWidth "
+        "       pfm.IsolationMz, pfm.IsolationWidth, "
+        "       p.LargestPeakMz, p.ScanNumber, p.Parent "
         "FROM Precursors p "
         "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
         "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
@@ -1392,7 +1406,11 @@ namespace OpenMS
       {
         DDAPrecursorInfo info;
         info.precursor_id   = q.getColumn(0).getInt();
-        info.monoisotopic_mz = q.getColumn(1).getDouble();
+        // NULL columns read as 0 with getDouble(), which would become a precursor m/z of 0
+        const auto nullable = [&q](int column) {
+          return q.getColumn(column).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(column).getDouble();
+        };
+        info.monoisotopic_mz = nullable(1);
         info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
         info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
         info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
@@ -1400,6 +1418,9 @@ namespace OpenMS
         info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
         info.isolation_mz    = q.getColumn(7).getDouble();
         info.isolation_width = q.getColumn(8).getDouble();
+        info.largest_peak_mz = nullable(9);
+        info.scan_number     = nullable(10);
+        info.parent_frame    = q.getColumn(11).isNull() ? -1 : q.getColumn(11).getInt();
         precursors.push_back(info);
       }
 
@@ -3077,10 +3098,26 @@ namespace OpenMS
                      }),
       precursor_entries.end());
 
+    // The ion mobility of a precursor: its position in the Precursors table (ScanNumber, a fractional scan number,
+    // converted with the mobility calibration of its parent MS1 frame), as Bruker's software and other readers
+    // (timsrust, alphatims) report it. A precursor without a position gets @p fragment_im, the intensity-weighted
+    // mean ion mobility of its fragment peaks (which this reader reported for every precursor before).
+    const auto precursorIonMobility = [&handle](const DDAPrecursorInfo& e, double fragment_im)
+    {
+      if (!std::isfinite(e.scan_number) || e.scan_number < 0.0) return fragment_im;
+      const uint32_t frame = (e.parent_frame > 0 && handle.has_frame(static_cast<uint32_t>(e.parent_frame)))
+                               ? static_cast<uint32_t>(e.parent_frame) : e.frame_id;
+      // the converter takes the fractional scan number directly (no interpolation between integer scans)
+      double im = 0.0;
+      handle.scan2inv_ion_mobility_converter->convert(frame, &im, &e.scan_number, 1);
+      return im;
+    };
+
     // Config::rt_selects_spectra: keep the precursors whose spectra lie in the retention time range, with all of their
     // frames. A precursor spectrum gets the mean time of its frames, summed in the same order as emit_precursor does.
-    // Config::im_min/im_max: leave out the precursors isolated entirely outside the ion mobility range. The ion mobility
-    // of their spectra is a mean of ion mobilities in the isolated scans, so it would lie outside as well.
+    // Config::im_min/im_max: leave out the precursors whose ion mobility (precursorIonMobility()) lies outside the ion
+    // mobility range. A precursor without a position in the Precursors table gets the mean ion mobility of its fragment
+    // peaks, which lies in its isolated scans: it is left out if they all lie outside the range.
     const bool select_rt = selectsSpectraByRT(config);
     const bool select_im = config.load_ms2 && imRangeSet(config);
     if (select_rt || select_im)
@@ -3099,7 +3136,14 @@ namespace OpenMS
         ++sel.entries;
         if (!handle.has_frame(e.frame_id)) continue;
         sel.rt_sum += handle.get_frame(e.frame_id).time;
-        if (select_im && e.scan_end > e.scan_begin)
+        if (select_im && std::isfinite(e.scan_number) && e.scan_number >= 0.0)
+        {
+          // the ion mobility the spectrum gets (the same for all entries of the precursor)
+          const double im = precursorIonMobility(e, 0.0);
+          sel.im_lo = std::min(sel.im_lo, im);
+          sel.im_hi = std::max(sel.im_hi, im);
+        }
+        else if (select_im && e.scan_end > e.scan_begin)
         {
           // the peaks are taken from the scans [scan_begin, scan_end)
           const uint32_t scans[2] = {e.scan_begin, e.scan_end - 1};
@@ -3439,11 +3483,13 @@ namespace OpenMS
 
         const DDAPrecursorInfo* first_entry = entries.front();
         double avg_rt = rt_sum / static_cast<double>(entries.size());
+        const double precursor_im = precursorIonMobility(*first_entry, scalar_im);
+        const double precursor_mz = first_entry->selectedMZ();
 
         MSSpectrum spec;
         spec.setRT(avg_rt);
         spec.setMSLevel(2);
-        spec.setDriftTime(scalar_im);
+        spec.setDriftTime(precursor_im);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
         spec.setType(SpectrumSettings::SpectrumType::CENTROID);
         spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
@@ -3461,16 +3507,16 @@ namespace OpenMS
         }
 
         Precursor prec;
-        prec.setMZ(first_entry->monoisotopic_mz);
+        prec.setMZ(precursor_mz);
         prec.setCharge(first_entry->charge);
         if (!std::isnan(first_entry->intensity))
           prec.setIntensity(static_cast<float>(first_entry->intensity));
-        prec.setDriftTime(scalar_im);
+        prec.setDriftTime(precursor_im);
         prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
         double iso_offset_lower = first_entry->isolation_width / 2.0 +
-                                  (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                  (precursor_mz - first_entry->isolation_mz);
         double iso_offset_upper = first_entry->isolation_width / 2.0 -
-                                  (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                  (precursor_mz - first_entry->isolation_mz);
         prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
         prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
         std::vector<Precursor> precursors;
@@ -3584,11 +3630,13 @@ namespace OpenMS
       // Use the first entry's metadata for the precursor info
       const DDAPrecursorInfo* first_entry = entries.front();
       double avg_rt = rt_sum / static_cast<double>(entries.size());
+      const double precursor_im = precursorIonMobility(*first_entry, scalar_im);
+      const double precursor_mz = first_entry->selectedMZ();
 
       MSSpectrum spec;
       spec.setRT(avg_rt);
       spec.setMSLevel(2);
-      spec.setDriftTime(scalar_im);
+      spec.setDriftTime(precursor_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
       // Native ID: "frame=<F> scan=<S> precursor=<P>".
@@ -3640,18 +3688,18 @@ namespace OpenMS
 
       // Precursor metadata
       Precursor prec;
-      prec.setMZ(first_entry->monoisotopic_mz);  // selected ion m/z (monoisotopic)
+      prec.setMZ(precursor_mz);  // selected ion m/z (monoisotopic, see selectedMZ())
       prec.setCharge(first_entry->charge);
       if (!std::isnan(first_entry->intensity))
         prec.setIntensity(static_cast<float>(first_entry->intensity));
-      prec.setDriftTime(scalar_im);
+      prec.setDriftTime(precursor_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
 
       // Isolation window offsets relative to the selected ion m/z
       double iso_offset_lower = first_entry->isolation_width / 2.0 +
-                                (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                (precursor_mz - first_entry->isolation_mz);
       double iso_offset_upper = first_entry->isolation_width / 2.0 -
-                                (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                (precursor_mz - first_entry->isolation_mz);
       prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
       prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
 

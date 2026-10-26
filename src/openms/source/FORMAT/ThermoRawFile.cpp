@@ -156,9 +156,9 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
     if (! std::is_sorted(spectra.begin(), spectra.end(), MSSpectrum::RTLess())) { exp.sortSpectra(false); }
     exp.updateRanges();
   }
-  catch (const Exception::FileNotFound&)
+  catch (const Exception::BaseException&)
   {
-    throw;
+    throw; // e.g. FileNotFound, or a ZIP archive that holds no .raw file
   }
   catch (const std::exception& error)
   {

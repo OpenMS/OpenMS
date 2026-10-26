@@ -17,6 +17,13 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - EXPERIMENTAL: Remote XML loading: MzMLFile and all Xerces-based XML readers can load files directly from HTTP/HTTPS/FTP
+    URLs, by delegating URL resolution to the Xerces-C++ network transport (HTTPS requires its curl accessor,
+    enabled by the OpenMS vcpkg overlay), and from Amazon S3 (s3://bucket/key, also
+    gzip/bzip2 compressed), with Arrow's S3 filesystem (S3InputSource). S3 needs Arrow with S3 support, as in the vcpkg
+    build (arrow[s3]; CMake detects it, there is no separate option); credentials, region and endpoint come from the
+    AWS default chain and the URI's query parameters (e.g. ?region=..., ?endpoint_override=host:port&scheme=http).
+    Both features are experimental; use at your own risk.
   - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
     (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
     single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
@@ -77,6 +84,11 @@ OpenMS Library:
   - FIX: ConsensusMapMergerAlgorithm::mergeAllIDRuns throws Exception::MissingInformation for a ConsensusMap without
     protein identification runs instead of reading past the end of the run list, on which ProteomicsLFQ,
     ProteinInference, Epifany and MS1LabeledWorkflow segfaulted (e.g. ProteomicsLFQ on FAIMS data before #10001).
+  - FIX: ims::Weights (getWeight, operator[], back, getAlphabetMass, swap) and
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator (get_noise_even/odd/value) throw Exception::IndexOverflow or
+    IndexUnderflow for an invalid index or an m/z outside the estimated windows, instead of reading out of bounds in
+    release builds. SignalToNoiseEstimatorMedianRapid::estimateNoise throws Exception::InvalidParameter for empty
+    arrays or arrays of different length.
   - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
     (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
     optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
@@ -155,6 +167,21 @@ OpenMS Library:
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
     did not match the inputs (no alignment points).
+  - API: imzML (#10586): OnDiscImzMLExperiment spectra carry the same metadata as ImzMLFile::load (native ID, MS level,
+    polarity, scan settings, MetaValues, IM peak type, data array metadata); new getExperimentalSettings(); close()
+    releases all parsed state; open(imzml, ibd, skip_metadata) keeps no spectrum metadata, as
+    OnDiscMSExperiment::openFile(filename, skipMetaData). ImzMLFile::loadSpectraIndex always returns the spectrum
+    metadata: it takes a new MSExperiment& argument (the overload without it is removed; its spectra have empty data
+    arrays), and pyOpenMS returns (meta, index, spectra) (was: (meta, index), so `meta, index =
+    ImzMLFile().loadSpectraIndex(path)` now raises ValueError). PeakFileOptions::setMetadataOnly (or setFillData(false))
+    on ImzMLFile loads returns every spectrum with metadata and coordinates but no peaks (data arrays empty, with their
+    metadata) (was: no spectra; a streaming consumer now receives these spectra too) and does not open the .ibd. RT is
+    -1 on every imzML load path and in BrukerTimsImagingFile (was: the scan start time / frame time); the acquisition
+    time is kept in seconds as the MetaValue imzml:scan_start_time, set only when the file has a scan start time (a
+    negative one, e.g. the -1 placeholder OpenMS 3.6 wrote, counts as none). ImzMLFile::store and MzMLFile::store write
+    scan start time from a caller-set RT, else from a numeric imzml:scan_start_time (mzML: not also as a userParam); the
+    imzML writer omits it otherwise (was: -1), and its RT range filter uses the same value and keeps spectra without a
+    time, as on load. Index-only and metadata-only loads report imzml:mz_data_type / imzml:int_data_type.
   - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
     all passing through one OpenMP critical section, which serialized threads that read or set meta values.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE's Percolator rescoring): fewer than 4 score bins, or bin medians closer than 1e-15,
@@ -217,6 +244,19 @@ OpenMS Library:
     spectrum or chromatogram it picks: the S/N settings (new SignalToNoiseEstimatorMedianSettings) are read once and
     the values come from the static SignalToNoiseEstimatorMedian::estimate(). The values are unchanged. OpenSWATH and
     OpenDIA pick every fragment trace this way; a 150-point chromatogram takes about a fifth of the time to pick.
+  - PERF: OpenSwathWorkflow/OpenDIA extraction and scoring use all threads when a wave holds fewer SWATHs than threads
+    (e.g. maxConcurrentSwaths 1): the minimum inner batch size no longer scores a whole SWATH in one job, and the
+    chromatogram extraction, the conversion of the extracted chromatograms, loading a SWATH into memory and the XIC
+    encoding of a SWATH run in parallel. Scoring needs about 45% less CPU time: transition groups are scored in place,
+    picked features and chromatograms are moved instead of copied, the MS1 combined cross-correlation and MI matrices
+    reuse the entries of the transition, precursor and contrast matrices, the inverse RT transformation, averagine
+    isotope distributions (by element composition) and the chromatogram index of a SWATH are computed once, and when
+    only the best peak groups are reported (stop_report_after_feature) the scores outside the SWATH prescore are
+    computed for those only. On an Astral DIA run (300 windows, 600k precursors, 4 threads, maxConcurrentSwaths 1)
+    extraction and scoring take 15 min instead of 1:33 h, and OpenDIA 33 min instead of 1:51 h. Scores and results
+    are unchanged.
+  - FIX: ChromatogramExtractorAlgorithm: with ion mobility extraction, a coordinate with ion mobility that follows
+    (in m/z order) coordinates without ion mobility no longer compares the ion mobility of other peaks.
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every
@@ -273,6 +313,9 @@ OpenMS Library:
     isotope peaks using 13C/12C mass spacing and a bounded nearest-peak search on both sides of
     each expected isotope position. Clean envelopes no longer receive artificially low purity
     or get discarded by precursor-purity filtering (#10467).
+  - QcMLFile's QualityParameter and Attachment writers stored unit information under unitRef/
+    unitAcc attributes, but the reader (and the qcML schema) use unitCvRef/unitAccession, so every
+    unit was lost on a store/load round trip. Fixed the writers to emit the schema names.
   - Every PeptideIdentification needs the ProteinIdentification run (search run) whose identifier
     it names; the run may have no protein hits or database (e.g. peptidomics, de novo). The new
     ProteinRunReferences checks this (also in pyOpenMS) and throws Exception::InvalidParameter
@@ -744,6 +787,43 @@ OpenMS Library:
     keeps only the best one and the hits tied with it whose peptide has a peptide FDR/q-value. The other
     hits had no FDR/q-value: they kept their search score under the new score type and were kept or
     dropped at random by a filter on it.
+  - FIX: DecoyGenerator::reversePeptides reverses the whole protein for unspecific cleavage. The digest of
+    'unspecific cleavage' is every subsequence of the protein, so the pseudo-reversed decoy was their concatenation
+    (7.9 million residues for 363 residues) and ProSE or SimpleSearchEngine with generated decoys failed in the fragment
+    index (more than 65535 residues per protein). An empty protein no longer reads out of bounds (#10686).
+  - FIX: ProSE: a search in which no PSM passes the FDR no longer aborts on an empty protein-inference graph (#10677).
+  - FIX: ProSEAlgorithm writes the compensation voltage of a FAIMS spectrum as the meta value 'FAIMS_CV' (a drift time with
+    unit FAIMS_COMPENSATION_VOLTAGE), not as 'IM', so that the FAIMS-aware code (FAIMSHelper, FeatureFinderIdentification,
+    MS1LabeledWorkflow, FeatureOverlapFilter) sees it (#10654).
+  - FIX: ProteomicsLFQ on FAIMS data with two or more CVs: seeding (DDAWorkflowCommons::calculateSeeds) and the
+    chromatographic peak width estimation work per CV, the seeds are labelled with FAIMS_CV, and
+    FeatureFinderIdentificationAlgorithm gives each CV group only the seeds of its CV (also Biosaur2 seeds) (#10656).
+  - FIX: IsobaricWorkflow (purity interpolation) and IsobaricChannelExtractor (IsobaricAnalyzer) take the precursor and
+    follow-up MS1 spectra of the scan's own FAIMS CV. Data without FAIMS is unchanged (#10657).
+  - FIX: BrukerTimsFile: a DDA precursor without MonoisotopicMz and Charge (charge not determined) gets the m/z of its
+    largest peak and charge 0 instead of m/z 0. The ion mobility of a DDA MS2 spectrum and its precursor is the position of
+    the precursor (Precursors.ScanNumber, mobility calibration of the parent frame) instead of the mean 1/K0 of the
+    fragment peaks, which remains the fallback; the im_min/im_max precursor selection uses the same value (#10655).
+  - Thermo .raw files in ZIP archives (.raw.zip) are read by ThermoRawFile (load() and transform()), FileHandler and the
+    TOPP tools; the archive's single .raw file is extracted to a temporary directory, as for a Bruker .d.zip. Archives
+    without or with more than one .raw file, and gzip or bzip2 compressed RAW files, are rejected with a ParseError.
+    New ZipArchiveFile::findSingleEntry() (#10647).
+  - FIX: MzMLFile with skipped chromatograms (PeakFileOptions) keeps the binary data arrays of the spectra in load() and
+    transform() (#10679).
+  - FIX: ChromatogramExtractorAlgorithm::extract_value_tophat (with and without ion mobility) counts the first and last peak
+    of a spectrum exactly once: the first peak was dropped when the walk to the left reached it after more than one step,
+    and the last peak was added twice when the target m/z lay beyond it. Extracted intensities at the edges of a spectrum
+    change (#10673).
+  - FIX: ConsensusMap::appendColumns() shifts the meta value 'mbr_transfer_map_indices' (PIP-ECHO) as well; ProteomicsLFQ
+    merges fractions with it, and these indices pointed at the wrong runs for every fraction after the first.
+    IDConflictResolverAlgorithm::annotateTransfers() (new) lists, per identified consensus feature, the runs to which the
+    identification was transferred by match-between-runs without PIP-ECHO ('mbr_transfer_map_indices' without q-values),
+    which ProteomicsLFQ writes (#10672).
+  - FIX: FeatureGroupingAlgorithm (FeatureLinker tools, ProteomicsLFQ, MS1LabeledWorkflow) sorts the consensus features by
+    position (RT, m/z), so the output order no longer depends on the randomly assigned unique ids of the input features
+    (#10660).
+  - FIX: FileInfo counts the occurrences of a peptide in a consensusXML per map id, not per column header index; map ids
+    outside 0..n-1 wrote out of bounds and gave wrong counts (#10612).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -788,6 +868,9 @@ TOPP tools:
       quantification workflows. Conflicting identifications of one feature are resolved with
       IDConflictResolver or FileFilter (-id:keep_best_score_id), as before (#10619).
   Changes:
+    ProteomicsLFQ:
+      - With -pip_echo true and -proteinFDR 1 (no protein filter), PIP-ECHO transfers a precursor only if its best
+        identification over all runs has a q-value <= 0.001 (PipEchoAlgorithm parameter donor_max_q).
     ConsensusMapNormalizer:
       - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
         retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter

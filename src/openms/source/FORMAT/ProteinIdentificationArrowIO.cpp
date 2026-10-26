@@ -65,7 +65,7 @@ namespace // anonymous
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
-      (void)value_b->Append(val.toString());
+      (void)value_b->Append(ArrowIOHelpers::metaValueString(val));
       switch (val.valueType())
       {
         case DataValue::INT_VALUE: (void)type_b->Append("int"); break;

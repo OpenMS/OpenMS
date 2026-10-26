@@ -8,6 +8,8 @@
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <algorithm>
 #include <cmath>
 #include <iterator>
@@ -15,6 +17,31 @@
 
 namespace OpenMS
 {
+
+  void SignalToNoiseEstimatorMedianRapid::NoiseEstimator::throwWindowOutOfRange_(double window, Size n_windows)
+  {
+    // report the truncated window number, clamped so the conversion to an integer is defined
+    const double clamped = std::max(-1e15, std::min(1e15, std::trunc(window)));
+    const SignedSize index = std::isnan(window) ? -1 : static_cast<SignedSize>(clamped);
+    if (std::isnan(window) || window <= -1.0)
+    {
+      throw Exception::IndexUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, n_windows);
+    }
+    throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, n_windows);
+  }
+
+  void SignalToNoiseEstimatorMedianRapid::checkInputArrays_(const std::vector<double>& mz_array, const std::vector<double>& int_array)
+  {
+    if (mz_array.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot estimate noise of an empty array.");
+    }
+    if (mz_array.size() != int_array.size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Position and intensity arrays differ in length (" + std::to_string(mz_array.size()) + " vs. " + std::to_string(int_array.size()) + ").");
+    }
+  }
 
   void SignalToNoiseEstimatorMedianRapid::computeNoiseInWindows_(
       const std::vector<double>& mz_array, std::vector<double> int_array,

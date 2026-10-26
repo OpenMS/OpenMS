@@ -122,11 +122,17 @@ namespace OpenMS
         Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
         Also described in: Press WH et al. (2007) "Numerical Recipes" 3rd Ed. Section 12.3
 
-        @param X Real-valued input vector
-        @param M Length of FFT (if 0, uses X.size() and rounds up to next power of 2)
-        @return Real-valued Munro-packed FFT coefficients of length M (unscaled)
+        All nontrivial transforms use Eigen FFT with the same packing and normalization.
+        Input is zero-padded or truncated to M and non-finite input values become zero.
+        An empty input with M=0 returns an empty vector. M=1 returns the single
+        (sanitized) value. Other nonzero lengths must be powers of two.
 
-        @see revRt() for the inverse transform (which applies scaling by multiplying by M)
+        @param[in] X Real-valued input vector
+        @param[in] M Power-of-two length of FFT (if 0, uses X.size())
+        @return Real-valued Munro-packed FFT coefficients of length M (unscaled)
+        @throws std::invalid_argument if the effective M is not zero or a power of two
+
+        @see revRt() for the normalized inverse transform
 
         @ingroup MathFunctionsStatistics
       */
@@ -136,8 +142,8 @@ namespace OpenMS
         @brief Inverse FFT of Munro-packed data to real-valued output.
 
         Performs the inverse operation of forRt(), reconstructing a real-valued signal
-        from its Munro-packed frequency domain representation. The output is scaled by
-        multiplying by M (applied by the evergreen::real_ifft function).
+        from its Munro-packed frequency domain representation. The inverse includes
+        the 1/M normalization, so revRt(forRt(X)) reconstructs X.
 
         The input must be in Munro-packed format:
         [Re(Y_0), Re(Y_1), ..., Re(Y_{M/2}), Im(Y_1), ..., Im(Y_{M/2-1})]
@@ -146,9 +152,15 @@ namespace OpenMS
         Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
         Also described in: Press WH et al. (2007) "Numerical Recipes" 3rd Ed. Section 12.3
 
-        @param Xp Munro-packed real-valued frequency coefficients
-        @param M Length of output (if 0, uses Xp.size())
-        @return Real-valued reconstructed signal of length M (scaled by M)
+        The input must contain at least M coefficients; any trailing values are ignored.
+        Empty input with M=0 returns an empty vector, and M=1 returns Xp[0].
+        Other nonzero lengths must be powers of two.
+
+        @param[in] Xp Munro-packed real-valued frequency coefficients
+        @param[in] M Power-of-two length of output (if 0, uses Xp.size())
+        @return Real-valued reconstructed signal of length M
+        @throws std::invalid_argument if the effective M is not zero or a power of two,
+        or Xp contains fewer than M coefficients
 
         @see forRt() for the forward transform (which returns unscaled coefficients)
 
@@ -202,7 +214,7 @@ namespace OpenMS
 
         Implementation steps:
         1. Bin data onto a regular grid using linear binning
-        2. Compute FFT of binned data using real FFT (via evergreen library)
+        2. Compute FFT of binned data using Eigen real FFT
         3. Compute Silverman's analytical Gaussian kernel in frequency domain
         4. Multiply FFT(data) pointwise by kernel in frequency domain
         5. Inverse FFT to obtain density estimates

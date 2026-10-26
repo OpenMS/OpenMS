@@ -12,7 +12,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Acquisition.h>
@@ -28,6 +30,7 @@
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cctype>
@@ -531,7 +534,11 @@ namespace
   /// Shared state of the random access accessors: the handle that new accessors are created from.
   struct AccessorRoot
   {
-    AccessorRoot(tb::RawFile h, const ScanConverter& c, int first) : handle(std::move(h)), converter(c), first_seen(first) {}
+    AccessorRoot(tb::RawFile h, const ScanConverter& c, int first, std::shared_ptr<const TempDir> u) :
+      unpacked(std::move(u)), handle(std::move(h)), converter(c), first_seen(first)
+    {
+    }
+    std::shared_ptr<const TempDir> unpacked; ///< RAW file extracted from an archive; declared first, so it outlives handle
     std::mutex mutex; ///< guards handle
     tb::RawFile handle;
     ScanConverter converter;
@@ -541,8 +548,11 @@ namespace
 
 struct ThermoRawScanReader::Impl
 {
+  /// Owns the RAW file extracted from a ZIP archive (null otherwise). Shared with the accessors, which may outlive the
+  /// reader; declared first, so it is removed after every handle on the file has been closed.
+  std::shared_ptr<const TempDir> unpacked;
   Options options;
-  std::filesystem::path raw_path;
+  std::filesystem::path raw_path; ///< as given by the caller (the archive for an extracted file)
   std::optional<openms::thermo_bridge::RawFile> raw;
   Json metadata;
   std::string sha1; ///< of the RAW file, only with Options::checksum
@@ -733,11 +743,34 @@ ThermoRawScanReader::ThermoRawScanReader(const std::string& path, const Options&
   d.options = options;
   if (! File::exists(path)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path); }
   d.raw_path = std::filesystem::path(path);
-  // Thermo's RawFileReader cannot open a file through a symbolic link (as staged by Nextflow/Galaxy),
-  // so hand it the resolved target. The source file metadata keeps the path given by the user.
-  std::error_code canonical_error;
-  std::filesystem::path open_path = std::filesystem::canonical(d.raw_path, canonical_error);
-  if (canonical_error) { open_path = d.raw_path; }
+  std::filesystem::path open_path;
+  // Thermo's RawFileReader opens plain RAW files only. A ZIP archive that holds one .raw file is extracted into a
+  // temporary directory, which is removed with the reader and its accessors (as BrukerTimsFile does for a .d.zip).
+  // Other compression (gzip, bzip2) is rejected with a clear message instead of the vendor library's failure to open
+  // the file. The source file metadata keeps the path given by the user.
+  const FileTypes::Type compression = FileNameUtils::compressionType(path);
+  if (compression == FileTypes::ZIP)
+  {
+    const std::string entry = ZipArchiveFile::findSingleEntry(path, ".raw");
+    std::unique_ptr<TempDir> dir;
+    open_path = std::filesystem::path(ZipArchiveFile::extractEntryToTempFile(path, entry, dir));
+    d.unpacked = std::move(dir);
+  }
+  else if (compression != FileTypes::UNKNOWN)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+                                std::string(compression == FileTypes::GZ ? "A gzip" : "A bzip2")
+                                + "-compressed Thermo RAW file cannot be read: decompress it first. (A ZIP archive "
+                                  "that holds one .raw file can be read as it is.)");
+  }
+  else
+  {
+    // Thermo's RawFileReader cannot open a file through a symbolic link (as staged by Nextflow/Galaxy),
+    // so hand it the resolved target.
+    std::error_code canonical_error;
+    open_path = std::filesystem::canonical(d.raw_path, canonical_error);
+    if (canonical_error) { open_path = d.raw_path; }
+  }
   const std::optional<std::filesystem::path> managed_dir = resolveManagedDirectory();
   if (managed_dir) { d.raw.emplace(open_path, *managed_dir); }
   else { d.raw.emplace(open_path); }
@@ -1076,7 +1109,7 @@ std::unique_ptr<ThermoRawScanReader::Accessor> ThermoRawScanReader::accessor() c
     std::lock_guard<std::mutex> lock(d.accessor_mutex);
     if (! d.accessor_root)
     {
-      d.accessor_root = std::make_shared<AccessorRoot>(d.raw->thread_accessor(), d.converter, d.first_seen);
+      d.accessor_root = std::make_shared<AccessorRoot>(d.raw->thread_accessor(), d.converter, d.first_seen, d.unpacked);
     }
     root = d.accessor_root;
   }

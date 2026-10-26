@@ -41,6 +41,31 @@ using namespace std;
 
 namespace
 {
+  // What the MS1 aggregation sections compare between loads: the number of MS1 spectra, their peaks and their summed
+  // intensity. The experiment is dropped before returning, so a section that compares several configurations holds only
+  // one loaded run at a time (each load of the DDA/DIA fixtures takes several GB).
+  struct MS1Summary
+  {
+    Size spectra = 0;
+    Size peaks = 0;
+    double intensity = 0.0;
+  };
+
+  [[maybe_unused]] MS1Summary loadMS1Summary(const std::string& path, const BrukerTimsFile::Config& cfg = BrukerTimsFile::Config())
+  {
+    MSExperiment exp;
+    BrukerTimsFile().load(path, exp, cfg);
+    MS1Summary summary;
+    for (const MSSpectrum& spec : exp)
+    {
+      if (spec.getMSLevel() != 1) continue;
+      ++summary.spectra;
+      summary.peaks += spec.size();
+      for (const Peak1D& p : spec) summary.intensity += p.getIntensity();
+    }
+    return summary;
+  }
+
   // ---------------------------------------------------------------------------------------------
   // Helpers of the parity sections, which compare what the read paths of BrukerTimsFile deliver:
   // load(), transform() and loadDIAStreaming().
@@ -1756,6 +1781,59 @@ START_SECTION(DDA native ID format test)
 }
 END_SECTION
 
+START_SECTION([EXTRA] DDA precursors: m/z without a monoisotopic peak and ion mobility from the Precursors table)
+{
+  // A copy of the run in which one precursor has no monoisotopic m/z and no charge (NULL), as the acquisition software
+  // writes them for precursors whose charge it could not determine. Its spectrum gets the m/z of the most intense peak
+  // (LargestPeakMz) instead of 0, and charge 0.
+  TempDir tmp;
+  const std::string path = OPENTIMS_DDA_TEST_DATA;
+  const std::string copy = tmp.getPath() + "/null_mono.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+
+  // The precursor with MS/MS spectra with the smallest Id loses its monoisotopic m/z and charge; its largest peak gets a
+  // marker m/z that no other precursor has, by which its spectrum is found below.
+  const double largest_peak_mz = 777.123456;
+  {
+    SqliteConnector conn(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("UPDATE Precursors SET MonoisotopicMz = NULL, Charge = NULL, LargestPeakMz = 777.123456 "
+                          "WHERE Id = (SELECT MIN(Precursor) FROM PasefFrameMsMsInfo)");
+  }
+
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.load_ms1 = false;
+  MSExperiment exp;
+  f.load(copy, exp, cfg);
+  const MSSpectrum* found = nullptr;
+  Size zero_mz = 0;
+  for (const MSSpectrum& spec : exp)
+  {
+    if (spec.getMSLevel() != 2 || spec.getPrecursors().empty()) continue;
+    if (spec.getPrecursors()[0].getMZ() <= 0.0) ++zero_mz;
+    if (std::fabs(spec.getPrecursors()[0].getMZ() - largest_peak_mz) < 1e-6) found = &spec;
+  }
+  TEST_EQUAL(zero_mz, 0)
+  TEST_NOT_EQUAL(found, nullptr)
+  ABORT_IF(found == nullptr)
+  const Precursor& prec = found->getPrecursors()[0];
+  TEST_REAL_SIMILAR(prec.getMZ(), largest_peak_mz)
+  TEST_EQUAL(prec.getCharge(), 0)
+
+  // The precursor's ion mobility (its ScanNumber converted to 1/K0) is the same on the spectrum and on the precursor,
+  // and a plausible timsTOF 1/K0
+  TEST_EQUAL(prec.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+  TEST_REAL_SIMILAR(found->getDriftTime(), prec.getDriftTime())
+  TEST_TRUE(prec.getDriftTime() > 0.4 && prec.getDriftTime() < 2.0)
+  STATUS("precursor without monoisotopic m/z: 1/K0 " << prec.getDriftTime());
+}
+END_SECTION
+
 START_SECTION(Bruker load_ms1=false test)
 {
   BrukerTimsFile f;
@@ -2686,42 +2764,23 @@ END_SECTION
 
 START_SECTION(DDA MS1 aggregation with RT cap test)
 {
-  BrukerTimsFile f;
-
   // Baseline: raw DDA MS1
-  MSExperiment exp_raw;
-  f.load(OPENTIMS_DDA_TEST_DATA, exp_raw);
+  const MS1Summary raw = loadMS1Summary(OPENTIMS_DDA_TEST_DATA);
 
   // Aggregated: ms1_n_neighbors=1 uncapped
   BrukerTimsFile::Config cfg_uncapped;
   cfg_uncapped.ms1_n_neighbors = 1;
   cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
-  MSExperiment exp_uncapped;
-  f.load(OPENTIMS_DDA_TEST_DATA, exp_uncapped, cfg_uncapped);
+  const MS1Summary uncapped = loadMS1Summary(OPENTIMS_DDA_TEST_DATA, cfg_uncapped);
 
   // Aggregated: tight 1.0s RT cap (may be inert if fixture MS1 cadence is tight)
   BrukerTimsFile::Config cfg_capped;
   cfg_capped.ms1_n_neighbors = 1;
   cfg_capped.ms1_max_rt_distance_sec = 1.0;
-  MSExperiment exp_capped;
-  f.load(OPENTIMS_DDA_TEST_DATA, exp_capped, cfg_capped);
+  const MS1Summary capped = loadMS1Summary(OPENTIMS_DDA_TEST_DATA, cfg_capped);
 
-  auto count_ms1 = [](const MSExperiment& e, Size& n_spectra, double& total_intensity)
-  {
-    n_spectra = 0; total_intensity = 0.0;
-    for (const auto& s : e)
-      if (s.getMSLevel() == 1)
-      {
-        ++n_spectra;
-        for (const auto& p : s) total_intensity += p.getIntensity();
-      }
-  };
-
-  Size raw_n, uncapped_n, capped_n;
-  double raw_i, uncapped_i, capped_i;
-  count_ms1(exp_raw, raw_n, raw_i);
-  count_ms1(exp_uncapped, uncapped_n, uncapped_i);
-  count_ms1(exp_capped, capped_n, capped_i);
+  const Size raw_n = raw.spectra, uncapped_n = uncapped.spectra, capped_n = capped.spectra;
+  const double raw_i = raw.intensity, uncapped_i = uncapped.intensity, capped_i = capped.intensity;
 
   TEST_NOT_EQUAL(raw_n, 0);
   TEST_NOT_EQUAL(uncapped_n, 0);
@@ -3577,36 +3636,20 @@ END_SECTION
 
 START_SECTION(DIA MS1 aggregation min_support test)
 {
-  BrukerTimsFile f;
-
   // No denoise (baseline from DIA MS1 aggregation test: intensity ratio ≈ 3.0)
   BrukerTimsFile::Config cfg_no_denoise;
   cfg_no_denoise.ms1_n_neighbors = 1;
   cfg_no_denoise.ms1_min_support = 0;
-  MSExperiment exp_no_denoise;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_no_denoise, cfg_no_denoise);
+  const MS1Summary no_denoise = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_no_denoise);
 
   // With denoise
   BrukerTimsFile::Config cfg_denoise;
   cfg_denoise.ms1_n_neighbors = 1;
   cfg_denoise.ms1_min_support = 1;
-  MSExperiment exp_denoise;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_denoise, cfg_denoise);
+  const MS1Summary denoise = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_denoise);
 
-  Size no_denoise_peaks = 0, denoise_peaks = 0;
-  double no_denoise_intensity = 0.0, denoise_intensity = 0.0;
-  for (const auto& s : exp_no_denoise)
-    if (s.getMSLevel() == 1)
-    {
-      no_denoise_peaks += s.size();
-      for (const auto& p : s) no_denoise_intensity += p.getIntensity();
-    }
-  for (const auto& s : exp_denoise)
-    if (s.getMSLevel() == 1)
-    {
-      denoise_peaks += s.size();
-      for (const auto& p : s) denoise_intensity += p.getIntensity();
-    }
+  const Size no_denoise_peaks = no_denoise.peaks, denoise_peaks = denoise.peaks;
+  const double denoise_intensity = denoise.intensity;
 
   TEST_NOT_EQUAL(no_denoise_peaks, 0);
   TEST_NOT_EQUAL(denoise_peaks, 0);
@@ -3618,12 +3661,7 @@ START_SECTION(DIA MS1 aggregation min_support test)
   TEST_EQUAL(drop_frac >= 0.10, true);
 
   // Intensity boost still present after denoise (signal peaks survive).
-  MSExperiment exp_raw;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
-  double raw_intensity = 0.0;
-  for (const auto& s : exp_raw)
-    if (s.getMSLevel() == 1)
-      for (const auto& p : s) raw_intensity += p.getIntensity();
+  const double raw_intensity = loadMS1Summary(OPENTIMS_DIA_TEST_DATA).intensity;
   TEST_EQUAL(denoise_intensity > raw_intensity, true);
 
   STATUS("DIA MS1 min_support: no_denoise_peaks=" << no_denoise_peaks
@@ -3635,35 +3673,22 @@ END_SECTION
 
 START_SECTION(DIA MS1 RT cap test)
 {
-  BrukerTimsFile f;
-
   // Uncapped reference: ms1_n_neighbors=2 gives a wider window for the cap
   // to bite into.
   BrukerTimsFile::Config cfg_uncapped;
   cfg_uncapped.ms1_n_neighbors = 2;
   cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
-  MSExperiment exp_uncapped;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_uncapped, cfg_uncapped);
+  const MS1Summary uncapped = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_uncapped);
 
   // Tight cap: 0.5s (DIA MS1 cadence ~1.5s, so N=2 reaches ~3s total span;
   // the 0.5s cap should truncate aggressively).
   BrukerTimsFile::Config cfg_capped;
   cfg_capped.ms1_n_neighbors = 2;
   cfg_capped.ms1_max_rt_distance_sec = 0.5;
-  MSExperiment exp_capped;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_capped, cfg_capped);
+  const MS1Summary capped = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_capped);
 
-  auto total_ms1_intensity = [](const MSExperiment& e)
-  {
-    double s = 0.0;
-    for (const auto& spec : e)
-      if (spec.getMSLevel() == 1)
-        for (const auto& p : spec) s += p.getIntensity();
-    return s;
-  };
-
-  double uncapped_i = total_ms1_intensity(exp_uncapped);
-  double capped_i = total_ms1_intensity(exp_capped);
+  const double uncapped_i = uncapped.intensity;
+  const double capped_i = capped.intensity;
 
   TEST_EQUAL(uncapped_i > 0.0, true);
   TEST_EQUAL(capped_i > 0.0, true);
@@ -3671,17 +3696,9 @@ START_SECTION(DIA MS1 RT cap test)
 
   // Cadence invariant: RT cap must never drop a center frame. Both runs emit
   // exactly one MS1 spectrum per raw MS1 frame regardless of the cap.
-  auto count_ms1_spectra = [](const MSExperiment& e)
-  {
-    Size n = 0;
-    for (const auto& s : e) if (s.getMSLevel() == 1) ++n;
-    return n;
-  };
-  MSExperiment exp_raw;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
-  const Size raw_ms1 = count_ms1_spectra(exp_raw);
-  TEST_EQUAL(count_ms1_spectra(exp_uncapped), raw_ms1);
-  TEST_EQUAL(count_ms1_spectra(exp_capped), raw_ms1);
+  const Size raw_ms1 = loadMS1Summary(OPENTIMS_DIA_TEST_DATA).spectra;
+  TEST_EQUAL(uncapped.spectra, raw_ms1);
+  TEST_EQUAL(capped.spectra, raw_ms1);
 
   STATUS("DIA MS1 RT cap: uncapped=" << uncapped_i
          << " capped(0.5s, N=2)=" << capped_i

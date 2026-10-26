@@ -975,6 +975,19 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
+// Test loading from HTTP URL (uses raw GitHub URL for a minimal mzML file)
+// Disabled by default: requires network access and Xerces compiled with network support
+// To enable, uncomment the test body.
+START_SECTION([EXTRA] load from HTTP URL)
+{
+  // Uncomment to test HTTP loading (requires network access):
+  // MzMLFile file;
+  // PeakMap exp;
+  // file.load("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML", exp);
+  // TEST_EQUAL(exp.size(), 0)  // minimal file has no spectra/chromatograms, just metadata
+  NOT_TESTABLE
+}
+END_SECTION
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {
@@ -1910,17 +1923,41 @@ END_SECTION
 START_SECTION((void testSkipChromatograms()))
 {
   MzMLFile file;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  PeakMap expected;
+  file.load(filename, expected);
+
   PeakFileOptions opts;
   opts.setSkipChromatograms(true);
   file.setOptions(opts);
 
   PeakMap pm;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_EQUAL(pm.getChromatograms().size(), 0)
+  TEST_EQUAL(pm.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(pm[i] == expected[i], true)
+  }
+  TEST_EQUAL(pm.getSourceFiles() == expected.getSourceFiles(), true)
+  TEST_EQUAL(pm.getInstrument() == expected.getInstrument(), true)
+
+  std::vector<Size> transformed_spectrum_sizes;
+  Size transformed_chromatogram_count = 0;
+  MSDataTransformingConsumer consumer;
+  consumer.setSpectraProcessingFunc([&](MSSpectrum& spectrum) { transformed_spectrum_sizes.push_back(spectrum.size()); });
+  consumer.setChromatogramProcessingFunc([&](MSChromatogram&) { ++transformed_chromatogram_count; });
+  file.transform(filename, &consumer);
+  TEST_EQUAL(transformed_chromatogram_count, 0)
+  TEST_EQUAL(transformed_spectrum_sizes.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(transformed_spectrum_sizes[i], expected[i].size())
+  }
 
   opts.setSkipChromatograms(false);
   file.setOptions(opts);
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
 }
 END_SECTION
