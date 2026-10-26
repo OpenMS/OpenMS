@@ -5114,8 +5114,8 @@ add_test("TOPP_ProSE_7_merged_info_out" ${DIFF}
   -whitelist "file name" "database" "search engine")
 set_tests_properties("TOPP_ProSE_7_merged_info_out" PROPERTIES DEPENDS "TOPP_ProSE_7_merged_info")
 
-# Test 8: decoys=auto (the DEFAULT mode) end-to-end, UNCONDITIONAL. The other auto tests live in the
-# WITH_OPENTIMS block below, so without this the default decoy mode has no standard-CI golden coverage.
+# Test 8: decoys=auto (ProSEAlgorithm's default; the ProSE tool's default is 'generate') end-to-end, UNCONDITIONAL. The
+# other auto tests live in the WITH_OPENTIMS block below, so without this the auto mode has no standard-CI golden coverage.
 # On a target-only FASTA, auto generates decoys -> result is identical to decoys=generate (Test 6),
 # so it diffs the same FileInfo golden (protein count exact-ish; a decoy-removal regression -> 49).
 add_test("TOPP_ProSE_8_auto" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
