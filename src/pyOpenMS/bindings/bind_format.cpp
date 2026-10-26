@@ -899,7 +899,6 @@ Converts a file type name into a Type
         .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
         .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
         .value("MZIDENTML", OpenMS::FileTypes::Type::MZIDENTML)
-        .value("QCML", OpenMS::FileTypes::Type::QCML)
         .value("MZQC", OpenMS::FileTypes::Type::MZQC)
         .value("GELML", OpenMS::FileTypes::Type::GELML)
         .value("TRAML", OpenMS::FileTypes::Type::TRAML)

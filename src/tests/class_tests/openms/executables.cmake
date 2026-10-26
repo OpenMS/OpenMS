@@ -285,7 +285,6 @@ set(format_executables_list
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
   ProtXMLFile_test
-  QcMLFile_test
   S3InputSource_test
   SVOutStream_test
   SemanticValidator_test

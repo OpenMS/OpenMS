@@ -85,7 +85,6 @@ PepXMLFileMascot.cpp
 PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
-QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp

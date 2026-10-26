@@ -90,7 +90,6 @@ PepXMLFileMascot.h
 PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
-QcMLFile.h
 SequestInfile.h
 SequestOutfile.h
 SpecArrayFile.h
