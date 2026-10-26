@@ -95,7 +95,8 @@ namespace OpenMS
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
     int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)
-    bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
+    bool   calc_mass_feature = false;         ///< rescorePSMs(): CalcMass is a training feature (param "calc_mass_feature")
+    std::string use_pi0 = "auto";             ///< "auto" | "true" | "false": pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
     std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
     bool   peptide_level = false;             ///< rescore(): also peptide-level q-values and PEPs (RescoreInput::peptide_keys)

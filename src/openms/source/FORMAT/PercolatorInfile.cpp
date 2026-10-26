@@ -10,6 +10,8 @@
 
 #include <string_view>
 
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -489,9 +491,50 @@ namespace OpenMS
     };
   }
 
+  struct PercolatorInfile::PinEnzyme_
+  {
+    std::string name;     ///< isEnz_()'s name ("no_enzyme" if it knows none)
+    bool termini = true;  ///< protein termini and the position after an initial Met count as cleavage sites
+    std::optional<ProteaseDigestion> digestion; ///< the rule of a ProteaseDB enzyme without a Percolator name
+
+    explicit PinEnzyme_(const std::string& enzyme)
+    {
+      std::string base = enzyme;
+      const auto strip = [&base](std::string_view modifier)
+      {
+        if (base.size() > modifier.size() && std::string_view(base).substr(base.size() - modifier.size()) == modifier)
+        {
+          base.resize(base.size() - modifier.size());
+          return true;
+        }
+        return false;
+      };
+      for (bool more = true; more;)
+      {
+        more = false;
+        if (strip("+keep_termini")) { termini = false; more = true; }
+        if (strip("+termini")) { more = true; } // (the default)
+      }
+      // lowercase without spaces, 'trypsin/p' as 'trypsinp', 'pepsina' as 'pepsin'
+      name = StringUtils::toLowered(base);
+      StringUtils::remove(name, ' ');
+      if (name == "trypsin/p") name = "trypsinp";
+      if (name == "pepsina") name = "pepsin";
+      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+      if (!pin_enzymes.contains(name)) name = "no_enzyme";
+      // an enzyme of ProteaseDB without a Percolator name (e.g. 'Lys-C/P', 'V8-E'): its own cleavage rule
+      if (name == "no_enzyme" && ProteaseDB::getInstance()->hasEnzyme(base))
+      {
+        digestion.emplace();
+        digestion->setEnzyme(base);
+      }
+    }
+  };
+
   template <bool with_strings, typename Exists, typename Get, typename Put>
   double PercolatorInfile::pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
-    double exp_mass, double retention_time, const std::string& enz, int min_charge, int max_charge,
+    double exp_mass, double retention_time, const PinEnzyme_& enz, int min_charge, int max_charge,
     Exists&& exists, Get&& get, Put&& put)
   {
     if constexpr (with_strings) put(PIN_SPEC_ID, spec_id);
@@ -544,26 +587,42 @@ namespace OpenMS
     }
 
     // use first peptide evidence for flanking AAs
-    char aa_before = hit.getPeptideEvidences().front().getAABefore();
-    char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
+    const PeptideEvidence& first_evidence = hit.getPeptideEvidences().front();
+    char aa_before = first_evidence.getAABefore();
+    char aa_after  = first_evidence.getAAAfter();
 
-    // The modifier "+termini" (e.g. "trypsinp+termini"): OpenMS' protein-terminus marks '[' and ']' are
-    // Percolator's '-', which isEnz_ counts as an enzymatic site. Without it they are compared as residues
-    // (the former features: enzN = 0 at a protein N-terminus, enzC = 0 at a C-terminus not after a
-    // cleavage residue).
-    static constexpr std::string_view termini_modifier = "+termini";
-    const bool termini = enz.size() > termini_modifier.size()
-                         && std::string_view(enz).substr(enz.size() - termini_modifier.size()) == termini_modifier;
-    const std::string termini_enz = termini ? enz.substr(0, enz.size() - termini_modifier.size()) : std::string();
-    const std::string& enzyme = termini ? termini_enz : enz;
-    const char n_site = termini && aa_before == '[' ? '-' : aa_before;
-    const char c_site = termini && aa_after == ']' ? '-' : aa_after;
+    // By default (PinEnzyme_::termini) OpenMS' protein-terminus marks '[' and ']' are Percolator's '-', which isEnz_
+    // counts as an enzymatic site, and so is the position after the initiator methionine (first evidence: aa_before M at
+    // start 1, the Met-clipped protein N-terminal peptide, as FragmentIndex and PeptideIndexer allow it): reversed decoy
+    // proteins rarely start with M, so without it enzN = 0 would be left (almost) only to Met-clipped targets, which the
+    // rescoring would learn as a target label (#10726). With "+keep_termini" the marks are compared as residues (enzN = 0
+    // at a protein N-terminus, enzC = 0 at a C-terminus not after a cleavage residue) and the M is a residue.
+    const bool met_clipped = enz.termini && aa_before == 'M' && first_evidence.getStart() == 1;
+    const char n_site = enz.termini && (aa_before == PeptideEvidence::N_TERMINAL_AA || met_clipped) ? '-' : aa_before;
+    const char c_site = enz.termini && aa_after == PeptideEvidence::C_TERMINAL_AA ? '-' : aa_after;
 
-    const bool enzN = isEnz_(n_site, StringUtils::prefix(unmodified_sequence, 1)[0], enzyme);
+    bool enzN, enzC;
+    Size enzInt;
+    if (enz.digestion)
+    { // the peptide is a product of the enzyme at its N- (C-)terminus, when preceded (followed) by the flanking AA ('-' is
+      // a terminus, as for isEnz_()). An unknown residue (X) before the flanking AA serves the rules that look at two
+      // residues (proline endopeptidase cuts after HP, KP, RP): the evidence holds one.
+      const int length = static_cast<int>(unmodified_sequence.size());
+      const std::string with_before = std::string("X") + n_site + unmodified_sequence;
+      enzN = n_site == '-' || enz.digestion->isValidProduct(with_before, 2, length);
+      enzC = c_site == '-' || enz.digestion->isValidProduct(unmodified_sequence + c_site, 0, length);
+      // the sites inside the peptide, in the same context: all sites but those before its first residue
+      enzInt = enz.digestion->countInternalCleavageSites(with_before) - enz.digestion->countInternalCleavageSites(with_before.substr(0, 3));
+    }
+    else
+    {
+      enzN = isEnz_(n_site, StringUtils::prefix(unmodified_sequence, 1)[0], enz.name);
+      enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], c_site, enz.name);
+      enzInt = countEnzymatic_(unmodified_sequence, enz.name);
+    }
     put(PIN_ENZ_N, enzN);
-    const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], c_site, enzyme);
     put(PIN_ENZ_C, enzC);
-    put(PIN_ENZ_INT, static_cast<int>(countEnzymatic_(unmodified_sequence, enzyme)));
+    put(PIN_ENZ_INT, static_cast<int>(enzInt));
 
     put(PIN_DM, delta_mass);
     put(PIN_ABSDM, std::abs(delta_mass));
@@ -629,6 +688,28 @@ namespace OpenMS
     }
   }
 
+  void PercolatorInfile::warnWithoutScanNumber_(const std::vector<std::string>& without_scan, const std::vector<char>& stamped)
+  {
+    // Percolator keeps the PSMs of one scan number in one cross-validation fold. The spectra without a scan number all
+    // get -1 and so share one fold, which can leave too few PSMs to train on (#10719: a native ID format that the scan
+    // number pattern of the first spectrum did not match).
+    const size_t spectra = static_cast<size_t>(std::count(stamped.begin(), stamped.end(), 1));
+    size_t count = 0;
+    const std::string* example = nullptr;
+    for (const std::string& reference : without_scan)
+    {
+      if (reference.empty()) continue;
+      if (example == nullptr) example = &reference;
+      ++count;
+    }
+    if (count > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: no scan number found in " << count << " of " << spectra
+                      << " spectrum references (e.g. '" << *example << "'). Their PSMs get ScanNr -1"
+                      << " and share one Percolator cross-validation fold." << endl;
+    }
+  }
+
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
     PeptideIdentificationList& peptide_ids,
     const std::string& enz,
@@ -649,6 +730,7 @@ namespace OpenMS
     std::set<std::pair<size_t, size_t>> skipped;
     added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
+    const PinEnzyme_ rule(enz);
 
     // Scan-number regex is derived from the first pid's scan identifier.
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
@@ -680,6 +762,9 @@ namespace OpenMS
     const std::vector<std::string> column_names = getPinColumnNames(min_charge, max_charge);
     const std::string lookup_names[] = {"CalcMass", "IsotopeError", Constants::UserParam::ISOTOPE_ERROR};
 
+    // the spectra with stamped PSMs whose scan number could not be read: their spectrum reference (empty: none)
+    std::vector<std::string> without_scan(peptide_ids.size());
+    std::vector<char> any_stamped(peptide_ids.size(), 0);
     // Stamps the hits of one spectrum; returns whether it stamped any.
     auto stamp_spectrum = [&](size_t pid_index)
     {
@@ -736,7 +821,7 @@ namespace OpenMS
           auto exists_lookup = [&](int lookup) { return exists(hit, lookup_names[lookup]); };
           auto get_lookup = [&](int lookup) -> const DataValue& { return get(hit, lookup_names[lookup]); };
           pinHitColumns_<true>(hit, target_decoy == PeptideHit::TargetDecoyType::DECOY, file_identifier + scan_identifier,
-                               scan_number, exp_mass, retention_time, enz, min_charge, max_charge,
+                               scan_number, exp_mass, retention_time, rule, min_charge, max_charge,
                                exists_lookup, get_lookup, put);
         }
         catch (...)
@@ -751,6 +836,7 @@ namespace OpenMS
         }
         stamped = true;
       }
+      if (stamped && scan_number < 0) { without_scan[pid_index] = scan_identifier; }
       return stamped;
     };
 
@@ -759,7 +845,12 @@ namespace OpenMS
     size_t first_parallel = 0;
     try
     {
-      while (first_parallel < peptide_ids.size() && !stamp_spectrum(first_parallel++)) {}
+      while (first_parallel < peptide_ids.size())
+      {
+        const size_t i = first_parallel++;
+        any_stamped[i] = stamp_spectrum(i);
+        if (any_stamped[i]) break;
+      }
     }
     catch (...)
     {
@@ -783,7 +874,7 @@ namespace OpenMS
     {
       try
       {
-        stamp_spectrum(static_cast<size_t>(pid_index));
+        any_stamped[pid_index] = stamp_spectrum(static_cast<size_t>(pid_index));
       }
       catch (...)
       {
@@ -831,6 +922,7 @@ namespace OpenMS
         std::rethrow_exception(errors[pid_index]);
       }
     }
+    warnWithoutScanNumber_(without_scan, any_stamped);
     return skipped;
   }
 
@@ -890,6 +982,7 @@ namespace OpenMS
     RescoreInput& input,
     std::vector<std::pair<size_t, size_t>>& rows)
   {
+    const PinEnzyme_ rule(enz);
     const StringList feature_list = features; // (features may be input.feature_names)
     input = RescoreInput();
     rows.clear();
@@ -1119,7 +1212,7 @@ namespace OpenMS
               if constexpr (std::is_arithmetic_v<std::decay_t<decltype(value)>>) pin_values[column] = static_cast<double>(value);
             };
             calc_mass = pinHitColumns_<false>(hit, (s & DECOY) != 0, no_spec_id, scan_number, exp_mass, retention_time,
-                                              enz, min_charge, max_charge, exists, get, put);
+                                              rule, min_charge, max_charge, exists, get, put);
             pin_values[PIN_CALC_MASS] = calc_mass; // (also when read from the hit)
           }
           catch (...)
@@ -1245,6 +1338,7 @@ namespace OpenMS
     int min_charge,
     int max_charge)
   {
+    const PinEnzyme_ rule(enz);
     // The PIN columns that stamping overwrites (all but CalcMass, which it reads): their name indices, if registered.
     // A hit can only carry those that are.
     const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
@@ -1309,7 +1403,7 @@ namespace OpenMS
               if (index[column] != UInt(-1) && hit.metaValueExists(index[column])) hit.setMetaValue(index[column], value);
             };
             pinHitColumns_<true>(hit, target_decoy == PeptideHit::TargetDecoyType::DECOY, std::get<0>(*spectrum),
-                                 std::get<1>(*spectrum), pid.getMZ(), pid.getRT(), enz, min_charge, max_charge,
+                                 std::get<1>(*spectrum), pid.getMZ(), pid.getRT(), rule, min_charge, max_charge,
                                  exists, get, put);
           }
         }

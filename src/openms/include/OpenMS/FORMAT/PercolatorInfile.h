@@ -37,6 +37,18 @@ namespace OpenMS
       /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
       using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
 
+      /**
+       * @brief Writes the PSMs of @p peptide_ids as a Percolator input file.
+       *
+       * @p enz names the enzyme of the enzN, enzC and enzInt features: a name of PercolatorAdapter's 'enzyme' option
+       * (no_enzyme, elastase, pepsin, proteinasek, thermolysin, chymotrypsin, lys-n, lys-c, arg-c, asp-n, glu-c,
+       * trypsin, trypsinp) or of ProteaseDB (e.g. 'Trypsin/P', 'Lys-C', 'PepsinA'), which is mapped to it; another
+       * enzyme of ProteaseDB (e.g. 'Lys-C/P', 'V8-E') gives the features by its own cleavage rule. Any other enzyme
+       * counts every site as enzymatic. A protein terminus ('[', ']') counts as a cleavage site, and so does the
+       * position after an initial Met (initial-Met clipping: flank 'M', evidence start 1). The modifier
+       * "+keep_termini" after the name (e.g. "trypsinp+keep_termini") compares the terminus marks as residues and
+       * leaves out the initial-Met rule (the features of OpenMS 3.5 and ProSE int15); "+termini" states the default.
+       */
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
@@ -278,9 +290,17 @@ namespace OpenMS
        *
        * @return The calculated mass of the hit (CalcMass)
        */
+      /// Warns once about the spectra of @p without_scan (their reference; empty: none) whose scan number could not be read,
+      /// of the @p stamped spectra (1: with stamped PSMs)
+      static void warnWithoutScanNumber_(const std::vector<std::string>& without_scan, const std::vector<char>& stamped);
+
+      /// The enzyme of the enzN/enzC/enzInt features as @ref store() describes it (name, modifiers), parsed once per call
+      /// (defined in PercolatorInfile.cpp)
+      struct PinEnzyme_;
+
       template <bool with_strings, typename Exists, typename Get, typename Put>
       static double pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
-        double exp_mass, double retention_time, const std::string& enz, int min_charge, int max_charge,
+        double exp_mass, double retention_time, const PinEnzyme_& enz, int min_charge, int max_charge,
         Exists&& exists, Get&& get, Put&& put);
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM

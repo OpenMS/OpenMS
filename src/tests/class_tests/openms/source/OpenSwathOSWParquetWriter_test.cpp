@@ -161,4 +161,199 @@ START_SECTION(void write(const std::string&, const OpenSwath::LightTargetedExper
   // TempDir destructor will remove the temporary directory and its contents.
 END_SECTION
 
+START_SECTION(metadata scores are written to their own Parquet columns)
+  // Distinct adjacent scores expose the previous-value writes produced by GCC
+  // when value was evaluated before extractMetaDouble_ in the same call.
+  struct ScoreColumn
+  {
+    const char* key;
+    const char* column;
+  };
+  const ScoreColumn feature_scores[] = {
+    {"ms1_area_intensity", "ms1_area_intensity"},
+    {"ms1_apex_intensity", "ms1_apex_intensity"},
+    {"im_ms1_drift", "ms1_exp_im"},
+    {"im_ms1_delta", "ms1_delta_im"},
+    {"var_ms1_ppm_diff", "var_ms1_massdev_score"},
+    {"var_im_ms1_delta_score", "var_ms1_im_ms1_delta_score"},
+    {"var_ms1_mi_score", "var_ms1_mi_score"},
+    {"var_ms1_mi_contrast_score", "var_ms1_mi_contrast_score"},
+    {"var_ms1_mi_combined_score", "var_ms1_mi_combined_score"},
+    {"var_ms1_isotope_correlation", "var_ms1_isotope_correlation_score"},
+    {"var_ms1_isotope_overlap", "var_ms1_isotope_overlap_score"},
+    {"var_ms1_xcorr_coelution", "var_ms1_xcorr_coelution"},
+    {"var_ms1_xcorr_coelution_contrast", "var_ms1_xcorr_coelution_contrast"},
+    {"var_ms1_xcorr_coelution_combined", "var_ms1_xcorr_coelution_combined"},
+    {"var_ms1_xcorr_shape", "var_ms1_xcorr_shape"},
+    {"var_ms1_xcorr_shape_contrast", "var_ms1_xcorr_shape_contrast"},
+    {"var_ms1_xcorr_shape_combined", "var_ms1_xcorr_shape_combined"},
+    {"total_xic", "ms2_total_area_intensity"},
+    {"peak_apices_sum", "ms2_apex_intensity"},
+    {"im_drift", "ms2_exp_im"},
+    {"im_drift_left", "ms2_exp_im_leftwidth"},
+    {"im_drift_right", "ms2_exp_im_rightwidth"},
+    {"im_delta", "ms2_delta_im"},
+    {"total_mi", "ms2_total_mi"},
+    {"var_bseries_score", "var_ms2_bseries_score"},
+    {"var_dotprod_score", "var_ms2_dotprod_score"},
+    {"var_intensity_score", "var_ms2_intensity_score"},
+    {"var_isotope_correlation_score", "var_ms2_isotope_correlation_score"},
+    {"var_isotope_overlap_score", "var_ms2_isotope_overlap_score"},
+    {"var_library_corr", "var_ms2_library_corr"},
+    {"var_library_dotprod", "var_ms2_library_dotprod"},
+    {"var_library_manhattan", "var_ms2_library_manhattan"},
+    {"var_library_rmsd", "var_ms2_library_rmsd"},
+    {"var_library_rootmeansquare", "var_ms2_library_rootmeansquare"},
+    {"var_library_sangle", "var_ms2_library_sangle"},
+    {"var_log_sn_score", "var_ms2_log_sn_score"},
+    {"var_manhatt_score", "var_ms2_manhattan_score"},
+    {"var_massdev_score", "var_ms2_massdev_score"},
+    {"var_massdev_score_weighted", "var_ms2_massdev_score_weighted"},
+    {"var_mi_score", "var_ms2_mi_score"},
+    {"var_mi_weighted_score", "var_ms2_mi_weighted_score"},
+    {"var_mi_ratio_score", "var_ms2_mi_ratio_score"},
+    {"var_norm_rt_score", "var_ms2_norm_rt_score"},
+    {"var_xcorr_coelution", "var_ms2_xcorr_coelution"},
+    {"var_xcorr_coelution_weighted", "var_ms2_xcorr_coelution_weighted"},
+    {"var_xcorr_shape", "var_ms2_xcorr_shape"},
+    {"var_xcorr_shape_weighted", "var_ms2_xcorr_shape_weighted"},
+    {"var_yseries_score", "var_ms2_yseries_score"},
+    {"var_elution_model_fit_score", "var_ms2_elution_model_fit_score"},
+    {"var_im_xcorr_shape", "var_ms2_im_xcorr_shape"},
+    {"var_im_xcorr_coelution", "var_ms2_im_xcorr_coelution"},
+    {"var_im_delta_score", "var_ms2_im_delta_score"},
+    {"im_log_intensity", "var_ms2_im_log_intensity"}
+  };
+  const ScoreColumn transition_scores[] = {
+    {"total_xic", "total_area_intensity"},
+    {"peak_apex_int", "apex_intensity"},
+    {"peak_apex_position", "apex_rt"},
+    {"width_at_50", "rt_fwhm"},
+    {"total_mi", "total_mi"},
+    {"start_position_at_5", "start_position_at_5"},
+    {"end_position_at_5", "end_position_at_5"},
+    {"start_position_at_10", "start_position_at_10"},
+    {"end_position_at_10", "end_position_at_10"},
+    {"start_position_at_50", "start_position_at_50"},
+    {"end_position_at_50", "end_position_at_50"},
+    {"total_width", "total_width"},
+    {"tailing_factor", "tailing_factor"},
+    {"asymmetry_factor", "asymmetry_factor"},
+    {"slope_of_baseline", "slope_of_baseline"},
+    {"baseline_delta_2_height", "baseline_delta_2_height"},
+    {"points_across_baseline", "points_across_baseline"},
+    {"points_across_half_height", "points_across_half_height"}
+  };
+
+  OpenSwath::LightTargetedExperiment lib;
+  OpenSwath::LightCompound compound;
+  compound.id = "0";
+  compound.charge = 2;
+  compound.rt = 10.0;
+  compound.sequence = "PEPTIDE";
+  lib.compounds.push_back(compound);
+  OpenSwath::LightTransition transition;
+  transition.transition_name = "3";
+  transition.peptide_ref = "0";
+  transition.precursor_mz = 500.0;
+  transition.product_mz = 100.0;
+  lib.transitions.push_back(transition);
+
+  FeatureMap fmap;
+  for (Size row = 0; row < 3; ++row)
+  {
+    Feature feature;
+    feature.setUniqueId(row + 1);
+    feature.setRT(10.0 + row);
+    feature.setIntensity(1000.0 + row);
+    feature.setMetaValue("PeptideRef", "0");
+    Feature fragment;
+    fragment.setIntensity(2000.0 + row);
+    fragment.setMetaValue("FeatureLevel", "MS2");
+    fragment.setMetaValue("native_id", "3");
+    Feature precursor;
+    precursor.setIntensity(3000.0 + row);
+    precursor.setMetaValue("FeatureLevel", "MS1");
+    precursor.setMetaValue("native_id", "Precursor_i0");
+    if (row == 0)
+    {
+      double expected = 10.0;
+      for (const auto& score : feature_scores)
+      {
+        feature.setMetaValue(score.key, expected++);
+      }
+      expected = 110.0;
+      for (const auto& score : transition_scores)
+      {
+        fragment.setMetaValue(score.key, expected++);
+      }
+      precursor.setMetaValue("peak_apex_int", 210.0);
+    }
+    else if (row == 1)
+    {
+      // Enable both gates, but leave the other scores missing.
+      feature.setMetaValue("var_ms1_ppm_diff", 901.0);
+      fragment.setMetaValue("start_position_at_5", 902.0);
+    }
+    else
+    {
+      // Stray scores must remain null when their group gate is absent.
+      feature.setMetaValue("ms1_area_intensity", 903.0);
+      fragment.setMetaValue("end_position_at_5", 904.0);
+    }
+    feature.getSubordinates().push_back(fragment);
+    feature.getSubordinates().push_back(precursor);
+    fmap.push_back(feature);
+  }
+
+  TempDir tmp_dir;
+  const std::string base = tmp_dir.getPath() + "/scores.oswpq";
+  File::makeDir(base);
+  writer.write(base, lib, fmap, 91, "scores.mzML", false);
+  const std::string run_path = base + "/runs/run_id=91/";
+  auto features = ParquetFile::readTable(run_path + "features.parquet");
+  auto fragments = ParquetFile::readTable(run_path + "feature_transition.parquet");
+  auto precursors = ParquetFile::readTable(run_path + "feature_precursor.parquet");
+  TEST_EQUAL(features->num_rows(), 3)
+  TEST_EQUAL(fragments->num_rows(), 3)
+  TEST_EQUAL(precursors->num_rows(), 3)
+
+  double expected = 10.0;
+  for (const auto& score : feature_scores)
+  {
+    auto column = ParquetFile::getColumn(features, score.column);
+    TEST_EQUAL(ParquetFile::getDouble(column, 0, -1.0, false), expected)
+    if (std::string(score.key) == "var_ms1_ppm_diff")
+    {
+      TEST_EQUAL(ParquetFile::getDouble(column, 1, -1.0, false), 901.0)
+    }
+    else
+    {
+      TEST_TRUE(column->IsNull(1))
+    }
+    TEST_TRUE(column->IsNull(2))
+    ++expected;
+  }
+  expected = 110.0;
+  for (const auto& score : transition_scores)
+  {
+    auto column = ParquetFile::getColumn(fragments, score.column);
+    TEST_EQUAL(ParquetFile::getDouble(column, 0, -1.0, false), expected)
+    if (std::string(score.key) == "start_position_at_5")
+    {
+      TEST_EQUAL(ParquetFile::getDouble(column, 1, -1.0, false), 902.0)
+    }
+    else
+    {
+      TEST_TRUE(column->IsNull(1))
+    }
+    TEST_TRUE(column->IsNull(2))
+    ++expected;
+  }
+  auto precursor_apex = ParquetFile::getColumn(precursors, "precursor_apex_intensity");
+  TEST_EQUAL(ParquetFile::getDouble(precursor_apex, 0, -1.0, false), 210.0)
+  TEST_TRUE(precursor_apex->IsNull(1))
+  TEST_TRUE(precursor_apex->IsNull(2))
+END_SECTION
+
 END_TEST

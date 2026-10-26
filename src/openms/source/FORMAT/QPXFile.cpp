@@ -38,6 +38,7 @@
 #include <cstring>
 #include <exception>
 #include <random>
+#include <optional>
 #include <set>
 #include <unordered_map>
 
@@ -66,6 +67,41 @@ namespace // anonymous
     std::string& name = cache[index];
     if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
     return name;
+  }
+
+  /// Whether a meta value name is a known score type (Scores::isKnownScoreType()), an entry of the QPX
+  /// additional_scores, and if so whether a higher value is better (none: unknown)
+  struct ScoreTypeOfMeta_
+  {
+    bool known = false;
+    std::optional<bool> higher_better;
+  };
+
+  /// ScoreTypeOfMeta_ of the meta value @p index (of name @p key), cached in @p cache by index as cachedMetaName_():
+  /// classified once per name rather than per meta value of every PSM
+  inline const ScoreTypeOfMeta_& cachedScoreType_(UInt index, const std::string& key,
+                                                  std::vector<std::optional<ScoreTypeOfMeta_>>& cache,
+                                                  IDScoreSwitcherAlgorithm& idsa)
+  {
+    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
+    std::optional<ScoreTypeOfMeta_>& entry = cache[index];
+    if (!entry)
+    {
+      entry = ScoreTypeOfMeta_();
+      entry->known = Scores::isKnownScoreType(key);
+      if (entry->known)
+      {
+        try
+        {
+          entry->higher_better = idsa.isScoreTypeHigherBetter(IDScoreSwitcherAlgorithm::toScoreTypeEnum(key));
+        }
+        catch (...)
+        {
+          entry->higher_better.reset();
+        }
+      }
+    }
+    return *entry;
   }
 
   /// Refuse identification runs whose identifiers cannot uniquely select an MS-run path list.
@@ -351,6 +387,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
 
   // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
   std::vector<std::string> meta_name_cache;
+  std::vector<std::optional<ScoreTypeOfMeta_>> score_type_cache; // (see cachedScoreType_)
 
   Int p_id_index = 0;
   for (const auto& pep_id : peptide_identifications)
@@ -661,23 +698,18 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           const DataValue& val = mv_it->second;
           if (key == "target_decoy" && (val == DataValue("target") || val == DataValue("decoy"))) continue;
           const auto vt = val.valueType();
-          if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
-              && Scores::isKnownScoreType(key))
+          if (vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
           {
-            // known score -> additional_scores
-            (void)as_struct_b->Append();
-            (void)as_name_b->Append(key);
-            (void)as_value_b->Append(static_cast<double>(val));
-            try
+            const ScoreTypeOfMeta_& score_type = cachedScoreType_(mv_it->first, key, score_type_cache, idsa);
+            if (score_type.known)
             {
-              auto st = IDScoreSwitcherAlgorithm::toScoreTypeEnum(key);
-              (void)as_hb_b->Append(idsa.isScoreTypeHigherBetter(st));
+              // known score -> additional_scores
+              (void)as_struct_b->Append();
+              (void)as_name_b->Append(key);
+              (void)as_value_b->Append(static_cast<double>(val));
+              (void)(score_type.higher_better ? as_hb_b->Append(*score_type.higher_better) : as_hb_b->AppendNull());
+              continue;
             }
-            catch (...)
-            {
-              (void)as_hb_b->AppendNull();
-            }
-            continue;
           }
           // everything else -> psm_metavalues
           (void)pmv_struct_b->Append();
@@ -1027,6 +1059,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   // Lazily-filled MetaInfo index->name cache shared across all PSMs in this range
   // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
   std::vector<std::string> meta_name_cache;
+  std::vector<std::optional<ScoreTypeOfMeta_>> score_type_cache; // (see cachedScoreType_)
 
   // Pre-resolve the fixed dedicated-column metavalue names to registry indices ONCE for this range.
   // String-keyed exists()/getValue() take the MetaInfoRegistry omp-critical lock via getIndex() on
@@ -1261,20 +1294,15 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
           const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
           if (excluded_hit_mvs.contains(key)) continue;
           const DataValue& val = mv_it->second;
-          if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
-              && Scores::isKnownScoreType(key))
+          if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE))
           {
-            (void)as_struct_b->Append();
-            (void)as_name_b->Append(key);
-            (void)as_value_b->Append(static_cast<double>(val));
-            try
+            const ScoreTypeOfMeta_& score_type = cachedScoreType_(mv_it->first, key, score_type_cache, idsa);
+            if (score_type.known)
             {
-              auto st = IDScoreSwitcherAlgorithm::toScoreTypeEnum(key);
-              (void)as_hb_b->Append(idsa.isScoreTypeHigherBetter(st));
-            }
-            catch (...)
-            {
-              (void)as_hb_b->AppendNull();
+              (void)as_struct_b->Append();
+              (void)as_name_b->Append(key);
+              (void)as_value_b->Append(static_cast<double>(val));
+              (void)(score_type.higher_better ? as_hb_b->Append(*score_type.higher_better) : as_hb_b->AppendNull());
             }
           }
         }
@@ -1557,9 +1585,55 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   std::vector<const PeptideIdentification*> ptrs;
   ptrs.reserve(peptide_identifications.size());
   for (const auto& pep_id : peptide_identifications) { ptrs.push_back(&pep_id); }
+  // Built in contiguous parts in parallel (as the streaming exportToParquet() builds its batches), concatenated in
+  // order: the rows are those of one serial pass
   size_t unattributable = 0;
-  auto table = buildQPXPSMTableRange(mapper, ptrs, 0, ptrs.size(), export_all_psms, unattributable,
-                                    feature_links);
+#ifdef _OPENMP
+  const int threads = omp_in_parallel() ? 1 : std::max(1, omp_get_max_threads());
+#else
+  const int threads = 1;
+#endif
+  const int W = static_cast<int>(std::max<size_t>(1, std::min<size_t>(static_cast<size_t>(threads), ptrs.size() / 2048)));
+  std::shared_ptr<arrow::Table> table;
+  if (W == 1)
+  {
+    table = buildQPXPSMTableRange(mapper, ptrs, 0, ptrs.size(), export_all_psms, unattributable, feature_links);
+  }
+  else
+  {
+    std::vector<std::shared_ptr<arrow::Table>> parts(W);
+    std::vector<size_t> unattributable_of(W, 0);
+    std::exception_ptr error; // (exceptions must not leave the parallel region)
+    #pragma omp parallel for num_threads(W) schedule(static)
+    for (int t = 0; t < W; ++t)
+    {
+      try
+      {
+        const size_t base = ptrs.size() / W, rem = ptrs.size() % W;
+        const size_t b = t * base + std::min<size_t>(static_cast<size_t>(t), rem);
+        const size_t e = b + base + (static_cast<size_t>(t) < rem ? 1 : 0);
+        parts[t] = buildQPXPSMTableRange(mapper, ptrs, b, e, export_all_psms, unattributable_of[t], feature_links);
+      }
+      catch (...)
+      {
+        #pragma omp critical (QPXFile_exportPSMsToQPXArrow)
+        if (!error) { error = std::current_exception(); }
+      }
+    }
+    if (error) { std::rethrow_exception(error); }
+    for (int t = 0; t < W; ++t)
+    {
+      unattributable += unattributable_of[t];
+      if (!parts[t]) { return nullptr; } // (logged)
+    }
+    auto concatenated = arrow::ConcatenateTables(parts);
+    if (!concatenated.ok())
+    {
+      OPENMS_LOG_ERROR << "QPXFile: concatenating the PSM table failed: " << concatenated.status().ToString() << std::endl;
+      return nullptr;
+    }
+    table = concatenated.ValueOrDie();
+  }
   if (unattributable > 0)
   {
     OPENMS_LOG_WARN << "QPXFile: " << unattributable << " PSM(s) have no resolvable origin file, "

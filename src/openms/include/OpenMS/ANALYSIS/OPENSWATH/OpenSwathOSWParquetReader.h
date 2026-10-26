@@ -34,10 +34,12 @@ namespace OpenMS
       int64_t feature_id = 0;
       int64_t run_id = 0;
       int64_t precursor_id = 0;
+      /// Experimental RT, with unknown (NULL) values represented by NaN after reading.
       double exp_rt = 0.0;
       double ms2_area_intensity = 0.0;
       double ms2_total_area_intensity = 0.0;
       double ms2_apex_intensity = 0.0;
+      /// Auxiliary precursor charge, with NULL represented by 0.
       int precursor_charge = 0;
       bool decoy = false;
       int64_t transition_count = 0;
@@ -52,7 +54,9 @@ namespace OpenMS
       std::vector<int64_t> feature_id;
       std::vector<int64_t> run_id;
       std::vector<int64_t> precursor_id;
+      /// Experimental RT, with unknown (NULL) values represented by NaN and sorted last within a group.
       std::vector<double> exp_rt;
+      /// Auxiliary precursor charge, with NULL represented by 0. Scientific identity validation is caller-owned.
       std::vector<int> precursor_charge;
       std::vector<bool> decoy;
       std::vector<int64_t> transition_count;
@@ -75,12 +79,17 @@ namespace OpenMS
       std::vector<int64_t> feature_id;
       std::vector<int64_t> run_id;
       std::vector<int64_t> precursor_id;
+      /// Experimental RT, with unknown (NULL) values represented by NaN and sorted last within a group.
       std::vector<double> exp_rt;
+      /// Auxiliary precursor charge, with NULL represented by 0. Scientific identity validation is caller-owned.
       std::vector<int> precursor_charge;
 
       std::vector<int64_t> transition_id;
       std::vector<int> product_charge;
       std::vector<bool> decoy; // transition-level decoy flag
+      /// True for present, non-NULL boolean/integer labels. Callers validate only retained rows.
+      /// Missing columns retain the historical false fallback in decoy, but are not valid labels.
+      std::vector<bool> decoy_valid;
 
       // basic transition-level peak metrics
       std::vector<double> area_intensity;

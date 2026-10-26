@@ -423,7 +423,7 @@ START_SECTION(([EXTRA] exportToArrow - a single-file run keeps its group without
 }
 END_SECTION
 
-START_SECTION(([EXTRA] exportToArrow - a group without a q-value has a null global_qvalue, not NaN))
+START_SECTION(([EXTRA] exportToArrow - a group without a q-value has a null global_qvalue (not NaN, not its score)))
 {
   // e.g. the groups of a run without protein inference: the column is nullable, and null is "no q-value"
   auto prot_id = makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"});
@@ -438,6 +438,13 @@ START_SECTION(([EXTRA] exportToArrow - a group without a q-value has a null glob
   auto values = std::static_pointer_cast<arrow::DoubleArray>(with_q->GetColumnByName("global_qvalue")->chunk(0));
   TEST_FALSE(values->IsNull(0))
   TEST_REAL_SIMILAR(values->Value(0), 0.01)
+  // proteins scored without a protein FDR (e.g. a posterior probability): the group probability is that score
+  auto scored = makeIdOnlyRun({"/data/SimpleSearchEngine_1.mzML"});
+  scored.setScoreType("Posterior Probability");
+  scored.getIndistinguishableProteins()[0].probability = 0.9;
+  auto without_fdr = ProteinGroupArrowExport::exportToArrow({scored}, PeptideIdentificationList{});
+  TEST_NOT_EQUAL(without_fdr, nullptr)
+  TEST_TRUE(without_fdr->GetColumnByName("global_qvalue")->chunk(0)->IsNull(0))
 }
 END_SECTION
 
@@ -801,6 +808,13 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   auto q_no_q = t_no_q->GetColumnByName("global_qvalue")->chunk(0);
   TEST_TRUE(q_no_q->IsNull(0) && q_no_q->IsNull(1))
   TEST_FALSE(t->GetColumnByName("global_qvalue")->chunk(0)->IsNull(0))
+  // proteins scored without a protein FDR (e.g. a posterior probability): no q-value either
+  ConsensusMap no_fdr = cmap;
+  no_fdr.getProteinIdentifications()[0].setScoreType("Posterior Probability");
+  auto t_no_fdr = ProteinGroupArrowExport::exportToArrow(no_fdr, design);
+  TEST_NOT_EQUAL(t_no_fdr, nullptr)
+  auto q_no_fdr = t_no_fdr->GetColumnByName("global_qvalue")->chunk(0);
+  TEST_TRUE(q_no_fdr->IsNull(0) && q_no_fdr->IsNull(1))
 }
 END_SECTION
 

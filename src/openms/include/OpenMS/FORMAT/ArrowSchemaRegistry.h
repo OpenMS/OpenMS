@@ -27,11 +27,13 @@ namespace OpenMS
   /// @brief Utilities for validating Arrow table schemas against expected definitions
   namespace ArrowSchemaValidation
   {
-    /// @brief Validation strictness: Strict requires exact match, Subset allows missing and extra columns
+    /// @brief Validation strictness: Strict requires exact match, Subset allows missing and extra columns, Extensible
+    /// is Strict for the expected columns and allows further columns after them (QPX: readers ignore unknown columns)
     enum class Mode
     {
       Strict,
-      Subset
+      Subset,
+      Extensible
     };
 
     /// @brief Result of schema validation containing validity flag and error messages

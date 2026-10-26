@@ -211,6 +211,9 @@ namespace OpenMS
       rows into their PSMs, and an alternative algorithm on PSMs reads the same RescoreInput and @p rows.
       Hits without peptide evidences, without target/decoy information or with a missing feature get no row.
 
+      CalcMass is not a training feature (the executable reads it as metadata; it goes into calc_masses), unless
+      @p calc_mass_feature (parameter 'calc_mass_feature', the in-process training before OpenMS #10717).
+
       @throws Exception::MissingInformation if @p feature_set has no numeric feature or no hit could be turned into
               a feature row
       @throws Exception::InvalidValue for a feature without a finite numeric value or an unknown target/decoy value
@@ -221,7 +224,8 @@ namespace OpenMS
                                      int min_charge,
                                      int max_charge,
                                      RescoreInput& input,
-                                     PSMRowLocations& rows);
+                                     PSMRowLocations& rows,
+                                     bool calc_mass_feature = false);
 
     /// Scores the feature rows that rescorePSMs() built, in place of rescore(): one score, q-value and PEP per row
     using PSMScorer = std::function<RescoreOutput(const RescoreInput&, const PSMRowLocations&)>;
@@ -310,7 +314,8 @@ namespace OpenMS
       @return pi0 in [0, 1], or -1.0 if no rescore()/score() has run yet
               on this instance, or after a train() call (train() resets
               last_pi0 since it doesn't run scoring). Always 1.0 when the
-              instance was configured with use_pi0=false.
+              call did not use pi0: use_pi0=false, or use_pi0=auto with
+              post_processing_tdc or input from a concatenated search.
     */
     double getPi0() const;
 

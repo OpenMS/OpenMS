@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
@@ -1572,20 +1573,10 @@ namespace OpenMS::Internal
       //------------------------- binaryDataArray ----------------------------
       else if (parent_tag == "binaryDataArray")
       {
-        // store name for all non-default arrays
-        if (cv_.isChildOf(accession, "MS:1000513")) // other array names as string
-        {
-          bin_data_.back().meta.setName(cv_.getTerm(accession).name);
-          if (accession == "MS:1000515" && unit_accession == "UO:0000269")
-            bin_data_.back().meta.setMetaValue("mzml intensity array", "absorption");
-        }
-
+        // precision, compression, units and the array name (shared with MzMLSpectrumDecoder)
         if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
         {
-          if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
-          {
-            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
-          }
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
       }
       //------------------------- spectrum ----------------------------
@@ -5416,8 +5407,10 @@ namespace OpenMS::Internal
         {"mass resolving power", "MS:1000800"}, {"interchannel delay", "MS:1000880"}};
       static const std::set<std::string> spectrum_exclude = []
       {
+        // imzml:scan_start_time (imaging spectra) is written as the scan start time MS:1000016 below
         std::set<std::string> keys = {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array",
-                                      "sampled noise intensity array", "sampled noise baseline array"};
+                                      "sampled noise intensity array", "sampled noise baseline array",
+                                      "imzml:scan_start_time"};
         for (const auto& attribute : scan_attributes) keys.insert(attribute.first);
         return keys;
       }();
@@ -5462,6 +5455,9 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       //scan
       //--------------------------------------------------------------------------------------------
+      // Imaging spectra (imzML, Bruker imaging) keep RT at -1 and their acquisition time in
+      // the MetaValue imzml:scan_start_time; write that time instead of -1.
+      const double scan_start_time = ImzMLSpectrumRules::scanStartTime(spec);
       for (Size j = 0; j < spec.getAcquisitionInfo().size(); ++j)
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
@@ -5477,7 +5473,7 @@ namespace OpenMS::Internal
         os << ">\n";
         if (j == 0)
         {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << scan_start_time
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 
           if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
@@ -5542,7 +5538,7 @@ namespace OpenMS::Internal
       if (spec.getAcquisitionInfo().empty())
       {
         os << "\t\t\t\t\t<scan>\n";
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << scan_start_time << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
         writeScanAttributes(Acquisition(), true);
 
         if (spec.getInstrumentSettings().getZoomScan())

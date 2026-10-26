@@ -9,6 +9,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/test_config.h>
 
@@ -18,6 +19,8 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <limits>
+#include <stdexcept>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -140,7 +143,7 @@ START_SECTION(std::vector<double> forRt(const std::vector<double>&, std::size_t)
   auto fft_result = KernelDensityEstimation::forRt(signal, 4);
   TEST_EQUAL(fft_result.size(), 4)
   
-  // DC component (note: implementation scales by 1/M, so result is sum not mean)
+  // The forward transform is unscaled, so DC is the sum rather than the mean.
   TEST_EQUAL(fft_result[0] > 0.0, true) // DC component should be positive
   
   // Test with zero padding (M > signal.size())
@@ -180,6 +183,122 @@ START_SECTION(std::vector<double> revRt(const std::vector<double>&, std::size_t)
   {
     TEST_REAL_SIMILAR(reconstructed[i], small[i])
   }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Check the same analytic spectrum at small and large transform sizes.
+/////////////////////////////////////////////////////////////
+
+START_SECTION((FFT boundary and large-grid analytic round trips))
+{
+  for (const std::size_t size : {std::size_t{8}, std::size_t{512}, std::size_t{65536}, std::size_t{131072}, std::size_t{524288}})
+  {
+    std::vector<double> signal(size);
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      const double phase = 2.0 * Constants::PI * 3.0 * static_cast<double>(i) / static_cast<double>(size);
+      signal[i] = 2.0 + std::cos(phase) + 0.5 * std::sin(phase);
+    }
+    const auto spectrum = KernelDensityEstimation::forRt(signal);
+    TEST_EQUAL(spectrum.size(), size)
+    // Check amplitude and imaginary sign independently of the inverse transform.
+    TEST_REAL_SIMILAR(spectrum[0], 2.0 * size)
+    TEST_REAL_SIMILAR(spectrum[3], 0.5 * size)
+    TEST_REAL_SIMILAR(spectrum[size / 2 + 3], -0.25 * size)
+    std::vector<double> analytic_spectrum(size, 0.0);
+    analytic_spectrum[0] = 2.0 * size;
+    analytic_spectrum[3] = 0.5 * size;
+    analytic_spectrum[size / 2 + 3] = -0.25 * size;
+    const auto analytic_recovered = KernelDensityEstimation::revRt(analytic_spectrum);
+    const auto recovered = KernelDensityEstimation::revRt(spectrum);
+    TEST_EQUAL(recovered.size(), size)
+    TEST_EQUAL(analytic_recovered.size(), size)
+    double max_error = 0.0;
+    double max_inverse_error = 0.0;
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      max_error = std::max(max_error, std::abs(recovered[i] - signal[i]));
+      max_inverse_error = std::max(max_inverse_error, std::abs(analytic_recovered[i] - signal[i]));
+    }
+    TEST_TRUE(max_error < 1e-9)
+    TEST_TRUE(max_inverse_error < 1e-9)
+  }
+}
+END_SECTION
+
+START_SECTION((FFT empty, singleton, padding, truncation and invalid-length semantics))
+{
+  TEST_TRUE(KernelDensityEstimation::forRt({}).empty())
+  TEST_TRUE(KernelDensityEstimation::revRt({}).empty())
+  TEST_TRUE(KernelDensityEstimation::forRt({7.0}) == std::vector<double>{7.0})
+  TEST_TRUE(KernelDensityEstimation::revRt({7.0}) == std::vector<double>{7.0})
+  TEST_TRUE(KernelDensityEstimation::forRt({}, 1) == std::vector<double>{0.0})
+  TEST_TRUE(KernelDensityEstimation::forRt({std::numeric_limits<double>::quiet_NaN()}) == std::vector<double>{0.0})
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt({}, 1))
+  for (const std::size_t size : {std::size_t{3}, std::size_t{6}, std::size_t{65537}})
+  {
+    TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::forRt({}, size))
+    TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt(std::vector<double>(size), size))
+  }
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::forRt(std::vector<double>(3)))
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt(std::vector<double>(3)))
+  TEST_EXCEPTION(std::invalid_argument, KernelDensityEstimation::revRt({1.0}, 2))
+
+  const std::vector<double> dirty{2.0, std::numeric_limits<double>::quiet_NaN(),
+    std::numeric_limits<double>::infinity(), -3.0, 99.0};
+  const auto packed = KernelDensityEstimation::forRt(dirty, 4);
+  auto recovered = KernelDensityEstimation::revRt(packed);
+  const std::vector<double> sanitized{2.0, 0.0, 0.0, -3.0};
+  for (std::size_t i = 0; i < sanitized.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(recovered[i], sanitized[i])
+  }
+  auto extended = packed;
+  extended.push_back(99.0);
+  TEST_TRUE(KernelDensityEstimation::revRt(extended, 4) == recovered)
+  recovered = KernelDensityEstimation::revRt(KernelDensityEstimation::forRt({2.0, -3.0}, 4));
+  const std::vector<double> padded{2.0, -3.0, 0.0, 0.0};
+  for (std::size_t i = 0; i < padded.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(recovered[i], padded[i])
+  }
+  // The smallest nontrivial transform has DC and Nyquist, but no imaginary slots.
+  const auto pair_packed = KernelDensityEstimation::forRt({2.0, -3.0});
+  TEST_REAL_SIMILAR(pair_packed[0], -1.0)
+  TEST_REAL_SIMILAR(pair_packed[1], 5.0)
+  const auto pair_recovered = KernelDensityEstimation::revRt(pair_packed);
+  TEST_REAL_SIMILAR(pair_recovered[0], 2.0)
+  TEST_REAL_SIMILAR(pair_recovered[1], -3.0)
+}
+END_SECTION
+
+START_SECTION((KDE sample count above FFT template limit))
+{
+  // The sample count, not just an explicit gridsize, must select a large FFT.
+  const std::vector<double> samples(265290, 0.0);
+  const auto result = KernelDensityEstimation::gridKdeFFT(samples, 1.0, 512, 6.0);
+  TEST_EQUAL(result.first.size(), 524288)
+  TEST_EQUAL(result.second.size(), 524288)
+  const double delta = result.second[1] - result.second[0];
+  double integral = 0.0;
+  double max_error = 0.0;
+  bool finite = true;
+  bool positive = true;
+  for (std::size_t i = 0; i < result.first.size(); ++i)
+  {
+    const double density = result.first[i];
+    const double position = result.second[i];
+    const double expected = std::exp(-0.5 * position * position) / std::sqrt(2.0 * Constants::PI);
+    finite = finite && std::isfinite(density);
+    positive = positive && density > 0.0;
+    integral += density * delta;
+    max_error = std::max(max_error, std::abs(density - expected));
+  }
+  TEST_TRUE(finite)
+  TEST_TRUE(positive)
+  TEST_REAL_SIMILAR(integral, 1.0)
+  TEST_TRUE(max_error < 1e-5)
 }
 END_SECTION
 

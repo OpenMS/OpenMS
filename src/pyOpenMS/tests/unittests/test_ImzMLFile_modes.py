@@ -94,7 +94,7 @@ class TestImzMLAllModes(unittest.TestCase):
         self.assertGreater(consumer.first_size, 0)
 
     def test_mode4_load_spectra_index(self):
-        meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.continuous_path)
+        meta, index, _spectra = pyopenms.ImzMLFile().loadSpectraIndex(self.continuous_path)
 
         self.assertEqual(len(index), self.CONTINUOUS_SPECTRA)
         self.assertEqual(meta.imaging_mode, "continuous")

@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 
+#include <OpenMS/ANALYSIS/ID/Scores.h>
+
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport_impl.h>
 
@@ -156,10 +158,13 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
                          const PeptideIdentificationList& pep_ids,
                          AccessionRuns& acc_runs)
   {
+    std::string last_path, last_run; // (qpxRunFileName() of the path of the PSMs before: mostly one path)
     for (const auto& pid : pep_ids)
     {
       if (pid.getHits().empty()) { continue; }
-      const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pid));
+      std::string path = mapper.getPrimaryMSRunPath(pid);
+      if (path != last_path || last_run.empty()) { last_run = ArrowIOHelpers::qpxRunFileName(path); last_path = std::move(path); }
+      const std::string& run = last_run;
       if (run.empty()) { continue; }
       for (const auto& ev : pid.getHits()[0].getPeptideEvidences())
       {
@@ -206,6 +211,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   const auto& prot_id = cmap.getProteinIdentifications()[0];
   const auto& groups = prot_id.getIndistinguishableProteins();
+  // the group probabilities are q-values only after a protein FDR (it sets the run's score type), otherwise they are the
+  // proteins' scores (e.g. posterior probabilities), which global_qvalue must not report
+  const bool qvalues = Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL);
 
   if (groups.empty())
   {
@@ -571,8 +579,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)gg_qvalue_builder.AppendNull();
 
     // global_qvalue
-    // a group without a q-value (NaN, e.g. no inference): null, as the column is nullable
-    if (std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
+    // a group without a q-value (no protein FDR, or NaN, e.g. no inference): null, as the column is nullable
+    if (qvalues && std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
     else { (void)global_qvalue_builder.AppendNull(); }
 
     // pg_qvalue - not per-run in OpenMS
@@ -1200,6 +1208,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   for (const auto& prot_id : protein_identifications)
   {
     const auto& groups = prot_id.getIndistinguishableProteins();
+    // q-values only after a protein FDR (see the ConsensusMap overload)
+    const bool qvalues = Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL);
     if (groups.empty()) continue;
     total_groups_found += groups.size();
 
@@ -1235,11 +1245,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         mapper.validateMergeIndex(*pep_ptr, psm_index);
       }
 
+      std::string last_path, last_run; // (qpxRunFileName() of the path of the PSMs before: mostly one path)
       for (const auto& [psm_index, pep_ptr] : bucket->second)
       {
         const auto& pep_id = *pep_ptr;
         if (pep_id.getHits().empty()) continue;
-        const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pep_id));
+        std::string path = mapper.getPrimaryMSRunPath(pep_id);
+        if (path != last_path || last_run.empty()) { last_run = ArrowIOHelpers::qpxRunFileName(path); last_path = std::move(path); }
+        const std::string& run = last_run;
         if (run.empty())
         {
           // The run has files but this PSM resolves to none of them -- e.g. an 'id_merge_index'
@@ -1342,9 +1355,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         // gg_qvalue - not available
         (void)gg_qvalue_builder.AppendNull();
 
-        // global_qvalue — use group probability
-        // a group without a q-value (NaN, e.g. no inference): null, as the column is nullable
-        if (std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
+        // global_qvalue — the group probability, if it is a q-value
+        // a group without a q-value (no protein FDR, or NaN, e.g. no inference): null, as the column is nullable
+        if (qvalues && std::isfinite(group.probability)) { (void)global_qvalue_builder.Append(group.probability); }
         else { (void)global_qvalue_builder.AppendNull(); }
 
         // pg_qvalue - not available for id-only

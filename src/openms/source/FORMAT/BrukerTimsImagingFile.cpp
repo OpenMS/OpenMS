@@ -21,6 +21,7 @@
 #include <sqlite3.h>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <iterator>
 #include <limits>
@@ -272,6 +273,18 @@ namespace OpenMS
     inner.setLogType(this->getLogType());
     inner.load(path, ms_exp, inner_config);
 
+    // Imaging convention (see MSImagingExperiment): a pixel's acquisition time is not a
+    // retention time; keep it as the MetaValue imzml:scan_start_time and leave RT at -1.
+    for (MSSpectrum& spec : ms_exp)
+    {
+      if (spec.getRT() >= 0.0)
+      {
+        spec.setMetaValue("imzml:scan_start_time", spec.getRT());
+      }
+      spec.setRT(-1.0);
+    }
+    ms_exp.updateRanges(); // BrukerTimsFile computed the RT range from the frame times
+
     std::unordered_map<Int, Size> frame_to_index;
     frame_to_index.reserve(ms_exp.size());
     for (Size i = 0; i < ms_exp.size(); ++i)
@@ -290,13 +303,22 @@ namespace OpenMS
 
     std::string spot_size_str = globalMetadataValue(tdf, "MaldiSpotSize_um");
     if (spot_size_str.empty()) { spot_size_str = globalMetadataValue(tdf, "ImagingAreaSpotSize_um"); }
-    double spot_size = 1.0;
+    double spot_size = -1.0;
+    std::string spot_unit = "unknown";
     if (!spot_size_str.empty())
     {
-      try { spot_size = StringUtils::toDouble(spot_size_str); }
-      catch (...) { spot_size = 1.0; }
+      try
+      {
+        const double parsed = StringUtils::toDouble(spot_size_str);
+        if (std::isfinite(parsed) && parsed > 0)
+        {
+          spot_size = parsed;
+          spot_unit = "micrometer";
+        }
+      }
+      catch (...) {}
     }
-    geometry.setPixelSize(spot_size, spot_size, "micrometer");
+    geometry.setPixelSize(spot_size, spot_size, spot_unit);
 
     Size dropped = 0;
     for (const MaldiPixel& row : rows)

@@ -17,6 +17,13 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - EXPERIMENTAL: Remote XML loading: MzMLFile and all Xerces-based XML readers can load files directly from HTTP/HTTPS/FTP
+    URLs, by delegating URL resolution to the Xerces-C++ network transport (HTTPS requires its curl accessor,
+    enabled by the OpenMS vcpkg overlay), and from Amazon S3 (s3://bucket/key, also
+    gzip/bzip2 compressed), with Arrow's S3 filesystem (S3InputSource). S3 needs Arrow with S3 support, as in the vcpkg
+    build (arrow[s3]; CMake detects it, there is no separate option); credentials, region and endpoint come from the
+    AWS default chain and the URI's query parameters (e.g. ?region=..., ?endpoint_override=host:port&scheme=http).
+    Both features are experimental; use at your own risk.
   - ProSEAlgorithm rescores the PSMs of every search run with Percolator by default: the new parameter 'rescore'
     (default true) runs ProSEAlgorithm::rescoreWithPercolator in each search path (search(), searchWithModificationAnalysis(),
     single and multi-file) in place of the PSM-level FDR, which ProSEAlgorithm::applyDeferredPsmFDR then applies on Percolator's
@@ -160,6 +167,21 @@ OpenMS Library:
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
     did not match the inputs (no alignment points).
+  - API: imzML (#10586): OnDiscImzMLExperiment spectra carry the same metadata as ImzMLFile::load (native ID, MS level,
+    polarity, scan settings, MetaValues, IM peak type, data array metadata); new getExperimentalSettings(); close()
+    releases all parsed state; open(imzml, ibd, skip_metadata) keeps no spectrum metadata, as
+    OnDiscMSExperiment::openFile(filename, skipMetaData). ImzMLFile::loadSpectraIndex always returns the spectrum
+    metadata: it takes a new MSExperiment& argument (the overload without it is removed; its spectra have empty data
+    arrays), and pyOpenMS returns (meta, index, spectra) (was: (meta, index), so `meta, index =
+    ImzMLFile().loadSpectraIndex(path)` now raises ValueError). PeakFileOptions::setMetadataOnly (or setFillData(false))
+    on ImzMLFile loads returns every spectrum with metadata and coordinates but no peaks (data arrays empty, with their
+    metadata) (was: no spectra; a streaming consumer now receives these spectra too) and does not open the .ibd. RT is
+    -1 on every imzML load path and in BrukerTimsImagingFile (was: the scan start time / frame time); the acquisition
+    time is kept in seconds as the MetaValue imzml:scan_start_time, set only when the file has a scan start time (a
+    negative one, e.g. the -1 placeholder OpenMS 3.6 wrote, counts as none). ImzMLFile::store and MzMLFile::store write
+    scan start time from a caller-set RT, else from a numeric imzml:scan_start_time (mzML: not also as a userParam); the
+    imzML writer omits it otherwise (was: -1), and its RT range filter uses the same value and keeps spectra without a
+    time, as on load. Index-only and metadata-only loads report imzml:mz_data_type / imzml:int_data_type.
   - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
     all passing through one OpenMP critical section, which serialized threads that read or set meta values.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE's Percolator rescoring): fewer than 4 score bins, or bin medians closer than 1e-15,
@@ -291,6 +313,9 @@ OpenMS Library:
     isotope peaks using 13C/12C mass spacing and a bounded nearest-peak search on both sides of
     each expected isotope position. Clean envelopes no longer receive artificially low purity
     or get discarded by precursor-purity filtering (#10467).
+  - QcMLFile's QualityParameter and Attachment writers stored unit information under unitRef/
+    unitAcc attributes, but the reader (and the qcML schema) use unitCvRef/unitAccession, so every
+    unit was lost on a store/load round trip. Fixed the writers to emit the schema names.
   - Every PeptideIdentification needs the ProteinIdentification run (search run) whose identifier
     it names; the run may have no protein hits or database (e.g. peptidomics, de novo). The new
     ProteinRunReferences checks this (also in pyOpenMS) and throws Exception::InvalidParameter

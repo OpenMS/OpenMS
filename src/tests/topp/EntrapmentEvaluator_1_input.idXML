@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="entrapment.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+2" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.02" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2026-10-19T00:00:00" search_engine="ProSE" search_engine_version="0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="P1" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="P2" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="ENTRAP_P1" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="DECOY_P1" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1000.2" MZ="500.1" >
+			<PeptideHit score="0.001" sequence="PEPTIDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="mod_class" value="unmodified"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1002.4" MZ="501.2" >
+			<PeptideHit score="0.002" sequence="AAAAAAK" charge="2" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="mod_class" value="unmodified"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1004.6" MZ="502.3" >
+			<PeptideHit score="0.003" sequence="SHAREDPEPK" charge="2" protein_refs="PH_1 PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="mod_class" value="phospho"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1006.8" MZ="503.4" >
+			<PeptideHit score="0.005" sequence="LLLLLLK" charge="2" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="string" name="mod_class" value="unmodified"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1009.0" MZ="504.5" >
+			<PeptideHit score="0.02" sequence="MMMMMMK" charge="2" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="mod_class" value="phospho"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" RT="1011.2" MZ="505.6" >
+			<PeptideHit score="0.004" sequence="PEPTIDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="mod_class" value="unmodified"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
