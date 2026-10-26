@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 #include <OpenMS/CONCEPT/Init.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -498,6 +499,17 @@ namespace OpenMS
           std::string value = sm.convert(currentElement->getAttribute(TAG_value));
           std::string name = sm.convert(currentElement->getAttribute(TAG_name));
           std::string unit_accession = sm.convert(currentElement->getAttribute(TAG_unit_accession));
+
+          // name arrays typed by a CV term (e.g. ion mobility) like MzMLHandler does
+          const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+          if (cv.isChildOf(accession, "MS:1000513"))
+          {
+            data.back().meta.setName(cv.getTerm(accession).name);
+            if (accession == "MS:1000515" && unit_accession == "UO:0000269")
+            {
+              data.back().meta.setMetaValue("mzml intensity array", "absorption");
+            }
+          }
 
           // set precision, data_type
           Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data, accession, value, name, unit_accession);

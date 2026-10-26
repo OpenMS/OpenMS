@@ -576,6 +576,17 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
   TEST_REAL_SIMILAR(s[7].getIntensity(), 8)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
   TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+
+  // an array typed by a CV term (child of MS:1000513) gets the term name, as in MzMLHandler
+  std::string cv_typed = testString;
+  cv_typed.replace(cv_typed.find("accession=\"MS:1000786\" name=\"non-standard data array\" value=\"Ion Mobility\""),
+                   std::string("accession=\"MS:1000786\" name=\"non-standard data array\" value=\"Ion Mobility\"").size(),
+                   "accession=\"MS:1003008\" name=\"raw inverse reduced ion mobility array\" value=\"\"");
+  MSSpectrum im;
+  ptr->domParseSpectrum(cv_typed, im);
+  TEST_EQUAL(im.getFloatDataArrays().size(), 1)
+  TEST_EQUAL(im.getFloatDataArrays()[0].getName(), "raw inverse reduced ion mobility array")
+  TEST_EQUAL(im.containsIMData(), true)
   delete ptr;
 }
 END_SECTION
