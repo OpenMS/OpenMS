@@ -103,8 +103,10 @@ namespace
         [](double value) { return value > 0; });
       check(positive != sample->getIntensityArray()->data.end(), "Reference scan has no signal");
       const auto peak = static_cast<size_t>(positive - sample->getIntensityArray()->data.begin());
-      for (const size_t query_count : {size_t{1}, size_t{16}})
+      std::vector<RawCacheSnapshot> baselines;
+      for (const size_t query_count : {size_t{1}, size_t{16}, size_t{4096}})
       {
+        size_t traversal = 0;
         std::vector<Extractor::ExtractionCoordinates> coordinates(query_count);
         for (size_t q = 0; q < query_count; ++q)
         {
@@ -129,19 +131,34 @@ namespace
             auto bounded = std::make_shared<RawCache>(bytes, 0, largest + 4096);
             auto tiled = std::make_shared<RawAccess>(indexed.source(), bounded);
             const auto actual = extract(tiled->lightClone(), im_window);
+            size_t output_elements = 0;
             for (size_t q = 0; q < query_count; ++q)
             {
               check(actual[q]->getTimeArray()->data == reference[q]->getTimeArray()->data, "Extraction RT changed");
               check(actual[q]->getIntensityArray()->data == reference[q]->getIntensityArray()->data, "Extraction intensity changed");
+              output_elements += actual[q]->getTimeArray()->data.size() + actual[q]->getIntensityArray()->data.size();
             }
-            check(bounded->snapshot().budget.peak_total_bytes <= bytes, "Public extraction exceeded its private cap");
+            const auto measured = bounded->snapshot();
+            OPENMS_LOG_INFO << "WP03 " << file << " queries=" << query_count << " limit=" << bytes
+              << " im_window=" << im_window << " private_peak=" << measured.budget.peak_total_bytes
+              << " hits=" << measured.hits << " misses=" << measured.misses
+              << " output_elements=" << output_elements << '\n';
+            if (query_count == 1) { baselines.push_back(measured); }
+            const auto& baseline = baselines[traversal++];
+            check(measured.budget.peak_total_bytes == baseline.budget.peak_total_bytes,
+              "Raw cache peak changed with query count at fixed traversal and limit");
+            check(measured.misses == baseline.misses,
+              "Native scan misses changed with query count at fixed traversal and limit");
+            check(measured.hits == baseline.hits,
+              "Raw cache hits changed with query count at fixed traversal and limit");
+            check(measured.budget.peak_total_bytes <= bytes, "Public extraction exceeded its private cap");
             bounded->clear();
             check(bounded->snapshot().budget.committed_bytes == 0, "Extraction retained scan charges");
           }
         }
       }
       OPENMS_LOG_INFO << "WP03 " << file << " scans=" << access.getNrSpectra() << " points=" << points
-        << " exact_metadata=1 exact_arrays=1 extraction_query_counts=1,16 cache_limits=2\n";
+        << " exact_metadata=1 exact_arrays=1 extraction_query_counts=1,16,4096 cache_limits=2\n";
     }
   }
 
