@@ -3103,13 +3103,25 @@ namespace OpenMS
       std::vector<std::string> decoy_sequences(old_size);
       std::vector<char> site_mismatch(old_size, 0);
       std::vector<std::exception_ptr> decoy_errors(old_size); // an exception must not leave the parallel region
-#pragma omp parallel if (old_size >= 256)
+      // Only sequences of plain residue letters in parallel: AASequence::fromString() of a sequence with modification
+      // syntax may register modifications (shared state) and warn; then serially, stopping at the first error, as before.
+      bool plain_letters = true;
+#pragma omp parallel for schedule(dynamic, 256) reduction(&&: plain_letters) if (old_size >= 256)
+      for (SignedSize si = 0; si < static_cast<SignedSize>(old_size); ++si)
+      {
+        const std::string& sequence = db[static_cast<size_t>(si)].sequence;
+        plain_letters = plain_letters && std::all_of(sequence.begin(), sequence.end(), [](char c) { return c >= 'A' && c <= 'Z'; });
+      }
+      const bool decoys_in_parallel = plain_letters && old_size >= 256;
+      bool serial_stop = false; // (written only without the parallel region)
+#pragma omp parallel if (decoys_in_parallel)
       {
         std::vector<std::pair<Size, Size>> target_spans, decoy_spans;
 #pragma omp for schedule(dynamic, 64)
         for (SignedSize si = 0; si < static_cast<SignedSize>(old_size); ++si)
         {
           const size_t i = static_cast<size_t>(si);
+          if (serial_stop) { continue; }
           try
           {
             const std::string& sequence = db[i].sequence;
@@ -3134,6 +3146,7 @@ namespace OpenMS
           catch (...)
           {
             decoy_errors[i] = std::current_exception();
+            if (!decoys_in_parallel) { serial_stop = true; } // (serially: the first error stops, as before)
           }
         }
       }
