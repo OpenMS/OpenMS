@@ -1,8 +1,26 @@
 # OpenDIA: laptop-first implementation plan
 
-**Status, 26 October 2026:** WP-00 is done. WP-01 and WP-02 passed their local checks. The first [WP-03 indexed mzML adapter](work-packages/03-raw-tiles.md) is tested on WP-02. Its full acquisition and resource gates remain open. Keep all work packages separate from `develop` until the combined design passes correctness, speed and memory checks. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661).
+**Status, 26 October 2026:** WP-00 is done. WP-01 and WP-02 passed their local checks. The first [WP-03 indexed mzML adapter](work-packages/03-raw-tiles.md) is tested on WP-02. The first [WP-05 read-only extraction increment](work-packages/05-shared-extraction.md#first-increment-leased-read-only-extraction) now passes its focused native checks and one full-input workflow. Full acquisition, resource and combined-design gates remain open. Keep all work packages separate from `develop` until the combined design passes correctness, speed and memory checks. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661).
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
+
+## Current state and next actions
+
+| Package | Verified current state | Remaining gate / project status |
+| --- | --- | --- |
+| WP-00 | Baseline complete. | Done. Do not reopen or alter frozen inputs. |
+| WP-01 | Local contracts and boundary checks passed. | In review, open and stacked pending combined acceptance. |
+| WP-02 | Byte admission, ownership, queues and cancellation primitives verified. | In review. Whole-job admission and native workspace accounting are not complete. |
+| WP-03 | Full TimSim outputs preserved. Tiled256 median RSS 982,188 versus 1,834,100 KiB normal, but 374.40 versus 162.44 s. Explicit outer-one at 128 MiB completes, automatic scheduling still fails. | In review. This is a memory/time tradeoff, not a faster or globally bounded engine. |
+| WP-05 | Read-only extraction `6423194fc8` avoids mutable copies, preserves calibration fallback and passes five affected native tests. One full tiled256 run matches all twelve outputs: 367.38 s, 1,039,580 KiB RSS, final private live bytes zero. | In progress. Only the first increment is complete. No overall performance gain or repeated-decode reduction is established. |
+
+**Next implementation, in order:**
+
+1. **Identify the reread owner once, not another benchmark matrix.** The WP-05 run still has 11,290 raw cache misses, within the preceding tiled256 range. Add scoped counters at the existing reader/extraction/scoring boundaries to attribute misses, decoded bytes and elapsed time to calibration, MS1 extraction, MS2 extraction and scoring. Exercise one unchanged full-input tiled256 command. The check is that phase counters reconcile with the existing whole-run totals and point to the dominant reread path. Reuse existing runners and outputs, with no new profiling framework or speculative query cache.
+2. **Fix only that dominant path.** Reuse an immutable calibrated scan/evidence lease or batch its consumers, whichever the measured caller flow supports. Keep complete query identity, calibration revision, IM axes and last-owner release. Require one failing-before/passing-after native regression and one unchanged full workflow matching all twelve outputs. Report reread/copy counts and resources. Stop after that check; run a balanced matrix only when deciding whether to claim a performance gain.
+3. **Then harden whole-job admission in WP-02/03.** Reserve decoder, scan/copy and scoring workspace requirements before dispatching concurrent jobs. Use the recorded automatic-128-MiB failure as the regression, without increasing its cap, truncating hypotheses or silently changing science. Capacity pressure must reduce admitted concurrency or fail cleanly with no complete-output claim. A successful explicit outer-one workaround is not proof of automatic admission or a process-memory bound.
+
+WP-04 preparation, WP-08 storage and the WP-07 null/decoy experiment remain separate backlog work. WP-09/10 still own broader acquisition coverage, actual reopening/rescoring, whole-process/child memory, disk, scientific quality and final release acceptance. No package closure or merge into `develop` is authorized by the checks above.
 
 ## Baseline complete, implementation started
 

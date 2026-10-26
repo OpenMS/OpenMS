@@ -1,7 +1,7 @@
 # WP-05: Exact-query shared extraction and calibration adapter
 
 - **Track:** data handling.
-- **Status:** proposed. **Owner / reviewer:** unassigned.
+- **Status:** in progress. First read-only extraction increment verified 26 October 2026, full sharing/calibration acceptance still open. **Owner / reviewer:** unassigned.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10667](https://github.com/OpenMS/OpenMS/issues/10667).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
@@ -31,7 +31,7 @@ The immediate implementation is **not** a query cache. The full TimSim PQP has 4
 
 ### Observed result, 2026-10-26
 
-Implemented locally on `feature/opendia-wp05-readonly-extraction`, commit `6423194fc8d8e165003760b13b5f8a737c778762`, stacked on WP-03 `4024bc8325d4fecc35a300891ec7937d10c35624`. The implementation changes six files, adds no dependency or CLI option and leaves mutable scoring access unchanged. The new virtual interface requires a coherent source rebuild, not a binary-compatible drop-in for previously compiled SDK clients. The actual Release tool, libraries and affected tests were rebuilt together.
+Implemented on `feature/opendia-wp05-readonly-extraction`, commit `6423194fc8d8e165003760b13b5f8a737c778762`, stacked on WP-03 `4024bc8325d4fecc35a300891ec7937d10c35624`. The implementation changes six files, adds no dependency or CLI option and leaves mutable scoring access unchanged. The new virtual interface requires a coherent source rebuild, not a binary-compatible drop-in for previously compiled SDK clients. The actual Release tool, libraries and affected tests were rebuilt together.
 
 | Requirement | Concrete check and observed result |
 | --- | --- |
@@ -46,7 +46,11 @@ Implemented locally on `feature/opendia-wp05-readonly-extraction`, commit `64231
 
 The preceding tiled256 observations were 373.04 / 374.40 / 417.98 s and 982,188 / 1,065,304 / 946,476 KiB RSS. The new run proves compatibility and the regression proves copy avoidance, but **does not establish an overall performance or memory improvement**. Its raw misses remain within the preceding range, so repeated decoding is not solved by this change. No further repeats were run.
 
-Local evidence: `/home/singjc/.jcode/scratch/wp05-20261026/`. `regression-before.log` retains the pre-fix failure, `native-tests-final.log` records the five native checks, and `tiled256/results.json` plus `acceptance.log` record the complete real CLI command, provenance, measurements and each output comparison. `run_readonly.py` reuses the previous strict real-output comparator and provenance helpers rather than a substitute workflow. WP-02 whole-job admission, WP-03 broader acceptance and the remaining WP-05 sharing/calibration criteria remain open.
+Local evidence artifacts are retained but not published as a sanitized bundle. `regression-before.log` retains the pre-fix failure, `native-tests-final.log` records the five native checks, and `tiled256/results.json` plus `acceptance.log` record the complete real CLI command, provenance, measurements and each output comparison. `run_readonly.py` reuses the previous strict real-output comparator and provenance helpers rather than a substitute workflow. WP-02 whole-job admission, WP-03 broader acceptance and the remaining WP-05 sharing/calibration criteria remain open.
+
+## Next increment
+
+Follow the [master's ordered next actions](../README.md#current-state-and-next-actions). First attribute the remaining misses to calibration, MS1 extraction, MS2 extraction and scoring in one unchanged full-input run. Reconcile integer event/byte counts with whole-run totals, report overlapping stage times separately, then change only the dominant reread path. Acceptance is one native regression plus one full twelve-output comparison, with no speedup claim from a single observation. Query caching, new retrieval science and full work-package acceptance are not implied by the read-only increment.
 
 ## Dependencies
 
