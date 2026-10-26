@@ -22,6 +22,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <exception>
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -195,6 +196,7 @@ namespace OpenMS
 
     // Collect MS1 IM pairs across all transition groups
     std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
+    std::exception_ptr reader_exception;
 
     #pragma omp parallel for
     for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
@@ -238,16 +240,23 @@ namespace OpenMS
 
       #pragma omp critical (fetch_spectrum)
       {
-        RangeMobility im_range;
-        if (ms1_im_)
+        try
         {
-          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
-          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          RangeMobility im_range;
+          if (ms1_im_)
+          {
+            std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
+            sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          }
+          else
+          {
+            std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
+            sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          }
         }
-        else
+        catch (...)
         {
-          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
-          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
         }
       }
 
@@ -319,9 +328,16 @@ namespace OpenMS
         OpenSwath::SpectrumPtr sp_ms1_collect;
         #pragma omp critical (fetch_spectrum)
         {
-          std::vector<OpenSwath::SpectrumPtr> arr_ms1 =
-            OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range_ms1);
-          sp_ms1_collect = (!arr_ms1.empty()) ? arr_ms1[0] : OpenSwath::SpectrumPtr();
+          try
+          {
+            std::vector<OpenSwath::SpectrumPtr> arr_ms1 =
+              OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range_ms1);
+            sp_ms1_collect = (!arr_ms1.empty()) ? arr_ms1[0] : OpenSwath::SpectrumPtr();
+          }
+          catch (...)
+          {
+            if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+          }
         }
 
         if (sp_ms1_collect && sp_ms1_collect->getDriftTimeArray() != nullptr)
@@ -400,6 +416,7 @@ namespace OpenMS
     }
 
     if (!debug_im_file_.empty()) {os_im.close();}
+    if (reader_exception != nullptr) { std::rethrow_exception(reader_exception); }
 
     // Discard whole pairs before sorting: NaNs do not define a strict weak order.
     // Missing or invalid calibrants must not prevent fitting the remaining valid ones.

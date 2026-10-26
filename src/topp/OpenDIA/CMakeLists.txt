@@ -20,6 +20,7 @@ endif()
 add_library(OpenDIA_impl STATIC source/OpenDIA.cpp include/OpenDIA.h
   source/OpenDIARecords.cpp include/OpenDIARecords.h
   source/OpenDIAResourceBudget.cpp include/OpenDIAResourceBudget.h
+  source/OpenDIARawAccess.cpp include/OpenDIARawAccess.h
   include/OpenDIABoundedQueue.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI Threads::Threads)

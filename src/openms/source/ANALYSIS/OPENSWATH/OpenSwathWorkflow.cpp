@@ -809,12 +809,30 @@ namespace OpenMS
       };
       if (parallel_swath_extraction)
       {
+        // Report reader failures outside the OpenMP region.
+        std::exception_ptr extraction_exception;
+        std::mutex extraction_exception_mutex;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
         for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
         {
-          extract_swath(wave_pos);
+          try
+          {
+            extract_swath(wave_pos);
+          }
+          catch (...)
+          {
+            std::lock_guard<std::mutex> lock(extraction_exception_mutex);
+            if (extraction_exception == nullptr)
+            {
+              extraction_exception = std::current_exception();
+            }
+          }
+        }
+        if (extraction_exception != nullptr)
+        {
+          std::rethrow_exception(extraction_exception);
         }
       }
       else
@@ -1106,6 +1124,13 @@ namespace OpenMS
                       << " in the streaming scheduler." << std::endl;
     }
 
+    std::exception_ptr reader_exception;
+    std::mutex reader_exception_mutex;
+    const auto save_reader_exception = [&]
+    {
+      std::lock_guard<std::mutex> lock(reader_exception_mutex);
+      if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+    };
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
@@ -1121,9 +1146,8 @@ namespace OpenMS
   OPENMS_LOG_INFO << "Use non-nested loop with " << total_nr_threads << " threads." << std::endl;
     }
 #endif
-#pragma omp parallel for schedule(dynamic,1)
 #endif
-    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
+    const auto extract_map = [&](SignedSize i)
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
@@ -1217,10 +1241,9 @@ namespace OpenMS
           // -- see https://docs.oracle.com/cd/E19059-01/stud.10/819-0501/2_nested.html
           int outer_thread_nr = omp_get_thread_num();
           omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
-#pragma omp parallel for schedule(dynamic, 1)
 #endif
 #endif
-          for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
+          const auto extract_batch = [&](SignedSize pep_idx)
           {
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
@@ -1300,6 +1323,16 @@ namespace OpenMS
               encoded.write();
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
+          };
+#ifdef _OPENMP
+#ifdef MT_ENABLE_NESTED_OPENMP
+#pragma omp parallel for schedule(dynamic, 1)
+#endif
+#endif
+          for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
+          {
+            try { extract_batch(pep_idx); }
+            catch (...) { save_reader_exception(); }
           }
 
         } // continue 2 (no continue due to OpenMP)
@@ -1308,6 +1341,14 @@ namespace OpenMS
       #pragma omp critical (progress)
       this->setProgress(++progress);
 
+    };
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1)
+#endif
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
+    {
+      try { extract_map(i); }
+      catch (...) { save_reader_exception(); }
     }
     this->endProgress();
 
@@ -1319,6 +1360,7 @@ namespace OpenMS
     }
 #endif
 #endif
+    if (reader_exception != nullptr) { std::rethrow_exception(reader_exception); }
   }
 
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(

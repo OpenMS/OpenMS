@@ -3060,6 +3060,61 @@ if(NOT DISABLE_OPENSWATH)
     bash -c "sqlite=${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; parquet=${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] \"\\t\" $h[\"aggr_Fragment_Annotation\"] }' $sqlite | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] \"\\t\" $h[\"aggr_Fragment_Annotation\"] }' $parquet | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && test $(wc -l < ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv) -gt 0 && grep -q '[0-9]_' ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && grep -q '[0-9]_' ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && diff -u ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv")
   set_tests_properties("TOPP_OpenDIA_success_sqlite_parquet_identity" PROPERTIES DEPENDS "TOPP_OpenDIA_success_sqlite_out;TOPP_OpenDIA_success_parquet_out")
 
+  # Run the same engine with direct and tiled raw access.
+  find_package(Python3 QUIET COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    set(_raw_compare ${CMAKE_CURRENT_SOURCE_DIR}/../../topp/OpenDIA/test/compare_results.py)
+    add_test(NAME TOPP_OpenDIA_raw_compare_self_test COMMAND ${Python3_EXECUTABLE} ${_raw_compare} --self-test)
+    add_test(NAME TOPP_OpenDIA_raw_prepare COMMAND ${CMAKE_COMMAND} -E rm -rf
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_out ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_tiled_out ${TESTS_TEMP_DIR}/OpenDIA_raw_tiled_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_small_out ${TESTS_TEMP_DIR}/OpenDIA_raw_small_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_out ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_work)
+    set_tests_properties(TOPP_OpenDIA_raw_prepare PROPERTIES FIXTURES_SETUP OpenDIA_raw_dirs)
+    set_tests_properties(TOPP_OpenDIA_success_prepare PROPERTIES FIXTURES_SETUP OpenDIA_raw_library)
+    foreach(_mode IN ITEMS direct tiled small)
+      if(_mode STREQUAL "direct")
+        set(_reader normal)
+        set(_memory 256)
+      else()
+        set(_reader tiled)
+        if(_mode STREQUAL "small")
+          set(_memory 65)
+        else()
+          set(_memory 256)
+        endif()
+      endif()
+      string(REPLACE "workingInMemory" "${_reader}" _raw_args "${OPENDIA_SUCCESS_COMMON_ARGS}")
+      string(REPLACE "-workflow:keep_intermediate_files;false" "-workflow:keep_intermediate_files;true" _raw_args "${_raw_args}")
+      add_test(NAME TOPP_OpenDIA_raw_${_mode} COMMAND ${TOPP_BIN_PATH}/OpenDIA ${_raw_args}
+        -threads 2 -workflow:working_format sqlite
+        -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_work
+        -out_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_out
+        -TargetedDataExtraction:raw_memory_mb ${_memory}
+        -TargetedDataExtraction:raw_max_scan_kb 64)
+      set_tests_properties(TOPP_OpenDIA_raw_${_mode} PROPERTIES
+        FIXTURES_REQUIRED "OpenDIA_raw_dirs;OpenDIA_raw_library"
+        FIXTURES_SETUP OpenDIA_raw_${_mode})
+      if(NOT _mode STREQUAL "direct")
+        add_test(NAME TOPP_OpenDIA_raw_${_mode}_parity COMMAND ${Python3_EXECUTABLE} ${_raw_compare}
+          ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_out ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_out
+          ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_work ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_work
+          ${OPENDIA_TRANSITION_LIST_BASENAME})
+        set_tests_properties(TOPP_OpenDIA_raw_${_mode}_parity PROPERTIES
+          FIXTURES_REQUIRED "OpenDIA_raw_direct;OpenDIA_raw_${_mode}")
+      endif()
+    endforeach()
+    add_test(NAME TOPP_OpenDIA_raw_oversize_failure COMMAND bash -c
+      "log=\"$1\"; shift; \"$@\" > \"$log\" 2>&1; rc=$?; test $rc -gt 0 && test $rc -lt 128 && grep -q 'exceeds maximum scan bytes' \"$log\" && ! grep -q 'terminate called' \"$log\""
+      _ ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize.log ${TOPP_BIN_PATH}/OpenDIA ${_raw_args}
+      -threads 2 -workflow:working_format sqlite
+      -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_work
+      -out_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_out
+      -TargetedDataExtraction:raw_memory_mb 65 -TargetedDataExtraction:raw_max_scan_kb 1)
+    set_tests_properties(TOPP_OpenDIA_raw_oversize_failure PROPERTIES
+      FIXTURES_REQUIRED "OpenDIA_raw_dirs;OpenDIA_raw_library")
+  endif()
+
   # Transfer genuine public CLI scores through the private v0 contracts. This is
   # a boundary check, not a production adapter or a new family/scoring algorithm.
   if(TARGET OpenDIARecordsInterop_test)

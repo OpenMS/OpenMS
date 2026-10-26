@@ -7,7 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include "OpenDIA.h"
+#include "OpenDIARawAccess.h"
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
@@ -36,6 +38,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OSWParquetFile.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -420,8 +423,14 @@ protected:
     registerFlag_("TargetedDataExtraction:split_file_input", "Interpret the input files as one SWATH window per file.", true);
     registerFlag_("TargetedDataExtraction:use_elution_model_score", "Turn on the CPU-intensive EMG elution model score.", true);
 
-    registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Whether to read directly, cache to disk first, or keep cached data in memory.", false, true);
-    setValidStrings_("TargetedDataExtraction:readOptions", {"normal", "cache", "cacheWorkingInMemory", "workingInMemory"});
+    registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Read directly, cache to disk, keep data in memory, or use a bounded numeric cache with tiled indexed mzML input.", false, true);
+    setValidStrings_("TargetedDataExtraction:readOptions", {"normal", "cache", "cacheWorkingInMemory", "workingInMemory", "tiled"});
+    registerIntOption_("TargetedDataExtraction:raw_memory_mb", "<MiB>", 256,
+      "Raw tile and copy budget for tiled input, including a 64 MiB native allowance. This is not a process memory limit.", false, true);
+    setMinInt_("TargetedDataExtraction:raw_memory_mb", 65);
+    registerIntOption_("TargetedDataExtraction:raw_max_scan_kb", "<KiB>", 32768,
+      "Maximum private bytes per raw scan for tiled input. Larger scans fail. Input must be indexed mzML.", false, true);
+    setMinInt_("TargetedDataExtraction:raw_max_scan_kb", 1);
     registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", "", "Temporary directory used for cached SWATH input files. When left empty, OpenDIA uses out_dir as the base directory and creates protected per-run temporary subdirectories there.", false, true);
     registerFlag_("TargetedDataExtraction:keep_cached_files", "If set, do not remove cached input files created in TargetedDataExtraction:tempDirectory.", false);
 
@@ -1537,6 +1546,17 @@ protected:
 
     std::string readoptions = getStringOption_("TargetedDataExtraction:readOptions");
     const bool keep_cached_files = getFlag_("TargetedDataExtraction:keep_cached_files");
+    const bool tiled_input = readoptions == "tiled";
+    if (tiled_input)
+    {
+      if (split_file || std::any_of(file_list.begin(), file_list.end(), [](const std::string& file)
+        { return FileHandler::getTypeByFileName(file) != FileTypes::MZML; }))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Tiled input needs indexed mzML files. Split-window input is not supported.");
+      }
+      readoptions = "onDisc";
+    }
 
     bool load_into_memory = false;
     if (readoptions == "cacheWorkingInMemory")
@@ -1774,12 +1794,33 @@ protected:
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
       std::vector<OpenSwath::SwathMap> swath_maps;
       std::vector<std::string> swath_map_sources;
+      std::shared_ptr<OpenDIA::RawCache> raw_cache;
+      if (tiled_input)
+      {
+        raw_cache = std::make_shared<OpenDIA::RawCache>(
+          OpenDIA::checkedByteMultiply(static_cast<Size>(getIntOption_("TargetedDataExtraction:raw_memory_mb")), 1024 * 1024),
+          64 * 1024 * 1024,
+          OpenDIA::checkedByteMultiply(static_cast<Size>(getIntOption_("TargetedDataExtraction:raw_max_scan_kb")), 1024));
+      }
       if (!loadSwathFiles(current_run_files, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp,
                           readoptions, swath_windows_file, min_upper_edge_dist, getFlag_("force"),
                           sort_swath_maps, prm))
       {
         OPENMS_LOG_ERROR << "Failed to load SWATH files for run " << (run_index + 1) << "." << std::endl;
         return PARSE_ERROR;
+      }
+      if (raw_cache)
+      {
+        for (auto& map : swath_maps)
+        {
+          auto source = std::dynamic_pointer_cast<SpectrumAccessOnDisc>(map.sptr);
+          if (!source || source->getNrSpectra() == 0)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Tiled input needs nonempty spectrum maps from the indexed reader.");
+          }
+          map.sptr = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
+        }
       }
 
       const bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
@@ -2146,6 +2187,16 @@ protected:
       }
 
       swath_maps.clear();
+      if (raw_cache)
+      {
+        raw_cache->clear();
+        const auto stats = raw_cache->snapshot();
+        OPENMS_LOG_INFO << "Raw tile cache: hits=" << stats.hits << " misses=" << stats.misses
+                        << " evictions=" << stats.evictions
+                        << " peak_accounted_bytes=" << stats.budget.peak_total_bytes
+                        << " usable_bytes=" << stats.budget.usable_bytes
+                        << " live_bytes=" << stats.budget.committed_bytes << '\n';
+      }
       total_extracted_features += run_feature_count;
       if (write_parquet)
       {

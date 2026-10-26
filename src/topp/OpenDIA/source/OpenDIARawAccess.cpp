@@ -5,6 +5,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 #include "OpenDIARawAccess.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <algorithm>
@@ -68,6 +69,36 @@ namespace OpenDIA
         bytes = checkedByteAdd(bytes, checkedByteAdd(a->description.capacity(), 1));
       }
       return bytes;
+    }
+
+    ByteCount scanBytes(const OpenMS::MSSpectrum& spectrum)
+    {
+      const auto count = checkedByteAdd(2, checkedByteAdd(spectrum.getFloatDataArrays().size(), spectrum.getIntegerDataArrays().size()));
+      ByteCount bytes = checkedByteAdd(sizeof(RawScan), sizeof(OpenSwath::Spectrum));
+      bytes = checkedByteAdd(bytes, checkedByteMultiply(count, sizeof(OpenSwath::BinaryDataArrayPtr)));
+      const auto add = [&](OpenMS::Size size, const std::string& name)
+      {
+        bytes = checkedByteAdd(bytes, sizeof(OpenSwath::BinaryDataArray));
+        bytes = checkedByteAdd(bytes, checkedByteMultiply(size, sizeof(double)));
+        bytes = checkedByteAdd(bytes, checkedByteAdd(std::max(std::string{}.capacity(), name.size()), 1));
+      };
+      add(spectrum.size(), "");
+      add(spectrum.size(), "");
+      for (const auto& array : spectrum.getFloatDataArrays()) { add(array.size(), array.getName()); }
+      for (const auto& array : spectrum.getIntegerDataArrays()) { add(array.size(), array.getName()); }
+      return bytes;
+    }
+
+    template <typename Arrays>
+    void appendArrays(const Arrays& arrays, OpenSwath::Spectrum& output)
+    {
+      for (const auto& array : arrays)
+      {
+        auto column = std::make_shared<OpenSwath::BinaryDataArray>();
+        column->description = array.getName();
+        column->data.assign(array.begin(), array.end());
+        output.getDataArrays().push_back(std::move(column));
+      }
     }
 
     // Each array alias keeps all columns and their charge alive.
@@ -146,6 +177,7 @@ namespace OpenDIA
     const auto index = source_->getExperimentIndex(id);
     if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
     auto& entries = cache_->entries_;
+    // ponytail: one lock and linear LRU lookup, add an index only if profiling requires it.
     auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.source == source_ && e.id == id; });
     if (found != entries.end())
     {
@@ -157,10 +189,15 @@ namespace OpenDIA
     // Reserve the full scan bound before the native decoder runs.
     auto reservation = cache_->reserve_();
     if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
+    // Native decode is outside private capacity enforcement. Check before conversion.
+    const auto native = metadata_source_->getSpectrumPeaks(index);
+    if (scanBytes(native) > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
     auto scan = std::shared_ptr<RawScan>(new RawScan);
     scan->metadata_ = metadata_source_->getSpectrumMetadata(index);
-    // Use native column conversion. Do not expand points into private records.
-    scan->columns_ = source_->getSpectrumById(id);
+    scan->columns_ = OpenMS::OpenSwathDataAccessHelper::convertToSpectrumPtr(native);
+    scan->columns_->getDataArrays().reserve(2 + native.getFloatDataArrays().size() + native.getIntegerDataArrays().size());
+    appendArrays(native.getFloatDataArrays(), *scan->columns_);
+    appendArrays(native.getIntegerDataArrays(), *scan->columns_);
     const auto bytes = charge(*scan->columns_);
     if (bytes > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
     scan->lease_ = reservation->commit(bytes);
@@ -176,6 +213,9 @@ namespace OpenDIA
     // Reserve before the detached columns are copied.
     auto reservation = cache_->reserve_();
     if (!reservation) { invalid("Mutable scan admission failed"); }
+    const auto copy_bound = checkedByteAdd(checkedByteAdd(charge(*scan->columns_), sizeof(MutableColumns)),
+      checkedByteAdd(sizeof(MutableSpectrum), checkedByteMultiply(scan->arrayCount(), sizeof(OpenSwath::BinaryDataArrayPtr))));
+    if (copy_bound > cache_->max_scan_bytes_) { invalid("Mutable scan exceeds maximum scan bytes"); }
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
     auto& out = owner->spectrum->getDataArrays();

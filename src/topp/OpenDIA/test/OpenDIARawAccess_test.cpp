@@ -5,7 +5,9 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 #include "OpenDIARawAccess.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -76,10 +78,15 @@ namespace
       auto cache = std::make_shared<RawCache>(128 * MIB, 32 * MIB, 16 * MIB);
       RawAccess access(indexed.source(), cache);
       auto metadata = direct->getExperiment().clone();
+      size_t points = 0;
+      ByteCount largest = 0;
       check(access.getNrSpectra() == direct->getNrSpectra(), "Scan count changed");
       for (size_t i = 0; i < access.getNrSpectra(); ++i)
       {
+        cache->clear();
         const auto scan = access.acquire(static_cast<int>(i));
+        largest = std::max(largest, cache->snapshot().budget.committed_bytes);
+        points += scan->array(0).data.size();
         exact(*scan, *direct->getSpectrumById(static_cast<int>(i)),
           metadata->getSpectrumMetadata(direct->getExperimentIndex(static_cast<int>(i))));
         check(access.getSpectrumMetaById(static_cast<int>(i)).RT == direct->getSpectrumMetaById(static_cast<int>(i)).RT,
@@ -87,6 +94,54 @@ namespace
       }
       check(access.getSpectraByRT(0, 0) == direct->getSpectraByRT(0, 0), "Legacy RT semantics changed");
       check(cache->snapshot().budget.peak_total_bytes <= cache->snapshot().budget.usable_bytes, "Budget exceeded");
+      // Exercise the public extractor with both scan copies and shared native clones.
+      using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+      const auto sample = direct->getSpectrumById(0);
+      check(!sample->getMZArray()->data.empty(), "Expected a nonempty reference scan");
+      const auto mobility = sample->getDriftTimeArray();
+      const auto positive = std::find_if(sample->getIntensityArray()->data.begin(), sample->getIntensityArray()->data.end(),
+        [](double value) { return value > 0; });
+      check(positive != sample->getIntensityArray()->data.end(), "Reference scan has no signal");
+      const auto peak = static_cast<size_t>(positive - sample->getIntensityArray()->data.begin());
+      for (const size_t query_count : {size_t{1}, size_t{16}})
+      {
+        std::vector<Extractor::ExtractionCoordinates> coordinates(query_count);
+        for (size_t q = 0; q < query_count; ++q)
+        {
+          coordinates[q].mz = sample->getMZArray()->data[peak] + q * 0.01;
+          coordinates[q].ion_mobility = mobility && !mobility->data.empty() ? mobility->data[peak] : 0;
+          coordinates[q].rt_end = -1;
+        }
+        const auto extract = [&](const OpenSwath::SpectrumAccessPtr& source, double im_window)
+        {
+          std::vector<OpenSwath::ChromatogramPtr> output;
+          for (size_t q = 0; q < query_count; ++q) { output.push_back(std::make_shared<OpenSwath::Chromatogram>()); }
+          Extractor().extractChromatograms(source, output, coordinates, 0.05, false, im_window, "tophat");
+          return output;
+        };
+        for (const double im_window : {-1.0, mobility ? 0.05 : -1.0})
+        {
+          const auto reference = extract(direct, im_window);
+          check(std::any_of(reference.front()->getIntensityArray()->data.begin(), reference.front()->getIntensityArray()->data.end(),
+            [](double value) { return value > 0; }), "Reference extraction has no signal");
+          for (const auto bytes : {2 * (largest + 4096), 64 * MIB})
+          {
+            auto bounded = std::make_shared<RawCache>(bytes, 0, largest + 4096);
+            auto tiled = std::make_shared<RawAccess>(indexed.source(), bounded);
+            const auto actual = extract(tiled->lightClone(), im_window);
+            for (size_t q = 0; q < query_count; ++q)
+            {
+              check(actual[q]->getTimeArray()->data == reference[q]->getTimeArray()->data, "Extraction RT changed");
+              check(actual[q]->getIntensityArray()->data == reference[q]->getIntensityArray()->data, "Extraction intensity changed");
+            }
+            check(bounded->snapshot().budget.peak_total_bytes <= bytes, "Public extraction exceeded its private cap");
+            bounded->clear();
+            check(bounded->snapshot().budget.committed_bytes == 0, "Extraction retained scan charges");
+          }
+        }
+      }
+      OPENMS_LOG_INFO << "WP03 " << file << " scans=" << access.getNrSpectra() << " points=" << points
+        << " exact_metadata=1 exact_arrays=1 extraction_query_counts=1,16 cache_limits=2\n";
     }
   }
 
@@ -186,6 +241,12 @@ namespace
     RawAccess measure(indexed.source(), probe);
     measure.acquire(0);
     const auto bytes = probe->snapshot().budget.committed_bytes;
+    auto exact_cache = std::make_shared<RawCache>(bytes * 3, 0, bytes);
+    RawAccess exact_access(indexed.source(), exact_cache);
+    exact_access.acquire(0);
+    rejects([&] { exact_access.getSpectrumById(0); });
+    check(exact_cache->snapshot().budget.committed_bytes == bytes && exact_cache->snapshot().budget.reserved_bytes == 0,
+      "Rejected mutable copy changed retained scan accounting");
     auto cache = std::make_shared<RawCache>(bytes * 2, 0, bytes);
     auto access = std::make_shared<RawAccess>(indexed.source(), cache);
     auto retained = access->acquire(0);
@@ -248,13 +309,48 @@ namespace
     b.get();
     check(cache->snapshot().misses == 4 && cache->snapshot().cache_entries == 4, "Clones duplicated cache");
   }
+
+  void truncated()
+  {
+    IndexedFile indexed(smallRun());
+    // Remove the native index. Do not let the adapter treat a bad file as an empty run.
+    std::filesystem::resize_file(indexed.path, std::filesystem::file_size(indexed.path) / 2);
+    bool rejected = false;
+    try
+    {
+      auto experiment = std::make_shared<OpenMS::OnDiscMSExperiment>();
+      rejected = !experiment->openFile(indexed.path);
+      if (!rejected)
+      {
+        RawAccess access(std::make_shared<OpenMS::SpectrumAccessOnDisc>(experiment),
+          std::make_shared<RawCache>(4 * MIB, MIB, MIB));
+        access.acquire(0);
+      }
+    }
+    catch (const OpenMS::Exception::BaseException&) { rejected = true; }
+    check(rejected, "Truncated indexed input was accepted");
+    IndexedFile payload(smallRun());
+    RawAccess access(payload.source(), std::make_shared<RawCache>(4 * MIB, MIB, MIB));
+    // Keep the valid native index, but remove the bytes it addresses.
+    std::filesystem::resize_file(payload.path, 0);
+    rejects([&] { access.acquire(0); });
+  }
 }
 
 int main()
 {
-  fixtures();
-  IndexedFile indexed(smallRun());
-  queries(indexed);
-  leases(indexed);
-  concurrent(indexed);
+  try
+  {
+    fixtures();
+    IndexedFile indexed(smallRun());
+    queries(indexed);
+    leases(indexed);
+    concurrent(indexed);
+    truncated();
+  }
+  catch (const std::exception& error)
+  {
+    OPENMS_LOG_ERROR << error.what() << '\n';
+    return 1;
+  }
 }
