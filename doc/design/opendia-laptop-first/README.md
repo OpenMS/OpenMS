@@ -1,6 +1,6 @@
 # OpenDIA: laptop-first implementation plan
 
-**Status:** exploratory implementation on stacked work-package branches, updated 26 October 2026. WP-00 baseline is done, WP-01 v0 is locally reviewed, and WP-02 private resource primitives are locally validated with full-engine integration still pending. No work-package merge into `develop` is authorized yet. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
+**Status, 26 October 2026:** WP-00 is done. WP-01 and WP-02 passed their local checks. The first [WP-03 indexed mzML adapter](work-packages/03-raw-tiles.md) is tested on WP-02. Its full acquisition and resource gates remain open. Keep all work packages separate from `develop` until the combined design passes correctness, speed and memory checks. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661).
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
 
@@ -80,6 +80,19 @@ and **3 instrumented resource tests**. The real-loader stalled-writer test prese
 all non-IM/IM/FAIMS rows, enforces its declared accounting/queue bounds and cancels
 without leaked charges. This is **not** a globally budgeted CLI or whole-engine
 speed/memory result. Adapter integration and representative acceptance remain open.
+
+[WP-03](work-packages/03-raw-tiles.md) now has an opt-in indexed mzML adapter on
+`feature/opendia-wp03-raw-tiles`, stacked on WP-02. Implementation
+[3a460113a3](https://github.com/OpenMS/OpenMS/commit/3a460113a391a63178d0a6da7da32a24ef63e2c5)
+uses one scan per tile, shared byte charges and separate mutable engine copies.
+Direct and tiled CLI outputs match identities, evidence, scores and quantities at
+two cache limits. Checks pass: **98 native/SDK**, **10 standalone**, **10 NDEBUG**
+and **2 instrumented raw tests**, plus the installed OpenDIA consumer.
+The raw adapter preserves all 513/32,750/44,354 fixture points. Native metadata,
+decoding and downstream workspaces are not fully bounded. Full diaPASEF/FAIMS
+engine coverage and representative speed/RSS checks remain open. No package is
+merged into `develop`.
+
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
 [WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).
