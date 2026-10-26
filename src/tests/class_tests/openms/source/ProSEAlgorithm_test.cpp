@@ -6223,21 +6223,14 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model gets the sc
       by_svm.push_back(copy);
     }
     TEST_EQUAL(without_pep, 0)
-    if (psm_fdr == 0.0) // all PSMs of the file: its own target-decoy q-values
+    if (psm_fdr == 0.0) // all PSMs of the file: its own target-decoy q-values, (D + 1) / T as Percolator's
     {
-      FalseDiscoveryRate fdr;
-      Param fp = fdr.getParameters();
-      fp.setValue("add_decoy_peptides", "true");
-      fdr.setParameters(fp);
-      fdr.apply(by_svm);
-      bool any_decoy = false;
-      for (const PeptideIdentification& id : by_svm) { any_decoy = any_decoy || id.getHits()[0].isDecoy(); }
+      ProSEAlgorithm_test::tdcQValues_(by_svm, true);
       Size other_q = 0;
       for (Size i = 0, k = 0; i < small_psms.size(); ++i)
       {
         if (small_psms[i].getHits().empty()) { continue; }
-        const double expected = any_decoy ? by_svm[k].getHits()[0].getScore() : 1.0 / static_cast<double>(by_svm.size());
-        other_q += std::fabs(small_psms[i].getHits()[0].getScore() - expected) > 1e-12;
+        other_q += std::fabs(small_psms[i].getHits()[0].getScore() - by_svm[k].getHits()[0].getScore()) > 1e-12;
         ++k;
       }
       TEST_EQUAL(other_q, 0)
