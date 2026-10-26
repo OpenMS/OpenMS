@@ -136,9 +136,12 @@
     `CMAKE_PREFIX_PATH`.
 
     `dockerfiles/Dockerfile` is an example of a build on Ubuntu 24.04 packages. It builds only libxml2 from source and
-    installs it to `/opt/libxml2`. If you set `-DOPENMS_USE_VCPKG=ON`
-    without a preset, pass the vcpkg toolchain as shown above, otherwise the configure stops with an error that names
-    the alternatives.
+    installs it to `/opt/libxml2`.
+
+    If you set `-DOPENMS_USE_VCPKG=ON` without a preset and without `CMAKE_TOOLCHAIN_FILE`, CMake uses the toolchain of
+    the initialized `vcpkg` submodule. Without that submodule (a source tarball, or a checkout without
+    `git submodule update --init vcpkg`), pass the toolchain of your own vcpkg checkout as shown above; otherwise the
+    configure stops with an error that names the alternatives.
 
     @subsection install_vcpkg_generator Choosing a CMake generator
 
