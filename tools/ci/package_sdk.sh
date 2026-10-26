@@ -357,7 +357,7 @@ esac
 # libomp in the same process aborts with "OMP: Error #15". (grep reads all of otool's
 # output: grep -q would exit early and fail the pipeline.)
 if [[ "$(uname -s)" == Darwin ]] &&
-   otool -L "$sdk_prefix/$(installed_library OpenMS OpenMSTargets)" | grep '/libomp\.dylib ' >/dev/null; then
+   otool -L "$sdk_prefix/$openms_library" | grep '/libomp\.dylib ' >/dev/null; then
   for required in "$lib_dir/libomp.dylib" "$include_dir/omp.h"; do
     if [[ ! -e "$sdk_prefix/$required" ]]; then
       echo >&2 "ERROR: libOpenMS uses OpenMP, but the SDK misses $required"

@@ -176,8 +176,10 @@ runs:
     # Making the primary key unique per run guarantees a miss, so the save step
     # below always uploads a freshly populated cache, while the restore-keys
     # ladder still finds the most recent cache by prefix.
+    # (not for a configure-only run, which compiles nothing)
     - name: Try to Fetch Existing Build Cache
       id: ccache-restore
+      if: ${{ inputs.configure_only != 'true' }}
       uses: actions/cache/restore@v5
       with:
         path: .ccache
@@ -237,8 +239,7 @@ runs:
         ccache --zero-stats
 
     ############################################################################
-    # Resolve vcpkg CMake presets from the runner, since calling matrix
-    # doesn't yet pass one in explicitly.
+    # The preset input, or else the CI preset of the runner.
     - name: Resolve CMake presets
       id: preset
       shell: bash
@@ -308,7 +309,7 @@ runs:
 
     ############################################################################
     - name: Test
-      if: ${{ inputs.run_tests == 'true' }}
+      if: ${{ inputs.run_tests == 'true' && inputs.configure_only != 'true' }}
       shell: bash
       run: ctest --preset "${{ steps.preset.outputs.name }}"
 

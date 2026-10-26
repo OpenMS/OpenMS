@@ -338,7 +338,6 @@ jobs:
           compiler: cl.exe
           preset: windows-x64-debug-ci
           configure_only: "true"
-          run_tests: "false"
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
