@@ -122,8 +122,10 @@ shared host. The original failed matrix is retained. A current 128 MiB check
 completes calibration but fails decoder admission during extraction, with no
 final output. A separate [single-outer-job counterfactual](work-packages/03-raw-tiles.md#scheduling-counterfactual-at-128-mib)
 keeps global eight threads, science and cap unchanged and completes the native engine
-with full output parity. Its wrapper times out, so recovered engine completion is
-not a clean timing trial or acceptance of automatic scheduling.
+with full output parity. Its first wrapper times out, so that recovered observation
+is not a clean timing trial. A fresh independently supervised repeat completes with
+engine and wrapper exit 0, all outputs equal, **1,034.77 s / 857,292 KiB RSS**.
+This unbalanced explicit-scheduling repeat does not accept automatic scheduling.
 Next, reduce repeated reads with WP-05 and test whole-job admission.
 Native acquisition, broader input coverage and whole-process bounds remain open.
 Keep all packages stacked. The [requirement-to-observation map](VALIDATION.md)

@@ -94,6 +94,19 @@ The [128 MiB counterfactual](work-packages/03-raw-tiles.md#scheduling-counterfac
 
 Original supervisor evidence stays preserved in `current128-outer1-1923/results.json`, with explicit recovery status in `recovery-results.json`; the original unchanged-command failure remains in `current-128-1900`. The observation does not override either failure or accept WP-02/WP-03 as complete packages.
 
+### Clean explicit-scheduling repeat
+
+The fresh `current128-outer1-clean-2003` run closes the interrupted-supervisor gap for the explicit scheduling configuration, not the original automatic command:
+
+| Requirement | Concrete observation | Acceptance limit |
+|---|---|---|
+| Complete a real process without recovery | Independent bounded supervisor runs the same native CLI. Only output/work paths differ from the earlier explicit-outer-1 command. Native engine and native-service wrapper both exit **0**; strict original process/GNU-time checks pass. | Not automatic admission. The earlier wrapper **124** remains rejected. |
+| Preserve every public output | Independent project comparator reopens all twelve outputs in the table above with exact scientific identities, declared numeric tolerance, finite nonzero IM and all three matrix levels equal to the normal reference. | Same complete input/library/science, not broader-cohort or native-vendor acceptance. |
+| Preserve private cap and ownership | Peak **67,108,737 <= 67,108,864 bytes**, final live **0**. Cache **1,098 hits / 12,147 misses / 12,142 evictions**. Before/after provenance equals the nine-run matrix. | Raw cache/copy accounting, not complete live-workspace enforcement. |
+| Observe process and service costs separately | GNU time **1,034.77 s / 857,292 KiB RSS**. Exact native-service invocation journal records **849,977,344 bytes** cgroup memory peak and **0** swap; captured live guards retain **1,200 s / 12 GiB / zero swap / 800% CPU**. | One clean process sample, not a balanced performance comparison, measured universal reserve or 128 MiB process bound. Do not add it to the nine-run matrix. |
+
+The first read-only observer failed because systemd had collected the finished service and returned default exit properties. Its failed log is retained as `observer-first-failed.log`. The corrected check does not accept those defaults: it verifies the actual stored wrapper exit, strict complete engine record, captured live guards, exact invocation journals and reopened scientific outputs. The independent supervisor and native run did not fail. The original automatic-scheduling engine/wrapper **8** remains failed with no exports. Fresh **20:22 UTC** checks also pass **7/7** actual native public-interface tests and **6/6** installed consumers, with per-path ownership observations retained in the verbose log.
+
 ## Replay and acceptance decision
 
 Fresh actual project replay at **19:08-19:10 UTC** passed **204/204** selected native class/CLI/SDK tests, **6/6** nested installed consumers, **7/7** verbose public-interface tests and the full real-output replay. Per-requirement observations above, not those aggregate counts, support each claim. Earlier standalone Debug/NDEBUG pass **10 each**; private raw ASan/UBSan pass **2**, with leak detection off and the native SDK not instrumented.
