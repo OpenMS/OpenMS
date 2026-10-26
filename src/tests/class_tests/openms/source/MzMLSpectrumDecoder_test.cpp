@@ -12,6 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
 
@@ -576,6 +578,50 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
   TEST_REAL_SIMILAR(s[7].getIntensity(), 8)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
   TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+
+  // arrays typed by a CV term are named like in MzMLHandler (the same helper names them), the last term wins
+  const std::string non_standard = "<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"Ion Mobility\" />";
+  const std::string im_term = "<cvParam cvRef=\"MS\" accession=\"MS:1003008\" name=\"raw inverse reduced ion mobility array\" value=\"\"/>";
+  auto withArrayTerms = [&](const std::string& terms)
+  {
+    std::string spectrum = testString;
+    spectrum.replace(spectrum.find(non_standard), non_standard.size(), terms);
+    return spectrum;
+  };
+  auto loadedArrayName = [](const std::string& spectrum)
+  {
+    PeakMap exp;
+    MzMLFile().loadBuffer("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\"><run id=\"r\" defaultInstrumentConfigurationRef=\"ic\">"
+                          "<spectrumList count=\"1\" defaultDataProcessingRef=\"dp\">" + spectrum + "</spectrumList></run></mzML>", exp);
+    return exp[0].getFloatDataArrays()[0].getName();
+  };
+
+  const std::string typed = withArrayTerms(im_term);
+  MSSpectrum s_typed;
+  ptr->domParseSpectrum(typed, s_typed);
+  TEST_EQUAL(s_typed.getFloatDataArrays().size(), 1)
+  TEST_EQUAL(s_typed.getFloatDataArrays()[0].getName(), "raw inverse reduced ion mobility array")
+  TEST_EQUAL(s_typed.containsIMData(), true)
+  TEST_EQUAL(s_typed.getIMData().second == DriftTimeUnit::VSSC, true)
+  TEST_EQUAL(loadedArrayName(typed), "raw inverse reduced ion mobility array")
+
+  for (const auto& [terms, expected] : std::vector<std::pair<std::string, std::string>>{
+         {non_standard + im_term, "raw inverse reduced ion mobility array"},
+         {im_term + non_standard, "Ion Mobility"}})
+  {
+    const std::string both = withArrayTerms(terms);
+    MSSpectrum s_both;
+    ptr->domParseSpectrum(both, s_both);
+    TEST_EQUAL(s_both.getFloatDataArrays()[0].getName(), expected)
+    TEST_EQUAL(loadedArrayName(both), expected)
+  }
+
+  // an accession missing from the bundled CV (e.g. a newer term) does not stop decoding
+  std::string unknown = typed;
+  unknown.replace(unknown.find("MS:1003008"), 10, "MS:9999999");
+  MSSpectrum s_unknown;
+  ptr->domParseSpectrum(unknown, s_unknown);
+  TEST_EQUAL(s_unknown.size(), 15)
   delete ptr;
 }
 END_SECTION
