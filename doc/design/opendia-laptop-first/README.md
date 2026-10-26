@@ -110,10 +110,17 @@ representative speed/RSS and native-memory acceptance remain open.
 A full converted TimSim control run exposed an indexed IM-name defect. The
 shared decoder and parallel error repairs pass **113 native/SDK checks**, plus
 **10 Debug and 10 NDEBUG private checks**. The normal reader completes the full
-2,000-target/2,000-decoy library. Tiled mode times out at 256 MiB and returns a
-copy-admission error at 128 MiB. It does **not** pass full-input acceptance.
-See [the results and next checks](work-packages/03-raw-tiles.md#representative-input-and-indexed-im-repair).
-Measure decode, copy, cache and lock costs before the next adapter change.
+2,000-target/2,000-decoy library. The first tiled attempts timed out at 256 MiB
+and failed copy admission at 128 MiB. CPU sampling identified indexed decoding
+as a major cost. GDB found copies that fit free capacity but failed because
+admission used the maximum scan size. The checked-copy fix passes a test that
+fails on the old code, plus 113 native/SDK, 10 standalone and 10 NDEBUG checks.
+A new 1,024 MiB tiled run completes in **1,040.29 seconds** at **1,830,824 KiB RSS**.
+All **4,688** output rows, feature/score tables, nonzero IM evidence and three
+matrix levels match the completed normal reference. The 128 MiB run still fails
+decoder admission. This is one full-input correctness result, **not efficiency
+acceptance**. Reduce repeated decoding and retained copies next. See [the measured
+results and limits](work-packages/03-raw-tiles.md#measured-reader-cost-and-copy-admission).
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in

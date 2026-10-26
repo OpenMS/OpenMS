@@ -89,7 +89,36 @@ The tool killed the first measurement supervisor at 600 seconds. The normal engi
 
 Before/after source, binary, input and library hashes match. The converted input SHA256 is `0e99f830a2b774571ffe3ac8caab4d1e2330a8e3889442ea0954a142df681325`. The library SHA256 is `e62a8484a7b385549f9605fb3a34379f941ff72153218e8a93c9c69daab61173`. Local commands, logs and recovery records are under `wp03-20261026/representative-1312`.
 
-**The current tiled adapter does not pass this full-input check at either setting.** No complete tiled output comparison, speed gain or RSS reduction is established. Next, measure decode time, mutable-copy cost, cache misses and lock contention. Fix the measured cause, then repeat the full-output comparison. Do not select a new physical layout from these failed runs alone.
+These two tiled attempts did not pass the full-input check. Neither produced complete output. They do not establish a speed gain or RSS reduction.
+
+### Measured reader cost and copy admission
+
+A 300-second CPU sample of the full input collected 19,567 samples with no losses. The indexed DOM decoder had a 49.03% inclusive share. Sampled extraction threads were often asleep on futexes. This does not identify each wait as a cache-lock wait. The shared cache lock still covers decoding and copies. The stopped sample is not a performance result.
+
+GDB captured 14 copy-admission errors. Checked copy bounds were 12,619,207 to 15,999,247 bytes. Free capacity was 19,196,041 to 33,172,568 bytes. Each copy fit, but the code requested the 33,554,432-byte maximum scan size.
+
+[The fix](https://github.com/OpenMS/OpenMS/commit/3a46947b8517207f1d4b4657d54ae823de290396) reserves the known copy bound before allocation. Decoder admission still reserves the maximum scan size. No cap, lock or science setting changed. [The test](https://github.com/OpenMS/OpenMS/commit/84619d94a5dad6423b0b4444dbd6c70864dd85eb) fails on the old code and passes on the fix.
+
+| Requirement | Observed result |
+|---|---|
+| Admit a fitting copy | The real indexed-reader test returns a detached copy without eviction. |
+| Preserve data and storage ownership | Mutation isolation, array-only and container-only ownership, pinned pressure and final charge release pass. |
+| Reject actual capacity pressure | Pinned copies reach admission failure without cap overrun or a retained reservation. |
+| Preserve supported interfaces | All 113 native/SDK checks, 10 standalone checks and 10 NDEBUG checks pass. |
+| Check private memory use | Both raw ASan/UBSan tests pass. Leak detection is off. The core SDK is not instrumented. |
+
+A fresh full-input run used the tested commits, the same full input and library, eight threads and unchanged science settings. Each engine ran in a separate bounded service. No build or profile ran during measurement. Source, binary, SDK, input and library hashes match before and after.
+
+| Reader | Observed result |
+|---|---|
+| Tiled, 1,024 MiB declared | Engine and wrapper exit 0. Wall time 1,040.29 seconds. Peak process RSS 1,830,824 KiB. All 4,688 result rows, nonzero IM evidence, nonempty feature/score tables and 985/985/251 matrix rows match the completed normal reference. |
+| Tiled, 128 MiB declared | Exit 8 after 112.20 seconds during calibration. The fitting-copy fault is no longer the reported error. The decoder reports `Scan admission failed: pinned views or cancellation`. No final output exists. Its partial RSS is not a completed-run comparison. |
+
+The completed tiled run reports 10,771 cache hits, 2,474 misses and 2,143 evictions. Private peak charges are 1,006,624,847 bytes, below the 1,006,632,960-byte usable cap. At the log point, 125,104,072 bytes remain in engine-held copies. Final-owner release is tested separately.
+
+**Full output parity now passes for this one input at 1,024 MiB. Efficiency acceptance does not.** The earlier normal record is 856.82 seconds and 1,848,496 KiB RSS. It is not a clean matched timing trial because its supervisor was interrupted. These single Debug runs show no clear resource benefit. The 128 MiB path still fails. Do not widen its cap or shorten the scientific population to call it a pass.
+
+Next, reduce repeated decoding and retained mutable copies at the raw-access boundary. Use the measured costs and preserve this complete-output check. Keep the shared lock until a measured change needs a different access policy. Local commands and results are under `representative-1312/copy-acceptance-1445`.
 
 ## Limits
 
@@ -103,7 +132,8 @@ Before/after source, binary, input and library hashes match. The converted input
 ## Remaining gates
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
-- [ ] Pass complete-library output checks on representative raw files. The first full TimSim test fails at both tiled settings. Measure decode, copy, cache and lock costs before the next change. Query-grid tests do not bound full-engine output or hypothesis memory.
+- [x] Match complete-library outputs for the converted TimSim control run at the 1,024 MiB setting. This closes one correctness check, not representative resource acceptance.
+- [ ] Reduce repeated decoding and retained-copy costs. Keep complete output parity. The 128 MiB decoder admission still fails. Query-grid tests do not bound full-engine output or hypothesis memory.
 - [ ] Extend pinned input coverage beyond the converted TimSim control run. Test Astral and the remaining cohort. Keep conversion cost separate. Measure native decoder/metadata, downstream workspace memory, runtime and peak RSS. Do not change the frozen WP-00 files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 
