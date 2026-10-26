@@ -3472,21 +3472,37 @@ namespace OpenMS
     const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0;
 
     // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
-    // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
+    // leave the parallel region, which would terminate the process. The one of the SMALLEST failing scan index is
+    // rethrown after the loop: what the scan-order loop on one thread reports. After a failure only the spectra before
+    // it are still scored (to find an earlier failure); every other spectrum is skipped. (Spectra after the failing one
+    // that came earlier in the scoring order may have been scored: the results are discarded with the exception.)
     std::exception_ptr scoring_error;
-    std::atomic<bool> scoring_failed{false};
-    // While a background read lends threads of this thread, in slices, between which this thread takes them back once
-    // the read has ended (see BackgroundSpectra). Every spectrum is scored on its own: the same results.
     const SignedSize n_spectra = static_cast<SignedSize>(spectra.size());
+    std::atomic<SignedSize> first_failed{n_spectra};
+    // The spectra are scored in the order of their precursor mass (scoringOrder_()): neighbouring iterations then probe
+    // the same precursor-window slices of the fragment index, which stay in the caches. Every spectrum is scored on its
+    // own and its results go to its scan index: the same results in any order.
+    const std::vector<SignedSize> order = scoringOrder_(spectra, query_spectra);
+    // While a background read lends threads of this thread, in slices, between which this thread takes them back once
+    // the read has ended (see BackgroundSpectra). The slices run over positions in the scoring order.
     const SignedSize slice = readLendsThreads() ? std::max<SignedSize>(1, (n_spectra + 15) / 16) : std::max<SignedSize>(1, n_spectra);
-    for (SignedSize slice_begin = 0; slice_begin < n_spectra && !scoring_failed.load(); slice_begin += slice)
+    for (SignedSize slice_begin = 0; slice_begin < n_spectra; slice_begin += slice)
     {
     takeBackThreadsOfEndedRead();
     const SignedSize slice_end = std::min(n_spectra, slice_begin + slice);
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed, slice_begin, slice_end)
-    for (SignedSize scan_index = slice_begin; scan_index < slice_end; ++scan_index)
+    // Runs of neighbouring masses per core (dynamic chunks of up to 64 spectra), but at least 8 chunks per thread of the
+    // slice so that small inputs and slices stay balanced.
+#ifdef _OPENMP
+    const int chunk = static_cast<int>(std::clamp<SignedSize>(
+      (slice_end - slice_begin) / (SignedSize(8) * std::max(1, omp_get_max_threads())), 1, 64));
+#else
+    [[maybe_unused]] const int chunk = 1; // (only the OpenMP directive uses it)
+#endif
+#pragma omp parallel for schedule(dynamic, chunk) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, first_failed, order, slice_begin, slice_end, chunk)
+    for (SignedSize position = slice_begin; position < slice_end; ++position)
     {
-      if (scoring_failed.load(std::memory_order_relaxed)) continue;
+      const SignedSize scan_index = order[position];
+      if (scan_index >= first_failed.load(std::memory_order_relaxed)) continue;
       try
       {
       const Size spectra_done = count_spectra.fetch_add(1, std::memory_order_relaxed) + 1;
@@ -3611,14 +3627,63 @@ namespace OpenMS
       {
 #pragma omp critical (ProSEAlgorithm_scoring_error)
         {
-          if (!scoring_error) scoring_error = std::current_exception();
+          if (scan_index < first_failed.load(std::memory_order_relaxed))
+          {
+            scoring_error = std::current_exception();
+            first_failed.store(scan_index, std::memory_order_relaxed);
+          }
         }
-        scoring_failed.store(true, std::memory_order_relaxed);
       }
     }
     }
     endProgress();
     if (scoring_error) std::rethrow_exception(scoring_error);
+  }
+
+  std::vector<SignedSize> ProSEAlgorithm::scoringOrder_(const PeakMap& spectra, const PeakMap* query_spectra)
+  {
+    // Key: the neutral precursor mass of the first precursor of the candidate-retrieval spectrum (an unknown or
+    // non-positive charge counts as 1; only the order depends on it). Spectra without a finite key (no precursor, a
+    // non-finite m/z) go to the end in scan order. (key, scan index) is a total order: any sort gives the same order.
+    const SignedSize n = static_cast<SignedSize>(spectra.size());
+    std::vector<SignedSize> order(n);
+    if (n < 2)
+    {
+      for (SignedSize i = 0; i < n; ++i) order[i] = i;
+      return order;
+    }
+    std::vector<std::pair<double, SignedSize>> keyed(n);
+    std::vector<unsigned char> valid(n);
+#pragma omp parallel for schedule(static) if (n >= 16384)
+    for (SignedSize i = 0; i < n; ++i)
+    {
+      const MSSpectrum& s = query_spectra != nullptr ? (*query_spectra)[i] : spectra[i];
+      double key = std::numeric_limits<double>::quiet_NaN();
+      if (!s.getPrecursors().empty())
+      {
+        const Precursor& precursor = s.getPrecursors()[0];
+        const int charge = precursor.getCharge() > 0 ? precursor.getCharge() : 1;
+        key = (precursor.getMZ() - Constants::PROTON_MASS_U) * charge;
+      }
+      valid[i] = std::isfinite(key) ? 1 : 0;
+      keyed[i] = {valid[i] ? key : 0.0, i};
+    }
+    // the spectra with a key first (in scan order), then the others (in scan order)
+    SignedSize n_valid = 0;
+    for (SignedSize i = 0; i < n; ++i) { if (valid[i]) keyed[n_valid++] = keyed[i]; }
+    SignedSize next_invalid = n_valid;
+    for (SignedSize i = 0; i < n; ++i) { if (!valid[i]) order[next_invalid++] = i; }
+    const auto by_key = [](const std::pair<double, SignedSize>& a, const std::pair<double, SignedSize>& b)
+    {
+      return a.first < b.first || (!(b.first < a.first) && a.second < b.second);
+    };
+#ifdef PROSE_GNU_PARALLEL
+    if (n_valid >= 65536 && omp_get_max_threads() > 1) { __gnu_parallel::sort(keyed.begin(), keyed.begin() + n_valid, by_key); }
+    else
+#endif
+    { std::sort(keyed.begin(), keyed.begin() + n_valid, by_key); }
+    for (SignedSize p = 0; p < n_valid; ++p) order[p] = keyed[p].second;
+    return order;
   }
 
   namespace
