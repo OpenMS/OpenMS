@@ -8142,14 +8142,18 @@ namespace OpenMS
       model.matchIons(evidence, scan, scratch.theo, sequence, charge, tolerance, ppm, ions);
     };
 
-    // 1. The spectrum of every PSM (scan_index of postProcessHits_); -1 if it has no peaks to match.
+    // 1. The spectrum of every PSM (scan_index of postProcessHits_); -1 if it has no peaks to match. In parallel, with
+    //    the meta values read by registry index (a lookup by name takes the registry's process-wide lock).
     const Size n_ids = peptide_ids.size();
     std::vector<SignedSize> scans(n_ids, -1);
-    for (Size i = 0; i < n_ids; ++i)
+    const UInt mv_scan_index = MetaInfoInterface::metaRegistry().getIndex("scan_index"); // UInt(-1): never registered
+    const UInt mv_target_decoy = MetaInfoInterface::metaRegistry().getIndex(Constants::UserParam::TARGET_DECOY);
+#pragma omp parallel for schedule(static)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_ids); ++i)
     {
       const PeptideIdentification& pi = peptide_ids[i];
-      if (pi.getHits().empty() || !pi.metaValueExists("scan_index")) continue;
-      const SignedSize scan = static_cast<int>(pi.getMetaValue("scan_index"));
+      if (pi.getHits().empty() || !pi.metaValueExists(mv_scan_index)) continue;
+      const SignedSize scan = static_cast<int>(pi.getMetaValue(mv_scan_index));
       if (scan >= 0 && static_cast<Size>(scan) < spectra.size() && static_cast<Size>(scan) < evidence.size()
           && evidence.peaks(static_cast<Size>(scan)) > 0)
       {
@@ -8173,19 +8177,31 @@ namespace OpenMS
     //    native score, computed within the half, so the other half's labels are not used. Decoys win exact
     //    ties, as in the native yield evaluation, which keeps the selection conservative. The search has decoys
     //    (target-only searches never get here), so (D + 1) / T is an estimate even in a half without a decoy hit.
+    //    The candidate rows of the PSMs are made in parallel (label: -1 none, 0 target, 1 decoy) and collected in PSM
+    //    order; each half is sorted by a total order (the index decides the last ties), so the order does not depend
+    //    on the sort, and the two halves are sorted at the same time.
     struct Row { double score; bool decoy; Size index; };
-    std::array<std::vector<Row>, 2> rows;
-    for (Size i = 0; i < n_ids; ++i)
+    std::vector<Row> candidate(n_ids);
+    std::vector<signed char> label(n_ids, -1);
+#pragma omp parallel for schedule(static)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_ids); ++i)
     {
       if (scans[i] < 0) continue;
       const PeptideHit& top = best_hit(peptide_ids[i]);
-      if (!top.metaValueExists(Constants::UserParam::TARGET_DECOY)) continue;
-      const bool decoy = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
-      const Size fold = static_cast<Size>(scans[i]) % 2;
-      rows[fold].push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i});
+      if (!top.metaValueExists(mv_target_decoy)) continue;
+      const bool decoy = top.getMetaValue(mv_target_decoy).toString() == "decoy";
+      candidate[i] = {peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, static_cast<Size>(i)};
+      label[i] = decoy ? 1 : 0;
     }
+    std::array<std::vector<Row>, 2> rows;
+    for (Size i = 0; i < n_ids; ++i)
+    {
+      if (label[i] >= 0) rows[static_cast<Size>(scans[i]) % 2].push_back(candidate[i]);
+    }
+    std::vector<Row>().swap(candidate);
     std::array<std::vector<Size>, 2> training;
-    for (Size fold = 0; fold < 2; ++fold)
+#pragma omp parallel for schedule(static, 1) num_threads(2)
+    for (int fold = 0; fold < 2; ++fold)
     {
       std::vector<Row>& fold_rows = rows[fold];
       std::sort(fold_rows.begin(), fold_rows.end(), [](const Row& a, const Row& b) {
@@ -8193,6 +8209,10 @@ namespace OpenMS
         if (a.decoy != b.decoy) return a.decoy;
         return a.index < b.index;
       });
+    }
+    for (Size fold = 0; fold < 2; ++fold)
+    {
+      std::vector<Row>& fold_rows = rows[fold];
       std::vector<double> q(fold_rows.size(), 1.0);
       Size targets = 0, decoys = 0;
       for (Size r = 0; r < fold_rows.size(); ++r)
