@@ -455,7 +455,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
-@note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
+@note Decoy handling is controlled by '-Search:decoys'. The default 'generate' always builds the decoys from the targets (prefixing accessions with '-Search:decoy_prefix', default "DECOY_"; decoys in the FASTA are removed first), with '-Search:decoy_method' keep_termini (default): every target peptide, also every protein N-terminal and Met-clipped one, has a decoy of the same start, length, mass and cleavage sites, so the protein N-terminal classes are controlled by target-decoy competition like the others (with 'Acetyl (Protein N-term)' among the default variable modifications, '-Search:rescoring:terminal_features' and '-Search:rescoring:stratum_q_values', also defaults). 'auto' reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them if none are found; with reversed-protein decoys the protein N-terminal classes have almost no decoys (set '-Search:rescoring:terminal_features false' then). 'ignore' searches the targets only.
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). The '-out_pin' files are an exception to both: they are written before any FDR filter and keep the decoys. To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
 @note Protein inference of the protein FDR: as in ProteomicsLFQ, the inference and the picked-protein FDR use the PSMs up to a looser q-value than '-Search:FDR:PSM', '-Search:FDR:protein_inference_PSM' (default 0.1), which leaves more decoy proteins for the picked-protein FDR, and a protein scores with the best posterior error probability of its PSMs (Percolator's PEP; without rescoring the best HyperScore). The reported PSMs are still those that pass '-Search:FDR:PSM'; proteins and protein groups without one of them are removed after the protein FDR.
@@ -687,8 +687,34 @@ class ProSE :
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
-      search_algo_params_with_subsection.insert("Search:", ProSEAlgorithm().getDefaults());
+      search_algo_params_with_subsection.insert("Search:", toolSearchDefaults_());
       registerFullParam_(search_algo_params_with_subsection);
+    }
+
+    /// ProSEAlgorithm's defaults with the tool's own configuration (int16, quality gate v2 of 26 Oct 2026): symmetric
+    /// protein N-terminal decoys (decoys generate, decoy_method keep_termini), 'Acetyl (Protein N-term)' among the variable
+    /// modifications, the terminal rescoring features and stratum q-values; and OpenMS develop's CalcMass handling
+    /// (not a training feature) and charge range (recorded charges outside of it are not searched). The library keeps its
+    /// defaults (those of int15), so that its users and tests are unchanged.
+    static Param toolSearchDefaults_()
+    {
+      Param p = ProSEAlgorithm().getDefaults();
+      const auto set = [&p](const std::string& key, const ParamValue& value)
+      {
+        const std::string description = p.getDescription(key);
+        const auto tags = p.getTags(key);
+        const auto restrictions = p.getEntry(key).valid_strings;
+        p.setValue(key, value, description, std::vector<std::string>(tags.begin(), tags.end()));
+        if (!restrictions.empty()) { p.setValidStrings(key, restrictions); }
+      };
+      set("decoys", "generate");
+      set("decoy_method", "keep_termini");
+      set("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
+      set("rescoring:terminal_features", "true");
+      set("rescoring:stratum_q_values", "true");
+      set("rescoring:calc_mass_feature", "false");
+      set("precursor:recorded_charge_outside_range", "skip");
+      return p;
     }
 
     /// The PeptDeep prediction of one PSM row of -qpx_extended: its 'predicted_*' columns (null when @p has_prediction

@@ -4865,7 +4865,17 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # ProSE:
 # Percolator rescoring (Search:rescore) is on by default. The tests of the search itself switch it off
 # ('-Search:rescore false') so they keep testing ProSE's own scores and FDR; Test 11 tests the rescoring.
-add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+# The tool's configuration (int16: symmetric N-terminal decoys, 'Acetyl (Protein N-term)', terminal features, stratum
+# q-values, CalcMass not trained, recorded charges outside the range not searched) differs from ProSEAlgorithm's
+# defaults. The tests whose references were made with the library defaults set these back (_prose_library_defaults; their
+# INIs fix 'decoys' and the variable modifications themselves); TOPP_ProSE_tool_defaults runs the tool's configuration.
+set(_prose_library_defaults -Search:decoy_method reverse -Search:rescoring:terminal_features false
+  -Search:rescoring:stratum_q_values false -Search:rescoring:calc_mass_feature true
+  -Search:precursor:recorded_charge_outside_range search)
+add_test("TOPP_ProSE_tool_defaults" ${TOPP_BIN_PATH}/ProSE -test -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta -out_idxml ${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.idXML)
+set_tests_properties("TOPP_ProSE_tool_defaults" PROPERTIES PASS_REGULAR_EXPRESSION "decoys=generate")
+add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
@@ -4886,7 +4896,7 @@ add_test(NAME "TOPP_ProSE_unspecific_decoys_out"
     ${TESTS_TEMP_DIR}/ProSE_unspecific_decoys_out.tmp.idXML 3)
 set_tests_properties("TOPP_ProSE_unspecific_decoys_out" PROPERTIES DEPENDS "TOPP_ProSE_unspecific_decoys")
 
-add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
@@ -4895,7 +4905,7 @@ set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 "TOPP_ProSE_2")
 
 # Multi-file test: single-file idXML output
-add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
@@ -4990,7 +5000,7 @@ endforeach()
 # (3 MS2 spectra) triggers the calibration pass, which detects shift ~ +7 ppm
 # as the signed median. With 3 tight residuals the |shift| >> spread check
 # routes the result through the extreme-bias path, preserving user bounds.
-add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_4.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
@@ -5006,7 +5016,7 @@ set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
 # Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
 # 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
 # must match test 1 exactly (chunking must not change identification results).
-add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
   ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
@@ -5135,7 +5145,7 @@ set_tests_properties("TOPP_ProSE_9_summary_exists" PROPERTIES DEPENDS "TOPP_ProS
 
 # Test 10: a peak listed twice (same m/z) must not hide the peaks above it (MatchedIterator).
 # scan=2 is scan=1 plus a copy of its y1 peak, so both must get the same score and ion counts.
-add_test("TOPP_ProSE_10" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
+add_test("TOPP_ProSE_10" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:decoys auto -Search:modifications:variable "Oxidation (M)" -Search:rescore false
   -in ${DATA_DIR_TOPP}/ProSE_10_duplicate_peaks.mzML
   -database ${DATA_DIR_TOPP}/ProSE_10.fasta
   -Search:fragment:mass_tolerance 10
@@ -5472,7 +5482,7 @@ else()
 endif()
 
 # -out_pin computes enzN/enzC/enzInt for the enzyme of the search (Trypsin/P), not for an unknown one.
-add_test("TOPP_ProSE_pin_enzyme" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_pin_enzyme" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults}
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
@@ -5500,7 +5510,7 @@ set_tests_properties("TOPP_ProSE_pin_enzyme_out" PROPERTIES DEPENDS "TOPP_ProSE_
 add_test(NAME "TOPP_ProSE_14_inputs" COMMAND ${CMAKE_COMMAND} -DMZML=${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -DOUT_DIR=${TESTS_TEMP_DIR} -P ${DATA_DIR_TOPP}/ProSE_14_prepare.cmake)
 add_test(NAME "TOPP_ProSE_14_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_14_qpx)
-add_test("TOPP_ProSE_14" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_1.ini -Search:rescore false
+add_test("TOPP_ProSE_14" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -ini ${DATA_DIR_TOPP}/ProSE_1.ini -Search:rescore false
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
   -in ${TESTS_TEMP_DIR}/ProSE_14_a.mzML ${TESTS_TEMP_DIR}/ProSE_14_b.mzML.gz
   -Search:peptdeep:nce 30 -Search:report:isotope_error_convention theoretical_minus_observed
