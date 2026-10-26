@@ -296,7 +296,8 @@ namespace OpenMS
     defaults_.setValue("precursor:max_charge", 5, "Maximum precursor charge to be considered (see precursor:min_charge).");
     defaults_.setValue("precursor:recorded_charge_outside_range", "search",
                        "A spectrum whose recorded precursor charge lies outside of precursor:min_charge..max_charge: 'search' "
-                       "(default, as ProSE int15) searches it at its recorded charge; 'skip' (OpenMS develop since #10713) "
+                       "(ProSEAlgorithm's default, as ProSE int15) searches it at its recorded charge; 'skip' (the ProSE tool's "
+                       "default; OpenMS develop since #10713) "
                        "does not search it. Spectra without a recorded charge are searched with every charge of the range.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"search", "skip"});
@@ -394,7 +395,8 @@ namespace OpenMS
 
     defaults_.setValue("decoy_prefix", "DECOY_", "Accession prefix prepended to decoy proteins when ProSE generates them (modes 'auto' without existing decoys, and 'generate'). Pre-existing decoys in the database are detected automatically (any common marker, used as prefix or suffix) and do not require this setting.", {"advanced"});
     defaults_.setValue("decoy_method", "reverse",
-      "How ProSE generates decoys (decoys 'generate', or 'auto' with a database without decoys). 'reverse' (default): "
+      "How ProSE generates decoys (decoys 'generate', or 'auto' with a database without decoys). 'reverse' (ProSEAlgorithm's "
+      "default; the ProSE tool's default is 'keep_termini'): "
       "every enzymatic segment of the protein is reversed except its last residue (the last segment entirely), an "
       "initial Met stays first with peptide:clip_nterm_methionine. 'keep_termini': the construction of OpenMS "
       "DecoyDatabase (method reverse, Decoy:keepPeptideNTerm/keepPeptideCTerm true) with the search enzyme and "
@@ -666,8 +668,8 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setValidStrings("rescoring:use_pi0", {"true", "false", "auto"});
     defaults_.setValue("rescoring:calc_mass_feature", "true",
-                       "Percolator's training uses the CalcMass column (the theoretical m/z) as a feature. 'true' (default, as "
-                       "ProSE int15); 'false': as the percolator executable, which reads it as metadata (OpenMS develop since "
+                       "Percolator's training uses the CalcMass column (the theoretical m/z) as a feature. 'true' (ProSEAlgorithm's "
+                       "default, as ProSE int15); 'false' (the ProSE tool's default): as the percolator executable, which reads it as metadata (OpenMS develop since "
                        "#10717). The results differ.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:calc_mass_feature", {"true", "false"});
