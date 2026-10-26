@@ -6293,6 +6293,20 @@ namespace OpenMS
       return spectra;
     }
 
+    // The threads that a BackgroundConsumer (below) lends from this thread while it runs: the read policies below count
+    // them as this thread's (the threads this thread was given), so that a read decides as without the consumer.
+    thread_local int consumer_lent_threads = 0;
+
+    // The OpenMP threads of this thread, with those that a BackgroundConsumer has lent
+    [[maybe_unused]] int threadsGiven()
+    {
+#ifdef _OPENMP
+      return omp_get_max_threads() + consumer_lent_threads;
+#else
+      return 1;
+#endif
+    }
+
     // The OpenMP threads a spectrum file is read with, of those of this thread: at most 16 (the chunked read gets no
     // faster with more). A read in the foreground gets all of them. A read in the background (BackgroundSpectra) takes
     // its threads from this thread, which helps with the rest of the read when it takes the spectra: next to the index
@@ -6305,7 +6319,7 @@ namespace OpenMS
     int readerThreads([[maybe_unused]] bool background, [[maybe_unused]] bool next_to_index_build = true)
     {
 #ifdef _OPENMP
-      const int threads = omp_get_max_threads();
+      const int threads = threadsGiven();
       if (!background) { return std::min(threads, 16); }
       return std::clamp(threads / (next_to_index_build ? 8 : 4), 1, 16);
 #else
@@ -6320,7 +6334,7 @@ namespace OpenMS
     int chunkThreads([[maybe_unused]] bool awaited)
     {
 #ifdef _OPENMP
-      const int threads = omp_get_max_threads();
+      const int threads = threadsGiven();
       return awaited ? std::min(threads, 16) : std::clamp(threads / 4, std::min(threads, 2), 16);
 #else
       return 1;
@@ -6344,7 +6358,7 @@ namespace OpenMS
     {
 #ifdef _OPENMP
       static const int cores = static_cast<int>(SysInfo::getAvailablePhysicalCores());
-      return omp_get_max_threads() < cores;
+      return threadsGiven() < cores;
 #else
       return false;
 #endif
@@ -6503,6 +6517,7 @@ namespace OpenMS
 #ifdef _OPENMP
             own_threads_ = threads;
             omp_set_num_threads(threads - helper_threads);
+            consumer_lent_threads = helper_threads;
             lending_consumer = this;
 #endif
             return;
@@ -6523,7 +6538,7 @@ namespace OpenMS
       {
         if (helper_.joinable()) { helper_.join(); }
 #ifdef _OPENMP
-        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); }
+        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); consumer_lent_threads = 0; }
 #endif
         own_threads_ = 0;
         if (lending_consumer == this) { lending_consumer = nullptr; }
