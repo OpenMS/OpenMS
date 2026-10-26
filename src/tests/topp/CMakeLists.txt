@@ -5404,6 +5404,15 @@ foreach(_v looser fdr_psm)
     -out_tsv ${TESTS_TEMP_DIR}/ProSE_16_inference_${_v}_info.tmp.tsv)
   set_tests_properties("TOPP_ProSE_16_inference_${_v}_info" PROPERTIES DEPENDS "TOPP_ProSE_16_inference_${_v}")
 endforeach()
+# The same with Percolator rescoring: the PSMs between FDR:PSM and FDR:protein_inference_PSM are collected from the
+# rescored q-values as well (here every PSM with q <= 0.1 is above FDR:PSM 0.001, so the inference uses only those).
+add_test("TOPP_ProSE_16_inference_rescore" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -Search:rescore true -Search:FDR:PSM 0.001
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_16_inference_rescore.tmp.idXML)
+set_tests_properties("TOPP_ProSE_16_inference_rescore" PROPERTIES
+  PASS_REGULAR_EXPRESSION "Protein inference on [1-9][0-9]* PSMs \\([1-9][0-9]* of them up to FDR:protein_inference_PSM")
 add_test("TOPP_ProSE_16_inference_psms" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_16_inference_looser_info.tmp.tsv
   -in2 ${TESTS_TEMP_DIR}/ProSE_16_inference_fdr_psm_info.tmp.tsv

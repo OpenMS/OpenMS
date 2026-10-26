@@ -1119,6 +1119,20 @@ namespace OpenMS
         row_offset[i + 1] += row_offset[i];
       }
     }
+    // the spectra with stamped PSMs whose scan number could not be read, as stamping warns about them (the first pass
+    // read every scan number; without an error there)
+    if (std::none_of(stamp_errors.begin(), stamp_errors.end(), [](const std::exception_ptr& e) { return bool(e); }))
+    {
+      std::vector<std::string> without_scan(n_spectra);
+      std::vector<char> stamped(n_spectra, 0);
+      for (size_t i = 0; i < n_spectra; ++i)
+      {
+        stamped[i] = std::any_of(state.begin() + hit_offset[i], state.begin() + hit_offset[i + 1],
+                                 [](unsigned char st) { return (st & STAMPED) != 0; });
+        if (stamped[i] && scan_numbers[i] < 0) { without_scan[i] = getScanIdentifier(peptide_ids[i], i + 1); }
+      }
+      warnWithoutScanNumber_(without_scan, stamped);
+    }
     file_identifier = std::vector<std::string>();
     const size_t n_rows = row_offset[n_spectra];
     // The rows are allocated only without an error of the first pass, and an allocation failure is raised only if the

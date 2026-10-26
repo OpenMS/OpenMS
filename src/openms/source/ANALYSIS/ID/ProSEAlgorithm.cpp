@@ -2685,6 +2685,7 @@ namespace OpenMS
     // decoy-augmented database itself, so the FragmentIndex must never generate.
     p.remove("decoys");
     p.setValue("decoys", "false");
+    p.remove("decoy_method"); // ProSE's own (the decoys of the database it builds)
     // ions:by_activation is resolved by the caller, which knows the spectra. The c and z+1 ions
     // for electron-activated spectra go into a set of their own, which the other spectra are not
     // matched against (see scoreSpectraAgainstIndex_).
@@ -6316,7 +6317,8 @@ namespace OpenMS
                                             PeptideIdentificationList& peptide_ids,
                                             bool has_decoys,
                                             RunStatistics& stats,
-                                            bool rescored) const
+                                            bool rescored,
+                                            PeptideIdentificationList* inference_only_psms) const
   {
     if (rescored && stratum_q_values_)
     {
@@ -6338,7 +6340,7 @@ namespace OpenMS
     if (fdr_psm_ > 0.0)
     {
       StopWatch sw_fdr; sw_fdr.start();
-      if (applyDeferredPsmFDR(protein_ids, peptide_ids, rescored, fdr_psm_))
+      if (applyDeferredPsmFDR(protein_ids, peptide_ids, rescored, fdr_psm_, inference_only_psms))
       {
         stats.fdr_applied = true;
         stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -6400,7 +6402,9 @@ namespace OpenMS
                           ? rescoreWithReuseModel_(result.protein_ids, result.peptide_ids, d, *model, false, threads, nullptr)
                           : rescoreWithPercolator_(result.protein_ids, result.peptide_ids, threads, nullptr, percolator_training_,
                                                    Param());
-      applyRescoredPsmFDR_(result.protein_ids, result.peptide_ids, mfres.have_decoys, result.stats, result.percolator.applied);
+      // (the PSMs only the protein inference uses: with FDR:protein, as applyPsmFDR_() collects them)
+      applyRescoredPsmFDR_(result.protein_ids, result.peptide_ids, mfres.have_decoys, result.stats, result.percolator.applied,
+                           fdr_protein_ > 0.0 ? &result.inference_only_peptide_ids : nullptr);
       // The statistics of the final PSMs (the search collected them before its rescoring); the spectra are gone.
       const Size ms2_spectra = result.stats.ms2_spectra;
       result.stats.charge_histogram.clear();
@@ -6590,7 +6594,7 @@ namespace OpenMS
         catch (...) {} // if the thread cannot be started, the hits are destroyed in this function
       }
       takeBackThreadsOfEndedRead();
-      applyRescoredPsmFDR_(protein_ids, peptide_ids, has_decoys, stats, rescoring.applied);
+      applyRescoredPsmFDR_(protein_ids, peptide_ids, has_decoys, stats, rescoring.applied, inference_only);
       return rescoring;
     }
 
@@ -8932,13 +8936,13 @@ namespace OpenMS
             p.protein_buckets[hash(accession) % num_buckets].push_back(&accession);
           }
           if (top.getCharge() > 0) { ++s.charges[top.getCharge()]; }
-          // the target/decoy type as PeptideHit::getTargetDecoyType() (by the index of the meta value)
+          // the target/decoy type as PeptideHit::getTargetDecoyType() (by the index of the meta value; case-insensitive;
+          // another value is neither, where getTargetDecoyType() throws)
           std::string td;
-          if (top.metaValueExists(target_decoy_index)) { td = top.getMetaValue(target_decoy_index).toString(); }
+          if (top.metaValueExists(target_decoy_index)) { td = StringUtils::toLowered(top.getMetaValue(target_decoy_index).toString()); }
+          const bool is_target = td == "target" || td == "target+decoy";
           if (with_errors)
           {
-            const std::string td_lower = StringUtils::toLowered(td);
-            const bool is_target = td_lower == "target" || td_lower == "target+decoy";
             // Precursor error: skip hits with unresolved charge (0) - getMZ() would throw - and, in an open search, those
             // with a delta mass (a modification the sequence lacks, not a mass error; as OpenSearchModificationAnalysis
             // tells unmodified PSMs).
@@ -9002,7 +9006,7 @@ namespace OpenMS
           }
           ++s.missed_cleavages[cleavages->second];
           if (td == "decoy") { ++s.n_decoy; }
-          else if (!td.empty()) { ++s.n_target; }
+          else if (is_target) { ++s.n_target; }
         }
       }
       catch (...)

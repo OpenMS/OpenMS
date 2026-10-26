@@ -1623,12 +1623,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                std::vector<std::vector<PeptideHit>>* dropped) const;
 
     /// FDR:PSM on the PSMs of a run after its rescoring (see applyPsmFDR_()); a rescored run records rescoring:top_hits
-    /// (if not 0) as 'Percolator:top_hits', a run that was not rescored keeps report:top_hits hits per spectrum
+    /// (if not 0) as 'Percolator:top_hits', a run that was not rescored keeps report:top_hits hits per spectrum.
+    /// @p inference_only_psms (if not null) receives the PSMs between FDR:PSM and FDR:protein_inference_PSM (see
+    /// applyDeferredPsmFDR()).
     void applyRescoredPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                               PeptideIdentificationList& peptide_ids,
                               bool has_decoys,
                               RunStatistics& stats,
-                              bool rescored) const;
+                              bool rescored,
+                              PeptideIdentificationList* inference_only_psms) const;
 
     /// rescore_reuse joint/static: trains the models on the files of @p deferred (indices into @p mfres.per_file, searched
     /// with reuse_defer_), then rescores them and applies FDR:PSM
