@@ -4872,7 +4872,7 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 set(_prose_library_defaults -Search:decoy_method reverse -Search:rescoring:terminal_features false
   -Search:rescoring:stratum_q_values false -Search:rescoring:calc_mass_feature true
   -Search:precursor:recorded_charge_outside_range search)
-# (exit code 0, and the run records the configuration in its search parameters: written with -write_ini and checked)
+# (the run: exit code 0; the tool's defaults: written with -write_ini and checked, all seven)
 add_test(NAME "TOPP_ProSE_tool_defaults" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.idXML"
   -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=decoys=generate" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
