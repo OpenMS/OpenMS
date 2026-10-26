@@ -526,14 +526,22 @@ namespace OpenMS
       experiment = raw;
     }
 #endif
-    // Bruker .d (TDF) is not supported yet; it needs an IMSExperimentRandomAccess backend.
+#ifdef WITH_OPENTIMS
+    else if (BrukerTimsFile::detectFormat(file) != BrukerTimsFile::DataFormat::NONE)
+    {
+      experiment = BrukerTimsFile().openDIAOnDisc(file);
+    }
+#endif
     else
     {
       endProgress();
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "readOptions 'onDisc' supports indexed mzML"
 #ifdef WITH_THERMO_RAW
-        " and Thermo .raw"
+        ", Thermo .raw"
+#endif
+#ifdef WITH_OPENTIMS
+        ", Bruker DIA .d/.d.zip"
 #endif
         " input, not this file type.", file);
     }
@@ -785,6 +793,10 @@ namespace OpenMS
     std::shared_ptr<ExperimentalSettings>& exp_meta,
     const std::string& readoptions)
   {
+    if (readoptions == "onDisc")
+    {
+      return loadOnDisc(BrukerTimsFile().openDIAOnDisc(file), exp_meta);
+    }
     OPENMS_LOG_INFO << "Loading Bruker TDF file " << file
                     << " using readoptions " << readoptions << '\n';
     startProgress(0, 1, "Loading Bruker TDF file " + file);

@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -36,6 +37,7 @@
 
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -2638,6 +2640,149 @@ namespace OpenMS
       spec.emplace_back(decoded.mzs[p], static_cast<float>(decoded.intensities[p]));
       im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
     }
+  }
+
+  // Native DIA access keeps metadata only. All clones serialize native decoding, including
+  // converter access, and keep an extracted archive alive until the final clone is destroyed.
+  // ponytail: Shared-handle locking keeps clones safe and cheap, but decoding across clones
+  // is serialized. Independent handles are deferred until parallel throughput warrants them.
+  class NativeBrukerDIAExperiment final : public IMSExperimentRandomAccess
+  {
+  public:
+    struct Entry
+    {
+      uint32_t frame;
+      std::optional<DIAWindow> window;
+      MSSpectrum metadata;
+    };
+    struct Source
+    {
+      std::shared_ptr<void> archive;
+      std::unique_ptr<TimsDataHandle> handle;
+      BrukerTimsFile::Config config;
+      std::vector<uint32_t> ms1_frames;
+      std::vector<Entry> entries;
+      std::shared_ptr<ExperimentalSettings> settings;
+      std::mutex mutex;
+    };
+
+    explicit NativeBrukerDIAExperiment(std::shared_ptr<Source> source) : source_(std::move(source)) {}
+    Size getNrSpectra() const override { return source_->entries.size(); }
+    Size getNrChromatograms() const override { return 0; }
+    MSSpectrum getSpectrumMetadata(Size i) override { return source_->entries.at(i).metadata; }
+    double getSpectrumRT(Size i) const override { return source_->entries.at(i).metadata.getRT(); }
+    UInt getSpectrumMSLevel(Size i) const override { return source_->entries.at(i).metadata.getMSLevel(); }
+    bool isSortedByRT() const override { return true; }
+    MSChromatogram getChromatogram(Size) override
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bruker DIA has no chromatograms");
+    }
+    std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const override { return source_->settings; }
+    std::unique_ptr<IMSExperimentRandomAccess> clone() const override
+    {
+      return std::make_unique<NativeBrukerDIAExperiment>(source_);
+    }
+    MSSpectrum getSpectrum(Size i) override
+    {
+      const auto& entry = source_->entries.at(i);
+      std::lock_guard<std::mutex> lock(source_->mutex);
+      MSSpectrum spec;
+      if (!entry.window)
+      {
+        MS1SpectrumReader reader(*source_->handle, source_->ms1_frames, source_->config);
+        const auto pos = std::lower_bound(source_->ms1_frames.begin(), source_->ms1_frames.end(), entry.frame);
+        reader.read(std::distance(source_->ms1_frames.begin(), pos), spec);
+      }
+      else
+      {
+        auto& frame = source_->handle->get_frame(entry.frame);
+        DecodedFrame decoded;
+        decoded.decode(*source_->handle, frame, true);
+        initDIAWindowSpectrum(frame, *entry.window, spec);
+        DataArrays::FloatDataArray im_array;
+        IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+        std::vector<char> in_window;
+        markScansInWindow(decoded, *entry.window, in_window);
+        addWindowPeaksByMZ(decoded, in_window, spec, im_array);
+        spec.getFloatDataArrays().push_back(std::move(im_array));
+        spec.setIMPeakType(IMPeakType::IM_PROFILE);
+      }
+      spec.sortByPosition();
+      return spec;
+    }
+
+  private:
+    std::shared_ptr<Source> source_;
+  };
+
+  std::shared_ptr<IMSExperimentRandomAccess> BrukerTimsFile::openDIAOnDisc(const std::string& path)
+  {
+    std::shared_ptr<IMSExperimentRandomAccess> result;
+    rethrowSQLiteErrors(path, [&]
+    {
+      auto source = std::make_shared<NativeBrukerDIAExperiment::Source>();
+      const auto archive = takeUnpacked_(path);
+      source->archive = archive;
+      const std::string d_path = archive ? archive->d_path : path;
+      rejectMaldiImaging(path, d_path);
+      source->handle = openTimsDataHandle(d_path, source->config);
+      source->settings = std::make_shared<ExperimentalSettings>();
+      loadExperimentalSettings_(path, d_path, *source->settings);
+      auto& handle = *source->handle;
+      SQLite::Database db(handle.get_tims_dir_path() + "/analysis.tdf", SQLite::OPEN_READONLY);
+      const auto windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
+      if (windows.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native Bruker DIA access requires DIA windows");
+      }
+      for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+      {
+        if (handle.has_frame(fid) && handle.get_frame(fid).msms_type == 0)
+        {
+          source->ms1_frames.push_back(fid);
+        }
+      }
+      MS1SpectrumReader reader(handle, source->ms1_frames, source->config);
+      for (Size i = 0; i < source->ms1_frames.size(); ++i)
+      {
+        MSSpectrum spec;
+        reader.read(i, spec);
+        spec.clear(false);
+        spec.shrink_to_fit();
+        source->entries.push_back({source->ms1_frames[i], std::nullopt, std::move(spec)});
+      }
+      // A SQL-only index would include empty windows that streaming deliberately omits.
+      // Decode each MS2 frame once here to build exactly the emitted scan membership.
+      DecodedFrame decoded;
+      std::vector<char> in_window;
+      for (const auto& [group, frames] : readFrameToWindowGroupMapping(db, windows))
+      {
+        for (const auto fid : frames)
+        {
+          auto& frame = handle.get_frame(fid);
+          if (frame.num_peaks == 0) continue;
+          decoded.decode(handle, frame, true);
+          for (const auto& win : windows)
+          {
+            if (win.window_group != group) continue;
+            markScansInWindow(decoded, win, in_window);
+            const bool occupied = std::any_of(decoded.scan_ids.begin(), decoded.scan_ids.end(),
+              [&](uint32_t scan) { return in_window[scan] != 0; });
+            if (!occupied) continue;
+            MSSpectrum spec;
+            initDIAWindowSpectrum(frame, win, spec);
+            spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            source->entries.push_back({fid, win, std::move(spec)});
+          }
+        }
+      }
+      std::stable_sort(source->entries.begin(), source->entries.end(), [](const auto& a, const auto& b)
+      {
+        return a.metadata.getRT() < b.metadata.getRT();
+      });
+      result = std::make_shared<NativeBrukerDIAExperiment>(std::move(source));
+    });
+    return result;
   }
 
   // =====================================================================

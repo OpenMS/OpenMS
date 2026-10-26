@@ -423,7 +423,7 @@ protected:
     registerFlag_("TargetedDataExtraction:split_file_input", "Interpret the input files as one SWATH window per file.", true);
     registerFlag_("TargetedDataExtraction:use_elution_model_score", "Turn on the CPU-intensive EMG elution model score.", true);
 
-    registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Read directly, cache to disk, keep data in memory, or use a bounded numeric cache with tiled indexed mzML input.", false, true);
+    registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Read directly, cache to disk, keep data in memory, or use a bounded numeric cache with native Bruker, Thermo or indexed mzML input.", false, true);
     setValidStrings_("TargetedDataExtraction:readOptions", {"normal", "cache", "cacheWorkingInMemory", "workingInMemory", "tiled"});
     registerIntOption_("TargetedDataExtraction:raw_memory_mb", "<MiB>", 256,
       "Raw tile and copy budget for tiled input, including a 64 MiB native allowance. This is not a process memory limit.", false, true);
@@ -1549,11 +1549,10 @@ protected:
     const bool tiled_input = readoptions == "tiled";
     if (tiled_input)
     {
-      if (split_file || std::any_of(file_list.begin(), file_list.end(), [](const std::string& file)
-        { return FileHandler::getTypeByFileName(file) != FileTypes::MZML; }))
+      if (split_file)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Tiled input needs indexed mzML files. Split-window input is not supported.");
+          "Tiled input does not support split-window input.");
       }
       readoptions = "onDisc";
     }
@@ -1817,7 +1816,7 @@ protected:
           if (!source || source->getNrSpectra() == 0)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Tiled input needs nonempty spectrum maps from the indexed reader.");
+              "Tiled input needs nonempty spectrum maps from a native random-access reader.");
           }
           map.sptr = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
         }

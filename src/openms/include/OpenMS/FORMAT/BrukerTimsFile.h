@@ -22,6 +22,7 @@ class TimsDataHandle;
 namespace OpenMS
 {
   class FullSwathFileConsumer;
+  class IMSExperimentRandomAccess;
 
   /**
    * @brief Reader for Bruker TimsTOF .d directories via opentims.
@@ -313,6 +314,18 @@ namespace OpenMS
     /// @overload with explicit configuration
     void loadDIAStreaming(const std::string& path, FullSwathFileConsumer& consumer,
                           const Config& config);
+
+    /**
+      @brief Open native DIA random access with the default streaming configuration.
+
+      @param[in] path A .d directory or .d.zip archive.
+      Opening decodes frames once to collect MS1 metadata and exclude empty MS2 windows,
+      exactly as streaming does. Only spectrum metadata and frame/window membership are
+      retained, never a converted file.
+      Peaks are decoded on request. Clones retain the archive and index and serialize access
+      to a shared native handle. MS1 uses the default streaming processing.
+    */
+    std::shared_ptr<IMSExperimentRandomAccess> openDIAOnDisc(const std::string& path);
 
     /// Load entire .d directory into MSExperiment
     /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF

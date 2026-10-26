@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -3793,6 +3794,51 @@ START_SECTION(DIA readDIAMetadata test)
 
   STATUS("readDIAMetadata: " << meta.boundaries.size() << " windows, "
          << meta.nr_ms1_spectra << " MS1 spectra");
+}
+END_SECTION
+
+START_SECTION(DIA native random access matches every streamed spectrum)
+{
+  BrukerTimsFile f;
+  ExperimentalSettings settings;
+  const auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer);
+  auto native = f.openDIAOnDisc(OPENTIMS_DIA_TEST_DATA);
+  auto clone = native->clone();
+  std::map<std::string, Size> indices;
+  for (Size i = 0; i < native->size(); ++i)
+  {
+    const auto metadata = native->getSpectrumMetadata(i);
+    TEST_TRUE(metadata.empty())
+    TEST_TRUE(metadata.getFloatDataArrays().empty())
+    TEST_TRUE(indices.emplace(metadata.getNativeID(), i).second)
+    TEST_EQUAL(native->getSpectrumRT(i), metadata.getRT())
+    TEST_EQUAL(native->getSpectrumMSLevel(i), metadata.getMSLevel())
+  }
+  Size compared = 0;
+  const auto compare_map = [&](const PeakMap* map)
+  {
+    if (map == nullptr) return;
+    for (const auto& expected : *map)
+    {
+      const auto found = indices.find(expected.getNativeID());
+      TEST_TRUE(found != indices.end())
+      if (found == indices.end()) continue;
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(found->second)))
+      TEST_TRUE(sameSpectrum(expected, clone->getSpectrum(found->second)))
+      ++compared;
+    }
+  };
+  compare_map(consumer.ms1Map());
+  for (Size w = 0; w < meta.boundaries.size(); ++w) compare_map(consumer.swathMap(w));
+  // Exact membership matters: empty MS2 windows must not become nearest-RT candidates.
+  TEST_EQUAL(compared, native->size())
+  TEST_TRUE(compared > 0)
+  const auto first = native->getSpectrum(0);
+  native.reset();
+  TEST_TRUE(sameSpectrum(first, clone->getSpectrum(0)))
 }
 END_SECTION
 

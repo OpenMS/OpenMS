@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -474,6 +475,71 @@ namespace
     check(cache->snapshot().misses == 4 && cache->snapshot().cache_entries == 4, "Clones duplicated cache");
   }
 
+  // Optional real-input acceptance path. No conversion and no vendor fixture download.
+  void nativeInput(const std::string& path)
+  {
+    std::shared_ptr<OpenMS::ExperimentalSettings> settings;
+    auto maps = OpenMS::SwathFile().loadOnDisc(path, settings);
+    check(!maps.empty() && settings, "Native input has no spectrum maps or settings");
+    auto cache = std::make_shared<RawCache>(256 * MIB, 64 * MIB, 32 * MIB);
+    OpenMS::Size checked = 0;
+    for (const auto& map : maps)
+    {
+      auto source = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
+      check(source && source->getNrSpectra(), "Native map is empty or not random access");
+      auto access = std::make_shared<RawAccess>(source, cache);
+      std::vector<OpenMS::Size> indices;
+      const int count = static_cast<int>(source->getNrSpectra());
+      for (const int i : {0, count / 2, count - 1})
+      {
+        auto experiment = source->getExperiment().clone();
+        const auto index = source->getExperimentIndex(i);
+        const auto expected = source->getSpectrumById(i);
+        exact(*access->acquire(i), *expected, experiment->getSpectrumMetadata(index));
+        const auto view = access->lightClone()->getSpectrumView(i);
+        check(view.mz->data == expected->getMZArray()->data &&
+          view.intensity->data == expected->getIntensityArray()->data,
+          "Native cached view changed numeric data");
+        check(source->getSpectraByRT(source->getSpectrumMetaById(i).RT, 0) ==
+          access->getSpectraByRT(source->getSpectrumMetaById(i).RT, 0), "Native RT lookup changed");
+        indices.push_back(index);
+        ++checked;
+      }
+      auto sample = std::make_shared<OpenMS::SpectrumAccessOnDisc>(
+        std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone()), indices);
+      const auto first = sample->getSpectrumById(0);
+      if (first->getMZArray()->data.empty()) continue;
+      using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+      std::vector<Extractor::ExtractionCoordinates> coordinates(1);
+      const auto peak = first->getMZArray()->data.size() / 2;
+      coordinates[0].mz = first->getMZArray()->data[peak];
+      coordinates[0].rt_end = -1;
+      const auto im = first->getDriftTimeArray();
+      coordinates[0].ion_mobility = im && !im->data.empty() ? im->data[peak] : 0;
+      for (const double window : {-1.0, 0.05})
+      {
+        if (window > 0 && (!im || im->data.empty())) continue;
+        const auto extract = [&](const OpenSwath::SpectrumAccessPtr& reader)
+        {
+          std::vector<OpenSwath::ChromatogramPtr> output{std::make_shared<OpenSwath::Chromatogram>()};
+          Extractor().extractChromatograms(reader, output, coordinates, 0.1, false, window, "tophat");
+          return output.front();
+        };
+        const auto expected = extract(sample);
+        const auto actual = extract(std::make_shared<RawAccess>(sample, cache));
+        check(expected->getTimeArray()->data == actual->getTimeArray()->data &&
+          expected->getIntensityArray()->data == actual->getIntensityArray()->data,
+          "Native cached extraction changed IM or non-IM evidence");
+      }
+    }
+    cache->clear();
+    const auto stats = cache->snapshot();
+    check(stats.budget.committed_bytes == 0 && stats.budget.reserved_bytes == 0,
+      "Native input retained a scan charge");
+    OPENMS_LOG_INFO << "PASS native input " << path << " maps=" << maps.size()
+      << " sampled_scans=" << checked << " exact_metadata_arrays_views_RT_extraction=1 final_live_bytes=0\n";
+  }
+
   void truncated()
   {
     IndexedFile indexed(smallRun());
@@ -501,10 +567,15 @@ namespace
   }
 }
 
-int main()
+int main(int argc, char** argv)
 {
   try
   {
+    if (argc > 1)
+    {
+      for (int i = 1; i < argc; ++i) nativeInput(argv[i]);
+      return 0;
+    }
     fixtures();
     IndexedFile indexed(smallRun());
     detachedCopies(indexed);
