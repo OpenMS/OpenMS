@@ -92,9 +92,10 @@ bring the native/SDK total to **106**. Earlier checks passed **10 standalone**,
 **10 NDEBUG** and **2 instrumented raw tests**, plus the installed OpenDIA consumer.
 The raw adapter preserves all 513/32,750/44,354 fixture points. Native metadata,
 decoding and downstream workspaces are not fully bounded. Full diaPASEF/FAIMS
-engine coverage and representative speed/RSS checks remain open. The first
-adapter rejects the actual WP-00 TimSim `.d.zip` and Astral `.raw` inputs.
-Add those paths or pin equivalent indexed mzML inputs before a matched comparison.
+engine coverage and representative speed/RSS checks remain open. The current
+WP-03 build has the Thermo and Bruker readers disabled. A separate vendor-enabled
+OpenMS build can prepare indexed mzML inputs without changing WP-00 files.
+The tiled adapter requires indexed mzML. This is not a pyOpenMS format restriction.
 These small fixtures do not establish scientific score calibration. No package
 is merged into `develop`.
 
@@ -105,6 +106,14 @@ peak RSS reduction** at the smaller cache limit. A separate heap profile confirm
 native allocations outside private enforcement. See the [measured results and
 limits](work-packages/03-raw-tiles.md#small-fixture-process-measurement). Full peptide-library,
 representative speed/RSS and native-memory acceptance remain open.
+
+A full converted TimSim control run exposed an indexed IM-name defect. The
+shared decoder and parallel error repairs pass **113 native/SDK checks**, plus
+**10 Debug and 10 NDEBUG private checks**. The normal reader completes the full
+2,000-target/2,000-decoy library. Tiled mode times out at 256 MiB and returns a
+copy-admission error at 128 MiB. It does **not** pass full-input acceptance.
+See [the results and next checks](work-packages/03-raw-tiles.md#representative-input-and-indexed-im-repair).
+Measure decode, copy, cache and lock costs before the next adapter change.
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in

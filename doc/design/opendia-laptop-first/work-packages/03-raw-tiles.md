@@ -60,10 +60,41 @@ A separate local heaptrack run retained matching output. Allocation stacks ident
 
 The final test commit passed all 106 native/project/installed-SDK checks, 10 standalone checks and 10 NDEBUG checks. The query-scale assertions ran in each build. Local evidence includes all command vectors, nine samples and the separate heap profile under `wp03-20261026/memory-0326`. No frozen input was changed.
 
+## Representative input and indexed IM repair
+
+A vendor-enabled OpenMS build converted the complete TimSim `control_01.d.zip` to a separate indexed mzML file. The frozen archive hash did not change. Conversion took 16.33 seconds and used 299,904 KiB peak process RSS. Conversion cost is separate from search cost.
+
+The new file has 734 spectra, 58,884,702 points and 24 isolation windows. A read-only audit matched native frame point sums, RT and isolation bounds. All spectra have standard inverse reduced IM arrays. The matched prepared library has 2,000 targets, 2,000 decoys and 24,000 transitions.
+
+This real input exposed a crash in default transition filtering. The indexed decoder dropped standard IM array names. The full mzML reader did not. [The shared decoder repair](https://github.com/OpenMS/OpenMS/commit/6b4c23d35fa841fac2eb307a4655094df016f129) uses the same CV rule as the full reader and validates drift arrays before filtering. [The parallel filter repair](https://github.com/OpenMS/OpenMS/commit/8e998694e176b522366aa4a76a80b87f6c31229e) returns reader errors to the caller. Scheduling is unchanged.
+
+| Changed path | Observed check |
+|---|---|
+| Standard IM names, units and values | Real DOM decoder tests pass for standard and non-standard arrays. |
+| Missing or unequal drift arrays | Validation tests throw an error instead of reading invalid storage. Empty arrays and closed interval edges pass. |
+| Indexed drift filtering | Direct and tiled reads agree on a standard CV array written by the native mzML writer. |
+| Parallel reader failures | Twelve actual indexed-reader admission failures return through filtering, calibration and extraction. No retained cache charge remains. |
+| CLI and installed package | All 113 affected native/SDK checks pass, plus the installed OpenDIA consumer. |
+| Private builds | All 10 standalone Debug and 10 explicit NDEBUG checks pass. |
+
+The earlier stopped normal trial and crashed tiled trial remain failed evidence. Three new attempts used the same full input and library, eight threads and the native Debug SDK. Default transition filtering and auto-IRT stayed enabled. Each service had a 900-second runtime limit and a separate 12 GiB safety limit.
+
+| Reader | Full-input result |
+|---|---|
+| Normal | GNU `time` reports exit 0, 856.82 seconds and 1,848,496 KiB peak RSS. Output checks pass: 4,688 result rows and 985/985/251 precursor/peptide/protein matrix rows. IM evidence is nonzero. |
+| Tiled, 256 MiB declared | The independent 900-second limit stopped the process during extraction. No final output or complete process-RSS record exists. |
+| Tiled, 128 MiB declared | Exit 8 during calibration: `Mutable scan admission failed`. This is an error return, not a crash. No final output exists. |
+
+The tool killed the first measurement supervisor at 600 seconds. The normal engine service continued under its own limit. A separate supervisor recovered its complete GNU `time` record and checked its final outputs. The original wrapper exit is unknown. That interruption is retained in the evidence, not reported as a clean benchmark run.
+
+Before/after source, binary, input and library hashes match. The converted input SHA256 is `0e99f830a2b774571ffe3ac8caab4d1e2330a8e3889442ea0954a142df681325`. The library SHA256 is `e62a8484a7b385549f9605fb3a34379f941ff72153218e8a93c9c69daab61173`. Local commands, logs and recovery records are under `wp03-20261026/representative-1312`.
+
+**The current tiled adapter does not pass this full-input check at either setting.** No complete tiled output comparison, speed gain or RSS reduction is established. Next, measure decode time, mutable-copy cost, cache misses and lock contention. Fix the measured cause, then repeat the full-output comparison. Do not select a new physical layout from these failed runs alone.
+
 ## Limits
 
 - The first adapter supports indexed mzML spectrum maps. Split-window input is not supported. The native loader rejects mixed FAIMS lanes rather than merging them.
-- Actual WP-00 input checks reject the TimSim `.d.zip` input and Astral `.raw` input. The first adapter cannot yet run the matched WP-00 resource comparison. This is a missing input path, not a failed speed or memory target.
+- The current WP-03 build has the Thermo and Bruker readers disabled. A separate vendor-enabled OpenMS build can read these formats and write indexed mzML. The tiled adapter still requires indexed mzML. Do not interpret that adapter restriction as a pyOpenMS format restriction.
 - Private tile/copy charges are not a process RSS limit. Native metadata, indexes, decoding and control storage use a declared 64 MiB allowance. That allowance is not measured or enforced by an allocator.
 - A large native scan can allocate memory before the private size check. Later growth of mutable copies and downstream engine workspaces is not intercepted.
 - Cache access uses one lock and linear LRU lookup. No whole-engine speed or memory improvement is claimed.
@@ -72,8 +103,8 @@ The final test commit passed all 106 native/project/installed-SDK checks, 10 sta
 ## Remaining gates
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
-- [ ] Test complete peptide libraries and representative raw files. The 4,096-query public-extractor check supports fixed-traversal raw-charge independence, but does not bound output arrays or full-engine hypothesis memory.
-- [ ] Add supported representative input paths, or pin equivalent indexed mzML conversions for both readers. Keep conversion cost separate. Then measure native decoder/metadata and downstream workspace memory, runtime and peak RSS against WP-00. Do not change the frozen baseline files.
+- [ ] Pass complete-library output checks on representative raw files. The first full TimSim test fails at both tiled settings. Measure decode, copy, cache and lock costs before the next change. Query-grid tests do not bound full-engine output or hypothesis memory.
+- [ ] Extend pinned input coverage beyond the converted TimSim control run. Test Astral and the remaining cohort. Keep conversion cost separate. Measure native decoder/metadata, downstream workspace memory, runtime and peak RSS. Do not change the frozen WP-00 files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 
 Keep this issue open. Keep WP-01, WP-02 and WP-03 stacked. Store planning documents on the planning branch only.
