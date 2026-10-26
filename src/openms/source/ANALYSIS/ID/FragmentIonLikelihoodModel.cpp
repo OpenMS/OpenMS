@@ -30,6 +30,16 @@ namespace OpenMS
 
   void FragmentIonLikelihoodModel::PeakLists::clear()
   {
+    // The lists of the spectra are freed by the OpenMP threads, in equal static parts as a static loop over the spectra
+    // assigns them (ProSE's preprocessing, which fills them: each thread then frees into the arena it allocated from);
+    // one after the other, the 2 x 619,000 lists of a timsTOF HeLa run took 0.26 s.
+    const SignedSize n = static_cast<SignedSize>(std::min(mz_.size(), rank_bins_.size())); // (equal, see reset())
+#pragma omp parallel for schedule(static) if (n >= 4096)
+    for (SignedSize i = 0; i < n; ++i)
+    {
+      std::vector<float>().swap(mz_[i]);
+      std::vector<std::uint8_t>().swap(rank_bins_[i]);
+    }
     std::vector<std::vector<float>>().swap(mz_);
     std::vector<std::vector<std::uint8_t>>().swap(rank_bins_);
   }
