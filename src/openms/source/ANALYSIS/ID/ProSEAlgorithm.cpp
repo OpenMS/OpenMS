@@ -94,6 +94,12 @@
   #include <omp.h>
 #endif
 
+#if defined(__linux__)
+  #include <cstdint>
+  #include <sys/mman.h> // madvise (resizeWithParallelFaults)
+  #include <unistd.h>   // sysconf
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -168,21 +174,36 @@ namespace OpenMS
       spectra.clear(true);
     }
 
-    // Resizes @p v to @p n elements as resize() does, but the storage that it allocates for them is first written once per
-    // page by the OpenMP threads: the serial construction of the elements then takes no page faults, one after the other,
-    // for the whole block (619,000 empty spectra, 465 MB: 0.21 s, then 0.015 s for the faults in parallel and 0.06 s for
-    // the construction at 64 threads). The bytes written are those the construction writes over; nothing else changes.
+    // Resizes @p v to @p n elements as resize() does; on Linux, the pages of the storage that it allocates for them are
+    // first faulted in by the OpenMP threads (madvise(MADV_POPULATE_WRITE) on parts of the range, Linux 5.14 or later; no
+    // access to the storage itself), so that the serial construction of the elements does not take the page faults of
+    // the whole block one after the other (619,000 empty spectra, 465 MB: 0.21 s, then 0.015 s for the faults in parallel
+    // and 0.07 s for the construction at 64 threads). Elsewhere, or if the call fails, as resize().
     template <typename T>
     void resizeWithParallelFaults(std::vector<T>& v, const Size n)
     {
+#if defined(__linux__)
       if (n > v.capacity())
       {
         v.reserve(n);
-        unsigned char* const tail = reinterpret_cast<unsigned char*>(v.data() + v.size());
-        const SignedSize pages = static_cast<SignedSize>(((n - v.size()) * sizeof(T) + 4095) / 4096);
-#pragma omp parallel for schedule(static) if (pages >= 1024)
-        for (SignedSize p = 0; p < pages; ++p) { tail[static_cast<Size>(p) * 4096] = 0; }
+        const uintptr_t page = static_cast<uintptr_t>(sysconf(_SC_PAGESIZE));
+        const uintptr_t begin = (reinterpret_cast<uintptr_t>(v.data() + v.size()) + page - 1) / page * page;
+        const uintptr_t end = reinterpret_cast<uintptr_t>(v.data() + n) / page * page; // whole pages of the new elements
+        const SignedSize pages = end > begin ? static_cast<SignedSize>((end - begin) / page) : 0;
+        if (pages >= 1024)
+        {
+          constexpr int populate_write = 23; // MADV_POPULATE_WRITE (EINVAL before Linux 5.14: then the faults come later)
+          const SignedSize parts = 256;
+#pragma omp parallel for schedule(dynamic, 1)
+          for (SignedSize part = 0; part < parts; ++part)
+          {
+            const uintptr_t from = begin + static_cast<uintptr_t>(pages * part / parts) * page;
+            const uintptr_t to = begin + static_cast<uintptr_t>(pages * (part + 1) / parts) * page;
+            if (to > from) { madvise(reinterpret_cast<void*>(from), to - from, populate_write); }
+          }
+        }
       }
+#endif
       v.resize(n);
     }
 
