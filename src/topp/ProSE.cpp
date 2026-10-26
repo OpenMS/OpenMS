@@ -286,7 +286,7 @@ namespace
     e.g. LD_DEBUG or a missing LD_PRELOAD library, appear twice). The restarted ProSE puts GLIBC_TUNABLES back as it
     was (programs it starts get the caller's environment) and its process name (comm, which an execve of
     /proc/self/exe would set to "exe"), and does not start itself again: the marker below carries the process ID, and
-    the added entry stops a second start too.
+    a marker of this process stops a second start whatever else the environment holds.
 
     Not done: with OPENMS_HUGEPAGES=0 (or false, no, off); if GLIBC_TUNABLES already has glibc.malloc.hugetlb (the
     user's value is kept, e.g. glibc.malloc.hugetlb=0 also turns it off); with glibc before 2.35 (no such tunable); if
@@ -353,14 +353,19 @@ namespace
     const std::string pid = std::to_string(static_cast<long>(getpid()));
     const char* restarted = getenv(kHugePagesRestart);
     if (restarted != nullptr && strncmp(restarted, pid.c_str(), pid.size()) == 0 &&
-        (restarted[pid.size()] == '=' || restarted[pid.size()] == '-') &&
-        hasTunable(getenv("GLIBC_TUNABLES"), "glibc.malloc.hugetlb="))
+        (restarted[pid.size()] == '=' || restarted[pid.size()] == '-'))
     {
-      // started again below (never a second time): the process name and the environment as the caller set them
+      // started again below: never a second time (a marker of this process is enough, review int15 r2); the process
+      // name and, if the restart's entry is there, the environment as the caller set them
       const char* comm = getenv(kHugePagesComm);
-      if (comm != nullptr && *comm != '\0') { prctl(PR_SET_NAME, comm, 0, 0, 0); }
+      if (comm != nullptr) { prctl(PR_SET_NAME, comm, 0, 0, 0); }
       const char* rest = restarted + pid.size();
-      restoreTunables(*rest == '=' ? rest + 1 : nullptr);
+      if (hasTunable(getenv("GLIBC_TUNABLES"), "glibc.malloc.hugetlb=")) { restoreTunables(*rest == '=' ? rest + 1 : nullptr); }
+      else
+      {
+        unsetenv(kHugePagesRestart);
+        unsetenv(kHugePagesComm);
+      }
       return;
     }
     if (restarted != nullptr || getenv(kHugePagesComm) != nullptr)
@@ -385,8 +390,8 @@ namespace
     if (!hasTunable(tunables, "glibc.malloc.top_pad=") && !mallocDefaultsKept()) { value += ":glibc.malloc.top_pad=67108864"; }
     const std::string mark = pid + (tunables != nullptr ? "=" + old_value : std::string("-"));
     char comm[17] = {0};
-    if (prctl(PR_GET_NAME, comm, 0, 0, 0) != 0) { comm[0] = '\0'; }
-    if (setenv(kHugePagesRestart, mark.c_str(), 1) == 0 && setenv(kHugePagesComm, comm, 1) == 0 &&
+    const bool have_comm = prctl(PR_GET_NAME, comm, 0, 0, 0) == 0; // else the restarted image keeps "exe"
+    if (setenv(kHugePagesRestart, mark.c_str(), 1) == 0 && (!have_comm || setenv(kHugePagesComm, comm, 1) == 0) &&
         setenv("GLIBC_TUNABLES", value.c_str(), 1) == 0)
     {
       execv("/proc/self/exe", const_cast<char* const*>(argv));
