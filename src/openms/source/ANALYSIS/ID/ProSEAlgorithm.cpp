@@ -168,6 +168,57 @@ namespace OpenMS
       spectra.clear(true);
     }
 
+    // Resizes @p v to @p n elements as resize() does, but the storage that it allocates for them is first written once per
+    // page by the OpenMP threads: the serial construction of the elements then takes no page faults, one after the other,
+    // for the whole block (619,000 empty spectra, 465 MB: 0.21 s, then 0.015 s for the faults in parallel and 0.06 s for
+    // the construction at 64 threads). The bytes written are those the construction writes over; nothing else changes.
+    template <typename T>
+    void resizeWithParallelFaults(std::vector<T>& v, const Size n)
+    {
+      if (n > v.capacity())
+      {
+        v.reserve(n);
+        unsigned char* const tail = reinterpret_cast<unsigned char*>(v.data() + v.size());
+        const SignedSize pages = static_cast<SignedSize>(((n - v.size()) * sizeof(T) + 4095) / 4096);
+#pragma omp parallel for schedule(static) if (pages >= 1024)
+        for (SignedSize p = 0; p < pages; ++p) { tail[static_cast<Size>(p) * 4096] = 0; }
+      }
+      v.resize(n);
+    }
+
+    // The positions 0 .. n - 1 of @p keys (no NaN) ordered by (key, position) ascending, as MSExperiment::sortSpectra()
+    // orders spectra by retention time: a strict total order, so the order does not depend on how it is sorted. Parts
+    // sorted by the OpenMP threads, then merged pairwise.
+    std::vector<Size> orderByKeyInParallel(const std::vector<double>& keys)
+    {
+      const Size n = keys.size();
+      std::vector<Size> order(n);
+      std::iota(order.begin(), order.end(), Size(0));
+      const auto less = [&keys](Size a, Size b) { return keys[a] < keys[b] || (!(keys[b] < keys[a]) && a < b); };
+      int parts = 1;
+#ifdef _OPENMP
+      parts = static_cast<int>(std::max<Size>(1, std::min<Size>(static_cast<Size>(omp_get_max_threads()), n / 4096)));
+#endif
+      std::vector<Size> bounds(static_cast<Size>(parts) + 1);
+      for (int p = 0; p <= parts; ++p) { bounds[p] = n / static_cast<Size>(parts) * static_cast<Size>(p) + std::min(n % static_cast<Size>(parts), static_cast<Size>(p)); }
+#pragma omp parallel for schedule(static, 1)
+      for (int p = 0; p < parts; ++p) { std::sort(order.begin() + bounds[p], order.begin() + bounds[p + 1], less); }
+      std::vector<Size> merged(n);
+      for (int width = 1; width < parts; width *= 2)
+      {
+        const int pairs = (parts + 2 * width - 1) / (2 * width);
+#pragma omp parallel for schedule(dynamic, 1)
+        for (int q = 0; q < pairs; ++q)
+        {
+          const int p = 2 * width * q;
+          const Size lo = bounds[p], mid = bounds[std::min(p + width, parts)], hi = bounds[std::min(p + 2 * width, parts)];
+          std::merge(order.begin() + lo, order.begin() + mid, order.begin() + mid, order.begin() + hi, merged.begin() + lo, less);
+        }
+        order.swap(merged);
+      }
+      return order;
+    }
+
     // Whether MSExperiment::sortSpectra(false) would leave @p spectra as they are: their retention times ascend (equal ones
     // keep their order in its sort) and none is NaN (which would make the order depend on the sort). An O(n) check that
     // saves the O(n log n) sort (0.1-0.2 s for the 250,000 spectra of a timsTOF run).
@@ -6055,11 +6106,9 @@ namespace OpenMS
       {
         return false;
       }
-      // A slot for every spectrum of the file (MzMLHandler reserves as many): a chunk moves the spectra it
-      // keeps into the first of its slots right after parsing, so that only the chunks being parsed hold
-      // spectra of their own.
+      // The spectra that each chunk keeps, until all are parsed and put in their places (below)
       const Size n_chunks_used = first.size() - 1;
-      std::vector<MSSpectrum> spectra(n);
+      std::vector<std::vector<MSSpectrum>> parts(n_chunks_used);
       std::vector<Size> kept(n_chunks_used, 0);
       std::vector<MSChromatogram> chromatograms;
       // The chunks are handed out one by one, to the threads of this reader and to those of a helper (another
@@ -6098,9 +6147,9 @@ namespace OpenMS
               if (parsed)
               {
                 for (MSSpectrum& spectrum : part) { spectrum.sortByPosition(); } // see loadMS2Spectra()
-                std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
                 kept[c] = part.size();
                 if (last) { chromatograms = std::move(part.getChromatograms()); }
+                parts[c] = std::move(part.getSpectra());
               }
             }
           }
@@ -6134,28 +6183,53 @@ namespace OpenMS
       }
       if (!ok || !chunks_ok) { return false; }
 
-      Size kept_total = 0; // the spectra in file order: each chunk's slots, without the unused ones
-      for (Size c = 0; c < n_chunks_used; ++c)
+      // The rest in parallel, also with the threads of a thread that waits for the spectra: the spectra are put into
+      // their places in the list, in retention time order as MSExperiment::sortSpectra(false) puts them (equal ones in
+      // file order), unless a retention time is NaN (then in file order: the order of sortSpectra() depends on its sort,
+      // which loadMS2Spectra() then runs), and MSExperiment::updateRanges(). (A list in file order, sorted afterwards,
+      // took 0.29 s on one thread for the 619,000 spectra of a timsTOF HeLa run, which are not in retention time order:
+      // 0.2 s to move them along the cycles of the permutation.)
+#ifdef _OPENMP
+      const int own_threads = omp_get_max_threads();
+      omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads);
+      const OnScopeExit restore([own_threads]() { omp_set_num_threads(own_threads); });
+#endif
+      std::vector<Size> offset(n_chunks_used + 1, 0); // the first spectrum of each chunk among the spectra kept
+      for (Size c = 0; c < n_chunks_used; ++c) { offset[c + 1] = offset[c] + kept[c]; }
+      const Size kept_total = offset.back();
+      std::vector<double> rts(kept_total);
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize c = 0; c < static_cast<SignedSize>(n_chunks_used); ++c)
       {
-        for (Size i = first[c]; i < first[c] + kept[c]; ++i, ++kept_total)
-        {
-          if (kept_total != i) { spectra[kept_total] = std::move(spectra[i]); }
-        }
+        for (Size j = 0; j < kept[c]; ++j) { rts[offset[c] + j] = parts[c][j].getRT(); }
       }
-      spectra.erase(spectra.begin() + static_cast<SignedSize>(kept_total), spectra.end());
+      const bool any_nan = std::any_of(rts.begin(), rts.end(), [](double rt) { return std::isnan(rt); });
+      const bool in_order = std::is_sorted(rts.begin(), rts.end());
+      std::vector<Size> place; // the place of the spectrum with file position i; empty: i
+      if (!any_nan && !in_order)
+      {
+        const std::vector<Size> order = orderByKeyInParallel(rts);
+        place.resize(kept_total);
+#pragma omp parallel for schedule(static)
+        for (SignedSize k = 0; k < static_cast<SignedSize>(kept_total); ++k) { place[order[k]] = static_cast<Size>(k); }
+      }
+      std::vector<MSSpectrum> spectra;
+      resizeWithParallelFaults(spectra, kept_total);
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize c = 0; c < static_cast<SignedSize>(n_chunks_used); ++c)
+      {
+        for (Size j = 0; j < kept[c]; ++j)
+        {
+          const Size i = offset[c] + j;
+          spectra[place.empty() ? i : place[i]] = std::move(parts[c][j]);
+        }
+        std::vector<MSSpectrum>().swap(parts[c]);
+      }
       exp.setSpectra(std::move(spectra));
       exp.setChromatograms(std::move(chromatograms));
       exp.setLoadedFileType(filename);
       exp.setLoadedFilePath(filename);
-      {
-        // in parallel (MSExperiment::updateRanges()), also with the threads of a thread that waits for the spectra
-#ifdef _OPENMP
-        const int own_threads = omp_get_max_threads();
-        omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads);
-        const OnScopeExit restore([own_threads]() { omp_set_num_threads(own_threads); });
-#endif
-        exp.updateRanges();
-      }
+      exp.updateRanges();
       return true;
     }
 
