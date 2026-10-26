@@ -37,6 +37,12 @@ namespace OpenMS
     //   scanStart=, scanEnd=, merged=) are used by OpenMS DDA/DIA PASEF
     //   and pwiz combined mode; the regex targets the "scan=<int>" token
     //   which remains the most meaningful scan-number proxy.
+    // "frame=NUMBER" without a scan= token, e.g. Bruker TDF MS1 frames or
+    //   diaTracer pseudo-DDA spectra: the frame number identifies the spectrum.
+    //   "scan=" is searched without a leading space on purpose: PercolatorInfile::getScanIdentifier()
+    //   removes the whitespace ("frame=10scan=42") before it asks for the regex.
+    if (StringUtils::hasPrefix(id, "frame=") && !StringUtils::hasSubstring(id, "scan=")) return std::string(R"(frame=(?<GROUP>\d+))");
+
     if (StringUtils::hasPrefix(id, "scan=")
      || StringUtils::hasPrefix(id, "controllerType=")
      || StringUtils::hasPrefix(id, "function=")

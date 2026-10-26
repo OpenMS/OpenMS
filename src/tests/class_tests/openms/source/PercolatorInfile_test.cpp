@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
@@ -264,6 +265,60 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the isotope error corrects dm/abs
   // SAMPLEK: no isotope error, the plain difference
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("dm")), observed_mz - samplek.getMZ(2))
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("absdm")), std::abs(observed_mz - samplek.getMZ(2)))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: a warning names the spectra without a scan number))
+{
+  // The scan number pattern comes from the first spectrum reference ("scan=5"). The second one ("index=3", e.g. from
+  // another input) does not match it, so its PSM gets ScanNr -1, and Percolator puts all such PSMs into one
+  // cross-validation fold. That is reported, not silent (#10719).
+  auto make_pid = [](const std::string& reference, const std::string& sequence)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore('K');
+    ev.setAAAfter('S');
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setMZ(AASequence::fromString(sequence).getMZ(2));
+    pid.setRT(10.0);
+    pid.setSpectrumReference(reference);
+    pid.setHits(std::vector<PeptideHit>{hit});
+    return pid;
+  };
+  PeptideIdentificationList pids;
+  pids.push_back(make_pid("scan=5", "SAMPLER"));
+  pids.push_back(make_pid("index=3", "SAMPLEK"));
+  // a spectrum whose only PSM is skipped (no target/decoy information) gets no ScanNr, so the warning leaves it out
+  pids.push_back(make_pid("index=4", "SAMPLEG"));
+  std::vector<PeptideHit> unknown_type = pids[2].getHits();
+  unknown_type[0].setTargetDecoyType(PeptideHit::TargetDecoyType::UNKNOWN);
+  pids[2].setHits(unknown_type);
+
+  ostringstream warnings;
+  getGlobalLogWarn().insert(warnings);
+  TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3).size(), 1)
+  getGlobalLogWarn().remove(warnings);
+  TEST_EQUAL(static_cast<int>(pids[0].getHits()[0].getMetaValue("ScanNr")), 5)
+  TEST_EQUAL(static_cast<int>(pids[1].getHits()[0].getMetaValue("ScanNr")), -1)
+  TEST_EQUAL(pids[2].getHits()[0].metaValueExists("ScanNr"), false)
+  TEST_TRUE(warnings.str().find("no scan number found in 1 of 2 spectrum references (e.g. 'index=3')") != std::string::npos)
+
+  // all scan numbers found: no warning
+  PeptideIdentificationList scans;
+  scans.push_back(make_pid("scan=5", "SAMPLER"));
+  scans.push_back(make_pid("scan=6", "SAMPLEK"));
+  ostringstream none;
+  getGlobalLogWarn().insert(none);
+  PercolatorInfile::stampPinFeaturesOnHits(scans, "trypsin", 2, 3);
+  getGlobalLogWarn().remove(none);
+  TEST_EQUAL(none.str().find("no scan number") == std::string::npos, true)
 }
 END_SECTION
 
