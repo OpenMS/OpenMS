@@ -118,7 +118,30 @@ The completed tiled run reports 10,771 cache hits, 2,474 misses and 2,143 evicti
 
 **Full output parity now passes for this one input at 1,024 MiB. Efficiency acceptance does not.** The earlier normal record is 856.82 seconds and 1,848,496 KiB RSS. It is not a clean matched timing trial because its supervisor was interrupted. These single Debug runs show no clear resource benefit. The 128 MiB path still fails. Do not widen its cap or shorten the scientific population to call it a pass.
 
-Next, reduce repeated decoding and retained mutable copies at the raw-access boundary. Use the measured costs and preserve this complete-output check. Keep the shared lock until a measured change needs a different access policy. Local commands and results are under `representative-1312/copy-acceptance-1445`.
+Local commands and results are under `representative-1312/copy-acceptance-1445`.
+
+### Release completed calibration scans
+
+The next full-input diagnostic found unused MS2 owners during MS1 calibration reads. At the first failed decoder request, 30,264,025 bytes were free. The decoder needed 33,554,432 bytes. The cache was empty and cancellation was off. The diagnostic wrapper exited 0, but the engine exited 8. This is failure evidence, not a completed search.
+
+[The owner-release fix](https://github.com/OpenMS/OpenMS/commit/d7f5972f79fbf423778371036cc28c06edabd81f) drops completed fragment scans before the precursor read. It covers both IM and m/z calibration. Fit inputs, traversal, byte caps and science settings are unchanged.
+
+[The native regression](https://github.com/OpenMS/OpenMS/commit/008696b0f337fb6d9cdac4ddee847f53008dcd4f) runs both real calibration APIs through the indexed reader. Both paths fail on the old core. Both pass after the fix. Fits and positive extraction windows match the unrestricted native reference within `1e-10`. Peak charges equal the 2,512-byte usable cap. Final charges are zero.
+
+All 114 affected native/SDK checks, six nested consumers, 10 standalone checks and 10 explicit NDEBUG checks pass. Both private raw ASan/UBSan tests pass. Leak detection is off, and the core SDK is not instrumented. These checks prove the local lifetime repair, not complete resource acceptance.
+
+A new full-input check used the same input, full library, eight threads and science settings. Source, binary, SDK, input and library hashes match before and after. No build or profile ran during the check.
+
+| Reader | Observed result after owner release |
+|---|---|
+| Tiled, 1,024 MiB declared | Engine and wrapper exit 0. Wall time 924.74 seconds. Peak process RSS 1,833,572 KiB. All 4,688 result rows, nonzero IM evidence, feature/score tables and 985/985/251 matrix rows match the previous complete output. |
+| Tiled, 128 MiB declared | Engine and wrapper exit 8 after 101.62 seconds. Decoder admission still fails during calibration. No final output exists. The partial RSS is not a completed-run comparison. |
+
+The completed run reports 10,760 cache hits, 2,485 misses and 2,159 evictions. Private peak charges are 1,006,631,890 bytes, below the 1,006,632,960-byte usable cap. Engine-held copies retain 125,104,072 bytes at the log point. The local tests check final-owner release separately.
+
+This change removes a proved local lifetime fault and preserves complete outputs. It does not establish lower process RSS or a speed gain. The timings are single Debug observations, not randomized matched trials. Concurrent whole-job admission, native decoder bounds and shared extraction remain open. Do not raise the low-budget cap or reduce the library to call it a pass. Commands and results are under `representative-1312/calibration-acceptance-1530`.
+
+Debug call stacks also include full-array sortedness precondition checks during extraction. Do not use their cost to choose a Release cache policy. Keep the shared lock until optimized, matched measurements support a different policy.
 
 ## Limits
 
@@ -133,7 +156,7 @@ Next, reduce repeated decoding and retained mutable copies at the raw-access bou
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
 - [x] Match complete-library outputs for the converted TimSim control run at the 1,024 MiB setting. This closes one correctness check, not representative resource acceptance.
-- [ ] Reduce repeated decoding and retained-copy costs. Keep complete output parity. The 128 MiB decoder admission still fails. Query-grid tests do not bound full-engine output or hypothesis memory.
+- [ ] Reduce repeated decoding and retained-copy costs. The checked-copy and calibration-owner repairs preserve complete output parity. The 128 MiB decoder admission still fails. Integrate whole-job admission and shared extraction without changing the scientific population. Query-grid tests do not bound full-engine output or hypothesis memory.
 - [ ] Extend pinned input coverage beyond the converted TimSim control run. Test Astral and the remaining cohort. Keep conversion cost separate. Measure native decoder/metadata, downstream workspace memory, runtime and peak RSS. Do not change the frozen WP-00 files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 

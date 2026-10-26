@@ -104,8 +104,8 @@ keeps raw cache peaks and scan misses equal at 1/16/4,096 public extraction quer
 Output arrays still grow. Nine fresh complete PASEF CLI runs show **no process
 peak RSS reduction** at the smaller cache limit. A separate heap profile confirms
 native allocations outside private enforcement. See the [measured results and
-limits](work-packages/03-raw-tiles.md#small-fixture-process-measurement). Full peptide-library,
-representative speed/RSS and native-memory acceptance remain open.
+limits](work-packages/03-raw-tiles.md#small-fixture-process-measurement). Representative
+speed/RSS and native-memory acceptance remain open.
 
 A full converted TimSim control run exposed an indexed IM-name defect. The
 shared decoder and parallel error repairs pass **113 native/SDK checks**, plus
@@ -119,8 +119,18 @@ A new 1,024 MiB tiled run completes in **1,040.29 seconds** at **1,830,824 KiB R
 All **4,688** output rows, feature/score tables, nonzero IM evidence and three
 matrix levels match the completed normal reference. The 128 MiB run still fails
 decoder admission. This is one full-input correctness result, **not efficiency
-acceptance**. Reduce repeated decoding and retained copies next. See [the measured
+acceptance**. See [the measured
 results and limits](work-packages/03-raw-tiles.md#measured-reader-cost-and-copy-admission).
+
+The next repair releases completed MS2 scans before MS1 calibration reads.
+Both real calibration APIs failed on the old core and now match native fits
+at a 2,512-byte cap, with final charges zero. All 114 affected native/SDK checks,
+six nested consumers, 10 standalone and 10 NDEBUG checks pass. The new full
+1,024 MiB run completes in **924.74 seconds** at **1,833,572 KiB RSS**.
+All 4,688 result rows, feature/score tables and matrices still match.
+The 128 MiB run still fails decoder admission. These single Debug runs do not
+prove a speed gain or lower RSS. Next, integrate whole-job admission and shared
+extraction. See [the owner-release checks and limits](work-packages/03-raw-tiles.md#release-completed-calibration-scans).
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
