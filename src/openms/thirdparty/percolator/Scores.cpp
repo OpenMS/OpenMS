@@ -1130,7 +1130,67 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
                                              const bool bestByScore) const {
   // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
   std::vector<char> kept(scores_.size(), 1);
-  if (trainBestPositive && bestByScore && !scores_.empty()) {
+  bool bestByScoreDone = false;
+#ifdef _OPENMP
+  if (trainBestPositive && bestByScore && scores_.size() >= std::size_t(2 * kMinPairTaskSize) &&
+      scores_.size() < (std::size_t(1) << 32) && omp_in_parallel()) {
+    // OpenMS (BP-PAR): the same kept[] as the serial path below, by the tasks of the enclosing parallel region.
+    // kept[i] is whether i is the smallest position of its (file, scan, label) group, which does not depend on the
+    // order in which the groups are formed: one pass in blocks checks what the serial path checks (no NaN score or
+    // mass, no score higher than the one before it; the first of a block is compared with the last of the block
+    // before it) and makes a packed 64-bit
+    // key (file << 34 | scan << 2 | 2 - label, as CV-A1 below) per PSM; the (key, position) pairs are sorted (a
+    // total order: every sort gives the same result), and the first of each run of equal keys is the smallest
+    // position of its group. Where a key does not fit, the serial path.
+    struct PackedKey {
+      std::uint64_t key;
+      std::uint32_t index;
+    };
+    const std::ptrdiff_t sn = static_cast<std::ptrdiff_t>(scores_.size());
+    const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
+    const std::ptrdiff_t numBlocks = (sn + blockSize - 1) / blockSize;
+    std::vector<PackedKey> packed(scores_.size());
+    // per block: 0 ok, 1 a key does not fit, 2 NaN or not sorted by score (the serial path returns false)
+    std::vector<char> state(static_cast<std::size_t>(numBlocks), 0);
+    const auto fill = [&](std::ptrdiff_t block) {
+      const std::ptrdiff_t b = block * blockSize, e = std::min(sn, (block + 1) * blockSize);
+      char st = 0;
+      for (std::ptrdiff_t i = b; i < e; ++i) {
+        const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
+        if (std::isnan(sh.score) || std::isnan(sh.pPSM->expMass) ||
+            (i > 0 && sh.score > scores_[static_cast<std::size_t>(i - 1)].score)) {
+          st = 2;
+          break;
+        }
+        const int label = static_cast<int>(sh.label);
+        if (!(sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2)) st = 1;
+        packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
+                                                   (std::uint64_t(sh.pPSM->scan) << 2) | std::uint64_t(2 - label),
+                                               static_cast<std::uint32_t>(i)};
+      }
+      state[static_cast<std::size_t>(block)] = st;
+    };
+#pragma omp taskloop grainsize(1) shared(fill)
+    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) fill(block);
+    if (std::any_of(state.begin(), state.end(), [](char x) { return x == 2; })) return false;
+    if (std::none_of(state.begin(), state.end(), [](char x) { return x == 1; })) {
+      sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) {
+        return x.key < y.key || (x.key == y.key && x.index < y.index);
+      });
+      const auto mark = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+        for (std::ptrdiff_t k = std::max<std::ptrdiff_t>(b, 1); k < e; ++k) {
+          if (packed[static_cast<std::size_t>(k)].key == packed[static_cast<std::size_t>(k - 1)].key) {
+            kept[packed[static_cast<std::size_t>(k)].index] = 0;
+          }
+        }
+      };
+#pragma omp taskloop grainsize(1) shared(mark)
+      for (std::ptrdiff_t b = 0; b < numBlocks; ++b) mark(b * blockSize, std::min(sn, (b + 1) * blockSize));
+      bestByScoreDone = true;
+    }
+  }
+#endif
+  if (trainBestPositive && bestByScore && !scores_.empty() && !bestByScoreDone) {
     // the best-scoring PSM of each (file, scan, label) group: the first of the group in this order if
     // the set is sorted by score (as generatePositiveTrainingSet's stable sorts keep it); otherwise false
     if (!comparableScores(scores_.begin(), scores_.end())) return false;
@@ -1156,7 +1216,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
       const ScoreHolder& sh = scores_[i];
       kept[i] = seen.insert({sh.pPSM->specFileNr, sh.pPSM->scan, sh.label}).second ? 1 : 0;
     }
-  } else if (trainBestPositive && !scores_.empty()) {
+  } else if (trainBestPositive && !bestByScore && !scores_.empty()) {
     if (!comparableScores(scores_.begin(), scores_.end())) return false;
     // OpenMS (CV-A1): one 64-bit key (file, scan, label) per PSM where they fit: file << 34 | scan << 2 |
     // (2 - label) (labels -1..2: a higher label sorts first, as in OrderScanLabel), with the position; the keys
