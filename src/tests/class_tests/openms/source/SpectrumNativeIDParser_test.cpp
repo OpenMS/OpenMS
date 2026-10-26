@@ -217,6 +217,24 @@ START_SECTION([EXTRA] Bruker TDF frame= / MS:1002818 native ID)
 
   // merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818"), 9);
+
+  // the scan= token wins over the frame= prefix in all Bruker TDF variants
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=120 windowGroup=3 scan=475"), R"(scan=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=1 scan=5 frame=1 scan=9"), R"(scan=(?<GROUP>\d+))");
+}
+END_SECTION
+
+START_SECTION([EXTRA] frame= native ID without a scan= token (#10719))
+{
+  // Bruker TDF MS1 frames and diaTracer pseudo-DDA spectra have IDs "frame=<N>" only.
+  // The frame number identifies the spectrum; the scan= pattern would match nothing
+  // and give -1 for every spectrum, which collapses Percolator's cross-validation folds.
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("frame=17"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=17"), R"(frame=(?<GROUP>\d+))");
+
+  RegularExpression frame_re(SpectrumNativeIDParser::getRegExFromNativeID("frame=1"));
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=17", frame_re, true), 17);
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=62784", frame_re, true), 62784);
 }
 END_SECTION
 
