@@ -287,6 +287,7 @@ namespace OpenMS
     const bool has_im = (im_extraction_window > 0.0);
     auto extract_range = [&](const Size coord_begin, const Size coord_end, const bool report_progress)
     {
+      const OpenSwath::SpectrumAccessScope read_scope(OpenSwath::SpectrumAccessScope::Purpose::EXTRACTION);
       for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
       {
         if (report_progress)

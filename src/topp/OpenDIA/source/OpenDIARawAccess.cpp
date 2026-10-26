@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 
 namespace OpenDIA
@@ -53,6 +54,22 @@ namespace OpenDIA
       if (q.lower == q.upper && !(lowerClosed(q) && upperClosed(q))) { return false; }
       return (upper > q.lower || (upper == q.lower && lowerClosed(q))) &&
         (lower < q.upper || (lower == q.upper && upperClosed(q)));
+    }
+
+    using Clock = std::chrono::steady_clock;
+    ByteCount elapsed(Clock::time_point start)
+    {
+      return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - start).count();
+    }
+
+    ByteCount numericBytes(const OpenSwath::Spectrum& spectrum)
+    {
+      ByteCount bytes = 0;
+      for (const auto& array : spectrum.getDataArrays())
+      {
+        bytes = checkedByteAdd(bytes, checkedByteMultiply(array->data.size(), sizeof(double)));
+      }
+      return bytes;
     }
 
     ByteCount charge(const OpenSwath::Spectrum& spectrum)
@@ -130,14 +147,15 @@ namespace OpenDIA
     if (max_scan_bytes == 0 || max_scan_bytes > total_bytes - native_reserve) { invalid("Invalid maximum scan size"); }
   }
 
-  std::optional<ByteReservation> RawCache::reserve_(ByteCount bytes)
+  std::optional<ByteReservation> RawCache::reserve_(ByteCount bytes, RawPhase phase)
   {
     // Evict on pressure. Pinned scans keep leases, so admission can still fail.
     auto reservation = budget_.tryReserve(bytes);
     while (!reservation && !entries_.empty() && !budget_.snapshot().cancelled)
     {
       entries_.pop_back();
-      ++evictions_;
+      ++work_.evictions;
+      ++phases_[static_cast<size_t>(phase)].evictions;
       reservation = budget_.tryReserve(bytes);
     }
     return reservation;
@@ -146,7 +164,13 @@ namespace OpenDIA
   RawCacheSnapshot RawCache::snapshot() const
   {
     std::lock_guard lock(mutex_);
-    return {budget_.snapshot(), entries_.size(), hits_, misses_, evictions_};
+    return {budget_.snapshot(), entries_.size(), work_.hits, work_.misses, work_.evictions, work_, phases_};
+  }
+
+  void RawCache::setCalibration(bool active)
+  {
+    std::lock_guard lock(mutex_);
+    calibrating_ = active;
   }
 
   void RawCache::clear()
@@ -171,26 +195,61 @@ namespace OpenDIA
     metadata_source_ = source_->getExperiment().clone();
   }
 
+  RawPhase RawAccess::phase_(int id) const
+  {
+    if (cache_->calibrating_) return RawPhase::CALIBRATION;
+    using Scope = OpenSwath::SpectrumAccessScope;
+    if (Scope::current() == Scope::Purpose::SCORING) return RawPhase::SCORING;
+    if (Scope::current() == Scope::Purpose::EXTRACTION)
+    {
+      switch (source_->getSpectrumMetaById(id).ms_level)
+      {
+        case 1: return RawPhase::MS1_EXTRACTION;
+        case 2: return RawPhase::MS2_EXTRACTION;
+      }
+    }
+    return RawPhase::UNCLASSIFIED;
+  }
+
   std::shared_ptr<const RawScan> RawAccess::acquire(int id)
   {
+    const auto started = Clock::now();
     std::lock_guard lock(cache_->mutex_);
     const auto index = source_->getExperimentIndex(id);
+    const auto phase_id = phase_(id);
+    auto& work = cache_->work_;
+    auto& phase = cache_->phases_[static_cast<size_t>(phase_id)];
+    const auto finish = [&]
+    {
+      const auto ns = elapsed(started);
+      work.read_ns += ns;
+      phase.read_ns += ns;
+    };
     if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
     auto& entries = cache_->entries_;
     // ponytail: one lock and linear LRU lookup, add an index only if profiling requires it.
     auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.source == source_ && e.id == id; });
     if (found != entries.end())
     {
-      ++cache_->hits_;
+      ++work.hits;
+      ++phase.hits;
       entries.splice(entries.begin(), entries, found);
+      finish();
       return entries.front().scan;
     }
-    ++cache_->misses_;
+    ++work.misses;
+    ++phase.misses;
     // Reserve the full scan bound before the native decoder runs.
-    auto reservation = cache_->reserve_(cache_->max_scan_bytes_);
+    auto reservation = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
     if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
     // Native decode is outside private capacity enforcement. Check before conversion.
+    const auto decode_started = Clock::now();
     const auto native = metadata_source_->getSpectrumPeaks(index);
+    const auto decode_ns = elapsed(decode_started);
+    ++work.decodes;
+    ++phase.decodes;
+    work.decode_ns += decode_ns;
+    phase.decode_ns += decode_ns;
     if (scanBytes(native) > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
     auto scan = std::shared_ptr<RawScan>(new RawScan);
     scan->metadata_ = metadata_source_->getSpectrumMetadata(index);
@@ -203,6 +262,10 @@ namespace OpenDIA
     scan->lease_ = reservation->commit(bytes);
     // Publish only a complete scan whose retained capacities fit the bound.
     entries.push_front({source_, id, scan});
+    const auto numeric_bytes = numericBytes(*scan->columns_);
+    work.decoded_numeric_bytes = checkedByteAdd(work.decoded_numeric_bytes, numeric_bytes);
+    phase.decoded_numeric_bytes += numeric_bytes;
+    finish();
     return scan;
   }
 
@@ -219,11 +282,15 @@ namespace OpenDIA
   {
     const auto scan = acquire(id);
     std::lock_guard lock(cache_->mutex_);
+    const auto started = Clock::now();
+    const auto phase_id = phase_(id);
+    auto& work = cache_->work_;
+    auto& phase = cache_->phases_[static_cast<size_t>(phase_id)];
     // Bound the detached copy from the pinned columns, not the maximum scan size.
     const auto copy_bound = checkedByteAdd(checkedByteAdd(charge(*scan->columns_), sizeof(MutableColumns)),
       checkedByteAdd(sizeof(MutableSpectrum), checkedByteMultiply(scan->arrayCount(), sizeof(OpenSwath::BinaryDataArrayPtr))));
     if (copy_bound > cache_->max_scan_bytes_) { invalid("Mutable scan exceeds maximum scan bytes"); }
-    auto reservation = cache_->reserve_(copy_bound);
+    auto reservation = cache_->reserve_(copy_bound, phase_id);
     if (!reservation) { invalid("Mutable scan admission failed"); }
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
@@ -251,6 +318,14 @@ namespace OpenDIA
     auto columns_reservation = reservation->split(column_bytes);
     owner->lease = columns_reservation.commit(column_bytes);
     result->lease = reservation->commit(result_bytes);
+    const auto numeric_bytes = numericBytes(*owner->spectrum);
+    const auto ns = elapsed(started);
+    ++work.copies;
+    ++phase.copies;
+    work.copied_numeric_bytes = checkedByteAdd(work.copied_numeric_bytes, numeric_bytes);
+    phase.copied_numeric_bytes += numeric_bytes;
+    work.copy_ns += ns;
+    phase.copy_ns += ns;
     return OpenSwath::SpectrumPtr(result, &result->spectrum);
   }
 

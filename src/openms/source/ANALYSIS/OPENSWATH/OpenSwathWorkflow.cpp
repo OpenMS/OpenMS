@@ -1461,6 +1461,7 @@ namespace OpenMS
     OpenSwathOSWWriter::OSWData* deferred_osw_output,
     const ChromatogramIndex* chromatogram_index) const
   {
+    const OpenSwath::SpectrumAccessScope read_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 

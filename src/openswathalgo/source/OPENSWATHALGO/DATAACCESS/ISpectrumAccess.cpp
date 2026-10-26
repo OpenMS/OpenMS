@@ -15,6 +15,30 @@
 
 namespace OpenSwath
 {
+  namespace
+  {
+    SpectrumAccessScope::Purpose& spectrumAccessPurpose() noexcept
+    {
+      static thread_local SpectrumAccessScope::Purpose purpose = SpectrumAccessScope::Purpose::UNSPECIFIED;
+      return purpose;
+    }
+  }
+
+  SpectrumAccessScope::SpectrumAccessScope(Purpose purpose) noexcept : previous_(current())
+  {
+    spectrumAccessPurpose() = purpose;
+  }
+
+  SpectrumAccessScope::~SpectrumAccessScope() noexcept
+  {
+    spectrumAccessPurpose() = previous_;
+  }
+
+  SpectrumAccessScope::Purpose SpectrumAccessScope::current() noexcept
+  {
+    return spectrumAccessPurpose();
+  }
+
   ISpectrumAccess::~ISpectrumAccess()
   {
   }

@@ -23,6 +23,28 @@ namespace OpenMS
 }
 namespace OpenSwath
 {
+  /**
+    @brief Tags spectrum reads on the current thread, restoring the previous purpose on exit.
+  */
+  class OPENSWATHALGO_DLLAPI SpectrumAccessScope
+  {
+  public:
+    enum class Purpose { UNSPECIFIED, EXTRACTION, SCORING };
+
+    /// Establish a read purpose for this scope.
+    explicit SpectrumAccessScope(Purpose purpose) noexcept;
+    ~SpectrumAccessScope() noexcept;
+    SpectrumAccessScope(const SpectrumAccessScope&) = delete;
+    SpectrumAccessScope& operator=(const SpectrumAccessScope&) = delete;
+    SpectrumAccessScope(SpectrumAccessScope&&) = delete;
+    SpectrumAccessScope& operator=(SpectrumAccessScope&&) = delete;
+
+    /// Return the current thread's read purpose.
+    static Purpose current() noexcept;
+
+  private:
+    Purpose previous_;
+  };
 
   using SpectrumSequence = OpenMS::SpectrumSequence;
   /**

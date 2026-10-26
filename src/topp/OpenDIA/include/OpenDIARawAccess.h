@@ -9,15 +9,29 @@
 #include "OpenDIARecords.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <array>
 #include <list>
 #include <mutex>
 
 namespace OpenDIA
 {
+  enum class RawPhase { UNCLASSIFIED, CALIBRATION, MS1_EXTRACTION, MS2_EXTRACTION, SCORING, COUNT };
+
+  /// Successful read/copy timings are summed per call and may overlap across threads.
+  /// Numeric bytes count materialized double values, not compressed input or native workspace.
+  struct RawWorkCounters
+  {
+    ByteCount hits = 0, misses = 0, evictions = 0, decodes = 0, copies = 0;
+    ByteCount decoded_numeric_bytes = 0, copied_numeric_bytes = 0;
+    ByteCount read_ns = 0, decode_ns = 0, copy_ns = 0;
+  };
+
   struct RawCacheSnapshot
   {
     BudgetSnapshot budget;
     OpenMS::Size cache_entries = 0, hits = 0, misses = 0, evictions = 0;
+    RawWorkCounters work;
+    std::array<RawWorkCounters, static_cast<size_t>(RawPhase::COUNT)> phases{};
   };
 
   /// Read-only scan. The lease stays valid after cache removal.
@@ -57,6 +71,8 @@ namespace OpenDIA
     RawCache(ByteCount total_bytes, ByteCount native_reserve, ByteCount max_scan_bytes);
     /// Read counters and budget state under one lock.
     RawCacheSnapshot snapshot() const;
+    /// Change only between joined workflow stages, never while readers are active.
+    void setCalibration(bool active);
     /// Remove cached scans. Live leases stay valid. This does not undo cancel().
     void clear();
     /// Reject new admission and remove cached scans. Live leases stay valid.
@@ -69,12 +85,14 @@ namespace OpenDIA
       int id;
       std::shared_ptr<const RawScan> scan;
     };
-    std::optional<ByteReservation> reserve_(ByteCount bytes);
+    std::optional<ByteReservation> reserve_(ByteCount bytes, RawPhase phase);
     mutable std::mutex mutex_;
     ByteBudget budget_;
     ByteCount max_scan_bytes_;
     std::list<Entry> entries_;
-    OpenMS::Size hits_ = 0, misses_ = 0, evictions_ = 0;
+    RawWorkCounters work_;
+    std::array<RawWorkCounters, static_cast<size_t>(RawPhase::COUNT)> phases_{};
+    bool calibrating_ = false;
   };
 
   /// Private scan adapter. Clones share the cache and native handle lock.
@@ -111,6 +129,7 @@ namespace OpenDIA
     size_t getNrChromatograms() const override;
     std::string getChromatogramNativeID(int id) const override;
   private:
+    RawPhase phase_(int id) const; // cache lock held
     std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source_;
     std::shared_ptr<RawCache> cache_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> metadata_source_;

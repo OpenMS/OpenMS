@@ -1973,6 +1973,7 @@ protected:
         }
       }
 
+      if (raw_cache) raw_cache->setCalibration(true);
       TransformationDescription trafo_rtnorm;
       if (!trafo_in.empty())
       {
@@ -2032,6 +2033,7 @@ protected:
         trafo_rtnorm = calibration_result.rt_trafo;
       }
 
+      if (raw_cache) raw_cache->setCalibration(false);
       auto clamp_auto_pasef_im_window = [&](double& window, const char* label, const bool enabled)
       {
         if (!enabled)
@@ -2195,6 +2197,19 @@ protected:
                         << " peak_accounted_bytes=" << stats.budget.peak_total_bytes
                         << " usable_bytes=" << stats.budget.usable_bytes
                         << " live_bytes=" << stats.budget.committed_bytes << '\n';
+        const auto log_work = [](const char* name, const OpenDIA::RawWorkCounters& work)
+        {
+          OPENMS_LOG_INFO << "Raw tile work: phase=" << name
+            << " hits=" << work.hits << " misses=" << work.misses << " evictions=" << work.evictions
+            << " decodes=" << work.decodes << " copies=" << work.copies
+            << " decoded_numeric_bytes=" << work.decoded_numeric_bytes
+            << " copied_numeric_bytes=" << work.copied_numeric_bytes
+            << " read_ns=" << work.read_ns << " decode_ns=" << work.decode_ns << " copy_ns=" << work.copy_ns << '\n';
+        };
+        log_work("total", stats.work);
+        constexpr const char* names[]{"unclassified", "calibration", "ms1_extraction", "ms2_extraction", "scoring"};
+        static_assert(std::size(names) == static_cast<size_t>(OpenDIA::RawPhase::COUNT));
+        for (size_t i = 0; i < stats.phases.size(); ++i) log_work(names[i], stats.phases[i]);
       }
       total_extracted_features += run_feature_count;
       if (write_parquet)

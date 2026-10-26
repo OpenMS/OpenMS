@@ -454,6 +454,85 @@ namespace
       "all array leases/cancellation and quadratic/ppm fallback passed\n";
   }
 
+  void phaseCounters()
+  {
+    using Scope = OpenSwath::SpectrumAccessScope;
+    using Purpose = Scope::Purpose;
+    check(Scope::current() == Purpose::UNSPECIFIED, "Read purpose leaked into caller");
+    auto experiment = smallRun();
+    experiment[0].setMSLevel(1);
+    IndexedFile indexed(experiment);
+    auto cache = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    auto access = std::make_shared<RawAccess>(indexed.source(), cache);
+    access->acquire(0);
+    {
+      Scope scoring(Purpose::SCORING);
+      auto child = std::async(std::launch::async, []
+      {
+        check(Scope::current() == Purpose::UNSPECIFIED, "Purpose leaked across threads");
+        Scope extraction(Purpose::EXTRACTION);
+        check(Scope::current() == Purpose::EXTRACTION, "Worker purpose was not set");
+      });
+      child.get();
+      try { Scope extraction(Purpose::EXTRACTION); throw std::runtime_error("scope check"); }
+      catch (const std::runtime_error&) {}
+      check(Scope::current() == Purpose::SCORING, "Nested exception did not restore purpose");
+      cache->setCalibration(true);
+      access->getSpectrumById(0);
+      cache->setCalibration(false);
+      using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+      std::vector<Extractor::ExtractionCoordinates> coordinates(1);
+      coordinates[0].mz = 401;
+      coordinates[0].rt_end = -1;
+      const auto extract = [&](const OpenSwath::SpectrumAccessPtr& reader)
+      {
+        std::vector<OpenSwath::ChromatogramPtr> output{std::make_shared<OpenSwath::Chromatogram>()};
+        Extractor().extractChromatograms(reader, output, coordinates, 0.1, false, -1, "tophat");
+      };
+      extract(access);
+      extract(std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(access, 0, 1, 0, false));
+      check(Scope::current() == Purpose::SCORING, "Actual extractor did not restore caller purpose");
+      access->getSpectrumById(1);
+    }
+    check(Scope::current() == Purpose::UNSPECIFIED, "Purpose leaked after scope exit");
+    const auto stats = cache->snapshot();
+    const auto& phase = stats.phases;
+    check(stats.hits == 7 && stats.misses == 4 && stats.work.decodes == 4 && stats.work.copies == 6,
+      "Read/decode/copy totals changed");
+    check(phase[static_cast<size_t>(RawPhase::UNCLASSIFIED)].misses == 1 &&
+      phase[static_cast<size_t>(RawPhase::CALIBRATION)].copies == 1 &&
+      phase[static_cast<size_t>(RawPhase::MS1_EXTRACTION)].hits == 2 &&
+      phase[static_cast<size_t>(RawPhase::MS1_EXTRACTION)].copies == 1 &&
+      phase[static_cast<size_t>(RawPhase::MS2_EXTRACTION)].misses == 3 &&
+      phase[static_cast<size_t>(RawPhase::MS2_EXTRACTION)].copies == 3 &&
+      phase[static_cast<size_t>(RawPhase::SCORING)].copies == 1,
+      "Calibration, actual extraction or calibrated-wrapper reads were misclassified");
+    check(stats.work.decoded_numeric_bytes == 3072 && stats.work.copied_numeric_bytes == 5120 &&
+      stats.work.read_ns >= stats.work.decode_ns && stats.work.decode_ns > 0 && stats.work.copy_ns > 0,
+      "Numeric payload byte or elapsed counters changed");
+    for (auto member : {&RawWorkCounters::hits, &RawWorkCounters::misses, &RawWorkCounters::evictions,
+      &RawWorkCounters::decodes, &RawWorkCounters::copies, &RawWorkCounters::decoded_numeric_bytes,
+      &RawWorkCounters::copied_numeric_bytes, &RawWorkCounters::read_ns, &RawWorkCounters::decode_ns, &RawWorkCounters::copy_ns})
+    {
+      ByteCount sum = 0;
+      for (const auto& row : phase) sum += row.*member;
+      check(sum == stats.work.*member, "Phase counters do not reconcile with independent totals");
+    }
+    auto pressure = std::make_shared<RawCache>(8192, 0, 8192);
+    RawAccess reader(indexed.source(), pressure);
+    reader.acquire(0);
+    { Scope scoring(Purpose::SCORING); reader.acquire(1); }
+    check(pressure->snapshot().evictions == 1 &&
+      pressure->snapshot().phases[static_cast<size_t>(RawPhase::SCORING)].evictions == 1,
+      "Eviction was not attributed to the consumer causing pressure");
+    cache->clear();
+    pressure->clear();
+    check(cache->snapshot().budget.committed_bytes == 0 && pressure->snapshot().budget.committed_bytes == 0,
+      "Phase counters retained scan ownership");
+    OPENMS_LOG_INFO << "PASS phase counters: nested/thread/exception scopes, actual extractor, calibrated fallback, "
+      "all ten totals, exact bytes, eviction owner and final release\n";
+  }
+
   void concurrent(const IndexedFile& indexed)
   {
     auto cache = std::make_shared<RawCache>(32 * MIB, 0, MIB);
@@ -604,6 +683,7 @@ int main(int argc, char** argv)
     queries(indexed);
     leases(indexed);
     readOnlyExtraction(indexed);
+    phaseCounters();
     concurrent(indexed);
     truncated();
   }
