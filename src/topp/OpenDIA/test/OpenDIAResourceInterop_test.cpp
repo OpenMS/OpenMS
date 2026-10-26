@@ -307,12 +307,16 @@ namespace
       // Stalling is deliberate, and synchronized by observed full drain plus a
       // blocked byte admission, not a timing-only sleep. Always unwind all threads.
       const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
-      while (output.snapshot().size < 2 || budget.snapshot().waiters == 0)
+      bool stalled = false;
+      while (!stalled)
       {
-        if (stop.stop_requested() || std::chrono::steady_clock::now() >= deadline) { break; }
+        // The gated writer cannot shrink its full queue. Admission waiters can
+        // disappear as the extractor releases a raw job, so retain the observed
+        // condition instead of checking a second, potentially different snapshot.
+        stalled = output.snapshot().size == 2 && budget.snapshot().waiters > 0;
+        if (stalled || stop.stop_requested() || std::chrono::steady_clock::now() >= deadline) { break; }
         std::this_thread::yield();
       }
-      const bool stalled = output.snapshot().size == 2 && budget.snapshot().waiters > 0;
       if (cancel_stalled || !stalled) { cancel(); } else { open_gate(); }
       producer.join(); extractor.join(); writer.join();
       if (failure) { std::rethrow_exception(failure); }
@@ -352,10 +356,18 @@ namespace
 }
 int main()
 {
-  ownership();
-  for (const auto& fixture : {"topp/OpenSwathWorkflow_1_input.mzML", "topp/OpenSwathWorkflow_23_input.mzML", "class_tests/openms/data/IM_FAIMS_test.mzML"})
+  try
   {
-    pipeline(fixture, false);
+    ownership();
+    for (const auto& fixture : {"topp/OpenSwathWorkflow_1_input.mzML", "topp/OpenSwathWorkflow_23_input.mzML", "class_tests/openms/data/IM_FAIMS_test.mzML"})
+    {
+      pipeline(fixture, false);
+    }
+    pipeline("topp/OpenSwathWorkflow_23_input.mzML", true);
   }
-  pipeline("topp/OpenSwathWorkflow_23_input.mzML", true);
+  catch (const std::exception& error)
+  {
+    OPENMS_LOG_ERROR << "Resource integration failed: " << error.what() << '\n';
+    return 1;
+  }
 }
