@@ -632,6 +632,13 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: ScanNr tells the spectra of a fil
                                   {"a", "frame=121 windowGroup=3 scan=475"}}), "1 2")
   // "frame=F" alone (Bruker TDF MS1, diaTracer pseudo-DDA): the frame
   TEST_STRING_EQUAL(scan_numbers({{"a", "frame=10"}, {"a", "frame=11"}}), "10 11")
+  // files from different instruments: each file numbers its spectra after the native ID format of its first one
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 scan=475 precursor=2"},
+                                  {"b", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"c", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"a", "frame=388 scan=475 precursor=61"}}), "2 1001 1 61")
+  TEST_STRING_EQUAL(scan_numbers({{"b", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"a", "frame=120 scan=475 precursor=2"}}), "1001 2")
 }
 END_SECTION
 
