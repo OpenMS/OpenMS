@@ -70,6 +70,31 @@ static OpenMS::RescoreInput makeModeratelySeparableInput_(
   return input;
 }
 
+// As makeModeratelySeparableInput_(), but from std::mt19937, whose output (unlike std::rand()'s) is the same on every
+// platform, so that every platform scores the same rows.
+static OpenMS::RescoreInput makePortableModeratelySeparableInput_(std::size_t n_per_class, unsigned seed)
+{
+  std::mt19937 gen(seed);
+  auto rand01 = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
+  auto randn = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+  OpenMS::RescoreInput input;
+  input.feature_names = OpenMS::StringList{"signal", "noise"};
+  for (std::size_t i = 0; i < n_per_class; ++i)
+  {
+    input.features.push_back({+1.0 + 0.6 * randn(), rand01()});
+    input.is_decoy.push_back(false);
+  }
+  for (std::size_t i = 0; i < n_per_class; ++i)
+  {
+    input.features.push_back({ 0.0 + 0.6 * randn(), rand01()});
+    input.is_decoy.push_back(true);
+  }
+  return input;
+}
+
 static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
                                     const OpenMS::RescoreInput& in)
 {
@@ -968,6 +993,31 @@ START_SECTION((RescoreOutput score(const RescoreInput& input, const PercolatorMo
   bool non_increasing = true;
   for (size_t i = 1; i < by_score.size(); ++i) { non_increasing = non_increasing && by_score[i].second <= by_score[i - 1].second + 1e-12; }
   TEST_TRUE(non_increasing)
+}
+END_SECTION
+
+START_SECTION([EXTRA] score() is reproducible: the same rows and model give the same q-values and PEPs)
+{
+  // pi0 is estimated by bootstrap, with Percolator's random number generator; the q-values and PEPs of score() must
+  // not depend on what drew from it before (e.g. a previous score()). Several inputs, as only some are sensitive.
+  PercolatorModel model;
+  model.feature_names = StringList{"signal", "noise"};
+  model.weights = {2.0, 0.1, -0.5};
+  model.normalizer_type = "none";
+  Percolator p;
+  Size differing_rows = 0;
+  for (unsigned seed = 1; seed <= 20; ++seed)
+  {
+    const RescoreInput input = makePortableModeratelySeparableInput_(300, seed);
+    const RescoreOutput first = p.score(input, model);
+    const RescoreOutput second = p.score(input, model);
+    ABORT_IF(first.peps.size() != second.peps.size() || first.q_values.size() != second.q_values.size())
+    for (size_t i = 0; i < first.peps.size(); ++i)
+    {
+      if (first.peps[i] != second.peps[i] || first.q_values[i] != second.q_values[i]) { ++differing_rows; }
+    }
+  }
+  TEST_EQUAL(differing_rows, 0)
 }
 END_SECTION
 

@@ -306,7 +306,10 @@ namespace OpenMS
       The post-scoring pipeline (q-values, optional TDC, PEPs, SVM score
       rescaling) operates on the input's own target/decoy distribution.
       q-values and PEPs are therefore always evaluated against the
-      scoring dataset, not the training dataset.
+      scoring dataset, not the training dataset. As train() and rescore(),
+      score() starts Percolator's random number generator (used for the
+      bootstrap estimate of pi0) from the `seed` parameter, so the same
+      input and model give the same q-values and PEPs, whatever ran before.
 
       The returned `RescoreOutput.scores` are not raw dot products.
       Internally

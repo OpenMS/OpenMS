@@ -664,6 +664,11 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   validateModelCompat_(input, model);
 
   impl_->reset();
+  // As train() and rescore(): the pi0 estimate below bootstraps with Percolator's (process-wide) random number
+  // generator, so the q-values and PEPs would otherwise depend on whatever drew from it before (e.g. train() or a
+  // previous score()). The same rows and model must give the same results, also in score(input, model, reference),
+  // which scores the reference again.
+  P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   const size_t n_rows = input.features.size();
   const size_t n_feat = input.features.front().size();
