@@ -34,6 +34,7 @@ namespace OpenMS
       SpectrumSequence spectra;
       SpectrumSequence ms1_spectrum;
       std::vector<OpenSwath::LightTransition> transition_vector;
+      bool active = false;
 
       void reset()
       {
@@ -43,9 +44,25 @@ namespace OpenMS
       }
     };
     thread_local DIAScoresPool dias_pool;
-    // temporary buffer reused by fetchSpectrumSwath to avoid per-call allocations
-    thread_local SpectrumSequence fetch_spectrum_tmp;
-    
+
+    // Keep nested precursor data until IM contrast is complete. Release scan
+    // owners at the outer call exit, including when a reader throws.
+    struct DIAScoringScope
+    {
+      DIAScoringScope() = default;
+      DIAScoringScope(const DIAScoringScope&) = delete;
+      DIAScoringScope& operator=(const DIAScoringScope&) = delete;
+      ~DIAScoringScope()
+      {
+        if (!nested)
+        {
+          dias_pool.reset();
+          dias_pool.active = false;
+        }
+      }
+      const bool nested = std::exchange(dias_pool.active, true);
+    };
+
     struct ChromScoresPool
     {
       std::vector<OpenSwath::LightTransition> transition_vector;
@@ -200,6 +217,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
     const bool ranking = subset != ScoreSubset::REMAINDER;
     const bool remainder = subset != ScoreSubset::RANKING;
+    const DIAScoringScope scoring_scope;
 
     // normalized_library_intensity is passed in to avoid per-call allocation
 
@@ -335,6 +353,7 @@ namespace OpenMS
                                    RangeMobility im_range,
                                    OpenSwath_Scores & scores)
   {
+    const DIAScoringScope scoring_scope;
     // change im_range based on ms1 settings
     if (!use_ms1_ion_mobility_)
     {
@@ -428,6 +447,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
+    const DIAScoringScope scoring_scope;
 
     // automatically compute the amount of spectra to add based on the fraction of the retention time peak width, or add a fixed number of spectra
     int n_merge_spectra = 1;
@@ -678,9 +698,7 @@ namespace OpenMS
     }
     else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
     {
-      fetch_spectrum_tmp.clear();
-      fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(all_spectra, im_range, spacing_for_spectra_resampling_));
-      return fetch_spectrum_tmp;
+      return {mergeSpectraForScoring_(all_spectra, im_range, spacing_for_spectra_resampling_)};
     }
   }
 
@@ -688,6 +706,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(nr_spectra_to_add >= 1, "nr_spectra_to_add must be at least 1.")
     OPENMS_PRECONDITION(!swath_maps.empty(), "swath_maps vector cannot be empty")
+    SpectrumSequence fetch_spectrum_tmp;
 
     // This is not SONAR data
     if (swath_maps.size() == 1)
@@ -720,7 +739,6 @@ namespace OpenMS
             all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
           }
         }
-        fetch_spectrum_tmp.clear();
         if (!all_spectra.empty())
         {
           fetch_spectrum_tmp.push_back(SpectrumAddition::concatenateSpectra(all_spectra));
@@ -750,7 +768,6 @@ namespace OpenMS
             all_spectra.push_back(mergeSpectraForScoring_(spectrumSequence, RangeMobility(), spacing_for_spectra_resampling_));
           }
         }
-        fetch_spectrum_tmp.clear();
         if (!all_spectra.empty())
         {
           fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(all_spectra, RangeMobility(), spacing_for_spectra_resampling_));
@@ -782,6 +799,7 @@ namespace OpenMS
     out.clear();
     OPENMS_PRECONDITION(nr_spectra_to_add >= 1, "nr_spectra_to_add must be at least 1.")
     OPENMS_PRECONDITION(!swath_maps.empty(), "swath_maps vector cannot be empty")
+    SpectrumSequence fetch_spectrum_tmp;
 
     if (swath_maps.size() == 1)
     {
@@ -833,7 +851,6 @@ namespace OpenMS
       }
       if (!out.empty())
       {
-        fetch_spectrum_tmp.clear();
         fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(out, RangeMobility(), spacing_for_spectra_resampling_));
         out = std::move(fetch_spectrum_tmp);
       }
@@ -849,7 +866,6 @@ namespace OpenMS
       }
       if (!out.empty())
       {
-        fetch_spectrum_tmp.clear();
         fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(out, RangeMobility(), spacing_for_spectra_resampling_));
         out = std::move(fetch_spectrum_tmp);
       }
