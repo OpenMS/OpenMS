@@ -1676,8 +1676,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static bool hasPSMs_(const PeptideIdentificationList& ids);
 
     /// Helper: target-decoy q-values of the PSMs of @p peptide_ids by their main scores, competing all together
-    /// (FalseDiscoveryRate, decoys kept), and without a decoy PSM the conservative 1/T of the T PSMs instead of 0
-    static void tdcQValues_(PeptideIdentificationList& peptide_ids);
+    /// (FalseDiscoveryRate, decoys kept), and without a decoy PSM the conservative 1/T of the T PSMs instead of 0.
+    /// With @p plus_one, the +1-corrected (D + 1) / T at every score, as Percolator estimates its q-values, also with
+    /// decoys (for PSMs that Percolator scored, see rescoreFilesTogether_()).
+    static void tdcQValues_(PeptideIdentificationList& peptide_ids, bool plus_one = false);
 
     /// Helper: the share of each stratum of @p sizes in a sample of at most @p cap (0: no cap): equal shares, the share
     /// a smaller stratum does not fill going to the others (water filling); all of every stratum below the cap
@@ -1694,7 +1696,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       score a PSM would get among them, their PEP at that score). If Percolator rescored no file on its own, the PSMs of
       all files are rescored together, with one cross-validated model (rescoreWithPercolator(), with the cap).
       Back in its file, each PSM gets the q-value of target-decoy competition of the file's PSMs on the model's SVM
-      score (tdcQValues_(); FDR per run), on which FDR:PSM filters (and FDR:protein_inference_PSM collects); the runs are
+      score, (D + 1) / T as Percolator's own (tdcQValues_(); FDR per run), on which FDR:PSM filters (and FDR:protein_inference_PSM collects); the runs are
       marked as rescored by Percolator, and @c percolator.warning of each such file says how it was rescored. If that
       fails (e.g. fewer than 100 PSMs in all), the files keep their search engine scores (see mergeFileResults()). In
       any case the proteins of each file become those of its PSMs and the copies are released (unless

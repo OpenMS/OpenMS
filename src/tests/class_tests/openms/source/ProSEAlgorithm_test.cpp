@@ -169,6 +169,7 @@ public:
   using ProSEAlgorithm::poolSearchedFiles_;
   using ProSEAlgorithm::residualSpectrum_;
   using ProSEAlgorithm::stratifiedQuotas_;
+  using ProSEAlgorithm::tdcQValues_;
   using ProSEAlgorithm::collectRunStatistics_;
 };
 
@@ -5547,6 +5548,51 @@ START_SECTION(([EXTRA] annotatePsmQValues without a decoy PSM gives the conserva
 }
 END_SECTION
 
+START_SECTION((static void tdcQValues_(PeptideIdentificationList& peptide_ids, bool plus_one)))
+{
+  // PSMs of one run by a higher-better score; decoys where marked
+  auto make_ids = [](const std::vector<std::pair<double, bool>>& psms)
+  {
+    PeptideIdentificationList ids;
+    for (const auto& [score, decoy] : psms)
+    {
+      PeptideIdentification id;
+      id.setScoreType("MS:1001492");
+      id.setHigherScoreBetter(true);
+      id.setIdentifier("run");
+      PeptideHit hit(score, 1, 2, AASequence::fromString("PEPTIDEK"));
+      hit.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+      id.setHits({hit});
+      ids.push_back(id);
+    }
+    return ids;
+  };
+  // ten targets above one decoy: FalseDiscoveryRate's D/T is 0 for the targets, (D + 1) / T (as Percolator) 1/10;
+  // without the decoy both give 1/10, so a poor decoy must not let the targets pass a lower threshold
+  std::vector<std::pair<double, bool>> psms;
+  for (int i = 0; i < 10; ++i) { psms.emplace_back(20.0 - i, false); }
+  psms.emplace_back(1.0, true);
+  PeptideIdentificationList ids = make_ids(psms);
+  ProSEAlgorithm_test::tdcQValues_(ids);
+  TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.0)
+  ids = make_ids(psms);
+  ProSEAlgorithm_test::tdcQValues_(ids, true);
+  for (Size i = 0; i < 10; ++i) { TEST_REAL_SIMILAR(ids[i].getHits()[0].getScore(), 0.1) }
+  TEST_REAL_SIMILAR(ids[10].getHits()[0].getScore(), 0.2) // (1 + 1) / 10
+  TEST_STRING_EQUAL(ids[0].getScoreType(), "q-value")
+  psms.pop_back();
+  ids = make_ids(psms);
+  ProSEAlgorithm_test::tdcQValues_(ids, true);
+  for (const PeptideIdentification& id : ids) { TEST_REAL_SIMILAR(id.getHits()[0].getScore(), 0.1) }
+
+  // a decoy between targets, ties scored together, and the minimum of the estimate at and below a score: (D + 1) / T is
+  // 1/1, 2/1 (decoy), 2/3 (two tied targets), 2/4, so the q-values are 0.5 for all but the decoy, which gets 0.5 as well
+  ids = make_ids({{10.0, false}, {9.0, true}, {8.0, false}, {8.0, false}, {7.0, false}});
+  ProSEAlgorithm_test::tdcQValues_(ids, true);
+  for (const PeptideIdentification& id : ids) { TEST_REAL_SIMILAR(id.getHits()[0].getScore(), 0.5) }
+}
+END_SECTION
+
 START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, int threads)))
 {
   // n PSMs of one run with peptide evidences, every third one a decoy (if decoys)
@@ -6402,6 +6448,26 @@ START_SECTION(([EXTRA] mergeFileResults of a single file keeps the run of the fi
   TEST_FALSE(result.per_file[0].protein_ids.empty())
   TEST_TRUE(result.per_file[0].protein_ids == search.per_file[0].protein_ids)
   TEST_TRUE(result.per_file[0].peptide_ids.empty())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] poolSearchedFiles_ gives the runs one search engine also when no file has a PSM left))
+{
+  // a file that Percolator rescored but whose PSMs all failed FDR:PSM, and one without matches: their runs (Percolator's,
+  // ProSE's) still get one engine, ProSE's, which IDMergerAlgorithm requires of runs without PSMs as well
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  for (ProSEAlgorithm::SearchResult& pf : result.per_file) { pf.peptide_ids.clear(); }
+  result.per_file[0].percolator.applied = true;
+  result.per_file[0].protein_ids[0].setSearchEngine("Percolator");
+  result.per_file[0].protein_ids[0].setSearchEngineVersion("3.07");
+  std::vector<ProteinIdentification> pooled_proteins;
+  PeptideIdentificationList pooled_peptides;
+  ProSEAlgorithm_test::poolSearchedFiles_(result.per_file, false, merge_files, pooled_proteins, pooled_peptides);
+  ABORT_IF(pooled_proteins.size() != 1)
+  TEST_STRING_EQUAL(pooled_proteins[0].getSearchEngine(), merge_search.per_file[1].protein_ids[0].getSearchEngine())
+  TEST_EQUAL(pooled_peptides.size(), 0)
+  TEST_STRING_EQUAL(result.per_file[0].protein_ids[0].getSearchEngine(), "Percolator") // the runs of the files stay
 }
 END_SECTION
 

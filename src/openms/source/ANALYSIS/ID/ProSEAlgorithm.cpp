@@ -4607,8 +4607,22 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::tdcQValues_(PeptideIdentificationList& peptide_ids)
+  void ProSEAlgorithm::tdcQValues_(PeptideIdentificationList& peptide_ids, bool plus_one)
   {
+    // With plus_one: the best hit of each PSM (its score, oriented higher-better, and whether it is a decoy), which
+    // FalseDiscoveryRate keeps, before it replaces the scores.
+    std::vector<std::tuple<double, bool, Size>> best; // score, decoy, PSM
+    if (plus_one)
+    {
+      for (Size i = 0; i < peptide_ids.size(); ++i)
+      {
+        PeptideIdentification& id = peptide_ids[i];
+        if (id.getHits().empty()) { continue; }
+        id.sort();
+        const PeptideHit& hit = id.getHits()[0];
+        best.emplace_back(id.isHigherScoreBetter() ? hit.getScore() : -hit.getScore(), hit.isDecoy(), i);
+      }
+    }
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getParameters();
     fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
@@ -4628,9 +4642,32 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] FDR:PSM: none of the " << targets << " PSMs matched a decoy; their q-value is the "
                       << "conservative estimate 1/" << targets << " = " << 1.0 / static_cast<double>(targets)
                       << " (no PSM passes a lower threshold)." << std::endl;
-      for (PeptideIdentification& id : peptide_ids)
+      if (!plus_one)
       {
-        for (PeptideHit& hit : id.getHits()) { hit.setScore(1.0 / static_cast<double>(targets)); }
+        for (PeptideIdentification& id : peptide_ids)
+        {
+          for (PeptideHit& hit : id.getHits()) { hit.setScore(1.0 / static_cast<double>(targets)); }
+        }
+      }
+    }
+    if (plus_one)
+    {
+      // (D + 1) / T of the PSMs scoring at least as well (ties together), the minimum of it at and below each score
+      // (Percolator's PosteriorEstimator::getQValues() without pi0), at most 1. Without a decoy, 1/T for every PSM.
+      std::stable_sort(best.begin(), best.end(), [](const auto& a, const auto& b) { return std::get<0>(a) > std::get<0>(b); });
+      std::vector<double> q(best.size());
+      Size d = 0, t = 0;
+      for (Size k = 0; k < best.size();)
+      {
+        Size end = k; // past the PSMs tied with PSM k
+        for (; end < best.size() && std::get<0>(best[end]) == std::get<0>(best[k]); ++end) { (std::get<1>(best[end]) ? d : t) += 1; }
+        std::fill(q.begin() + k, q.begin() + end, std::min(1.0, static_cast<double>(d + 1) / static_cast<double>(std::max<Size>(1, t))));
+        k = end;
+      }
+      for (Size k = best.size(); k-- > 1;) { q[k - 1] = std::min(q[k - 1], q[k]); }
+      for (Size k = 0; k < best.size(); ++k)
+      {
+        for (PeptideHit& hit : peptide_ids[std::get<2>(best[k])].getHits()) { hit.setScore(q[k]); }
       }
     }
   }
@@ -6428,16 +6465,23 @@ namespace OpenMS
     // that are pooled all get the engine of the files with PSMs: Percolator's if it rescored all of them (a file without
     // PSMs is not rescored), else ProSE's (the pooled evaluation then scores all files by ProSE's score, see
     // mergeFileResults()); the runs of the files stay as they are.
+    // If no file has a PSM left (e.g. FDR:PSM removed all), the engine of the searched files by the same rule:
+    // IDMergerAlgorithm requires one engine of runs without PSMs as well.
     std::string engine, engine_version, rescored_engine, rescored_version;
-    for (const SearchResult& pf : per_file)
+    for (const bool require_psms : {true, false})
     {
-      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty() || !hasPSMs_(pf.peptide_ids)) { continue; }
-      std::string& name = pf.percolator.applied ? rescored_engine : engine;
-      if (name.empty())
+      for (const SearchResult& pf : per_file)
       {
-        name = pf.protein_ids[0].getSearchEngine();
-        (pf.percolator.applied ? rescored_version : engine_version) = pf.protein_ids[0].getSearchEngineVersion();
+        if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
+        if (require_psms && !hasPSMs_(pf.peptide_ids)) { continue; }
+        std::string& name = pf.percolator.applied ? rescored_engine : engine;
+        if (name.empty())
+        {
+          name = pf.protein_ids[0].getSearchEngine();
+          (pf.percolator.applied ? rescored_version : engine_version) = pf.protein_ids[0].getSearchEngineVersion();
+        }
       }
+      if (!engine.empty() || !rescored_engine.empty()) { break; }
     }
     if (engine.empty()) { engine = rescored_engine; engine_version = rescored_version; }
 
@@ -6546,8 +6590,8 @@ namespace OpenMS
 
     // A file back from the rescoring (its PSMs before the rescoring, now with Percolator's score, q-value and PEP):
     // q-values per file (FDR per run, as for a file rescored on its own), by target-decoy competition of the file's
-    // PSMs on the SVM score (MS:1001492), with the conservative 1/T of a file without a decoy PSM (tdcQValues_());
-    // FDR:PSM filters on them.
+    // PSMs on the SVM score (MS:1001492), (D + 1) / T as Percolator's own (tdcQValues_(), also 1/T for a file without
+    // a decoy PSM); FDR:PSM filters on them.
     const std::string svm_score = "MS:1001492";
     const auto adopt = [&](Size i, PeptideIdentificationList&& ids, const std::string& warning)
     {
@@ -6558,7 +6602,7 @@ namespace OpenMS
         id.setScoreType(svm_score);
         id.setHigherScoreBetter(true);
       }
-      if (!ids.empty()) { tdcQValues_(ids); }
+      if (!ids.empty()) { tdcQValues_(ids, true); }
       for (PeptideIdentification& id : ids)
       {
         for (PeptideHit& hit : id.getHits())
@@ -6662,7 +6706,9 @@ namespace OpenMS
                                       + "): " + transferred;
           PeptideIdentificationList ids = std::move(mfres.per_file[i].pre_fdr_peptide_ids);
           if (keep_pre_fdr_psms_) { mfres.per_file[i].pre_fdr_peptide_ids = ids; }
-          perc.scorePSMs(ids, model, training, feature_set, enzyme, min_charge, max_charge, "q-value");
+          // the best hit of each spectrum by the SVM score (the q-values of the training PSMs at a score have
+          // plateaus, which would leave ties to the search engine's order); target-decoy competition follows in adopt()
+          perc.scorePSMs(ids, model, training, feature_set, enzyme, min_charge, max_charge, "svm");
           IDFilter::keepNBestHits(ids, 1);
           adopt(i, std::move(ids), warning);
         }
