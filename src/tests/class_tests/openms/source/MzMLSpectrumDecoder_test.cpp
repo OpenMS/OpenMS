@@ -588,13 +588,14 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
     spectrum.replace(spectrum.find(non_standard), non_standard.size(), terms);
     return spectrum;
   };
-  auto loadedArrayName = [](const std::string& spectrum)
+  auto loadFully = [](const std::string& spectrum)
   {
     PeakMap exp;
     MzMLFile().loadBuffer("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\"><run id=\"r\" defaultInstrumentConfigurationRef=\"ic\">"
                           "<spectrumList count=\"1\" defaultDataProcessingRef=\"dp\">" + spectrum + "</spectrumList></run></mzML>", exp);
-    return exp[0].getFloatDataArrays()[0].getName();
+    return exp[0];
   };
+  auto loadedArrayName = [&](const std::string& spectrum) { return loadFully(spectrum).getFloatDataArrays()[0].getName(); };
 
   const std::string typed = withArrayTerms(im_term);
   MSSpectrum s_typed;
@@ -615,6 +616,17 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
     TEST_EQUAL(s_both.getFloatDataArrays()[0].getName(), expected)
     TEST_EQUAL(loadedArrayName(both), expected)
   }
+
+  // absorbance intensities are flagged in the spectrum, as in MzMLHandler
+  std::string absorbance = testString;
+  absorbance.replace(absorbance.find("unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\""),
+                     std::string("unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"").size(),
+                     "unitAccession=\"UO:0000269\" unitName=\"absorbance unit\" unitCvRef=\"UO\"");
+  MSSpectrum s_absorbance;
+  ptr->domParseSpectrum(absorbance, s_absorbance);
+  TEST_EQUAL(s_absorbance.getMetaValue("mzml intensity array", "") == "absorption", true)
+  TEST_EQUAL(loadFully(absorbance).getMetaValue("mzml intensity array", "") == "absorption", true)
+  TEST_EQUAL(s.metaValueExists("mzml intensity array"), false)
 
   // an accession missing from the bundled CV (e.g. a newer term) does not stop decoding
   std::string unknown = typed;
