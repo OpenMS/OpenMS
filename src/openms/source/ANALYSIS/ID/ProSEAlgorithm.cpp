@@ -68,6 +68,10 @@
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <algorithm>
+#if defined(_OPENMP) && defined(__GLIBCXX__) // libstdc++'s parallel mode (not libc++)
+#include <parallel/algorithm> // __gnu_parallel::nth_element (medianAndMADBySelection)
+#define PROSE_GNU_PARALLEL
+#endif
 #include <array>
 #include <atomic>
 #include <cctype>
@@ -9100,17 +9104,24 @@ namespace OpenMS
         return {median, Math::MAD(values.begin(), values.end(), median)};
       }
       // the median of finite values without a negative zero; their deviations are not negative zeros and not NaN
+      // Large lists (the b/y fragment errors of a timsTOF run: millions) with the OpenMP threads: the selection by
+      // libstdc++'s parallel nth_element (the same k-th smallest value), the deviations in parallel.
+      constexpr Size parallel_from = 65536;
       const auto median_of = [](std::vector<double>& v)
       {
         const auto upper = v.begin() + static_cast<SignedSize>(v.size() / 2);
-        std::nth_element(v.begin(), upper, v.end());
+#ifdef PROSE_GNU_PARALLEL
+        if (v.size() >= parallel_from && omp_get_max_threads() > 1) { __gnu_parallel::nth_element(v.begin(), upper, v.end()); }
+        else
+#endif
+        { std::nth_element(v.begin(), upper, v.end()); }
         if (v.size() % 2 == 1) { return *upper; }
         return (*std::max_element(v.begin(), upper) + *upper) / 2.0;
       };
       const double median = median_of(values);
-      std::vector<double> diffs;
-      diffs.reserve(values.size());
-      for (const double value : values) { diffs.push_back(fabs(value - median)); }
+      std::vector<double> diffs(values.size());
+#pragma omp parallel for schedule(static) if (values.size() >= parallel_from)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(values.size()); ++i) { diffs[i] = fabs(values[i] - median); }
       return {median, median_of(diffs)};
     }
   }
@@ -9217,19 +9228,29 @@ namespace OpenMS
   // =====================================================================
   ProSEAlgorithm::SpectraCounts_ ProSEAlgorithm::countSpectra_(const PeakMap& spectra) const
   {
-    SpectraCounts_ counts;
-    std::vector<uint16_t> charges;
-    for (const MSSpectrum& s : spectra)
+    // in parallel: one pass over the spectra of a timsTOF run (600,000) took 0.13 s on one thread (memory bound)
+    const bool search_outside = param_.getValue("precursor:recorded_charge_outside_range").toString() == "search";
+    const int min_charge = static_cast<int>(precursor_min_charge_), max_charge = static_cast<int>(precursor_max_charge_);
+    Size ms2 = 0, profile = 0, out_of_range = 0;
+#pragma omp parallel reduction(+: ms2, profile, out_of_range) if (spectra.size() >= 16384)
     {
-      if (s.getMSLevel() != 2) continue;
-      ++counts.ms2;
-      if (s.getType() == SpectrumSettings::SpectrumType::PROFILE) ++counts.profile;
-      if (s.getPrecursors().empty()) continue;
-      FragmentIndex::precursorCharges(s.getPrecursors()[0], static_cast<int>(precursor_min_charge_),
-                                      static_cast<int>(precursor_max_charge_), charges,
-                                      param_.getValue("precursor:recorded_charge_outside_range").toString() == "search");
-      if (charges.empty()) ++counts.charge_out_of_range;
+      std::vector<uint16_t> charges;
+#pragma omp for schedule(static)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i)
+      {
+        const MSSpectrum& s = spectra[i];
+        if (s.getMSLevel() != 2) continue;
+        ++ms2;
+        if (s.getType() == SpectrumSettings::SpectrumType::PROFILE) ++profile;
+        if (s.getPrecursors().empty()) continue;
+        FragmentIndex::precursorCharges(s.getPrecursors()[0], min_charge, max_charge, charges, search_outside);
+        if (charges.empty()) ++out_of_range;
+      }
     }
+    SpectraCounts_ counts;
+    counts.ms2 = ms2;
+    counts.profile = profile;
+    counts.charge_out_of_range = out_of_range;
     return counts;
   }
 
