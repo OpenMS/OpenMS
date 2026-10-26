@@ -98,8 +98,10 @@ int tron(const AlgIn& set, options& opts,
 // the same time) that pass the same group share one copy of the set's features in the solver's layout: it is
 // built once, by the solves that start while it is built, instead of once per solve. Results are bit-identical to
 // solves alone. A solve waits only while the copy is being built by running solves; solves with another set or
-// size, or on the reference solver, build their own. The group must outlive its solves, and the set must not
-// change while they run.
+// size, or on the reference solver, build their own. The group must outlive its solves, and the set (its rows, their
+// contents and the labels) must not change during the group's lifetime: a solve checks only the set's address, size,
+// row array, first and last row and class counts (int14 review r3), so one group per set and step, as CrossValidation
+// makes them.
 class TronPairGroup {
  public:
   explicit TronPairGroup(const AlgIn& set);
@@ -113,12 +115,12 @@ class TronPairGroup {
   std::unique_ptr<State> state_;
 };
 
-// OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
-// of any size for the next solves (otherwise those above 64 MB are freed after the solve); the
-// last one to end frees them. CrossValidation holds one during its training.
 // OpenMS: whether a TronWorkspaceHold exists (the Newton solver keeps its buffers then as well)
 bool tronWorkspacesHeld();
 
+// OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
+// of any size for the next solves (otherwise those above 64 MB are freed after the solve); the
+// last one to end frees them. CrossValidation holds one during its training.
 class TronWorkspaceHold {
  public:
   TronWorkspaceHold();
