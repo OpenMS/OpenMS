@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -481,12 +482,27 @@ namespace
     std::shared_ptr<OpenMS::ExperimentalSettings> settings;
     auto maps = OpenMS::SwathFile().loadOnDisc(path, settings);
     check(!maps.empty() && settings, "Native input has no spectrum maps or settings");
+    std::vector<OpenSwath::SwathMap> streamed;
+#ifdef WITH_OPENTIMS
+    if (OpenMS::FileHandler::getTypeByFileName(path) == OpenMS::FileTypes::BRUKER_TDF)
+    {
+      streamed = OpenMS::SwathFile().loadBrukerTdf(path, "", settings, "normal");
+      check(streamed.size() == maps.size(), "Native and streaming map membership differs");
+    }
+#endif
     auto cache = std::make_shared<RawCache>(256 * MIB, 64 * MIB, 32 * MIB);
     OpenMS::Size checked = 0;
     for (const auto& map : maps)
     {
       auto source = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
       check(source && source->getNrSpectra(), "Native map is empty or not random access");
+      const auto reference = std::find_if(streamed.begin(), streamed.end(), [&](const auto& other)
+      { return map.isEqual(other); });
+      check(streamed.empty() || reference != streamed.end(), "Native isolation/IM window differs from streaming");
+      if (reference != streamed.end())
+      {
+        check(reference->sptr->getNrSpectra() == source->getNrSpectra(), "Native scan membership differs from streaming");
+      }
       auto access = std::make_shared<RawAccess>(source, cache);
       std::vector<OpenMS::Size> indices;
       const int count = static_cast<int>(source->getNrSpectra());
@@ -494,7 +510,12 @@ namespace
       {
         auto experiment = source->getExperiment().clone();
         const auto index = source->getExperimentIndex(i);
-        const auto expected = source->getSpectrumById(i);
+        const auto expected = reference == streamed.end() ? source->getSpectrumById(i) : reference->sptr->getSpectrumById(i);
+        if (reference != streamed.end())
+        {
+          const auto a = source->getSpectrumMetaById(i), b = reference->sptr->getSpectrumMetaById(i);
+          check(a.RT == b.RT && a.ms_level == b.ms_level, "Native RT/MS level differs from streaming");
+        }
         exact(*access->acquire(i), *expected, experiment->getSpectrumMetadata(index));
         const auto view = access->lightClone()->getSpectrumView(i);
         check(view.mz->data == expected->getMZArray()->data &&
@@ -537,7 +558,8 @@ namespace
     check(stats.budget.committed_bytes == 0 && stats.budget.reserved_bytes == 0,
       "Native input retained a scan charge");
     OPENMS_LOG_INFO << "PASS native input " << path << " maps=" << maps.size()
-      << " sampled_scans=" << checked << " exact_metadata_arrays_views_RT_extraction=1 final_live_bytes=0\n";
+      << " sampled_scans=" << checked << " streaming_maps=" << streamed.size()
+      << " exact_metadata_arrays_views_RT_extraction=1 final_live_bytes=0\n";
   }
 
   void truncated()
