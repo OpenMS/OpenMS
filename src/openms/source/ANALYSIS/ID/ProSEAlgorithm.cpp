@@ -547,8 +547,8 @@ namespace OpenMS
                        "longer controlled (entrapment FDP 13-24 % at 1 % q).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:fixed_enzyme_termini", {"true", "false"});
-    defaults_.setValue("rescoring:peptide_level", "false",
-                       "Also Percolator's peptide-level q-values, as the percolator executable reports peptides (without -U): "
+    defaults_.setValue("rescoring:peptide_level", "true",
+                       "Also Percolator's peptide-level q-values (default; 'false' leaves them out), as the percolator executable reports peptides (without -U): "
                        "after the target-decoy competition of the spectra, the best PSM of each peptide (modified sequence) "
                        "and label competes, and q-values and PEPs are estimated on these peptides. Every rescored hit gets "
                        "the values of its peptide as meta values 'percolator_peptide_q_value' and 'percolator_peptide_pep'; "
