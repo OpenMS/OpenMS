@@ -5,6 +5,7 @@
 - **Branch:** `feature/opendia-wp03-raw-tiles`, stacked on WP-02 `4b2c8e1d33`.
 - **Implementation:** [3a460113a3](https://github.com/OpenMS/OpenMS/commit/3a460113a391a63178d0a6da7da32a24ef63e2c5).
 - **IM CLI checks:** [1c46042570](https://github.com/OpenMS/OpenMS/commit/1c46042570cf83a21d92c4968b5b935d5bee5bb4).
+- **Query-scale check:** [57381c0213](https://github.com/OpenMS/OpenMS/commit/57381c0213c86e08a6c5ded49f64bf3024ed1d5d).
 - **Parent:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10665](https://github.com/OpenMS/OpenMS/issues/10665).
 - **Policies:** [architecture](../architecture.md), [master plan](../README.md).
 
@@ -28,7 +29,8 @@ Read raw evidence without keeping all run peaks in memory. Preserve acquisition 
 | Requirement | Real path and observed result |
 |---|---|
 | Preserve scans, arrays and metadata | `OpenDIARawAccess_test`: exact native metadata and numeric arrays for 114/150/19 scans and 513/32,750/44,354 points from non-IM, IM and FAIMS fixtures. |
-| Preserve extraction at different limits | The public chromatogram extractor gives exact RT/intensity arrays at two cache limits and 1/16 queries. Reference signals are nonzero. |
+| Preserve extraction at different limits | The public chromatogram extractor gives exact RT/intensity arrays at two cache limits and 1/16/4,096 queries. Reference signals are nonzero. |
+| Keep raw charges independent of query count | For each fixed traversal and limit, raw peak bytes and scan misses are equal at all three query counts. IM uses 23,080 bytes at the tight limit and 962,424 bytes at the large limit, with 150 misses. Output arrays grow from 300 to 1,228,800 elements. This is a coordinate-grid test, not a complete peptide-library test. |
 | Preserve interval edges and missing values | Tests cover long isolation overlap, open/closed RT and isolation edges, absent IM, measured zero IM, discrete FAIMS zero and empty scans. |
 | Preserve engine results | Direct and tiled CLI runs match four non-IM rows and six PASEF mzML rows, plus all nonempty `FEATURE*`/`SCORE*` tables, at 65/256 MiB declared budgets. Identity fields are exact. Numeric tolerance is relative `1e-6`, absolute `1e-8`. Only generated run/file/feature IDs are normalized. |
 | Exercise IM scores | Both PASEF workflows contain finite, nonzero measured IM and IM intensity scores. The check rejects a copied result with those values removed. Equal nonfinite values are also rejected. |
@@ -42,6 +44,22 @@ On the non-IM CLI fixture, both tiled budgets reached a private accounted peak o
 
 These tiny fixtures test software behavior, not error-rate calibration. Percolator reports that their training populations are too small. Do not use their scores as scientific acceptance evidence.
 
+## Small-fixture process measurement
+
+Nine fresh complete PASEF mzML CLI processes ran in randomized order, with three samples per mode. Each used the same prepared library, two threads and the native Debug SDK. All exported rows and feature/score tables match, including nonzero IM evidence. GNU `time` measured process peak RSS separately from private cache bytes.
+
+| Reader | Peak RSS KiB, min / median / max | Wall seconds, min / median / max |
+|---|---|---|
+| Normal | 80,788 / 80,884 / 81,192 | 1.10 / 1.10 / 1.12 |
+| Tiled, 65 MiB declared | 81,876 / 82,012 / 82,116 | 1.07 / 1.09 / 1.11 |
+| Tiled, 256 MiB declared | 81,256 / 81,372 / 81,528 | 1.08 / 1.10 / 1.11 |
+
+The smaller cache did **not** reduce process peak RSS on this fixture. These short, non-exclusive-host runs do not establish a speed gain. Do not use them to set a general native reserve or to accept the rewritten-engine resource targets.
+
+A separate local heaptrack run retained matching output. Allocation stacks identify native metadata and controlled-vocabulary loading under `loadOnDisc` and Xerces decoding under `RawAccess`. They are outside private charge enforcement. The profiler reports 15.83 MB peak heap, not RSS. Its RSS includes profiler overhead. Its reported process-exit allocations are not a classified leak result. No whole-engine leak claim is made.
+
+The final test commit passed all 106 native/project/installed-SDK checks, 10 standalone checks and 10 NDEBUG checks. The query-scale assertions ran in each build. Local evidence includes all command vectors, nine samples and the separate heap profile under `wp03-20261026/memory-0326`. No frozen input was changed.
+
 ## Limits
 
 - The first adapter supports indexed mzML spectrum maps. Split-window input is not supported. The native loader rejects mixed FAIMS lanes rather than merging them.
@@ -54,7 +72,7 @@ These tiny fixtures test software behavior, not error-rate calibration. Percolat
 ## Remaining gates
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
-- [ ] Test library-scale hypothesis counts and representative raw files. Confirm that raw storage follows observations, not hypothesis count.
+- [ ] Test complete peptide libraries and representative raw files. The 4,096-query public-extractor check supports fixed-traversal raw-charge independence, but does not bound output arrays or full-engine hypothesis memory.
 - [ ] Add supported representative input paths, or pin equivalent indexed mzML conversions for both readers. Keep conversion cost separate. Then measure native decoder/metadata and downstream workspace memory, runtime and peak RSS against WP-00. Do not change the frozen baseline files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 

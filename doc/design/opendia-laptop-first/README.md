@@ -98,6 +98,14 @@ Add those paths or pin equivalent indexed mzML inputs before a matched compariso
 These small fixtures do not establish scientific score calibration. No package
 is merged into `develop`.
 
+The [query-scale test](https://github.com/OpenMS/OpenMS/commit/57381c0213c86e08a6c5ded49f64bf3024ed1d5d)
+keeps raw cache peaks and scan misses equal at 1/16/4,096 public extraction queries.
+Output arrays still grow. Nine fresh complete PASEF CLI runs show **no process
+peak RSS reduction** at the smaller cache limit. A separate heap profile confirms
+native allocations outside private enforcement. See the [measured results and
+limits](work-packages/03-raw-tiles.md#small-fixture-process-measurement). Full peptide-library,
+representative speed/RSS and native-memory acceptance remain open.
+
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
 [WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).

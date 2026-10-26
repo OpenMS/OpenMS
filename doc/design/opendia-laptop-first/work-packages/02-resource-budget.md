@@ -125,9 +125,11 @@ The real-resource test removes only its own uniquely named temporary TSV. It doe
 
 ## Remaining integration work
 
+- The [WP-03 raw adapter](03-raw-tiles.md#small-fixture-process-measurement) now applies private scan/copy charges in the actual CLI. Nine fresh PASEF fixture runs retained matching output. Median peak RSS was 80,884 KiB for the normal reader, 82,012 KiB at the 65 MiB tiled setting and 81,372 KiB at 256 MiB. A lower private cache cap did not lower process peak RSS on this small fixture.
+- A separate local heap profile identifies native metadata, controlled-vocabulary and Xerces decode allocations outside private enforcement. These observations do not validate the fixed 64 MiB native allowance for representative runs. Measure and bound those paths before a whole-process claim.
 - Existing v0 callers may still omit accounting to preserve the compatibility path. The current production OpenDIA CLI is **not** globally governed by this budget.
 - WP-03/04/05/08 must supply conservative pre-materialization decoder/index/model/output charges and apply the admission protocol to their actual buffers. A test-only fixed allowance is not that adapter integration.
 - WP-09 must connect failure propagation and cancellation through the real raw-to-result workflow. WP-10 must measure representative full-process/child RSS, throughput, disk and scientific equivalence before approving the combined design.
 - Windows/macOS, cgroup/child peaks and whole-stack sanitizer coverage have not been exercised. `clang-format` is unavailable in this environment; local whitespace checks pass.
 
-**Next dependency increment:** WP-03 bounded raw-data adapter on this stacked foundation, with the layout chosen from measured access patterns, not assumed from the v0 record shape. WP-04 and WP-08 can proceed alongside it. Keep every package exploratory until the combined-design acceptance decision.
+**Current dependency increment:** the first WP-03 indexed mzML adapter is tested on this stacked foundation. Full acquisition and resource checks remain open. WP-04 and WP-08 can proceed alongside it. Keep every package exploratory until the combined-design acceptance decision.
