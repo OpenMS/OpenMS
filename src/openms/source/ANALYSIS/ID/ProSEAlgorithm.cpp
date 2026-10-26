@@ -6169,14 +6169,21 @@ namespace OpenMS
         // closed (waiting for the chunks of the helper) before what the chunks write to goes, also on an exception
         const OnScopeExit end_help([help]() { if (help != nullptr) { help->close(); } });
 #ifdef _OPENMP
-        // At most 32 parsers together (each holds a chunk of up to 8 MB): the 32 chunks of a file of up to 256 MB in
+        // At least 32 parsers together (each holds a chunk of up to 8 MB): the 32 chunks of a file of up to 256 MB in
         // one round. A reader alone has at most 16 threads (no faster with more), but a thread that waits for the
         // spectra has nothing else to do (at 64 threads, where the reader has 16 threads of its own and the index build
         // waits for it: the chunks of astral_B1 parsed in 91 ms instead of 136 ms, those of hfx_B1 in 62 ms as before).
-        constexpr int max_parsers = 32;
-        if (help != nullptr && threads < max_parsers)
+        // Up to all the threads of the search (joinThreads(): the reader's and the waiting thread's, as many as it was
+        // given), as a large file has many more chunks than parsers: the 600 chunks of a 4.9 GB timsTOF HeLa run were
+        // parsed in 2.2 s by 32 parsers and in 1.4 s by 64 (once StringManager::parseInt() no longer serialised them).
+        constexpr int min_parsers = 32;
+        if (help != nullptr)
         {
-          help->open([&]() { parse_chunks(std::min(omp_get_max_threads(), max_parsers - threads)); });
+          help->open([&]()
+          {
+            const int team = std::min(omp_get_max_threads(), std::max(min_parsers, help->joinThreads(threads)) - threads);
+            if (team >= 1) { parse_chunks(team); }
+          });
         }
 #endif
         parse_chunks(threads);
