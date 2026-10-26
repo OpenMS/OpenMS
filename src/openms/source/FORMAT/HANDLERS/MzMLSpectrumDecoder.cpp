@@ -500,11 +500,12 @@ namespace OpenMS
           std::string name = sm.convert(currentElement->getAttribute(TAG_name));
           std::string unit_accession = sm.convert(currentElement->getAttribute(TAG_unit_accession));
 
-          // name arrays typed by a CV term (e.g. ion mobility) like MzMLHandler does
+          // name arrays typed by a CV term (e.g. ion mobility) like MzMLHandler does; unknown (newer) terms are
+          // left to the helper, and an explicit MS:1000786 name wins in any parameter order
           const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
-          if (cv.isChildOf(accession, "MS:1000513"))
+          if (cv.exists(accession) && cv.isChildOf(accession, "MS:1000513"))
           {
-            data.back().meta.setName(cv.getTerm(accession).name);
+            if (data.back().meta.getName().empty()) data.back().meta.setName(cv.getTerm(accession).name);
             if (accession == "MS:1000515" && unit_accession == "UO:0000269")
             {
               data.back().meta.setMetaValue("mzml intensity array", "absorption");

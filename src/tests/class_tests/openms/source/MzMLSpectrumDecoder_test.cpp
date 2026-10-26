@@ -587,6 +587,27 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
   TEST_EQUAL(im.getFloatDataArrays().size(), 1)
   TEST_EQUAL(im.getFloatDataArrays()[0].getName(), "raw inverse reduced ion mobility array")
   TEST_EQUAL(im.containsIMData(), true)
+
+  // an explicit non-standard name wins in either parameter order
+  const std::string im_term = "<cvParam cvRef=\"MS\" accession=\"MS:1003008\" name=\"raw inverse reduced ion mobility array\" value=\"\"/>";
+  const std::string explicit_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"Ion Mobility\"/>";
+  const std::string explicit_attrs = "accession=\"MS:1000786\" name=\"non-standard data array\" value=\"Ion Mobility\" />";
+  for (const std::string& replacement : {explicit_term + im_term, im_term + explicit_term})
+  {
+    std::string both = testString;
+    const Size start = both.rfind("<cvParam", both.find(explicit_attrs));
+    both.replace(start, both.find(explicit_attrs) + explicit_attrs.size() - start, replacement);
+    MSSpectrum s_both;
+    ptr->domParseSpectrum(both, s_both);
+    TEST_EQUAL(s_both.getFloatDataArrays()[0].getName(), "Ion Mobility")
+  }
+
+  // an accession unknown to the bundled CV (newer term) does not abort decoding
+  std::string unknown = cv_typed;
+  unknown.replace(unknown.find("MS:1003008"), 10, "MS:9999999");
+  MSSpectrum s_unknown;
+  ptr->domParseSpectrum(unknown, s_unknown); // must not throw
+  TEST_EQUAL(s_unknown.size(), 15)
   delete ptr;
 }
 END_SECTION
