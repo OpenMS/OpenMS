@@ -382,7 +382,8 @@ namespace OpenMS
     defaults_.setValidStrings("decoy_method", {"reverse", "keep_termini"});
     defaults_.setValue("decoy_parity_report", "false",
       "Diagnostic: log the candidate counts of the fragment index per label (target, decoy) and subclass (internal, "
-      "protein N-terminal with and without initial M, Met-clipped; and their protein N-terminally acetylated occurrences), and a "
+      "protein N-terminal with and without initial M, Met-clipped; and their protein N-terminally acetylated occurrences, "
+      "none with a fixed N-terminal modification such as TMT, which leaves no room for a variable one), and a "
       "checksum of generated decoys. Output unchanged.",
       {"advanced"});
     defaults_.setValidStrings("decoy_parity_report", {"true", "false"});
@@ -658,7 +659,9 @@ namespace OpenMS
                        "protein N-terminal peptides (incl. Met-clipped ones) and the others each get target-decoy "
                        "competition of their own ((decoys + 1) / targets, as mokapot's grouped confidence). For a list of "
                        "N-terminal peptides at an FDR, use the stratum q-value; the main score stays the pooled q-value. "
-                       "Needs decoys that populate the N-terminal classes like the targets (decoy_method 'keep_termini').",
+                       "Needs decoys that populate the N-terminal classes like the targets (decoy_method 'keep_termini'). With "
+                       "rescore_method 'reset' the values are computed on RESET's scores (both decoy sets count as decoys "
+                       "with reset:decoys 'two'), not as RESET's estimate.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:stratum_q_values", {"true", "false"});
     defaults_.setValue("rescoring:peptide_level", "true",
@@ -2937,12 +2940,12 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] decoy_method keep_termini has no effect: the decoys of the database are used "
                       << "(decoys 'auto'). Use '-Search:decoys generate' to replace them." << std::endl;
     }
-    if (check_met_symmetry && terminal_features_
+    if (check_met_symmetry && (terminal_features_ || stratum_q_values_)
         && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
     {
-      OPENMS_LOG_WARN << "[ProSE] rescoring:terminal_features with these decoys: the "
-                      << "Met-clipped (and protein N-terminal) peptides have (almost) no decoys, so these features tell "
-                      << "targets from decoys and the FDR is not controlled. Use '-Search:decoys generate "
+      OPENMS_LOG_WARN << "[ProSE] rescoring:terminal_features / rescoring:stratum_q_values with these decoys: the "
+                      << "Met-clipped (and protein N-terminal) peptides have (almost) no decoys, so the features tell "
+                      << "targets from decoys and the stratum q-values are too low; the FDR is not controlled. Use '-Search:decoys generate "
                       << "-Search:decoy_method keep_termini'." << std::endl;
     }
 
@@ -5727,6 +5730,7 @@ namespace OpenMS
     return true;
   }
 
+  // rescoring:stratum_q_values: see annotateStratumQValues() in the header
   namespace
   {
     // rescoring:stratum_q_values: grouped target-decoy competition (as mokapot's grouped confidence): the rescored best
@@ -5742,7 +5746,11 @@ namespace OpenMS
       {
         if (pid.getHits().empty()) continue;
         PeptideHit& hit = pid.getHits()[0];
-        if (!hit.metaValueExists("percolator_score")) continue;
+        if (!hit.metaValueExists("percolator_score"))
+        {
+          hit.setMetaValue("stratum_q_value", 1.0); // not rescored (q = 1 in the pooled list as well)
+          continue;
+        }
         bool nterm = false, all_clipped = !hit.getPeptideEvidences().empty();
         for (const PeptideEvidence& ev : hit.getPeptideEvidences())
         {
@@ -5775,13 +5783,22 @@ namespace OpenMS
     }
   }
 
+  void ProSEAlgorithm::stratumQValues(PeptideIdentificationList& peptide_ids)
+  {
+    annotateStratumQValues(peptide_ids);
+  }
+
   void ProSEAlgorithm::applyRescoredPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                             PeptideIdentificationList& peptide_ids,
                                             bool has_decoys,
                                             RunStatistics& stats,
                                             bool rescored) const
   {
-    if (rescored && stratum_q_values_) annotateStratumQValues(peptide_ids);
+    if (rescored && stratum_q_values_)
+    {
+      annotateStratumQValues(peptide_ids);
+      for (ProteinIdentification& run : protein_ids) run.getSearchParameters().setMetaValue("rescoring:stratum_q_values", "true");
+    }
     // A run that Percolator did not rescore reports at most report:top_hits hits per spectrum, which can be fewer than
     // the rescoring:top_hits that the search kept for Percolator.
     if (!rescored && rescore_top_hits_ > 0) keepTopHits_(peptide_ids, report_top_hits_);

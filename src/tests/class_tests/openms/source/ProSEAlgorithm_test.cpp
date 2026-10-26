@@ -7225,4 +7225,47 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the DecoyDatabase construction
 }
 END_SECTION
 
+START_SECTION((static void stratumQValues(PeptideIdentificationList& peptide_ids)))
+{
+  // grouped TDC per stratum: q = (decoys + 1) / targets, ties decoys first, monotone from the bottom
+  struct H { double score; bool decoy; char before; int start; bool rescored; };
+  const std::vector<H> hs = {
+    {5, false, 'K', 10, true}, {4, false, 'K', 10, true}, {4, true, 'K', 10, true}, {3, false, 'R', 20, true},
+    {2, true, 'K', 30, true}, {1, false, 'K', 40, true},                        // stratum other
+    {9, false, PeptideEvidence::N_TERMINAL_AA, 0, true}, {8, false, 'M', 1, true},  // stratum protein_nterm
+    {7, false, 'K', 5, false}};                                                  // not rescored
+  PeptideIdentificationList pids;
+  for (const H& h : hs)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setTargetDecoyType(h.decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+    if (h.rescored) hit.setMetaValue("percolator_score", h.score);
+    PeptideEvidence ev;
+    ev.setProteinAccession(h.decoy ? "DECOY_P" : "P");
+    ev.setAABefore(h.before);
+    ev.setStart(h.start);
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setHits(std::vector<PeptideHit>{hit});
+    pids.push_back(pid);
+  }
+  // a Met-clipped evidence together with an internal one: stratum 'other'
+  {
+    PeptideEvidence a, b;
+    a.setAABefore('M'); a.setStart(1); b.setAABefore('K'); b.setStart(50);
+    pids[5].getHits()[0].setPeptideEvidences(std::vector<PeptideEvidence>{a, b});
+  }
+  ProSEAlgorithm::stratumQValues(pids);
+  const std::vector<double> expected = {2.0 / 3, 2.0 / 3, 2.0 / 3, 2.0 / 3, 0.75, 0.75, 0.5, 0.5, 1.0};
+  const std::vector<std::string> stratum = {"other", "other", "other", "other", "other", "other", "protein_nterm", "protein_nterm", ""};
+  for (Size i = 0; i < pids.size(); ++i)
+  {
+    const PeptideHit& hit = pids[i].getHits()[0];
+    TEST_REAL_SIMILAR(double(hit.getMetaValue("stratum_q_value")), expected[i])
+    TEST_STRING_EQUAL(hit.metaValueExists("stratum") ? hit.getMetaValue("stratum").toString() : std::string(), stratum[i])
+  }
+}
+END_SECTION
+
 END_TEST
