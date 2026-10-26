@@ -23,6 +23,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <algorithm>
+#include <compare>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -35,7 +36,6 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
-#include <tuple>
 #include <utility>
 
 namespace OpenMS
@@ -616,6 +616,17 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   return score_(input, model, nullptr);
 }
 
+struct Percolator::ReferenceScale_
+{
+  struct Point
+  {
+    double score, q, pep;
+    auto operator<=>(const Point&) const = default;
+  };
+  std::vector<double> rescaled_weights; ///< the model's weights, rescaled as the scores
+  std::vector<Point> kept;              ///< the rows that the scoring kept, in the order of the scoring
+};
+
 RescoreOutput Percolator::score(const RescoreInput& input,
                                 const PercolatorModel& model,
                                 const RescoreInput& reference)
@@ -623,37 +634,33 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   validateRescoreInput_(input);
   validateModelCompat_(input, model);
   // The reference as score() scores it: its rescaling (score at test_fdr -> 0, median decoy -> -1), q-values and PEPs.
-  std::vector<double> rescaled_weights;
-  const RescoreOutput ref = score_(reference, model, &rescaled_weights);
+  ReferenceScale_ scale;
+  score_(reference, model, &scale);
 
-  // The (score, q-value, PEP) of the reference rows that the scoring kept (not those that target-decoy competition
-  // eliminated, which carry the defaults), by score: q-values and PEPs are non-increasing in the score.
-  std::vector<std::tuple<double, double, double>> curve;
-  for (size_t i = 0; i < ref.scores.size(); ++i)
-  {
-    if (ref.q_values[i] == 1.0 && ref.peps[i] == 1.0 && ref.scores[i] == 0.0) { continue; }
-    curve.emplace_back(ref.scores[i], ref.q_values[i], ref.peps[i]);
-  }
+  // The (score, q-value, PEP) of the reference rows that the scoring kept, by score: q-values and PEPs are
+  // non-increasing in the score.
+  std::vector<ReferenceScale_::Point>& curve = scale.kept;
   if (curve.empty())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "Percolator scoring failed: no reference row was scored.", "");
   }
   std::sort(curve.begin(), curve.end());
-  // linear interpolation between the neighbouring reference scores, constant beyond them
-  const auto at = [&curve](double score, int column) -> double
+  // the q-value and PEP at a score: linear interpolation between the neighbouring reference scores, constant beyond
+  // them
+  const auto at = [&curve](double score) -> std::pair<double, double>
   {
-    const auto value = [column](const std::tuple<double, double, double>& t) { return column == 1 ? std::get<1>(t) : std::get<2>(t); };
     const auto upper = std::lower_bound(curve.begin(), curve.end(), score,
-                                        [](const std::tuple<double, double, double>& t, double s) { return std::get<0>(t) < s; });
-    if (upper == curve.begin()) { return value(curve.front()); }
-    if (upper == curve.end()) { return value(curve.back()); }
+                                        [](const ReferenceScale_::Point& p, double s) { return p.score < s; });
+    if (upper == curve.begin()) { return {upper->q, upper->pep}; }
+    if (upper == curve.end()) { return {curve.back().q, curve.back().pep}; }
     const auto lower = std::prev(upper);
-    const double width = std::get<0>(*upper) - std::get<0>(*lower);
-    if (!(width > 0.0)) { return value(*upper); }
-    const double t = (score - std::get<0>(*lower)) / width;
-    return value(*lower) + t * (value(*upper) - value(*lower));
+    const double width = upper->score - lower->score;
+    if (!(width > 0.0)) { return {upper->q, upper->pep}; }
+    const double t = (score - lower->score) / width;
+    return {lower->q + t * (upper->q - lower->q), lower->pep + t * (upper->pep - lower->pep)};
   };
+  const std::vector<double>& rescaled_weights = scale.rescaled_weights;
 
   const size_t n_feat = input.features.front().size();
   RescoreOutput out;
@@ -665,16 +672,17 @@ RescoreOutput Percolator::score(const RescoreInput& input,
     // as Scores::scoreAndAddPSM, with the weights that Scores::normalizeScores rescaled for the reference
     double s = rescaled_weights[n_feat];
     for (size_t j = 0; j < n_feat; ++j) { s += row[j] * rescaled_weights[j]; }
+    const auto [q, pep] = at(s);
     out.scores.push_back(s);
-    out.q_values.push_back(at(s, 1));
-    out.peps.push_back(std::clamp(at(s, 2), 0.0, 1.0));
+    out.q_values.push_back(q);
+    out.peps.push_back(std::clamp(pep, 0.0, 1.0));
   }
   return out;
 }
 
 RescoreOutput Percolator::score_(const RescoreInput& input,
                                  const PercolatorModel& model,
-                                 std::vector<double>* rescaled_weights)
+                                 ReferenceScale_* scale)
 {
   // Mark pi0 invalid up front: any throw — including from input/model
   // validation below or anywhere inside the scoring try block — leaves
@@ -747,7 +755,7 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
     // is not mutated.
     std::vector<double> weights_copy = model.weights;
     all_scores.normalizeScores(impl_->test_fdr, weights_copy);
-    if (rescaled_weights != nullptr) { *rescaled_weights = weights_copy; }
+    if (scale != nullptr) { scale->rescaled_weights = weights_copy; }
 
     if (impl_->post_processing_tdc)
     {
@@ -805,6 +813,7 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
     out.peps[row]     = sh.pep;
+    if (scale != nullptr) { scale->kept.push_back({sh.score, sh.q, sh.pep}); }
     ++matched;
     if (sh.score < score_min) score_min = sh.score;
     if (sh.score > score_max) score_max = sh.score;
@@ -1642,13 +1651,17 @@ namespace
     }
   }
 
-  void checkPsmsAndScoreType(const PeptideIdentificationList& peptide_ids, const std::string& score_type)
+  void checkScoreType(const std::string& score_type)
   {
     if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "score_type must be 'q-value', 'pep' or 'svm'", score_type);
     }
+  }
+
+  void checkHasPsms(const PeptideIdentificationList& peptide_ids)
+  {
     if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
                      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
     {
@@ -1665,7 +1678,8 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              int max_charge,
                              const std::string& score_type)
 {
-  checkPsmsAndScoreType(peptide_ids, score_type);
+  checkScoreType(score_type);
+  checkHasPsms(peptide_ids);
   PercolatorInfile::PinFeatureMetaValueMap added;
   PinMetaValueCleanup cleanup{peptide_ids, added};
   const PsmRows rows = buildPsmRows(peptide_ids, feature_set, enzyme, min_charge, max_charge, added);
@@ -1683,7 +1697,7 @@ PercolatorModel Percolator::trainPSMs(PeptideIdentificationList& peptide_ids,
                                       int min_charge,
                                       int max_charge)
 {
-  checkPsmsAndScoreType(peptide_ids, "q-value");
+  checkHasPsms(peptide_ids);
   PercolatorInfile::PinFeatureMetaValueMap added;
   PinMetaValueCleanup cleanup{peptide_ids, added};
   const PsmRows rows = buildPsmRows(peptide_ids, feature_set, enzyme, min_charge, max_charge, added);
@@ -1701,8 +1715,9 @@ Size Percolator::scorePSMs(PeptideIdentificationList& peptide_ids,
                            int max_charge,
                            const std::string& score_type)
 {
-  checkPsmsAndScoreType(peptide_ids, score_type);
-  checkPsmsAndScoreType(reference_ids, score_type);
+  checkScoreType(score_type);
+  checkHasPsms(peptide_ids);
+  checkHasPsms(reference_ids);
   PercolatorInfile::PinFeatureMetaValueMap added, reference_added;
   PinMetaValueCleanup cleanup{peptide_ids, added}, reference_cleanup{reference_ids, reference_added};
   const PsmRows rows = buildPsmRows(peptide_ids, feature_set, enzyme, min_charge, max_charge, added);

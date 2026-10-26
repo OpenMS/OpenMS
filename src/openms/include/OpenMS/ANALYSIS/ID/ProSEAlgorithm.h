@@ -1477,6 +1477,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// rescoring are kept (SearchResult::pre_fdr_peptide_ids) and its proteins are not reduced to those of its PSMs yet,
     /// for rescoreFilesTogether_()
     mutable bool pool_rescoring_ = false;
+    /// Whether a search keeps the PSMs of each file before the rescoring (SearchResult::pre_fdr_peptide_ids)
+    bool keepPreRescoringPsms_() const { return keep_pre_fdr_psms_ || pool_rescoring_; }
     /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;

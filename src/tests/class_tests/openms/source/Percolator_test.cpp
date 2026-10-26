@@ -41,14 +41,13 @@ using namespace OpenMS;
 using namespace std;
 
 // Helper: build a moderately-separable dataset with @p n_per_class targets
-// and decoys, 2 features (signal + noise). Target signal ~N(+1.0, 0.6^2);
-// decoy signal ~N(0.0, 0.6^2). Not trivially separable — Percolator's
-// checkSeparationAndSetPi0 will not fire on this.
-static OpenMS::RescoreInput makeModeratelySeparableInput_(
-  std::size_t n_per_class, unsigned seed)
+// and decoys, 2 features (signal + noise), from the uniform [0, 1] numbers of
+// @p rand01. Target signal ~N(+1.0, 0.6^2); decoy signal ~N(0.0, 0.6^2). Not
+// trivially separable — Percolator's checkSeparationAndSetPi0 will not fire on
+// this.
+template<typename Rand01>
+static OpenMS::RescoreInput makeModeratelySeparableRows_(std::size_t n_per_class, Rand01 rand01)
 {
-  std::srand(seed);
-  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
   auto randn = [&]() {
     double u1 = std::max(1e-9, rand01());
     return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
@@ -70,29 +69,20 @@ static OpenMS::RescoreInput makeModeratelySeparableInput_(
   return input;
 }
 
-// As makeModeratelySeparableInput_(), but from std::mt19937, whose output (unlike std::rand()'s) is the same on every
-// platform, so that every platform scores the same rows.
+// makeModeratelySeparableRows_() from std::rand()
+static OpenMS::RescoreInput makeModeratelySeparableInput_(
+  std::size_t n_per_class, unsigned seed)
+{
+  std::srand(seed);
+  return makeModeratelySeparableRows_(n_per_class, []() { return static_cast<double>(std::rand()) / RAND_MAX; });
+}
+
+// makeModeratelySeparableRows_() from std::mt19937, whose output (unlike std::rand()'s) is the same on every platform,
+// so that every platform scores the same rows.
 static OpenMS::RescoreInput makePortableModeratelySeparableInput_(std::size_t n_per_class, unsigned seed)
 {
   std::mt19937 gen(seed);
-  auto rand01 = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
-  auto randn = [&]() {
-    double u1 = std::max(1e-9, rand01());
-    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
-  };
-  OpenMS::RescoreInput input;
-  input.feature_names = OpenMS::StringList{"signal", "noise"};
-  for (std::size_t i = 0; i < n_per_class; ++i)
-  {
-    input.features.push_back({+1.0 + 0.6 * randn(), rand01()});
-    input.is_decoy.push_back(false);
-  }
-  for (std::size_t i = 0; i < n_per_class; ++i)
-  {
-    input.features.push_back({ 0.0 + 0.6 * randn(), rand01()});
-    input.is_decoy.push_back(true);
-  }
-  return input;
+  return makeModeratelySeparableRows_(n_per_class, [&gen]() { return static_cast<double>(gen()) / 4294967296.0; });
 }
 
 static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,

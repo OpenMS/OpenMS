@@ -86,8 +86,6 @@
 #endif
 #include <ostream>
 #include <map>
-#include <optional>
-#include <random>
 #include <set>
 #include <sstream>
 #include <string_view>
@@ -4376,7 +4374,7 @@ namespace OpenMS
 
     // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
     last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_,
-                                    keep_pre_fdr_psms_ || pool_rescoring_ ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
+                                    keepPreRescoringPsms_() ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
 
     restore_fi_params();
 
@@ -4448,8 +4446,8 @@ namespace OpenMS
                            { return !switcher.findScoreType(id, type).score_name.empty(); });
       };
       if (all_have(IDScoreSwitcherAlgorithm::ScoreType::PEP)) { score_type = "PEP"; }
-      else if (useSearchEngineScore_(psms)) { score_type = "RAW"; } // the main score of the copies now; "RAW" finds it
-      else if (all_have(IDScoreSwitcherAlgorithm::ScoreType::RAW)) { score_type = "RAW"; }
+      // (after useSearchEngineScore_(), ProSE's score is the main score of the copies, which "RAW" finds)
+      else if (useSearchEngineScore_(psms) || all_have(IDScoreSwitcherAlgorithm::ScoreType::RAW)) { score_type = "RAW"; }
     }
     BasicProteinInferenceAlgorithm bpia;
     Param bpia_param = bpia.getParameters();
@@ -4736,7 +4734,6 @@ namespace OpenMS
   // source of truth for the ProSE TOPP tool and other callers (e.g. the
   // WebAssembly bindings); it was a copy in the tool before.
   // =====================================================================
-  // static
   // static
   StringList ProSEAlgorithm::percolatorFeatureSet_(const ProteinIdentification& run, int min_charge, int max_charge)
   {
@@ -6102,7 +6099,7 @@ namespace OpenMS
         capturePreFdrStats_(result.peptide_ids, result.stats);
         // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
         result.percolator = applyPsmFDR_(result.protein_ids, result.peptide_ids, has_decoys, result.stats,
-                                         keep_pre_fdr_psms_ || pool_rescoring_ ? &result.pre_fdr_peptide_ids : nullptr,
+                                         keepPreRescoringPsms_() ? &result.pre_fdr_peptide_ids : nullptr,
                                          &result.inference_only_peptide_ids);
 
         result.exit_code = ExitCodes::EXECUTION_OK;
@@ -6281,7 +6278,7 @@ namespace OpenMS
         result.stats = last_run_stats_;
         result.percolator = last_percolator_;
         result.stats.input_file = File::basename(in_spectra);
-        if (keep_pre_fdr_psms_ || pool_rescoring_) { result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_); }
+        if (keepPreRescoringPsms_()) { result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_); }
         pre_fdr_peptide_ids_ = PeptideIdentificationList();
         result.inference_only_peptide_ids = std::move(inference_only_peptide_ids_);
         inference_only_peptide_ids_ = PeptideIdentificationList();
@@ -6467,23 +6464,23 @@ namespace OpenMS
     // mergeFileResults()); the runs of the files stay as they are.
     // If no file has a PSM left (e.g. FDR:PSM removed all), the engine of the searched files by the same rule:
     // IDMergerAlgorithm requires one engine of runs without PSMs as well.
-    std::string engine, engine_version, rescored_engine, rescored_version;
+    const SearchResult* engine_of = nullptr; // the first file that Percolator did not rescore, else the first
     for (const bool require_psms : {true, false})
     {
       for (const SearchResult& pf : per_file)
       {
         if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
         if (require_psms && !hasPSMs_(pf.peptide_ids)) { continue; }
-        std::string& name = pf.percolator.applied ? rescored_engine : engine;
-        if (name.empty())
-        {
-          name = pf.protein_ids[0].getSearchEngine();
-          (pf.percolator.applied ? rescored_version : engine_version) = pf.protein_ids[0].getSearchEngineVersion();
-        }
+        if (engine_of == nullptr || (engine_of->percolator.applied && !pf.percolator.applied)) { engine_of = &pf; }
       }
-      if (!engine.empty() || !rescored_engine.empty()) { break; }
+      if (engine_of != nullptr) { break; }
     }
-    if (engine.empty()) { engine = rescored_engine; engine_version = rescored_version; }
+    std::string engine, engine_version;
+    if (engine_of != nullptr)
+    {
+      engine = engine_of->protein_ids[0].getSearchEngine();
+      engine_version = engine_of->protein_ids[0].getSearchEngineVersion();
+    }
 
     IDMergerAlgorithm merger;
     std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
@@ -6653,27 +6650,27 @@ namespace OpenMS
       // others, on the scale of its training PSMs: a PSM gets the score it would get among them, and the PEP of the
       // training PSMs at that score (Percolator::scorePSMs()), not one estimated on a file too small for that.
       // 'id_merge_index' keeps the spectra of the training files apart (spectrum file numbers).
+      std::vector<std::vector<Size>> rows(own.size()); // of each file, those with PSMs
       std::vector<Size> sizes;
-      for (Size i : own)
+      for (Size k = 0; k < own.size(); ++k)
       {
-        const PeptideIdentificationList& ids = mfres.per_file[i].pre_fdr_peptide_ids;
-        sizes.push_back(static_cast<Size>(std::count_if(ids.begin(), ids.end(), [](const PeptideIdentification& id) { return !id.getHits().empty(); })));
+        const PeptideIdentificationList& ids = mfres.per_file[own[k]].pre_fdr_peptide_ids;
+        for (Size r = 0; r < ids.size(); ++r) { if (!ids[r].getHits().empty()) { rows[k].push_back(r); } }
+        sizes.push_back(rows[k].size());
       }
       const std::vector<Size> quotas = stratifiedQuotas_(sizes, max_train_psms_);
       PeptideIdentificationList training;
       for (Size k = 0; k < own.size(); ++k)
       {
         const PeptideIdentificationList& ids = mfres.per_file[own[k]].pre_fdr_peptide_ids;
-        std::vector<Size> rows;
-        for (Size r = 0; r < ids.size(); ++r) { if (!ids[r].getHits().empty()) { rows.push_back(r); } }
-        if (quotas[k] < rows.size())
+        if (quotas[k] < rows[k].size())
         {
-          std::mt19937 rng(static_cast<std::mt19937::result_type>(own[k] + 1)); // reproducible
-          std::shuffle(rows.begin(), rows.end(), rng);
-          rows.resize(quotas[k]);
-          std::sort(rows.begin(), rows.end());
+          // reproducible, and the same on every platform (std::shuffle is not)
+          Math::RandomShuffler(static_cast<int>(own[k] + 1)).portable_random_shuffle(rows[k].begin(), rows[k].end());
+          rows[k].resize(quotas[k]);
+          std::sort(rows[k].begin(), rows[k].end());
         }
-        for (Size r : rows)
+        for (Size r : rows[k])
         {
           PeptideIdentification& copy = training.emplace_back(ids[r]);
           copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(own[k]));
@@ -6700,17 +6697,32 @@ namespace OpenMS
           "model's training PSMs (their PEP at the same score); the q-values are those of target-decoy competition of "
           "this input's PSMs on that score." + (perc.usedDefaultDirection() ? " Percolator's sanity check rejected "
           "the learned model, so the PSMs are scored with the best single feature." : "");
+        // The PSMs of all these files in one call: it scores every PSM on its own (no target-decoy competition among
+        // them), and prepares and scores the training PSMs (the reference) once.
+        PeptideIdentificationList ids;
+        std::vector<Size> file_of; // per element of ids
         for (Size i : alone)
         {
-          const std::string warning = "Percolator could not rescore this input on its own (" + mfres.per_file[i].percolator.skipped_reason
-                                      + "): " + transferred;
-          PeptideIdentificationList ids = std::move(mfres.per_file[i].pre_fdr_peptide_ids);
-          if (keep_pre_fdr_psms_) { mfres.per_file[i].pre_fdr_peptide_ids = ids; }
-          // the best hit of each spectrum by the SVM score (the q-values of the training PSMs at a score have
-          // plateaus, which would leave ties to the search engine's order); target-decoy competition follows in adopt()
-          perc.scorePSMs(ids, model, training, feature_set, enzyme, min_charge, max_charge, "svm");
-          IDFilter::keepNBestHits(ids, 1);
-          adopt(i, std::move(ids), warning);
+          PeptideIdentificationList& pre_fdr = mfres.per_file[i].pre_fdr_peptide_ids;
+          for (PeptideIdentification& id : pre_fdr)
+          {
+            if (keep_pre_fdr_psms_) { ids.push_back(id); }
+            else { ids.push_back(std::move(id)); }
+            file_of.push_back(i);
+          }
+          if (!keep_pre_fdr_psms_) { pre_fdr = PeptideIdentificationList(); }
+        }
+        // the best hit of each spectrum by the SVM score (the q-values of the training PSMs at a score have plateaus,
+        // which would leave ties to the search engine's order); target-decoy competition follows in adopt()
+        perc.scorePSMs(ids, model, training, feature_set, enzyme, min_charge, max_charge, "svm");
+        IDFilter::keepNBestHits(ids, 1);
+        std::vector<PeptideIdentificationList> parts(mfres.per_file.size());
+        for (Size k = 0; k < ids.size(); ++k) { parts[file_of[k]].push_back(std::move(ids[k])); }
+        ids = PeptideIdentificationList();
+        for (Size i : alone)
+        {
+          adopt(i, std::move(parts[i]), "Percolator could not rescore this input on its own ("
+                                        + mfres.per_file[i].percolator.skipped_reason + "): " + transferred);
         }
       }
       catch (const Exception::BaseException& e)
@@ -6934,21 +6946,21 @@ namespace OpenMS
       else { return false; }
     }
     // one switcher per meta value name
-    std::map<const std::string*, IDScoreSwitcherAlgorithm> switchers;
+    const auto switcher = [&main_score](const std::string& name)
+    {
+      IDScoreSwitcherAlgorithm s;
+      Param p = s.getParameters();
+      p.setValue("new_score", name);
+      p.setValue("new_score_type", main_score);
+      p.setValue("new_score_orientation", "higher_better");
+      s.setParameters(p);
+      return s;
+    };
+    IDScoreSwitcherAlgorithm from_main = switcher(main_score), from_meta = switcher(meta_score);
     Size counter = 0;
     for (Size i = 0; i < ids.size(); ++i)
     {
-      if (source[i] == nullptr) { continue; }
-      auto [it, inserted] = switchers.try_emplace(source[i]);
-      if (inserted)
-      {
-        Param p = it->second.getParameters();
-        p.setValue("new_score", *source[i]);
-        p.setValue("new_score_type", main_score);
-        p.setValue("new_score_orientation", "higher_better");
-        it->second.setParameters(p);
-      }
-      it->second.switchScores(ids[i], counter);
+      if (source[i] != nullptr) { (source[i] == &main_score ? from_main : from_meta).switchScores(ids[i], counter); }
     }
     return true;
   }

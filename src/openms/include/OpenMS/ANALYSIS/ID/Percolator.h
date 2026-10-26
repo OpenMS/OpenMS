@@ -448,8 +448,11 @@ namespace OpenMS
     void updateMembers_() override;
 
   private:
-    /// score(); with @p rescaled_weights, also the model's weights rescaled as the scores (Scores::normalizeScores)
-    RescoreOutput score_(const RescoreInput& input, const PercolatorModel& model, std::vector<double>* rescaled_weights);
+    /// The scale of a scoring, for score(input, model, reference): see score_()
+    struct ReferenceScale_;
+    /// score(); with @p scale, also the model's weights rescaled as the scores (Scores::normalizeScores) and the
+    /// score, q-value and PEP of each row that the scoring kept (not those that target-decoy competition eliminated)
+    RescoreOutput score_(const RescoreInput& input, const PercolatorModel& model, ReferenceScale_* scale);
 
     struct Impl;
     std::unique_ptr<Impl> impl_;
