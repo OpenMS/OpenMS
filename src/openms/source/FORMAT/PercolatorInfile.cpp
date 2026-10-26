@@ -460,6 +460,10 @@ namespace OpenMS
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
     RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
+    size_t spectra = 0;              // spectra (PeptideIdentifications) with stamped PSMs
+    size_t spectra_without_scan = 0; // ... of which no scan number could be read
+    std::string example_without_scan;
+
     size_t pid_index_1based = 0;
     size_t pid_index_0based = 0;
     for (auto& pep_id : peptide_ids)
@@ -473,6 +477,7 @@ namespace OpenMS
 
       const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);
+      bool stamped_hit = false; // a hit of this spectrum got ScanNr (skipped hits get none)
 
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
@@ -511,6 +516,7 @@ namespace OpenMS
           continue;
         }
 
+        stamped_hit = true;
         stamp_meta_value("SpecId", file_identifier + scan_identifier);
         stamp_meta_value("ScanNr", scan_number);
         stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
@@ -615,6 +621,25 @@ namespace OpenMS
         }
         stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
       }
+
+      if (stamped_hit)
+      {
+        ++spectra;
+        if (scan_number < 0)
+        {
+          if (spectra_without_scan == 0) example_without_scan = scan_identifier;
+          ++spectra_without_scan;
+        }
+      }
+    }
+    // Percolator keeps the PSMs of one scan number in one cross-validation fold. The spectra without a scan number all
+    // get -1 and so share one fold, which can leave too few PSMs to train on (#10719: a native ID format that the scan
+    // number pattern of the first spectrum did not match).
+    if (spectra_without_scan > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: no scan number found in " << spectra_without_scan << " of " << spectra
+                      << " spectrum references (e.g. '" << example_without_scan << "'). Their PSMs get ScanNr -1"
+                      << " and share one Percolator cross-validation fold." << endl;
     }
     return skipped;
   }
