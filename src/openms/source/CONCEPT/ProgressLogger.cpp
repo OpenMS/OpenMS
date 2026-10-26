@@ -234,7 +234,9 @@ public:
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
     last_invoke_ = time(nullptr);
-    current_logger_->startProgress(begin, end, label, recursion_depth_.fetch_add(1));
+    // the depth is raised after the display started, as before (a display that throws leaves it unchanged)
+    current_logger_->startProgress(begin, end, label, recursion_depth_.load());
+    recursion_depth_.fetch_add(1);
   }
 
   void ProgressLogger::setProgress(SignedSize value) const

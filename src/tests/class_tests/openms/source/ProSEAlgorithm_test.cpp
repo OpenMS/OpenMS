@@ -220,8 +220,9 @@ private:
 };
 
 // Sets the number of OpenMP threads of the calling thread for its scope. With one thread the multi-file search reads no
-// file in the background: the mzML reader shares the (static, unsynchronized) step depth of the ProgressLogger with the
-// search, so with threads the depths that the search sees are not reliable.
+// file in the background: the mzML reader shares the static step depth of the ProgressLogger with the search (atomic,
+// so free of data races, but the nesting of displays of different threads interleaves), so with threads the depths
+// that the search sees are not reliable.
 class ScopedOpenMPThreads
 {
 public:
