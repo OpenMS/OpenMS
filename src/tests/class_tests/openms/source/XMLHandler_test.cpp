@@ -6,6 +6,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Init.h>
+#include <random>
 
 class StringManager_test : public OpenMS::Internal::StringManager
 {
@@ -157,6 +158,40 @@ START_SECTION(static XercesString convert(const char * str))
     const std::basic_string<char16_t> widened = StringManager::convert(text);
     const unique_xerces_ptr<char16_t> transcoded = StringManager::convertPtr(text);
     TEST_TRUE(widened == std::basic_string<char16_t>(transcoded.get()))
+  }
+END_SECTION
+
+START_SECTION(static Int parseInt(const char16_t * str))
+  // as XMLString::parseInt() of Xerces 3.3 (checked against it): XML white space trimmed, then all of it a base-10 long
+  // (strtol, which also skips leading \\v and \\f) cut to an int, else it throws
+  // (the strings that are not ASCII or longer than 31 characters go to XMLString::parseInt() itself)
+  const auto outcome = [](const std::u16string& text) -> std::pair<bool, long long>
+  {
+    try { return {true, StringManager::parseInt(text.c_str())}; }
+    catch (...) { return {false, 0}; }
+  };
+  const std::vector<std::pair<std::u16string, long long>> taken = {{u"0", 0}, {u"-0", 0}, {u"+5", 5}, {u" 12", 12}, {u"12 ", 12},
+    {u"\t-42\n", -42}, {u"\r\n7\r\n", 7}, {u"2147483647", 2147483647LL}, {u"-2147483648", -2147483648LL}, {u" +3 ", 3},
+    {u"007", 7}, {u"000000000000000000000000000000000001", 1}, {u"-000000000000000000000000000000001", -1},
+    {u"2147483648", -2147483648LL}, {u"-2147483649", 2147483647LL}, {u"4294967297", 1}, {u"9223372036854775807", -1}, {u"\v12", 12},
+    {u"\f12", 12}};
+  for (const auto& [text, value] : taken)
+  {
+    const auto o = outcome(text);
+    TEST_TRUE(o.first)
+    TEST_EQUAL(o.second, value)
+  }
+  const std::vector<std::u16string> refused = {u"99999999999999999999", u"9223372036854775808", u"12\v",
+    u"", u"   ", u"1a", u"0x10", u"1 2", u"+", u"-", u"1e3", u"12.0", u"\u0661\u0662", u"\uFF11\uFF12", u"12\u00A0", u"\u00A012"};
+  for (const std::u16string& text : refused) { TEST_FALSE(outcome(text).first) }
+  std::mt19937_64 rng(42);
+  for (int i = 0; i < 1000; ++i)
+  {
+    const long long v = static_cast<long long>(rng() >> (rng() % 64)) * ((rng() & 1) ? -1 : 1);
+    const std::string t = std::to_string(v);
+    const auto o = outcome(std::u16string(t.begin(), t.end()));
+    TEST_TRUE(o.first)
+    TEST_EQUAL(o.second, static_cast<long long>(static_cast<OpenMS::Int>(v)))
   }
 END_SECTION
 
