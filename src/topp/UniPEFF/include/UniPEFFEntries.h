@@ -113,7 +113,9 @@ namespace OpenMS::UniPEFFEntries
     std::string accession;  ///< isoform accession, e.g. "P02768-2"
     std::string name;       ///< isoform &lt;name&gt;, e.g. "2" or "VEGF121"
     std::string sequence;   ///< canonical sequence with the referenced splice variants applied
-    EntryAnnotations annotations;  ///< features UniProt annotates on this isoform (&lt;location sequence="..."&gt;)
+    /// features UniProt annotates on this isoform (&lt;location sequence="..."&gt;), plus, with
+    /// -map_canonical_features, the canonical ones mapped onto it
+    EntryAnnotations annotations;
   };
 
   struct PreparedEntry
@@ -122,13 +124,21 @@ namespace OpenMS::UniPEFFEntries
     EntryAnnotations annotations;
     size_t isoform_scoped_applied{0};  ///< isoform-scoped features written to their isoform's entry
     size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out (isoform not written) that would otherwise have become annotations
+    /// -map_canonical_features: canonical annotations written to an isoform entry (counted once per isoform)
+    size_t canonical_mapped{0};
+    /// -map_canonical_features: canonical annotations not written to an isoform entry because they lie in or
+    /// cross one of its splice variants, have an unknown position, or contradict an annotation UniProt makes
+    /// on that isoform itself (counted once per isoform)
+    size_t canonical_unmapped{0};
     std::string prefix;       ///< sp/tr or user override
     std::vector<IsoformEntry> isoforms;  ///< reconstructed alternative products (emitted after the entry)
   };
 
-  /// Counts, over all entries, the isoform-scoped features that would become annotations:
-  /// those written to their isoform's entry, and those left out because that isoform is
-  /// not written (external, not described, not reconstructable, or -omit_isoforms).
+  /// Counts, over all entries, features that would become annotations of isoform entries: those
+  /// written (applied) and those left out (skipped). Used for the isoform-scoped features (skipped:
+  /// the isoform is not written: external, not described, not reconstructable, or -omit_isoforms)
+  /// and for the canonical features mapped with -map_canonical_features (skipped: in or across a
+  /// splice variant, unknown position, or contradicted by the isoform's own annotation).
   struct IsoformScopedTracker
   {
     size_t applied{0};
@@ -154,11 +164,18 @@ namespace OpenMS::UniPEFFEntries
   /// Prepare one entry: reconstruct the emittable isoform sequences ("external" / "not
   /// described" isoforms are counted in @p skipped_isoforms), classify each feature into the
   /// canonical entry or, if its &lt;location sequence="..."&gt; names an emitted isoform, into
-  /// that isoform's entry; then, per entry, merge halfcys, drop disulfide pairs with
-  /// out-of-range endpoints and stamp annotation IDs (global in Option B, selective disulfide
-  /// labels otherwise).
+  /// that isoform's entry. With @p map_canonical_features, the canonical entry's annotations
+  /// are also mapped onto each isoform through its splice variants: features in a deleted or
+  /// replaced region, or regions overlapping one, are not mapped (processed regions are clipped
+  /// to the residues they keep), and a copy of a feature UniProt annotates on that isoform itself
+  /// (for a glycosylation: any on that residue) is not added again. UniProt's own isoform annotation
+  /// also wins over a mapped one it contradicts (same-type processed regions that overlap, disulfide bonds
+  /// sharing a cysteine, a cross-link sharing a residue with a disulfide bond or cross-link if one of the
+  /// two links two residues): the mapped one is
+  /// not added and a warning is logged. Then, per entry, merge halfcys, drop disulfide pairs with out-of-range
+  /// endpoints and stamp annotation IDs (global in Option B, selective disulfide labels otherwise).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
-                             bool record_variants, bool record_isoforms,
+                             bool record_variants, bool record_isoforms, bool map_canonical_features,
                              SkippedIsoformCounts& skipped_isoforms);
 } // namespace OpenMS::UniPEFFEntries
