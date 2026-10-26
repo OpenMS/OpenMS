@@ -1341,6 +1341,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const PeakMap* query_spectra = nullptr) const;
 
     /**
+     * @brief The order in which scoreSpectraAgainstIndex_() scores the spectra: the scan indices sorted by the neutral
+     *        precursor mass of the first precursor (of @p query_spectra if given; an unknown charge counts as 1), ties
+     *        by scan index; spectra without a finite mass at the end in scan order.
+     */
+    static std::vector<SignedSize> scoringOrder_(const PeakMap& spectra, const PeakMap* query_spectra);
+
+    /**
      * @brief Filter and annotate search results.
      *
      * Trims per-spectrum candidate hits to the top N and converts them into
