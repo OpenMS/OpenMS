@@ -8,6 +8,7 @@
 - **Query-scale check:** [57381c0213](https://github.com/OpenMS/OpenMS/commit/57381c0213c86e08a6c5ded49f64bf3024ed1d5d).
 - **Parent:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10665](https://github.com/OpenMS/OpenMS/issues/10665).
 - **Policies:** [architecture](../architecture.md), [master plan](../README.md).
+- **Requirement observations:** [26 October native/CLI replay and remaining gates](../VALIDATION.md).
 
 ## Objective
 
@@ -30,13 +31,13 @@ Read raw evidence without keeping all run peaks in memory. Preserve acquisition 
 |---|---|
 | Preserve scans, arrays and metadata | `OpenDIARawAccess_test`: exact native metadata and numeric arrays for 114/150/19 scans and 513/32,750/44,354 points from non-IM, IM and FAIMS fixtures. |
 | Preserve extraction at different limits | The public chromatogram extractor gives exact RT/intensity arrays at two cache limits and 1/16/4,096 queries. Reference signals are nonzero. |
-| Keep raw charges independent of query count | For each fixed traversal and limit, raw peak bytes and scan misses are equal at all three query counts. IM uses 23,080 bytes at the tight limit and 962,424 bytes at the large limit, with 150 misses. Output arrays grow from 300 to 1,228,800 elements. This is a coordinate-grid test, not a complete peptide-library test. |
+| Keep raw charges independent of query count | For each fixed traversal and limit, raw peak bytes and scan misses are equal at all three query counts. The fresh 19:10 UTC Release replay uses 24,048 IM bytes at the tight limit and 958,472 bytes at the large limit, with 150 misses. These supersede the earlier Debug-build figures, not a matched performance comparison. Output arrays grow from 300 to 1,228,800 elements. This is a coordinate-grid test, not a complete peptide-library test. |
 | Preserve interval edges and missing values | Tests cover long isolation overlap, open/closed RT and isolation edges, absent IM, measured zero IM, discrete FAIMS zero and empty scans. |
 | Preserve engine results | Direct and tiled CLI runs match four non-IM rows and six PASEF mzML rows, plus all nonempty `FEATURE*`/`SCORE*` tables, at 65/256 MiB declared budgets. Identity fields are exact. Numeric tolerance is relative `1e-6`, absolute `1e-8`. Only generated run/file/feature IDs are normalized. |
 | Exercise IM scores | Both PASEF workflows contain finite, nonzero measured IM and IM intensity scores. The check rejects a copied result with those values removed. Equal nonfinite values are also rejected. |
 | Keep owners and charges valid | Tests cover eviction, pinned admission failure, array-only/container-only owners, mutation isolation, cancellation and last-owner release. |
 | Reject invalid input | Tests reject invalid indices/queries, oversized scans/copies, a missing file index and a removed indexed payload. The real CLI rejects an indexed fixture with three FAIMS CV lanes without process termination. No partial tile is published. |
-| Return parallel reader errors | Six actual indexed-reader cases return admission errors from IM calibration, legacy extraction and wave extraction. The CLI oversize test exits with an error, not a termination signal. |
+| Return parallel reader errors | Twelve actual indexed-reader cases return admission errors from filtering, IM/m/z calibration, legacy extraction and wave extraction. The CLI oversize test exits with an error, not a termination signal. |
 
 The first adapter passed 98 native/project/installed-SDK checks, the installed OpenDIA consumer, 10 standalone tests, 10 NDEBUG tests and two ASan/UBSan raw tests. The follow-up added eight real CLI checks. All 106 native/project/installed-SDK checks passed. Instrumentation covers the private implementation, not the complete native SDK. These are Linux checks. `clang-format` is not installed. `git diff --check` passed.
 
@@ -199,7 +200,7 @@ Before/after source, binaries, dependencies, flags, commands, input, library and
 - The current WP-03 build has the Thermo and Bruker readers disabled. A separate vendor-enabled OpenMS build can read these formats and write indexed mzML. The tiled adapter still requires indexed mzML. Do not interpret that adapter restriction as a pyOpenMS format restriction.
 - Private tile/copy charges are not a process RSS limit. Native metadata, indexes, decoding and control storage use a declared 64 MiB allowance. That allowance is not measured or enforced by an allocator.
 - A large native scan can allocate memory before the private size check. Later growth of mutable copies and downstream engine workspaces is not intercepted.
-- Cache access uses one lock and linear LRU lookup. No whole-engine speed or memory improvement is claimed.
+- Cache access uses one lock and linear LRU lookup. The full-input matrix above demonstrates one-input RSS reduction at a runtime cost, not a speedup or universal memory improvement.
 - Oversized scans fail. Split scans only at valid acquisition boundaries if measured input requires this.
 
 ## Remaining gates

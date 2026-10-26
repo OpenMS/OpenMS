@@ -4,6 +4,7 @@
 - **Status:** private primitives and local acceptance checks implemented and verified 26 October 2026. Keep this package open and stacked pending adapter integration and combined-design validation. **Owner / reviewer:** ownership is tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10664](https://github.com/OpenMS/OpenMS/issues/10664).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
+- **Requirement observations:** [26 October native/CLI replay and remaining gates](../VALIDATION.md).
 - **Implementation:** `feature/opendia-wp02-resource-budget`, based directly on WP-01 `3cd24a25026615b26671a46596b3eeae7de89986`. Primitives: `6621ef44ab`. Record ownership and integration checks: `338ba2c569`. Backpressure-test observation fix: `4b2c8e1d33`. No merge into `develop` and no physical-layout or scientific-semantics freeze.
 
 ## Objective

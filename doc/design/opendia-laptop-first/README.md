@@ -122,7 +122,9 @@ shared host. The original failed matrix is retained. A current 128 MiB check
 completes calibration but fails decoder admission during extraction, with no
 final output. Next, reduce repeated reads with WP-05 and test whole-job admission.
 Native acquisition, broader input coverage and whole-process bounds remain open.
-Keep all packages stacked.
+Keep all packages stacked. The [requirement-to-observation map](VALIDATION.md)
+records fresh actual native/CLI/installed-consumer checks, every changed output
+and the explicit unmet WP-02/WP-03 gates.
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
@@ -136,7 +138,8 @@ Metadata factoring reduced retained layout allocation by 70-92% in the tested la
 cases. SoA improved dense streaming, but IM extraction and sparse/full-row results
 were mixed. This experiment alone is not a whole-engine speedup claim or a new
 WP-01 completion gate. WP-03 now has an opt-in columnar scan adapter, but has not
-established a whole-workflow speed or RSS improvement.
+established a whole-workflow speedup or a universal RSS benefit. The full-input
+matrix above records a scoped RSS/runtime tradeoff.
 
 ## Current verification status
 
