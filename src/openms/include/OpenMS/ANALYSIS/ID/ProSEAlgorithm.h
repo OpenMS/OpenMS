@@ -1306,6 +1306,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool decoy_keep_termini_ = false;   ///< decoy_method 'keep_termini'
     bool decoy_parity_report_ = false;  ///< decoy_parity_report
     bool terminal_features_ = false;    ///< rescoring:terminal_features
+    bool stratum_q_values_ = false;     ///< rescoring:stratum_q_values
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
     PercolatorTraining percolator_training_; ///< rescoring:...: options of Percolator's training

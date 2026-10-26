@@ -366,20 +366,24 @@ namespace OpenMS
     defaults_.setValue("decoy_method", "reverse",
       "How ProSE generates decoys (decoys 'generate', or 'auto' with a database without decoys). 'reverse' (default): "
       "every enzymatic segment of the protein is reversed except its last residue (the last segment entirely), an "
-      "initial Met stays first with peptide:clip_nterm_methionine. 'keep_termini': OpenMS DecoyDatabase's default "
-      "construction with the search enzyme: in every segment of a digest without missed cleavages, the first and the last "
+      "initial Met stays first with peptide:clip_nterm_methionine. 'keep_termini': the construction of OpenMS "
+      "DecoyDatabase (method reverse, Decoy:keepPeptideNTerm/keepPeptideCTerm true) with the search enzyme and "
+      "Decoy:non_shuffle_pattern 'KRP': in every segment of a digest without missed cleavages, the first and the last "
       "residue and every K, R and P stay in place and the rest is reversed. For enzymes whose cleavage sites are fixed by "
       "these residues (Trypsin, Trypsin/P, Lys-C, Arg-C and the like) every target peptide then has a decoy with the same "
       "start, length, mass and cleavage sites: also every protein N-terminal and Met-clipped one, so that "
       "peptide:clip_nterm_methionine and protein N-terminal modifications add the same number of target and decoy "
-      "candidates (except peptides that equal their decoy, e.g. made of short segments or of K, R and P only). Semi- or "
+      "candidates (except peptides that equal their decoy, e.g. made of short segments or of K, R and P only; and "
+      "modifications specific to a peptide's first residue, e.g. pyro-Glu on an N-terminal Q, apply to the target and "
+      "its decoy alike only where that residue is kept in place). Semi- or "
       "non-specific digestion: as 'reverse'. Other enzymes: a warning names the decoys whose cleavage sites differ from the "
       "target's. No effect on decoys taken from the database (decoys 'auto' with decoys in it). The results differ from "
       "'reverse'.", {"advanced"});
     defaults_.setValidStrings("decoy_method", {"reverse", "keep_termini"});
     defaults_.setValue("decoy_parity_report", "false",
       "Diagnostic: log the candidate counts of the fragment index per label (target, decoy) and subclass (internal, "
-      "protein N-terminal with and without initial M, Met-clipped), and a checksum of generated decoys. Output unchanged.",
+      "protein N-terminal with and without initial M, Met-clipped; and their protein N-terminally acetylated occurrences), and a "
+      "checksum of generated decoys. Output unchanged.",
       {"advanced"});
     defaults_.setValidStrings("decoy_parity_report", {"true", "false"});
 
@@ -649,6 +653,14 @@ namespace OpenMS
                        "proteins) they tell targets from decoys. The results differ.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:terminal_features", {"true", "false"});
+    defaults_.setValue("rescoring:stratum_q_values", "false",
+                       "Also q-values per stratum (meta values 'stratum' and 'stratum_q_value'): the rescored PSMs of "
+                       "protein N-terminal peptides (incl. Met-clipped ones) and the others each get target-decoy "
+                       "competition of their own ((decoys + 1) / targets, as mokapot's grouped confidence). For a list of "
+                       "N-terminal peptides at an FDR, use the stratum q-value; the main score stays the pooled q-value. "
+                       "Needs decoys that populate the N-terminal classes like the targets (decoy_method 'keep_termini').",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:stratum_q_values", {"true", "false"});
     defaults_.setValue("rescoring:peptide_level", "true",
                        "Also Percolator's peptide-level q-values (default; 'false' leaves them out), as the percolator executable reports peptides (without -U): "
                        "after the target-decoy competition of the spectra, the best PSM of each peptide (modified sequence) "
@@ -1049,6 +1061,7 @@ namespace OpenMS
     decoy_keep_termini_ = param_.getValue("decoy_method").toString() == "keep_termini";
     decoy_parity_report_ = param_.getValue("decoy_parity_report").toBool();
     terminal_features_ = param_.getValue("rescoring:terminal_features").toString() == "true";
+    stratum_q_values_ = param_.getValue("rescoring:stratum_q_values").toString() == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     self_trained_ion_priors_ = param_.getValue("annotate:self_trained_ion_priors").toBool();
     ion_prior_model_ = param_.getValue("annotate:ion_prior_model").toString() == "basic"
@@ -2817,8 +2830,8 @@ namespace OpenMS
 
   namespace
   {
-    // decoy_method 'keep_termini': OpenMS DecoyDatabase's default construction (method reverse, Decoy:keepPeptideNTerm
-    // and keepPeptideCTerm true, non_shuffle_pattern "KRP") with @p digestor (the search enzyme, no missed cleavages,
+    // decoy_method 'keep_termini': OpenMS DecoyDatabase's construction (method reverse, Decoy:keepPeptideNTerm
+    // and keepPeptideCTerm true; Decoy:non_shuffle_pattern "KRP", its default is empty) with @p digestor (the search enzyme, no missed cleavages,
     // full specificity): every segment is MRMDecoy::reversePeptideLight(segment, keepN, keepC, "KRP"). Residues not in
     // any segment (none for a digest that tiles the protein) stay in place.
     std::string keepTerminiDecoy(const std::string& protein, const ProteaseDigestion& digestor, std::vector<std::pair<Size, Size>>& spans)
@@ -2924,10 +2937,10 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] decoy_method keep_termini has no effect: the decoys of the database are used "
                       << "(decoys 'auto'). Use '-Search:decoys generate' to replace them." << std::endl;
     }
-    if (check_met_symmetry && (percolator_training_.fixed_enzyme_termini || terminal_features_)
+    if (check_met_symmetry && terminal_features_
         && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
     {
-      OPENMS_LOG_WARN << "[ProSE] rescoring:fixed_enzyme_termini / rescoring:terminal_features with these decoys: the "
+      OPENMS_LOG_WARN << "[ProSE] rescoring:terminal_features with these decoys: the "
                       << "Met-clipped (and protein N-terminal) peptides have (almost) no decoys, so these features tell "
                       << "targets from decoys and the FDR is not controlled. Use '-Search:decoys generate "
                       << "-Search:decoy_method keep_termini'." << std::endl;
@@ -2951,6 +2964,11 @@ namespace OpenMS
       // 'reverse')
       const bool keep_termini = decoy_keep_termini_ && peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_FULL
                                 && enzyme_ != EnzymaticDigestion::UnspecificCleavage && enzyme_ != EnzymaticDigestion::NoCleavage;
+      if (decoy_keep_termini_ && !keep_termini)
+      {
+        OPENMS_LOG_WARN << "[ProSE] decoy_method keep_termini needs a fully specific digestion with a cleaving enzyme; "
+                        << "the decoys are generated with 'reverse'." << std::endl;
+      }
       ProteaseDigestion segments;
       std::vector<std::pair<Size, Size>> target_spans, decoy_spans;
       Size site_mismatches = 0;
@@ -2984,6 +3002,7 @@ namespace OpenMS
         else
           e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         if (preserve_met) { e.sequence.insert(e.sequence.begin(), 'M'); }
+        if (decoy_parity_report_) fnv1a(checksum, e.sequence);
         e.identifier = strategy.decoy_string + e.identifier;  // decoy_string is the prefix to add
         db.push_back(std::move(e));
       }
@@ -2995,12 +3014,12 @@ namespace OpenMS
                           << "proteins do not have the cleavage sites of their target (enzyme '" << enzyme_ << "'); their "
                           << "peptides are not paired with the target's." << std::endl;
         }
-        if (decoy_parity_report_)
-        {
-          OPENMS_LOG_INFO << "[ProSE] decoy parity: " << old_size << " decoys generated (keep_termini), cleavage-site "
-                          << "mismatches " << site_mismatches << ", FNV-1a 64 of the decoy sequences in target order "
-                          << std::hex << checksum << std::dec << std::endl;
-        }
+      }
+      if (decoy_parity_report_)
+      {
+        OPENMS_LOG_INFO << "[ProSE] decoy parity: " << old_size << " decoys generated (" << (keep_termini ? "keep_termini" : "reverse")
+                        << "), cleavage-site mismatches " << (keep_termini ? StringUtils::toStr(site_mismatches) : std::string("not checked"))
+                        << ", FNV-1a 64 of the decoy sequences in target order " << std::hex << checksum << std::dec << std::endl;
       }
       Math::RandomShuffler shuffler(42);  // fixed seed for reproducible decoy ordering across runs/files
       shuffler.portable_random_shuffle(db.begin(), db.end());
@@ -3134,7 +3153,22 @@ namespace OpenMS
       if (clip && start == 1 && q[0] == 'M') return 3;
       return 0;
     };
-    Size entries[2][4] = {}, occurrences[2][4] = {};
+    Size entries[2][4] = {}, occurrences[2][4] = {}, acetyl[2][4] = {};
+    // protein N-terminal acetylation (a variable modification such as Acetyl (Protein N-term)) of a kept entry
+    std::vector<signed char> acetylated;
+    const auto is_acetylated = [&](Size idx) -> bool
+    {
+      const FragmentIndex::Peptide& pe = ctx.fragment_index.getPeptides()[idx];
+      if (pe.mod_bitmask_ == 0) return false;
+      if (acetylated.empty()) acetylated.assign(ctx.fragment_index.getPeptides().size(), -1);
+      if (acetylated[idx] < 0)
+      {
+        const AASequence seq = ctx.fragment_index.reconstructModifiedSequence(pe, db);
+        acetylated[idx] = (seq.hasNTerminalModification()
+                           && seq.getNTerminalModificationName().find("Acetyl") != std::string::npos) ? 1 : 0;
+      }
+      return acetylated[idx] == 1;
+    };
     std::set<std::string_view> distinct[2][4];
     std::set<std::string_view> any_label[2];
     const std::vector<FragmentIndex::Peptide>& peptides = ctx.fragment_index.getPeptides();
@@ -3149,15 +3183,20 @@ namespace OpenMS
         any_label[l].insert(seq);
       }
     };
-    for (const FragmentIndex::Peptide& pe : peptides)
+    for (Size idx = 0; idx < peptides.size(); ++idx)
     {
-      ++entries[decoy[pe.protein_idx] ? 1 : 0][subclass(pe.protein_idx, pe.sequence_.first)];
+      const FragmentIndex::Peptide& pe = peptides[idx];
+      const int l = decoy[pe.protein_idx] ? 1 : 0, c = subclass(pe.protein_idx, pe.sequence_.first);
+      ++entries[l][c];
       count(pe.protein_idx, pe.sequence_.first, pe.sequence_.second, pe.mod_bitmask_ == 0);
+      if (c != 0 && is_acetylated(idx)) ++acetyl[l][c];
     }
     for (const FragmentIndex::RemovedOccurrence& ro : ctx.fragment_index.getRemovedOccurrences())
     {
       const FragmentIndex::Peptide& kept = peptides[ro.peptide_idx];
       count(ro.protein_idx, ro.start, kept.sequence_.second, kept.mod_bitmask_ == 0);
+      const int c = subclass(ro.protein_idx, ro.start);
+      if (c != 0 && is_acetylated(ro.peptide_idx)) ++acetyl[decoy[ro.protein_idx] ? 1 : 0][c];
     }
     Size shared = 0;
     for (const std::string_view& seq : any_label[0]) shared += any_label[1].count(seq);
@@ -3169,7 +3208,8 @@ namespace OpenMS
       OPENMS_LOG_INFO << "[ProSE] decoy parity " << names[c] << ": entries " << entries[0][c] << " / " << entries[1][c]
                       << ", occurrences " << occurrences[0][c] << " / " << occurrences[1][c]
                       << ", sequences " << distinct[0][c].size() << " / " << distinct[1][c].size()
-                      << (occurrences[0][c] == occurrences[1][c] ? " (occurrences equal)" : " (occurrences DIFFER)") << std::endl;
+                      << ", N-terminally acetylated occurrences " << acetyl[0][c] << " / " << acetyl[1][c]
+                      << (occurrences[0][c] == occurrences[1][c] && acetyl[0][c] == acetyl[1][c] ? " (occurrences equal)" : " (occurrences DIFFER)") << std::endl;
     }
     OPENMS_LOG_INFO << "[ProSE] decoy parity: distinct unmodified sequences target " << any_label[0].size() << ", decoy "
                     << any_label[1].size() << ", in both " << shared << std::endl;
@@ -5687,12 +5727,61 @@ namespace OpenMS
     return true;
   }
 
+  namespace
+  {
+    // rescoring:stratum_q_values: grouped target-decoy competition (as mokapot's grouped confidence): the rescored best
+    // hit of every spectrum belongs to the stratum 'protein_nterm' (an evidence at a protein N-terminus, or only
+    // Met-clipped evidences) or 'other'; within each stratum the hits are ordered by percolator_score (ties: decoys
+    // first), q = (decoys + 1) / max(targets, 1) from the top, made monotone from the bottom. Meta values
+    // 'stratum' and 'stratum_q_value'; the main score stays the pooled q-value.
+    void annotateStratumQValues(PeptideIdentificationList& peptide_ids)
+    {
+      struct Row { double score; bool decoy; PeptideHit* hit; };
+      std::vector<Row> rows[2];
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        if (pid.getHits().empty()) continue;
+        PeptideHit& hit = pid.getHits()[0];
+        if (!hit.metaValueExists("percolator_score")) continue;
+        bool nterm = false, all_clipped = !hit.getPeptideEvidences().empty();
+        for (const PeptideEvidence& ev : hit.getPeptideEvidences())
+        {
+          nterm = nterm || ev.getAABefore() == PeptideEvidence::N_TERMINAL_AA;
+          all_clipped = all_clipped && ev.getAABefore() == 'M' && ev.getStart() == 1;
+        }
+        const int stratum = (nterm || all_clipped) ? 1 : 0;
+        rows[stratum].push_back({static_cast<double>(hit.getMetaValue("percolator_score")), hit.isDecoy(), &hit});
+      }
+      static const char* names[2] = {"other", "protein_nterm"};
+      for (int g = 0; g < 2; ++g)
+      {
+        std::vector<Row>& r = rows[g];
+        std::stable_sort(r.begin(), r.end(), [](const Row& a, const Row& b)
+                         { return a.score > b.score || (a.score == b.score && a.decoy && !b.decoy); });
+        std::vector<double> q(r.size());
+        Size targets = 0, decoys = 0;
+        for (Size i = 0; i < r.size(); ++i)
+        {
+          (r[i].decoy ? decoys : targets) += 1;
+          q[i] = std::min(1.0, static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1)));
+        }
+        for (Size i = r.size(); i-- > 1;) q[i - 1] = std::min(q[i - 1], q[i]);
+        for (Size i = 0; i < r.size(); ++i)
+        {
+          r[i].hit->setMetaValue("stratum", names[g]);
+          r[i].hit->setMetaValue("stratum_q_value", q[i]);
+        }
+      }
+    }
+  }
+
   void ProSEAlgorithm::applyRescoredPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                             PeptideIdentificationList& peptide_ids,
                                             bool has_decoys,
                                             RunStatistics& stats,
                                             bool rescored) const
   {
+    if (rescored && stratum_q_values_) annotateStratumQValues(peptide_ids);
     // A run that Percolator did not rescore reports at most report:top_hits hits per spectrum, which can be fewer than
     // the rescoring:top_hits that the search kept for Percolator.
     if (!rescored && rescore_top_hits_ > 0) keepTopHits_(peptide_ids, report_top_hits_);
@@ -5852,7 +5941,7 @@ namespace OpenMS
                                                                    PeptideIdentificationList* pre_fdr_psms) const
   {
     PercolatorRescoring rescoring;
-    if (rescore_ && terminal_features_) annotateTerminalFeatures(protein_ids, peptide_ids);
+    if (terminal_features_) annotateTerminalFeatures(protein_ids, peptide_ids); // also for a .pin without rescoring
     // The copy for a Percolator .pin (setKeepPreFdrPsms()) holds the search engine scores, every reported hit and the
     // decoys: it is the input of a later rescoring, so it is taken before the rescoring as well as before FDR:PSM.
     if (pre_fdr_psms != nullptr)
