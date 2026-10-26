@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -41,10 +42,11 @@ namespace OpenMS::Internal
 
     void XMLHandler::fatalError(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
+      const std::string name = HTTPInputSource::redactURL(file_); // a URL without credentials
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + name + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense for a local file (not for remote URIs or in-memory buffers)
         const bool remote = StringUtils::hasPrefix(file_, "http://") || StringUtils::hasPrefix(file_, "https://")
@@ -63,7 +65,7 @@ namespace OpenMS::Internal
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + name + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -71,19 +73,20 @@ namespace OpenMS::Internal
       }
 
       OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
+      const std::string name = HTTPInputSource::redactURL(file_); // a URL without credentials
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while loading '") + name + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while storing '") + name + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -94,14 +97,15 @@ namespace OpenMS::Internal
 
     void XMLHandler::warning(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
+      const std::string name = HTTPInputSource::redactURL(file_); // a URL without credentials
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + name + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + name + "': " + msg;
       }
       if (line != 0 || column != 0)
       {

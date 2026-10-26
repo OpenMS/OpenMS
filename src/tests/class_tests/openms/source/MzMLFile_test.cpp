@@ -984,6 +984,9 @@ START_SECTION([EXTRA] load from HTTP URL)
   PeakMap exp;
   // a server that cannot be reached is a load error (port 1 on the local host: no network access needed)
   TEST_EXCEPTION(Exception::ParseError, file.load("http://127.0.0.1:1/run.mzML", exp))
+  // the error does not name the credentials of the URL
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("http://user:secret@127.0.0.1:1/run.mzML?token=1", exp),
+                              "IOException: IO error for file 'http://127.0.0.1:1/run.mzML' in: http://127.0.0.1:1/run.mzML")
   const char* url = std::getenv("OPENMS_TEST_HTTP_URL");
   if (url != nullptr)
   {

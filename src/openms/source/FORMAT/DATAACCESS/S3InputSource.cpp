@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/DecompressingInputStream.h>
 
 #ifdef OPENMS_WITH_ARROW_S3
@@ -30,7 +31,7 @@ namespace OpenMS
 
   struct S3InputSource::Impl
   {
-    std::string uri;
+    std::string name; ///< the URI for messages, without credentials (HTTPInputSource::redactURL())
 #ifdef OPENMS_WITH_ARROW_S3
     std::shared_ptr<arrow::io::RandomAccessFile> object;
 #endif
@@ -69,27 +70,28 @@ namespace OpenMS
     std::shared_ptr<arrow::io::RandomAccessFile> openObject(const std::string& uri)
     {
       ensureS3Initialized();
+      const std::string name = HTTPInputSource::redactURL(uri); // the URI may hold an access key and secret
       std::string path;
       auto options = arrow::fs::S3Options::FromUri(uri, &path);
       // the errors are logged, as callers may rethrow them as other exceptions (e.g. MzMLFile::load(): a ParseError)
       if (!options.ok())
       {
-        OPENMS_LOG_ERROR << "Invalid S3 URI " << uri << ": " << options.status().ToString() << std::endl;
+        OPENMS_LOG_ERROR << "Invalid S3 URI " << name << ": " << options.status().ToString() << std::endl;
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Invalid S3 URI '" + uri + "': " + options.status().ToString());
+                                         "Invalid S3 URI '" + name + "': " + options.status().ToString());
       }
       auto filesystem = arrow::fs::S3FileSystem::Make(*options);
       if (!filesystem.ok())
       {
-        OPENMS_LOG_ERROR << "Cannot open " << uri << ": " << filesystem.status().ToString() << std::endl;
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri, filesystem.status().ToString());
+        OPENMS_LOG_ERROR << "Cannot open " << name << ": " << filesystem.status().ToString() << std::endl;
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, filesystem.status().ToString());
       }
       finalizeS3AtExit();
       auto object = (*filesystem)->OpenInputFile(path);
       if (!object.ok())
       {
-        OPENMS_LOG_ERROR << "Cannot open " << uri << ": " << object.status().ToString() << std::endl;
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri, object.status().ToString());
+        OPENMS_LOG_ERROR << "Cannot open " << name << ": " << object.status().ToString() << std::endl;
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, object.status().ToString());
       }
       return *object;
     }
@@ -99,9 +101,9 @@ namespace OpenMS
       public InputStream
     {
 public:
-      ArrowInputStream(std::shared_ptr<arrow::io::InputStream> stream, const std::string& uri) :
+      ArrowInputStream(std::shared_ptr<arrow::io::InputStream> stream, const std::string& name) :
         stream_(std::move(stream)),
-        uri_(uri)
+        name_(name)
       {
       }
 
@@ -115,8 +117,8 @@ public:
         auto bytes_read = stream_->Read(static_cast<int64_t>(max_to_read), to_fill);
         if (!bytes_read.ok())
         {
-          OPENMS_LOG_ERROR << "Error reading " << uri_ << ": " << bytes_read.status().ToString() << std::endl;
-          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri_);
+          OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << bytes_read.status().ToString() << std::endl;
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
         }
         position_ += static_cast<UInt64>(*bytes_read);
         return static_cast<Size>(*bytes_read);
@@ -124,7 +126,7 @@ public:
 
 private:
       std::shared_ptr<arrow::io::InputStream> stream_;
-      std::string uri_;
+      std::string name_; ///< the URI for messages, without credentials
       UInt64 position_ = 0;
     };
 #endif
@@ -135,16 +137,17 @@ private:
   {
     if (!isS3URI(uri))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not an S3 URI (s3://bucket/key): '" + uri + "'");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Not an S3 URI (s3://bucket/key): '" + HTTPInputSource::redactURL(uri) + "'");
     }
     if (!isAvailable())
     {
-      const std::string message = "Cannot read '" + uri + "': OpenMS was built without S3 support (its Arrow library has none, "
+      const std::string message = "Cannot read '" + HTTPInputSource::redactURL(uri) + "': OpenMS was built without S3 support (its Arrow library has none, "
                                   "e.g. vcpkg's arrow without the feature 's3').";
       OPENMS_LOG_ERROR << message << std::endl; // callers may rethrow it as another exception (e.g. MzMLFile::load())
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
-    impl_->uri = uri;
+    impl_->name = HTTPInputSource::redactURL(uri);
 #ifdef OPENMS_WITH_ARROW_S3
     impl_->object = openObject(uri);
 #endif
@@ -157,8 +160,8 @@ private:
 #ifdef OPENMS_WITH_ARROW_S3
     auto fail = [this](const arrow::Status& status) -> std::unique_ptr<InputStream>
     {
-      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << status.ToString() << std::endl;
-      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->uri);
+      OPENMS_LOG_ERROR << "Error reading " << impl_->name << ": " << status.ToString() << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->name);
     };
     // a stream of its own for each call, read in large blocks
     auto size = impl_->object->GetSize();
@@ -171,10 +174,10 @@ private:
     auto head = (*stream)->Peek(3);
     const std::string_view magic = head.ok() ? *head : std::string_view();
     const auto format = DecompressingInputStream::detect(reinterpret_cast<const unsigned char*>(magic.data()), magic.size());
-    auto plain = std::make_unique<ArrowInputStream>(*stream, impl_->uri);
+    auto plain = std::make_unique<ArrowInputStream>(*stream, impl_->name);
     if (format)
     {
-      return std::make_unique<DecompressingInputStream>(std::move(plain), *format, impl_->uri);
+      return std::make_unique<DecompressingInputStream>(std::move(plain), *format, impl_->name);
     }
     return plain;
 #else
@@ -203,7 +206,7 @@ private:
     auto size = source.impl_->object->GetSize();
     if (!size.ok())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri, size.status().ToString());
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source.impl_->name, size.status().ToString());
     }
     return *size;
 #else
@@ -218,8 +221,8 @@ private:
     auto bytes = source.impl_->object->ReadAt(offset, length);
     if (!bytes.ok())
     {
-      OPENMS_LOG_ERROR << "Error reading " << uri << ": " << bytes.status().ToString() << std::endl;
-      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri);
+      OPENMS_LOG_ERROR << "Error reading " << source.impl_->name << ": " << bytes.status().ToString() << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source.impl_->name);
     }
     return (*bytes)->ToString();
 #else

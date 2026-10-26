@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
@@ -122,8 +123,10 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      // the problem and the file, not the source location of the exception (debug output, see TOPPBase)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, std::string(e.getName()) + ": " + e.what());
+      // the problem and the file, not the source location of the exception (debug output, see TOPPBase); a URL without
+      // its credentials
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(filename),
+                                  std::string(e.getName()) + ": " + e.what());
     }
   }
 

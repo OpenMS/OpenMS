@@ -52,6 +52,15 @@ public:
     /// Whether @p url is an HTTP, HTTPS or FTP URL (starts with "http://", "https://" or "ftp://")
     static bool isURL(const std::string& url);
 
+    /**
+      @brief @p url without user info ("user:password@"), query and fragment, for log and error messages.
+
+      These parts can hold credentials, e.g. ftp://user:password@host/run.mzML or the signature of a presigned URL.
+      Applies to any "scheme://" URL (e.g. s3:// too). Local file names are returned unchanged, also when they
+      contain '?', '#' or '@'.
+    */
+    static std::string redactURL(const std::string& url);
+
 private:
     std::string url_;
   };

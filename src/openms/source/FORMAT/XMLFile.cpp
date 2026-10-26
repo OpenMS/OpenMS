@@ -567,23 +567,24 @@ private:
     void XMLFile::parse_(const std::string& filename, XMLHandler* handler, bool namespace_aware)
     {
       XMLCleaner_ clean(handler);
-      // Streams (decompressing, remote) are read ahead on a helper thread
-      auto parseStream = [&](InputStream& stream)
+      // Streams (decompressing, remote) are read ahead on a helper thread. @p name is the file name for parse errors: for
+      // a URL, without its credentials
+      auto parseStream = [&](InputStream& stream, const std::string& name)
       {
         OpenMPThreadReservation_ reservation;
         PrefetchingReader_ reader(stream);
-        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, filename, namespace_aware);
+        parse([&](unsigned char* target, Size capacity) { return reader.read(target, capacity); }, handler, enforced_encoding_, name, namespace_aware);
       };
       if (S3InputSource::isS3URI(filename))
       {
         // S3 object via Arrow's S3 filesystem (throws if OpenMS has no S3 support); gzip/bzip2 is decompressed by its stream
-        parseStream(*S3InputSource(filename).makeStream());
+        parseStream(*S3InputSource(filename).makeStream(), HTTPInputSource::redactURL(filename));
         return;
       }
       if (HTTPInputSource::isURL(filename))
       {
         // HTTP, HTTPS or FTP resource via libcurl; gzip/bzip2 is decompressed by its stream
-        parseStream(*HTTPInputSource(filename).makeStream());
+        parseStream(*HTTPInputSource(filename).makeStream(), HTTPInputSource::redactURL(filename));
         return;
       }
       if (!File::exists(filename))
@@ -609,7 +610,7 @@ private:
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Cannot open compressed XML stream");
         }
-        parseStream(*stream);
+        parseStream(*stream, filename);
       }
       else
       {

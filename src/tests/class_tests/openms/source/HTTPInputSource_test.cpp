@@ -70,6 +70,26 @@ START_SECTION((static bool isURL(const std::string& url)))
 }
 END_SECTION
 
+START_SECTION((static std::string redactURL(const std::string& url)))
+{
+  // user info, query and fragment are removed
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("https://user:secret@example.org:8443/data/run.mzML?X-Amz-Signature=abc#top"),
+                    "https://example.org:8443/data/run.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("ftp://anonymous@ftp.example.org/pub/run.mzML"), "ftp://ftp.example.org/pub/run.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("http://example.org?token=1"), "http://example.org")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("s3://key:secret@bucket/run.mzML"), "s3://bucket/run.mzML")
+  // an '@' in the path is no user info
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("http://example.org/a@b/run.mzML"), "http://example.org/a@b/run.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("file:///data/run.mzML"), "file:///data/run.mzML")
+  // local file names are unchanged
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("/data/run?1#2@x.mzML"), "/data/run?1#2@x.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("C:\\data\\run#1.mzML"), "C:\\data\\run#1.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("C://data/run?1.mzML"), "C://data/run?1.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL("data/http://run?1.mzML"), "data/http://run?1.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURL(""), "")
+}
+END_SECTION
+
 START_SECTION((explicit HTTPInputSource(const std::string& url)))
 {
   TEST_EXCEPTION(Exception::IllegalArgument, HTTPInputSource("s3://bucket/run.mzML"))
@@ -103,6 +123,9 @@ START_SECTION((std::unique_ptr<InputStream> makeStream() const))
   // a missing resource, a server that cannot be reached (port 1 on the local host)
   TEST_EXCEPTION(Exception::FileNotFound, HTTPInputSource(fileURL(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist.mzML"))).makeStream())
   TEST_EXCEPTION(Exception::IOException, HTTPInputSource("http://127.0.0.1:1/run.mzML").makeStream())
+  // errors do not name the credentials of the URL
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IOException, HTTPInputSource("http://user:secret@127.0.0.1:1/run.mzML?token=1").makeStream(),
+                              "IO error for file 'http://127.0.0.1:1/run.mzML'")
 }
 END_SECTION
 

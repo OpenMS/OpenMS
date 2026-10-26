@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <cstring>
 #include <initializer_list>
 #include <string_view>
@@ -55,7 +56,8 @@ namespace OpenMS
     {
 public:
       explicit CurlInputStream(const std::string& url) :
-        url_(url)
+        url_(url),
+        name_(HTTPInputSource::redactURL(url))
       {
         CurlInit::ensure();
         easy_ = curl_easy_init();
@@ -63,7 +65,7 @@ public:
         if (easy_ == nullptr || multi_ == nullptr)
         {
           cleanup_();
-          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, url_);
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
         }
         user_agent_ = "OpenMS/" + VersionInfo::getVersion();
         // without the URL or the protocol restriction, the transfer must not start
@@ -92,9 +94,9 @@ public:
 #endif
         if (!ok || curl_multi_add_handle(multi_, easy_) != CURLM_OK)
         {
-          OPENMS_LOG_ERROR << "Cannot set up the transfer of " << url_ << std::endl;
+          OPENMS_LOG_ERROR << "Cannot set up the transfer of " << name_ << std::endl;
           cleanup_();
-          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, url_);
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
         }
         added_ = true;
       }
@@ -181,8 +183,8 @@ private:
         CURLMcode code = curl_multi_perform(multi_, &running);
         if (code != CURLM_OK)
         {
-          OPENMS_LOG_ERROR << "Error reading " << url_ << ": " << curl_multi_strerror(code) << std::endl;
-          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, url_);
+          OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << curl_multi_strerror(code) << std::endl;
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
         }
         if (running == 0)
         {
@@ -200,8 +202,8 @@ private:
           code = curl_multi_poll(multi_, nullptr, 0, LIBCURL_VERSION_NUM >= 0x074400 ? 1000 : 200, nullptr);
           if (code != CURLM_OK)
           {
-            OPENMS_LOG_ERROR << "Error reading " << url_ << ": " << curl_multi_strerror(code) << std::endl;
-            throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, url_);
+            OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << curl_multi_strerror(code) << std::endl;
+            throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
           }
         }
       }
@@ -215,11 +217,11 @@ private:
         const std::string message = error_[0] != '\0' ? std::string(error_) : std::string(curl_easy_strerror(result_));
         if (response == 404 || response == 410 || result_ == CURLE_REMOTE_FILE_NOT_FOUND || result_ == CURLE_FILE_COULDNT_READ_FILE)
         {
-          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, url_, message);
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_, message);
         }
         // the message is logged, as callers may rethrow the exception as another one (e.g. MzMLFile::load(): a ParseError)
-        OPENMS_LOG_ERROR << "Error reading " << url_ << ": " << message << std::endl;
-        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, url_);
+        OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << message << std::endl;
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
       }
 
       void cleanup_()
@@ -233,6 +235,7 @@ private:
       }
 
       std::string url_;
+      std::string name_;        ///< url_ for messages, without credentials (HTTPInputSource::redactURL())
       std::string user_agent_;
       CURL* easy_ = nullptr;
       CURLM* multi_ = nullptr;
@@ -253,7 +256,7 @@ private:
   {
     if (!isURL(url) && !StringUtils::hasPrefix(url, "file://"))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not an HTTP, HTTPS, FTP or file URL: '" + url + "'");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not an HTTP, HTTPS, FTP or file URL: '" + redactURL(url) + "'");
     }
   }
 
@@ -265,7 +268,7 @@ private:
     const auto format = DecompressingInputStream::detect(reinterpret_cast<const unsigned char*>(head.data()), head.size());
     if (format)
     {
-      return std::make_unique<DecompressingInputStream>(std::move(stream), *format, url_);
+      return std::make_unique<DecompressingInputStream>(std::move(stream), *format, redactURL(url_));
     }
     return stream;
   }
@@ -273,6 +276,26 @@ private:
   bool HTTPInputSource::isURL(const std::string& url)
   {
     return StringUtils::hasPrefix(url, "http://") || StringUtils::hasPrefix(url, "https://") || StringUtils::hasPrefix(url, "ftp://");
+  }
+
+  std::string HTTPInputSource::redactURL(const std::string& url)
+  {
+    // a URL starts with a scheme (RFC 3986: a letter, then letters, digits, '+', '-' or '.') and "://"; at least two
+    // characters, so that a Windows drive ("C://data/...") stays a file name
+    const auto scheme_end = url.find("://");
+    const auto scheme_char = [](unsigned char c) { return std::isalnum(c) || c == '+' || c == '-' || c == '.'; };
+    if (scheme_end == std::string::npos || scheme_end < 2 || !std::isalpha(static_cast<unsigned char>(url[0]))
+        || !std::all_of(url.begin(), url.begin() + scheme_end, scheme_char))
+    {
+      return url;
+    }
+    const Size authority_begin = scheme_end + 3;
+    const Size authority_end = std::min(url.find_first_of("/?#", authority_begin), url.size());
+    const std::string authority = url.substr(authority_begin, authority_end - authority_begin);
+    const auto at = authority.rfind('@');
+    const Size path_end = std::min(url.find_first_of("?#", authority_end), url.size());
+    return url.substr(0, authority_begin) + (at == std::string::npos ? authority : authority.substr(at + 1))
+           + url.substr(authority_end, path_end - authority_end);
   }
 
 } // namespace OpenMS
