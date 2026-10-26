@@ -473,12 +473,15 @@ hand-editing sources and committing them, to keep sync self-healing.
   distinct-value tasks of patch 17's packed keys catch their exceptions (a feature then is sorted as
   before, with the same moves); `FeatureMemoryPool::claimRows` checks the row count without
   overflow; `normalizeRowsByFeature` documents that its rows must be distinct. No change of results.
+- `patches/30-cv-setup-team-64.patch` — the team of the fold set-up (`preIterationSetup`: the folds' sets
+  and the initial directions, whose sorts run as tasks, see `SortLikeStd.h`) gets up to 64 threads instead
+  of 16 (`kMaxSetupTeamThreads`): 0.78 -> 0.45 s for the initial directions of a timsTOF HeLa run with
+  1.1 million PSMs at 64 threads. Scheduling only: the same results.
 - `patches/31-best-positive-by-score-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` with
   `bestByScore` (the best-scoring PSM of each (file, scan, label)): inside an OpenMP parallel region and from 16384
   PSMs on, the order and NaN checks and packed 64-bit (file, scan, label) keys are made by tasks, and the (key,
   position) pairs are sorted (a total order); the first of each key run is the smallest position of its group, which is
-  what the serial `unordered_set` walk keeps. Keys that do not fit: the serial walk. No change of results. (Number 30 is
-  left to bneck2's CV set-up team patch, renumbered from its 21 when it is rebased onto int14.)
+  what the serial `unordered_set` walk keeps. Keys that do not fit: the serial walk. No change of results.
 
 Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
 their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,

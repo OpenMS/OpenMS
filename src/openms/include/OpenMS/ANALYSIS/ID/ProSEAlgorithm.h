@@ -21,7 +21,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
-#include <functional>  // std::hash (ProteinMapping_)
+#include <functional>  // std::hash (ProteinMapping_), std::function (FileResultConsumer)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
 #include <memory>      // std::shared_ptr (released_hits_)
@@ -743,6 +743,30 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       if (!keep) { pre_fdr_peptide_ids_ = PeptideIdentificationList(); }
     }
 
+    /// The consumer of the files' results (setFileResultConsumer()): file index, result. Must only read the result.
+    using FileResultConsumer = std::function<void(Size, const SearchResult&)>;
+
+    /**
+     * @brief Lets the multi-file searchWithModificationAnalysis() overloads hand each file's result to @p consumer as
+     * soon as it is final, e.g. to write it while the next file is searched.
+     *
+     * Called for every file but the last whose search succeeded, right after its search, unless the search changes
+     * the results of the files later: the rescoring is deferred (rescore_reuse 'joint' or 'static', for the files of
+     * the training), or the database is chunked. (The pooled aggregate is built from copies, after the consumers.) The results lack what the file-path
+     * overload sets after the search (SearchParameters::db of the first ProteinIdentification). The consumer runs on a
+     * helper thread with a quarter of the OpenMP threads of the searching thread (at least one), which the search takes
+     * back after the consumer returned, where it starts its next phase; the next file's search goes on meanwhile. Only
+     * one consumer runs at a time, and the search waits for the last one before it returns. If the searching thread
+     * has fewer threads than the machine has cores (then a read in the background takes threads from it, see
+     * BackgroundSpectra in the .cpp) or only one, the consumer runs on the searching thread itself, before the next
+     * file. Exceptions of the consumer are ignored: it handles its errors itself. An empty function (default) turns
+     * this off.
+     */
+    void setFileResultConsumer(FileResultConsumer consumer)
+    {
+      file_result_consumer_ = std::move(consumer);
+    }
+
   protected:
     void updateMembers_() override;
 
@@ -1380,6 +1404,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// SearchResult::percolator as last_run_stats_ is to SearchResult::stats.
     mutable PercolatorRescoring last_percolator_;
     bool keep_pre_fdr_psms_ = false; ///< see setKeepPreFdrPsms()
+    FileResultConsumer file_result_consumer_; ///< see setFileResultConsumer()
     /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;

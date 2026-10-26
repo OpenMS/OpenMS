@@ -27,6 +27,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <exception>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -708,9 +709,46 @@ class ProSE :
       StopWatch sw_total; sw_total.start();
       // Keep the algorithm's pooled aggregate only where the -out_merged block below consumes it.
       const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1;
+      // The idXML of each file of several is written as soon as its result is final, while the next file is searched
+      // (setFileResultConsumer()), unless -out_merged is set (the pooled output). Nothing changes the identifications of a
+      // file of several after its search but the database path the search records after the last file (set here on a
+      // copy of the runs, as the search does) and the run path of the test mode (below): the same file as written below.
+      // early_idxml[i]: 1 written, 2 failed (early_idxml_error[i]), 3 see below; 0: written below.
+      std::vector<char> early_idxml(in_list.size(), 0);
+      std::vector<std::string> early_idxml_error(in_list.size());
+      std::vector<std::exception_ptr> early_idxml_exception(in_list.size()); // early_idxml[i] 3: another exception
+      if (in_list.size() > 1 && !out_idxml_list.empty() && out_merged.empty())
+      {
+        const bool test_mode = getFlag_("test");
+        sse.setFileResultConsumer([&, test_mode](Size i, const ProSEAlgorithm::SearchResult& result)
+        {
+          try
+          {
+            std::vector<ProteinIdentification> protein_ids = result.protein_ids;
+            if (!protein_ids.empty())
+            {
+              protein_ids[0].getSearchParameters().db = database;
+              if (test_mode) { protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_list[i])}); }
+            }
+            FileHandler().storeIdentifications(out_idxml_list[i], protein_ids, result.peptide_ids, {FileTypes::IDXML});
+            early_idxml[i] = 1;
+          }
+          catch (const Exception::BaseException& e) // reported below, as by the write there
+          {
+            early_idxml_error[i] = e.what();
+            early_idxml[i] = 2;
+          }
+          catch (...) // rethrown below, as from the write there
+          {
+            early_idxml_exception[i] = std::current_exception();
+            early_idxml[i] = 3;
+          }
+        });
+      }
       ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
                                            build_pooled_aggregate);
+      sse.setFileResultConsumer({});
       if (cv_load.thread.joinable()) { cv_load.thread.join(); }
 
       if (mfres.per_file.size() != in_list.size())
@@ -936,8 +974,22 @@ class ProSE :
         // failure to input_failed; the input counts as failed if any mode failed.
         bool input_failed = pin_failed[i];
 
-        // -- idXML output --
-        if (!out_idxml_list.empty())
+        // -- idXML output -- (unless written after the search of the file, see setFileResultConsumer() above)
+        if (!out_idxml_list.empty() && early_idxml[i] == 1)
+        {
+          written_idxml.push_back(out_idxml_list[i]);
+        }
+        else if (!out_idxml_list.empty() && early_idxml[i] == 3)
+        {
+          std::rethrow_exception(early_idxml_exception[i]);
+        }
+        else if (!out_idxml_list.empty() && early_idxml[i] == 2)
+        {
+          OPENMS_LOG_ERROR << "Failed to write idXML output for " << in_file
+                           << " -> " << out_idxml_list[i] << ": " << early_idxml_error[i] << endl;
+          input_failed = true;
+        }
+        else if (!out_idxml_list.empty())
         {
           try
           {

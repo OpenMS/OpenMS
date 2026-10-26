@@ -94,6 +94,12 @@
   #include <omp.h>
 #endif
 
+#if defined(__linux__)
+  #include <cstdint>
+  #include <sys/mman.h> // madvise (resizeWithParallelFaults)
+  #include <unistd.h>   // sysconf
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -166,6 +172,72 @@ namespace OpenMS
     {
       freeInParallel(spectra.getSpectra());
       spectra.clear(true);
+    }
+
+    // Resizes @p v to @p n elements as resize() does; on Linux, the pages of the storage that it allocates for them are
+    // first faulted in by the OpenMP threads (madvise(MADV_POPULATE_WRITE) on parts of the range, Linux 5.14 or later; no
+    // access to the storage itself), so that the serial construction of the elements does not take the page faults of
+    // the whole block one after the other (619,000 empty spectra, 465 MB: 0.21 s, then 0.015 s for the faults in parallel
+    // and 0.07 s for the construction at 64 threads). Elsewhere, or if the call fails, as resize().
+    template <typename T>
+    void resizeWithParallelFaults(std::vector<T>& v, const Size n)
+    {
+#if defined(__linux__)
+      if (n > v.capacity())
+      {
+        v.reserve(n);
+        const uintptr_t page = static_cast<uintptr_t>(sysconf(_SC_PAGESIZE));
+        const uintptr_t begin = (reinterpret_cast<uintptr_t>(v.data() + v.size()) + page - 1) / page * page;
+        const uintptr_t end = reinterpret_cast<uintptr_t>(v.data() + n) / page * page; // whole pages of the new elements
+        const SignedSize pages = end > begin ? static_cast<SignedSize>((end - begin) / page) : 0;
+        if (pages >= 1024)
+        {
+          constexpr int populate_write = 23; // MADV_POPULATE_WRITE (EINVAL before Linux 5.14: then the faults come later)
+          const SignedSize parts = 256;
+#pragma omp parallel for schedule(dynamic, 1)
+          for (SignedSize part = 0; part < parts; ++part)
+          {
+            const uintptr_t from = begin + static_cast<uintptr_t>(pages * part / parts) * page;
+            const uintptr_t to = begin + static_cast<uintptr_t>(pages * (part + 1) / parts) * page;
+            if (to > from) { madvise(reinterpret_cast<void*>(from), to - from, populate_write); }
+          }
+        }
+      }
+#endif
+      v.resize(n);
+    }
+
+    // The positions 0 .. n - 1 of @p keys (no NaN) ordered by (key, position) ascending, as MSExperiment::sortSpectra()
+    // orders spectra by retention time: a strict total order, so the order does not depend on how it is sorted. Parts
+    // sorted by the OpenMP threads, then merged pairwise.
+    std::vector<Size> orderByKeyInParallel(const std::vector<double>& keys)
+    {
+      const Size n = keys.size();
+      std::vector<Size> order(n);
+      std::iota(order.begin(), order.end(), Size(0));
+      const auto less = [&keys](Size a, Size b) { return keys[a] < keys[b] || (!(keys[b] < keys[a]) && a < b); };
+      int parts = 1;
+#ifdef _OPENMP
+      parts = static_cast<int>(std::max<Size>(1, std::min<Size>(static_cast<Size>(omp_get_max_threads()), n / 4096)));
+#endif
+      std::vector<Size> bounds(static_cast<Size>(parts) + 1);
+      for (int p = 0; p <= parts; ++p) { bounds[p] = n / static_cast<Size>(parts) * static_cast<Size>(p) + std::min(n % static_cast<Size>(parts), static_cast<Size>(p)); }
+#pragma omp parallel for schedule(static, 1)
+      for (int p = 0; p < parts; ++p) { std::sort(order.begin() + bounds[p], order.begin() + bounds[p + 1], less); }
+      std::vector<Size> merged(n);
+      for (int width = 1; width < parts; width *= 2)
+      {
+        const int pairs = (parts + 2 * width - 1) / (2 * width);
+#pragma omp parallel for schedule(dynamic, 1)
+        for (int q = 0; q < pairs; ++q)
+        {
+          const int p = 2 * width * q;
+          const Size lo = bounds[p], mid = bounds[std::min(p + width, parts)], hi = bounds[std::min(p + 2 * width, parts)];
+          std::merge(order.begin() + lo, order.begin() + mid, order.begin() + mid, order.begin() + hi, merged.begin() + lo, less);
+        }
+        order.swap(merged);
+      }
+      return order;
     }
 
     // Whether MSExperiment::sortSpectra(false) would leave @p spectra as they are: their retention times ascend (equal ones
@@ -1361,12 +1433,12 @@ namespace OpenMS
     if (evidence_spectra != nullptr)
     {
       evidence_spectra->clear(true);
-      evidence_spectra->resize(exp.size());
+      resizeWithParallelFaults(evidence_spectra->getSpectra(), exp.size());
     }
     if (query_spectra != nullptr)
     {
       query_spectra->clear(true);
-      query_spectra->resize(exp.size());
+      resizeWithParallelFaults(query_spectra->getSpectra(), exp.size());
     }
 
     // filter settings: the most intense peaks_window_top peaks per 100 Th window (jumping windows as WindowMower's,
@@ -6055,11 +6127,9 @@ namespace OpenMS
       {
         return false;
       }
-      // A slot for every spectrum of the file (MzMLHandler reserves as many): a chunk moves the spectra it
-      // keeps into the first of its slots right after parsing, so that only the chunks being parsed hold
-      // spectra of their own.
+      // The spectra that each chunk keeps, until all are parsed and put in their places (below)
       const Size n_chunks_used = first.size() - 1;
-      std::vector<MSSpectrum> spectra(n);
+      std::vector<std::vector<MSSpectrum>> parts(n_chunks_used);
       std::vector<Size> kept(n_chunks_used, 0);
       std::vector<MSChromatogram> chromatograms;
       // The chunks are handed out one by one, to the threads of this reader and to those of a helper (another
@@ -6098,9 +6168,9 @@ namespace OpenMS
               if (parsed)
               {
                 for (MSSpectrum& spectrum : part) { spectrum.sortByPosition(); } // see loadMS2Spectra()
-                std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
                 kept[c] = part.size();
                 if (last) { chromatograms = std::move(part.getChromatograms()); }
+                parts[c] = std::move(part.getSpectra());
               }
             }
           }
@@ -6120,42 +6190,74 @@ namespace OpenMS
         // closed (waiting for the chunks of the helper) before what the chunks write to goes, also on an exception
         const OnScopeExit end_help([help]() { if (help != nullptr) { help->close(); } });
 #ifdef _OPENMP
-        // At most 32 parsers together (each holds a chunk of up to 8 MB): the 32 chunks of a file of up to 256 MB in
+        // At least 32 parsers together (each holds a chunk of up to 8 MB): the 32 chunks of a file of up to 256 MB in
         // one round. A reader alone has at most 16 threads (no faster with more), but a thread that waits for the
         // spectra has nothing else to do (at 64 threads, where the reader has 16 threads of its own and the index build
         // waits for it: the chunks of astral_B1 parsed in 91 ms instead of 136 ms, those of hfx_B1 in 62 ms as before).
-        constexpr int max_parsers = 32;
-        if (help != nullptr && threads < max_parsers)
+        // Up to all the threads of the search (joinThreads(): the reader's and the waiting thread's, as many as it was
+        // given), as a large file has many more chunks than parsers: the 600 chunks of a 4.9 GB timsTOF HeLa run were
+        // parsed in 2.2 s by 32 parsers and in 1.4 s by 64 (once StringManager::parseInt() no longer serialised them).
+        constexpr int min_parsers = 32;
+        if (help != nullptr)
         {
-          help->open([&]() { parse_chunks(std::min(omp_get_max_threads(), max_parsers - threads)); });
+          help->open([&]()
+          {
+            const int team = std::min(omp_get_max_threads(), std::max(min_parsers, help->joinThreads(threads)) - threads);
+            if (team >= 1) { parse_chunks(team); }
+          });
         }
 #endif
         parse_chunks(threads);
       }
       if (!ok || !chunks_ok) { return false; }
 
-      Size kept_total = 0; // the spectra in file order: each chunk's slots, without the unused ones
-      for (Size c = 0; c < n_chunks_used; ++c)
+      // The rest in parallel, also with the threads of a thread that waits for the spectra: the spectra are put into
+      // their places in the list, in retention time order as MSExperiment::sortSpectra(false) puts them (equal ones in
+      // file order), unless a retention time is NaN (then in file order: the order of sortSpectra() depends on its sort,
+      // which loadMS2Spectra() then runs), and MSExperiment::updateRanges(). (A list in file order, sorted afterwards,
+      // took 0.29 s on one thread for the 619,000 spectra of a timsTOF HeLa run, which are not in retention time order:
+      // 0.2 s to move them along the cycles of the permutation.)
+#ifdef _OPENMP
+      const int own_threads = omp_get_max_threads();
+      omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads);
+      const OnScopeExit restore([own_threads]() { omp_set_num_threads(own_threads); });
+#endif
+      std::vector<Size> offset(n_chunks_used + 1, 0); // the first spectrum of each chunk among the spectra kept
+      for (Size c = 0; c < n_chunks_used; ++c) { offset[c + 1] = offset[c] + kept[c]; }
+      const Size kept_total = offset.back();
+      std::vector<double> rts(kept_total);
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize c = 0; c < static_cast<SignedSize>(n_chunks_used); ++c)
       {
-        for (Size i = first[c]; i < first[c] + kept[c]; ++i, ++kept_total)
-        {
-          if (kept_total != i) { spectra[kept_total] = std::move(spectra[i]); }
-        }
+        for (Size j = 0; j < kept[c]; ++j) { rts[offset[c] + j] = parts[c][j].getRT(); }
       }
-      spectra.erase(spectra.begin() + static_cast<SignedSize>(kept_total), spectra.end());
+      const bool any_nan = std::any_of(rts.begin(), rts.end(), [](double rt) { return std::isnan(rt); });
+      const bool in_order = std::is_sorted(rts.begin(), rts.end());
+      std::vector<Size> place; // the place of the spectrum with file position i; empty: i
+      if (!any_nan && !in_order)
+      {
+        const std::vector<Size> order = orderByKeyInParallel(rts);
+        place.resize(kept_total);
+#pragma omp parallel for schedule(static)
+        for (SignedSize k = 0; k < static_cast<SignedSize>(kept_total); ++k) { place[order[k]] = static_cast<Size>(k); }
+      }
+      std::vector<MSSpectrum> spectra;
+      resizeWithParallelFaults(spectra, kept_total);
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize c = 0; c < static_cast<SignedSize>(n_chunks_used); ++c)
+      {
+        for (Size j = 0; j < kept[c]; ++j)
+        {
+          const Size i = offset[c] + j;
+          spectra[place.empty() ? i : place[i]] = std::move(parts[c][j]);
+        }
+        std::vector<MSSpectrum>().swap(parts[c]);
+      }
       exp.setSpectra(std::move(spectra));
       exp.setChromatograms(std::move(chromatograms));
       exp.setLoadedFileType(filename);
       exp.setLoadedFilePath(filename);
-      {
-        // in parallel (MSExperiment::updateRanges()), also with the threads of a thread that waits for the spectra
-#ifdef _OPENMP
-        const int own_threads = omp_get_max_threads();
-        omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads);
-        const OnScopeExit restore([own_threads]() { omp_set_num_threads(own_threads); });
-#endif
-        exp.updateRanges();
-      }
+      exp.updateRanges();
       return true;
     }
 
@@ -6191,6 +6293,20 @@ namespace OpenMS
       return spectra;
     }
 
+    // The threads that a BackgroundConsumer (below) lends from this thread while it runs: the read policies below count
+    // them as this thread's (the threads this thread was given), so that a read decides as without the consumer.
+    thread_local int consumer_lent_threads = 0;
+
+    // The OpenMP threads of this thread, with those that a BackgroundConsumer has lent
+    [[maybe_unused]] int threadsGiven()
+    {
+#ifdef _OPENMP
+      return omp_get_max_threads() + consumer_lent_threads;
+#else
+      return 1;
+#endif
+    }
+
     // The OpenMP threads a spectrum file is read with, of those of this thread: at most 16 (the chunked read gets no
     // faster with more). A read in the foreground gets all of them. A read in the background (BackgroundSpectra) takes
     // its threads from this thread, which helps with the rest of the read when it takes the spectra: next to the index
@@ -6203,7 +6319,7 @@ namespace OpenMS
     int readerThreads([[maybe_unused]] bool background, [[maybe_unused]] bool next_to_index_build = true)
     {
 #ifdef _OPENMP
-      const int threads = omp_get_max_threads();
+      const int threads = threadsGiven();
       if (!background) { return std::min(threads, 16); }
       return std::clamp(threads / (next_to_index_build ? 8 : 4), 1, 16);
 #else
@@ -6218,7 +6334,7 @@ namespace OpenMS
     int chunkThreads([[maybe_unused]] bool awaited)
     {
 #ifdef _OPENMP
-      const int threads = omp_get_max_threads();
+      const int threads = threadsGiven();
       return awaited ? std::min(threads, 16) : std::clamp(threads / 4, std::min(threads, 2), 16);
 #else
       return 1;
@@ -6242,7 +6358,7 @@ namespace OpenMS
     {
 #ifdef _OPENMP
       static const int cores = static_cast<int>(SysInfo::getAvailablePhysicalCores());
-      return omp_get_max_threads() < cores;
+      return threadsGiven() < cores;
 #else
       return false;
 #endif
@@ -6359,10 +6475,86 @@ namespace OpenMS
       const std::string* deferred_ = nullptr; // the file of a deferred read
     };
 
+    // The consumer of the multi-file search's results (ProSEAlgorithm::setFileResultConsumer()), one result at a time, on a
+    // helper thread with a quarter of the OpenMP threads of this thread, which lends them (lowers its own) until it takes
+    // them back where it starts a phase after the helper has ended (takeBackThreadsOfEndedRead()), when it starts the
+    // next consumer, or at the end (finish(), destruction). Only if a read in the background never takes threads from
+    // this thread (readBorrowsThreads() false): this thread's number of threads is then changed here only, so it can be
+    // set back as it was. Otherwise, or with a single thread, or outside of the top level, the consumer runs here.
+    class BackgroundConsumer;
+    thread_local BackgroundConsumer* lending_consumer = nullptr; // the consumer that lends threads of this thread, if any
+
+    class BackgroundConsumer
+    {
+    public:
+      BackgroundConsumer() = default;
+      BackgroundConsumer(const BackgroundConsumer&) = delete;
+      BackgroundConsumer& operator=(const BackgroundConsumer&) = delete;
+      ~BackgroundConsumer() { finish(); }
+
+      /// Calls @p consumer(@p index, @p result) on a helper thread or here (see above), after the consumer before.
+      void start(const ProSEAlgorithm::FileResultConsumer& consumer, const Size index, const ProSEAlgorithm::SearchResult& result)
+      {
+        finish();
+        int helper_threads = 0;
+#ifdef _OPENMP
+        const int threads = omp_get_max_threads();
+        if (omp_get_level() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::max(1, threads / 4); }
+#endif
+        if (helper_threads > 0)
+        {
+          try
+          {
+            done_ = false;
+            helper_ = std::thread([this, &consumer, index, &result, helper_threads]()
+            {
+#ifdef _OPENMP
+              omp_set_num_threads(helper_threads);
+#endif
+              try { consumer(index, result); } catch (...) {} // (the consumer handles its errors)
+              done_.store(true, std::memory_order_release);
+            });
+#ifdef _OPENMP
+            own_threads_ = threads;
+            omp_set_num_threads(threads - helper_threads);
+            consumer_lent_threads = helper_threads;
+            lending_consumer = this;
+#endif
+            return;
+          }
+          catch (...) {} // no thread: here
+        }
+        try { consumer(index, result); } catch (...) {}
+      }
+
+      /// Gives this thread its threads back if the consumer has ended (at the top level only)
+      void takeBackThreadsIfDone()
+      {
+        if (helper_.joinable() && done_.load(std::memory_order_acquire)) { finish(); }
+      }
+
+      /// Waits for the consumer and gives this thread its threads back
+      void finish() noexcept
+      {
+        if (helper_.joinable()) { helper_.join(); }
+#ifdef _OPENMP
+        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); consumer_lent_threads = 0; }
+#endif
+        own_threads_ = 0;
+        if (lending_consumer == this) { lending_consumer = nullptr; }
+      }
+
+    private:
+      std::thread helper_;
+      std::atomic<bool> done_{false};
+      int own_threads_ = 0; // of this thread, while the helper runs; 0: not lowered
+    };
+
     void takeBackThreadsOfEndedRead()
     {
 #ifdef _OPENMP
       if (lending_read != nullptr && omp_get_level() == 0) { lending_read->takeBackThreadsIfRead(); } // see start()
+      if (lending_consumer != nullptr && omp_get_level() == 0) { lending_consumer->takeBackThreadsIfDone(); } // see BackgroundConsumer
 #endif
     }
 
@@ -7177,6 +7369,8 @@ namespace OpenMS
       };
 
       mfres.per_file.reserve(in_spectra_files.size());
+      // the consumer of the files' results (setFileResultConsumer()); waited for before the results change
+      BackgroundConsumer file_results;
 
       // rescore_reuse joint/static: the searches of the first reuse_files files defer their rescoring and FDR:PSM until
       // the models are trained on them (finishDeferredRescoring_()); with 'static', the later files are rescored with
@@ -7338,7 +7532,14 @@ namespace OpenMS
 
         if (reuse_defer_) { reuse_deferred.push_back(mfres.per_file.size()); }
         mfres.per_file.push_back(std::move(result));
+        // (per_file holds all files' places, reserved above: the consumer's result stays where it is)
+        if (file_result_consumer_ && !reuse_defer_ && i + 1 < in_spectra_files.size()
+            && mfres.per_file.back().exit_code == ExitCodes::EXECUTION_OK)
+        {
+          file_results.start(file_result_consumer_, i, mfres.per_file.back());
+        }
       }
+      file_results.finish();
       finishDeferredRescoring_(mfres, reuse_deferred); // 'joint': all files (nothing without rescore_reuse)
     }
 
@@ -8142,14 +8343,18 @@ namespace OpenMS
       model.matchIons(evidence, scan, scratch.theo, sequence, charge, tolerance, ppm, ions);
     };
 
-    // 1. The spectrum of every PSM (scan_index of postProcessHits_); -1 if it has no peaks to match.
+    // 1. The spectrum of every PSM (scan_index of postProcessHits_); -1 if it has no peaks to match. In parallel, with
+    //    the meta values read by registry index (a lookup by name takes the registry's process-wide lock).
     const Size n_ids = peptide_ids.size();
     std::vector<SignedSize> scans(n_ids, -1);
-    for (Size i = 0; i < n_ids; ++i)
+    const UInt mv_scan_index = MetaInfoInterface::metaRegistry().getIndex("scan_index"); // UInt(-1): never registered
+    const UInt mv_target_decoy = MetaInfoInterface::metaRegistry().getIndex(Constants::UserParam::TARGET_DECOY);
+#pragma omp parallel for schedule(static)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_ids); ++i)
     {
       const PeptideIdentification& pi = peptide_ids[i];
-      if (pi.getHits().empty() || !pi.metaValueExists("scan_index")) continue;
-      const SignedSize scan = static_cast<int>(pi.getMetaValue("scan_index"));
+      if (pi.getHits().empty() || !pi.metaValueExists(mv_scan_index)) continue;
+      const SignedSize scan = static_cast<int>(pi.getMetaValue(mv_scan_index));
       if (scan >= 0 && static_cast<Size>(scan) < spectra.size() && static_cast<Size>(scan) < evidence.size()
           && evidence.peaks(static_cast<Size>(scan)) > 0)
       {
@@ -8173,19 +8378,36 @@ namespace OpenMS
     //    native score, computed within the half, so the other half's labels are not used. Decoys win exact
     //    ties, as in the native yield evaluation, which keeps the selection conservative. The search has decoys
     //    (target-only searches never get here), so (D + 1) / T is an estimate even in a half without a decoy hit.
+    //    The candidate rows of the PSMs are made in parallel (label: -1 none, 0 target, 1 decoy) and collected in PSM
+    //    order; each half is sorted by a total order (the index decides the last ties), so the order does not depend
+    //    on the sort, and the two halves are sorted at the same time.
     struct Row { double score; bool decoy; Size index; };
-    std::array<std::vector<Row>, 2> rows;
-    for (Size i = 0; i < n_ids; ++i)
+    std::vector<Row> candidate(n_ids);
+    std::vector<signed char> label(n_ids, -1);
+#pragma omp parallel for schedule(static)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_ids); ++i)
     {
       if (scans[i] < 0) continue;
       const PeptideHit& top = best_hit(peptide_ids[i]);
-      if (!top.metaValueExists(Constants::UserParam::TARGET_DECOY)) continue;
-      const bool decoy = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
-      const Size fold = static_cast<Size>(scans[i]) % 2;
-      rows[fold].push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i});
+      if (!top.metaValueExists(mv_target_decoy)) continue;
+      const bool decoy = top.getMetaValue(mv_target_decoy).toString() == "decoy";
+      candidate[i] = {peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, static_cast<Size>(i)};
+      label[i] = decoy ? 1 : 0;
     }
+    std::array<std::vector<Row>, 2> rows;
+    for (Size i = 0; i < n_ids; ++i)
+    {
+      if (label[i] >= 0) rows[static_cast<Size>(scans[i]) % 2].push_back(candidate[i]);
+    }
+    std::vector<Row>().swap(candidate);
     std::array<std::vector<Size>, 2> training;
-    for (Size fold = 0; fold < 2; ++fold)
+    // (two threads, if this thread has them; declared without OpenMP, too: -fopenmp-simd parses the clause)
+    [[maybe_unused]] int sort_threads = 1;
+#ifdef _OPENMP
+    sort_threads = std::min(2, omp_get_max_threads());
+#endif
+#pragma omp parallel for schedule(static, 1) num_threads(sort_threads)
+    for (int fold = 0; fold < 2; ++fold)
     {
       std::vector<Row>& fold_rows = rows[fold];
       std::sort(fold_rows.begin(), fold_rows.end(), [](const Row& a, const Row& b) {
@@ -8193,6 +8415,10 @@ namespace OpenMS
         if (a.decoy != b.decoy) return a.decoy;
         return a.index < b.index;
       });
+    }
+    for (Size fold = 0; fold < 2; ++fold)
+    {
+      std::vector<Row>& fold_rows = rows[fold];
       std::vector<double> q(fold_rows.size(), 1.0);
       Size targets = 0, decoys = 0;
       for (Size r = 0; r < fold_rows.size(); ++r)

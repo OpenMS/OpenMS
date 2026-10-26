@@ -15,7 +15,9 @@
 #include <xercesc/util/TransService.hpp>
 
 #include <bit>
+#include <cerrno>
 #include <cstdint>
+#include <cstdlib>
 
 using namespace xercesc;
 
@@ -144,6 +146,42 @@ namespace OpenMS::Internal
 
   Int StringManager::parseInt(const char16_t* str)
   {
+    // XMLString::parseInt() trims the XML white space, transcodes the rest to the local code page and takes it if strtol()
+    // reads all of it without overflow (as an int: cut to its 32 bits); else it throws. The transcoder takes a process-wide mutex
+    // for every call, which serialised the threads that parse parts of one mzML file at the same time (with 64 threads
+    // half of them waited there; e.g. the arrayLength of every binary data array). An ASCII string is taken the same
+    // way here, without the transcoder; anything else, and every string it would not take, goes to XMLString::parseInt().
+    if (str != nullptr)
+    {
+      const auto is_space = [](char16_t c) { return c == u' ' || c == u'\t' || c == u'\n' || c == u'\r'; };
+      const char16_t* begin = str;
+      while (is_space(*begin)) { ++begin; }
+      const char16_t* end = begin;
+      while (*end != 0) { ++end; }
+      while (end > begin && is_space(end[-1])) { --end; }
+      const std::size_t length = static_cast<std::size_t>(end - begin);
+      char text[32];
+      if (length > 0 && length < sizeof(text))
+      {
+        bool ascii = true;
+        for (std::size_t i = 0; i < length; ++i)
+        {
+          ascii = ascii && begin[i] < 0x80;
+          text[i] = static_cast<char>(begin[i]);
+        }
+        text[length] = 0;
+        if (ascii)
+        {
+          errno = 0; // (as XMLString::parseInt())
+          char* text_end = nullptr;
+          const long value = std::strtol(text, &text_end, 10);
+          if (text_end == text + length && errno != ERANGE)
+          {
+            return static_cast<Int>(value); // (as XMLString::parseInt(): a long outside of int's range is cut to it)
+          }
+        }
+      }
+    }
     return xercesc::XMLString::parseInt(reinterpret_cast<const XMLCh*>(str));
   }
 

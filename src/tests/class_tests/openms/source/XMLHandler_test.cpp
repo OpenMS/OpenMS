@@ -6,6 +6,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Init.h>
+#include <random>
+#include <cstdint>
+#include <xercesc/util/XMLString.hpp>
 
 class StringManager_test : public OpenMS::Internal::StringManager
 {
@@ -158,6 +161,55 @@ START_SECTION(static XercesString convert(const char * str))
     const unique_xerces_ptr<char16_t> transcoded = StringManager::convertPtr(text);
     TEST_TRUE(widened == std::basic_string<char16_t>(transcoded.get()))
   }
+END_SECTION
+
+START_SECTION(static Int parseInt(const char16_t * str))
+  // The same outcome as XMLString::parseInt() of the linked Xerces (the oracle: StringManager::parseInt() takes short
+  // ASCII strings itself, without the transcoder): taken or refused (throws), and the value. Covers XML white space,
+  // signs, leading zeros, \v and \f, non-ASCII digits and spaces, int and long limits (long has 32 bits on Windows),
+  // and random values.
+  const auto outcome = [](const std::u16string& text) -> std::pair<bool, long long>
+  {
+    try { return {true, StringManager::parseInt(text.c_str())}; }
+    catch (...) { return {false, 0}; }
+  };
+  const auto oracle = [](const std::u16string& text) -> std::pair<bool, long long>
+  {
+    try { return {true, xercesc::XMLString::parseInt(reinterpret_cast<const XMLCh*>(text.c_str()))}; }
+    catch (...) { return {false, 0}; }
+  };
+  std::vector<std::u16string> cases = {u"0", u"-0", u"+5", u" 12", u"12 ", u"\t-42\n", u"\r\n7\r\n", u"2147483647", u"-2147483648",
+    u" +3 ", u"007", u"000000000000000000000000000000000001", u"-000000000000000000000000000000001", u"2147483648",
+    u"-2147483649", u"4294967295", u"4294967296", u"4294967297", u"-4294967297", u"9223372036854775807", u"-9223372036854775808",
+    u"9223372036854775808", u"-9223372036854775809", u"99999999999999999999", u"\v12", u"\f12", u"12\v", u"12\f", u"", u"   ",
+    u"1a", u"0x10", u"1 2", u"+", u"-", u"+-1", u"1e3", u"12.0", u"\u0661\u0662", u"\uFF11\uFF12", u"12\u00A0", u"\u00A012"};
+  std::mt19937_64 rng(42);
+  for (int i = 0; i < 1000; ++i)
+  {
+    // (one draw per statement: the order of the draws does not depend on the compiler)
+    const std::uint64_t bits = rng();
+    const unsigned shift = static_cast<unsigned>(rng() % 64);
+    const bool negative = (rng() & 1) != 0;
+    long long v = static_cast<long long>(bits >> shift);
+    if (negative) v = -v;
+    if (i % 2 == 0) v = static_cast<long long>(static_cast<std::int32_t>(static_cast<std::uint32_t>(bits))); // fits an int on every platform
+    const std::string t = std::to_string(v);
+    cases.emplace_back(t.begin(), t.end());
+  }
+  OpenMS::Size taken = 0;
+  for (const std::u16string& text : cases)
+  {
+    const auto expected = oracle(text);
+    const auto got = outcome(text);
+    TEST_EQUAL(got.first, expected.first)
+    TEST_EQUAL(got.second, expected.second)
+    if (expected.first) ++taken;
+  }
+  TEST_TRUE(taken >= 500) // at least the 500 random values that fit an int are taken (on any platform): the fast path is exercised
+  // platform-independent values
+  TEST_EQUAL(StringManager::parseInt(u" -42\n"), -42)
+  TEST_EQUAL(StringManager::parseInt(u"2147483647"), 2147483647)
+  TEST_FALSE(outcome(u"1a").first)
 END_SECTION
 
 XMLCh* nullPointer = nullptr;

@@ -2014,11 +2014,19 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   out.q_values.assign(n_rows, 1.0);
   out.peps.assign(n_rows, 1.0);
 
+  // The row of each score holder (its PSM's id "row_<n>", see makePSMFromRow; none: n_rows) is decoded in parallel, then
+  // the values are written to their rows in parallel if no row has two holders (the case: one PSM per row), else in
+  // order (the last one wins, as before). The count and the extremes only go to the debug log.
   size_t matched = 0;
   double score_min = std::numeric_limits<double>::infinity();
   double score_max = -std::numeric_limits<double>::infinity();
-  for (const auto& sh : all_scores)
+  const P::Scores& merged_scores = all_scores;
+  const SignedSize n_holders = static_cast<SignedSize>(merged_scores.size());
+  std::vector<size_t> row_of(static_cast<size_t>(n_holders), n_rows);
+#pragma omp parallel for schedule(static)
+  for (SignedSize k = 0; k < n_holders; ++k)
   {
+    const P::ScoreHolder& sh = *(merged_scores.begin() + k);
     if (sh.pPSM == nullptr) continue;
     const std::string& id = sh.pPSM->getFullPeptide();
     if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
@@ -2029,12 +2037,40 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     // or unexpected trailing chars after the number.
     if (end == nullptr || end == num_begin || *end != '\0') continue;
     if (row >= n_rows) continue;
+    row_of[static_cast<size_t>(k)] = static_cast<size_t>(row);
+  }
+  std::vector<char> taken(n_rows, 0);
+  bool unique_rows = true;
+  for (const size_t row : row_of)
+  {
+    if (row == n_rows) continue;
+    if (taken[row]) { unique_rows = false; break; }
+    taken[row] = 1;
+  }
+#pragma omp parallel if (unique_rows)
+  {
+  size_t thread_matched = 0;
+  double thread_min = std::numeric_limits<double>::infinity();
+  double thread_max = -std::numeric_limits<double>::infinity();
+#pragma omp for schedule(static)
+  for (SignedSize k = 0; k < n_holders; ++k)
+  {
+    const size_t row = row_of[static_cast<size_t>(k)];
+    if (row == n_rows) continue;
+    const P::ScoreHolder& sh = *(merged_scores.begin() + k);
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
     out.peps[row]     = sh.pep;
-    ++matched;
-    if (sh.score < score_min) score_min = sh.score;
-    if (sh.score > score_max) score_max = sh.score;
+    ++thread_matched;
+    if (sh.score < thread_min) thread_min = sh.score;
+    if (sh.score > thread_max) thread_max = sh.score;
+  }
+#pragma omp critical (Percolator_rescore_extracted)
+  {
+    matched += thread_matched;
+    if (thread_min < score_min) score_min = thread_min;
+    if (thread_max > score_max) score_max = thread_max;
+  }
   }
   OPENMS_LOG_DEBUG << "[Percolator] extracted " << matched << " / " << n_rows
                    << " rows from all_scores (size=" << all_scores.size() << "); "

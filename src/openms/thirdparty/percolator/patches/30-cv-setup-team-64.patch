@@ -1,0 +1,18 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 8066898d31..6623ed7c8d 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -78,9 +78,10 @@ constexpr std::size_t kLargeTrainingSet = std::size_t(1) << 18;
+   return largest >= kLargeTrainingSet ? numLoopThreads(numThreads) : numTeamThreads(numThreads);
+ }
+ // OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
+-// whose 31 sorts per fold run one after the other) gains from a few more threads for the tasks
+-// of its sorts: at most kMaxSetupTeamThreads.
+-constexpr unsigned int kMaxSetupTeamThreads = 16;
++// whose 31 sorts per fold run one after the other) gains from more threads for the tasks of its
++// sorts: at most kMaxSetupTeamThreads (the initial directions of a timsTOF HeLa run with 1.1
++// million PSMs: 0.78 s with 16 threads, 0.45 s with 64).
++constexpr unsigned int kMaxSetupTeamThreads = 64;
+ [[maybe_unused]] static int numSetupTeamThreads(unsigned int numThreads) {
+   return numLoopThreads(std::min(numThreads, kMaxSetupTeamThreads));
+ }
