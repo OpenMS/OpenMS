@@ -13,7 +13,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
+#include <cmath>
+#include <exception>
 #include <filesystem>
 #include <stdexcept>
 #ifdef _OPENMP
@@ -182,6 +186,150 @@ namespace
         OpenMS::MRMFeatureFinderScoring().getParameters(), assay, result, false, writer, nullptr, batch, 0, load_into_memory);
     });
   }
+
+  void calibrationOwnership(bool mobility)
+  {
+    OPENMS_LOG_INFO << "Native calibration ownership check: IM=" << mobility << '\n';
+    Input input(false, false);
+    auto assay = library();
+    assay.compounds.clear();
+    assay.transitions.clear();
+    using Group = OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType;
+    std::vector<Group> storage(4);
+    std::map<std::string, Group*> groups;
+    OpenMS::MSExperiment experiment;
+    for (int level : {1, 2})
+    {
+      OpenMS::MSSpectrum spectrum;
+      spectrum.setMSLevel(level);
+      spectrum.setRT(25.2);
+      spectrum.setNativeID("scan=" + std::to_string(level));
+      if (level == 2)
+      {
+        OpenMS::Precursor precursor;
+        precursor.setMZ(412.5);
+        precursor.setIsolationWindowLowerOffset(20);
+        precursor.setIsolationWindowUpperOffset(20);
+        spectrum.getPrecursors().push_back(precursor);
+      }
+      OpenMS::DataArrays::FloatDataArray im;
+      OpenMS::IMDataConverter::setIMUnit(im, OpenMS::DriftTimeUnit::MILLISECOND);
+      im.setName(OpenMS::Constants::UserParam::ION_MOBILITY);
+      for (OpenMS::Size i = 0; i < storage.size(); ++i)
+      {
+        const auto id = "cal" + std::to_string(i);
+        const double target_im = 0.5 + 0.1 * i;
+        OpenMS::Peak1D peak;
+        peak.setMZ((level == 1 ? 410.0 : 500.0) + i + 0.001 * (i + 1));
+        peak.setIntensity(128 + i);
+        spectrum.push_back(peak);
+        im.push_back(target_im + (level == 1 ? 0.003 : 0.002) * (i % 2 + 1));
+        if (level == 2)
+        {
+          auto compound = library().compounds.front();
+          compound.id = id;
+          compound.drift_time = target_im;
+          assay.compounds.push_back(compound);
+          auto transition = library().transitions.front();
+          transition.peptide_ref = id;
+          transition.transition_name = id;
+          transition.precursor_mz = 410.0 + i;
+          transition.product_mz = 500.0 + i;
+          transition.precursor_im = target_im;
+          assay.transitions.push_back(transition);
+          storage[i].addTransition(transition, id);
+          OpenMS::MRMFeature feature;
+          feature.setRT(25.2);
+          feature.setOverallQuality(1.0);
+          storage[i].addFeature(feature);
+          groups[id] = &storage[i];
+        }
+      }
+      spectrum.getFloatDataArrays().push_back(im);
+      experiment.addSpectrum(spectrum);
+    }
+    input.indexed_path = (std::filesystem::current_path() / ("OpenDIARawFailure_" + OpenMS::File::getUniqueName(false) + ".mzML")).string();
+    OpenMS::MzMLFile writer;
+    writer.getOptions().setWriteIndex(true);
+    writer.store(input.indexed_path, experiment);
+    std::shared_ptr<OpenMS::ExperimentalSettings> metadata;
+    input.maps = OpenMS::SwathFile().loadOnDisc(input.indexed_path, metadata);
+    check(input.maps.size() == 2, "Expected native MS1 and MS2 maps");
+
+    // Measure one native scan and its charged mutable copy, without a guessed size.
+    OpenDIA::ByteCount cap = 0;
+    input.cache = std::make_shared<OpenDIA::RawCache>(4 * MIB, MIB, MIB);
+    for (const auto& map : input.maps)
+    {
+      OpenDIA::RawAccess reader(std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr), input.cache);
+      auto copy = reader.getSpectrumById(0);
+      cap = std::max(cap, input.cache->snapshot().budget.committed_bytes);
+      copy.reset();
+      input.cache->clear();
+    }
+    auto run = [&](std::vector<OpenSwath::SwathMap> maps)
+    {
+      OpenMS::SwathMapMassCorrection correction;
+      auto parameters = correction.getParameters();
+      parameters.setValue("mz_extraction_window", 0.05);
+      parameters.setValue("im_extraction_window", 0.05);
+      parameters.setValue("mz_correction_function", "unweighted_regression");
+      correction.setParameters(parameters);
+      OpenMS::TransformationDescription transformation;
+      if (mobility) { correction.correctIM(groups, assay, maps, false, transformation); }
+      else { correction.correctMZ(groups, assay, maps, false); }
+      std::vector<double> result;
+      if (mobility)
+      {
+        check(transformation.getDataPoints().size() == storage.size(), "Missing native IM calibrants");
+        for (double value : {0.5, 0.8}) { result.push_back(transformation.apply(value)); }
+        result.push_back(correction.getFragmentImWindow());
+        result.push_back(correction.getPrecursorImWindow());
+      }
+      else
+      {
+        for (auto& map : maps)
+        {
+          if (!map.ms1)
+          {
+            auto spectrum = map.sptr->getSpectrumById(0);
+            result = spectrum->getMZArray()->data;
+            check(result.size() == storage.size(), "Missing native m/z calibrants");
+            check(std::abs(result.front() - 500.0) < 1e-6, "Native m/z fit did not correct fragments");
+          }
+        }
+        result.push_back(correction.getFragmentMzWindow());
+        result.push_back(correction.getPrecursorMzWindow());
+      }
+      return result;
+    };
+    const auto reference = run(input.maps);
+    check(reference[reference.size() - 2] > 0 && reference.back() > 0, "Native calibration windows have no signal");
+    input.cache = std::make_shared<OpenDIA::RawCache>(cap + MIB, MIB, cap);
+    for (auto& map : input.maps)
+    {
+      map.sptr = std::make_shared<OpenDIA::RawAccess>(std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr), input.cache);
+      // Each scan fits with its copy, but any live copy blocks the next decode reservation.
+      auto copy = map.sptr->getSpectrumById(0);
+      input.cache->clear();
+      check(input.cache->snapshot().budget.committed_bytes > 0, "Mutable copy has no charge");
+      copy.reset();
+    }
+    const auto bounded = run(input.maps);
+    check(reference.size() == bounded.size(), "Calibration result size changed");
+    for (OpenMS::Size i = 0; i < reference.size(); ++i)
+    {
+      check(std::isfinite(bounded[i]) && std::abs(reference[i] - bounded[i]) < 1e-10, "Bounded calibration changed fit or window");
+    }
+    const auto state = input.cache->snapshot();
+    check(state.misses >= 2 && state.evictions > 0, "Calibration did not exercise bounded native reads");
+    check(state.budget.peak_total_bytes <= state.budget.usable_bytes, "Calibration exceeded byte cap");
+    input.cache->clear();
+    check(input.cache->snapshot().budget.committed_bytes == 0 && input.cache->snapshot().budget.reserved_bytes == 0,
+      "Calibration retained a final charge");
+    OPENMS_LOG_INFO << "Calibration ownership IM=" << mobility << " usable_bytes=" << state.budget.usable_bytes
+      << " peak_bytes=" << state.budget.peak_total_bytes << " native_reference=equal final_charge=0\n";
+  }
 }
 
 int main()
@@ -189,6 +337,14 @@ int main()
   try
   {
 #ifdef _OPENMP
+    const int saved_threads = omp_get_max_threads();
+    const int saved_dynamic = omp_get_dynamic();
+    struct RestoreThreads
+    {
+      int threads, dynamic;
+      ~RestoreThreads() { omp_set_num_threads(threads); omp_set_dynamic(dynamic); }
+    } restore_threads{saved_threads, saved_dynamic};
+    omp_set_dynamic(0);
     omp_set_num_threads(2);
 #endif
     // Use the actual indexed reader. Each native read exceeds its declared one-byte limit.
@@ -211,6 +367,17 @@ int main()
 #endif
     extraction(0, true);
     OPENMS_LOG_INFO << "Returned twelve native raw admission failures without parallel termination\n";
+    std::exception_ptr failure;
+    for (bool mobility : {true, false})
+    {
+      try { calibrationOwnership(mobility); }
+      catch (const std::exception& error)
+      {
+        OPENMS_LOG_ERROR << "Calibration ownership IM=" << mobility << ": " << error.what() << '\n';
+        if (!failure) { failure = std::current_exception(); }
+      }
+    }
+    if (failure) { std::rethrow_exception(failure); }
   }
   catch (const std::exception& error)
   {
