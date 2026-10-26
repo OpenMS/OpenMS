@@ -14,22 +14,20 @@ IGNORED_EXPORT = {"run_id", "filename", "run_name", "feature_id"}
 
 
 def same_value(left, right):
-    if left == right:
-        return True
     if isinstance(left, (tuple, list)) or isinstance(right, (tuple, list)):
         return (isinstance(left, (tuple, list)) and isinstance(right, (tuple, list))
                 and len(left) == len(right)
                 and all(same_value(a, b) for a, b in zip(left, right)))
     if left is None or right is None:
-        return False
+        return left is right
     if isinstance(left, int) and isinstance(right, int):
-        return False
+        return left == right
     if isinstance(left, str) and isinstance(right, str) and (";" in left or ";" in right):
         return same_value(left.split(";"), right.split(";"))
     try:
         a, b = float(left), float(right)
     except (ValueError, TypeError):
-        return False
+        return left == right
     return math.isfinite(a) and math.isfinite(b) and math.isclose(a, b, rel_tol=1e-6, abs_tol=1e-8)
 
 
@@ -91,13 +89,22 @@ def database(work_dir):
     return result
 
 
-def compare(left_out, right_out, left_work, right_work, basename):
+def compare(left_out, right_out, left_work, right_work, basename, require_im=False):
     a_columns, a_rows = export(left_out / f"{basename}.results.tsv")
     b_columns, b_rows = export(right_out / f"{basename}.results.tsv")
     if a_columns != b_columns:
         raise ValueError("Export columns differ")
     compare_rows("export", a_columns, a_rows, b_rows)
     left, right = database(left_work), database(right_work)
+    if require_im:
+        for tables in (left, right):
+            columns, rows = tables["FEATURE_MS2"]
+            for name in ("EXP_IM", "VAR_IM_LOG_INTENSITY"):
+                index = columns.index(name)
+                if not any(value is not None and math.isfinite(value) and value > 0
+                           for value in (row[index] for row in rows)):
+                    raise ValueError(f"Missing nonzero IM evidence: {name}")
+        print("PASS: both workflows contain nonzero IM evidence")
     if left.keys() != right.keys():
         raise ValueError("Feature/score table sets differ")
     for name in left:
@@ -114,11 +121,13 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["--self-test"]:
         checks = [("1;2", "1.0000001;2", True), ("1;2", "1;3", False),
                   (None, "0", False), ("0", "", False), ("peptideA", "peptideB", False),
-                  (((1, 2), 5.0), ((1, 3), 5.0), False), (1, float("inf"), False)]
+                  (((1, 2), 5.0), ((1, 3), 5.0), False), (1, float("inf"), False),
+                  (float("inf"), float("inf"), False), ("nan", "nan", False),
+                  ("inf;1", "inf;1", False), (None, None, True)]
         if not all(same_value(a, b) == expected for a, b, expected in checks):
             raise ValueError("Comparison self-test failed")
         print("PASS: numeric, identity, missing/zero and aggregate mismatch checks")
-    elif len(sys.argv) == 6:
-        compare(*(Path(value) for value in sys.argv[1:5]), sys.argv[5])
+    elif len(sys.argv) == 6 or (len(sys.argv) == 7 and sys.argv[6] == "--require-im"):
+        compare(*(Path(value) for value in sys.argv[1:5]), sys.argv[5], require_im=len(sys.argv) == 7)
     else:
-        raise SystemExit("usage: compare_results.py LEFT_OUT RIGHT_OUT LEFT_WORK RIGHT_WORK BASENAME")
+        raise SystemExit("usage: compare_results.py LEFT_OUT RIGHT_OUT LEFT_WORK RIGHT_WORK BASENAME [--require-im]")
