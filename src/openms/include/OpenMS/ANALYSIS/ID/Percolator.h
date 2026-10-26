@@ -253,8 +253,9 @@ namespace OpenMS
 
       @return pi0 in [0, 1], or -1.0 if no rescore()/score() has run yet
               on this instance, or after a train() call (train() resets
-              last_pi0 since it doesn't run scoring). Always 1.0 when the
-              instance was configured with use_pi0=false.
+              last_pi0 since it doesn't run scoring). Always 1.0 when pi0
+              is not estimated: use_pi0=false, or use_pi0=auto (default)
+              with post_processing_tdc=true (default).
     */
     double getPi0() const;
 
@@ -308,7 +309,7 @@ namespace OpenMS
       q-values and PEPs are therefore always evaluated against the
       scoring dataset, not the training dataset. As train() and rescore(),
       score() starts Percolator's random number generator (used for the
-      bootstrap estimate of pi0) from the `seed` parameter, so the same
+      bootstrap estimate of pi0, see `use_pi0`) from the `seed` parameter, so the same
       input and model give the same q-values and PEPs, whatever ran before.
 
       The returned `RescoreOutput.scores` are not raw dot products.

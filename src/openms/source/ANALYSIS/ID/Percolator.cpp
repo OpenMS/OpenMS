@@ -191,15 +191,16 @@ Percolator::Percolator()
   defaults_.setMinInt("num_threads",      1);
   defaults_.setMaxInt("num_threads",      128);
 
-  defaults_.setValue("use_pi0", "true",
-                     "Enable pi0 correction when computing q-values and PEPs (default). "
-                     "When true, pi0 is estimated per CV fold via bootstrap spline fit on "
-                     "the target score distribution using decoys as the null. When false, "
-                     "pi0 is fixed at 1.0 (pure target-decoy FDR, no bootstrap estimation). "
-                     "Affects both Scores::calcQvals and Scores::calcPep. Upstream percolator "
-                     "has no CLI flag for this; the in-library Scores(bool usePi0) "
-                     "constructor is the only toggle, matched here.");
-  defaults_.setValidStrings("use_pi0", {"true","false"});
+  defaults_.setValue("use_pi0", "auto",
+                     "pi0 correction of q-values and PEPs (the mix-max method). When on, pi0 is estimated "
+                     "by bootstrap on the target score distribution, using decoys as the null, and q-values "
+                     "and PEPs use it; when off, pi0 is 1 (target-decoy FDR). 'auto' (default): on only "
+                     "without 'post_processing_tdc', as upstream percolator, which estimates pi0 only for "
+                     "mix-max (separate target and decoy searches) and never with target-decoy "
+                     "competition (-Y). 'true': always on, also with target-decoy competition (the default "
+                     "before 'auto'; upstream does not combine the two). 'false': always off. Applies to "
+                     "training (the q-values that select the positive training examples) and scoring.");
+  defaults_.setValidStrings("use_pi0", {"auto","true","false"});
 
   defaultsToParam_();
 }
@@ -226,7 +227,9 @@ void Percolator::updateMembers_()
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
-  impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
+  // 'auto': pi0 only for mix-max, i.e. without target-decoy competition (upstream: usePi0 = useMixMax_)
+  const std::string use_pi0  = param_.getValue("use_pi0").toString();
+  impl_->use_pi0             = use_pi0 == "true" || (use_pi0 == "auto" && !impl_->post_processing_tdc);
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
 }

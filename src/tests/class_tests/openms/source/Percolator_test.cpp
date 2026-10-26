@@ -648,10 +648,10 @@ START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.g
 }
 END_SECTION
 
-START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
+START_SECTION([EXTRA] use_pi0: true / false / auto (pi0 only without post_processing_tdc))
 {
   // Build a dataset where pi0 correction clearly matters: plenty of well-
-  // separated targets mixed with decoys. With usePi0=true (default) q-values
+  // separated targets mixed with decoys. With use_pi0=true q-values
   // get multiplied by a pi0 < 1 estimate, so turning pi0 off raises every
   // q-value at a given rank. Asserting strict "all q_off >= q_on" is too
   // brittle (Percolator's merge step can reshuffle ties), so instead check
@@ -692,6 +692,11 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
     par.setValue("use_pi0", "false");
     p_off.setParameters(par);
   }
+  {
+    Param par = p_on.getParameters();
+    par.setValue("use_pi0", "true"); // also with post_processing_tdc (default)
+    p_on.setParameters(par);
+  }
 
   RescoreOutput out_on  = p_on.rescore(input);
   RescoreOutput out_off = p_off.rescore(input);
@@ -700,9 +705,34 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
   // pi0 estimation is bypassed and pi0 stays at the Scores constructor's
   // default 1.0 — matches the header doc claim.
   TEST_REAL_SIMILAR(p_off.getPi0(), 1.0)
-  // And with use_pi0=true (default), pi0 is estimated from the data, so it
+  // And with use_pi0=true, pi0 is estimated from the data, so it
   // must be strictly < 1.0 on a fixture with any null fraction at all.
   TEST_TRUE(p_on.getPi0() < 1.0)
+
+  // 'auto' (default), as upstream percolator (pi0 for mix-max only): with post_processing_tdc (default) no pi0,
+  // the results of 'false'; without it pi0 is estimated, the results of 'true'.
+  {
+    Percolator p_auto;
+    Param par = p_auto.getDefaults();
+    TEST_EQUAL(par.getValue("use_pi0").toString(), "auto")
+    par.setValue("seed", 17);
+    par.setValue("test_fdr",  0.05);
+    par.setValue("train_fdr", 0.05);
+    p_auto.setParameters(par);
+    const RescoreOutput out_auto = p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0)
+    TEST_EQUAL(out_auto.q_values == out_off.q_values && out_auto.peps == out_off.peps, true)
+
+    par.setValue("post_processing_tdc", "false");
+    p_auto.setParameters(par);
+    const RescoreOutput out_auto_mixmax = p_auto.rescore(input);
+    TEST_TRUE(p_auto.getPi0() < 1.0)
+    Percolator p_on_mixmax;
+    par.setValue("use_pi0", "true");
+    p_on_mixmax.setParameters(par);
+    const RescoreOutput out_on_mixmax = p_on_mixmax.rescore(input);
+    TEST_EQUAL(out_auto_mixmax.q_values == out_on_mixmax.q_values && out_auto_mixmax.peps == out_on_mixmax.peps, true)
+  }
 
   // Mean target q over top-100 ranked targets should be strictly lower when
   // pi0 is on (because q is scaled by pi0 < 1).
@@ -1000,11 +1030,15 @@ START_SECTION([EXTRA] score() is reproducible: the same rows and model give the 
 {
   // pi0 is estimated by bootstrap, with Percolator's random number generator; the q-values and PEPs of score() must
   // not depend on what drew from it before (e.g. a previous score()). Several inputs, as only some are sensitive.
+  // Without post_processing_tdc, so that use_pi0 'auto' (default) estimates pi0 (mix-max).
   PercolatorModel model;
   model.feature_names = StringList{"signal", "noise"};
   model.weights = {2.0, 0.1, -0.5};
   model.normalizer_type = "none";
   Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("post_processing_tdc", "false");
+  p.setParameters(par);
   Size differing_rows = 0;
   for (unsigned seed = 1; seed <= 20; ++seed)
   {
@@ -1855,14 +1889,15 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
                   && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
                   && (i == 0 || !hit.metaValueExists("CalcMass"));
-    // the score feature separates targets from decoys: the targets reach q <= 0.05 (how many reach q <= 0.01
-    // depends on the other features, and differs from the percolator executable, see #10718), few decoys q <= 0.01
+    // the score feature separates targets from decoys: most targets reach q <= 0.05, few decoys q <= 0.01. With
+    // target-decoy competition (default) and so no pi0 (use_pi0 'auto'), 227 targets reach q <= 0.05 (213 q <= 0.01),
+    // as with percolator 3.09 -Y on the PIN of these PSMs; with use_pi0 'true' (pi0 = 0.004) every PSM had q < 0.04.
     if (hit.isDecoy() ? hit.getScore() <= 0.01 : hit.getScore() <= 0.05) ++(hit.isDecoy() ? confident_decoys : confident_targets);
   }
   TEST_EQUAL(all_annotated, true)
   TEST_EQUAL(no_pin_left, true)
   TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
-  TEST_EQUAL(confident_targets > 250, true)
+  TEST_EQUAL(confident_targets > 200, true)
   TEST_EQUAL(confident_decoys < 10, true)
 
   // svm and pep as main score
