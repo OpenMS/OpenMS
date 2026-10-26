@@ -24,6 +24,7 @@
 // line references and re-sync instructions.
 #include "InProcessSampler.h"
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,6 +35,18 @@ namespace OpenMS
   {
     // Per-call scratch. Reset between rescore() invocations.
     // Percolator's vendored code is designed for one shot per instance.
+    /// The training PSMs of rescore() in one block, constructed and destroyed by the OpenMP threads (the DataSets
+    /// do not own them: setOwnsPsms(false)); owned_psms then points into it. Declared
+    /// first, so that it is destroyed after the data sets that point to it.
+    struct PsmSlab
+    {
+      OpenMS::Internal::Percolator::PSMDescription* data = nullptr;
+      std::size_t size = 0;
+      void create(std::size_t n);
+      void destroy();
+      ~PsmSlab() { destroy(); }
+    };
+    PsmSlab psm_slab;
     std::unique_ptr<OpenMS::Internal::Percolator::SetHandler> set_handler;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> target_ds;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> decoy_ds;

@@ -53,6 +53,10 @@ class FeatureMemoryPool {
   // OpenMS: see FeatureMemoryPool.cpp
   bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
   void reserveRows(std::size_t numRows);
+  // OpenMS: the rows that the next numRows calls of allocate() would return (rows k, k + 1, ... of the pool, see
+  // FeatureMemoryPool.cpp), taken at once; afterwards rowOfClaim(first + i) is the i-th of them
+  bool claimRows(std::size_t numRows, std::size_t& first);
+  double* rowOfClaim(std::size_t k) const { return addressFromIdx(static_cast<unsigned int>(k)); }
 };
 
 }}}  // namespace OpenMS::Internal::Percolator

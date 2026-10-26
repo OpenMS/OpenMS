@@ -93,6 +93,23 @@ void FeatureMemoryPool::reserveRows(std::size_t numRows) {
   for (std::unique_ptr<double[]>& block : blocks) memStarts_.push_back(block.release());
 }
 
+/**
+ * OpenMS: with no free rows (each allocate() then returns the next initialized row, creating a block when needed),
+ * takes the next numRows rows at once, as numRows calls of allocate() would, and returns their first index (false and
+ * no change if there are free rows or the rows would not fit an unsigned int index). The blocks are created here.
+ */
+bool FeatureMemoryPool::claimRows(std::size_t numRows, std::size_t& first) {
+  if (!freeRows_.empty() || numRowsPerBlock_ == 0 ||
+      initializedRows_ + numRows > std::numeric_limits<unsigned int>::max()) {
+    return false;
+  }
+  reserveRows(initializedRows_ + numRows);
+  while (numRowsPerBlock_ * memStarts_.size() < initializedRows_ + numRows) createNewBlock();
+  first = initializedRows_;
+  initializedRows_ += static_cast<unsigned int>(numRows);
+  return true;
+}
+
 // OpenMS: the smallest block of rows a task of moveRowsInOrder copies
 [[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
 // OpenMS: and at most this many tasks per taskloop (libgomp runs all tasks of a taskloop in the
