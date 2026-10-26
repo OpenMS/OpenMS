@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <fstream>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
@@ -58,6 +59,24 @@ START_SECTION(bool exists(const std::string& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:5"),true)
 	TEST_EQUAL(cv.exists("OpenMS:6"),true)
 	TEST_EQUAL(cv.exists("OpenMS:7"),false)
+END_SECTION
+
+START_SECTION(([EXTRA] loadFromOBO warns about a wrong parent name of a term defined earlier in the file))
+{
+  std::string obo;
+  NEW_TMP_FILE(obo)
+  {
+    std::ofstream out(obo);
+    out << "[Term]\nid: T:1\nname: Parent\n\n[Term]\nid: T:2\nname: Child\nis_a: T:1 ! NotTheParent\n";
+  }
+  std::stringstream captured;
+  std::streambuf* original = std::cerr.rdbuf(captured.rdbuf());
+  ControlledVocabulary loaded;
+  loaded.loadFromOBO("test", obo);
+  std::cerr.rdbuf(original);
+  TEST_TRUE(captured.str().find("parent term name 'NotTheParent' and id 'T:1' differ") != std::string::npos)
+  TEST_EQUAL(loaded.isChildOf("T:2", "T:1"), true)
+}
 END_SECTION
 
 START_SECTION(([EXTRA] copies and moves keep lookups by id working))

@@ -707,6 +707,15 @@ namespace
   }
 
   /// The Arrow array and field of @p c (@p rows rows); a builder error is returned as its status.
+  /// The number of values of all lists of @p lists (for the exact reserve of a list column's values)
+  template <typename List>
+  int64_t totalSize(const std::vector<List>& lists)
+  {
+    int64_t n = 0;
+    for (const List& list : lists) { n += static_cast<int64_t>(list.size()); }
+    return n;
+  }
+
   arrow::Status buildParquetColumn(const ParquetColumn& c, size_t rows, std::shared_ptr<arrow::Field>& field,
                                    std::shared_ptr<arrow::Array>& array)
   {
@@ -714,6 +723,7 @@ namespace
     // One row of each type: append the value of @p row (not null) to @p b.
     auto build = [&](arrow::ArrayBuilder& b, const std::shared_ptr<arrow::DataType>& type, auto&& append) -> arrow::Status
     {
+      ARROW_RETURN_NOT_OK(b.Reserve(static_cast<int64_t>(rows)));
       for (size_t row = 0; row < rows; ++row)
       {
         if (isNull(row) && !c.nullable)
@@ -784,6 +794,7 @@ namespace
       {
         auto values = std::make_shared<arrow::Int32Builder>();
         arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        ARROW_RETURN_NOT_OK(values->Reserve(totalSize(c.int32_lists)));
         return build(b, arrow::list(arrow::int32()), [&](size_t row)
         {
           ARROW_RETURN_NOT_OK(b.Append());
@@ -802,12 +813,16 @@ namespace
       case ParquetColumn::Type::UTF8:
       {
         arrow::StringBuilder b;
+        int64_t bytes = 0;
+        for (const std::string& v : c.utf8_values) { bytes += static_cast<int64_t>(v.size()); }
+        ARROW_RETURN_NOT_OK(b.ReserveData(bytes));
         return build(b, arrow::utf8(), [&](size_t row) { return b.Append(c.utf8_values[row]); });
       }
       case ParquetColumn::Type::FLOAT_LIST:
       {
         auto values = std::make_shared<arrow::FloatBuilder>();
         arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        ARROW_RETURN_NOT_OK(values->Reserve(totalSize(c.float_lists)));
         return build(b, arrow::list(arrow::float32()), [&](size_t row)
         {
           ARROW_RETURN_NOT_OK(b.Append());
@@ -818,6 +833,10 @@ namespace
       {
         auto values = std::make_shared<arrow::StringBuilder>();
         arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        ARROW_RETURN_NOT_OK(values->Reserve(totalSize(c.utf8_lists)));
+        int64_t bytes = 0;
+        for (const auto& list : c.utf8_lists) { for (const std::string& v : list) { bytes += static_cast<int64_t>(v.size()); } }
+        ARROW_RETURN_NOT_OK(values->ReserveData(bytes));
         return build(b, arrow::list(arrow::utf8()), [&](size_t row)
         {
           ARROW_RETURN_NOT_OK(b.Append());
@@ -951,25 +970,25 @@ bool writeTableToParquet(
   builder.data_pagesize(config.data_page_size);
   if (config.write_statistics) { builder.enable_statistics(); }
   else                         { builder.disable_statistics(); }
-  for (const std::string& name : config.plain_columns)
+  // Without dictionary encoding: the leaves of the plain_columns, and every floating-point leaf (m/z, intensities,
+  // scores: mostly distinct values, whose dictionary page each row group would otherwise try and drop again)
+  std::function<void(const std::string&, const std::shared_ptr<arrow::DataType>&, bool)> leaves =
+    [&](const std::string& path, const std::shared_ptr<arrow::DataType>& type, bool plain)
   {
-    const auto field = table->schema()->GetFieldByName(name);
-    if (!field) { continue; }
-    // the Parquet paths of the column's leaves: a list as <name>.list.element, a struct by its fields
-    std::function<void(const std::string&, const std::shared_ptr<arrow::DataType>&)> leaves =
-      [&](const std::string& path, const std::shared_ptr<arrow::DataType>& type)
+    if (type->id() == arrow::Type::LIST)
     {
-      if (type->id() == arrow::Type::LIST)
-      {
-        leaves(path + ".list.element", std::static_pointer_cast<arrow::ListType>(type)->value_type());
-      }
-      else if (type->id() == arrow::Type::STRUCT)
-      {
-        for (const auto& child : type->fields()) { leaves(path + "." + child->name(), child->type()); }
-      }
-      else { builder.disable_dictionary(path); }
-    };
-    leaves(name, field->type());
+      leaves(path + ".list.element", std::static_pointer_cast<arrow::ListType>(type)->value_type(), plain);
+    }
+    else if (type->id() == arrow::Type::STRUCT)
+    {
+      for (const auto& child : type->fields()) { leaves(path + "." + child->name(), child->type(), plain); }
+    }
+    else if (plain || arrow::is_floating(type->id())) { builder.disable_dictionary(path); }
+  };
+  for (const auto& field : table->schema()->fields())
+  {
+    const bool plain = std::find(config.plain_columns.begin(), config.plain_columns.end(), field->name()) != config.plain_columns.end();
+    leaves(field->name(), field->type(), plain);
   }
 
   auto writer_properties = builder.build();

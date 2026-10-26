@@ -1605,8 +1605,10 @@ namespace OpenMS::Internal
         // Flush the remaining data
         populateSpectraWithData_();
         populateChromatogramsWithData_();
-        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it
-                                                     // , so we can only report I/O at the very end
+        // we cannot query the offset within the file when SAX'ing it, so we can only report I/O at the very end;
+        // remote URIs have no local size (File::fileSize() returns -1): no I/O rate then
+        const UInt64 size = File::fileSize(file_);
+        pg_outer.endProgress(size == static_cast<UInt64>(-1) ? 0 : size);
       }
     }
 

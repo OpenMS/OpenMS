@@ -713,12 +713,14 @@ namespace OpenMS
 
   bool ControlledVocabulary::checkName_(const std::string& id, const std::string& name, bool ignore_case) const
   {
-    if (!exists(id))
+    // terms_, not index_: loadFromOBO() calls this while it is still filling terms_
+    const auto term = terms_.find(id);
+    if (term == terms_.end())
     {
       return true; //what?!
     }
     std::string parent_name = name;
-    std::string real_parent_name = getTerm(id).name;
+    std::string real_parent_name = term->second.name;
 
     if (ignore_case)
     {
