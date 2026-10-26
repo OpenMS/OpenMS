@@ -598,7 +598,7 @@ static size_t rowOfPSM(const P::ScoreHolder& sh, size_t n_rows)
 
 // OpenMS (PL-PAR): the PSMs (at least this many, and more than one thread) whose peptide-level representatives
 // peptideLevelEstimates finds with threads
-constexpr size_t kMinParallelPeptidePSMs = size_t(1) << 14;
+[[maybe_unused]] constexpr size_t kMinParallelPeptidePSMs = size_t(1) << 14;
 
 // Percolator's peptide level, as the executable computes it without -U (Caller::calcAndOutputResult, second
 // calculatePSMProb pass): the PSM-level set @p psms after the target-decoy competition is reduced to the best PSM of each

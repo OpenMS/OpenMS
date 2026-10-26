@@ -47,6 +47,8 @@
 #include <cstring>
 #include <gnu/libc-version.h>
 #include <malloc.h>
+#include <string>
+#include <sys/prctl.h>
 #include <strings.h>
 #include <sys/auxv.h>
 #include <unistd.h>
@@ -278,17 +280,38 @@ namespace
     memory about +0.2 GiB; no change of results). glibc reads its tunables only when a program starts, so ProSE starts
     itself again (execve of /proc/self/exe: the same process, arguments and environment) with the entry added to
     GLIBC_TUNABLES (and glibc.malloc.top_pad=67108864, the top pad above, unless the list has one or
-    OPENMS_MALLOC_DEFAULTS=0), once, at the start of main(), before anything is read or written. The restarted ProSE
-    puts GLIBC_TUNABLES back as it was (programs it starts get the caller's environment) and does not start itself
-    again (also the added entry stops a second start).
+    OPENMS_MALLOC_DEFAULTS=0), once, at the start of main(), before ProSE reads its parameters or any file (the
+    constructors of the libraries, which run before main(), run again, as does the dynamic loader: its diagnostics,
+    e.g. LD_DEBUG or a missing LD_PRELOAD library, appear twice). The restarted ProSE puts GLIBC_TUNABLES back as it
+    was (programs it starts get the caller's environment) and its process name (comm, which an execve of
+    /proc/self/exe would set to "exe"), and does not start itself again: the marker below carries the process ID, and
+    the added entry stops a second start too.
 
     Not done: with OPENMS_HUGEPAGES=0 (or false, no, off); if GLIBC_TUNABLES already has glibc.malloc.hugetlb (the
     user's value is kept, e.g. glibc.malloc.hugetlb=0 also turns it off); with glibc before 2.35 (no such tunable); if
-    transparent huge pages are off (/sys/kernel/mm/transparent_hugepage/enabled 'never' or unreadable); for a secure
-    (setuid) or static program or one started by running the dynamic loader as a program; under Valgrind, a debugger or
-    tracer, or a seccomp filter (as for the fast exit); in sanitizer builds. If the restart fails, ProSE runs as without.
+    transparent huge pages are off (/sys/kernel/mm/transparent_hugepage/enabled 'never' or unreadable); if the OpenMP
+    runtime binds threads to CPUs (OMP_PROC_BIND other than false, OMP_PLACES, GOMP_CPU_AFFINITY or KMP_AFFINITY set:
+    the runtime may already have bound the main thread to its first place, and the restarted runtime would then see
+    only that CPU; review int15 r1); for a secure (setuid) or static program or one started by running the dynamic
+    loader as a program; under Valgrind, a debugger or tracer, or a seccomp filter (as for the fast exit); in address,
+    thread or memory sanitizer builds. If the restart fails, ProSE runs as without.
   */
-  constexpr const char* kHugePagesRestart = "OPENMS_HUGEPAGES_RESTARTED"; ///< "=<GLIBC_TUNABLES>" or "-" (it was unset)
+  /// "<pid>=<GLIBC_TUNABLES>" or "<pid>-" (it was unset): set for the restart, valid only in the same process
+  constexpr const char* kHugePagesRestart = "OPENMS_HUGEPAGES_RESTARTED";
+  constexpr const char* kHugePagesComm = "OPENMS_HUGEPAGES_COMM"; ///< the process name before the restart
+
+  /// whether an OpenMP runtime binds the threads to CPUs (see above)
+  [[maybe_unused]] bool openMPBindsThreads()
+  {
+    const char* bind = getenv("OMP_PROC_BIND");
+    if (bind != nullptr && *bind != '\0' && strcasecmp(bind, "false") != 0) { return true; }
+    for (const char* name : {"OMP_PLACES", "GOMP_CPU_AFFINITY", "KMP_AFFINITY"})
+    {
+      const char* v = getenv(name);
+      if (v != nullptr && *v != '\0') { return true; }
+    }
+    return false;
+  }
 
   [[maybe_unused]] bool hugePagesTurnedOff()
   {
@@ -320,24 +343,36 @@ namespace
     if (tunables != nullptr) { setenv("GLIBC_TUNABLES", tunables, 1); }
     else { unsetenv("GLIBC_TUNABLES"); }
     unsetenv(kHugePagesRestart);
+    unsetenv(kHugePagesComm);
   }
 
   /// Starts ProSE again with huge pages for glibc's malloc (see above); returns if it does not (or it was done)
   void useHugePages(const char** argv)
   {
+    const std::string pid = std::to_string(static_cast<long>(getpid()));
     const char* restarted = getenv(kHugePagesRestart);
-    if (restarted != nullptr)
+    if (restarted != nullptr && strncmp(restarted, pid.c_str(), pid.size()) == 0 &&
+        (restarted[pid.size()] == '=' || restarted[pid.size()] == '-') &&
+        hasTunable(getenv("GLIBC_TUNABLES"), "glibc.malloc.hugetlb="))
     {
-      // started again below (never a second time): the environment as the caller set it
-      if (hasTunable(getenv("GLIBC_TUNABLES"), "glibc.malloc.hugetlb=")) { restoreTunables(restarted[0] == '=' ? restarted + 1 : nullptr); }
-      else { unsetenv(kHugePagesRestart); }
+      // started again below (never a second time): the process name and the environment as the caller set them
+      const char* comm = getenv(kHugePagesComm);
+      if (comm != nullptr && *comm != '\0') { prctl(PR_SET_NAME, comm, 0, 0, 0); }
+      const char* rest = restarted + pid.size();
+      restoreTunables(*rest == '=' ? rest + 1 : nullptr);
       return;
+    }
+    if (restarted != nullptr || getenv(kHugePagesComm) != nullptr)
+    {
+      // not from this process (e.g. inherited): dropped
+      unsetenv(kHugePagesRestart);
+      unsetenv(kHugePagesComm);
     }
 #if defined(PROSE_SANITIZED) || defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
     (void)argv;
 #else
     const char* tunables = getenv("GLIBC_TUNABLES");
-    if (hugePagesTurnedOff() || hasTunable(tunables, "glibc.malloc.hugetlb=")) { return; }
+    if (hugePagesTurnedOff() || hasTunable(tunables, "glibc.malloc.hugetlb=") || openMPBindsThreads()) { return; }
     // secure mode (glibc ignores the tunables); no program interpreter: static, or the loader run as a program (whose
     // /proc/self/exe is the loader)
     if (getauxval(AT_SECURE) != 0 || getauxval(AT_BASE) == 0) { return; }
@@ -347,8 +382,11 @@ namespace
     if (!value.empty()) { value += ':'; }
     value += "glibc.malloc.hugetlb=1";
     if (!hasTunable(tunables, "glibc.malloc.top_pad=") && !mallocDefaultsKept()) { value += ":glibc.malloc.top_pad=67108864"; }
-    const std::string mark = tunables != nullptr ? "=" + old_value : std::string("-");
-    if (setenv(kHugePagesRestart, mark.c_str(), 1) == 0 && setenv("GLIBC_TUNABLES", value.c_str(), 1) == 0)
+    const std::string mark = pid + (tunables != nullptr ? "=" + old_value : std::string("-"));
+    char comm[17] = {0};
+    if (prctl(PR_GET_NAME, comm, 0, 0, 0) != 0) { comm[0] = '\0'; }
+    if (setenv(kHugePagesRestart, mark.c_str(), 1) == 0 && setenv(kHugePagesComm, comm, 1) == 0 &&
+        setenv("GLIBC_TUNABLES", value.c_str(), 1) == 0)
     {
       execv("/proc/self/exe", const_cast<char* const*>(argv));
     }
@@ -424,7 +462,7 @@ Bruker timsTOF DDA-PASEF data) is written as meta value 'IM', with its unit as '
 @note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file gets the same identifications as when it is searched alone, and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
 @note Threads: '-threads' sets the threads of the search ('-threads 0': the physical cores the process may use, without their hardware threads); an mzML file read while the search runs takes its threads from these if they are fewer than the physical cores the process may use (otherwise it reads with threads of its own). For many files on a machine with many cores, several processes at 16-32 threads, each searching a share of the files, finish sooner than one process at 64 threads. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
-@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets the top pad itself (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with OPENMS_MALLOC_DEFAULTS=0. Huge pages (on by default): on Linux with glibc 2.35 or later and transparent huge pages 'madvise' or 'always' (/sys/kernel/mm/transparent_hugepage/enabled), ProSE has glibc's malloc use transparent huge pages for its heaps and large blocks (GLIBC_TUNABLES=glibc.malloc.hugetlb=1; fewer page faults: a 64-thread search of a 250,000-spectrum timsTOF run was about 15 % faster, a HeLa run about 5 %, at about +0.2 GiB peak memory; results unchanged). glibc reads this setting only when a program starts, so ProSE starts itself again once at the very beginning (same process ID, arguments and environment; GLIBC_TUNABLES gets glibc.malloc.hugetlb=1 and the top pad above added to the entries it has, and is put back as it was for programs that ProSE starts). OPENMS_HUGEPAGES=0 (or false, no, off) turns this off; a glibc.malloc.hugetlb entry that GLIBC_TUNABLES already has is kept (e.g. glibc.malloc.hugetlb=0 also turns it off). Not done under Valgrind, a debugger or tracer, a seccomp filter (as in some container runtimes and systemd services), for a setuid or static program, or when ProSE is started by running the dynamic loader as a program.
+@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets the top pad itself (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with OPENMS_MALLOC_DEFAULTS=0. Huge pages (on by default): on Linux with glibc 2.35 or later and transparent huge pages 'madvise' or 'always' (/sys/kernel/mm/transparent_hugepage/enabled), ProSE has glibc's malloc use transparent huge pages for its heaps and large blocks (GLIBC_TUNABLES=glibc.malloc.hugetlb=1; fewer page faults: a 64-thread search of a 250,000-spectrum timsTOF run was about 15 % faster, a HeLa run about 5 %, at about +0.2 GiB peak memory; results unchanged). glibc reads this setting only when a program starts, so ProSE starts itself again once at the very beginning (same process ID, arguments and environment; GLIBC_TUNABLES gets glibc.malloc.hugetlb=1 and the top pad above added to the entries it has, and is put back as it was for programs that ProSE starts). OPENMS_HUGEPAGES=0 (or false, no, off) turns this off; a glibc.malloc.hugetlb entry that GLIBC_TUNABLES already has is kept (e.g. glibc.malloc.hugetlb=0 also turns it off). Not done when the OpenMP runtime binds threads to CPUs (OMP_PROC_BIND other than false, OMP_PLACES, GOMP_CPU_AFFINITY or KMP_AFFINITY set; set GLIBC_TUNABLES=glibc.malloc.hugetlb=1 yourself there), under Valgrind, a debugger or tracer, a seccomp filter (as in some container runtimes and systemd services), for a setuid or static program, or when ProSE is started by running the dynamic loader as a program. Side effect of the restart: start-up diagnostics of the dynamic loader or the OpenMP runtime (LD_DEBUG, OMP_DISPLAY_ENV) appear twice.
 @note Exit: on Linux, ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end earlier (40-80 ms for a small search, about 0.8 s for a 250,000-spectrum run; exit code and outputs unchanged). OPENMS_FAST_EXIT=0 (or false, no, off) turns this off. Caveat: the helper is a process of its own for that moment, so a parent that does not reap the children it adopts (an init process or subreaper that waits only for its own child) keeps one zombie process per run; shells, systemd, Slurm and Apptainer reap it. Not used under a debugger or tracer, nor under a seccomp filter (as in some container runtimes and systemd services).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 

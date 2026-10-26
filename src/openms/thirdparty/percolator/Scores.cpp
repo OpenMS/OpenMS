@@ -1163,7 +1163,10 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
           break;
         }
         const int label = static_cast<int>(sh.label);
-        if (!(sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2)) st = 1;
+        if (!(sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2)) {
+          st = 1;  // the serial path below (no key made: 2 - label could overflow)
+          continue;
+        }
         packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
                                                    (std::uint64_t(sh.pPSM->scan) << 2) | std::uint64_t(2 - label),
                                                static_cast<std::uint32_t>(i)};

@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index ff9095bf69..7b2a56e0a7 100644
+index ff9095bf69..4ed3d0179b 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -1130,7 +1130,67 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+@@ -1130,7 +1130,70 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
                                               const bool bestByScore) const {
    // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
    std::vector<char> kept(scores_.size(), 1);
@@ -40,7 +40,10 @@ index ff9095bf69..7b2a56e0a7 100644
 +          break;
 +        }
 +        const int label = static_cast<int>(sh.label);
-+        if (!(sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2)) st = 1;
++        if (!(sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2)) {
++          st = 1;  // the serial path below (no key made: 2 - label could overflow)
++          continue;
++        }
 +        packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
 +                                                   (std::uint64_t(sh.pPSM->scan) << 2) | std::uint64_t(2 - label),
 +                                               static_cast<std::uint32_t>(i)};
@@ -71,7 +74,7 @@ index ff9095bf69..7b2a56e0a7 100644
      // the best-scoring PSM of each (file, scan, label) group: the first of the group in this order if
      // the set is sorted by score (as generatePositiveTrainingSet's stable sorts keep it); otherwise false
      if (!comparableScores(scores_.begin(), scores_.end())) return false;
-@@ -1156,7 +1216,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+@@ -1156,7 +1219,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
        const ScoreHolder& sh = scores_[i];
        kept[i] = seen.insert({sh.pPSM->specFileNr, sh.pPSM->scan, sh.label}).second ? 1 : 0;
      }
