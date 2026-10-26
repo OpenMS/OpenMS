@@ -669,12 +669,16 @@ START_SECTION(([EXTRA] enzyme name "+termini": a protein terminus counts as an e
   // SAMPLE does not end in K/R. Its flanks: protein N-terminus '[' / C-terminus ']', or residues. Percolator writes
   // a terminus as '-' and counts it as an enzymatic site; with "+termini" the features do so as well, without it
   // they keep the former values (the terminus marks compared as residues). Stamping and the feature matrix agree.
-  struct Case { char before, after; std::string enzN, enzC, enzN_former, enzC_former; };
+  // The peptide after an initiator Met (aa_before M, start 1: Met-clipped) counts as N-terminal with "+termini"; an
+  // internal peptide after M does not.
+  struct Case { char before, after; std::string enzN, enzC, enzN_former, enzC_former; int start = 10; };
   const std::vector<Case> cases = {
-    {PeptideEvidence::N_TERMINAL_AA, PeptideEvidence::C_TERMINAL_AA, "1", "1", "0", "0"},
-    {PeptideEvidence::N_TERMINAL_AA, 'S', "1", "0", "0", "0"},
+    {PeptideEvidence::N_TERMINAL_AA, PeptideEvidence::C_TERMINAL_AA, "1", "1", "0", "0", 0},
+    {PeptideEvidence::N_TERMINAL_AA, 'S', "1", "0", "0", "0", 0},
     {'K', PeptideEvidence::C_TERMINAL_AA, "1", "1", "1", "0"},
-    {'A', 'S', "0", "0", "0", "0"}};
+    {'A', 'S', "0", "0", "0", "0"},
+    {'M', 'S', "1", "0", "0", "0", 1},
+    {'M', 'S', "0", "0", "0", "0", 5}};
   PeptideIdentificationList pids;
   for (const Case& c : cases)
   {
@@ -687,6 +691,7 @@ START_SECTION(([EXTRA] enzyme name "+termini": a protein terminus counts as an e
     ev.setProteinAccession("PROT1");
     ev.setAABefore(c.before);
     ev.setAAAfter(c.after);
+    ev.setStart(c.start);
     hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
     PeptideIdentification pid;
     pid.setMZ(300.0);

@@ -556,7 +556,12 @@ namespace OpenMS
                          && std::string_view(enz).substr(enz.size() - termini_modifier.size()) == termini_modifier;
     const std::string termini_enz = termini ? enz.substr(0, enz.size() - termini_modifier.size()) : std::string();
     const std::string& enzyme = termini ? termini_enz : enz;
-    const char n_site = termini && aa_before == '[' ? '-' : aa_before;
+    // With "+termini", a peptide after the initiator methionine (first evidence: aa_before M at start 1, the Met-clipped
+    // protein N-terminal peptide of clip_nterm_methionine) starts at the mature protein N-terminus and counts as a
+    // terminus as well. Without this, enzN = 0 is left (almost) only to Met-clipped peptides, which reversed decoy
+    // proteins hardly ever produce (they rarely start with M), and the rescoring learns enzN = 0 as a target label.
+    const bool met_clipped = termini && aa_before == 'M' && hit.getPeptideEvidences().front().getStart() == 1;
+    const char n_site = termini && (aa_before == '[' || met_clipped) ? '-' : aa_before;
     const char c_site = termini && aa_after == ']' ? '-' : aa_after;
 
     const bool enzN = isEnz_(n_site, StringUtils::prefix(unmodified_sequence, 1)[0], enzyme);

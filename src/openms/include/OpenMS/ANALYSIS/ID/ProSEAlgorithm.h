@@ -1099,6 +1099,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// prepareContext(fasta_db, electron_ions) that takes the entries of @p fasta_db over instead of copying them.
     /// With @p searched_spectra, the index holds only the peptides these spectra can reach (see FragmentIndex::build):
     /// the context then serves only one search of these spectra, without calibration.
+    /// decoy_parity_report: logs the candidate counts of @p ctx's fragment index per label and subclass (no-op otherwise)
+    void reportDecoyParity_(const SearchContext& ctx) const;
     SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
@@ -1301,6 +1303,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     DecoyMode_ decoy_mode_{DecoyMode_::AUTO};
     std::string decoy_prefix_;
+    bool decoy_keep_termini_ = false;   ///< decoy_method 'keep_termini'
+    bool decoy_parity_report_ = false;  ///< decoy_parity_report
+    bool terminal_features_ = false;    ///< rescoring:terminal_features
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
     PercolatorTraining percolator_training_; ///< rescoring:...: options of Percolator's training
