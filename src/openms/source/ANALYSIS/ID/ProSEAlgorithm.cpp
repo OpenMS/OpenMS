@@ -549,6 +549,17 @@ namespace OpenMS
                        "longer controlled (entrapment FDP 13-24 % at 1 % q).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:fixed_enzyme_termini", {"true", "false"});
+    defaults_.setValue("rescoring:peptide_level", "false",
+                       "Also Percolator's peptide-level q-values, as the percolator executable reports peptides (without -U): "
+                       "after the target-decoy competition of the spectra, the best PSM of each peptide (modified sequence) "
+                       "and label competes, and q-values and PEPs are estimated on these peptides. Every rescored hit gets "
+                       "the values of its peptide as meta values 'percolator_peptide_q_value' and 'percolator_peptide_pep'; "
+                       "a list of peptides at an FDR is the target peptides with percolator_peptide_q_value at most that FDR "
+                       "(the distinct peptides of the PSMs at an FDR are not FDR-controlled at the peptide level). The main "
+                       "score stays the PSM-level q-value. Default Percolator rescoring only (not with rescore_method 'reset', "
+                       "which reports RESET:peptide_q_value, nor with rescore_reuse models).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:peptide_level", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
     defaults_.setValue("rescore_method", "percolator",
                        "With 'rescore': 'percolator' = Percolator's PSM-level FDR (default); 'reset' = Percolator-RESET "
@@ -596,6 +607,17 @@ namespace OpenMS
     defaults_.setValue("reset:audit", "false",
                        "rescore_method 'reset': feature-symmetry audit before training (log).", {"advanced"});
     defaults_.setValidStrings("reset:audit", {"true", "false"});
+    defaults_.setValue("reset:decoys", "single",
+                       "rescore_method 'reset': 'single' = one decoy database (default); 'two' = the two-decoy mode of "
+                       "Percolator-RESET: the database holds a second decoy set of the same construction (accessions starting "
+                       "with reset:second_decoy_prefix, also recognized as decoys by the decoy marker), the spectra are "
+                       "searched against targets and both decoy sets, and RESET estimates the FDR with the factors of two decoy "
+                       "databases (fewer peptides lost to the decoy split, less variation between salts; the search is larger).",
+                       {"advanced"});
+    defaults_.setValidStrings("reset:decoys", {"single", "two"});
+    defaults_.setValue("reset:second_decoy_prefix", "DECOY_X_",
+                       "rescore_method 'reset', reset:decoys 'two': accession prefix of the proteins of the second decoy set.",
+                       {"advanced"});
     defaults_.setSectionDescription("reset", "Percolator-RESET options (rescore_method 'reset')");
     defaults_.setValue("reset:stem_table", "",
                        "rescore_method 'reset': write the stems with their q-values (tab-separated) to this file, or, if it "
@@ -965,11 +987,13 @@ namespace OpenMS
     percolator_training_.best_positive_by_score = param_.getValue("rescoring:best_positive").toString() == "score";
     percolator_training_.use_pi0 = param_.getValue("rescoring:use_pi0").toString() == "true";
     percolator_training_.fixed_enzyme_termini = param_.getValue("rescoring:fixed_enzyme_termini").toString() == "true";
+    percolator_training_.peptide_level = param_.getValue("rescoring:peptide_level").toString() == "true";
     percolator_extra_ = Param();
     if (param_.getValue("rescore_method").toString() == "reset")
     {
       percolator_extra_.setValue("algorithm", "reset");
-      for (const std::string key : {"salt", "learner", "audit", "stem_table", "representative", "mlp_crossfit"})
+      for (const std::string key : {"salt", "learner", "audit", "stem_table", "representative", "mlp_crossfit", "decoys",
+                                    "second_decoy_prefix"})
       {
         percolator_extra_.setValue("reset:" + key, param_.getValue("reset:" + key).toString());
       }
@@ -4726,6 +4750,7 @@ namespace OpenMS
       pp.setValue("solver", training.solver);
       pp.setValue("best_positive", training.best_positive_by_score ? "score" : "first");
       pp.setValue("use_pi0", training.use_pi0 ? "true" : "false");
+      if (training.peptide_level) pp.setValue("peptide_level", "true");
       for (auto it = extra.begin(); it != extra.end(); ++it)
       {
         pp.setValue(it.getName(), it->value);
@@ -5344,6 +5369,14 @@ namespace OpenMS
       run_sp.setMetaValue("Percolator:train_best_positive", "true");
       if (training.solver != "tron") run_sp.setMetaValue("Percolator:solver", training.solver);
       else run_sp.removeMetaValue("Percolator:solver");
+      if (training.peptide_level && reuse == nullptr && !perc.getResetOutput())
+      {
+        run_sp.setMetaValue("Percolator:peptide_q_values", "percolator_peptide_q_value, percolator_peptide_pep");
+      }
+      else
+      {
+        run_sp.removeMetaValue("Percolator:peptide_q_values");
+      }
       if (const auto rr = perc.getResetOutput())
       {
         run_sp.setMetaValue("Percolator:algorithm", "reset");
@@ -5353,6 +5386,13 @@ namespace OpenMS
         if (!rr->learner_settings.empty()) run_sp.setMetaValue("RESET:learner_settings", rr->learner_settings);
         run_sp.setMetaValue("RESET:fdr_level", "peptide (stem): RESET:peptide_q_value; PSM q-values heuristic");
         run_sp.setMetaValue("RESET:target_stems_1pct", static_cast<int>(rr->discoveries_1pct));
+        if (pp.getValue("reset:decoys").toString() == "two")
+        {
+          run_sp.setMetaValue("RESET:decoys", "two (second set: " + pp.getValue("reset:second_decoy_prefix").toString() + ")");
+          run_sp.setMetaValue("RESET:decoy_stems_second_set", static_cast<int>(rr->decoy_stems_second_set));
+          run_sp.setMetaValue("RESET:decoy_stems", static_cast<int>(rr->decoy_stems));
+          run_sp.setMetaValue("RESET:decoy_stems_both_sets", static_cast<int>(rr->decoy_stems_both_sets));
+        }
       }
       if (reuse != nullptr)
       {

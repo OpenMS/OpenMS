@@ -407,6 +407,24 @@ bool PercolatorReset::isTrainingDecoy(std::uint64_t salt, const std::string& ste
   return (keyedHash(salt, COIN, fnv1a64(stem)) & 1ULL) == 1ULL;
 }
 
+// seqStepQValues with a weight per decoy (two-decoy mode: decoy sequences of both decoy sets count twice)
+static std::vector<double> seqStepQValuesWeighted(const std::vector<bool>& is_decoy, const std::vector<double>& weight,
+                                                  double factor, double plus_one)
+{
+  std::vector<double> q(is_decoy.size(), 1.0);
+  double decoys = 0.0, targets = 0.0;
+  for (Size k = 0; k < is_decoy.size(); ++k)
+  {
+    if (is_decoy[k]) decoys += weight[k]; else targets += 1.0;
+    q[k] = std::min(1.0, factor * (decoys + plus_one) / std::max(targets, 1.0));
+  }
+  for (Size k = q.size(); k-- > 1;)
+  {
+    q[k - 1] = std::min(q[k - 1], q[k]);
+  }
+  return q;
+}
+
 std::vector<double> PercolatorReset::seqStepQValues(const std::vector<bool>& is_decoy, double factor, double plus_one)
 {
   std::vector<double> q(is_decoy.size(), 1.0);
@@ -466,6 +484,33 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       }
     }
   }
+  if (opt.decoy_databases != 1 && opt.decoy_databases != 2)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: decoy_databases must be 1 or 2.",
+                                  StringUtils::toStr(opt.decoy_databases));
+  }
+  const bool two_decoys = opt.decoy_databases == 2;
+  if (two_decoys)
+  {
+    if (in.decoy_set.size() != n_rows)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "RESET: two-decoy mode needs the decoy set of every row.", StringUtils::toStr(in.decoy_set.size()));
+    }
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (in.is_decoy[i] ? (in.decoy_set[i] < 1 || in.decoy_set[i] > 3) : in.decoy_set[i] != 0)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "RESET: decoy_set must be 1, 2 or 3 for decoy rows and 0 for target rows.", StringUtils::toStr(i));
+      }
+    }
+  }
+  // SeqStep+ factors c / (1 - c): training (positive set, cross-validation) 3 (c = 3/4) and final 2 (c = 2/3) with one
+  // decoy database; 2 (c = 2/3) and 1 (c = 1/2) with two (each null stem is a target, a training decoy or an
+  // estimating decoy with probability 1/3)
+  const double train_factor = two_decoys ? 2.0 : 3.0;
+  const double final_factor = two_decoys ? 1.0 : 2.0;
   if (opt.representative != "search" && opt.representative != "model")
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RESET: unknown representative.", opt.representative);
@@ -583,6 +628,23 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     s.role = !s.decoy ? Role::TARGET : (isTrainingDecoy(salt, s.stem) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
     s.considered = true;
   }
+  // two-decoy mode: the decoy sets of each stem, from ALL its decoy rows (also those that lost a competition; review r2:
+  // a sequence of both sets may win as a set-1 row on one spectrum and as a set-2 row on another): bit 0 = set 1, bit 1 =
+  // set 2 (Input::decoy_set 3 = both)
+  std::vector<unsigned char> stem_sets(two_decoys ? out.stems.size() : 0, 0);
+  if (two_decoys)
+  {
+    for (Size i = 0; i < n_rows; ++i)
+    {
+      if (!in.is_decoy[i]) continue;
+      const auto it = stem_index.find(in.stems[i]);
+      if (it != stem_index.end()) stem_sets[it->second] |= static_cast<unsigned char>(in.decoy_set[i]);
+    }
+  }
+  // decoy weight of a stem in the two-decoy estimates: a sequence of both decoy sets is ONE decoy of its hypotheses, which
+  // then win as a decoy with probability 1/2 (not 2/3) and as a training or estimating decoy with 1/4 each against 1/2 for
+  // the null target, so it counts twice (unbiased for these hypotheses; 1 for all other decoys, as without sharing)
+  auto decoyWeight = [&](Size s) { return two_decoys && stem_sets[s] == 3 ? 2.0 : 1.0; };
   // considered stems; counts
   std::vector<Size> cs; // considered stem indices
   for (Size s = 0; s < out.stems.size(); ++s)
@@ -595,7 +657,20 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       ++out.decoy_stems;
       if (st.role == Role::TRAINING_DECOY) ++out.training_decoys; else ++out.estimating_decoys;
+      if (two_decoys && stem_sets[s] == 2) ++out.decoy_stems_second_set;
+      if (two_decoys && stem_sets[s] == 3) ++out.decoy_stems_both_sets;
     }
+  }
+  if (two_decoys && (out.decoy_stems_second_set == 0
+                     || out.decoy_stems_second_set + out.decoy_stems_both_sets == out.decoy_stems))
+  {
+    // one set never wins alone: no evidence that the database held two decoy sets (or too few decoys won); the
+    // two-decoy factors would then be wrong (anti-conservative), so no estimate is made
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "RESET two-decoy mode: none of the " + StringUtils::toStr(out.decoy_stems) + " decoy stems is from the "
+      + (out.decoy_stems_second_set == 0 ? "second" : "first") + " decoy set alone; either the database has no second "
+      "decoy set or too few decoys won to tell. Two-decoy mode needs two decoy sets of the same construction.",
+      StringUtils::toStr(out.decoy_stems_second_set));
   }
   if (out.training_decoys == 0 || out.estimating_decoys + out.target_stems == 0)
   {
@@ -752,8 +827,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
         (training_decoy[k] ? grp_a : grp_b).push_back(k);
       }
     }
-    // about 3 null pseudo-targets per training decoy (2 incorrect targets, 1 estimating decoy): the excess over 3 is
-    // the share of correct targets in the proxy
+    // about 3 null pseudo-targets per training decoy (2 incorrect targets, 1 estimating decoy; two decoy databases: 2)
+    // the excess over that is the share of correct targets in the proxy
     out.audit_decoys = grp_a.size();
     out.audit_proxy = grp_b.size();
     out.audit_proxy_ratio = grp_a.empty() ? 0.0 : static_cast<double>(grp_b.size()) / static_cast<double>(grp_a.size());
@@ -818,12 +893,19 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   }
   const int threads = std::max(1, opt.threads);
   Model model;
-  // positives: pseudo-targets passing @p alpha against the training decoys (SeqStep(+), c = 3/4)
+  // positives: pseudo-targets passing @p alpha against the training decoys (SeqStep(+), c = 3/4; two decoys: 2/3)
   auto positiveSet = [&](const std::vector<Size>& ranked, double alpha, double plus_one)
   {
     std::vector<bool> dec(ranked.size());
     for (Size r = 0; r < ranked.size(); ++r) dec[r] = training_decoy[ranked[r]];
-    const std::vector<double> q = seqStepQValues(dec, 3.0, plus_one);
+    std::vector<double> q;
+    if (out.decoy_stems_both_sets == 0) q = seqStepQValues(dec, train_factor, plus_one);
+    else
+    {
+      std::vector<double> w(ranked.size(), 0.0);
+      for (Size r = 0; r < ranked.size(); ++r) w[r] = dec[r] ? decoyWeight(cs[ranked[r]]) : 0.0;
+      q = seqStepQValuesWeighted(dec, w, train_factor, plus_one);
+    }
     std::vector<Size> pos;
     for (Size r = 0; r < ranked.size(); ++r)
     {
@@ -1040,7 +1122,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       if (e) std::rethrow_exception(e);
     }
-    // discoveries per pair: SeqStep+ (c = 3/4) on each held-out fold, positives as targets, negatives as decoys
+    // discoveries per pair: SeqStep+ (c = 3/4; two decoys: 2/3) on each held-out fold, positives as targets, negatives
+    // as decoys
     auto countPair = [&](Size p, double a, double plus_one)
     {
       Size total = 0;
@@ -1054,7 +1137,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
         rankByScore(order, hs, otie);
         std::vector<bool> dec(order.size());
         for (Size r = 0; r < order.size(); ++r) dec[r] = train_y[held_index[f][order[r]]] < 0;
-        const std::vector<double> q = seqStepQValues(dec, 3.0, plus_one);
+        const std::vector<double> q = seqStepQValues(dec, train_factor, plus_one);
         for (Size r = 0; r < order.size(); ++r)
         {
           if (!dec[r] && q[r] <= a) ++total;
@@ -1200,7 +1283,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
         rankByScore(fk, cur, tie);
         std::vector<bool> dec(fk.size());
         for (Size r = 0; r < fk.size(); ++r) dec[r] = training_decoy[fk[r]];
-        const std::vector<double> q = seqStepQValues(dec, 3.0, 1.0);
+        const std::vector<double> q = seqStepQValues(dec, train_factor, 1.0);
         double thr = std::numeric_limits<double>::quiet_NaN();
         for (Size r = 0; r < fk.size(); ++r)
         {
@@ -1230,7 +1313,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     out.rounds.push_back(os.str());
   }
 
-  // 6. final ranking: targets and estimating decoys, FDP = 2 (D_est + 1) / max(T, 1)
+  // 6. final ranking: targets and estimating decoys, FDP = 2 (D_est + 1) / max(T, 1) (two decoys: (D_est + 1) / max(T, 1);
+  //    with shared decoy stems (sum of the weights + 2) / max(T, 1))
   {
     std::vector<Size> fin;
     for (Size k = 0; k < m; ++k)
@@ -1241,7 +1325,17 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     rankByScore(fin, cur, tie);
     std::vector<bool> dec(fin.size());
     for (Size r = 0; r < fin.size(); ++r) dec[r] = out.stems[cs[fin[r]]].decoy;
-    const std::vector<double> q = seqStepQValues(dec, 2.0, 1.0);
+    std::vector<double> q;
+    if (out.decoy_stems_both_sets == 0) q = seqStepQValues(dec, final_factor, 1.0);
+    else
+    {
+      std::vector<double> w(fin.size(), 0.0);
+      for (Size r = 0; r < fin.size(); ++r) w[r] = dec[r] ? decoyWeight(cs[fin[r]]) : 0.0;
+      // review r3: the offset is the largest decoy weight (2), not 1: with weight-2 decoys and +1 the estimate is
+      // anti-conservative (a block of shared null hypotheses gives FDR 1.13 % at 1 %); +2 is SeqStep+ of the
+      // single-decoy case for them and only more conservative for the others
+      q = seqStepQValuesWeighted(dec, w, final_factor, 2.0);
+    }
     for (Size r = 0; r < fin.size(); ++r)
     {
       Stem& st = out.stems[cs[fin[r]]];
@@ -1335,7 +1429,17 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     rankByScore(psms, out.scores, row_tie);
     std::vector<bool> dec(psms.size());
     for (Size r = 0; r < psms.size(); ++r) dec[r] = in.is_decoy[psms[r]];
-    const std::vector<double> q = seqStepQValues(dec, 2.0, 1.0);
+    // review r3: with shared decoy stems (two-decoy mode) the PSMs get the stems' weights and offset, as the final
+    // ranking (a PSM of a shared decoy stem counts twice)
+    std::vector<double> psm_w(psms.size(), 0.0);
+    for (Size r = 0; r < psms.size(); ++r)
+    {
+      if (!dec[r]) continue;
+      const auto it = stem_index.find(in.stems[psms[r]]);
+      psm_w[r] = it != stem_index.end() ? decoyWeight(it->second) : 1.0;
+    }
+    const std::vector<double> q = out.decoy_stems_both_sets == 0 ? seqStepQValues(dec, final_factor, 1.0)
+                                                                 : seqStepQValuesWeighted(dec, psm_w, final_factor, 2.0);
     // PEP: antitonic regression (pool adjacent violators) of the estimating-decoy indicator over the ranks
     std::vector<double> blk_val, blk_w;
     std::vector<Size> blk_len;
@@ -1346,7 +1450,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       double decoys = 0.0;
       while (e < dec.size() && out.scores[psms[e]] == out.scores[psms[r]])
       {
-        decoys += dec[e] ? 1.0 : 0.0;
+        decoys += dec[e] ? psm_w[e] : 0.0;
         ++e;
       }
       blk_val.push_back(decoys / static_cast<double>(e - r));
@@ -1369,7 +1473,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     for (Size b = 0; b < blk_val.size(); ++b)
     {
       const double p = blk_val[b];
-      const double pep = p >= 1.0 / 3.0 ? 1.0 : 2.0 * p / (1.0 - p);
+      // final_factor incorrect targets per estimating decoy: PEP = f p / (1 - p), 1 from p = 1 / (1 + f) on
+      const double pep = p >= 1.0 / (1.0 + final_factor) ? 1.0 : final_factor * p / (1.0 - p);
       for (Size k = 0; k < blk_len[b]; ++k, ++r)
       {
         out.psm_q_values[psms[r]] = q[r];
