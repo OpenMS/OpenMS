@@ -527,25 +527,36 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
   std::size_t ix2 = static_cast<std::size_t>(data.negatives);
   int p = 0;
 
-  std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
+  // OpenMS: the targets that pass the FDR, in the order of scores_.
+  std::vector<ScoreHolder> positives;
+  for (const ScoreHolder& sh : scores_) {
+    if (sh.isTarget() && sh.q <= fdr) {
+      positives.push_back(sh);
+    }
+  }
+  // OpenMS: with trainBestPositive, only the best-scoring of these per spectrum
+  // (file, scan). A higher score never has a higher q-value, so if any target
+  // of a spectrum passes the FDR, a best-scoring one does. Upstream sorted
+  // scores_ itself by file, scan and label only and kept an arbitrary PSM per
+  // spectrum; and std::unique overwrote the PSMs it dropped from scores_, which
+  // CrossValidation::mergeCpCnPairs trains on again (nested-xval-bins > 1).
+  // stable_sort: equal scores keep the order of OrderScanLabel, on every
+  // standard library.
   if (trainBestPositive) {
-    std::sort(scores_.begin(), scores_.end(), OrderScanLabel());
-    lastUniqueIt =
-        std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
-    std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
+    std::sort(positives.begin(), positives.end(), OrderScanLabel());
+    positives.erase(
+        std::unique(positives.begin(), positives.end(), UniqueScanLabel()),
+        positives.end());
+    std::stable_sort(positives.begin(), positives.end(),
+                     greater<ScoreHolder>());
   }
 
-  std::vector<ScoreHolder>::const_iterator scoreIt = scores_.begin();
-  for (; scoreIt != lastUniqueIt; ++scoreIt) {
-    if (scoreIt->isTarget()) {
-      if (scoreIt->q <= fdr) {
-        data.vals[ix2] = scoreIt->pPSM->features;
-        data.Y[ix2] = 1;
-        // data.C[ix2] = cpos;
-        ix2++;
-        ++p;
-      }
-    }
+  for (const ScoreHolder& sh : positives) {
+    data.vals[ix2] = sh.pPSM->features;
+    data.Y[ix2] = 1;
+    // data.C[ix2] = cpos;
+    ix2++;
+    ++p;
   }
   data.positives = p;
   data.m = static_cast<int>(ix2);
