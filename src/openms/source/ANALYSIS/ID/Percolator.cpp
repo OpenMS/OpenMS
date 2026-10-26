@@ -132,7 +132,8 @@ Percolator::Percolator()
   defaults_.setValidStrings("normalizer", {"stdv","uni","none"});
 
   defaults_.setValue("train_best_positive", "true",
-                     "During TRAINING, use only the best PSM per spectrum as a positive example. "
+                     "During TRAINING, use only the best-scoring target PSM per spectrum (file and ScanNr; with "
+                     "cv_group_keys: per group) as a positive example, if it passes train_fdr. "
                      "Affects the SVM (weights change). Orthogonal to post_processing_tdc. "
                      "Default is 'true' because typical OpenMS inputs are multi-hit-per-spectrum "
                      "(Comet/MSGF+/Sage top-N, OSW peak groups). Inert on one-hit-per-spectrum "

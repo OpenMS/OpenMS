@@ -435,6 +435,76 @@ namespace OpenMS
                                                         "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
       return pin_enzymes.contains(name) ? name : "no_enzyme";
     }
+
+    // The ScanNr of the spectra. Percolator takes the PSMs of a spectrum file with the same ScanNr for one spectrum
+    // (and with the same ExpMass in target-decoy competition): train_best_positive keeps one positive per ScanNr, and
+    // the cross-validation splits by it. So ScanNr has to tell the spectra of a file apart:
+    // - Bruker TDF DDA spectra, one per precursor ("frame=F scan=S precursor=P", as BrukerTimsFile writes them), get
+    //   the precursor P: S, the first ion mobility scan of the precursor, recurs in other frames.
+    // - Native IDs that number their spectra only within a part of the run get a running number per spectrum file,
+    //   in the order of the PSMs: Bruker TDF "frame=F ... scan=S" without a precursor (a scan within a frame, e.g.
+    //   diaPASEF), Waters "function=F process=P scan=S" (a scan within a function) and SCIEX "sample=1 period=1
+    //   cycle=C experiment=E" (whose last number, the experiment, recurs in every cycle).
+    // - The others keep the number SpectrumLookup extracts (e.g. the scan number of Thermo native IDs, the frame
+    //   number of "frame=F").
+    // Each spectrum file takes the scheme of its first spectrum: the spectra of a file have the same native ID format,
+    // but the files of one call may come from different instruments.
+    // The scan identifiers are those of PercolatorInfile::getScanIdentifier(), without whitespace.
+    class PinScanNumbers
+    {
+    public:
+      Int operator()(const std::string& file_identifier, const std::string& scan_identifier)
+      {
+        auto file = files_.find(file_identifier);
+        if (file == files_.end()) file = files_.emplace(file_identifier, FileNumbering(scan_identifier)).first;
+        return file->second(scan_identifier);
+      }
+
+    private:
+      // the ScanNr of the spectra of one file
+      class FileNumbering
+      {
+      public:
+        explicit FileNumbering(const std::string& first_scan_identifier) :
+          regex_(SpectrumLookup::getRegExFromNativeID(first_scan_identifier))
+        {
+          if (StringUtils::hasPrefix(first_scan_identifier, "frame="))
+          {
+            if (first_scan_identifier.find("precursor=") != std::string::npos)
+            {
+              scheme_ = Scheme::PRECURSOR;
+              regex_.assign(R"(precursor=(?<GROUP>\d+))");
+            }
+            else if (first_scan_identifier.find("scan=") != std::string::npos)
+            {
+              scheme_ = Scheme::RUNNING;
+            }
+          }
+          else if (StringUtils::hasPrefix(first_scan_identifier, "function=")
+                   || StringUtils::hasPrefix(first_scan_identifier, "sample="))
+          {
+            scheme_ = Scheme::RUNNING;
+          }
+        }
+
+        Int operator()(const std::string& scan_identifier)
+        {
+          if (scheme_ == Scheme::RUNNING)
+          {
+            return running_.emplace(scan_identifier, static_cast<Int>(running_.size()) + 1).first->second;
+          }
+          return SpectrumLookup::extractScanNumber(scan_identifier, regex_, /*no_error=*/true);
+        }
+
+      private:
+        enum class Scheme { NATIVE_ID, PRECURSOR, RUNNING };
+        Scheme scheme_ = Scheme::NATIVE_ID;
+        RegularExpression regex_;
+        std::map<std::string, Int> running_; // the running number of each scan identifier
+      };
+
+      std::map<std::string, FileNumbering> files_; // by file identifier
+    };
   }
 
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
@@ -456,9 +526,7 @@ namespace OpenMS
     added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
 
-    // Scan-number regex is derived from the first pid's scan identifier.
-    const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
+    PinScanNumbers scan_numbers; // ScanNr of the spectra
 
     size_t spectra = 0;              // spectra (PeptideIdentifications) with stamped PSMs
     size_t spectra_without_scan = 0; // ... of which no scan number could be read
@@ -475,8 +543,7 @@ namespace OpenMS
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
       const std::string file_identifier = getFileIdentifier(pep_id);
 
-      const Int scan_number = SpectrumLookup::extractScanNumber(
-        scan_identifier, scan_regex, /*no_error=*/true);
+      const Int scan_number = scan_numbers(file_identifier, scan_identifier);
       bool stamped_hit = false; // a hit of this spectrum got ScanNr (skipped hits get none)
 
       double exp_mass = pep_id.getMZ();
