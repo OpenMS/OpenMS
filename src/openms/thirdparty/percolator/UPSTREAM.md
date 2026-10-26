@@ -432,53 +432,52 @@ hand-editing sources and committing them, to keep sync self-healing.
   keeps the first PSM of each group of the set if the set is sorted by score (else the fallback).
   Default: unchanged results.
 
-Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
-their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,
-19 -> 16, 21 (initdir count buffers) -> 17, 22 (TRON weights only, shared X) -> 18, 20 (fixed folds) -> 19,
-20 (best positive by score) -> 20. Patches 12-20 were regenerated in this order (each the difference to the tree
-of the ones before it); their contents are unchanged except for the context lines. Commits and logs before that
-date use the old numbers.
-
-- `patches/23-psm-slab.patch` — `DataSet::setOwnsPsms` / `reservePsms` and
+- `patches/21-psm-slab.patch` — `DataSet::setOwnsPsms` / `reservePsms` and
   `FeatureMemoryPool::claimRows` / `rowOfClaim`: `Percolator::rescore` (OpenMS) builds the
   training PSMs in one block that it owns and destroys, gives each the pool row that the k-th
   `allocate()` would have returned, and registers them in the same order. No change of results.
-  (22 is used by a parallel branch; renumber at integration.)
-- `patches/29-normalize-row-blocks.patch` — `Normalizer::normalizeRowsByFeature` applies the
-  normalisation by static blocks of rows (each row's features together) instead of by feature
-  (each thread walking a column through all rows); every value is computed by the same expression.
-  The statistics are unchanged. No change of results. (Numbered 29: 22 and 24-28 are cvmem's; int14 renumbers at integration.)
-  `L2_SVM_MFN`. No change of results. (Number 21 is used by another branch, memalloc's
-  21-initdir-count-buffers.)
-- `patches/24-cv-sorted-certificate.patch` (23 is memalloc's 23-psm-slab) — `Scores::sortScoresAndCalcQvals` skips the sort when
+- `patches/22-cv-sorted-certificate.patch` — `Scores::sortScoresAndCalcQvals` skips the sort when
   every PSM compares strictly greater (score, scan, mass, label) than the next one: that order is
   then the only sorted one, so any sort would leave it unchanged (the fold chains sort the scores
   that the previous step sorted). Checked in blocks by the tasks of an enclosing parallel region.
   No change of results.
-- `patches/25-cv-packed-group-keys.patch` — `Scores::generateTrainingSetsOfSortedSet` sorts one
+- `patches/23-cv-packed-group-keys.patch` — `Scores::generateTrainingSetsOfSortedSet` sorts one
   64-bit key per PSM (file << 34 | scan << 2 | 2 - label, with its 32-bit position; built in blocks
   by the tasks of an enclosing parallel region) instead of (file, scan, label, position) where the
   values fit: the keys compare as OrderScanLabel compares the PSMs, so the sort makes the same moves
   and keeps the same PSM of each group. Otherwise the full keys as before. No change of results.
-- `patches/26-cv-sorted-up-to-interchangeable.patch` — relaxes patch 24: the sort is also skipped
+- `patches/24-cv-sorted-up-to-interchangeable.patch` — relaxes patch 22: the sort is also skipped
   when neighbours are not strictly ordered but interchangeable (bit-identical score, equal label,
   scan, expMass and spectrum file, bit-identical feature rows), e.g. I/L variants of a spectrum's
   hits. A sort can then only permute holders within runs of interchangeable ones, so every later
   consumer of the training set sees the same values at every position; training holders never
   reach the output. With NaN scores or masses it sorts. No change of results.
-- `patches/28-cv-setup-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` marks the kept
+- `patches/25-cv-setup-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` marks the kept
   PSMs, collects the positives and decoys and fills the SVM rows in blocks, as tasks of an enclosing
   parallel region; the blocks are joined in order (offsets from their counts), with the same check
   of each positive against the one before it. No change of results.
-- `patches/29-cv-certificate-cache.patch` — once the certificate of patches 24/26 has failed for a
+- `patches/26-cv-certificate-cache.patch` — once the certificate of patches 22/24 has failed for a
   set, `sortScoresAndCalcQvals` sorts that set without checking again (a forced sort is always
   exact; the check costs 45-60 ms per step on tie-heavy sets). No change of results.
-- `patches/30-cv-reuse-validation-scores.patch` — in the fold chains, each pair's validation on the
+- `patches/27-cv-reuse-validation-scores.patch` — in the fold chains, each pair's validation on the
   training set (`countPositives` with the feature rows) also keeps the score of every row; the step's
   rescoring with the chosen pair's weights (`calcScoresOfRowsAndQvals`) gives each PSM the score of
   its row (the same `calcScore` of the same row and weights) instead of scoring all PSMs again, then
   sorts and computes the q-values as before. A PSM whose row is not found makes it score as before.
   No change of results.
+- `patches/28-normalize-row-blocks.patch` — `Normalizer::normalizeRowsByFeature` applies the
+  normalisation by static blocks of rows (each row's features together) instead of by feature
+  (each thread walking a column through all rows); every value is computed by the same expression.
+  The statistics are unchanged. No change of results.
+
+Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
+their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,
+19 -> 16, 21 (initdir count buffers) -> 17, 22 (TRON weights only, shared X) -> 18, 20 (fixed folds) -> 19,
+20 (best positive by score) -> 20; second integration (int14 c3, 26 Oct): memalloc 23 (PSM slab) -> 21, cvmem
+24 -> 22, 25 -> 23, 26 -> 24, 28 -> 25, 29 (certificate cache) -> 26, 30 -> 27, memalloc 29 (normalize row
+blocks) -> 28. Patches 12-28 were regenerated in this order (each the difference to the tree of the ones before
+it); their contents are unchanged except for the context lines (and, where two branches changed the same lines,
+which patch carries them). Commits and logs before those dates use the old numbers.
 
 ### Regenerating the patch
 

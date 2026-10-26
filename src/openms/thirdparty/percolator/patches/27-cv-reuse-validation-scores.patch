@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index be44a947b5..0a191c5a08 100644
+index a8c41125ff..8066898d31 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -426,6 +426,9 @@ void CrossValidation::trainFoldChains() {
+@@ -443,6 +443,9 @@ void CrossValidation::trainFoldChains() {
      // the feature rows of the training set (its PSMs and labels do not change during the training;
      // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
      std::vector<std::pair<const double*, bool> > rows;
@@ -12,7 +12,7 @@ index be44a947b5..0a191c5a08 100644
      try {
        for (; step < niter_; ++step) {
          const double selectionFdr = step == 0u ? initialSelectionFdr_ : selectionFdr_;
-@@ -465,7 +468,8 @@ void CrossValidation::trainFoldChains() {
+@@ -482,7 +485,8 @@ void CrossValidation::trainFoldChains() {
                      trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set], &tronGroup);
                  pairTruePoses[pairIdx] =
                      useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
@@ -22,7 +22,7 @@ index be44a947b5..0a191c5a08 100644
                              : testSet->countPositives(cpCnFold.ww, testFdr_,
                                                        skipDecoysPlusOneValidation);
                } catch (...) {
-@@ -487,6 +491,7 @@ void CrossValidation::trainFoldChains() {
+@@ -504,6 +508,7 @@ void CrossValidation::trainFoldChains() {
          stage = 3;
          // mergeCpCnPairs without nested cross-validation, for this fold
          int bestTruePoses = 0;
@@ -30,7 +30,7 @@ index be44a947b5..0a191c5a08 100644
          for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
            const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
            CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
-@@ -495,11 +500,18 @@ void CrossValidation::trainFoldChains() {
+@@ -512,11 +517,18 @@ void CrossValidation::trainFoldChains() {
            if (tp >= bestTruePoses) {
              bestTruePoses = tp;
              weights_[set] = cpCnFold.ww;
@@ -51,10 +51,10 @@ index be44a947b5..0a191c5a08 100644
        stage = 0;
        testPositives[set] = testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 119bcd94b2..87decf4eb9 100644
+index 3e7ffeb077..c3e153fcc7 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -657,28 +657,89 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
+@@ -677,28 +677,89 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
   * (the count does not depend on the order of the scores, see countPositives).
   */
  int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
@@ -149,10 +149,10 @@ index 119bcd94b2..87decf4eb9 100644
  int Scores::countPositivesOfScores(std::vector<pair<double, bool> >& combined,
                                     const std::vector<double>& w, double fdr,
 diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
-index fa37227448..8b8874d316 100644
+index 9cbf6d3a25..c5018a78bd 100644
 --- a/src/openms/thirdparty/percolator/Scores.h
 +++ b/src/openms/thirdparty/percolator/Scores.h
-@@ -95,8 +95,16 @@ class Scores {
+@@ -96,8 +96,16 @@ class Scores {
    // OpenMS: the feature rows of the PSMs with their isTarget(), in the order of the rows in
    // memory, and countPositives from these (see Scores.cpp)
    void getFeatureRows(std::vector<std::pair<const double*, bool> >& rows) const;

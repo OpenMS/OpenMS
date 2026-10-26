@@ -1,10 +1,10 @@
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index a0afb301b6..3f7a980851 100644
+index 79965e1d42..0c2046fffc 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -1020,27 +1020,78 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
-   std::vector<char> kept(scores_.size(), 1);
-   if (trainBestPositive && !scores_.empty()) {
+@@ -1076,27 +1076,78 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+     }
+   } else if (trainBestPositive && !scores_.empty()) {
      if (!comparableScores(scores_.begin(), scores_.end())) return false;
 -    struct ScanLabelKey {
 -      unsigned int specFileNr, scan;

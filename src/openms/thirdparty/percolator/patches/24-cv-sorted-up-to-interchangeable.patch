@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 3f7a980851..b6965be3ea 100644
+index 0c2046fffc..71640277ee 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -17,6 +17,7 @@
@@ -9,8 +9,8 @@ index 3f7a980851..b6965be3ea 100644
 +#include <cstring>
  #include <exception>
  #include <functional>
- #include <cmath>
-@@ -809,21 +810,37 @@ int Scores::calcScores(std::vector<double>& w) {
+ #include <cfloat>
+@@ -829,21 +830,37 @@ int Scores::calcScores(std::vector<double>& w) {
   * already and that have not changed since (in any order): the PSMs are not scored again.
   */
  int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
@@ -57,10 +57,10 @@ index 3f7a980851..b6965be3ea 100644
      return true;
    };
 diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
-index ac2bb11c39..989f458f58 100644
+index cb1b1ad43e..4292ae7e8d 100644
 --- a/src/openms/thirdparty/percolator/Scores.h
 +++ b/src/openms/thirdparty/percolator/Scores.h
-@@ -88,7 +88,7 @@ class Scores {
+@@ -89,7 +89,7 @@ class Scores {
    // OpenMS: see Scores.cpp
    int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
    // OpenMS: see Scores.cpp

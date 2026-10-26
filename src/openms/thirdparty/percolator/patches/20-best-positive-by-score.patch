@@ -54,10 +54,10 @@ index 09f3885d42..a53bbcb977 100644
    // OpenMS: per fold, with fixed folds (see initializeGridSearch); empty otherwise
    std::vector<std::vector<double> > candidatesCfracPerFold_;
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 5962f19fcb..67f7d3d863 100644
+index 2ab875eb3d..3938c08ecf 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -30,6 +30,7 @@
+@@ -32,6 +32,7 @@
  #include <set>
  #include <sstream>
  #include <string>
@@ -65,7 +65,7 @@ index 5962f19fcb..67f7d3d863 100644
  #include <utility>
  #include <vector>
  
-@@ -950,15 +951,24 @@ void Scores::generateNegativeTrainingSet(AlgIn& data, const double cneg) {
+@@ -952,15 +953,24 @@ void Scores::generateNegativeTrainingSet(AlgIn& data, const double cneg) {
  void Scores::generatePositiveTrainingSet(AlgIn& data,
                                           const double fdr,
                                           const double cpos,
@@ -94,7 +94,7 @@ index 5962f19fcb..67f7d3d863 100644
      lastUniqueIt =
          std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
      if (!comparableScores(scores_.begin(), lastUniqueIt)) {
-@@ -1002,10 +1012,37 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+@@ -1004,10 +1014,37 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
   *    with a NaN score or mass, false.
   */
  bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
@@ -135,7 +135,7 @@ index 5962f19fcb..67f7d3d863 100644
      struct ScanLabelKey {
        unsigned int specFileNr, scan;
 diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
-index e512c6bc4e..d08b9d21b2 100644
+index 133e2c5283..df37aeb088 100644
 --- a/src/openms/thirdparty/percolator/Scores.h
 +++ b/src/openms/thirdparty/percolator/Scores.h
 @@ -112,14 +112,18 @@ class Scores {

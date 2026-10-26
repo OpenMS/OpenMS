@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 8e90bfdc31..e6a8ed20e3 100644
+index 71640277ee..851c741a1e 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -1087,10 +1087,10 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+@@ -1103,10 +1103,10 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
      const std::size_t n = scores_.size();
      bool packable = n < (std::size_t(1) << 32);
      std::vector<PackedKey> packed;
@@ -14,7 +14,7 @@ index 8e90bfdc31..e6a8ed20e3 100644
        const auto fill = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
          bool ok = true;
          for (std::ptrdiff_t i = b; i < e; ++i) {
-@@ -1122,9 +1122,25 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+@@ -1138,9 +1138,25 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
      }
      if (packable) {
        sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) { return x.key < y.key; });
@@ -43,7 +43,7 @@ index 8e90bfdc31..e6a8ed20e3 100644
        }
      } else {
        struct ScanLabelKey {
-@@ -1152,33 +1168,95 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+@@ -1168,33 +1184,95 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
        }
      }
    }

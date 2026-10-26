@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 5d3fbb7f9f..119bcd94b2 100644
+index 851c741a1e..3e7ffeb077 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
-@@ -812,7 +812,11 @@ int Scores::calcScores(std::vector<double>& w) {
+@@ -832,7 +832,11 @@ int Scores::calcScores(std::vector<double>& w) {
  int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
    // OpenMS: the sort is skipped where it cannot change what any later step sees (CrossValidation sorts
    // the training scores that the step before sorted): see sortedUpToInterchangeable
@@ -16,10 +16,10 @@ index 5d3fbb7f9f..119bcd94b2 100644
    }
    return calcQvals(fdr, skipDecoysPlusOne);
 diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
-index 989f458f58..fa37227448 100644
+index 4292ae7e8d..9cbf6d3a25 100644
 --- a/src/openms/thirdparty/percolator/Scores.h
 +++ b/src/openms/thirdparty/percolator/Scores.h
-@@ -183,6 +183,9 @@ class Scores {
+@@ -195,6 +195,9 @@ class Scores {
  
    std::vector<ScoreHolder> scores_;
    std::map<PSMDescription*, std::vector<PSMDescription*> > peptidePsmMap_;
