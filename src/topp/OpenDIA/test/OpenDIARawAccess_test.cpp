@@ -266,6 +266,60 @@ namespace
       small->snapshot().budget.reserved_bytes == 0, "Oversize scan was partially published");
   }
 
+  void detachedCopies(const IndexedFile& indexed)
+  {
+    auto cache = std::make_shared<RawCache>(MIB, 0, MIB);
+    RawAccess access(indexed.source(), cache);
+    auto scan = access.acquire(0);
+    const auto decoded = cache->snapshot();
+    auto copy = access.getSpectrumById(0);
+    const auto copied = cache->snapshot();
+    check(copied.cache_entries == 1 && copied.evictions == decoded.evictions,
+      "Fitting detached copy evicted its cached scan");
+    check(copied.budget.committed_bytes > decoded.budget.committed_bytes && copied.budget.reserved_bytes == 0,
+      "Detached copy did not retain its charge");
+    auto array = copy->getMZArray();
+    array->data[0] = -1;
+    check(scan->array(0).data[0] == 400, "Detached copy mutation changed cached scan");
+    copy.reset();
+    cache->clear();
+    scan.reset();
+    check(cache->snapshot().budget.committed_bytes > 0, "Live detached array lost its charge");
+    array.reset();
+    check(cache->snapshot().budget.committed_bytes == 0, "Detached array leaked its charge");
+
+    copy = access.getSpectrumById(0);
+    cache->clear();
+    copy->getDataArrays().clear();
+    check(cache->snapshot().budget.committed_bytes > 0, "Live detached container lost its charge");
+    copy.reset();
+    check(cache->snapshot().budget.committed_bytes == 0, "Detached container leaked its charge");
+
+    // Pin real copies until the actual remaining capacity cannot admit another.
+    scan = access.acquire(0);
+    std::vector<OpenSwath::SpectrumPtr> pinned;
+    bool rejected = false;
+    for (size_t i = 0; i != 4096 && !rejected; ++i)
+    {
+      const auto before = cache->snapshot().budget.committed_bytes;
+      try { pinned.push_back(access.getSpectrumById(0)); }
+      catch (const OpenMS::Exception::BaseException&)
+      {
+        rejected = true;
+        check(cache->snapshot().budget.committed_bytes == before, "Rejected copy leaked a charge");
+      }
+      const auto budget = cache->snapshot().budget;
+      check(budget.reserved_bytes == 0 && budget.peak_total_bytes <= budget.usable_bytes,
+        "Pinned detached copies exceeded the cap or leaked a reservation");
+    }
+    check(!pinned.empty() && rejected, "Pinned detached copies did not reach bounded admission failure");
+    cache->clear();
+    scan.reset();
+    check(cache->snapshot().budget.committed_bytes > 0, "Pinned detached copies lost their charges");
+    pinned.clear();
+    check(cache->snapshot().budget.committed_bytes == 0, "Pinned detached copies leaked their charges");
+  }
+
   void leases(const IndexedFile& indexed)
   {
     auto probe = std::make_shared<RawCache>(4 * MIB, 0, MIB);
@@ -374,6 +428,7 @@ int main()
   {
     fixtures();
     IndexedFile indexed(smallRun());
+    detachedCopies(indexed);
     queries(indexed);
     leases(indexed);
     concurrent(indexed);
