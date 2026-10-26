@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index a8c41125ff..e5fac0d339 100644
+index 8066898d31..6623ed7c8d 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -78,9 +78,10 @@ constexpr std::size_t kLargeTrainingSet = std::size_t(1) << 18;
