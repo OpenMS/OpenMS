@@ -1,7 +1,7 @@
 # WP-01: Contracts and scientific semantics
 
 - **Track:** data handling.
-- **Status:** locally complete and final adversarial review passed 25 October 2026, ready for upstream integration. Issue remains open and project status is **In review**. No implementation PR is open or merge performed. Scientific freeze remains a separate WP-07 milestone. **Owner / reviewer:** ownership is tracked in GitHub.
+- **Status:** locally complete and final adversarial review passed 25 October 2026. **Integration deliberately deferred by the owner on 26 October 2026.** Continue dependent packages on stacked branches/PRs until the combined refactor is demonstrably correct, fast and memory-efficient. Earlier merge-ready notes below describe local correctness only and do not authorize a `develop` merge. Issue remains open. Scientific freeze remains a separate WP-07 milestone. **Owner / reviewer:** ownership is tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10663](https://github.com/OpenMS/OpenMS/issues/10663).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
@@ -332,7 +332,7 @@ The predeclared whole-result acceptance loop was then run over the final commit:
 | Private packaging and real linkage | Native/installed runtime bindings and native production-archive linkage passed. No private OpenDIA header/archive/target leaked into installed headers or CMake exports. Header-only include compilation and whitespace checks passed. |
 
 These checks close the local review loop for all five merge criteria below.
-The implementation branch is ready for upstream integration, not merged.
+The implementation branch passed local correctness review. Integration is deferred under the 26 October stacked-validation policy, not authorized by these tests.
 No Windows/macOS, GUI/opentims/Thermo native configuration, fully self-contained
 runtime relocation or whole-stack sanitizer result is claimed. `clang-format`
 was unavailable. This review does not approve new scientific acceptance margins,

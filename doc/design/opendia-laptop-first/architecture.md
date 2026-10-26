@@ -34,7 +34,7 @@ The execution unit is an acquisition-local raw tile. The inference unit is a loc
 | Candidate family | Competing site forms, charge/adduct constraints, local region, shared/discriminating fragment incidence, alternatives/nulls and completeness state |
 | Score batch | Separate identification/localization/quantification results, ambiguity and provenance, independent of tile lifetime |
 
-Mobility and families are represented from the start. Freeze family/score semantics only after WP-07's reviewed null/decoy experiment. Initial contracts can merge before that review.
+Mobility and families are represented from the start. Freeze family/score semantics only after WP-07's reviewed null/decoy experiment. Per the 26 October 2026 owner decision, develop dependent packages on stacked branches/PRs, but do not merge initial contracts or later packages into `develop` until the combined refactor has demonstrated correctness, speed and memory efficiency. Local checks establish experimental readiness, not merge approval.
 
 ## Scientific invariants
 

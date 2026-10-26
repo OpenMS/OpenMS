@@ -1,6 +1,6 @@
 # OpenDIA: laptop-first implementation plan
 
-**Status:** implementation started, WP-00 baseline done and WP-01 v0 locally complete with final adversarial review passed, ready for upstream integration, updated 25 October 2026. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
+**Status:** exploratory implementation on stacked work-package branches, updated 26 October 2026. WP-00 baseline is done, WP-01 v0 is locally reviewed, and WP-02 private resource primitives are locally validated with full-engine integration still pending. No work-package merge into `develop` is authorized yet. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661). Ownership is tracked in GitHub.
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
 
@@ -59,18 +59,26 @@ The complete result was rebuilt and replayed on 25 October 2026 at 14:26 UTC wit
 the same passing totals above. A separate ASan/UBSan build of the actual private
 implementation passed **5/5 tests** and both genuine CLI export handoffs without
 diagnostics. The full parameter/INI comparison matches the baseline using the
-same SDK, normalizing only unordered enzyme choices. WP-01 is locally reviewed
-and ready for upstream integration, with its issue open and project **In review**.
-No implementation PR is open or merge performed. This is not a request for more
-record scaffolding or a scientific freeze.
+same SDK, normalizing only unordered enzyme choices. WP-01 is locally reviewed,
+not accepted as the final efficient design. Its issue remains open. The 26 October
+owner decision supersedes the earlier immediate-integration recommendation:
+**keep implementation work stacked, with no merge into `develop` until the combined
+refactor has demonstrated the required correctness, speed and memory efficiency.**
 The [v0 contract narrative](contracts-v0.md) stays on this planning branch only,
-outside the implementation branch and its future pull request. WP-01's next
-step is an implementation-only PR against `develop`, upstream review/CI and
-integration, then issue/project closure.
-Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now. **Next
-implementation increment: WP-02 resource accounting/admission.** Family/null/decoy
-scientific freeze remains a separate WP-07 milestone. Detailed observations and
-optional-platform/runtime limits are recorded in
+outside implementation branches and their future pull requests. WP-01 remains
+an unstable foundation for downstream experiments, not a frozen physical layout.
+Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now.
+[WP-02](work-packages/02-resource-budget.md) is implemented on
+`feature/opendia-wp02-resource-budget`, based directly on WP-01
+`3cd24a25026615b26671a46596b3eeae7de89986`, with final implementation
+`338ba2c569`. Its byte admission, fixed queues and shared-record charges pass
+**84 native/SDK tests**, **6 nested consumers**, **8 standalone**, **8 NDEBUG**
+and **3 instrumented resource tests**. The real-loader stalled-writer test preserves
+all non-IM/IM/FAIMS rows, enforces its declared accounting/queue bounds and cancels
+without leaked charges. This is **not** a globally budgeted CLI or whole-engine
+speed/memory result. Adapter integration and representative acceptance remain open.
+Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
+observations and optional-platform/runtime limits are recorded in
 [WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).
 
 ## Raw-point layout experiment
@@ -138,7 +146,7 @@ Replace data handling **one component at a time in the existing pipeline**, behi
 
 ## Five tracks, existing WP IDs
 
-Numbers identify packages, not a serial implementation order. Local merge checks live in each WP. Whole-workflow gates live in WP-09/10.
+Numbers identify packages, not a serial implementation order. Local readiness checks live in each WP. They do not authorize individual merges. Whole-workflow gates live in WP-09/10, and the combined design must be validated before integration into `develop`.
 
 | Track | Work packages | Start / integration dependencies |
 |---|---|---|
@@ -170,14 +178,14 @@ A verified bundle is not proof that the scientific repeat gate passes.
 ## Sequence
 
 1. **Baseline and early experiments:** profile the representative current pipeline, establish tool-private v0 contracts, and test the localization null/decoy model against exhaustive and IPF references. Shared extractor edge bugs were fixed separately on develop in #10673; retain their mathematical edge checks.
-2. **Incremental wins:** plug raw tiles, streamed preparation, shared extraction and compact output into the existing engine. Prioritize by measured time/RSS, including rescoring/inference/export. Each component can merge with its own tests and compatibility comparison.
+2. **Stacked component experiments:** plug raw tiles, streamed preparation, shared extraction and compact output into the existing engine on dependent work-package branches. Prioritize by measured time/RSS, including rescoring/inference/export. Test each component locally, but defer individual `develop` merges until the combined design is validated.
 3. **New science:** review the localization experiment before freezing family/score contracts. Integrate high-recall retrieval and joint family scoring with mobility, ambiguity and calibrated confidence.
 4. **Release decision:** exercise the public raw-to-export path on representative data, then decide whether to change defaults. A runnable early increment is not acceptance of the final scientific slice.
 
 ## Shared acceptance rules
 
 - WP-00 supplies pinned provenance, representative reference outputs, observed resources and frozen repeat tolerances. It is complete. WP-07/09/10 agree prospective scientific and performance/size gates before candidate evaluation. Current baseline memory is not required to meet rewrite targets.
-- Every implementation PR builds locally out of tree and runs relevant tests. Packages close on their local merge checks, without waiting for all end-to-end gates.
+- Every implementation PR builds locally out of tree and runs relevant tests. Use stacked branches/PR bases for dependent packages. Local checks establish experimental readiness only: keep issues open and do not merge work-package PRs into `develop` until the finalized combined refactor demonstrates correctness, speed and memory efficiency. Review and integrate individual packages only after that decision.
 - Scheduling/storage changes preserve results. Science changes require measured retrieval recall, separate identification/localization error, ambiguity and quantitative quality. Never truncate hypotheses to meet a resource target.
 - WP-09 owns integration, real artifact reopening/rescoring and failure paths. WP-10 owns representative cold/warm timing, whole-process memory, peak disk/output size and release compatibility. No default switch before those gates pass.
 

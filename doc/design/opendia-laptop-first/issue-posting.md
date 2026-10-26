@@ -20,8 +20,8 @@ Epic: [OpenMS/OpenMS#10661](https://github.com/OpenMS/OpenMS/issues/10661). Exis
 
 ## Keeping docs and issues aligned
 
-- Use these completion blockers for GitHub's native **blocked by** relationships. They do not prevent early experiments or adapter work. WP-01 closes on v0 contracts, not scientific contract freeze, so WP-07's review creates no dependency cycle.
+- Use these implementation dependencies for GitHub's native **blocked by** relationships. They do not prevent early experiments or adapter work on stacked branches. WP-01's local contract checks do not depend on scientific freeze, so WP-07's review creates no dependency cycle. Per the 26 October 2026 owner decision, local readiness does not authorize issue closure or a merge into `develop`: first validate the combined refactor's correctness, speed and memory efficiency.
 - Keep the master short. Each WP has objective, scope, dependencies and 3–6 local merge checks. Shared policies live in architecture, whole-workflow gates in WP-09/10.
 - Update existing issue bodies, not new duplicate issues. Preserve discussion, assignment and unchecked implementation status. Published issue links must be absolute issue URLs or pinned blob URLs, never pasted repository-relative links.
-- Publish documentation to `singjc/OpenMS:rewrite/opendia` before linking its new revision. Use the resulting commit SHA for issue documentation links, so readers see exactly the reviewed version.
-- Close packages with commands, pinned inputs/build and observed test results for their local checks. Keep end-to-end scientific/resource acceptance open in WP-09/10 until measured.
+- Publish planning documentation on `OpenMS/OpenMS:docs/opendia-wp00-design-plan` before linking its new revision. Use the resulting commit SHA for issue documentation links, so readers see exactly the reviewed version. Keep these planning documents out of implementation PRs.
+- Record local readiness with commands, pinned inputs/build and observed results, while keeping packages open and stacked. WP-09/10 retain whole-workflow scientific/resource/performance acceptance. Close and integrate individual packages only after the owner-approved combined-design decision.
