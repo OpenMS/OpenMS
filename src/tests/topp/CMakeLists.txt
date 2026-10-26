@@ -4161,6 +4161,13 @@ add_test("TOPP_UniPEFF_19_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_19_output.
 set_tests_properties("TOPP_UniPEFF_19" PROPERTIES DEPENDS "TOPP_UniPEFF_18_prepare")
 set_tests_properties("TOPP_UniPEFF_19_out" PROPERTIES DEPENDS "TOPP_UniPEFF_19")
 
+# -map_canonical_features: the canonical annotations are also written to the isoform entry, in its
+# coordinates. Those on deleted or replaced residues and regions overlapping a splice variant are not
+# mapped, processed regions are clipped, and a feature UniProt also annotates on the isoform is written once.
+add_test("TOPP_UniPEFF_20" ${TOPP_BIN_PATH}/UniPEFF -test -map_canonical_features -in ${DATA_DIR_TOPP}/UniPEFF_6_input_canonical_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_20_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_20_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_20_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_6_output_mapped.peff)
+set_tests_properties("TOPP_UniPEFF_20_out" PROPERTIES DEPENDS "TOPP_UniPEFF_20")
+
 #------------------------------------------------------------------------------
 # XFDR tests
 add_test("TOPP_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.idXML -out_mzIdentML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.mzid -out_xquest ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.xquest.xml)
@@ -6539,6 +6546,26 @@ add_test("TOPP_ProteomicsLFQ_feat_dir_param_mismatch" ${TOPP_BIN_PATH}/Proteomic
 set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_param_mismatch" PROPERTIES
                      DEPENDS "TOPP_ProteomicsLFQ_feat_dir_eq_feature"
                      WILL_FAIL 1)
+
+# -consensus_elution_width is applied after linking only, so the checkpoints above, detected without it, serve it:
+# they keep the elution model fit, and the option is not part of their fingerprint.
+add_test("TOPP_ProteomicsLFQ_feat_dir_consensus_width" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -feat_dir ${TESTS_TEMP_DIR}/BSA_seam_ckpt
+         -consensus_elution_width true
+         -out ${TESTS_TEMP_DIR}/BSA_seam_consensus_width.tmp.mzTab
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_consensus_width" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_feat_dir_eq_feature"
+                     PASS_REGULAR_EXPRESSION "Consensus elution width: [1-9][0-9]* consensus features, [1-9][0-9]* features re-quantified")
 
 # -protein_quantification is part of that fingerprint, although only the combining step applies it:
 # detection keeps the peptide-uniqueness annotation strictly_unique_peptides filters on only in that

@@ -1266,6 +1266,7 @@ namespace OpenMS
       at.colTypes.emplace_back("MS:1000894_[sec]");
       at.colTypes.emplace_back("MS:1000285");
       Size below_10k = 0;
+      Size tic_points = 0;
       const std::vector<OpenMS::Chromatogram>& chroms = exp.getChromatograms();
       if (!chroms.empty()) //real TIC from the mzML
       {
@@ -1285,6 +1286,7 @@ namespace OpenMS
               row.push_back(StringUtils::toStr(sum));
               at.tableRows.push_back(row);
             }
+            tic_points = chroms[t].size();
             break;  // what if there are more than one? should generally not be though ...
           }
         }
@@ -1294,7 +1296,7 @@ namespace OpenMS
         qp.id = base_name + "_ticslump"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000023";
-        qp.value =StringUtils::toStr((100 / exp.size()) * below_10k);
+        qp.value = StringUtils::toStr(tic_points == 0 ? 0.0 : 100.0 * below_10k / tic_points);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1329,6 +1331,7 @@ namespace OpenMS
       at.colTypes.emplace_back("peak count");
       Size prev = 0;
       below_10k = 0;
+      Size ms1_spectra = 0;
       Size jumps = 0;
       Size drops = 0;
       Size fact = 10;
@@ -1336,6 +1339,7 @@ namespace OpenMS
       {
         if (exp[i].getMSLevel() == 1)
         {
+          ++ms1_spectra;
           UInt sum = 0;
           for (Size j = 0; j < exp[i].size(); ++j)
           {
@@ -1368,7 +1372,7 @@ namespace OpenMS
       qp.id = base_name + "_ricslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000057";
-      qp.value =StringUtils::toStr((100 / exp.size()) * below_10k);
+      qp.value = StringUtils::toStr(ms1_spectra == 0 ? 0.0 : 100.0 * below_10k / ms1_spectra);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
