@@ -1346,7 +1346,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       // each fold model's training rows (getCappedTrainingInfo)
       trained.trained_rows.assign(num_folds, {});
       std::vector<std::exception_ptr> fold_row_errors(num_folds);
-#pragma omp parallel for schedule(static, 1) num_threads(static_cast<int>(num_folds))
+#pragma omp parallel for schedule(static, 1) num_threads(std::max(1, std::min(static_cast<int>(num_folds), teamThreads(impl_->num_threads))))
       for (SignedSize f = 0; f < static_cast<SignedSize>(num_folds); ++f)
       {
         try
