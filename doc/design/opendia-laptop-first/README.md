@@ -132,6 +132,14 @@ The 128 MiB run still fails decoder admission. These single Debug runs do not
 prove a speed gain or lower RSS. Next, integrate whole-job admission and shared
 extraction. See [the owner-release checks and limits](work-packages/03-raw-tiles.md#release-completed-calibration-scans).
 
+The [optimized full-input comparison](work-packages/03-raw-tiles.md#optimized-full-input-comparison)
+uses one native Release build and nine balanced fresh processes. All 120 affected
+native/SDK checks and six installed consumers pass. Eight complete searches retain
+all outputs. One 256 MiB search fails scan admission during extraction. Later
+successes do not replace that failure. The complete performance matrix does not
+pass. Apply whole-job admission before concurrent decoder/copy work, then repeat
+the unchanged matrix. Keep the packages stacked and the resource gates open.
+
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
 [WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).

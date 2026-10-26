@@ -143,6 +143,30 @@ This change removes a proved local lifetime fault and preserves complete outputs
 
 Debug call stacks also include full-array sortedness precondition checks during extraction. Do not use their cost to choose a Release cache policy. Keep the shared lock until optimized, matched measurements support a different policy.
 
+## Optimized full-input comparison
+
+A separate native Release build used source `008696b0f3`. Core and private sources use `-O3 -DNDEBUG`. The executable loads the new Release libraries, not the Debug SDK. All 120 affected native/CLI/SDK checks and six installed consumers pass.
+
+Nine fresh processes used the same complete TimSim input, full library, eight threads and science settings. Each reader occupied each trial position once. Each process had an eight-core CPU quota, a 12 GiB safety limit and a 1,200-second time limit. No build or profile ran during measurement. These are warm-cache trials on a shared host.
+
+| Order | Reader | Wall seconds | Peak RSS KiB | Result |
+|---|---|---:|---:|---|
+| 1 | Normal | 161.36 | 1,833,760 | Complete, outputs match |
+| 2 | Tiled, 256 MiB | 391.16 | 971,932 | Exit 8, no final output. Partial measurement only. |
+| 3 | Tiled, 1,024 MiB | 169.75 | 1,728,084 | Complete, outputs match |
+| 4 | Tiled, 256 MiB | 386.36 | 956,156 | Complete, outputs match |
+| 5 | Tiled, 1,024 MiB | 191.14 | 2,017,308 | Complete, outputs match |
+| 6 | Normal | 187.59 | 1,833,752 | Complete, outputs match |
+| 7 | Tiled, 1,024 MiB | 165.25 | 1,978,572 | Complete, outputs match |
+| 8 | Normal | 208.80 | 1,833,640 | Complete, outputs match |
+| 9 | Tiled, 256 MiB | 426.54 | 954,560 | Complete, outputs match |
+
+All eight completed runs preserve 4,688 result rows, all feature/score tables, finite nonzero IM and 985/985/251 matrix rows. Each matches the first optimized normal run. Private peaks stay within 201,326,592 usable bytes at 256 MiB and 1,006,632,960 bytes at 1,024 MiB. Source, executable, loaded dependencies, build flags, commands, input, library, comparator and frozen archive hashes are unchanged.
+
+Trial 2 returns `Scan admission failed: pinned views or cancellation` during extraction. It is an engine failure, not a timeout. The two later successes do not replace it. The predeclared check rejects this matrix and withholds a performance summary. No speed gain or consistent RSS reduction is established at 1,024 MiB. The two completed 256 MiB runs use less RSS but take longer, and that setting does not complete reliably.
+
+**Next:** apply whole-job admission before concurrent decoder/copy work. Then repeat the failed command and the complete matrix without changing the cap or scientific population. Keep the current lock until further measurements justify a change. Native allocation bounds and shared extraction remain separate open work. Local commands and all nine records are under `representative-1312/optimized-setup` and `optimized-acceptance`.
+
 ## Limits
 
 - The first adapter supports indexed mzML spectrum maps. Split-window input is not supported. The native loader rejects mixed FAIMS lanes rather than merging them.
