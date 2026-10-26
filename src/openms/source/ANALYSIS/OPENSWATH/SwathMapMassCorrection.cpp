@@ -310,6 +310,9 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << '\n';
       }
 
+      // Fragment integration is complete. Release its scan before MS1 admission.
+      sp_ms2.reset();
+
       // Always collect a few MS1 IM points for window estimation (independent of ms1_im_)
       // However, if there are no MS1 Maps, then we have to skip window estimation for MS1
       if (!transition_group->getTransitions().empty() && !ms1_maps.empty())
@@ -617,6 +620,10 @@ namespace OpenMS
         }
         OPENMS_LOG_DEBUG << mz << "\t" << tr.product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << '\n';
       }
+
+      // Fragment integration is complete. Both owners must release the MS2 scan.
+      sp.reset();
+      spArr.clear();
 
       // MS1 precursor processing for Δppm residuals
       if (!ms1_maps.empty())
