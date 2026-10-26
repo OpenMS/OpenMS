@@ -258,9 +258,16 @@ class NewtonWorkspaceLease {
     ws_->reserve(m);
   }
   ~NewtonWorkspaceLease() {
-    if (!ws_ || (ws_->bytes() > kNewtonKeepBytes && !tronWorkspacesHeld())) return;  // freed
+    if (!ws_) return;
     NewtonWorkspacePool& pool = newtonWorkspacePool();
-    std::lock_guard<std::mutex> lock(pool.mutex);
+    std::unique_lock<std::mutex> lock(pool.mutex);
+    // (the hold is checked under the pool's mutex, which newtonReleaseWorkspaces takes after the last hold ended, so a
+    // large workspace cannot enter the pool after that release: int14 review r3)
+    if (ws_->bytes() > kNewtonKeepBytes && !tronWorkspacesHeld()) {
+      lock.unlock();
+      ws_.reset();  // freed
+      return;
+    }
     try {
       pool.idle.push_back(std::move(ws_));
     } catch (...) {  // (freed)
