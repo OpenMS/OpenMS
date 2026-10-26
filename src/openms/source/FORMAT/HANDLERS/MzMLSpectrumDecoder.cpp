@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 #include <OpenMS/CONCEPT/Init.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -500,7 +501,15 @@ namespace OpenMS
           std::string unit_accession = sm.convert(currentElement->getAttribute(TAG_unit_accession));
 
           // set precision, data_type
-          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data, accession, value, name, unit_accession);
+          if (!Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data, accession, value, name, unit_accession))
+          {
+            // Match the full mzML reader for standard non-default arrays, including IM.
+            const auto& cv = ControlledVocabulary::getPSIMSCV();
+            if (cv.exists(accession) && cv.isChildOf(accession, "MS:1000513"))
+            {
+              data.back().meta.setName(cv.getTerm(accession).name);
+            }
+          }
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_userParam))
         {
@@ -626,4 +635,3 @@ namespace OpenMS
   }
 
 }
-

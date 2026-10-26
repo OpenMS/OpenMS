@@ -197,7 +197,8 @@ namespace
           scan.push_back(peak);
         }
         OpenMS::MSSpectrum::FloatDataArray floats;
-        floats.setName("Ion Mobility");
+        // The vendor writer uses a standard CV array, not a non-standard label.
+        floats.setName(i == 0 ? "raw inverse reduced ion mobility array" : "Ion Mobility");
         floats.assign(32, 0.25f);
         scan.getFloatDataArrays().push_back(floats);
         OpenMS::MSSpectrum::IntegerDataArray integers;
@@ -222,6 +223,19 @@ namespace
     }
     check(access.acquire(0)->arrayCount() == 4 && access.acquire(0)->array(3).description == "count",
       "Float or integer column was lost");
+    check(access.acquire(0)->array(2).description == "raw inverse reduced ion mobility array",
+      "Indexed decoder lost the standard mobility name");
+    // Use the same shared drift-filter overload as the transition-list filter.
+    const auto reference = direct->lightClone()->getSpectrumById(0, 0.25, 0.25);
+    const auto filtered = access.lightClone()->getSpectrumById(0, 0.25, 0.25);
+    check(filtered->getDriftTimeArray() && filtered->getMZArray()->data.size() == 32,
+      "Indexed drift filtering lost boundary points");
+    check(filtered->getMZArray()->data == reference->getMZArray()->data &&
+      filtered->getIntensityArray()->data == reference->getIntensityArray()->data &&
+      filtered->getDriftTimeArray()->data == reference->getDriftTimeArray()->data,
+      "Indexed drift filtering changed values");
+    check(access.lightClone()->getSpectrumById(0, 0.5, 1)->getMZArray()->data.empty(),
+      "Indexed drift filtering kept points outside the interval");
     const QueryInterval all{0, 100, EdgePolicy::CLOSED};
     check(access.select(all).size() == 4, "Empty scan was lost");
     check(access.select(all, QueryInterval{450, 451, EdgePolicy::OPEN}).size() == 4, "Long isolation overlap was lost");

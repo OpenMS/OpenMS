@@ -11,7 +11,9 @@
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <algorithm>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -93,24 +95,27 @@ public:
     */
     SpectrumSequence getMultipleSpectra(double RT, int nr_spectra_to_fetch, double drift_start, double drift_end);
 
-    /// filters a spectrum by drift time, spectrum pointer returned is a copy
+    /// Filters a spectrum by drift time. Returns a copy. Throws std::invalid_argument for missing or unequal arrays.
     static SpectrumPtr filterByDrift(const SpectrumPtr& input, double drift_start, double drift_end)
     {
-      // NOTE: this function is very inefficient because filtering unsorted array
-      //OPENMS_PRECONDITION(drift_start <= 0, "Cannot filter by drift time if drift_start is not set");
-      //OPENMS_PRECONDITION(drift_end - drift_start < 0, "Cannot filter by drift time if range is empty");
-      //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
-
-      //if (input->getDriftTimeArray() == nullptr)
-      //{
-        //throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      //}
+      // Validate before the array accessors and aligned iterators run.
+      if (!input || input->getDataArrays().size() < 2 ||
+          std::any_of(input->getDataArrays().begin(), input->getDataArrays().end(),
+            [](const auto& array) { return !array; }))
+      {
+        throw std::invalid_argument("Cannot filter by drift time: missing spectrum or numeric array");
+      }
 
       OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
 
       OpenSwath::BinaryDataArrayPtr mz_arr = input->getMZArray();
       OpenSwath::BinaryDataArrayPtr int_arr = input->getIntensityArray();
       OpenSwath::BinaryDataArrayPtr im_arr = input->getDriftTimeArray();
+
+      if (!im_arr || mz_arr->data.size() != int_arr->data.size() || mz_arr->data.size() != im_arr->data.size())
+      {
+        throw std::invalid_argument("Cannot filter by drift time: missing or unequal m/z, intensity and drift arrays");
+      }
 
       auto mz_it = mz_arr->data.cbegin();
       auto int_it = int_arr->data.cbegin();
@@ -145,4 +150,3 @@ public:
 
   typedef std::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }
-

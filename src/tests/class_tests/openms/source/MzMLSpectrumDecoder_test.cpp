@@ -12,6 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+#include <utility>
+#include <vector>
 
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
 
@@ -622,7 +624,53 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
 }
 END_SECTION
 
+START_SECTION((standard and non-standard binary array names))
+{
+  // Use real DOM decoding. Standard CV names must not depend on the XML name label.
+  const std::string prefix = R"(<spectrum id="scan=1" defaultArrayLength="2">
+    <binaryDataArrayList count="3">
+      <binaryDataArray encodedLength="24">
+        <cvParam accession="MS:1000523" name="64-bit float"/>
+        <cvParam accession="MS:1000576" name="no compression"/>
+        <cvParam accession="MS:1000514" name="m/z array"/>
+        <binary>AAAAAAAAeUAAAAAAAEB/QA==</binary>
+      </binaryDataArray>
+      <binaryDataArray encodedLength="24">
+        <cvParam accession="MS:1000523" name="64-bit float"/>
+        <cvParam accession="MS:1000576" name="no compression"/>
+        <cvParam accession="MS:1000515" name="intensity array"/>
+        <binary>AAAAAAAAJEAAAAAAAAA0QA==</binary>
+      </binaryDataArray>
+      <binaryDataArray encodedLength="12">
+        <cvParam accession="MS:1000521" name="32-bit float"/>
+        <cvParam accession="MS:1000576" name="no compression"/>
+        <cvParam accession=")";
+  for (const auto& [accession, expected] : std::vector<std::pair<std::string, std::string>>{
+    {"MS:1003008", "raw inverse reduced ion mobility array"},
+    {"MS:1002816", "mean ion mobility array"},
+    {"MS:1000786", "vendor mobility"},
+    {"MS:1000016", ""}})
+  {
+    const auto xml = prefix + accession + R"(" name="not the canonical name" value="vendor mobility" unitAccession="MS:1002814"/>
+        <binary>AAAAPwAAwD8=</binary>
+      </binaryDataArray>
+    </binaryDataArrayList></spectrum>)";
+    MSSpectrum spectrum;
+    MzMLSpectrumDecoder().domParseSpectrum(xml, spectrum);
+    TEST_EQUAL(spectrum.size(), 2)
+    TEST_EQUAL(spectrum[0].getMZ(), 400)
+    TEST_EQUAL(spectrum[1].getIntensity(), 20)
+    TEST_EQUAL(spectrum.getFloatDataArrays().size(), 1)
+    const auto& array = spectrum.getFloatDataArrays().front();
+    TEST_EQUAL(array.getName(), expected)
+    TEST_EQUAL(array.getMetaValue("unit_accession"), "MS:1002814")
+    TEST_EQUAL(array.size(), 2)
+    TEST_EQUAL(array[0], 0.5)
+    TEST_EQUAL(array[1], 1.5)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
