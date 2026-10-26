@@ -21,6 +21,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -226,18 +227,6 @@ namespace
     if (!reader->GetSchema(&schema).ok() || !schema->metadata()) { return out; }
     for (int64_t i = 0; i < schema->metadata()->size(); ++i) { out[schema->metadata()->key(i)] = schema->metadata()->value(i); }
     return out;
-  }
-
-  /// The rows of the Parquet file @p file; -1 if it cannot be read
-  int64_t rowsOf(const string& file)
-  {
-    auto opened = arrow::io::ReadableFile::Open(file);
-    if (!opened.ok()) { return -1; }
-    auto reader = parquet::arrow::OpenFile(opened.ValueOrDie(), arrow::default_memory_pool());
-    if (!reader.ok()) { return -1; }
-    const auto table = reader.ValueOrDie()->ReadTable();
-    if (!table.ok()) { return -1; }
-    return table.ValueOrDie()->num_rows();
   }
 
   /// The mz view of a run @p run_file_name with one MS2 spectrum and PSM per native ID of @p native_ids
@@ -892,12 +881,12 @@ START_SECTION(writeDataset refuses an mz view with an id twice (one run per mz v
   // one run's mz view is written
   views["mz"].tables = {run1};
   TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "one", views), true)
-  TEST_EQUAL(rowsOf(dir + "/one.mz.parquet"), 2)
+  TEST_EQUAL(ParquetFile::rowCount(dir + "/one.mz.parquet"), 2)
 
   // the mz views of two runs of distinct ids are written, concatenated
   views["mz"].tables = {run1, run3};
   TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "distinct", views), true)
-  TEST_EQUAL(rowsOf(dir + "/distinct.mz.parquet"), 4)
+  TEST_EQUAL(ParquetFile::rowCount(dir + "/distinct.mz.parquet"), 4)
 }
 END_SECTION
 
