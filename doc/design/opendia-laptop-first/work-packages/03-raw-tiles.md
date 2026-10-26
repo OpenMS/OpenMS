@@ -165,7 +165,27 @@ All eight completed runs preserve 4,688 result rows, all feature/score tables, f
 
 Trial 2 returns `Scan admission failed: pinned views or cancellation` during extraction. It is an engine failure, not a timeout. The two later successes do not replace it. The predeclared check rejects this matrix and withholds a performance summary. No speed gain or consistent RSS reduction is established at 1,024 MiB. The two completed 256 MiB runs use less RSS but take longer, and that setting does not complete reliably.
 
-**Next:** apply whole-job admission before concurrent decoder/copy work. Then repeat the failed command and the complete matrix without changing the cap or scientific population. Keep the current lock until further measurements justify a change. Native allocation bounds and shared extraction remain separate open work. Local commands and all nine records are under `representative-1312/optimized-setup` and `optimized-acceptance`.
+The failed matrix prompted a scan-owner review before a scheduler change. The next section records that smaller repair and a new matrix. The original failed trial is retained.
+
+## Release completed scoring scans
+
+[The repair](https://github.com/OpenMS/OpenMS/commit/eb3ee5c0f504e6e536c1340b862a35b859274732) releases scan owners when scoring ends, including error exits. It keeps nested MS1 scans until IM contrast is complete. Fetch scratch owners are local. Caps, threads, the reader lock and science settings are unchanged.
+
+[The regression](https://github.com/OpenMS/OpenMS/commit/4024bc8325d4fecc35a300891ec7937d10c35624) covers nine native scoring/fetch paths. All fail the final-charge check on the old core. All now match native values within `1e-10` and release all charges. IM reuse and parse-error release pass. All 204 affected native/CLI/SDK checks, six installed consumers, 10 standalone and 10 NDEBUG checks pass. Both private raw ASan/UBSan tests pass. The native SDK is not instrumented and leak detection is off.
+
+The exact failed 256 MiB full-input command now completes in 349.94 seconds at 1,104,268 KiB RSS. Full outputs match the prior optimized normal reference. This focused check is not a timing comparison.
+
+A fresh nine-process matrix then used the same native Release build and balanced order. All nine complete. Each preserves 4,688 result rows, all feature/score tables, nonzero IM and 985/985/251 matrix rows. Before/after source, binary, dependency, flags, command and input hashes match. No build or profile overlapped measurement.
+
+| Reader | Wall seconds, min / median / max | Peak RSS KiB, min / median / max |
+|---|---|---|
+| Normal | 156.56 / 162.44 / 172.83 | 1,833,904 / 1,834,100 / 1,834,348 |
+| Tiled, 256 MiB | 373.04 / 374.40 / 417.98 | 946,476 / 982,188 / 1,065,304 |
+| Tiled, 1,024 MiB | 159.51 / 173.53 / 182.36 | 1,765,860 / 1,852,132 / 1,884,612 |
+
+The 256 MiB setting uses about 46% less median RSS but takes about 2.3 times as long. The 1,024 MiB setting has no clear speed or RSS gain. All tiled private peaks stay within their usable caps. Each final cache diagnostic reports zero live copy bytes. This does not prove a native allocation or process limit.
+
+These warm-cache measurements cover one converted TimSim run on a shared host. The original failed matrix remains rejected. The 128 MiB setting was not retested. Native acquisition and wider cohort checks remain open. Next, reduce repeated decoding through WP-05 and test whole-job admission without changing the scientific population. Keep the reader lock until measurement justifies a change. Local commands, raw trials and requirement checks are under `representative-1312/optimized-setup`, `scoring-acceptance-1740` and `scoring-balanced-1740`.
 
 ## Limits
 
@@ -180,7 +200,7 @@ Trial 2 returns `Scan admission failed: pinned views or cancellation` during ext
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
 - [x] Match complete-library outputs for the converted TimSim control run at the 1,024 MiB setting. This closes one correctness check, not representative resource acceptance.
-- [ ] Reduce repeated decoding and retained-copy costs. The checked-copy and calibration-owner repairs preserve complete output parity. The 128 MiB decoder admission still fails. Integrate whole-job admission and shared extraction without changing the scientific population. Query-grid tests do not bound full-engine output or hypothesis memory.
+- [ ] Reduce repeated decoding and retained-copy costs. Checked-copy, calibration and scoring-owner repairs preserve complete outputs. All nine new Release trials complete, but the lower-memory setting is slower. Integrate shared extraction and whole-job admission without changing the scientific population. Retest the earlier 128 MiB calibration failure. Query-grid tests do not bound full-engine output or hypothesis memory.
 - [ ] Extend pinned input coverage beyond the converted TimSim control run. Test Astral and the remaining cohort. Keep conversion cost separate. Measure native decoder/metadata, downstream workspace memory, runtime and peak RSS. Do not change the frozen WP-00 files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 

@@ -107,38 +107,20 @@ native allocations outside private enforcement. See the [measured results and
 limits](work-packages/03-raw-tiles.md#small-fixture-process-measurement). Representative
 speed/RSS and native-memory acceptance remain open.
 
-A full converted TimSim control run exposed an indexed IM-name defect. The
-shared decoder and parallel error repairs pass **113 native/SDK checks**, plus
-**10 Debug and 10 NDEBUG private checks**. The normal reader completes the full
-2,000-target/2,000-decoy library. The first tiled attempts timed out at 256 MiB
-and failed copy admission at 128 MiB. CPU sampling identified indexed decoding
-as a major cost. GDB found copies that fit free capacity but failed because
-admission used the maximum scan size. The checked-copy fix passes a test that
-fails on the old code, plus 113 native/SDK, 10 standalone and 10 NDEBUG checks.
-A new 1,024 MiB tiled run completes in **1,040.29 seconds** at **1,830,824 KiB RSS**.
-All **4,688** output rows, feature/score tables, nonzero IM evidence and three
-matrix levels match the completed normal reference. The 128 MiB run still fails
-decoder admission. This is one full-input correctness result, **not efficiency
-acceptance**. See [the measured
-results and limits](work-packages/03-raw-tiles.md#measured-reader-cost-and-copy-admission).
+The full converted TimSim run exposed indexed IM-name, copy-admission and
+scan-owner faults. Shared decoder, parallel error, checked-copy, calibration and
+[scoring-owner repairs](work-packages/03-raw-tiles.md#release-completed-scoring-scans)
+now pass 204 native/CLI/SDK checks, six installed consumers, 10 standalone and
+10 NDEBUG checks. The latest nine-process Release matrix completes every search.
+All 4,688 result rows, feature/score tables, nonzero IM evidence and matrices match.
 
-The next repair releases completed MS2 scans before MS1 calibration reads.
-Both real calibration APIs failed on the old core and now match native fits
-at a 2,512-byte cap, with final charges zero. All 114 affected native/SDK checks,
-six nested consumers, 10 standalone and 10 NDEBUG checks pass. The new full
-1,024 MiB run completes in **924.74 seconds** at **1,833,572 KiB RSS**.
-All 4,688 result rows, feature/score tables and matrices still match.
-The 128 MiB run still fails decoder admission. These single Debug runs do not
-prove a speed gain or lower RSS. Next, integrate whole-job admission and shared
-extraction. See [the owner-release checks and limits](work-packages/03-raw-tiles.md#release-completed-calibration-scans).
-
-The [optimized full-input comparison](work-packages/03-raw-tiles.md#optimized-full-input-comparison)
-uses one native Release build and nine balanced fresh processes. All 120 affected
-native/SDK checks and six installed consumers pass. Eight complete searches retain
-all outputs. One 256 MiB search fails scan admission during extraction. Later
-successes do not replace that failure. The complete performance matrix does not
-pass. Apply whole-job admission before concurrent decoder/copy work, then repeat
-the unchanged matrix. Keep the packages stacked and the resource gates open.
+At 256 MiB, median RSS is **982,188 KiB**, against **1,834,100 KiB** for normal.
+Median wall time is **374.40 seconds**, against **162.44 seconds**. This saves
+memory but takes about 2.3 times as long. The 1,024 MiB setting has no clear
+speed or RSS gain. These are warm-cache checks on one converted input and a
+shared host. The original failed matrix is retained. Next, reduce repeated
+reads with WP-05 and test whole-job admission. Native acquisition, broader input
+coverage and whole-process bounds remain open. Keep all packages stacked.
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
