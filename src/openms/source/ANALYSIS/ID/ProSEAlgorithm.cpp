@@ -6359,10 +6359,85 @@ namespace OpenMS
       const std::string* deferred_ = nullptr; // the file of a deferred read
     };
 
+    // The consumer of the multi-file search's results (ProSEAlgorithm::setFileResultConsumer()), one result at a time, on a
+    // helper thread with a quarter of the OpenMP threads of this thread, which lends them (lowers its own) until it takes
+    // them back where it starts a phase after the helper has ended (takeBackThreadsOfEndedRead()), when it starts the
+    // next consumer, or at the end (finish(), destruction). Only if a read in the background never takes threads from
+    // this thread (readBorrowsThreads() false): this thread's number of threads is then changed here only, so it can be
+    // set back as it was. Otherwise, or with a single thread, or outside of the top level, the consumer runs here.
+    class BackgroundConsumer;
+    thread_local BackgroundConsumer* lending_consumer = nullptr; // the consumer that lends threads of this thread, if any
+
+    class BackgroundConsumer
+    {
+    public:
+      BackgroundConsumer() = default;
+      BackgroundConsumer(const BackgroundConsumer&) = delete;
+      BackgroundConsumer& operator=(const BackgroundConsumer&) = delete;
+      ~BackgroundConsumer() { finish(); }
+
+      /// Calls @p consumer(@p index, @p result) on a helper thread or here (see above), after the consumer before.
+      void start(const ProSEAlgorithm::FileResultConsumer& consumer, const Size index, const ProSEAlgorithm::SearchResult& result)
+      {
+        finish();
+        int helper_threads = 0;
+#ifdef _OPENMP
+        const int threads = omp_get_max_threads();
+        if (omp_get_level() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::max(1, threads / 4); }
+#endif
+        if (helper_threads > 0)
+        {
+          try
+          {
+            done_ = false;
+            helper_ = std::thread([this, &consumer, index, &result, helper_threads]()
+            {
+#ifdef _OPENMP
+              omp_set_num_threads(helper_threads);
+#endif
+              try { consumer(index, result); } catch (...) {} // (the consumer handles its errors)
+              done_.store(true, std::memory_order_release);
+            });
+#ifdef _OPENMP
+            own_threads_ = threads;
+            omp_set_num_threads(threads - helper_threads);
+            lending_consumer = this;
+#endif
+            return;
+          }
+          catch (...) {} // no thread: here
+        }
+        try { consumer(index, result); } catch (...) {}
+      }
+
+      /// Gives this thread its threads back if the consumer has ended (at the top level only)
+      void takeBackThreadsIfDone()
+      {
+        if (helper_.joinable() && done_.load(std::memory_order_acquire)) { finish(); }
+      }
+
+      /// Waits for the consumer and gives this thread its threads back
+      void finish() noexcept
+      {
+        if (helper_.joinable()) { helper_.join(); }
+#ifdef _OPENMP
+        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); }
+#endif
+        own_threads_ = 0;
+        if (lending_consumer == this) { lending_consumer = nullptr; }
+      }
+
+    private:
+      std::thread helper_;
+      std::atomic<bool> done_{false};
+      int own_threads_ = 0; // of this thread, while the helper runs; 0: not lowered
+    };
+
     void takeBackThreadsOfEndedRead()
     {
 #ifdef _OPENMP
       if (lending_read != nullptr && omp_get_level() == 0) { lending_read->takeBackThreadsIfRead(); } // see start()
+      if (lending_consumer != nullptr && omp_get_level() == 0) { lending_consumer->takeBackThreadsIfDone(); } // see BackgroundConsumer
 #endif
     }
 
@@ -7177,6 +7252,8 @@ namespace OpenMS
       };
 
       mfres.per_file.reserve(in_spectra_files.size());
+      // the consumer of the files' results (setFileResultConsumer()); waited for before the results change
+      BackgroundConsumer file_results;
 
       // rescore_reuse joint/static: the searches of the first reuse_files files defer their rescoring and FDR:PSM until
       // the models are trained on them (finishDeferredRescoring_()); with 'static', the later files are rescored with
@@ -7338,7 +7415,14 @@ namespace OpenMS
 
         if (reuse_defer_) { reuse_deferred.push_back(mfres.per_file.size()); }
         mfres.per_file.push_back(std::move(result));
+        // (per_file holds all files' places, reserved above: the consumer's result stays where it is)
+        if (file_result_consumer_ && !reuse_defer_ && i + 1 < in_spectra_files.size()
+            && mfres.per_file.back().exit_code == ExitCodes::EXECUTION_OK)
+        {
+          file_results.start(file_result_consumer_, i, mfres.per_file.back());
+        }
       }
+      file_results.finish();
       finishDeferredRescoring_(mfres, reuse_deferred); // 'joint': all files (nothing without rescore_reuse)
     }
 

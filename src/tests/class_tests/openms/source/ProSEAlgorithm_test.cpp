@@ -12,6 +12,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <mutex>
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -5488,8 +5489,28 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
       p.setValue("rescore_reuse:mode", mode);
       p.setValue("rescore_reuse:max_train", 1000); // fewer than the PSMs of a file: the cap applies
       algo.setParameters(p);
+      // setFileResultConsumer(): the final result of every file but the last, right after its search, except those whose
+      // rescoring is deferred ('joint': all; 'static': the training file); the same as the search returns
+      std::mutex consumed_mutex;
+      std::vector<std::pair<Size, PeptideIdentificationList>> consumed;
+      algo.setFileResultConsumer([&](Size index, const ProSEAlgorithm::SearchResult& r)
+      {
+        std::lock_guard<std::mutex> lock(consumed_mutex);
+        consumed.emplace_back(index, r.peptide_ids);
+      });
       ProSEAlgorithm::MultiFileSearchResult mfres = algo.searchWithModificationAnalysis(files, database_file);
       ABORT_IF(mfres.per_file.size() != 3)
+      {
+        const std::vector<Size> expected = mode == "joint" ? std::vector<Size>{} : mode == "static" ? std::vector<Size>{1}
+                                                                                                    : std::vector<Size>{0, 1};
+        TEST_EQUAL(consumed.size(), expected.size())
+        for (Size c = 0; c < std::min(consumed.size(), expected.size()); ++c)
+        {
+          TEST_EQUAL(consumed[c].first, expected[c])
+          TEST_TRUE(consumed[c].second == mfres.per_file[expected[c]].peptide_ids)
+          TEST_FALSE(consumed[c].second.empty())
+        }
+      }
       for (Size i = 0; i < 2; ++i)
       {
         const ProSEAlgorithm::SearchResult& r = mfres.per_file[i];
