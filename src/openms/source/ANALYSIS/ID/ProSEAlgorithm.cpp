@@ -1412,12 +1412,12 @@ namespace OpenMS
     if (evidence_spectra != nullptr)
     {
       evidence_spectra->clear(true);
-      evidence_spectra->resize(exp.size());
+      resizeWithParallelFaults(evidence_spectra->getSpectra(), exp.size());
     }
     if (query_spectra != nullptr)
     {
       query_spectra->clear(true);
-      query_spectra->resize(exp.size());
+      resizeWithParallelFaults(query_spectra->getSpectra(), exp.size());
     }
 
     // filter settings: the most intense peaks_window_top peaks per 100 Th window (jumping windows as WindowMower's,
