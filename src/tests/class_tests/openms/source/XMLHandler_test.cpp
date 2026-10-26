@@ -7,6 +7,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Init.h>
 #include <random>
+#include <cstdint>
 #include <xercesc/util/XMLString.hpp>
 
 class StringManager_test : public OpenMS::Internal::StringManager
@@ -185,7 +186,13 @@ START_SECTION(static Int parseInt(const char16_t * str))
   std::mt19937_64 rng(42);
   for (int i = 0; i < 1000; ++i)
   {
-    const long long v = static_cast<long long>(rng() >> (rng() % 64)) * ((rng() & 1) ? -1 : 1);
+    // (one draw per statement: the order of the draws does not depend on the compiler)
+    const std::uint64_t bits = rng();
+    const unsigned shift = static_cast<unsigned>(rng() % 64);
+    const bool negative = (rng() & 1) != 0;
+    long long v = static_cast<long long>(bits >> shift);
+    if (negative) v = -v;
+    if (i % 2 == 0) v = static_cast<long long>(static_cast<std::int32_t>(static_cast<std::uint32_t>(bits))); // fits an int on every platform
     const std::string t = std::to_string(v);
     cases.emplace_back(t.begin(), t.end());
   }
@@ -198,7 +205,7 @@ START_SECTION(static Int parseInt(const char16_t * str))
     TEST_EQUAL(got.second, expected.second)
     if (expected.first) ++taken;
   }
-  TEST_TRUE(taken > 500) // most random values are taken (on any platform), so the fast path is exercised
+  TEST_TRUE(taken >= 500) // at least the 500 random values that fit an int are taken (on any platform): the fast path is exercised
   // platform-independent values
   TEST_EQUAL(StringManager::parseInt(u" -42\n"), -42)
   TEST_EQUAL(StringManager::parseInt(u"2147483647"), 2147483647)
