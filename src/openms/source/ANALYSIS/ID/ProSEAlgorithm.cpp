@@ -2690,6 +2690,7 @@ namespace OpenMS
     p.remove("decoys");
     p.setValue("decoys", "false");
     p.remove("decoy_method"); // ProSE's own (the decoys of the database it builds)
+    p.remove("decoy_parity_report");
     // ions:by_activation is resolved by the caller, which knows the spectra. The c and z+1 ions
     // for electron-activated spectra go into a set of their own, which the other spectra are not
     // matched against (see scoreSpectraAgainstIndex_).
@@ -2993,21 +2994,31 @@ namespace OpenMS
     //    An entry left without residues has nothing to search, and decoy generation needs
     //    residues: drop it. Lowercase residues are read as uppercase ones, as the FASTA format
     //    defines them (NCBI); they are neither indexed nor reversed otherwise.
-    auto kept = db.begin();
-    Size lowercase_entries = 0;
-    for (FASTAFile::FASTAEntry& e : db)
+    const auto existing_decoy = [&strategy](const FASTAFile::FASTAEntry& e)
     {
-      const bool is_existing_decoy = strategy.strip_existing &&
+      return strategy.strip_existing &&
         (strategy.strip_is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.strip_string)
                                   : StringUtils::hasSuffix(e.identifier, strategy.strip_string));
+    };
+    // (the lowercase check reads every residue: in parallel, 10-20 ms on one thread for a human target-decoy database)
+    Size lowercase_entries = 0;
+#pragma omp parallel for schedule(dynamic, 256) reduction(+: lowercase_entries) if (db.size() >= 1024)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(db.size()); ++i)
+    {
+      std::string& sequence = db[i].sequence;
+      if (!existing_decoy(db[i]) && std::any_of(sequence.begin(), sequence.end(), [](char c) { return c >= 'a' && c <= 'z'; }))
+      {
+        StringUtils::toUpper(sequence);
+        ++lowercase_entries;
+      }
+    }
+    auto kept = db.begin();
+    for (FASTAFile::FASTAEntry& e : db)
+    {
+      const bool is_existing_decoy = existing_decoy(e);
       if (!is_existing_decoy)
       {
         std::string& sequence = e.sequence;
-        if (std::any_of(sequence.begin(), sequence.end(), [](char c) { return c >= 'a' && c <= 'z'; }))
-        {
-          StringUtils::toUpper(sequence);
-          ++lowercase_entries;
-        }
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
         if (!sequence.empty())
         {
@@ -3078,7 +3089,6 @@ namespace OpenMS
                         << "the decoys are generated with 'reverse'." << std::endl;
       }
       ProteaseDigestion segments;
-      std::vector<std::pair<Size, Size>> target_spans, decoy_spans;
       Size site_mismatches = 0;
       UInt64 checksum = 14695981039346656037ULL;
       if (keep_termini)
@@ -3087,33 +3097,60 @@ namespace OpenMS
         segments.setMissedCleavages(0);
         segments.setSpecificity(EnzymaticDigestion::SPEC_FULL);
       }
+      // The decoy sequences in parallel (each from its target alone; serially 1.2-1.6 s per run for a human database, as
+      // AASequence parsing and the digestion per protein dominate), then appended in target order as before.
+      const bool clip_nterm_methionine = param_.getValue("peptide:clip_nterm_methionine").toBool();
+      std::vector<std::string> decoy_sequences(old_size);
+      std::vector<char> site_mismatch(old_size, 0);
+      std::vector<std::exception_ptr> decoy_errors(old_size); // an exception must not leave the parallel region
+#pragma omp parallel if (old_size >= 256)
+      {
+        std::vector<std::pair<Size, Size>> target_spans, decoy_spans;
+#pragma omp for schedule(dynamic, 64)
+        for (SignedSize si = 0; si < static_cast<SignedSize>(old_size); ++si)
+        {
+          const size_t i = static_cast<size_t>(si);
+          try
+          {
+            const std::string& sequence = db[i].sequence;
+            if (keep_termini)
+            {
+              decoy_sequences[i] = keepTerminiDecoy(sequence, segments, target_spans);
+              // the guarantee holds only if the decoy has the target's cleavage sites (enzymes whose rule reads K, R, P)
+              segments.digestUnmodified(decoy_sequences[i], decoy_spans, 1, 0);
+              site_mismatch[i] = decoy_spans != target_spans;
+              continue;
+            }
+            // Keep an initial Met on generated decoys as well: otherwise clipping
+            // expands the target N-terminal search space without its decoy counterpart.
+            const bool preserve_met = clip_nterm_methionine && sequence.size() > 1 && sequence[0] == 'M';
+            const std::string target = preserve_met ? sequence.substr(1) : sequence;
+            std::string decoy = peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE
+              ? decoy_generator.reverseProtein(AASequence::fromString(target)).toString()
+              : decoy_generator.reversePeptides(AASequence::fromString(target), enzyme_).toString();
+            if (preserve_met) { decoy.insert(decoy.begin(), 'M'); }
+            decoy_sequences[i] = std::move(decoy);
+          }
+          catch (...)
+          {
+            decoy_errors[i] = std::current_exception();
+          }
+        }
+      }
+      for (const std::exception_ptr& error : decoy_errors)
+      {
+        if (error) { std::rethrow_exception(error); }
+      }
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = db[i];
-        if (keep_termini)
-        {
-          e.sequence = keepTerminiDecoy(e.sequence, segments, target_spans);
-          // the guarantee holds only if the decoy has the target's cleavage sites (enzymes whose rule reads K, R, P)
-          segments.digestUnmodified(e.sequence, decoy_spans, 1, 0);
-          if (decoy_spans != target_spans) ++site_mismatches;
-          fnv1a(checksum, e.sequence);
-          e.identifier = strategy.decoy_string + e.identifier;
-          db.push_back(std::move(e));
-          continue;
-        }
-        // Keep an initial Met on generated decoys as well: otherwise clipping
-        // expands the target N-terminal search space without its decoy counterpart.
-        const bool preserve_met = param_.getValue("peptide:clip_nterm_methionine").toBool() && e.sequence.size() > 1 && e.sequence[0] == 'M';
-        if (preserve_met) { e.sequence.erase(0, 1); }
-        if (peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE)
-          e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
-        else
-          e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
-        if (preserve_met) { e.sequence.insert(e.sequence.begin(), 'M'); }
-        if (decoy_parity_report_) fnv1a(checksum, e.sequence);
+        e.sequence = std::move(decoy_sequences[i]);
+        site_mismatches += site_mismatch[i];
+        if (keep_termini || decoy_parity_report_) fnv1a(checksum, e.sequence);
         e.identifier = strategy.decoy_string + e.identifier;  // decoy_string is the prefix to add
         db.push_back(std::move(e));
       }
+      std::vector<std::string>().swap(decoy_sequences);
       if (keep_termini)
       {
         if (site_mismatches > 0)
