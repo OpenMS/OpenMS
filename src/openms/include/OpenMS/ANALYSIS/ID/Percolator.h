@@ -313,8 +313,8 @@ namespace OpenMS
           raw_score(i) = Σ input.features[i][j] * model.weights[j]
                        + model.weights[n_features]
       `Scores::normalizeScores` then rescales the entire score vector so
-      that the median decoy score maps to 0 and the score at `test_fdr`
-      maps to 1:
+      that the score at `test_fdr` maps to 0 and the median decoy score
+      maps to -1:
           scores[i] = (raw_score(i) - fdrScore) / (fdrScore - medianDecoyScore)
       The rescore() CV-merge path rescales per fold instead of once
       globally, so scores from rescore(X) and from score(X, train(X))
@@ -346,7 +346,7 @@ namespace OpenMS
       For rows too few to calibrate scores and PEPs on their own (e.g. a small run scored with a model trained on other
       runs). The reference is scored as score(reference, model) scores it; the rows of @p input then get:
       - the score that the reference's scoring would give them: raw weights x raw features + bias, with the rescaling
-        of the reference (its score at `test_fdr` maps to 1, its median decoy score to 0), so that a row of the
+        of the reference (its score at `test_fdr` maps to 0, its median decoy score to -1), so that a row of the
         reference gets the same score here as in score(reference, model);
       - the q-value and PEP of the reference at that score (linear interpolation between the neighbouring reference
         scores, constant beyond them; the rows that target-decoy competition eliminated from the reference are not

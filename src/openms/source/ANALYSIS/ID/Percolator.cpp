@@ -600,7 +600,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 {
   validateRescoreInput_(input);
   validateModelCompat_(input, model);
-  // The reference as score() scores it: its rescaling (score at test_fdr -> 1, median decoy -> 0), q-values and PEPs.
+  // The reference as score() scores it: its rescaling (score at test_fdr -> 0, median decoy -> -1), q-values and PEPs.
   std::vector<double> rescaled_weights;
   const RescoreOutput ref = score_(reference, model, &rescaled_weights);
 
