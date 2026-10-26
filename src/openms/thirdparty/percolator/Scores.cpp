@@ -1632,17 +1632,23 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         if (packable) {
 #pragma omp taskloop grainsize(1) shared(valuesOfFeature, columns)
           for (unsigned int f = 0; f < numFeatures; ++f) {
-            const double* column = &columns[static_cast<std::size_t>(f) * n];
-            std::unordered_set<double> distinct;
-            bool few = true;
-            for (std::size_t i = 0; i < n && few; ++i) {
-              distinct.insert(column[i]);
-              few = distinct.size() <= kMaxPackedCodes;
-            }
-            if (few) {
-              std::vector<double> values(distinct.begin(), distinct.end());
-              std::sort(values.begin(), values.end());
-              valuesOfFeature[f].swap(values);
+            // (no exception may leave a task: if an allocation fails, the feature is sorted as ChainKeys, which makes
+            // the same moves; int14 review r3)
+            try {
+              const double* column = &columns[static_cast<std::size_t>(f) * n];
+              std::unordered_set<double> distinct;
+              bool few = true;
+              for (std::size_t i = 0; i < n && few; ++i) {
+                distinct.insert(column[i]);
+                few = distinct.size() <= kMaxPackedCodes;
+              }
+              if (few) {
+                std::vector<double> values(distinct.begin(), distinct.end());
+                std::sort(values.begin(), values.end());
+                valuesOfFeature[f].swap(values);
+              }
+            } catch (...) {
+              valuesOfFeature[f].clear();
             }
           }
         }

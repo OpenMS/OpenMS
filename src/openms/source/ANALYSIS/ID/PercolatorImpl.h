@@ -51,7 +51,7 @@ namespace OpenMS
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> target_ds;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> decoy_ds;
     std::vector<std::string> synthesized_ids;
-    /// PSMs are owned by the DataSets inside set_handler; this vector is for
+    /// PSMs are owned by the DataSets inside set_handler (rescore(): by psm_slab); this vector is for
     /// bookkeeping only (so we can count rows). Do NOT delete these pointers
     /// directly — DataSet::~DataSet will.
     std::vector<OpenMS::Internal::Percolator::PSMDescription*> owned_psms;

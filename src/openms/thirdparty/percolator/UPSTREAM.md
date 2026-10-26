@@ -469,6 +469,10 @@ hand-editing sources and committing them, to keep sync self-healing.
   normalisation by static blocks of rows (each row's features together) instead of by feature
   (each thread walking a column through all rows); every value is computed by the same expression.
   The statistics are unchanged. No change of results.
+- `patches/29-review-fixes-int14.patch` — review fixes of the int14 integration (26 Oct 2026): the
+  distinct-value tasks of patch 17's packed keys catch their exceptions (a feature then is sorted as
+  before, with the same moves); `FeatureMemoryPool::claimRows` checks the row count without
+  overflow; `normalizeRowsByFeature` documents that its rows must be distinct. No change of results.
 
 Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
 their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,

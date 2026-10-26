@@ -1,0 +1,73 @@
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index bda88f3e3c..8890bfd878 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -100,7 +100,7 @@ void FeatureMemoryPool::reserveRows(std::size_t numRows) {
+  */
+ bool FeatureMemoryPool::claimRows(std::size_t numRows, std::size_t& first) {
+   if (!freeRows_.empty() || numRowsPerBlock_ == 0 ||
+-      initializedRows_ + numRows > std::numeric_limits<unsigned int>::max()) {
++      numRows > std::numeric_limits<unsigned int>::max() - initializedRows_) {
+     return false;
+   }
+   reserveRows(initializedRows_ + numRows);
+diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
+index d9086fc43e..4fc0936c95 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.cpp
++++ b/src/openms/thirdparty/percolator/Normalizer.cpp
+@@ -60,11 +60,11 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
+ }
+ 
+ /**
+- * OpenMS: normalizeSet(featuresV, rtFeaturesV) for rows that are equal or do not overlap (the
+- * feature rows of the PSMs of a SetHandler: rows of a FeatureMemoryPool), on large sets without
+- * retention features by feature, in an OpenMP parallel loop over the features: each value is
+- * normalized as by normalize() (if a row occurs more than once, as often, in the same order),
+- * so the rows get the same values.
++ * OpenMS: normalizeSet(featuresV, rtFeaturesV) for DISTINCT rows that do not overlap (the feature
++ * rows of the PSMs of a SetHandler: each PSM has its own row of a FeatureMemoryPool), on large
++ * sets without retention features by static blocks of rows on all threads: each value is
++ * normalized as by normalize(), so the rows get the same values. A row that occurs twice would be
++ * normalized by two threads at once (int14 review r3): the pool never gives a row to two PSMs.
+  */
+ void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
+                                         vector<double*>& rtFeaturesV) {
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index c3e153fcc7..ff9095bf69 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -1632,17 +1632,23 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+         if (packable) {
+ #pragma omp taskloop grainsize(1) shared(valuesOfFeature, columns)
+           for (unsigned int f = 0; f < numFeatures; ++f) {
+-            const double* column = &columns[static_cast<std::size_t>(f) * n];
+-            std::unordered_set<double> distinct;
+-            bool few = true;
+-            for (std::size_t i = 0; i < n && few; ++i) {
+-              distinct.insert(column[i]);
+-              few = distinct.size() <= kMaxPackedCodes;
+-            }
+-            if (few) {
+-              std::vector<double> values(distinct.begin(), distinct.end());
+-              std::sort(values.begin(), values.end());
+-              valuesOfFeature[f].swap(values);
++            // (no exception may leave a task: if an allocation fails, the feature is sorted as ChainKeys, which makes
++            // the same moves; int14 review r3)
++            try {
++              const double* column = &columns[static_cast<std::size_t>(f) * n];
++              std::unordered_set<double> distinct;
++              bool few = true;
++              for (std::size_t i = 0; i < n && few; ++i) {
++                distinct.insert(column[i]);
++                few = distinct.size() <= kMaxPackedCodes;
++              }
++              if (few) {
++                std::vector<double> values(distinct.begin(), distinct.end());
++                std::sort(values.begin(), values.end());
++                valuesOfFeature[f].swap(values);
++              }
++            } catch (...) {
++              valuesOfFeature[f].clear();
+             }
+           }
+         }

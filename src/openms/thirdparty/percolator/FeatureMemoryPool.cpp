@@ -100,7 +100,7 @@ void FeatureMemoryPool::reserveRows(std::size_t numRows) {
  */
 bool FeatureMemoryPool::claimRows(std::size_t numRows, std::size_t& first) {
   if (!freeRows_.empty() || numRowsPerBlock_ == 0 ||
-      initializedRows_ + numRows > std::numeric_limits<unsigned int>::max()) {
+      numRows > std::numeric_limits<unsigned int>::max() - initializedRows_) {
     return false;
   }
   reserveRows(initializedRows_ + numRows);
