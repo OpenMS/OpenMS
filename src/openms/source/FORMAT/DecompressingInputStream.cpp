@@ -63,7 +63,11 @@ namespace OpenMS
     {
       while (available < count && !source_end)
       {
-        if (next + available == buffer.size())
+        if (available == 0)
+        {
+          next = 0; // all consumed: fill the whole buffer
+        }
+        else if (next + available == buffer.size())
         {
           std::memmove(buffer.data(), buffer.data() + next, available);
           next = 0;
