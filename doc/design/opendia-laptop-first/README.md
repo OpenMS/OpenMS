@@ -85,13 +85,18 @@ speed/memory result. Adapter integration and representative acceptance remain op
 `feature/opendia-wp03-raw-tiles`, stacked on WP-02. Implementation
 [3a460113a3](https://github.com/OpenMS/OpenMS/commit/3a460113a391a63178d0a6da7da32a24ef63e2c5)
 uses one scan per tile, shared byte charges and separate mutable engine copies.
-Direct and tiled CLI outputs match identities, evidence, scores and quantities at
-two cache limits. Checks pass: **98 native/SDK**, **10 standalone**, **10 NDEBUG**
-and **2 instrumented raw tests**, plus the installed OpenDIA consumer.
+Direct and tiled CLI outputs match non-IM and PASEF mzML identities, evidence,
+scores and quantities at two cache limits. The IM check requires nonzero scores
+and forces eviction at the smaller limit. [Eight follow-up CLI checks](https://github.com/OpenMS/OpenMS/commit/1c46042570cf83a21d92c4968b5b935d5bee5bb4)
+bring the native/SDK total to **106**. Earlier checks passed **10 standalone**,
+**10 NDEBUG** and **2 instrumented raw tests**, plus the installed OpenDIA consumer.
 The raw adapter preserves all 513/32,750/44,354 fixture points. Native metadata,
 decoding and downstream workspaces are not fully bounded. Full diaPASEF/FAIMS
-engine coverage and representative speed/RSS checks remain open. No package is
-merged into `develop`.
+engine coverage and representative speed/RSS checks remain open. The first
+adapter rejects the actual WP-00 TimSim `.d.zip` and Astral `.raw` inputs.
+Add those paths or pin equivalent indexed mzML inputs before a matched comparison.
+These small fixtures do not establish scientific score calibration. No package
+is merged into `develop`.
 
 Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
 observations and optional-platform/runtime limits are recorded in
@@ -103,8 +108,9 @@ The [measured AoS/SoA comparison](experiments/layout/RESULTS.md) completed 105
 randomized fresh-process runs against real loaders and extraction interfaces.
 Metadata factoring reduced retained layout allocation by 70-92% in the tested large
 cases. SoA improved dense streaming, but IM extraction and sparse/full-row results
-were mixed. This is planning evidence, not a production-layout change, a whole-engine
-speedup claim or a new WP-01 completion gate.
+were mixed. This experiment alone is not a whole-engine speedup claim or a new
+WP-01 completion gate. WP-03 now has an opt-in columnar scan adapter, but has not
+established a whole-workflow speed or RSS improvement.
 
 ## Current verification status
 
