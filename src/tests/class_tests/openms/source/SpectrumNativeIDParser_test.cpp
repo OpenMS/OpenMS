@@ -221,6 +221,11 @@ START_SECTION([EXTRA] Bruker TDF frame= / MS:1002818 native ID)
   // the scan= token wins over the frame= prefix in all Bruker TDF variants
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=120 windowGroup=3 scan=475"), R"(scan=(?<GROUP>\d+))");
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=1 scan=5 frame=1 scan=9"), R"(scan=(?<GROUP>\d+))");
+
+  // PercolatorInfile::getScanIdentifier() strips the whitespace before the regex is chosen, so
+  // the scan= token must also be found without a space in front of it
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=10scan=42precursor=3"), R"(scan=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=10scan=42precursor=3", "MS:1002818"), 42);
 }
 END_SECTION
 
