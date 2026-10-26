@@ -71,7 +71,10 @@ Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now.
 [WP-02](work-packages/02-resource-budget.md) is implemented on
 `feature/opendia-wp02-resource-budget`, based directly on WP-01
 `3cd24a25026615b26671a46596b3eeae7de89986`, with final implementation
-`338ba2c569`. Its byte admission, fixed queues and shared-record charges pass
+`338ba2c569` and test-observation correction `4b2c8e1d33`. A follow-up
+reproduced and fixed a transient backpressure observation race, then passed
+**50 native and 50 NDEBUG pipeline executions**. Its byte admission, fixed queues
+and shared-record charges pass
 **84 native/SDK tests**, **6 nested consumers**, **8 standalone**, **8 NDEBUG**
 and **3 instrumented resource tests**. The real-loader stalled-writer test preserves
 all non-IM/IM/FAIMS rows, enforces its declared accounting/queue bounds and cancels

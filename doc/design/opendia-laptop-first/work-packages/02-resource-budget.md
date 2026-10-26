@@ -4,7 +4,7 @@
 - **Status:** private primitives and local acceptance checks implemented and verified 26 October 2026. Keep this package open and stacked pending adapter integration and combined-design validation. **Owner / reviewer:** ownership is tracked in GitHub.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10664](https://github.com/OpenMS/OpenMS/issues/10664).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
-- **Implementation:** `feature/opendia-wp02-resource-budget`, based directly on WP-01 `3cd24a25026615b26671a46596b3eeae7de89986`. Primitives: `6621ef44ab`. Record ownership and integration checks: `338ba2c569`. No merge into `develop` and no physical-layout or scientific-semantics freeze.
+- **Implementation:** `feature/opendia-wp02-resource-budget`, based directly on WP-01 `3cd24a25026615b26671a46596b3eeae7de89986`. Primitives: `6621ef44ab`. Record ownership and integration checks: `338ba2c569`. Backpressure-test observation fix: `4b2c8e1d33`. No merge into `develop` and no physical-layout or scientific-semantics freeze.
 
 ## Objective
 
@@ -65,12 +65,24 @@ All five local checks are satisfied for the private implementation, not for a fu
 | Stalled drain and cancellation | Both queues reach peak **2** under the declared capacity **2**, with a simultaneously blocked byte admission. Releasing the writer drains the complete population. Cancelling the blocked IM pipeline writes **0** rows and releases all record/job charges. After fixed fixture storage is destroyed, reserved and committed bytes are both **0**. |
 | Long/shared payloads and invalid records | Capacity and long native-ID/provenance strings are charged. Copies retain one charge. All three storage types reject a one-byte-undercharged exact moved payload. Malformed/nonfinite/count-capped records release charges while preserving the caller's original population. |
 | Actual native project / packaging | Debug GNU **13.3.0**, existing native SDK, `STL_DEBUG=OFF`: all **84 selected native OpenDIA and installed-consumer CTests** pass, including **43 installed-consumer fixture steps**, core-only/CLI layering, no-Boost public headers and relocated consumers. All **6 nested installed-SDK consumers** pass. This is actual project compilation and CLI output regression, not a stub library. |
-| Standalone / NDEBUG | Full standalone SDK build passes **8/8** tests. A separate Debug build with explicit `-DNDEBUG` on the real implementation and tests passes **8/8**. Final budget/queue tests each pass **50 consecutive runs**; real-resource integration passes **5 consecutive runs**. |
+| Standalone / NDEBUG | Full standalone SDK build passes **8/8** tests. A separate Debug build with explicit `-DNDEBUG` on the real implementation and tests passes **8/8**. Budget/queue tests each pass **50 consecutive runs**. After the follow-up observation correction below, real-resource integration passes **50 consecutive native and 50 consecutive NDEBUG runs**. |
 | Sanitizers | Actual private archive and three resource tests instrumented with ASan/UBSan pass **3/3**, with leak detection and no diagnostics/suppressions. Shared OpenMS/core/external dependencies are not transitively instrumented. No ThreadSanitizer result is claimed. |
+
+### Follow-up replay and test-race correction
+
+A fresh native replay on **26 October 2026 at 02:17 UTC** passed **83/84**, exposing an intermittent failure in the integration test rather than accepting an isolated successful retry. The global OpenMS termination message showed the last deliberately caught oversized-admission exception. Reporting the active exception instead identified `Did not exercise full queue and blocked byte admission`, reproduced on the **ninth** diagnostic-only execution.
+
+The test had already witnessed the full gated writer queue and a blocked admission, but then reread the transient waiter count. The extractor could release a raw job between those observations. Commit **`4b2c8e1d33`** latches the witnessed condition and reports active exceptions. It changes only the test, with no timeout extension, removed assertion, retry-to-pass behavior or production accounting/queue change.
+
+The corrected source was rebuilt against the actual native project and SDK. Observed results: **84/84 native/installed-consumer tests**, **8/8 standalone**, **8/8 explicit NDEBUG**, **50 consecutive native and 50 consecutive NDEBUG real-data pipeline executions**, and **3/3 ASan/UBSan resource tests**, all passed. Verbose observations again preserved **513**, **32,750** and **44,354** rows, reached both queue caps of **2**, stayed within **68,961,200** accounted bytes and released all charges. Cancellation wrote **0** rows. These supersede the earlier five-run pipeline stress evidence.
+
+The same follow-up passed **21/21 layout semantic tests** and **14/14 actual native extraction class/CLI/FuzzyDiff tests**. The [layout comparison](../experiments/layout/RESULTS.md) still supports metadata factoring and reports SoA counterexamples, not a universal layout winner.
+
+Actual CLI output and installed-package checks establish compatibility. The bounded integration still uses a fixture-specific TSV writer and declared decoder allowance. No production streaming decoder, full CLI allocation enforcement or full-engine speed/memory improvement is established by these checks.
 
 ### External memory is a separate measurement
 
-The final native resource-test process, measured with `/usr/bin/time -v`, exits **0** with peak RSS **79,960 KiB**, about **78.1 MiB**. Successful cases each report:
+The earlier native resource-test process on `338ba2c569`, measured with `/usr/bin/time -v`, exited **0** with peak RSS **79,960 KiB**, about **78.1 MiB**. This is a recorded fixture measurement, not a remeasurement after the test-only observation correction. Successful cases each report:
 
 - pending-reservation high-water: **67,178,672 bytes**, including the initial fixed-workspace admission;
 - committed high-water: **68,652,976 bytes**;
@@ -102,7 +114,8 @@ cmake -S src/topp/OpenDIA -B ../OpenMS-wp02-ndebug-build -DCMAKE_BUILD_TYPE=Debu
 cmake --build ../OpenMS-wp02-ndebug-build -j2
 ctest --test-dir ../OpenMS-wp02-ndebug-build --output-on-failure
 ctest --test-dir ../OpenMS-wp02-ndebug-build -R 'ResourceBudget|BoundedQueue' --repeat until-fail:50 --output-on-failure
-ctest --test-dir ../OpenMS-wp02-ndebug-build -R ResourceInterop --repeat until-fail:5 --output-on-failure
+ctest --test-dir ../OpenMS-wp01-native-build -R ResourceInterop --repeat until-fail:50 --output-on-failure
+ctest --test-dir ../OpenMS-wp02-ndebug-build -R ResourceInterop --repeat until-fail:50 --output-on-failure
 
 /usr/bin/time -v ../OpenMS-wp01-native-build/src/tests/class_tests/bin/OpenDIAResourceInterop_test
 /usr/bin/time -v ../OpenMS-wp01-native-build/bin/OpenDIA --help
