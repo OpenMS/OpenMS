@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <exception>
 #include <functional>
-#include <ranges>
 
 namespace OpenMS::PipEcho
 {
@@ -196,7 +195,6 @@ const TransferFDRModel::group_t& TransferFDRModel::run(double fdr_cutoff)
 }
 
 /******************************************************************************/
-/******************************************************************************/
 bool TransferFDRModel::internal_run()
 {
   size_t decoy_count
@@ -214,7 +212,8 @@ bool TransferFDRModel::internal_run()
   // Semi-supervised target/decoy training (iterative, 3-fold cross-validated
   // linear SVM) via the in-tree Percolator. Percolator starts from the MBR score
   // as the initial direction, trains on the target transfers that pass its
-  // training FDR, and returns an SVM score and a PEP for every transfer.
+  // training FDR, and returns an SVM score for every transfer (its PEP is not
+  // used: the q-values below rank by the SVM score).
   RescoreInput input;
   input.feature_names = {"intensity", "rt_diff_error", "mass_error", "isotope_score"};
   if (use_im_) { input.feature_names.push_back("im_diff_score"); }
@@ -261,19 +260,18 @@ bool TransferFDRModel::internal_run()
   for (std::size_t i = 0; i < acceptors_.size(); ++i)
   {
     acceptors_[i]->svm_score = output.scores[i];
-    acceptors_[i]->pep_score = output.peps[i];
   }
 
   return true;
 }
 
 /******************************************************************************/
-void TransferFDRModel::compute_qvalues(bool pep_values_are_valid)
+void TransferFDRModel::compute_qvalues(bool svm_scores_are_valid)
 {
   // Sort descending by the Percolator SVM score, and then descending by MBR
   // score.
   std::ranges::sort(acceptors_, [&](auto a, auto b) {
-    if (! pep_values_are_valid || a->svm_score == b->svm_score)
+    if (! svm_scores_are_valid || a->svm_score == b->svm_score)
     {
       return a->score.mbr_score > b->score.mbr_score;
     }

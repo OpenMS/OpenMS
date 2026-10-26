@@ -21,10 +21,10 @@ namespace OpenMS::PipEcho
  *
  * Given the candidate target and decoy acceptor transfers, the in-tree
  * Percolator (semi-supervised, cross-validated linear SVM) is trained on the
- * target/decoy labels to assign each transfer an SVM score and a posterior
- * error probability (PEP); q-values are derived from the SVM score ranking. run() returns only the transfers that
- * survive the requested FDR cutoff (with a conservative fallback when the FDR is
- * not estimable -- see run()).
+ * target/decoy labels to assign each transfer an SVM score, from whose ranking
+ * q-values are derived. run() returns only the transfers that survive the
+ * requested FDR cutoff (with a conservative fallback when the FDR is not
+ * estimable -- see run()).
  */
 class TransferFDRModel
 {
@@ -47,19 +47,12 @@ public:
       return donor_type == DonorType::Target;
     };
 
-    /// Helper function.
-    double mbr_score() const
-    {
-      return score.mbr_score;
-    };
-
     std::reference_wrapper<const FeatureRef> acceptor;
     std::string donor_ident;
     BaseFeature::ChargeType donor_charge;
     Score score;
     DonorType donor_type;
     double svm_score = 0.0; ///< Percolator SVM score (higher = more target-like)
-    double pep_score = 1.0;
     double q_value = 1.0;
   };
 
@@ -106,8 +99,9 @@ private:
   /// Try to compute PEP values.
   bool internal_run();
 
-  /// Compute and assign Q values to each acceptor.
-  void compute_qvalues(bool);
+  /// Compute and assign Q values to each acceptor, ranked by the SVM score when
+  /// it is valid, else by the MBR score.
+  void compute_qvalues(bool svm_scores_are_valid);
 
   /// Standard Q value correction.
   void correct_qvalues();

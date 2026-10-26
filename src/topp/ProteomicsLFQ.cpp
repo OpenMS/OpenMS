@@ -145,7 +145,7 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
     every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
   - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on
-    (default 50000, 0 = no limit), which bounds the run time on large data sets. All transfers are scored.
+    (default 50000, 0 = no limit), which bounds the training time on large data sets. All transfers are scored.
 
 @b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
 Feature detection is the expensive part of the workflow and each MS run is detected independently
