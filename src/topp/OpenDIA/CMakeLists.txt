@@ -9,6 +9,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 endif()
 project(OpenDIA)
+find_package(Threads REQUIRED)
 
 if(NOT TARGET OpenMS::OpenMS_CLI)
   find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)
@@ -17,9 +18,11 @@ endif()
 # Compile the orchestration once for both the executable and private boundary test.
 # This target and its header are deliberately neither installed nor exported.
 add_library(OpenDIA_impl STATIC source/OpenDIA.cpp include/OpenDIA.h
-  source/OpenDIARecords.cpp include/OpenDIARecords.h)
+  source/OpenDIARecords.cpp include/OpenDIARecords.h
+  source/OpenDIAResourceBudget.cpp include/OpenDIAResourceBudget.h
+  include/OpenDIABoundedQueue.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
+target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI Threads::Threads)
 if(COMMAND openms_add_library_compiler_flags)
   openms_add_library_compiler_flags(OpenDIA_impl)
 endif()

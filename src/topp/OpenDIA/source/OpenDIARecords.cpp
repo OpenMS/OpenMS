@@ -73,6 +73,25 @@ namespace OpenDIA
               value.edges == EdgePolicy::LOWER_CLOSED || value.edges == EdgePolicy::UPPER_CLOSED,
               "Unknown interval edge policy");
     }
+
+    // Deliberately conservative declared charges, not allocator introspection or
+    // a whole-process guarantee. Count SSO capacity too rather than depending on
+    // a particular standard library's string layout. Native headroom is separate.
+    constexpr ByteCount ALLOCATION_ALLOWANCE = 128;
+    template <typename T> ByteCount vectorBytes(const std::vector<T>& values)
+    {
+      return checkedByteAdd(checkedByteMultiply(values.capacity(), sizeof(T)), ALLOCATION_ALLOWANCE);
+    }
+    ByteCount stringBytes(const std::string& value)
+    {
+      return checkedByteAdd(checkedByteAdd(value.capacity(), 1), ALLOCATION_ALLOWANCE);
+    }
+    void checkMemory(const MemoryLease& memory, ByteCount required)
+    {
+      // Existing unaccounted v0 callers remain supported. New adapters must
+      // admit peak workspace before allocating and supply a nonempty token.
+      require(memory.bytes() == 0 || memory.bytes() >= required, "Committed record byte charge is too small");
+    }
   }
 
   ExtractionQuery::ExtractionQuery(ExtractionQuerySpec specification) : specification_(std::move(specification))
@@ -109,19 +128,31 @@ namespace OpenDIA
 
   struct RawTile::Storage
   {
+    // First member is destroyed last, after the owned allocations are gone.
+    MemoryLease memory;
     RecordContext context;
     std::vector<RawPoint> points;
   };
-  RawTile::RawTile(RecordContext ctx, RecordLimits limits, std::vector<RawPoint> points)
+  ByteCount RawTile::requiredBytes(const std::vector<RawPoint>& points)
   {
+    auto bytes = checkedByteAdd(sizeof(Storage), ALLOCATION_ALLOWANCE);
+    bytes = checkedByteAdd(bytes, vectorBytes(points));
+    for (const auto& point : points) { bytes = checkedByteAdd(bytes, stringBytes(point.coordinates.native_id)); }
+    return bytes;
+  }
+  RawTile::RawTile(RecordContext ctx, RecordLimits limits, std::vector<RawPoint> points, MemoryLease memory)
+  {
+    // Own payload and its accounting together before validation can throw.
+    auto storage = std::make_shared<const Storage>(Storage{std::move(memory), ctx, std::move(points)});
     OpenDIA::context(ctx);
-    require(points.size() <= limits.records && points.size() <= limits.values, "Raw tile cap exceeded");
-    for (const auto& point : points)
+    if (storage->memory.bytes() != 0) { checkMemory(storage->memory, requiredBytes(storage->points)); }
+    require(storage->points.size() <= limits.records && storage->points.size() <= limits.values, "Raw tile cap exceeded");
+    for (const auto& point : storage->points)
     {
       coordinates(point.coordinates);
       finite(point.intensity);
     }
-    storage_ = std::make_shared<const Storage>(Storage{ctx, std::move(points)});
+    storage_ = std::move(storage);
   }
   void RawTile::check_() const { require(bool(storage_), "Invalid raw tile lease"); }
   RecordContext RawTile::context() const { check_(); return storage_->context; }
@@ -134,25 +165,50 @@ namespace OpenDIA
 
   struct HypothesisPage::Storage
   {
+    MemoryLease memory;
     RecordContext context;
     std::vector<Hypothesis> hypotheses;
     std::vector<OpenMS::Size> offsets;
     std::vector<Fragment> fragments;
   };
-  HypothesisPage::HypothesisPage(RecordContext ctx, RecordLimits limits, std::vector<Hypothesis> hypotheses,
-                                 std::vector<OpenMS::Size> offsets, std::vector<Fragment> fragments)
+  ByteCount HypothesisPage::requiredBytes(const std::vector<Hypothesis>& hypotheses,
+                                        const std::vector<OpenMS::Size>& offsets, const std::vector<Fragment>& fragments)
   {
-    OpenDIA::context(ctx);
-    require(hypotheses.size() <= limits.records && fragments.size() <= limits.values, "Hypothesis page cap exceeded");
-    // Check before adding one, and reject malformed CSR without indexing its endpoints.
-    require(hypotheses.size() < std::numeric_limits<OpenMS::Size>::max(), "Offset shape overflow");
-    require(offsets.size() == hypotheses.size() + 1, "Invalid fragment offset shape");
-    require(offsets.front() == 0 && offsets.back() == fragments.size(), "Invalid fragment offset endpoints");
-    for (OpenMS::Size i = 1; i < offsets.size(); ++i)
+    auto bytes = checkedByteAdd(sizeof(Storage), ALLOCATION_ALLOWANCE);
+    for (auto capacity : {vectorBytes(hypotheses), vectorBytes(offsets), vectorBytes(fragments)})
     {
-      require(offsets[i - 1] <= offsets[i] && offsets[i] <= fragments.size(), "Invalid fragment offsets");
+      bytes = checkedByteAdd(bytes, capacity);
     }
     for (const auto& hypothesis : hypotheses)
+    {
+      bytes = checkedByteAdd(bytes, stringBytes(hypothesis.provenance.library));
+      if (hypothesis.provenance.prediction) { bytes = checkedByteAdd(bytes, stringBytes(*hypothesis.provenance.prediction)); }
+    }
+    return bytes;
+  }
+  HypothesisPage::HypothesisPage(RecordContext ctx, RecordLimits limits, std::vector<Hypothesis> hypotheses,
+                                 std::vector<OpenMS::Size> offsets, std::vector<Fragment> fragments, MemoryLease memory)
+  {
+    auto storage = std::make_shared<const Storage>(Storage{std::move(memory), ctx, std::move(hypotheses),
+                                                          std::move(offsets), std::move(fragments)});
+    const auto& hypotheses_view = storage->hypotheses;
+    const auto& offsets_view = storage->offsets;
+    const auto& fragments_view = storage->fragments;
+    OpenDIA::context(ctx);
+    if (storage->memory.bytes() != 0)
+    {
+      checkMemory(storage->memory, requiredBytes(hypotheses_view, offsets_view, fragments_view));
+    }
+    require(hypotheses_view.size() <= limits.records && fragments_view.size() <= limits.values, "Hypothesis page cap exceeded");
+    // Check before adding one, and reject malformed CSR without indexing its endpoints.
+    require(hypotheses_view.size() < std::numeric_limits<OpenMS::Size>::max(), "Offset shape overflow");
+    require(offsets_view.size() == hypotheses_view.size() + 1, "Invalid fragment offset shape");
+    require(offsets_view.front() == 0 && offsets_view.back() == fragments_view.size(), "Invalid fragment offset endpoints");
+    for (OpenMS::Size i = 1; i < offsets_view.size(); ++i)
+    {
+      require(offsets_view[i - 1] <= offsets_view[i] && offsets_view[i] <= fragments_view.size(), "Invalid fragment offsets");
+    }
+    for (const auto& hypothesis : hypotheses_view)
     {
       finite(hypothesis.precursor_mz);
       require(hypothesis.target_decoy == TargetDecoy::TARGET || hypothesis.target_decoy == TargetDecoy::DECOY,
@@ -160,12 +216,12 @@ namespace OpenDIA
       optionalFinite(hypothesis.predicted_rt_seconds);
       mobility(hypothesis.predicted_mobility);
     }
-    for (const auto& fragment : fragments)
+    for (const auto& fragment : fragments_view)
     {
       finite(fragment.mz);
       optionalFinite(fragment.predicted_intensity);
     }
-    storage_ = std::make_shared<const Storage>(Storage{ctx, std::move(hypotheses), std::move(offsets), std::move(fragments)});
+    storage_ = std::move(storage);
   }
   void HypothesisPage::check_() const { require(bool(storage_), "Invalid hypothesis page lease"); }
   RecordContext HypothesisPage::context() const { check_(); return storage_->context; }
@@ -189,19 +245,29 @@ namespace OpenDIA
 
   struct EvidenceBlock::Storage
   {
+    MemoryLease memory;
     RecordContext context;
     std::vector<EvidencePoint> points;
   };
-  EvidenceBlock::EvidenceBlock(RecordContext ctx, RecordLimits limits, std::vector<EvidencePoint> points)
+  ByteCount EvidenceBlock::requiredBytes(const std::vector<EvidencePoint>& points)
   {
+    auto bytes = checkedByteAdd(sizeof(Storage), ALLOCATION_ALLOWANCE);
+    bytes = checkedByteAdd(bytes, vectorBytes(points));
+    for (const auto& point : points) { bytes = checkedByteAdd(bytes, stringBytes(point.coordinates.native_id)); }
+    return bytes;
+  }
+  EvidenceBlock::EvidenceBlock(RecordContext ctx, RecordLimits limits, std::vector<EvidencePoint> points, MemoryLease memory)
+  {
+    auto storage = std::make_shared<const Storage>(Storage{std::move(memory), ctx, std::move(points)});
     OpenDIA::context(ctx);
-    require(points.size() <= limits.records && points.size() <= limits.values, "Evidence block cap exceeded");
-    for (const auto& point : points)
+    if (storage->memory.bytes() != 0) { checkMemory(storage->memory, requiredBytes(storage->points)); }
+    require(storage->points.size() <= limits.records && storage->points.size() <= limits.values, "Evidence block cap exceeded");
+    for (const auto& point : storage->points)
     {
       coordinates(point.coordinates);
       optionalFinite(point.value);
     }
-    storage_ = std::make_shared<const Storage>(Storage{ctx, std::move(points)});
+    storage_ = std::move(storage);
   }
   void EvidenceBlock::check_() const { require(bool(storage_), "Invalid evidence block lease"); }
   RecordContext EvidenceBlock::context() const { check_(); return storage_->context; }

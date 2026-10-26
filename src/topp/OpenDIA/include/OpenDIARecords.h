@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #pragma once
 
+#include "OpenDIAResourceBudget.h"
 #include <OpenMS/CONCEPT/Types.h>
 #include <cstdint>
 #include <memory>
@@ -172,9 +173,15 @@ namespace OpenDIA
       @param[in] context Schema and caller identity namespace.
       @param[in] limits Maximum rows and values (both bound points).
       @param[in] points Exact raw measurements, moved into immutable storage.
+      @param[in] memory Optional unique committed accounting, retained until the last storage lease.
       @throws OpenMS::Exception::InvalidValue for malformed input.
     */
-    RawTile(RecordContext context, RecordLimits limits, std::vector<RawPoint> points);
+    RawTile(RecordContext context, RecordLimits limits, std::vector<RawPoint> points, MemoryLease memory = {});
+    /** @brief Conservative retained-byte charge, including vector capacity and native-ID capacity.
+      @param[in] points Materialized payload whose capacity will be retained.
+      @note Excludes decoder/validation/caller-copy workspace and is not an RSS measurement.
+    */
+    static ByteCount requiredBytes(const std::vector<RawPoint>& points);
     RecordContext context() const;
     OpenMS::Size size() const;
     RawPoint point(OpenMS::Size index) const;
@@ -195,10 +202,19 @@ namespace OpenDIA
       @param[in] hypotheses Assay identities and predictions.
       @param[in] fragment_offsets Monotone CSR offsets, starting at zero and ending at fragment count.
       @param[in] fragments Flattened sparse fragment records.
+      @param[in] memory Optional unique committed accounting, retained until the last storage lease.
       @throws OpenMS::Exception::InvalidValue for malformed input.
     */
     HypothesisPage(RecordContext context, RecordLimits limits, std::vector<Hypothesis> hypotheses,
-                   std::vector<OpenMS::Size> fragment_offsets, std::vector<Fragment> fragments);
+                   std::vector<OpenMS::Size> fragment_offsets, std::vector<Fragment> fragments, MemoryLease memory = {});
+    /** @brief Conservative retained-byte charge for actual vector and provenance string capacities.
+      @param[in] hypotheses Materialized hypotheses.
+      @param[in] fragment_offsets Materialized CSR offsets.
+      @param[in] fragments Materialized fragments.
+    */
+    static ByteCount requiredBytes(const std::vector<Hypothesis>& hypotheses,
+                                  const std::vector<OpenMS::Size>& fragment_offsets,
+                                  const std::vector<Fragment>& fragments);
     RecordContext context() const;
     OpenMS::Size size() const;
     Hypothesis hypothesis(OpenMS::Size index) const;
@@ -223,9 +239,14 @@ namespace OpenDIA
       @param[in] context Schema and caller identity namespace.
       @param[in] limits Maximum rows and values (both bound points).
       @param[in] points Explicit observations, including missing values.
+      @param[in] memory Optional unique committed accounting, retained until the last storage lease.
       @throws OpenMS::Exception::InvalidValue for malformed input.
     */
-    EvidenceBlock(RecordContext context, RecordLimits limits, std::vector<EvidencePoint> points);
+    EvidenceBlock(RecordContext context, RecordLimits limits, std::vector<EvidencePoint> points, MemoryLease memory = {});
+    /** @brief Conservative retained-byte charge, including vector and native-ID capacities.
+      @param[in] points Materialized sparse evidence payload.
+    */
+    static ByteCount requiredBytes(const std::vector<EvidencePoint>& points);
     RecordContext context() const;
     OpenMS::Size size() const;
     EvidencePoint point(OpenMS::Size index) const;
