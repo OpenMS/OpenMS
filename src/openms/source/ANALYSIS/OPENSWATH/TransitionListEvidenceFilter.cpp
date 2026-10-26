@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -826,42 +827,56 @@ namespace OpenMS
 #ifdef _OPENMP
       if (thread_count > 1 && !omp_in_parallel())
       {
+        std::exception_ptr reader_exception;
 #pragma omp parallel num_threads(thread_count)
         {
           const int thread_id = omp_get_thread_num();
-          OpenSwath::SpectrumAccessPtr access = map.sptr->lightClone();
+          OpenSwath::SpectrumAccessPtr access;
           auto& local_evidence = local_results[static_cast<Size>(thread_id)];
 #pragma omp for schedule(dynamic, 16)
           for (SignedSize spectrum_index = 0; spectrum_index < static_cast<SignedSize>(nr_spectra); ++spectrum_index)
           {
-            OpenSwath::SpectrumPtr spectrum = access->getSpectrumById(static_cast<int>(spectrum_index));
-            const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
-            const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
-            for (const auto& peak : peaks)
+            try
             {
-              const double abs_window = halfWindow_(peak.mz, params);
-              const auto lower_it = std::lower_bound(precursor_index.begin(), precursor_index.end(), peak.mz - abs_window,
-                                                     [](const MzIndexEntry& entry, double value)
-                                                     {
-                                                       return entry.mz < value;
-                                                     });
-              const auto upper_it = std::upper_bound(precursor_index.begin(), precursor_index.end(), peak.mz + abs_window,
-                                                     [](double value, const MzIndexEntry& entry)
-                                                     {
-                                                       return value < entry.mz;
-                                                     });
-              for (auto it = lower_it; it != upper_it; ++it)
+              // Catch clone failures in the same region as read and filter failures.
+              if (!access) { access = map.sptr->lightClone(); }
+              OpenSwath::SpectrumPtr spectrum = access->getSpectrumById(static_cast<int>(spectrum_index));
+              const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
+              const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
+              for (const auto& peak : peaks)
               {
-                const auto& candidate = candidates[it->candidate_index];
-                if (withinMzTolerance_(peak.mz, it->mz, params) &&
-                    withinIMTolerance_(peak.im, candidate.precursor_im, params.im_extraction_window))
+                const double abs_window = halfWindow_(peak.mz, params);
+                const auto lower_it = std::lower_bound(precursor_index.begin(), precursor_index.end(), peak.mz - abs_window,
+                                                       [](const MzIndexEntry& entry, double value)
+                                                       {
+                                                         return entry.mz < value;
+                                                       });
+                const auto upper_it = std::upper_bound(precursor_index.begin(), precursor_index.end(), peak.mz + abs_window,
+                                                       [](double value, const MzIndexEntry& entry)
+                                                       {
+                                                         return value < entry.mz;
+                                                       });
+                for (auto it = lower_it; it != upper_it; ++it)
                 {
-                  updateMS1Evidence_(local_evidence, it->candidate_index, peak.intensity, rt);
+                  const auto& candidate = candidates[it->candidate_index];
+                  if (withinMzTolerance_(peak.mz, it->mz, params) &&
+                      withinIMTolerance_(peak.im, candidate.precursor_im, params.im_extraction_window))
+                  {
+                    updateMS1Evidence_(local_evidence, it->candidate_index, peak.intensity, rt);
+                  }
                 }
+              }
+            }
+            catch (...)
+            {
+#pragma omp critical (transition_list_evidence_error)
+              {
+                if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
               }
             }
           }
         }
+        if (reader_exception != nullptr) { std::rethrow_exception(reader_exception); }
       }
       else
 #endif
@@ -897,52 +912,66 @@ namespace OpenMS
 #ifdef _OPENMP
       if (thread_count > 1 && !omp_in_parallel())
       {
+        std::exception_ptr reader_exception;
 #pragma omp parallel num_threads(thread_count)
         {
           const int thread_id = omp_get_thread_num();
-          OpenSwath::SpectrumAccessPtr access = map.sptr->lightClone();
+          OpenSwath::SpectrumAccessPtr access;
           auto& local_evidence = local_results[static_cast<Size>(thread_id)];
 #pragma omp for schedule(dynamic, 16)
           for (SignedSize spectrum_index = 0; spectrum_index < static_cast<SignedSize>(nr_spectra); ++spectrum_index)
           {
-            OpenSwath::SpectrumPtr spectrum = getSpectrumForMap_(access, map, static_cast<Size>(spectrum_index), pasef);
-            const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
-            const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
-            std::unordered_map<Size, SpectrumMS2Hit> spectrum_hits;
-            for (const auto& peak : peaks)
+            try
             {
-              const double abs_window = halfWindow_(peak.mz, params);
-              const auto lower_it = std::lower_bound(product_index.begin(), product_index.end(), peak.mz - abs_window,
-                                                     [](const ProductIndexEntry& entry, double value)
-                                                     {
-                                                       return entry.mz < value;
-                                                     });
-              const auto upper_it = std::upper_bound(product_index.begin(), product_index.end(), peak.mz + abs_window,
-                                                     [](double value, const ProductIndexEntry& entry)
-                                                     {
-                                                       return value < entry.mz;
-                                                     });
-              for (auto it = lower_it; it != upper_it; ++it)
+              // Catch clone failures in the same region as read and filter failures.
+              if (!access) { access = map.sptr->lightClone(); }
+              OpenSwath::SpectrumPtr spectrum = getSpectrumForMap_(access, map, static_cast<Size>(spectrum_index), pasef);
+              const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
+              const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
+              std::unordered_map<Size, SpectrumMS2Hit> spectrum_hits;
+              for (const auto& peak : peaks)
               {
-                if (withinMzTolerance_(peak.mz, it->mz, params))
+                const double abs_window = halfWindow_(peak.mz, params);
+                const auto lower_it = std::lower_bound(product_index.begin(), product_index.end(), peak.mz - abs_window,
+                                                       [](const ProductIndexEntry& entry, double value)
+                                                       {
+                                                         return entry.mz < value;
+                                                       });
+                const auto upper_it = std::upper_bound(product_index.begin(), product_index.end(), peak.mz + abs_window,
+                                                       [](double value, const ProductIndexEntry& entry)
+                                                       {
+                                                         return value < entry.mz;
+                                                       });
+                for (auto it = lower_it; it != upper_it; ++it)
                 {
-                  SpectrumMS2Hit& hit = spectrum_hits[it->candidate_index];
-                  hit.fragment_mask |= (std::uint64_t{1} << it->fragment_slot);
-                  hit.sum_intensity += peak.intensity;
-                  hit.max_intensity = std::max(hit.max_intensity, peak.intensity);
+                  if (withinMzTolerance_(peak.mz, it->mz, params))
+                  {
+                    SpectrumMS2Hit& hit = spectrum_hits[it->candidate_index];
+                    hit.fragment_mask |= (std::uint64_t{1} << it->fragment_slot);
+                    hit.sum_intensity += peak.intensity;
+                    hit.max_intensity = std::max(hit.max_intensity, peak.intensity);
+                  }
+                }
+              }
+              for (const auto& hit : spectrum_hits)
+              {
+                const Size distinct_fragments = countBits_(hit.second.fragment_mask);
+                if (distinct_fragments >= min_fragment_hits)
+                {
+                  updateMS2Evidence_(local_evidence, hit.first, distinct_fragments, hit.second.sum_intensity, hit.second.max_intensity, rt);
                 }
               }
             }
-            for (const auto& hit : spectrum_hits)
+            catch (...)
             {
-              const Size distinct_fragments = countBits_(hit.second.fragment_mask);
-              if (distinct_fragments >= min_fragment_hits)
+#pragma omp critical (transition_list_evidence_error)
               {
-                updateMS2Evidence_(local_evidence, hit.first, distinct_fragments, hit.second.sum_intensity, hit.second.max_intensity, rt);
+                if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
               }
             }
           }
         }
+        if (reader_exception != nullptr) { std::rethrow_exception(reader_exception); }
       }
       else
 #endif
@@ -1001,22 +1030,36 @@ namespace OpenMS
       std::vector<std::unordered_map<Size, EvidenceAccum>> local_results(static_cast<Size>(thread_count));
       for (const auto& wave : swath_waves)
       {
+        std::exception_ptr reader_exception;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1) num_threads(thread_count)
 #endif
         for (SignedSize wave_pos = 0; wave_pos < static_cast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
         {
-          const OpenSwath::SwathMap& map = swath_maps[wave.swath_indices[static_cast<Size>(wave_pos)]];
-          const std::vector<ProductIndexEntry> product_index =
-            buildProductIndexForMap_(candidates, precursor_index, map, params, pasef);
+          try
+          {
+            const OpenSwath::SwathMap& map = swath_maps[wave.swath_indices[static_cast<Size>(wave_pos)]];
+            const std::vector<ProductIndexEntry> product_index =
+              buildProductIndexForMap_(candidates, precursor_index, map, params, pasef);
 #ifdef _OPENMP
-          auto& local_evidence = local_results[static_cast<Size>(omp_get_thread_num())];
+            auto& local_evidence = local_results[static_cast<Size>(omp_get_thread_num())];
 #else
-          auto& local_evidence = local_results[0];
+            auto& local_evidence = local_results[0];
 #endif
-          scanMS2MapSerial_(map, product_index, params, top_peaks_per_spectrum, min_fragment_hits,
-                            peak_picking_enabled, picker_params, peak_picking_use_gauss, pasef, local_evidence);
+            scanMS2MapSerial_(map, product_index, params, top_peaks_per_spectrum, min_fragment_hits,
+                              peak_picking_enabled, picker_params, peak_picking_use_gauss, pasef, local_evidence);
+          }
+          catch (...)
+          {
+#ifdef _OPENMP
+#pragma omp critical (transition_list_evidence_error)
+#endif
+            {
+              if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+            }
+          }
         }
+        if (reader_exception != nullptr) { std::rethrow_exception(reader_exception); }
       }
 
       mergeLocalEvidence_(merged_evidence, local_results);
