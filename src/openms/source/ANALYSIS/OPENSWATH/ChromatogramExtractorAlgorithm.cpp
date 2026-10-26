@@ -294,18 +294,18 @@ namespace OpenMS
           setProgress(scan_idx);
         }
 
-        OpenSwath::SpectrumPtr sptr = input->getSpectrumById(scan_idx);
+        const auto spectrum = input->getSpectrumView(scan_idx);
         const double current_rt = spectrum_rts[scan_idx];
 
-        OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
-        OpenSwath::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
+        const auto& mz_arr = spectrum.mz;
+        const auto& int_arr = spectrum.intensity;
         std::vector<double>::const_iterator mz_start = mz_arr->data.begin();
         std::vector<double>::const_iterator mz_end = mz_arr->data.end();
         std::vector<double>::const_iterator mz_it = mz_arr->data.begin();
         std::vector<double>::const_iterator int_it = int_arr->data.begin();
         std::vector<double>::const_iterator im_it;
 
-        if (sptr->getMZArray()->data.empty())
+        if (mz_arr->data.empty())
         {
           continue;
         }
@@ -313,7 +313,7 @@ namespace OpenMS
         // Look for ion mobility array
         if (has_im)
         {
-          OpenSwath::BinaryDataArrayPtr im_arr = sptr->getDriftTimeArray();
+          const auto& im_arr = spectrum.ion_mobility;
           if (im_arr != nullptr)
           {
             im_it = im_arr->data.begin();
@@ -449,4 +449,3 @@ namespace OpenMS
   }
 
 }
-

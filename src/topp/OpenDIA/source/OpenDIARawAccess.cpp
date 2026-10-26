@@ -206,6 +206,15 @@ namespace OpenDIA
     return scan;
   }
 
+  RawAccess::SpectrumView RawAccess::getSpectrumView(int id)
+  {
+    const auto scan = acquire(id);
+    const auto mobility = scan->columns_->getDriftTimeArray();
+    return {std::shared_ptr<const OpenSwath::BinaryDataArray>(scan, scan->columns_->getMZArray().get()),
+      std::shared_ptr<const OpenSwath::BinaryDataArray>(scan, scan->columns_->getIntensityArray().get()),
+      mobility ? std::shared_ptr<const OpenSwath::BinaryDataArray>(scan, mobility.get()) : nullptr};
+  }
+
   OpenSwath::SpectrumPtr RawAccess::getSpectrumById(int id)
   {
     const auto scan = acquire(id);

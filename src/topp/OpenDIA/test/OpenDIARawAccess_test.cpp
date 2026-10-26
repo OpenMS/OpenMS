@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #include "OpenDIARawAccess.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -373,6 +374,84 @@ namespace
     check(view->metadata().getNativeID() == "scan=1" && view->array(0).data[0] == 400, "Destroyed cache revoked view");
   }
 
+  void readOnlyExtraction(const IndexedFile& indexed)
+  {
+    auto probe = std::make_shared<RawCache>(MIB, 0, MIB);
+    RawAccess(indexed.source(), probe).acquire(0);
+    const auto bytes = probe->snapshot().budget.committed_bytes;
+    auto cache = std::make_shared<RawCache>(2 * bytes, 0, bytes);
+    auto access = std::make_shared<RawAccess>(indexed.source(), cache);
+    using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+    std::vector<Extractor::ExtractionCoordinates> coordinates(1);
+    coordinates[0].mz = 401;
+    coordinates[0].ion_mobility = 0.25;
+    coordinates[0].rt_end = -1;
+    const auto extract = [&](const OpenSwath::SpectrumAccessPtr& source, double im_window)
+    {
+      std::vector<OpenSwath::ChromatogramPtr> output{std::make_shared<OpenSwath::Chromatogram>()};
+      Extractor().extractChromatograms(source, output, coordinates, 0.1, false, im_window, "tophat");
+      return output.front();
+    };
+    for (const double im_window : {-1.0, 0.1})
+    {
+      const auto expected = extract(indexed.source(), im_window);
+      const auto actual = extract(access->lightClone(), im_window);
+      check(actual->getTimeArray()->data == expected->getTimeArray()->data &&
+        actual->getIntensityArray()->data == expected->getIntensityArray()->data,
+        "Read-only extraction changed IM or non-IM evidence");
+    }
+    rejects([&] { access->getSpectrumById(0); });
+    cache->clear();
+    check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0,
+      "Read-only extraction retained a scan or reservation");
+
+    for (const int column : {0, 1, 2})
+    {
+      auto retained_cache = std::make_shared<RawCache>(2 * bytes, 0, bytes);
+      auto reader = std::make_shared<RawAccess>(indexed.source(), retained_cache);
+      auto scan = reader->acquire(0);
+      auto view = reader->lightClone()->getSpectrumView(0);
+      check(view.mz.get() == &scan->array(0) && view.intensity.get() == &scan->array(1) &&
+        view.ion_mobility.get() == &scan->array(2), "Read-only view copied cached arrays");
+      check(retained_cache->snapshot().budget.committed_bytes == bytes,
+        "Read-only view added a numeric charge");
+      auto array = column == 0 ? view.mz : column == 1 ? view.intensity : view.ion_mobility;
+      view = {};
+      scan.reset();
+      retained_cache->cancel();
+      rejects([&] { reader->getSpectrumView(0); });
+      reader.reset();
+      check(array->data.size() == 32 && retained_cache->snapshot().budget.committed_bytes == bytes,
+        "Cancellation or reader destruction revoked a live array lease");
+      array.reset();
+      check(retained_cache->snapshot().budget.committed_bytes == 0,
+        "Last read-only array owner leaked its scan charge");
+    }
+
+    // A transforming reader must use its existing mutable path, never the uncalibrated raw view.
+    auto roomy = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    auto tiled = std::make_shared<RawAccess>(indexed.source(), roomy);
+    for (const bool ppm : {false, true})
+    {
+      auto direct = std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(indexed.source(), 0.01, 1, 1e-8, ppm);
+      auto calibrated = std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(tiled->lightClone(), 0.01, 1, 1e-8, ppm);
+      const auto expected = direct->getSpectrumById(0);
+      const auto actual = calibrated->lightClone()->getSpectrumView(0);
+      check(actual.mz->data == expected->getMZArray()->data &&
+        actual.mz->data != tiled->acquire(0)->array(0).data,
+        "Spectrum view bypassed quadratic or ppm calibration");
+      const auto expected_chrom = extract(direct, 0.1);
+      const auto actual_chrom = extract(calibrated->lightClone(), 0.1);
+      check(actual_chrom->getTimeArray()->data == expected_chrom->getTimeArray()->data &&
+        actual_chrom->getIntensityArray()->data == expected_chrom->getIntensityArray()->data,
+        "Calibrated view extraction changed evidence");
+    }
+    roomy->clear();
+    check(roomy->snapshot().budget.committed_bytes == 0, "Calibration fallback retained a view charge");
+    OPENMS_LOG_INFO << "WP05 exact IM/non-IM extraction without mutable admission, zero-copy aliases, "
+      "all array leases/cancellation and quadratic/ppm fallback passed\n";
+  }
+
   void concurrent(const IndexedFile& indexed)
   {
     auto cache = std::make_shared<RawCache>(32 * MIB, 0, MIB);
@@ -431,6 +510,7 @@ int main()
     detachedCopies(indexed);
     queries(indexed);
     leases(indexed);
+    readOnlyExtraction(indexed);
     concurrent(indexed);
     truncated();
   }

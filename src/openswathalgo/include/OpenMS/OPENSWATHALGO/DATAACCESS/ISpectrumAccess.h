@@ -51,6 +51,17 @@ public:
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) = 0;
 
+    /// Read-only numerical arrays. Each array owner keeps its storage alive independently.
+    struct SpectrumView
+    {
+      std::shared_ptr<const BinaryDataArray> mz;
+      std::shared_ptr<const BinaryDataArray> intensity;
+      std::shared_ptr<const BinaryDataArray> ion_mobility; ///< Null when absent.
+    };
+
+    /// Read without requesting a mutable copy. The default preserves existing reader/transform behavior.
+    virtual SpectrumView getSpectrumView(int id);
+
     /// Return pointer to a spectrum at the given id, the spectrum will be filtered by drift time
     SpectrumPtr getSpectrumById(int id, double drift_start, double drift_end );
 

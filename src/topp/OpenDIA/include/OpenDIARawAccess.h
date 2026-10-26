@@ -102,6 +102,8 @@ namespace OpenDIA
       std::optional<QueryInterval> isolation = std::nullopt, std::optional<double> faims = std::nullopt);
     std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
+    /// Alias immutable cached arrays through the scan lease, without a detached numeric copy.
+    SpectrumView getSpectrumView(int id) override;
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
     std::vector<std::size_t> getSpectraByRT(double rt, double delta_rt) const override;
     size_t getNrSpectra() const override;

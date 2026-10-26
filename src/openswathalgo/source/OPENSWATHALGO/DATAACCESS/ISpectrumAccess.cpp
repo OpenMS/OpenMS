@@ -19,6 +19,12 @@ namespace OpenSwath
   {
   }
 
+  ISpectrumAccess::SpectrumView ISpectrumAccess::getSpectrumView(int id)
+  {
+    const auto spectrum = getSpectrumById(id);
+    return {spectrum->getMZArray(), spectrum->getIntensityArray(), spectrum->getDriftTimeArray()};
+  }
+
   SpectrumSequence ISpectrumAccess::getMultipleSpectra(double RT, int nr_spectra_to_fetch)
   {
     std::vector<std::size_t> indices = getSpectraByRT(RT, 0.0);
