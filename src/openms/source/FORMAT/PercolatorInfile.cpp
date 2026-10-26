@@ -460,7 +460,7 @@ namespace OpenMS
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
     RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
-    size_t spectra = 0;              // spectra (PeptideIdentifications) with PSMs
+    size_t spectra = 0;              // spectra (PeptideIdentifications) with stamped PSMs
     size_t spectra_without_scan = 0; // ... of which no scan number could be read
     std::string example_without_scan;
 
@@ -477,15 +477,7 @@ namespace OpenMS
 
       const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);
-      if (!pep_id.getHits().empty())
-      {
-        ++spectra;
-        if (scan_number < 0)
-        {
-          if (spectra_without_scan == 0) example_without_scan = scan_identifier;
-          ++spectra_without_scan;
-        }
-      }
+      bool stamped_hit = false; // a hit of this spectrum got ScanNr (skipped hits get none)
 
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
@@ -524,6 +516,7 @@ namespace OpenMS
           continue;
         }
 
+        stamped_hit = true;
         stamp_meta_value("SpecId", file_identifier + scan_identifier);
         stamp_meta_value("ScanNr", scan_number);
         stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
@@ -621,6 +614,16 @@ namespace OpenMS
           proteins.push_back(pep.getProteinAccession());
         }
         stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
+      }
+
+      if (stamped_hit)
+      {
+        ++spectra;
+        if (scan_number < 0)
+        {
+          if (spectra_without_scan == 0) example_without_scan = scan_identifier;
+          ++spectra_without_scan;
+        }
       }
     }
     // Percolator keeps the PSMs of one scan number in one cross-validation fold. The spectra without a scan number all

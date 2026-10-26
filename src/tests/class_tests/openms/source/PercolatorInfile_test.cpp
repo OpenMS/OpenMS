@@ -295,13 +295,19 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: a warning names the spectra witho
   PeptideIdentificationList pids;
   pids.push_back(make_pid("scan=5", "SAMPLER"));
   pids.push_back(make_pid("index=3", "SAMPLEK"));
+  // a spectrum whose only PSM is skipped (no target/decoy information) gets no ScanNr, so the warning leaves it out
+  pids.push_back(make_pid("index=4", "SAMPLEG"));
+  std::vector<PeptideHit> unknown_type = pids[2].getHits();
+  unknown_type[0].setTargetDecoyType(PeptideHit::TargetDecoyType::UNKNOWN);
+  pids[2].setHits(unknown_type);
 
   ostringstream warnings;
   getGlobalLogWarn().insert(warnings);
-  TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3).size(), 0)
+  TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3).size(), 1)
   getGlobalLogWarn().remove(warnings);
   TEST_EQUAL(static_cast<int>(pids[0].getHits()[0].getMetaValue("ScanNr")), 5)
   TEST_EQUAL(static_cast<int>(pids[1].getHits()[0].getMetaValue("ScanNr")), -1)
+  TEST_EQUAL(pids[2].getHits()[0].metaValueExists("ScanNr"), false)
   TEST_TRUE(warnings.str().find("no scan number found in 1 of 2 spectrum references (e.g. 'index=3')") != std::string::npos)
 
   // all scan numbers found: no warning
