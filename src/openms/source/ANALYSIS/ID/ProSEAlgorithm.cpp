@@ -5730,7 +5730,7 @@ namespace OpenMS
     return true;
   }
 
-  // rescoring:stratum_q_values: see annotateStratumQValues() in the header
+  // rescoring:stratum_q_values (ProSEAlgorithm::stratumQValues() in the header)
   namespace
   {
     // rescoring:stratum_q_values: grouped target-decoy competition (as mokapot's grouped confidence): the rescored best

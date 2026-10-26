@@ -177,6 +177,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+      @brief rescoring:stratum_q_values: grouped target-decoy competition on the best hit of every spectrum that has the meta
+      value percolator_score; stratum 'protein_nterm' (an evidence at a protein N-terminus, or only Met-clipped
+      evidences: aa_before M at start 1) or 'other'; q = (decoys + 1) / max(targets, 1) in percolator_score order (ties:
+      decoys first), monotone. Sets the meta values 'stratum' and 'stratum_q_value'; a best hit without percolator_score
+      gets only 'stratum_q_value' = 1.
+    */
+    static void stratumQValues(PeptideIdentificationList& peptide_ids);
+
+    /**
      * @brief rescore_reuse: whether spectrum @p spectrum (its index in the run) of file @p file is drawn for the
      *        training of the models at the sampling fraction @p fraction (rescore_reuse:max_train)
      *
@@ -184,15 +193,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * training sample is spread at random over the whole run, not its first spectra. The 5 % of the spectra whose draw
      * is highest are calibration spectra and never drawn for training.
      */
-    /**
-      @brief rescoring:stratum_q_values: grouped target-decoy competition on the best hit of every spectrum that has the meta
-      value percolator_score; stratum 'protein_nterm' (an evidence at a protein N-terminus, or only Met-clipped
-      evidences: aa_before M at start 1) or 'other'; q = (decoys + 1) / max(targets, 1) in percolator_score order (ties:
-      decoys first), monotone. Sets the meta values 'stratum' and 'stratum_q_value' (1 for a best hit without
-      percolator_score).
-    */
-    static void stratumQValues(PeptideIdentificationList& peptide_ids);
-
     static bool reuseTrainingDraw(UInt64 seed, Size file, Size spectrum, double fraction);
 
     /// rescore_reuse: whether spectrum @p spectrum of file @p file is drawn as a calibration spectrum (whose decoys set
