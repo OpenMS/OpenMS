@@ -1,7 +1,7 @@
 # WP-03: Bounded raw evidence tiles
 
 - **Track:** data handling.
-- **Status:** first indexed mzML adapter tested. Full acquisition and resource gates remain open.
+- **Status:** first indexed mzML adapter tested. WP-05 now extends the same raw adapter to direct native Bruker TDF DIA and Thermo input. Full acquisition, cross-representation and resource gates remain open.
 - **Branch:** `feature/opendia-wp03-raw-tiles`, stacked on WP-02 `4b2c8e1d33`.
 - **Implementation:** [3a460113a3](https://github.com/OpenMS/OpenMS/commit/3a460113a391a63178d0a6da7da32a24ef63e2c5).
 - **IM CLI checks:** [1c46042570](https://github.com/OpenMS/OpenMS/commit/1c46042570cf83a21d92c4968b5b935d5bee5bb4).
@@ -214,8 +214,8 @@ An unchanged-command GDB diagnostic had stopped in `RawAccess::acquire` -> mutab
 
 ## Limits
 
-- The first adapter supports indexed mzML spectrum maps. Split-window input is not supported. The native loader rejects mixed FAIMS lanes rather than merging them.
-- The current WP-03 build has the Thermo and Bruker readers disabled. A separate vendor-enabled OpenMS build can read these formats and write indexed mzML. The tiled adapter still requires indexed mzML. Do not interpret that adapter restriction as a pyOpenMS format restriction.
+- The initial adapter supported indexed mzML spectrum maps. The [WP-05 native extension](05-shared-extraction.md#native-vendor-input-increment), commits `8743497d0b` / `3e5852085f`, adds direct Bruker TDF DIA `.d` / `.d.zip` and existing native Thermo `.raw` access. Split-window input remains unsupported. Mixed FAIMS lanes are rejected rather than merged.
+- Both vendor readers are now enabled in the actual Release build and are required for OpenDIA validation and distribution. No intermediate mzML conversion is required or performed. The earlier conversion and vendor-disabled measurements remain historical observations, not the intended input architecture. Native normal/tiled Bruker outputs match each other, but differ from the earlier converted representation. Thermo runtime packaging, full scientific acceptance and native memory accounting remain open.
 - Private tile/copy charges are not a process RSS limit. Native metadata, indexes, decoding and control storage use a declared 64 MiB allowance. That allowance is not measured or enforced by an allocator.
 - A large native scan can allocate memory before the private size check. Later growth of mutable copies and downstream engine workspaces is not intercepted.
 - Cache access uses one lock and linear LRU lookup. The full-input matrix above demonstrates one-input RSS reduction at a runtime cost, not a speedup or universal memory improvement.
