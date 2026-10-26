@@ -253,9 +253,9 @@ namespace OpenMS
 
       @return pi0 in [0, 1], or -1.0 if no rescore()/score() has run yet
               on this instance, or after a train() call (train() resets
-              last_pi0 since it doesn't run scoring). Always 1.0 when pi0
-              is not estimated: use_pi0=false, or use_pi0=auto (default)
-              with post_processing_tdc=true (default).
+              last_pi0 since it doesn't run scoring). Always 1.0 when the
+              call did not use pi0: use_pi0=false, or use_pi0=auto with
+              post_processing_tdc or input from a concatenated search.
     */
     double getPi0() const;
 

@@ -648,10 +648,10 @@ START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.g
 }
 END_SECTION
 
-START_SECTION([EXTRA] use_pi0: true / false / auto (pi0 only without post_processing_tdc))
+START_SECTION([EXTRA] use_pi0: true or false forces pi0 and auto decides as the executable)
 {
   // Build a dataset where pi0 correction clearly matters: plenty of well-
-  // separated targets mixed with decoys. With use_pi0=true q-values
+  // separated targets mixed with decoys. With usePi0=true q-values
   // get multiplied by a pi0 < 1 estimate, so turning pi0 off raises every
   // q-value at a given rank. Asserting strict "all q_off >= q_on" is too
   // brittle (Percolator's merge step can reshuffle ties), so instead check
@@ -688,14 +688,12 @@ START_SECTION([EXTRA] use_pi0: true / false / auto (pi0 only without post_proces
     p->setParameters(par);
   }
   {
-    Param par = p_off.getParameters();
+    Param par = p_on.getParameters();
+    par.setValue("use_pi0", "true");
+    p_on.setParameters(par);
+    par = p_off.getParameters();
     par.setValue("use_pi0", "false");
     p_off.setParameters(par);
-  }
-  {
-    Param par = p_on.getParameters();
-    par.setValue("use_pi0", "true"); // also with post_processing_tdc (default)
-    p_on.setParameters(par);
   }
 
   RescoreOutput out_on  = p_on.rescore(input);
@@ -709,29 +707,25 @@ START_SECTION([EXTRA] use_pi0: true / false / auto (pi0 only without post_proces
   // must be strictly < 1.0 on a fixture with any null fraction at all.
   TEST_TRUE(p_on.getPi0() < 1.0)
 
-  // 'auto' (default), as upstream percolator (pi0 for mix-max only): with post_processing_tdc (default) no pi0,
-  // the results of 'false'; without it pi0 is estimated, the results of 'true'.
+  // use_pi0=auto (default) decides as the percolator executable: pi0 only for its mix-max procedure, i.e. without
+  // post_processing_tdc on input from separate target and decoy searches (a spectrum with target and decoy PSMs).
   {
     Percolator p_auto;
     Param par = p_auto.getDefaults();
-    TEST_EQUAL(par.getValue("use_pi0").toString(), "auto")
     par.setValue("seed", 17);
     par.setValue("test_fdr",  0.05);
     par.setValue("train_fdr", 0.05);
     p_auto.setParameters(par);
-    const RescoreOutput out_auto = p_auto.rescore(input);
-    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0)
-    TEST_EQUAL(out_auto.q_values == out_off.q_values && out_auto.peps == out_off.peps, true)
-
+    p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0) // post_processing_tdc (default)
     par.setValue("post_processing_tdc", "false");
     p_auto.setParameters(par);
-    const RescoreOutput out_auto_mixmax = p_auto.rescore(input);
-    TEST_TRUE(p_auto.getPi0() < 1.0)
-    Percolator p_on_mixmax;
-    par.setValue("use_pi0", "true");
-    p_on_mixmax.setParameters(par);
-    const RescoreOutput out_on_mixmax = p_on_mixmax.rescore(input);
-    TEST_EQUAL(out_auto_mixmax.q_values == out_on_mixmax.q_values && out_auto_mixmax.peps == out_on_mixmax.peps, true)
+    p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0) // each row its own spectrum: concatenated search
+    RescoreInput separate = input;
+    for (size_t i = 0; i < input.features.size(); ++i) separate.scan_numbers.push_back(static_cast<int>(i % 600));
+    p_auto.rescore(separate);
+    TEST_TRUE(p_auto.getPi0() < 1.0) // target i and decoy i share a spectrum: separate searches
   }
 
   // Mean target q over top-100 ranked targets should be strictly lower when
@@ -1030,7 +1024,8 @@ START_SECTION([EXTRA] score() is reproducible: the same rows and model give the 
 {
   // pi0 is estimated by bootstrap, with Percolator's random number generator; the q-values and PEPs of score() must
   // not depend on what drew from it before (e.g. a previous score()). Several inputs, as only some are sensitive.
-  // Without post_processing_tdc, so that use_pi0 'auto' (default) estimates pi0 (mix-max).
+  // Without post_processing_tdc and with use_pi0 'true', so that pi0 is estimated (mix-max): 'auto' (default) would
+  // take these rows, each its own spectrum, for a concatenated search and not estimate pi0.
   PercolatorModel model;
   model.feature_names = StringList{"signal", "noise"};
   model.weights = {2.0, 0.1, -0.5};
@@ -1038,6 +1033,7 @@ START_SECTION([EXTRA] score() is reproducible: the same rows and model give the 
   Percolator p;
   Param par = p.getDefaults();
   par.setValue("post_processing_tdc", "false");
+  par.setValue("use_pi0", "true");
   p.setParameters(par);
   Size differing_rows = 0;
   for (unsigned seed = 1; seed <= 20; ++seed)
@@ -1325,7 +1321,8 @@ START_SECTION([EXTRA] input-order invariance Jaccard characterization)
 {
   // Documents the input-order dependence the docstring calls out. Asserts
   // Pearson r >= 0.99 on scores (after un-permuting) and Jaccard >= 0.95
-  // on accepted-target sets at q <= 0.01.
+  // on accepted-target sets at q <= 0.05 (without pi0, no target of this
+  // fixture reaches q <= 0.01).
   //
   // Prerequisite: populate stable scan_numbers on `base` BEFORE shuffling.
   // The CV fold hash incorporates scan_numbers (defaults to row_index when
@@ -1394,14 +1391,15 @@ START_SECTION([EXTRA] input-order invariance Jaccard characterization)
   const double r = (den > 1e-15) ? num / den : 0.0;
   TEST_TRUE(r >= 0.99)
 
-  // Jaccard on accepted-target set at q <= 0.01.
+  // Jaccard on accepted-target set at q <= 0.05.
   std::set<size_t> a, b;
   for (size_t i = 0; i < n; ++i)
   {
     if (base.is_decoy[i]) continue;
-    if (out1.q_values[i]  <= 0.01) a.insert(i);
-    if (qvals2_aligned[i] <= 0.01) b.insert(i);
+    if (out1.q_values[i]  <= 0.05) a.insert(i);
+    if (qvals2_aligned[i] <= 0.05) b.insert(i);
   }
+  TEST_EQUAL(a.empty(), false)
   std::set<size_t> inter, uni;
   std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
                         std::inserter(inter, inter.begin()));
@@ -1887,16 +1885,15 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
                   && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
                   && (i == 0 || !hit.metaValueExists("CalcMass"));
-    // the score feature separates targets from decoys: most targets reach q <= 0.05, few decoys q <= 0.01. With
-    // target-decoy competition (default) and so no pi0 (use_pi0 'auto'), 227 targets reach q <= 0.05 (213 q <= 0.01),
-    // as with percolator 3.09 -Y on the PIN of these PSMs; with use_pi0 'true' (pi0 = 0.004) every PSM had q < 0.04.
-    if (hit.isDecoy() ? hit.getScore() <= 0.01 : hit.getScore() <= 0.05) ++(hit.isDecoy() ? confident_decoys : confident_targets);
+    // the score feature separates targets from decoys: as with the percolator executable (210 targets, 1 decoy at
+    // q <= 0.01 with -Y on the .pin of these PSMs), most targets and few decoys reach q <= 0.01
+    if (hit.getScore() <= 0.01) ++(hit.isDecoy() ? confident_decoys : confident_targets);
   }
   TEST_EQUAL(all_annotated, true)
   TEST_EQUAL(no_pin_left, true)
   TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
   TEST_EQUAL(confident_targets > 200, true)
-  TEST_EQUAL(confident_decoys < 10, true)
+  TEST_EQUAL(confident_decoys < 5, true)
 
   // svm and pep as main score
   PeptideIdentificationList ids_pep = makeIds();
