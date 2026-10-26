@@ -67,9 +67,31 @@ The first clean-service Thermo check failed because the pre-existing nonstandard
 
 Local evidence is in `wp05-native-20261026`: `native-tests.log`, `streaming-check.log`, `native-thermo.log`, and the two `native-bruker-*/results.json` records with command/source/binary/input/dependency provenance. The original tiled record deliberately retains its failed converted-reference status. `native-reference-acceptance.log` records the successful twelve-output native normal/tiled comparison. No tiled repeat, benchmark matrix or package closure followed.
 
+## Phase-attribution increment
+
+Commit `357128a7b2` adds fixed-size counters to the existing cache and scoped read purposes at actual extraction-worker and scoring boundaries. CLI calibration joins override the purpose during calibration. No new dependency, profiling framework, CLI option or scientific/scheduling change was added. Both native readers remain enabled.
+
+| Requirement | Concrete check and observed result |
+| --- | --- |
+| Correct phase ownership and accounting | The existing native raw-access test now checks nested/exception/thread isolation, extraction through the quadratic-calibration fallback, MS1/MS2 separation, calibration override, numeric-byte definitions and pressure-eviction ownership. Independent totals and every phase field reconcile. All five focused Release CTests pass. |
+| Actual unchanged public workflow | One full native Bruker tiled256 command, 4,000 precursors / 24,000 transitions, eight threads, unchanged input/library/science/cap. Engine and wrapper exit 0, unchanged before/after provenance. Export, eight feature/score tables and three matrices match the saved native normal reference under the existing ID/tolerance contract, including finite nonzero IM. Row counts match the native evidence above. |
+| Complete attribution, including failure detection | All ten emitted count/byte/time fields sum exactly to independent totals. Hits/misses/evictions also match the original cache line. All four named phases are exercised, unclassified fields are zero, and a deliberately corrupted total is rejected by the acceptance check. |
+
+| Phase | Decodes | Decoded numeric bytes | Mutable copies | Decoder time, seconds |
+| --- | ---: | ---: | ---: | ---: |
+| Calibration | 2,291 | 5,499,196,440 | 1,163 | 23.066 |
+| MS1 extraction | 418 | 3,523,962,408 | 744 | 8.471 |
+| MS2 extraction | 703 | 1,134,799,416 | 703 | 7.442 |
+| Scoring | 7,978 | 57,461,919,792 | 9,432 | 178.332 |
+| Total | 11,390 | 67,619,878,056 | 12,042 | 217.312 |
+
+Scoring owns **70.04% of decodes, 84.98% of decoded numeric bytes and 82.06% of decoder time**. This measures ownership, not a safe duplicate key or an MS1/MS2 split within scoring. Numeric bytes count materialized double payloads, not compressed/native frame/index/workspace bytes. Per-call read/decode/copy durations overlap across threads; decode time is inside read time. Total read time 340.896 s is not exclusive stage wall time and must not be added to decoder time.
+
+Observed wall 291.96 s, peak RSS 1,033,472 KiB, private peak 201,326,215 <= 201,326,592 usable bytes, final live zero. Hits / misses / evictions: 1,887 / 11,390 / 11,372. This single run establishes neither a speedup nor a whole-process bound. Local `wp05-attribution-20261026` artifacts: `native-tests.log`, `phase-regression.log`, `native-tiled256/results.json`, `acceptance.log` and `run_attribution.py`, which reuses the unchanged native runner/provenance and twelve-output comparator. No repeat or benchmark matrix followed.
+
 ## Next increment
 
-Follow the [master's ordered next actions](../README.md#current-state-and-next-actions). Keep both native readers enabled and use the native-input reference. First attribute the remaining misses to calibration, MS1 extraction, MS2 extraction and scoring in one unchanged full-input native Bruker run. Separately, one bounded Thermo reader check should record live native handle counts and RSS after indexing, map construction, raw-adapter construction and release before changing handle ownership. Reconcile integer event/byte counts with whole-run totals, report overlapping stage times separately, then change only the dominant reread path. Acceptance is one native regression plus one full twelve-output comparison, with no speedup claim from a single observation. Query caching, new retrieval science and full work-package acceptance are not implied by the read-only increment.
+Follow the [master's ordered next actions](../README.md#current-state-and-next-actions): trace scoring's `fetchSpectrumSwath` / `getMultipleSpectra` calibrated raw-scan revisits and consumer mutation, then reuse existing pools/leases or batch only where identity and lifetime permit. Existing precursor-MS1 reuse already covers some calls; do not duplicate it or infer an MS1 bottleneck from these aggregate scoring counters. Preserve source/scan, calibration revision, mobility, nearest-RT and merge semantics. Stop after one failing-before/passing-after native regression demonstrating fewer decodes/copies and one unchanged full twelve-output comparison. Keep both native readers enabled and use the native reference, with no speedup claim from one observation. Thermo runtime discovery/native workspace attribution and full WP-05 sharing/calibration acceptance remain separate open gates.
 
 ## Dependencies
 
