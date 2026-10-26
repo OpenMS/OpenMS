@@ -431,6 +431,10 @@ hand-editing sources and committing them, to keep sync self-healing.
   spectrum and label put the best-scoring PSM of each group first; `generateTrainingSetsOfSortedSet`
   keeps the first PSM of each group of the set if the set is sorted by score (else the fallback).
   Default: unchanged results.
+- `patches/21-cv-setup-team-64.patch` — the team of the fold set-up (`preIterationSetup`: the folds' sets
+  and the initial directions, whose sorts run as tasks, see `SortLikeStd.h`) gets up to 64 threads instead
+  of 16 (`kMaxSetupTeamThreads`): 0.78 -> 0.45 s for the initial directions of a timsTOF HeLa run with
+  1.1 million PSMs at 64 threads. Scheduling only: the same results.
 
 - `patches/21-psm-slab.patch` — `DataSet::setOwnsPsms` / `reservePsms` and
   `FeatureMemoryPool::claimRows` / `rowOfClaim`: `Percolator::rescore` (OpenMS) builds the
