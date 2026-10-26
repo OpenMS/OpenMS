@@ -192,6 +192,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+      @brief rescoring:stratum_q_values: grouped target-decoy competition on the best hit of every spectrum that has the meta
+      value percolator_score; stratum 'protein_nterm' (an evidence at a protein N-terminus, or only Met-clipped
+      evidences: aa_before M at start 1) or 'other'; q = (decoys + 1) / max(targets, 1) in percolator_score order (ties:
+      decoys first), monotone. Sets the meta values 'stratum' and 'stratum_q_value'; a best hit without percolator_score
+      gets only 'stratum_q_value' = 1.
+    */
+    static void stratumQValues(PeptideIdentificationList& peptide_ids);
+
+    /**
      * @brief rescore_reuse: whether spectrum @p spectrum (its index in the run) of file @p file is drawn for the
      *        training of the models at the sampling fraction @p fraction (rescore_reuse:max_train)
      *
@@ -1196,6 +1205,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// prepareContext(fasta_db, electron_ions) that takes the entries of @p fasta_db over instead of copying them.
     /// With @p searched_spectra, the index holds only the peptides these spectra can reach (see FragmentIndex::build):
     /// the context then serves only one search of these spectra, without calibration.
+    /// decoy_parity_report: logs the candidate counts of @p ctx's fragment index per label and subclass (no-op otherwise)
+    void reportDecoyParity_(const SearchContext& ctx) const;
     SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
@@ -1455,6 +1466,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     DecoyMode_ decoy_mode_{DecoyMode_::AUTO};
     std::string decoy_prefix_;
+    bool decoy_keep_termini_ = false;   ///< decoy_method 'keep_termini'
+    bool decoy_parity_report_ = false;  ///< decoy_parity_report
+    bool terminal_features_ = false;    ///< rescoring:terminal_features
+    bool stratum_q_values_ = false;     ///< rescoring:stratum_q_values
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
     PercolatorTraining percolator_training_; ///< rescoring:...: options of Percolator's training

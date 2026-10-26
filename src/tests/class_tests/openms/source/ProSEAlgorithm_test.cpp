@@ -7958,4 +7958,134 @@ START_SECTION(([EXTRA] rescore_reuse:max_train draws its training spectra at ran
 }
 END_SECTION
 
+START_SECTION(([EXTRA] decoy_method keep_termini: the DecoyDatabase construction gives one decoy per target candidate in every subclass))
+{
+  // Trypsin/P, clipping on, Oxidation (M): every target peptide occurrence (internal, protein N-terminal with M, without
+  // M, Met-clipped) has a decoy occurrence of the same subclass, start and length. Expected decoys written by hand from
+  // DecoyDatabase's rule: per tryptic segment (no missed cleavage) the first and last residue and every K, R, P stay.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P1", "", "MAGESTLKDEFGHIKPLMNQSTAR"},   // segments MAGESTLK | DEFGHIK | PLMNQSTAR
+    {"P2", "", "SAGEFTLKWVYDNMR"},             // no initial M
+    {"P3", "", "MQACDEFGKNPWTYVHDER"},         // Met-clip of QACDEFGK
+  };
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("decoys", "generate");
+  p.setValue("decoy_method", "keep_termini");
+  p.setValue("decoy_parity_report", "true");
+  p.setValue("enzyme", "Trypsin/P");
+  p.setValue("peptide:clip_nterm_methionine", "true");
+  p.setValue("peptide:min_size", 4);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  algo.setParameters(p);
+  ProSEAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+  std::map<std::string, std::string> seq;
+  for (const auto& e : ctx.db) seq[e.identifier] = e.sequence;
+  TEST_EQUAL(ctx.db.size(), 6)
+  TEST_STRING_EQUAL(seq["DECOY_P1"], "MLTSEGAKDIHGFEKPATSQNMLR")
+  TEST_STRING_EQUAL(seq["DECOY_P2"], "SLTFEGAKWMNDYVR")
+  TEST_STRING_EQUAL(seq["DECOY_P3"], "MGFEDCAQKNPEDHVYTWR")
+  // occurrence parity per (subclass): kept index entries + occurrences removed by deduplication
+  std::map<std::pair<bool, int>, Size> occ;
+  const auto& peps = ctx.fragment_index.getPeptides();
+  auto add = [&](UInt32 prot, Size start)
+  {
+    const FASTAFile::FASTAEntry& e = ctx.db[prot];
+    const bool decoy = e.identifier.rfind("DECOY_", 0) == 0;
+    const int cls = start == 0 ? (e.sequence[0] == 'M' ? 1 : 2) : ((start == 1 && e.sequence[0] == 'M') ? 3 : 0);
+    ++occ[{decoy, cls}];
+  };
+  for (const auto& pe : peps) add(pe.protein_idx, pe.sequence_.first);
+  for (const auto& ro : ctx.fragment_index.getRemovedOccurrences()) add(ro.protein_idx, ro.start);
+  for (int cls = 0; cls < 4; ++cls) TEST_EQUAL((occ[{false, cls}]), (occ[{true, cls}]))
+  TEST_TRUE(occ[std::make_pair(false, 3)] > 0)
+  TEST_TRUE(occ[std::make_pair(false, 1)] > 0)
+  TEST_TRUE(occ[std::make_pair(false, 2)] > 0)
+
+  // with variable Acetyl (Protein N-term): the acetylated protein N-terminal and Met-clipped peptidoforms of targets and
+  // decoys are equal in number per subclass
+  {
+    Param pa = p;
+    pa.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
+    algo.setParameters(pa);
+    ProSEAlgorithm::SearchContext ctx_ac = algo.prepareContext(fasta_db);
+    std::map<std::pair<bool, int>, Size> acetylated;
+    const auto& peps_ac = ctx_ac.fragment_index.getPeptides();
+    for (const auto& pe : peps_ac)
+    {
+      const AASequence seq = ctx_ac.fragment_index.reconstructModifiedSequence(pe, ctx_ac.db);
+      if (!seq.hasNTerminalModification()) continue;
+      const FASTAFile::FASTAEntry& e = ctx_ac.db[pe.protein_idx];
+      const int cls = pe.sequence_.first == 0 ? 1 : 3;
+      ++acetylated[std::make_pair(e.identifier.rfind("DECOY_", 0) == 0, cls)];
+    }
+    TEST_TRUE(acetylated[std::make_pair(false, 1)] > 0)
+    TEST_TRUE(acetylated[std::make_pair(false, 3)] > 0)
+    TEST_EQUAL(acetylated[std::make_pair(false, 1)], acetylated[std::make_pair(true, 1)])
+    TEST_EQUAL(acetylated[std::make_pair(false, 3)], acetylated[std::make_pair(true, 3)])
+  }
+
+  // default decoy_method 'reverse' unchanged: DecoyGenerator::reversePeptides with the initial Met kept
+  p.setValue("decoy_method", "reverse");
+  algo.setParameters(p);
+  ProSEAlgorithm::SearchContext ctx_rev = algo.prepareContext(fasta_db);
+  DecoyGenerator dg;
+  for (const auto& e : ctx_rev.db)
+  {
+    if (e.identifier.rfind("DECOY_", 0) != 0) continue;
+    const std::string t = std::find_if(fasta_db.begin(), fasta_db.end(), [&](const auto& x) { return "DECOY_" + x.identifier == e.identifier; })->sequence;
+    const bool met = t[0] == 'M';
+    std::string expected = dg.reversePeptides(AASequence::fromString(met ? t.substr(1) : t), "Trypsin/P").toString();
+    if (met) expected.insert(expected.begin(), 'M');
+    TEST_STRING_EQUAL(e.sequence, expected)
+  }
+}
+END_SECTION
+
+START_SECTION((static void stratumQValues(PeptideIdentificationList& peptide_ids)))
+{
+  // grouped TDC per stratum: q = (decoys + 1) / targets, ties decoys first, monotone from the bottom
+  struct H { double score; bool decoy; char before; int start; bool rescored; };
+  const std::vector<H> hs = {
+    {5, false, 'K', 10, true}, {4, false, 'K', 10, true}, {4, true, 'K', 10, true}, {3, false, 'R', 20, true},
+    {2, true, 'K', 30, true}, {1, false, 'K', 40, true},                        // stratum other
+    {9, false, PeptideEvidence::N_TERMINAL_AA, 0, true}, {8, false, 'M', 1, true},  // stratum protein_nterm
+    {7, false, 'K', 5, false}};                                                  // not rescored
+  PeptideIdentificationList pids;
+  for (const H& h : hs)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setTargetDecoyType(h.decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+    if (h.rescored) hit.setMetaValue("percolator_score", h.score);
+    PeptideEvidence ev;
+    ev.setProteinAccession(h.decoy ? "DECOY_P" : "P");
+    ev.setAABefore(h.before);
+    ev.setStart(h.start);
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setHits(std::vector<PeptideHit>{hit});
+    pids.push_back(pid);
+  }
+  // a Met-clipped evidence together with an internal one: stratum 'other'
+  {
+    PeptideEvidence a, b;
+    a.setAABefore('M'); a.setStart(1); b.setAABefore('K'); b.setStart(50);
+    pids[5].getHits()[0].setPeptideEvidences(std::vector<PeptideEvidence>{a, b});
+  }
+  ProSEAlgorithm::stratumQValues(pids);
+  const std::vector<double> expected = {2.0 / 3, 2.0 / 3, 2.0 / 3, 2.0 / 3, 0.75, 0.75, 0.5, 0.5, 1.0};
+  const std::vector<std::string> stratum = {"other", "other", "other", "other", "other", "other", "protein_nterm", "protein_nterm", ""};
+  for (Size i = 0; i < pids.size(); ++i)
+  {
+    const PeptideHit& hit = pids[i].getHits()[0];
+    TEST_REAL_SIMILAR(double(hit.getMetaValue("stratum_q_value")), expected[i])
+    TEST_STRING_EQUAL(hit.metaValueExists("stratum") ? hit.getMetaValue("stratum").toString() : std::string(), stratum[i])
+  }
+}
+END_SECTION
+
 END_TEST
