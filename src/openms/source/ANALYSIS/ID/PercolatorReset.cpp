@@ -1313,7 +1313,8 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     out.rounds.push_back(os.str());
   }
 
-  // 6. final ranking: targets and estimating decoys, FDP = 2 (D_est + 1) / max(T, 1) (two decoys: (D_est + 1) / max(T, 1))
+  // 6. final ranking: targets and estimating decoys, FDP = 2 (D_est + 1) / max(T, 1) (two decoys: (D_est + 1) / max(T, 1);
+  //    with shared decoy stems (sum of the weights + 2) / max(T, 1))
   {
     std::vector<Size> fin;
     for (Size k = 0; k < m; ++k)
@@ -1330,7 +1331,10 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       std::vector<double> w(fin.size(), 0.0);
       for (Size r = 0; r < fin.size(); ++r) w[r] = dec[r] ? decoyWeight(cs[fin[r]]) : 0.0;
-      q = seqStepQValuesWeighted(dec, w, final_factor, 1.0);
+      // review r3: the offset is the largest decoy weight (2), not 1: with weight-2 decoys and +1 the estimate is
+      // anti-conservative (a block of shared null hypotheses gives FDR 1.13 % at 1 %); +2 is SeqStep+ of the
+      // single-decoy case for them and only more conservative for the others
+      q = seqStepQValuesWeighted(dec, w, final_factor, 2.0);
     }
     for (Size r = 0; r < fin.size(); ++r)
     {
@@ -1425,7 +1429,17 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     rankByScore(psms, out.scores, row_tie);
     std::vector<bool> dec(psms.size());
     for (Size r = 0; r < psms.size(); ++r) dec[r] = in.is_decoy[psms[r]];
-    const std::vector<double> q = seqStepQValues(dec, final_factor, 1.0);
+    // review r3: with shared decoy stems (two-decoy mode) the PSMs get the stems' weights and offset, as the final
+    // ranking (a PSM of a shared decoy stem counts twice)
+    std::vector<double> psm_w(psms.size(), 0.0);
+    for (Size r = 0; r < psms.size(); ++r)
+    {
+      if (!dec[r]) continue;
+      const auto it = stem_index.find(in.stems[psms[r]]);
+      psm_w[r] = it != stem_index.end() ? decoyWeight(it->second) : 1.0;
+    }
+    const std::vector<double> q = out.decoy_stems_both_sets == 0 ? seqStepQValues(dec, final_factor, 1.0)
+                                                                 : seqStepQValuesWeighted(dec, psm_w, final_factor, 2.0);
     // PEP: antitonic regression (pool adjacent violators) of the estimating-decoy indicator over the ranks
     std::vector<double> blk_val, blk_w;
     std::vector<Size> blk_len;
@@ -1436,7 +1450,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
       double decoys = 0.0;
       while (e < dec.size() && out.scores[psms[e]] == out.scores[psms[r]])
       {
-        decoys += dec[e] ? 1.0 : 0.0;
+        decoys += dec[e] ? psm_w[e] : 0.0;
         ++e;
       }
       blk_val.push_back(decoys / static_cast<double>(e - r));
