@@ -5719,6 +5719,9 @@ const auto configure_merge = [](ProSEAlgorithm& algo, const std::string& decoys)
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("FDR:PSM", 0.05);
   p.setValue("FDR:protein", 0.05);
+  // the merge tests need decoy PSMs within the 5 % PSM FDR of this small fixture; with the default best-scoring
+  // positives (rescoring:best_positive score) the rescoring separates it so well that none is left
+  p.setValue("rescoring:best_positive", "first");
   algo.setParameters(p);
   algo.setLogType(ProgressLogger::NONE);
 };
