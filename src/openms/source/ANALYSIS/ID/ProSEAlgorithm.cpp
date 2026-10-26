@@ -3117,7 +3117,8 @@ namespace OpenMS
 #pragma omp parallel if (decoys_in_parallel)
       {
         std::vector<std::pair<Size, Size>> target_spans, decoy_spans;
-#pragma omp for schedule(dynamic, 64)
+        // monotonic: without the parallel region (serial fallback) the proteins are processed in order
+#pragma omp for schedule(monotonic: dynamic, 64)
         for (SignedSize si = 0; si < static_cast<SignedSize>(old_size); ++si)
         {
           const size_t i = static_cast<size_t>(si);
