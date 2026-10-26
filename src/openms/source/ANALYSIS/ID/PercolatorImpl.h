@@ -61,6 +61,10 @@ namespace OpenMS
     /// Fresh FeatureMemoryPool used by the second pass (feature slots are
     /// deallocated by scoreAndAddPSM but the pool itself must outlive it).
     std::unique_ptr<OpenMS::Internal::Percolator::FeatureMemoryPool> second_pass_pool;
+    /// Out-of-fold modes: the scoring pass's PSMs (one per row) in one block, constructed and destroyed in parallel
+    /// (Percolator.cpp: makePsmSlab_ / destroyPsmSlab_); reset() destroys it.
+    OpenMS::Internal::Percolator::PSMDescription* second_pass_slab = nullptr;
+    size_t second_pass_slab_size = 0;
 
     // Persisted params (mirrored from DefaultParamHandler param_).
     double c_pos = 0.1;

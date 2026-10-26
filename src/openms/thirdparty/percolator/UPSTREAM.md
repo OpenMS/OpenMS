@@ -416,7 +416,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   and makes `initializeGridSearch` take each fold's Cneg
   candidates from its own training set's target/decoy ratio (`mergeCpCnPairs`' nested path looks
   them up per fold); `getTrainingPsms` returns a fold's training PSMs; `setActiveFolds` lets `trainFoldChains`
-  skip folds (the learning curve's stopped folds). Without fixed folds (the
+  skip folds (the learning curve's stopped folds). `Scores::setScoreHolders` replaces the score holders
+  (built in parallel by the caller). Without fixed folds (the
   default) nothing changes.
 - `patches/20-best-positive-by-score.patch` — an option of the training, off by default
   (`CrossValidation::setBestPositiveByScore`, set by the OpenMS wrapper's parameter `best_positive`
