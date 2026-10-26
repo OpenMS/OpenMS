@@ -194,6 +194,18 @@ A separate Release check on `4024bc8325` uses the same full input, library, eigh
 
 Before/after source, binaries, dependencies, flags, commands, input, library and frozen archive provenance match the successful nine-run matrix. The earlier 128 MiB Debug failure remains retained. The build differs, so this does not isolate the scoring repair as the cause of later progress. The lower-cap workflow is still not accepted. Commands, logs and the rejection record are under `representative-1312/current-128-1900`.
 
+### Scheduling counterfactual at 128 MiB
+
+On the same clean `4024bc8325` Release binary, change only the existing `-TargetedDataExtraction:outer_loop_threads` from `-1` to `1`, plus output/work directories. Keep global `-threads 8`, the 128 MiB budget, 32 MiB scan bound, full input/library and all scientific settings unchanged. The actual native log confirms `Setting up nested loop with 1 threads out of 8` and all 24,000 transitions. This is an explicit scheduling counterfactual, **not the original automatic-scheduling command**.
+
+The native engine completes with GNU-time **exit 0**, **1,054.84 s / 760,764 KiB RSS**. The project comparator reopens all twelve public outputs listed in [VALIDATION.md](../VALIDATION.md#complete-end-user-outputs-and-resource-observations): 4,688 results, every feature/score table, finite nonzero IM, and 985/985/251 matrix rows match the complete normal reference. Private peak **67,108,737 <= 67,108,864 usable bytes**, final live copy bytes **0**. Cache counters: **1,106 hits / 12,139 misses / 12,134 evictions**. Before/after provenance matches the nine-run matrix.
+
+**Supervisor caveat:** the tool killed the Python/systemd-run wrapper after 600 seconds despite the requested longer timeout, returning **124**. The independent native systemd service retained its original 1,200-second limit and completed within it. Recovery separately checked its invocation/command/guards, completion journal, genuine GNU-time exit, engine completion log and reopened outputs. The original initial record and failed supervisor task remain retained, with final recovery evidence in `representative-1312/current128-outer1-1923/recovery-results.json`. This is **recovered scientific completion, not a clean timing trial or a successful wrapper exit**. Do not add it to the balanced performance matrix.
+
+An unchanged-command GDB diagnostic had stopped in `RawAccess::acquire` -> mutable spectrum access -> m/z transform -> public extractor -> `MS1Extraction_`, while seven peer workers were in MS1 transform/extraction. Its exact-message assertion failed because GDB truncated the string, so it remains diagnostic evidence, not engine completion. Combined with the real counterfactual, this supports concurrent live MS1 copies as a low-cap pressure source. It does not prove every admission failure has that cause or derive a universal job-memory bound.
+
+**Next boundary:** reuse the explicit outer-thread knob for this measured configuration rather than introduce a new scheduler or change science/caps. Automatic low-cap scheduling still fails. Production whole-job admission needs conservative scan/copy/decoder/scoring/output workspace bounds, and repeated decoding/shared extraction remain open. `maxConcurrentSwaths` currently gates in-memory loading, not this tiled/on-disc legacy path, so that different knob is not a demonstrated fix.
+
 ## Limits
 
 - The first adapter supports indexed mzML spectrum maps. Split-window input is not supported. The native loader rejects mixed FAIMS lanes rather than merging them.
@@ -207,7 +219,7 @@ Before/after source, binaries, dependencies, flags, commands, input, library and
 
 - [ ] Test native per-frame/scan diaPASEF geometry and lane-aware FAIMS through the complete engine. PASEF mzML parity and mixed-CV rejection do not close this gate.
 - [x] Match complete-library outputs for the converted TimSim control run at the 1,024 MiB setting. This closes one correctness check, not representative resource acceptance.
-- [ ] Reduce repeated decoding and retained-copy costs. Checked-copy, calibration and scoring-owner repairs preserve complete outputs. All nine new Release trials complete, but the lower-memory setting is slower. Integrate shared extraction and whole-job admission without changing the scientific population. Resolve the current 128 MiB extraction admission failure without weakening its cap. Query-grid tests do not bound full-engine output or hypothesis memory.
+- [ ] Reduce repeated decoding and retained-copy costs. Checked-copy, calibration and scoring-owner repairs preserve complete outputs. All nine new Release trials complete, but the lower-memory setting is slower. Integrate shared extraction and whole-job admission without changing the scientific population. Resolve the current automatic-scheduling 128 MiB extraction admission failure without weakening its cap. Explicit outer-loop serialization has recovered full scientific completion, but is not automatic whole-job admission or a clean timing trial. Query-grid tests do not bound full-engine output or hypothesis memory.
 - [ ] Extend pinned input coverage beyond the converted TimSim control run. Test Astral and the remaining cohort. Keep conversion cost separate. Measure native decoder/metadata, downstream workspace memory, runtime and peak RSS. Do not change the frozen WP-00 files.
 - [ ] Supply the private scan view to WP-05/06. Complete WP-09/10 integration and acceptance checks.
 

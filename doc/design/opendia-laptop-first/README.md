@@ -120,7 +120,11 @@ memory but takes about 2.3 times as long. The 1,024 MiB setting has no clear
 speed or RSS gain. These are warm-cache checks on one converted input and a
 shared host. The original failed matrix is retained. A current 128 MiB check
 completes calibration but fails decoder admission during extraction, with no
-final output. Next, reduce repeated reads with WP-05 and test whole-job admission.
+final output. A separate [single-outer-job counterfactual](work-packages/03-raw-tiles.md#scheduling-counterfactual-at-128-mib)
+keeps global eight threads, science and cap unchanged and completes the native engine
+with full output parity. Its wrapper times out, so recovered engine completion is
+not a clean timing trial or acceptance of automatic scheduling.
+Next, reduce repeated reads with WP-05 and test whole-job admission.
 Native acquisition, broader input coverage and whole-process bounds remain open.
 Keep all packages stacked. The [requirement-to-observation map](VALIDATION.md)
 records fresh actual native/CLI/installed-consumer checks, every changed output
