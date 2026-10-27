@@ -75,7 +75,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="8.216474533081055"/>
 				<UserParam type="float" name="NuXL:modds" value="26.912132263183594"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.394327819347382"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="1.853960037231445"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="23.394327163696289"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="43.062854766845703"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -101,7 +101,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="3"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="50.35318337661846"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -154,7 +154,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="4.130456924438477"/>
 				<UserParam type="float" name="NuXL:modds" value="12.331851959228516"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.175812318921089"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="3.739903926849365"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="8.175812721252441"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="13.409812927246094"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -180,7 +180,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="7.351682162223202"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -233,7 +233,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="5.19096565246582"/>
 				<UserParam type="float" name="NuXL:modds" value="15.438701629638672"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.210292190313339"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="3.198316335678101"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="17.210292816162109"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="25.123882293701172"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -259,7 +259,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="18.063547278285021"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -312,7 +312,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="10.218421936035156"/>
 				<UserParam type="float" name="NuXL:modds" value="33.094520568847656"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.070792749524117"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="7.570072650909424"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="20.070793151855469"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="34.469272613525391"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -338,7 +338,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="3"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="41.872385552385424"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -391,7 +391,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="13.221870422363281"/>
 				<UserParam type="float" name="NuXL:modds" value="31.117559432983398"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.115903504192829"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="6.183817386627197"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="17.115903854370117"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="28.805072784423828"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -417,7 +417,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="25.004171041782435"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -470,7 +470,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="11.205655097961426"/>
 				<UserParam type="float" name="NuXL:modds" value="28.249935150146484"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.291826844215393"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="4.669435977935791"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="20.291826248168945"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="21.579826354980469"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -496,7 +496,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="26.566356069365973"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -545,7 +545,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="2.03135347366333"/>
 				<UserParam type="float" name="NuXL:modds" value="3.64386248588562"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.212534606456757"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="13.038965225219727"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="7.212534427642822"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="5.814151763916016"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -571,7 +571,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="2.455607887967147"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -621,7 +621,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="4.135616302490234"/>
 				<UserParam type="float" name="NuXL:modds" value="14.589237213134766"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.117624595761299"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.063533306121826"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="12.117624282836914"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="20.990375518798828"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -647,7 +647,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="16.094063487390919"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -696,7 +696,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="2.048798561096191"/>
 				<UserParam type="float" name="NuXL:modds" value="5.400266170501709"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.056968413293362"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="6.22135591506958"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="6.056968212127686"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="8.775450706481934"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -722,7 +722,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="4.815704593400373"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -772,7 +772,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="9.229996681213379"/>
 				<UserParam type="float" name="NuXL:modds" value="25.049806594848633"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.268822729587555"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="4.880756378173828"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="41.268821716308594"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="73.577423095703125"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -798,7 +798,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="4"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="5"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="103.302194700401202"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -847,7 +847,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="2.047131061553955"/>
 				<UserParam type="float" name="NuXL:modds" value="4.952754020690918"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="6.026537623256445e-03"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.559008121490479"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="3.00602650642395"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="3.818980216979981"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -873,7 +873,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="4"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="5"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="2.609934517644864"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -927,7 +927,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="4.182740688323975"/>
 				<UserParam type="float" name="NuXL:modds" value="13.002236366271973"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.375015050172806"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="3.561292886734009"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="12.375015258789063"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="22.615631103515625"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -953,7 +953,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="14.127652610154787"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1002,7 +1002,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="3.079879283905029"/>
 				<UserParam type="float" name="NuXL:modds" value="8.059412956237793"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.211029142141342"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.274370193481445"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="12.211029052734375"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="22.615631103515625"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1028,7 +1028,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="12.607826856410369"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1078,7 +1078,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="7.158668041229248"/>
 				<UserParam type="float" name="NuXL:modds" value="19.036767959594727"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.059569962322712"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="4.568301200866699"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="8.0595703125"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="12.64217472076416"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1104,7 +1104,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="12.607826856410369"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1157,7 +1157,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="11.371336936950684"/>
 				<UserParam type="float" name="NuXL:modds" value="28.14954948425293"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.24375793337822"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="2.536251783370972"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="27.243757247924805"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="45.058643341064453"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1183,7 +1183,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="22.848178248175714"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1236,7 +1236,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="7.223560810089111"/>
 				<UserParam type="float" name="NuXL:modds" value="21.468671798706055"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.098648108541965"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.213448524475098"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="11.098648071289063"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="16.222602844238281"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1262,7 +1262,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="17.345711775116428"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1315,7 +1315,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="12.299405097961426"/>
 				<UserParam type="float" name="NuXL:modds" value="29.767688751220703"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.158554673194885"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.331352710723877"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="11.158555030822754"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="16.222602844238281"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1341,7 +1341,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="6.453822622640367"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1394,7 +1394,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="9.165740966796875"/>
 				<UserParam type="float" name="NuXL:modds" value="24.814916610717774"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.153031080961227"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.522030353546143"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="12.153031349182129"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="17.969350814819336"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1420,7 +1420,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="8.238422774416307"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1473,7 +1473,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="12.253405570983887"/>
 				<UserParam type="float" name="NuXL:modds" value="43.482177734375"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.216487392783165"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.376686096191406"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="20.216487884521484"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="32.746864318847656"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1499,7 +1499,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="4"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="14.040946662899017"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1552,7 +1552,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="6.222448825836182"/>
 				<UserParam type="float" name="NuXL:modds" value="18.363672256469727"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.252318680286407"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="4.790374279022217"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="21.2523193359375"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="34.455181121826172"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1578,7 +1578,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="3"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="22.180032957848837"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1631,7 +1631,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="8.331657409667969"/>
 				<UserParam type="float" name="NuXL:modds" value="29.645519256591797"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.142823621630669"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="5.777904510498047"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="22.142824172973633"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="38.279499053955078"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1657,7 +1657,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="3"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="41.872385552385424"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1706,7 +1706,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="2.017832517623901"/>
 				<UserParam type="float" name="NuXL:modds" value="9.499466896057129"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.049031101167202"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="3.92205810546875"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="18.049030303955078"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="30.12646484375"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1732,7 +1732,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="3"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="21.589493707568096"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1782,7 +1782,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="5.372912406921387"/>
 				<UserParam type="float" name="NuXL:modds" value="17.241123199462891"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.215587794780731"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="3.706464052200317"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="18.215587615966797"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="30.996692657470703"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1808,7 +1808,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="33.03198873465881"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1861,7 +1861,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="9.133007049560547"/>
 				<UserParam type="float" name="NuXL:modds" value="19.227224349975586"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="0.168000027537346"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="4.732799530029297"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="18.167999267578125"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="18.174198150634766"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1887,7 +1887,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="5"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="2"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="28.447448914046923"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
@@ -1940,7 +1940,7 @@
 				<UserParam type="float" name="NuXL:Morph" value="5.193572521209717"/>
 				<UserParam type="float" name="NuXL:modds" value="11.575891494750977"/>
 				<UserParam type="float" name="NuXL:pl_MIC" value="2.997914329171181e-03"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
+				<UserParam type="float" name="NuXL:pl_err" value="18.739192962646484"/>
 				<UserParam type="float" name="NuXL:pl_Morph" value="1.002997875213623"/>
 				<UserParam type="float" name="NuXL:pl_modds" value="0.61128956079483"/>
 				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
@@ -1966,7 +1966,7 @@
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="6"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
 				<UserParam type="int" name="nr_candidates" value="1"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
+				<UserParam type="float" name="-ln(poisson)" value="1.9226237374055"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>

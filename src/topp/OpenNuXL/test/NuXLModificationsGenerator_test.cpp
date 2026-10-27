@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <sstream>
@@ -175,6 +176,36 @@ START_SECTION((static const ResidueModification* registerPrecursorAdduct(const s
     TEST_TRUE(named[3].getModification()->getDiffFormula().isEmpty())
     TEST_TRUE(NuXLModificationsGenerator::registerPrecursorAdduct("U-H2O1", adduct, named[3]) == nullptr)
   }
+}
+END_SECTION
+
+// U-H2O1 and C-H3N1 share a sum formula, so they are told apart by their index in the set of adducts with that formula
+NuXLModificationMassesResult mm;
+mm.mod_combinations[""].insert("none");
+mm.mod_combinations["C9H11N2O8P1"].insert("U-H2O1");
+mm.mod_combinations["C9H11N2O8P1"].insert("C-H3N1");
+mm.mod_combinations["C9H13N2O9P1"].insert("U");
+
+START_SECTION((const MapSumFormulaToNucleotideFormulas::value_type& NuXLModificationMassesResult::getSumFormula(Size formula_index) const))
+{
+  TEST_STRING_EQUAL(mm.getSumFormula(0).first, "")
+  TEST_STRING_EQUAL(mm.getSumFormula(1).first, "C9H11N2O8P1")
+  TEST_EQUAL(mm.getSumFormula(1).second.size(), 2)
+  TEST_STRING_EQUAL(mm.getSumFormula(2).first, "C9H13N2O9P1")
+  TEST_EXCEPTION(Exception::IndexOverflow, mm.getSumFormula(3))
+}
+END_SECTION
+
+START_SECTION((const std::string& NuXLModificationMassesResult::getPrecursorAdduct(Size formula_index, Size adduct_index) const))
+{
+  TEST_STRING_EQUAL(mm.getPrecursorAdduct(0, 0), "none")
+  // same-length adducts are ordered lexicographically
+  TEST_STRING_EQUAL(mm.getPrecursorAdduct(1, 0), "C-H3N1")
+  TEST_STRING_EQUAL(mm.getPrecursorAdduct(1, 1), "U-H2O1")
+  TEST_STRING_EQUAL(mm.getPrecursorAdduct(2, 0), "U")
+  TEST_EXCEPTION(Exception::IndexOverflow, mm.getPrecursorAdduct(1, 2))
+  TEST_EXCEPTION(Exception::IndexOverflow, mm.getPrecursorAdduct(2, 1))
+  TEST_EXCEPTION(Exception::IndexOverflow, mm.getPrecursorAdduct(3, 0))
 }
 END_SECTION
 

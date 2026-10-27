@@ -50,8 +50,9 @@ class NuXLAnnotateAndLocate
            @ref ModifiedPeptideGenerator::applyVariableModifications (the upstream search
            only stored modification indices to save memory) and selects the entry at
            @c a.peptide_mod_index.
-         - Picks the precursor NA adduct from @p mm via @c a.NA_mod_index (using the
-           first entry of the composition set at that key).
+         - Picks the precursor NA adduct from @p mm via @c a.NA_mod_index (the sum formula)
+           and @c a.NA_adduct_amb_index (the adduct among those with that sum formula, e.g.
+           @c U-H2O1 or @c C-H3N1), see @ref NuXLModificationMassesResult::getPrecursorAdduct.
          - Generates a total-loss theoretical spectrum (b/a/y + precursor + manually
            added abundant immoniums for charge 1 and precursor peaks for every charge)
            via @ref TheoreticalSpectrumGenerator with hardcoded settings
@@ -75,10 +76,14 @@ class NuXLAnnotateAndLocate
            @c best_localization, @c best_localization_score, and
            @c best_localization_position back into the hit.
 
-    All output goes into @p annotated_hits — no exceptions are thrown by this function;
-    malformed alignments emit @c OPENMS_LOG_WARN. Hits whose first precursor adduct
-    cannot be resolved fall back to an unmodified-sequence localisation
-    (@c best_localization @c == @c unmodified_sequence, @c best_localization_score @c = @c 0).
+    All output goes into @p annotated_hits; malformed alignments emit @c OPENMS_LOG_WARN.
+    Hits that are not localised keep the unmodified-sequence localisation
+    (@c best_localization @c == @c unmodified_sequence, @c best_localization_score @c = @c 0):
+    non-cross-links (precursor adduct @c none), and, with an @c OPENMS_LOG_WARN, hits whose
+    precursor adduct indices are not in @p mm or whose @c cross_linked_nucleotide is not
+    feasible for their precursor adduct.
+
+    @throws std::out_of_range if a precursor adduct has no entry in @p all_feasible_adducts.
 
     The trailing underscore on the method name is a historical artefact from the
     OpenNuXL feature branch; the entry point is still public.

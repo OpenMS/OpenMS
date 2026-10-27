@@ -17,6 +17,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -359,13 +360,20 @@ namespace OpenMS
         const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[a.peptide_mod_index];
         const double fixed_and_variable_modified_peptide_weight = fixed_and_variable_modified_peptide.getMonoWeight();
 
-        // determine NA on precursor from index in map
-        auto mod_combinations_it = mm.mod_combinations.cbegin();
-        std::advance(mod_combinations_it, a.NA_mod_index);
-        auto NA_adduct_it = mod_combinations_it->second.cbegin();
-        std::advance(NA_adduct_it, a.NA_adduct_amb_index);
-        const std::string precursor_na_adduct = *NA_adduct_it; // precursor adduct of this hit (e.g., U-H2O or C-NH3 for the same sum formula)
-        const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
+        // determine the precursor adduct of this hit (e.g., U-H2O1 or C-H3N1 for the same sum formula)
+        std::string precursor_na_adduct;
+        double precursor_na_mass;
+        try
+        {
+          precursor_na_adduct = mm.getPrecursorAdduct(a.NA_mod_index, a.NA_adduct_amb_index);
+          precursor_na_mass = EmpiricalFormula(mm.getSumFormula(a.NA_mod_index).first).getMonoWeight();
+        }
+        catch (const Exception::IndexOverflow&)
+        {
+          OPENMS_LOG_WARN << "No precursor adduct at index (" << a.NA_mod_index << ", " << a.NA_adduct_amb_index
+                          << ") for hit " << unmodified_sequence << ". Hit is not annotated or localized." << endl;
+          continue;
+        }
 
         // generate total loss spectrum for the fixed and variable modified peptide (without NAs) (using the settings for partial loss generation)
         // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
@@ -430,7 +438,14 @@ namespace OpenMS
             return (item.first == a.cross_linked_nucleotide);
           });
 
-        OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
+        // a hit always carries a nucleotide of its own adduct, so this only guards against inconsistent hits
+        if (nt_to_adducts == feasible_MS2_adducts.end())
+        {
+          OPENMS_LOG_WARN << "Cross-linked nucleotide '" << a.cross_linked_nucleotide << "' is not feasible for precursor adduct "
+                          << precursor_na_adduct << " of hit " << unmodified_sequence << ". Hit is not localized." << endl;
+          a.fragment_annotations = std::move(fas);
+          continue;
+        }
 
         vector<NuXLFragmentAdductDefinition> partial_loss_modification = nt_to_adducts->second;
 

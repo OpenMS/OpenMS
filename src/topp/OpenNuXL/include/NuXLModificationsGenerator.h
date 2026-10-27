@@ -63,6 +63,27 @@ namespace OpenMS
     /// Empirical formula → @ref NucleotideFormulas.
     using MapSumFormulaToNucleotideFormulas = std::map<std::string, NucleotideFormulas>;
     MapSumFormulaToNucleotideFormulas mod_combinations; ///< Empirical formula → all nucleotide compositions yielding that formula (kept as a set because mutations / losses can make the mapping ambiguous).
+
+    /**
+      @brief The sum formula at position @p formula_index of @ref mod_combinations, with all adducts that have this formula.
+
+      @param[in] formula_index Position of the sum formula in @ref mod_combinations (@c NuXLAnnotatedHit::NA_mod_index).
+      @return The (sum formula, adducts) entry.
+      @throws Exception::IndexOverflow if @p formula_index is out of range.
+    */
+    const MapSumFormulaToNucleotideFormulas::value_type& getSumFormula(Size formula_index) const;
+
+    /**
+      @brief The precursor adduct of a hit: entry @p adduct_index of the adducts with the sum formula at position @p formula_index.
+
+      Adducts with the same sum formula (e.g. @c U-H2O1 and @c C-H3N1) differ only in @p adduct_index.
+
+      @param[in] formula_index Position of the sum formula in @ref mod_combinations (@c NuXLAnnotatedHit::NA_mod_index).
+      @param[in] adduct_index Position of the adduct among those with that sum formula (@c NuXLAnnotatedHit::NA_adduct_amb_index).
+      @return The adduct, e.g. @c U-H2O1.
+      @throws Exception::IndexOverflow if either index is out of range.
+    */
+    const std::string& getPrecursorAdduct(Size formula_index, Size adduct_index) const;
   };
 
   /**

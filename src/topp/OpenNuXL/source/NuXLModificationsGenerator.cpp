@@ -12,15 +12,36 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
+#include <iterator>
 #include <map>
 
 using namespace std;
 
 namespace OpenMS
 {
+
+const NuXLModificationMassesResult::MapSumFormulaToNucleotideFormulas::value_type& NuXLModificationMassesResult::getSumFormula(Size formula_index) const
+{
+  if (formula_index >= mod_combinations.size())
+  {
+    throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(formula_index), mod_combinations.size());
+  }
+  return *std::next(mod_combinations.cbegin(), formula_index);
+}
+
+const std::string& NuXLModificationMassesResult::getPrecursorAdduct(Size formula_index, Size adduct_index) const
+{
+  const NucleotideFormulas& adducts = getSumFormula(formula_index).second;
+  if (adduct_index >= adducts.size())
+  {
+    throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(adduct_index), adducts.size());
+  }
+  return *std::next(adducts.cbegin(), adduct_index);
+}
 
 //static
 const ResidueModification* NuXLModificationsGenerator::registerPrecursorAdduct(const std::string& nucleotide_composition,
