@@ -297,7 +297,10 @@ namespace OpenMS
      * among all of its entries). The others keep their order, so querySpectrum() returns the same candidates for these
      * spectra as with the full index, from an index that is built faster and takes less memory. Search the index only with
      * these spectra and the current parameters.
-     * The full index is built if @p searched_spectra is empty or returns nullptr, and in peptide-mass and open search mode.
+     * In peptide-mass mode the mothers all stay (the index entries refer to them) and the prefix entries that
+     * querySpectrumPeptideMasses_() looks up for none of the spectra (no charge, isotope error and modification shift of any
+     * of them) are not generated instead; the others keep their order.
+     * The full index is built if @p searched_spectra is empty or returns nullptr, and in open search mode.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
@@ -1105,6 +1108,14 @@ private:
      * only place where positive member magnitudes become signed offsets.
      */
     std::pair<float, float> computeMassWindow_(float precursor_mass) const;
+
+    /// The precursor windows of querySpectrum() for the MS2 spectra of @p spectra: of every searched spectrum, charge and
+    /// isotope error the window [lo, hi] in which a peptide's precursor_mz_ makes it a candidate, in the float arithmetic of
+    /// searchDifferentPrecursorRanges() / querySpectrumPeptideMasses_(), widened by a margin for a different rounding of the
+    /// same expressions if @p with_margin. Appended to @p windows and sorted ascending (with overlaps). Returns false if the
+    /// windows are not known - a NaN bound (the query gets an arbitrary peptide range then) or no spectrum is searched - in
+    /// which case nothing may be left out of the index.
+    bool precursorWindows_(const MSExperiment& spectra, bool with_margin, std::vector<std::pair<float, float>>& windows) const;
 
     /// Removes the peptides (sorted by precursor_mz_) whose precursor mass lies in no precursor window of the MS2 spectra
     /// of @p spectra, keeping the order of the others (see build(fasta_entries, searched_spectra)). Removed occurrences

@@ -2218,6 +2218,80 @@ namespace OpenMS
     build(fasta_entries, {});
   }
 
+  namespace
+  {
+    // Peptide-mass mode: the m/z ranges in which querySpectrumPeptideMasses_() looks entries up for the spectra the index
+    // is built for (every charge, isotope error and modification shift of every searched spectrum), merged. An entry in
+    // none of them is never looked up, so build() leaves it out: the index returns the same entries, in the same order,
+    // for these spectra. Most entries lie in no range: a bit per m/z bin, set where a range overlaps the bin, rejects them
+    // without a search, and a second bit, set where the bin lies inside a range, accepts most of the others; only the
+    // entries of the bins at the ends of the ranges are looked up by binary search.
+    struct EntryReach_
+    {
+      std::vector<std::pair<float, float>> ranges; ///< {lower bound, upper bound}, ascending, disjoint
+      std::vector<uint64_t> touched;  ///< a bit per m/z bin: a range overlaps the bin
+      std::vector<uint64_t> covered;  ///< a bit per m/z bin: the bin lies within a range
+      double first_mz{0.0};           ///< lower end of bin 0
+      double bins_per_da{0.0};
+      size_t num_bins{0};
+      bool active{false};             ///< whether entries are filtered at all
+
+      // (mz - first_mz) * bins_per_da; the conversion to the bin number truncates, which is the floor for x >= 0. In double:
+      // monotonic in mz, and exact to far below a bin for any float mz, so that an mz in a range gets a bin of the range.
+      double positionOf(float mz) const { return (static_cast<double>(mz) - first_mz) * bins_per_da; }
+
+      /// Merges the ranges collected so far and fills the bins; no range: nothing is reached, and no entry is kept
+      void finish()
+      {
+        active = true;
+        std::sort(ranges.begin(), ranges.end());
+        size_t merged = 0;
+        for (const std::pair<float, float>& range : ranges)
+        {
+          if (merged > 0 && range.first <= ranges[merged - 1].second) { ranges[merged - 1].second = std::max(ranges[merged - 1].second, range.second); }
+          else { ranges[merged++] = range; }
+        }
+        ranges.resize(merged);
+        num_bins = 0;
+        if (ranges.empty()) return;
+        first_mz = ranges.front().first;
+        const double last_mz = ranges.back().second;
+        // bins of 0.1 mDa, or wider so that there are at most 2^23 of them (1 MB per bit set; ~0.5 mDa over 4,500 Da): a
+        // precursor window is tens to hundreds of them wide
+        bins_per_da = std::min(10000.0, static_cast<double>(size_t{1} << 23) / std::max(last_mz - first_mz, 1.0));
+        num_bins = static_cast<size_t>(positionOf(ranges.back().second)) + 1;
+        touched.assign((num_bins + 63) / 64, 0);
+        covered.assign((num_bins + 63) / 64, 0);
+        for (const std::pair<float, float>& range : ranges)
+        {
+          const size_t first_bin = static_cast<size_t>(positionOf(range.first));
+          const size_t last_bin = static_cast<size_t>(positionOf(range.second));
+          for (size_t b = first_bin; b <= last_bin; ++b) touched[b >> 6] |= uint64_t{1} << (b & 63);
+          // The bins from the second after the first to the second before the last lie within the range: the first bin
+          // starts at or before the lower bound, so the second starts more than a bin's width after it, which covers
+          // the rounding of positionOf() (far below a bin) with a whole bin to spare; likewise at the upper bound.
+          for (size_t b = first_bin + 2; b + 2 <= last_bin; ++b) covered[b >> 6] |= uint64_t{1} << (b & 63);
+        }
+      }
+
+      /// Whether @p mz lies in one of the ranges
+      bool reaches(float mz) const
+      {
+        const double x = positionOf(mz);
+        if (!(x >= 0.0) || x >= static_cast<double>(num_bins)) return false; // before the first range or after the last one
+        const size_t bin = static_cast<size_t>(x);
+        if (!((touched[bin >> 6] >> (bin & 63)) & 1)) return false;
+        if ((covered[bin >> 6] >> (bin & 63)) & 1) return true;
+        // the range that contains mz, if any, is the last one that starts at or before it (they are disjoint)
+        auto it = std::upper_bound(ranges.begin(), ranges.end(), mz,
+                                   [](float value, const std::pair<float, float>& range) { return value < range.first; });
+        if (it == ranges.begin()) return false;
+        --it;
+        return mz <= it->second;
+      }
+    };
+  } // namespace
+
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                             const std::function<const MSExperiment*(Size)>& searched_spectra)
   {
@@ -2301,10 +2375,11 @@ namespace OpenMS
       // After the deduplication by strings: equal renderings may have different precursor m/z there, so the kept
       // entry of a peptidoform has to be chosen among all of its entries, not only among those in a window. The
       // deduplication in runs of equal precursor m/z below keeps or drops a run as a whole and may follow.
-      if (searched_spectra && !is_peptide_mass_mode_ && !isOpenSearchMode_())
-      {
-        if (const MSExperiment* spectra = searched_spectra(fi_peptides_.size())) { keepPeptidesInPrecursorWindows_(*spectra); }
-      }
+      // Peptide-mass mode: the mothers all stay (the entries refer to them by index); the entries no spectrum can reach
+      // are left out instead (entry_reach below).
+      const MSExperiment* spectra = nullptr;
+      if (searched_spectra && !isOpenSearchMode_()) { spectra = searched_spectra(fi_peptides_.size()); }
+      if (spectra && !is_peptide_mass_mode_) { keepPeptidesInPrecursorWindows_(*spectra); }
       // After searched_spectra(), which may change the threads of this thread (ProSE gives back the threads of a spectra
       // reader that it waited for)
 #ifdef _OPENMP
@@ -2312,6 +2387,44 @@ namespace OpenMS
 #else
       const int num_threads = 1;
 #endif
+
+      // Peptide-mass mode: the m/z ranges of the entries that querySpectrumPeptideMasses_() looks up for the spectra. For
+      // every precursor window [lo, hi] of a spectrum (in the query's float arithmetic; a NaN bound or no searched spectrum
+      // leaves every entry in) and every shift s of mod_shifts_, the query looks the entries in [lo - s - margin, hi - s + margin]
+      // up; widened here by a margin of its own for a different rounding of the same expressions (an entry kept needlessly
+      // costs memory only, an entry left out wrongly would change the results). The windows are merged first: the charges
+      // and isotope errors of neighbouring precursors overlap, and the margin of a merged window, computed from its wider
+      // bounds, is at least that of each window in it (the expressions are monotonic in their operands).
+      EntryReach_ entry_reach;
+      if (spectra && is_peptide_mass_mode_)
+      {
+        std::vector<std::pair<float, float>> windows;
+        if (precursorWindows_(*spectra, false, windows))
+        {
+          size_t merged = 0;
+          for (const std::pair<float, float>& window : windows)
+          {
+            if (merged > 0 && window.first <= windows[merged - 1].second) { windows[merged - 1].second = std::max(windows[merged - 1].second, window.second); }
+            else { windows[merged++] = window; }
+          }
+          windows.resize(merged);
+          entry_reach.ranges.reserve(windows.size() * mod_shifts_.size());
+          for (const auto& [lo, hi] : windows)
+          {
+            // the look-up bounds of querySpectrumPeptideMasses_()
+            const float margin = 8.0f * std::numeric_limits<float>::epsilon() * std::max(std::abs(lo), std::abs(hi)) + 1.5e-4f;
+            for (const ModShift_& shift : mod_shifts_)
+            {
+              const float s = static_cast<float>(shift.sigma);
+              const float range_lo = lo - s - margin;
+              const float range_hi = hi - s + margin;
+              entry_reach.ranges.emplace_back(range_lo - (1e-3f + 1e-6f * std::fabs(range_lo)), range_hi + (1e-3f + 1e-6f * std::fabs(range_hi)));
+            }
+          }
+          entry_reach.finish();
+        }
+      }
+      size_t unreachable_entries = 0; // left out in the counting pass
       const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
       const size_t num_peptides = fi_peptides_.size();
       const SignedSize num_portions = static_cast<SignedSize>((num_peptides + portion_size - 1) / portion_size);
@@ -2364,7 +2477,9 @@ namespace OpenMS
       // For modified peptides: reconstruct per-residue deltas from bitmask + mod tables.
       // No AASequence construction, no ModifiedPeptideGenerator.
       // mod_masses: buffer for the per-residue mass deltas, kept by the caller (no allocation per peptide)
-      const auto generate_fragments_of = [&](const size_t peptide_idx, vector<double>& mod_masses, auto& fragment_sink, auto& electron_sink)
+      // unreachable: counts the entries left out because no spectrum reaches them (peptide-mass mode)
+      const auto generate_fragments_of = [&](const size_t peptide_idx, vector<double>& mod_masses, auto& fragment_sink, auto& electron_sink,
+                                             size_t& unreachable)
       {
         const Peptide& pep = fi_peptides_[peptide_idx];
         const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
@@ -2372,10 +2487,10 @@ namespace OpenMS
 
         if (is_peptide_mass_mode_)
         {
-          // mother: one entry per prefix that the query can realize (that passes peptide:motif), holding its (M+H)+
-          // with fixed modifications (the mass generatePeptides() would give the unmodified peptide) and, with
-          // entry_sites_, an upper bound of its variable modification sites (buildModSlots_() makes at most one
-          // slot per terminal modification and per modification of each residue)
+          // mother: one entry per prefix that the query can realize (that passes peptide:motif) and that a searched
+          // spectrum reaches (entry_reach), holding its (M+H)+ with fixed modifications (the mass generatePeptides() would
+          // give the unmodified peptide) and, with entry_sites_, an upper bound of its variable modification sites
+          // (buildModSlots_() makes at most one slot per terminal modification and per modification of each residue)
           uint32_t sites = static_cast<uint32_t>(variable_nterm_mods_.size() + variable_cterm_mods_.size());
           forEachPrefixMass_(seq_ptr, seq_len, [&](size_t length, double mass)
           {
@@ -2383,6 +2498,12 @@ namespace OpenMS
             const float mz = static_cast<float>(mass);
             if (length >= peptide_min_length_ && mz >= entry_min_mz && mz <= entry_max_mz && matchesMotif_(seq_ptr, length))
             {
+              // the same test in both passes: a function of the mass alone
+              if (entry_reach.active && !entry_reach.reaches(mz))
+              {
+                ++unreachable;
+                return true;
+              }
               const UInt32 entry = entry_sites_
                 ? (static_cast<UInt32>(peptide_idx) | (std::min(sites, ENTRY_MAX_SITES_) << ENTRY_SITES_SHIFT_))
                 : static_cast<UInt32>(peptide_idx);
@@ -2453,6 +2574,7 @@ namespace OpenMS
           vector<Peptide> run_entries;         // the kept entries of the current run
           vector<UInt32> run_positions;        // their positions within the portion's kept entries
           vector<uint32_t> tokens_a, tokens_b; // samePeptidoform_()
+          size_t unreachable = 0;
           const size_t size = fi_peptides_.size();
           #pragma omp for schedule(dynamic)
           for (SignedSize portion = 0; portion < num_portions; ++portion)
@@ -2477,7 +2599,7 @@ namespace OpenMS
               }
               if (!deduplicating)
               {
-                generate_fragments_of(peptide_idx, mod_masses, fragment_sink, electron_sink);
+                generate_fragments_of(peptide_idx, mod_masses, fragment_sink, electron_sink, unreachable);
                 continue;
               }
               const Peptide peptide = fi_peptides_[peptide_idx];
@@ -2510,12 +2632,17 @@ namespace OpenMS
               run_entries.push_back(peptide);
               run_positions.push_back(static_cast<UInt32>(kept));
               fi_peptides_[begin + kept] = peptide; // at or before peptide_idx
-              generate_fragments_of(begin + kept, mod_masses, fragment_sink, electron_sink); // the counter ignores the index
+              generate_fragments_of(begin + kept, mod_masses, fragment_sink, electron_sink, unreachable); // the counter ignores the index
               ++kept;
             }
             if (deduplicating) kept_count[portion] = kept;
             fragment_sink.flush();
             electron_sink.flush();
+          }
+          if (first_pass)
+          {
+            #pragma omp atomic
+            unreachable_entries += unreachable;
           }
         }
       };
@@ -2609,6 +2736,11 @@ namespace OpenMS
       electron_fragments_.resize(counts_to_positions(electron_positions));
       adviseHugePages(fi_fragments_);
       adviseHugePages(electron_fragments_);
+      if (entry_reach.active)
+      {
+        OPENMS_LOG_INFO << "The precursor windows of the spectra reach " << fi_fragments_.size() << " of "
+                        << (fi_fragments_.size() + unreachable_entries) << " prefix entries." << std::endl;
+      }
 
       // Second pass: write
       generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; }, false);
@@ -3003,12 +3135,13 @@ namespace OpenMS
              static_cast<float>(precursor_mass_tolerance_upper_)};
   }
 
-  void FragmentIndex::keepPeptidesInPrecursorWindows_(const MSExperiment& spectra)
+  bool FragmentIndex::precursorWindows_(const MSExperiment& spectra, const bool with_margin,
+                                        std::vector<std::pair<float, float>>& windows) const
   {
     // The windows of querySpectrum(), with its charges and isotope errors and the float arithmetic of
-    // searchDifferentPrecursorRanges() and getPeptidesInMassWindow(). The margin only covers a different
-    // rounding of the same expressions (e.g. fused multiply-adds in one place only); it is far smaller
-    // than a window.
+    // searchDifferentPrecursorRanges() and getPeptidesInMassWindow() (querySpectrumPeptideMasses_() computes the same
+    // expressions). The margin only covers a different rounding of the same expressions (e.g. fused multiply-adds in one
+    // place only); it is far smaller than a window.
     // The windows of the spectra in parallel, each thread those of a contiguous range of the spectra, joined in spectrum
     // order, and sorted in parallel (pairs of floats without NaN: equal ones are alike but for the sign of a zero, which no
     // comparison below tells apart). On one thread the 250,000 spectra of a timsTOF run took 0.12 s, mostly in the sort.
@@ -3040,9 +3173,18 @@ namespace OpenMS
             const float shifted_mass = precursor_mass
               + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
             const auto window = computeMassWindow_(shifted_mass);
-            const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
-            const float lo = shifted_mass + window.first - margin;
-            const float hi = shifted_mass + window.second + margin;
+            float lo, hi;
+            if (with_margin)
+            {
+              const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
+              lo = shifted_mass + window.first - margin;
+              hi = shifted_mass + window.second + margin;
+            }
+            else
+            {
+              lo = shifted_mass + window.first;
+              hi = shifted_mass + window.second;
+            }
             // a NaN bound gives the query an arbitrary peptide range: keep them all
             if (std::isnan(lo) || std::isnan(hi)) { part_nan[part] = 1; break; }
             windows.emplace_back(lo, hi);
@@ -3061,11 +3203,11 @@ namespace OpenMS
     for (int part = 0; part < num_parts; ++part)
     {
       if (part_errors[part]) { std::rethrow_exception(part_errors[part]); }
-      if (part_nan[part]) { return; }
+      if (part_nan[part]) { return false; }
       num_windows += part_windows[part].size();
     }
-    if (num_windows == 0) { return; } // nothing will be searched
-    std::vector<std::pair<float, float>> windows;
+    if (num_windows == 0) { return false; } // nothing will be searched
+    windows.clear();
     windows.reserve(num_windows);
     for (std::vector<std::pair<float, float>>& w : part_windows)
     {
@@ -3077,6 +3219,13 @@ namespace OpenMS
 #else
     std::sort(windows.begin(), windows.end());
 #endif
+    return true;
+  }
+
+  void FragmentIndex::keepPeptidesInPrecursorWindows_(const MSExperiment& spectra)
+  {
+    std::vector<std::pair<float, float>> windows;
+    if (!precursorWindows_(spectra, true, windows)) { return; } // unknown windows: keep every peptide
 
     // Moves the peptides of the merged windows to the front, in their order (the windows ascend).
     const size_t num_peptides = fi_peptides_.size();
