@@ -23,6 +23,7 @@
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
 #include <functional>  // std::hash (ProteinMapping_), std::function (loadSpectra)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
+#include <limits>
 #include <map>
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
 #include <string_view>
@@ -1496,7 +1497,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     mutable PercolatorRescoring last_percolator_;
     bool keep_pre_fdr_psms_ = false; ///< see setKeepPreFdrPsms()
     /// Set by the multi-file searches with 'rescore' while their files are searched: the PSMs of each file before the
-    /// rescoring are kept (SearchResult::pre_fdr_peptide_ids) and its proteins are not reduced to those of its PSMs yet,
+    /// rescoring are kept (SearchResult::pre_fdr_peptide_ids; of a file rescored on its own only those that may train
+    /// the transferred model, see limitPreRescoringPsms_()) and its proteins are not reduced to those of its PSMs yet,
     /// for rescoreFilesTogether_()
     mutable bool pool_rescoring_ = false;
     /// Whether a search keeps the PSMs of each file before the rescoring (SearchResult::pre_fdr_peptide_ids)
@@ -1709,6 +1711,41 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// a smaller stratum does not fill going to the others (water filling); all of every stratum below the cap
     static std::vector<Size> stratifiedQuotas_(const std::vector<Size>& sizes, Size cap);
 
+    /// Helper: whether the file of @p pf was searched and Percolator rescored it on its own (with 'rescore')
+    static bool rescoredOnItsOwn_(const SearchResult& pf);
+
+    /// Of a file of a multi-file search with 'rescore' that Percolator rescored on its own: what rescoreFilesTogether_()
+    /// needs of its PSMs before the rescoring to train the model for the files it could not rescore on their own
+    struct TransferStratum_
+    {
+      Size psms = 0; ///< its PSMs with hits (the size of its stratum, stratifiedQuotas_())
+      int min_charge = std::numeric_limits<int>::max(); ///< the lowest precursor charge of their hits (charge features)
+      int max_charge = std::numeric_limits<int>::min(); ///< the highest
+      /// per PSM of the file's SearchResult::pre_fdr_peptide_ids: its place in the reproducible random order in which
+      /// the training draws the PSMs with hits (the training takes the first stratifiedQuotas_() of them); the
+      /// largest Size for a PSM without hits
+      std::vector<Size> draw;
+    };
+
+    /**
+      @brief In a multi-file search with 'rescore' (pool_rescoring_), right after the last file of @p per_file was
+      searched and rescored (or not) on its own: keeps of its PSMs before the rescoring (and of those of the files before
+      it) only what rescoreFilesTogether_() may need.
+
+      A file that Percolator could not rescore on its own keeps all of them (for its scores of the transferred model, or
+      of all files rescored together); they are few by definition. Of a file that it rescored on its own, only the PSMs
+      that may train the transferred model are needed, and @p strata gets the file's TransferStratum_: its PSMs with
+      hits in a reproducible random order (Math::RandomShuffler with the seed file position + 1), of which the training
+      takes the first, as many as the file's quota (stratifiedQuotas_() of the files rescored on their own, cap
+      percolator:max_train_psms). Files searched later only lower the quotas: no quota exceeds the largest quota of the
+      files rescored on their own so far (the water level of a set of strata above the cap does not rise when strata are
+      added). So each of these files keeps the PSMs below that level, at most about percolator:max_train_psms of all of
+      them together, whatever the number of files, and the training PSMs are the same as if all were kept. Everything
+      is kept with setKeepPreFdrPsms() (the copies are returned) and with percolator:max_train_psms 0 (the model
+      trains on all PSMs of these files).
+    */
+    void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, std::vector<TransferStratum_>& strata) const;
+
     /**
       @brief The end of a multi-file search with 'rescore' (with pool_rescoring_), for the files with PSMs that Percolator
       could not rescore on their own (e.g. fewer than 100 PSMs, or no decoy PSM).
@@ -1716,7 +1753,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       The files that Percolator rescored on their own keep their results. If there are some, a Percolator model is
       trained (Percolator::trainPSMs()) on their PSMs before the rescoring (SearchResult::pre_fdr_peptide_ids), at most
       'percolator:max_train_psms' of them, an equal share of each file (stratifiedQuotas_(); reproducible random
-      spectra of each), and scores the other files (Percolator::scorePSMs()): on the scale of its training PSMs (the
+      spectra of each, the first of their order in @p strata, see limitPreRescoringPsms_()), and scores the other files (Percolator::scorePSMs()): on the scale of its training PSMs (the
       score a PSM would get among them, their PEP at that score). If Percolator rescored no file on its own, the PSMs of
       all files are rescored together, with one cross-validated model (rescoreWithPercolator(), with the cap).
       Back in its file, each PSM gets the q-value of target-decoy competition of the file's PSMs on the model's SVM
@@ -1726,7 +1763,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       any case the proteins of each file become those of its PSMs and the copies are released (unless
       setKeepPreFdrPsms()).
     */
-    void rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const;
+    void rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files,
+                               const std::vector<TransferStratum_>& strata) const;
 
     /// Helper: copies of the PSMs of @p peptide_ids whose q-values (main scores) are above @p psm_fdr and at most
     /// FDR:protein_inference_PSM, appended to @p inference_only_psms (nothing if that cutoff is not above @p psm_fdr).

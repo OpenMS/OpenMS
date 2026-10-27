@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -171,6 +172,8 @@ public:
   using ProSEAlgorithm::stratifiedQuotas_;
   using ProSEAlgorithm::tdcQValues_;
   using ProSEAlgorithm::collectRunStatistics_;
+  using ProSEAlgorithm::TransferStratum_;
+  using ProSEAlgorithm::limitPreRescoringPsms_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -6355,6 +6358,172 @@ START_SECTION((static std::vector<Size> stratifiedQuotas_(const std::vector<Size
   TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({500, 500}, 300) == (std::vector<Size>{150, 150}))
   TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 0) == (std::vector<Size>{10, 1000, 100}))
   TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 1110) == (std::vector<Size>{10, 1000, 100}))
+}
+END_SECTION
+
+START_SECTION((void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, std::vector<TransferStratum_>& strata) const))
+{
+  // Four files, searched one after the other (cap 40): a file rescored on its own keeps of its PSMs before the
+  // rescoring only those below the largest quota of the files rescored on their own so far, the first of its random
+  // order; a file that Percolator could not rescore on its own keeps all. At the end, each file rescored on its own has
+  // exactly the PSMs the training takes of it (as rescoreFilesTogether_() drew them before it kept all): its
+  // quota of the four, the first of its PSMs with hits shuffled with the seed file position + 1, in file order.
+  const auto make_file = [](Size psms, bool own, Size without_hits, int charges)
+  {
+    ProSEAlgorithm::SearchResult pf;
+    pf.protein_ids.resize(1);
+    pf.percolator.applied = own;
+    for (Size r = 0; r < psms + without_hits; ++r)
+    {
+      PeptideIdentification id;
+      id.setSpectrumReference("scan=" + std::to_string(r));
+      if (r % 7 != 3 || r / 7 >= without_hits) // (the PSMs without hits among the others)
+      {
+        PeptideHit hit;
+        hit.setSequence(AASequence::fromString("PEPTIDEK"));
+        hit.setCharge(2 + static_cast<int>(r) % charges);
+        id.insertHit(hit);
+      }
+      pf.pre_fdr_peptide_ids.push_back(id);
+    }
+    return pf;
+  };
+  const std::vector<Size> psms = {50, 30, 60, 10};
+  const std::vector<bool> own = {true, false, true, true};
+  const std::vector<Size> without_hits = {3, 0, 2, 0};
+  const std::vector<int> charges = {4, 1, 2, 1};
+  // the spectra of a file's PSMs
+  const auto spectra = [](const PeptideIdentificationList& ids)
+  {
+    std::vector<std::string> out;
+    for (const PeptideIdentification& id : ids) { out.push_back(id.getSpectrumReference()); }
+    return out;
+  };
+  ProSEAlgorithm_test algo;
+  Param p = algo.getParameters();
+  p.setValue("percolator:max_train_psms", 40);
+  algo.setParameters(p);
+  std::vector<ProSEAlgorithm::SearchResult> per_file;
+  std::vector<ProSEAlgorithm_test::TransferStratum_> strata;
+  std::vector<Size> kept; // after each file, the PSMs kept of the files so far
+  for (Size i = 0; i < psms.size(); ++i)
+  {
+    per_file.push_back(make_file(psms[i], own[i], without_hits[i], charges[i]));
+    algo.limitPreRescoringPsms_(per_file, strata);
+    for (const ProSEAlgorithm::SearchResult& pf : per_file) { kept.push_back(pf.pre_fdr_peptide_ids.size()); }
+  }
+  // file 0 alone: its quota 40; file 1 not rescored: all of it; then quotas 20 + 20 of 50 and 60; then 15 + 15 + 10
+  TEST_TRUE(kept == (std::vector<Size>{40, 40, 30, 20, 30, 20, 15, 30, 15, 10}))
+  ABORT_IF(strata.size() != 4)
+  const std::vector<Size> quotas = ProSEAlgorithm_test::stratifiedQuotas_({50, 60, 10}, 40);
+  TEST_TRUE(quotas == (std::vector<Size>{15, 15, 10}))
+  for (Size i : {Size(0), Size(2), Size(3)})
+  {
+    TEST_EQUAL(strata[i].psms, psms[i])
+    // the training's draw: the PSMs with hits shuffled with the seed i + 1, the first of them, in file order
+    const ProSEAlgorithm::SearchResult all = make_file(psms[i], true, without_hits[i], charges[i]);
+    std::vector<Size> rows;
+    for (Size r = 0; r < all.pre_fdr_peptide_ids.size(); ++r)
+    {
+      if (!all.pre_fdr_peptide_ids[r].getHits().empty()) { rows.push_back(r); }
+    }
+    const Size quota = quotas[i == 0 ? 0 : i - 1];
+    if (quota < rows.size())
+    {
+      Math::RandomShuffler(static_cast<int>(i + 1)).portable_random_shuffle(rows.begin(), rows.end());
+      rows.resize(quota);
+      std::sort(rows.begin(), rows.end());
+    }
+    std::vector<std::string> drawn;
+    for (Size r : rows) { drawn.push_back(all.pre_fdr_peptide_ids[r].getSpectrumReference()); }
+    TEST_TRUE(spectra(per_file[i].pre_fdr_peptide_ids) == drawn)
+    // the charges of all its PSMs, also those not kept
+    TEST_EQUAL(strata[i].min_charge, 2)
+    TEST_EQUAL(strata[i].max_charge, 1 + charges[i])
+  }
+  TEST_TRUE(spectra(per_file[1].pre_fdr_peptide_ids) == spectra(make_file(30, false, 0, 1).pre_fdr_peptide_ids))
+  TEST_TRUE(strata[1].draw.empty())
+
+  // All PSMs are kept with setKeepPreFdrPsms() (they are returned) and without a cap (all train).
+  ProSEAlgorithm_test keeping, uncapped;
+  keeping.setParameters(p);
+  keeping.setKeepPreFdrPsms(true);
+  p.setValue("percolator:max_train_psms", 0);
+  uncapped.setParameters(p);
+  for (ProSEAlgorithm_test* algo_all : {&keeping, &uncapped})
+  {
+    per_file.clear();
+    strata.clear();
+    for (Size i = 0; i < psms.size(); ++i)
+    {
+      per_file.push_back(make_file(psms[i], own[i], without_hits[i], charges[i]));
+      algo_all->limitPreRescoringPsms_(per_file, strata);
+    }
+    for (Size i = 0; i < psms.size(); ++i) { TEST_EQUAL(per_file[i].pre_fdr_peptide_ids.size(), psms[i] + without_hits[i]) }
+    TEST_EQUAL(strata[2].draw.size(), 62)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] with a training cap, a multi-file search keeps only the PSMs the transferred model may train on, and the transfer is the same as with all))
+{
+  // A run given twice, rescored on its own each time, and a small file between that Percolator cannot rescore on its
+  // own; the transferred model trains on at most 600 PSMs (300 of each). The search keeps only the PSMs that may train
+  // it (unless it returns the copies, setKeepPreFdrPsms()); the small file gets the same scores either way.
+  PeakMap all, small;
+  FileHandler().loadExperiment(merge_spectra_file, all, {FileTypes::MZML});
+  for (const MSSpectrum& spectrum : all)
+  {
+    if (spectrum.getMSLevel() == 2 && small.size() < 60) { small.addSpectrum(spectrum); }
+  }
+  std::string small_file;
+  NEW_TMP_FILE_EXT(small_file, ".mzML")
+  FileHandler().storeExperiment(small_file, small, {FileTypes::MZML});
+  const StringList files = {merge_spectra_file, small_file, merge_spectra_file};
+  // the PSMs as (spectrum, sequence, score, SVM score, PEP)
+  const auto psms = [](const PeptideIdentificationList& ids)
+  {
+    std::vector<std::tuple<std::string, std::string, double, double, double>> out;
+    for (const PeptideIdentification& id : ids)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        out.emplace_back(id.getSpectrumReference(), hit.getSequence().toString(), hit.getScore(),
+                         double(hit.getMetaValue("MS:1001492")), double(hit.getMetaValue("MS:1001493")));
+      }
+    }
+    return out;
+  };
+  std::vector<ProSEAlgorithm::MultiFileSearchResult> results;
+  for (const bool keep : {false, true})
+  {
+    ProSEAlgorithm algo;
+    configure_merge(algo, "generate");
+    Param p = algo.getParameters();
+    p.setValue("percolator:max_train_psms", 600);
+    p.setValue("FDR:PSM", 0.0); // all PSMs, also all of the small file
+    algo.setParameters(p);
+    algo.setKeepPreFdrPsms(keep);
+    results.push_back(algo.searchWithModificationAnalysis(files, merge_database_file));
+    ABORT_IF(results.back().per_file.size() != 3)
+  }
+  const ProSEAlgorithm::MultiFileSearchResult& sampled = results[0];
+  const ProSEAlgorithm::MultiFileSearchResult& kept = results[1];
+  const std::string transferred = "Percolator could not rescore this input on its own";
+  for (Size i : {Size(0), Size(2)})
+  {
+    TEST_TRUE(sampled.per_file[i].percolator.applied)
+    TEST_FALSE(sampled.per_file[i].percolator.warning.starts_with(transferred))
+  }
+  TEST_TRUE(sampled.per_file[1].percolator.warning.starts_with(transferred))
+  // the files rescored on their own have more PSMs than the cap (so that the search kept only a sample of each)
+  TEST_TRUE(kept.per_file[0].pre_fdr_peptide_ids.size() + kept.per_file[2].pre_fdr_peptide_ids.size() > 1000)
+  for (Size i = 0; i < 3; ++i)
+  {
+    TEST_TRUE(sampled.per_file[i].pre_fdr_peptide_ids.empty()) // released at the end
+    TEST_FALSE(sampled.per_file[i].peptide_ids.empty())
+    TEST_TRUE(psms(sampled.per_file[i].peptide_ids) == psms(kept.per_file[i].peptide_ids))
+  }
 }
 END_SECTION
 
