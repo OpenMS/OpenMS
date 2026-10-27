@@ -2,7 +2,11 @@
 
 **Historical snapshot, 26 October 2026.** Implementation `4024bc8325d4fecc35a300891ec7937d10c35624`, native Release (`-O3 -DNDEBUG`). The tables below map the [WP-02 contract](work-packages/02-resource-budget.md) and [WP-03 contract](work-packages/03-raw-tiles.md) at that revision, including unmet requirements. They are not claims that later vendor/read-only work is absent. Current native/read-only and known-size admission results are in [WP-05](work-packages/05-shared-extraction.md); the prior whole-stack replay is recorded below. A passing local primitive or generated-fixture check is not a passing whole-engine gate.
 
-## Latest scoped validation, 27 October 2026
+## Current validation, 27 October 2026
+
+`f9f42ff6c6` now consumes calibrated regions in actual tiled extraction. All twelve native outputs match, and 192 public/installed tests pass. Extraction copies fall to zero, but the first sequential pair is slower. See [current complete acceptance and limits](#calibrated-region-consumer-acceptance-27-october-2026). The sections below retain earlier observations at their original revisions.
+
+## Prior contract validation, 27 October 2026
 
 After the whole-stack replay below, `6495579dde` adds the private native column contract and `c64e647997` fixes shared calibration array-owner churn. The actual vendor-enabled Release tool and six affected tests rebuild and pass. Direct region-to-source/extractor comparisons pass for Bruker 25 maps / 75 sampled acquisitions and Thermo 301 maps / 903 sampled acquisitions, with exact identity/columns, edge/failure/lease checks mapped in the [contract observations](native-region-contract.md#observed-requirement-to-check-mapping-27-october-2026).
 
@@ -164,3 +168,19 @@ ctest --test-dir ../OpenMS-wp03-release-build/installed-consumer/build --output-
 Local command vectors, test selection, native/nested/verbose logs and reopened-output observations are retained in `representative-1312/acceptance-recheck-1908`; full process evidence remains in `scoring-balanced-1740`, `scoring-acceptance-1740` and `current-128-1900`. Raw evidence sanitization/publication is still a follow-up, so these local artifacts are not presented as downloadable public evidence.
 
 **Decision:** the local lifetime repair and one-input full-output parity are verified. WP-02/WP-03 as complete packages are **not accepted**. Retain the native-geometry, broader-cohort, repeated-decode, automatic 128 MiB scheduling, global-accounting and downstream acceptance gates above. No source change, cap inflation, scientific truncation, merge or issue closure is justified by this replay. Keep branches stacked and obtain owner approval only after combined-design validation.
+
+## Calibrated region consumer acceptance, 27 October 2026
+
+Final implementation `f9f42ff6c6` integrates the private calibrated region consumer into actual tiled MS1/MS2 extraction. The complete requirement-to-check mapping is in [native region acceptance](native-region-contract.md#calibrated-production-consumer-27-october-2026).
+
+- Actual vendor-enabled Release targets build. The final 192-test selection passes, including real CLI workflows and 43 installed-consumer install/configure/build/run steps. Twelve verbose boundary tests and six fresh installed consumers also pass. These checks cover the new generic extraction hook and calibration getters, not just copied source.
+- Exact chromatogram RT/intensity comparisons pass on real repository mzML/IM fixtures and direct calibrated Bruker/Thermo samples. Each native sample uses three maps and first/middle/last acquisitions. This does not establish complete Thermo scientific parity.
+- Cache identity, calibration changes, source isolation, endpoint/reduction order, missing IM, malformed requests, admission refusal, overflow, retained lifetime, cancellation and final zero pass through the real consumer.
+- Both commands in one frozen-control/current-candidate full native Bruker pair exit zero. Export, all eight feature/score tables and all three matrices match the native normal reference. Finite nonzero mobility evidence, scores and quantities are preserved. Input, library, science, threads and byte cap are unchanged. No intermediate conversion occurs.
+- MS1/MS2 extraction detached copies fall from 744/703 to 0/0. Extraction copied numeric bytes fall from 7,817,201,784 to zero. All ten phase fields reconcile, with zero unclassified work. Scoring copies remain 9,432.
+- Candidate retained peak is 201,325,702 <= 201,326,592 bytes. Final live bytes are zero. Native workspace and output allocations remain outside this retained-column cap.
+- Wall time is 211.22 to 220.56 s and user CPU is 216.74 to 223.65 s. RSS is 1,244,904 to 1,082,332 KiB. This single sequential pair is 4.42% slower with 13.06% lower observed RSS. Total decodes rise from 10,743 to 11,018. It accepts compatibility and copy removal, not faster random access or a global memory bound.
+
+Initial build-interface errors and the first 191/192 replay remain in local evidence. The sole public failure was the oversized-scan diagnostic. The implementation restored that diagnostic, kept the public test unchanged and passed the final complete selection. No failed result was rewritten as a pass.
+
+Local `wp05-region-consumer-20261027` contains `public-replay-initial`, `public-replay/complete.json`, focused/build logs, frozen control libraries, `before/results.json`, `after/results.json`, `acceptance.log` and `comparison.json`. The next bounded experiment is physical-frame reuse, not another unrestricted replay campaign. Full Thermo science, cold-index isolation, native runtime packaging, automatic low-cap admission and competitor-quality acceptance remain open.

@@ -1,6 +1,6 @@
-# Native column-region contract: first implementation slice
+# Native column-region contract and calibrated extraction
 
-This is an OpenDIA-owned point-storage/query contract, not a completed engine, frame decoder, calibration adapter or claim of faster identification. The default CLI still uses the previous access/extraction/scoring path.
+The OpenDIA CLI now consumes this private contract for tiled MS1/MS2 tophat extraction, including quadratic and ppm calibration. Scoring retains the shared workflow. This is not a physical-frame decoder or a proven runtime improvement. Other read modes, unsupported wrappers and non-tophat filters retain the shared extractor.
 
 ## Inspiration and deliberate differences
 
@@ -29,13 +29,13 @@ The existing native Bruker random reader decodes and sorts a full frame for each
 
 A full native CPU profile first identified a smaller immediate bottleneck: 75.61% of self user-CPU samples in `SpectrumAccessQuadMZTransforming::getSpectrumById`, dominated by repeated shared-owner array getters inside the calibration loop. `c64e647997` removes that churn without changing calibration arithmetic. This is a generic shared hot-path correction, not evidence that the new region already drives the CLI or that a neural classifier is needed.
 
-Next connect one calibrated extraction/scoring consumer to the region contract, retaining complete wider-IM evidence. Profile that real path before choosing frame/block reuse, fused traversal or a new scorer. The replaceable native producer must eventually reuse a decoded physical region across relevant isolation/IM requests where measurements justify it. Account for index construction and workspace. Do not hide a converted run or truncate candidates. Compatibility changes require the unchanged twelve-output CLI comparison; deliberately new model science follows its independent quality gates.
+The calibrated extraction consumer is now integrated. Its complete native comparison preserves all twelve outputs but does not improve runtime in the first sequential pair. The next gate is bounded physical-frame reuse across actual Bruker lane requests, not another general accessor migration. Measure decoder calls, sorting, retained/workspace bytes and cold-inclusive runtime before expanding the backend. Preserve complete wider-IM scoring evidence. Do not hide conversion or truncate candidates. See [current integration acceptance](#calibrated-production-consumer-27-october-2026).
 
 ## Validation scope
 
 Use the actual out-of-tree vendor-enabled project build. Check real repository mzML/IM fixtures and direct native Bruker and sampled Thermo inputs through the producer and query consumer, comparing values/identity and ordinary interior-window sums with the existing native reader and actual extractor. Literal edge tests cover duplicate and endpoint behavior separately from the known legacy tophat edge defects. Check malformed requests, missing/unit-mismatched IM, empty scans, limits, overflow, cancellation, unchanged outputs on failure and retained-view/final-release behavior.
 
-Cold source-open/index construction is not isolated by the current checks. Optional native output includes retained capacity and repeated batch-query diagnostics, not a comparative throughput result. These diagnostics are not an end-to-end engine speedup. Full Thermo science, calibration/scoring integration, automatic low-cap admission, whole-process resource bounds and competitive engine acceptance remain open.
+Cold source-open/index construction is not isolated by the contract checks. The full CLI pair includes source opening but does not separate OS-cold index costs. Full Thermo science, scoring integration, automatic low-cap admission, whole-process resource bounds and competitive engine acceptance remain open.
 
 ## Observed requirement-to-check mapping, 27 October 2026
 
@@ -50,3 +50,24 @@ Implementation `6495579dde` adds only the three private contract files and their
 | Compatibility of the separate shared calibration fix | Quadratic and ppm arithmetic, clone behavior, empty spectra, unchanged source arrays and intensities pass in the actual transformation test. Existing raw mutable-isolation/fallback, extraction, scoring and native failure tests also pass. Full CLI observation is recorded in [WP-05](work-packages/05-shared-extraction.md#native-region-contract-and-calibration-hotspot). |
 
 Local evidence lives under `wp05-data-contract-20261027`: `native-region-acceptance.log`, `native-region-thermo.log`, `calibration-build.log`, `calibration-tests.log` and the frozen/optimized native profile records. The first profile had concurrent-library provenance failure. The second completed science but its DWARF report observer timed out; `recovered-observation.json` separately verifies unchanged frozen library hashes, all twelve outputs, private cap/final release and the recovered flat report, leaving the original failed observer unchanged.
+
+## Calibrated production consumer, 27 October 2026
+
+`afba309299` connects `OpenDIA::RegionWorkflow` to the real CLI. `f9f42ff6c6` preserves the existing oversized-scan diagnostic after the public failure test exposed a mismatch. The implementation remains private to OpenDIA. A generic protected extraction hook and calibration snapshot getters preserve other shared workflow users.
+
+`RawAccess::acquireRegion` uses the existing bounded LRU and byte budget. Its key includes source, visible acquisition, caller context and every calibration coefficient. A decoded `MSSpectrum` becomes one exact-size immutable region. Calibration runs before publication, without detached `SpectrumPtr` arrays. Known capacities remain separate from legacy scan capacities. Pinned regions retain their charge after eviction or cancellation. Decoder/sort/control workspace and chromatogram outputs remain outside the retained-column cap.
+
+The private consumer preserves strict-open m/z/IM windows, closed RT windows and the reference center/descending-left/ascending-right addition order. A literal sum test with floating-point cancellation distinguishes that order from ascending accumulation. Scoring still receives complete native evidence through its existing path. No narrower extraction window replaces wider scoring evidence.
+
+| Requirement / changed output | Executed observation on final `f9f42ff6c6` |
+| --- | --- |
+| Actual calibrated extraction | Real indexed mzML/IM fixtures match exact chromatogram RT/intensity arrays against the shared extractor, with quadratic/ppm calibration and Th/ppm widths. Direct Bruker and Thermo checks sample first/middle/last acquisitions from three maps per vendor. Both pass without conversion. This is not full Thermo science. |
+| Cache identity and admission | Changed coefficients miss under the same caller namespace. Legacy reads retain native masses. Clone reuse, pinned ownership, final zero, tiny admission failure, overflow, invalid context/calibration and cancellation pass. |
+| Public interfaces and failure behavior | 192 public/native/CLI/installed tests pass, including 43 installed-consumer steps. Twelve verbose boundary tests and six fresh installed consumers pass. Initial 191/192 result and compiler-interface failures remain retained. The oversized-scan public test passes unchanged after the diagnostic fix. |
+| Complete scientific workflow | Frozen control and candidate each run the unchanged full native Bruker command with 4,000 precursors, 24,000 transitions and eight threads. All twelve outputs match the native normal reference, including nonzero IM, scores and quantities. Only established run/file/feature identities are normalized. |
+| Actual region dispatch | MS1/MS2 extraction detached copies fall from 744/703 to 0/0. Copied numerical bytes fall from 7,817,201,784 to zero. All ten phase fields reconcile and unclassified fields remain zero. Scoring copies remain 9,432. |
+| Resource and runtime result | One sequential uninstrumented pair: wall 211.22 to 220.56 s, user CPU 216.74 to 223.65 s, RSS 1,244,904 to 1,082,332 KiB. Candidate retained peak 201,325,702 <= 201,326,592 bytes, final live zero. No conversion or cap increase. |
+
+This accepts the compatible integration, not a faster backend. Observed wall time rises 4.42% while RSS falls 13.06%. Total decodes rise from 10,743 to 11,018. Separate compact extraction and legacy scoring representations can compete for the same LRU. Parallel ordering also affects counts. Do not infer fewer physical decodes or a process-memory guarantee from zero extraction copies.
+
+Local `wp05-region-consumer-20261027` retains frozen control libraries, both complete commands, hashes/provenance, twelve-output comparisons, phase counters and test logs. `comparison.json`, `before/results.json`, `after/results.json` and `public-replay/complete.json` describe the final accepted state. The next bounded gate is physical-frame reuse, with an unchanged-output comparison and a lower cold-inclusive cost required before calling it faster.

@@ -118,11 +118,35 @@ The unchanged frozen control completes in 309.34 s, user CPU 1,124.07 s, RSS 1,0
 
 The actual complete 4,000-precursor / 24,000-transition native Bruker tiled256 command, science and eight-thread settings are unchanged except output paths. Engine/wrapper exit zero. All twelve outputs match the native normal reference: export 4,699; FEATURE / MS1 / MS2 4,716 each; PRECURSOR 14,409; TRANSITION 28,296; SCORE_MS2 / PEPTIDE / PROTEIN 4,699 / 3,287 / 1,871; precursor / peptide / protein matrices 942 / 942 / 251. IDs, evidence, finite nonzero IM, scores and quantities match under the existing normalization/tolerance rules. All ten phase fields reconcile; unclassified zero. Cache hits/misses/evictions 2,469 / 10,808 / 10,790; private peak 201,326,386 <= 201,326,592 bytes; final live zero. Executable SHA remains unchanged because the correction is in the rebuilt shared core library; actual loaded library paths and before/after library hashes were checked. Local `comparison.json` separates this source revision from the preserved control executable revision.
 
-This is a real observed runtime improvement for the compatibility path, **not** a speed claim for the unintegrated region contract or a quality-matched competitor comparison. New region consumption, cold native index costs, complete frame reuse, whole-process memory, clean-machine Thermo packaging, full Thermo science and competitive quality remain open. Next implement one calibrated region-to-extraction/scoring consumer, then use its profile to decide frame/sort reuse or fused traversal. Do not infer that a neural classifier is the present bottleneck from raw-work phase ownership.
+This was a real observed runtime improvement for the compatibility path, not a speed claim for the then-unintegrated region contract or a quality-matched competitor comparison. The calibrated extraction integration below is now complete. Its first pair does not improve runtime. Cold native index costs, physical-frame reuse, scoring copies, whole-process memory, clean-machine Thermo packaging, full Thermo science and competitive quality remain open. Do not infer that a neural classifier is the present bottleneck from raw-work phase ownership.
+
+## Calibrated region extraction integration
+
+`afba309299` and diagnostic fix `f9f42ff6c6` connect private `OpenDIA::RegionWorkflow` to actual tiled MS1/MS2 extraction. Calibrated native columns retain immutable byte ownership without detached legacy arrays. A generic protected extraction hook and calibration snapshot getters preserve shared users. Other read modes, unsupported wrappers and non-tophat filters keep the reference extractor. Scoring is unchanged and retains wider mobility evidence.
+
+Final acceptance passes 192 public/CLI/installed tests, including 43 installed-consumer steps, twelve verbose boundary tests and six fresh installed consumers. Direct calibrated Bruker/Thermo samples match exact reference chromatograms. Invalid requests, cache calibration identity, native-source isolation, open m/z/IM endpoints, closed RT boundaries, floating-point addition order, admission, cancellation and last-owner release pass. The initial oversize diagnostic failure remains retained; its existing public test passes unchanged after the fix.
+
+One frozen-control/current-candidate pair runs the same complete native Bruker input, 4,000 precursors, 24,000 transitions, eight threads and private cap. Both commands exit zero. All twelve native outputs match. Row counts are export 4,699, FEATURE/MS1/MS2 4,716 each, PRECURSOR 14,409, TRANSITION 28,296, SCORE_MS2/PEPTIDE/PROTEIN 4,699/3,287/1,871 and matrices 942/942/251. Nonzero IM, scores and quantities remain preserved under existing identity/tolerance rules.
+
+| Observed quantity | Frozen control | Region consumer |
+| --- | ---: | ---: |
+| MS1/MS2 extraction detached copies | 744 / 703 | 0 / 0 |
+| Extraction copied numeric bytes | 7,817,201,784 | 0 |
+| Scoring detached copies | 9,432 | 9,432 |
+| Total decodes | 10,743 | 11,018 |
+| Wall seconds | 211.22 | 220.56 |
+| User CPU seconds | 216.74 | 223.65 |
+| Peak RSS, KiB | 1,244,904 | 1,082,332 |
+
+All ten phase fields reconcile. Unclassified fields are zero. Candidate retained peak is 201,325,702 <= 201,326,592 bytes, with final live zero. Before/after executable/library/input provenance is unchanged within each run. Both readers stay enabled, with no converted intermediate.
+
+**Decision:** accept the compatible extraction integration, not a faster backend. This sequential, unreplicated pair is 4.42% slower with 13.06% lower observed RSS. Separate extraction/scoring payloads can compete for the shared LRU, and scheduling affects cache counts. Do not claim improved physical random access from zero copies. Next test one bounded Bruker physical-frame producer across actual lane requests. Require fewer physical decodes and lower cold-inclusive cost before calling it faster. Full Thermo science and competitor parity remain unverified.
+
+See [requirement-level checks and local evidence](../native-region-contract.md#calibrated-production-consumer-27-october-2026). No repeated benchmark matrix or scorer replacement is part of this increment.
 
 ## Next increment
 
-**Superseded implementation restriction, 27 October 2026:** the trace below remains evidence that mutable legacy aliases are unsafe, but its accessor-preserving four-step migration is now only a compatibility option. The owner explicitly authorizes replacing whole access/extraction/scoring components in `src/topp/OpenDIA/`. The immediate next step is the [native-region-to-real-score comparison](../performance-strategy.md), not mandatory migration through `ISpectrumAccess::SpectrumView`. New scientific scorers use independent quality gates rather than exact old-score equality. Keep all historical observations and failures intact.
+**Superseded implementation restriction, 27 October 2026:** the trace below remains evidence that mutable legacy aliases are unsafe, but its accessor-preserving four-step migration is now only a compatibility option. The owner explicitly authorizes replacing whole access/extraction/scoring components in `src/topp/OpenDIA/`. The calibrated extraction slice above is complete. The next implementation is the bounded physical-frame gate in the [performance strategy](../performance-strategy.md), not mandatory migration through `ISpectrumAccess::SpectrumView`. New scientific scorers use independent quality gates rather than exact old-score equality. Keep all historical observations and failures intact.
 
 ### Scoring-boundary trace, 27 October 2026
 
