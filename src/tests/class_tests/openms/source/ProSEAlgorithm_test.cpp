@@ -8175,7 +8175,7 @@ START_SECTION((static void stratumQValues(PeptideIdentificationList& peptide_ids
   {
     std::mt19937 rng(with_nan ? 7 : 3);
     PeptideIdentificationList many;
-    for (Size i = 0; i < 70000; ++i)
+    for (Size i = 0; i < 80000; ++i) // (stratum 'other' above 65,536 rows: the parallel stable sort without NaN)
     {
       PeptideHit hit;
       hit.setSequence(AASequence::fromString("PEPTIDEK"));

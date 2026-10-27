@@ -2934,6 +2934,27 @@ namespace OpenMS
     // and keepPeptideCTerm true; Decoy:non_shuffle_pattern "KRP", its default is empty) with @p digestor (the search enzyme, no missed cleavages,
     // full specificity): every segment is MRMDecoy::reversePeptideLight(segment, keepN, keepC, "KRP"). Residues not in
     // any segment (none for a digest that tiles the protein) stay in place.
+    // The first exception that a parallel loop caught (lowest index; others are dropped), rethrown after the loop: an
+    // exception must not leave an OpenMP region
+    struct FirstError
+    {
+      std::exception_ptr error;
+      SignedSize index = std::numeric_limits<SignedSize>::max();
+      void set(SignedSize i)
+      {
+#pragma omp critical (ProSEAlgorithm_firstError)
+        if (i < index)
+        {
+          index = i;
+          error = std::current_exception();
+        }
+      }
+      void rethrow() const
+      {
+        if (error) std::rethrow_exception(error);
+      }
+    };
+
     // A cleavage rule of the form "(?<=[KR])" with an optional "(?!P)" (Trypsin, Trypsin/P, Lys-C, Arg-C, ...; as
     // FragmentIndex's regex-free digest): a site after a residue of the first set unless the next one blocks it
     struct SegmentRule
@@ -4845,6 +4866,7 @@ namespace OpenMS
     // all spans of every sequence, ascending and once (2. and 3. may find spans of 1. again)
     // (grouped by entry through counts, then appended per entry in parallel: in the order of `extra` within an entry,
     // which the sort below makes irrelevant)
+    if (!extra.empty())
     {
       std::vector<Size> first(mapping.occurrences.size() + 1, 0);
       for (const auto& found : extra) ++first[std::get<0>(found) + 1];
@@ -4855,12 +4877,21 @@ namespace OpenMS
         for (const auto& [entry, protein, position] : extra) grouped[next[entry]++] = Occurrence(protein, position);
       }
       std::vector<std::tuple<Size, UInt32, UInt32>>().swap(extra);
+      FirstError error; // (an allocation failure)
 #pragma omp parallel for schedule(dynamic, 256)
       for (SignedSize k = 0; k < static_cast<SignedSize>(mapping.occurrences.size()); ++k)
       {
         if (first[k] == first[k + 1]) continue;
-        mapping.occurrences[k].insert(mapping.occurrences[k].end(), grouped.begin() + first[k], grouped.begin() + first[k + 1]);
+        try
+        {
+          mapping.occurrences[k].insert(mapping.occurrences[k].end(), grouped.begin() + first[k], grouped.begin() + first[k + 1]);
+        }
+        catch (...)
+        {
+          error.set(k);
+        }
       }
+      error.rethrow();
     }
 #pragma omp parallel for schedule(dynamic, 256)
     for (SignedSize k = 0; k < static_cast<SignedSize>(mapping.occurrences.size()); ++k)
@@ -6557,27 +6588,6 @@ namespace OpenMS
     // Met-clipped evidences) or 'other'; within each stratum the hits are ordered by percolator_score (ties: decoys
     // first), q = (decoys + 1) / max(targets, 1) from the top, made monotone from the bottom. Meta values
     // 'stratum' and 'stratum_q_value'; the main score stays the pooled q-value.
-    // The first exception that a parallel loop caught (lowest index; others are dropped), rethrown after the loop: an
-    // exception must not leave an OpenMP region
-    struct FirstError
-    {
-      std::exception_ptr error;
-      SignedSize index = std::numeric_limits<SignedSize>::max();
-      void set(SignedSize i)
-      {
-#pragma omp critical (ProSEAlgorithm_firstError)
-        if (i < index)
-        {
-          index = i;
-          error = std::current_exception();
-        }
-      }
-      void rethrow() const
-      {
-        if (error) std::rethrow_exception(error);
-      }
-    };
-
     void annotateStratumQValues(PeptideIdentificationList& peptide_ids)
     {
       // In parallel (serially ~1 s for a timsTOF run, by the meta value lookups by name): per spectrum, the stratum of
@@ -6670,7 +6680,8 @@ namespace OpenMS
         {
           // With NaN the comparison is no strict weak order, and the permutation depends on the algorithm's path (e.g.
           // on the temporary buffer it gets, counted in elements): the former sort of rows of the former size, exactly
-          // (the former Row held a PeptideHit* where this one holds the spectrum index).
+          // (the former Row held a PeptideHit* where this one holds the spectrum index). (Only the buffer that the heap
+          // grants can differ, as it could for the former code between runs.)
           struct Row { double score; bool decoy; SignedSize spectrum; };
           static_assert(sizeof(SignedSize) == sizeof(PeptideHit*) && alignof(SignedSize) == alignof(PeptideHit*), "rows of the former size");
           std::vector<Row> former(r.size());
