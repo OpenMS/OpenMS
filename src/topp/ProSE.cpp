@@ -2165,11 +2165,20 @@ class ProSE :
             {
               if (early_qpx_state[i] == 0)
               {
-                files = buildQPXRunFiles_(result.protein_ids, result.peptide_ids, qpx_runs_dir, basename, qpx_threads, /*pg_async=*/true);
-                qpx_writes.emplace_back(i, std::async(std::launch::async, [&files, &in_file, qpx_write_threads]()
+                files = buildQPXRunFiles_(result.protein_ids, result.peptide_ids, qpx_runs_dir, basename, qpx_threads, /*pg_async=*/qpx_threads > 1);
+                if (qpx_threads > 1)
                 {
-                  return writeQPXRunFiles_(files, in_file, qpx_write_threads);
-                }));
+                  // (files: early_qpx[i], in_file: in_list[i]; both outlive the write, which is joined below)
+                  qpx_writes.emplace_back(i, std::async(std::launch::async, [&files, &in_file, qpx_write_threads]()
+                  {
+                    return writeQPXRunFiles_(files, in_file, qpx_write_threads);
+                  }));
+                }
+                else // (one thread: here, as before)
+                {
+                  const auto written = writeQPXRunFiles_(files, in_file, 1);
+                  if (!(written.first && written.second)) { input_failed = true; }
+                }
               }
               else if (early_qpx_state[i] == 2) { input_failed = true; } // (logged there)
               if (files.psm)

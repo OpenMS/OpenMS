@@ -31,6 +31,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstdint>
+#include <exception>
 #include <functional>
 #include <limits>
 #include <map>
@@ -602,19 +603,29 @@ std::string qpxScanFormat(const std::vector<std::string>& native_ids, int thread
   if (threads > 1 && !omp_in_parallel()) { ranges = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(1, native_ids.size() / 4096))); }
 #endif
   std::vector<Range> parts(ranges);
+  std::exception_ptr error; // (exceptions must not leave the parallel region)
   #pragma omp parallel for num_threads(ranges) schedule(static) if(ranges > 1)
   for (int r = 0; r < ranges; ++r)
   {
-    Range& part = parts[r];
-    const size_t begin = native_ids.size() * r / ranges, end = native_ids.size() * (r + 1) / ranges;
-    for (size_t i = begin; i < end; ++i)
+    try
     {
-      const std::string fmt = qpxScanFormat(native_ids[i]);
-      if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
-      if (part.resolved.empty()) { part.resolved = fmt; }
-      else if (part.resolved != fmt) { part.conflict = fmt; break; }
+      Range& part = parts[r];
+      const size_t begin = native_ids.size() * r / ranges, end = native_ids.size() * (r + 1) / ranges;
+      for (size_t i = begin; i < end; ++i)
+      {
+        const std::string fmt = qpxScanFormat(native_ids[i]);
+        if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
+        if (part.resolved.empty()) { part.resolved = fmt; }
+        else if (part.resolved != fmt) { part.conflict = fmt; break; }
+      }
+    }
+    catch (...)
+    {
+      #pragma omp critical (ArrowIOHelpers_qpxScanFormat)
+      if (!error) { error = std::current_exception(); }
     }
   }
+  if (error) { std::rethrow_exception(error); }
   std::string resolved;
   for (const Range& part : parts)
   {
@@ -1040,14 +1051,12 @@ bool writeTableToParquet(
   }
   else
   {
-    // The same row groups (one per row_group_size rows, as WriteTable cuts them), each written as a buffered row
-    // group whose columns are encoded in parallel on a pool of this write (use_threads with an executor of its own:
-    // Arrow's global CPU pool has as many threads as the machine has hardware threads, whatever -threads says). The
-    // pool outlives the writer (Close() joins the column tasks).
+    // The same row groups as WriteTable cuts them, each written as a buffered row group whose columns are encoded in
+    // parallel on a pool of this write (use_threads with an executor of its own: Arrow's global CPU pool has as many
+    // threads as the machine has hardware threads, whatever -threads says). The pool outlives the writer (Close()
+    // joins the column tasks; the writer is destroyed before the pool is shut down).
     auto pool = arrow::internal::ThreadPool::Make(std::max(1, config.threads));
-    auto combined = table->CombineChunks(arrow::default_memory_pool()); // (one chunk: one batch per row group)
     if (!pool.ok()) { status = pool.status(); }
-    else if (!combined.ok()) { status = combined.status(); }
     else
     {
       auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->set_use_threads(true)
@@ -1057,15 +1066,30 @@ bool writeTableToParquet(
       if (!writer.ok()) { status = writer.status(); }
       else
       {
-        arrow::TableBatchReader reader(*combined.ValueOrDie());
-        reader.set_chunksize(config.row_group_size);
+        // The row groups of WriteTable: row_group_size rows each (at most the writer's max_row_group_length),
+        // whatever the chunks of the table are; a batch is a chunk or the rest of a group
+        const int64_t group_rows = std::max<int64_t>(1, std::min(config.row_group_size, writer_properties->max_row_group_length()));
+        arrow::TableBatchReader reader(*table);
+        reader.set_chunksize(group_rows);
         std::shared_ptr<arrow::RecordBatch> batch;
+        int64_t in_group = group_rows; // (full: the first batch opens a group)
         while (status.ok())
         {
           status = reader.ReadNext(&batch);
           if (!status.ok() || !batch) { break; }
-          status = writer.ValueOrDie()->NewBufferedRowGroup();
-          if (status.ok()) { status = writer.ValueOrDie()->WriteRecordBatch(*batch); }
+          for (int64_t offset = 0; status.ok() && offset < batch->num_rows();)
+          {
+            if (in_group == group_rows)
+            {
+              status = writer.ValueOrDie()->NewBufferedRowGroup();
+              in_group = 0;
+              if (!status.ok()) { break; }
+            }
+            const int64_t rows = std::min(batch->num_rows() - offset, group_rows - in_group);
+            status = writer.ValueOrDie()->WriteRecordBatch(*batch->Slice(offset, rows));
+            in_group += rows;
+            offset += rows;
+          }
         }
         if (status.ok()) { status = writer.ValueOrDie()->Close(); }
       }

@@ -18,6 +18,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdint>
+#include <exception>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -431,9 +432,12 @@ namespace OpenMS
 #endif
       std::vector<std::string> keys(static_cast<size_t>(rows)); // "" : the row's key is invalid (see its errors)
       std::vector<std::vector<std::pair<int64_t, std::string>>> range_errors(ranges);
+      std::exception_ptr error; // (exceptions must not leave the parallel region)
       #pragma omp parallel for num_threads(ranges) schedule(static) if(ranges > 1)
       for (int r = 0; r < ranges; ++r)
       {
+        try
+        {
         auto& errors = range_errors[r];
         const int64_t begin = rows * r / ranges, end = rows * (r + 1) / ranges;
         std::vector<int32_t> scans;
@@ -497,7 +501,14 @@ namespace OpenMS
           appendInteger(key, scans.size());
           for (const int32_t value : scans) { appendInteger(key, value); }
         }
+        }
+        catch (...)
+        {
+          #pragma omp critical (QPXValueValidation_validate)
+          if (!error) { error = std::current_exception(); }
+        }
       }
+      if (error) { std::rethrow_exception(error); }
       new_primary_keys.reserve(static_cast<size_t>(rows));
       for (int r = 0; r < ranges; ++r)
       {
