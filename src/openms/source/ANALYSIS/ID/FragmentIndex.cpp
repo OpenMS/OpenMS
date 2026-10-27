@@ -4046,13 +4046,24 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     precursorCharges(precursor, min_precursor_charge_, max_precursor_charge_, charges, search_outside_charges_);
 
     // The windows of the peaks; peak_windows[f - 1] holds those of the fragment charges 1..f, as queryPeaks()
-    // matches a precursor of charge z with the fragment charges 1..min(z, fragment:max_charge)
+    // matches a precursor of charge z with the fragment charges 1..min(z, fragment:max_charge). Only the levels f
+    // that a charge of this spectrum uses are built (one level for a spectrum with a known charge; the levels of the
+    // other spectra stay in the thread-local vector with stale contents, which the charge loop below never reads):
+    // every level costs a sort of its windows and a bitset of up to 512 kB per thread.
     uint16_t max_fragment_charge = 0;
     for (uint16_t z : charges) max_fragment_charge = std::max(max_fragment_charge, std::min(z, max_fragment_charge_));
+    thread_local std::vector<char> level_used; // level_used[f - 1]: a charge of this spectrum uses level f
+    level_used.assign(max_fragment_charge, 0);
+    for (uint16_t z : charges)
+    {
+      const uint16_t f = std::min(z, max_fragment_charge_);
+      if (f >= 1) level_used[f - 1] = 1;
+    }
     thread_local std::vector<PeakWindows_> peak_windows;
     if (peak_windows.size() < max_fragment_charge) peak_windows.resize(max_fragment_charge);
     for (uint16_t f = 1; f <= max_fragment_charge; ++f)
     {
+      if (!level_used[f - 1]) continue;
       PeakWindows_& w = peak_windows[f - 1];
       w.windows.clear();
       w.max_width = 0.0f;
