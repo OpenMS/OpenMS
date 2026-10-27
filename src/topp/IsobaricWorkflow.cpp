@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
@@ -141,6 +142,8 @@ using namespace std;
   However, a negative result usually means that noise was not properly accounted for in the calculation.
   We thus use NNLS to get a non-negative solution, without the need to truncate negative values.
   In the (usual) case that inverse matrix multiplication yields only positive values, our NNLS will give the exact same optimal solution.
+  Isotope correction can be switched off with @p quantification:isotope_correction. With @p quantification:normalization,
+  the channels of each input file are normalized to its reference channel (median of ratios, as in @ref TOPP_IsobaricAnalyzer).
 
   The correction matrices can be found (and changed) in the INI file (parameter @p correction_matrix of the corresponding labeling method).
   However, these matrices for both 4-plex and 8-plex iTRAQ are now stable, and every kit delivered should have the same isotope correction values.
@@ -722,11 +725,15 @@ protected:
       }
     }
 
-    // TODO since I am mostly using the internal classes IsobaricChannelCorrector and IsobaricNormalizer (if at all),
-    //  I should only expose their parameters and only init their objects here.
-    IsobaricQuantifier quantifier(quant_method.get());
-    Param quant_param(getParam_().copy("quantification:", true));
-    quantifier.setParameters(quant_param);
+    // The 'quantification' subsection holds the IsobaricQuantifier parameters, but its steps are done
+    // here: isotope correction per spectrum (NNLS) and normalization per file (IsobaricNormalizer).
+    const bool isotope_correction = getParam_().getValue("quantification:isotope_correction").toBool();
+    const bool normalization = getParam_().getValue("quantification:normalization").toBool();
+    if (!isotope_correction)
+    {
+      OPENMS_LOG_WARN << "Warning: Isotope correction is disabled ('quantification:isotope_correction false'), "
+                         "the reporter intensities are reported as extracted." << std::endl;
+    }
 
     Matrix<double> correction_matrix = quant_method->getIsotopeCorrectionMatrix();
 
@@ -993,10 +1000,13 @@ protected:
           }
 
           // TODO if itys are all zero we can actually skip correction and quantification
-          // NNLS modifies input, so we need a copy of the correction matrix
-          Matrix<double> m = correction_matrix;
-          std::vector<double> corrected(itys.size(), 0.);
-          NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
+          std::vector<double> corrected = itys;
+          if (isotope_correction)
+          {
+            // NNLS modifies input, so we need a copy of the correction matrix
+            Matrix<double> m = correction_matrix;
+            NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
+          }
           fillConsensusFeature_(cur_cmap[spec_idx], peps, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
           if (sps_matched_ions >= 0)
           {
@@ -1049,11 +1059,6 @@ protected:
                                std::make_move_iterator(unassigned_pep_ids.end()));
       }
 
-      // TODO if we want to support normalization, we either need to replace the quantifier with corrector and normalizer separately
-      //  or init the normalizer from the quantifier settings.
-      // But honestly, most downstream software can do it better, so I would not bother. Just export to mzTab and do it in R/python.
-      //IsobaricNormalizer::normalize(cur_cmap);
-
       // TODO cleanup, reset?
 
       // cur_cmap holds one ConsensusFeature per identified spectrum (resize above), and
@@ -1069,6 +1074,18 @@ protected:
       {
         OPENMS_LOG_INFO << "Removed " << pruned << " unquantified consensus feature(s) without reporter "
                         << "channels (their peptide identifications are kept in the unassigned IDs)." << std::endl;
+      }
+
+      // Normalize the channels of this file to its reference channel (median of ratios). The
+      // normalizer finds the channels through the column headers, which so far are only in 'cmap'.
+      if (normalization && !cur_cmap.empty())
+      {
+        const Size col_offset = i * quant_method->getChannelInformation().size();
+        for (Size channel = 0; channel < quant_method->getChannelInformation().size(); ++channel)
+        {
+          cur_cmap.getColumnHeaders()[col_offset + channel] = cmap.getColumnHeaders().at(col_offset + channel);
+        }
+        IsobaricNormalizer(quant_method.get()).normalize(cur_cmap);
       }
 
       // Always use insert (not move assignment) to preserve column headers registered at line 577.

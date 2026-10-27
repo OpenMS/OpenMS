@@ -1323,6 +1323,26 @@ add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type
 add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_1_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
 
+# Same run as TOPP_IsobaricWorkflow_1 without isotope correction, so the channels carry the reporter
+# intensities as extracted, and with normalization to the reference channel (126), which then has
+# intensity 1 in every feature. The tool used to ignore both settings of the 'quantification' section.
+add_test("TOPP_IsobaricWorkflow_no_isotope_correction" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -quantification:isotope_correction false
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_no_isotope_correction_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_no_isotope_correction_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_no_isotope_correction_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_no_isotope_correction_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_no_isotope_correction_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_no_isotope_correction")
+add_test("TOPP_IsobaricWorkflow_normalization" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -quantification:normalization true
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_normalization_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_normalization_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_normalization_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_normalization_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_normalization_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_normalization")
+
 # Same run as TOPP_IsobaricWorkflow_1, but one identification appears twice (same spectrum,
 # peptidoform and charge; the copy scored worse). Without the reduction the copy would count the
 # same match twice (as a PSM in the FDR, protein inference and peptide counts).

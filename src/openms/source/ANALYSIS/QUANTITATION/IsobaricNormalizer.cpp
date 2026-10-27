@@ -70,7 +70,9 @@ namespace OpenMS
       //  which all have that reference channel name.
       if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)
       {
-        ref_map_id_ = file_it->first;
+        // the vector index, not the map index: they differ if the map indices do not start at 0
+        // (e.g. the channels of a later file of a multi-file experiment)
+        ref_map_id_ = index;
       }
       map_to_vec_index_[file_it->first] = index;
       ++index;
@@ -119,6 +121,14 @@ namespace OpenMS
     {
       // this is solely for readability reasons, the compiler should optimize this anyway
       const Size vec_idx = it_map->second;
+
+      // no ratio at all (e.g. the reference channel is empty in every feature): nothing to normalize by
+      if (peptide_ratios_[vec_idx].empty())
+      {
+        OPENMS_LOG_WARN << "IsobaricNormalizer:  map-id " << (it_map->first) << " has no intensity ratio to the reference channel and is not normalized." << std::endl;
+        normalization_factors[vec_idx] = 1.0;
+        continue;
+      }
 
       // sort vector (partial_sort might improve performance here)
       std::sort(peptide_ratios_[vec_idx].begin(), peptide_ratios_[vec_idx].end());

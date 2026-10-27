@@ -89,6 +89,51 @@ START_SECTION((void normalize(ConsensusMap &consensus_map)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] void normalize(ConsensusMap &consensus_map) with map indices that do not start at 0)
+{
+  // The channels of a later file of a multi-file experiment (as in IsobaricWorkflow) do not start at
+  // map index 0. The reference channel used to be looked up by its map index in the per-channel
+  // vectors, which read out of bounds for such a map.
+  ConsensusMap cm_expected;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricNormalizer.consensusXML"), cm_expected);
+  IsobaricNormalizer(&quant_meth).normalize(cm_expected);
+
+  ConsensusMap cm_in;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricNormalizer.consensusXML"), cm_in);
+  const Size offset = 4;
+  ConsensusMap cm_shifted = cm_in;
+  cm_shifted.getColumnHeaders().clear();
+  for (const auto& [index, header] : cm_in.getColumnHeaders())
+  {
+    cm_shifted.getColumnHeaders()[index + offset] = header;
+  }
+  for (ConsensusFeature& cf : cm_shifted)
+  {
+    ConsensusFeature::HandleSetType handles = cf.getFeatures();
+    cf.clear();
+    for (FeatureHandle handle : handles)
+    {
+      handle.setMapIndex(handle.getMapIndex() + offset);
+      cf.insert(handle);
+    }
+  }
+
+  IsobaricNormalizer(&quant_meth).normalize(cm_shifted);
+
+  TEST_EQUAL(cm_shifted.size(), cm_expected.size())
+  for (Size i = 0; i < cm_expected.size(); ++i)
+  {
+    TEST_EQUAL(cm_shifted[i].size(), cm_expected[i].size())
+    auto it_shifted = cm_shifted[i].begin();
+    for (auto it = cm_expected[i].begin(); it != cm_expected[i].end(); ++it, ++it_shifted)
+    {
+      TEST_EQUAL(it_shifted->getMapIndex(), it->getMapIndex() + offset)
+      TEST_REAL_SIMILAR(it_shifted->getIntensity(), it->getIntensity())
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
