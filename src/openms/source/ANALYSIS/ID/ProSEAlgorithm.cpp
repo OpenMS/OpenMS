@@ -5557,7 +5557,7 @@ namespace OpenMS
 
     // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
     last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_,
-                                    keep_pre_fdr_psms_ ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
+                                    keepPreRescoringPsms_() ? &pre_fdr_peptide_ids_ : nullptr, &inference_only_peptide_ids_);
     if (defer_peak_annotations)
     {
       takeBackThreadsOfEndedRead();
@@ -5565,6 +5565,12 @@ namespace OpenMS
       StopWatch sw_annotations;
       sw_annotations.start();
       annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_);
+      // A file that Percolator did not rescore on its own may end with its PSMs of before the rescoring
+      // (rescoreFilesTogether_()): they get theirs too.
+      if (pool_rescoring_ && !last_percolator_.applied)
+      {
+        annotateFragmentPeaks_(spectra, pre_fdr_peptide_ids_, effective_fragment_tol, fragment_mass_tolerance_unit_);
+      }
       sw_annotations.stop();
       last_run_stats_.seconds_search += sw_annotations.getClockTime();
     }
