@@ -4380,11 +4380,13 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       // allocation per hit), the hits are sorted by key in thread-local buffers, which puts equal keys side by side;
       // the group of a key is written to the position of its first hit and represented, as before, by the first of
       // its hits with the smallest (protein, start). The residues are compared in the FASTA entries, not copied.
+      // The hit offsets and slot offsets are size_t: a spectrum can admit more than 2^32 hits or active slots (a
+      // database of many copies of one protein with several variable modifications), which 32-bit offsets would wrap.
       struct DedupKey_
       {
         UInt32 protein_idx;
         uint32_t start;
-        uint32_t slots_begin;  ///< first of its n_slots entries in active_slots
+        size_t slots_begin;    ///< first of its n_slots entries in active_slots
         uint16_t length;
         uint16_t n_slots;
         uint16_t charge;
@@ -4395,11 +4397,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         uint16_t position;
         const ResidueModification* mod;
       };
-      constexpr uint32_t NONE = std::numeric_limits<uint32_t>::max();
+      constexpr size_t NONE = std::numeric_limits<size_t>::max();
       thread_local std::vector<DedupKey_> keys;            // per hit offset i - first_hit
       thread_local std::vector<ActiveSlot_> active_slots;  // the active slots of all hits, consecutively
-      thread_local std::vector<uint32_t> by_key;           // the hit offsets sorted by key
-      thread_local std::vector<uint32_t> representative;   // per hit offset: the representative of its group if the hit is the group's first, else NONE
+      thread_local std::vector<size_t> by_key;             // the hit offsets sorted by key
+      thread_local std::vector<size_t> representative;     // per hit offset: the representative of its group if the hit is the group's first, else NONE
       const size_t n = sms.hits_.size() - first_hit;
       keys.clear();
       active_slots.clear();
@@ -4413,7 +4415,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         DedupKey_& key = keys.emplace_back();
         key.protein_idx = mother.protein_idx;
         key.start = static_cast<uint32_t>(start);
-        key.slots_begin = static_cast<uint32_t>(active_slots.size());
+        key.slots_begin = active_slots.size();
         key.length = hit.realized_length_;
         key.n_slots = 0;
         key.charge = hit.precursor_charge_;
@@ -4432,7 +4434,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         }
       }
       // Any strict weak order whose equivalence is the key equality does; the cheap fields first
-      const auto key_less = [&](uint32_t a, uint32_t b)
+      const auto key_less = [&](size_t a, size_t b)
       {
         const DedupKey_& x = keys[a];
         const DedupKey_& y = keys[b];
@@ -4453,7 +4455,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         return false;
       };
       by_key.resize(n);
-      std::iota(by_key.begin(), by_key.end(), uint32_t{0});
+      std::iota(by_key.begin(), by_key.end(), size_t{0});
       std::sort(by_key.begin(), by_key.end(), key_less);
       representative.assign(n, NONE);
       for (size_t g = 0; g < n;)
@@ -4461,11 +4463,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         size_t h = g + 1;
         while (h < n && !key_less(by_key[g], by_key[h])) ++h; // sorted: not less means equal
         // the group by_key[g, h): its first hit and the hit that represents it
-        uint32_t first = by_key[g];
-        uint32_t rep = by_key[g];
+        size_t first = by_key[g];
+        size_t rep = by_key[g];
         for (size_t k = g + 1; k < h; ++k)
         {
-          const uint32_t o = by_key[k];
+          const size_t o = by_key[k];
           first = std::min(first, o);
           const DedupKey_& c = keys[o];
           const DedupKey_& r = keys[rep];
@@ -4479,7 +4481,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       size_t kept = first_hit;
       for (size_t i = first_hit; i < sms.hits_.size(); ++i)
       {
-        const uint32_t rep = representative[i - first_hit];
+        const size_t rep = representative[i - first_hit];
         if (rep == NONE) continue;
         // rep >= i - first_hit >= kept - first_hit: the representative has not been overwritten
         sms.hits_[kept] = sms.hits_[first_hit + rep];
