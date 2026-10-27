@@ -7167,9 +7167,12 @@ namespace OpenMS
     {
       *pre_fdr_psms = peptide_ids;
       // (with rescoring:top_hits above report:top_hits the search kept more hits, for Percolator). A multi-file search
-      // that may rescore its files together keeps the hits Percolator rescores; rescoreFilesTogether_() cuts the .pin
-      // copy to report:top_hits.
-      if (rescore_top_hits_ > 0) keepTopHits_(*pre_fdr_psms, pool_rescoring_ ? rescoreTopHits_() : report_top_hits_);
+      // that may rescore its files together keeps the hits Percolator rescores as well; rescoreFilesTogether_() uses
+      // the first rescoring:top_hits of them and cuts the .pin copy to report:top_hits.
+      if (rescore_top_hits_ > 0)
+      {
+        keepTopHits_(*pre_fdr_psms, pool_rescoring_ ? std::max(report_top_hits_, rescoreTopHits_()) : report_top_hits_);
+      }
     }
     if (rescore_)
     {
@@ -9470,16 +9473,22 @@ namespace OpenMS
       // (an open search keeps the modification analysis of the PSMs of the file's own scoring)
     };
 
+    // Percolator gets the first rescoring:top_hits hits of a spectrum, as for a file rescored on its own (the copies
+    // before the rescoring may hold more, for a .pin with report:top_hits above it; see applyPsmFDR_())
+    const Size rescored_hits = rescore_top_hits_ > 0 ? rescoreTopHits_() : std::numeric_limits<Size>::max();
+    const auto hits_rescored = [rescored_hits](const PeptideIdentification& id) { return std::min(id.getHits().size(), rescored_hits); };
+    const auto cut_to_rescored = [&](PeptideIdentificationList& ids) { if (rescore_top_hits_ > 0) keepTopHits_(ids, rescored_hits); };
+
     // The precursor charges of the charge features: of all PSMs the model sees, for one feature set
     int min_charge = std::numeric_limits<int>::max(), max_charge = std::numeric_limits<int>::min();
     for (Size i : searched)
     {
       for (const PeptideIdentification& id : mfres.per_file[i].pre_fdr_peptide_ids)
       {
-        for (const PeptideHit& hit : id.getHits())
+        for (Size h = 0; h < hits_rescored(id); ++h)
         {
-          min_charge = std::min(min_charge, hit.getCharge());
-          max_charge = std::max(max_charge, hit.getCharge());
+          min_charge = std::min(min_charge, id.getHits()[h].getCharge());
+          max_charge = std::max(max_charge, id.getHits()[h].getCharge());
         }
       }
     }
@@ -9514,7 +9523,7 @@ namespace OpenMS
         Size psms = 0;
         for (Size r = 0; r < ids.size(); ++r)
         {
-          if (!ids[r].getHits().empty()) { rows[k].push_back(r); psms += ids[r].getHits().size(); }
+          if (!ids[r].getHits().empty()) { rows[k].push_back(r); psms += hits_rescored(ids[r]); }
         }
         sizes.push_back(psms);
       }
@@ -9531,7 +9540,7 @@ namespace OpenMS
           Size psms = 0;
           for (Size r : rows[k])
           {
-            const Size n = ids[r].getHits().size();
+            const Size n = hits_rescored(ids[r]);
             if (psms + n > quotas[k]) { continue; }
             kept.push_back(r);
             psms += n;
@@ -9545,6 +9554,7 @@ namespace OpenMS
           copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(own[k]));
         }
       }
+      cut_to_rescored(training);
       const Size available = std::accumulate(sizes.begin(), sizes.end(), Size(0));
       Size training_psms = 0;
       for (const PeptideIdentification& id : training) { training_psms += id.getHits().size(); }
@@ -9585,6 +9595,7 @@ namespace OpenMS
         }
         // the best hit of each spectrum by the SVM score (the q-values of the training PSMs at a score have plateaus,
         // which would leave ties to the search engine's order); target-decoy competition follows in adopt()
+        cut_to_rescored(ids);
         perc.scorePSMs(ids, model, training, feature_set, enzyme, min_charge, max_charge, "svm");
         IDFilter::keepNBestHits(ids, 1);
         std::vector<PeptideIdentificationList> parts(mfres.per_file.size());
@@ -9628,6 +9639,7 @@ namespace OpenMS
     // (rescore_method 'reset': without a stem table, which names one run)
     Param extra = percolator_extra_;
     if (extra.exists("reset:stem_table")) { extra.setValue("reset:stem_table", ""); }
+    cut_to_rescored(pooled);
     const PercolatorRescoring outcome = rescoreWithPercolator_(runs, pooled, threads, nullptr, percolator_training_, extra);
     if (!outcome.applied)
     {
