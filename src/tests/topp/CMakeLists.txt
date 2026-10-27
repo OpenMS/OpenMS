@@ -3322,6 +3322,17 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
     set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
   endif()
+
+  # adducts with the same sum formula and adducts with several cross-linkable nucleotides (RNA-UV (UCGA) preset)
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_7" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_7_output.tmp.idXML -NuXL:presets "RNA-UV (UCGA)" -NuXL:decoys "false" -report:top_hits 2 -NuXL:scoring slow)
+    add_test("TOPP_OpenNuXL_7_ambiguous_adducts" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_7_output.tmp.idXML
+      -P ${DATA_DIR_TOPP}/OpenNuXL_7_ambiguous_adducts_test.cmake)
+    set_tests_properties("TOPP_OpenNuXL_7_ambiguous_adducts" PROPERTIES DEPENDS "TOPP_OpenNuXL_7")
+  endif()
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
