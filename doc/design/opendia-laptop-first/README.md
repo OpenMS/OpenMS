@@ -221,7 +221,7 @@ Build a CPU-first DIA engine for large predicted libraries on a 16 GiB laptop. T
 
 ## Approach and v1 scope
 
-Replace data handling **one component at a time in the existing pipeline**, behind an option, checking identical or tolerance-equal results. Build new algorithms only for candidate retrieval and family scoring. Mobility and peptidoform families belong in contracts from day one, but do not block the first runnable increment.
+Replace or redesign data access, extraction, scheduling and scoring inside the tool-private engine when the measured end-to-end result justifies it. The existing pipeline is a reference and compatibility path, not a mandatory sequence of internal APIs. Behavior-preserving changes retain identical/tolerance-equal results; explicitly new scoring/retrieval/family models use independent scientific quality gates. The [performance strategy](performance-strategy.md) defines the bounded native-region experiment and scorer comparisons. Mobility and peptidoform families belong in contracts from day one, but do not block the first runnable increment.
 
 - Tool-private code in `src/topp/OpenDIA/`, following DIAuditor/OpenSwathInfer. Move the current entry point first, then extract orchestration into a private library shared by tool and tests. Promote code to core only for a real second consumer. Shared core bugs are fixed in core directly.
 - One memory byte budget, bounded queues and fixed stage order. Harden admission in parallel rather than blocking data handling.
@@ -237,7 +237,7 @@ Numbers identify packages, not a serial implementation order. Local readiness ch
 |---|---|---|
 | Baseline | [WP-00](work-packages/00-acceptance-baseline.md) | Done, 25 October 2026. Pinned current pipeline and representative TimSim/Astral baseline, reproducible scripts and frozen repeat checks. |
 | Data handling | [WP-01](work-packages/01-contracts.md), [WP-02](work-packages/02-resource-budget.md), [WP-03](work-packages/03-raw-tiles.md), [WP-05](work-packages/05-shared-extraction.md) | WP-01 starts independently of baseline. Others start on v0 contracts, without waiting for hardened admission. WP-05 owns the existing-calibration adapter. |
-| Library preparation | [WP-04](work-packages/04-hypothesis-store.md) | Start on WP-01 contracts. Integrate streamed preparation into the current engine. |
+| Library preparation | [WP-04](work-packages/04-hypothesis-store.md) | Start on WP-01 contracts. Integrate streamed preparation into the private engine or compatibility path as appropriate. |
 | Science | [WP-06](work-packages/06-candidate-retrieval.md), [WP-07](work-packages/07-family-scoring.md) | Start WP-07 null/decoy experiment now. Retrieval integrates WP-03/04/05. Final family scoring integrates extraction/retrieval. |
 | Output, integration and benchmarks | [WP-08](work-packages/08-storage-confidence.md), [WP-09](work-packages/09-cli-integration.md), [WP-10](work-packages/10-performance-release.md) | WP-08 and WP-09 start on v0 contracts, not after science. WP-09 completes integration, then WP-10 assesses release. |
 
@@ -263,8 +263,8 @@ A verified bundle is not proof that the scientific repeat gate passes.
 ## Sequence
 
 1. **Baseline and early experiments:** profile the representative current pipeline, establish tool-private v0 contracts, and test the localization null/decoy model against exhaustive and IPF references. Shared extractor edge bugs were fixed separately on develop in #10673; retain their mathematical edge checks.
-2. **Stacked component experiments:** plug raw tiles, streamed preparation, shared extraction and compact output into the existing engine on dependent work-package branches. Prioritize by measured time/RSS, including rescoring/inference/export. Test each component locally, but defer individual `develop` merges until the combined design is validated.
-3. **New science:** review the localization experiment before freezing family/score contracts. Integrate high-recall retrieval and joint family scoring with mobility, ambiguity and calibrated confidence.
+2. **Stacked engine experiments:** compare existing adapters against OpenDIA-owned native-region access and fused extraction/scoring, alongside streamed preparation and compact output. Use dependent work-package branches and prioritize measured total time/RSS, including preparation/rescoring/inference/export. Compatibility adapters are controls, not compulsory interfaces. Test each selected slice locally, but defer individual `develop` merges until the combined design is validated.
+3. **New science:** evaluate alternative numerical/confidence scoring, including compact learned models, under held-out error-control and quantitative-quality gates. Review the localization experiment before freezing family/score contracts. Integrate high-recall retrieval and joint family scoring with mobility, ambiguity and calibrated confidence.
 4. **Release decision:** exercise the public raw-to-export path on representative data, then decide whether to change defaults. A runnable early increment is not acceptance of the final scientific slice.
 
 ## Shared acceptance rules
