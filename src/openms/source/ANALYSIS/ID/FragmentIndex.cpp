@@ -1483,31 +1483,31 @@ namespace OpenMS
                                       + fixed_nterm_delta_ + fixed_cterm_delta_;
     const std::array<bool, 256>& indexable = indexableResidues();
 
-    #pragma omp parallel
+    // The proteins in contiguous parts, one per thread, cut as the static schedule of an omp for cuts them (the first
+    // num_proteins % num_threads parts get one protein more). The buffer of a part holds one mother per residue of its
+    // proteins, which no protein exceeds (one mother per start position at most), so it never grows and is written in
+    // order from the start. It is reserved here, before the parallel region: an allocation that fails then throws out
+    // of build() as before, whereas an exception inside a parallel region ends the process. reserve() does not touch
+    // the pages, so the thread that fills a buffer still first-touches it. The order of the mothers before the sort
+    // below does not matter for the output: it differs between thread counts already, which give identical results.
+    const SignedSize num_proteins = static_cast<SignedSize>(fasta_entries.size());
+    const SignedSize quotient = num_proteins / num_threads;
+    const SignedSize remainder = num_proteins % num_threads;
+    std::vector<SignedSize> part_begin(num_threads + 1); // part_begin[num_threads] == num_proteins
+    for (int part = 0; part <= num_threads; ++part) part_begin[part] = part * quotient + std::min<SignedSize>(part, remainder);
+    for (int part = 0; part < num_threads; ++part)
     {
-#ifdef _OPENMP
-      const int tid = omp_get_thread_num();
-      const int team_size = omp_get_num_threads();
-#else
-      const int tid = 0;
-      const int team_size = 1;
-#endif
-      // The proteins in contiguous ranges, one per thread, cut as the static schedule of an omp for cuts them (the first
-      // num_proteins % team_size threads get one protein more): the thread knows its proteins beforehand and reserves for
-      // one mother per residue of them, which no protein exceeds (one mother per start position at most), so its buffer
-      // never grows and is written in order from the start. The order of the mothers before the sort below does not matter
-      // for the output: it differs between thread counts already, which give identical results.
-      const SignedSize num_proteins = static_cast<SignedSize>(fasta_entries.size());
-      const SignedSize quotient = num_proteins / team_size;
-      const SignedSize remainder = num_proteins % team_size;
-      const SignedSize first_protein = tid * quotient + std::min<SignedSize>(tid, remainder);
-      const SignedSize end_protein = first_protein + quotient + (tid < remainder ? 1 : 0);
       size_t residues = 0;
-      for (SignedSize protein_idx = first_protein; protein_idx < end_protein; ++protein_idx) residues += fasta_entries[protein_idx].sequence.size();
-      thread_peptides[tid].reserve(residues);
-      adviseHugePages(thread_peptides[tid], thread_peptides[tid].capacity()); // filled from the start by emplace_back()
+      for (SignedSize protein_idx = part_begin[part]; protein_idx < part_begin[part + 1]; ++protein_idx) residues += fasta_entries[protein_idx].sequence.size();
+      thread_peptides[part].reserve(residues);
+      adviseHugePages(thread_peptides[part], thread_peptides[part].capacity()); // filled from the start by emplace_back()
+    }
 
-      for (SignedSize protein_idx = first_protein; protein_idx < end_protein; ++protein_idx)
+    // Nothing in the region allocates (every emplace_back() stays within the reserved capacity), so nothing in it throws.
+    #pragma omp parallel for schedule(static, 1)
+    for (int part = 0; part < num_threads; ++part)
+    {
+      for (SignedSize protein_idx = part_begin[part]; protein_idx < part_begin[part + 1]; ++protein_idx)
       {
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
         const std::string& seq = protein.sequence;
@@ -1547,7 +1547,7 @@ namespace OpenMS
           }
           if (mass + max_mod_shift_ < peptide_min_mass_ - 1.0) return;
 
-          thread_peptides[tid].emplace_back(
+          thread_peptides[part].emplace_back(
               static_cast<UInt32>(protein_idx),
               0u,
               std::make_pair(static_cast<uint16_t>(start), static_cast<uint16_t>(length)),
@@ -1591,7 +1591,7 @@ namespace OpenMS
           }
         }
       }
-    } // omp parallel
+    } // parallel for over the parts
 
     // Merge the per-thread buffers in thread order, as generatePeptides() does: Peptide() writes nothing, so the resize
     // only allocates, and each thread copies (and first touches) the part that it generated, instead of one thread
@@ -2952,19 +2952,27 @@ namespace OpenMS
                     << std::endl;
 
     bool consistent = true;
+    std::exception_ptr error; // an exception (std::bad_alloc of the scratch) must not leave the parallel region
     #pragma omp parallel
     {
+      // The scratch is allocated inside the loop (lazily, and grown to the bin), under the try: a thread whose
+      // allocation fails records the exception, skips its remaining bins and still takes part in the work sharing and
+      // in the barrier at the end of the loop, which a thread that threw past the loop would miss.
       std::vector<float> keys;
       std::vector<EntryWord> scratch_words;
       std::vector<EntryLength> scratch_lengths;
-      std::vector<uint32_t> cell_next(num_cells);
+      std::vector<uint32_t> cell_next;
+      bool failed = false;
       #pragma omp for schedule(dynamic)
       for (SignedSize b = 0; b < num_bins; ++b)
+      try
       {
+        if (failed) continue;
         const size_t begin = bin_start[b];
         const size_t n = bin_start[b + 1] - begin;
         if (n == 0) continue;
         const uint32_t id = first_bin + static_cast<uint32_t>(b);
+        if (cell_next.empty()) cell_next.resize(num_cells);
         keys.resize(n);
         std::fill(cell_next.begin(), cell_next.end(), 0u);
         bool in_bin = (n < std::numeric_limits<uint32_t>::max());
@@ -3010,7 +3018,14 @@ namespace OpenMS
         std::copy(scratch_words.begin(), scratch_words.begin() + n, bin_words);
         std::copy(scratch_lengths.begin(), scratch_lengths.begin() + n, bin_lengths);
       }
+      catch (...)
+      {
+        failed = true;
+        #pragma omp critical (FragmentIndex_sortPackedEntries)
+        if (!error) error = std::current_exception();
+      }
     }
+    if (error) std::rethrow_exception(error);
     if (!consistent)
     {
       // build() placed every entry into the bin of this very mass; a mismatch means the recomputation differs from the
