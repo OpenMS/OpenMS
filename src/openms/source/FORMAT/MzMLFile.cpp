@@ -16,7 +16,9 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -43,6 +45,12 @@ namespace OpenMS
 
   namespace
   {
+    /// S3 objects and HTTP/HTTPS/FTP files, which are streamed
+    bool isRemote(const std::string& filename)
+    {
+      return S3InputSource::isS3URI(filename) || HTTPInputSource::isHTTPURI(filename);
+    }
+
     // ponytail: fixed cap; per-chunk header reparse and memory bandwidth stop paying off above ~32 threads (EPYC 9654).
     constexpr int PARALLEL_LOAD_MAX_THREADS = 32;
     /// Contiguous spectrum ranges per thread, so uneven spectra (MS1 frames vs. MS2) still balance.
@@ -76,7 +84,8 @@ namespace OpenMS
 #ifdef _OPENMP
     const int threads = std::min(omp_get_max_threads(), PARALLEL_LOAD_MAX_THREADS);
     // Only the plain full load is parallelized; everything else keeps the serial streaming parse.
-    if (threads < 2 || FileNameUtils::compressionType(filename) != FileTypes::UNKNOWN || options_.hasFilters() ||
+    // The chunks are read from a local file; remote input (s3://, http://, ...) is streamed.
+    if (threads < 2 || isRemote(filename) || FileNameUtils::compressionType(filename) != FileTypes::UNKNOWN || options_.hasFilters() ||
         !options_.getFillData() || options_.getMetadataOnly() || options_.getSkipChromatograms())
     {
       return false;
@@ -306,25 +315,26 @@ namespace OpenMS
 
   void MzMLFile::load(const std::string& filename, PeakMap& map)
   {
-    map.reset();
-
-    //set DocumentIdentifier
-    if (StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://") || StringUtils::hasPrefix(filename, "ftp://") || StringUtils::hasPrefix(filename, "s3://"))
+    // DocumentIdentifier: a remote URI is kept as it is; its content cannot be inspected like a local file's
+    const auto set_identifier = [&]()
     {
-      map.setLoadedFileType(FileTypes::MZML);
-      map.setLoadedNetFilePath(filename);
-    }
-    else
-    {
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-    }
+      map.reset();
+      if (isRemote(filename))
+      {
+        map.setLoadedFileType(FileTypes::MZML);
+        map.setLoadedNetFilePath(filename);
+      }
+      else
+      {
+        map.setLoadedFileType(filename);
+        map.setLoadedFilePath(filename);
+      }
+    };
+    set_identifier();
 
     if (!loadParallelIndexed_(filename, map))
     {
-      map.reset();
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
+      set_identifier();
       Internal::MzMLHandler handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       safeParse_(filename, &handler);

@@ -11,6 +11,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 
 #include <boost/regex.hpp>
@@ -29,6 +30,26 @@
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    // S3 objects and HTTP/HTTPS/FTP files: read with range requests
+    bool isRemote(const std::string& filename)
+    {
+      return S3InputSource::isS3URI(filename) || HTTPInputSource::isHTTPURI(filename);
+    }
+
+    Int64 remoteSize(const std::string& filename)
+    {
+      return S3InputSource::isS3URI(filename) ? S3InputSource::objectSize(filename) : HTTPInputSource::objectSize(filename);
+    }
+
+    std::string remoteRange(const std::string& filename, Int64 offset, Int64 length)
+    {
+      return S3InputSource::isS3URI(filename) ? S3InputSource::readRange(filename, offset, length)
+                                              : HTTPInputSource::readRange(filename, offset, length);
+    }
+  }
 
   namespace IndexedMzMLUtils
   {
@@ -73,10 +94,10 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
-    if (S3InputSource::isS3URI(filename))
+    if (isRemote(filename))
     {
-      // S3 object: read from indexoffset to its end
-      const Int64 length = S3InputSource::objectSize(filename);
+      // S3 object or HTTP/FTP file: read from indexoffset to its end
+      const Int64 length = remoteSize(filename);
       if (indexoffset < 0 || indexoffset > length)
       {
         std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " << indexoffset
@@ -85,7 +106,7 @@ namespace OpenMS
       }
       const Int64 tail_length = length - static_cast<Int64>(indexoffset);
       if (tail_length == 0) { return -1; }
-      const std::string tail = S3InputSource::readRange(filename, static_cast<Int64>(indexoffset), tail_length);
+      const std::string tail = remoteRange(filename, static_cast<Int64>(indexoffset), tail_length);
       if (static_cast<Int64>(tail.size()) != tail_length) { return -1; }
       return domParseIndexedEnd_("<indexedmzML>" + tail + "\n", spectra_offsets, chromatograms_offsets);
     }
@@ -169,12 +190,12 @@ namespace OpenMS
   {
     if (buffersize <= 0) { return -1; }
     std::string buffer;
-    if (S3InputSource::isS3URI(filename))
+    if (isRemote(filename))
     {
-      // S3 object: read its last buffersize bytes
-      const Int64 size = S3InputSource::objectSize(filename);
+      // S3 object or HTTP/FTP file: read its last buffersize bytes
+      const Int64 size = remoteSize(filename);
       const Int64 start = std::max<Int64>(0, size - buffersize);
-      buffer = S3InputSource::readRange(filename, start, size - start);
+      buffer = remoteRange(filename, start, size - start);
     }
     else if (!readLocalTail(filename, buffersize, buffer))
     {

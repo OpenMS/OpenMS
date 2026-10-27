@@ -288,6 +288,7 @@ set(format_executables_list
   PercolatorPosteriorEstimator_test
   ProtXMLFile_test
   QcMLFile_test
+  HTTPInputSource_test
   S3InputSource_test
   SVOutStream_test
   SemanticValidator_test

@@ -975,16 +975,7 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
-// HTTP, HTTPS and FTP URLs are not read by the libxml2 reader yet: a clear error, without network access
-START_SECTION([EXTRA] load from HTTP URL)
-{
-  MzMLFile file;
-  PeakMap exp;
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("https://example.org/run.mzML", exp),
-    "IllegalArgument: Cannot read 'https://example.org/run.mzML': XML input from HTTP, HTTPS or FTP URLs is not supported."
-    " in: https://example.org/run.mzML")
-}
-END_SECTION
+// loading from HTTP URLs: see HTTPInputSource_test
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {
