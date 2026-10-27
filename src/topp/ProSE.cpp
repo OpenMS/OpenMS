@@ -815,15 +815,16 @@ class ProSE :
       try
       {
         files.pg = pg_async ? pg_build.get() : ProteinGroupArrowExport::exportToArrow(runs, ids);
+        // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to libOpenMS' implementation,
+        // and on Windows its symbols are dllimport, so calling the member here links on Linux but not on MSVC.
+        files.has_groups = files.pg && ArrowIOHelpers::tableRowCount(files.pg) > 0;
+        if (files.has_groups) { files.pg_meta = ArrowIOHelpers::qpxFileMetadata("pg_file"); }
       }
       catch (const std::exception& e) // (as before, the psm file is written and the input fails: reported by the caller)
       {
         files.pg_error = e.what();
+        files.has_groups = false;
       }
-      // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to libOpenMS' implementation,
-      // and on Windows its symbols are dllimport, so calling the member here links on Linux but not on MSVC.
-      files.has_groups = files.pg && ArrowIOHelpers::tableRowCount(files.pg) > 0;
-      if (files.has_groups) { files.pg_meta = ArrowIOHelpers::qpxFileMetadata("pg_file"); }
     }
 
     /// Writes the files of buildQPXRunFiles_() of @p in_file, each with @p threads (the psm file, then the pg file if
@@ -1769,7 +1770,10 @@ class ProSE :
         // the staged files of an aborted earlier run (see writeQPXRunFiles_()): never part of a result
         StringList staged;
         File::fileList(qpx_runs_dir, "*.parquet.part", staged, true);
-        for (const std::string& file : staged) { File::remove(file); }
+        for (const std::string& file : staged)
+        {
+          if (!File::remove(file)) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << "' of an earlier run." << endl; }
+        }
       }
       if (early_idxml_files || early_qpx_files)
       {
