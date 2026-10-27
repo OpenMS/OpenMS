@@ -268,6 +268,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList peptide_ids;
       /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
+      /// ProSE's score ('ln(hyperscore)') was made the main score of every PSM: Percolator rescored only some files and
+      /// FDR:PSM is 0, so that the main scores (Percolator's q-values and ProSE's scores) differed
+      bool search_engine_score = false;
     };
 
     /**
@@ -831,8 +834,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * proteins that failed. This moves the PSMs of @p merged (merged.peptide_ids, empty afterwards) into the files of
      * @p result by their 'id_merge_index' (the input position of their file, which is removed), in their order, as the
      * PSMs of the runs of the files (their identifiers), and makes the proteins of each file those its PSMs reference
-     * (removeUnreportedProteins()). A file without a PSM in @p merged gets none. Store the pooled PSMs (e.g. as idXML)
-     * before.
+     * (removeUnreportedProteins()). A file without a PSM in @p merged gets none. If ProSE's score became the main score of
+     * the pooled PSMs (MergedResult::search_engine_score), the runs of the files that get PSMs name the search engine
+     * (and version) of the pooled run, also those of the files that Percolator rescored. Store the pooled PSMs (e.g. as
+     * idXML) before.
      *
      * @param[in,out] merged The pooled result of @p result. Its PSMs are moved out.
      * @param[in,out] result The multi-file search that @p merged pools. The files that were searched (exit code

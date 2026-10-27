@@ -6852,7 +6852,7 @@ namespace OpenMS
     merged_protein_ids[0].setDateTime(DateTime::now());
 
     // Without FDR:PSM the main scores of a mixed set differ: Percolator's q-values and ProSE's scores. One score for all.
-    if (rescoring_mixed && fdr_psm_ <= 0.0) { useSearchEngineScore_(merged_peptides); }
+    if (rescoring_mixed && fdr_psm_ <= 0.0) { merged.search_engine_score = useSearchEngineScore_(merged_peptides); }
 
     // Cross-file protein inference (inferProteins(): the best PEP, or search engine score, per peptide per protein) and
     // the optional picked-protein FDR. Picked-protein FDR needs identified decoy proteins: gate on DB-level decoys here,
@@ -6917,6 +6917,16 @@ namespace OpenMS
       if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
       pf.peptide_ids = std::move(parts[i]);
       removeUnreportedProteins(pf.protein_ids, pf.peptide_ids);
+      // ProSE's score is now the main score of the PSMs that Percolator rescored as well: their runs name the engine of
+      // the pooled run (ProSE), as the runs of the files that Percolator did not rescore do.
+      if (merged.search_engine_score && !pf.peptide_ids.empty() && !merged.protein_ids.empty())
+      {
+        for (ProteinIdentification& run : pf.protein_ids)
+        {
+          run.setSearchEngine(merged.protein_ids[0].getSearchEngine());
+          run.setSearchEngineVersion(merged.protein_ids[0].getSearchEngineVersion());
+        }
+      }
     }
     return true;
   }
