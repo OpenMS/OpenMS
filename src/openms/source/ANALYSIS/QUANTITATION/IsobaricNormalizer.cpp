@@ -136,6 +136,15 @@ namespace OpenMS
       // save median as first element
       normalization_factors[vec_idx] = peptide_ratios_[vec_idx][peptide_ratios_[vec_idx].size() / 2];
 
+      // a median ratio of 0 (e.g. a channel without signal in most features) is nothing to normalize by
+      // either: dividing by it would turn the intensities of the channel into NaN or infinity
+      if (normalization_factors[vec_idx] == 0)
+      {
+        OPENMS_LOG_WARN << "IsobaricNormalizer:  map-id " << (it_map->first) << " has a median intensity ratio of 0 to the reference channel and is not normalized." << std::endl;
+        normalization_factors[vec_idx] = 1.0;
+        continue;
+      }
+
       // sort control (intensities)
       std::sort(peptide_intensities_[vec_idx].begin(), peptide_intensities_[vec_idx].end());
 
