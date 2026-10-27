@@ -429,10 +429,17 @@ protected:
     registerIntOption_("TargetedDataExtraction:raw_memory_mb", "<MiB>", 256,
       "Raw tile and copy budget for tiled input, including a 64 MiB native allowance. This is not a process memory limit.", false, true);
     setMinInt_("TargetedDataExtraction:raw_memory_mb", 65);
-    registerIntOption_("TargetedDataExtraction:raw_max_scan_kb", "<KiB>", 32768,
-      "Maximum private bytes per raw scan for tiled input. Larger scans fail. Input must be indexed mzML.", false, true);
+    registerIntOption_(
+      "TargetedDataExtraction:raw_max_scan_kb", "<KiB>", 32768,
+      "Maximum private bytes per raw scan for tiled input. Larger scans fail. Supports native Bruker, Thermo and indexed mzML input.", false, true);
     setMinInt_("TargetedDataExtraction:raw_max_scan_kb", 1);
-    registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", "", "Temporary directory used for cached SWATH input files. When left empty, OpenDIA uses out_dir as the base directory and creates protected per-run temporary subdirectories there.", false, true);
+    registerFlag_("TargetedDataExtraction:experimental_native_frame_cache",
+                  "Enable the experimental same-budget Bruker frame cache for tiled input. Disabled by default. It can increase runtime and RSS.",
+                  true);
+    registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", "",
+                          "Temporary directory used for cached SWATH input files. When left empty, OpenDIA uses out_dir as the base directory and "
+                          "creates protected per-run temporary subdirectories there.",
+                          false, true);
     registerFlag_("TargetedDataExtraction:keep_cached_files", "If set, do not remove cached input files created in TargetedDataExtraction:tempDirectory.", false);
 
     registerStringOption_("TargetedDataExtraction:extraction_function", "<name>", "tophat", "Extraction kernel used for signal extraction.", false, true);
@@ -1819,7 +1826,7 @@ protected:
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                              "Tiled input needs nonempty spectrum maps from a native random-access reader.");
           }
-          if (&map == &swath_maps.front())
+          if (&map == &swath_maps.front() && getFlag_("TargetedDataExtraction:experimental_native_frame_cache"))
           {
             raw_cache->enableNativeFrames(std::shared_ptr<IMSExperimentRandomAccess>(source->getExperiment().clone()));
           }
