@@ -5565,7 +5565,7 @@ static void scoreXLIons_(
                 if (precursor_na_adduct == "none")
                 {
                   // score peptide without NA (same method as fast scoring)
-                  for (auto & l = low_it; l != up_it; ++l)
+                  for (auto l = low_it; l != up_it; ++l)
                   {
                     const Size & scan_index = l->second.first;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
@@ -5750,7 +5750,7 @@ static void scoreXLIons_(
                       generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::YIon, partial_loss_template_z1_yions);
                     } 
 
-                    for (auto & l = low_it; l != up_it; ++l)
+                    for (auto l = low_it; l != up_it; ++l)
                     {
                       const Size & scan_index = l->second.first;
                       const PeakSpectrum & exp_spectrum = spectra[scan_index];
@@ -5958,7 +5958,7 @@ static void scoreXLIons_(
             }
             else // fast scoring
             {
-              for (auto & l = low_it; l != up_it; ++l)
+              for (auto l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
                 const std::string& precursor_na_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)

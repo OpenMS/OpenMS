@@ -362,7 +362,9 @@ namespace OpenMS
         // determine NA on precursor from index in map
         auto mod_combinations_it = mm.mod_combinations.cbegin();
         std::advance(mod_combinations_it, a.NA_mod_index);
-        const std::string precursor_na_adduct = *mod_combinations_it->second.begin(); // TODO: check if it is enough to consider only first precursor adduct ????????????????????????????????????????????????????????
+        auto NA_adduct_it = mod_combinations_it->second.cbegin();
+        std::advance(NA_adduct_it, a.NA_adduct_amb_index);
+        const std::string precursor_na_adduct = *NA_adduct_it; // precursor adduct of this hit (e.g., U-H2O or C-NH3 for the same sum formula)
         const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
         // generate total loss spectrum for the fixed and variable modified peptide (without NAs) (using the settings for partial loss generation)
