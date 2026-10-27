@@ -91,11 +91,57 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. 'auto' reuses supplied decoys only at 0.5 to 2 decoys per target protein: target-decoy FDR needs about one decoy per target, so a database with far fewer (e.g. a few 'DECOY_' entries) or far more decoys is refused with an error before the search. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 @note Repeated database entries: an entry whose accession and sequence an entry before it has (e.g. a FASTA file or the contaminants added twice) is searched once, with a warning; two entries of one accession with different sequences are refused with an error naming the accession and the file, before the search.
-@note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). The '-out_pin' files are an exception to both: they are written before any FDR filter and keep the decoys. To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
-@note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
+@section ProSE_modes Final results vs. intermediates
+'-Search:FDR:protein' decides what a run of ProSE is:
+<ul>
+<li>@b Above @b 0 (e.g. 0.01): the run is the @em whole experiment. Its proteins are inferred on the pooled PSMs of all its
+inputs (also without '-out_merged'), the picked-protein FDR filters them, and the PSMs are filtered finally; every output
+is the final result: '-out_merged' (if set) the pooled result, each per-input output ('-out_idxml', '-out_qpx' with its
+runs/ files and quantms.*, '-out_parquet') that input's part of it, with the same PSMs and the proteins (with their pooled
+protein q-values, score type 'q-value', and protein groups) that they reference. Only the best hit of each spectrum is
+kept. (The modification analysis of an open search, '-out_mod_analysis_dir' and the report, covers the PSMs at
+'-Search:FDR:PSM', before the protein FDR.) The order of the filters:
+<ol>
+<li>per input: the search, Percolator on the input (or, if it cannot rescore the input alone, the model trained on a sample
+of the other inputs, see the note on rescoring below), PSM q-values and PEPs per run;</li>
+<li>per input: the reported PSMs (q-value &le; '-Search:FDR:PSM', the final PSM FDR, e.g. 0.01) and, kept aside for the
+protein inference only, those up to '-Search:FDR:protein_inference_PSM' (default 0.1);</li>
+<li>all inputs pooled: protein inference on both sets (the loose set gives the picked-protein FDR its decoy proteins);</li>
+<li>the picked-protein FDR ('-Search:FDR:protein') on the complete protein set;</li>
+<li>final: the reported PSMs without those all of whose proteins fail the protein FDR (as in ProteomicsLFQ), decoys removed
+unless '-keep_decoys', the inference-only PSMs dropped; each input gets its part back.</li>
+</ol></li>
+<li>@b 0 (the default): the run is @em one @em part of a larger experiment, e.g. a shard of the files searched on one compute
+node. Only steps 1 and 2 above happen, with '-Search:FDR:PSM' as the loose threshold (e.g. 0.1, not the final FDR) and no
+inference-only set; steps 3 to 5 happen downstream (e.g. in ProteomicsLFQ, which applies its final PSM FDR on the PEPs of
+all runs pooled). Every output is a per-input intermediate: the PSM q-values and PEPs of each run (Percolator's), the decoy
+PSMs and all proteins the PSMs reference kept, no protein inference and no protein filter. Finish the experiment downstream on the intermediates of all parts together:
+@ref TOPP_ProteomicsLFQ (its PSM and protein FDR, e.g. 0.01, and quantification), or @ref TOPP_IDMerger &rarr;
+@ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate &rarr; @ref TOPP_IDFilter. Search every part
+with the same parameters and the same FASTA, with its decoys in it (e.g. from @ref TOPP_DecoyDatabase), which the downstream
+tools get as well, so that every part and the downstream FDR see the same decoys. With several inputs, '-out_merged' then
+writes the pooled PSMs with a protein inference across the inputs but without protein FDR (an intermediate too).</li>
+</ul>
+The per-input PSM q-values and PEPs come from Percolator's rescoring of each input ('-Search:rescore', see below); ProSE's
+intermediates carry the q-value as main score and the PEP as meta value MS:1001493, which ProteomicsLFQ takes as its main
+score itself. So keep the rescoring on for intermediates that ProteomicsLFQ finishes: it needs a PEP for every PSM and
+stops with "expects a Posterior Error Probability score" for an input without (with '-Search:rescore' false, or a file
+that Percolator could not rescore at all, not even with the model of the other inputs). '-out_pin' always holds the PSMs before the rescoring and before any FDR filter.
+Outputs by mode:
+<table>
+<tr><th>output</th><th>FDR:protein > 0 (final result)</th><th>FDR:protein 0 (intermediate)</th></tr>
+<tr><td>-out_idxml, -out_parquet, -out_qpx (per input)</td><td>the input's part of the pooled result: PSMs at FDR:PSM whose proteins pass the protein FDR, the proteins (with q-values and groups) they reference, without decoys unless -keep_decoys</td><td>the input's PSMs at FDR:PSM with run-level q-values and PEPs, target and decoy, all referenced proteins, no protein q-values</td></tr>
+<tr><td>quantms.* of -out_qpx</td><td>the PSMs of all inputs as above, quantms.pg.parquet: the pooled protein groups with their q-values</td><td>the PSMs of all inputs as above; with several inputs and -out_merged the pooled groups (no FDR), else one group per protein of each input</td></tr>
+<tr><td>-out_merged (several inputs)</td><td>the pooled final result</td><td>the pooled PSMs with a protein inference across inputs, no protein FDR</td></tr>
+<tr><td>-out_pin</td><td colspan="2">the PSMs before rescoring and FDR, with ProSE's own scores (input for an external Percolator)</td></tr>
+</table>
+@note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied to a @em complete protein set only: a single input, or the pooled inputs of a run (see above). ProSE never filters the proteins of one input of several on their own.
 @note Protein inference of the protein FDR: as in ProteomicsLFQ, the inference and the picked-protein FDR use the PSMs up to a looser q-value than '-Search:FDR:PSM', '-Search:FDR:protein_inference_PSM' (default 0.1), which leaves more decoy proteins for the picked-protein FDR, and a protein scores with the best posterior error probability of its PSMs (Percolator's PEP; without rescoring the best HyperScore). The proteins and the protein groups are filtered at '-Search:FDR:protein', each by its own q-value (the picked FDR of the groups counts a group once, however many targets it holds, so a group can be above the threshold while its proteins are not), and only the proteins of the groups that pass are kept. The reported PSMs are those that pass '-Search:FDR:PSM', but for the PSMs all of whose proteins fail the protein FDR, which are removed (as in ProteomicsLFQ), so that every reported PSM maps to a reported protein; proteins and protein groups without a reported PSM are removed after the protein FDR.
 @note PSM FDR: '-Search:FDR:PSM' filters the PSMs of each input on their q-values (Percolator's, or target-decoy competition of ProSE's score). It is never lifted: if no PSM of an input matched a decoy, the q-value of its T PSMs is the conservative 1/T (target-decoy competition with +1, where the uncorrected 0/T would pass every PSM), so a lower threshold reports no PSM, as an unattainable protein FDR reports no protein. Only a search without decoys ('-Search:decoys ignore') skips the filter, with a warning. Whatever FDR applies, the proteins of an output are those its reported PSMs reference.
-@note Percolator rescoring: by default ('-Search:rescore true'), the PSMs of each input file are rescored separately with OpenMS' built-in (in-process) Percolator implementation, the same backend PercolatorAdapter uses by default. No percolator executable is needed (the former '-percolator_executable' parameter and '-rescore' flag were removed). Training uses the standard Percolator feature set plus ProSE's search engine features, '-train_best_positive' and target-decoy competition ('-post_processing_tdc'), so q-values and PEPs come from target-decoy competition without a pi0 estimate, as with the percolator executable's -Y; Percolator q-values become the main score (the SVM score and PEP are kept as meta values MS:1001492/MS:1001493, the HyperScore as meta value 'ln(hyperscore)'), only the best hit per spectrum is kept, and the runs report 'Percolator' as search engine. The PSM and protein FDR thresholds are then applied on the rescored PSMs. A file with fewer than 100 PSMs or without decoys, or for which Percolator fails, is @em not rescored on its own: ProSE prints a warning and continues. Searched alone, such a file keeps its HyperScores (FDR is then computed from them); in a multi-file search, it gets the scores of a model trained on other inputs (see below) and keeps its HyperScores only if that fails too. The end-of-search report states how many files were rescored, and with '-qpx_extended' the run view has 'rescoring_applied' and 'rescoring_skipped_reason' per input. In a multi-file search, the inputs that Percolator rescores on their own keep exactly these results, whatever other inputs are searched with them. An input that it cannot rescore on its own (e.g. a small file next to large ones) gets the scores of a Percolator model trained on the PSMs of the inputs it rescored on their own, applied on the scale of that model's training PSMs: a PSM gets the score it would get among them and their PEP at that score (the score-to-PEP function is not estimated again on the few PSMs of the input); its q-values are those of target-decoy competition of the input's PSMs on that score (FDR per run, as for every input), on which '-Search:FDR:PSM' filters, and the run view's 'rescoring_warning' says that the scores come from a model trained on the other inputs. So every PSM has a Percolator PEP, and '-out_merged' ranks the proteins of all inputs by PEP. If Percolator can rescore no input on its own, the PSMs of all inputs are rescored together, with one model. '-Search:percolator:max_train_psms' (default 500000) caps the PSMs a model is trained on (the inputs below it are not affected): Percolator samples them by spectrum, and the model of the inputs too small for their own takes an equal share of each input rescored on its own; the log says when the training PSMs were sampled. To this end a multi-file search with rescoring keeps each input's PSMs before the rescoring until all inputs are searched (as '-out_pin' does). Only if that fails too (e.g. fewer than 100 PSMs in all), such inputs keep their search engine scores, and '-out_merged' then scores the proteins of all inputs by ProSE's score 'ln(hyperscore)' (as without rescoring) instead of Percolator's PEP, which only the rescored PSMs have; with '-Search:FDR:PSM' 0 its PSMs also all get 'ln(hyperscore)' as main score. Set '-Search:rescore false' to report ProSE's own scores. '-out_pin' always holds ProSE's own scores (see there).
+@note Percolator rescoring: by default ('-Search:rescore true'), the PSMs of each input file are rescored separately with OpenMS' built-in (in-process) Percolator implementation, the same backend PercolatorAdapter uses by default. No percolator executable is needed (the former '-percolator_executable' parameter and '-rescore' flag were removed).
+Training uses the standard Percolator feature set plus ProSE's search engine features, '-train_best_positive' and target-decoy competition ('-post_processing_tdc'), so q-values and PEPs come from target-decoy competition without a pi0 estimate, as with the percolator executable's -Y; Percolator q-values become the main score (the SVM score and PEP are kept as meta values MS:1001492/MS:1001493, the HyperScore as meta value 'ln(hyperscore)'), only the best hit per spectrum is kept, and the runs report 'Percolator' as search engine. The PSM and protein FDR thresholds are then applied on the rescored PSMs. A file with fewer than 100 PSMs or without decoys, or for which Percolator fails, is @em not rescored on its own: ProSE prints a warning and continues. Searched alone, such a file keeps its HyperScores (FDR is then computed from them); in a multi-file search, it gets the scores of a model trained on other inputs (see below) and keeps its HyperScores only if that fails too. The end-of-search report states how many files were rescored, and with '-qpx_extended' the run view has 'rescoring_applied' and 'rescoring_skipped_reason' per input.
+In a multi-file search, the inputs that Percolator rescores on their own keep exactly these results, whatever other inputs are searched with them. An input that it cannot rescore on its own (e.g. a small file next to large ones) gets the scores of a Percolator model trained on the PSMs of the inputs it rescored on their own, applied on the scale of that model's training PSMs: a PSM gets the score it would get among them and their PEP at that score (the score-to-PEP function is not estimated again on the few PSMs of the input); its q-values are those of target-decoy competition of the input's PSMs on that score (FDR per run, as for every input), on which '-Search:FDR:PSM' filters, and the run view's 'rescoring_warning' says that the scores come from a model trained on the other inputs. So every PSM has a Percolator PEP, and '-out_merged' ranks the proteins of all inputs by PEP. If Percolator can rescore no input on its own, the PSMs of all inputs are rescored together, with one model. Only if that fails too (e.g. fewer than 100 PSMs in all), such inputs keep their search engine scores, and the pooled evaluation ('-Search:FDR:protein' > 0 or '-out_merged') then scores the proteins of all inputs by ProSE's score 'ln(hyperscore)' (as without rescoring) instead of Percolator's PEP, which only the rescored PSMs have (every pooled PSM has a q-value as main score).
+'-Search:percolator:max_train_psms' (default 500000) caps the PSMs a model is trained on, and so the PSMs a multi-file search keeps for the model of the inputs too small for their own (see there). Set '-Search:rescore false' to report ProSE's own scores. '-out_pin' always holds ProSE's own scores (see there).
 @note `Search:peptide:clip_nterm_methionine=true` also searches the mature N-terminal
 peptide after loss of exactly the initial methionine of an M-leading protein.
 Both forms are searched with the configured length, mass and missed-cleavage limits.
@@ -184,8 +230,11 @@ quantms.run.parquet (one row per input, in input order): 'run_accession' and 'ru
 'dissociation_method', 'acquisition_method', 'additional_terms' (null: unknown to ProSE), 'enzymes',
 'modification_parameters' (the search's fixed and variable modifications: UNIMOD accession, name, fixed, position,
 target residue); and the optional columns 'search_status' (EXECUTION_OK, INPUT_FILE_EMPTY, UNEXPECTED_RESULT,
-UNKNOWN_ERROR, ILLEGAL_PARAMETERS), 'ms2_spectra_count', 'identified_spectra_count' (target PSMs after the FDR
-filters), 'decoy_psm_count', 'psm_rows' (its rows in quantms.psm.parquet), int64; 'psm_fdr_applied' (bool: whether
+UNKNOWN_ERROR, ILLEGAL_PARAMETERS), 'ms2_spectra_count' (0 for an input without MS2 spectra, e.g. MS1 only),
+'profile_spectra_count' (of these, the spectra recorded as profile spectra, which ProSE searches as they are; it warns,
+as they should be centroided first), 'charge_out_of_range_spectra_count' (of these, the spectra not searched because
+their recorded precursor charge is outside '-Search:precursor:min_charge' to '-Search:precursor:max_charge'),
+'identified_spectra_count' (target PSMs after the FDR filters), 'decoy_psm_count', 'psm_rows' (its rows in quantms.psm.parquet), int64; 'psm_fdr_applied' (bool: whether
 '-Search:FDR:PSM' filtered its PSMs, false if the filter was skipped for lack of decoys; null without '-Search:FDR:PSM'
 or for a failed search); 'rescoring_applied' (bool; null:
 the search did not rescore), 'rescoring_skipped_reason', 'rescoring_warning' (string); 'prediction_nce' (double; null:
@@ -221,16 +270,15 @@ input that was searched (see the run view's psm_fdr_applied), protein_fdr_applie
 complete protein set, one input or the pooled set of -out_merged); 'protein_inference' 'protein_grouping' (tool
 ProSE; algorithm, pooled). 'tool_version' is the version of OpenMS.
 Protein groups: with '-qpx_extended' a run without protein inference gets one group per protein in its pg.parquet
-(without a global_qvalue), and with '-out_merged' and several inputs quantms.pg.parquet holds the groups of the pooled
-inference (with its protein FDR) instead of the concatenated groups of the inputs.
-@note Decoys: '-keep_decoys' keeps the decoy PSMs and decoy proteins that pass the FDR thresholds where the protein FDR
-would remove them (a single input, and -out_merged), e.g. for showing target and decoy score distributions. With
-'-out_merged' and '-out_parquet', the pooled proteins and protein groups (cross-file inference, protein FDR) are also
-written as merged.proteins.parquet and merged.pg.parquet in the -out_parquet directory.
-@note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file gets the same identifications as when it is searched alone, and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
+(without a global_qvalue). With several inputs and the pooled evaluation ('-Search:FDR:protein' > 0 or '-out_merged'),
+quantms.pg.parquet holds the groups of the pooled inference (with its protein FDR; a row per group and run, the view's
+key), also without '-qpx_extended'.
+@note Decoys: '-keep_decoys' keeps the decoy PSMs and decoy proteins that pass the FDR thresholds in a final result, e.g.
+for showing target and decoy score distributions (see "Final results vs. intermediates").
+@note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file's outputs depend on '-Search:FDR:protein' (see "Final results vs. intermediates"), and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
 @note Threads: '-threads' sets the OpenMP threads of the search; mzML files are read with a share of them. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
-@note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
+@note Distributed (sharded) searches: '-Search:FDR:protein' 0 on each node, then @ref TOPP_ProteomicsLFQ ('-psmFDR' and '-proteinFDR' 0.01, '-picked_proteinFDR' true, the same FASTA) on the intermediates of all shards (see "Final results vs. intermediates").
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProSE.cli
@@ -307,17 +355,17 @@ class ProSE :
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Deprecated alias of -out (same behaviour, idXML or idparquet by extension). Cannot be combined with -out.", false, true);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML,idparquet"));
 
-      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input runs/<basename>.psm.parquet and runs/<basename>.pg.parquet, and quantms.psm.parquet and quantms.pg.parquet of the whole run (see also -qpx_extended): the folder is one QPX dataset (prefix quantms). The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one. The Parquet files of an earlier run in the folder (quantms.*.parquet, runs/*.parquet) are removed.", false, true);
+      registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input runs/<basename>.psm.parquet and runs/<basename>.pg.parquet, and quantms.psm.parquet and quantms.pg.parquet of the whole run (see also -qpx_extended): the folder is one QPX dataset (prefix quantms). The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 (with decoys), or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one. The Parquet files of an earlier run in the folder (quantms.*.parquet, runs/*.parquet) are removed.", false, true);
 
-      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input runs/<basename>.psm/proteins/pg/search_params.parquet, and openms.psm/proteins/pg/search_params.parquet of the whole run: the folder is one dataset (prefix openms). With -out_merged and several inputs also merged.proteins.parquet and merged.pg.parquet (the pooled proteins). The Parquet files of an earlier run in the folder (openms.*.parquet, merged.*.parquet, runs/*.parquet) are removed.", false, true);
+      registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input runs/<basename>.psm/proteins/pg/search_params.parquet, and openms.psm/proteins/pg/search_params.parquet of the whole run: the folder is one dataset (prefix openms). With several inputs and 'FDR:protein' > 0 or -out_merged also merged.proteins.parquet and merged.pg.parquet (the pooled proteins). The Parquet files of an earlier run in the folder (openms.*.parquet, merged.*.parquet, runs/*.parquet) are removed.", false, true);
 
-      registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files. idXML or an idparquet directory bundle (format by extension).", false);
+      registerOutputFile_("out_merged", "<file>", "", "Optional output of all PSMs pooled across the input files, with a protein inference across them (BasicProteinInferenceAlgorithm) and, with 'Search:FDR:protein' > 0, the picked-protein FDR (see the tool documentation, 'Final results vs. intermediates'). Only useful with multiple -in files. idXML or an idparquet directory bundle (format by extension).", false);
       setValidFormats_("out_merged", ListUtils::create<std::string>("idXML,idparquet"));
 
       registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. It holds the PSMs before the rescoring and before any FDR filter, with ProSE's own scores and all reported hits: 'Search:rescore' and 'Search:FDR:*' apply to the other outputs only.", false, true);
       setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"));
 
-      registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
+      registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. The analysis covers the PSMs of each input that pass 'Search:FDR:PSM', before the protein FDR (the evidence for the mass shifts, also of PSMs whose proteins the protein FDR removes). Has no effect in closed-search mode.", false, true);
 
       registerOutputFile_("summary_out", "<file>", "", "Optional YAML file capturing the end-of-search report (per-file identification statistics, shared configuration/database/index facts, timing and output manifest) for pipeline ingestion. The same information is printed to the command line unless -no_summary is set.", false, true);
       setValidFormats_("summary_out", ListUtils::create<std::string>("yaml"));
@@ -329,7 +377,7 @@ class ProSE :
       setMinFloat_("qpx_peak_window", 1.0);
       registerIntOption_("qpx_peak_top", "<n>", 100, "-qpx_extended: the most intense peaks kept per -qpx_peak_window (with every annotated peak); 0 keeps all peaks.", false, true);
       setMinInt_("qpx_peak_top", 0);
-      registerFlag_("keep_decoys", "Keep the decoy PSMs and proteins that pass the FDR thresholds in the outputs; the protein FDR (one input, or -out_merged) otherwise removes them.", true);
+      registerFlag_("keep_decoys", "Keep the decoy PSMs and proteins that pass the FDR thresholds in the outputs of a final result (Search:FDR:protein > 0; see the tool documentation, 'Final results vs. intermediates').", true);
 
 
       // put search algorithm parameters at Search: subtree of parameters
@@ -893,6 +941,8 @@ class ProSE :
       auto column = [](const std::string& name, Column::Type type) { Column c; c.name = name; c.type = type; return c; };
       Column status = column("search_status", Column::Type::UTF8);
       Column ms2 = column("ms2_spectra_count", Column::Type::INT64);
+      Column profile = column("profile_spectra_count", Column::Type::INT64);
+      Column charge_out_of_range = column("charge_out_of_range_spectra_count", Column::Type::INT64);
       Column identified = column("identified_spectra_count", Column::Type::INT64);
       Column decoys = column("decoy_psm_count", Column::Type::INT64);
       Column rows = column("psm_rows", Column::Type::INT64);
@@ -920,6 +970,8 @@ class ProSE :
         const ProSEAlgorithm::SearchResult* pf = searched ? &mfres.per_file[i] : nullptr;
         status.utf8_values.push_back(pf ? searchStatus_(pf->exit_code) : "UNKNOWN_ERROR");
         ms2.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.ms2_spectra) : 0);
+        profile.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.profile_spectra) : 0);
+        charge_out_of_range.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.charge_out_of_range_spectra) : 0);
         identified.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.target_psms) : 0);
         decoys.int64_values.push_back(pf ? static_cast<Int64>(pf->stats.decoy_psms) : 0);
         rows.int64_values.push_back(i < psm_rows.size() ? psm_rows[i] : 0);
@@ -948,7 +1000,7 @@ class ProSE :
         optional_number(errors[4], st.frag_tol_valid, st.frag_err_mad);
         optional_number(errors[5], st.frag_tol_valid, st.frag_err_recommended);
       }
-      std::vector<Column> columns = {status, ms2, identified, decoys, rows, psm_fdr_applied, applied, skipped, warning, nce};
+      std::vector<Column> columns = {status, ms2, profile, charge_out_of_range, identified, decoys, rows, psm_fdr_applied, applied, skipped, warning, nce};
       columns.insert(columns.end(), errors.begin(), errors.end());
       columns.push_back(seconds);
       return columns;
@@ -1181,6 +1233,7 @@ class ProSE :
       const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
 
       ProSEAlgorithm sse;
+      sse.setParameterNamePrefix("Search:"); // a parameter the search refuses is named as it is set here
       sse.setParameters(search_params);
 
       // -out_pin is the input of a later rescoring: the PSMs before the rescoring and before any FDR filter. Both
@@ -1252,11 +1305,14 @@ class ProSE :
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
       // Timer spans search (incl. Percolator and PSM FDR) + protein FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
-      // Keep the algorithm's pooled aggregate only where the -out_merged block below consumes it.
-      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1;
-      ProSEAlgorithm::MultiFileSearchResult mfres =
-        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
-                                           build_pooled_aggregate);
+      // Several inputs: the pooled evaluation (below) with FDR:protein > 0 (the run is the whole experiment, and every
+      // output is its final result) or for -out_merged. With FDR:protein > 0 it pools the PSMs of the files by moving
+      // them (each file gets its part back), which needs no copy; -out_merged without the protein FDR leaves the files
+      // their PSMs, so it pools the search's copy (its pooled aggregate).
+      const bool pooled_evaluation = in_list.size() > 1 && (user_protein_fdr > 0.0 || !out_merged.empty());
+      const bool build_pooled_aggregate = pooled_evaluation && user_protein_fdr <= 0.0;
+      ProSEAlgorithm::MultiFileSearchResult mfres = sse.searchWithModificationAnalysis(in_list, database,
+        mod_analysis_base_names, aggregate_base_name, build_pooled_aggregate);
       // the outputs from here on, with the -qpx_extended work (the report's timing)
       const double seconds_searching = sw_total.getClockTime();
       StopWatch sw_qpx_extended;
@@ -1382,58 +1438,101 @@ class ProSE :
 
       // Protein-level FDR. FDR does not compose across runs, so picked-protein FDR is
       // statistically valid only on a COMPLETE protein set: a single input file (handled
-      // here) or the pooled -out_merged set (handled below). Filtering each file of a
+      // here) or the pooled set of several inputs (handled below). Filtering each file of a
       // multi-file run separately would not control the FDR of the combined protein list
       // (false positives accumulate across files), so that is deliberately never done.
       // Whether the protein FDR was applied to a complete protein set (one input here, the pooled set below).
       bool protein_fdr_applied = false;
-      if (user_protein_fdr > 0.0)
+      if (user_protein_fdr > 0.0 && !mfres.have_decoys)
       {
-        if (in_list.size() == 1)
+        OPENMS_LOG_WARN << "FDR:protein is set but the search ran target-only (decoys=ignore, or no decoys in the "
+                        << "database); " << (in_list.size() == 1 ? "skipping protein FDR" : "the pooled protein inference "
+                           "of the " + StringUtils::toStr(in_list.size()) + " inputs applies no protein FDR")
+                        << ". Use '-Search:decoys auto' / 'generate' or supply a decoy FASTA." << endl;
+      }
+      else if (user_protein_fdr > 0.0 && in_list.size() == 1)
+      {
+        ProSEAlgorithm::SearchResult& result = mfres.per_file[0];
+        if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK
+            && !result.protein_ids.empty() && !result.peptide_ids.empty())
         {
-          ProSEAlgorithm::SearchResult& result = mfres.per_file[0];
-          if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK
-              && !result.protein_ids.empty() && !result.peptide_ids.empty())
+          // The single file is the complete experiment, so picked-protein FDR is valid. Shared
+          // finalization (inference + picked FDR + decoy removal + ref cleanup) lives in
+          // ProSEAlgorithm so this and the library search() path can't drift; it uses the
+          // resolved decoy marker (prefix or suffix) and skips internally if no decoy proteins
+          // survived inference, which it reports.
+          protein_fdr_applied = ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
+            mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr, /*remove_decoys=*/ !keep_decoys,
+            result.inference_only_peptide_ids);
+          result.inference_only_peptide_ids = PeptideIdentificationList(); // release the copy
+        }
+      }
+
+      // The pooled evaluation of several inputs (pooled_evaluation): ProSEAlgorithm::mergeFileResults() pools the PSMs of
+      // the files (possibly Percolator-rescored) and runs the protein inference across files and, with FDR:protein > 0,
+      // the picked-protein FDR, before the per-file outputs. With FDR:protein > 0 the run is the whole experiment: each
+      // file's outputs are its part of the pooled result (splitMergedPsms() below), so that every output has the same PSMs
+      // and proteins; -out_merged also writes the pooled result. A failure here fails the run after the report (the
+      // per-file outputs are written as searched: mergeFileResults() gives the files their PSMs back).
+      bool merged_ok = true;
+      // Several inputs, pooled: quantms.pg.parquet holds the protein groups of the pooled inference (a row per group and
+      // run; with FDR:protein > 0 the inputs' pg files have the same rows, as they have the pooled groups their PSMs
+      // reference, but with FDR:protein 0 they have no groups)
+      std::shared_ptr<arrow::Table> pooled_pg_table;
+      ExitCodes pooled_error = EXECUTION_OK;
+      if (pooled_evaluation)
+      {
+        ProSEAlgorithm::MergedResult merged;
+        bool merged_done = false;
+        try
+        {
+          // (If Percolator rescored only some inputs, mergeFileResults() pools them on ProSE's score and warns.)
+          merged = sse.mergeFileResults(mfres, in_list, /*remove_decoys=*/ !keep_decoys);
+          merged_done = true;
+          protein_fdr_applied = merged.protein_fdr_applied;
+          if (getFlag_("test") && !merged.protein_ids.empty())
           {
-            if (mfres.have_decoys)
-            {
-              // The single file is the complete experiment, so picked-protein FDR is valid. Shared
-              // finalization (inference + picked FDR + decoy removal + ref cleanup) lives in
-              // ProSEAlgorithm so this and the library search() path can't drift; it uses the
-              // resolved decoy marker (prefix or suffix) and skips internally if no decoy proteins
-              // survived inference, which it reports.
-              protein_fdr_applied = ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
-                mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr, /*remove_decoys=*/ !keep_decoys,
-                result.inference_only_peptide_ids);
-              result.inference_only_peptide_ids = PeptideIdentificationList(); // release the copy
-            }
-            else
-            {
-              OPENMS_LOG_WARN << "FDR:protein is set but the search ran target-only (decoys=ignore, "
-                              << "or no decoys in the database); skipping protein FDR. Use "
-                              << "'-Search:decoys auto' / 'generate' or supply a decoy FASTA." << endl;
-            }
+            StringList basenames;
+            for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
+            merged.protein_ids[0].setPrimaryMSRunPath(basenames);
+          }
+          if (!out_merged.empty())
+          {
+            FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {identificationOutputType_(out_merged)});
+          }
+          if (!out_qpx_dir.empty())
+          {
+            pooled_pg_table = ProteinGroupArrowExport::exportToArrow(merged.protein_ids, merged.peptide_ids);
+          }
+
+          // The pooled proteins and protein groups next to the per-file ones (the per-file runs have no protein
+          // inference across files of their own)
+          if (!out_parquet_dir.empty())
+          {
+            merged_ok = ProteinIdentificationArrowIO::exportProteinsToParquet(
+                          merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".proteins.parquet") && merged_ok;
+            merged_ok = ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
+                          merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".pg.parquet") && merged_ok;
           }
         }
-        else if (out_merged.empty())
+        catch (const Exception::BaseException& e)
         {
-          // Multiple inputs but no complete (aggregate) protein set to finalize. Per-file
-          // protein FDR would not control the combined FDR, so it is NOT applied and no
-          // output represents the requested protein FDR. Per-file outputs are left as
-          // run-level intermediate evidence (target+decoy retained), so they can still be
-          // pooled and FDR-controlled downstream. Warn loudly.
-          OPENMS_LOG_WARN << "FDR:protein=" << user_protein_fdr << " was requested for "
-                          << in_list.size() << " input files but -out_merged was not set. "
-                          << "Protein-level FDR is NOT applied: filtering each run separately "
-                          << "would not control the FDR of the pooled protein list, and no "
-                          << "single output here represents a complete experiment. Per-file "
-                          << "outputs (-out/-out_qpx/-out_parquet) retain target+decoy "
-                          << "evidence as intermediates. Use -out_merged to obtain protein FDR "
-                          << "over the aggregated set, or pool the per-file outputs and apply "
-                          << "FDR downstream (e.g. IDMerger -> ProteinInference -> FalseDiscoveryRate)." << endl;
-          // the PSMs that only the protein inference of the protein FDR would use
-          for (ProSEAlgorithm::SearchResult& result : mfres.per_file) { result.inference_only_peptide_ids = PeptideIdentificationList(); }
+          OPENMS_LOG_ERROR << "The pooled evaluation of the " << in_list.size() << " inputs failed"
+                           << (out_merged.empty() ? std::string() : " (-out_merged " + out_merged + ")") << ": " << e.what()
+                           << ". The run fails; its per-file outputs are written below with the PSMs of each input at "
+                           << "FDR:PSM, before the protein FDR: they are not its final result." << endl;
+          // Do NOT propagate yet; the per-file outputs and the report follow.
+          pooled_error = CANNOT_WRITE_OUTPUT_FILE;
         }
+        // FDR:protein > 0: every output is the final result. The pooled finalization removed PSMs that the files still
+        // have (those all of whose proteins failed the protein FDR, without -keep_decoys the decoys) and scored the
+        // proteins: each file gets its part of the pooled PSMs and the pooled proteins (with their q-values) and groups
+        // they reference.
+        if (merged_done && user_protein_fdr > 0.0) { ProSEAlgorithm::splitMergedPsms(merged, mfres); }
+      }
+      else if (!out_merged.empty() && in_list.size() == 1)
+      {
+        OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
       }
 
       // Protein-FDR finalization mutates the per-file identifications after the search produced
@@ -1829,8 +1928,7 @@ class ProSE :
 
       // -- Write merged Parquet files --
       // Always write merged files (even for single input — provides a canonical name). With -qpx_extended the QPX ones
-      // are written after the merged idXML below: they need its protein inference and the statistics of the whole run.
-      bool merged_ok = true;
+      // are written below: they need the protein inference of the merge and the statistics of the whole run.
       // scan_format only describes the merged psm file if every contributing run agreed on a
       // convention; otherwise it is omitted rather than taken from an arbitrary run.
       std::map<std::string, std::string> qpx_psm_keys;
@@ -1841,6 +1939,13 @@ class ProSE :
         {
           qpx_psm_keys["scan_format"] = *distinct_formats.begin();
         }
+      }
+      // The protein groups of quantms.pg.parquet: of the pooled inference (if it found any), else those of the inputs
+      std::vector<std::shared_ptr<arrow::Table>> quantms_pg_tables = qpx_pg_tables;
+      if (pooled_evaluation)
+      {
+        quantms_pg_tables.clear();
+        if (pooled_pg_table && ArrowIOHelpers::tableRowCount(pooled_pg_table) > 0) { quantms_pg_tables.push_back(pooled_pg_table); }
       }
       if (!out_qpx_dir.empty() && !qpx_extended)
       {
@@ -1856,15 +1961,12 @@ class ProSE :
         }
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.
-        if (pg_meta && !qpx_pg_tables.empty())
+        if (pg_meta && !quantms_pg_tables.empty())
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_pg_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+            quantms_pg_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
         }
       }
-      // -qpx_extended with several inputs and -out_merged: the protein groups of the pooled inference for quantms.pg.parquet
-      std::shared_ptr<arrow::Table> pooled_pg_table;
-      const bool pooled_pg = qpx_extended && !out_merged.empty() && in_list.size() > 1;
 
       if (!out_parquet_dir.empty())
       {
@@ -1874,57 +1976,6 @@ class ProSE :
         merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables,   out_parquet_dir + "/" + PARQUET_AGGREGATE_STEM + ".search_params.parquet") && merged_ok;
       }
 
-      // Write merged idXML: ProSEAlgorithm::mergeFileResults() pools all per-file PSMs (possibly
-      // Percolator-rescored) and runs cross-file protein inference + optional protein FDR. Wrapped in
-      // try/catch so any failure here does NOT discard per-file outputs that already completed above.
-      // The merge moves the identifications out of mfres; past this block only the per-file stats /
-      // exit codes / Percolator outcomes / modification analyses are read (the search report and
-      // renderRunSummaryYaml), never the identifications. A merged idXML that cannot be written fails
-      // the run after the report, like the merged Parquet files above.
-      ExitCodes merged_idxml_error = EXECUTION_OK;
-      if (!out_merged.empty() && in_list.size() > 1)
-      {
-        try
-        {
-          // (If Percolator rescored only some inputs, mergeFileResults() pools them on ProSE's score and warns.)
-          ProSEAlgorithm::MergedResult merged = sse.mergeFileResults(mfres, in_list, /*remove_decoys=*/ !keep_decoys);
-          protein_fdr_applied = merged.protein_fdr_applied;
-          if (getFlag_("test") && !merged.protein_ids.empty())
-          {
-            StringList basenames;
-            for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
-            merged.protein_ids[0].setPrimaryMSRunPath(basenames);
-          }
-
-          FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {identificationOutputType_(out_merged)});
-          if (pooled_pg && !out_qpx_dir.empty())
-          {
-            pooled_pg_table = ProteinGroupArrowExport::exportToArrow(merged.protein_ids, merged.peptide_ids);
-          }
-
-          // The pooled proteins and protein groups next to the per-file ones: the per-file runs have no protein
-          // inference across files, so these are the only proteins with the protein FDR of a multi-file run.
-          if (!out_parquet_dir.empty())
-          {
-            merged_ok = ProteinIdentificationArrowIO::exportProteinsToParquet(
-                          merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".proteins.parquet") && merged_ok;
-            merged_ok = ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
-                          merged.protein_ids, out_parquet_dir + "/" + PARQUET_POOLED_STEM + ".pg.parquet") && merged_ok;
-          }
-        }
-        catch (const Exception::BaseException& e)
-        {
-          OPENMS_LOG_ERROR << "Failed to write merged identification output -> " << out_merged
-                           << ": " << e.what()
-                           << ". Per-file outputs were written (check above for any per-file errors)." << endl;
-          // Do NOT propagate yet; per-file outputs are already on disk and the report follows.
-          merged_idxml_error = CANNOT_WRITE_OUTPUT_FILE;
-        }
-      }
-      else if (!out_merged.empty() && in_list.size() == 1)
-      {
-        OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
-      }
 
       // -- -qpx_extended: the QPX dataset of the whole run, quantms.psm/pg/run/sample/provenance.parquet --
       auto write_aggregate = [&]() -> bool
@@ -1945,13 +1996,6 @@ class ProSE :
           if (empty) { empty = ArrowIOHelpers::withColumns(empty, QPXDatasetExport::psmColumns({}, {}, true)); }
           if (empty) { qpx_psm_tables.push_back(empty); }
         }
-        // the protein groups: of the pooled inference (if it found any), else those of the inputs
-        std::vector<std::shared_ptr<arrow::Table>> pg_tables = qpx_pg_tables;
-        if (pooled_pg)
-        {
-          pg_tables.clear();
-          if (pooled_pg_table && ArrowIOHelpers::tableRowCount(pooled_pg_table) > 0) { pg_tables.push_back(pooled_pg_table); }
-        }
         // the run, sample and provenance views: the inputs and the steps of the run
         auto run_view = QPXDatasetExport::runView(runs_(mfres.shared, in_list));
         if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, rescore, test_mode_)); }
@@ -1959,11 +2003,11 @@ class ProSE :
         for (Size i = 0; i < in_list.size(); ++i) { samples[i].accession = File::stemName(in_list[i]); }
         const std::map<std::string, QPXDatasetExport::View> views = {
           {"psm", {qpx_psm_tables, qpx_extended_config, qpx_psm_keys}},
-          {"pg", {pg_tables, ParquetWriteConfig{}, {}}},
+          {"pg", {quantms_pg_tables, ParquetWriteConfig{}, {}}},
           {"run", {{run_view}, ParquetWriteConfig{}, {}}},
           {"sample", {{QPXDatasetExport::sampleView(samples)}, ParquetWriteConfig{}, {}}},
           {"provenance", {{QPXDatasetExport::provenanceView(provenanceSteps_(mfres, search_params, rescore, protein_fdr_applied,
-                                                                              pooled_pg, mod_delta_masses, mod_ptms))},
+                                                                              pooled_evaluation, mod_delta_masses, mod_ptms))},
                           ParquetWriteConfig{}, {}}}};
         return QPXDatasetExport::writeDataset(out_qpx_dir, QPX_AGGREGATE_STEM, views);
       };
@@ -2049,7 +2093,7 @@ class ProSE :
         add_manifest("idXML", written_idxml);
         add_manifest("idparquet", written_idparquet);
         add_manifest("pin", written_pin);
-        if (!out_merged.empty() && in_list.size() > 1 && merged_idxml_error == EXECUTION_OK)
+        if (!out_merged.empty() && in_list.size() > 1 && pooled_error == EXECUTION_OK)
         {
           add_manifest(identificationOutputType_(out_merged) == FileTypes::IDPARQUET ? "merged idparquet" : "merged idXML", {out_merged});
         }
@@ -2202,10 +2246,11 @@ class ProSE :
         OPENMS_LOG_ERROR << "ProSE failed to write one or more merged Parquet files." << endl;
         return INTERNAL_ERROR;
       }
-      if (merged_idxml_error != EXECUTION_OK)
+      if (pooled_error != EXECUTION_OK)
       {
-        OPENMS_LOG_ERROR << "ProSE failed to write the merged identification output -> " << out_merged << "." << endl;
-        return merged_idxml_error;
+        OPENMS_LOG_ERROR << "ProSE failed in the pooled evaluation of its inputs"
+                         << (out_merged.empty() ? std::string() : " (-out_merged " + out_merged + ")") << "." << endl;
+        return pooled_error;
       }
       return EXECUTION_OK;
     }
