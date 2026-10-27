@@ -12,6 +12,16 @@ namespace OpenMS
 {
   IMSExperimentRandomAccess::~IMSExperimentRandomAccess() = default;
 
+  bool IMSExperimentRandomAccess::setNativeFrameCacheSize(Size)
+  {
+    return false;
+  }
+
+  NativeFrameCacheStats IMSExperimentRandomAccess::getNativeFrameCacheStats() const
+  {
+    return {};
+  }
+
   MSSpectrum IMSExperimentRandomAccess::getSpectrumPeaks(Size index)
   {
     return getSpectrum(index);

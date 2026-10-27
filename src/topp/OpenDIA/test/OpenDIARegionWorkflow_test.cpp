@@ -15,6 +15,7 @@
 #include <array>
 #include <filesystem>
 #include <limits>
+#include <map>
 #include <stdexcept>
 
 using namespace OpenDIA;
@@ -174,6 +175,9 @@ void fixtures()
     auto source = std::make_shared<OpenMS::SpectrumAccessOnDisc>(experiment);
     exercise(source);
     auto cache = std::make_shared<RawCache>(16 * MIB, 0, 8 * MIB);
+    check(! cache->enableNativeFrames(std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(experiment->clone())),
+          "Indexed mzML unexpectedly enabled a native frame cache");
+    check(cache->snapshot().budget.committed_bytes == 0, "Unsupported native cache retained admission");
     auto input = std::make_shared<RawAccess>(source, cache);
     RegionWorkflow workflow(false, false, false, false, false, 1);
     std::vector<Coordinate> coordinates(1);
@@ -205,6 +209,68 @@ void fixtures()
     cp.extraction_function = "not-a-filter";
     rejects([&] { workflow.extractChromatograms_(input, output, coordinates, cp); });
   }
+}
+
+void nativeFrames(const std::shared_ptr<OpenMS::SpectrumAccessOnDisc>& source)
+{
+  check(source != nullptr, "Native loader did not return a random-access source");
+  auto native = std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone());
+  auto cache = std::make_shared<RawCache>(256 * MIB, 64 * MIB, 32 * MIB);
+  if (! cache->enableNativeFrames(native))
+  {
+    check(cache->snapshot().budget.committed_bytes == 0, "Unsupported native cache retained bytes");
+    return;
+  }
+  const auto admitted = cache->snapshot();
+  check(admitted.native_frames.limit_bytes == 32 * MIB && admitted.budget.committed_bytes == 32 * MIB,
+        "Native frame capacity was not admitted from the shared budget");
+  // Two isolation lanes from the same physical frame must share decoded storage.
+  std::map<std::string, OpenMS::Size> frames;
+  bool compared = false;
+  for (OpenMS::Size i = 0; i < native->getNrSpectra(); ++i)
+  {
+    const auto metadata = native->getSpectrumMetadata(i);
+    if (metadata.getMSLevel() != 2) { continue; }
+    const auto& id = metadata.getNativeID();
+    const auto key = id.substr(0, id.find(' '));
+    const auto [previous, inserted] = frames.emplace(key, i);
+    if (inserted) { continue; }
+    for (const auto index : {previous->second, i})
+    {
+      auto lane = std::make_shared<OpenMS::SpectrumAccessOnDisc>(std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(native->clone()),
+                                                                 std::vector<OpenMS::Size> {index});
+      RawAccess access(lane, cache);
+      const auto before_read = cache->snapshot().native_frames;
+      const auto actual = access.acquire(0);
+      if (index == i) { check(cache->snapshot().native_frames.hits > before_read.hits, "The second lane decoded its physical frame again"); }
+      const auto expected = lane->getSpectrumById(0);
+      check(actual->array(0).data == expected->getMZArray()->data, "Frame reuse changed lane masses");
+      check(actual->array(1).data == expected->getIntensityArray()->data, "Frame reuse changed lane intensities");
+      const auto im = expected->getDriftTimeArray();
+      if (im) { check(actual->array(2).data == im->data, "Frame reuse changed point mobility"); }
+    }
+    compared = true;
+    break;
+  }
+  const auto used = cache->snapshot();
+  check(compared && used.native_frames.hits > admitted.native_frames.hits, "No physical-frame reuse across lanes");
+  check(used.native_frames.peak_retained_bytes > 0 && used.native_frames.peak_retained_bytes <= used.native_frames.limit_bytes
+          && used.budget.peak_total_bytes <= used.budget.usable_bytes,
+        "Native frames exceeded shared admission");
+  cache->cancel();
+  check(native->getNativeFrameCacheStats().limit_bytes == 0 && native->getNativeFrameCacheStats().retained_bytes == 0,
+        "Cancellation retained native storage");
+  check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0,
+        "Native frame cancellation retained admission");
+  auto tight = std::make_shared<RawCache>(32 * MIB, 0, 32 * MIB);
+  check(! tight->enableNativeFrames(native) && tight->snapshot().budget.committed_bytes == 0, "Native retention consumed required scan headroom");
+  {
+    RawCache temporary(256 * MIB, 64 * MIB, 32 * MIB);
+    check(temporary.enableNativeFrames(native), "Native cache could not restart after cancellation");
+  }
+  check(native->getNativeFrameCacheStats().limit_bytes == 0, "Cache destruction retained native admission");
+  OPENMS_LOG_INFO << "PASS native physical-frame lane reuse: hits=" << used.native_frames.hits << " misses=" << used.native_frames.misses
+                  << " peak=" << used.native_frames.peak_retained_bytes << " limit=" << used.native_frames.limit_bytes << '\n';
 }
 
 void edges()
@@ -287,6 +353,7 @@ int main(int argc, char** argv)
         std::shared_ptr<OpenMS::ExperimentalSettings> settings;
         auto maps = OpenMS::SwathFile().loadOnDisc(argv[argument], settings);
         check(! maps.empty(), "Native loader returned no lanes");
+        nativeFrames(std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(maps.front().sptr));
         for (const auto map_index : {OpenMS::Size {0}, maps.size() / 2, maps.size() - 1})
         {
           auto& map = maps[map_index];

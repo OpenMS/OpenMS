@@ -1817,7 +1817,11 @@ protected:
           if (!source || source->getNrSpectra() == 0)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Tiled input needs nonempty spectrum maps from a native random-access reader.");
+                                             "Tiled input needs nonempty spectrum maps from a native random-access reader.");
+          }
+          if (&map == &swath_maps.front())
+          {
+            raw_cache->enableNativeFrames(std::shared_ptr<IMSExperimentRandomAccess>(source->getExperiment().clone()));
           }
           map.sptr = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
         }
@@ -2198,8 +2202,11 @@ protected:
                         << " peak_accounted_bytes=" << stats.budget.peak_total_bytes
                         << " usable_bytes=" << stats.budget.usable_bytes
                         << " live_bytes=" << stats.budget.committed_bytes << '\n';
-        const auto log_work = [](const char* name, const OpenDIA::RawWorkCounters& work)
-        {
+        const auto& frames = stats.native_frames;
+        OPENMS_LOG_INFO << "Raw native frames: hits=" << frames.hits << " misses=" << frames.misses << " evictions=" << frames.evictions
+                        << " limit_bytes=" << frames.limit_bytes << " peak_retained_bytes=" << frames.peak_retained_bytes
+                        << " live_bytes=" << frames.retained_bytes << '\n';
+        const auto log_work = [](const char* name, const OpenDIA::RawWorkCounters& work) {
           OPENMS_LOG_INFO << "Raw tile work: phase=" << name
             << " hits=" << work.hits << " misses=" << work.misses << " evictions=" << work.evictions
             << " decodes=" << work.decodes << " copies=" << work.copies

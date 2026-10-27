@@ -147,6 +147,38 @@ namespace OpenDIA
     if (max_scan_bytes == 0 || max_scan_bytes > total_bytes - native_reserve) { invalid("Invalid maximum scan size"); }
   }
 
+  RawCache::~RawCache()
+  {
+    clear();
+  }
+
+  bool RawCache::enableNativeFrames(std::shared_ptr<OpenMS::IMSExperimentRandomAccess> source)
+  {
+    if (! source) { invalid("Null native frame source"); }
+    std::lock_guard lock(mutex_);
+    if (native_source_) { return false; }
+    if (! entries_.empty()) { invalid("Configure native frames before readers start"); }
+    const auto usable = budget_.snapshot().usable_bytes;
+    // ponytail: one source and at most one quarter of usable bytes. Revisit only with measured multi-source demand.
+    const auto bytes = std::min(max_scan_bytes_, usable / 4);
+    if (! bytes || usable - bytes < max_scan_bytes_) { return false; }
+    auto reservation = budget_.tryReserve(bytes);
+    if (! reservation || ! source->setNativeFrameCacheSize(bytes)) { return false; }
+    native_frame_lease_ = reservation->commit(bytes);
+    native_source_ = std::move(source);
+    return true;
+  }
+
+  void RawCache::clearNativeFrames_()
+  {
+    if (! native_source_) { return; }
+    native_frame_stats_ = native_source_->getNativeFrameCacheStats();
+    native_source_->setNativeFrameCacheSize(0);
+    native_frame_stats_.retained_bytes = 0;
+    native_source_.reset();
+    native_frame_lease_.reset();
+  }
+
   std::optional<ByteReservation> RawCache::reserve_(ByteCount bytes, RawPhase phase)
   {
     // Evict on pressure. Pinned scans keep leases, so admission can still fail.
@@ -164,7 +196,8 @@ namespace OpenDIA
   RawCacheSnapshot RawCache::snapshot() const
   {
     std::lock_guard lock(mutex_);
-    return {budget_.snapshot(), entries_.size(), work_.hits, work_.misses, work_.evictions, work_, phases_};
+    return {budget_.snapshot(), entries_.size(), work_.hits, work_.misses,
+            work_.evictions,    work_,           phases_,    native_source_ ? native_source_->getNativeFrameCacheStats() : native_frame_stats_};
   }
 
   void RawCache::setCalibration(bool active)
@@ -177,6 +210,7 @@ namespace OpenDIA
   {
     std::lock_guard lock(mutex_);
     entries_.clear();
+    clearNativeFrames_();
   }
 
   void RawCache::cancel()
@@ -184,6 +218,7 @@ namespace OpenDIA
     std::lock_guard lock(mutex_);
     budget_.cancel();
     entries_.clear();
+    clearNativeFrames_();
   }
 
   RawAccess::RawAccess(std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source, std::shared_ptr<RawCache> cache) :

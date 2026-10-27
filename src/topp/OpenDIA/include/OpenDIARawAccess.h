@@ -32,7 +32,8 @@ namespace OpenDIA
     BudgetSnapshot budget;
     OpenMS::Size cache_entries = 0, hits = 0, misses = 0, evictions = 0;
     RawWorkCounters work;
-    std::array<RawWorkCounters, static_cast<size_t>(RawPhase::COUNT)> phases{};
+    std::array<RawWorkCounters, static_cast<size_t>(RawPhase::COUNT)> phases {};
+    OpenMS::NativeFrameCacheStats native_frames;
   };
 
   /// Read-only scan. The lease stays valid after cache removal.
@@ -70,6 +71,13 @@ namespace OpenDIA
       @param[in] max_scan_bytes Positive scan admission bound, within usable bytes.
     */
     RawCache(ByteCount total_bytes, ByteCount native_reserve, ByteCount max_scan_bytes);
+    ~RawCache();
+    /** @brief Pre-admit one optional shared native frame cache from the same byte budget.
+      Configure only before readers start. Unsupported backends retain their existing path.
+      @param[in] source Native source whose clones share the optional cache.
+      @return True if this cache admitted and enabled native frame storage.
+    */
+    bool enableNativeFrames(std::shared_ptr<OpenMS::IMSExperimentRandomAccess> source);
     /// Read counters and budget state under one lock.
     RawCacheSnapshot snapshot() const;
     /// Change only between joined workflow stages, never while readers are active.
@@ -92,6 +100,10 @@ namespace OpenDIA
     std::optional<ByteReservation> reserve_(ByteCount bytes, RawPhase phase);
     mutable std::mutex mutex_;
     ByteBudget budget_;
+    MemoryLease native_frame_lease_;
+    std::shared_ptr<OpenMS::IMSExperimentRandomAccess> native_source_;
+    OpenMS::NativeFrameCacheStats native_frame_stats_;
+    void clearNativeFrames_();
     ByteCount max_scan_bytes_;
     std::list<Entry> entries_;
     RawWorkCounters work_;

@@ -20,6 +20,19 @@ namespace OpenMS
   class ExperimentalSettings;
 
   /**
+    @brief Observations for an optional backend decoded-frame cache, shared by clones of one source.
+  */
+  struct OPENMS_DLLAPI NativeFrameCacheStats
+  {
+    Size limit_bytes = 0;
+    Size retained_bytes = 0;
+    Size peak_retained_bytes = 0;
+    Size hits = 0;
+    Size misses = 0;
+    Size evictions = 0;
+  };
+
+  /**
     @brief Random access to the spectra and chromatograms of an MS run that stays on disk.
 
     Backends keep a small index in memory (e.g. retention time and MS level of every spectrum)
@@ -80,6 +93,28 @@ namespace OpenMS
       @param[in] index Spectrum index (0 <= index < getNrSpectra())
     */
     virtual MSSpectrum getSpectrumPeaks(Size index);
+
+    /**
+      @brief Configure an optional native decoded-frame cache (disabled by default).
+
+      Configure only between joined processing stages. Clones share the per-source cache.
+      The bound covers retained decoded vector capacities and object/node payloads, not
+      transient decoding workspace, allocator overhead or process RSS. Zero clears and
+      disables retention without resetting observations. Repeating a nonzero limit is idempotent.
+
+      @param[in] max_bytes Maximum retained payload bytes, or zero to disable
+      @return Whether this backend supports the cache
+    */
+    virtual bool setNativeFrameCacheSize(Size max_bytes);
+
+    /**
+      @brief Return native cache observations, or zero observations if unsupported.
+
+      Counts MS2 cache opportunities only, excluding index construction, MS1 and invalid
+      indices. Misses include requests with retention disabled. Evictions include clearing
+      and reducing the configured limit.
+    */
+    virtual NativeFrameCacheStats getNativeFrameCacheStats() const;
 
     /// Retention time (in seconds) of spectrum @p index, from the index
     virtual double getSpectrumRT(Size index) const = 0;

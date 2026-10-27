@@ -46,6 +46,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <limits>
+#include <list>
 #include <map>
 #include <unordered_map>
 #include <optional>
@@ -1944,6 +1945,16 @@ namespace OpenMS
       }
     }
 
+    // Discard decoding-only storage before measuring an immutable cache payload.
+    Size retainedBytes()
+    {
+      std::vector<uint32_t>().swap(scan_numbers_);
+      std::vector<uint32_t>().swap(scratch_);
+      return sizeof(DecodedFrame) + sizeof(uint32_t) *
+        (scan_ids.capacity() + tofs.capacity() + intensities.capacity() + mz_order.capacity()) +
+        sizeof(double) * (mzs.capacity() + scan_im.capacity());
+    }
+
   private:
     std::vector<uint32_t> scan_numbers_; // 0, 1, 2, ...
     std::vector<uint32_t> scratch_;
@@ -2657,13 +2668,28 @@ namespace OpenMS
     };
     struct Source
     {
+      struct CachedFrame
+      {
+        uint32_t id;
+        Size bytes;
+        DecodedFrame decoded;
+      };
       std::shared_ptr<void> archive;
       std::unique_ptr<TimsDataHandle> handle;
       BrukerTimsFile::Config config;
       std::vector<uint32_t> ms1_frames;
       std::vector<Entry> entries;
       std::shared_ptr<ExperimentalSettings> settings;
-      std::mutex mutex;
+      mutable std::mutex mutex;
+      NativeFrameCacheStats cache_stats;
+      std::list<CachedFrame> cache; // MRU first, no separate lookup allocation
+
+      void evictLast()
+      {
+        cache_stats.retained_bytes -= cache.back().bytes;
+        cache.pop_back();
+        ++cache_stats.evictions;
+      }
     };
 
     explicit NativeBrukerDIAExperiment(std::shared_ptr<Source> source) : source_(std::move(source)) {}
@@ -2682,6 +2708,18 @@ namespace OpenMS
     {
       return std::make_unique<NativeBrukerDIAExperiment>(source_);
     }
+    bool setNativeFrameCacheSize(Size max_bytes) override
+    {
+      std::lock_guard<std::mutex> lock(source_->mutex);
+      source_->cache_stats.limit_bytes = max_bytes;
+      while (source_->cache_stats.retained_bytes > max_bytes) source_->evictLast();
+      return true;
+    }
+    NativeFrameCacheStats getNativeFrameCacheStats() const override
+    {
+      std::lock_guard<std::mutex> lock(source_->mutex);
+      return source_->cache_stats;
+    }
     MSSpectrum getSpectrum(Size i) override
     {
       const auto& entry = source_->entries.at(i);
@@ -2697,13 +2735,54 @@ namespace OpenMS
       {
         auto& frame = source_->handle->get_frame(entry.frame);
         DecodedFrame decoded;
-        decoded.decode(*source_->handle, frame, true);
+        const DecodedFrame* payload = &decoded;
+        const auto found = std::find_if(source_->cache.begin(), source_->cache.end(),
+          [&](const auto& cached) { return cached.id == entry.frame; });
+        if (found != source_->cache.end())
+        {
+          ++source_->cache_stats.hits;
+          source_->cache.splice(source_->cache.begin(), source_->cache, found);
+          payload = &source_->cache.front().decoded;
+        }
+        else
+        {
+          ++source_->cache_stats.misses;
+          // close() invalidates the opentims decompressed-frame view and releases its
+          // optional back_buffer. The handle's reusable workspace is not cache payload.
+          struct CloseFrame
+          {
+            TimsFrame& frame;
+            ~CloseFrame() { frame.close(); }
+          } close_frame{frame};
+          decoded.decode(*source_->handle, frame, true);
+          const Size bytes = decoded.retainedBytes() + sizeof(Source::CachedFrame) - sizeof(DecodedFrame) + 2 * sizeof(void*);
+          if (bytes <= source_->cache_stats.limit_bytes)
+          {
+            while (source_->cache_stats.retained_bytes > source_->cache_stats.limit_bytes - bytes) source_->evictLast();
+            try
+            {
+              source_->cache.emplace_front();
+              auto& cached = source_->cache.front();
+              cached.id = entry.frame;
+              cached.bytes = bytes;
+              cached.decoded = std::move(decoded);
+              source_->cache_stats.retained_bytes += bytes;
+              source_->cache_stats.peak_retained_bytes = std::max(source_->cache_stats.peak_retained_bytes, source_->cache_stats.retained_bytes);
+              payload = &source_->cache.front().decoded;
+            }
+            catch (const std::bad_alloc&)
+            {
+              // Retention is optional. Decode errors still propagate, but an allocation
+              // failure for the cache node must not prevent returning decoded science.
+            }
+          }
+        }
         initDIAWindowSpectrum(frame, *entry.window, spec);
         DataArrays::FloatDataArray im_array;
         IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
         std::vector<char> in_window;
-        markScansInWindow(decoded, *entry.window, in_window);
-        addWindowPeaksByMZ(decoded, in_window, spec, im_array);
+        markScansInWindow(*payload, *entry.window, in_window);
+        addWindowPeaksByMZ(*payload, in_window, spec, im_array);
         spec.getFloatDataArrays().push_back(std::move(im_array));
         spec.setIMPeakType(IMPeakType::IM_PROFILE);
       }
