@@ -1183,6 +1183,17 @@ else()
   endforeach()
 endif()
 
+# '-write_json' and '-write_nested_json' need no TDL, only nlohmann::json, so they must work in
+# every build. Without TDL they used to abort the tool (an uncaught std::runtime_error) after
+# creating an empty <Tool>.json. The written description must also be readable through '-ini'.
+foreach(_json_opt write_json write_nested_json)
+  file(MAKE_DIRECTORY ${TESTS_TEMP_DIR}/FileMerger_${_json_opt})
+  add_test("TOPP_FileMerger_${_json_opt}" ${TOPP_BIN_PATH}/FileMerger -${_json_opt} ${TESTS_TEMP_DIR}/FileMerger_${_json_opt})
+  add_test("TOPP_FileMerger_${_json_opt}_read" ${TOPP_BIN_PATH}/FileMerger -ini ${TESTS_TEMP_DIR}/FileMerger_${_json_opt}/FileMerger.json
+    -write_ini ${TESTS_TEMP_DIR}/FileMerger_${_json_opt}/FileMerger.tmp.ini)
+  set_tests_properties("TOPP_FileMerger_${_json_opt}_read" PROPERTIES DEPENDS "TOPP_FileMerger_${_json_opt}")
+endforeach()
+
 #------------------------------------------------------------------------------
 # FLASHDeconv tests
 add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out ${TESTS_TEMP_DIR}/FLASHDeconv_1.tmp.tsv)
