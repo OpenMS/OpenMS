@@ -542,6 +542,51 @@ class TestPeptideIdentificationListGetDF:
         # the columns select the score instead of dropping it
         assert list(pep_list.to_df(columns=cols).columns) == cols
 
+    def test_to_df_meta_value_named_like_column(self):
+        """Test that a meta value named like a fixed column gets a column of its own."""
+        hit = pyopenms.PeptideHit()
+        hit.setScore(50.0)
+        hit.setCharge(2)
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        evidence = pyopenms.PeptideEvidence()
+        evidence.setProteinAccession('PROT1')
+        evidence.setStart(3)
+        evidence.setEnd(9)
+        hit.setPeptideEvidences([evidence])
+        hit.setMetaValue('start', 4)
+        hit.setMetaValue('end', 10)
+        hit.setMetaValue('meta_start', 'taken')
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('test_id')
+        pep.setScoreType('Mascot')
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        df = pep_list.to_df(decode_ontology=False)
+        assert list(df.columns) == pep_list.df_columns(decode_ontology=False)
+        assert len(set(df.columns)) == len(df.columns)
+        # the fixed columns keep the peptide evidence...
+        assert df.loc[0, 'start'] == '3'
+        assert df.loc[0, 'end'] == '9'
+        # ...and the meta values are prefixed (and numbered where the prefixed name is taken, too)
+        assert df.loc[0, 'meta_end'] == 10
+        assert df.loc[0, 'meta_start'] == 'taken'
+        assert df.loc[0, 'meta_start_2'] == 4
+
+    def test_to_df_msgf_search_engine_output(self, openms_test_data_dir):
+        """Test to_df() on MS-GF+ output, whose hits carry 'start' and 'end' meta values."""
+        prots = []
+        peps = pyopenms.PeptideIdentificationList()
+        pyopenms.IdXMLFile().load(os.path.join(openms_test_data_dir, 'MzTabExporter_2_input.idXML'), prots, peps)
+
+        df = peps.to_df()
+        assert len(df) == len(peps)
+        assert list(df.columns) == peps.df_columns()
+        assert len(set(df.columns)) == len(df.columns)
+        assert 'meta_start' in df.columns
+        assert 'meta_end' in df.columns
+
     def test_to_df_custom_missing_values(self, peptide_id_list_with_unidentified):
         """Test to_df() with custom default_missing_values."""
         custom_missing = {bool: False, int: 0, float: 0.0, str: 'N/A'}
