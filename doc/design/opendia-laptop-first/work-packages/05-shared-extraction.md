@@ -108,7 +108,27 @@ Local `wp05-known-bounds-20261027` artifacts: `native-tests-final.log`, retained
 
 ## Next increment
 
-Follow the [master's ordered next actions](../README.md#current-state-and-next-actions): eliminate avoidable full mutable scoring copies through the existing const-view/lease boundary only where calibration and actual DIA/IM consumers remain read-only and correctly charged. Trace all `fetchSpectrumSwath` / `getMultipleSpectra` callers and wrappers first. Preserve legacy detached mutable access, source/scan identity, calibration revision, mobility evidence including wider scoring windows, nearest-RT/merge semantics and last-owner release. Do not duplicate existing precursor-MS1 reuse, add a speculative query cache or infer an MS1 bottleneck from aggregate scoring counters. Stop after one failing-before/passing-after native regression demonstrating less copy work and one unchanged full twelve-output native comparison. If that cannot fit the existing boundary safely, record the constraint instead of silently widening the implementation. Keep both native readers enabled. Thermo runtime discovery/native workspace attribution and full sharing/calibration acceptance remain separate open gates.
+### Scoring-boundary trace, 27 October 2026
+
+The trace is complete on `9e24325e29`, but **no scoring-copy reduction has been implemented**. The existing const view is sufficient for extraction, not a drop-in replacement for scoring:
+
+- Every `OpenSwathScoring::fetchSpectrumSwath` overload routes through `ISpectrumAccess::getMultipleSpectra`, which returns `SpectrumSequence`, a vector of mutable `SpectrumPtr`. Even a const `Spectrum` exposes mutable array pointers. Returning cached arrays through that API would break the detached-copy contract.
+- `SpectrumAccessQuadMZTransforming::getSpectrumById` changes m/z in place. Its inherited `getSpectrumView` deliberately calls that mutable path. Forwarding the underlying raw view would silently bypass quadratic/ppm calibration. A newly allocated calibrated array would need independently retained byte ownership, including after wrapper destruction.
+- DIA integration and `IonMobilityScoring::computeIonMobilogram` consume numerical arrays without modifying them, but their present spectrum input types do not enforce that property. MS1 drift contrast also needs the MS2 sequence. Early filtering to the extraction mobility window would lose wider scoring evidence.
+- The existing nested precursor-MS1 reuse already avoids a second fetch in its supported case. Aggregate scoring counters do not identify the MS1/MS2 split, so 9,432 copies is not evidence that 9,432 identical reads can be removed.
+
+The existing master-plan stop rule therefore applies to the proposed local substitution. No `const_pointer_cast`, mutable alias of cached columns, speculative query cache or implicit scoring-interface rewrite was added. This is a code-boundary prerequisite, not an external blockage or evidence that a read-only scoring implementation is impossible.
+
+**The next implementation must explicitly own the scoring input migration:**
+
+1. Introduce a read-only scoring path using the existing `ISpectrumAccess::SpectrumView` owners. Start with the single-map, `simple` addition path, retaining existing detached mutable fetch/merge behavior for other paths. Preserve the exact nearest-RT selection/order, full mobility arrays and exception-time release. Keep the existing public mutable API unchanged.
+2. Carry that read-only input through the actual DIA and IM numerical consumers, including MS1/MS2 contrast, rather than converting it back into a mutable facade. Keep calibrated wrappers on their correct fallback until a separately charged calibrated view is implemented. Do not claim all scoring copies removed while fallback copies remain.
+3. Extend the existing native raw-access regression with the real scoring entry point. Before/after checks must map copy counters to the exercised branch, compare every enabled score and wider-IM evidence, and test mutable isolation, quadratic/ppm fallback, clone/cancellation lifetime and final charge zero. A raw-view microbenchmark alone is insufficient.
+4. Build the affected real libraries/tool/tests. After a source change, run one unchanged full native Bruker workflow and compare all twelve outputs, phase counters, private peak and final release. Require observed copy reduction for the exercised end-user path before accepting a performance increment. Report wall time honestly, with no speedup claim from a single observation. Keep both native readers ON and do not convert vendor inputs.
+
+**Boundary verification:** the actual raw-access, quadratic-transform, OpenSwath scoring and ion-mobility tests pass on the unchanged implementation. `DIAScoring_test` was initially not run because its executable had not been built. Building that actual target and running it passes, including its IM scoring sections. Local `wp05-scoring-boundary-20261027` retains the initial not-run result, build output and final DIA test result. These are contract checks, not new copy-reduction or speed evidence. No redundant full native workflow or benchmark matrix followed this documentation-only trace. The previous [whole-stack replay](../VALIDATION.md#current-whole-stack-replay-27-october-2026) and twelve-output acceptance remain the evidence for the implemented stack, not acceptance of this future migration.
+
+Thermo runtime discovery/native workspace attribution and full sharing/calibration acceptance remain separate open gates.
 
 ## Dependencies
 
