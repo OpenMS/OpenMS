@@ -5525,6 +5525,7 @@ Usage:
             // parses into a function-local dummy PeakMap that is discarded, so the value is
             // never read back and need not be restored after each callback
             NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, skip_full_count, skip_first_pass);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
         "Transform an mzML file using a consumer object (streaming processing)")
@@ -5532,6 +5533,7 @@ Usage:
         .def("transform", [](OpenMS::MzMLFile& self, const std::string& filename, nb::object consumer,
                              OpenMS::MSExperiment& exp, bool skip_full_count, bool skip_first_pass) {
             NanobindMSDataConsumer wrapper(consumer);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, exp, skip_full_count, skip_first_pass);
         }, "filename"_a, "consumer"_a, "exp"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
         "Transform an mzML file using a consumer object, also collecting the spectra into `exp`. "
@@ -5579,6 +5581,7 @@ Usage:
             // parses into a function-local dummy map that is discarded, so the value is
             // never read back and need not be restored after each callback
             NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, skip_full_count);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false,
         "Transform an mzXML file using a consumer object (streaming processing)")
@@ -5586,6 +5589,7 @@ Usage:
         .def("transform", [](OpenMS::MzXMLFile& self, const std::string& filename, nb::object consumer,
                              OpenMS::MSExperiment& exp, bool skip_full_count) {
             NanobindMSDataConsumer wrapper(consumer);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, exp, skip_full_count);
         }, "filename"_a, "consumer"_a, "exp"_a, "skip_full_count"_a = false,
         "Transform an mzXML file using a consumer object, also collecting the spectra into `exp`. "
