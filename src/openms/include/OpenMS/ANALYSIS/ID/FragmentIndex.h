@@ -343,13 +343,16 @@ namespace OpenMS
      * The single values are checked against the restrictions of the parameters (Param::checkDefaults()); this checks
      * how they combine: precursor:min_charge <= precursor:max_charge, precursor:isotope_error_min <=
      * precursor:isotope_error_max, peptide:min_size <= peptide:max_size (unless max_size is 0, i.e. unlimited),
-     * peptide:min_mass <= peptide:max_mass, fragment:min_mz <= fragment:max_mz, and that peptide:motif is a valid
+     * peptide:min_mass <= peptide:max_mass, fragment:min_mz <= fragment:max_mz, a finite precursor window of positive
+     * width (precursor:mass_tolerance_lower + precursor:mass_tolerance_upper > 0), and that peptide:motif is a valid
      * regular expression. Parameters that @p param does not hold are not checked.
      *
      * @param[in] param Parameters of FragmentIndex or ProSEAlgorithm
+     * @param[in] name_prefix Prepended to the parameter names in the messages: the prefix under which the user sets
+     *                        them (e.g. 'Search:' in the ProSE tool)
      * @throws Exception::InvalidParameter naming the parameters that do not fit
      */
-    static void checkSearchParameters(const Param& param);
+    static void checkSearchParameters(const Param& param, const std::string& name_prefix = "");
 
     /**
      * @brief The precursor charges a spectrum is searched with.
@@ -373,10 +376,11 @@ namespace OpenMS
      * modifications (modifications:variable) they are applied to the eligible peptides only.
      *
      * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @param[in] name_prefix Prepended to the parameter names in the messages (see checkSearchParameters())
      * @throws Exception::InvalidParameter for a protein-terminal or residue-specific terminal fixed modification, or
      *         for a second fixed modification on the same terminus
      */
-    static void checkFixedModifications(const StringList& fixed_modifications);
+    static void checkFixedModifications(const StringList& fixed_modifications, const std::string& name_prefix = "");
 
     /**
      * @brief Variable terminal modifications that a fixed terminal modification excludes.
