@@ -329,7 +329,8 @@ namespace OpenDIA
     work.decode_ns += decode_ns;
     phase.decode_ns += decode_ns;
     const auto bytes = RawRegion::requiredBytes({1, native.size()}, native.getNativeID().size());
-    if (bytes > bound) { invalid("Region exceeds admitted scan bytes"); }
+    if (bytes > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
+    if (bytes > bound) { invalid("Region exceeds previously admitted scan bytes"); }
     // The shared cache lock excludes other admissions during this handoff.
     // Native decode and sort workspace remain outside the retained-column cap.
     reservation.reset();
