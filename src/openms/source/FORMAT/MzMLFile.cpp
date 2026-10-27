@@ -306,25 +306,25 @@ namespace OpenMS
 
   void MzMLFile::load(const std::string& filename, PeakMap& map)
   {
-    map.reset();
-
-    //set DocumentIdentifier
-    if (StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://") || StringUtils::hasPrefix(filename, "ftp://") || StringUtils::hasPrefix(filename, "s3://"))
-    {
-      map.setLoadedFileType(FileTypes::MZML);
-      map.setLoadedNetFilePath(filename);
-    }
-    else
-    {
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-    }
-
-    if (!loadParallelIndexed_(filename, map))
+    const bool remote = StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://")
+                        || StringUtils::hasPrefix(filename, "ftp://") || StringUtils::hasPrefix(filename, "s3://");
+    // the parallel load reads byte ranges of a local file; remote documents are streamed
+    if (remote || !loadParallelIndexed_(filename, map))
     {
       map.reset();
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
+
+      //set DocumentIdentifier
+      if (remote)
+      {
+        map.setLoadedFileType(FileTypes::MZML);
+        map.setLoadedNetFilePath(filename);
+      }
+      else
+      {
+        map.setLoadedFileType(filename);
+        map.setLoadedFilePath(filename);
+      }
+
       Internal::MzMLHandler handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       safeParse_(filename, &handler);
