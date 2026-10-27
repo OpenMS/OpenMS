@@ -7032,14 +7032,6 @@ namespace OpenMS
       OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
                          "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
     }
-    // The proteins of the run are those its PSMs reference (see applyPsmFDR_()). A multi-file search that may rescore
-    // its files together does this at the end (rescoreFilesTogether_()) for the runs that Percolator did not rescore on
-    // their own (their PSMs may change); a rescored run is final here (and can be written while the next file is searched).
-    if (!pool_rescoring_ || rescored)
-    {
-      removeUnreportedProteins(protein_ids, peptide_ids,
-                               inference_only_psms != nullptr ? *inference_only_psms : PeptideIdentificationList());
-    }
   }
 
   void ProSEAlgorithm::finishDeferredRescoring_(MultiFileSearchResult& mfres, const std::vector<Size>& deferred) const
@@ -7367,15 +7359,9 @@ namespace OpenMS
       OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
                          "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
     }
-
-    // The proteins of the run are those its PSMs reference: PeptideIndexing added the proteins of all hits, and the
-    // filters above removed PSMs and hits. Those of the PSMs for the protein inference stay until the protein FDR.
-    // (A multi-file search that may rescore its files together does this at the end, rescoreFilesTogether_(): the
-    // PSMs may change.)
-    if (!pool_rescoring_)
-    {
-      removeUnreportedProteins(protein_ids, peptide_ids, inference_only != nullptr ? *inference_only : PeptideIdentificationList());
-    }
+    // The run keeps the proteins PeptideIndexing added (those of all hits, also of the PSMs the filters removed): the
+    // protein FDR reduces them to those of the reported PSMs (applyCompleteSetProteinFDR()); without it, an output
+    // holds the run's proteins as the search produced them.
     return rescoring;
   }
 
@@ -9499,11 +9485,10 @@ namespace OpenMS
 
   void ProSEAlgorithm::rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const
   {
-    // Each file ends as a search without pooling would leave it: its proteins those of its PSMs (and of the PSMs only
-    // for the protein inference), no copy of its PSMs before the rescoring unless asked for (setKeepPreFdrPsms()).
+    // Each file ends as a search without pooling would leave it: no copy of its PSMs before the rescoring unless asked
+    // for (setKeepPreFdrPsms()); its proteins stay as the search produced them (see applyPsmFDR_()).
     const auto finish = [this](SearchResult& pf)
     {
-      removeUnreportedProteins(pf.protein_ids, pf.peptide_ids, pf.inference_only_peptide_ids);
       if (!keep_pre_fdr_psms_) { pf.pre_fdr_peptide_ids = PeptideIdentificationList(); }
       else if (rescore_top_hits_ > 0) { keepTopHits_(pf.pre_fdr_peptide_ids, report_top_hits_); } // (see applyPsmFDR_())
     };

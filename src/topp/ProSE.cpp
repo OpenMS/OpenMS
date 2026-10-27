@@ -460,7 +460,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). The '-out_pin' files are an exception to both: they are written before any FDR filter and keep the decoys. To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
 @note Protein inference of the protein FDR: as in ProteomicsLFQ, the inference and the picked-protein FDR use the PSMs up to a looser q-value than '-Search:FDR:PSM', '-Search:FDR:protein_inference_PSM' (default 0.1), which leaves more decoy proteins for the picked-protein FDR, and a protein scores with the best posterior error probability of its PSMs (Percolator's PEP; without rescoring the best HyperScore). The proteins and the protein groups are filtered at '-Search:FDR:protein', each by its own q-value (the picked FDR of the groups counts a group once, however many targets it holds, so a group can be above the threshold while its proteins are not), and only the proteins of the groups that pass are kept. The reported PSMs are those that pass '-Search:FDR:PSM', but for the PSMs all of whose proteins fail the protein FDR, which are removed (as in ProteomicsLFQ), so that every reported PSM maps to a reported protein; proteins and protein groups without a reported PSM are removed after the protein FDR.
-@note PSM FDR: '-Search:FDR:PSM' filters the PSMs of each input on their q-values (Percolator's, or target-decoy competition of ProSE's score). It is never lifted: if no PSM of an input matched a decoy, the q-value of its T PSMs is the conservative 1/T (target-decoy competition with +1, where the uncorrected 0/T would pass every PSM), so a lower threshold reports no PSM, as an unattainable protein FDR reports no protein. Only a search without decoys ('-Search:decoys ignore') skips the filter, with a warning. Whatever FDR applies, the proteins of an output are those its reported PSMs reference.
+@note PSM FDR: '-Search:FDR:PSM' filters the PSMs of each input on their q-values (Percolator's, or target-decoy competition of ProSE's score). It is never lifted: if no PSM of an input matched a decoy, the q-value of its T PSMs is the conservative 1/T (target-decoy competition with +1, where the uncorrected 0/T would pass every PSM), so a lower threshold reports no PSM, as an unattainable protein FDR reports no protein. Only a search without decoys ('-Search:decoys ignore') skips the filter, with a warning. The proteins of a per-file output are those the search indexed for its PSMs (also for the PSMs that the PSM FDR removed); the protein FDR ('-Search:FDR:protein' > 0, a single input or '-out_merged') reduces them to those the reported PSMs reference.
 @note Percolator rescoring: by default ('-Search:rescore true'), the PSMs of each input file are rescored separately with OpenMS' built-in (in-process) Percolator implementation, the same backend PercolatorAdapter uses by default. No percolator executable is needed (the former '-percolator_executable' parameter and '-rescore' flag were removed). Training uses the standard Percolator feature set plus ProSE's search engine features, '-train_best_positive' and target-decoy competition ('-post_processing_tdc'), so q-values and PEPs come from target-decoy competition without a pi0 estimate, as with the percolator executable's -Y; Percolator q-values become the main score (the SVM score and PEP are kept as meta values MS:1001492/MS:1001493, the HyperScore as meta value 'ln(hyperscore)'), only the best hit per spectrum is kept, and the runs report 'Percolator' as search engine. The PSM and protein FDR thresholds are then applied on the rescored PSMs. A file with fewer than 100 PSMs or without decoys, or for which Percolator fails, is @em not rescored on its own: ProSE prints a warning and continues. Searched alone, such a file keeps its HyperScores (FDR is then computed from them); in a multi-file search, it gets the scores of a model trained on other inputs (see below) and keeps its HyperScores only if that fails too. The end-of-search report states how many files were rescored, and with '-qpx_extended' the run view has 'rescoring_applied' and 'rescoring_skipped_reason' per input. In a multi-file search, the inputs that Percolator rescores on their own keep exactly these results, whatever other inputs are searched with them. An input that it cannot rescore on its own (e.g. a small file next to large ones) gets the scores of a Percolator model trained on the PSMs of the inputs it rescored on their own, applied on the scale of that model's training PSMs: a PSM gets the score it would get among them and their PEP at that score (the score-to-PEP function is not estimated again on the few PSMs of the input); its q-values are those of target-decoy competition of the input's PSMs on that score (FDR per run, as for every input), on which '-Search:FDR:PSM' filters, and the run view's 'rescoring_warning' says that the scores come from a model trained on the other inputs. So every PSM has a Percolator PEP, and '-out_merged' ranks the proteins of all inputs by PEP. If Percolator can rescore no input on its own, the PSMs of all inputs are rescored together, with one model. '-Search:percolator:max_train_psms' (default 500000) caps the PSMs a model is trained on (the inputs below it are not affected): Percolator samples them by spectrum, and the model of the inputs too small for their own takes an equal share of each input rescored on its own; the log says when the training PSMs were sampled. To this end a multi-file search with rescoring keeps each input's PSMs before the rescoring until all inputs are searched (as '-out_pin' does). Only if that fails too (e.g. fewer than 100 PSMs in all), such inputs keep their search engine scores, and '-out_merged' then scores the proteins of all inputs by ProSE's score 'ln(hyperscore)' (as without rescoring) instead of Percolator's PEP, which only the rescored PSMs have; with '-Search:FDR:PSM' 0 its PSMs also all get 'ln(hyperscore)' as main score. Set '-Search:rescore false' to report ProSE's own scores. '-out_pin' always holds ProSE's own scores (see there).
 @note `Search:peptide:clip_nterm_methionine=true` also searches the mature N-terminal
 peptide after loss of exactly the initial methionine of an M-leading protein.
@@ -1806,7 +1806,6 @@ class ProSE :
           try
           {
             protein_ids = result.protein_ids;
-            ProSEAlgorithm::removeUnreportedProteins(protein_ids, result.peptide_ids); // as before the output loop below
             if (!protein_ids.empty())
             {
               protein_ids[0].getSearchParameters().db = database;
@@ -2105,26 +2104,6 @@ class ProSE :
                                          /*fdr_applied=*/ result.stats.fdr_applied);
       }
 
-      // The proteins of an input's outputs are those its reported PSMs reference. The search keeps the proteins of the
-      // PSMs that only the protein inference of the pooled evaluation uses (FDR:protein_inference_PSM); -out_merged
-      // pools the search's own copy of the runs (built with build_pooled_aggregate), not these. For all inputs at once,
-      // in parallel (27 HeLa runs: 3 s one after another in the loop below).
-      {
-        std::vector<std::exception_ptr> errors(in_list.size());
-#pragma omp parallel for schedule(dynamic, 1)
-        for (SignedSize i = 0; i < static_cast<SignedSize>(in_list.size()); ++i)
-        {
-          ProSEAlgorithm::SearchResult& result = mfres.per_file[i];
-          if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) { continue; }
-          try { ProSEAlgorithm::removeUnreportedProteins(result.protein_ids, result.peptide_ids); }
-          catch (...) { errors[i] = std::current_exception(); }
-        }
-        for (const std::exception_ptr& error : errors)
-        {
-          if (error) { std::rethrow_exception(error); }
-        }
-      }
-
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
@@ -2206,8 +2185,6 @@ class ProSE :
         }
 
         const std::string basename = File::stemName(in_file);
-
-        // (its proteins: those its reported PSMs reference, see above)
 
         // In test mode, replace the absolute MS run path with file://<basename> for reproducible diffs.
         if (getFlag_("test") && !result.protein_ids.empty())

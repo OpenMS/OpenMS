@@ -472,8 +472,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * Keeps the protein hits of each run of @p protein_ids whose accession a peptide evidence of a hit of a PSM of the
      * run (by identifier) in @p peptide_ids or @p also_referencing names (IDFilter::removeUnreferencedProteins() for one list), and
-     * updates the indistinguishable groups and the protein groups of each run (IDFilter::updateProteinGroups()). Every search does this after its PSM filters (with the PSMs that only the
-     * protein inference uses as @p also_referencing), and the protein FDR after its own.
+     * updates the indistinguishable groups and the protein groups of each run (IDFilter::updateProteinGroups()). The
+     * protein FDR does this after its filters (applyCompleteSetProteinFDR()); a search leaves the proteins of a run as
+     * PeptideIndexing produced them (those of all hits, also of the PSMs that FDR:PSM removed).
      */
     static void removeUnreportedProteins(std::vector<ProteinIdentification>& protein_ids,
                                          const PeptideIdentificationList& peptide_ids,
@@ -1636,8 +1637,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool keep_pre_fdr_psms_ = false; ///< see setKeepPreFdrPsms()
     FileResultConsumer file_result_consumer_; ///< see setFileResultConsumer()
     /// Set by the multi-file searches with 'rescore' while their files are searched: the PSMs of each file before the
-    /// rescoring are kept (SearchResult::pre_fdr_peptide_ids) and its proteins are not reduced to those of its PSMs yet,
-    /// for rescoreFilesTogether_()
+    /// rescoring are kept (SearchResult::pre_fdr_peptide_ids) for rescoreFilesTogether_()
     mutable bool pool_rescoring_ = false;
     /// Whether a search keeps the PSMs of each file before the rescoring (SearchResult::pre_fdr_peptide_ids)
     bool keepPreRescoringPsms_() const { return keep_pre_fdr_psms_ || pool_rescoring_; }
@@ -1702,8 +1702,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                int threads,
                                                std::vector<std::vector<PeptideHit>>* dropped) const;
 
-    /// FDR:PSM on the PSMs of a run after its rescoring (see applyPsmFDR_()), then (unless pool_rescoring_) the removal
-    /// of the proteins that no remaining PSM references (removeUnreportedProteins()); a rescored run records
+    /// FDR:PSM on the PSMs of a run after its rescoring (see applyPsmFDR_()); the proteins of the run stay as the search
+    /// produced them. A rescored run records
     /// rescoring:top_hits (if not 0) as 'Percolator:top_hits', a run that was not rescored keeps report:top_hits hits per
     /// spectrum. @p inference_only_psms (if not null) receives the PSMs between FDR:PSM and FDR:protein_inference_PSM.
     void applyRescoredPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
@@ -1896,8 +1896,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Helper: the PSM-level FDR of one search run, the last step of every search path. With
     /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()). Then applies
     /// FDR:PSM to Percolator's q-values, or to target-decoy q-values of the search engine scores
-    /// (annotatePsmQValues(); if @p has_decoys, also without a decoy PSM), and removes the proteins
-    /// that no remaining PSM references (removeUnreportedProteins()). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
+    /// (annotatePsmQValues(); if @p has_decoys, also without a decoy PSM). The proteins of the run stay as
+    /// PeptideIndexing produced them (the protein FDR reduces them to those of the reported PSMs,
+    /// applyCompleteSetProteinFDR()). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
     /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()), with report:top_hits hits per
     /// spectrum; Percolator rescores rescoring:top_hits hits per spectrum (see searchTopHits_()); @p inference_only_psms
     /// receives the PSMs between FDR:PSM and FDR:protein_inference_PSM (with FDR:protein only, see
@@ -1942,8 +1943,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       score, (D + 1) / T as Percolator's own (tdcQValues_(); FDR per run), on which FDR:PSM filters (and FDR:protein_inference_PSM collects); the runs are
       marked as rescored by Percolator, and @c percolator.warning of each such file says how it was rescored. If that
       fails (e.g. fewer than 100 PSMs in all), the files keep their search engine scores (see mergeFileResults()). In
-      any case the proteins of each file become those of its PSMs and the copies are released (unless
-      setKeepPreFdrPsms()).
+      any case the copies are released (unless setKeepPreFdrPsms()); the proteins of each file stay as the search
+      produced them.
     */
     void rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const;
 
