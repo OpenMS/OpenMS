@@ -1445,10 +1445,6 @@ namespace OpenMS
     const int num_threads = 1;
 #endif
     vector<vector<Peptide>> thread_peptides(num_threads);
-    // Heuristic reserve: about one mother per residue.
-    size_t total_residues = 0;
-    for (const auto& entry : fasta_entries) total_residues += entry.sequence.size();
-    for (int t = 0; t < num_threads; ++t) thread_peptides[t].reserve(total_residues / num_threads + 1);
 
     // Mother mass = water + proton + sum(residue_masses + fixed residue-mod deltas)
     //             + fixed_nterm_delta + fixed_cterm_delta
@@ -1460,104 +1456,127 @@ namespace OpenMS
                                       + fixed_nterm_delta_ + fixed_cterm_delta_;
     const std::array<bool, 256>& indexable = indexableResidues();
 
-    #pragma omp parallel for
-    for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
+    #pragma omp parallel
     {
 #ifdef _OPENMP
       const int tid = omp_get_thread_num();
+      const int team_size = omp_get_num_threads();
 #else
       const int tid = 0;
+      const int team_size = 1;
 #endif
-      const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
-      const std::string& seq = protein.sequence;
-      const size_t L = seq.size();
-      if (L < peptide_min_length_) continue;
+      // The proteins in contiguous ranges, one per thread, cut as the static schedule of an omp for cuts them (the first
+      // num_proteins % team_size threads get one protein more): the thread knows its proteins beforehand and reserves for
+      // one mother per residue of them, which no protein exceeds (one mother per start position at most), so its buffer
+      // never grows and is written in order from the start. The order of the mothers before the sort below does not matter
+      // for the output: it differs between thread counts already, which give identical results.
+      const SignedSize num_proteins = static_cast<SignedSize>(fasta_entries.size());
+      const SignedSize quotient = num_proteins / team_size;
+      const SignedSize remainder = num_proteins % team_size;
+      const SignedSize first_protein = tid * quotient + std::min<SignedSize>(tid, remainder);
+      const SignedSize end_protein = first_protein + quotient + (tid < remainder ? 1 : 0);
+      size_t residues = 0;
+      for (SignedSize protein_idx = first_protein; protein_idx < end_protein; ++protein_idx) residues += fasta_entries[protein_idx].sequence.size();
+      thread_peptides[tid].reserve(residues);
+      adviseHugePages(thread_peptides[tid], thread_peptides[tid].capacity()); // filled from the start by emplace_back()
 
-      // Position of the first residue at or after `from` that cannot be indexed
-      // (X/B/Z, a stop codon or any other symbol), or npos.
-      auto findUnindexable = [&seq, &indexable](size_t from)
+      for (SignedSize protein_idx = first_protein; protein_idx < end_protein; ++protein_idx)
       {
-        for (size_t i = from; i < seq.size(); ++i)
+        const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
+        const std::string& seq = protein.sequence;
+        const size_t L = seq.size();
+        if (L < peptide_min_length_) continue;
+
+        // Position of the first residue at or after `from` that cannot be indexed
+        // (X/B/Z, a stop codon or any other symbol), or npos.
+        auto findUnindexable = [&seq, &indexable](size_t from)
         {
-          if (!indexable[static_cast<unsigned char>(seq[i])]) return i;
-        }
-        return std::string::npos;
-      };
+          for (size_t i = from; i < seq.size(); ++i)
+          {
+            if (!indexable[static_cast<unsigned char>(seq[i])]) return i;
+          }
+          return std::string::npos;
+        };
 
-      // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
-      // the fragment-index path). Using raw peptide_max_length_ in std::min would give
-      // length 0 and an empty peptide-mass index.
-      const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
+        // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
+        // the fragment-index path). Using raw peptide_max_length_ in std::min would give
+        // length 0 and an empty peptide-mass index.
+        const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
-      // Mass-compute + filter + emit. No residue check here: the dispatch below
-      // either calls sweepSpan(0, L) on a protein that can be indexed as a whole
-      // or splits at X/B/Z, stop codons and other symbols, so span boundaries
-      // structurally prevent any such residue from reaching this lambda.
-      auto emitMother = [&](size_t start, size_t length)
-      {
-        if (length == 0 || length < peptide_min_length_) return;
-        const char* seq_ptr = seq.c_str() + start;
-
-        double mass = base_sum_constants;
-        for (size_t k = 0; k < length; ++k)
+        // Mass-compute + filter + emit. No residue check here: the dispatch below
+        // either calls sweepSpan(0, L) on a protein that can be indexed as a whole
+        // or splits at X/B/Z, stop codons and other symbols, so span boundaries
+        // structurally prevent any such residue from reaching this lambda.
+        auto emitMother = [&](size_t start, size_t length)
         {
-          const unsigned char aa = static_cast<unsigned char>(seq_ptr[k]);
-          mass += residue_mass_table_[aa] + fixed_mod_deltas_[aa];
-        }
-        if (mass + max_mod_shift_ < peptide_min_mass_ - 1.0) return;
+          if (length == 0 || length < peptide_min_length_) return;
+          const char* seq_ptr = seq.c_str() + start;
 
-        thread_peptides[tid].emplace_back(
-            static_cast<UInt32>(protein_idx),
-            0u,
-            std::make_pair(static_cast<uint16_t>(start), static_cast<uint16_t>(length)),
-            static_cast<float>(mass));
-      };
+          double mass = base_sum_constants;
+          for (size_t k = 0; k < length; ++k)
+          {
+            const unsigned char aa = static_cast<unsigned char>(seq_ptr[k]);
+            mass += residue_mass_table_[aa] + fixed_mod_deltas_[aa];
+          }
+          if (mass + max_mod_shift_ < peptide_min_mass_ - 1.0) return;
 
-      // One mother at every position i in [s, e - min_length], length capped at
-      // effective_max_length and at the span end: every sub-peptide of the span is a prefix of the mother at its start.
-      auto sweepSpan = [&](size_t s, size_t e)
-      {
-        if (e <= s || e - s < peptide_min_length_)
+          thread_peptides[tid].emplace_back(
+              static_cast<UInt32>(protein_idx),
+              0u,
+              std::make_pair(static_cast<uint16_t>(start), static_cast<uint16_t>(length)),
+              static_cast<float>(mass));
+        };
+
+        // One mother at every position i in [s, e - min_length], length capped at
+        // effective_max_length and at the span end: every sub-peptide of the span is a prefix of the mother at its start.
+        auto sweepSpan = [&](size_t s, size_t e)
         {
-          if (e > s) skipped_peptides.fetch_add(1);
-          return;
-        }
-        for (size_t i = s; i + peptide_min_length_ <= e; ++i)
-        {
-          emitMother(i, std::min<size_t>(effective_max_length, e - i));
-        }
-      };
+          if (e <= s || e - s < peptide_min_length_)
+          {
+            if (e > s) skipped_peptides.fetch_add(1);
+            return;
+          }
+          for (size_t i = s; i + peptide_min_length_ <= e; ++i)
+          {
+            emitMother(i, std::min<size_t>(effective_max_length, e - i));
+          }
+        };
 
-      // No X/B/Z (or stop codon, or other symbol) anywhere: sweep the whole
-      // protein as a single span. Otherwise: split into contiguous unambiguous
-      // spans and sweep each, so that a mother ends before such a residue (issue #9192 item 2).
-      const size_t first_bad = findUnindexable(0);
-      if (first_bad == std::string::npos)
-      {
-        sweepSpan(0, L);
+        // No X/B/Z (or stop codon, or other symbol) anywhere: sweep the whole
+        // protein as a single span. Otherwise: split into contiguous unambiguous
+        // spans and sweep each, so that a mother ends before such a residue (issue #9192 item 2).
+        const size_t first_bad = findUnindexable(0);
+        if (first_bad == std::string::npos)
+        {
+          sweepSpan(0, L);
+        }
+        else
+        {
+          size_t p = 0;
+          size_t bad = first_bad;
+          while (true)
+          {
+            sweepSpan(p, bad);
+            p = bad + 1;
+            if (p >= L) break;  // protein ended with X/B/Z — no tail span
+            bad = findUnindexable(p);
+            if (bad == std::string::npos) { sweepSpan(p, L); break; }  // last span — no more X/B/Z
+          }
+        }
       }
-      else
-      {
-        size_t p = 0;
-        size_t bad = first_bad;
-        while (true)
-        {
-          sweepSpan(p, bad);
-          p = bad + 1;
-          if (p >= L) break;  // protein ended with X/B/Z — no tail span
-          bad = findUnindexable(p);
-          if (bad == std::string::npos) { sweepSpan(p, L); break; }  // last span — no more X/B/Z
-        }
-      }
-    }
+    } // omp parallel
 
-    // Merge per-thread buckets (same shape as generatePeptides).
-    size_t total = 0;
-    for (int t = 0; t < num_threads; ++t) total += thread_peptides[t].size();
-    fi_peptides_.reserve(total);
+    // Merge the per-thread buffers in thread order, as generatePeptides() does: Peptide() writes nothing, so the resize
+    // only allocates, and each thread copies (and first touches) the part that it generated, instead of one thread
+    // inserting all of them (half a GB of mothers for a 30 M-residue database).
+    std::vector<size_t> merge_offsets(num_threads + 1, fi_peptides_.size());
+    for (int t = 0; t < num_threads; ++t) merge_offsets[t + 1] = merge_offsets[t] + thread_peptides[t].size();
+    fi_peptides_.resize(merge_offsets[num_threads]);
+    adviseHugePages(fi_peptides_);
+    #pragma omp parallel for schedule(static, 1)
     for (int t = 0; t < num_threads; ++t)
     {
-      fi_peptides_.insert(fi_peptides_.end(), thread_peptides[t].begin(), thread_peptides[t].end());
+      std::copy(thread_peptides[t].begin(), thread_peptides[t].end(), fi_peptides_.begin() + merge_offsets[t]);
       vector<Peptide>().swap(thread_peptides[t]);
     }
 
