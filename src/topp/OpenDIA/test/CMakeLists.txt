@@ -52,7 +52,7 @@ get_filename_component(OPENDIA_TEST_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../
 target_compile_definitions(OpenDIARecordsInterop_test PRIVATE OPENDIA_TEST_DATA_DIR="${OPENDIA_TEST_DATA_DIR}")
 target_link_libraries(OpenDIARecordsInterop_test OpenDIA_impl)
 
-foreach(resource_test OpenDIAResourceBudget_test OpenDIABoundedQueue_test OpenDIAResourceInterop_test OpenDIARawAccess_test OpenDIARawFailure_test)
+foreach(resource_test OpenDIAResourceBudget_test OpenDIABoundedQueue_test OpenDIAResourceInterop_test OpenDIARawAccess_test OpenDIARawFailure_test OpenDIARawRegion_test)
   if(COMMAND openms_add_tool_class_test)
     openms_add_tool_class_test(${resource_test})
     if(resource_test STREQUAL "OpenDIAResourceBudget_test" OR resource_test STREQUAL "OpenDIABoundedQueue_test")
@@ -68,4 +68,5 @@ foreach(resource_test OpenDIAResourceBudget_test OpenDIABoundedQueue_test OpenDI
 endforeach()
 target_compile_definitions(OpenDIAResourceInterop_test PRIVATE OPENDIA_TEST_DATA_DIR="${OPENDIA_TEST_DATA_DIR}")
 target_compile_definitions(OpenDIARawAccess_test PRIVATE OPENDIA_TEST_DATA_DIR="${OPENDIA_TEST_DATA_DIR}")
+target_compile_definitions(OpenDIARawRegion_test PRIVATE OPENDIA_TEST_DATA_DIR="${OPENDIA_TEST_DATA_DIR}")
 target_compile_definitions(OpenDIARawFailure_test PRIVATE OPENDIA_TEST_DATA_DIR="${OPENDIA_TEST_DATA_DIR}")
