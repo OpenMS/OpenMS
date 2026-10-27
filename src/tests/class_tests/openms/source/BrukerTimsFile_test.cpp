@@ -725,7 +725,7 @@ namespace
   // only give spectra without peaks.
   std::string makeSyntheticTdf(const std::string& d, const std::vector<SyntheticFrame>& frames)
   {
-    const uint32_t num_scans = 10;
+    const uint32_t num_scans = 1000; // as real frames (about 900 to 1000)
     File::makeDir(d);
     SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
     conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
@@ -754,16 +754,22 @@ namespace
     return d;
   }
 
-  // Adds DIA-PASEF tables to a run of makeSyntheticTdf(): one window group of two isolation windows, assigned to the
-  // frames @p dia_frames (which may name frames the run does not have)
-  void addSyntheticDIAWindows(const std::string& d, const std::vector<uint32_t>& dia_frames)
+  // Adds DIA-PASEF tables to a run of makeSyntheticTdf(): one window group, assigned to the frames @p dia_frames (which
+  // may name frames the run does not have), with an isolation window per scan range of @p windows (by default two
+  // diaPASEF windows of 500 scans)
+  void addSyntheticDIAWindows(const std::string& d, const std::vector<uint32_t>& dia_frames,
+                              const std::vector<std::pair<uint32_t, uint32_t>>& windows = {{0, 500}, {500, 1000}})
   {
     SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
     conn.executeStatement("CREATE TABLE DiaFrameMsMsWindowGroups (Id INTEGER PRIMARY KEY);");
     conn.executeStatement("INSERT INTO DiaFrameMsMsWindowGroups VALUES (1);");
     conn.executeStatement("CREATE TABLE DiaFrameMsMsWindows (WindowGroup INTEGER, ScanNumBegin INTEGER, ScanNumEnd INTEGER, "
                           "IsolationMz REAL, IsolationWidth REAL, CollisionEnergy REAL);");
-    conn.executeStatement("INSERT INTO DiaFrameMsMsWindows VALUES (1, 0, 5, 500.0, 25.0, 30.0), (1, 5, 10, 600.0, 25.0, 30.0);");
+    for (Size i = 0; i < windows.size(); ++i)
+    {
+      conn.executeStatement("INSERT INTO DiaFrameMsMsWindows VALUES (1, " + std::to_string(windows[i].first) + ", "
+                            + std::to_string(windows[i].second) + ", " + std::to_string(500 + 10 * i) + ".0, 25.0, 30.0);");
+    }
     conn.executeStatement("CREATE TABLE DiaFrameMsMsInfo (Frame INTEGER PRIMARY KEY, WindowGroup INTEGER);");
     for (const uint32_t frame : dia_frames)
     {
@@ -796,6 +802,28 @@ namespace
   bool hasText(const std::string& text, const std::string& part)
   {
     return text.find(part) != std::string::npos;
+  }
+
+  // The warnings that @p call logs
+  std::string warningsOf(const std::function<void()>& call)
+  {
+    // Flush what earlier calls left in the buffer, and forget the lines already logged: a line repeating one of them
+    // would not be passed on
+    OPENMS_LOG_WARN.flush();
+    OPENMS_LOG_WARN.rdbuf()->clearCache();
+    std::ostringstream captured;
+    OPENMS_LOG_WARN.insert(captured);
+    try
+    {
+      call();
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN.remove(captured);
+      throw;
+    }
+    OPENMS_LOG_WARN.remove(captured);
+    return captured.str();
   }
 }
 
@@ -1338,6 +1366,49 @@ START_SECTION([EXTRA] DIA-PASEF frames that the Frames table lacks are skipped)
   TEST_EQUAL(consumer.ms1Map() != nullptr, true)
   ABORT_IF(consumer.ms1Map() == nullptr)
   TEST_EQUAL(consumer.ms1Map()->size(), 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] synchro-PASEF runs are read with a warning that they are not supported)
+{
+  // Synchro-PASEF moves the quadrupole along with the ion mobility scan, and analysis.tdf lists an isolation window for
+  // every scan step (927 windows of one scan per frame in PXD037766). The DIA loaders make every window a spectrum of
+  // its own (635,631 MS2 spectra of about 8 peaks for a 3 min run of that dataset); they did so without a word.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::vector<SyntheticFrame> run = {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}};
+  std::vector<std::pair<uint32_t, uint32_t>> steps;
+  for (uint32_t scan = 400; scan < 420; ++scan) { steps.emplace_back(scan, scan + 1); }
+  const std::string synchro = makeSyntheticTdf(tmp.getPath() + "/synchro.d", run);
+  addSyntheticDIAWindows(synchro, {2}, steps);
+  const std::string warning = "20 of the 20 DIA isolation windows span fewer than 10 scans";
+
+  MSExperiment exp;
+  const std::string load_warnings = warningsOf([&] { f.load(synchro, exp); });
+  TEST_TRUE(hasText(load_warnings, warning))
+  TEST_TRUE(hasText(load_warnings, "synchro-PASEF"))
+  TEST_EQUAL(load_warnings.find(warning, load_warnings.find(warning) + 1), std::string::npos) // once
+  TEST_EQUAL(exp.size(), 2) // still read
+  MSDataStoringConsumer streamed;
+  TEST_TRUE(hasText(warningsOf([&] { f.transform(synchro, &streamed); }), warning))
+  TEST_EQUAL(streamed.getData().size(), 2)
+  ExperimentalSettings settings;
+  BrukerTimsFile::DIAStreamingMetadata meta;
+  TEST_FALSE(hasText(warningsOf([&] { meta = f.readDIAMetadata(synchro, settings); }), warning)) // the streaming warns
+  TEST_EQUAL(meta.boundaries.size(), 20)
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  TEST_TRUE(hasText(warningsOf([&] { f.loadDIAStreaming(synchro, consumer); }), warning))
+
+  // export mode FRAME does not split frames by window
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  TEST_FALSE(hasText(warningsOf([&] { f.load(synchro, exp, frame_mode); }), warning))
+
+  // diaPASEF windows span dozens to hundreds of scans (the 2 windows of 500 scans of addSyntheticDIAWindows())
+  const std::string dia = makeSyntheticTdf(tmp.getPath() + "/dia.d", run);
+  addSyntheticDIAWindows(dia, {2});
+  TEST_FALSE(hasText(warningsOf([&] { f.load(dia, exp); }), "DIA isolation windows span"))
 }
 END_SECTION
 

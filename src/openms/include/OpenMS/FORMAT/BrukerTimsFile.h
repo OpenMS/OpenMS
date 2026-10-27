@@ -30,6 +30,11 @@ namespace OpenMS
    * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
    *
+   * Synchro-PASEF (diagonal-PASEF), where the quadrupole moves along with the ion mobility scan,
+   * is not supported: its isolation windows are one scan step wide, so the DIA loaders split its
+   * MS2 frames into very many spectra of a few peaks each. They warn when most windows span fewer
+   * than 10 scans. Export mode FRAME reads such runs frame by frame.
+   *
    * Every method taking a path also accepts a zipped .d directory ('.d.zip'), which is
    * unpacked into a temporary directory for the duration of the call. The .d directory may be
    * nested in the archive: the shallowest one holding analysis.tdf is read, and __MACOSX
