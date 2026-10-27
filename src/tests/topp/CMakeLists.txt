@@ -5786,14 +5786,22 @@ set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_
 # Bruker .d input of TSF data (timsTOF without ion mobility): an LC-MS run with TIMS off, MS1 and MS/MS frames (see
 # OPENTIMS_TSF_TEST_DATA in src/tests/class_tests/openms/CMakeLists.txt, whose class test compares it with the Bruker SDK)
 if (WITH_OPENTIMS AND OPENTIMS_TSF_TEST_DATA)
-  # FileHandler recognizes a .d directory by its suffix: link to one without it (as a FetchContent download)
+  # FileHandler recognizes a .d directory by its suffix: link to one without it (as a FetchContent download). A link that
+  # cannot be made (e.g. Windows without the privilege for symbolic links) skips the tests instead of failing the configuration.
   if (OPENTIMS_TSF_TEST_DATA MATCHES "\\.d$")
     set(OPENTIMS_TSF_SYMLINK "${OPENTIMS_TSF_TEST_DATA}")
   else()
     set(OPENTIMS_TSF_SYMLINK "${CMAKE_BINARY_DIR}/test_data/TSF_LCMS.d")
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
-    file(CREATE_LINK "${OPENTIMS_TSF_TEST_DATA}" "${OPENTIMS_TSF_SYMLINK}" SYMBOLIC)
+    file(CREATE_LINK "${OPENTIMS_TSF_TEST_DATA}" "${OPENTIMS_TSF_SYMLINK}" RESULT _tsf_link SYMBOLIC)
+    if (NOT _tsf_link STREQUAL "0")
+      message(WARNING "TSF test data: cannot link ${OPENTIMS_TSF_SYMLINK} to ${OPENTIMS_TSF_TEST_DATA} (${_tsf_link}); "
+                      "the TOPP_FileConverter_TSF tests are skipped")
+      unset(OPENTIMS_TSF_SYMLINK)
+    endif()
   endif()
+endif()
+if (WITH_OPENTIMS AND OPENTIMS_TSF_SYMLINK)
   # FileConverter .d -> mzML: the run loaded into memory, and written as it is read (-process_lowmemory). Both have to give the same file.
   add_test("TOPP_FileConverter_TSF_d" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d.tmp.mzML)
   add_test("TOPP_FileConverter_TSF_d_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d_lowmemory.tmp.mzML -process_lowmemory)

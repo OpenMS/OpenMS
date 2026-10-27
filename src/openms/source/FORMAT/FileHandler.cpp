@@ -309,7 +309,11 @@ namespace OpenMS
       src_file.setPathToFile(File::toFileURI(File::path(normalized_name)));
       // this is more complicated since the data formats allowed by mzML are very verbose.
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-      src_file.setFileType(FileTypes::typeToMZML(type));
+      // BRUKER_TDF covers TDF and TSF data: BrukerTimsFile sets the exact format, which is kept
+      if (type != FileTypes::BRUKER_TDF || src_file.getFileType().empty())
+      {
+        src_file.setFileType(FileTypes::typeToMZML(type));
+      }
 
       if (compute_hash && type != FileTypes::BRUKER_TDF)
       {

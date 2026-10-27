@@ -1371,6 +1371,14 @@ START_SECTION([EXTRA] TSF data: one spectrum per frame, with the m/z of the Bruk
   MSExperiment handled;
   FileHandler().loadExperiment(d, handled, {FileTypes::BRUKER_TDF});
   TEST_EQUAL(handled.size(), 4)
+  // with the source file rewritten, it keeps the format (BRUKER_TDF stands for TDF and TSF data)
+  FileHandler().loadExperiment(d, handled, {FileTypes::BRUKER_TDF}, ProgressLogger::NONE, true);
+  TEST_EQUAL(handled.getSourceFiles().size(), 1)
+  if (handled.getSourceFiles().size() == 1)
+  {
+    TEST_STRING_EQUAL(handled.getSourceFiles()[0].getFileType(), "Bruker TSF format")
+    TEST_STRING_EQUAL(handled.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1003283")
+  }
 }
 END_SECTION
 
