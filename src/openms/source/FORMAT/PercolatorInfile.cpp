@@ -562,10 +562,16 @@ namespace OpenMS
 
         // use first peptide evidence for flanking AAs; a protein terminus ('[', ']' in OpenMS) is '-', as Percolator
         // writes it: the enzyme features count it as a cleavage site, and the Peptide column shows it
-        char aa_before = hit.getPeptideEvidences().front().getAABefore();
-        char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
+        const PeptideEvidence& first_evidence = hit.getPeptideEvidences().front();
+        char aa_before = first_evidence.getAABefore();
+        char aa_after  = first_evidence.getAAAfter();
         aa_before = aa_before == PeptideEvidence::N_TERMINAL_AA ? '-' : aa_before;
         aa_after  = aa_after  == PeptideEvidence::C_TERMINAL_AA ? '-' : aa_after;
+        // the peptide after the initial Met (initial-Met clipping, as FragmentIndex and PeptideIndexer allow it) is
+        // protein N-terminal for the enzyme features as well; the Peptide column keeps the M. Reversed decoy proteins
+        // rarely start with M: if only '[' counted, enzN = 0 would mark Met-clipped targets, and Percolator would learn
+        // it as a target label (#10726).
+        const char n_site = (aa_before == 'M' && first_evidence.getStart() == 1) ? '-' : aa_before;
 
         bool enzN, enzC;
         Size enzInt;
@@ -574,15 +580,15 @@ namespace OpenMS
           // ('-' is a terminus, as for isEnz_()). An unknown residue (X) before the flanking AA serves the rules that
           // look at two residues (proline endopeptidase cuts after HP, KP, RP): the evidence holds one.
           const int length = static_cast<int>(unmodified_sequence.size());
-          const std::string with_before = std::string("X") + aa_before + unmodified_sequence;
-          enzN = aa_before == '-' || digestion->isValidProduct(with_before, 2, length);
+          const std::string with_before = std::string("X") + n_site + unmodified_sequence;
+          enzN = n_site == '-' || digestion->isValidProduct(with_before, 2, length);
           enzC = aa_after == '-' || digestion->isValidProduct(unmodified_sequence + aa_after, 0, length);
           // the sites inside the peptide, in the same context: all sites but those before its first residue
           enzInt = digestion->countInternalCleavageSites(with_before) - digestion->countInternalCleavageSites(with_before.substr(0, 3));
         }
         else
         {
-          enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+          enzN = isEnz_(n_site, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
           enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
           enzInt = countEnzymatic_(unmodified_sequence, enz);
         }

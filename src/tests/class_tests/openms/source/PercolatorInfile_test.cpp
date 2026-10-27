@@ -271,7 +271,7 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
 {
   // The enzyme features of a tryptic peptide with a missed cleavage, preceded by M and followed by S: the C-terminus
   // and one internal site are tryptic
-  auto stamp = [](const std::string& enz, char aa_before = 'M', const std::string& peptide = "PEPKTIDER", char aa_after = 'S')
+  auto stamp_hit = [](const std::string& enz, char aa_before, const std::string& peptide, char aa_after, Int start)
   {
     PeptideHit hit;
     hit.setSequence(AASequence::fromString(peptide));
@@ -280,6 +280,7 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
     hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
     PeptideEvidence ev;
     ev.setProteinAccession("PROT1");
+    ev.setStart(start);
     ev.setAABefore(aa_before);
     ev.setAAAfter(aa_after);
     hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
@@ -291,7 +292,12 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
     PeptideIdentificationList pids;
     pids.push_back(pid);
     PercolatorInfile::stampPinFeaturesOnHits(pids, enz, 2, 3);
-    const PeptideHit& stamped = pids[0].getHits()[0];
+    return pids[0].getHits()[0];
+  };
+  auto stamp = [&stamp_hit](const std::string& enz, char aa_before = 'M', const std::string& peptide = "PEPKTIDER", char aa_after = 'S',
+                            Int start = PeptideEvidence::UNKNOWN_POSITION)
+  {
+    const PeptideHit stamped = stamp_hit(enz, aa_before, peptide, aa_after, start);
     return std::make_tuple(static_cast<int>(stamped.getMetaValue("enzN")), static_cast<int>(stamped.getMetaValue("enzC")),
                            static_cast<int>(stamped.getMetaValue("enzInt")));
   };
@@ -324,6 +330,17 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the enzyme features with Protease
   TEST_TRUE(stamp("Lys-C/P", PeptideEvidence::N_TERMINAL_AA) == std::make_tuple(1, 0, 1))
   TEST_TRUE(stamp("Lys-C", 'M', "PEPKTIDER", PeptideEvidence::C_TERMINAL_AA) == std::make_tuple(0, 1, 1))
   TEST_TRUE(stamp("Lys-C/P", 'M', "PEPKTIDER", PeptideEvidence::C_TERMINAL_AA) == std::make_tuple(0, 1, 1))
+  // the peptide after the initial Met (initial-Met clipping) is protein N-terminal as well, by either rule: a reversed
+  // decoy protein rarely starts with M, so its N-terminal peptides keep '[' and must count the same (#10726)
+  TEST_TRUE(stamp("Trypsin/P", 'M', "PEPKTIDER", 'S', 1) == std::make_tuple(1, 1, 1))
+  TEST_TRUE(stamp("Trypsin/P", PeptideEvidence::N_TERMINAL_AA, "PEPKTIDER", 'S', 0) == std::make_tuple(1, 1, 1))
+  TEST_TRUE(stamp("Lys-C/P", 'M', "PEPKTIDER", 'S', 1) == std::make_tuple(1, 0, 1))
+  TEST_TRUE(stamp("Lys-C/P", PeptideEvidence::N_TERMINAL_AA, "PEPKTIDER", 'S', 0) == std::make_tuple(1, 0, 1))
+  // an M further inside the protein is no terminus
+  TEST_TRUE(stamp("Trypsin/P", 'M', "PEPKTIDER", 'S', 2) == std::make_tuple(0, 1, 1))
+  TEST_TRUE(stamp("Lys-C/P", 'M', "PEPKTIDER", 'S', 2) == std::make_tuple(0, 0, 1))
+  // the Peptide column keeps the flanking M
+  TEST_STRING_EQUAL(stamp_hit("Trypsin/P", 'M', "PEPKTIDER", 'S', 1).getMetaValue("Peptide").toString(), "M.PEPKTIDER.S")
 }
 END_SECTION
 
