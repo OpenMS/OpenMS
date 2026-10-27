@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/FORMAT/CompressedInputSource.h>
 #include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -26,6 +27,9 @@
 #include <thread>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX // std::min, not the min macro of windows.h
+#endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
@@ -56,6 +60,17 @@ namespace
     std::ostringstream content;
     content << in.rdbuf();
     return content.str();
+  }
+
+  std::string readAll(InputStream& stream)
+  {
+    std::string content;
+    unsigned char buffer[1000];
+    while (Size count = stream.readBytes(buffer, sizeof(buffer)))
+    {
+      content.append(reinterpret_cast<const char*>(buffer), count);
+    }
+    return content;
   }
 
   /**
@@ -227,9 +242,13 @@ const std::string plain_path = OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresse
 const std::string indexed_path = OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML");
 const std::string plain = readFile(plain_path);
 const std::string indexed = readFile(indexed_path);
+// the files the server serves at these paths
+const std::map<std::string, std::string> local_paths{{"/run.mzML", plain_path},
+                                                     {"/run.mzML.gz", OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")},
+                                                     {"/run.mzML.bz2", OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")}};
 TestServer server({{"/run.mzML", plain},
-                   {"/run.mzML.gz", readFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz"))},
-                   {"/run.mzML.bz2", readFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2"))},
+                   {"/run.mzML.gz", readFile(local_paths.at("/run.mzML.gz"))},
+                   {"/run.mzML.bz2", readFile(local_paths.at("/run.mzML.bz2"))},
                    {"/indexed.mzML", indexed}});
 
 START_SECTION((static bool isHTTPURI(const std::string& url)))
@@ -247,25 +266,27 @@ END_SECTION
 START_SECTION((explicit HTTPInputSource(const std::string& url)))
 {
   TEST_EXCEPTION(Exception::IllegalArgument, HTTPInputSource("s3://bucket/run.mzML"))
-  TEST_EXCEPTION(Exception::IllegalArgument, HTTPInputSource(plain_path))
+  TEST_EXCEPTION(Exception::IllegalArgument, HTTPInputSource{plain_path})
   TEST_EXCEPTION(Exception::IllegalArgument, HTTPInputSource::objectSize(plain_path))
 }
 END_SECTION
 
 START_SECTION((std::unique_ptr<InputStream> makeStream() const))
 {
-  // the stream is the file's content, decompressed
-  for (const std::string path : {"/run.mzML", "/run.mzML.gz", "/run.mzML.bz2"})
+  // the stream is the file's content, decompressed as for a local file
   {
-    auto stream = HTTPInputSource(server.url(path)).makeStream();
-    std::string content;
-    unsigned char buffer[1000];
-    while (Size count = stream->readBytes(buffer, sizeof(buffer)))
-    {
-      content.append(reinterpret_cast<const char*>(buffer), count);
-    }
-    TEST_TRUE(content == plain)
+    auto stream = HTTPInputSource(server.url("/run.mzML")).makeStream();
+    TEST_TRUE(readAll(*stream) == plain)
     TEST_EQUAL(stream->curPos(), plain.size())
+  }
+  for (const std::string path : {"/run.mzML.gz", "/run.mzML.bz2"})
+  {
+    const std::string& local_path = local_paths.at(path);
+    std::unique_ptr<InputStream> local(CompressedInputSource(local_path, path.substr(path.size() - 3) == "bz2" ? "BZ" : "\x1f\x8b").makeStream());
+    const std::string expected = readAll(*local);
+    auto stream = HTTPInputSource(server.url(path)).makeStream();
+    TEST_TRUE(readAll(*stream) == expected)
+    TEST_EQUAL(stream->curPos(), expected.size())
   }
   TEST_EXCEPTION(Exception::FileNotFound, HTTPInputSource(server.url("/missing.mzML")).makeStream())
 }
@@ -273,11 +294,10 @@ END_SECTION
 
 START_SECTION(([EXTRA] MzMLFile::load from HTTP URLs))
 {
-  PeakMap local;
-  MzMLFile().load(plain_path, local);
   for (const std::string path : {"/run.mzML", "/run.mzML.gz", "/run.mzML.bz2"})
   {
-    PeakMap remote;
+    PeakMap local, remote;
+    MzMLFile().load(local_paths.at(path), local);
     MzMLFile().load(server.url(path), remote);
     TEST_EQUAL(remote.size(), local.size())
     TEST_TRUE(remote.getSpectra() == local.getSpectra())
