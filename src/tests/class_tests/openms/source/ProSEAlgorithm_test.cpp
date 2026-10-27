@@ -3879,6 +3879,93 @@ START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] collectRunStatistics_: the MS2 spectra recorded as profile spectra and those of a precursor charge outside precursor:min_charge..max_charge))
+{
+  // four MS2 spectra: profile of charge 2, centroided of charge 2, 3 and without a charge (searched with every charge
+  // of the range); precursor:min_charge 3
+  ProSEAlgorithm_test algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:min_charge", 3);
+  algo.setParameters(p);
+  PeakMap spectra;
+  for (const auto& [type, charge] : std::vector<std::pair<SpectrumSettings::SpectrumType, int>>{
+         {SpectrumSettings::SpectrumType::PROFILE, 2}, {SpectrumSettings::SpectrumType::CENTROID, 2},
+         {SpectrumSettings::SpectrumType::CENTROID, 3}, {SpectrumSettings::SpectrumType::CENTROID, 0}})
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setType(type);
+    Precursor precursor;
+    precursor.setMZ(500.0);
+    precursor.setCharge(charge);
+    spectrum.setPrecursors({precursor});
+    spectra.addSpectrum(spectrum);
+  }
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setType(SpectrumSettings::SpectrumType::PROFILE);
+  spectra.addSpectrum(ms1); // not counted
+  ProSEAlgorithm::RunStatistics stats;
+  algo.collectRunStatistics_(spectra, {}, {}, stats);
+  TEST_EQUAL(stats.ms2_spectra, 4)
+  TEST_EQUAL(stats.profile_spectra, 1)
+  TEST_EQUAL(stats.charge_out_of_range_spectra, 2)
+}
+END_SECTION
+
+START_SECTION((void setParameterNamePrefix(const std::string& prefix)))
+{
+  // the parameters a search refuses are named as the user sets them (e.g. in the ProSE tool, under 'Search:')
+  const auto message_of = [](const std::function<void()>& f) -> std::string
+  {
+    try
+    {
+      f();
+    }
+    catch (const Exception::InvalidParameter& e)
+    {
+      return e.what();
+    }
+    return "";
+  };
+  for (const std::string prefix : {"", "Search:"})
+  {
+    ProSEAlgorithm_test algo;
+    algo.setParameterNamePrefix(prefix);
+    const Param defaults = algo.getParameters();
+    Param p = defaults;
+    p.setValue("precursor:min_charge", 6);
+    TEST_TRUE(message_of([&]() { algo.setParameters(p); }).find(prefix + "precursor:min_charge (6) is larger than " + prefix
+                                                                  + "precursor:max_charge (5)") != std::string::npos)
+    p = defaults;
+    p.setValue("peptide:motif", "(A");
+    TEST_TRUE(message_of([&]() { algo.setParameters(p); }).find(prefix + "peptide:motif '(A' is not a valid regular expression")
+              != std::string::npos)
+    p = defaults;
+    p.setValue("fragment:mass_tolerance", 0.0);
+    TEST_TRUE(message_of([&]() { algo.setParameters(p); }).find(prefix + "fragment:mass_tolerance must be finite and positive")
+              != std::string::npos)
+    p = defaults;
+    p.setValue("precursor:mass_tolerance_lower", 0.0);
+    p.setValue("precursor:mass_tolerance_upper", 0.0);
+    TEST_TRUE(message_of([&]() { algo.setParameters(p); }).find("zero width: " + prefix + "precursor:mass_tolerance_lower + "
+                                                                  + prefix + "precursor:mass_tolerance_upper must be > 0")
+              != std::string::npos)
+    // decoys=auto refuses a database with far fewer decoys than targets
+    p = defaults;
+    p.setValue("decoys", "auto");
+    algo.setParameters(p);
+    std::vector<FASTAFile::FASTAEntry> db;
+    for (Size i = 0; i < 50; ++i)
+    {
+      db.emplace_back((i == 0 ? "DECOY_P" : "P") + std::to_string(i), "", "PEPTIDEK");
+    }
+    TEST_TRUE(message_of([&]() { algo.resolveDecoyStrategy_(db); }).find(prefix + "decoys=auto: the protein database has 1 decoy")
+              != std::string::npos)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] collectRunStatistics_: signed mass errors of the target PSMs, of the precursor corrected by the isotope error))
 {
   // 12 target PSMs at -2.1, -2.0 and -1.9 ppm, every fourth matched at its first 13C peak (isotope_error +1, observed
@@ -6594,6 +6681,41 @@ START_SECTION(([EXTRA] mergeFileResults gives the files their PSMs back if the p
       TEST_TRUE(psms(result.per_file[i].peptide_ids) == psms(merge_search.per_file[i].peptide_ids))
     }
     TEST_EQUAL(starts, ends)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the parts of the files of the pooled result: an input given twice, and a protein FDR that no protein passes))
+{
+  // One file given twice is two inputs: each gets its own part of the pooled result, the same PSMs (half of the pooled
+  // ones each). At 2 % no protein passes (47 targets, 2 decoys: at least 1/48): the pooled result and every file have
+  // no PSM.
+  const StringList twice = {merge_spectra_file, merge_spectra_file};
+  for (const double protein_fdr : {0.05, 0.02})
+  {
+    ProSEAlgorithm algo;
+    configure_merge(algo, "generate");
+    Param p = algo.getParameters();
+    p.setValue("FDR:protein", protein_fdr);
+    p.setValue("rescore", "false");
+    algo.setParameters(p);
+    ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(twice, merge_database_file, {}, "", false);
+    ABORT_IF(result.per_file.size() != 2)
+    ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, twice);
+    const Size pooled = merged.peptide_ids.size();
+    ProSEAlgorithm::splitMergedPsms(merged, result);
+    TEST_EQUAL(result.per_file[0].peptide_ids.size() + result.per_file[1].peptide_ids.size(), pooled)
+    TEST_TRUE(target_psms(result.per_file[0].peptide_ids) == target_psms(result.per_file[1].peptide_ids))
+    if (protein_fdr == 0.05)
+    {
+      TEST_EQUAL(pooled, 1790)
+      TEST_EQUAL(result.per_file[0].protein_ids[0].getHits().size(), 47)
+    }
+    else
+    {
+      TEST_EQUAL(pooled, 0)
+      TEST_TRUE(result.per_file[0].protein_ids[0].getHits().empty())
+    }
   }
 }
 END_SECTION

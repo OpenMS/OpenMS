@@ -5606,28 +5606,28 @@ add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_14_needs_qpx.tmp.idXML;-qpx_extended"
   -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=-qpx_extended extends the QPX output" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 
-# Test 17: parameters that cannot be searched are refused before the search with exit code 6 (ILLEGAL_PARAMETERS) and a
-# message naming them: values outside of their restrictions (negative counts used to end in an internal error, charges
-# and isotope errors of 65535/32767 in unbounded memory growth, report:top_hits 2147483647 in an abort), inverted
-# ranges and an invalid peptide:motif. The messages name the parameters as they are set (Search:section:name).
+# Test 17: parameters that cannot be searched are refused before the search with exit code 6 (ILLEGAL_PARAMETERS):
+# values outside of their restrictions (negative counts used to end in an internal error, charges and isotope errors of
+# 65535/32767 in unbounded memory growth, report:top_hits 2147483647 in an abort), inverted ranges, an invalid
+# peptide:motif and an empty precursor window. The messages are checked by ProSEAlgorithm_test, FragmentIndex_test and
+# Param_test.
 set(_prose17 ${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_17_refused.tmp.idXML)
 foreach(_case
-    "missed_cleavages|-Search:peptide:missed_cleavages;-1|value '-1' for parameter 'Search:peptide:missed_cleavages'.*valid range is: .0:"
-    "max_charge|-Search:precursor:max_charge;65535|value '65535' for parameter 'Search:precursor:max_charge'.*valid range is: .1:20."
-    "isotope_error|-Search:precursor:isotope_error_max;32767|parameter 'Search:precursor:isotope_error_max'.*valid range is: .-5:5."
-    "top_hits|-Search:report:top_hits;0|value '0' for parameter 'Search:report:top_hits'.*valid range is: .1:100."
-    "variable_mods|-Search:modifications:variable_max_per_peptide;2147483647|parameter 'Search:modifications:variable_max_per_peptide'.*valid range is: .0:5."
-    "charge_range|-Search:precursor:min_charge;6|Search:precursor:min_charge .6. is larger than Search:precursor:max_charge .5."
-    "size_range|-Search:peptide:min_size;41|Search:peptide:min_size .41. is larger than Search:peptide:max_size .40."
-    "motif|-Search:peptide:motif;(A|Search:peptide:motif '.A' is not a valid regular expression"
-    "mass_tolerance|-Search:fragment:mass_tolerance;-1|Search:fragment:mass_tolerance must be finite and positive"
-    "precursor_window|-Search:precursor:mass_tolerance_lower;0;-Search:precursor:mass_tolerance_upper;0|zero width: Search:precursor:mass_tolerance_lower . Search:precursor:mass_tolerance_upper must be > 0")
+    "missed_cleavages|-Search:peptide:missed_cleavages;-1"
+    "max_charge|-Search:precursor:max_charge;65535"
+    "isotope_error|-Search:precursor:isotope_error_max;32767"
+    "top_hits|-Search:report:top_hits;0"
+    "variable_mods|-Search:modifications:variable_max_per_peptide;2147483647"
+    "charge_range|-Search:precursor:min_charge;6"
+    "size_range|-Search:peptide:min_size;41"
+    "motif|-Search:peptide:motif;(A"
+    "mass_tolerance|-Search:fragment:mass_tolerance;-1"
+    "precursor_window|-Search:precursor:mass_tolerance_lower;0;-Search:precursor:mass_tolerance_upper;0")
   string(REPLACE "|" ";" _parts "${_case}")
   list(GET _parts 0 _name)
-  list(GET _parts -1 _regex)
-  list(REMOVE_AT _parts 0 -1)
+  list(REMOVE_AT _parts 0)
   add_test("TOPP_ProSE_17_refuses_${_name}" ${CMAKE_COMMAND} "-DCOMMAND=${_prose17};${_parts}"
-    -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=${_regex}" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+    -DEXPECTED_CODE=6 -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 endforeach()
 # An input without MS2 spectra (an MS1 file) is searched without error, with a warning (also in the summary).
 add_test("TOPP_ProSE_17_ms1_only" ${CMAKE_COMMAND}
@@ -5732,7 +5732,8 @@ foreach(_view proteins pg)
     DEPENDS "TOPP_${_f}_runs_merged_${_view};TOPP_${_f}_merged_${_view}")
 endforeach()
 
-# Test 18: databases and runs whose FDR ProSE would get wrong, or report without saying so.
+# Test 18: databases and runs whose FDR ProSE would get wrong, or report without saying so (the messages are checked
+# by ProSEAlgorithm_test).
 # - A repeated database entry (same accession and sequence: a FASTA file or the contaminants added twice) is searched
 #   once, with a warning; the QPX pg view refused the repeated accession at the end of the search (exit code 12).
 # - Two entries of one accession with different sequences are refused before the search (INPUT_FILE_CORRUPT, 3), and
@@ -5746,24 +5747,20 @@ foreach(_case twice conflict few_decoys few_decoys_generate)
   set(_f ProSE_18_${_case})
   string(REPLACE "_generate" "" _database ${_case})
   set(_args "${_prose18};-database;${TESTS_TEMP_DIR}/ProSE_18_${_database}.fasta;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended")
-  if(_case STREQUAL "twice")
-    set(_code 0)
-    set(_regex "repeats 49 entries \\(same accession and sequence")
-  elseif(_case STREQUAL "conflict")
+  if(_case STREQUAL "conflict")
     set(_code 3)
-    set(_regex "has two entries of the accession '[^']+' with different sequences")
   elseif(_case STREQUAL "few_decoys")
     set(_code 6)
-    set(_regex "Search:decoys=auto: the protein database has 1 decoy protein\\(s\\) \\(marker 'DECOY_', prefix\\) for 49 target")
     set(_args "${_args};-Search:decoys;auto")
   else()
     set(_code 0)
-    set(_regex "decoys=generate: removing pre-existing decoys")
-    set(_args "${_args};-Search:decoys;generate")
+    if(_case STREQUAL "few_decoys_generate")
+      set(_args "${_args};-Search:decoys;generate")
+    endif()
   endif()
   add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
   add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND} "-DCOMMAND=${_args}" -DEXPECTED_CODE=${_code}
-    "-DEXPECTED_OUTPUT_REGEX=${_regex}" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
   set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs;TOPP_${_f}_clean")
 endforeach()
 add_test("TOPP_ProSE_18_twice_pg" ${TOPP_BIN_PATH}/ParquetDiff
@@ -5785,98 +5782,70 @@ add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_
   "-DFORBIDDEN=key:string = psm_fdr_applied, value:string = true" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
 
-# Test 19: the outputs of a multi-file search agree with -out_merged once its pooled protein FDR is applied: at 2 % no
-# protein of the two inputs passes (47 target and 2 decoy proteins: at least 1/48), so -out_merged has no PSM, and
-# neither have the per-input idXML files nor the QPX psm views.
-set(_f ProSE_19_outputs_agree)
-add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
-add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-Search:FDR:protein;0.02;-keep_decoys;-out_merged;${TESTS_TEMP_DIR}/${_f}.tmp.idXML;-out_idxml;${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML;${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=picked-protein FDR: 0 proteins at 2% FDR" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean;TOPP_ProSE_18_inputs")
-foreach(_out merged a b)
-  if(_out STREQUAL "merged")
-    set(_file ${TESTS_TEMP_DIR}/${_f}.tmp.idXML)
-  else()
-    set(_file ${TESTS_TEMP_DIR}/${_f}_${_out}.tmp.idXML)
-  endif()
-  add_test("TOPP_${_f}_${_out}" ${TOPP_BIN_PATH}/FileInfo -test -in ${_file})
-  set_tests_properties("TOPP_${_f}_${_out}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
-endforeach()
-foreach(_view quantms.psm runs/DatabaseSuitability_in_spec.psm runs/ProSE_18_small.psm)
-  string(MAKE_C_IDENTIFIER ${_view} _name)
-  add_test("TOPP_${_f}_${_name}" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/${_view}.parquet -schema psm)
-  set_tests_properties("TOPP_${_f}_${_name}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "view: psm, rows: 0[^0-9]")
-endforeach()
-
-# 'Search:FDR:protein' > 0 is the whole experiment also without -out_merged: the inputs are pooled for the protein
-# inference and the protein FDR (5 %, which every protein passes), and each per-input output is its part of the pooled
-# result: proteins with their pooled q-values (score type q-value) and groups, no decoys.
-set(_f ProSE_19_final_without_merged)
-add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML;${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=picked-protein FDR: [1-9][0-9]* proteins at 5% FDR" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs")
-add_test("TOPP_${_f}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML
-  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"indistinguishable_proteins_0\""
-  "-DFORBIDDEN=value=\"decoy\"" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f}")
-
-# quantms.pg.parquet of several inputs without -qpx_extended: the groups of the pooled inference, a row per group and run
-# (the view's key), as with -qpx_extended: with the protein FDR (5 %) the 49 rows of the inputs' pg files; with
-# FDR:protein 0 and -out_merged the 51 pooled ones.
-foreach(_case final intermediate)
-  set(_f ProSE_19_pooled_pg_${_case})
-  if(_case STREQUAL "final")
-    set(_args "")
-    set(_rows 49)
-  else()
-    set(_args "-Search:FDR:protein;0;-out_merged;${TESTS_TEMP_DIR}/${_f}.tmp.idXML;")
-    set(_rows 51)
-  endif()
-  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
-  add_test(NAME "TOPP_${_f}" COMMAND ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_args}
-    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_18_small.mzML
-    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -out_qpx ${TESTS_TEMP_DIR}/${_f}_qpx)
-  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean;TOPP_ProSE_18_inputs")
-  add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.pg.parquet -schema pg)
-  set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "view: pg, rows: ${_rows}[^0-9]")
-endforeach()
-
-# The same file given twice with the protein FDR: each occurrence is an input with its own share of the pooled result
-# (half of the 1790 pooled PSMs each).
-set(_f ProSE_19_same_input_twice)
-add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
-  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -out_merged ${TESTS_TEMP_DIR}/${_f}.tmp.idXML
-  -out_idxml ${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML ${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML)
-foreach(_out merged a b)
-  if(_out STREQUAL "merged")
-    set(_file ${TESTS_TEMP_DIR}/${_f}.tmp.idXML)
-    set(_hits 1790)
-  else()
-    set(_file ${TESTS_TEMP_DIR}/${_f}_${_out}.tmp.idXML)
-    set(_hits 895)
-  endif()
-  add_test("TOPP_${_f}_${_out}" ${TOPP_BIN_PATH}/FileInfo -test -in ${_file})
-  set_tests_properties("TOPP_${_f}_${_out}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "peptide hits: +${_hits} ")
-endforeach()
-
-# The run view counts the MS2 spectra recorded as profile spectra and those not searched because their precursor
-# charge is outside precursor:min_charge..max_charge: the two MS2 spectra of DTAExtractor_1_input are both, of charge 2.
-set(_f ProSE_19_run_counts)
-add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
-add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-Search:precursor:min_charge;3;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=2 of 2 MS2 spectra are recorded as profile spectra" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
-set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
-add_test("TOPP_${_f}_run" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.run.parquet
-  -out_tsv ${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
-set_tests_properties("TOPP_${_f}_run" PROPERTIES DEPENDS "TOPP_${_f}")
-add_test("TOPP_${_f}_run_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv
-  "-DEXPECTED=ms2_spectra_count\tprofile_spectra_count\tcharge_out_of_range_spectra_count\tidentified_spectra_count;EXECUTION_OK\t2\t2\t2\t0\t"
-  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
-set_tests_properties("TOPP_${_f}_run_out" PROPERTIES DEPENDS "TOPP_${_f}_run")
+# Test 19: the two modes of a multi-file search (see the tool documentation, "Final results vs. intermediates"), on
+# DatabaseSuitability_in_spec and its first 60 spectra (ProSE_18_small, 21 PSMs), without rescoring; FileInfo summaries
+# as in Test 7.
+# (A) FDR:protein > 0 (5 %): every output is the final result. The per-input idXML files are the parts of -out_merged
+# (895 + 21 = 916 PSMs, 47 proteins, no decoy); the small input's QPX pg view has the pooled groups of its proteins
+# with their pooled q-values; without -out_merged the per-input outputs are the same.
+set(_prose19 ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_18_small.mzML)
+add_test(NAME "TOPP_ProSE_19_final_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_19_final_qpx)
+add_test("TOPP_ProSE_19_final" ${_prose19} -out_merged ${TESTS_TEMP_DIR}/ProSE_19_final_merged.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_19_final_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_19_final_b.tmp.idXML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_19_final_qpx)
+set_tests_properties("TOPP_ProSE_19_final" PROPERTIES DEPENDS "TOPP_ProSE_19_final_clean;TOPP_ProSE_18_inputs")
+add_test("TOPP_ProSE_19_final_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_19_final_merged.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/ProSE_19_final_merged_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_19_final_merged_info" PROPERTIES DEPENDS "TOPP_ProSE_19_final")
+add_test("TOPP_ProSE_19_final_merged_info_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_19_final_merged_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_19_final_merged_info.tsv -whitelist "file name" "database" "search engine")
+set_tests_properties("TOPP_ProSE_19_final_merged_info_out" PROPERTIES DEPENDS "TOPP_ProSE_19_final_merged_info")
+add_test("TOPP_ProSE_19_final_a_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_19_final_a.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/ProSE_19_final_a_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_19_final_a_info" PROPERTIES DEPENDS "TOPP_ProSE_19_final")
+add_test("TOPP_ProSE_19_final_a_info_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_19_final_a_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_19_final_a_info.tsv -whitelist "file name" "database" "search engine")
+set_tests_properties("TOPP_ProSE_19_final_a_info_out" PROPERTIES DEPENDS "TOPP_ProSE_19_final_a_info")
+add_test("TOPP_ProSE_19_final_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_19_final_qpx/runs/ProSE_18_small.pg.parquet -out_tsv ${TESTS_TEMP_DIR}/ProSE_19_final_pg.tmp.tsv)
+set_tests_properties("TOPP_ProSE_19_final_pg" PROPERTIES DEPENDS "TOPP_ProSE_19_final")
+add_test("TOPP_ProSE_19_final_pg_out" ${QPX_DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_19_final_pg.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_19_final_pg.tsv)
+set_tests_properties("TOPP_ProSE_19_final_pg_out" PROPERTIES DEPENDS "TOPP_ProSE_19_final_pg")
+add_test("TOPP_ProSE_19_final_without_merged" ${_prose19}
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_19_final_without_merged_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_19_final_without_merged_b.tmp.idXML)
+set_tests_properties("TOPP_ProSE_19_final_without_merged" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs")
+add_test("TOPP_ProSE_19_final_without_merged_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_19_final_without_merged_a.tmp.idXML -in2 ${TESTS_TEMP_DIR}/ProSE_19_final_a.tmp.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion")
+set_tests_properties("TOPP_ProSE_19_final_without_merged_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_19_final_without_merged;TOPP_ProSE_19_final")
+# (B) FDR:protein 0: per-run intermediates, with the decoys (the large input's 47 target and 2 decoy proteins) and
+# without protein filter; -out_merged pools them with a protein inference, without protein FDR, whose groups are those
+# of quantms.pg.parquet (also without -qpx_extended; ParquetDiff fails on a missing file or without a row).
+add_test(NAME "TOPP_ProSE_19_parts_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_19_parts_qpx)
+add_test("TOPP_ProSE_19_parts" ${_prose19} -Search:FDR:protein 0
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_19_parts_merged.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_19_parts_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_19_parts_b.tmp.idXML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_19_parts_qpx)
+set_tests_properties("TOPP_ProSE_19_parts" PROPERTIES DEPENDS "TOPP_ProSE_19_parts_clean;TOPP_ProSE_18_inputs")
+add_test("TOPP_ProSE_19_parts_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/ProSE_19_parts_qpx/quantms.pg.parquet -schema pg -min_rows 1)
+set_tests_properties("TOPP_ProSE_19_parts_pg" PROPERTIES DEPENDS "TOPP_ProSE_19_parts")
+add_test("TOPP_ProSE_19_parts_a_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_19_parts_a.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/ProSE_19_parts_a_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_19_parts_a_info" PROPERTIES DEPENDS "TOPP_ProSE_19_parts")
+add_test("TOPP_ProSE_19_parts_a_info_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_19_parts_a_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_19_parts_a_info.tsv -whitelist "file name" "database" "search engine")
+set_tests_properties("TOPP_ProSE_19_parts_a_info_out" PROPERTIES DEPENDS "TOPP_ProSE_19_parts_a_info")
+add_test("TOPP_ProSE_19_parts_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_19_parts_merged.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/ProSE_19_parts_merged_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_19_parts_merged_info" PROPERTIES DEPENDS "TOPP_ProSE_19_parts")
+add_test("TOPP_ProSE_19_parts_merged_info_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_19_parts_merged_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_19_parts_merged_info.tsv -whitelist "file name" "database" "search engine")
+set_tests_properties("TOPP_ProSE_19_parts_merged_info_out" PROPERTIES DEPENDS "TOPP_ProSE_19_parts_merged_info")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
