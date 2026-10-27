@@ -4091,21 +4091,54 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     };
     thread_local std::vector<TieKey> tie_keys;
     tie_keys.clear();
+    // The entries in the form build() left them: 8-byte Fragments with their mass, or packed (entry_words_ + entry_lengths_,
+    // see FragmentIndex.h), whose mass is recomputed from the mother's residues where it is needed - the same float
+    const bool packed = packed_entries_;
     const Fragment* const entries = fi_fragments_.data();
+    const EntryWord* const words = entry_words_.data();
+    const EntryLength* const lengths = entry_lengths_.data();
+    const size_t num_entries = packed ? entry_words_.size() : fi_fragments_.size();
+    const auto entryWord = [&](size_t e) { return packed ? words[e].word_ : entries[e].peptide_idx_; };
     const auto by_mz = [](const Fragment& entry, float mz) { return entry.fragment_mz_ < mz; };
     const auto mz_by = [](float mz, const Fragment& entry) { return mz < entry.fragment_mz_; };
     const uint32_t mother_mask = entry_sites_ ? ENTRY_MOTHER_MASK_ : ~uint32_t{0};
     const bool has_variable_mods = mod_shifts_.size() > 1 || zero_sigma_subsets_;
 
-    // The entries are sorted by m/z, and bucket_min_mz_[b] is the m/z of entry b * bucketsize_ (build()): a bound is
-    // located among the bucket minima first (a few kB per million entries), then among the entries of one bucket and the
-    // one before it. The first entry with m/z >= v (lower_bound) comes after the first entry of the last bucket whose
-    // minimum is < v (that entry is < v, and so is every entry before it) and at or before the first entry of the next
-    // bucket (>= v): the search in [(b - 1) * bucketsize_, b * bucketsize_), b the first bucket with minimum >= v, finds
-    // it, as the first entry of bucket b if none in the range is >= v. Likewise the first entry > v (upper_bound), with
-    // b the first bucket whose minimum is > v. The result is that of the search in the whole index, with about 12 probes
-    // (of which 2 are in the entries) instead of 29 for 450 M entries.
-    const size_t num_entries = fi_fragments_.size();
+    // The bounds of a look-up range: std::lower_bound / std::upper_bound over the entries by mass; for the packed
+    // entries over their indices, with the mass recomputed at every probe (each a mother and a protein-string load and at
+    // most peptide:max_size additions - a few hundred per spectrum, against tens of thousands of realizations).
+    // The entries are sorted by m/z, and bucket_min_mz_[b] is the m/z of entry b * bucketsize_ (build(), in both
+    // representations): a bound is located among the bucket minima first (a few kB per million entries), then among the
+    // entries of one bucket and the one before it. The first entry with m/z >= v (lower_bound) comes after the first entry
+    // of the last bucket whose minimum is < v (that entry is < v, and so is every entry before it) and at or before the
+    // first entry of the next bucket (>= v): the search in [(b - 1) * bucketsize_, b * bucketsize_), b the first bucket
+    // with minimum >= v, finds it, as the first entry of bucket b if none in the range is >= v. Likewise the first entry
+    // > v (upper_bound), with b the first bucket whose minimum is > v. The result is that of the search in the whole index,
+    // with about 12 probes (of which 2 are in the entries) instead of 29 for 450 M entries.
+    const auto lowerBoundIn = [&](size_t from, size_t to, float bound) // the first entry in [from, to) with mass >= bound, or to
+    {
+      if (!packed) return static_cast<size_t>(std::lower_bound(entries + from, entries + to, bound, by_mz) - entries);
+      size_t first = from, count = to - from;
+      while (count > 0)
+      {
+        const size_t half = count / 2;
+        if (packedEntryMz_(first + half, fasta_entries) < bound) { first += half + 1; count -= half + 1; }
+        else count = half;
+      }
+      return first;
+    };
+    const auto upperBoundIn = [&](size_t from, size_t to, float bound) // the first entry in [from, to) with mass > bound, or to
+    {
+      if (!packed) return static_cast<size_t>(std::upper_bound(entries + from, entries + to, bound, mz_by) - entries);
+      size_t first = from, count = to - from;
+      while (count > 0)
+      {
+        const size_t half = count / 2;
+        if (!(bound < packedEntryMz_(first + half, fasta_entries))) { first += half + 1; count -= half + 1; }
+        else count = half;
+      }
+      return first;
+    };
     const float* const bucket_mins = bucket_min_mz_.data();
     const size_t num_buckets = bucket_min_mz_.size();
     const auto bucketRange = [&](size_t bucket) -> std::pair<size_t, size_t>
@@ -4113,20 +4146,18 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       if (num_buckets == 0) return {0, num_entries}; // no bucket minima: the whole index
       return {bucket == 0 ? 0 : (bucket - 1) * bucketsize_, std::min(bucket * bucketsize_, num_entries)};
     };
-    const auto lowerBound = [&](float v)
+    const auto lowerBoundMz = [&](float v)
     {
       const auto [from, to] = bucketRange(static_cast<size_t>(std::lower_bound(bucket_mins, bucket_mins + num_buckets, v) - bucket_mins));
-      const size_t e = static_cast<size_t>(std::lower_bound(entries + from, entries + to, v, by_mz) - entries);
-      OPENMS_POSTCONDITION(e == static_cast<size_t>(std::lower_bound(entries, entries + num_entries, v, by_mz) - entries),
-                           "the bucket-seeded lower_bound differs from the search in the whole index");
+      const size_t e = lowerBoundIn(from, to, v);
+      OPENMS_POSTCONDITION(e == lowerBoundIn(0, num_entries, v), "the bucket-seeded lower_bound differs from the search in the whole index");
       return e;
     };
-    const auto upperBound = [&](float v)
+    const auto upperBoundMz = [&](float v)
     {
       const auto [from, to] = bucketRange(static_cast<size_t>(std::upper_bound(bucket_mins, bucket_mins + num_buckets, v) - bucket_mins));
-      const size_t e = static_cast<size_t>(std::upper_bound(entries + from, entries + to, v, mz_by) - entries);
-      OPENMS_POSTCONDITION(e == static_cast<size_t>(std::upper_bound(entries, entries + num_entries, v, mz_by) - entries),
-                           "the bucket-seeded upper_bound differs from the search in the whole index");
+      const size_t e = upperBoundIn(from, to, v);
+      OPENMS_POSTCONDITION(e == upperBoundIn(0, num_entries, v), "the bucket-seeded upper_bound differs from the search in the whole index");
       return e;
     };
 
@@ -4168,28 +4199,38 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         const auto realize = [&](size_t e, size_t j)
         {
           const ModShift_& shift = mod_shifts_[j];
-          const Fragment& entry = entries[e];
-          const UInt32 mother_idx = entry.peptide_idx_ & mother_mask;
+          const UInt32 mother_idx = entryWord(e) & mother_mask;
           const Peptide& mother = fi_peptides_[mother_idx];
           const std::string& protein = fasta_entries[mother.protein_idx].sequence;
           const size_t start = mother.sequence_.first;
           const char* sequence = protein.data() + start;
 
-          // The prefix the entry was made from: the one with its mass (the masses increase with the length)
+          // The prefix the entry was made from, and its double mass summed as build() summed it (the base of the
+          // peptidoform masses below): the packed entry names the length; a Fragment holds the mass, and the prefix is
+          // the one with that mass (the masses increase with the length)
           size_t length = 0;
           double mass = 0.0;
-          forEachPrefixMass_(sequence, mother.sequence_.second, [&](size_t k, double prefix_mass)
+          if (packed)
           {
-            const float prefix_mz = static_cast<float>(prefix_mass);
-            if (prefix_mz < entry.fragment_mz_) return true;
-            if (prefix_mz == entry.fragment_mz_ && k >= peptide_min_length_)
+            length = lengths[e].length_;
+            mass = prefixMass_(sequence, length);
+          }
+          else
+          {
+            const float entry_mz = entries[e].fragment_mz_;
+            forEachPrefixMass_(sequence, mother.sequence_.second, [&](size_t k, double prefix_mass)
             {
-              length = k;
-              mass = prefix_mass;
-            }
-            return false;
-          });
-          if (length == 0) return;
+              const float prefix_mz = static_cast<float>(prefix_mass);
+              if (prefix_mz < entry_mz) return true;
+              if (prefix_mz == entry_mz && k >= peptide_min_length_)
+              {
+                length = k;
+                mass = prefix_mass;
+              }
+              return false;
+            });
+            if (length == 0) return;
+          }
 
           const bool is_prot_nterm = isProteinNTerminal_(protein, start);
           const bool is_prot_cterm = (start + length == protein.size());
@@ -4270,20 +4311,20 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         {
           const ModShift_& shift = mod_shifts_[j];
           const float s = static_cast<float>(shift.sigma);
-          const size_t first = lowerBound(lo - s - margin);
-          const size_t last = upperBound(hi - s + margin);
+          const size_t first = lowerBoundMz(lo - s - margin);
+          const size_t last = upperBoundMz(hi - s + margin);
           // The entries whose prefix may have enough modification sites for the shift
           const uint32_t min_sites = static_cast<uint32_t>(std::min<size_t>(shift.min_mods, ENTRY_MAX_SITES_));
           const bool filter_sites = entry_sites_ && min_sites > 0;
           for (size_t e = first; e < last; ++e)
           {
-            if (filter_sites && (entries[e].peptide_idx_ >> ENTRY_SITES_SHIFT_) < min_sites) continue;
+            if (filter_sites && (entryWord(e) >> ENTRY_SITES_SHIFT_) < min_sites) continue;
             // the entries are sorted by mass, their mothers and proteins come in no order: fetch ahead
-            if (e + 16 < last) prefetchForRead(&fi_peptides_[entries[e + 16].peptide_idx_ & mother_mask], 0);
-            if (e + 8 < last) prefetchForRead(&fasta_entries[fi_peptides_[entries[e + 8].peptide_idx_ & mother_mask].protein_idx].sequence, 0);
+            if (e + 16 < last) prefetchForRead(&fi_peptides_[entryWord(e + 16) & mother_mask], 0);
+            if (e + 8 < last) prefetchForRead(&fasta_entries[fi_peptides_[entryWord(e + 8) & mother_mask].protein_idx].sequence, 0);
             if (e + 4 < last)
             {
-              const Peptide& ahead = fi_peptides_[entries[e + 4].peptide_idx_ & mother_mask];
+              const Peptide& ahead = fi_peptides_[entryWord(e + 4) & mother_mask];
               prefetchForRead(fasta_entries[ahead.protein_idx].sequence.data(), ahead.sequence_.first);
             }
             realize(e, j);
