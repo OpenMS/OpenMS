@@ -2001,7 +2001,7 @@ This is an alias for getChromatogramByNativeId().
             const long long n = static_cast<long long>(self.size());
             if (index < 0) { index += n; }
             if (index < 0 || index >= n) { throw nb::index_error("spectrum index out of range"); }
-            nb::gil_scoped_release release;
+            // GIL held on purpose: reads seek and read one shared FILE*, so concurrent calls would interleave
             return self.getSpectrum(static_cast<size_t>(index));  // decoded from the .ibd: always an owned copy
         }, "index"_a, "Returns the spectrum at index (negative counts from the end), read from disk")
         .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, size_t i) {

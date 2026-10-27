@@ -183,7 +183,10 @@ process.
 
 Returning owned values removes all of them, and restores what 3.5 did.
 Aliasing was introduced and removed inside the same unreleased development
-cycle, so no released version ever behaved differently and existing code
-needs no changes.
+cycle, so existing code needs no changes — with one exception:
+`IonImage.get_data()`, new in 3.6.0, shipped there as a writable zero-copy
+view. Since 3.7 it returns an owned copy like every other `get_*`,
+and the view is `IonImage.data_view()`; code that wrote through
+`get_data()` (`img.get_data()[:] /= norm`) must switch to `data_view()`.
 
 See issue #9792 for the full analysis.

@@ -741,11 +741,13 @@ def test_imaging_experiment_write_back_via_setitem():
         mie[2] = spec
 
 
-def test_imaging_experiment_getspectrum_index_bounds_checked():
+def test_imaging_experiment_getspectrum_needs_coordinates():
+    # mie[i] indexes pixels, so there is no getSpectrum(i): on MSExperiment and
+    # OnDiscImzMLExperiment that name takes a spectrum index.
     mie = _imaging_experiment()
-    assert mie.getSpectrum(1).getRT() == pytest.approx(2.0)
-    with pytest.raises(IndexError):
-        mie.getSpectrum(2)
+    assert mie.getSpectrum(1, 0).getRT() == pytest.approx(2.0)
+    with pytest.raises(TypeError):
+        mie.getSpectrum(1)
     with pytest.raises(IndexError):
         mie[2]
 
@@ -759,7 +761,7 @@ def test_imaging_experiment_len():
 
 
 def test_imaging_experiment_is_a_container_of_pixels():
-    """len, [i], iteration and getSpectrum(i) follow the geometry's pixels, not the spectra."""
+    """len, [i] and iteration follow the geometry's pixels, not the spectra."""
     from pyopenms import MSImagingGeometry
 
     mie = _imaging_experiment(rts=(1.0, 2.0, 3.0))
@@ -773,7 +775,8 @@ def test_imaging_experiment_is_a_container_of_pixels():
     assert mie.getNumberOfSpectra() == 3
     assert [spec.getRT() for spec in mie] == pytest.approx([3.0, 1.0])
     assert mie[0].getRT() == pytest.approx(3.0)
-    assert mie.getSpectrum(1).getRT() == pytest.approx(1.0)
+    assert mie[1].getRT() == pytest.approx(1.0)
+    assert mie.experiment_view()[1].getRT() == pytest.approx(2.0)   # spectrum index 1
     assert mie[-1].getRT() == pytest.approx(1.0)
     assert mie[-2].getRT() == pytest.approx(3.0)
     with pytest.raises(IndexError):

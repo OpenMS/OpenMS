@@ -688,6 +688,11 @@ In-memory model for a 2D imaging mass spectrometry dataset.
 Owns an MSExperiment (spectra) and an MSImagingGeometry (pixel grid +
 pixel -> spectrum index mapping). Provides pixel-based spectrum access
 and a simple sum-based ion image extraction.
+
+A container of pixels: len(), mie[i], iteration and spectrum_view(i) index
+the geometry's pixels, not the spectra. A pixel index differs from a spectrum
+index whenever the geometry skips or reorders spectra; for spectrum index k
+(e.g. from getRegionSpectrumIndices()) use experiment_view()[k].
 )doc")
     .def(nb::init<>())
     .def(nb::init<OpenMS::MSExperiment>(), "exp"_a, "Wrap an MSExperiment with an empty geometry.")
@@ -737,15 +742,11 @@ and a simple sum-based ion image extraction.
         if (i >= self.size()) throw nb::index_error();
         return self[i];
       }, nb::rv_policy::reference_internal, "i"_a,
-      "Returns a live view of the spectrum of the i-th pixel (geometry pixel order). The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (setMSExperiment and add/set/sort operations through experiment_view() invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use getSpectrum(i) or mie[i].")
+      "Returns a live view of the spectrum of the i-th pixel (geometry pixel order). The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (setMSExperiment and add/set/sort operations through experiment_view() invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use mie[i].")
     .def("spectrum_view", [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& {
         return self.getSpectrum(x, y);  // throws for a pixel not in the geometry
       }, nb::rv_policy::reference_internal, "x"_a, "y"_a,
       "Returns a live view of the spectrum at pixel (x, y), with the same contract as spectrum_view(i). For an owned copy use getSpectrum(x, y).")
-    .def("getSpectrum", [](const OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum {
-        if (i >= self.size()) throw nb::index_error();
-        return self[i];
-      }, "i"_a, "Returns a copy of the spectrum of the i-th pixel (geometry pixel order)")
     .def(
       "getSpectrum",
       [](const OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum {

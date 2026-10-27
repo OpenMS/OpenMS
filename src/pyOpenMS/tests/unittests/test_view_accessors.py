@@ -322,9 +322,9 @@ def test_imaging_views_do_not_change_the_copy_getters():
     held = mie[0]
     held.setRT(999.0)
     assert mie[0].getRT() == 1.0
-    held = mie.getSpectrum(0)
+    held = mie.getSpectrum(0, 0)
     held.setRT(999.0)
-    assert mie.getSpectrum(0).getRT() == 1.0
+    assert mie.getSpectrum(0, 0).getRT() == 1.0
     mie.getMSExperiment().setComment("lost")
     assert mie.getMSExperiment().getComment() == ""
     mie.getGeometry().addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 1, 1))
