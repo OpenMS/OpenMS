@@ -6360,13 +6360,12 @@ START_SECTION((static std::vector<Size> stratifiedQuotas_(const std::vector<Size
 }
 END_SECTION
 
-START_SECTION((void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, std::vector<TransferStratum_>& strata) const))
+START_SECTION((void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, Size i, std::vector<TransferStratum_>& strata) const))
 {
   // Four files, searched one after the other (cap 40): a file rescored on its own keeps of its PSMs before the
   // rescoring only those below the largest quota of the files rescored on their own so far, the first of its random
   // order; a file that Percolator could not rescore on its own keeps all. At the end, each file rescored on its own has
-  // exactly the PSMs the training takes of it (as rescoreFilesTogether_() drew them before it kept all): its
-  // quota of the four, the first of its PSMs with hits shuffled with the seed file position + 1, in file order.
+  // exactly the PSMs the training takes of it: its quota of the four, the first of its PSMs with hits shuffled with the seed file position + 1, in file order.
   const auto make_file = [](Size psms, bool own, Size without_hits, int charges)
   {
     ProSEAlgorithm::SearchResult pf;
@@ -6403,12 +6402,12 @@ START_SECTION((void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, 
   p.setValue("percolator:max_train_psms", 40);
   algo.setParameters(p);
   std::vector<ProSEAlgorithm::SearchResult> per_file;
-  std::vector<ProSEAlgorithm_test::TransferStratum_> strata;
+  std::vector<ProSEAlgorithm_test::TransferStratum_> strata(psms.size());
   std::vector<Size> kept; // after each file, the PSMs kept of the files so far
   for (Size i = 0; i < psms.size(); ++i)
   {
     per_file.push_back(make_file(psms[i], own[i], without_hits[i], charges[i]));
-    algo.limitPreRescoringPsms_(per_file, strata);
+    algo.limitPreRescoringPsms_(per_file, i, strata);
     for (const ProSEAlgorithm::SearchResult& pf : per_file) { kept.push_back(pf.pre_fdr_peptide_ids.size()); }
   }
   // file 0 alone: its quota 40; file 1 not rescored: all of it; then quotas 20 + 20 of 50 and 60; then 15 + 15 + 10
@@ -6452,11 +6451,11 @@ START_SECTION((void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, 
   for (ProSEAlgorithm_test* algo_all : {&keeping, &uncapped})
   {
     per_file.clear();
-    strata.clear();
+    strata.assign(psms.size(), ProSEAlgorithm_test::TransferStratum_());
     for (Size i = 0; i < psms.size(); ++i)
     {
       per_file.push_back(make_file(psms[i], own[i], without_hits[i], charges[i]));
-      algo_all->limitPreRescoringPsms_(per_file, strata);
+      algo_all->limitPreRescoringPsms_(per_file, i, strata);
     }
     for (Size i = 0; i < psms.size(); ++i) { TEST_EQUAL(per_file[i].pre_fdr_peptide_ids.size(), psms[i] + without_hits[i]) }
     TEST_EQUAL(strata[2].draw.size(), 62)
@@ -7199,7 +7198,7 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR filters the protein groups at 
 }
 END_SECTION
 
-START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result)))
+START_SECTION((static void splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result)))
 {
   // Two input files of the PSMs of the protein group test above, alternately: the pooled protein FDR at 23 % keeps
   // T1, T1b and T2 .. T5 and removes T6 .. T8 (their groups fail) with their PSMs, and the decoys. Each file then gets
@@ -7262,7 +7261,7 @@ START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearch
   TEST_EQUAL(merged.peptide_ids.size(), 5)
   const PeptideIdentificationList pooled = merged.peptide_ids;
 
-  TEST_TRUE(ProSEAlgorithm::splitMergedPsms(merged, result))
+  ProSEAlgorithm::splitMergedPsms(merged, result);
   TEST_TRUE(merged.peptide_ids.empty())
   // file a: T1/T1b, T3, T5; file b: T2, T4, in the order of the files, as PSMs of their runs
   const auto sequences = [](const PeptideIdentificationList& ids)
@@ -7300,12 +7299,12 @@ START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearch
   Size in_files = result.per_file[0].peptide_ids.size() + result.per_file[1].peptide_ids.size();
   TEST_EQUAL(in_files, pooled.size())
 
-  // PSMs without the input position of their file: nothing is changed
+  // PSMs without the input position of their file: refused, nothing is changed
   ProSEAlgorithm::MergedResult unassigned;
   unassigned.peptide_ids = pooled;
   for (PeptideIdentification& id : unassigned.peptide_ids) { id.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX); }
   const PeptideIdentificationList before = result.per_file[0].peptide_ids;
-  TEST_FALSE(ProSEAlgorithm::splitMergedPsms(unassigned, result))
+  TEST_EXCEPTION(Exception::IllegalArgument, ProSEAlgorithm::splitMergedPsms(unassigned, result))
   TEST_EQUAL(unassigned.peptide_ids.size(), pooled.size())
   TEST_TRUE(result.per_file[0].peptide_ids == before)
   }

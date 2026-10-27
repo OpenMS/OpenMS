@@ -5787,7 +5787,7 @@ set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_
 
 # Test 19: the outputs of a multi-file search agree with -out_merged once its pooled protein FDR is applied: at 2 % no
 # protein of the two inputs passes (47 target and 2 decoy proteins: at least 1/48), so -out_merged has no PSM, and
-# neither have the per-input idXML files nor the QPX psm views (before, they kept the PSMs of the searches, 1792 rows).
+# neither have the per-input idXML files nor the QPX psm views.
 set(_f ProSE_19_outputs_agree)
 add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
 add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
@@ -5811,8 +5811,7 @@ endforeach()
 
 # 'Search:FDR:protein' > 0 is the whole experiment also without -out_merged: the inputs are pooled for the protein
 # inference and the protein FDR (5 %, which every protein passes), and each per-input output is its part of the pooled
-# result: proteins with their pooled q-values (score type q-value) and groups, no decoys (before, ProSE warned and
-# applied no protein FDR, and the per-input outputs kept their decoys and had no protein scores).
+# result: proteins with their pooled q-values (score type q-value) and groups, no decoys.
 set(_f ProSE_19_final_without_merged)
 add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML;${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML"
@@ -5825,8 +5824,7 @@ set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f}")
 
 # quantms.pg.parquet of several inputs without -qpx_extended: the groups of the pooled inference, a row per group and run
 # (the view's key), as with -qpx_extended: with the protein FDR (5 %) the 49 rows of the inputs' pg files; with
-# FDR:protein 0 and -out_merged the 51 pooled ones (before, without -qpx_extended, no quantms.pg.parquet: the inputs have
-# no groups of their own).
+# FDR:protein 0 and -out_merged the 51 pooled ones.
 foreach(_case final intermediate)
   set(_f ProSE_19_pooled_pg_${_case})
   if(_case STREQUAL "final")
@@ -5846,7 +5844,7 @@ foreach(_case final intermediate)
 endforeach()
 
 # The same file given twice with the protein FDR: each occurrence is an input with its own share of the pooled result
-# (half of the 1790 pooled PSMs each; before, both occurrences had one input position, and the second got none).
+# (half of the 1790 pooled PSMs each).
 set(_f ProSE_19_same_input_twice)
 add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML

@@ -239,8 +239,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * successful per-file result (search parameters are identical across files
      * by construction), with the primary MS run path overwritten to list every
      * input file. Its PSMs carry the meta value 'id_merge_index', the input
-     * position of their file (per occurrence: an input given twice has two), also
-     * when other files failed.
+     * position of their file (see poolSearchedFiles_()).
      */
     struct MultiFileSearchResult
     {
@@ -265,7 +264,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     struct MergedResult
     {
       std::vector<ProteinIdentification> protein_ids; ///< one pooled run; empty if no file succeeded
-      /// PSMs of all files; meta value 'id_merge_index' = input position of the file (per occurrence of an input)
+      /// PSMs of all files; meta value 'id_merge_index' = input position of the file
       PeptideIdentificationList peptide_ids;
       /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
@@ -783,7 +782,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    @c build_pooled_aggregate false, or a search of a single file, which builds none), the runs of the files that
      *    were searched (exit code EXECUTION_OK) are merged with IDMergerAlgorithm: the PSMs of the files are moved,
      *    their runs are copied and stay with the files. 'id_merge_index' is the input position of a PSM's file (its
-     *    index in @p in_spectra_files, per occurrence of an input), also when other files failed. The pooled run
+     *    index in @p in_spectra_files, see poolSearchedFiles_()). The pooled run
      *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
      *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
      *    search engine score without PEPs) on the best hit of each pooled PSM.
@@ -846,18 +845,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in,out] merged The pooled result of @p result. Its PSMs are moved out.
      * @param[in,out] result The multi-file search that @p merged pools. The files that were searched (exit code
      *                       EXECUTION_OK) get their PSMs from @p merged; the statistics stay (see updateFinalStats()).
-     * @return False (and nothing changed) if a PSM of @p merged has no 'id_merge_index' of a file of @p result that was
-     *         searched.
+     * @throws Exception::IllegalArgument (and nothing changed) if a PSM of @p merged has no 'id_merge_index' of a file of
+     *         @p result that was searched.
      */
-    static bool splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result);
-
-  protected:
-    /// Helper: moves the PSMs of @p pooled (empty afterwards) to the files of @p per_file by their 'id_merge_index' (which
-    /// is removed), in their order, as PSMs of the files' runs (their identifiers), appended to the files' PSMs. Returns
-    /// the number of PSMs dropped because they have no 'id_merge_index' of a file that was searched.
-    static Size returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file);
-
-  public:
+    static void splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result);
 
     /// The prefix under which the caller's user sets the parameters of this instance (e.g. 'Search:' in the ProSE tool):
     /// the messages of parameters it refuses name them with it (e.g. Search:precursor:min_charge). Set it before
@@ -1680,6 +1671,18 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static void poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms, const StringList& in_spectra_files,
                                    std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids);
 
+    /// Helper: whether the file of @p pf was searched (exit code EXECUTION_OK, with a run)
+    static bool searched_(const SearchResult& pf);
+
+    /// Helper: the file of @p per_file that a pooled PSM @p id comes from ('id_merge_index', see poolSearchedFiles_()),
+    /// or -1 if it has none of a file that was searched
+    static int searchedFileOf_(const PeptideIdentification& id, const std::vector<SearchResult>& per_file);
+
+    /// Helper: moves the PSMs of @p pooled (empty afterwards) to their files of @p per_file (searchedFileOf_(); others are
+    /// dropped), without 'id_merge_index', in their order, as PSMs of the files' runs (their identifiers), appended to
+    /// the files' PSMs.
+    static void returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file);
+
     /// Helper: capture statistics that must be read BEFORE FDR filtering, namely
     /// target/decoy PSM counts (via the "target_decoy" meta set by PeptideIndexing;
     /// "target+decoy" counts as target, matching OpenMS FDR semantics) and the
@@ -1750,23 +1753,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
-      @brief In a multi-file search with 'rescore' (pool_rescoring_), right after the last file of @p per_file was
-      searched and rescored (or not) on its own: keeps of its PSMs before the rescoring (and of those of the files before
-      it) only what rescoreFilesTogether_() may need.
+      @brief In a multi-file search with 'rescore' (pool_rescoring_), right after file @p i of @p per_file was searched
+      and rescored (or not) on its own: keeps of the PSMs before the rescoring only what rescoreFilesTogether_() may need.
 
-      A file that Percolator could not rescore on its own keeps all of them (for its scores of the transferred model, or
-      of all files rescored together); they are few by definition. Of a file that it rescored on its own, only the PSMs
-      that may train the transferred model are needed, and @p strata gets the file's TransferStratum_: its PSMs with
-      hits in a reproducible random order (Math::RandomShuffler with the seed file position + 1), of which the training
-      takes the first, as many as the file's quota (stratifiedQuotas_() of the files rescored on their own, cap
-      percolator:max_train_psms). Files searched later only lower the quotas: no quota exceeds the largest quota of the
-      files rescored on their own so far (the water level of a set of strata above the cap does not rise when strata are
-      added). So each of these files keeps the PSMs below that level, at most about percolator:max_train_psms of all of
-      them together, whatever the number of files, and the training PSMs are the same as if all were kept. Everything
-      is kept with setKeepPreFdrPsms() (the copies are returned) and with percolator:max_train_psms 0 (the model
-      trains on all PSMs of these files).
+      A file that Percolator could not rescore on its own keeps all of them. A file that it rescored gets its
+      TransferStratum_ in @p strata (sized for all inputs) and keeps only the first PSMs of its draw below the largest
+      quota (stratifiedQuotas_()) of the files rescored on their own so far, as do those before it: later files only
+      lower the quotas (the water level of strata above the cap does not rise when strata are added), so the training
+      PSMs are the same as if all were kept. Everything is kept with setKeepPreFdrPsms() and with
+      percolator:max_train_psms 0.
     */
-    void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, std::vector<TransferStratum_>& strata) const;
+    void limitPreRescoringPsms_(std::vector<SearchResult>& per_file, Size i, std::vector<TransferStratum_>& strata) const;
 
     /**
       @brief The end of a multi-file search with 'rescore' (with pool_rescoring_), for the files with PSMs that Percolator

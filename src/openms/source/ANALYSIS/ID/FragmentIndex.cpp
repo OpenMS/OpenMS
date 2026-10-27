@@ -130,7 +130,7 @@ namespace OpenMS
     constexpr int MAX_REPORTED_HITS = 100;
 
     // checkSearchParameters() without peptide:motif (the messages name the parameters with name_prefix)
-    void checkSearchRanges(const Param& param, const std::string& name_prefix)
+    void checkSearchRanges(const Param& param, const std::string& name_prefix = "")
     {
       const auto check_range = [&](const std::string& min_name, const std::string& max_name, bool zero_max_unlimited)
       {
@@ -171,7 +171,7 @@ namespace OpenMS
     }
 
     // The compiled peptide:motif (none if empty), or InvalidParameter
-    RegularExpression compileMotif(const std::string& motif, const std::string& name_prefix)
+    RegularExpression compileMotif(const std::string& motif, const std::string& name_prefix = "")
     {
       if (motif.empty()) return RegularExpression();
       try
@@ -3891,8 +3891,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   void FragmentIndex::updateMembers_()
   {
     // checkSearchParameters(), with the motif compiled once
-    checkSearchRanges(param_, "");
-    peptide_motif_ = compileMotif(param_.getValue("peptide:motif").toString(), "");
+    checkSearchRanges(param_);
+    peptide_motif_ = compileMotif(param_.getValue("peptide:motif").toString());
 
     add_b_ions_ = param_.getValue("ions:add_b_ions").toBool();
     add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();
@@ -3920,8 +3920,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     precursor_mass_tolerance_unit_ppm_ = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
     fragment_mz_tolerance_ = param_.getValue("fragment:mass_tolerance");
     fragment_mz_tolerance_unit_ppm_ = param_.getValue("fragment:mass_tolerance_unit").toString() == "ppm";
-
-    // (the precursor window was checked above, checkSearchRanges())
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
