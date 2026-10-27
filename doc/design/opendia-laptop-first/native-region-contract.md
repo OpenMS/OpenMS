@@ -71,3 +71,36 @@ The private consumer preserves strict-open m/z/IM windows, closed RT windows and
 This accepts the compatible integration, not a faster backend. Observed wall time rises 4.42% while RSS falls 13.06%. Total decodes rise from 10,743 to 11,018. Separate compact extraction and legacy scoring representations can compete for the same LRU. Parallel ordering also affects counts. Do not infer fewer physical decodes or a process-memory guarantee from zero extraction copies.
 
 Local `wp05-region-consumer-20261027` retains frozen control libraries, both complete commands, hashes/provenance, twelve-output comparisons, phase counters and test logs. `comparison.json`, `before/results.json`, `after/results.json` and `public-replay/complete.json` describe the final accepted state. The next bounded gate is physical-frame reuse, with an unchanged-output comparison and a lower cold-inclusive cost required before calling it faster.
+
+## Bounded physical-frame reuse, 27 October 2026
+
+`cc05a59227` adds an optional native Bruker frame LRU shared across source clones and isolation lanes. Generic capability methods default to disabled/unsupported. OpenDIA reserves at most `min(max_scan_bytes, usable_bytes / 4)` from its existing budget, for one source. Oversized frames remain uncached. Clear, cancellation and destruction disable retention before releasing the lease. Decoder/sort/allocator workspace is outside this retained-payload bound.
+
+**Decision: do not promote.** The final CLI requires `-TargetedDataExtraction:experimental_native_frame_cache`, which defaults to false. Both readers remain enabled, without mzML conversion.
+
+Final `f3e2398f86` repeats the complete scientific command through that explicit flag and preserves all twelve outputs. It observes 228.01 s, 1,314,280 KiB RSS, 160 frame hits / 7,264 misses, frame peak 33,553,424 <= 33,554,432 bytes and total peak 201,326,501 <= 201,326,592 bytes. Final live charges are zero. This verifies the final opt-in path, not a replicated balanced performance claim. Evidence: `final-flag/after/results.json` and `final-flag.log` under the local experiment directory.
+
+| Observation | Frozen control | Enabled experiment |
+| --- | ---: | ---: |
+| Complete workflow wall seconds | 211.22 | 224.43 |
+| Peak RSS, KiB | 1,182,964 | 1,382,348 |
+| Raw scan materializations, not physical decodes | 10,925 | 11,530 |
+| Physical MS2 cache hits / misses | Not instrumented | 128 / 7,260 |
+| MS1/MS2 extraction copies | 0 / 0 | 0 / 0 |
+| Scoring copies | 9,432 | 9,432 |
+
+This is one sequential pair, not a replicated benchmark. Startup/index costs are included, but OS page-cache state is not controlled. Wall rises 6.25%. Low reuse and increased raw materializations reject default activation. Fixed frame capacity competes with scan retention, and parallel ordering affects counts. Exclusive causal attribution and lower physical decodes versus control are not established.
+
+Frame payload peaks at 33,554,312 of 33,554,432 admitted bytes. Total accounted storage respects the unchanged 201,326,592-byte usable budget and ends at zero. This does not bound RSS or native-index memory.
+
+| Requirement | Concrete observation |
+| --- | --- |
+| Exact native science | Both complete commands preserve export, eight feature/score tables and three matrices against the native normal reference. IM stays finite and nonzero. Identity normalization and tolerances are unchanged. |
+| Physical rather than lane reuse | Actual Bruker clones and two isolation lanes share a physical frame. The second RawAccess lane request hits. Tiny native input observes 3 hits / 1 miss and 18,110,920 retained bytes. |
+| Backend correctness | Native tests compare uncached/cached metadata and arrays exactly. Clone/window hits, eviction, independent-source isolation, detached mutations, tiny-cap fallback and invalid-index counters pass. |
+| Admission and release | Consumer tests require a same-budget 32 MiB lease, reject insufficient scan headroom and require zero native retention/charge after cancellation and destruction. Indexed mzML and Thermo remain unsupported without retaining a charge. |
+| Default safety | The existing public INI regression requires the experimental flag to be false. Final opt-in and default public workflows are checked separately. |
+
+Evidence: `wp05-frame-reuse-20261027/{comparison.json,before/results.json,after/results.json,native-backend.log,native-consumer.log,native-lifetime.log}`. An initially stale `OpenDIARawRegion_test` executable crashed after the private snapshot ABI changed. Rebuilding that omitted target fixes the replay without a production change. The failure is retained.
+
+**Next:** one acquisition-local batch producer. Decode a frame once, serve its overlapping isolation/IM requests before eviction, and emit leased regions in original identity/numerical order. Do not increase caps. Require scientific parity and lower complete workflow cost before default integration.

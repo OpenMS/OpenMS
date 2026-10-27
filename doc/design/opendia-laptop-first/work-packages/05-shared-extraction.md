@@ -146,6 +146,10 @@ See [requirement-level checks and local evidence](../native-region-contract.md#c
 
 ## Next increment
 
+**Current result, 27 October 2026:** `cc05a59227` implements bounded shared physical-frame reuse. `f3e2398f86` requires an experimental flag and leaves it disabled by default. All twelve native outputs match, but one complete pair rises from 211.22 to 224.43 s and from 1,182,964 to 1,382,348 KiB RSS. Only 128 frame hits occur against 7,260 misses. Final source passes 193 public/installed tests and both direct native consumer paths. See [exact checks, retained cap and limits](../native-region-contract.md#bounded-physical-frame-reuse-27-october-2026).
+
+The next implementation is one acquisition-local batch producer, not a larger LRU. Serve overlapping lane/IM requests while one decoded frame is resident. Preserve acquisition order, calibration, complete wider-IM scoring evidence and the same byte cap. Default integration requires all twelve outputs and lower complete workflow cost. No scoring rewrite, whole-process bound or competitive-quality claim follows from this experiment.
+
 **Superseded implementation restriction, 27 October 2026:** the trace below remains evidence that mutable legacy aliases are unsafe, but its accessor-preserving four-step migration is now only a compatibility option. The owner explicitly authorizes replacing whole access/extraction/scoring components in `src/topp/OpenDIA/`. The calibrated extraction slice above is complete. The next implementation is the bounded physical-frame gate in the [performance strategy](../performance-strategy.md), not mandatory migration through `ISpectrumAccess::SpectrumView`. New scientific scorers use independent quality gates rather than exact old-score equality. Keep all historical observations and failures intact.
 
 ### Scoring-boundary trace, 27 October 2026

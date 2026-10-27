@@ -18,6 +18,8 @@ The scoring phase owns most observed raw decodes in the earlier attribution run.
 
 ## Immediate experiment: native regions through real scoring
 
+**Frame-cache gate executed, 27 October 2026:** the [bounded native frame experiment](native-region-contract.md#bounded-physical-frame-reuse-27-october-2026) preserves science but fails promotion. Wall is 224.43 versus 211.22 s, with higher RSS and only 128 hits / 7,260 misses. The final cache is disabled by default. The next bounded implementation is acquisition-local batching across overlapping isolation/IM requests, not a larger cache or another benchmark matrix. Preserve original output identity and reduction order, then require fewer physical decodes and lower complete workflow cost before default integration. Earlier candidate descriptions below remain design options, not unrun-cache status.
+
 The first concrete storage/query slice is implemented in the [native column-region contract](native-region-contract.md). Its calibrated consumer now drives actual tiled extraction. The [complete native pair](work-packages/05-shared-extraction.md#calibrated-region-extraction-integration) preserves all twelve outputs and removes 1,447 extraction copies. Wall time rises from 211.22 to 220.56 s while observed RSS falls. This is compatible integration, not a faster backend or physical-frame reuse. Scoring remains unchanged.
 
 The earlier [calibration getter correction](work-packages/05-shared-extraction.md#native-region-contract-and-calibration-hotspot) is separate. It showed lower wall/CPU in two instrumented, unbalanced observations. Do not combine these comparisons or attribute that speed improvement to the region consumer.

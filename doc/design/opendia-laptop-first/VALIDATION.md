@@ -4,7 +4,9 @@
 
 ## Current validation, 27 October 2026
 
-`f9f42ff6c6` now consumes calibrated regions in actual tiled extraction. All twelve native outputs match, and 192 public/installed tests pass. Extraction copies fall to zero, but the first sequential pair is slower. See [current complete acceptance and limits](#calibrated-region-consumer-acceptance-27-october-2026). The sections below retain earlier observations at their original revisions.
+`f3e2398f86` keeps the new bounded frame cache experimental and disabled by default after a failed performance gate. Final source passes 193 public/native/CLI/installed tests, 12 verbose boundary checks, six fresh installed consumers and both native consumer paths. The complete enabled experiment preserves all twelve native outputs but takes 224.43 versus 211.22 s with higher RSS. See the [requirement observations and rejection](native-region-contract.md#bounded-physical-frame-reuse-27-october-2026). Earlier sections retain their original revisions.
+
+Current evidence is `wp05-frame-reuse-20261027/public-replay-final/{selection.json,complete.json,tests.log,boundaries.log,installed.log,native-consumer.log}`. It includes 43 real installation/consumer steps. The existing INI regression explicitly requires the experimental cache flag to be false. Separate INI/CTD tests pass. Native source tests compare cached/uncached arrays and metadata, while the private consumer checks same-budget admission, two isolation lanes, insufficient headroom, cancellation/destruction and unsupported Thermo/indexed-mzML fallback. The full command checks export, eight feature/score tables, three matrices, IM, phase reconciliation, unchanged cap and final zero. The observation table maps these requirements individually. Scientific compatibility does not satisfy the failed speed/RSS gate. Clean-machine vendor packaging, full Thermo science, automatic low-cap admission and competitor quality remain unaccepted.
 
 ## Prior contract validation, 27 October 2026
 
