@@ -729,13 +729,17 @@ protected:
     // here: isotope correction per spectrum (NNLS) and normalization per file (IsobaricNormalizer).
     const bool isotope_correction = getParam_().getValue("quantification:isotope_correction").toBool();
     const bool normalization = getParam_().getValue("quantification:normalization").toBool();
-    if (!isotope_correction)
+    // the correction matrix is only parsed (and validated) if it is used, as in IsobaricQuantifier
+    Matrix<double> correction_matrix;
+    if (isotope_correction)
+    {
+      correction_matrix = quant_method->getIsotopeCorrectionMatrix();
+    }
+    else
     {
       OPENMS_LOG_WARN << "Warning: Isotope correction is disabled ('quantification:isotope_correction false'), "
                          "the reporter intensities are reported as extracted." << std::endl;
     }
-
-    Matrix<double> correction_matrix = quant_method->getIsotopeCorrectionMatrix();
 
     // TODO this should go to the purity class or just be a parameter
     bool interpolate_precursor_purity = channel_extractor.getParameters().getValue("purity_interpolation").toBool();

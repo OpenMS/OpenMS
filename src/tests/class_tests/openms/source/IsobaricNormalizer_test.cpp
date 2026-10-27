@@ -180,6 +180,49 @@ START_SECTION([EXTRA] void normalize(ConsensusMap &consensus_map) with a channel
 }
 END_SECTION
 
+START_SECTION([EXTRA] void normalize(ConsensusMap &consensus_map) with a reference channel without signal)
+{
+  // Without signal in the reference channel, the ratio of every other channel is the stand-in for x/0
+  // (the largest float). Dividing by that turned all intensities into (almost) 0, without a warning.
+  // The channels are now left as they are (the reference channel is set to 1, as always).
+  const Size ref_map = 0; // channel 114, the default reference of iTRAQ 4-plex
+  ConsensusMap cm_in;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricNormalizer.consensusXML"), cm_in);
+  for (ConsensusFeature& cf : cm_in)
+  {
+    ConsensusFeature::HandleSetType handles = cf.getFeatures();
+    cf.clear();
+    for (FeatureHandle handle : handles)
+    {
+      if (handle.getMapIndex() == ref_map)
+      {
+        handle.setIntensity(0);
+      }
+      cf.insert(handle);
+    }
+  }
+  ConsensusMap cm_normalized = cm_in;
+
+  IsobaricNormalizer(&quant_meth).normalize(cm_normalized);
+
+  for (Size i = 0; i < cm_in.size(); ++i)
+  {
+    auto it_normalized = cm_normalized[i].begin();
+    for (auto it = cm_in[i].begin(); it != cm_in[i].end(); ++it, ++it_normalized)
+    {
+      if (it->getMapIndex() == ref_map)
+      {
+        TEST_EQUAL(it_normalized->getIntensity(), 1)
+      }
+      else
+      {
+        TEST_REAL_SIMILAR(it_normalized->getIntensity(), it->getIntensity())
+      }
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)

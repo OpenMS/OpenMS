@@ -574,6 +574,20 @@ class TestPeptideIdentificationListGetDF:
         assert df.loc[0, 'meta_start'] == 'taken'
         assert df.loc[0, 'meta_start_2'] == 4
 
+    def test_to_df_meta_value_named_like_unnamed_score(self):
+        """Test a meta value named like numpy's name for the score column of an empty score type."""
+        hit = pyopenms.PeptideHit()
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setMetaValue('f3', 2.5)
+        pep = pyopenms.PeptideIdentification()
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        df = pep_list.to_df(decode_ontology=False)
+        assert list(df.columns) == pep_list.df_columns(decode_ontology=False)
+        assert 'f3' in df.columns and df.loc[0, 'meta_f3'] == 2.5
+
     def test_to_df_msgf_search_engine_output(self, openms_test_data_dir):
         """Test to_df() on MS-GF+ output, whose hits carry 'start' and 'end' meta values."""
         prots = []

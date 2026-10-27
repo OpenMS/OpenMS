@@ -1340,6 +1340,16 @@ add_test("TOPP_IsobaricWorkflow_no_isotope_correction" ${TOPP_BIN_PATH}/Isobaric
   -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_no_isotope_correction_out.tmp.consensusXML)
 add_test("TOPP_IsobaricWorkflow_no_isotope_correction_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_no_isotope_correction_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_no_isotope_correction_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_no_isotope_correction_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_no_isotope_correction")
+# Without isotope correction the correction matrix is not used, so a malformed one must not stop the tool.
+add_test("TOPP_IsobaricWorkflow_no_isotope_correction_bad_matrix" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -quantification:isotope_correction false
+  -tmt10plex:correction_matrix "not a matrix"
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_no_isotope_correction_bad_matrix_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_no_isotope_correction_bad_matrix_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_no_isotope_correction_bad_matrix_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_no_isotope_correction_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_no_isotope_correction_bad_matrix_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_no_isotope_correction_bad_matrix")
 add_test("TOPP_IsobaricWorkflow_normalization" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
   -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_1_input.idXML
@@ -2885,16 +2895,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # so it was extracted at twice the offset.
   configure_file(${DATA_DIR_TOPP}/OpenSwathWorkflow_im_runs_input.mzML ${DATA_DIR_TOPP_BIN}/OpenSwathWorkflow_im_runs_A.mzML COPYONLY)
   configure_file(${DATA_DIR_TOPP}/OpenSwathWorkflow_im_runs_input.mzML ${DATA_DIR_TOPP_BIN}/OpenSwathWorkflow_im_runs_B.mzML COPYONLY)
-  add_test("TOPP_OpenSwathWorkflow_im_runs" ${TOPP_BIN_PATH}/OpenSwathWorkflow -test -debug 1
-    -in ${DATA_DIR_TOPP_BIN}/OpenSwathWorkflow_im_runs_A.mzML ${DATA_DIR_TOPP_BIN}/OpenSwathWorkflow_im_runs_B.mzML
-    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_im_runs_input.tsv
-    -Calibration:files:linear_irt_file ${DATA_DIR_TOPP}/OpenSwathWorkflow_im_runs_input.tsv
-    -pasef -readOptions workingInMemory -ion_mobility_window 0.06 -irt_im_extraction_window 0.1
-    -Calibration:auto_irt:enabled false -Calibration:windows:estimate_rt false -Calibration:windows:estimate_mz false -Calibration:windows:estimate_im false
-    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_im_runs.tmp.featureXML
-    -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_im_runs.tmp.chrom.mzML)
-  # without an ion mobility correction, the runs would be the same trivially
-  set_tests_properties("TOPP_OpenSwathWorkflow_im_runs" PROPERTIES PASS_REGULAR_EXPRESSION "Applying ion mobility correction to target library")
+  # The run must succeed and correct the ion mobilities: without a correction, the runs would be the same trivially.
+  add_test(NAME "TOPP_OpenSwathWorkflow_im_runs" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenSwathWorkflow;-test;-debug;1;-in;${DATA_DIR_TOPP_BIN}/OpenSwathWorkflow_im_runs_A.mzML;${DATA_DIR_TOPP_BIN}/OpenSwathWorkflow_im_runs_B.mzML;-tr;${DATA_DIR_TOPP}/OpenSwathWorkflow_im_runs_input.tsv;-Calibration:files:linear_irt_file;${DATA_DIR_TOPP}/OpenSwathWorkflow_im_runs_input.tsv;-pasef;-readOptions;workingInMemory;-ion_mobility_window;0.06;-irt_im_extraction_window;0.1;-Calibration:auto_irt:enabled;false;-Calibration:windows:estimate_rt;false;-Calibration:windows:estimate_mz;false;-Calibration:windows:estimate_im;false;-out_features;${TESTS_TEMP_DIR}/OpenSwathWorkflow_im_runs.tmp.featureXML;-out_chrom;${TESTS_TEMP_DIR}/OpenSwathWorkflow_im_runs.tmp.chrom.mzML"
+    -DEXPECTED_CODE=0
+    "-DEXPECTED_OUTPUT_REGEX=Applying ion mobility correction to target library"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
   add_test("TOPP_OpenSwathWorkflow_im_runs_out1" ${DIFF}
     -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_im_runs_A_OpenSwathWorkflow_im_runs.tmp.chrom.mzML
     -in2 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_im_runs_B_OpenSwathWorkflow_im_runs.tmp.chrom.mzML)

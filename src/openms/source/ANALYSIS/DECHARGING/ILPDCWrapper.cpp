@@ -190,7 +190,7 @@ namespace OpenMS
     f_set[rota_l].insert(v);
   }
 
-  double ILPDCWrapper::computeSlice_(const FeatureMap& fm,
+  double ILPDCWrapper::computeSlice_(const FeatureMap& /* fm */,
                                      PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
@@ -209,7 +209,7 @@ namespace OpenMS
     {
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      double score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i]));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 
       // create the column representing the edge
@@ -319,7 +319,7 @@ namespace OpenMS
 
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      double score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i]));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
       namebuf.str("");
       namebuf << "x#" << i;
@@ -491,7 +491,7 @@ namespace OpenMS
     return opt_value;
   } // !compute_slice
 
-  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& /* fm */) const
+  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair) const
   {
     return pair.getCompomer().getLogP();
   }

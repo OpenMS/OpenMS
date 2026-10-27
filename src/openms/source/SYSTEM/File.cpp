@@ -776,6 +776,13 @@ namespace OpenMS{
         std::string share_dir = "/usr/share/OpenMS";
   #endif
         message += " To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').";
+        // Also print it (once): callers that take a FileNotFound from File::find() for a missing optional
+        // file (e.g. the enzyme database) would otherwise swallow it without a trace.
+        static std::atomic<bool> reported{false};
+        if (!reported.exchange(true))
+        {
+          std::cerr << "OpenMS FATAL ERROR! " << message << '\n';
+        }
         // A library must not end the host process (a Python interpreter, a GUI, ...): report it to the caller.
         // A throwing initializer leaves the static uninitialized, so the next call probes again.
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "share/OpenMS", message);

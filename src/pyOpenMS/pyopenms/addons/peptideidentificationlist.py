@@ -7,14 +7,15 @@ from . import addon, register_element_views, string_dtype
 
 
 def _meta_value_columns(fixed_columns, meta_columns):
-    """Names the meta value columns of to_df() so that no column name occurs twice.
+    """Names the meta value columns of to_df() so that none repeats the name of another column.
 
     A meta value can be named like a fixed column (MS-GF+ writes 'start' and 'end', for example)
     or, once decoded, like another meta value. A numpy structured array refuses duplicate field
     names, so such a column is prefixed with 'meta_' (and numbered if that is taken, too).
     """
-    # names that collide with nothing are kept, and are reserved before any renamed column is named
-    fixed = set(fixed_columns)
+    # names that collide with nothing are kept, and are reserved before any renamed column is named;
+    # numpy names a field without a name (the score of an empty score type) 'f<position>'
+    fixed = {name or f"f{i}" for i, name in enumerate(fixed_columns)}
     kept = [name not in fixed and name not in meta_columns[:i] for i, name in enumerate(meta_columns)]
     taken = fixed | {name for name, keep in zip(meta_columns, kept) if keep}
     names = []
