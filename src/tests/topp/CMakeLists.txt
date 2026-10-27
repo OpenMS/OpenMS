@@ -3322,6 +3322,23 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
     set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
   endif()
+
+  # four cross-linkable nucleotides: adducts with the same sum formula (e.g., U-H2O1 and C-H3N1) and oligos with several
+  # cross-linkable nucleotides (e.g., CG-H3N1) are all scored, and only the best adduct and nucleotide of a peptide is reported
+  # slow (7) and fast (8) scoring
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_7" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_7_output.tmp.idXML -NuXL:decoys "false" -NuXL:presets "RNA-UV (UCGA)" -report:top_hits 2 -NuXL:scoring slow)
+    add_test("TOPP_OpenNuXL_7_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_7_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_7_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_7_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_7")
+    add_test("TOPP_OpenNuXL_8" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML -NuXL:decoys "false" -NuXL:presets "RNA-UV (UCGA)" -report:top_hits 2 -NuXL:scoring fast)
+    add_test("TOPP_OpenNuXL_8_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_8_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_8_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_8")
+  endif()
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
