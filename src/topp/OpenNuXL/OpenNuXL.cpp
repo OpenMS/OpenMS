@@ -3301,7 +3301,7 @@ static void scoreXLIons_(
 
         const auto& NA_adducts = mod_combinations_it->second; // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
         auto NA_adduct_it = mod_combinations_it->second.begin();
-        for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index)
+        for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
         { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
           const std::string& precursor_na_adduct = *NA_adduct_it;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
@@ -3352,6 +3352,7 @@ static void scoreXLIons_(
         auto NA_adduct_it = mod_combinations_it->second.begin();
         for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
         { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
+          if (NA_adduct_amb_index != ah.NA_adduct_amb_index) continue; // only rescore with the precursor adduct of this hit
           const std::string& precursor_na_adduct = *NA_adduct_it;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
           const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
