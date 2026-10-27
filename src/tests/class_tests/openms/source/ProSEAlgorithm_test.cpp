@@ -852,12 +852,12 @@ struct MappingCase
 };
 
 static void prepareMappingCase(MappingCase& c, const string& enzyme, const string& clip, const string& deduplicate,
-                               const vector<string>& fixed, const vector<string>& variable, Int aaa_max)
+                               const vector<string>& fixed, const vector<string>& variable, Int aaa_max, Size min_size = 5)
 {
   Param p = c.index.getParameters();
   p.setValue("decoys", "false");
   p.setValue("enzyme", enzyme);
-  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:min_size", static_cast<int>(min_size));
   p.setValue("peptide:missed_cleavages", 2);
   p.setValue("peptide:clip_nterm_methionine", clip);
   p.setValue("peptide:deduplicate", deduplicate);
@@ -7456,7 +7456,7 @@ START_SECTION(([EXTRA] protein mapping from the fragment index writes what Pepti
     }
     db.push_back({(i % 3 == 0 ? "DECOY_P" : "P") + std::to_string(i), "", sequence});
   }
-  struct Config { string enzyme, clip, deduplicate; vector<string> fixed, variable; Int aaa_max; };
+  struct Config { string enzyme, clip, deduplicate; vector<string> fixed, variable; Int aaa_max; Size min_size = 5; };
   const vector<Config> configs = {
     {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
     {"Trypsin", "false", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
@@ -7469,13 +7469,18 @@ START_SECTION(([EXTRA] protein mapping from the fragment index writes what Pepti
     // its position in its protein)
     {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}, 3},
     {"Trypsin", "false", "false", {}, {"Acetyl (Protein N-term)", "Amidated (Protein C-term)"}, 3},
-    {"Lys-C", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}, 2}};
+    {"Lys-C", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}, 2},
+    // short peptides (prefixes of 1 to 4 residues; keys of fewer than 8) and an enzyme whose rule is not a simple one
+    // (Lys-N: the cleavage validity from ProteaseDigestion's regex)
+    {"Trypsin", "true", "true", {}, {"Acetyl (Protein N-term)"}, 3, 1},
+    {"Trypsin/P", "false", "false", {}, {"Oxidation (M)", "Acetyl (Protein N-term)"}, 3, 3},
+    {"Lys-N", "true", "true", {}, {"Acetyl (Protein N-term)"}, 3, 2}};
   Size mapped = 0, m_start = 0, over_ambiguous = 0, shared = 0;
   for (const Config& config : configs)
   {
     MappingCase c;
     c.db = db;
-    prepareMappingCase(c, config.enzyme, config.clip, config.deduplicate, config.fixed, config.variable, config.aaa_max);
+    prepareMappingCase(c, config.enzyme, config.clip, config.deduplicate, config.fixed, config.variable, config.aaa_max, config.min_size);
     TEST_TRUE(c.peptides.size() > 10)
     vector<ProteinIdentification> proteins = c.proteins;
     PeptideIdentificationList peptides = c.peptides;

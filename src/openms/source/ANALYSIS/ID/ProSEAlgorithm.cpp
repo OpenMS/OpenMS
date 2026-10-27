@@ -525,7 +525,8 @@ namespace OpenMS
     defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:protein_mapping", "index",
                        "How the hits are mapped to their proteins (peptide evidences, target_decoy, protein_references, protein hits). "
-                       "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate; the result is "
+                       "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate (with a "
+                       "protein-terminal modification: from a pass over the database for the hits' sequences); the result is "
                        "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. low_memory, a specificity "
                        "other than full, a chunked database, symbols other than letters or long stretches "
                        "of ambiguous residues in the database). 'PeptideIndexing': always search every hit in the whole database "
@@ -2982,6 +2983,23 @@ namespace OpenMS
       spans.emplace_back(start, sequence.size() - start);
     }
 
+    // ProteaseDigestion::isValidProduct(protein, pos, length, true, true, false) of a fully specific digestion with the
+    // enzyme of @p rule, without the regex: the start is a site (or the protein start, or within the first three residues
+    // of a protein that starts with M), and the end is a site or the protein end. (isValidProduct_() tokenizes
+    // [pos - 2, end + 2): every site p inside it with pos - 2 < p < end + 2 sees the residues p - 1 and p.)
+    // Requires 0 <= pos, 0 < length, pos + length <= protein.size().
+    bool isValidFullySpecific(const SegmentRule& rule, const std::string& protein, Size pos, Size length)
+    {
+      const auto site = [&rule, &protein](Size p)
+      {
+        return rule.after[static_cast<unsigned char>(protein[p - 1])] && !rule.not_before[static_cast<unsigned char>(protein[p])];
+      };
+      const Size end = pos + length;
+      const bool spec_n = pos == 0 || (pos <= 2 && protein[0] == 'M') || site(pos);
+      const bool spec_c = end == protein.size() || site(end);
+      return spec_n && spec_c;
+    }
+
     std::string keepTerminiDecoy(const std::string& protein, const ProteaseDigestion& digestor, const SegmentRule* rule,
                                  std::vector<std::pair<Size, Size>>& spans)
     {
@@ -4285,7 +4303,8 @@ namespace OpenMS
 
   // =====================================================================
   // Protein mapping from the fragment index (peptide:protein_mapping = index):
-  // what PeptideIndexing::run() writes, without searching the database
+  // what PeptideIndexing::run() writes, without PeptideIndexing (the spans of the hits from the index, or with a
+  // protein-terminal modification from a pass over the database for the hits' sequences)
   // =====================================================================
   namespace
   {
@@ -4602,6 +4621,9 @@ namespace OpenMS
     //    key_length residues. The database holds the letters A-Z only (checked above).
     if (!index_occurrences)
     {
+      // isValidProduct() tokenizes with the regex per call (~20 us); a simple rule is evaluated directly
+      SegmentRule rule;
+      const bool simple_rule = parseSegmentRule(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getRegEx(), rule);
       const Size key_length = std::min<Size>(min_length, 8);
       std::vector<std::pair<uint64_t, Size>> keyed(mapping.sequences.size());
 #pragma omp parallel for schedule(static)
@@ -4646,7 +4668,8 @@ namespace OpenMS
             {
               const std::string_view sequence = mapping.sequences[k->second];
               if (position + sequence.size() <= protein.size() && protein.compare(position, sequence.size(), sequence) == 0
-                  && thread_enzyme.isValidProduct(protein, static_cast<int>(position), static_cast<int>(sequence.size()), true, true, false))
+                  && (simple_rule ? isValidFullySpecific(rule, protein, position, sequence.size())
+                                  : thread_enzyme.isValidProduct(protein, static_cast<int>(position), static_cast<int>(sequence.size()), true, true, false)))
               {
                 found.emplace_back(k->second, static_cast<UInt32>(p), static_cast<UInt32>(position));
               }

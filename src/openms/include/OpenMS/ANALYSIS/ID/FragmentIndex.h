@@ -224,8 +224,10 @@ namespace OpenMS
      * {protein_idx, sequence_} of these entries with the residues of its peptide (hasProteinOccurrences() without the
      * condition on protein-terminal modifications).
      *
-     * @param[in] fasta_entries The FASTA entries the index was built from (checked: their number and lengths).
-     * @return false before build(), after clear(), in peptide-mass mode and for other FASTA entries.
+     * @param[in] fasta_entries The FASTA entries the index was built from (checked: their number and lengths only, not
+     *            their residues).
+     * @return false before build(), after clear(), in peptide-mass mode and for FASTA entries of another number or
+     *         other lengths.
      */
     bool isBuiltFrom(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
 
