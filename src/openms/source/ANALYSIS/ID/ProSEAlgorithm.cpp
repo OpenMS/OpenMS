@@ -3620,6 +3620,27 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    // The per-spectrum containers of scoreSpectraAgainstIndex_(), one set per thread for the whole run: the candidates
+    // of the query and the theoretical spectrum of the scorer. Constructed and destroyed once per spectrum, they
+    // returned their buffers to the allocator 8,000 times per thread and took fresh ones; kept per thread and cleared
+    // between spectra, they keep the capacity the largest spectrum of the thread needed and allocate nothing else. The
+    // query appends to the candidates, so they are cleared before every query. (A function-local thread_local, not one
+    // in the loop body, so that the OpenMP data-sharing clauses of the loop do not see it.)
+    struct ScoringScratch_
+    {
+      FragmentIndex::SpectrumMatchesTopN top_sms;
+      PeakSpectrum theo_spectrum;
+      std::vector<uint8_t> theo_ion_series;
+    };
+    ScoringScratch_& scoringScratch_()
+    {
+      thread_local ScoringScratch_ scratch;
+      return scratch;
+    }
+  } // namespace
+
   void ProSEAlgorithm::scoreSpectraAgainstIndex_(
       const PeakMap& spectra,
       FragmentIndex& fi,
@@ -3689,7 +3710,11 @@ namespace OpenMS
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
       const TheoreticalSpectrumGenerator& spectrum_generator = generators.forSpectrum(exp_spectrum);
-      FragmentIndex::SpectrumMatchesTopN top_sms;
+      ScoringScratch_& scratch = scoringScratch_();
+      // The candidates of this spectrum: the query appends to the hits, so the hits of the thread's previous spectrum
+      // are cleared first (clear() keeps the capacity)
+      FragmentIndex::SpectrumMatchesTopN& top_sms = scratch.top_sms;
+      top_sms.clear();
       // ions:by_activation: only electron-activated spectra are matched against the c and z+1 ions,
       // so that these ions do not change which candidates the other spectra keep
       const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_index] : exp_spectrum;
@@ -3697,12 +3722,13 @@ namespace OpenMS
 
       const bool peptide_mass_mode = fi.isPeptideMassMode();
 
-      // Reused across candidates of this spectrum. Avoids per-candidate heap
+      // Reused across the candidates of this spectrum and, per thread, across spectra. Avoids per-candidate heap
       // churn of a fresh PeakSpectrum + its DataArrays (TSG's add_metainfo fills
       // StringDataArrays with ion names — these are a notable allocation hot spot
-      // when the candidate count per spectrum is in the tens/hundreds).
-      PeakSpectrum theo_spectrum;
-      std::vector<uint8_t> theo_ion_series;
+      // when the candidate count per spectrum is in the tens/hundreds). Both generator calls below start by
+      // clearing the spectrum, so what the previous candidate or spectrum left in it does not matter.
+      PeakSpectrum& theo_spectrum = scratch.theo_spectrum;
+      std::vector<uint8_t>& theo_ion_series = scratch.theo_ion_series;
 
       for (const auto& sms : top_sms.hits_)
       {
@@ -3739,8 +3765,9 @@ namespace OpenMS
         else
         {
           // Clear peaks + data arrays (ion names / charges) before refilling for the
-          // next candidate; getSpectrum appends to whatever is there.
-          theo_spectrum.clear(true);
+          // next candidate; getSpectrum appends to whatever is there. clear(false) keeps the capacity of the
+          // peak vector (clear(true) would shrink it); the data arrays are emptied either way.
+          theo_spectrum.clear(false);
           spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
           // Note: TSG emits sorted output when add_metainfo=true (see the
           // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
