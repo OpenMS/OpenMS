@@ -193,6 +193,7 @@ namespace OpenDIA
     std::lock_guard lock(cache_->mutex_);
     // One metadata handle is enough. The cache lock also protects this handle.
     metadata_source_ = source_->getExperiment().clone();
+    scan_bounds_ = std::make_shared<std::vector<ByteCount>>(source_->getNrSpectra(), 0);
   }
 
   RawPhase RawAccess::phase_(int id) const
@@ -239,8 +240,11 @@ namespace OpenDIA
     }
     ++work.misses;
     ++phase.misses;
-    // Reserve the full scan bound before the native decoder runs.
-    auto reservation = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
+    // First reads reserve the maximum. Immutable revisits reuse their proven
+    // capacity bound instead of evicting hot scans for unused maximum headroom.
+    auto& known_bound = scan_bounds_->at(static_cast<size_t>(id));
+    const auto scan_bound = known_bound ? known_bound : cache_->max_scan_bytes_;
+    auto reservation = cache_->reserve_(scan_bound, phase_id);
     if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
     // Native decode is outside private capacity enforcement. Check before conversion.
     const auto decode_started = Clock::now();
@@ -250,7 +254,9 @@ namespace OpenDIA
     ++phase.decodes;
     work.decode_ns += decode_ns;
     phase.decode_ns += decode_ns;
-    if (scanBytes(native) > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
+    const auto native_bound = scanBytes(native);
+    if (native_bound > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
+    if (native_bound > scan_bound) { invalid("Scan exceeds previously admitted scan bytes"); }
     auto scan = std::shared_ptr<RawScan>(new RawScan);
     scan->metadata_ = metadata_source_->getSpectrumMetadata(index);
     scan->columns_ = OpenMS::OpenSwathDataAccessHelper::convertToSpectrumPtr(native);
@@ -259,9 +265,11 @@ namespace OpenDIA
     appendArrays(native.getIntegerDataArrays(), *scan->columns_);
     const auto bytes = charge(*scan->columns_);
     if (bytes > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
+    if (bytes > scan_bound) { invalid("Scan exceeds previously admitted scan bytes"); }
     scan->lease_ = reservation->commit(bytes);
     // Publish only a complete scan whose retained capacities fit the bound.
     entries.push_front({source_, id, scan});
+    known_bound = std::max(native_bound, bytes);
     const auto numeric_bytes = numericBytes(*scan->columns_);
     work.decoded_numeric_bytes = checkedByteAdd(work.decoded_numeric_bytes, numeric_bytes);
     phase.decoded_numeric_bytes += numeric_bytes;

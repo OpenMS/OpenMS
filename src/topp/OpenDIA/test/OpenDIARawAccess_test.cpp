@@ -454,6 +454,77 @@ namespace
       "all array leases/cancellation and quadratic/ppm fallback passed\n";
   }
 
+  void knownSizeAdmission(const IndexedFile& indexed)
+  {
+    auto probe = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    RawAccess measure(indexed.source(), probe);
+    measure.acquire(0);
+    const auto a_bytes = probe->snapshot().budget.committed_bytes;
+    probe->clear();
+    measure.acquire(1);
+    const auto b_bytes = probe->snapshot().budget.committed_bytes;
+    probe->clear();
+    // Both actual retained scans fit, but an unknown maximum-sized read cannot
+    // coexist with A. Derive the pressure from real decoder capacities.
+    const auto usable = a_bytes + b_bytes;
+    const auto max_scan = usable;
+    auto cache = std::make_shared<RawCache>(usable, 0, max_scan);
+    RawAccess access(indexed.source(), cache);
+    auto clone = std::dynamic_pointer_cast<RawAccess>(access.lightClone());
+    access.acquire(0);
+    access.acquire(1);
+    cache->clear();
+    const auto before = cache->snapshot();
+    check(before.budget.committed_bytes == 0 && a_bytes > 0 && b_bytes > 0 &&
+      a_bytes + b_bytes <= before.budget.usable_bytes && a_bytes + max_scan > before.budget.usable_bytes,
+      "Known-size fixture did not establish admission pressure");
+    auto direct = indexed.source();
+    auto metadata = direct->getExperiment().clone();
+    {
+      OpenSwath::SpectrumAccessScope scoring(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
+      auto a = access.acquire(0);
+      exact(*a, *direct->getSpectrumById(0), metadata->getSpectrumMetadata(direct->getExperimentIndex(0)));
+      a.reset();
+      auto b = clone->acquire(1);
+      exact(*b, *direct->getSpectrumById(1), metadata->getSpectrumMetadata(direct->getExperimentIndex(1)));
+      b.reset();
+      a = access.acquire(0);
+      exact(*a, *direct->getSpectrumById(0), metadata->getSpectrumMetadata(direct->getExperimentIndex(0)));
+      const auto after = cache->snapshot();
+      check(after.work.decodes - before.work.decodes == 2 && after.hits - before.hits == 1 &&
+        after.misses - before.misses == 2 && after.evictions == before.evictions,
+        "Known-size revisits evicted a fitting scan instead of decoding twice and hitting A");
+      check(after.cache_entries == 2 && after.budget.committed_bytes == usable &&
+        after.budget.reserved_bytes == 0 && after.budget.peak_total_bytes <= usable,
+        "Known-size admission changed retained charges or exceeded the cap");
+      for (auto member : {&RawWorkCounters::hits, &RawWorkCounters::misses, &RawWorkCounters::evictions,
+        &RawWorkCounters::decodes, &RawWorkCounters::copies, &RawWorkCounters::decoded_numeric_bytes,
+        &RawWorkCounters::copied_numeric_bytes, &RawWorkCounters::read_ns, &RawWorkCounters::decode_ns, &RawWorkCounters::copy_ns})
+      {
+        ByteCount sum = 0;
+        for (const auto& row : after.phases) { sum += row.*member; }
+        check(sum == after.work.*member, "Known-size phase totals do not reconcile");
+        const auto scoring_index = static_cast<size_t>(RawPhase::SCORING);
+        check(after.phases[scoring_index].*member - before.phases[scoring_index].*member ==
+          after.work.*member - before.work.*member, "Known-size reads escaped SCORING attribution");
+      }
+      // The same visible ID on another source must still reserve the unknown
+      // maximum. A pinned lease makes inheriting the first source's bound observable.
+      RawAccess unrelated(indexed.source(), cache);
+      rejects([&] { unrelated.acquire(0); });
+      check(cache->snapshot().budget.committed_bytes == a_bytes &&
+        cache->snapshot().budget.reserved_bytes == 0, "Unrelated source inherited a known bound or leaked admission");
+      cache->cancel();
+      rejects([&] { clone->acquire(0); });
+      check(a->array(0).data == direct->getSpectrumById(0)->getMZArray()->data,
+        "Cancellation revoked the known-size scan lease");
+      a.reset();
+      check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0,
+        "Last known-size scan owner leaked its charge");
+    }
+    OPENMS_LOG_INFO << "PASS known-size repeated admission: two decodes, clone-shared hit, source isolation and final release\n";
+  }
+
   void phaseCounters()
   {
     using Scope = OpenSwath::SpectrumAccessScope;
@@ -677,8 +748,9 @@ int main(int argc, char** argv)
       for (int i = 1; i < argc; ++i) nativeInput(argv[i]);
       return 0;
     }
-    fixtures();
     IndexedFile indexed(smallRun());
+    knownSizeAdmission(indexed);
+    fixtures();
     detachedCopies(indexed);
     queries(indexed);
     leases(indexed);

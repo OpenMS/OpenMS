@@ -102,6 +102,7 @@ namespace OpenDIA
     /** @brief Share one native source and cache.
       All access to this source must use this cache lock. Do not use the supplied
       source directly while an adapter call is active.
+      Source scan contents and indexing must remain unchanged for the adapter lifetime.
       @param[in] source Non-null native source.
       @param[in] cache Non-null cache shared by all clones.
     */
@@ -133,5 +134,8 @@ namespace OpenDIA
     std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source_;
     std::shared_ptr<RawCache> cache_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> metadata_source_;
+    // Immutable-source sizing metadata, shared by clones under the cache lock.
+    // One ByteCount per visible scan uses the native metadata/control allowance.
+    std::shared_ptr<std::vector<ByteCount>> scan_bounds_;
   };
 }
