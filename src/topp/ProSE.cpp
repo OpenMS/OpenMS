@@ -786,6 +786,7 @@ class ProSE :
       // the footers, minted here in file order (psm, then pg): UniqueIdGenerator's sequence is fixed in test mode
       std::shared_ptr<const arrow::KeyValueMetadata> psm_meta, pg_meta;
       bool has_groups = false; // pg has rows (else no pg file: see the output)
+      std::string pg_error;    // the protein groups could not be built (the input fails; the psm file is still written)
     };
 
     /// Builds the tables of the QPX files of one input into @p files (see QPXRunFiles_) from @p runs and @p ids, with
@@ -811,7 +812,14 @@ class ProSE :
         if (!files.scan_format.empty()) { keys["scan_format"] = files.scan_format; }
         files.psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, keys);
       }
-      files.pg = pg_async ? pg_build.get() : ProteinGroupArrowExport::exportToArrow(runs, ids);
+      try
+      {
+        files.pg = pg_async ? pg_build.get() : ProteinGroupArrowExport::exportToArrow(runs, ids);
+      }
+      catch (const std::exception& e) // (as before, the psm file is written and the input fails: reported by the caller)
+      {
+        files.pg_error = e.what();
+      }
       // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to libOpenMS' implementation,
       // and on Windows its symbols are dllimport, so calling the member here links on Linux but not on MSVC.
       files.has_groups = files.pg && ArrowIOHelpers::tableRowCount(files.pg) > 0;
@@ -1811,29 +1819,46 @@ class ProSE :
 #else
             const int threads = 1;
 #endif
+            bool built = false;
             try
             {
               buildQPXRunFiles_(early_qpx[i], protein_ids, result.peptide_ids, qpx_runs_dir, File::stemName(in_list[i]), threads,
                                 /*pg_async=*/false);
-              early_qpx_state[i] = 1;
+              built = true;
             }
             catch (const std::exception& e) // reported below, as by the build there
             {
               early_qpx_error[i] = e.what();
               early_qpx_state[i] = 3;
             }
-            if (early_qpx_state[i] == 1)
+            catch (...)
             {
+              early_qpx_error[i] = "unknown exception";
+              early_qpx_state[i] = 3;
+            }
+            if (built)
+            {
+              bool written = false;
               try
               {
-                const auto written = writeQPXRunFiles_(early_qpx[i], in_list[i], threads, /*staged=*/true);
-                if (!(written.first && written.second)) { early_qpx_state[i] = 2; }
+                const auto outcome = writeQPXRunFiles_(early_qpx[i], in_list[i], threads, /*staged=*/true);
+                written = outcome.first && outcome.second;
               }
               catch (const std::exception& e) // (the tables stay for quantms.*)
               {
                 OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[i] << " -> " << out_qpx_dir
                                  << " (Arrow/Parquet): " << e.what() << endl;
-                early_qpx_state[i] = 2;
+              }
+              catch (...)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[i] << " -> " << out_qpx_dir
+                                 << " (unknown exception)" << endl;
+              }
+              early_qpx_state[i] = written && early_qpx[i].pg_error.empty() ? 1 : 2;
+              if (!early_qpx[i].pg_error.empty())
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[i] << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << early_qpx[i].pg_error << endl;
               }
             }
           }
@@ -2227,9 +2252,9 @@ class ProSE :
               input_failed = true;
             }
             else if (early_qpx_state[i] == 2) { input_failed = true; } // (logged there)
+            bool built = early_qpx_state[i] == 1 || early_qpx_state[i] == 2;
             if (early_qpx_state[i] == 0)
             {
-              bool built = false;
               try
               {
                 buildQPXRunFiles_(files, result.protein_ids, result.peptide_ids, qpx_runs_dir, basename, qpx_threads, /*pg_async=*/qpx_threads > 1);
@@ -2246,42 +2271,20 @@ class ProSE :
                                  << " (Arrow/Parquet): " << e.what() << endl;
                 input_failed = true;
               }
-              if (built && qpx_threads > 1)
+              if (built && !files.pg_error.empty())
               {
-                // at most two writes pending (next to this thread's work): the oldest is joined first
-                while (qpx_writes.size() >= 2) { finish_qpx_write(qpx_writes.front()); qpx_writes.erase(qpx_writes.begin()); }
-                // (files: early_qpx[i], in_file: in_list[i]; both outlive the write, which is joined below)
-                qpx_writes.emplace_back(i, std::async(std::launch::async, [&files, &in_file, qpx_write_threads]()
-                {
-                  return writeQPXRunFiles_(files, in_file, qpx_write_threads, /*staged=*/false);
-                }));
-              }
-              else if (built) // (one thread: here, as before)
-              {
-                try
-                {
-                  const auto written = writeQPXRunFiles_(files, in_file, 1, /*staged=*/false);
-                  if (!(written.first && written.second)) { input_failed = true; }
-                }
-                catch (const std::exception& e)
-                {
-                  OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
-                                   << " (Arrow/Parquet): " << e.what() << endl;
-                  input_failed = true;
-                }
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << files.pg_error << endl;
+                input_failed = true;
               }
             }
-            else if (!publishQPXRunFiles_(files, in_file)) // (written during the search)
-            {
-              input_failed = true;
-            }
-            { // the tables, for quantms.* (whatever the outcome of the writes, as before)
+            { // the tables, for quantms.* (whatever the outcome of the writes, as before): before the writes start
               if (files.psm)
               {
                 qpx_psm_tables.push_back(files.psm);
                 qpx_psm_scan_formats.push_back(files.scan_format);
               }
-              else if (!input_failed)
+              else if (built && !input_failed)
               {
                 OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " — skipping " << files.psm_file << endl;
               }
@@ -2293,8 +2296,8 @@ class ProSE :
               {
                 // No protein groups, so no pg file. Rows come only from getIndistinguishableProteins(),
                 // and ProSE infers proteins in just two places: single-file finalization, which needs
-                // 'FDR:protein' > 0 AND decoys, and the merged path, which needs '-out_merged' with more
-                // than one input. Identification-only runs open neither, so an empty table is the normal
+                // 'FDR:protein' > 0 AND decoys, and the merged path, which needs '-out_merged' with several
+                // inputs. Identification-only runs open neither, so an empty table is the normal
                 // outcome rather than a failure. Writing it anyway produced a schema-valid file saying
                 // "no protein groups", which a consumer cannot tell apart from "inference ran and found
                 // none" - so the file is omitted and the reason logged instead.
@@ -2302,10 +2305,38 @@ class ProSE :
                                 << files.pg_file << ". Protein inference requires 'FDR:protein' > 0 with "
                                 << "decoys, or '-out_merged' with several inputs." << endl;
               }
-              else
+              else if (built && files.pg_error.empty())
               {
                 OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << files.pg_file << endl;
               }
+            }
+            if (early_qpx_state[i] == 0 && built && qpx_threads > 1)
+            {
+              // at most two writes pending (next to this thread's work): the oldest is joined first
+              while (qpx_writes.size() >= 2) { finish_qpx_write(qpx_writes.front()); qpx_writes.erase(qpx_writes.begin()); }
+              // (files: early_qpx[i], in_file: in_list[i]; both outlive the write, which is joined below)
+              qpx_writes.emplace_back(i, std::async(std::launch::async, [&files, &in_file, qpx_write_threads]()
+              {
+                return writeQPXRunFiles_(files, in_file, qpx_write_threads, /*staged=*/false);
+              }));
+            }
+            else if (early_qpx_state[i] == 0 && built) // (one thread: here, as before)
+            {
+              try
+              {
+                const auto written = writeQPXRunFiles_(files, in_file, 1, /*staged=*/false);
+                if (!(written.first && written.second)) { input_failed = true; }
+              }
+              catch (const std::exception& e)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << e.what() << endl;
+                input_failed = true;
+              }
+            }
+            else if (early_qpx_state[i] != 0 && !publishQPXRunFiles_(files, in_file)) // (written during the search)
+            {
+              input_failed = true;
             }
           }
           catch (const Exception::BaseException& e)
