@@ -77,6 +77,17 @@ namespace OpenMS
 
 protected:
 
+    /** @brief Extract prepared coordinates. The default uses ChromatogramExtractor.
+      @param[in] input Acquisition-lane spectrum access.
+      @param[in,out] output Chromatogram arrays to append.
+      @param[in] coordinates Prepared extraction coordinates sorted by m/z.
+      @param[in] parameters Physical extraction windows and filter.
+    */
+    virtual void extractChromatograms_(const OpenSwath::SpectrumAccessPtr& input,
+                                      std::vector<OpenSwath::ChromatogramPtr>& output,
+                                      const std::vector<ChromatogramExtractor::ExtractionCoordinates>& coordinates,
+                                      const ChromExtractParams& parameters);
+
     /** @brief Default constructor
      *
      *  Will not use any ms1 traces and use all threads in the outer loop.

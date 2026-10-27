@@ -194,6 +194,7 @@ namespace OpenDIA
     // One metadata handle is enough. The cache lock also protects this handle.
     metadata_source_ = source_->getExperiment().clone();
     scan_bounds_ = std::make_shared<std::vector<ByteCount>>(source_->getNrSpectra(), 0);
+    region_bounds_ = std::make_shared<std::vector<ByteCount>>(source_->getNrSpectra(), 0);
   }
 
   RawPhase RawAccess::phase_(int id) const
@@ -229,7 +230,7 @@ namespace OpenDIA
     if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
     auto& entries = cache_->entries_;
     // ponytail: one lock and linear LRU lookup, add an index only if profiling requires it.
-    auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.source == source_ && e.id == id; });
+    auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.scan && e.source == source_ && e.id == id; });
     if (found != entries.end())
     {
       ++work.hits;
@@ -284,6 +285,64 @@ namespace OpenDIA
     return {std::shared_ptr<const OpenSwath::BinaryDataArray>(scan, scan->columns_->getMZArray().get()),
       std::shared_ptr<const OpenSwath::BinaryDataArray>(scan, scan->columns_->getIntensityArray().get()),
       mobility ? std::shared_ptr<const OpenSwath::BinaryDataArray>(scan, mobility.get()) : nullptr};
+  }
+
+  RawRegion RawAccess::acquireRegion(int id, RecordContext context, std::optional<MZCalibration> calibration)
+  {
+    if (context.schema_version != 0
+        || (calibration && (! std::isfinite(calibration->a) || ! std::isfinite(calibration->b) || ! std::isfinite(calibration->c))))
+    {
+      invalid("Invalid region context or calibration");
+    }
+    const auto started = Clock::now();
+    std::lock_guard lock(cache_->mutex_);
+    const auto index = source_->getExperimentIndex(id);
+    const auto phase_id = phase_(id);
+    auto& work = cache_->work_;
+    auto& phase = cache_->phases_[static_cast<size_t>(phase_id)];
+    if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+    auto& entries = cache_->entries_;
+    const auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) {
+      return e.region && e.source == source_ && e.id == id && e.context == context && e.calibration == calibration;
+    });
+    if (found != entries.end())
+    {
+      ++work.hits;
+      ++phase.hits;
+      entries.splice(entries.begin(), entries, found);
+      const auto ns = elapsed(started);
+      work.read_ns += ns;
+      phase.read_ns += ns;
+      return *entries.front().region;
+    }
+    ++work.misses;
+    ++phase.misses;
+    auto& known_bound = region_bounds_->at(static_cast<size_t>(id));
+    const auto bound = known_bound ? known_bound : cache_->max_scan_bytes_;
+    auto reservation = cache_->reserve_(bound, phase_id);
+    if (! reservation) { invalid("Region admission failed: pinned views or cancellation"); }
+    const auto decode_started = Clock::now();
+    const auto native = metadata_source_->getSpectrum(index);
+    const auto decode_ns = elapsed(decode_started);
+    ++work.decodes;
+    ++phase.decodes;
+    work.decode_ns += decode_ns;
+    phase.decode_ns += decode_ns;
+    const auto bytes = RawRegion::requiredBytes({1, native.size()}, native.getNativeID().size());
+    if (bytes > bound) { invalid("Region exceeds admitted scan bytes"); }
+    // The shared cache lock excludes other admissions during this handoff.
+    // Native decode and sort workspace remain outside the retained-column cap.
+    reservation.reset();
+    auto region = RawRegion::fromSpectrum(native, index, context, cache_->budget_, calibration);
+    entries.push_front({source_, id, {}, region, context, calibration});
+    known_bound = bytes;
+    const auto numeric_bytes = checkedByteMultiply(native.size(), sizeof(double) + sizeof(float) * (native.containsIMData() ? 2 : 1));
+    work.decoded_numeric_bytes = checkedByteAdd(work.decoded_numeric_bytes, numeric_bytes);
+    phase.decoded_numeric_bytes += numeric_bytes;
+    const auto ns = elapsed(started);
+    work.read_ns += ns;
+    phase.read_ns += ns;
+    return region;
   }
 
   OpenSwath::SpectrumPtr RawAccess::getSpectrumById(int id)

@@ -10,9 +10,17 @@
 namespace OpenMS
 {
 class IMSExperimentRandomAccess;
-}
+class MSSpectrum;
+} // namespace OpenMS
 namespace OpenDIA
 {
+/// Tool-private quadratic calibration, matching the OpenSWATH transform.
+struct MZCalibration
+{
+  double a = 0, b = 1, c = 0;
+  bool ppm = false;
+  bool operator==(const MZCalibration&) const = default;
+};
 struct RegionAcquisition
 {
   RecordId source_index = 0;
@@ -86,6 +94,12 @@ public:
                         OpenMS::Size id_capacity,
                         ByteBudget& budget,
                         std::stop_token stop = {});
+  /// Copy one decoded spectrum into exact-size admitted storage, without changing it.
+  static RawRegion fromSpectrum(const OpenMS::MSSpectrum& spectrum,
+                                OpenMS::Size source_index,
+                                RecordContext context,
+                                ByteBudget& budget,
+                                std::optional<MZCalibration> calibration = {});
   static ByteCount requiredBytes(RecordLimits limits, OpenMS::Size id_capacity);
   OpenMS::Size size() const;
   Scan scan(OpenMS::Size index) const;

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "OpenDIARecords.h"
+#include "OpenDIARawRegion.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <array>
@@ -18,7 +19,7 @@ namespace OpenDIA
   enum class RawPhase { UNCLASSIFIED, CALIBRATION, MS1_EXTRACTION, MS2_EXTRACTION, SCORING, COUNT };
 
   /// Successful read/copy timings are summed per call and may overlap across threads.
-  /// Numeric bytes count materialized double values, not compressed input or native workspace.
+  /// Numeric bytes count materialized columns, not compressed input or native workspace.
   struct RawWorkCounters
   {
     ByteCount hits = 0, misses = 0, evictions = 0, decodes = 0, copies = 0;
@@ -84,6 +85,9 @@ namespace OpenDIA
       std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source;
       int id;
       std::shared_ptr<const RawScan> scan;
+      std::optional<RawRegion> region;
+      RecordContext context;
+      std::optional<MZCalibration> calibration;
     };
     std::optional<ByteReservation> reserve_(ByteCount bytes, RawPhase phase);
     mutable std::mutex mutex_;
@@ -111,6 +115,12 @@ namespace OpenDIA
       @param[in] id Visible scan index.
     */
     std::shared_ptr<const RawScan> acquire(int id);
+    /** @brief Lease calibrated native columns without a detached legacy array copy.
+      @param[in] id Visible scan index in this acquisition lane.
+      @param[in] context Caller namespace and calibration snapshot identity.
+      @param[in] calibration Exact mass transformation, absent for native masses.
+    */
+    RawRegion acquireRegion(int id, RecordContext context, std::optional<MZCalibration> calibration = {});
     /** @brief Select scans by RT and full acquisition isolation overlap.
       Source isolation intervals are closed. Query edges follow their policy.
       @param[in] rt RT bounds in seconds.
@@ -135,7 +145,8 @@ namespace OpenDIA
     std::shared_ptr<RawCache> cache_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> metadata_source_;
     // Immutable-source sizing metadata, shared by clones under the cache lock.
-    // One ByteCount per visible scan uses the native metadata/control allowance.
+    // Two ByteCounts per visible scan use the native metadata/control allowance.
     std::shared_ptr<std::vector<ByteCount>> scan_bounds_;
+    std::shared_ptr<std::vector<ByteCount>> region_bounds_;
   };
 }

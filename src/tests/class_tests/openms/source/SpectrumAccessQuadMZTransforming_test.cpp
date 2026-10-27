@@ -156,6 +156,12 @@ START_SECTION((calibration preserves empty scans, all peaks and detached source 
   for (const bool ppm : {false, true})
   {
     SpectrumAccessQuadMZTransforming calibrated(source, 0.01, 1.0, 1e-8, ppm);
+    const auto [a, b, c, ppm_snapshot] = calibrated.getTransformation();
+    TEST_EQUAL(a, 0.01)
+    TEST_EQUAL(b, 1.0)
+    TEST_EQUAL(c, 1e-8)
+    TEST_EQUAL(ppm_snapshot, ppm)
+    TEST_TRUE(calibrated.getInput() == source)
     const auto transformed = calibrated.lightClone()->getSpectrumById(0);
     const auto original = source->getSpectrumById(0);
     TEST_EQUAL(transformed->getMZArray()->data.size(), original->getMZArray()->data.size())

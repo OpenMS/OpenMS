@@ -59,6 +59,8 @@ struct RawRegion::Storage
   std::unique_ptr<char[]> ids;
   RecordContext context;
   OpenMS::Size count = 0, id_capacity = 0;
+  static std::shared_ptr<Storage> allocate(RecordContext context, RecordLimits limits, OpenMS::Size id_capacity, ByteBudget& budget);
+  void append(const OpenMS::MSSpectrum& spectrum, OpenMS::Size index, RecordLimits limits, std::optional<MZCalibration> calibration = {});
 };
 ByteCount RawRegion::requiredBytes(RecordLimits limits, OpenMS::Size id_capacity)
 {
@@ -80,6 +82,22 @@ RawRegion RawRegion::read(OpenMS::IMSExperimentRandomAccess& source,
     if (index >= source.getNrSpectra()) { invalid("Invalid source index"); }
   }
   if (stop.stop_requested()) { invalid("Cancelled region"); }
+  auto storage = Storage::allocate(context, limits, id_capacity, budget);
+  for (auto index : indices)
+  {
+    if (stop.stop_requested() || budget.snapshot().cancelled) { invalid("Cancelled region"); }
+    auto spectrum = source.getSpectrum(index); // Decode each native acquisition exactly once.
+    storage->append(spectrum, index, limits);
+  }
+  if (stop.stop_requested() || budget.snapshot().cancelled) { invalid("Cancelled region"); }
+  RawRegion result;
+  result.storage_ = std::move(storage);
+  return result;
+}
+std::shared_ptr<RawRegion::Storage>
+RawRegion::Storage::allocate(RecordContext context, RecordLimits limits, OpenMS::Size id_capacity, ByteBudget& budget)
+{
+  if (context.schema_version != 0) { invalid("Invalid context"); }
   auto reservation = budget.tryReserve(requiredBytes(limits, id_capacity));
   if (! reservation) { invalid("Region admission failed"); }
   auto storage = std::make_shared<Storage>();
@@ -91,85 +109,110 @@ RawRegion RawRegion::read(OpenMS::IMSExperimentRandomAccess& source,
   storage->ids = std::make_unique<char[]>(checkedByteMultiply(limits.records, id_capacity));
   storage->context = context;
   storage->id_capacity = id_capacity;
-  OpenMS::Size offset = 0;
-  for (auto index : indices)
+  return storage;
+}
+void RawRegion::Storage::append(const OpenMS::MSSpectrum& spectrum, OpenMS::Size index, RecordLimits limits, std::optional<MZCalibration> calibration)
+{
+  auto* storage = this;
+  OpenMS::Size offset = count ? rows[count - 1].end : 0;
+  if (count >= limits.records) { invalid("Region acquisition capacity exceeded"); }
+  const auto calibrated = [&](OpenMS::Size p) {
+    const double mz = spectrum[p].getMZ();
+    if (! calibration) { return mz; }
+    const auto& [a, b, c, ppm] = *calibration;
+    const double predict = a + b * mz + c * mz * mz;
+    return ppm ? mz - predict * mz / 1000000 : predict;
+  };
+  if (spectrum.size() > limits.values - offset || spectrum.getNativeID().size() > id_capacity) { invalid("Region capacity exceeded"); }
+  auto& row = storage->rows[storage->count];
+  row.source_index = index;
+  row.rt_seconds = spectrum.getRT();
+  row.ms_level = spectrum.getMSLevel();
+  if (! std::isfinite(row.rt_seconds) || row.ms_level == 0) { invalid("Invalid acquisition metadata"); }
+  row.native_id_size = spectrum.getNativeID().size();
+  std::copy(spectrum.getNativeID().begin(), spectrum.getNativeID().end(), storage->ids.get() + storage->count * id_capacity);
+  if (spectrum.getDriftTimeUnit() == OpenMS::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
   {
-    if (stop.stop_requested() || budget.snapshot().cancelled) { invalid("Cancelled region"); }
-    auto spectrum = source.getSpectrum(index); // Native bridge only, no legacy arrays.
-    if (spectrum.size() > limits.values - offset || spectrum.getNativeID().size() > id_capacity) { invalid("Region capacity exceeded"); }
-    auto& row = storage->rows[storage->count];
-    row.source_index = index;
-    row.rt_seconds = spectrum.getRT();
-    row.ms_level = spectrum.getMSLevel();
-    if (! std::isfinite(row.rt_seconds) || row.ms_level == 0) { invalid("Invalid acquisition metadata"); }
-    row.native_id_size = spectrum.getNativeID().size();
-    std::copy(spectrum.getNativeID().begin(), spectrum.getNativeID().end(), storage->ids.get() + storage->count * id_capacity);
-    if (spectrum.getDriftTimeUnit() == OpenMS::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+    if (! std::isfinite(spectrum.getDriftTime())) { invalid("Invalid FAIMS"); }
+    row.faims_voltage = spectrum.getDriftTime();
+  }
+  else if (spectrum.getDriftTimeUnit() != OpenMS::DriftTimeUnit::NONE)
+  {
+    if (! std::isfinite(spectrum.getDriftTime())) { invalid("Invalid scalar mobility"); }
+    if (spectrum.getDriftTimeUnit() == OpenMS::DriftTimeUnit::MILLISECOND)
     {
-      if (! std::isfinite(spectrum.getDriftTime())) { invalid("Invalid FAIMS"); }
-      row.faims_voltage = spectrum.getDriftTime();
+      row.acquisition_mobility = Mobility {spectrum.getDriftTime(), MobilityUnit::MILLISECOND};
     }
-    else if (spectrum.getDriftTimeUnit() != OpenMS::DriftTimeUnit::NONE)
+    else if (spectrum.getDriftTimeUnit() == OpenMS::DriftTimeUnit::VSSC)
     {
-      if (! std::isfinite(spectrum.getDriftTime())) { invalid("Invalid scalar mobility"); }
-      if (spectrum.getDriftTimeUnit() == OpenMS::DriftTimeUnit::MILLISECOND)
-      {
-        row.acquisition_mobility = Mobility {spectrum.getDriftTime(), MobilityUnit::MILLISECOND};
-      }
-      else if (spectrum.getDriftTimeUnit() == OpenMS::DriftTimeUnit::VSSC)
-      {
-        row.acquisition_mobility = Mobility {spectrum.getDriftTime(), MobilityUnit::INVERSE_REDUCED};
-      }
-      else { invalid("Unsupported scalar mobility unit"); }
+      row.acquisition_mobility = Mobility {spectrum.getDriftTime(), MobilityUnit::INVERSE_REDUCED};
     }
-    const OpenMS::MSSpectrum::FloatDataArray* im = nullptr;
-    if (spectrum.containsIMData())
+    else { invalid("Unsupported scalar mobility unit"); }
+  }
+  const OpenMS::MSSpectrum::FloatDataArray* im = nullptr;
+  if (spectrum.containsIMData())
+  {
+    const auto [column, native_unit] = spectrum.getIMData();
+    if (native_unit == OpenMS::DriftTimeUnit::MILLISECOND) { row.point_mobility = MobilityUnit::MILLISECOND; }
+    else if (native_unit == OpenMS::DriftTimeUnit::VSSC) { row.point_mobility = MobilityUnit::INVERSE_REDUCED; }
+    else { invalid("Unsupported point mobility unit"); }
+    im = &spectrum.getFloatDataArrays().at(column);
+    if (im->size() != spectrum.size()) { invalid("Mismatched point mobility column"); }
+  }
+  // Validate calibrated order before sorting. Sorted results need no permutation workspace.
+  bool sorted = true;
+  for (OpenMS::Size p = 0; p < spectrum.size(); ++p)
+  {
+    const double mz = calibrated(p);
+    if (p && calibrated(p - 1) > mz) { sorted = false; }
+    if (! std::isfinite(mz) || mz < 0 || ! std::isfinite(spectrum[p].getMZ()) || spectrum[p].getMZ() < 0
+        || ! std::isfinite(spectrum[p].getIntensity()) || (im && ! std::isfinite((*im)[p])))
     {
-      const auto [column, native_unit] = spectrum.getIMData();
-      if (native_unit == OpenMS::DriftTimeUnit::MILLISECOND) { row.point_mobility = MobilityUnit::MILLISECOND; }
-      else if (native_unit == OpenMS::DriftTimeUnit::VSSC) { row.point_mobility = MobilityUnit::INVERSE_REDUCED; }
-      else { invalid("Unsupported point mobility unit"); }
-      im = &spectrum.getFloatDataArrays().at(column);
-      if (im->size() != spectrum.size()) { invalid("Mismatched point mobility column"); }
+      invalid("Invalid native point");
     }
-    // Validate before sorting. Already sorted native scans need no permutation workspace.
+  }
+  row.begin = offset;
+  const auto append = [&](OpenMS::Size p) {
+    storage->mz[offset] = calibrated(p);
+    storage->intensity[offset] = spectrum[p].getIntensity();
+    if (im) { storage->im[offset] = (*im)[p]; }
+    ++offset;
+  };
+  if (sorted)
+  {
     for (OpenMS::Size p = 0; p < spectrum.size(); ++p)
     {
-      if (! std::isfinite(spectrum[p].getMZ()) || spectrum[p].getMZ() < 0 || ! std::isfinite(spectrum[p].getIntensity())
-          || (im && ! std::isfinite((*im)[p])))
-      {
-        invalid("Invalid native point");
-      }
+      append(p);
     }
-    row.begin = offset;
-    const auto append = [&](OpenMS::Size p) {
-      storage->mz[offset] = spectrum[p].getMZ();
-      storage->intensity[offset] = spectrum[p].getIntensity();
-      if (im) { storage->im[offset] = (*im)[p]; }
-      ++offset;
-    };
-    if (spectrum.isSorted())
-    {
-      for (OpenMS::Size p = 0; p < spectrum.size(); ++p)
-      {
-        append(p);
-      }
-    }
-    else
-    {
-      // Unsorted fallback workspace uses only the declared native allowance.
-      std::vector<OpenMS::Size> order(spectrum.size());
-      std::iota(order.begin(), order.end(), 0);
-      std::stable_sort(order.begin(), order.end(), [&](auto a, auto b) { return spectrum[a].getMZ() < spectrum[b].getMZ(); });
-      for (auto p : order)
-      {
-        append(p);
-      }
-    }
-    row.end = offset;
-    ++storage->count;
   }
-  if (stop.stop_requested() || budget.snapshot().cancelled) { invalid("Cancelled region"); }
+  else
+  {
+    // Stable-sort/permutation workspace is transient native allowance, outside the retained cap.
+    std::vector<OpenMS::Size> order(spectrum.size());
+    std::iota(order.begin(), order.end(), 0);
+    std::stable_sort(order.begin(), order.end(), [&](auto a, auto b) { return calibrated(a) < calibrated(b); });
+    for (auto p : order)
+    {
+      append(p);
+    }
+  }
+  row.end = offset;
+  ++storage->count;
+}
+RawRegion RawRegion::fromSpectrum(const OpenMS::MSSpectrum& spectrum,
+                                  OpenMS::Size source_index,
+                                  RecordContext context,
+                                  ByteBudget& budget,
+                                  std::optional<MZCalibration> calibration)
+{
+  if (calibration && (! std::isfinite(calibration->a) || ! std::isfinite(calibration->b) || ! std::isfinite(calibration->c)))
+  {
+    invalid("Invalid calibration coefficients");
+  }
+  const RecordLimits limits {1, spectrum.size()};
+  auto storage = Storage::allocate(context, limits, spectrum.getNativeID().size(), budget);
+  storage->append(spectrum, source_index, limits, calibration);
+  if (budget.snapshot().cancelled) { invalid("Cancelled region"); }
   RawRegion result;
   result.storage_ = std::move(storage);
   return result;

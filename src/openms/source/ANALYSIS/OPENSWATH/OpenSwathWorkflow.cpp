@@ -40,6 +40,15 @@
 // OpenSwathWorkflow
 namespace OpenMS
 {
+void OpenSwathWorkflowBase::extractChromatograms_(const OpenSwath::SpectrumAccessPtr& input,
+                                                  std::vector<OpenSwath::ChromatogramPtr>& output,
+                                                  const std::vector<ChromatogramExtractor::ExtractionCoordinates>& coordinates,
+                                                  const ChromExtractParams& parameters)
+{
+  ChromatogramExtractor().extractChromatograms(input, output, coordinates, parameters.mz_extraction_window, parameters.ppm,
+                                               parameters.im_extraction_window, parameters.extraction_function);
+}
+
   namespace
   {
     /**
@@ -798,8 +807,7 @@ namespace OpenMS
 
         prepareExtractionCoordinates_(chrom_list, coordinates, context.transition_exp_used_all, trafo_inverse, cp);
 
-        extractor.extractChromatograms(context.current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
-            cp.ppm, cp.im_extraction_window, cp.extraction_function);
+        extractChromatograms_(context.current_swath_map, chrom_list, coordinates, cp);
 
         extractor.return_chromatogram(chrom_list, coordinates, context.transition_exp_used_all, SpectrumSettings(),
                                       context.chrom_exp.getChromatograms(), false, cp.im_extraction_window);
@@ -1297,8 +1305,7 @@ namespace OpenMS
             // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
 
-            extractor.extractChromatograms(current_swath_map_inner, chrom_list, coordinates, cp.mz_extraction_window,
-                cp.ppm, cp.im_extraction_window, cp.extraction_function);
+            extractChromatograms_(current_swath_map_inner, chrom_list, coordinates, cp);
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
             PeakMap chrom_exp;
@@ -1423,8 +1430,7 @@ namespace OpenMS
 
     // prepare the extraction coordinates and extract chromatogram
     prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
-    extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
-        cp.ppm, cp.im_extraction_window, cp.extraction_function);
+    extractChromatograms_(ms1_map, chrom_list, coordinates, cp);
     extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
         SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
   }

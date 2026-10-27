@@ -8,6 +8,7 @@
 
 #include "OpenDIA.h"
 #include "OpenDIARawAccess.h"
+#include "OpenDIARegionWorkflow.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
@@ -2126,7 +2127,7 @@ protected:
 
         attempt_features.clear();
         const bool store_features_in_feature_file = write_parquet;
-        OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im_current, prm, pasef, mrm_mode, outer_loop_threads);
+        OpenDIA::RegionWorkflow wf(use_ms1_traces, use_ms1_im_current, prm, pasef, mrm_mode, outer_loop_threads);
         wf.setLogType(log_type_);
         wf.performExtraction(swath_maps, trafo_rtnorm, extraction_cp, cp_ms1_current, feature_finder_param_run,
                              transition_exp, attempt_features, store_features_in_feature_file, oswwriter, attempt_chromatogram_consumer,

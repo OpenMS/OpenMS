@@ -5,6 +5,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -143,6 +144,77 @@ MemorySource small()
   scan.setMSLevel(1);
   source.spectra.push_back(scan);
   return source;
+}
+void calibratedCreation()
+{
+  auto source = small();
+  // A sorted source can become nonmonotonic after calibration.
+  source.spectra[0].sortByPosition();
+  const auto original = source.spectra[0];
+  const auto bytes = RawRegion::requiredBytes({1, original.size()}, original.getNativeID().size());
+  ByteBudget budget(bytes, 0);
+  for (const auto calibration : {MZCalibration {10201, -202, 1, false}, MZCalibration {4.25, 0.125, 0.0003, true}, MZCalibration {0, 1, 0, false}})
+  {
+    auto adapter = std::make_shared<OpenMS::SpectrumAccessOnDisc>(std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source.clone()),
+                                                                  std::vector<OpenMS::Size> {0});
+    OpenMS::SpectrumAccessQuadMZTransforming oracle(adapter, calibration.a, calibration.b, calibration.c, calibration.ppm);
+    const auto expected = oracle.getSpectrumById(0);
+    const auto& values = expected->getMZArray()->data;
+    std::vector<OpenMS::Size> order(values.size());
+    std::iota(order.begin(), order.end(), 0);
+    std::stable_sort(order.begin(), order.end(), [&](auto a, auto b) { return values[a] < values[b]; });
+    {
+      auto region = RawRegion::fromSpectrum(source.spectra[0], 91, context, budget, calibration);
+      auto scan = region.scan(0);
+      check(region.size() == 1 && scan.acquisition().source_index == 91 && scan.context() == context && scan.nativeID() == original.getNativeID()
+              && scan.acquisition().rt_seconds == original.getRT() && scan.acquisition().ms_level == original.getMSLevel()
+              && scan.acquisition().faims_voltage == 0,
+            "Decoded creation changed identity or metadata");
+      for (OpenMS::Size p = 0; p < order.size(); ++p)
+      {
+        check(scan.mz()[p] == values[order[p]] && scan.intensity()[p] == original[order[p]].getIntensity()
+                && scan.mobility()[p] == original.getFloatDataArrays()[0][order[p]],
+              "Calibration differs from actual transform or lost stable point alignment");
+      }
+      check(budget.snapshot().committed_bytes == bytes, "Decoded creation is not exact-size admitted");
+      rejects([&] { RawRegion::fromSpectrum(original, 0, context, budget); });
+    }
+    check(source.spectra[0] == original, "Calibration mutated native source");
+    check(budget.snapshot().committed_bytes == 0 && budget.snapshot().reserved_bytes == 0, "Calibration leaked final lease");
+  }
+  {
+    auto region = RawRegion::fromSpectrum(original, 0, context, budget);
+    check(region.scan(0).mz()[0] == original[0].getMZ(), "Absent calibration changed native values");
+  }
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  const double inf = std::numeric_limits<double>::infinity();
+  const double max = std::numeric_limits<double>::max();
+  for (const auto calibration : {MZCalibration {nan, 1, 0}, MZCalibration {0, inf, 0}, MZCalibration {0, 1, nan}, MZCalibration {-1, 0, 0},
+                                 MZCalibration {0, max, max}, MZCalibration {max, 0, 0, true}})
+  {
+    rejects([&] { RawRegion::fromSpectrum(original, 0, context, budget, calibration); });
+    check(budget.snapshot().committed_bytes == 0 && budget.snapshot().reserved_bytes == 0, "Failed calibration leaked admission");
+  }
+  auto invalid_context = context;
+  invalid_context.schema_version = 1;
+  rejects([&] { RawRegion::fromSpectrum(original, 0, invalid_context, budget); });
+  ByteBudget tiny(bytes - 1, 0);
+  rejects([&] { RawRegion::fromSpectrum(original, 0, context, tiny); });
+  {
+    auto empty = RawRegion::fromSpectrum(source.spectra[2], 2, context, budget);
+    check(empty.size() == 1 && empty.scan(0).mz().empty(), "Decoded empty row lost");
+  }
+  auto scalar = original;
+  scalar.setDriftTimeUnit(OpenMS::DriftTimeUnit::VSSC);
+  scalar.setDriftTime(0.123456789012345);
+  {
+    auto region = RawRegion::fromSpectrum(scalar, 7, context, budget);
+    const auto mobility = region.scan(0).acquisition().acquisition_mobility;
+    check(mobility && mobility->value == scalar.getDriftTime() && mobility->unit == MobilityUnit::INVERSE_REDUCED
+            && ! region.scan(0).acquisition().faims_voltage,
+          "Decoded scalar mobility changed");
+  }
+  check(budget.snapshot().committed_bytes == 0 && budget.snapshot().reserved_bytes == 0, "Decoded creation leaked final lease");
 }
 void contracts()
 {
@@ -487,6 +559,7 @@ int main(int argc, char** argv)
     else
     {
       contracts();
+      calibratedCreation();
       fixtures();
     }
   }
