@@ -3691,9 +3691,12 @@ namespace OpenMS
     takeBackThreadsOfEndedRead();
     const SignedSize slice_end = std::min(n_spectra, slice_begin + slice);
     // Runs of neighbouring masses per core (dynamic chunks of up to 64 spectra), but at least 8 chunks per thread of the
-    // slice so that small inputs and slices stay balanced.
+    // slice so that small inputs and slices stay balanced. In peptide-mass mode (low_memory) a spectrum costs milliseconds
+    // (every candidate in its precursor windows is realised and its fragments generated), not microseconds, and the cost
+    // grows with the mass, so the last chunks of the ascending-mass order left the other threads idle (at 64 threads the
+    // last 2 of 10 s ran on 37 -> 12 cores): one spectrum per chunk then, the dispatch costs nothing against such spectra.
 #ifdef _OPENMP
-    const int chunk = static_cast<int>(std::clamp<SignedSize>(
+    const int chunk = fi.isPeptideMassMode() ? 1 : static_cast<int>(std::clamp<SignedSize>(
       (slice_end - slice_begin) / (SignedSize(8) * std::max(1, omp_get_max_threads())), 1, 64));
 #else
     [[maybe_unused]] const int chunk = 1; // (only the OpenMP directive uses it)
