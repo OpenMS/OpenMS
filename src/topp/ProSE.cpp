@@ -614,8 +614,6 @@ class ProSE :
     if (dir.empty()) return true;
     StringList stale, files;
     File::fileList(dir + "/runs", "*.parquet", stale, true);
-    File::fileList(dir + "/runs", "*.parquet.part", files, true); // (staged by an aborted run, see writeQPXRunFiles_())
-    stale.insert(stale.end(), files.begin(), files.end());
     for (const std::string& stem : stems)
     {
       File::fileList(dir, stem + ".*.parquet", files, true);
@@ -1758,6 +1756,13 @@ class ProSE :
       // (not with -qpx_extended: it stores the NCE of its predictions on the runs before their idXML is written)
       const bool early_idxml_files = in_list.size() > 1 && !out_idxml_list.empty() && out_merged.empty() && !qpx_extended;
       const bool early_qpx_files = in_list.size() > 1 && !out_qpx_dir.empty() && out_merged.empty() && !qpx_extended;
+      if (early_qpx_files)
+      {
+        // the staged files of an aborted earlier run (see writeQPXRunFiles_()): never part of a result
+        StringList staged;
+        File::fileList(qpx_runs_dir, "*.parquet.part", staged, true);
+        for (const std::string& file : staged) { File::remove(file); }
+      }
       if (early_idxml_files || early_qpx_files)
       {
         const bool test_mode = getFlag_("test");
