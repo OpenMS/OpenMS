@@ -1685,7 +1685,7 @@ class ProSE :
           try
           {
             std::vector<ProteinIdentification> protein_ids = result.protein_ids;
-            ProSEAlgorithm::removeUnreportedProteins(protein_ids, result.peptide_ids); // as below
+            ProSEAlgorithm::removeUnreportedProteins(protein_ids, result.peptide_ids); // as before the output loop below
             if (!protein_ids.empty())
             {
               protein_ids[0].getSearchParameters().db = database;
@@ -1916,6 +1916,26 @@ class ProSE :
                                          /*fdr_applied=*/ result.stats.fdr_applied);
       }
 
+      // The proteins of an input's outputs are those its reported PSMs reference. The search keeps the proteins of the
+      // PSMs that only the protein inference of the pooled evaluation uses (FDR:protein_inference_PSM); -out_merged
+      // pools the search's own copy of the runs (built with build_pooled_aggregate), not these. For all inputs at once,
+      // in parallel (27 HeLa runs: 3 s one after another in the loop below).
+      {
+        std::vector<std::exception_ptr> errors(in_list.size());
+#pragma omp parallel for schedule(dynamic, 1)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(in_list.size()); ++i)
+        {
+          ProSEAlgorithm::SearchResult& result = mfres.per_file[i];
+          if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) { continue; }
+          try { ProSEAlgorithm::removeUnreportedProteins(result.protein_ids, result.peptide_ids); }
+          catch (...) { errors[i] = std::current_exception(); }
+        }
+        for (const std::exception_ptr& error : errors)
+        {
+          if (error) { std::rethrow_exception(error); }
+        }
+      }
+
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
@@ -1968,10 +1988,7 @@ class ProSE :
 
         const std::string basename = File::stemName(in_file);
 
-        // The proteins of an input's outputs are those its reported PSMs reference. The search keeps the proteins of the
-        // PSMs that only the protein inference of the pooled evaluation uses (FDR:protein_inference_PSM); -out_merged
-        // pools the search's own copy of the runs (built with build_pooled_aggregate), not these.
-        ProSEAlgorithm::removeUnreportedProteins(result.protein_ids, result.peptide_ids);
+        // (its proteins: those its reported PSMs reference, see above)
 
         // In test mode, replace the absolute MS run path with file://<basename> for reproducible diffs.
         if (getFlag_("test") && !result.protein_ids.empty())

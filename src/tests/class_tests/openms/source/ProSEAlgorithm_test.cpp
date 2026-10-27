@@ -171,7 +171,7 @@ public:
   using ProSEAlgorithm::fragment_mass_tolerance_;
   using ProSEAlgorithm::poolSearchedFiles_;
   using ProSEAlgorithm::residualSpectrum_;
-  using ProSEAlgorithm::stratifiedQuotas_;
+  using ProSEAlgorithm::transferSample_;
   using ProSEAlgorithm::tdcQValues_;
   using ProSEAlgorithm::collectRunStatistics_;
 };
@@ -6519,13 +6519,53 @@ START_SECTION(([EXTRA] files all too small for their own Percolator model are re
 }
 END_SECTION
 
-START_SECTION((static std::vector<Size> stratifiedQuotas_(const std::vector<Size>& sizes, Size cap)))
+START_SECTION((static std::vector<Size> transferSample_(const PeptideIdentificationList& ids, Size max_psms, Size hits_per_spectrum)))
 {
-  // equal shares, the share a smaller stratum leaves to the others; no cap, or all below it: everything
-  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 300) == (std::vector<Size>{10, 190, 100}))
-  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({500, 500}, 300) == (std::vector<Size>{150, 150}))
-  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 0) == (std::vector<Size>{10, 1000, 100}))
-  TEST_TRUE(ProSEAlgorithm_test::stratifiedQuotas_({10, 1000, 100}, 1110) == (std::vector<Size>{10, 1000, 100}))
+  // 1000 spectra with 1, 2 or 3 hits, one without
+  PeptideIdentificationList ids;
+  for (Size k = 0; k < 1000; ++k)
+  {
+    PeptideIdentification& id = ids.emplace_back();
+    id.setSpectrumReference("scan=" + StringUtils::toStr(k));
+    id.setRT(10.0 + k);
+    id.setMZ(400.0 + 0.5 * k);
+    for (Size h = 0; h <= k % 3; ++h) { id.getHits().emplace_back(); }
+  }
+  ids[500].getHits().clear();
+  const auto psms = [&](const std::vector<Size>& rows, Size per)
+  {
+    Size n = 0;
+    for (Size r : rows) { n += std::min(ids[r].getHits().size(), per); }
+    return n;
+  };
+  // below the cap: every spectrum with hits, in order
+  const std::vector<Size> all = ProSEAlgorithm_test::transferSample_(ids, 100000, 2);
+  TEST_EQUAL(all.size(), 999)
+  TEST_TRUE(std::is_sorted(all.begin(), all.end()))
+  // a cap counts the hits a spectrum contributes (at most hits_per_spectrum), and takes whole spectra
+  const std::vector<Size> some = ProSEAlgorithm_test::transferSample_(ids, 301, 2);
+  TEST_TRUE(psms(some, 2) <= 301)
+  TEST_TRUE(psms(some, 2) >= 300)
+  TEST_TRUE(std::is_sorted(some.begin(), some.end()))
+  TEST_TRUE(std::find(some.begin(), some.end(), Size(500)) == some.end())
+  // random, not the first spectra
+  TEST_TRUE(some.back() > 600)
+  TEST_TRUE(some.front() < 400)
+  // the sample of a sublist that contains it is the same spectra (the copy a file keeps after its rescoring)
+  PeptideIdentificationList sub;
+  std::vector<Size> sub_of; // position in ids
+  for (Size r = 0; r < ids.size(); ++r)
+  {
+    if (r % 3 == 0 || std::binary_search(some.begin(), some.end(), r)) { sub.push_back(ids[r]); sub_of.push_back(r); }
+  }
+  std::vector<Size> again;
+  for (Size r : ProSEAlgorithm_test::transferSample_(sub, 301, 2)) { again.push_back(sub_of[r]); }
+  TEST_TRUE(again == some)
+  PeptideIdentificationList only;
+  for (Size r : some) { only.push_back(ids[r]); }
+  TEST_EQUAL(ProSEAlgorithm_test::transferSample_(only, 301, 2).size(), some.size())
+  // reproducible
+  TEST_TRUE(ProSEAlgorithm_test::transferSample_(ids, 301, 2) == some)
 }
 END_SECTION
 

@@ -596,8 +596,9 @@ namespace OpenMS
                        "With 'rescore': the most PSMs Percolator trains a model on (0: all). Every PSM is scored, also "
                        "beyond the cap. For a run with more PSMs, Percolator samples the training PSMs by spectrum (see "
                        "'rescoring:subset_mode'); for the model of the files of a multi-file search too small for a model of "
-                       "their own (trained on the files rescored on their own), each of these files contributes an equal "
-                       "share, so that none dominates. The run log says when the training PSMs were sampled. Searches below "
+                       "their own (trained on the files rescored on their own), each of these files contributes at most "
+                       "this many divided by the number of input files (reproducible random spectra), so that none "
+                       "dominates. The run log says when the training PSMs were sampled. Searches below "
                        "the cap are not affected.", {"advanced"});
     defaults_.setMinInt("percolator:max_train_psms", 0);
     defaults_.setSectionDescription("percolator", "Percolator rescoring ('rescore')");
@@ -7165,13 +7166,34 @@ namespace OpenMS
     // decoys: it is the input of a later rescoring, so it is taken before the rescoring as well as before FDR:PSM.
     if (pre_fdr_psms != nullptr)
     {
-      *pre_fdr_psms = peptide_ids;
       // (with rescoring:top_hits above report:top_hits the search kept more hits, for Percolator). A multi-file search
-      // that may rescore its files together keeps the hits Percolator rescores as well; rescoreFilesTogether_() uses
-      // the first rescoring:top_hits of them and cuts the .pin copy to report:top_hits.
-      if (rescore_top_hits_ > 0)
+      // that may rescore its files together keeps the hits Percolator rescores (as well, for a .pin);
+      // rescoreFilesTogether_() uses the first rescoring:top_hits of them and cuts the .pin copy to report:top_hits.
+      const Size kept_hits = rescore_top_hits_ == 0 ? std::numeric_limits<Size>::max()
+                             : !pool_rescoring_ ? report_top_hits_
+                             : keep_pre_fdr_psms_ ? std::max(report_top_hits_, rescoreTopHits_()) : rescoreTopHits_();
+      // in parallel (a HeLa run: 540,000 identifications)
+      pre_fdr_psms->clear();
+      pre_fdr_psms->resize(peptide_ids.size());
+      std::vector<std::exception_ptr> errors(peptide_ids.size());
+#pragma omp parallel for schedule(dynamic, 1024)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
       {
-        keepTopHits_(*pre_fdr_psms, pool_rescoring_ ? std::max(report_top_hits_, rescoreTopHits_()) : report_top_hits_);
+        try
+        {
+          PeptideIdentification& copy = (*pre_fdr_psms)[i];
+          copy = peptide_ids[i];
+          std::vector<PeptideHit>& hits = copy.getHits();
+          if (hits.size() > kept_hits) { hits.erase(hits.begin() + kept_hits, hits.end()); }
+        }
+        catch (...)
+        {
+          errors[i] = std::current_exception();
+        }
+      }
+      for (const std::exception_ptr& error : errors)
+      {
+        if (error) { std::rethrow_exception(error); }
       }
     }
     if (rescore_)
@@ -7270,6 +7292,26 @@ namespace OpenMS
       }
       takeBackThreadsOfEndedRead();
       applyRescoredPsmFDR_(protein_ids, peptide_ids, has_decoys, stats, rescoring.applied, inference_only);
+      // A file rescored on its own needs of its copy only what the model for the files too small for one of their own
+      // may train on (rescoreFilesTogether_()): its sample, not the whole copy until the search ends.
+      if (pre_fdr_psms != nullptr && pool_rescoring_ && !keep_pre_fdr_psms_ && rescoring.applied)
+      {
+        const std::vector<Size> rows = transferSample_(*pre_fdr_psms, transferQuota_(),
+                                                       rescore_top_hits_ > 0 ? rescoreTopHits_() : std::numeric_limits<Size>::max());
+        if (rows.size() < pre_fdr_psms->size())
+        {
+          PeptideIdentificationList sample;
+          sample.reserve(rows.size());
+          for (Size r : rows) { sample.push_back(std::move((*pre_fdr_psms)[r])); }
+          // the others released in parallel (destroys only: cannot throw)
+#pragma omp parallel for schedule(dynamic, 1024)
+          for (SignedSize i = 0; i < static_cast<SignedSize>(pre_fdr_psms->size()); ++i)
+          {
+            PeptideIdentification().swap((*pre_fdr_psms)[i]);
+          }
+          *pre_fdr_psms = std::move(sample);
+        }
+      }
       return rescoring;
     }
 
@@ -8442,7 +8484,8 @@ namespace OpenMS
     // 'rescore' with several files: keep each file's PSMs before the rescoring until all files are searched, for
     // rescoreFilesTogether_() (in case Percolator cannot rescore some file on its own)
     pool_rescoring_ = rescore_ && in_spectra_files.size() > 1;
-    const OnScopeExit end_pool_rescoring([this]() { pool_rescoring_ = false; });
+    pool_files_ = in_spectra_files.size();
+    const OnScopeExit end_pool_rescoring([this]() { pool_rescoring_ = false; pool_files_ = 0; });
 
     if (in_spectra_files.empty())
     {
@@ -9368,24 +9411,60 @@ namespace OpenMS
   // PSMs) get the scores of a model trained on the files that it could rescore, or, if it could rescore none, all
   // files are rescored together.
   // =====================================================================
-  // static
-  std::vector<Size> ProSEAlgorithm::stratifiedQuotas_(const std::vector<Size>& sizes, Size cap)
+  Size ProSEAlgorithm::transferQuota_() const
   {
-    std::vector<Size> quotas = sizes;
-    Size total = std::accumulate(sizes.begin(), sizes.end(), Size(0));
-    if (cap == 0 || total <= cap) { return quotas; }
-    // water filling: equal shares, the share a small stratum leaves goes to the others
-    std::vector<Size> order(sizes.size());
-    std::iota(order.begin(), order.end(), Size(0));
-    std::sort(order.begin(), order.end(), [&](Size a, Size b) { return sizes[a] < sizes[b]; });
-    Size left = cap;
-    for (Size k = 0; k < order.size(); ++k)
+    if (max_train_psms_ == 0) { return std::numeric_limits<Size>::max(); }
+    return std::max(Size(1), max_train_psms_ / std::max(Size(1), pool_files_));
+  }
+
+  // static
+  std::vector<Size> ProSEAlgorithm::transferSample_(const PeptideIdentificationList& ids, Size max_psms, Size hits_per_spectrum)
+  {
+    // place in the draw: FNV-1a of the spectrum reference, retention time and precursor m/z, mixed (splitmix64)
+    const auto priority = [](const PeptideIdentification& id)
     {
-      const Size share = left / (order.size() - k);
-      quotas[order[k]] = std::min(sizes[order[k]], share);
-      left -= quotas[order[k]];
+      std::uint64_t h = 1469598103934665603ULL;
+      const auto add = [&h](const unsigned char* p, Size n) { for (Size k = 0; k < n; ++k) { h ^= p[k]; h *= 1099511628211ULL; } };
+      const std::string& ref = id.getSpectrumReference();
+      add(reinterpret_cast<const unsigned char*>(ref.data()), ref.size());
+      const double rt = id.getRT(), mz = id.getMZ();
+      std::uint64_t bits;
+      std::memcpy(&bits, &rt, sizeof bits);
+      add(reinterpret_cast<const unsigned char*>(&bits), sizeof bits);
+      std::memcpy(&bits, &mz, sizeof bits);
+      add(reinterpret_cast<const unsigned char*>(&bits), sizeof bits);
+      h += 0x9E3779B97F4A7C15ULL;
+      h = (h ^ (h >> 30)) * 0xBF58476D1CE4E5B9ULL;
+      h = (h ^ (h >> 27)) * 0x94D049BB133111EBULL;
+      return h ^ (h >> 31);
+    };
+    std::vector<std::pair<std::uint64_t, Size>> order;
+    Size total = 0;
+    for (Size r = 0; r < ids.size(); ++r)
+    {
+      if (ids[r].getHits().empty()) { continue; }
+      order.emplace_back(0, r);
+      total += std::min(ids[r].getHits().size(), hits_per_spectrum);
     }
-    return quotas;
+    std::vector<Size> rows;
+    rows.reserve(order.size());
+    if (total <= max_psms)
+    {
+      for (const auto& o : order) { rows.push_back(o.second); }
+      return rows;
+    }
+    for (auto& o : order) { o.first = priority(ids[o.second]); }
+    std::stable_sort(order.begin(), order.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    Size psms = 0;
+    for (const auto& o : order)
+    {
+      const Size n = std::min(ids[o.second].getHits().size(), hits_per_spectrum);
+      if (psms + n > max_psms) { continue; } // (a smaller spectrum later may still fit)
+      rows.push_back(o.second);
+      psms += n;
+    }
+    std::sort(rows.begin(), rows.end());
+    return rows;
   }
 
   void ProSEAlgorithm::rescoreFilesTogether_(MultiFileSearchResult& mfres, const std::vector<std::string>& in_spectra_files) const
@@ -9412,7 +9491,21 @@ namespace OpenMS
         alone_names.push_back(File::basename(in_spectra_files[i]) + " (" + pf.percolator.skipped_reason + ")");
       }
     }
-    const auto finish_all = [&]() { for (Size i : searched) { finish(mfres.per_file[i]); } };
+    // in parallel over the files (27 HeLa runs: their proteins and copies one after another took 12 s)
+    const auto finish_all = [&]()
+    {
+      std::vector<std::exception_ptr> errors(searched.size());
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize k = 0; k < static_cast<SignedSize>(searched.size()); ++k)
+      {
+        try { finish(mfres.per_file[searched[k]]); }
+        catch (...) { errors[k] = std::current_exception(); }
+      }
+      for (const std::exception_ptr& error : errors)
+      {
+        if (error) { std::rethrow_exception(error); }
+      }
+    };
     if (alone.empty())
     {
       finish_all();
@@ -9510,52 +9603,26 @@ namespace OpenMS
     if (!own.empty())
     {
       // Transfer: the files rescored on their own keep their results. A model trained on their PSMs (before the
-      // rescoring; each file an equal share of at most percolator:max_train_psms, so that none dominates) scores the
+      // rescoring; each file at most percolator:max_train_psms / (the input files), so that none dominates) scores the
       // others, on the scale of its training PSMs: a PSM gets the score it would get among them, and the PEP of the
       // training PSMs at that score (Percolator::scorePSMs()), not one estimated on a file too small for that.
       // 'id_merge_index' keeps the spectra of the training files apart (spectrum file numbers).
-      // The cap counts PSMs (Percolator's rows: every hit of a spectrum), the sample takes whole spectra.
-      std::vector<std::vector<Size>> rows(own.size()); // of each file, those with PSMs
-      std::vector<Size> sizes; // PSMs of each file
-      for (Size k = 0; k < own.size(); ++k)
-      {
-        const PeptideIdentificationList& ids = mfres.per_file[own[k]].pre_fdr_peptide_ids;
-        Size psms = 0;
-        for (Size r = 0; r < ids.size(); ++r)
-        {
-          if (!ids[r].getHits().empty()) { rows[k].push_back(r); psms += hits_rescored(ids[r]); }
-        }
-        sizes.push_back(psms);
-      }
-      const std::vector<Size> quotas = stratifiedQuotas_(sizes, max_train_psms_);
+      // At most percolator:max_train_psms / (the input files) PSMs of each file (Percolator's rows: the hits it rescores),
+      // reproducible random whole spectra (transferSample_(): a file rescored on its own kept only these, unless
+      // setKeepPreFdrPsms(), see applyPsmFDR_())
       PeptideIdentificationList training;
-      for (Size k = 0; k < own.size(); ++k)
+      Size available = 0;
+      for (Size i : own)
       {
-        const PeptideIdentificationList& ids = mfres.per_file[own[k]].pre_fdr_peptide_ids;
-        if (quotas[k] < sizes[k])
-        {
-          // reproducible, and the same on every platform (std::shuffle is not); whole spectra up to the file's share
-          Math::RandomShuffler(static_cast<int>(own[k] + 1)).portable_random_shuffle(rows[k].begin(), rows[k].end());
-          std::vector<Size> kept;
-          Size psms = 0;
-          for (Size r : rows[k])
-          {
-            const Size n = hits_rescored(ids[r]);
-            if (psms + n > quotas[k]) { continue; }
-            kept.push_back(r);
-            psms += n;
-          }
-          rows[k] = std::move(kept);
-          std::sort(rows[k].begin(), rows[k].end());
-        }
-        for (Size r : rows[k])
+        const PeptideIdentificationList& ids = mfres.per_file[i].pre_fdr_peptide_ids;
+        for (const PeptideIdentification& id : ids) { available += hits_rescored(id); }
+        for (Size r : transferSample_(ids, transferQuota_(), rescored_hits))
         {
           PeptideIdentification& copy = training.emplace_back(ids[r]);
-          copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(own[k]));
+          copy.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(i));
         }
       }
       cut_to_rescored(training);
-      const Size available = std::accumulate(sizes.begin(), sizes.end(), Size(0));
       Size training_psms = 0;
       for (const PeptideIdentification& id : training) { training_psms += id.getHits().size(); }
       OPENMS_LOG_INFO << "[ProSE] Percolator could not rescore " << alone.size() << " of " << searched.size()
@@ -9564,8 +9631,8 @@ namespace OpenMS
                       << " files it rescored on their own";
       if (training_psms < available)
       {
-        OPENMS_LOG_INFO << " (sampled from " << available << ", an equal share of each file, Search:percolator:max_train_psms "
-                        << max_train_psms_ << ")";
+        OPENMS_LOG_INFO << " (sampled from " << available << ": at most " << transferQuota_() << " of each file, "
+                        << "Search:percolator:max_train_psms " << max_train_psms_ << " / " << pool_files_ << " input files)";
       }
       OPENMS_LOG_INFO << "." << std::endl;
       try
