@@ -18,9 +18,11 @@ The scoring phase owns most observed raw decodes in the earlier attribution run.
 
 ## Immediate experiment: native regions through real scoring
 
+The first concrete storage/query slice is implemented and checked in [native column-region contract](native-region-contract.md). Its native producer is currently a compatibility bridge, not a frame-native backend or an integrated scoring engine. A separate [calibration getter correction](work-packages/05-shared-extraction.md#native-region-contract-and-calibration-hotspot) shows observed full native wall 309.34 to 231.23 s, user CPU 1,124.07 to 235.10 s, with all twelve outputs preserved. RSS rises; the comparison is instrumented and unbalanced. Keep that distinction when reporting measurements.
+
 Do this bounded experiment before another general accessor migration or model-training campaign. WP-03 owns access, WP-05 extraction and the fused scoring handoff, WP-07 scorer alternatives, and WP-10 the comparison decision.
 
-1. **One diagnostic pass, not a new baseline campaign.** On one pinned native Bruker workflow, collect an existing CPU/allocation profile alongside current counters. Separate native decode/conversion, copies/allocations, lock waits, extraction, numerical score-feature computation, classifier fitting/inference and writing. Report overlapping intervals rather than summing them as wall time. Use the actual scoring request order and full wider-IM evidence, not uniformly random fabricated scan IDs. Thermo/Astral is the second-platform check, not a claim inferred from Bruker.
+1. **CPU diagnostic completed; remaining attribution is scoped.** The actual unchanged full-library native Bruker profile identified 75.61% self user CPU in shared calibration getters, reduced to 2.57% by `c64e647997`. Native sorting is now the largest self symbol at 25.62%. This is not an allocation or off-CPU lock profile, nor an exclusive stage wall decomposition. Do not repeat the baseline campaign. Use actual calibrated requests and complete wider-IM evidence when integrating the region consumer, and measure cold source/index/workspace costs there. Thermo's direct contract checks pass, but full Thermo science/performance is not inferred from Bruker.
 2. **Three bounded access/execution candidates, the same request set:**
 
    | Candidate | Concrete implementation hypothesis | Decisive observation |

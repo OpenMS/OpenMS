@@ -1,8 +1,16 @@
 # WP-02 / WP-03 requirement observations
 
-**Historical snapshot, 26 October 2026.** Implementation `4024bc8325d4fecc35a300891ec7937d10c35624`, native Release (`-O3 -DNDEBUG`). The tables below map the [WP-02 contract](work-packages/02-resource-budget.md) and [WP-03 contract](work-packages/03-raw-tiles.md) at that revision, including unmet requirements. They are not claims that later vendor/read-only work is absent. Current native/read-only and known-size admission results are in [WP-05](work-packages/05-shared-extraction.md); the current whole-stack replay is recorded below. A passing local primitive or generated-fixture check is not a passing whole-engine gate.
+**Historical snapshot, 26 October 2026.** Implementation `4024bc8325d4fecc35a300891ec7937d10c35624`, native Release (`-O3 -DNDEBUG`). The tables below map the [WP-02 contract](work-packages/02-resource-budget.md) and [WP-03 contract](work-packages/03-raw-tiles.md) at that revision, including unmet requirements. They are not claims that later vendor/read-only work is absent. Current native/read-only and known-size admission results are in [WP-05](work-packages/05-shared-extraction.md); the prior whole-stack replay is recorded below. A passing local primitive or generated-fixture check is not a passing whole-engine gate.
 
-## Current whole-stack replay, 27 October 2026
+## Latest scoped validation, 27 October 2026
+
+After the whole-stack replay below, `6495579dde` adds the private native column contract and `c64e647997` fixes shared calibration array-owner churn. The actual vendor-enabled Release tool and six affected tests rebuild and pass. Direct region-to-source/extractor comparisons pass for Bruker 25 maps / 75 sampled acquisitions and Thermo 301 maps / 903 sampled acquisitions, with exact identity/columns, edge/failure/lease checks mapped in the [contract observations](native-region-contract.md#observed-requirement-to-check-mapping-27-october-2026).
+
+The full optimized native Bruker CLI preserves all twelve scientific outputs, reconciles every phase counter, respects its private cap and ends with zero live charge. Observed wall 309.34 to 231.23 s, user CPU 1,124.07 to 235.10 s, RSS 1,078,984 to 1,193,004 KiB. See [full results and retained observer failures](work-packages/05-shared-extraction.md#native-region-contract-and-calibration-hotspot). These are instrumented single observations, not a balanced speed or lower-RSS guarantee. The private region is not yet consumed by the CLI. The 188-test installation/consumer replay below belongs to `9e24325e29` and was **not** rerun for this private-contract/shared-loop increment. New contract headers are private, with no new installed API or dependency.
+
+<a id="current-whole-stack-replay-27-october-2026"></a>
+
+## Prior whole-stack replay, 27 October 2026
 
 Implementation `9e24325e29`, including all earlier stacked WP-01/02/03/05 changes, was rebuilt before this replay. Actual project native/CLI/installed-package checks pass **188/188**, including **43 real installation/consumer steps** and the 800-header no-Boost consumer build. A separate verbose boundary replay passes **7/7**, and the freshly installed consumers pass **6/6**. The requirement observations, rather than these totals alone, are:
 
