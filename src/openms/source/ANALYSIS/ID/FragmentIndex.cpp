@@ -4349,52 +4349,117 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // isotope error (its occurrences in other proteins or positions have the same matched fragments)
     if (deduplicate_ && sms.hits_.size() > first_hit + 1)
     {
-      thread_local std::unordered_map<std::string, size_t> kept_of;
-      kept_of.clear();
-      std::string key;
+      // The key of a hit: its residues, charge, isotope error and active modification slots by position and
+      // modification (the same slot index can name a different site when the occurrences differ in their protein
+      // termini). Hits with equal keys are occurrences of one peptidoform. Instead of hashing a string per hit (an
+      // allocation per hit), the hits are sorted by key in thread-local buffers, which puts equal keys side by side;
+      // the group of a key is written to the position of its first hit and represented, as before, by the first of
+      // its hits with the smallest (protein, start). The residues are compared in the FASTA entries, not copied.
+      struct DedupKey_
+      {
+        UInt32 protein_idx;
+        uint32_t start;
+        uint32_t slots_begin;  ///< first of its n_slots entries in active_slots
+        uint16_t length;
+        uint16_t n_slots;
+        uint16_t charge;
+        int16_t isotope_error;
+      };
+      struct ActiveSlot_
+      {
+        uint16_t position;
+        const ResidueModification* mod;
+      };
+      constexpr uint32_t NONE = std::numeric_limits<uint32_t>::max();
+      thread_local std::vector<DedupKey_> keys;            // per hit offset i - first_hit
+      thread_local std::vector<ActiveSlot_> active_slots;  // the active slots of all hits, consecutively
+      thread_local std::vector<uint32_t> by_key;           // the hit offsets sorted by key
+      thread_local std::vector<uint32_t> representative;   // per hit offset: the representative of its group if the hit is the group's first, else NONE
+      const size_t n = sms.hits_.size() - first_hit;
+      keys.clear();
+      active_slots.clear();
       ModSlot slots[MAX_MOD_SLOTS];
-      size_t kept = first_hit;
       for (size_t i = first_hit; i < sms.hits_.size(); ++i)
       {
         const SpectrumMatch& hit = sms.hits_[i];
         const Peptide& mother = fi_peptides_[hit.peptide_idx_];
         const std::string& protein = fasta_entries[mother.protein_idx].sequence;
         const size_t start = mother.sequence_.first;
-        key.assign(protein, start, hit.realized_length_);
-        key.append(reinterpret_cast<const char*>(&hit.precursor_charge_), sizeof(hit.precursor_charge_));
-        key.append(reinterpret_cast<const char*>(&hit.isotope_error_), sizeof(hit.isotope_error_));
+        DedupKey_& key = keys.emplace_back();
+        key.protein_idx = mother.protein_idx;
+        key.start = static_cast<uint32_t>(start);
+        key.slots_begin = static_cast<uint32_t>(active_slots.size());
+        key.length = hit.realized_length_;
+        key.n_slots = 0;
+        key.charge = hit.precursor_charge_;
+        key.isotope_error = hit.isotope_error_;
         if (hit.subset_bitmask_ != 0)
         {
-          // the active slots by position and modification: the same slot index can name a different site when the
-          // occurrences differ in their protein termini
           const size_t n_slots = buildModSlots_(protein.data() + start, hit.realized_length_, slots,
                                                 isProteinNTerminal_(protein, start),
                                                 start + hit.realized_length_ == protein.size());
           for (size_t s = 0; s < n_slots; ++s)
           {
             if (!(hit.subset_bitmask_ & (1u << s))) continue;
-            key.append(reinterpret_cast<const char*>(&slots[s].position), sizeof(slots[s].position));
-            key.append(reinterpret_cast<const char*>(&slots[s].mod_ptr), sizeof(slots[s].mod_ptr));
+            active_slots.push_back({slots[s].position, slots[s].mod_ptr});
+            ++key.n_slots;
           }
         }
-        const auto [it, inserted] = kept_of.try_emplace(key, kept);
-        const TieKey& tie = tie_keys[i - first_hit];
-        if (inserted)
+      }
+      // Any strict weak order whose equivalence is the key equality does; the cheap fields first
+      const auto key_less = [&](uint32_t a, uint32_t b)
+      {
+        const DedupKey_& x = keys[a];
+        const DedupKey_& y = keys[b];
+        if (x.length != y.length) return x.length < y.length;
+        if (x.charge != y.charge) return x.charge < y.charge;
+        if (x.isotope_error != y.isotope_error) return x.isotope_error < y.isotope_error;
+        if (x.n_slots != y.n_slots) return x.n_slots < y.n_slots;
+        const int residues = std::memcmp(fasta_entries[x.protein_idx].sequence.data() + x.start,
+                                         fasta_entries[y.protein_idx].sequence.data() + y.start, x.length);
+        if (residues != 0) return residues < 0;
+        for (uint16_t s = 0; s < x.n_slots; ++s)
         {
-          sms.hits_[kept] = hit;
-          tie_keys[kept - first_hit] = tie;
-          ++kept;
+          const ActiveSlot_& p = active_slots[x.slots_begin + s];
+          const ActiveSlot_& q = active_slots[y.slots_begin + s];
+          if (p.position != q.position) return p.position < q.position;
+          if (p.mod != q.mod) return std::less<const ResidueModification*>{}(p.mod, q.mod);
         }
-        else
+        return false;
+      };
+      by_key.resize(n);
+      std::iota(by_key.begin(), by_key.end(), uint32_t{0});
+      std::sort(by_key.begin(), by_key.end(), key_less);
+      representative.assign(n, NONE);
+      for (size_t g = 0; g < n;)
+      {
+        size_t h = g + 1;
+        while (h < n && !key_less(by_key[g], by_key[h])) ++h; // sorted: not less means equal
+        // the group by_key[g, h): its first hit and the hit that represents it
+        uint32_t first = by_key[g];
+        uint32_t rep = by_key[g];
+        for (size_t k = g + 1; k < h; ++k)
         {
-          // the occurrence that comes first in the fragment index represents the peptidoform
-          TieKey& representative = tie_keys[it->second - first_hit];
-          if (std::tie(tie.protein_idx, tie.start) < std::tie(representative.protein_idx, representative.start))
-          {
-            sms.hits_[it->second] = hit;
-            representative = tie;
-          }
+          const uint32_t o = by_key[k];
+          first = std::min(first, o);
+          const DedupKey_& c = keys[o];
+          const DedupKey_& r = keys[rep];
+          // the occurrence that comes first in the fragment index represents the peptidoform; among equal ones the
+          // first emitted
+          if (std::tie(c.protein_idx, c.start, o) < std::tie(r.protein_idx, r.start, rep)) rep = o;
         }
+        representative[first] = rep;
+        g = h;
+      }
+      size_t kept = first_hit;
+      for (size_t i = first_hit; i < sms.hits_.size(); ++i)
+      {
+        const uint32_t rep = representative[i - first_hit];
+        if (rep == NONE) continue;
+        // rep >= i - first_hit >= kept - first_hit: the representative has not been overwritten
+        sms.hits_[kept] = sms.hits_[first_hit + rep];
+        tie_keys[kept - first_hit] = tie_keys[rep];
+        ++kept;
       }
       sms.hits_.resize(kept);
       tie_keys.resize(kept - first_hit);
@@ -4411,7 +4476,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       trimHits(sms); // hits of earlier queries: no keys for them
       return;
     }
-    std::vector<size_t> order(sms.hits_.size());
+    thread_local std::vector<size_t> order;
+    order.resize(sms.hits_.size());
     std::iota(order.begin(), order.end(), size_t(0));
     const auto by_rank = [&](size_t a, size_t b)
     {
@@ -4430,10 +4496,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     };
     const size_t keep = std::min<size_t>(order.size(), max_processed_hits_);
     std::partial_sort(order.begin(), order.begin() + keep, order.end(), by_rank);
-    std::vector<SpectrumMatch> trimmed;
-    trimmed.reserve(keep);
+    thread_local std::vector<SpectrumMatch> trimmed;
+    trimmed.clear();
     for (size_t i = 0; i < keep; ++i) trimmed.push_back(sms.hits_[order[i]]);
-    sms.hits_ = std::move(trimmed);
+    // into the storage the hits have (its capacity holds them all): no allocation, and a caller that keeps sms per
+    // thread keeps the capacity for its next spectrum
+    sms.hits_.assign(trimmed.begin(), trimmed.end());
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
