@@ -220,6 +220,16 @@ namespace OpenMS
     bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
 
     /**
+     * @brief Whether the index was built from @p fasta_entries in peptide mode: every entry of getPeptides() is a span
+     * {protein_idx, sequence_} of these entries with the residues of its peptide (hasProteinOccurrences() without the
+     * condition on protein-terminal modifications).
+     *
+     * @param[in] fasta_entries The FASTA entries the index was built from (checked: their number and lengths).
+     * @return false before build(), after clear(), in peptide-mass mode and for other FASTA entries.
+     */
+    bool isBuiltFrom(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
+    /**
      * @brief Appends the protein occurrences {protein index, start} of the residues of getPeptides()[@p peptide_idx].
      *
      * These are the spans of the digest of build() with the same residues, including those of the entries that

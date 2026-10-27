@@ -7463,7 +7463,12 @@ START_SECTION(([EXTRA] protein mapping from the fragment index writes what Pepti
     {"Trypsin/P", "true", "true", {}, {}, 3},
     {"Trypsin/P", "false", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)"}, 1},
     {"Lys-C", "true", "true", {"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)"}, 3},
-    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}, 2}}; // deduplicated as strings
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}, 2}, // deduplicated as strings
+    // protein-terminal modifications: the spans from a pass over the database (the index entries of a span depend on
+    // its position in its protein)
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}, 3},
+    {"Trypsin", "false", "false", {}, {"Acetyl (Protein N-term)", "Amidated (Protein C-term)"}, 3},
+    {"Lys-C", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}, 2}};
   Size mapped = 0, m_start = 0, over_ambiguous = 0, shared = 0;
   for (const Config& config : configs)
   {
@@ -7520,7 +7525,6 @@ START_SECTION(([EXTRA] protein mapping from the fragment index leaves PeptideInd
   cases.back().db[3].sequence = "PEPTIDEKAMXXXXEQK";
   cases.push_back({"symbol", base, {}, "", ParamValue()});
   cases.back().db[1].sequence = "QPEPTIDEMR*";
-  cases.push_back({"protein-terminal modification", base, {"Acetyl (Protein N-term)"}, "", ParamValue()});
   cases.push_back({"mismatches", base, {}, "mismatches_max", ParamValue(1)});
   cases.push_back({"I/L", base, {}, "IL_equivalent", ParamValue("true")});
   cases.push_back({"no N-terminal cleavage", base, {}, "allow_nterm_protein_cleavage", ParamValue("false")});
@@ -7658,9 +7662,18 @@ START_SECTION(([EXTRA] peptide:protein_mapping index and PeptideIndexing give th
   p.setValue("fragment:min_ion_index", 0);
   p.setValue("report:top_hits", 10);
   p.setValue("modifications:fixed", vector<string> {});
-  p.setValue("modifications:variable", vector<string> {"Oxidation (M)"});
   p.setValue("peptide:missed_cleavages", 2);
   p.setValue("decoys", "auto");
+  // with protein-terminal modifications, the index lists the spans of a protein terminus with their own entries: the
+  // spans of the hits are found by a pass over the database instead (also with the decoys of keep_termini)
+  for (const vector<string>& variable : {vector<string> {"Oxidation (M)"}, vector<string> {"Oxidation (M)", "Acetyl (Protein N-term)"},
+                                         vector<string> {"Acetyl (Protein N-term)", "Amidated (Protein C-term)"}})
+  {
+  for (const string decoys : {"auto", "generate"})
+  {
+  p.setValue("modifications:variable", variable);
+  p.setValue("decoys", decoys);
+  p.setValue("decoy_method", "keep_termini");
   vector<ProteinIdentification> proteins[2];
   PeptideIdentificationList ids[2];
   for (int i = 0; i < 2; ++i)
@@ -7683,7 +7696,9 @@ START_SECTION(([EXTRA] peptide:protein_mapping index and PeptideIndexing give th
   {
     for (const auto& hit : id.getHits()) target_decoy += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
   }
-  TEST_TRUE(target_decoy > 0)
+  if (decoys == "auto") TEST_TRUE(target_decoy > 0)
+  }
+  }
 }
 END_SECTION
 

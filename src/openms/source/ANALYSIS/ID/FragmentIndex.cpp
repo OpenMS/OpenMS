@@ -4359,13 +4359,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     return fi_peptides_;
   }
 
-  bool FragmentIndex::hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
+  bool FragmentIndex::isBuiltFrom(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
   {
     if (!is_build_ || is_peptide_mass_mode_ || protein_lengths_.size() != fasta_entries.size()) return false;
     for (Size i = 0; i < fasta_entries.size(); ++i)
     {
       if (protein_lengths_[i] != fasta_entries[i].sequence.size()) return false;
     }
+    return true;
+  }
+
+  bool FragmentIndex::hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
+  {
+    if (!isBuiltFrom(fasta_entries)) return false;
     // The configured modifications themselves (not the tables built from them): a protein-terminal one, fixed or
     // variable, may make the entries of a span depend on its position in the protein.
     for (const StringList* mods : {&modifications_fixed_, &modifications_variable_})

@@ -527,7 +527,7 @@ namespace OpenMS
                        "How the hits are mapped to their proteins (peptide evidences, target_decoy, protein_references, protein hits). "
                        "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate; the result is "
                        "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. low_memory, a specificity "
-                       "other than full, protein-terminal modifications, a chunked database, symbols other than letters or long stretches "
+                       "other than full, a chunked database, symbols other than letters or long stretches "
                        "of ambiguous residues in the database). 'PeptideIndexing': always search every hit in the whole database "
                        "(Aho-Corasick), as before.",
                        {"advanced"});
@@ -4378,10 +4378,14 @@ namespace OpenMS
       mapping.fallback_reason = "not a fully specific digestion with the enzyme of the fragment index";
       return mapping;
     }
-    if (!index.hasProteinOccurrences(db))
+    // The spans with the residues of a hit come from the index entries if they list them all; with a protein-terminal
+    // modification they do not (the entries of a span depend on its position in its protein), and the spans are found
+    // by a pass over the database instead (1. below).
+    const bool index_occurrences = index.hasProteinOccurrences(db);
+    if (!index_occurrences && !index.isBuiltFrom(db))
     {
       mapping.fallback_reason = "the fragment index does not list every protein occurrence of its peptides "
-                                "(low_memory, protein-terminal modifications, or not built from this database)";
+                                "(low_memory, or not built from this database)";
       return mapping;
     }
     const Size aaa_max = static_cast<Size>(static_cast<Int>(indexer_parameters.getValue("aaa_max")));
@@ -4477,12 +4481,15 @@ namespace OpenMS
       return mapping;
     }
 
-    // 1. the spans of the digest: per candidate, then per sequence
+    // 1. the spans of the digest: per candidate, then per sequence (from the index; else after the sequences, below)
     std::vector<std::vector<Occurrence>> candidate_occurrences(candidates.size());
-#pragma omp parallel for schedule(dynamic, 64)
-    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    if (index_occurrences)
     {
-      index.getProteinOccurrences(candidates[i], db, candidate_occurrences[i]);
+#pragma omp parallel for schedule(dynamic, 64)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+      {
+        index.getProteinOccurrences(candidates[i], db, candidate_occurrences[i]);
+      }
     }
     // One entry per sequence (the candidates of a sequence differ in their modifications only: they have the same
     // spans). The sequences go to ProteinMapping_::SHARDS hash tables by their hash, filled in parallel; the entries
@@ -4533,7 +4540,70 @@ namespace OpenMS
       }
     }
 
-    std::vector<std::tuple<Size, UInt32, UInt32>> extra; // spans of 2. and 3.: {sequence entry, protein, position}
+    std::vector<std::tuple<Size, UInt32, UInt32>> extra; // spans of 1. (database pass), 2. and 3.: {sequence entry, protein, position}
+
+    // 1. without the occurrences of the index: every span of the database with the residues of a sequence that
+    //    PeptideIndexing accepts (isValidProduct() as in its search, which matches the residues literally here: the
+    //    spans over ambiguous residues are those of 3.). Positions are prefiltered by their first residues (a bit set over
+    //    the sequences' first prefix_length residues as a base-26 number), then looked up by the key of their first
+    //    key_length residues. The database holds the letters A-Z only (checked above).
+    if (!index_occurrences)
+    {
+      const Size key_length = std::min<Size>(min_length, 8);
+      std::vector<std::pair<uint64_t, Size>> keyed(mapping.sequences.size());
+#pragma omp parallel for schedule(static)
+      for (SignedSize entry = 0; entry < static_cast<SignedSize>(keyed.size()); ++entry)
+      {
+        keyed[entry] = {residueKey(mapping.sequences[entry], key_length), static_cast<Size>(entry)};
+      }
+      std::sort(keyed.begin(), keyed.end());
+      const Size prefix_length = std::min<Size>(key_length, 5);
+      Size prefix_count = 1;
+      for (Size i = 0; i < prefix_length; ++i) prefix_count *= 26;
+      const Size prefix_shift = prefix_count / 26; // 26^(prefix_length - 1)
+      const auto prefix_of = [prefix_length](const char* residues)
+      {
+        Size code = 0;
+        for (Size i = 0; i < prefix_length; ++i) code = code * 26 + static_cast<Size>(residues[i] - 'A');
+        return code;
+      };
+      std::vector<uint64_t> prefix_bits((prefix_count + 63) / 64, 0);
+      for (const std::string_view sequence : mapping.sequences)
+      {
+        const Size code = prefix_of(sequence.data());
+        prefix_bits[code >> 6] |= uint64_t(1) << (code & 63);
+      }
+#pragma omp parallel
+      {
+        const ProteaseDigestion thread_enzyme = enzyme; // as PeptideIndexing: one per thread
+        std::vector<std::tuple<Size, UInt32, UInt32>> found;
+#pragma omp for schedule(dynamic, 16) nowait
+        for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+        {
+          const std::string& protein = db[p].sequence;
+          if (protein.size() < min_length) continue;
+          Size code = prefix_of(protein.data()) / 26; // the first prefix_length - 1 residues
+          for (Size position = 0; position + min_length <= protein.size(); ++position)
+          {
+            code = (code % prefix_shift) * 26 + static_cast<Size>(protein[position + prefix_length - 1] - 'A');
+            if (((prefix_bits[code >> 6] >> (code & 63)) & 1) == 0) continue;
+            const uint64_t key = residueKey(std::string_view(protein).substr(position), key_length);
+            for (auto k = std::lower_bound(keyed.begin(), keyed.end(), std::make_pair(key, Size(0)));
+                 k != keyed.end() && k->first == key; ++k)
+            {
+              const std::string_view sequence = mapping.sequences[k->second];
+              if (position + sequence.size() <= protein.size() && protein.compare(position, sequence.size(), sequence) == 0
+                  && thread_enzyme.isValidProduct(protein, static_cast<int>(position), static_cast<int>(sequence.size()), true, true, false))
+              {
+                found.emplace_back(k->second, static_cast<UInt32>(p), static_cast<UInt32>(position));
+              }
+            }
+          }
+        }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        extra.insert(extra.end(), found.begin(), found.end());
+      }
+    }
 
     // 2. positions 1 and 2 of proteins that start with M: found through their first residues
     {

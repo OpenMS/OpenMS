@@ -4073,9 +4073,11 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   fi.setParameters(p);
   fi.build(db);
   TEST_TRUE(fi.hasProteinOccurrences(db))
+  TEST_TRUE(fi.isBuiltFrom(db))
   vector<FASTAFile::FASTAEntry> other = db;
   other[1].sequence += "R";
   TEST_FALSE(fi.hasProteinOccurrences(other)) // not built from these entries
+  TEST_FALSE(fi.isBuiltFrom(other))
   other = db;
   other.pop_back();
   TEST_FALSE(fi.hasProteinOccurrences(other))
@@ -4090,6 +4092,7 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
     fi.setParameters(p);
     fi.build(db);
     TEST_FALSE(fi.hasProteinOccurrences(db))
+    TEST_TRUE(fi.isBuiltFrom(db)) // (its entries are spans of the database)
   }
   p.setValue("modifications:fixed", vector<string> {"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable", vector<string> {});
@@ -4103,6 +4106,7 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   fi.build(db);
   TEST_TRUE(fi.isPeptideMassMode())
   TEST_FALSE(fi.hasProteinOccurrences(db))
+  TEST_FALSE(fi.isBuiltFrom(db))
 }
 END_SECTION
 
