@@ -7,7 +7,7 @@
 
 ## Objective
 
-Share identical extraction queries in the existing engine without changing evidence or waiting for new retrieval science.
+Provide efficient calibrated evidence access and extraction, including an OpenDIA-owned replacement dataflow where warranted. Existing-engine query sharing is a compatibility experiment, not the final architecture. Follow the [native-region/fused execution experiment](../performance-strategy.md#immediate-experiment-native-regions-through-real-scoring).
 
 ## Scope
 
@@ -108,6 +108,8 @@ Local `wp05-known-bounds-20261027` artifacts: `native-tests-final.log`, retained
 
 ## Next increment
 
+**Superseded implementation restriction, 27 October 2026:** the trace below remains evidence that mutable legacy aliases are unsafe, but its accessor-preserving four-step migration is now only a compatibility option. The owner explicitly authorizes replacing whole access/extraction/scoring components in `src/topp/OpenDIA/`. The immediate next step is the [native-region-to-real-score comparison](../performance-strategy.md), not mandatory migration through `ISpectrumAccess::SpectrumView`. New scientific scorers use independent quality gates rather than exact old-score equality. Keep all historical observations and failures intact.
+
 ### Scoring-boundary trace, 27 October 2026
 
 The trace is complete on `9e24325e29`, but **no scoring-copy reduction has been implemented**. The existing const view is sufficient for extraction, not a drop-in replacement for scoring:
@@ -117,9 +119,9 @@ The trace is complete on `9e24325e29`, but **no scoring-copy reduction has been 
 - DIA integration and `IonMobilityScoring::computeIonMobilogram` consume numerical arrays without modifying them, but their present spectrum input types do not enforce that property. MS1 drift contrast also needs the MS2 sequence. Early filtering to the extraction mobility window would lose wider scoring evidence.
 - The existing nested precursor-MS1 reuse already avoids a second fetch in its supported case. Aggregate scoring counters do not identify the MS1/MS2 split, so 9,432 copies is not evidence that 9,432 identical reads can be removed.
 
-The existing master-plan stop rule therefore applies to the proposed local substitution. No `const_pointer_cast`, mutable alias of cached columns, speculative query cache or implicit scoring-interface rewrite was added. This is a code-boundary prerequisite, not an external blockage or evidence that a read-only scoring implementation is impossible.
+In that local-substitution investigation, the master-plan stop rule applied to returning raw aliases through the mutable API. No `const_pointer_cast`, mutable alias of cached columns or speculative query cache was added. This was a code-boundary prerequisite for that adapter, not an external blockage or a prohibition on the now-authorized OpenDIA-owned rewrite.
 
-**The next implementation must explicitly own the scoring input migration:**
+**Earlier compatibility-migration option, not the mandatory next implementation:**
 
 1. Introduce a read-only scoring path using the existing `ISpectrumAccess::SpectrumView` owners. Start with the single-map, `simple` addition path, retaining existing detached mutable fetch/merge behavior for other paths. Preserve the exact nearest-RT selection/order, full mobility arrays and exception-time release. Keep the existing public mutable API unchanged.
 2. Carry that read-only input through the actual DIA and IM numerical consumers, including MS1/MS2 contrast, rather than converting it back into a mutable facade. Keep calibrated wrappers on their correct fallback until a separately charged calibrated view is implemented. Do not claim all scoring copies removed while fallback copies remain.

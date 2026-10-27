@@ -19,7 +19,9 @@ src/topp/OpenDIA/
 
 Move the existing `src/topp/OpenDIA.cpp` without behavior changes first. Extract orchestration into a private static/OBJECT library linked by the tool and its tests, registered with `openms_add_tool_class_test`. New contracts are unstable v0, with no installed headers or pyOpenMS/API promise. Keep dependency direction tool -> private engine -> OpenMS core. Promote generic code only for a real second consumer. Fix genuine shared-core bugs directly in core.
 
-Raw tiles, streamed libraries, shared extraction and compact outputs enter the current engine behind options, with identical/tolerance-equal result checks. Only retrieval and family inference require new scientific algorithms. WP-05 adapts existing mass/RT/IM calibration so data handling does not wait for WP-06.
+**Owner clarification, 27 October 2026:** entire raw-access, indexing, extraction, scheduling and scoring components may be rewritten inside `src/topp/OpenDIA/`. Existing OpenMS/OpenSWATH accessors and scorers are compatibility/reference paths, not mandatory internal interfaces. Preserve shared-library consumers without forcing the private engine through their containers. Reuse low-level decoding/calibration where useful, not where it prevents a better measured design. Follow the [performance exploration and comparison protocol](performance-strategy.md).
+
+Behavior-preserving engineering retains identical/tolerance-equal reference results. New retrieval, scoring, learned models and family inference are allowed as explicitly versioned scientific alternatives, evaluated by independent identification/localization error control and quantitative non-inferiority rather than exact legacy score equality. WP-05 owns calibrated evidence access, and WP-07 owns alternative scoring science. No model, storage layout or accessor is selected merely for familiarity or novelty.
 
 ## Units and contracts
 

@@ -7,7 +7,7 @@
 
 ## Objective
 
-Test the localization null/decoy model before freezing contracts, then implement shared-evidence family scoring informed by that experiment.
+Test the localization null/decoy model before freezing contracts, then implement shared-evidence family scoring informed by that experiment. The 27 October owner clarification also authorizes replacing identification/confidence scoring, including learned models, under the [scoring exploration protocol](../performance-strategy.md#scoring-exploration-is-allowed-including-replacement). This is planned research, not a validated faster model.
 
 ## Scope
 
@@ -16,6 +16,8 @@ Test the localization null/decoy model before freezing contracts, then implement
 - Record competing/coexisting forms, unresolved groups and quantitative ambiguity rather than forcing a winner.
 - Test shared-observation attribution, weak site-discriminating ions, optional MS1 and RT/IM evidence before optimizing sparse accumulation.
 - New family science is single-run in v1. New multi-run inference and experiment-wide FDR claims are deferred.
+- Compare batched/fused existing numerical scoring with one compact learned alternative before adopting a model. Distinguish expensive raw access and handcrafted feature generation from classifier fitting/inference; adding a neural network after unchanged feature computation does not remove that computation.
+- Keep training/tuning/evaluation split by appropriate peptide/family, shared spectrum and run/instrument groups. Validate independent identification/localization error and quantitative quality, including model preparation cost and CPU memory. A new model need not reproduce legacy scores, but nominal q-values or higher ID totals alone do not establish acceptance.
 
 ## Dependencies
 

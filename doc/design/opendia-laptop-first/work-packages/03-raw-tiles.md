@@ -12,13 +12,13 @@
 
 ## Current handoff, 26 October 2026
 
-Project status is In review, not Done. WP-05 `6423194fc8`, stacked on WP-03 `4024bc8325`, now supplies the actual extractor with leased const arrays while preserving mutable scoring/calibration fallback. Five affected native tests and one full tiled256 workflow pass with all twelve outputs equal. This verifies the WP-05 consumer handoff only, not WP-06 integration, repeated-decode reduction or full WP-03 acceptance. Follow the [ordered next actions](../README.md#current-state-and-next-actions): attribute the remaining 11,290 misses before choosing a reuse change, then harden automatic byte-based job admission.
+Project status is In review, not Done. WP-05 `6423194fc8`, stacked on WP-03 `4024bc8325`, supplies the extractor with leased const arrays while preserving mutable scoring/calibration fallback. Five affected native tests and one full tiled256 workflow passed with all twelve outputs equal. This is a historical handoff, not the current counter snapshot or full WP-03 acceptance. Subsequent attribution and known-size admission results are in the [master's current state](../README.md#current-state-and-next-actions). The 27 October owner clarification authorizes native frame/block indexing and a replacement OpenDIA-owned execution path under the [performance strategy](../performance-strategy.md); indexed mzML, one scan per tile and legacy accessors are not final design constraints.
 
 ## Objective
 
 Read raw evidence without keeping all run peaks in memory. Preserve acquisition geometry and observable evidence. Do not merge into `develop` before the combined design passes its correctness, speed and memory checks.
 
-## Current design
+## First adapter design, not final architecture constraints
 
 - Reuse the indexed mzML reader and its SWATH-map checks. Do not add a disk-cache format.
 - Use one scan per tile. Store metadata once per tile and numeric data in columns.

@@ -17,6 +17,8 @@ Decide adoption from representative end-to-end quality, runtime, memory and disk
 - Compare results and rescore at matched retained populations, with table cardinality, final bytes and actual peak disk including temporary/sidecar overlap.
 - Evaluate single-run family science separately from unchanged existing multi-input/matrix regressions. Do not infer experiment-wide FDR validity.
 - Keep default adoption blocked on failed or unmeasured gates, without retrospectively relaxing thresholds.
+- Compare pinned available DIA-NN and Spectronaut versions under the [quality-matched comparison protocol](../performance-strategy.md#comparable-to-dia-nn-and-spectronaut-means-measured-science). Match search/library/MBR and inference scope, externally check error rates and assess quantitative accuracy/completeness, not just ID counts or equal nominal q-values. Unavailable licensed comparators remain explicitly unrun without blocking local OpenDIA prototyping.
+- Evaluate behavior-preserving engine rewrites by reference output equivalence, and explicitly new scientific scorers by prospectively declared non-inferiority margins and independent truth/error-control checks. Include native decoding, optional indexing, prediction/training, scoring, rescoring and export costs. No numerical scientific margin or comparator parity is approved or established by this plan update.
 
 ## Dependencies
 
