@@ -4467,7 +4467,11 @@ namespace OpenMS
 
     // The candidates, once each, and the lengths of their sequences. A hit with an ambiguous residue leaves the
     // mapping to PeptideIndexing; checked first, since it needs no pass over the database.
-    std::sort(candidates.begin(), candidates.end());
+#ifdef PROSE_GNU_PARALLEL
+    if (candidates.size() >= 65536 && omp_get_max_threads() > 1) { __gnu_parallel::sort(candidates.begin(), candidates.end()); }
+    else
+#endif
+    { std::sort(candidates.begin(), candidates.end()); }
     candidates.erase(std::unique(candidates.begin(), candidates.end()), candidates.end());
     if (candidates.empty()) return mapping; // nothing to map (applyProteinMapping_() decides)
     const std::vector<FragmentIndex::Peptide>& peptides = index.getPeptides();
@@ -4631,7 +4635,11 @@ namespace OpenMS
       {
         keyed[entry] = {residueKey(mapping.sequences[entry], key_length), static_cast<Size>(entry)};
       }
-      std::sort(keyed.begin(), keyed.end());
+#ifdef PROSE_GNU_PARALLEL
+      if (keyed.size() >= 65536 && omp_get_max_threads() > 1) { __gnu_parallel::sort(keyed.begin(), keyed.end()); } // (distinct pairs)
+      else
+#endif
+      { std::sort(keyed.begin(), keyed.end()); }
       const Size prefix_length = std::min<Size>(key_length, 5);
       Size prefix_count = 1;
       for (Size i = 0; i < prefix_length; ++i) prefix_count *= 26;
@@ -4835,7 +4843,25 @@ namespace OpenMS
     }
 
     // all spans of every sequence, ascending and once (2. and 3. may find spans of 1. again)
-    for (const auto& [entry, protein, position] : extra) mapping.occurrences[entry].emplace_back(protein, position);
+    // (grouped by entry through counts, then appended per entry in parallel: in the order of `extra` within an entry,
+    // which the sort below makes irrelevant)
+    {
+      std::vector<Size> first(mapping.occurrences.size() + 1, 0);
+      for (const auto& found : extra) ++first[std::get<0>(found) + 1];
+      for (Size k = 1; k < first.size(); ++k) first[k] += first[k - 1];
+      std::vector<Occurrence> grouped(extra.size());
+      {
+        std::vector<Size> next(first.begin(), first.end() - 1);
+        for (const auto& [entry, protein, position] : extra) grouped[next[entry]++] = Occurrence(protein, position);
+      }
+      std::vector<std::tuple<Size, UInt32, UInt32>>().swap(extra);
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize k = 0; k < static_cast<SignedSize>(mapping.occurrences.size()); ++k)
+      {
+        if (first[k] == first[k + 1]) continue;
+        mapping.occurrences[k].insert(mapping.occurrences[k].end(), grouped.begin() + first[k], grouped.begin() + first[k + 1]);
+      }
+    }
 #pragma omp parallel for schedule(dynamic, 256)
     for (SignedSize k = 0; k < static_cast<SignedSize>(mapping.occurrences.size()); ++k)
     {
@@ -6640,8 +6666,30 @@ namespace OpenMS
       {
         // the rows (in spectrum order) sorted as before: the same stable sort with the same comparison (also for NaN)
         std::vector<SignedSize>& r = rows[g];
-        std::stable_sort(r.begin(), r.end(), [&score_of, &decoy_of](const SignedSize a, const SignedSize b)
-                         { return score_of[a] > score_of[b] || (score_of[a] == score_of[b] && decoy_of[a] && !decoy_of[b]); });
+        if (std::any_of(r.begin(), r.end(), [&score_of](const SignedSize i) { return std::isnan(score_of[i]); }))
+        {
+          // With NaN the comparison is no strict weak order, and the permutation depends on the algorithm's path (e.g.
+          // on the temporary buffer it gets, counted in elements): the former sort of rows of the former size, exactly
+          // (the former Row held a PeptideHit* where this one holds the spectrum index).
+          struct Row { double score; bool decoy; SignedSize spectrum; };
+          static_assert(sizeof(SignedSize) == sizeof(PeptideHit*) && alignof(SignedSize) == alignof(PeptideHit*), "rows of the former size");
+          std::vector<Row> former(r.size());
+          for (Size i = 0; i < r.size(); ++i) former[i] = {score_of[r[i]], decoy_of[r[i]] != 0, r[i]};
+          std::stable_sort(former.begin(), former.end(), [](const Row& a, const Row& b)
+                           { return a.score > b.score || (a.score == b.score && a.decoy && !b.decoy); });
+          for (Size i = 0; i < r.size(); ++i) r[i] = former[i].spectrum;
+        }
+        else
+        {
+          // a strict weak order: every stable sort gives the same (unique) result
+          const auto before = [&score_of, &decoy_of](const SignedSize a, const SignedSize b)
+                              { return score_of[a] > score_of[b] || (score_of[a] == score_of[b] && decoy_of[a] && !decoy_of[b]); };
+#ifdef PROSE_GNU_PARALLEL
+          if (r.size() >= 65536 && omp_get_max_threads() > 1) { __gnu_parallel::stable_sort(r.begin(), r.end(), before); }
+          else
+#endif
+          { std::stable_sort(r.begin(), r.end(), before); }
+        }
         std::vector<double> q(r.size());
         Size targets = 0, decoys = 0;
         for (Size i = 0; i < r.size(); ++i)
