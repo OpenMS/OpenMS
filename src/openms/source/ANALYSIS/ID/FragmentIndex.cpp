@@ -22,6 +22,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -3888,6 +3889,39 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     const uint32_t mother_mask = entry_sites_ ? ENTRY_MOTHER_MASK_ : ~uint32_t{0};
     const bool has_variable_mods = mod_shifts_.size() > 1 || zero_sigma_subsets_;
 
+    // The entries are sorted by m/z, and bucket_min_mz_[b] is the m/z of entry b * bucketsize_ (build()): a bound is
+    // located among the bucket minima first (a few kB per million entries), then among the entries of one bucket and the
+    // one before it. The first entry with m/z >= v (lower_bound) comes after the first entry of the last bucket whose
+    // minimum is < v (that entry is < v, and so is every entry before it) and at or before the first entry of the next
+    // bucket (>= v): the search in [(b - 1) * bucketsize_, b * bucketsize_), b the first bucket with minimum >= v, finds
+    // it, as the first entry of bucket b if none in the range is >= v. Likewise the first entry > v (upper_bound), with
+    // b the first bucket whose minimum is > v. The result is that of the search in the whole index, with about 12 probes
+    // (of which 2 are in the entries) instead of 29 for 450 M entries.
+    const size_t num_entries = fi_fragments_.size();
+    const float* const bucket_mins = bucket_min_mz_.data();
+    const size_t num_buckets = bucket_min_mz_.size();
+    const auto bucketRange = [&](size_t bucket) -> std::pair<size_t, size_t>
+    {
+      if (num_buckets == 0) return {0, num_entries}; // no bucket minima: the whole index
+      return {bucket == 0 ? 0 : (bucket - 1) * bucketsize_, std::min(bucket * bucketsize_, num_entries)};
+    };
+    const auto lowerBound = [&](float v)
+    {
+      const auto [from, to] = bucketRange(static_cast<size_t>(std::lower_bound(bucket_mins, bucket_mins + num_buckets, v) - bucket_mins));
+      const size_t e = static_cast<size_t>(std::lower_bound(entries + from, entries + to, v, by_mz) - entries);
+      OPENMS_POSTCONDITION(e == static_cast<size_t>(std::lower_bound(entries, entries + num_entries, v, by_mz) - entries),
+                           "the bucket-seeded lower_bound differs from the search in the whole index");
+      return e;
+    };
+    const auto upperBound = [&](float v)
+    {
+      const auto [from, to] = bucketRange(static_cast<size_t>(std::upper_bound(bucket_mins, bucket_mins + num_buckets, v) - bucket_mins));
+      const size_t e = static_cast<size_t>(std::upper_bound(entries + from, entries + to, v, mz_by) - entries);
+      OPENMS_POSTCONDITION(e == static_cast<size_t>(std::upper_bound(entries, entries + num_entries, v, mz_by) - entries),
+                           "the bucket-seeded upper_bound differs from the search in the whole index");
+      return e;
+    };
+
     // The shift a sum of modification deltas belongs to: the closest one (mod_shifts_ is ascending)
     const auto shiftOf = [this](double sigma)
     {
@@ -4028,8 +4062,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         {
           const ModShift_& shift = mod_shifts_[j];
           const float s = static_cast<float>(shift.sigma);
-          const size_t first = std::lower_bound(entries, entries + fi_fragments_.size(), lo - s - margin, by_mz) - entries;
-          const size_t last = std::upper_bound(entries, entries + fi_fragments_.size(), hi - s + margin, mz_by) - entries;
+          const size_t first = lowerBound(lo - s - margin);
+          const size_t last = upperBound(hi - s + margin);
           // The entries whose prefix may have enough modification sites for the shift
           const uint32_t min_sites = static_cast<uint32_t>(std::min<size_t>(shift.min_mods, ENTRY_MAX_SITES_));
           const bool filter_sites = entry_sites_ && min_sites > 0;
