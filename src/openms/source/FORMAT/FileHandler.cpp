@@ -363,7 +363,7 @@ namespace OpenMS
     /// BrukerTimsFile configuration for FileHandler: the MS levels and the RT and ion mobility ranges of the PeakFileOptions
     /// are passed to the reader, so that the frames they exclude are not decoded. The caller applies all options to the
     /// spectra afterwards.
-    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
+    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options, const std::string& filename)
     {
       // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
       // Asking for MS3 or higher alone therefore decodes nothing.
@@ -382,7 +382,9 @@ namespace OpenMS
         config.rt_max_sec = options.getRTRange().maxPosition()[0];
         config.rt_selects_spectra = true;
       }
-      if (options.hasIMRange())
+      // TSF data has no ion mobility, and the reader rejects the range for it; its spectra pass the range applied
+      // afterwards, as those of other data without ion mobility do
+      if (options.hasIMRange() && BrukerTimsFile::detectFormat(filename) != BrukerTimsFile::DataFormat::TSF)
       {
         config.im_min = options.getIMRange().minPosition()[0];
         config.im_max = options.getIMRange().maxPosition()[0];
@@ -454,10 +456,10 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
-      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries. TSF and BAF
-      // data (no ion mobility) count as well: BrukerTimsFile then says that it cannot read them, which tells
-      // more than an unknown file type. An archive whose entries cannot be listed is taken by its name; the
-      // reader reports what is wrong with it.
+      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries: TDF and TSF data,
+      // which BrukerTimsFile reads, and BAF data, for which it says that it cannot read it, which tells more than an
+      // unknown file type. An archive whose entries cannot be listed is taken by its name; the reader reports what
+      // is wrong with it.
       return BrukerTimsFile::detectFormat(normalized) != BrukerTimsFile::DataFormat::NONE ? FileTypes::BRUKER_TDF
                                                                                           : FileTypes::UNKNOWN;
     }
@@ -1205,7 +1207,7 @@ namespace OpenMS
         BrukerTimsFile f;
         f.setLogType(log);
         // Do not decode what the PeakFileOptions exclude anyway
-        f.load(filename, exp, brukerConfig(options_));
+        f.load(filename, exp, brukerConfig(options_, filename));
 
         // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
         applyPostLoadOptions_(exp);
@@ -1312,7 +1314,7 @@ namespace OpenMS
         ForwardingConsumer forward(consumer, settings, [this](MSSpectrum& s) { return applyOptions(options_, s); });
         BrukerTimsFile f;
         f.setLogType(log);
-        f.transform(filename, &forward, brukerConfig(options_));
+        f.transform(filename, &forward, brukerConfig(options_, filename));
       }
       break;
 #endif

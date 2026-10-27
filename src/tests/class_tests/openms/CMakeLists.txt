@@ -341,6 +341,16 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
 endif()
 
+# Real Bruker TSF runs (timsTOF without ion mobility), if given: OPENTIMS_TSF_TEST_DATA, the .d directory of an LC-MS run
+# with TIMS off (MassIVE MSV000095813, 'Molecular Networking_OE_timsOFF.d'), and OPENTIMS_TSF_IMAGING_TEST_DATA, that of a
+# MALDI imaging run (MassIVE MSV000088438, 20210920_vc_rugose_1mMTCA_gordon.d). The tests compare with the Bruker SDK.
+if (TARGET BrukerTimsFile_test AND OPENTIMS_TSF_TEST_DATA)
+  target_compile_definitions(BrukerTimsFile_test PRIVATE OPENTIMS_TSF_TEST_DATA="${OPENTIMS_TSF_TEST_DATA}")
+endif()
+if (TARGET BrukerTimsImagingFile_test AND OPENTIMS_TSF_IMAGING_TEST_DATA)
+  target_compile_definitions(BrukerTimsImagingFile_test PRIVATE OPENTIMS_TSF_IMAGING_TEST_DATA="${OPENTIMS_TSF_IMAGING_TEST_DATA}")
+endif()
+
 # Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the
 # random-access tests only the small one.
 set(_thermo_raw_tests ThermoRawFile_test OnDiscThermoRawExperiment_test SpectrumAccessOnDisc_test)

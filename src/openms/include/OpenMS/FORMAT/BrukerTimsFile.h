@@ -59,6 +59,23 @@ namespace OpenMS
    *   in FloatDataArray) for both MS1 and MS2, without precursor grouping or
    *   SWATH splitting. MS2 frame-level access may not be available for all
    *   acquisition types.
+   *
+   * @section tsf TSF data (timsTOF without ion mobility)
+   *
+   * load() and transform() also read TSF data (analysis.tsf, analysis.tsf_bin; see detectFormat()), which
+   * timsTOF instruments write without TIMS separation: most MALDI imaging runs (read by BrukerTimsImagingFile),
+   * MALDI spot runs and LC-MS runs with TIMS off. Every frame gives one spectrum, in every export mode: its line
+   * spectrum, which the acquisition stored centroided, without ion mobility. The spectra of MS/MS frames (any
+   * MsMsType but 0) are MS2 spectra with the precursor of FrameMsMsInfo (trigger m/z, isolation width, charge,
+   * collision energy; CID). Spectra of MALDI runs get the spot name of MaldiFrameInfo as the MetaValue
+   * "maldi_spot_id", as the mzML reader stores the spotID of a spectrum. The native IDs are "frame=<id>" (Bruker
+   * TSF nativeID format). m/z comes from the same calibrations as for TDF data (see tims_calibration_strategy).
+   *
+   * The ion mobility options do not apply to TSF data: load() and transform() throw Exception::InvalidParameter if
+   * any of them differs from its default (im_min/im_max, the centroiding, isotopic prefilter and frame aggregation
+   * options, pressure_compensation, the RATIONAL strategy) and if calibrate or calibration_tolerance is set (the
+   * recalibration from DDA-PASEF precursors). readDIAMetadata() and loadDIAStreaming() read DIA-PASEF data only and
+   * throw Exception::ParseError for TSF data.
    */
   class OPENMS_DLLAPI BrukerTimsFile : public ProgressLogger
   {
@@ -247,6 +264,10 @@ namespace OpenMS
         (logged as "TIMS calibration: Bruker SDK (m/z + 1/K0)"). If it cannot be loaded, AUTO logs a
         warning and continues with the calibration tables above; BRUKER_SDK throws. The SDK exists
         only for x86-64 Linux and Windows.
+
+        TSF data (no ion mobility): m/z only, by the same rules from the tables of analysis.tsf, or from
+        the SDK's TSF functions (logged as "TSF calibration: Bruker SDK (m/z)"). RATIONAL, a 1/K0 model,
+        does not apply to it.
       */
       enum class TimsCalibrationStrategy { AUTO, BRUKER_SDK, RATIONAL, LINEAR };
       TimsCalibrationStrategy tims_calibration_strategy = TimsCalibrationStrategy::AUTO;
@@ -266,8 +287,8 @@ namespace OpenMS
     enum class DataFormat
     {
       NONE,              ///< no Bruker data: none of the files below, or not a directory or ZIP archive at all
-      TDF,               ///< timsTOF data with ion mobility (analysis.tdf, analysis.tdf_bin): what this class reads
-      TSF,               ///< timsTOF data without ion mobility (analysis.tsf, analysis.tsf_bin): cannot be read
+      TDF,               ///< timsTOF data with ion mobility (analysis.tdf, analysis.tdf_bin)
+      TSF,               ///< timsTOF data without ion mobility (analysis.tsf, analysis.tsf_bin): read by load() and transform()
       BAF,               ///< QTOF data (analysis.baf): cannot be read
       UNREADABLE_ARCHIVE ///< a ZIP archive whose list of entries could not be read
     };
@@ -287,7 +308,7 @@ namespace OpenMS
 
       load() and the other read functions call this, so there is no need to call it before them.
 
-      @throws Exception::ParseError if detectFormat() finds TSF or BAF data
+      @throws Exception::ParseError if detectFormat() finds BAF data
     */
     static void checkDataFormat(const std::string& path);
 
@@ -315,13 +336,17 @@ namespace OpenMS
                           const Config& config);
 
     /// Load entire .d directory into MSExperiment
-    /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF
-    ///         data that is not zstd-compressed (TimsCompressionType other than 2), a '.d.zip' archive without a
-    ///         .d directory, or an analysis.tdf that lacks a table or column the reader needs. The other read
-    ///         functions throw the same.
+    /// @throws Exception::ParseError for Bruker data that cannot be read: BAF data (see detectFormat()), TDF data
+    ///         that is not zstd-compressed (TimsCompressionType other than 2), TSF data with a TimsCompressionType
+    ///         other than 3 or frame data that does not match analysis.tsf, a '.d.zip' archive without a .d
+    ///         directory, or an analysis.tdf (analysis.tsf) that lacks a table or column the reader needs. The other
+    ///         read functions throw the same; readDIAMetadata() and loadDIAStreaming() also for TSF data.
     /// @throws Exception::InvalidFileType for a MALDI imaging run, unless the export mode is FRAME (see above), as
     ///         do transform() and, in every export mode, readDIAMetadata() and loadDIAStreaming()
-    /// @throws Exception::FileNotReadable if opentims cannot open the directory
+    /// @throws Exception::InvalidParameter for TSF data and an option that does not apply to it (see above), as
+    ///         does transform()
+    /// @throws Exception::FileNotReadable if opentims cannot open the directory, or the Bruker SDK required by
+    ///         TimsCalibrationStrategy::BRUKER_SDK cannot be used
     void load(const std::string& path, MSExperiment& exp);
     /// @overload with explicit configuration
     void load(const std::string& path, MSExperiment& exp, const Config& config);
@@ -366,8 +391,14 @@ namespace OpenMS
     /// Load raw frames without precursor grouping or SWATH splitting
     void loadFrames_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
-    /// Populate SourceFile metadata from the input @p path and the run and instrument metadata from the analysis.tdf of
-    /// the .d directory @p d_path (the unpacked directory for a .d.zip; no peak data read)
+    /// The frames to read from TSF data and how (defined in the .cpp)
+    struct TSFRun;
+
+    /// Load TSF data: one spectrum per frame of @p run, in its order (by retention time)
+    void loadTSF_(TSFRun& run, const SpectrumSink& sink);
+
+    /// Populate SourceFile metadata from the input @p path and the run and instrument metadata from the analysis.tdf
+    /// (analysis.tsf for TSF data) of the .d directory @p d_path (the unpacked directory for a .d.zip; no peak data read)
     void loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings);
 
     /// A '.d.zip' archive unpacked into a temporary directory (defined in the .cpp)

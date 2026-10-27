@@ -518,12 +518,14 @@ def test_detect_format(tmp_path):
     assert pyopenms.BrukerTimsFile.detectFormat(make_d("empty.d")) == Df.NONE
     assert pyopenms.BrukerTimsFile.detectFormat(str(tmp_path / "missing.d")) == Df.NONE
 
-    # data that cannot be read is named when it is loaded
-    with pytest.raises(Exception, match="Bruker TSF data"):
-        pyopenms.BrukerTimsFile.checkDataFormat(tsf)
-    with pytest.raises(Exception, match="Bruker TSF data"):
-        pyopenms.BrukerTimsFile().load(tsf)
+    # data that cannot be read (BAF) is named when it is loaded; TDF and TSF data pass the check
+    baf = str(tmp_path / "baf.d")
+    with pytest.raises(Exception, match="Bruker BAF data"):
+        pyopenms.BrukerTimsFile.checkDataFormat(baf)
+    with pytest.raises(Exception, match="Bruker BAF data"):
+        pyopenms.BrukerTimsFile().load(baf)
     pyopenms.BrukerTimsFile.checkDataFormat(str(tmp_path / "tdf.d"))
+    pyopenms.BrukerTimsFile.checkDataFormat(tsf)
 
 
 class _CollectingConsumer:
