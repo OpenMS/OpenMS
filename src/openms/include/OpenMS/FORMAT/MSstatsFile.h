@@ -259,14 +259,14 @@ namespace OpenMS
         {
           const std::string delim(",");
           return  MSstatsFile::csvQuoteIfNeeded_(accession_)
-                  + delim + sequence_
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(sequence_)
                   + delim + precursor_charge_
                   + delim + channel_
                   + delim + MSstatsFile::csvQuoteIfNeeded_(condition_)
                   + delim + MSstatsFile::csvQuoteIfNeeded_(bioreplicate_)
                   + delim + MSstatsFile::csvQuoteIfNeeded_(run_)
-                  + delim + mixture_
-                  + delim + techrepmixture_
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(mixture_)
+                  + delim + MSstatsFile::csvQuoteIfNeeded_(techrepmixture_)
                   + delim + std::string(fraction_);
         }
 
