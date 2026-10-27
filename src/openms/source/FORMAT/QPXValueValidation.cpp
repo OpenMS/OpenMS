@@ -375,6 +375,7 @@ namespace OpenMS
     requiredColumnsHaveValues(table, expected, result);
 
     std::unordered_set<Int64> new_ids;
+    new_ids.reserve(static_cast<size_t>(table->num_rows()));
 
     // The opaque identity column. QPX declares it non-nullable AND the view's primary key, so
     // uniqueness is checked here rather than left to the reader: a hash collision, or a producer
@@ -829,9 +830,10 @@ namespace OpenMS
 
     if (result.valid)
     {
-      impl_->primary_keys.insert(new_primary_keys.begin(), new_primary_keys.end());
-      impl_->pg_run_keys.insert(new_pg_run_keys.begin(), new_pg_run_keys.end());
-      impl_->ids.insert(new_ids.begin(), new_ids.end());
+      // (the nodes move: no copy of the keys; the retained sets are empty for a whole-table validation)
+      impl_->primary_keys.merge(new_primary_keys);
+      impl_->pg_run_keys.merge(new_pg_run_keys);
+      impl_->ids.merge(new_ids);
     }
     return result;
   }
