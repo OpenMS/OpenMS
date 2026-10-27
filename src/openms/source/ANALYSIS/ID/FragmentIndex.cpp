@@ -795,6 +795,27 @@ namespace OpenMS
     }
   }
 
+  double FragmentIndex::prefixMass_(const char* sequence, size_t length) const
+  {
+    // The sum after `length` residues does not depend on the residues behind them, so stopping there gives the
+    // double forEachPrefixMass_() hands out for that length when it walks the whole mother
+    double mass = 0.0;
+    forEachPrefixMass_(sequence, length, [&](size_t k, double prefix_mass)
+    {
+      mass = prefix_mass;
+      return k < length;
+    });
+    return mass;
+  }
+
+  float FragmentIndex::packedEntryMz_(size_t e, const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
+  {
+    const UInt32 mother_mask = entry_sites_ ? ENTRY_MOTHER_MASK_ : ~UInt32{0};
+    const Peptide& mother = fi_peptides_[entry_words_[e].word_ & mother_mask];
+    const char* sequence = fasta_entries[mother.protein_idx].sequence.data() + mother.sequence_.first;
+    return static_cast<float>(prefixMass_(sequence, entry_lengths_[e].length_));
+  }
+
 #ifdef DEBUG_FRAGMENT_INDEX
     static void print_slice(const std::vector<FragmentIndex::Fragment>& slice, size_t low, size_t high)
     {
@@ -873,6 +894,8 @@ namespace OpenMS
   {
     releasePagesInParallel(fi_fragments_);
     releasePagesInParallel(electron_fragments_);
+    releasePagesInParallel(entry_words_);
+    releasePagesInParallel(entry_lengths_);
     releasePagesInParallel(fi_peptides_);
     // swap-to-empty ensures the underlying heap capacity is actually released.
     // std::vector::clear() alone only resets size; capacity stays resident, which
@@ -882,6 +905,8 @@ namespace OpenMS
     // deallocation across libstdc++/libc++/MSVC.
     std::vector<Fragment>().swap(fi_fragments_);
     std::vector<Fragment>().swap(electron_fragments_);
+    std::vector<EntryWord>().swap(entry_words_);
+    std::vector<EntryLength>().swap(entry_lengths_);
     std::vector<Peptide>().swap(fi_peptides_);
     std::vector<RemovedOccurrence>().swap(removed_occurrences_);
     std::vector<float>().swap(bucket_min_mz_);
@@ -891,6 +916,7 @@ namespace OpenMS
     std::vector<uint32_t>().swap(protein_lengths_);
     is_build_ = false;
     entry_sites_ = false;
+    packed_entries_ = false;
     mod_tables_initialized_ = false;
   }
 
@@ -2370,6 +2396,19 @@ namespace OpenMS
       const size_t num_bins = size_t(last) + 1;
       const size_t portion_size = std::max<size_t>(4 * num_bins, 1024); // peptides; the tables below take 2 bytes per peptide
 
+      // Peptide-mass mode: the prefix entries are stored packed (entry_words_ + entry_lengths_, 5 bytes per entry; see the
+      // design note in FragmentIndex.h) when every prefix length fits in a byte and no bin merges several true bins (then
+      // sortPackedEntries_() reproduces the order sortBinnedFragmentsByMz() gives Fragments, bin by bin, from recomputed
+      // masses). Decided here, before the passes: otherwise the entries are 8-byte Fragments as before.
+      const uint32_t highest_bin = binnable ? (std::bit_cast<uint32_t>(highest_mz) >> MZ_BIN_SHIFT) : 0; // not clamped to MAX_MZ_BINS
+      packed_entries_ = is_peptide_mass_mode_ && binnable && peptide_max_length_ >= 1 && peptide_max_length_ <= 255
+                        && highest_bin < MZ_BIN_END && highest_bin - first_bin < MAX_MZ_BINS;
+      if (is_peptide_mass_mode_)
+      {
+        OPENMS_LOG_INFO << "[FragmentIndex] Prefix entries: " << (packed_entries_ ? "packed, 5 bytes each (mother index + prefix length)"
+                                                                                  : "8 bytes each (mother index + float mass)") << std::endl;
+      }
+
       // peptide:deduplicate - protein occurrences are not distinct peptide hypotheses: of every peptidoform
       // (reconstructModifiedSequence(...).toString()) only the first entry is kept. The protein occurrences of the others
       // are recorded (getRemovedOccurrences()), so that getProteinOccurrences() still lists every protein occurrence,
@@ -2454,11 +2493,14 @@ namespace OpenMS
       vector<size_t> electron_positions(electron_ions_ ? num_portions * num_bins : 0, 0); // ions:electron_ions
 
       // What generateFragments...() write to in the first and in the second pass
+      // The 3-argument emplace_back() takes a prefix entry of the peptide-mass mode (word, mass, prefix length); only the
+      // packed writer keeps the length.
       struct BinCounter
       {
         size_t* count;
         uint32_t first_bin, last;
         void emplace_back(UInt32 /*peptide_idx*/, float mz) { ++count[mzBinFrom(mz, first_bin, last)]; }
+        void emplace_back(UInt32 /*word*/, float mz, size_t /*length*/) { ++count[mzBinFrom(mz, first_bin, last)]; }
         void flush() {}
       };
       struct BinWriter
@@ -2476,9 +2518,45 @@ namespace OpenMS
           buffer[size++] = Fragment(peptide_idx, mz);
           if (size == capacity) flush();
         }
+        void emplace_back(UInt32 word, float mz, size_t /*length*/) { emplace_back(word, mz); }
         void flush()
         {
           for (size_t k = 0; k < size; ++k) destination[next[mzBinFrom(buffer[k].fragment_mz_, first_bin, last)]++] = buffer[k];
+          size = 0;
+        }
+      };
+      // packed_entries_: writes the word and the length of a prefix entry to entry_words_ / entry_lengths_ at the place
+      // its mass has in the bins; the mass itself is not stored (sortPackedEntries_() recomputes it)
+      struct PackedBinWriter
+      {
+        PackedBinWriter(EntryWord* words_, EntryLength* lengths_, size_t* next_, uint32_t first_bin_, uint32_t last_) :
+          words(words_), lengths(lengths_), next(next_), first_bin(first_bin_), last(last_) {}
+        EntryWord* words;
+        EntryLength* lengths;
+        size_t* next;
+        uint32_t first_bin, last;
+        enum : size_t { capacity = 1024 };
+        size_t size = 0;
+        UInt32 buffer_word[capacity];
+        float buffer_mz[capacity];
+        uint8_t buffer_length[capacity];
+        // Fragments of the normal path: never generated in peptide-mass mode (the sink exists there only)
+        void emplace_back(UInt32 /*peptide_idx*/, float /*mz*/) {}
+        void emplace_back(UInt32 word, float mz, size_t length)
+        {
+          buffer_word[size] = word;
+          buffer_mz[size] = mz;
+          buffer_length[size] = static_cast<uint8_t>(length); // <= peptide:max_size <= 255 (the condition of packed_entries_)
+          if (++size == capacity) flush();
+        }
+        void flush()
+        {
+          for (size_t k = 0; k < size; ++k)
+          {
+            const size_t position = next[mzBinFrom(buffer_mz[k], first_bin, last)]++;
+            words[position].word_ = buffer_word[k];
+            lengths[position].length_ = buffer_length[k];
+          }
           size = 0;
         }
       };
@@ -2527,7 +2605,7 @@ namespace OpenMS
               const UInt32 entry = entry_sites_
                 ? (static_cast<UInt32>(peptide_idx) | (std::min(sites, ENTRY_MAX_SITES_) << ENTRY_SITES_SHIFT_))
                 : static_cast<UInt32>(peptide_idx);
-              fragment_sink.emplace_back(entry, mz);
+              fragment_sink.emplace_back(entry, mz, length);
             }
             return true;
           });
@@ -2582,7 +2660,7 @@ namespace OpenMS
         return static_cast<uint32_t>(mixed >> 32);
       };
 
-      // One pass over all peptides (first_pass: the counting one); make_sink(fragments, table row of the portion)
+      // One pass over all peptides (first_pass: the counting one); make_sink(electron ions?, table row of the portion)
       // returns what a set of fragments is written to. The peptides are sorted by mass and heavier ones have more
       // fragments: the portions are handed out one by one so that all threads stay busy.
       const auto generate_fragments = [&](const auto make_sink, const bool first_pass)
@@ -2599,8 +2677,8 @@ namespace OpenMS
           #pragma omp for schedule(dynamic)
           for (SignedSize portion = 0; portion < num_portions; ++portion)
           {
-            auto fragment_sink = make_sink(fi_fragments_, positions.data() + portion * num_bins);
-            auto electron_sink = make_sink(electron_fragments_, electron_positions.empty() ? nullptr : electron_positions.data() + portion * num_bins);
+            auto fragment_sink = make_sink(false, positions.data() + portion * num_bins);
+            auto electron_sink = make_sink(true, electron_positions.empty() ? nullptr : electron_positions.data() + portion * num_bins);
             const size_t begin = portion_start[portion];
             const size_t end = portion_start[portion + 1];
             const bool deduplicating = deduplicate && first_pass;
@@ -2668,7 +2746,7 @@ namespace OpenMS
       };
 
       // First pass: count
-      generate_fragments([&](vector<Fragment>& /*fragments*/, size_t* count) { return BinCounter{count, first_bin, last}; }, true);
+      generate_fragments([&](bool /*electron*/, size_t* count) { return BinCounter{count, first_bin, last}; }, true);
 
       if (deduplicate)
       {
@@ -2752,18 +2830,51 @@ namespace OpenMS
         return total;
       };
       // Fragment's default constructor leaves the new elements uninitialised: the second pass writes them first
-      fi_fragments_.resize(counts_to_positions(positions));
+      // (so do EntryWord's and EntryLength's)
+      const size_t num_entries = counts_to_positions(positions);
+      // packed_entries_: where each bin starts (the positions of the first portion, before the second pass advances
+      // them), for the sort by bin
+      vector<size_t> bin_start;
+      if (packed_entries_)
+      {
+        bin_start.assign(num_bins, 0); // (no table without peptides: every bin starts at 0 and is empty)
+        if (!positions.empty()) std::copy(positions.begin(), positions.begin() + num_bins, bin_start.begin());
+        bin_start.push_back(num_entries);
+        entry_words_.resize(num_entries);
+        entry_lengths_.resize(num_entries);
+        adviseHugePages(entry_words_);
+        adviseHugePages(entry_lengths_);
+      }
+      else
+      {
+        fi_fragments_.resize(num_entries);
+        adviseHugePages(fi_fragments_);
+      }
       electron_fragments_.resize(counts_to_positions(electron_positions));
-      adviseHugePages(fi_fragments_);
       adviseHugePages(electron_fragments_);
       if (entry_reach.active)
       {
-        OPENMS_LOG_INFO << "The precursor windows of the spectra reach " << fi_fragments_.size() << " of "
-                        << (fi_fragments_.size() + unreachable_entries) << " prefix entries." << std::endl;
+        // num_entries counts the kept prefix entries in either representation (packed or Fragment)
+        OPENMS_LOG_INFO << "The precursor windows of the spectra reach " << num_entries << " of "
+                        << (num_entries + unreachable_entries) << " prefix entries." << std::endl;
       }
 
       // Second pass: write
-      generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; }, false);
+      if (packed_entries_)
+      {
+        generate_fragments([&](bool /*electron*/, size_t* next)
+        {
+          // the electron sink receives nothing in peptide-mass mode (it gets no table row either)
+          return PackedBinWriter(entry_words_.data(), entry_lengths_.data(), next, first_bin, last);
+        }, false);
+      }
+      else
+      {
+        generate_fragments([&](bool electron, size_t* next)
+        {
+          return BinWriter{(electron ? electron_fragments_ : fi_fragments_).data(), next, first_bin, last};
+        }, false);
+      }
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
@@ -2771,7 +2882,7 @@ namespace OpenMS
       // Mark as built and return — guards against the OMP loop below dividing by zero
       // when bucketsize_ becomes 0. This is a real risk for immunopeptidomics FASTAs that
       // contain entries shorter than peptide:min_size.
-      if (fi_fragments_.empty() && electron_fragments_.empty())
+      if (fi_fragments_.empty() && electron_fragments_.empty() && entry_words_.empty())
       {
         bucketsize_ = 1; // keep non-zero to preserve bucket-walking loop invariants
         OPENMS_LOG_INFO << "[FragmentIndex] No fragments generated — index is empty." << std::endl;
@@ -2786,7 +2897,17 @@ namespace OpenMS
       bucketsize_ = 4096;
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
-      if (is_peptide_mass_mode_)
+      if (is_peptide_mass_mode_ && packed_entries_)
+      {
+        // As below, for the packed entries: sorted within their bins from recomputed masses (no bin merges several true
+        // bins, see the condition of packed_entries_, so the bins are the sorted order's partition)
+        sortPackedEntries_(fasta_entries, bin_start, first_bin);
+        bucket_min_mz_.resize((entry_words_.size() + bucketsize_ - 1) / bucketsize_);
+        const SignedSize num_buckets = static_cast<SignedSize>(bucket_min_mz_.size());
+        #pragma omp parallel for schedule(static)
+        for (SignedSize b = 0; b < num_buckets; ++b) bucket_min_mz_[b] = packedEntryMz_(static_cast<size_t>(b) * bucketsize_, fasta_entries);
+      }
+      else if (is_peptide_mass_mode_)
       {
         // querySpectrumPeptideMasses_() looks the prefix masses up by binary search in the whole index, sorted by m/z (the
         // buckets are not ordered by peptide). Only queryPeaks() reads the skip tables, which are not built.
@@ -2810,6 +2931,93 @@ namespace OpenMS
 
       is_build_ = true;
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
+  }
+
+  void FragmentIndex::sortPackedEntries_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                         const std::vector<size_t>& bin_start, uint32_t first_bin)
+  {
+    // sortBinnedFragmentsByMz() for the packed entries: a stable counting sort of each bin by the m/z bits within the bin
+    // (the "cell"), with the masses recomputed into a key array of the bin. The order among equal masses stays that of
+    // the arrival (ascending mother, then length), as with Fragments. The mothers of a bin's entries lie anywhere in
+    // fi_peptides_ and the FASTA: fetched ahead as querySpectrumPeptideMasses_() fetches them.
+    const SignedSize num_bins = static_cast<SignedSize>(bin_start.size()) - 1;
+    constexpr size_t num_cells = size_t(1) << MZ_BIN_SHIFT;
+    const UInt32 mother_mask = entry_sites_ ? ENTRY_MOTHER_MASK_ : ~UInt32{0};
+    const EntryWord* const words = entry_words_.data();
+    size_t largest_bin = 0;
+    for (SignedSize b = 0; b < num_bins; ++b) largest_bin = std::max(largest_bin, bin_start[b + 1] - bin_start[b]);
+    // The scratch of the sort: 9 bytes (key, word, length) per entry of the bin a thread sorts, plus the cell table
+    OPENMS_LOG_INFO << "[FragmentIndex] Sorting " << entry_words_.size() << " packed prefix entries in " << num_bins
+                    << " m/z bins (largest bin " << largest_bin << " entries; sort scratch 9 bytes per entry of a bin per thread)."
+                    << std::endl;
+
+    bool consistent = true;
+    #pragma omp parallel
+    {
+      std::vector<float> keys;
+      std::vector<EntryWord> scratch_words;
+      std::vector<EntryLength> scratch_lengths;
+      std::vector<uint32_t> cell_next(num_cells);
+      #pragma omp for schedule(dynamic)
+      for (SignedSize b = 0; b < num_bins; ++b)
+      {
+        const size_t begin = bin_start[b];
+        const size_t n = bin_start[b + 1] - begin;
+        if (n == 0) continue;
+        const uint32_t id = first_bin + static_cast<uint32_t>(b);
+        keys.resize(n);
+        std::fill(cell_next.begin(), cell_next.end(), 0u);
+        bool in_bin = (n < std::numeric_limits<uint32_t>::max());
+        for (size_t k = 0; k < n; ++k)
+        {
+          const size_t e = begin + k;
+          if (k + 16 < n) prefetchForRead(&fi_peptides_[words[e + 16].word_ & mother_mask], 0);
+          if (k + 8 < n) prefetchForRead(&fasta_entries[fi_peptides_[words[e + 8].word_ & mother_mask].protein_idx].sequence, 0);
+          if (k + 4 < n)
+          {
+            const Peptide& ahead = fi_peptides_[words[e + 4].word_ & mother_mask];
+            prefetchForRead(fasta_entries[ahead.protein_idx].sequence.data(), ahead.sequence_.first);
+          }
+          const float mz = packedEntryMz_(e, fasta_entries);
+          keys[k] = mz;
+          const uint32_t bits = std::bit_cast<uint32_t>(mz);
+          if ((bits >> MZ_BIN_SHIFT) != id) in_bin = false;
+          ++cell_next[bits & (num_cells - 1)];
+        }
+        if (!in_bin)
+        {
+          #pragma omp critical (FragmentIndex_sortPackedEntries)
+          consistent = false;
+          continue;
+        }
+        uint32_t position = 0;
+        for (uint32_t& next : cell_next)
+        {
+          const uint32_t count = next;
+          next = position;
+          position += count;
+        }
+        scratch_words.resize(n);
+        scratch_lengths.resize(n);
+        EntryWord* const bin_words = entry_words_.data() + begin;
+        EntryLength* const bin_lengths = entry_lengths_.data() + begin;
+        for (size_t k = 0; k < n; ++k)
+        {
+          const uint32_t to = cell_next[std::bit_cast<uint32_t>(keys[k]) & (num_cells - 1)]++;
+          scratch_words[to] = bin_words[k];
+          scratch_lengths[to] = bin_lengths[k];
+        }
+        std::copy(scratch_words.begin(), scratch_words.begin() + n, bin_words);
+        std::copy(scratch_lengths.begin(), scratch_lengths.begin() + n, bin_lengths);
+      }
+    }
+    if (!consistent)
+    {
+      // build() placed every entry into the bin of this very mass; a mismatch means the recomputation differs from the
+      // generation, which would also break the binary search of the query: fail instead of searching a misordered index
+      throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     "FragmentIndex: the recomputed mass of a packed prefix entry lies outside its m/z bin");
+    }
   }
 
   namespace

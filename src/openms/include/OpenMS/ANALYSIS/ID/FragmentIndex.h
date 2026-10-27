@@ -249,8 +249,9 @@ namespace OpenMS
                                std::vector<std::pair<UInt32, UInt32>>& occurrences) const;
 
     /// Number of theoretical fragments stored in the index (0 before build()), including the c and
-    /// z+1 ions of ions:electron_ions. In peptide-mass mode: the number of prefix masses (one per unmodified sub-peptide).
-    Size getNumFragments() const noexcept { return fi_fragments_.size() + electron_fragments_.size(); }
+    /// z+1 ions of ions:electron_ions. In peptide-mass mode: the number of prefix masses (one per unmodified sub-peptide),
+    /// whether they are held as Fragment or in the packed form (entry_words_).
+    Size getNumFragments() const noexcept { return fi_fragments_.size() + electron_fragments_.size() + entry_words_.size(); }
 
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
@@ -593,6 +594,21 @@ protected:
       float fragment_mz_;
   };
 
+  /**@brief Peptide-mass mode: the two halves of a packed prefix entry, held in the parallel arrays entry_words_ and
+   * entry_lengths_ (5 bytes per entry; see the design note at entry_words_). Both leave their member uninitialised
+   * on purpose, as Fragment does: build() resizes the arrays and writes every element in parallel.
+   */
+  struct EntryWord
+  {
+      EntryWord() {}
+      UInt32 word_; ///< bit for bit the peptide_idx_ of the Fragment the entry replaces: mother index, and the site bound above ENTRY_SITES_SHIFT_
+  };
+  struct EntryLength
+  {
+      EntryLength() {}
+      uint8_t length_; ///< the prefix length in residues (1..255); the entry's mass is that of the mother's first length_ residues
+  };
+
     bool is_build_{false};              ///< true, if the database has been populated with fragments
 
     void updateMembers_() override;
@@ -929,7 +945,41 @@ protected:
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<RemovedOccurrence> removed_occurrences_; ///< occurrences removed by peptide:deduplicate (getRemovedOccurrences())
-    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions); in peptide-mass mode the prefix entries, unless packed_entries_
+    /** Peptide-mass mode, packed prefix entries (design note).
+     *
+     * A non-specific search holds one entry per (mother, prefix length) - hundreds of millions, 54 % of the peak memory as
+     * 8-byte Fragments (UInt32 mother index with the site bound in its top bits + float (M+H)+ of the unmodified prefix).
+     * The mass is a function of the mother and the length, so with packed_entries_ the entries are two parallel arrays of
+     * 5 bytes per entry: entry_words_[e].word_, bit for bit the peptide_idx_ the Fragment would hold, and
+     * entry_lengths_[e].length_, the prefix length. Two arrays of naturally aligned elements instead of a 5-byte record,
+     * so that no read is unaligned. fi_fragments_ stays empty then.
+     *
+     * The mass of an entry is recomputed where it is needed: packedEntryMz_() sums the mother's first length_ residues
+     * with forEachPrefixMass_(), the summation build() used to make the entry, and casts to float as build() did, so
+     * the float is bit-identical to the one a Fragment would have stored. Consumers: the per-bin sort of build()
+     * (sortPackedEntries_(), on a key array of one bin at a time), the bucket_min_mz_ table, and the binary searches of
+     * querySpectrumPeptideMasses_() (about 30 probes per bound, each a mother and a protein-string load plus at most
+     * peptide:max_size additions). realize() takes the length from the entry instead of walking the mother's prefixes
+     * until the float matches; the double prefix mass it needs is still accumulated with forEachPrefixMass_() in the
+     * same order, so the candidate masses do not change.
+     *
+     * The entry order is today's: the two-pass binning of build() partitions the entries into ascending m/z bins, within a
+     * bin in the order of their arrival (ascending mother index, then length), and the sort is a stable counting sort by
+     * the m/z bits below MZ_BIN_SHIFT within each bin - exactly what sortBinnedFragmentsByMz() does with stored masses.
+     * Scratch: per thread, 9 bytes per entry of the bin it sorts (key, word, length) plus a 64 KiB cell table, i.e. at most
+     * threads x largest bin x 9 bytes at a time, never a second copy of all entries.
+     *
+     * The packed form is used when every prefix length fits in a byte (peptide:max_size in [1, 255]; 0 = unlimited is
+     * excluded) and the m/z range of the entries fits in MAX_MZ_BINS true bins (otherwise the last bin would merge several
+     * bins and the counting sort could not order them; build() then sorts the Fragments as a whole). Both are decided per
+     * build before the counting pass; otherwise the entries are 8-byte Fragments in fi_fragments_ as before, and
+     * querySpectrumPeptideMasses_() reads whichever form the build left. The normal fragment-index path never uses the
+     * packed form. clear() releases both arrays like fi_fragments_; getNumFragments() counts them.
+     */
+    std::vector<EntryWord> entry_words_;     ///< packed_entries_: the 32-bit words of the prefix entries, sorted by (recomputed) mass
+    std::vector<EntryLength> entry_lengths_; ///< packed_entries_: the prefix lengths, parallel to entry_words_
+    bool packed_entries_{false};             ///< whether build() stored the prefix entries packed (peptide-mass mode only)
     /// The c and z+1 ions of ions:electron_ions that fi_fragments_ lacks. They are bucketed on their
     /// own (electron_bucket_min_mz_) and matched only when a query asks for them.
     std::vector<Fragment> electron_fragments_;
@@ -979,6 +1029,22 @@ private:
                                      const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                      SpectrumMatchesTopN& sms,
                                      bool with_electron_ions);
+
+    /// The (M+H)+ of the first @p length residues of @p sequence with fixed modifications, as forEachPrefixMass_() sums it
+    /// (the double a Fragment's mass is cast from, and the base of the peptidoform masses of realize())
+    double prefixMass_(const char* sequence, size_t length) const;
+
+    /// Peptide-mass mode, packed entries: the mass of entry @p e, bit-identical to the float a Fragment would have stored
+    /// (the mother's first entry_lengths_[e] residues summed as build() summed them)
+    float packedEntryMz_(size_t e, const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
+    /** Peptide-mass mode, packed entries: sorts the entries of every m/z bin by mass, keeping the order of arrival among
+     * equal masses - the order sortBinnedFragmentsByMz() gives Fragments. @p bin_start holds the first entry of each bin
+     * and, last, the number of entries; bin b holds the masses whose bits above MZ_BIN_SHIFT equal @p first_bin + b.
+     * Throws if a recomputed mass lies outside its bin (it cannot: build() placed it by the same mass).
+     */
+    void sortPackedEntries_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const std::vector<size_t>& bin_start,
+                            uint32_t first_bin);
 
     /// One (precursor charge, isotope error) block of a queryPeaks() call
     struct CandidateBlock_
