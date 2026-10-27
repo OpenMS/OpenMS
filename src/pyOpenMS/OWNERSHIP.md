@@ -153,7 +153,11 @@ for spec in exp.iter_spectrum_views():
 The same convention already marks the zero-copy numpy views (`data_view()`,
 `matrix_view()`, `peaks_struct()`); this extends it to object element access.
 The family is
-available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features),
+available on `MSExperiment` (spectra, chromatograms), `MSImagingExperiment`
+(the spectra of its pixels, in geometry pixel order; plus `experiment_view()` /
+`geometry_view()` for its owned members), `OnDiscImzMLExperiment`
+(`geometry_view()`; open() and close() reset the geometry it shows),
+`FeatureMap` (features),
 `ConsensusMap` (consensus features), `PeptideIdentificationList`
 (identifications), `MRMTransitionGroup` (features, chromatograms), and
 `MSSpectrum`/`MSChromatogram` (float/integer/string data arrays) — where

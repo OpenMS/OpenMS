@@ -52,6 +52,33 @@ Size MSImagingExperiment::getNumberOfPixels() const
 Size MSImagingExperiment::getNumberOfSpectra() const
 { return experiment_.getNrSpectra(); }
 
+Size MSImagingExperiment::size() const
+{ return geometry_.getNumberOfPixels(); }
+
+MSSpectrum& MSImagingExperiment::operator[](Size n)
+{
+  const Size idx = geometry_.getPixels()[n].spectrum_index;
+  if (idx >= experiment_.getNrSpectra())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Pixel references missing spectrum",
+                                  StringUtils::toStr(idx));
+  }
+  return experiment_[idx];
+}
+
+const MSSpectrum& MSImagingExperiment::operator[](Size n) const
+{
+  const Size idx = geometry_.getPixels()[n].spectrum_index;
+  if (idx >= experiment_.getNrSpectra())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Pixel references missing spectrum",
+                                  StringUtils::toStr(idx));
+  }
+  return experiment_[idx];
+}
+
 bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
 { return geometry_.hasPixel(x, y); }
 

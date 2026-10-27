@@ -148,6 +148,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     pyopenms_iter::bind_index_value_iterator<OpenMS::Mobilogram>(m, "_MobilogramIter");
     pyopenms_iter::bind_index_value_iterator<OpenMS::ConsensusMap>(m, "_ConsensusMapIter");
     pyopenms_iter::bind_index_value_iterator<OpenMS::FeatureMap>(m, "_FeatureMapIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::OnDiscImzMLExperiment>(m, "_OnDiscImzMLExperimentIter");
     m.doc() = "pyOpenMS kernel bindings";
 
 
@@ -1992,6 +1993,17 @@ This is an alias for getChromatogramByNativeId().
         .def("isOpen", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.isOpen(); })
         .def("getNrSpectra", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.getNrSpectra(); })
         .def("size", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.size(); })
+        .def("__len__", [](const OpenMS::OnDiscImzMLExperiment& self) -> size_t { return self.size(); })
+        .def("__iter__", [](nb::object self) -> pyopenms_iter::IndexValueIterator<OpenMS::OnDiscImzMLExperiment> {
+            return pyopenms_iter::make_index_value_iterator<OpenMS::OnDiscImzMLExperiment>(self);
+        })
+        .def("__getitem__", [](const OpenMS::OnDiscImzMLExperiment& self, long long index) -> OpenMS::MSSpectrum {
+            const long long n = static_cast<long long>(self.size());
+            if (index < 0) { index += n; }
+            if (index < 0 || index >= n) { throw nb::index_error("spectrum index out of range"); }
+            nb::gil_scoped_release release;
+            return self.getSpectrum(static_cast<size_t>(index));  // decoded from the .ibd: always an owned copy
+        }, "index"_a, "Returns the spectrum at index (negative counts from the end), read from disk")
         .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, size_t i) {
             return self.getSpectrum(i);
         }, "i"_a)
@@ -2010,6 +2022,11 @@ This is an alias for getChromatogramByNativeId().
         .def("getGeometry",
             [](const OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
             "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
+        .def("geometry_view",
+            [](OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+            nb::rv_policy::reference_internal,
+            "Returns a live view of the imaging geometry, e.g. exp.geometry_view().addRegion(region). Edits through it are visible immediately, "
+            "and the parent object is kept alive automatically. After open() or close() the view shows the new (or empty) geometry. For an owned copy use getGeometry().")
         .def("extractIonImage",
             [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm) {
                 return self.extractIonImage(mz, tolerance_ppm);

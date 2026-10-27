@@ -211,7 +211,9 @@ OnDiscImzMLExperiment& OnDiscImzMLExperiment::operator=(OnDiscImzMLExperiment&& 
 
 void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::string& ibd_path_override, bool skip_metadata)
 {
-  pimpl_ = std::make_unique<Impl>();
+  // Reset in place rather than replacing pimpl_, so a getGeometry() reference (e.g. pyOpenMS
+  // geometry_view()) stays valid across open()/close() on the same object (moving the object does not keep it).
+  close();
 
   ImzMLFile f;
   f.setLogType(ProgressLogger::NONE);
