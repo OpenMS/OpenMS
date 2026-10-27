@@ -1765,6 +1765,7 @@ class ProSE :
         {
           std::vector<ProteinIdentification> protein_ids;
           bool runs_copied = false;
+          std::string copy_error; // (the QPX error, where no idXML is written)
           try
           {
             protein_ids = result.protein_ids;
@@ -1784,21 +1785,29 @@ class ProSE :
           {
             early_idxml_error[i] = e.what();
             early_idxml[i] = 2;
+            copy_error = e.what();
           }
-          catch (...) // rethrown below, as from the write there
+          catch (const std::exception& e) // rethrown below, as from the write there
           {
             early_idxml_exception[i] = std::current_exception();
             early_idxml[i] = 3;
+            copy_error = e.what();
+          }
+          catch (...)
+          {
+            early_idxml_exception[i] = std::current_exception();
+            early_idxml[i] = 3;
+            copy_error = "unknown exception";
           }
           if (early_qpx_files && runs_copied)
           {
+#ifdef _OPENMP
+            const int threads = std::max(1, omp_get_max_threads()); // the consumer's share (see setFileResultConsumer())
+#else
+            const int threads = 1;
+#endif
             try
             {
-#ifdef _OPENMP
-              const int threads = std::max(1, omp_get_max_threads()); // the consumer's share (see setFileResultConsumer())
-#else
-              const int threads = 1;
-#endif
               buildQPXRunFiles_(early_qpx[i], protein_ids, result.peptide_ids, qpx_runs_dir, File::stemName(in_list[i]), threads,
                                 /*pg_async=*/false);
               early_qpx_state[i] = 1;
@@ -1825,7 +1834,7 @@ class ProSE :
           }
           else if (early_qpx_files)
           {
-            early_qpx_error[i] = "the runs could not be copied (see the idXML error)";
+            early_qpx_error[i] = "the runs could not be copied: " + copy_error;
             early_qpx_state[i] = 3;
           }
         });
@@ -2143,11 +2152,9 @@ class ProSE :
         if (!out_qpx_dir.empty() && qpx_extended)
         {
           // (-qpx_extended: a copy of the runs, as the NCE is stored on them meanwhile)
-          std::vector<ProteinIdentification> runs_copy;
-          if (qpx_extended) { runs_copy = result.protein_ids; }
-          pg_build = std::async(std::launch::async, [&result, qpx_extended, runs = std::move(runs_copy)]() mutable
+          std::vector<ProteinIdentification> runs_copy = result.protein_ids;
+          pg_build = std::async(std::launch::async, [&result, runs = std::move(runs_copy)]() mutable
           {
-            if (!qpx_extended) { return ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids); }
             if (!runs.empty() && runs[0].getIndistinguishableProteins().empty())
             {
               // -qpx_extended: without protein inference, one group per protein (without a q-value)
@@ -2405,15 +2412,7 @@ class ProSE :
           if (qpx_pg_table && ArrowIOHelpers::tableRowCount(qpx_pg_table) > 0)
           {
             qpx_pg_tables.push_back(qpx_pg_table);
-            if (qpx_extended)
-            {
-              run_views["pg"] = {{qpx_pg_table}, ParquetWriteConfig{}, {}};
-            }
-            else if (!ProteinGroupArrowExport::exportToParquet(qpx_pg_table, qpx_pg_file))
-            {
-              OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << qpx_pg_file << endl;
-              input_failed = true;
-            }
+            run_views["pg"] = {{qpx_pg_table}, ParquetWriteConfig{}, {}};
           }
           else if (qpx_pg_table)
           {

@@ -1094,7 +1094,7 @@ bool writeTableToParquet(
         if (status.ok()) { status = writer.ValueOrDie()->Close(); }
       }
     }
-    if (pool.ok()) { pool.ValueOrDie()->Shutdown(); }
+    if (pool.ok()) { (void)pool.ValueOrDie()->Shutdown(); }
   }
 
   // FileOutputStream::Open above already created (and truncated) the file, so any failure from
