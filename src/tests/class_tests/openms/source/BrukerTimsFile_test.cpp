@@ -1277,7 +1277,7 @@ START_SECTION([EXTRA] Bruker data that cannot be read is reported as such)
 }
 END_SECTION
 
-START_SECTION([EXTRA] TSF data: one spectrum per frame, with the m/z of the Bruker SDK)
+START_SECTION([EXTRA] TSF data: one spectrum per frame with the m/z of the Bruker SDK)
 {
   // An LC-MS run with TIMS off: two MS1 frames, an MS/MS frame between them and an MS1 frame without peaks
   TempDir tmp;
@@ -1286,7 +1286,7 @@ START_SECTION([EXTRA] TSF data: one spectrum per frame, with the m/z of the Bruk
     {1.5, 2, {2}, {1256.0f}, 516.4264787230516},
     {2.0, 0, {1, 2}, {10.0f, 20.0f}},
     {3.0, 0, {}, {}}});
-  TEST_EQUAL(BrukerTimsFile::detectFormat(d) == BrukerTimsFile::DataFormat::TSF, true)
+  TEST_TRUE(BrukerTimsFile::detectFormat(d) == BrukerTimsFile::DataFormat::TSF)
   BrukerTimsFile::checkDataFormat(d); // TSF data passes
 
   MSExperiment exp;
@@ -1298,11 +1298,11 @@ START_SECTION([EXTRA] TSF data: one spectrum per frame, with the m/z of the Bruk
     TEST_STRING_EQUAL(ms1.getNativeID(), "frame=1")
     TEST_EQUAL(ms1.getMSLevel(), 1)
     TEST_REAL_SIMILAR(ms1.getRT(), 1.0)
-    TEST_EQUAL(ms1.getType() == SpectrumSettings::SpectrumType::CENTROID, true)
-    TEST_EQUAL(ms1.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE, true)
-    TEST_EQUAL(ms1.getFloatDataArrays().empty(), true) // no ion mobility
-    TEST_EQUAL(ms1.containsIMData(), false)
-    TEST_EQUAL(ms1.metaValueExists("maldi_spot_id"), false)
+    TEST_TRUE(ms1.getType() == SpectrumSettings::SpectrumType::CENTROID)
+    TEST_TRUE(ms1.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
+    TEST_TRUE(ms1.getFloatDataArrays().empty()) // no ion mobility
+    TEST_FALSE(ms1.containsIMData())
+    TEST_FALSE(ms1.metaValueExists("maldi_spot_id"))
     TEST_EQUAL(ms1.size(), 2)
     if (ms1.size() == 2)
     {
@@ -1382,7 +1382,7 @@ START_SECTION([EXTRA] TSF data: one spectrum per frame, with the m/z of the Bruk
 }
 END_SECTION
 
-START_SECTION([EXTRA] TSF data: options, MALDI spots and what cannot be read)
+START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
 {
   TempDir tmp;
   const std::vector<FakeTsfFrame> lc = {
@@ -1588,7 +1588,7 @@ START_SECTION([EXTRA] an incomplete or corrupt analysis.tdf_bin is reported inst
 END_SECTION
 
 #ifdef OPENTIMS_TSF_TEST_DATA
-START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off, as the Bruker SDK reads it)
+START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off as the Bruker SDK reads it)
 {
   // MassIVE MSV000095813, 'Molecular Networking_OE_timsOFF.d'. TIMSCONVERT 2.0.0 (Bruker SDK, centroid mode) gives 20751
   // spectra (9245 MS1, 11506 MS2) with 10312288 peaks; the m/z of every peak agrees with it within 1e-9 ppm.
@@ -1718,6 +1718,12 @@ START_SECTION([EXTRA] exceptions of the consumer and running out of memory are n
   // an OpenMS exception of the consumer leaves as it is as well
   TEST_EQUAL(hasText(thrown([&] { ThrowingConsumer consumer([] { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out.mzML"); });
                                  f.transform(d, &consumer); }), "OpenMS UnableToCreateFile"), true)
+
+  // the same for TSF data
+  const std::string tsf = writeFakeTsf(tmp.getPath() + "/tsf.d", {{1.0, 0, {0, 1}, {1206.0f, 1197486.0f}}});
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(runtime_error); f.transform(tsf, &consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(bad_alloc); f.transform(tsf, &consumer); }), "std::bad_alloc")
 }
 END_SECTION
 

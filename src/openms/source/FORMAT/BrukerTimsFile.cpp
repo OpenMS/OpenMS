@@ -3561,14 +3561,14 @@ namespace OpenMS
     {
       // One spectrum per frame, read in order of retention time
       TSFRun run(path, d_path, config);
-      consumer->setExpectedSize(run.frames.size(), 0);
+      callConsumer([&] { consumer->setExpectedSize(run.frames.size(), 0); });
       ExperimentalSettings settings;
       loadExperimentalSettings_(path, d_path, settings);
-      consumer->setExperimentalSettings(settings);
+      callConsumer([&] { consumer->setExperimentalSettings(settings); });
       loadTSF_(run, [consumer](MSSpectrum& spec)
       {
         spec.sortByPosition(); // by m/z, as load() returns them
-        consumer->consumeSpectrum(spec);
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
       });
       return;
     }

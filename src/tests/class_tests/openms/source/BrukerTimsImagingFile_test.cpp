@@ -213,7 +213,7 @@ START_SECTION(void load(const String& path, MSImagingExperiment& exp))
   {
     const MSSpectrum& spec = exp.getMSExperiment()[pixel.spectrum_index];
     TEST_EQUAL(spec.size(), 1)
-    TEST_EQUAL(spec.containsIMData(), false)
+    TEST_FALSE(spec.containsIMData())
     if (spec.size() != 1) continue;
     TEST_TRUE(std::abs(spec[0].getMZ() - 379.09864007179004) / 379.09864007179004 * 1e6 < 1e-4) // ppm
     // frame 3 is pixel (12, 12), at (0, 1) after the shift to zero; frame 2 is (13, 11) -> (1, 0)
@@ -309,7 +309,7 @@ START_SECTION([EXTRA] TSF data: the metadata is read from analysis.tsf)
   // tables of TDF data in analysis.tsf
   const std::string d = createFakeD(tmp.getPath(), "tsf_imaging", "Imaging", {{1, 12, 11, 0}, {2, 13, 11, 0}, {3, 12, 12, 0}},
                                     false, "20", "analysis.tsf");
-  TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(d), true)
+  TEST_TRUE(BrukerTimsImagingFile::isImagingDataset(d))
   TEST_EQUAL(BrukerTimsImagingFile::readGlobalMetadataValue(d, "MaldiSpotSize_um"), "20")
   auto rows = BrukerTimsImagingFile::readMaldiFrameInfo(d);
   TEST_EQUAL(rows.size(), 3)
@@ -317,12 +317,12 @@ START_SECTION([EXTRA] TSF data: the metadata is read from analysis.tsf)
   TEST_EQUAL(rows[2].x, 12)
   TEST_EQUAL(rows[2].y, 12)
   const std::string d_dd = createFakeD(tmp.getPath(), "tsf_droplet", "SingleSpectra", {{1, 0, 0, 0}}, false, "", "analysis.tsf");
-  TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(d_dd), false)
+  TEST_FALSE(BrukerTimsImagingFile::isImagingDataset(d_dd))
 
   // A .d with both: analysis.tdf is read, as BrukerTimsFile::detectFormat() reports TDF data for it
   const std::string d_both = createFakeD(tmp.getPath(), "tdf_and_tsf", "SingleSpectra", {{1, 0, 0, 0}});
   std::filesystem::copy_file(d + "/analysis.tsf", d_both + "/analysis.tsf");
-  TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(d_both), false)
+  TEST_FALSE(BrukerTimsImagingFile::isImagingDataset(d_both))
 
   // '.d.zip': the shallowest .d with TSF data, as for TDF data
   const std::string zip_dir = tmp.getPath() + "/zip_tsf";
@@ -330,7 +330,7 @@ START_SECTION([EXTRA] TSF data: the metadata is read from analysis.tsf)
   createFakeD(zip_dir, "b", "Imaging", {{1, 0, 0, 0}, {2, 1, 0, 0}}, false, "", "analysis.tsf");
   const std::string archive = zip_dir + ".d.zip";
   ZipArchiveFile::zipDirectory(zip_dir, archive);
-  TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(archive), true) // b.d
+  TEST_TRUE(BrukerTimsImagingFile::isImagingDataset(archive)) // b.d
   TEST_EQUAL(BrukerTimsImagingFile::readMaldiFrameInfo(archive).size(), 2)
   // An archive with TDF data in one .d and TSF data in another: the TDF data is read, even from a deeper .d
   const std::string mixed_dir = tmp.getPath() + "/zip_tdf_tsf";
@@ -338,12 +338,12 @@ START_SECTION([EXTRA] TSF data: the metadata is read from analysis.tsf)
   createFakeD(mixed_dir + "/outer", "b", "Imaging", {{1, 0, 0, 0}});
   const std::string mixed = mixed_dir + ".d.zip";
   ZipArchiveFile::zipDirectory(mixed_dir, mixed);
-  TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(mixed), true) // outer/b.d
+  TEST_TRUE(BrukerTimsImagingFile::isImagingDataset(mixed)) // outer/b.d
 }
 END_SECTION
 
 #ifdef OPENTIMS_TSF_IMAGING_TEST_DATA
-START_SECTION([EXTRA] TSF data: a MALDI imaging run, as the Bruker SDK reads it)
+START_SECTION([EXTRA] TSF data: a MALDI imaging run as the Bruker SDK reads it)
 {
   // MassIVE MSV000088438, 20210920_vc_rugose_1mMTCA_gordon.d (timsTOF fleX). TIMSCONVERT 2.0.0 (Bruker SDK) gives 276
   // spectra with 74188 peaks, at the XIndexPos/YIndexPos of MaldiFrameInfo (x 12..39, y 11..34); frame 1 has 478 peaks,
