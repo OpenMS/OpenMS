@@ -3909,12 +3909,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         !std::isfinite(precursor_mass_tolerance_upper_))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "precursor:mass_tolerance_lower and mass_tolerance_upper must be finite");
+        "precursor:mass_tolerance_lower and precursor:mass_tolerance_upper must be finite");
     }
     if (precursor_mass_tolerance_lower_ + precursor_mass_tolerance_upper_ <= 0.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "precursor window has zero width (lower + upper must be > 0)");
+        "The precursor window has zero width: precursor:mass_tolerance_lower + precursor:mass_tolerance_upper must be > 0.");
     }
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));

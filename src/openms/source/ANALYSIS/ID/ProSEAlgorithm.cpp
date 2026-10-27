@@ -6885,6 +6885,42 @@ namespace OpenMS
     return merged;
   }
 
+  // static
+  bool ProSEAlgorithm::splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result)
+  {
+    const Size n = result.per_file.size();
+    std::vector<int> file_of(merged.peptide_ids.size(), -1);
+    for (Size k = 0; k < merged.peptide_ids.size(); ++k)
+    {
+      const PeptideIdentification& id = merged.peptide_ids[k];
+      if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { return false; }
+      const int i = static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      if (i < 0 || static_cast<Size>(i) >= n || result.per_file[i].exit_code != ExitCodes::EXECUTION_OK
+          || result.per_file[i].protein_ids.empty())
+      {
+        return false;
+      }
+      file_of[k] = i;
+    }
+    std::vector<PeptideIdentificationList> parts(n);
+    for (Size k = 0; k < merged.peptide_ids.size(); ++k)
+    {
+      PeptideIdentification& id = merged.peptide_ids[k];
+      id.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      id.setIdentifier(result.per_file[file_of[k]].protein_ids[0].getIdentifier());
+      parts[file_of[k]].push_back(std::move(id));
+    }
+    merged.peptide_ids = PeptideIdentificationList();
+    for (Size i = 0; i < n; ++i)
+    {
+      SearchResult& pf = result.per_file[i];
+      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
+      pf.peptide_ids = std::move(parts[i]);
+      removeUnreportedProteins(pf.protein_ids, pf.peptide_ids);
+    }
+    return true;
+  }
+
   // =====================================================================
   // File-based single-file searchWithModificationAnalysis: thin wrapper around
   // the multi-file overload using a single-element list.

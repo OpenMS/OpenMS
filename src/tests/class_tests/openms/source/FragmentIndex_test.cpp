@@ -5082,6 +5082,15 @@ START_SECTION((static void checkSearchParameters(const Param& param)))
     q.setValue(name, value);
     FragmentIndex other;
     TEST_EXCEPTION(Exception::InvalidParameter, other.setParameters(q))
+    // the message names the parameter by its full name (e.g. 'precursor:max_charge', not 'max_charge')
+    try
+    {
+      other.setParameters(q);
+    }
+    catch (const Exception::InvalidParameter& e)
+    {
+      TEST_TRUE(std::string(e.what()).find("parameter '" + name + "'") != std::string::npos)
+    }
   }
   // the bounds themselves are accepted
   Param bounds = defaults;

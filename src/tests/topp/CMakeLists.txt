@@ -5609,17 +5609,18 @@ add_test("TOPP_ProSE_14_qpx_extended_needs_qpx" ${CMAKE_COMMAND}
 # Test 17: parameters that cannot be searched are refused before the search with exit code 6 (ILLEGAL_PARAMETERS) and a
 # message naming them: values outside of their restrictions (negative counts used to end in an internal error, charges
 # and isotope errors of 65535/32767 in unbounded memory growth, report:top_hits 2147483647 in an abort), inverted
-# ranges and an invalid peptide:motif.
+# ranges and an invalid peptide:motif. The messages name the parameters as they are set (Search:section:name).
 set(_prose17 ${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_17_refused.tmp.idXML)
 foreach(_case
-    "missed_cleavages|-Search:peptide:missed_cleavages;-1|value '-1' for parameter 'missed_cleavages'.*valid range is: .0:"
-    "max_charge|-Search:precursor:max_charge;65535|value '65535' for parameter 'max_charge'.*valid range is: .1:20."
-    "isotope_error|-Search:precursor:isotope_error_max;32767|valid range is: .-5:5."
-    "top_hits|-Search:report:top_hits;0|value '0' for parameter 'top_hits'.*valid range is: .1:100."
-    "variable_mods|-Search:modifications:variable_max_per_peptide;2147483647|valid range is: .0:5."
-    "charge_range|-Search:precursor:min_charge;6|precursor:min_charge .6. is larger than precursor:max_charge .5."
-    "size_range|-Search:peptide:min_size;41|peptide:min_size .41. is larger than peptide:max_size .40."
-    "motif|-Search:peptide:motif;(A|peptide:motif '.A' is not a valid regular expression")
+    "missed_cleavages|-Search:peptide:missed_cleavages;-1|value '-1' for parameter 'Search:peptide:missed_cleavages'.*valid range is: .0:"
+    "max_charge|-Search:precursor:max_charge;65535|value '65535' for parameter 'Search:precursor:max_charge'.*valid range is: .1:20."
+    "isotope_error|-Search:precursor:isotope_error_max;32767|parameter 'Search:precursor:isotope_error_max'.*valid range is: .-5:5."
+    "top_hits|-Search:report:top_hits;0|value '0' for parameter 'Search:report:top_hits'.*valid range is: .1:100."
+    "variable_mods|-Search:modifications:variable_max_per_peptide;2147483647|parameter 'Search:modifications:variable_max_per_peptide'.*valid range is: .0:5."
+    "charge_range|-Search:precursor:min_charge;6|Search:precursor:min_charge .6. is larger than Search:precursor:max_charge .5."
+    "size_range|-Search:peptide:min_size;41|Search:peptide:min_size .41. is larger than Search:peptide:max_size .40."
+    "motif|-Search:peptide:motif;(A|Search:peptide:motif '.A' is not a valid regular expression"
+    "mass_tolerance|-Search:fragment:mass_tolerance;-1|Search:fragment:mass_tolerance must be finite and positive")
   string(REPLACE "|" ";" _parts "${_case}")
   list(GET _parts 0 _name)
   list(GET _parts -1 _regex)
@@ -5782,6 +5783,46 @@ add_test("TOPP_${_f}_provenance_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_
   "-DEXPECTED=key:string = psm_fdr_applied, value:string = false"
   "-DFORBIDDEN=key:string = psm_fdr_applied, value:string = true" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_provenance_out" PROPERTIES DEPENDS "TOPP_${_f}_provenance")
+
+# Test 19: the outputs of a multi-file search agree with -out_merged once its pooled protein FDR is applied: at 2 % no
+# protein of the two inputs passes (47 target and 2 decoy proteins: at least 1/48), so -out_merged has no PSM, and
+# neither have the per-input idXML files nor the QPX psm views (before, they kept the PSMs of the searches, 1792 rows).
+set(_f ProSE_19_outputs_agree)
+add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-Search:FDR:protein;0.02;-keep_decoys;-out_merged;${TESTS_TEMP_DIR}/${_f}.tmp.idXML;-out_idxml;${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML;${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=picked-protein FDR: 0 proteins at 2% FDR" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean;TOPP_ProSE_18_inputs")
+foreach(_out merged a b)
+  if(_out STREQUAL "merged")
+    set(_file ${TESTS_TEMP_DIR}/${_f}.tmp.idXML)
+  else()
+    set(_file ${TESTS_TEMP_DIR}/${_f}_${_out}.tmp.idXML)
+  endif()
+  add_test("TOPP_${_f}_${_out}" ${TOPP_BIN_PATH}/FileInfo -test -in ${_file})
+  set_tests_properties("TOPP_${_f}_${_out}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "peptide hits: +0 ")
+endforeach()
+foreach(_view quantms.psm runs/DatabaseSuitability_in_spec.psm runs/ProSE_18_small.psm)
+  string(MAKE_C_IDENTIFIER ${_view} _name)
+  add_test("TOPP_${_f}_${_name}" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/${_view}.parquet -schema psm)
+  set_tests_properties("TOPP_${_f}_${_name}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "view: psm, rows: 0[^0-9]")
+endforeach()
+
+# The run view counts the MS2 spectra recorded as profile spectra and those not searched because their precursor
+# charge is outside precursor:min_charge..max_charge: the two MS2 spectra of DTAExtractor_1_input are both, of charge 2.
+set(_f ProSE_19_run_counts)
+add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-Search:precursor:min_charge;3;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_extended"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=2 of 2 MS2 spectra are recorded as profile spectra" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean")
+add_test("TOPP_${_f}_run" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.run.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv)
+set_tests_properties("TOPP_${_f}_run" PROPERTIES DEPENDS "TOPP_${_f}")
+add_test("TOPP_${_f}_run_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_run.tmp.tsv
+  "-DEXPECTED=ms2_spectra_count\tprofile_spectra_count\tcharge_out_of_range_spectra_count\tidentified_spectra_count;EXECUTION_OK\t2\t2\t2\t0\t"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_run_out" PROPERTIES DEPENDS "TOPP_${_f}_run")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)

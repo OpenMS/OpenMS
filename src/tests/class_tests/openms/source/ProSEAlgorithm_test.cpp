@@ -2058,9 +2058,11 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
 {
   // ProSE can score c/z fragment ions (e.g. ETD/ECD data) via the
   // ions:add_c_ions / ions:add_z_ions toggles. Build spectra that contain ONLY
-  // c/z ions and confirm a c/z-enabled search identifies the peptides, while a
-  // default (b/y) search on the same spectra does not -- the c/z peaks are
-  // shifted ~16-17 Da from b/y and cannot be matched as b/y.
+  // c/z ions and confirm a c/z-enabled search identifies the peptides and annotates
+  // c/z fragment peaks only (candidate generation, scoring and the reported fragment
+  // annotations all use the c/z ions), while a default (b/y) search on the same
+  // spectra does not -- the c/z peaks are shifted ~16-17 Da from b/y and cannot be
+  // matched as b/y.
   vector<FASTAFile::FASTAEntry> fasta_db = {
     {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
                     "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
@@ -2110,6 +2112,7 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
     p.setValue("modifications:fixed", vector<string>{});
     p.setValue("modifications:variable", vector<string>{});
     p.setValue("decoys", "ignore");
+    p.setValue("annotate:PSM", vector<string>{Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM});
     p.setValue("peptide:min_size", 7);
     p.setValue("peptide:max_size", 40);
     p.setValue("peptide:missed_cleavages", 1);
@@ -2121,9 +2124,10 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
       p.setValue("ions:add_z_ions", "true");
     }
     algo.setParameters(p);
+    PeakMap spectra_for_run = spectra; // (the search preprocesses the spectra it is given)
     vector<ProteinIdentification> prot_ids;
     PeptideIdentificationList pep_ids;
-    auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+    auto ec = algo.search(spectra_for_run, fasta_db, prot_ids, pep_ids);
     TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
     return pep_ids;
   };
@@ -2136,6 +2140,25 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
     for (const auto& hit : pid.getHits())
       found.insert(hit.getSequence().toUnmodifiedString());
   TEST_EQUAL(found.count("VLGFHQR") + found.count("THQPSANLDIK") > 0, true)
+  // ... and annotates c/z fragment peaks, no others
+  bool saw_c_or_z_annotation = false;
+  bool saw_other_fragment_annotation = false;
+  for (const auto& pid : cz_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      for (const auto& annotation : hit.getPeakAnnotations())
+      {
+        TEST_TRUE(!annotation.annotation.empty())
+        if (annotation.annotation.empty()) { continue; }
+        const char ion_type = annotation.annotation[0];
+        if (ion_type == 'c' || ion_type == 'z') { saw_c_or_z_annotation = true; }
+        else { saw_other_fragment_annotation = true; }
+      }
+    }
+  }
+  TEST_TRUE(saw_c_or_z_annotation)
+  TEST_EQUAL(saw_other_fragment_annotation, false)
 
   // (2) a default (b/y) search on the same c/z spectra matches nothing
   PeptideIdentificationList by_ids = run_search(false);
@@ -6955,6 +6978,103 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR filters the protein groups at 
   std::string out_file;
   NEW_TMP_FILE_EXT(out_file, ".idXML")
   FileHandler().storeIdentifications(out_file, proteins, peptides, {FileTypes::IDXML});
+}
+END_SECTION
+
+START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result)))
+{
+  // Two input files of the PSMs of the protein group test above, alternately: the pooled protein FDR at 23 % keeps
+  // T1, T1b and T2 .. T5 and removes T6 .. T8 (their groups fail) with their PSMs, and the decoys. Each file then gets
+  // its part of the pooled PSMs, so that its outputs agree with -out_merged.
+  const std::vector<std::pair<std::vector<std::string>, double>> psms = {
+    {{"T1", "T1b"}, 0.001}, {{"T2"}, 0.002}, {{"T3"}, 0.003}, {{"T4"}, 0.004}, {{"T5"}, 0.005},
+    {{"DECOY_D1"}, 0.006}, {{"T6"}, 0.007}, {{"T7"}, 0.008}, {{"DECOY_D2"}, 0.009}, {{"T8"}, 0.010}};
+  const std::string residues = "ACDEFGHMNQ"; // a peptide each
+  const StringList files = {"split_a.mzML", "split_b.mzML"};
+  ProSEAlgorithm::MultiFileSearchResult result;
+  result.have_decoys = true;
+  result.decoy_string = "DECOY_";
+  result.decoy_is_prefix = true;
+  result.per_file.resize(2);
+  for (Size f = 0; f < 2; ++f)
+  {
+    ProSEAlgorithm::SearchResult& pf = result.per_file[f];
+    pf.exit_code = ProSEAlgorithm::ExitCodes::EXECUTION_OK;
+    pf.percolator.applied = true;
+    pf.protein_ids.resize(1);
+    pf.protein_ids[0].setIdentifier("run_" + files[f]);
+    pf.protein_ids[0].setSearchEngine("Percolator");
+    pf.protein_ids[0].setPrimaryMSRunPath({files[f]});
+  }
+  for (Size i = 0; i < psms.size(); ++i)
+  {
+    ProSEAlgorithm::SearchResult& pf = result.per_file[i % 2];
+    const auto& [accessions, pep] = psms[i];
+    const std::string target_decoy = accessions[0].starts_with("DECOY_") ? "decoy" : "target";
+    PeptideHit hit(0.0, 1, 2, AASequence::fromString("PEPTIDE" + std::string(1, residues[i]) + "K"));
+    for (const std::string& accession : accessions)
+    {
+      ProteinHit protein;
+      protein.setAccession(accession);
+      protein.setMetaValue("target_decoy", target_decoy);
+      pf.protein_ids[0].insertHit(protein);
+      PeptideEvidence evidence;
+      evidence.setProteinAccession(accession);
+      hit.addPeptideEvidence(evidence);
+    }
+    hit.setMetaValue("target_decoy", target_decoy);
+    hit.setMetaValue("MS:1001493", pep);
+    PeptideIdentification id;
+    id.setIdentifier(pf.protein_ids[0].getIdentifier());
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference("scan=" + std::to_string(i + 1));
+    id.setHits({hit});
+    pf.peptide_ids.push_back(id);
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("FDR:protein", 0.23);
+  algo.setParameters(p);
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, files);
+  TEST_TRUE(merged.protein_fdr_applied)
+  TEST_EQUAL(merged.peptide_ids.size(), 5)
+  const PeptideIdentificationList pooled = merged.peptide_ids;
+
+  TEST_TRUE(ProSEAlgorithm::splitMergedPsms(merged, result))
+  TEST_TRUE(merged.peptide_ids.empty())
+  // file a: T1/T1b, T3, T5; file b: T2, T4, in the order of the files, as PSMs of their runs
+  const auto sequences = [](const PeptideIdentificationList& ids)
+  {
+    StringList out;
+    for (const PeptideIdentification& id : ids) { out.push_back(id.getHits()[0].getSequence().toString()); }
+    return ListUtils::concatenate(out, ",");
+  };
+  TEST_STRING_EQUAL(sequences(result.per_file[0].peptide_ids), "PEPTIDEAK,PEPTIDEDK,PEPTIDEFK")
+  TEST_STRING_EQUAL(sequences(result.per_file[1].peptide_ids), "PEPTIDECK,PEPTIDEEK")
+  for (Size f = 0; f < 2; ++f)
+  {
+    const ProSEAlgorithm::SearchResult& pf = result.per_file[f];
+    for (const PeptideIdentification& id : pf.peptide_ids)
+    {
+      TEST_STRING_EQUAL(id.getIdentifier(), pf.protein_ids[0].getIdentifier())
+      TEST_FALSE(id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+    }
+  }
+  // the proteins of each file: those its PSMs reference, all of them passing the pooled protein FDR
+  TEST_STRING_EQUAL(accessions_of(result.per_file[0].protein_ids[0]), "T1,T1b,T3,T5")
+  TEST_STRING_EQUAL(accessions_of(result.per_file[1].protein_ids[0]), "T2,T4")
+  Size in_files = result.per_file[0].peptide_ids.size() + result.per_file[1].peptide_ids.size();
+  TEST_EQUAL(in_files, pooled.size())
+
+  // PSMs without the input position of their file: nothing is changed
+  ProSEAlgorithm::MergedResult unassigned;
+  unassigned.peptide_ids = pooled;
+  for (PeptideIdentification& id : unassigned.peptide_ids) { id.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX); }
+  const PeptideIdentificationList before = result.per_file[0].peptide_ids;
+  TEST_FALSE(ProSEAlgorithm::splitMergedPsms(unassigned, result))
+  TEST_EQUAL(unassigned.peptide_ids.size(), pooled.size())
+  TEST_TRUE(result.per_file[0].peptide_ids == before)
 }
 END_SECTION
 

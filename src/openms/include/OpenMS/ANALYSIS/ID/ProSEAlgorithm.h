@@ -822,6 +822,26 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files,
                                   bool remove_decoys = true) const;
 
+    /**
+     * @brief Makes the PSMs of each file of a multi-file search its part of the pooled result (mergeFileResults()), so
+     * that per-file outputs agree with the pooled one.
+     *
+     * The pooled finalization of the protein FDR removes PSMs that the files still have: the PSMs all of whose proteins
+     * fail the protein FDR and, with its remove_decoys, the decoy PSMs; it also drops the peptide evidences of the
+     * proteins that failed. This moves the PSMs of @p merged (merged.peptide_ids, empty afterwards) into the files of
+     * @p result by their 'id_merge_index' (the input position of their file, which is removed), in their order, as the
+     * PSMs of the runs of the files (their identifiers), and makes the proteins of each file those its PSMs reference
+     * (removeUnreportedProteins()). A file without a PSM in @p merged gets none. Store the pooled PSMs (e.g. as idXML)
+     * before.
+     *
+     * @param[in,out] merged The pooled result of @p result. Its PSMs are moved out.
+     * @param[in,out] result The multi-file search that @p merged pools. The files that were searched (exit code
+     *                       EXECUTION_OK) get their PSMs from @p merged; the statistics stay (see updateFinalStats()).
+     * @return False (and nothing changed) if a PSM of @p merged has no 'id_merge_index' of a file of @p result that was
+     *         searched (e.g. a pooling of inputs that share a path).
+     */
+    static bool splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result);
+
     /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
     /// file before the rescoring ('rescore') and FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a
     /// Percolator .pin): the search engine scores, every reported hit and the decoys. Default: false (no copy).
