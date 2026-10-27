@@ -6273,7 +6273,8 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model gets the sc
     FileHandler().storeIdentifications(out_file, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
 
     // Had the file not been rescored (as when the PSMs of all files are too few for a model): the merge scores the
-    // proteins of all files by ProSE's score, and with FDR:PSM 0 every PSM gets it as main score.
+    // proteins of all files by ProSE's score, on its copies of the PSMs only: the PSMs keep their own scores (with
+    // FDR:PSM 0 Percolator's q-values and ProSE's score).
     ProSEAlgorithm alone;
     configure_merge(alone, "generate");
     alone.setParameters(p);
@@ -6290,12 +6291,17 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model gets the sc
     {
       TEST_TRUE(hit.metaValueExists("ln(hyperscore)_score"))
     }
-    Size other_score_types = 0;
+    // the PSMs of each file with the score type of its PSMs before the merge
+    std::map<int, std::set<std::string>> score_types;
     for (const PeptideIdentification& id : merged.peptide_ids)
     {
-      other_score_types += id.getScoreType() != (psm_fdr > 0.0 ? "q-value" : "ln(hyperscore)");
+      score_types[static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX))].insert(id.getScoreType());
     }
-    TEST_EQUAL(other_score_types, 0)
+    TEST_TRUE(score_types[0] == std::set<std::string>{"q-value"}) // rescored
+    if (!score_types[1].empty())
+    {
+      TEST_TRUE(score_types[1] == std::set<std::string>{psm_fdr > 0.0 ? "q-value" : "ln(hyperscore)"}) // not rescored
+    }
   }
 }
 END_SECTION
@@ -7061,9 +7067,21 @@ START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearch
       TEST_FALSE(id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     }
   }
-  // the proteins of each file: those its PSMs reference, all of them passing the pooled protein FDR
+  // the proteins of each file: those its PSMs reference, all of them passing the pooled protein FDR, with their pooled
+  // q-values and groups (the group of T1 and T1b, and one of each other protein)
   TEST_STRING_EQUAL(accessions_of(result.per_file[0].protein_ids[0]), "T1,T1b,T3,T5")
   TEST_STRING_EQUAL(accessions_of(result.per_file[1].protein_ids[0]), "T2,T4")
+  std::map<std::string, double> pooled_q;
+  for (const ProteinHit& hit : merged.protein_ids[0].getHits()) { pooled_q[hit.getAccession()] = hit.getScore(); }
+  for (Size f = 0; f < 2; ++f)
+  {
+    const ProteinIdentification& run = result.per_file[f].protein_ids[0];
+    TEST_STRING_EQUAL(run.getScoreType(), "q-value")
+    TEST_FALSE(run.isHigherScoreBetter())
+    for (const ProteinHit& hit : run.getHits()) { TEST_REAL_SIMILAR(hit.getScore(), pooled_q[hit.getAccession()]) }
+    TEST_EQUAL(run.getIndistinguishableProteins().size(), f == 0 ? 3 : 2)
+    for (const auto& group : run.getIndistinguishableProteins()) { TEST_TRUE(group.probability <= 0.23) }
+  }
   Size in_files = result.per_file[0].peptide_ids.size() + result.per_file[1].peptide_ids.size();
   TEST_EQUAL(in_files, pooled.size())
 

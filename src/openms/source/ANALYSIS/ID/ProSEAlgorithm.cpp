@@ -362,7 +362,10 @@ namespace OpenMS
       "spectrum, the more the wider the precursor window.");
     defaults_.setValidStrings("low_memory", {"true", "false"});
 
-    defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported. Only the "
+                       "search engine scores keep more than one: Percolator rescoring ('rescore'), FDR:PSM > 0 and the "
+                       "protein FDR (FDR:protein > 0) keep the best hit of each spectrum only, so values above 1 apply with "
+                       "'rescore' false, FDR:PSM 0 and FDR:protein 0.");
     defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
                        "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
                        "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
@@ -414,7 +417,11 @@ namespace OpenMS
                        "so a lower threshold reports no PSM instead of lifting the filter. Needs decoys ('decoys' auto or "
                        "generate); with 'ignore', a threshold above 0 is skipped with a warning (the QPX run view of the ProSE tool's "
                        "-qpx_extended records per input whether the filter was applied: 'psm_fdr_applied'). Afterwards, the "
-                       "proteins that no remaining PSM references are removed.");
+                       "proteins that no remaining PSM references are removed. Its meaning depends on FDR:protein: with "
+                       "FDR:protein > 0 (the search is the whole experiment) it is the final PSM FDR of every output (e.g. "
+                       "0.01); with FDR:protein 0 (the search is part of a larger experiment, finished downstream) it is a "
+                       "loose evidence threshold of the per-run intermediates (e.g. 0.1), and the final FDR is applied "
+                       "downstream on the pooled PSMs of all parts.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setValue("FDR:PSM_groups", "scored_charges",
@@ -428,12 +435,12 @@ namespace OpenMS
                        "A group without decoy or without target PSMs falls back to 'pooled'.",
                        {"advanced"});
     defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). The proteins and the protein groups (which have q-values of their own) are filtered at the threshold, and only the proteins of the groups that pass are kept. Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards, and so are the PSMs all of whose proteins failed the protein FDR. Needs decoys ('decoys' auto or generate).");
+    defaults_.setValue("FDR:protein", 0.0, "Picked-protein FDR threshold (e.g. 0.01 = 1 %), and the switch between the two modes of a search. Above 0, the search is the whole experiment: its proteins are inferred on the pooled PSMs of all its inputs, filtered at this protein FDR, and the PSMs filtered finally, so every output is the final result (the decoys removed, see the ProSE tool's -keep_decoys). With 0 (the default), the search is one part of a larger experiment, e.g. one shard of files searched on one compute node: every output is a per-run intermediate (PSM q-values and PEPs per run, FDR:PSM as a loose evidence threshold, decoys and all referenced proteins kept), to be finished downstream on all parts together (e.g. ProteomicsLFQ, or IDMerger, ProteinInference or Epifany, FalseDiscoveryRate and IDFilter). Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). The proteins and the protein groups (which have q-values of their own) are filtered at the threshold, and only the proteins of the groups that pass are kept. Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards, and so are the PSMs all of whose proteins failed the protein FDR. Needs decoys ('decoys' auto or generate).");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setValue("FDR:protein_inference_PSM", 0.1,
-                       "q-value cutoff of the PSMs that protein inference and the protein FDR (FDR:protein) use; FDR:PSM still "
-                       "filters the reported PSMs. The q-values are those FDR:PSM filters on (Percolator's with 'rescore', else "
+                       "q-value cutoff of the PSMs that protein inference and the protein FDR (FDR:protein > 0) use; FDR:PSM "
+                       "still filters the reported PSMs. Without the protein FDR it has no effect. The q-values are those FDR:PSM filters on (Percolator's with 'rescore', else "
                        "see FDR:PSM_groups). A looser cutoff than FDR:PSM leaves more decoy proteins for the picked-protein FDR, "
                        "as ProteomicsLFQ infers proteins on PSMs at a looser q-value than its PSM FDR. Values at or below FDR:PSM "
                        "use the PSMs of FDR:PSM; with FDR:PSM 0 (no PSM filter) all PSMs are used.",
@@ -6798,8 +6805,8 @@ namespace OpenMS
     // target-decoy q-values of ProSE's score, which are valid per file and stay. Only the protein inference compares
     // PSMs across files, by the best PEP of a protein's PSMs: the PSMs that Percolator did not rescore have none. A
     // mixed set is therefore pooled on ProSE's own score, which every PSM has: the inference scores proteins by the
-    // best 'ln(hyperscore)' (as without rescoring, see inferProteins()), and with FDR:PSM 0, where the main score is
-    // not a q-value, every pooled PSM gets 'ln(hyperscore)' as main score (Percolator's scores stay meta values).
+    // best 'ln(hyperscore)' (as without rescoring, see inferProteins(), which switches the scores of its copies of the
+    // PSMs only); the PSMs themselves keep their scores.
     Size n_searched = 0, n_rescored = 0;
     std::vector<std::string> not_rescored;
     for (Size i = 0; i < result.per_file.size(); ++i)
@@ -6850,9 +6857,6 @@ namespace OpenMS
     // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
     // merged idXML is schema-valid (matches the single-file path).
     merged_protein_ids[0].setDateTime(DateTime::now());
-
-    // Without FDR:PSM the main scores of a mixed set differ: Percolator's q-values and ProSE's scores. One score for all.
-    if (rescoring_mixed && fdr_psm_ <= 0.0) { useSearchEngineScore_(merged_peptides); }
 
     // Cross-file protein inference (inferProteins(): the best PEP, or search engine score, per peptide per protein) and
     // the optional picked-protein FDR. Picked-protein FDR needs identified decoy proteins: gate on DB-level decoys here,
@@ -6911,12 +6915,45 @@ namespace OpenMS
       parts[file_of[k]].push_back(std::move(id));
     }
     merged.peptide_ids = PeptideIdentificationList();
+    const ProteinIdentification* pooled = merged.protein_ids.empty() ? nullptr : &merged.protein_ids[0];
     for (Size i = 0; i < n; ++i)
     {
       SearchResult& pf = result.per_file[i];
       if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
       pf.peptide_ids = std::move(parts[i]);
-      removeUnreportedProteins(pf.protein_ids, pf.peptide_ids);
+      if (pooled == nullptr)
+      {
+        removeUnreportedProteins(pf.protein_ids, pf.peptide_ids);
+        continue;
+      }
+      // The proteins of the pooled run that the file's PSMs reference, with their pooled scores (e.g. the protein
+      // q-values), and the pooled groups of these proteins: why the proteins are in the file's outputs.
+      std::unordered_set<std::string> referenced;
+      for (const PeptideIdentification& id : pf.peptide_ids)
+      {
+        for (const PeptideHit& hit : id.getHits())
+        {
+          for (const PeptideEvidence& evidence : hit.getPeptideEvidences()) { referenced.insert(evidence.getProteinAccession()); }
+        }
+      }
+      std::vector<ProteinHit> hits;
+      for (const ProteinHit& hit : pooled->getHits())
+      {
+        if (referenced.contains(hit.getAccession())) { hits.push_back(hit); }
+      }
+      for (ProteinIdentification& run : pf.protein_ids)
+      {
+        run.setHits(hits);
+        run.setScoreType(pooled->getScoreType());
+        run.setHigherScoreBetter(pooled->isHigherScoreBetter());
+        run.setInferenceEngine(pooled->getInferenceEngine());
+        run.setInferenceEngineVersion(pooled->getInferenceEngineVersion());
+        run.getIndistinguishableProteins() = pooled->getIndistinguishableProteins();
+        run.getProteinGroups() = pooled->getProteinGroups();
+        IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
+        IDFilter::updateProteinGroups(run.getProteinGroups(), run.getHits());
+      }
+      IDFilter::removeDanglingProteinReferences(pf.peptide_ids, pf.protein_ids); // (none: the pooled run has them all)
     }
     return true;
   }

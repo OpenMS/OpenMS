@@ -5808,6 +5808,20 @@ foreach(_view quantms.psm runs/DatabaseSuitability_in_spec.psm runs/ProSE_18_sma
   set_tests_properties("TOPP_${_f}_${_name}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "view: psm, rows: 0[^0-9]")
 endforeach()
 
+# 'Search:FDR:protein' > 0 is the whole experiment also without -out_merged: the inputs are pooled for the protein
+# inference and the protein FDR (5 %, which every protein passes), and each per-input output is its part of the pooled
+# result: proteins with their pooled q-values (score type q-value) and groups, no decoys (before, ProSE warned and
+# applied no protein FDR, and the per-input outputs kept their decoys and had no protein scores).
+set(_f ProSE_19_final_without_merged)
+add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-ini;${DATA_DIR_TOPP}/ProSE_6_fdr.ini;-in;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML;${TESTS_TEMP_DIR}/ProSE_18_small.mzML;-database;${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta;-out_idxml;${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML;${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=picked-protein FDR: [1-9][0-9]* proteins at 5% FDR" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs")
+add_test("TOPP_${_f}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"indistinguishable_proteins_0\""
+  "-DFORBIDDEN=value=\"decoy\"" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f}")
+
 # The run view counts the MS2 spectra recorded as profile spectra and those not searched because their precursor
 # charge is outside precursor:min_charge..max_charge: the two MS2 spectra of DTAExtractor_1_input are both, of charge 2.
 set(_f ProSE_19_run_counts)

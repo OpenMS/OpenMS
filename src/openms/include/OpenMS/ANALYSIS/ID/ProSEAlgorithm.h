@@ -789,9 +789,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *  - Percolator ('rescore') rescored only some files with PSMs (which the multi-file search avoids, unless the model
      *    of the other files or of all files fails too; a warning names the others): each PSM keeps the q-value of its file (Percolator's, or
      *    target-decoy q-values of ProSE's score), on which FDR:PSM filtered it, but the proteins are scored by
-     *    ProSE's score 'ln(hyperscore)' of all PSMs, as only the rescored ones have a PEP; with FDR:PSM 0 every pooled
-     *    PSM also gets 'ln(hyperscore)' as main score (instead of Percolator's q-value), so that all PSMs are on one
-     *    score. The pooled run reports ProSE's search engine.
+     *    ProSE's score 'ln(hyperscore)' of all PSMs, as only the rescored ones have a PEP (on the inference's copies
+     *    of the PSMs: the PSMs keep their scores). The pooled run reports ProSE's search engine.
      *  - With FDR:protein > 0 and decoys in the searched database: applyCompleteSetProteinFDR(), whose inference also
      *    uses the PSMs of the files between FDR:PSM and FDR:protein_inference_PSM
      *    (@c per_file[i].inference_only_peptide_ids, which are moved out), with picked-protein FDR (Savitski et al.
@@ -830,9 +829,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * fail the protein FDR and, with its remove_decoys, the decoy PSMs; it also drops the peptide evidences of the
      * proteins that failed. This moves the PSMs of @p merged (merged.peptide_ids, empty afterwards) into the files of
      * @p result by their 'id_merge_index' (the input position of their file, which is removed), in their order, as the
-     * PSMs of the runs of the files (their identifiers), and makes the proteins of each file those its PSMs reference
-     * (removeUnreportedProteins()). A file without a PSM in @p merged gets none. Store the pooled PSMs (e.g. as idXML)
-     * before.
+     * PSMs of the runs of the files (their identifiers). The proteins of each file become the proteins of the pooled
+     * run (merged.protein_ids) that its PSMs reference, with their pooled scores (e.g. the q-values of the protein FDR,
+     * with the pooled run's score type and inference engine) and the pooled indistinguishable groups and protein groups
+     * of these proteins (with their pooled scores), so that each file's outputs state why its proteins are there.
+     * Without a pooled run, the file keeps the proteins its PSMs reference (removeUnreportedProteins()). A file
+     * without a PSM in @p merged gets none. Store the pooled PSMs (e.g. as idXML) before.
      *
      * @param[in,out] merged The pooled result of @p result. Its PSMs are moved out.
      * @param[in,out] result The multi-file search that @p merged pools. The files that were searched (exit code
