@@ -348,6 +348,10 @@ jobs:
   # job builds the libraries once more in Debug, with the vcpkg dependencies in
   # their debug form, and packages only the SDK: no installer, no tests (the
   # Release job covers them, and the Debug test suite would take many hours).
+  # The deployment waits for it but does not need it: no PR check builds the
+  # Debug halves of the vcpkg ports, so a port that breaks only in Debug would
+  # otherwise hold back the installers and the documentation. When this job or
+  # the one before it fails, the deployment goes ahead without the Debug SDK.
   build-windows-debug-sdk:
     name: "Build the Windows Debug SDK"
     runs-on: windows-2025
@@ -407,7 +411,8 @@ jobs:
 
   deploy-installer:
     name: "Deploy Installer"
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy }}
+    # !cancelled(): run after the Debug SDK job also when it failed (see there)
+    if: ${{ !cancelled() && needs.build-and-test.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.deploy) }}
     runs-on: ubuntu-latest
     needs:
       - build-and-test
@@ -449,7 +454,7 @@ jobs:
 
   deploy-docs:
     name: "Deploy Documentation"
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy }}
+    if: ${{ !cancelled() && needs.build-and-test.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.deploy) }}
     runs-on: ubuntu-latest
     needs:
       - build-and-test
@@ -488,7 +493,7 @@ jobs:
 
   publish-release:
     name: "Publish Release"
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy }}
+    if: ${{ !cancelled() && needs.deploy-installer.result == 'success' && needs.deploy-docs.result == 'success' }}
     runs-on: ubuntu-latest
     permissions: write-all
     needs:
@@ -685,7 +690,9 @@ jobs:
 
   create-website-update:
     name: Create Website Update
-    if: github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true'
+    # without a status check, the implicit success() would also skip this job
+    # after a failed Debug SDK job, which is an ancestor through publish-release
+    if: ${{ !cancelled() && needs.publish-release.result == 'success' && github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true' }}
     runs-on: ubuntu-latest
     permissions: write-all
     needs:
