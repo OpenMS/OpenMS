@@ -5334,6 +5334,63 @@ add_test("TOPP_ProSE_13_merged_structure" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_13_merged_structure" PROPERTIES DEPENDS "TOPP_ProSE_13_merged")
 
+# Test 20: idparquet output. -out (and -out_merged) write an .idparquet directory bundle (format by extension). The
+# bundle stores PSMs differently from idXML (e.g. no fragment_annotation), so instead of a line diff, the FileInfo
+# summary of the bundle (converted to idXML) must match that of the same search written as idXML.
+# (a) one input: the bundle of -out against the idXML of Test 1
+add_test("TOPP_ProSE_20_idparquet" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -out ${TESTS_TEMP_DIR}/ProSE_20_out.tmp.idparquet)
+add_test("TOPP_ProSE_20_idparquet_convert" ${TOPP_BIN_PATH}/IDFileConverter -test
+  -in ${TESTS_TEMP_DIR}/ProSE_20_out.tmp.idparquet -out ${TESTS_TEMP_DIR}/ProSE_20_out.tmp.idXML)
+set_tests_properties("TOPP_ProSE_20_idparquet_convert" PROPERTIES DEPENDS "TOPP_ProSE_20_idparquet")
+add_test("TOPP_ProSE_20_idparquet_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_20_out.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/ProSE_20_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_20_idparquet_info" PROPERTIES DEPENDS "TOPP_ProSE_20_idparquet_convert")
+add_test("TOPP_ProSE_20_idxml_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/ProSE_20_idxml_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_20_idxml_info" PROPERTIES DEPENDS "TOPP_ProSE_1")
+add_test("TOPP_ProSE_20_idparquet_info_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_20_info.tmp.tsv -in2 ${TESTS_TEMP_DIR}/ProSE_20_idxml_info.tmp.tsv -whitelist "file name")
+set_tests_properties("TOPP_ProSE_20_idparquet_info_out" PROPERTIES DEPENDS "TOPP_ProSE_20_idparquet_info;TOPP_ProSE_20_idxml_info")
+# (b) two inputs with -out_merged and the pooled protein FDR: the same search written as idXML (with the deprecated
+# alias -out_idxml) and as idparquet; per input and merged, the bundles have the PSMs and proteins of the idXML files.
+set(_prose20_multi -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_18_small.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -Search:FDR:protein 0.05)
+add_test("TOPP_ProSE_20_multi_idxml" ${TOPP_BIN_PATH}/ProSE ${_prose20_multi}
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_20_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_20_multi_b.tmp.idXML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_20_multi_merged.tmp.idXML)
+add_test("TOPP_ProSE_20_multi_idparquet" ${TOPP_BIN_PATH}/ProSE ${_prose20_multi}
+  -out ${TESTS_TEMP_DIR}/ProSE_20_multi_a.tmp.idparquet ${TESTS_TEMP_DIR}/ProSE_20_multi_b.tmp.idparquet
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_20_multi_merged.tmp.idparquet)
+set_tests_properties("TOPP_ProSE_20_multi_idxml" "TOPP_ProSE_20_multi_idparquet" PROPERTIES DEPENDS "TOPP_ProSE_18_inputs")
+foreach(_part a b merged)
+  set(_p ProSE_20_multi_${_part})
+  add_test("TOPP_${_p}_convert" ${TOPP_BIN_PATH}/IDFileConverter -test
+    -in ${TESTS_TEMP_DIR}/${_p}.tmp.idparquet -out ${TESTS_TEMP_DIR}/${_p}_pq.tmp.idXML)
+  set_tests_properties("TOPP_${_p}_convert" PROPERTIES DEPENDS "TOPP_ProSE_20_multi_idparquet")
+  add_test("TOPP_${_p}_info_pq" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/${_p}_pq.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/${_p}_pq_info.tmp.tsv)
+  set_tests_properties("TOPP_${_p}_info_pq" PROPERTIES DEPENDS "TOPP_${_p}_convert")
+  add_test("TOPP_${_p}_info_idxml" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/${_p}.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/${_p}_info.tmp.tsv)
+  set_tests_properties("TOPP_${_p}_info_idxml" PROPERTIES DEPENDS "TOPP_ProSE_20_multi_idxml")
+  add_test("TOPP_${_p}_info_out" ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/${_p}_pq_info.tmp.tsv -in2 ${TESTS_TEMP_DIR}/${_p}_info.tmp.tsv -whitelist "file name")
+  set_tests_properties("TOPP_${_p}_info_out" PROPERTIES DEPENDS "TOPP_${_p}_info_pq;TOPP_${_p}_info_idxml")
+endforeach()
+# (c) -out_idxml is a deprecated alias of -out; giving both is an error.
+add_test("TOPP_ProSE_20_out_and_out_idxml" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -out ${TESTS_TEMP_DIR}/ProSE_20_both_a.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_20_both_b.tmp.idXML)
+set_tests_properties("TOPP_ProSE_20_out_and_out_idxml" PROPERTIES WILL_FAIL 1)
+
 # Test 15: a search in which no PSM passes the PSM FDR ends with exit code 0 and valid, empty outputs (the protein FDR
 # aborted it with "Graph empty. Build it first."). The database swaps target and decoy: its targets are the reversed
 # proteins of the DatabaseSuitability database, its decoys (DECOY_, reused by decoys=auto) the real ones, so the spectra
