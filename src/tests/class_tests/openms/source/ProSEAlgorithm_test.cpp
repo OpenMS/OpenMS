@@ -24,6 +24,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -8068,7 +8069,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex are those of ProteaseDigestion))
 {
-  // Random proteins (with K, R, P, M and runs of them; also X and B) and several enzymes: the generated decoys equal
+  // Random proteins (with K, R, P, M and runs of them; also X and B) and every enzyme: the generated decoys equal
   // the construction with ProteaseDigestion::digestUnmodified() (regex). Lys-N's rule is not of the simple form (regex
   // path); 1000 proteins, so that the decoys are generated in parallel.
   std::mt19937 rng(11);
@@ -8081,7 +8082,18 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     for (int k = 0; k < length; ++k) sequence += letters[rng() % letters.size()];
     fasta_db.push_back({"P" + std::to_string(i), "", sequence});
   }
-  for (const std::string enzyme : {"Trypsin", "Trypsin/P", "Lys-C", "Arg-C", "Lys-N"})
+  // boundaries: sites at 1 and at size - 1, consecutive sites, a blocked site, a site at the end
+  for (const std::string sequence : {"K", "AK", "KA", "KKA", "KP", "KRP", "MKR", "RPKA", "DEKKRRPPMD", "FWYLMDE"})
+  {
+    fasta_db.push_back({"B" + std::to_string(fasta_db.size()), "", sequence});
+  }
+  // every enzyme of the ProteaseDB that keep_termini accepts (simple rules without the regex, the others with it)
+  StringList enzymes;
+  ProteaseDB::getInstance()->getAllNames(enzymes);
+  enzymes.erase(std::remove_if(enzymes.begin(), enzymes.end(), [](const std::string& e)
+                { return e == EnzymaticDigestion::UnspecificCleavage || e == EnzymaticDigestion::NoCleavage; }), enzymes.end());
+  TEST_TRUE(enzymes.size() > 20)
+  for (const std::string& enzyme : enzymes)
   {
     ProSEAlgorithm algo;
     Param p = algo.getParameters();
