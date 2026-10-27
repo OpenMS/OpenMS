@@ -25,6 +25,7 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -8056,6 +8057,57 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the DecoyDatabase construction
     std::string expected = dg.reversePeptides(AASequence::fromString(met ? t.substr(1) : t), "Trypsin/P").toString();
     if (met) expected.insert(expected.begin(), 'M');
     TEST_STRING_EQUAL(e.sequence, expected)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex are those of ProteaseDigestion))
+{
+  // Random proteins (with K, R, P, M and runs of them; also X and B) and several enzymes: the generated decoys equal
+  // the construction with ProteaseDigestion::digestUnmodified() (regex). Lys-N's rule is not of the simple form (regex
+  // path); 1000 proteins, so that the decoys are generated in parallel.
+  std::mt19937 rng(11);
+  const std::string letters = "ACDEFGHIKLMNPQRSTVWYKRPKRPXB";
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  for (int i = 0; i < 1000; ++i)
+  {
+    std::string sequence = (i % 3 == 0) ? "M" : "";
+    const int length = 1 + static_cast<int>(rng() % 60);
+    for (int k = 0; k < length; ++k) sequence += letters[rng() % letters.size()];
+    fasta_db.push_back({"P" + std::to_string(i), "", sequence});
+  }
+  for (const std::string enzyme : {"Trypsin", "Trypsin/P", "Lys-C", "Arg-C", "Lys-N"})
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    p.setValue("decoy_method", "keep_termini");
+    p.setValue("enzyme", enzyme);
+    p.setValue("peptide:min_size", 6);
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    algo.setParameters(p);
+    ProSEAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+    ProteaseDigestion digestion;
+    digestion.setEnzyme(enzyme);
+    digestion.setMissedCleavages(0);
+    digestion.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+    std::map<std::string, std::string> decoy_of;
+    for (const auto& e : ctx.db) if (e.identifier.rfind("DECOY_", 0) == 0) decoy_of[e.identifier.substr(6)] = e.sequence;
+    TEST_EQUAL(decoy_of.size(), fasta_db.size())
+    Size equal = 0;
+    for (const auto& target : fasta_db)
+    {
+      std::vector<std::pair<Size, Size>> spans;
+      digestion.digestUnmodified(target.sequence, spans, 1, 0);
+      std::string expected = target.sequence;
+      for (const auto& [start, length] : spans)
+      {
+        expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, "KRP").first);
+      }
+      equal += decoy_of[target.identifier] == expected ? 1 : 0;
+    }
+    TEST_EQUAL(equal, fasta_db.size())
   }
 }
 END_SECTION

@@ -2933,10 +2933,59 @@ namespace OpenMS
     // and keepPeptideCTerm true; Decoy:non_shuffle_pattern "KRP", its default is empty) with @p digestor (the search enzyme, no missed cleavages,
     // full specificity): every segment is MRMDecoy::reversePeptideLight(segment, keepN, keepC, "KRP"). Residues not in
     // any segment (none for a digest that tiles the protein) stay in place.
-    std::string keepTerminiDecoy(const std::string& protein, const ProteaseDigestion& digestor, std::vector<std::pair<Size, Size>>& spans)
+    // A cleavage rule of the form "(?<=[KR])" with an optional "(?!P)" (Trypsin, Trypsin/P, Lys-C, Arg-C, ...; as
+    // FragmentIndex's regex-free digest): a site after a residue of the first set unless the next one blocks it
+    struct SegmentRule
     {
+      std::array<bool, 256> after{};
+      std::array<bool, 256> not_before{};
+    };
+
+    // True (and @p rule filled) if @p regex is exactly "(?<=[" + letters A-Z + "])", optionally followed by "(?!" + one
+    // letter + ")"; every other rule is left to the regex
+    bool parseSegmentRule(const std::string& regex, SegmentRule& rule)
+    {
+      const auto is_letter = [](char c) { return c >= 'A' && c <= 'Z'; };
+      if (regex.compare(0, 5, "(?<=[") != 0) return false;
+      Size i = 5;
+      for (; i < regex.size() && is_letter(regex[i]); ++i) rule.after[static_cast<unsigned char>(regex[i])] = true;
+      if (i == 5 || regex.compare(i, 2, "])") != 0) return false;
+      i += 2;
+      if (i == regex.size()) return true;
+      if (regex.size() != i + 5 || regex.compare(i, 3, "(?!") != 0 || !is_letter(regex[i + 3]) || regex[i + 4] != ')') return false;
+      rule.not_before[static_cast<unsigned char>(regex[i + 3])] = true;
+      return true;
+    }
+
+    // The segments {start, length} of @p sequence: digestor.digestUnmodified(sequence, spans, 1, 0) (fully specific, no
+    // missed cleavages), with @p rule without the regex (~1 ms per protein with the regex): its tokenize_() yields 0 and
+    // every site 0 < p < size, and every segment between consecutive ones (and the last one up to the end) is a product.
+    void digestSegments(const ProteaseDigestion& digestor, const SegmentRule* rule, const std::string& sequence,
+                        std::vector<std::pair<Size, Size>>& spans)
+    {
+      if (rule == nullptr)
+      {
+        digestor.digestUnmodified(sequence, spans, 1, 0);
+        return;
+      }
       spans.clear();
-      digestor.digestUnmodified(protein, spans, 1, 0);
+      if (sequence.empty()) return;
+      Size start = 0;
+      for (Size p = 1; p < sequence.size(); ++p)
+      {
+        if (rule->after[static_cast<unsigned char>(sequence[p - 1])] && !rule->not_before[static_cast<unsigned char>(sequence[p])])
+        {
+          spans.emplace_back(start, p - start);
+          start = p;
+        }
+      }
+      spans.emplace_back(start, sequence.size() - start);
+    }
+
+    std::string keepTerminiDecoy(const std::string& protein, const ProteaseDigestion& digestor, const SegmentRule* rule,
+                                 std::vector<std::pair<Size, Size>>& spans)
+    {
+      digestSegments(digestor, rule, protein, spans);
       std::string decoy = protein;
       for (const auto& [start, length] : spans)
       {
@@ -3093,12 +3142,16 @@ namespace OpenMS
       ProteaseDigestion segments;
       Size site_mismatches = 0;
       UInt64 checksum = 14695981039346656037ULL;
+      SegmentRule segment_rule;
+      bool simple_segments = false;
       if (keep_termini)
       {
         segments.setEnzyme(enzyme_);
         segments.setMissedCleavages(0);
         segments.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+        simple_segments = parseSegmentRule(ProteaseDB::getInstance()->getEnzyme(enzyme_)->getRegEx(), segment_rule);
       }
+      const SegmentRule* const segment_rule_ptr = simple_segments ? &segment_rule : nullptr;
       // The decoy sequences in parallel (each from its target alone; serially 1.2-1.6 s per run for a human database, as
       // AASequence parsing and the digestion per protein dominate), then appended in target order as before.
       const bool clip_nterm_methionine = param_.getValue("peptide:clip_nterm_methionine").toBool();
@@ -3130,9 +3183,9 @@ namespace OpenMS
             const std::string& sequence = db[i].sequence;
             if (keep_termini)
             {
-              decoy_sequences[i] = keepTerminiDecoy(sequence, segments, target_spans);
+              decoy_sequences[i] = keepTerminiDecoy(sequence, segments, segment_rule_ptr, target_spans);
               // the guarantee holds only if the decoy has the target's cleavage sites (enzymes whose rule reads K, R, P)
-              segments.digestUnmodified(decoy_sequences[i], decoy_spans, 1, 0);
+              digestSegments(segments, segment_rule_ptr, decoy_sequences[i], decoy_spans);
               site_mismatch[i] = decoy_spans != target_spans;
               continue;
             }
