@@ -248,6 +248,10 @@ namespace ArrowIOHelpers
   */
   OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids);
 
+  /// qpxScanFormat(native_ids) checking the IDs in @p threads ranges in parallel (OpenMP; 1: serial): the same result
+  /// and the same warning (the first pair of conventions in ID order)
+  OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids, int threads);
+
   /**
     @brief Reduce an MS run path to the QPX @c run_file_name form
 

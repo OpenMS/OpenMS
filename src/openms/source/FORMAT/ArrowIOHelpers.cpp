@@ -42,8 +42,13 @@
 #include <arrow/api.h>
 #include <arrow/io/file.h>
 #include <arrow/table.h>
+#include <arrow/util/thread_pool.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -95,7 +100,8 @@ namespace
   bool validateQPXValuesForWrite(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& filename,
-    bool extra_columns)
+    bool extra_columns,
+    int threads)
   {
     const auto metadata = table->schema()->metadata();
     if (!metadata || !metadata->Contains("qpx_version")) { return true; }
@@ -129,6 +135,7 @@ namespace
 
     QPXValueValidation validator(view);
     validator.setExtraColumnsAllowed(extra_columns);
+    validator.setThreads(threads);
     const auto validation = validator.validate(table);
     if (!validation.valid)
     {
@@ -582,18 +589,45 @@ bool qpxWarnOnRunNameCollisions(const std::string& context,
 
 std::string qpxScanFormat(const std::vector<std::string>& native_ids)
 {
-  std::string resolved;
-  for (const auto& id : native_ids)
+  return qpxScanFormat(native_ids, 1);
+}
+
+std::string qpxScanFormat(const std::vector<std::string>& native_ids, int threads)
+{
+  // Per range of IDs (one per thread): the first convention seen and the first one that differs from it. Merged in
+  // order below, the result and the warning (the first pair of conventions in ID order) are those of one serial pass.
+  struct Range { std::string resolved, conflict; };
+  int ranges = 1;
+#ifdef _OPENMP
+  if (threads > 1 && !omp_in_parallel()) { ranges = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(1, native_ids.size() / 4096))); }
+#endif
+  std::vector<Range> parts(ranges);
+  #pragma omp parallel for num_threads(ranges) schedule(static) if(ranges > 1)
+  for (int r = 0; r < ranges; ++r)
   {
-    const std::string fmt = qpxScanFormat(id);
-    if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
-    if (resolved.empty()) { resolved = fmt; }
-    else if (resolved != fmt)
+    Range& part = parts[r];
+    const size_t begin = native_ids.size() * r / ranges, end = native_ids.size() * (r + 1) / ranges;
+    for (size_t i = begin; i < end; ++i)
+    {
+      const std::string fmt = qpxScanFormat(native_ids[i]);
+      if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
+      if (part.resolved.empty()) { part.resolved = fmt; }
+      else if (part.resolved != fmt) { part.conflict = fmt; break; }
+    }
+  }
+  std::string resolved;
+  for (const Range& part : parts)
+  {
+    std::string conflict;
+    if (resolved.empty()) { resolved = part.resolved; conflict = part.conflict; }
+    else if (!part.resolved.empty() && part.resolved != resolved) { conflict = part.resolved; }
+    else { conflict = part.conflict; }
+    if (!conflict.empty())
     {
       // Two conventions in one export: neither token would describe the whole file, so
       // omit scan_format rather than assert a wrong one.
       OPENMS_LOG_WARN << "ArrowIOHelpers: spectrum native IDs mix '" << resolved << "' and '"
-                      << fmt << "' conventions; omitting QPX scan_format." << std::endl;
+                      << conflict << "' conventions; omitting QPX scan_format." << std::endl;
       return "";
     }
   }
@@ -949,7 +983,7 @@ bool writeTableToParquet(
     OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to writeTableToParquet (" << filename << ")" << std::endl;
     return false;
   }
-  if (!validateQPXValuesForWrite(table, filename, config.qpx_extra_columns)) { return false; }
+  if (!validateQPXValuesForWrite(table, filename, config.qpx_extra_columns, config.threads)) { return false; }
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
   if (!file_result.ok())
@@ -992,15 +1026,52 @@ bool writeTableToParquet(
   }
 
   auto writer_properties = builder.build();
-  auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-  auto status = parquet::arrow::WriteTable(
-    *table,
-    arrow::default_memory_pool(),
-    outfile,
-    config.row_group_size,
-    writer_properties,
-    arrow_properties);
+  arrow::Status status;
+  if (config.threads <= 1 || table->num_rows() == 0)
+  {
+    auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    status = parquet::arrow::WriteTable(
+      *table,
+      arrow::default_memory_pool(),
+      outfile,
+      config.row_group_size,
+      writer_properties,
+      arrow_properties);
+  }
+  else
+  {
+    // The same row groups (one per row_group_size rows, as WriteTable cuts them), each written as a buffered row
+    // group whose columns are encoded in parallel on a pool of this write (use_threads with an executor of its own:
+    // Arrow's global CPU pool has as many threads as the machine has hardware threads, whatever -threads says). The
+    // pool outlives the writer (Close() joins the column tasks).
+    auto pool = arrow::internal::ThreadPool::Make(std::max(1, config.threads));
+    auto combined = table->CombineChunks(arrow::default_memory_pool()); // (one chunk: one batch per row group)
+    if (!pool.ok()) { status = pool.status(); }
+    else if (!combined.ok()) { status = combined.status(); }
+    else
+    {
+      auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->set_use_threads(true)
+                                ->set_executor(pool.ValueOrDie().get())->build();
+      auto writer = parquet::arrow::FileWriter::Open(*table->schema(), arrow::default_memory_pool(), outfile,
+                                                     writer_properties, arrow_properties);
+      if (!writer.ok()) { status = writer.status(); }
+      else
+      {
+        arrow::TableBatchReader reader(*combined.ValueOrDie());
+        reader.set_chunksize(config.row_group_size);
+        std::shared_ptr<arrow::RecordBatch> batch;
+        while (status.ok())
+        {
+          status = reader.ReadNext(&batch);
+          if (!status.ok() || !batch) { break; }
+          status = writer.ValueOrDie()->NewBufferedRowGroup();
+          if (status.ok()) { status = writer.ValueOrDie()->WriteRecordBatch(*batch); }
+        }
+        if (status.ok()) { status = writer.ValueOrDie()->Close(); }
+      }
+    }
+    if (pool.ok()) { pool.ValueOrDie()->Shutdown(); }
+  }
 
   // FileOutputStream::Open above already created (and truncated) the file, so any failure from
   // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a

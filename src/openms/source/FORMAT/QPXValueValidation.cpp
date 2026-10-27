@@ -21,8 +21,13 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -74,7 +79,7 @@ namespace OpenMS
       return combined.ValueOrDie();
     }
 
-    void appendString(std::string& key, const std::string& value)
+    void appendString(std::string& key, std::string_view value)
     {
       key += std::to_string(value.size());
       key += ':';
@@ -168,7 +173,7 @@ namespace OpenMS
       }
     }
 
-    bool isBlank(const std::string& value)
+    bool isBlank(std::string_view value)
     {
       return std::all_of(value.begin(), value.end(),
                          [](unsigned char c) { return std::isspace(c); });
@@ -296,6 +301,7 @@ namespace OpenMS
 
     View view;
     bool extra_columns = false;
+    int threads = 1;
     std::unordered_set<std::string> primary_keys;
     std::unordered_set<std::string> pg_run_keys;
     /// Identities seen in earlier batches; a streaming writer validates one batch at a time,
@@ -330,6 +336,11 @@ namespace OpenMS
   void QPXValueValidation::setExtraColumnsAllowed(bool allowed)
   {
     impl_->extra_columns = allowed;
+  }
+
+  void QPXValueValidation::setThreads(int threads)
+  {
+    impl_->threads = std::max(1, threads);
   }
 
   QPXValueValidation::Result QPXValueValidation::validate(
@@ -406,68 +417,112 @@ namespace OpenMS
       const auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan->values());
       int64_t duplicate_primary_keys = 0;
 
-      for (int64_t row = 0; row < table->num_rows(); ++row)
+      // The rows in ranges, one per thread (OpenMP; one range without, or inside a parallel region): each range
+      // checks its rows and builds their keys (a row with an invalid key has errors instead). Then, in row order,
+      // the errors are collected and the keys are looked up: the errors, their order and the rows reported as
+      // duplicates (the later occurrence of a key) are those of one serial pass over the rows.
+      const int64_t rows = table->num_rows();
+      int ranges = 1;
+#ifdef _OPENMP
+      if (impl_->threads > 1 && !omp_in_parallel())
       {
-        const bool peptidoform_valid = nonEmptyString(
-          peptidoform, row, QPXPSMSchema::PEPTIDOFORM, result);
-        const bool run_valid = nonEmptyString(
-          run, row, QPXPSMSchema::RUN_FILE_NAME, result);
-        bool charge_valid = true;
-        if (charge->IsNull(row))
-        {
-          addError(result, "row " + std::to_string(row)
-                           + " has a null 'charge' primary-key value");
-          charge_valid = false;
-        }
-        bool key_valid = peptidoform_valid && run_valid && charge_valid;
-        if (scan->IsNull(row) || scan->value_length(row) == 0)
-        {
-          addError(result, "row " + std::to_string(row)
-                           + " has an empty 'scan' primary-key value");
-          key_valid = false;
-        }
-
+        ranges = static_cast<int>(std::min<int64_t>(impl_->threads, std::max<int64_t>(1, rows / 4096)));
+      }
+#endif
+      std::vector<std::string> keys(static_cast<size_t>(rows)); // "" : the row's key is invalid (see its errors)
+      std::vector<std::vector<std::pair<int64_t, std::string>>> range_errors(ranges);
+      #pragma omp parallel for num_threads(ranges) schedule(static) if(ranges > 1)
+      for (int r = 0; r < ranges; ++r)
+      {
+        auto& errors = range_errors[r];
+        const int64_t begin = rows * r / ranges, end = rows * (r + 1) / ranges;
         std::vector<int32_t> scans;
-        if (!scan->IsNull(row))
+        for (int64_t row = begin; row < end; ++row)
         {
-          scans.reserve(static_cast<size_t>(scan->value_length(row)));
-          for (int64_t i = 0; i < scan->value_length(row); ++i)
+          const auto rowError = [&](std::string message) { errors.emplace_back(row, std::move(message)); };
+          const auto nonEmpty = [&](const std::shared_ptr<arrow::StringArray>& values, const std::string& name)
           {
-            const int64_t index = scan->value_offset(row) + i;
-            if (scan_values->IsNull(index))
+            if (values->IsNull(row))
             {
-              addError(result, "row " + std::to_string(row)
-                               + " has a null scan component");
-              key_valid = false;
+              rowError("row " + std::to_string(row) + " has a null '" + name + "' primary-key value");
+              return false;
             }
-            else
+            if (isBlank(values->GetView(row)))
             {
-              scans.push_back(scan_values->Value(index));
+              rowError("row " + std::to_string(row) + " has an empty or blank '" + name + "' primary-key value");
+              return false;
+            }
+            return true;
+          };
+          const bool peptidoform_valid = nonEmpty(peptidoform, QPXPSMSchema::PEPTIDOFORM);
+          const bool run_valid = nonEmpty(run, QPXPSMSchema::RUN_FILE_NAME);
+          bool charge_valid = true;
+          if (charge->IsNull(row))
+          {
+            rowError("row " + std::to_string(row) + " has a null 'charge' primary-key value");
+            charge_valid = false;
+          }
+          bool key_valid = peptidoform_valid && run_valid && charge_valid;
+          if (scan->IsNull(row) || scan->value_length(row) == 0)
+          {
+            rowError("row " + std::to_string(row) + " has an empty 'scan' primary-key value");
+            key_valid = false;
+          }
+
+          scans.clear();
+          if (!scan->IsNull(row))
+          {
+            for (int64_t i = 0; i < scan->value_length(row); ++i)
+            {
+              const int64_t index = scan->value_offset(row) + i;
+              if (scan_values->IsNull(index))
+              {
+                rowError("row " + std::to_string(row) + " has a null scan component");
+                key_valid = false;
+              }
+              else
+              {
+                scans.push_back(scan_values->Value(index));
+              }
             }
           }
+          if (!key_valid) { continue; }
+
+          // QPX canonicalizes list-valued primary-key fields by sorting before comparison.
+          std::sort(scans.begin(), scans.end());
+          std::string& key = keys[static_cast<size_t>(row)];
+          appendString(key, peptidoform->GetView(row));
+          appendInteger(key, charge->Value(row));
+          appendString(key, run->GetView(row));
+          appendInteger(key, scans.size());
+          for (const int32_t value : scans) { appendInteger(key, value); }
         }
-        if (!key_valid) { continue; }
-
-        // QPX canonicalizes list-valued primary-key fields by sorting before comparison.
-        std::sort(scans.begin(), scans.end());
-        std::string key;
-        appendString(key, peptidoform->GetString(row));
-        appendInteger(key, charge->Value(row));
-        appendString(key, run->GetString(row));
-        appendInteger(key, scans.size());
-        for (const int32_t value : scans) { appendInteger(key, value); }
-
-        if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
+      }
+      new_primary_keys.reserve(static_cast<size_t>(rows));
+      for (int r = 0; r < ranges; ++r)
+      {
+        auto error = range_errors[r].begin();
+        const int64_t begin = rows * r / ranges, end = rows * (r + 1) / ranges;
+        for (int64_t row = begin; row < end; ++row)
         {
-          ++duplicate_primary_keys;
-          // name the values, not just the row: the row index is into the Parquet table, so on its
-          // own it says nothing about which spectrum and which peptide have to be looked at
-          addError(result, "row " + std::to_string(row)
-                           + " repeats the QPX psm primary key "
-                             "(peptidoform, charge, run_file_name, scan): peptidoform '"
-                           + peptidoform->GetString(row) + "', charge "
-                           + std::to_string(charge->Value(row)) + ", run_file_name '"
-                           + run->GetString(row) + "', scan " + listAsText(scans));
+          for (; error != range_errors[r].end() && error->first == row; ++error) { addError(result, std::move(error->second)); }
+          std::string& key = keys[static_cast<size_t>(row)];
+          if (key.empty()) { continue; }
+          if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(std::move(key)).second)
+          {
+            ++duplicate_primary_keys;
+            std::vector<int32_t> scans;
+            for (int64_t i = 0; i < scan->value_length(row); ++i) { scans.push_back(scan_values->Value(scan->value_offset(row) + i)); }
+            std::sort(scans.begin(), scans.end());
+            // name the values, not just the row: the row index is into the Parquet table, so on its
+            // own it says nothing about which spectrum and which peptide have to be looked at
+            addError(result, "row " + std::to_string(row)
+                             + " repeats the QPX psm primary key "
+                               "(peptidoform, charge, run_file_name, scan): peptidoform '"
+                             + peptidoform->GetString(row) + "', charge "
+                             + std::to_string(charge->Value(row)) + ", run_file_name '"
+                             + run->GetString(row) + "', scan " + listAsText(scans));
+          }
         }
       }
       if (duplicate_primary_keys > 0)
