@@ -2286,9 +2286,19 @@ namespace OpenMS
       // monotonic in mz, and exact to far below a bin for any float mz, so that an mz in a range gets a bin of the range.
       double positionOf(float mz) const { return (static_cast<double>(mz) - first_mz) * bins_per_da; }
 
-      /// Merges the ranges collected so far and fills the bins; no range: nothing is reached, and no entry is kept
+      /// Merges the ranges collected so far and fills the bins; no range: nothing is reached, and no entry is kept.
+      /// A range with a non-finite or reversed bound has no bin position: the filter stays inactive, every entry is kept.
       void finish()
       {
+        for (const std::pair<float, float>& range : ranges)
+        {
+          if (!std::isfinite(range.first) || !std::isfinite(range.second) || !(range.first <= range.second))
+          {
+            active = false;
+            ranges.clear();
+            return;
+          }
+        }
         active = true;
         std::sort(ranges.begin(), ranges.end());
         size_t merged = 0;
@@ -2448,8 +2458,8 @@ namespace OpenMS
 #endif
 
       // Peptide-mass mode: the m/z ranges of the entries that querySpectrumPeptideMasses_() looks up for the spectra. For
-      // every precursor window [lo, hi] of a spectrum (in the query's float arithmetic; a NaN bound or no searched spectrum
-      // leaves every entry in) and every shift s of mod_shifts_, the query looks the entries in [lo - s - margin, hi - s + margin]
+      // every precursor window [lo, hi] of a spectrum (in the query's float arithmetic; a NaN or infinite bound or no searched
+      // spectrum leaves every entry in) and every shift s of mod_shifts_, the query looks the entries in [lo - s - margin, hi - s + margin]
       // up; widened here by a margin of its own for a different rounding of the same expressions (an entry kept needlessly
       // costs memory only, an entry left out wrongly would change the results). The windows are merged first: the charges
       // and isotope errors of neighbouring precursors overlap, and the margin of a merged window, computed from its wider
@@ -3394,7 +3404,7 @@ namespace OpenMS
     num_parts = static_cast<int>(std::clamp<SignedSize>(num_spectra / 4096, 1, omp_get_max_threads()));
 #endif
     std::vector<std::vector<std::pair<float, float>>> part_windows(num_parts);
-    std::vector<char> part_nan(num_parts, 0); // the range has a NaN bound, its ranges after it were not looked at
+    std::vector<char> part_nan(num_parts, 0); // the range has a NaN or infinite bound, its ranges after it were not looked at
     std::vector<std::exception_ptr> part_errors(num_parts); // an exception must not leave the parallel region
 #pragma omp parallel for schedule(static, 1) num_threads(num_parts)
     for (int part = 0; part < num_parts; ++part)
@@ -3416,20 +3426,20 @@ namespace OpenMS
             const float shifted_mass = precursor_mass
               + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
             const auto window = computeMassWindow_(shifted_mass);
-            float lo, hi;
+            float lo = shifted_mass + window.first;
+            float hi = shifted_mass + window.second;
+            // A NaN bound gives the query an arbitrary peptide range, and an infinite one no bin position in EntryReach_:
+            // keep them all. A reversed window (lo > hi, e.g. a precursor m/z of 0 with a negative isotope error) finds
+            // no candidate in either query path (querySpectrumPeptideMasses_() skips it, getPeptidesInMassWindow()
+            // yields an empty range): left out, before the margin, as the query leaves it out.
+            if (!std::isfinite(lo) || !std::isfinite(hi)) { part_nan[part] = 1; break; }
+            if (!(lo <= hi)) { continue; }
             if (with_margin)
             {
               const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
-              lo = shifted_mass + window.first - margin;
-              hi = shifted_mass + window.second + margin;
+              lo -= margin;
+              hi += margin;
             }
-            else
-            {
-              lo = shifted_mass + window.first;
-              hi = shifted_mass + window.second;
-            }
-            // a NaN bound gives the query an arbitrary peptide range: keep them all
-            if (std::isnan(lo) || std::isnan(hi)) { part_nan[part] = 1; break; }
             windows.emplace_back(lo, hi);
           }
           if (part_nan[part]) { break; }
@@ -3441,7 +3451,7 @@ namespace OpenMS
     {
       part_errors[part] = std::current_exception();
     }
-    // what the first range in spectrum order with a NaN bound or an error had stopped at, on one thread
+    // what the first range in spectrum order with a NaN or infinite bound or an error had stopped at, on one thread
     Size num_windows = 0;
     for (int part = 0; part < num_parts; ++part)
     {
