@@ -1641,6 +1641,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     mutable bool pool_rescoring_ = false;
     /// Whether a search keeps the PSMs of each file before the rescoring (SearchResult::pre_fdr_peptide_ids)
     bool keepPreRescoringPsms_() const { return keep_pre_fdr_psms_ || pool_rescoring_; }
+    /// With pool_rescoring_: the input files of the multi-file search (for the share of the transfer model's training
+    /// PSMs that a file rescored on its own keeps, transferQuota_())
+    mutable Size pool_files_ = 0;
+    /// The PSMs of a file rescored on its own that the model for the files too small for one of their own may train on
+    /// (rescoreFilesTogether_()): percolator:max_train_psms / pool_files_ (no limit with max_train_psms 0)
+    Size transferQuota_() const;
+    /**
+      @brief The spectra (positions in @p ids) of a seeded random sample of whole spectra with at most @p max_psms PSMs,
+      counting at most @p hits_per_spectrum hits of a spectrum; in ascending order. A spectrum's place in the draw depends
+      only on the spectrum (its reference, retention time and precursor m/z), so the sample of a list is also the sample of
+      any of its sublists that contain it (the copy of a file reduced to it after the rescoring, see applyPsmFDR_()), and
+      it is the same on every platform. Spectra without hits are left out.
+    */
+    static std::vector<Size> transferSample_(const PeptideIdentificationList& ids, Size max_psms, Size hits_per_spectrum);
     /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
     /// the caller like last_run_stats_.
     mutable PeptideIdentificationList pre_fdr_peptide_ids_;
@@ -1912,9 +1926,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// decoys (for PSMs that Percolator scored, see rescoreFilesTogether_()).
     static void tdcQValues_(PeptideIdentificationList& peptide_ids, bool plus_one = false);
 
-    /// Helper: the share of each stratum of @p sizes in a sample of at most @p cap (0: no cap): equal shares, the share
-    /// a smaller stratum does not fill going to the others (water filling); all of every stratum below the cap
-    static std::vector<Size> stratifiedQuotas_(const std::vector<Size>& sizes, Size cap);
 
     /**
       @brief The end of a multi-file search with 'rescore' (with pool_rescoring_), for the files with PSMs that Percolator
@@ -1922,8 +1933,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
       The files that Percolator rescored on their own keep their results. If there are some, a Percolator model is
       trained (Percolator::trainPSMs()) on their PSMs before the rescoring (SearchResult::pre_fdr_peptide_ids), at most
-      'percolator:max_train_psms' of them, an equal share of each file (stratifiedQuotas_(); reproducible random
-      spectra of each), and scores the other files (Percolator::scorePSMs()): on the scale of its training PSMs (the
+      at most 'percolator:max_train_psms' / (the input files) of each (transferQuota_(), transferSample_(): reproducible
+      random spectra; a file rescored on its own keeps only these after its rescoring, unless setKeepPreFdrPsms()), and
+      scores the other files (Percolator::scorePSMs()): on the scale of its training PSMs (the
       score a PSM would get among them, their PEP at that score). If Percolator rescored no file on its own, the PSMs of
       all files are rescored together, with one cross-validated model (rescoreWithPercolator(), with the cap).
       Back in its file, each PSM gets the q-value of target-decoy competition of the file's PSMs on the model's SVM
