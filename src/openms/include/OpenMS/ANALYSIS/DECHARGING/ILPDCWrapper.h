@@ -89,7 +89,7 @@ private:
                             const PairsIndex margin_right,
                             const Size verbose_level) const;
 
-    /// Log-score of one putative charge-pair edge given the underlying feature intensities and the recorded mass-shift probability
+    /// Log-score of one putative charge-pair edge: the log-probability of its compomer (@p fm is not used)
     double getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const;
 
     /// Internal lookup: feature id (as @c std::string) -> set of compatible charge-annotation variant indices encountered for that feature so far

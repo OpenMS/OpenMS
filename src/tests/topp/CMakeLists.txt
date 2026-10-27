@@ -386,6 +386,12 @@ add_test("TOPP_Decharger_1_out2" ${DIFF} -whitelist "id=" "href=" "completion_ti
 set_tests_properties("TOPP_Decharger_1_out2" PROPERTIES DEPENDS "TOPP_Decharger_1" )
 add_test("TOPP_Decharger_1_out3" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/Decharger_output_fm.tmp.featureXML -in2 ${DATA_DIR_TOPP}/Decharger_output.featureXML )
 set_tests_properties("TOPP_Decharger_1_out3" PROPERTIES DEPENDS "TOPP_Decharger_1" )
+# Same run with an environment variable 'M' set, which used to switch the ILP to a different
+# (undocumented) edge score and changed the result: the output must be the same.
+add_test("TOPP_Decharger_1_env" ${TOPP_BIN_PATH}/Decharger -test -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -ini ${DATA_DIR_TOPP}/Decharger_input.ini -out_cm ${TESTS_TEMP_DIR}/Decharger_env_output.tmp.consensusXML)
+set_tests_properties("TOPP_Decharger_1_env" PROPERTIES ENVIRONMENT "M=1")
+add_test("TOPP_Decharger_1_env_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/Decharger_env_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML )
+set_tests_properties("TOPP_Decharger_1_env_out1" PROPERTIES DEPENDS "TOPP_Decharger_1_env" )
 
 #------------------------------------------------------------------------------
 # DTAExtractor tests

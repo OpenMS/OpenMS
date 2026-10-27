@@ -491,43 +491,9 @@ namespace OpenMS
     return opt_value;
   } // !compute_slice
 
-  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const
+  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& /* fm */) const
   {
-    double score;
-    std::string e;
-    if (getenv("M") != nullptr)
-      e =std::string(getenv("M"));
-    if (e.empty())
-    {
-      //std::cout << "1";
-      score = pair.getCompomer().getLogP();
-      /*double charge_enhance = 0;
-
-      if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
-          charge_enhance += log(0.9); else charge_enhance += log(0.1);
-
-      if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge())
-          charge_enhance += log(0.9); else charge_enhance += log(0.1);
-
-      score += charge_enhance;
-      */
-
-    }
-    else
-    {
-      //std::cout << "2";
-      double rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
-      // enhance correct charge
-      double charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
-                              &&
-                               (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
-                              ? 100 : 1;
-      score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
-    }
-
-    //std::cout << "logscore: " << score << "\n";
-
-    return score;
+    return pair.getCompomer().getLogP();
   }
 
 }
