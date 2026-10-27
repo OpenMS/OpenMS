@@ -1514,6 +1514,20 @@ START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
     const std::string truncated = writeFakeTsf(tmp.getPath() + "/truncated.d", lc);
     std::filesystem::resize_file(truncated + "/analysis.tsf_bin", 20);
     TEST_EXCEPTION(Exception::ParseError, BrukerTimsFile().load(truncated, exp))
+
+    // a line spectrum that is not zstd data (here: its magic number overwritten)
+    const std::string invalid = writeFakeTsf(tmp.getPath() + "/invalid.d", lc);
+    {
+      std::fstream bin((invalid + "/analysis.tsf_bin").c_str(), std::ios::binary | std::ios::in | std::ios::out);
+      bin.seekp(8); // behind the header of frame 1
+      bin.write("XXXX", 4);
+    }
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(invalid, exp); }), "frame 1: line spectrum for 2 peaks: "))
+    // a line spectrum with more peaks than NumPeaks: decompressed up to the size of NumPeaks peaks only
+    const std::string larger = writeFakeTsf(tmp.getPath() + "/larger.d", lc);
+    SqliteConnector(larger + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
+      "UPDATE Frames SET NumPeaks = 1 WHERE Id = 1;");
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(larger, exp); }), "larger than 12 bytes"))
   }
 }
 END_SECTION

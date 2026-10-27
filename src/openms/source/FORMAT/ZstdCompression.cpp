@@ -187,7 +187,8 @@ namespace OpenMS
     compressed_data.resize(used);
   }
 
-  void ZstdCompression::uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size)
+  void ZstdCompression::uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size,
+                                       size_t max_size)
   {
     out.clear();
     if (nr_bytes == 0)
@@ -212,6 +213,15 @@ namespace OpenMS
     // caller or, if unknown, at a small multiple of the input size (and at 256 MB in any case).
     const unsigned long long limit = expected_size > 0 ? expected_size : 16ull * nr_bytes;
     capacity = std::max<unsigned long long>(std::min({capacity, limit, 1ull << 28}), 1);
+    // With a maximum size, the buffer holds at most one byte more: data that fills it is too large. (Data of exactly
+    // the maximum size may fill the buffer before the decoder has read the end of the frame, which then needs room.)
+    const unsigned long long max_capacity = max_size > 0 ? static_cast<unsigned long long>(max_size) + 1 : 0;
+    if (max_capacity > 0) capacity = std::min(capacity, max_capacity);
+    const auto too_large = [max_size]
+    {
+      return Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "zstd decompression failed: the data is larger than " + std::to_string(max_size) + " bytes");
+    };
 
     std::unique_ptr<ZSTD_DCtx, DCtxDeleter> dctx(ZSTD_createDCtx());
     if (!dctx)
@@ -226,7 +236,8 @@ namespace OpenMS
     {
       if (produced == out.size())
       {
-        out.resize(out.size() * 2);
+        if (max_capacity > 0 && produced >= max_capacity) throw too_large();
+        out.resize(max_capacity > 0 ? std::min<unsigned long long>(out.size() * 2ull, max_capacity) : out.size() * 2);
       }
       ZSTD_outBuffer output = {&out[produced], out.size() - produced, 0};
       const size_t ret = ZSTD_decompressStream(dctx.get(), &output, &input);
@@ -248,6 +259,7 @@ namespace OpenMS
         }
       }
     }
+    if (max_size > 0 && produced > max_size) throw too_large();
     out.resize(produced);
   }
 

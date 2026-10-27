@@ -3439,7 +3439,15 @@ namespace OpenMS
         bin.read(compressed.data(), header[1]);
         if (!bin) throw corrupt(frame.id, "truncated line spectrum block");
         const size_t expected = static_cast<size_t>(n) * (sizeof(double) + sizeof(float));
-        ZstdCompression::uncompressData(compressed.data(), compressed.size(), line, expected);
+        try
+        {
+          // at most the size of NumPeaks peaks: a corrupt block cannot take more memory
+          ZstdCompression::uncompressData(compressed.data(), compressed.size(), line, expected, expected);
+        }
+        catch (const Exception::ConversionError& e)
+        {
+          throw corrupt(frame.id, std::string("line spectrum for ") + std::to_string(n) + " peaks: " + e.what());
+        }
         if (line.size() != expected)
         {
           throw corrupt(frame.id, "line spectrum of " + std::to_string(line.size()) + " bytes for " + std::to_string(n) + " peaks");
