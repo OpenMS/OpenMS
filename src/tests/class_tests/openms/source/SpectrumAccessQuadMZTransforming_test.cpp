@@ -148,7 +148,31 @@ START_SECTION(std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
 }
 END_SECTION
 
+START_SECTION((calibration preserves empty scans, all peaks and detached source arrays in both modes))
+{
+  auto experiment = getData();
+  experiment->addSpectrum(MSSpectrum{});
+  const auto source = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(experiment);
+  for (const bool ppm : {false, true})
+  {
+    SpectrumAccessQuadMZTransforming calibrated(source, 0.01, 1.0, 1e-8, ppm);
+    const auto transformed = calibrated.lightClone()->getSpectrumById(0);
+    const auto original = source->getSpectrumById(0);
+    TEST_EQUAL(transformed->getMZArray()->data.size(), original->getMZArray()->data.size())
+    for (Size i = 0; i < original->getMZArray()->data.size(); ++i)
+    {
+      const double value = original->getMZArray()->data[i];
+      const double predict = 0.01 + 1.0 * value + 1e-8 * value * value;
+      const double expected = ppm ? value - predict * value / 1000000 : predict;
+      TEST_REAL_SIMILAR(transformed->getMZArray()->data[i], expected)
+      TEST_EQUAL(transformed->getIntensityArray()->data[i], original->getIntensityArray()->data[i])
+      TEST_EQUAL(original->getMZArray()->data[i], (*experiment)[0][i].getMZ())
+    }
+    TEST_TRUE(calibrated.getSpectrumById(1)->getMZArray()->data.empty())
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
