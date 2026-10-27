@@ -2930,10 +2930,6 @@ namespace OpenMS
 
   namespace
   {
-    // decoy_method 'keep_termini': OpenMS DecoyDatabase's construction (method reverse, Decoy:keepPeptideNTerm
-    // and keepPeptideCTerm true; Decoy:non_shuffle_pattern "KRP", its default is empty) with @p digestor (the search enzyme, no missed cleavages,
-    // full specificity): every segment is MRMDecoy::reversePeptideLight(segment, keepN, keepC, "KRP"). Residues not in
-    // any segment (none for a digest that tiles the protein) stay in place.
     // The first exception that a parallel loop caught (lowest index; others are dropped), rethrown after the loop: an
     // exception must not leave an OpenMP region
     struct FirstError
@@ -3021,6 +3017,10 @@ namespace OpenMS
       return spec_n && spec_c;
     }
 
+    // decoy_method 'keep_termini': OpenMS DecoyDatabase's construction (method reverse, Decoy:keepPeptideNTerm
+    // and keepPeptideCTerm true; Decoy:non_shuffle_pattern "KRP", its default is empty) with @p digestor (the search enzyme, no missed cleavages,
+    // full specificity): every segment is MRMDecoy::reversePeptideLight(segment, keepN, keepC, "KRP"). Residues not in
+    // any segment (none for a digest that tiles the protein) stay in place.
     std::string keepTerminiDecoy(const std::string& protein, const ProteaseDigestion& digestor, const SegmentRule* rule,
                                  std::vector<std::pair<Size, Size>>& spans)
     {
