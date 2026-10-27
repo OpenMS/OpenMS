@@ -1256,6 +1256,8 @@ namespace OpenMS
           excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + j * iso_da_distance_);
         }
       }
+      // isPeakGroupInExcludedMassForDecoyRuns_ binary-searches this list; with allowed_isotope_error > 0 the entries interleave
+      std::sort(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end());
 
       for (Size k = 0; k < deconvolved_spectrum_.size(); k++)
       {

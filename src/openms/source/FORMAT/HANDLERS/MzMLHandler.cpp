@@ -1573,20 +1573,10 @@ namespace OpenMS::Internal
       //------------------------- binaryDataArray ----------------------------
       else if (parent_tag == "binaryDataArray")
       {
-        // store name for all non-default arrays
-        if (cv_.isChildOf(accession, "MS:1000513")) // other array names as string
-        {
-          bin_data_.back().meta.setName(cv_.getTerm(accession).name);
-          if (accession == "MS:1000515" && unit_accession == "UO:0000269")
-            bin_data_.back().meta.setMetaValue("mzml intensity array", "absorption");
-        }
-
+        // precision, compression, units and the array name (shared with MzMLSpectrumDecoder)
         if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
         {
-          if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
-          {
-            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
-          }
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
       }
       //------------------------- spectrum ----------------------------

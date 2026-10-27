@@ -35,6 +35,7 @@
 #include <fstream>
 #include <functional>
 #include <map>
+#include <set>
 #include <sstream>
 #include <tuple>
 
@@ -818,6 +819,123 @@ namespace
   }
   const double MT2_FRAME_T1 = 25.67976562246388;
   const double MT2_FRAME_T2 = 25.350275695575547;
+
+  // One frame of makeSyntheticTdf()
+  struct SyntheticFrame
+  {
+    uint32_t id = 1;
+    int msms_type = 0;      // 0: MS1, 9: DIA-PASEF
+    char polarity = '+';
+    uint32_t num_peaks = 0; // the reader decodes only frames with peaks
+  };
+
+  // A .d directory @p d with the tables and keys opentims and the reader need (no calibration tables: m/z and 1/K0
+  // come from the linear models). In analysis.tdf_bin the frames follow each other as the acquisition software writes
+  // them: a header of two little-endian uint32 (the size of the frame in bytes, header included, and the number of
+  // scans), for a frame with peaks followed by 16 bytes that are not zstd data. No frame data is valid, so these runs
+  // only give spectra without peaks.
+  std::string makeSyntheticTdf(const std::string& d, const std::vector<SyntheticFrame>& frames)
+  {
+    const uint32_t num_scans = 1000; // as real frames (about 900 to 1000)
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('TimsCompressionType', '2'), ('MzAcqRangeLower', '100'), "
+                          "('MzAcqRangeUpper', '1700'), ('DigitizerNumSamples', '400000'), "
+                          "('OneOverK0AcqRangeLower', '0.6'), ('OneOverK0AcqRangeUpper', '1.6');");
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, Time REAL, Polarity CHAR(1), MsMsType INTEGER, "
+                          "TimsId INTEGER, NumScans INTEGER, NumPeaks INTEGER, AccumulationTime REAL);");
+    std::ofstream bin((d + "/analysis.tdf_bin").c_str(), std::ios::binary);
+    uint32_t offset = 0;
+    for (const SyntheticFrame& frame : frames)
+    {
+      const uint32_t size = frame.num_peaks > 0 ? 24 : 8;
+      for (const uint32_t value : {size, num_scans})
+      {
+        const char bytes[4] = {char(value & 0xFF), char((value >> 8) & 0xFF), char((value >> 16) & 0xFF), char(value >> 24)};
+        bin.write(bytes, 4);
+      }
+      if (frame.num_peaks > 0) bin << "not zstd data...";
+      conn.executeStatement("INSERT INTO Frames VALUES (" + std::to_string(frame.id) + ", " + std::to_string(frame.id) + ".0, '"
+                            + std::string(1, frame.polarity) + "', " + std::to_string(frame.msms_type) + ", "
+                            + std::to_string(offset) + ", " + std::to_string(num_scans) + ", " + std::to_string(frame.num_peaks)
+                            + ", 100.0);");
+      offset += size;
+    }
+    return d;
+  }
+
+  // Adds DIA-PASEF tables to a run of makeSyntheticTdf(): one window group, assigned to the frames @p dia_frames (which
+  // may name frames the run does not have), with an isolation window per scan range of @p windows (by default two
+  // diaPASEF windows of 500 scans)
+  void addSyntheticDIAWindows(const std::string& d, const std::vector<uint32_t>& dia_frames,
+                              const std::vector<std::pair<uint32_t, uint32_t>>& windows = {{0, 500}, {500, 1000}})
+  {
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE DiaFrameMsMsWindowGroups (Id INTEGER PRIMARY KEY);");
+    conn.executeStatement("INSERT INTO DiaFrameMsMsWindowGroups VALUES (1);");
+    conn.executeStatement("CREATE TABLE DiaFrameMsMsWindows (WindowGroup INTEGER, ScanNumBegin INTEGER, ScanNumEnd INTEGER, "
+                          "IsolationMz REAL, IsolationWidth REAL, CollisionEnergy REAL);");
+    for (Size i = 0; i < windows.size(); ++i)
+    {
+      conn.executeStatement("INSERT INTO DiaFrameMsMsWindows VALUES (1, " + std::to_string(windows[i].first) + ", "
+                            + std::to_string(windows[i].second) + ", " + std::to_string(500 + 10 * i) + ".0, 25.0, 30.0);");
+    }
+    conn.executeStatement("CREATE TABLE DiaFrameMsMsInfo (Frame INTEGER PRIMARY KEY, WindowGroup INTEGER);");
+    for (const uint32_t frame : dia_frames)
+    {
+      conn.executeStatement("INSERT INTO DiaFrameMsMsInfo VALUES (" + std::to_string(frame) + ", 1);");
+    }
+  }
+
+  // The message of the ParseError @p call throws
+  std::string parseErrorOf(const std::function<void()>& call)
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("not a ParseError: ") + e.getName() + ": " + e.what();
+    }
+    catch (const std::exception& e)
+    {
+      return std::string("not an OpenMS exception: ") + e.what();
+    }
+    return "no exception";
+  }
+
+  bool hasText(const std::string& text, const std::string& part)
+  {
+    return text.find(part) != std::string::npos;
+  }
+
+  // The warnings that @p call logs
+  std::string warningsOf(const std::function<void()>& call)
+  {
+    // Flush what earlier calls left in the buffer, and forget the lines already logged: a line repeating one of them
+    // would not be passed on
+    OPENMS_LOG_WARN.flush();
+    OPENMS_LOG_WARN.rdbuf()->clearCache();
+    std::ostringstream captured;
+    OPENMS_LOG_WARN.insert(captured);
+    try
+    {
+      call();
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN.remove(captured);
+      throw;
+    }
+    OPENMS_LOG_WARN.remove(captured);
+    return captured.str();
+  }
 }
 
 START_TEST(BrukerTimsFile, "$Id$")
@@ -1220,6 +1338,10 @@ START_SECTION([EXTRA] TSF data: one spectrum per frame, with the m/z of the Bruk
     TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Bruker TSF format")
     TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1003283")
   }
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_TRUE(mzml.find("accession=\"MS:1003282\" name=\"Bruker TSF format\"") != std::string::npos)
+  TEST_TRUE(mzml.find("accession=\"MS:1003283\" name=\"Bruker TSF nativeID format\"") != std::string::npos)
   TEST_STRING_EQUAL(exp.getInstrument().getVendor(), "Bruker")
   TEST_STRING_EQUAL(exp.getMetaValue("mzml_start_time_stamp").toString(), "2021-10-08T16:01:31.867-07:00")
 
@@ -1388,6 +1510,75 @@ START_SECTION([EXTRA] TSF data: options, MALDI spots and what cannot be read)
 }
 END_SECTION
 
+START_SECTION([EXTRA] an incomplete or corrupt analysis.tdf_bin is reported instead of read past its end)
+{
+  // opentims reads every frame at its offset (Frames.TimsId) without comparing it with the size of analysis.tdf_bin,
+  // so a file that was not completely copied, or that the acquisition was still writing, made the reader read past
+  // the end of the file (segmentation fault or bus error). The read functions report such data as ParseError before
+  // opentims gets it. SDK-free, no test data needed.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  const std::vector<SyntheticFrame> run = {{1, 0, '+', 0}, {2, 0, '+', 0}, {3, 0, '+', 0}}; // 3 frames of 8 bytes
+
+  // the complete run is read: a spectrum (without peaks) per frame
+  f.load(makeSyntheticTdf(tmp.getPath() + "/complete.d", run), exp, frame_mode);
+  TEST_EQUAL(exp.size(), 3)
+
+  // every read function reports the data, naming the run
+  const auto reported = [&](const std::string& d, const std::string& expected)
+  {
+    ExperimentalSettings settings;
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp, frame_mode); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { MSDataStoringConsumer consumer; f.transform(d, &consumer); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.readDIAMetadata(d, settings); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { RegularSwathFileConsumer consumer; f.loadDIAStreaming(d, consumer); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), d), true)
+  };
+
+  // analysis.tdf_bin cut within the header of the last frame, and before the last frame
+  for (const int size : {20, 8})
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/cut_" + std::to_string(size) + ".d", run);
+    std::filesystem::resize_file(to_path(d + "/analysis.tdf_bin"), size);
+    reported(d, "analysis.tdf_bin is incomplete: it has " + std::to_string(size) + " bytes, but frame 3 takes bytes 16 to 24");
+  }
+  // cut within the data of the last frame: its header is there, but the size it gives runs past the end
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/cut_data.d", {{1, 0, '+', 0}, {2, 0, '+', 5}}); // 8 + 24 bytes
+    std::filesystem::resize_file(to_path(d + "/analysis.tdf_bin"), 28);
+    reported(d, "analysis.tdf_bin is incomplete: it has 28 bytes, but frame 2 takes bytes 8 to 32");
+  }
+  // a negative offset into analysis.tdf_bin
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/negative.d", run);
+    SqliteConnector(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement("UPDATE Frames SET TimsId = -8 WHERE Id = 2;");
+    reported(d, "analysis.tdf is corrupt: frame 2 has a negative offset (-8)");
+  }
+  // a frame whose header gives a size smaller than the header itself
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/zero_size.d", run);
+    {
+      std::fstream bin((d + "/analysis.tdf_bin").c_str(), std::ios::in | std::ios::out | std::ios::binary);
+      bin.seekp(16);
+      bin.write("\0\0\0\0", 4);
+    }
+    reported(d, "analysis.tdf_bin is corrupt: frame 3 at byte 16 has a size of 0 bytes");
+  }
+  // a .d.zip archive of an incomplete run
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/archive/run.d", run);
+    std::filesystem::resize_file(to_path(d + "/analysis.tdf_bin"), 8);
+    const std::string archive = tmp.getPath() + "/incomplete.d.zip";
+    ZipArchiveFile::zipDirectory(tmp.getPath() + "/archive", archive);
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(archive, exp); }), "analysis.tdf_bin is incomplete"), true)
+  }
+}
+END_SECTION
+
 #ifdef OPENTIMS_TSF_TEST_DATA
 START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off, as the Bruker SDK reads it)
 {
@@ -1424,6 +1615,251 @@ START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off, as the Bruker SDK re
 }
 END_SECTION
 #endif
+
+START_SECTION([EXTRA] frames that cannot be decoded are reported as ParseError)
+{
+  // opentims throws std::runtime_error for frame data it cannot decompress (a corrupt analysis.tdf_bin). The exception
+  // left the reader as it was, so a TOPP tool, which catches OpenMS exceptions only, ended in std::terminate.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/corrupt.d", {{1, 0, '+', 0}, {2, 0, '+', 5}, {3, 0, '+', 0}});
+
+  const std::string expected = "Cannot read the Bruker TDF data: Error uncompressing frame";
+  TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp, frame_mode); }), expected), true)
+  TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), expected), true)
+  TEST_EQUAL(hasText(parseErrorOf([&] { MSDataStoringConsumer consumer; f.transform(d, &consumer, frame_mode); }), expected), true)
+  TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), d), true)
+
+  // a frame range without the corrupt frame is read
+  BrukerTimsFile::Config first_frame = frame_mode;
+  first_frame.frame_id_max = 1;
+  f.load(d, exp, first_frame);
+  TEST_EQUAL(exp.size(), 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] exceptions of the consumer and running out of memory are not reported as errors in the data)
+{
+  // Only errors in the data become ParseError. An exception that the consumer of transform() or loadDIAStreaming() throws
+  // (e.g. the one pyOpenMS throws when a Python callback raises) leaves the reader as it is, and so does std::bad_alloc.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}});
+  addSyntheticDIAWindows(d, {2});
+
+  // what a call throws
+  const auto thrown = [](const std::function<void()>& call) -> std::string
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("OpenMS ") + e.getName() + ": " + e.what();
+    }
+    catch (const std::bad_alloc&)
+    {
+      return "std::bad_alloc";
+    }
+    catch (const std::runtime_error& e)
+    {
+      return std::string("std::runtime_error: ") + e.what();
+    }
+    catch (...)
+    {
+      return "another exception";
+    }
+    return "nothing";
+  };
+  const std::function<void()> runtime_error = [] { throw std::runtime_error("Python callback consumeSpectrum raised an exception"); };
+  const std::function<void()> bad_alloc = [] { throw std::bad_alloc(); };
+
+  class ThrowingConsumer : public MSDataStoringConsumer
+  {
+  public:
+    explicit ThrowingConsumer(std::function<void()> raise) : raise_(std::move(raise)) {}
+    void consumeSpectrum(SpectrumType&) override { raise_(); }
+
+  private:
+    std::function<void()> raise_;
+  };
+  class ThrowingSwathConsumer : public RegularSwathFileConsumer
+  {
+  public:
+    ThrowingSwathConsumer(const std::vector<OpenSwath::SwathMap>& boundaries, std::function<void()> raise) :
+      RegularSwathFileConsumer(boundaries), raise_(std::move(raise))
+    {
+    }
+    void consumeSpectrum(MapType::SpectrumType&) override { raise_(); }
+
+  private:
+    std::function<void()> raise_;
+  };
+
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(runtime_error); f.transform(d, &consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(bad_alloc); f.transform(d, &consumer); }), "std::bad_alloc")
+  ExperimentalSettings settings;
+  const std::vector<OpenSwath::SwathMap> boundaries = f.readDIAMetadata(d, settings).boundaries;
+  TEST_STRING_EQUAL(thrown([&] { ThrowingSwathConsumer consumer(boundaries, runtime_error); f.loadDIAStreaming(d, consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  // an OpenMS exception of the consumer leaves as it is as well
+  TEST_EQUAL(hasText(thrown([&] { ThrowingConsumer consumer([] { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out.mzML"); });
+                                 f.transform(d, &consumer); }), "OpenMS UnableToCreateFile"), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DIA-PASEF frames that the Frames table lacks are skipped)
+{
+  // DiaFrameMsMsInfo may name frames that the Frames table of an incomplete or edited analysis.tdf lacks. The DIA
+  // loaders looked them up regardless and threw std::out_of_range, which ended TOPP tools in std::terminate. They skip
+  // them now, as the DDA loader skips the missing frames of a precursor, and readDIAMetadata() does not count them.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}, {4, 9, '+', 0}});
+  addSyntheticDIAWindows(d, {2, 4, 6}); // frame 6 is not in the Frames table
+
+  // the MS1 frames give spectra (without peaks); the MS2 frames have no peaks in either window
+  MSExperiment exp;
+  f.load(d, exp);
+  TEST_EQUAL(exp.size(), 2)
+  TEST_EQUAL(spectrumPointers(exp, 1).size(), 2)
+  MSDataStoringConsumer streamed;
+  f.transform(d, &streamed);
+  TEST_EQUAL(streamed.getData().size(), 2)
+
+  ExperimentalSettings settings;
+  const BrukerTimsFile::DIAStreamingMetadata meta = f.readDIAMetadata(d, settings);
+  TEST_EQUAL(meta.boundaries.size(), 2)
+  TEST_EQUAL(meta.nr_ms1_spectra, 2)
+  TEST_EQUAL(meta.nr_ms2_spectra.size(), 2)
+  for (const int count : meta.nr_ms2_spectra)
+  {
+    TEST_EQUAL(count, 2) // frames 2 and 4 of the window group, not 6
+  }
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  f.loadDIAStreaming(d, consumer);
+  TEST_EQUAL(consumer.ms1Map() != nullptr, true)
+  ABORT_IF(consumer.ms1Map() == nullptr)
+  TEST_EQUAL(consumer.ms1Map()->size(), 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] synchro-PASEF runs are read with a warning that they are not supported)
+{
+  // Synchro-PASEF moves the quadrupole along with the ion mobility scan, and analysis.tdf lists an isolation window for
+  // every scan step (927 windows of one scan per frame in PXD037766). The DIA loaders make every window a spectrum of
+  // its own (635,631 MS2 spectra of about 8 peaks for a 3 min run of that dataset); they did so without a word.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::vector<SyntheticFrame> run = {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}};
+  std::vector<std::pair<uint32_t, uint32_t>> steps;
+  for (uint32_t scan = 400; scan < 420; ++scan) { steps.emplace_back(scan, scan + 1); }
+  const std::string synchro = makeSyntheticTdf(tmp.getPath() + "/synchro.d", run);
+  addSyntheticDIAWindows(synchro, {2}, steps);
+  const std::string warning = "20 of the 20 DIA isolation windows span fewer than 10 scans";
+
+  MSExperiment exp;
+  const std::string load_warnings = warningsOf([&] { f.load(synchro, exp); });
+  TEST_TRUE(hasText(load_warnings, warning))
+  TEST_TRUE(hasText(load_warnings, "synchro-PASEF"))
+  TEST_EQUAL(load_warnings.find(warning, load_warnings.find(warning) + 1), std::string::npos) // once
+  TEST_EQUAL(exp.size(), 2) // still read
+  MSDataStoringConsumer streamed;
+  TEST_TRUE(hasText(warningsOf([&] { f.transform(synchro, &streamed); }), warning))
+  TEST_EQUAL(streamed.getData().size(), 2)
+  ExperimentalSettings settings;
+  BrukerTimsFile::DIAStreamingMetadata meta;
+  TEST_FALSE(hasText(warningsOf([&] { meta = f.readDIAMetadata(synchro, settings); }), warning)) // the streaming warns
+  TEST_EQUAL(meta.boundaries.size(), 20)
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  TEST_TRUE(hasText(warningsOf([&] { f.loadDIAStreaming(synchro, consumer); }), warning))
+
+  // export mode FRAME does not split frames by window
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  TEST_FALSE(hasText(warningsOf([&] { f.load(synchro, exp, frame_mode); }), warning))
+
+  // diaPASEF windows span dozens to hundreds of scans (the 2 windows of 500 scans of addSyntheticDIAWindows())
+  const std::string dia = makeSyntheticTdf(tmp.getPath() + "/dia.d", run);
+  addSyntheticDIAWindows(dia, {2});
+  TEST_FALSE(hasText(warningsOf([&] { f.load(dia, exp); }), "DIA isolation windows span"))
+}
+END_SECTION
+
+START_SECTION([EXTRA] spectra have the polarity of their frames)
+{
+  // Frames.Polarity ('+' or '-') was not read, so the polarity of every spectrum was unknown (also in mzML).
+  TempDir tmp;
+  BrukerTimsFile f;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  // the polarities of the spectra: '+' positive, '-' negative, '?' unknown
+  const auto polarities = [](const MSExperiment& exp)
+  {
+    std::string result;
+    for (const MSSpectrum& s : exp)
+    {
+      const IonSource::Polarity polarity = s.getInstrumentSettings().getPolarity();
+      result += polarity == IonSource::Polarity::POSITIVE ? '+' : polarity == IonSource::Polarity::NEGATIVE ? '-' : '?';
+    }
+    return result;
+  };
+
+  // a run of one polarity, as nearly all are; mzML has it as "negative scan"
+  const std::string negative = makeSyntheticTdf(tmp.getPath() + "/negative.d", {{1, 0, '-', 0}, {2, 0, '-', 0}});
+  MSExperiment exp;
+  f.load(negative, exp, frame_mode);
+  TEST_STRING_EQUAL(polarities(exp), "--")
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_EQUAL(hasText(mzml, "accession=\"MS:1000129\" name=\"negative scan\""), true)
+
+  // a run of both polarities: every spectrum has that of its frame, in every export mode and read function
+  const std::string mixed = makeSyntheticTdf(tmp.getPath() + "/mixed.d", {{1, 0, '+', 0}, {2, 0, '-', 0}, {3, 0, '+', 0}});
+  f.load(mixed, exp, frame_mode);
+  TEST_STRING_EQUAL(polarities(exp), "+-+")
+  f.load(mixed, exp); // AUTO: the MS1 frames of a run without DDA-PASEF precursors
+  TEST_STRING_EQUAL(polarities(exp), "+-+")
+  MSDataStoringConsumer streamed;
+  f.transform(mixed, &streamed);
+  TEST_STRING_EQUAL(polarities(streamed.getData()), "+-+")
+
+  // DIA-PASEF data streamed into SWATH maps
+  const std::string dia = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '-', 0}, {2, 9, '-', 0}, {3, 0, '-', 0}});
+  addSyntheticDIAWindows(dia, {2});
+  ExperimentalSettings settings;
+  InspectableSwathConsumer consumer(f.readDIAMetadata(dia, settings).boundaries);
+  consumer.setExperimentalSettings(settings);
+  f.loadDIAStreaming(dia, consumer);
+  TEST_EQUAL(consumer.ms1Map() != nullptr, true)
+  ABORT_IF(consumer.ms1Map() == nullptr)
+  TEST_STRING_EQUAL(polarities(*consumer.ms1Map()), "--")
+}
+END_SECTION
+
+START_SECTION([EXTRA] the source file has the file format term of Bruker TDF data)
+{
+  // The file type was "Bruker TDF", which is not the name of the PSI-MS term (MS:1002817 "Bruker TDF format"), so the
+  // mzML writer did not find the term and wrote "PSI mzData format" instead.
+  TempDir tmp;
+  MSExperiment exp;
+  BrukerTimsFile().load(makeSyntheticTdf(tmp.getPath() + "/run.d", {{1, 0, '+', 0}}), exp);
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Bruker TDF format")
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_EQUAL(hasText(mzml, "accession=\"MS:1002817\" name=\"Bruker TDF format\""), true)
+  TEST_EQUAL(hasText(mzml, "PSI mzData format"), false)
+}
+END_SECTION
 
 START_SECTION([FileHandler] BRUKER_TDF detection)
 {
@@ -3522,6 +3958,75 @@ START_SECTION([EXTRA] transform() delivers the spectra of load() (DDA fixture))
 }
 END_SECTION
 
+START_SECTION([EXTRA] DDA run: polarity and source file format; an incomplete or corrupt analysis.tdf_bin)
+{
+  using Config = BrukerTimsFile::Config;
+  const std::string path = OPENTIMS_DDA_TEST_DATA;
+  BrukerTimsFile f;
+  Config first_frames;
+  first_frames.frame_id_max = 60;
+
+  // the run was acquired in positive mode (Frames.Polarity '+'): every spectrum says so, also in mzML
+  MSExperiment exp;
+  f.load(path, exp, first_frames);
+  TEST_EQUAL(exp.size() > 0, true)
+  Size positive = 0;
+  for (const MSSpectrum& s : exp)
+  {
+    if (s.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE) ++positive;
+  }
+  TEST_EQUAL(positive, exp.size())
+  TEST_EQUAL(spectrumPointers(exp, 2).empty(), false) // the DDA MS2 spectra as well
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Bruker TDF format")
+
+  // copies of the run in which analysis.tdf_bin is linked where the file system allows
+  TempDir tmp;
+  const auto copy_run = [&](const std::string& name)
+  {
+    const std::string copy = tmp.getPath() + "/" + name;
+    File::makeDir(copy);
+    std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+    std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+    return copy;
+  };
+  const auto link_bin = [&](const std::string& copy)
+  {
+    std::error_code ec;
+    std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+    if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+  };
+
+  // only the first MiB of analysis.tdf_bin, as after an interrupted copy: reported, not read past the end of the file
+  // (which crashed the reader)
+  {
+    const std::string copy = copy_run("incomplete.d");
+    {
+      std::ifstream in((path + "/analysis.tdf_bin").c_str(), std::ios::binary);
+      std::ofstream out((copy + "/analysis.tdf_bin").c_str(), std::ios::binary);
+      std::vector<char> buffer(1 << 20);
+      in.read(buffer.data(), buffer.size());
+      out.write(buffer.data(), in.gcount());
+    }
+    const std::string expected = "analysis.tdf_bin is incomplete: it has 1048576 bytes";
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(copy, exp, first_frames); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { MSDataStoringConsumer consumer; f.transform(copy, &consumer, first_frames); }), expected), true)
+  }
+
+  // frames whose data opentims cannot decompress (here: NumScans too small for the data of the frame): a ParseError,
+  // not the std::runtime_error of opentims
+  {
+    const std::string copy = copy_run("corrupt.d");
+    link_bin(copy);
+    SqliteConnector(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE)
+      .executeStatement("UPDATE Frames SET NumScans = 0 WHERE Id = 1;");
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(copy, exp, first_frames); }), "Cannot read the Bruker TDF data"), true)
+    Config frame_mode = first_frames;
+    frame_mode.export_mode = Config::FRAME;
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(copy, exp, frame_mode); }), "Cannot read the Bruker TDF data"), true)
+  }
+}
+END_SECTION
+
 #endif // OPENTIMS_DDA_TEST_DATA
 
 #ifdef OPENTIMS_DIA_TEST_DATA
@@ -4690,6 +5195,58 @@ START_SECTION([EXTRA] TDF data without DDA-PASEF precursors is read as its MS1 f
   const std::string transform_error = parse_error([&] { f.transform(copy, &streamed, cfg); });
   TEST_EQUAL(transform_error.find("no such column") != std::string::npos, true)
   TEST_EQUAL(streamed.getData().size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DIA run whose DiaFrameMsMsInfo names frames that the Frames table lacks)
+{
+  // A copy of the run without three of its MS2 frames in the Frames table, as an incomplete or edited analysis.tdf has
+  // it. The DIA loaders threw std::out_of_range for them; now they return the spectra of the run without those of the
+  // missing frames, and loadDIAStreaming() and readDIAMetadata() agree with load().
+  using Config = BrukerTimsFile::Config;
+  const std::string path = OPENTIMS_DIA_TEST_DATA;
+  BrukerTimsFile f;
+  Config many_frames;
+  many_frames.frame_id_min = 1;
+  many_frames.frame_id_max = 300;
+
+  TempDir tmp;
+  const std::string copy = tmp.getPath() + "/missing_frames.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+  // the run without the spectra of the first three MS2 frames from frame 100 on, which are removed from the copy (the
+  // spectra of load() are in order of retention time, so of frames)
+  MSExperiment exp;
+  {
+    const auto frame_of = [](const MSSpectrum& s) { return static_cast<uint32_t>(std::stoul(s.getNativeID().substr(6))); }; // "frame=<Id> ..."
+    MSExperiment run;
+    f.load(path, run, many_frames);
+    std::set<uint32_t> removed;
+    for (const MSSpectrum* s : spectrumPointers(run, 2))
+    {
+      if (frame_of(*s) >= 100 && removed.size() < 3) removed.insert(frame_of(*s));
+    }
+    TEST_EQUAL(removed.size(), 3)
+    std::string ids;
+    for (const uint32_t frame : removed) ids += (ids.empty() ? "" : ", ") + std::to_string(frame);
+    SqliteConnector(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement("DELETE FROM Frames WHERE Id IN (" + ids + ");");
+
+    std::vector<const MSSpectrum*> expected;
+    for (const MSSpectrum* s : spectrumPointers(run))
+    {
+      if (removed.count(frame_of(*s)) == 0) expected.push_back(s);
+    }
+    TEST_EQUAL(expected.size() < run.size(), true)
+    f.load(copy, exp, many_frames);
+    TEST_STRING_EQUAL(spectraDifference(expected, spectrumPointers(exp)), "")
+  }
+  testTransformAgainstLoad(copy, many_frames);
+  const StreamingParity r = testStreamingAgainstLoad(copy, many_frames, exp);
+  TEST_EQUAL(r.ms2.spectra, countSpectra(spectrumPointers(exp)).ms2)
 }
 END_SECTION
 

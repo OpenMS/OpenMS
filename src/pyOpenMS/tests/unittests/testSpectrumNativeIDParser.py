@@ -101,6 +101,9 @@ def testSpectrumNativeIDParser():
     # merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
     assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818") == 9
 
+    # "frame=<N>" without a scan= token (Bruker MS1 frames, diaTracer pseudo-DDA): the frame number is the key
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("frame=17") == "frame=(?<GROUP>\\d+)"
+
     print("All SpectrumNativeIDParser tests passed!")
 
 

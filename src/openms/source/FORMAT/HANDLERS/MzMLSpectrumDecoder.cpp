@@ -282,6 +282,10 @@ namespace OpenMS
                   x_precision_64, int_precision_64,
                   x_index, int_index, default_array_length_);
 
+    // meta data of the m/z and intensity arrays (e.g. absorbance intensities) is stored in the spectrum, as in MzMLHandler
+    spectrum.addMetaValues(data[x_index].meta);
+    spectrum.addMetaValues(data[int_index].meta);
+
     if (data.size() > 2) 
     {
       fillDataArrays(data, spectrum);
