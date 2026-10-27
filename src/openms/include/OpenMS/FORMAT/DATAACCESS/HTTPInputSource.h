@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/InputStream.h>
 #include <OpenMS/config.h>
 
@@ -48,6 +49,23 @@ public:
       @throws Exception::IOException if the transfer fails (e.g. the host cannot be reached)
     */
     std::unique_ptr<InputStream> makeStream() const;
+
+    /**
+      @brief The size of the resource at @p url, in bytes, as reported by the server.
+
+      @throws Exception::IllegalArgument, Exception::FileNotFound, Exception::IOException as the constructor and
+      makeStream(); also Exception::IOException if the server does not report the size
+    */
+    static Int64 objectSize(const std::string& url);
+
+    /**
+      @brief The bytes [@p offset, @p offset + @p length) of the resource at @p url (fewer at its end), with a range request.
+
+      From an HTTP server that ignores the range, the bytes before @p offset are received and discarded.
+
+      @throws Exception::IllegalArgument, Exception::FileNotFound, Exception::IOException as the constructor and makeStream()
+    */
+    static std::string readRange(const std::string& url, Int64 offset, Int64 length);
 
     /// Whether @p url is an HTTP, HTTPS or FTP URL (starts with "http://", "https://" or "ftp://")
     static bool isURL(const std::string& url);

@@ -49,6 +49,49 @@ namespace OpenMS
     }
 #endif
 
+    // The options all transfers share; false if the URL or the protocol restriction cannot be set (the transfer must not
+    // start then). @p error receives libcurl's error messages.
+    bool setUpTransfer(CURL* easy, const std::string& url, char* error)
+    {
+      static const std::string user_agent = "OpenMS/" + VersionInfo::getVersion();
+      bool ok = curl_easy_setopt(easy, CURLOPT_URL, url.c_str()) == CURLE_OK;
+      curl_easy_setopt(easy, CURLOPT_ERRORBUFFER, error);
+      curl_easy_setopt(easy, CURLOPT_USERAGENT, user_agent.c_str());
+      curl_easy_setopt(easy, CURLOPT_NOSIGNAL, 1L); // thread-safe DNS timeouts
+      curl_easy_setopt(easy, CURLOPT_FAILONERROR, 1L); // HTTP 4xx/5xx are errors, not documents
+      curl_easy_setopt(easy, CURLOPT_FOLLOWLOCATION, 1L);
+      curl_easy_setopt(easy, CURLOPT_MAXREDIRS, 20L);
+      curl_easy_setopt(easy, CURLOPT_CONNECTTIMEOUT, 60L);
+      // a stalled transfer fails instead of hanging: less than 1 byte/s for two minutes
+      curl_easy_setopt(easy, CURLOPT_LOW_SPEED_LIMIT, 1L);
+      curl_easy_setopt(easy, CURLOPT_LOW_SPEED_TIME, 120L);
+#if LIBCURL_VERSION_NUM >= 0x075500 // 7.85.0
+      static const std::string protocols = supportedProtocols({"http", "https", "ftp", "file"});
+      static const std::string redirect_protocols = supportedProtocols({"http", "https", "ftp"}); // never to a local file
+      ok = ok && curl_easy_setopt(easy, CURLOPT_PROTOCOLS_STR, protocols.c_str()) == CURLE_OK
+              && curl_easy_setopt(easy, CURLOPT_REDIR_PROTOCOLS_STR, redirect_protocols.c_str()) == CURLE_OK;
+#else
+      ok = ok && curl_easy_setopt(easy, CURLOPT_PROTOCOLS, static_cast<long>(CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FILE)) == CURLE_OK
+              && curl_easy_setopt(easy, CURLOPT_REDIR_PROTOCOLS, static_cast<long>(CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP)) == CURLE_OK;
+#endif
+      return ok;
+    }
+
+    // Throws the exception for the failed transfer @p result of @p easy; @p name is the URL without credentials
+    [[noreturn]] void throwTransferError(CURL* easy, CURLcode result, const char* error, const std::string& name)
+    {
+      long response = 0;
+      curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &response);
+      const std::string message = error[0] != '\0' ? std::string(error) : std::string(curl_easy_strerror(result));
+      if (response == 404 || response == 410 || result == CURLE_REMOTE_FILE_NOT_FOUND || result == CURLE_FILE_COULDNT_READ_FILE)
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, message);
+      }
+      // the message is logged, as callers may rethrow the exception as another one (e.g. MzMLFile::load(): a ParseError)
+      OPENMS_LOG_ERROR << "Error reading " << name << ": " << message << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+    }
+
     // A transfer whose received bytes are handed out on demand: readBytes() drives libcurl (multi interface) until data
     // arrives, so at most what one call of curl_multi_perform() receives is buffered
     class CurlInputStream :
@@ -67,31 +110,10 @@ public:
           cleanup_();
           throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
         }
-        user_agent_ = "OpenMS/" + VersionInfo::getVersion();
-        // without the URL or the protocol restriction, the transfer must not start
-        bool ok = curl_easy_setopt(easy_, CURLOPT_URL, url_.c_str()) == CURLE_OK;
+        bool ok = setUpTransfer(easy_, url_, error_);
         curl_easy_setopt(easy_, CURLOPT_WRITEFUNCTION, write_);
         curl_easy_setopt(easy_, CURLOPT_WRITEDATA, this);
-        curl_easy_setopt(easy_, CURLOPT_ERRORBUFFER, error_);
-        curl_easy_setopt(easy_, CURLOPT_USERAGENT, user_agent_.c_str());
-        curl_easy_setopt(easy_, CURLOPT_NOSIGNAL, 1L); // thread-safe DNS timeouts
-        curl_easy_setopt(easy_, CURLOPT_FAILONERROR, 1L); // HTTP 4xx/5xx are errors, not documents
-        curl_easy_setopt(easy_, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(easy_, CURLOPT_MAXREDIRS, 20L);
         curl_easy_setopt(easy_, CURLOPT_ACCEPT_ENCODING, ""); // any transfer compression libcurl can decode
-        curl_easy_setopt(easy_, CURLOPT_CONNECTTIMEOUT, 60L);
-        // a stalled transfer fails instead of hanging: less than 1 byte/s for two minutes
-        curl_easy_setopt(easy_, CURLOPT_LOW_SPEED_LIMIT, 1L);
-        curl_easy_setopt(easy_, CURLOPT_LOW_SPEED_TIME, 120L);
-#if LIBCURL_VERSION_NUM >= 0x075500 // 7.85.0
-        const std::string protocols = supportedProtocols({"http", "https", "ftp", "file"});
-        const std::string redirect_protocols = supportedProtocols({"http", "https", "ftp"}); // never to a local file
-        ok = ok && curl_easy_setopt(easy_, CURLOPT_PROTOCOLS_STR, protocols.c_str()) == CURLE_OK
-                && curl_easy_setopt(easy_, CURLOPT_REDIR_PROTOCOLS_STR, redirect_protocols.c_str()) == CURLE_OK;
-#else
-        ok = ok && curl_easy_setopt(easy_, CURLOPT_PROTOCOLS, static_cast<long>(CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FILE)) == CURLE_OK
-                && curl_easy_setopt(easy_, CURLOPT_REDIR_PROTOCOLS, static_cast<long>(CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP)) == CURLE_OK;
-#endif
         if (!ok || curl_multi_add_handle(multi_, easy_) != CURLM_OK)
         {
           OPENMS_LOG_ERROR << "Cannot set up the transfer of " << name_ << std::endl;
@@ -211,17 +233,7 @@ private:
       // Throws if the (finished) transfer failed
       void checkResult_() const
       {
-        if (result_ == CURLE_OK) { return; }
-        long response = 0;
-        curl_easy_getinfo(easy_, CURLINFO_RESPONSE_CODE, &response);
-        const std::string message = error_[0] != '\0' ? std::string(error_) : std::string(curl_easy_strerror(result_));
-        if (response == 404 || response == 410 || result_ == CURLE_REMOTE_FILE_NOT_FOUND || result_ == CURLE_FILE_COULDNT_READ_FILE)
-        {
-          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_, message);
-        }
-        // the message is logged, as callers may rethrow the exception as another one (e.g. MzMLFile::load(): a ParseError)
-        OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << message << std::endl;
-        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
+        if (result_ != CURLE_OK) { throwTransferError(easy_, result_, error_, name_); }
       }
 
       void cleanup_()
@@ -236,7 +248,6 @@ private:
 
       std::string url_;
       std::string name_;        ///< url_ for messages, without credentials (HTTPInputSource::redactURL())
-      std::string user_agent_;
       CURL* easy_ = nullptr;
       CURLM* multi_ = nullptr;
       bool added_ = false;
@@ -248,6 +259,88 @@ private:
       UInt64 position_ = 0;
       UInt64 received_ = 0;     ///< bytes received in total
       std::atomic<bool> cancelled_{false};
+    };
+
+    // Collects @p limit bytes of a response body, from @p offset of the resource
+    struct RangeCollector
+    {
+      CURL* easy = nullptr;
+      std::string bytes;
+      Int64 offset = 0;
+      Int64 limit = 0;
+      Int64 skip = 0;
+      bool started = false;
+
+      static size_t write(char* data, size_t size, size_t count, void* user)
+      {
+        auto& self = *static_cast<RangeCollector*>(user);
+        if (!self.started)
+        {
+          // an HTTP server that ignores the range answers 200 with the whole resource instead of 206: skip to the offset
+          self.started = true;
+          long response = 0;
+          const char* url = nullptr;
+          curl_easy_getinfo(self.easy, CURLINFO_RESPONSE_CODE, &response);
+          curl_easy_getinfo(self.easy, CURLINFO_EFFECTIVE_URL, &url);
+          if (response == 200 && url != nullptr && StringUtils::hasPrefix(std::string(url), "http")) { self.skip = self.offset; }
+        }
+        const Int64 total = static_cast<Int64>(size * count);
+        const Int64 begin = std::min(self.skip, total);
+        self.skip -= begin;
+        const Int64 wanted = std::min(total - begin, self.limit - static_cast<Int64>(self.bytes.size()));
+        self.bytes.append(data + begin, static_cast<size_t>(wanted));
+        // all bytes received: stop the transfer (only a server that ignores the range sends more)
+        return static_cast<Int64>(self.bytes.size()) < self.limit ? size * count : 0;
+      }
+    };
+
+    // A single blocking request (no stream), for objectSize() and readRange()
+    class Request
+    {
+public:
+      explicit Request(const std::string& url) :
+        name_(HTTPInputSource::redactURL(url))
+      {
+        CurlInit::ensure();
+        easy_ = curl_easy_init();
+        if (easy_ == nullptr || !setUpTransfer(easy_, url, error_))
+        {
+          OPENMS_LOG_ERROR << "Cannot set up the transfer of " << name_ << std::endl;
+          if (easy_ != nullptr) { curl_easy_cleanup(easy_); }
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
+        }
+      }
+
+      ~Request()
+      {
+        curl_easy_cleanup(easy_);
+      }
+
+      Request(const Request&) = delete;
+      Request& operator=(const Request&) = delete;
+
+      CURL* easy() const
+      {
+        return easy_;
+      }
+
+      // Performs the request; @p accept tells whether a failed result is fine nevertheless
+      template <typename Accept>
+      void perform(Accept accept)
+      {
+        const CURLcode result = curl_easy_perform(easy_);
+        if (result != CURLE_OK && !accept(result)) { throwTransferError(easy_, result, error_, name_); }
+      }
+
+      const std::string& name() const
+      {
+        return name_;
+      }
+
+private:
+      std::string name_;
+      CURL* easy_ = nullptr;
+      char error_[CURL_ERROR_SIZE] = {};
     };
   } // namespace
 
@@ -271,6 +364,40 @@ private:
       return std::make_unique<DecompressingInputStream>(std::move(stream), *format, redactURL(url_));
     }
     return stream;
+  }
+
+  Int64 HTTPInputSource::objectSize(const std::string& url)
+  {
+    const HTTPInputSource source(url);
+    Request request(url);
+    curl_easy_setopt(request.easy(), CURLOPT_NOBODY, 1L);
+    request.perform([](CURLcode) { return false; });
+    curl_off_t size = -1;
+    curl_easy_getinfo(request.easy(), CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &size);
+    if (size < 0)
+    {
+      OPENMS_LOG_ERROR << "Error reading " << request.name() << ": the server does not report its size" << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, request.name());
+    }
+    return static_cast<Int64>(size);
+  }
+
+  std::string HTTPInputSource::readRange(const std::string& url, Int64 offset, Int64 length)
+  {
+    const HTTPInputSource source(url);
+    if (length <= 0) { return {}; }
+    Request request(url);
+    RangeCollector collector;
+    collector.easy = request.easy();
+    collector.offset = offset;
+    collector.limit = length;
+    const std::string range = std::to_string(offset) + "-" + std::to_string(offset + length - 1);
+    curl_easy_setopt(request.easy(), CURLOPT_RANGE, range.c_str());
+    curl_easy_setopt(request.easy(), CURLOPT_WRITEFUNCTION, &RangeCollector::write);
+    curl_easy_setopt(request.easy(), CURLOPT_WRITEDATA, &collector);
+    // CURLE_WRITE_ERROR: RangeCollector stopped the transfer once it had all bytes
+    request.perform([&](CURLcode result) { return result == CURLE_WRITE_ERROR && static_cast<Int64>(collector.bytes.size()) == length; });
+    return collector.bytes;
   }
 
   bool HTTPInputSource::isURL(const std::string& url)
