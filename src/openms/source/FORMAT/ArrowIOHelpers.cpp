@@ -1038,7 +1038,7 @@ bool writeTableToParquet(
 
   auto writer_properties = builder.build();
   arrow::Status status;
-  if (config.threads <= 1 || table->num_rows() == 0)
+  if (config.threads <= 1 || table->num_rows() == 0 || config.row_group_size <= 0) // (WriteTable rejects the size)
   {
     auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
     status = parquet::arrow::WriteTable(
