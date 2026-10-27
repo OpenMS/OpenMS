@@ -1232,6 +1232,78 @@ START_SECTION([EXTRA] frames that cannot be decoded are reported as ParseError)
 }
 END_SECTION
 
+START_SECTION([EXTRA] exceptions of the consumer and running out of memory are not reported as errors in the data)
+{
+  // Only errors in the data become ParseError. An exception that the consumer of transform() or loadDIAStreaming() throws
+  // (e.g. the one pyOpenMS throws when a Python callback raises) leaves the reader as it is, and so does std::bad_alloc.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}});
+  addSyntheticDIAWindows(d, {2});
+
+  // what a call throws
+  const auto thrown = [](const std::function<void()>& call) -> std::string
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("OpenMS ") + e.getName() + ": " + e.what();
+    }
+    catch (const std::bad_alloc&)
+    {
+      return "std::bad_alloc";
+    }
+    catch (const std::runtime_error& e)
+    {
+      return std::string("std::runtime_error: ") + e.what();
+    }
+    catch (...)
+    {
+      return "another exception";
+    }
+    return "nothing";
+  };
+  const std::function<void()> runtime_error = [] { throw std::runtime_error("Python callback consumeSpectrum raised an exception"); };
+  const std::function<void()> bad_alloc = [] { throw std::bad_alloc(); };
+
+  class ThrowingConsumer : public MSDataStoringConsumer
+  {
+  public:
+    explicit ThrowingConsumer(std::function<void()> raise) : raise_(std::move(raise)) {}
+    void consumeSpectrum(SpectrumType&) override { raise_(); }
+
+  private:
+    std::function<void()> raise_;
+  };
+  class ThrowingSwathConsumer : public RegularSwathFileConsumer
+  {
+  public:
+    ThrowingSwathConsumer(const std::vector<OpenSwath::SwathMap>& boundaries, std::function<void()> raise) :
+      RegularSwathFileConsumer(boundaries), raise_(std::move(raise))
+    {
+    }
+    void consumeSpectrum(MapType::SpectrumType&) override { raise_(); }
+
+  private:
+    std::function<void()> raise_;
+  };
+
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(runtime_error); f.transform(d, &consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(bad_alloc); f.transform(d, &consumer); }), "std::bad_alloc")
+  ExperimentalSettings settings;
+  const std::vector<OpenSwath::SwathMap> boundaries = f.readDIAMetadata(d, settings).boundaries;
+  TEST_STRING_EQUAL(thrown([&] { ThrowingSwathConsumer consumer(boundaries, runtime_error); f.loadDIAStreaming(d, consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  // an OpenMS exception of the consumer leaves as it is as well
+  TEST_EQUAL(hasText(thrown([&] { ThrowingConsumer consumer([] { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out.mzML"); });
+                                 f.transform(d, &consumer); }), "OpenMS UnableToCreateFile"), true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] DIA-PASEF frames that the Frames table lacks are skipped)
 {
   // DiaFrameMsMsInfo may name frames that the Frames table of an incomplete or edited analysis.tdf lacks. The DIA

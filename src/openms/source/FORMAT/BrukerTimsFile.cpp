@@ -37,6 +37,7 @@
 
 #include <exception>
 #include <memory>
+#include <new>
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -1768,10 +1769,33 @@ namespace OpenMS
       "MSImagingExperiment, or read its frames with export mode FRAME");
   }
 
-  // Runs one of the public read functions on @p path. Only OpenMS exceptions leave the reader (the TOPP tools catch
-  // those only, so any other exception would end the program): an analysis.tdf that lacks a table or column a query
-  // needs, and frames that opentims cannot decode (e.g. corrupt zstd data in analysis.tdf_bin), are reported as
-  // ParseError of @p path.
+  // An exception that the consumer of transform() or loadDIAStreaming() threw, on its way through the reader to the
+  // public read function, which rethrows it as it was (see rethrowAsParseError())
+  struct ConsumerError
+  {
+    std::exception_ptr error;
+  };
+
+  // Runs a call of the consumer of transform() or loadDIAStreaming(). Its exceptions leave the reader as they are: they
+  // tell what went wrong in the consumer (e.g. a Python callback that raised), not in the data.
+  template <typename Call>
+  static void callConsumer(Call&& call)
+  {
+    try
+    {
+      call();
+    }
+    catch (...)
+    {
+      throw ConsumerError{std::current_exception()};
+    }
+  }
+
+  // Runs one of the public read functions on @p path. Errors in the data leave the reader as OpenMS exceptions (the
+  // TOPP tools catch those only, so any other exception would end the program): an analysis.tdf that lacks a table or
+  // column a query needs, and frames that opentims cannot decode (e.g. corrupt zstd data in analysis.tdf_bin), are
+  // reported as ParseError of @p path. Exceptions of the consumer (callConsumer()) and running out of memory say
+  // nothing about the data and leave as they are.
   template <typename Function>
   static auto rethrowAsParseError(const std::string& path, Function&& function)
   {
@@ -1780,6 +1804,14 @@ namespace OpenMS
       return function();
     }
     catch (const Exception::BaseException&)
+    {
+      throw;
+    }
+    catch (const ConsumerError& e)
+    {
+      std::rethrow_exception(e.error);
+    }
+    catch (const std::bad_alloc&)
     {
       throw;
     }
@@ -2845,7 +2877,7 @@ namespace OpenMS
       // The non-streaming load() path gets this sort for free via exp.sortSpectra(true).
       spec.sortByPosition();
       polarity.apply(spec);
-      consumer.consumeSpectrum(spec);
+      callConsumer([&] { consumer.consumeSpectrum(spec); });
       setProgress(i);
     }
     endProgress();
@@ -2922,7 +2954,7 @@ namespace OpenMS
             // could not be ordered when it was decoded.
             spec.sortByPosition();
             polarity.apply(spec);
-            consumer.consumeSpectrum(spec);
+            callConsumer([&] { consumer.consumeSpectrum(spec); });
           }
         }
       }
@@ -3117,13 +3149,13 @@ namespace OpenMS
     Config::ExportMode mode = eff.export_mode;
 
     const size_t expected = expectedSpectra(db, *handle, eff, is_dia, &config);
-    consumer->setExpectedSize(expected, 0);
+    callConsumer([&] { consumer->setExpectedSize(expected, 0); });
     keepFrameRangeOfUser(eff, config);
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
     loadExperimentalSettings_(path, d_path, settings);
-    consumer->setExperimentalSettings(settings);
+    callConsumer([&] { consumer->setExperimentalSettings(settings); });
 
     const FramePolarity polarity(tdf_path);
     const auto run_loader = [&](const SpectrumSink& emit)
@@ -3156,7 +3188,7 @@ namespace OpenMS
         }
         last_rt = spec.getRT();
         spec.sortByPosition(); // by m/z; all but a few arrive sorted
-        consumer->consumeSpectrum(spec);
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
       });
     }
     else
@@ -3168,7 +3200,7 @@ namespace OpenMS
       exp.sortSpectra(true);
       for (auto& spec : exp)
       {
-        consumer->consumeSpectrum(spec);
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
       }
     }
   }
