@@ -145,6 +145,13 @@ namespace OpenMS
        * 13C spacings; or the legacy MS-GF+ 'IsotopeError') is removed from the
        * mass difference only: dm, absdm and deltamass.
        *
+       * ScanNr tells the spectra of a spectrum file apart: the scan number of
+       * the native ID (e.g. Thermo); for Bruker TDF DDA ("frame=F scan=S
+       * precursor=P") the precursor P; for native IDs that number spectra only
+       * within a part of the run (Bruker TDF "frame=F ... scan=S" without a
+       * precursor, Waters, SCIEX) a running number per spectrum file, in the
+       * order of the PSMs.
+       *
        * In-process rescoring does not stamp: @ref buildFeatureMatrix computes the
        * same values with the same functions straight into feature rows.
        *

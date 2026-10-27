@@ -437,15 +437,16 @@ namespace OpenMS
       return StringUtils::toFloat(value.toString());
     }
 
-    // SpectrumLookup::extractScanNumber(id, RegularExpression(SpectrumLookup::getRegExFromNativeID(first_id)), true)
-    // for every id, without the regular expression when it is "<key>=(?<GROUP>\d+)" (all native ID types but the plain
+    // SpectrumLookup::extractScanNumber(id, RegularExpression(pattern), true) for every id, e.g. with the pattern
+    // SpectrumLookup::getRegExFromNativeID(first_id), without the regular expression when it is "<key>=(?<GROUP>\d+)"
+    // (all native ID types but the plain
     // number): the number after the last "<key>=" that a digit follows (the matches cannot overlap: the keys hold no
     // digit and none ends with its own beginning), converted with StringUtils::toInt32 as there (-1 if it fails).
     class ScanNumberOf
     {
     public:
-      explicit ScanNumberOf(const std::string& first_id) :
-        pattern_(SpectrumLookup::getRegExFromNativeID(first_id))
+      explicit ScanNumberOf(const std::string& pattern) :
+        pattern_(pattern)
       {
         static const std::string group = "=(?<GROUP>\\d+)";
         if (pattern_.size() > group.size() && StringUtils::hasSuffix(pattern_, group))
@@ -720,6 +721,139 @@ namespace OpenMS
     return stampPinFeaturesOnHits(peptide_ids, enz, min_charge, max_charge, added_meta_values);
   }
 
+  namespace
+  {
+    // The ScanNr of the spectra. Percolator takes the PSMs of a spectrum file with the same ScanNr for one spectrum
+    // (and with the same ExpMass in target-decoy competition): train_best_positive keeps one positive per ScanNr, and
+    // the cross-validation splits by it. So ScanNr has to tell the spectra of a file apart:
+    // - Bruker TDF DDA spectra, one per precursor ("frame=F scan=S precursor=P", as BrukerTimsFile writes them), get
+    //   the precursor P: S, the first ion mobility scan of the precursor, recurs in other frames.
+    // - Native IDs that number their spectra only within a part of the run get a running number per spectrum file,
+    //   in the order of the PSMs: Bruker TDF "frame=F ... scan=S" without a precursor (a scan within a frame, e.g.
+    //   diaPASEF), Waters "function=F process=P scan=S" (a scan within a function) and SCIEX "sample=1 period=1
+    //   cycle=C experiment=E" (whose last number, the experiment, recurs in every cycle).
+    // - The others keep the number SpectrumLookup extracts (e.g. the scan number of Thermo native IDs, the frame
+    //   number of "frame=F").
+    // Each spectrum file takes the scheme of its first spectrum: the spectra of a file have the same native ID format,
+    // but the files of one call may come from different instruments.
+    // The scan identifiers are those of PercolatorInfile::getScanIdentifier(), without whitespace.
+    class PinScanNumbers
+    {
+    public:
+      // the ScanNr of the spectra of one file
+      class FileNumbering
+      {
+      public:
+        explicit FileNumbering(const std::string& first_scan_identifier) :
+          number_(numberPattern_(first_scan_identifier))
+        {
+          if (StringUtils::hasPrefix(first_scan_identifier, "frame="))
+          {
+            if (first_scan_identifier.find("precursor=") == std::string::npos
+                && first_scan_identifier.find("scan=") != std::string::npos)
+            {
+              running_scheme_ = true;
+            }
+          }
+          else if (StringUtils::hasPrefix(first_scan_identifier, "function=")
+                   || StringUtils::hasPrefix(first_scan_identifier, "sample="))
+          {
+            running_scheme_ = true;
+          }
+        }
+
+        // whether the spectra get running numbers (in their order: operator()), else numberOf()
+        bool running() const { return running_scheme_; }
+
+        Int operator()(const std::string& scan_identifier)
+        {
+          if (running_scheme_)
+          {
+            return running_.emplace(scan_identifier, static_cast<Int>(running_.size()) + 1).first->second;
+          }
+          return numberOf(scan_identifier);
+        }
+
+        // the number of the native ID or the precursor (no running number; thread-safe)
+        Int numberOf(const std::string& scan_identifier) const { return number_(scan_identifier); }
+
+      private:
+        static std::string numberPattern_(const std::string& first_scan_identifier)
+        {
+          if (StringUtils::hasPrefix(first_scan_identifier, "frame=")
+              && first_scan_identifier.find("precursor=") != std::string::npos)
+          {
+            return R"(precursor=(?<GROUP>\d+))";
+          }
+          return SpectrumLookup::getRegExFromNativeID(first_scan_identifier);
+        }
+
+        bool running_scheme_ = false;
+        ScanNumberOf number_;
+        std::map<std::string, Int> running_; // the running number of each scan identifier
+      };
+
+      // the numbering of the file of a spectrum (its first spectrum chooses it)
+      FileNumbering& numbering(const std::string& file_identifier, const std::string& scan_identifier)
+      {
+        auto file = files_.find(file_identifier);
+        if (file == files_.end()) file = files_.emplace(file_identifier, FileNumbering(scan_identifier)).first;
+        return file->second;
+      }
+
+    private:
+      std::map<std::string, FileNumbering> files_; // by file identifier
+    };
+
+    // The ScanNr of every spectrum of @p peptide_ids, as PinScanNumbers gives them in the order of the spectra
+    // (stamping): the scan and file identifiers in parallel, the numbering of each file from its first spectrum, the
+    // running numbers in the order of the spectra and the other numbers in parallel. A spectrum whose identifiers
+    // cannot be made gets -1 and takes no part in the numbering (stamping stops at it with that error).
+    std::vector<Int> pinScanNumbers(const PeptideIdentificationList& peptide_ids)
+    {
+      const size_t n = peptide_ids.size();
+      std::vector<std::string> scan_ids(n), file_ids(n);
+      std::vector<char> ok(n, 0);
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize si = 0; si < static_cast<SignedSize>(n); ++si)
+      {
+        const size_t i = static_cast<size_t>(si);
+        try
+        {
+          scan_ids[i] = PercolatorInfile::getScanIdentifier(peptide_ids[i], i + 1);
+          file_ids[i] = PercolatorInfile::getFileIdentifier(peptide_ids[i]);
+          ok[i] = 1;
+        }
+        catch (...)
+        {
+        }
+      }
+      std::vector<Int> numbers(n, -1);
+      PinScanNumbers files;
+      std::vector<const PinScanNumbers::FileNumbering*> numbering_of(n, nullptr);
+      PinScanNumbers::FileNumbering* numbering = nullptr;
+      const std::string* file = nullptr; // the file of numbering
+      for (size_t i = 0; i < n; ++i)
+      {
+        if (!ok[i]) continue;
+        if (file == nullptr || *file != file_ids[i])
+        {
+          numbering = &files.numbering(file_ids[i], scan_ids[i]);
+          file = &file_ids[i];
+        }
+        numbering_of[i] = numbering;
+        if (numbering->running()) numbers[i] = (*numbering)(scan_ids[i]);
+      }
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize si = 0; si < static_cast<SignedSize>(n); ++si)
+      {
+        const PinScanNumbers::FileNumbering* of = numbering_of[static_cast<size_t>(si)];
+        if (of != nullptr && !of->running()) numbers[static_cast<size_t>(si)] = of->numberOf(scan_ids[static_cast<size_t>(si)]);
+      }
+      return numbers;
+    }
+  }
+
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
     PeptideIdentificationList& peptide_ids,
     const std::string& enz,
@@ -732,9 +866,7 @@ namespace OpenMS
     if (peptide_ids.empty()) return skipped;
     const PinEnzyme_ rule(enz);
 
-    // Scan-number regex is derived from the first pid's scan identifier.
-    const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    const ScanNumberOf scan_number_of(sid);
+    const std::vector<Int> scan_numbers = pinScanNumbers(peptide_ids); // ScanNr of the spectra
 
     // Per spectrum (PeptideIdentification): the meta values it added (hit index, keys), the values it overwrote (hit
     // index, key, previous value), the hits it skipped (hit index, reason) and the error it stopped at, collected in
@@ -774,7 +906,7 @@ namespace OpenMS
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
       const std::string file_identifier = getFileIdentifier(pep_id);
 
-      const Int scan_number = scan_number_of(scan_identifier);
+      const Int scan_number = scan_numbers[pid_index];
 
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
@@ -1022,10 +1154,6 @@ namespace OpenMS
     const UInt lookup_index[] = {registry.getIndex("CalcMass"), registry.getIndex("IsotopeError"),
                                  registry.getIndex(Constants::UserParam::ISOTOPE_ERROR)};
 
-    // Scan-number regex is derived from the first pid's scan identifier.
-    const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    const ScanNumberOf scan_number_of(sid);
-
     // The hits of spectrum (PeptideIdentification) i are hit_offset[i] onwards. Their state (first pass): skipped
     // (0) or stamped (STAMPED, i.e. evidence and target/decoy type), a decoy (DECOY), a row (ROW: every feature).
     constexpr unsigned char STAMPED = 1, DECOY = 2, ROW = 4;
@@ -1049,7 +1177,7 @@ namespace OpenMS
 
     // First pass: the values of each spectrum, as stamping computes them before its hits (an error there stops the
     // spectrum before its first hit), and the hits that are stamped and rows, the number of rows of each spectrum.
-    std::vector<Int> scan_numbers(n_spectra, 0);
+    const std::vector<Int> scan_numbers = pinScanNumbers(peptide_ids);
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize si = 0; si < static_cast<SignedSize>(n_spectra); ++si)
     {
@@ -1058,9 +1186,8 @@ namespace OpenMS
       size_t n_rows = 0;
       try
       {
-        const std::string scan_identifier = getScanIdentifier(peptide_ids[i], i + 1);
+        static_cast<void>(getScanIdentifier(peptide_ids[i], i + 1)); // (its error, as stamping: ScanNr is in scan_numbers)
         file_identifier[i] = getFileIdentifier(peptide_ids[i]);
-        scan_numbers[i] = scan_number_of(scan_identifier);
       }
       catch (...)
       {
@@ -1381,8 +1508,7 @@ namespace OpenMS
     const UInt td_index = registry.getIndex("target_decoy");
     const UInt lookup_index[] = {registry.getIndex("CalcMass"), registry.getIndex("IsotopeError"),
                                  registry.getIndex(Constants::UserParam::ISOTOPE_ERROR)};
-    const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    const ScanNumberOf scan_number_of(sid);
+    const std::vector<Int> scan_numbers = pinScanNumbers(peptide_ids);
 
     // An error stops its spectrum (as stamping); the first by spectrum is raised. (In rescorePSMs, buildFeatureMatrix()
     // computed the same numbers for every hit before, so only the string columns or an allocation can fail here.)
@@ -1405,7 +1531,7 @@ namespace OpenMS
             {
               const std::string scan_identifier = getScanIdentifier(pid, static_cast<size_t>(si) + 1);
               spectrum.emplace(getFileIdentifier(pid) + scan_identifier,
-                               scan_number_of(scan_identifier));
+                               scan_numbers[static_cast<size_t>(si)]);
             }
             auto exists = [&](int lookup)
             {

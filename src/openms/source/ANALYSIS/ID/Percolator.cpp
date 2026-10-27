@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <compare>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -263,7 +264,8 @@ Percolator::Percolator()
   defaults_.setValidStrings("normalizer", {"stdv","uni","none"});
 
   defaults_.setValue("train_best_positive", "true",
-                     "During TRAINING, use only the best PSM per spectrum as a positive example. "
+                     "During TRAINING, use only the best-scoring target PSM per spectrum (file and ScanNr; with "
+                     "cv_group_keys: per group) as a positive example, if it passes train_fdr. "
                      "Affects the SVM (weights change). Orthogonal to post_processing_tdc. "
                      "Default is 'true' because typical OpenMS inputs are multi-hit-per-spectrum "
                      "(Comet/MSGF+/Sage top-N, OSW peak groups). Inert on one-hit-per-spectrum "
@@ -358,13 +360,6 @@ Percolator::Percolator()
                      "and 10 x by cross-validation (faster; the results differ).",
                      {"advanced"});
   defaults_.setValidStrings("single_cneg", {"true", "false"});
-  defaults_.setValue("best_positive", "first",
-                     "With train_best_positive: which PSM of a spectrum is the positive training candidate. 'first' "
-                     "(default, as the percolator executable): the first one an unstable sort by spectrum and label "
-                     "leaves, often not the best-scoring one (with many PSMs per spectrum most of the best positives are "
-                     "then missing from the training); 'score': the best-scoring one (the results differ from Percolator's).",
-                     {"advanced"});
-  defaults_.setValidStrings("best_positive", {"first", "score"});
 
   defaults_.setValue("report_as_main_score", "none",
                      "Which Percolator output to stamp as the main PeptideHit score after rescoring. "
@@ -514,7 +509,6 @@ void Percolator::updateMembers_()
   impl_->tron_epsilon        = static_cast<double>(param_.getValue("tron_epsilon"));
   impl_->warm_start          = (param_.getValue("warm_start").toString() == "true");
   impl_->single_cneg         = (param_.getValue("single_cneg").toString() == "true");
-  impl_->best_positive_by_score = (param_.getValue("best_positive").toString() == "score");
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = param_.getValue("use_pi0").toString();
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
@@ -1160,7 +1154,6 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*numFolds=*/3);
   cv.setSolver(impl_->solver);
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
-  cv.setBestPositiveByScore(impl_->best_positive_by_score);
 
   std::vector<double> avg_weights;
   try
@@ -1205,6 +1198,79 @@ PercolatorModel Percolator::train(const RescoreInput& input)
 RescoreOutput Percolator::score(const RescoreInput& input,
                                 const PercolatorModel& model)
 {
+  return score_(input, model, nullptr);
+}
+
+struct Percolator::ReferenceScale_
+{
+  struct Point
+  {
+    double score, q, pep;
+    auto operator<=>(const Point&) const = default;
+  };
+  std::vector<double> rescaled_weights; ///< the model's weights, rescaled as the scores
+  std::vector<Point> kept;              ///< the rows that the scoring kept, in the order of the scoring
+};
+
+RescoreOutput Percolator::score(const RescoreInput& input,
+                                const PercolatorModel& model,
+                                const RescoreInput& reference)
+{
+  validateRescoreInput_(input);
+  validateModelCompat_(input, model);
+  // The reference as score() scores it: its rescaling (score at test_fdr -> 0, median decoy -> -1), q-values and PEPs.
+  ReferenceScale_ scale;
+  score_(reference, model, &scale);
+
+  // The (score, q-value, PEP) of the reference rows that the scoring kept, by score: q-values and PEPs are
+  // non-increasing in the score.
+  std::vector<ReferenceScale_::Point>& curve = scale.kept;
+  if (curve.empty())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Percolator scoring failed: no reference row was scored.", "");
+  }
+  std::sort(curve.begin(), curve.end());
+  // the q-value and PEP at a score: linear interpolation between the neighbouring reference scores, constant beyond
+  // them
+  const auto at = [&curve](double score) -> std::pair<double, double>
+  {
+    const auto upper = std::lower_bound(curve.begin(), curve.end(), score,
+                                        [](const ReferenceScale_::Point& p, double s) { return p.score < s; });
+    if (upper == curve.begin()) { return {upper->q, upper->pep}; }
+    if (upper == curve.end()) { return {curve.back().q, curve.back().pep}; }
+    const auto lower = std::prev(upper);
+    const double width = upper->score - lower->score;
+    if (!(width > 0.0)) { return {upper->q, upper->pep}; }
+    const double t = (score - lower->score) / width;
+    return {lower->q + t * (upper->q - lower->q), lower->pep + t * (upper->pep - lower->pep)};
+  };
+  const std::vector<double>& rescaled_weights = scale.rescaled_weights;
+
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
+  RescoreOutput out;
+  out.scores.reserve(n_rows);
+  out.q_values.reserve(n_rows);
+  out.peps.reserve(n_rows);
+  for (size_t i = 0; i < n_rows; ++i)
+  {
+    const double* row = input.row(i);
+    // as Scores::scoreAndAddPSM, with the weights that Scores::normalizeScores rescaled for the reference
+    double s = rescaled_weights[n_feat];
+    for (size_t j = 0; j < n_feat; ++j) { s += row[j] * rescaled_weights[j]; }
+    const auto [q, pep] = at(s);
+    out.scores.push_back(s);
+    out.q_values.push_back(q);
+    out.peps.push_back(std::clamp(pep, 0.0, 1.0));
+  }
+  return out;
+}
+
+RescoreOutput Percolator::score_(const RescoreInput& input,
+                                 const PercolatorModel& model,
+                                 ReferenceScale_* scale)
+{
   // Mark pi0 invalid up front: any throw — including from input/model
   // validation below or anywhere inside the scoring try block — leaves
   // last_pi0 in a "no usable value from this call" state, instead of stale
@@ -1216,6 +1282,11 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   impl_->reset();
+  // As train() and rescore(): the pi0 estimate below bootstraps with Percolator's (process-wide) random number
+  // generator, so the q-values and PEPs would otherwise depend on whatever drew from it before (e.g. train() or a
+  // previous score()). The same rows and model must give the same results, also in score(input, model, reference),
+  // which scores the reference again.
+  P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   const size_t n_rows = input.rowCount();
   const size_t n_feat = input.featureCount();
@@ -1283,6 +1354,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
         // is not mutated.
         std::vector<double> weights_copy = model.weights;
         all_scores.normalizeScores(impl_->test_fdr, weights_copy);
+        if (scale != nullptr) { scale->rescaled_weights = weights_copy; }
 
         if (impl_->post_processing_tdc)
         {
@@ -1347,6 +1419,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
     out.peps[row]     = sh.pep;
+    if (scale != nullptr) { scale->kept.push_back({sh.score, sh.q, sh.pep}); }
     ++matched;
     if (sh.score < score_min) score_min = sh.score;
     if (sh.score > score_max) score_max = sh.score;
@@ -1645,7 +1718,6 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*numFolds=*/3);
   cv.setSolver(impl_->solver);
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
-  cv.setBestPositiveByScore(impl_->best_positive_by_score);
   if (out_of_fold)
   {
     cv.setFixedFolds([&row_of_psm, &oof](const P::PSMDescription& psm)
@@ -3032,6 +3104,62 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
     }
   }
   return ro.scores.size();
+}
+
+PercolatorModel Percolator::trainPSMs(PeptideIdentificationList& peptide_ids,
+                                      const StringList& feature_set,
+                                      const std::string& enzyme,
+                                      int min_charge,
+                                      int max_charge)
+{
+  if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
+                   [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No PSMs to rescore.");
+  }
+  RescoreInput ri;
+  PSMRowLocations hit_locs;
+  buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs, impl_->calc_mass_feature);
+  PercolatorInfile::refreshPinMetaValues(peptide_ids, enzyme, min_charge, max_charge); // (as rescorePSMs)
+  OPENMS_LOG_INFO << "Training a Percolator model on " << ri.rowCount() << " PSMs with "
+                  << ri.featureCount() << " features." << std::endl;
+  return train(ri);
+}
+
+Size Percolator::scorePSMs(PeptideIdentificationList& peptide_ids,
+                           const PercolatorModel& model,
+                           PeptideIdentificationList& reference_ids,
+                           const StringList& feature_set,
+                           const std::string& enzyme,
+                           int min_charge,
+                           int max_charge,
+                           const std::string& score_type)
+{
+  if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "score_type must be 'q-value', 'pep' or 'svm'", score_type);
+  }
+  for (const PeptideIdentificationList* ids : {&peptide_ids, &reference_ids})
+  {
+    if (std::none_of(ids->begin(), ids->end(), [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No PSMs to rescore.");
+    }
+  }
+  // the rows of the reference after those of peptide_ids (as their errors), scored with score(input, model, reference)
+  const PSMScorer scorer = [&](const RescoreInput& input, const PSMRowLocations&)
+  {
+    RescoreInput reference;
+    PSMRowLocations reference_locs;
+    buildPSMRescoreInput(reference_ids, feature_set, enzyme, min_charge, max_charge, reference, reference_locs,
+                         impl_->calc_mass_feature);
+    PercolatorInfile::refreshPinMetaValues(reference_ids, enzyme, min_charge, max_charge); // (as rescorePSMs)
+    return score(input, model, reference);
+  };
+  return rescorePSMsWithScorer(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, scorer);
 }
 
 RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide_ids, RescoreInput& ri,

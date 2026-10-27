@@ -665,6 +665,76 @@ START_SECTION(([EXTRA] store: PSMs of several spectrum files get a FileName colu
 }
 END_SECTION
 
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: ScanNr tells the spectra of a file apart))
+{
+  // Percolator takes the PSMs of a file with the same ScanNr for one spectrum: train_best_positive keeps one positive
+  // per ScanNr, and the cross-validation splits by it. Thermo keeps its scan numbers. Bruker TDF DDA spectra get their
+  // precursor; Waters, SCIEX and other Bruker TDF native IDs, which number spectra only within a part of the run, a
+  // running number per file.
+  auto scan_numbers = [](const std::vector<std::pair<std::string, std::string>>& spectra) // (file, native ID)
+  {
+    PeptideIdentificationList pids;
+    for (const auto& [file, native_id] : spectra)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString("PEPTIDEK"));
+      hit.setCharge(2);
+      hit.setScore(1.0);
+      hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+      PeptideEvidence ev;
+      ev.setProteinAccession("PROT1");
+      ev.setAABefore('K');
+      ev.setAAAfter('A');
+      hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+      PeptideIdentification pid;
+      pid.setMZ(465.7);
+      pid.setRT(10.0);
+      pid.setSpectrumReference(native_id);
+      pid.setMetaValue("file_origin", file);
+      pid.setHits(std::vector<PeptideHit>{hit});
+      pids.push_back(pid);
+    }
+    PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3);
+    std::string numbers;
+    for (const PeptideIdentification& pid : pids)
+    {
+      if (!numbers.empty()) numbers += " ";
+      numbers += pid.getHits()[0].getMetaValue("ScanNr").toString();
+    }
+    return numbers;
+  };
+
+  // Thermo: the scan numbers
+  TEST_STRING_EQUAL(scan_numbers({{"a", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"a", "controllerType=0 controllerNumber=1 scan=1002"}}), "1001 1002")
+  // Bruker TDF DDA: the precursors, not the first ion mobility scan of the precursor (475 in all three frames)
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 scan=475 precursor=2"},
+                                  {"a", "frame=388 scan=475 precursor=61"},
+                                  {"a", "frame=1203 scan=475 precursor=230"}}), "2 61 230")
+  // SCIEX: the experiment (the last number) recurs in every cycle. A running number per file, the same for the
+  // PSMs of one spectrum.
+  TEST_STRING_EQUAL(scan_numbers({{"a", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"a", "sample=1 period=1 cycle=101 experiment=4"},
+                                  {"a", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"b", "sample=1 period=1 cycle=100 experiment=4"}}), "1 2 1 1")
+  // Waters: scans are numbered within a function
+  TEST_STRING_EQUAL(scan_numbers({{"a", "function=2 process=0 scan=345"},
+                                  {"a", "function=3 process=0 scan=345"}}), "1 2")
+  // Bruker TDF without a precursor (diaPASEF): scans are numbered within a frame
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 windowGroup=3 scan=475"},
+                                  {"a", "frame=121 windowGroup=3 scan=475"}}), "1 2")
+  // "frame=F" alone (Bruker TDF MS1, diaTracer pseudo-DDA): the frame
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=10"}, {"a", "frame=11"}}), "10 11")
+  // files from different instruments: each file numbers its spectra after the native ID format of its first one
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 scan=475 precursor=2"},
+                                  {"b", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"c", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"a", "frame=388 scan=475 precursor=61"}}), "2 1001 1 61")
+  TEST_STRING_EQUAL(scan_numbers({{"b", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"a", "frame=120 scan=475 precursor=2"}}), "1001 2")
+}
+END_SECTION
+
 START_SECTION((static double getFeatureValue(const DataValue& value, const std::string& feature)))
 {
   // numeric meta values count as they are

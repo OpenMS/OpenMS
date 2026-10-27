@@ -164,13 +164,21 @@ struct OrderScanMassLabelCharge {
   }
 };
 
+// OpenMS: within a spectrum and label, the best score comes first, then the
+// smaller PSM id, so that Scores::generatePositiveTrainingSet keeps the
+// best-scoring PSM of each spectrum, the same one on every standard library.
+// Upstream compares file, scan and label only.
 struct OrderScanLabel {
   bool operator()(const ScoreHolder& x, const ScoreHolder& y) const {
     if (x.pPSM->specFileNr != y.pPSM->specFileNr)
       return x.pPSM->specFileNr < y.pPSM->specFileNr;
     if (x.pPSM->scan != y.pPSM->scan)
       return x.pPSM->scan < y.pPSM->scan;
-    return x.label > y.label;
+    if (x.label != y.label)
+      return x.label > y.label;
+    if (x.score != y.score)
+      return x.score > y.score;
+    return x.pPSM->getId() < y.pPSM->getId();
   }
 };
 

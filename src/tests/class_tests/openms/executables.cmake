@@ -289,6 +289,7 @@ set(format_executables_list
   PercolatorNewton_test
   PercolatorSampler_test
   PercolatorBestPositive_test
+  PercolatorScores_test
   ProtXMLFile_test
   QcMLFile_test
   S3InputSource_test

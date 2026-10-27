@@ -1065,45 +1065,41 @@ void Scores::generateNegativeTrainingSet(AlgIn& data, const double cneg) {
 void Scores::generatePositiveTrainingSet(AlgIn& data,
                                          const double fdr,
                                          const double cpos,
-                                         const bool trainBestPositive,
-                                         const bool bestByScore) {
+                                         const bool trainBestPositive) {
   std::size_t ix2 = static_cast<std::size_t>(data.negatives);
   int p = 0;
 
-  std::vector<ScoreHolder>::iterator lastUniqueIt = scores_.end();
-  if (trainBestPositive) {
-    if (bestByScore) {
-      // OpenMS: the best-scoring PSM of each (file, scan, label) group first: stable sorts, by score and
-      // then by spectrum and label, keep the PSMs of a group in the order of their scores (with a NaN
-      // score the order of the scores is unspecified, as in the sort by score below)
-      std::stable_sort(scores_.begin(), scores_.end(), greater<ScoreHolder>());
-      std::stable_sort(scores_.begin(), scores_.end(), OrderScanLabel());
-    } else {
-      // OpenMS: sorted like std::sort (see SortLikeStd.h); file and scan numbers and labels are
-      // no NaN
-      sortLikeStdSort(scores_, OrderScanLabel());
-    }
-    lastUniqueIt =
-        std::unique(scores_.begin(), scores_.end(), UniqueScanLabel());
-    if (!comparableScores(scores_.begin(), lastUniqueIt)) {
-      std::sort(scores_.begin(), lastUniqueIt, greater<ScoreHolder>());
-    } else if (lastUniqueIt != scores_.begin()) {
-      sortLikeStdSort(&*scores_.begin(), &*scores_.begin() + (lastUniqueIt - scores_.begin()),
-                      greater<ScoreHolder>());
+  // OpenMS: the targets that pass the FDR, in the order of scores_.
+  std::vector<ScoreHolder> positives;
+  for (const ScoreHolder& sh : scores_) {
+    if (sh.isTarget() && sh.q <= fdr) {
+      positives.push_back(sh);
     }
   }
+  // OpenMS: with trainBestPositive, only the best-scoring of these per spectrum
+  // (file, scan). A higher score never has a higher q-value, so if any target
+  // of a spectrum passes the FDR, a best-scoring one does. Upstream sorted
+  // scores_ itself by file, scan and label only and kept an arbitrary PSM per
+  // spectrum; and std::unique overwrote the PSMs it dropped from scores_, which
+  // CrossValidation::mergeCpCnPairs trains on again (nested-xval-bins > 1).
+  // stable_sort: equal scores keep the order of OrderScanLabel, on every
+  // standard library.
+  if (trainBestPositive) {
+    // OpenMS: sorted like std::sort (see SortLikeStd.h); std::sort itself with a NaN score
+    sortScoresLikeStdSort(positives, OrderScanLabel());
+    positives.erase(
+        std::unique(positives.begin(), positives.end(), UniqueScanLabel()),
+        positives.end());
+    std::stable_sort(positives.begin(), positives.end(),
+                     greater<ScoreHolder>());
+  }
 
-  std::vector<ScoreHolder>::const_iterator scoreIt = scores_.begin();
-  for (; scoreIt != lastUniqueIt; ++scoreIt) {
-    if (scoreIt->isTarget()) {
-      if (scoreIt->q <= fdr) {
-        data.vals[ix2] = scoreIt->pPSM->features;
-        data.Y[ix2] = 1;
-        // data.C[ix2] = cpos;
-        ix2++;
-        ++p;
-      }
-    }
+  for (const ScoreHolder& sh : positives) {
+    data.vals[ix2] = sh.pPSM->features;
+    data.Y[ix2] = 1;
+    // data.C[ix2] = cpos;
+    ix2++;
+    ++p;
   }
   data.positives = p;
   data.m = static_cast<int>(ix2);
@@ -1111,206 +1107,101 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
 
 /**
  * OpenMS: what generateNegativeTrainingSet(data, 1.0) and then
- * generatePositiveTrainingSet(data, fdr, 1.0, trainBestPositive) give on a copy of this set,
- * without the copy and without sorting the PSMs; returns false (and changes nothing) where that
- * is not certain. The negatives are the decoys in their order. With trainBestPositive, the copy
- * is sorted by spectrum and label (OrderScanLabel), keeps the first PSM of each group
- * (std::unique) and sorts the kept PSMs by score again; the positives are the kept targets with
- * q <= fdr, in that order:
- *  - which PSM of a group comes first depends on how the sort orders the PSMs of the group, so
- *    the (spectrum, label) keys are sorted from the order of the PSMs here, like std::sort
- *    (sortLikeStdSort, the sort generatePositiveTrainingSet uses): the comparisons of the keys
- *    have the outcomes of OrderScanLabel's, so the sort makes the same moves;
+ * generatePositiveTrainingSet(data, fdr, 1.0, trainBestPositive) give on this set, without
+ * copying or sorting the PSMs; returns false (and changes nothing) where that is not certain.
+ * The negatives are the decoys in their order. The positives are the targets with q <= fdr;
+ * with trainBestPositive, only the first of each spectrum (file, scan) by OrderScanLabel (the
+ * highest score, then the smallest PSM id), which generatePositiveTrainingSet's sort by
+ * OrderScanLabel and std::unique keep, and then sorted by score (stable_sort):
+ *  - the PSMs of a spectrum are found by sorting (key, position) pairs, a total order, and the
+ *    first of each by OrderScanLabel itself; if two of them are equivalent for it (equal score
+ *    and PSM id), which one the sort leaves first is not certain: false;
  *  - if each positive scores strictly higher (operator>) than the next positive here, no two
  *    positives are equivalent, so every sort by score leaves them in this order. Otherwise, and
  *    with a NaN score or mass, false.
  */
 bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
-                                             const bool trainBestPositive,
-                                             const bool bestByScore) const {
-  // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
+                                             const bool trainBestPositive) const {
+  // kept[i]: whether the PSM scores_[i] is kept (with trainBestPositive: the first of its spectrum)
   std::vector<char> kept(scores_.size(), 1);
-  bool bestByScoreDone = false;
-#ifdef _OPENMP
-  if (trainBestPositive && bestByScore && scores_.size() >= std::size_t(2 * kMinPairTaskSize) &&
-      scores_.size() < (std::size_t(1) << 32) && omp_in_parallel()) {
-    // OpenMS (BP-PAR): the same kept[] as the serial path below, by the tasks of the enclosing parallel region.
-    // kept[i] is whether i is the smallest position of its (file, scan, label) group, which does not depend on the
-    // order in which the groups are formed: one pass in blocks checks what the serial path checks (no NaN score or
-    // mass, no score higher than the one before it; the first of a block is compared with the last of the block
-    // before it) and makes a packed 64-bit
-    // key (file << 34 | scan << 2 | 2 - label, as CV-A1 below) per PSM; the (key, position) pairs are sorted (a
-    // total order: every sort gives the same result), and the first of each run of equal keys is the smallest
-    // position of its group. Where a key does not fit, the serial path.
+  if (trainBestPositive && !scores_.empty()) {
+    if (!comparableScores(scores_.begin(), scores_.end()) || scores_.size() >= (std::size_t(1) << 32)) return false;
+    // OpenMS (CV-A1, BP-PAR): one 64-bit key (file << 32 | scan) per candidate (a target with q <= fdr), kNone for
+    // the other PSMs, with the position; in blocks as tasks inside a parallel region
     struct PackedKey {
       std::uint64_t key;
       std::uint32_t index;
     };
+    constexpr std::uint64_t kNone = ~std::uint64_t(0);
     const std::ptrdiff_t sn = static_cast<std::ptrdiff_t>(scores_.size());
-    const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
+    std::ptrdiff_t blockSize = sn;
+#ifdef _OPENMP
+    const bool inTasks = sn >= 2 * kMinPairTaskSize && omp_in_parallel();
+    if (inTasks) blockSize = loopGrain(sn, kMinPairTaskSize);
+#endif
     const std::ptrdiff_t numBlocks = (sn + blockSize - 1) / blockSize;
     std::vector<PackedKey> packed(scores_.size());
-    // per block: 0 ok, 1 a key does not fit, 2 NaN or not sorted by score (the serial path returns false)
-    std::vector<char> state(static_cast<std::size_t>(numBlocks), 0);
+    // per block: whether every key fits (file < 2^31: no key is kNone), whether a spectrum's first is certain
+    std::vector<char> blockOk(static_cast<std::size_t>(numBlocks), 1);
     const auto fill = [&](std::ptrdiff_t block) {
       const std::ptrdiff_t b = block * blockSize, e = std::min(sn, (block + 1) * blockSize);
-      char st = 0;
       for (std::ptrdiff_t i = b; i < e; ++i) {
         const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
-        if (std::isnan(sh.score) || std::isnan(sh.pPSM->expMass) ||
-            (i > 0 && sh.score > scores_[static_cast<std::size_t>(i - 1)].score)) {
-          st = 2;
-          break;
+        std::uint64_t key = kNone;
+        if (sh.isTarget() && sh.q <= fdr) {
+          if (!(sh.pPSM->specFileNr < (1u << 31))) blockOk[static_cast<std::size_t>(block)] = 0;
+          key = (std::uint64_t(sh.pPSM->specFileNr) << 32) | std::uint64_t(sh.pPSM->scan);
         }
-        const int label = static_cast<int>(sh.label);
-        if (!(sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2)) {
-          st = 1;  // the serial path below (no key made: 2 - label could overflow)
-          continue;
-        }
-        packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
-                                                   (std::uint64_t(sh.pPSM->scan) << 2) | std::uint64_t(2 - label),
-                                               static_cast<std::uint32_t>(i)};
+        packed[static_cast<std::size_t>(i)] = {key, static_cast<std::uint32_t>(i)};
       }
-      state[static_cast<std::size_t>(block)] = st;
     };
+    // the first by OrderScanLabel of each spectrum whose run of keys starts in the block (the run may end in a later
+    // block); the others are not kept
+    const auto pick = [&](std::ptrdiff_t block) {
+      const std::ptrdiff_t b = block * blockSize, e = std::min(sn, (block + 1) * blockSize);
+      for (std::ptrdiff_t k = b; k < e; ++k) {
+        const std::uint64_t key = packed[static_cast<std::size_t>(k)].key;
+        if (key == kNone) break;  // (sorted last)
+        if (k > 0 && packed[static_cast<std::size_t>(k - 1)].key == key) continue;
+        std::size_t first = packed[static_cast<std::size_t>(k)].index;
+        bool certain = true;
+        for (std::ptrdiff_t m = k + 1; m < sn && packed[static_cast<std::size_t>(m)].key == key; ++m) {
+          const std::size_t other = packed[static_cast<std::size_t>(m)].index;
+          if (OrderScanLabel()(scores_[other], scores_[first])) {
+            kept[first] = 0;
+            first = other;
+            certain = true;
+          } else {
+            kept[other] = 0;
+            if (!OrderScanLabel()(scores_[first], scores_[other])) certain = false;
+          }
+        }
+        if (!certain) blockOk[static_cast<std::size_t>(block)] = 0;
+      }
+    };
+#ifdef _OPENMP
+    if (inTasks) {
 #pragma omp taskloop grainsize(1) shared(fill)
-    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) fill(block);
-    if (std::any_of(state.begin(), state.end(), [](char x) { return x == 2; })) return false;
-    if (std::none_of(state.begin(), state.end(), [](char x) { return x == 1; })) {
-      sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) {
-        return x.key < y.key || (x.key == y.key && x.index < y.index);
-      });
-      const auto mark = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
-        for (std::ptrdiff_t k = std::max<std::ptrdiff_t>(b, 1); k < e; ++k) {
-          if (packed[static_cast<std::size_t>(k)].key == packed[static_cast<std::size_t>(k - 1)].key) {
-            kept[packed[static_cast<std::size_t>(k)].index] = 0;
-          }
-        }
-      };
-#pragma omp taskloop grainsize(1) shared(mark)
-      for (std::ptrdiff_t b = 0; b < numBlocks; ++b) mark(b * blockSize, std::min(sn, (b + 1) * blockSize));
-      bestByScoreDone = true;
-    }
-  }
+      for (std::ptrdiff_t block = 0; block < numBlocks; ++block) fill(block);
+    } else
 #endif
-  if (trainBestPositive && bestByScore && !scores_.empty() && !bestByScoreDone) {
-    // the best-scoring PSM of each (file, scan, label) group: the first of the group in this order if
-    // the set is sorted by score (as generatePositiveTrainingSet's stable sorts keep it); otherwise false
-    if (!comparableScores(scores_.begin(), scores_.end())) return false;
-    for (std::size_t i = 1; i < scores_.size(); ++i) {
-      if (scores_[i].score > scores_[i - 1].score) return false;
+    {
+      for (std::ptrdiff_t block = 0; block < numBlocks; ++block) fill(block);
     }
-    struct GroupKey {
-      unsigned int specFileNr, scan;
-      LabelType label;
-      bool operator==(const GroupKey& o) const {
-        return specFileNr == o.specFileNr && scan == o.scan && label == o.label;
-      }
-    };
-    struct GroupHash {
-      std::size_t operator()(const GroupKey& k) const {
-        return (static_cast<std::size_t>(k.specFileNr) * 1000003u + k.scan) * 4u +
-               static_cast<std::size_t>(static_cast<int>(k.label) + 1);
-      }
-    };
-    std::unordered_set<GroupKey, GroupHash> seen;
-    seen.reserve(scores_.size());
-    for (std::size_t i = 0; i < scores_.size(); ++i) {
-      const ScoreHolder& sh = scores_[i];
-      kept[i] = seen.insert({sh.pPSM->specFileNr, sh.pPSM->scan, sh.label}).second ? 1 : 0;
-    }
-  } else if (trainBestPositive && !bestByScore && !scores_.empty()) {
-    if (!comparableScores(scores_.begin(), scores_.end())) return false;
-    // OpenMS (CV-A1): one 64-bit key (file, scan, label) per PSM where they fit: file << 34 | scan << 2 |
-    // (2 - label) (labels -1..2: a higher label sorts first, as in OrderScanLabel), with the position; the keys
-    // compare as OrderScanLabel compares the PSMs, so the sort makes the same moves as with the full keys
-    struct PackedKey {
-      std::uint64_t key;
-      std::uint32_t index;
-    };
-    const std::size_t n = scores_.size();
-    bool packable = n < (std::size_t(1) << 32);
-    std::vector<PackedKey> packed;
-    const std::ptrdiff_t sn = static_cast<std::ptrdiff_t>(n);
-    if (packable) {
-      packed.resize(n);
-      std::vector<char> fits;
-      const auto fill = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
-        bool ok = true;
-        for (std::ptrdiff_t i = b; i < e; ++i) {
-          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
-          const int label = static_cast<int>(sh.label);
-          ok &= sh.pPSM->specFileNr < (1u << 30) && label >= -1 && label <= 2;
-          packed[static_cast<std::size_t>(i)] = {(std::uint64_t(sh.pPSM->specFileNr) << 34) |
-                                                     (std::uint64_t(sh.pPSM->scan) << 2) |
-                                                     std::uint64_t(2 - label),
-                                                 static_cast<std::uint32_t>(i)};
-        }
-        return ok;
-      };
+    if (std::any_of(blockOk.begin(), blockOk.end(), [](char x) { return x == 0; })) return false;
+    sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) {
+      return x.key < y.key || (x.key == y.key && x.index < y.index);
+    });
 #ifdef _OPENMP
-      if (sn >= 2 * kMinPairTaskSize && omp_in_parallel()) {
-        const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
-        const std::ptrdiff_t numBlocks = (sn + blockSize - 1) / blockSize;
-        fits.assign(static_cast<std::size_t>(numBlocks), 1);
-#pragma omp taskloop grainsize(1) shared(fits, fill)
-        for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
-          fits[static_cast<std::size_t>(block)] = fill(block * blockSize, std::min(sn, (block + 1) * blockSize));
-        }
-      } else
+    if (inTasks) {
+#pragma omp taskloop grainsize(1) shared(pick)
+      for (std::ptrdiff_t block = 0; block < numBlocks; ++block) pick(block);
+    } else
 #endif
-      {
-        fits.assign(1, fill(0, sn));
-      }
-      packable = std::all_of(fits.begin(), fits.end(), [](char x) { return x != 0; });
+    {
+      for (std::ptrdiff_t block = 0; block < numBlocks; ++block) pick(block);
     }
-    if (packable) {
-      sortLikeStdSort(packed, [](const PackedKey& x, const PackedKey& y) { return x.key < y.key; });
-      // std::unique with UniqueScanLabel: keeps the first of each run of equal keys (each position once:
-      // in blocks as tasks inside a parallel region)
-      const auto mark = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
-        for (std::ptrdiff_t k = std::max<std::ptrdiff_t>(b, 1); k < e; ++k) {
-          if (packed[static_cast<std::size_t>(k)].key == packed[static_cast<std::size_t>(k - 1)].key) {
-            kept[packed[static_cast<std::size_t>(k)].index] = 0;
-          }
-        }
-      };
-#ifdef _OPENMP
-      if (sn >= 2 * kMinPairTaskSize && omp_in_parallel()) {
-        const std::ptrdiff_t blockSize = loopGrain(sn, kMinPairTaskSize);
-        const std::ptrdiff_t numMarkBlocks = (sn + blockSize - 1) / blockSize;
-#pragma omp taskloop grainsize(1) shared(mark)
-        for (std::ptrdiff_t b = 0; b < numMarkBlocks; ++b) mark(b * blockSize, std::min(sn, (b + 1) * blockSize));
-      } else
-#endif
-      {
-        mark(0, sn);
-      }
-    } else {
-      struct ScanLabelKey {
-        unsigned int specFileNr, scan;
-        LabelType label;
-        std::size_t index;
-      };
-      std::vector<ScanLabelKey> keys;
-      keys.reserve(scores_.size());
-      for (std::size_t i = 0; i < scores_.size(); ++i) {
-        keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
-      }
-      // the comparison of OrderScanLabel, on the keys
-      sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
-        if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
-        if (x.scan != y.scan) return x.scan < y.scan;
-        return x.label > y.label;
-      });
-      // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
-      for (std::size_t k = 1; k < keys.size(); ++k) {
-        if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
-            keys[k].label == keys[k - 1].label) {
-          kept[keys[k].index] = 0;
-        }
-      }
-    }
+    if (std::any_of(blockOk.begin(), blockOk.end(), [](char x) { return x == 0; })) return false;
   }
   // OpenMS (SETUP-PAR): the positives and the decoys of blocks of PSMs (as tasks inside a parallel region),
   // then the blocks in order: the same positives, the same check, the same rows in the same order

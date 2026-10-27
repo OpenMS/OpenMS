@@ -432,6 +432,7 @@ hand-editing sources and committing them, to keep sync self-healing.
   keeps the first PSM of each group of the set if the set is sorted by score (else the fallback).
   Default: unchanged results.
 
+  (Removed again by patch 32, whose selection is always the best-scoring PSM.)
 - `patches/21-psm-slab.patch` — `DataSet::setOwnsPsms` / `reservePsms` and
   `FeatureMemoryPool::claimRows` / `rowOfClaim`: `Percolator::rescore` (OpenMS) builds the
   training PSMs in one block that it owns and destroys, gives each the pool row that the k-th
@@ -482,6 +483,27 @@ hand-editing sources and committing them, to keep sync self-healing.
   PSMs on, the order and NaN checks and packed 64-bit (file, scan, label) keys are made by tasks, and the (key,
   position) pairs are sorted (a total order); the first of each key run is the smallest position of its group, which is
   what the serial `unordered_set` walk keeps. Keys that do not fit: the serial walk. No change of results.
+- `patches/32-train-best-positive.patch` — with `trainBestPositive`
+  (OpenMS: `Percolator`'s `train_best_positive`, upstream `--train-best-positive`),
+  `Scores::generatePositiveTrainingSet` trains on the best-scoring target PSM of
+  each spectrum (file, scan). Upstream sorted `scores_` with `OrderScanLabel`
+  (file, scan, label) and `std::sort`, which is not stable, then kept the first
+  PSM of each spectrum: an arbitrary one, different between standard libraries,
+  and often one above the training FDR, which drops the spectrum from the
+  positives (OpenMS issue #10720). `OrderScanLabel` now also orders by score and
+  PSM id. The selection runs on a copy of the targets that pass the FDR:
+  `std::unique` on `scores_` overwrote the PSMs it dropped, and
+  `CrossValidation::mergeCpCnPairs` trains on that set again when
+  nested-xval-bins > 1. Still present in upstream master (3.09) as of 2026-10-26.
+  OpenMS develop (#10738) carries this change as `05-train-best-positive.patch` on top of
+  patches 01-04; here it follows 01-31, whose sorts and `generateTrainingSetsOfSortedSet` it changes, and replaces
+  the option of patch 20 (`setBestPositiveByScore`, `bestByScore`: removed, the selection is always the best-scoring
+  PSM). `generateTrainingSetsOfSortedSet` keeps what `generatePositiveTrainingSet` keeps: the candidates (targets
+  with q <= fdr) get a packed 64-bit (file, scan) key, the (key, position) pairs are sorted (a total order), and per
+  key run the first by `OrderScanLabel` is kept (tasks of blocks inside a parallel region); if two candidates of a
+  spectrum are equivalent for `OrderScanLabel` (equal score and PSM id), or a file number does not fit, it returns
+  false and the caller copies and sorts. `generatePositiveTrainingSet` sorts by `OrderScanLabel` like `std::sort`
+  (`SortLikeStd.h`).
 
 Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
 their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,

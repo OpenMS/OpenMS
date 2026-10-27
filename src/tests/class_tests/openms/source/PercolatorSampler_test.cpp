@@ -29,7 +29,7 @@ START_TEST(PercolatorSampler, "$Id$")
 
 START_SECTION((std::vector<std::size_t> sampleTrainingRowIndices(const std::vector<int>& scan_numbers, const std::vector<double>& exp_masses, std::size_t max_train)))
 {
-  // The training cap (Percolator subset_max_train, ProSE rescoring:subset_max_train) samples at random from ALL rows,
+  // The training cap (Percolator subset_max_train, ProSE percolator:max_train_psms) samples at random from ALL rows,
   // seeded, by spectrum (all PSMs of a spectrum together): not the first max_train rows (user rule, 24 Oct 2026).
   const std::size_t n_spectra = 50000, per_spectrum = 2, n_rows = n_spectra * per_spectrum, max_train = 10000;
   std::vector<int> scans(n_rows);
