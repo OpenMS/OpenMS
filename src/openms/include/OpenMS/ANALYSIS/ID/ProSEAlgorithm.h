@@ -791,7 +791,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    of the other files or of all files fails too; a warning names the others): each PSM keeps the q-value of its file (Percolator's, or
      *    target-decoy q-values of ProSE's score), on which FDR:PSM filtered it, but the proteins are scored by
      *    ProSE's score 'ln(hyperscore)' of all PSMs, as only the rescored ones have a PEP (on the inference's copies
-     *    of the PSMs: the PSMs keep their scores). The pooled run reports ProSE's search engine.
+     *    of the PSMs: the PSMs keep their scores). The pooled run reports ProSE's search engine. So that all PSMs of
+     *    the pooled run have one main score type, the PSMs of a file that was not rescored and has no q-values yet
+     *    (FDR:PSM 0) get the target-decoy q-values of ProSE's score of their file (annotatePsmQValues(); unfiltered),
+     *    as with FDR:PSM > 0.
      *  - With FDR:protein > 0 and decoys in the searched database: applyCompleteSetProteinFDR(), whose inference also
      *    uses the PSMs of the files between FDR:PSM and FDR:protein_inference_PSM
      *    (@c per_file[i].inference_only_peptide_ids, which are moved out), with picked-protein FDR (Savitski et al.
@@ -809,7 +812,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                       of the files (@c per_file[i].protein_ids: search parameters, meta values such as
      *                       PeptDeepRescoring::NCE_META_VALUE, primary MS run paths) stay as they are. The statistics,
      *                       exit codes, Percolator outcomes and modification analyses stay, too. Unchanged if
-     *                       Exception::IllegalArgument is thrown.
+     *                       Exception::IllegalArgument is thrown. If the evaluation fails after the PSMs were moved out
+     *                       (an exception, which is passed on), the files get them back, in their order, as far as the
+     *                       evaluation changed them (at most only the best hit of each, and q-values as above); their
+     *                       PSMs between FDR:PSM and FDR:protein_inference_PSM are gone.
      * @param[in] in_spectra_files The input files of the search, in its order: one per entry of @c result.per_file.
      * @param[in] remove_decoys Whether the finalization of the protein FDR removes the decoy PSMs and proteins (default,
      *                          as in the ProSE tool's -out_merged). False keeps those that pass, e.g. to show them;
@@ -844,6 +850,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *         searched.
      */
     static bool splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result);
+
+  protected:
+    /// Helper: moves the PSMs of @p pooled (empty afterwards) to the files of @p per_file by their 'id_merge_index' (which
+    /// is removed), in their order, as PSMs of the files' runs (their identifiers), appended to the files' PSMs. Returns
+    /// the number of PSMs dropped because they have no 'id_merge_index' of a file that was searched.
+    static Size returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file);
+
+  public:
+
+    /// The prefix under which the caller's user sets the parameters of this instance (e.g. 'Search:' in the ProSE tool):
+    /// the messages of parameters it refuses name them with it (e.g. Search:precursor:min_charge). Set it before
+    /// setParameters(). Default: none.
+    void setParameterNamePrefix(const std::string& prefix) { parameter_name_prefix_ = prefix; }
 
     /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
     /// file before the rescoring ('rescore') and FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a
@@ -1496,6 +1515,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// SearchResult::percolator as last_run_stats_ is to SearchResult::stats.
     mutable PercolatorRescoring last_percolator_;
     bool keep_pre_fdr_psms_ = false; ///< see setKeepPreFdrPsms()
+    std::string parameter_name_prefix_; ///< see setParameterNamePrefix()
+    /// Helper: @p name as the user sets the parameter (setParameterNamePrefix()), for messages
+    std::string paramName_(const std::string& name) const { return parameter_name_prefix_ + name; }
     /// Set by the multi-file searches with 'rescore' while their files are searched: the PSMs of each file before the
     /// rescoring are kept (SearchResult::pre_fdr_peptide_ids; of a file rescored on its own only those that may train
     /// the transferred model, see limitPreRescoringPsms_()) and its proteins are not reduced to those of its PSMs yet,

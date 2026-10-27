@@ -5620,7 +5620,8 @@ foreach(_case
     "charge_range|-Search:precursor:min_charge;6|Search:precursor:min_charge .6. is larger than Search:precursor:max_charge .5."
     "size_range|-Search:peptide:min_size;41|Search:peptide:min_size .41. is larger than Search:peptide:max_size .40."
     "motif|-Search:peptide:motif;(A|Search:peptide:motif '.A' is not a valid regular expression"
-    "mass_tolerance|-Search:fragment:mass_tolerance;-1|Search:fragment:mass_tolerance must be finite and positive")
+    "mass_tolerance|-Search:fragment:mass_tolerance;-1|Search:fragment:mass_tolerance must be finite and positive"
+    "precursor_window|-Search:precursor:mass_tolerance_lower;0;-Search:precursor:mass_tolerance_upper;0|zero width: Search:precursor:mass_tolerance_lower . Search:precursor:mass_tolerance_upper must be > 0")
   string(REPLACE "|" ";" _parts "${_case}")
   list(GET _parts 0 _name)
   list(GET _parts -1 _regex)
@@ -5753,7 +5754,7 @@ foreach(_case twice conflict few_decoys few_decoys_generate)
     set(_regex "has two entries of the accession '[^']+' with different sequences")
   elseif(_case STREQUAL "few_decoys")
     set(_code 6)
-    set(_regex "decoys=auto: the protein database has 1 decoy protein\\(s\\) \\(marker 'DECOY_', prefix\\) for 49 target")
+    set(_regex "Search:decoys=auto: the protein database has 1 decoy protein\\(s\\) \\(marker 'DECOY_', prefix\\) for 49 target")
     set(_args "${_args};-Search:decoys;auto")
   else()
     set(_code 0)
@@ -5821,6 +5822,28 @@ add_test("TOPP_${_f}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_
   "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"indistinguishable_proteins_0\""
   "-DFORBIDDEN=value=\"decoy\"" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f}")
+
+# quantms.pg.parquet of several inputs without -qpx_extended: the groups of the pooled inference, a row per group and run
+# (the view's key), as with -qpx_extended: with the protein FDR (5 %) the 49 rows of the inputs' pg files; with
+# FDR:protein 0 and -out_merged the 51 pooled ones (before, without -qpx_extended, no quantms.pg.parquet: the inputs have
+# no groups of their own).
+foreach(_case final intermediate)
+  set(_f ProSE_19_pooled_pg_${_case})
+  if(_case STREQUAL "final")
+    set(_args "")
+    set(_rows 49)
+  else()
+    set(_args "-Search:FDR:protein;0;-out_merged;${TESTS_TEMP_DIR}/${_f}.tmp.idXML;")
+    set(_rows 51)
+  endif()
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  add_test(NAME "TOPP_${_f}" COMMAND ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_args}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_18_small.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -out_qpx ${TESTS_TEMP_DIR}/${_f}_qpx)
+  set_tests_properties("TOPP_${_f}" PROPERTIES DEPENDS "TOPP_${_f}_clean;TOPP_ProSE_18_inputs")
+  add_test("TOPP_${_f}_pg" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/quantms.pg.parquet -schema pg)
+  set_tests_properties("TOPP_${_f}_pg" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "view: pg, rows: ${_rows}[^0-9]")
+endforeach()
 
 # The same file given twice with the protein FDR: each occurrence is an input with its own share of the pooled result
 # (half of the 1790 pooled PSMs each; before, both occurrences had one input position, and the second got none).

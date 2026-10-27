@@ -6300,11 +6300,10 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model gets the sc
     {
       score_types[static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX))].insert(id.getScoreType());
     }
+    // one main score type in the pooled run: q-values, Percolator's for the rescored file, target-decoy q-values of
+    // ProSE's score for the other (with FDR:PSM 0 too, unfiltered; its 21 PSMs pass 5 % without a decoy, 1/21)
     TEST_TRUE(score_types[0] == std::set<std::string>{"q-value"}) // rescored
-    if (!score_types[1].empty())
-    {
-      TEST_TRUE(score_types[1] == std::set<std::string>{psm_fdr > 0.0 ? "q-value" : "ln(hyperscore)"}) // not rescored
-    }
+    TEST_TRUE(score_types[1] == std::set<std::string>{"q-value"}) // not rescored
   }
 }
 END_SECTION
@@ -6553,6 +6552,50 @@ START_SECTION(([EXTRA] percolator:max_train_psms caps the PSMs Percolator trains
   const double ratio = static_cast<double>(targets_at_fdr(b.peptide_ids)) / static_cast<double>(targets_at_fdr(a.peptide_ids));
   TEST_TRUE(ratio > 0.8 && ratio < 1.2)
   TEST_EQUAL(int(b.protein_ids[0].getSearchParameters().getMetaValue("Percolator:subset_max_train")), 300)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults gives the files their PSMs back if the pooled evaluation fails))
+{
+  // Pooled by moving the PSMs out of the files (no aggregate); the protein inference fails (injected): the exception
+  // is passed on, and each file has its PSMs again, as before, as PSMs of its run (without 'id_merge_index').
+  ABORT_IF(merge_search.per_file.size() != 2)
+  const auto psms = [](const PeptideIdentificationList& ids)
+  {
+    std::vector<std::tuple<std::string, std::string, std::string, double, bool>> out;
+    for (const PeptideIdentification& id : ids)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        out.emplace_back(id.getIdentifier(), id.getSpectrumReference(), hit.getSequence().toString(), hit.getScore(),
+                         id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX));
+      }
+    }
+    return out;
+  };
+  for (const std::string step : {"Pooled protein inference and protein FDR", "Pooled protein inference"})
+  {
+    ProSEAlgorithm algo;
+    configure_merge(algo, "generate");
+    if (step == "Pooled protein inference")
+    {
+      Param p = algo.getParameters();
+      p.setValue("FDR:protein", 0.0);
+      algo.setParameters(p);
+    }
+    int starts = 0, ends = 0;
+    algo.setLogger(new CountingProgressLogger(starts, ends, step));
+    ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+    result.aggregate.protein_ids.clear();
+    result.aggregate.peptide_ids.clear();
+    TEST_EXCEPTION(Exception::InvalidValue, algo.mergeFileResults(result, merge_files))
+    for (Size i = 0; i < 2; ++i)
+    {
+      TEST_FALSE(result.per_file[i].peptide_ids.empty())
+      TEST_TRUE(psms(result.per_file[i].peptide_ids) == psms(merge_search.per_file[i].peptide_ids))
+    }
+    TEST_EQUAL(starts, ends)
+  }
 }
 END_SECTION
 
