@@ -393,7 +393,9 @@ namespace OpenMS
                        "if that fails too, the files keep their search engine scores, and the pooled evaluation of the "
                        "files (the ProSE tool's -out_merged) scores the proteins by ProSE's score 'ln(hyperscore)' of all "
                        "PSMs instead of Percolator's PEP. See percolator:max_train_psms for the training PSMs. Set to "
-                       "'false' to report the search engine scores.");
+                       "'false' to report the search engine scores. Keep it on for intermediates (FDR:protein 0) that "
+                       "ProteomicsLFQ finishes: it takes the PEP (meta value MS:1001493) as main score and stops for an input "
+                       "without PEPs.");
     defaults_.setValidStrings("rescore", {"true", "false"});
     defaults_.setValue("percolator:max_train_psms", 500000,
                        "With 'rescore': the most PSMs Percolator trains a model on (0: all). Every PSM is scored, also "
@@ -6489,13 +6491,16 @@ namespace OpenMS
       engine_version = engine_of->protein_ids[0].getSearchEngineVersion();
     }
 
+    // 'id_merge_index' of a PSM is the input position of its file, per occurrence of the input: IDMergerAlgorithm numbers
+    // the primary MS run paths of the runs, so it would give two inputs of one path (the same file given twice) one
+    // index, and after a failed file the index k of the k-th pooled file. Each PSM carries the position of its file
+    // through the merge instead (a temporary meta value), which then becomes its 'id_merge_index'.
+    static const std::string input_position = "ProSE_input_position";
     IDMergerAlgorithm merger;
-    std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
     for (Size i = 0; i < per_file.size(); ++i)
     {
       SearchResult& pf = per_file[i];
       if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-      if (!pf.protein_ids.empty()) { pooled_files.push_back(i); } // insertRuns() skips a file without a run
       // Moving: the merger takes (and clears) the PSMs and a copy of the runs, which stay with the files -- their search
       // parameters, meta values (e.g. PeptDeepRescoring's NCE) and run paths are still the caller's.
       std::vector<ProteinIdentification> runs = pf.protein_ids;
@@ -6507,27 +6512,21 @@ namespace OpenMS
           run.setSearchEngineVersion(engine_version);
         }
       }
-      if (move_psms) { merger.insertRuns(std::move(runs), std::move(pf.peptide_ids)); }
-      else { merger.insertRuns(std::move(runs), PeptideIdentificationList(pf.peptide_ids)); }
+      PeptideIdentificationList psms = move_psms ? std::move(pf.peptide_ids) : PeptideIdentificationList(pf.peptide_ids);
+      if (move_psms) { pf.peptide_ids = PeptideIdentificationList(); }
+      for (PeptideIdentification& id : psms) { id.setMetaValue(input_position, static_cast<int>(i)); }
+      merger.insertRuns(std::move(runs), std::move(psms));
     }
     ProteinIdentification merged_proteins;
     merger.returnResultsAndClear(merged_proteins, peptide_ids);
     protein_ids.clear();
     protein_ids.emplace_back(std::move(merged_proteins));
     protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
-
-    // IDMergerAlgorithm numbers the primary MS run paths of the runs ('id_merge_index') in the order it meets them --
-    // one per pooled file, as the search gives each run the path of its input file -- so it counts only the pooled
-    // files, while the run lists all input files: after a failed file, index k would name the wrong file. Map k to the
-    // input position of the k-th pooled file (nothing to do if no file failed).
-    if (!pooled_files.empty() && pooled_files.back() + 1 != pooled_files.size())
+    for (PeptideIdentification& id : peptide_ids)
     {
-      for (PeptideIdentification& id : peptide_ids)
-      {
-        if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
-        const Size k = static_cast<Size>(static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)));
-        if (k < pooled_files.size()) { id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, pooled_files[k]); }
-      }
+      if (!id.metaValueExists(input_position)) { continue; }
+      id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, id.getMetaValue(input_position));
+      id.removeMetaValue(input_position);
     }
   }
 

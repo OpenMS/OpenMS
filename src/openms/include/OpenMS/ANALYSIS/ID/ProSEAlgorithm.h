@@ -238,8 +238,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * successful per-file result (search parameters are identical across files
      * by construction), with the primary MS run path overwritten to list every
      * input file. Its PSMs carry the meta value 'id_merge_index', the input
-     * position of their file (for inputs with distinct paths), also when other
-     * files failed.
+     * position of their file (per occurrence: an input given twice has two), also
+     * when other files failed.
      */
     struct MultiFileSearchResult
     {
@@ -264,7 +264,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     struct MergedResult
     {
       std::vector<ProteinIdentification> protein_ids; ///< one pooled run; empty if no file succeeded
-      /// PSMs of all files; meta value 'id_merge_index' = input position of the file (inputs with distinct paths)
+      /// PSMs of all files; meta value 'id_merge_index' = input position of the file (per occurrence of an input)
       PeptideIdentificationList peptide_ids;
       /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
@@ -782,7 +782,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    @c build_pooled_aggregate false, or a search of a single file, which builds none), the runs of the files that
      *    were searched (exit code EXECUTION_OK) are merged with IDMergerAlgorithm: the PSMs of the files are moved,
      *    their runs are copied and stay with the files. 'id_merge_index' is the input position of a PSM's file (its
-     *    index in @p in_spectra_files, for inputs with distinct paths), also when other files failed. The pooled run
+     *    index in @p in_spectra_files, per occurrence of an input), also when other files failed. The pooled run
      *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
      *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
      *    search engine score without PEPs) on the best hit of each pooled PSM.
@@ -840,7 +840,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in,out] result The multi-file search that @p merged pools. The files that were searched (exit code
      *                       EXECUTION_OK) get their PSMs from @p merged; the statistics stay (see updateFinalStats()).
      * @return False (and nothing changed) if a PSM of @p merged has no 'id_merge_index' of a file of @p result that was
-     *         searched (e.g. a pooling of inputs that share a path).
+     *         searched.
      */
     static bool splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result);
 
@@ -1650,8 +1650,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// IDMergerAlgorithm into one run (@p protein_ids, one entry) that lists @p in_spectra_files as primary MS run
     /// paths, and their PSMs (@p peptide_ids). Copies the identifications, or with @p move_psms moves the PSMs out of
     /// @p per_file (leaving them empty) and copies the runs, which stay with the files. 'id_merge_index' of a PSM is
-    /// the input position of its file (its index in @p per_file and @p in_spectra_files, for inputs with distinct
-    /// paths), also when other files failed. Shared by the multi-file search's pooled aggregate and
+    /// the input position of its file (its index in @p per_file and @p in_spectra_files, per occurrence: the same file
+    /// given twice has two), also when other files failed. Shared by the multi-file search's pooled aggregate and
     /// mergeFileResults().
     static void poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms, const StringList& in_spectra_files,
                                    std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids);

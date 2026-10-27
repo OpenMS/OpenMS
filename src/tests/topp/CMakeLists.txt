@@ -5822,6 +5822,25 @@ add_test("TOPP_${_f}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_
   "-DFORBIDDEN=value=\"decoy\"" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f}")
 
+# The same file given twice with the protein FDR: each occurrence is an input with its own share of the pooled result
+# (half of the 1790 pooled PSMs each; before, both occurrences had one input position, and the second got none).
+set(_f ProSE_19_same_input_twice)
+add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -out_merged ${TESTS_TEMP_DIR}/${_f}.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/${_f}_a.tmp.idXML ${TESTS_TEMP_DIR}/${_f}_b.tmp.idXML)
+foreach(_out merged a b)
+  if(_out STREQUAL "merged")
+    set(_file ${TESTS_TEMP_DIR}/${_f}.tmp.idXML)
+    set(_hits 1790)
+  else()
+    set(_file ${TESTS_TEMP_DIR}/${_f}_${_out}.tmp.idXML)
+    set(_hits 895)
+  endif()
+  add_test("TOPP_${_f}_${_out}" ${TOPP_BIN_PATH}/FileInfo -test -in ${_file})
+  set_tests_properties("TOPP_${_f}_${_out}" PROPERTIES DEPENDS "TOPP_${_f}" PASS_REGULAR_EXPRESSION "peptide hits: +${_hits} ")
+endforeach()
+
 # The run view counts the MS2 spectra recorded as profile spectra and those not searched because their precursor
 # charge is outside precursor:min_charge..max_charge: the two MS2 spectra of DTAExtractor_1_input are both, of charge 2.
 set(_f ProSE_19_run_counts)

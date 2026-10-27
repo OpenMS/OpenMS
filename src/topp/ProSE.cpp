@@ -115,7 +115,9 @@ writes the pooled PSMs with a protein inference across the inputs but without pr
 </ul>
 The per-input PSM q-values and PEPs come from Percolator's rescoring of each input ('-Search:rescore', see below); ProSE's
 intermediates carry the q-value as main score and the PEP as meta value MS:1001493, which ProteomicsLFQ takes as its main
-score itself. '-out_pin' always holds the PSMs before the rescoring and before any FDR filter.
+score itself. So keep the rescoring on for intermediates that ProteomicsLFQ finishes: it needs a PEP for every PSM and
+stops with "expects a Posterior Error Probability score" for an input without (with '-Search:rescore' false, or a file
+that Percolator could not rescore at all, not even with the model of the other inputs). '-out_pin' always holds the PSMs before the rescoring and before any FDR filter.
 Outputs by mode:
 <table>
 <tr><th>output</th><th>FDR:protein > 0 (final result)</th><th>FDR:protein 0 (intermediate)</th></tr>
@@ -266,7 +268,7 @@ merged.proteins.parquet and merged.pg.parquet.
 @note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. With '-Search:FDR:protein' 0, each file gets the same identifications as when it is searched alone (with '-Search:FDR:protein' > 0, its part of the result of the whole run, see "Final results vs. intermediates"), and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
 @note Threads: '-threads' sets the OpenMP threads of the search; mzML files are read with a share of them. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
-@note Distributed (sharded) searches: search each shard of the files on its own node with '-Search:FDR:protein' 0, '-Search:FDR:PSM' about 0.1 and the same target-decoy FASTA (e.g. from @ref TOPP_DecoyDatabase), and finish the experiment once downstream on the intermediates of all shards (see "Final results vs. intermediates" above), e.g. with @ref TOPP_ProteomicsLFQ ('-psmFDR' and '-proteinFDR' 0.01, '-picked_proteinFDR' true, the same FASTA). A single ProSE run over all files with '-Search:FDR:protein' > 0 gives the final result directly.
+@note Distributed (sharded) searches: search each shard of the files on its own node with '-Search:FDR:protein' 0, '-Search:FDR:PSM' about 0.1 and the same target-decoy FASTA (e.g. from @ref TOPP_DecoyDatabase), and finish the experiment once downstream on the intermediates of all shards (see "Final results vs. intermediates" above), e.g. with @ref TOPP_ProteomicsLFQ ('-psmFDR' and '-proteinFDR' 0.01, '-picked_proteinFDR' true, the same FASTA); keep '-Search:rescore' on, as ProteomicsLFQ needs the PEPs of Percolator. A single ProSE run over all files with '-Search:FDR:protein' > 0 gives the final result directly.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProSE.cli
@@ -1316,11 +1318,10 @@ class ProSE :
       // Several inputs: the pooled evaluation (below) with FDR:protein > 0 (the run is the whole experiment, and every
       // output is its final result) or for -out_merged. With FDR:protein > 0 it pools the PSMs of the files by moving
       // them (each file gets its part back), which needs no copy; -out_merged without the protein FDR leaves the files
-      // their PSMs, so it pools the search's copy (its pooled aggregate), as do inputs of one path (whose PSMs could
-      // not be told apart).
+      // their PSMs, so it pools the search's copy (its pooled aggregate). (An input given twice is two inputs, each with
+      // its own share.)
       const bool pooled_evaluation = in_list.size() > 1 && (user_protein_fdr > 0.0 || !out_merged.empty());
-      const bool distinct_inputs = std::set<std::string>(in_list.begin(), in_list.end()).size() == in_list.size();
-      const bool build_pooled_aggregate = pooled_evaluation && (user_protein_fdr <= 0.0 || !distinct_inputs);
+      const bool build_pooled_aggregate = pooled_evaluation && user_protein_fdr <= 0.0;
       ProSEAlgorithm::MultiFileSearchResult mfres;
       try
       {

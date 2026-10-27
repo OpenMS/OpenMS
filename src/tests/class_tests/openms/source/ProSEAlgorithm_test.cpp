@@ -6996,7 +6996,10 @@ START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearch
     {{"T1", "T1b"}, 0.001}, {{"T2"}, 0.002}, {{"T3"}, 0.003}, {{"T4"}, 0.004}, {{"T5"}, 0.005},
     {{"DECOY_D1"}, 0.006}, {{"T6"}, 0.007}, {{"T7"}, 0.008}, {{"DECOY_D2"}, 0.009}, {{"T8"}, 0.010}};
   const std::string residues = "ACDEFGHMNQ"; // a peptide each
-  const StringList files = {"split_a.mzML", "split_b.mzML"};
+  // Also with the same file given twice: each occurrence is an input with its own share.
+  for (const bool same_path : {false, true})
+  {
+  const StringList files = same_path ? StringList{"split.mzML", "split.mzML"} : StringList{"split_a.mzML", "split_b.mzML"};
   ProSEAlgorithm::MultiFileSearchResult result;
   result.have_decoys = true;
   result.decoy_string = "DECOY_";
@@ -7008,7 +7011,7 @@ START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearch
     pf.exit_code = ProSEAlgorithm::ExitCodes::EXECUTION_OK;
     pf.percolator.applied = true;
     pf.protein_ids.resize(1);
-    pf.protein_ids[0].setIdentifier("run_" + files[f]);
+    pf.protein_ids[0].setIdentifier("run_" + files[f] + "_" + std::to_string(f));
     pf.protein_ids[0].setSearchEngine("Percolator");
     pf.protein_ids[0].setPrimaryMSRunPath({files[f]});
   }
@@ -7093,6 +7096,7 @@ START_SECTION((static bool splitMergedPsms(MergedResult& merged, MultiFileSearch
   TEST_FALSE(ProSEAlgorithm::splitMergedPsms(unassigned, result))
   TEST_EQUAL(unassigned.peptide_ids.size(), pooled.size())
   TEST_TRUE(result.per_file[0].peptide_ids == before)
+  }
 }
 END_SECTION
 
