@@ -66,9 +66,10 @@ So the full picture is two lines, and they match ordinary Python intuition:
 > **A method hands you a copy — write it back with the matching setter.**
 > **An attribute is the object itself — edit or assign it directly.**
 
-This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
-`RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
-container classes have no such attributes.
+This affects 32 members on structs such as `SiriusTargetDecoySpectra`,
+`RangeSet`, `PreprocessedPairSpectra`, `AQS_featureConcentration` and
+`BrukerTimsImagingFile.Config` (`cfg.inner_config.calibrate = True` edits the
+config in place). The main container classes have no such attributes.
 
 ## Three exceptions, all visible at the call site
 
@@ -156,7 +157,9 @@ The family is
 available on `MSExperiment` (spectra, chromatograms), `MSImagingExperiment`
 (the spectra of its pixels, in geometry pixel order; plus `experiment_view()` /
 `geometry_view()` for its owned members), `OnDiscImzMLExperiment`
-(`geometry_view()`; open() and close() reset the geometry it shows),
+(`geometry_view()`; open() and close() reset the geometry it shows; like
+`MSImagingExperiment`, `len()` / `[i]` / iteration follow its pixels while
+`getSpectrum(i)` takes a spectrum index),
 `FeatureMap` (features),
 `ConsensusMap` (consensus features), `PeptideIdentificationList`
 (identifications), `MRMTransitionGroup` (features, chromatograms), and

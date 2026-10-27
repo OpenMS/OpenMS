@@ -217,6 +217,9 @@ public:
 
 
 private:
+  /// Returns @p spectrum_index if it is a spectrum of the experiment, otherwise throws Exception::InvalidValue.
+  Size checkedSpectrumIndex_(Size spectrum_index) const;
+
   MSExperiment experiment_;
   MSImagingGeometry geometry_;
 };

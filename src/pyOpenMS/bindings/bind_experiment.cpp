@@ -494,8 +494,9 @@ For an owned copy use get_data().)doc")
         const size_t h = self.getHeight();
         const size_t w = self.getWidth();
         const size_t n = h * w;
-        double* buf = new double[n ? n : 1];
-        std::copy(self.getData().begin(), self.getData().end(), buf);
+        std::unique_ptr<double[]> buf_uptr(new double[n ? n : 1]);
+        std::copy(self.getData().begin(), self.getData().end(), buf_uptr.get());
+        double* buf = buf_uptr.release();  // owned by the capsule from here on
         nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<double*>(p); });
         size_t shape[2] = {h, w};
         return nb::ndarray<nb::numpy, double, nb::ndim<2>>(buf, 2, shape, owner);
@@ -693,6 +694,10 @@ A container of pixels: len(), mie[i], iteration and spectrum_view(i) index
 the geometry's pixels, not the spectra. A pixel index differs from a spectrum
 index whenever the geometry skips or reorders spectra; for spectrum index k
 (e.g. from getRegionSpectrumIndices()) use experiment_view()[k].
+
+An experiment without a geometry, e.g. straight after MSImagingExperiment(exp),
+has no pixels: len() is 0, it is falsy and iterates nothing although it may
+hold spectra; check getNumberOfSpectra() for those.
 )doc")
     .def(nb::init<>())
     .def(nb::init<OpenMS::MSExperiment>(), "exp"_a, "Wrap an MSExperiment with an empty geometry.")
@@ -725,7 +730,7 @@ index whenever the geometry skips or reorders spectra; for spectrum index k
         return pyopenms_iter::make_index_value_iterator<OpenMS::MSImagingExperiment>(self);
       })
     .def("__len__", [](const OpenMS::MSImagingExperiment& self) -> size_t { return self.size(); },
-      "Number of pixels in the geometry (use getMSExperiment() for all spectra)")
+      "Number of pixels in the geometry; 0 (and falsy) without a geometry even if spectra are loaded. getNumberOfSpectra() counts the spectra")
     .def("__getitem__", [](const OpenMS::MSImagingExperiment& self, Py_ssize_t i) -> OpenMS::MSSpectrum {
         const Py_ssize_t n = static_cast<Py_ssize_t>(self.size());
         if (i < 0) i += n;
@@ -738,11 +743,13 @@ index whenever the geometry skips or reorders spectra; for spectrum index k
         if (i < 0 || i >= n) throw nb::index_error();
         self[static_cast<size_t>(i)] = val;
       }, "i"_a, "val"_a, "Sets the spectrum of the i-th pixel (geometry pixel order; negative i counts from the end)")
-    .def("spectrum_view", [](OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
-        if (i >= self.size()) throw nb::index_error();
-        return self[i];
+    .def("spectrum_view", [](OpenMS::MSImagingExperiment& self, Py_ssize_t i) -> OpenMS::MSSpectrum& {
+        const Py_ssize_t n = static_cast<Py_ssize_t>(self.size());
+        if (i < 0) i += n;
+        if (i < 0 || i >= n) throw nb::index_error();
+        return self[static_cast<size_t>(i)];
       }, nb::rv_policy::reference_internal, "i"_a,
-      "Returns a live view of the spectrum of the i-th pixel (geometry pixel order). The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (setMSExperiment and add/set/sort operations through experiment_view() invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use mie[i].")
+      "Returns a live view of the spectrum of the i-th pixel (geometry pixel order; negative i counts from the end). The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (setMSExperiment and add/set/sort operations through experiment_view() invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use mie[i].")
     .def("spectrum_view", [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& {
         return self.getSpectrum(x, y);  // throws for a pixel not in the geometry
       }, nb::rv_policy::reference_internal, "x"_a, "y"_a,

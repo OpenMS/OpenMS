@@ -43,13 +43,18 @@ def _make_fake_d(parent: Path, name: str, maldi_application_type: str,
     return str(d)
 
 
-def _load_both_ways(path: str, config: "pyopenms.BrukerTimsImagingFile.Config | None" = None) -> None:
-    """Calls both load styles; each must raise the same way."""
+def _load_both_ways(path: str, match: str,
+                    config: "pyopenms.BrukerTimsImagingFile.Config | None" = None) -> None:
+    """Calls both load styles; each must fail with the check named by ``match``.
+
+    The fake .d has no frame data, so any load that gets past the check under test
+    fails later in the frame reader; matching the message pins the check itself.
+    """
     f = pyopenms.BrukerTimsImagingFile()
     args = (config,) if config is not None else ()
-    with pytest.raises(Exception) as returned:
+    with pytest.raises(Exception, match=match) as returned:
         f.load(path, *args)
-    with pytest.raises(Exception) as filled:
+    with pytest.raises(Exception, match=match) as filled:
         f.load(path, pyopenms.MSImagingExperiment(), *args)
     assert type(returned.value) is type(filled.value)
 
@@ -123,18 +128,18 @@ def test_read_maldi_frame_info(tmp_path):
 
 
 def test_load_nonexistent_path_raises(tmp_path):
-    _load_both_ways(str(tmp_path / "nope.d"))
-    _load_both_ways(str(tmp_path / "nope.d"), pyopenms.BrukerTimsImagingFile.Config())
+    _load_both_ways(str(tmp_path / "nope.d"), "is not readable")
+    _load_both_ways(str(tmp_path / "nope.d"), "is not readable", pyopenms.BrukerTimsImagingFile.Config())
 
 
 def test_load_non_imaging_strict_raises(tmp_path):
     d_dd = _make_fake_d(tmp_path, "rej", "SingleSpectra", [(1, 0, 0, 0), (2, 1, 0, 0)])
-    _load_both_ways(d_dd)
-    _load_both_ways(d_dd, pyopenms.BrukerTimsImagingFile.Config())
+    _load_both_ways(d_dd, "Not a MALDI imaging dataset")
+    _load_both_ways(d_dd, "Not a MALDI imaging dataset", pyopenms.BrukerTimsImagingFile.Config())
 
 
 def test_load_multi_z_raises(tmp_path):
     d_multi = _make_fake_d(tmp_path, "multiz", "Imaging",
                            [(1, 0, 0, 0), (2, 1, 0, 0), (3, 0, 0, 1), (4, 1, 0, 1)],
                            with_z_column=True)
-    _load_both_ways(d_multi)
+    _load_both_ways(d_multi, "Multi-section")

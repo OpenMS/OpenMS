@@ -55,28 +55,25 @@ Size MSImagingExperiment::getNumberOfSpectra() const
 Size MSImagingExperiment::size() const
 { return geometry_.getNumberOfPixels(); }
 
-MSSpectrum& MSImagingExperiment::operator[](Size n)
+Size MSImagingExperiment::checkedSpectrumIndex_(Size spectrum_index) const
 {
-  const Size idx = geometry_.getPixels()[n].spectrum_index;
-  if (idx >= experiment_.getNrSpectra())
+  if (spectrum_index >= experiment_.getNrSpectra())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Pixel references missing spectrum",
-                                  StringUtils::toStr(idx));
+                                  StringUtils::toStr(spectrum_index));
   }
-  return experiment_[idx];
+  return spectrum_index;
+}
+
+MSSpectrum& MSImagingExperiment::operator[](Size n)
+{
+  return experiment_[checkedSpectrumIndex_(geometry_.getPixels()[n].spectrum_index)];
 }
 
 const MSSpectrum& MSImagingExperiment::operator[](Size n) const
 {
-  const Size idx = geometry_.getPixels()[n].spectrum_index;
-  if (idx >= experiment_.getNrSpectra())
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  "Pixel references missing spectrum",
-                                  StringUtils::toStr(idx));
-  }
-  return experiment_[idx];
+  return experiment_[checkedSpectrumIndex_(geometry_.getPixels()[n].spectrum_index)];
 }
 
 bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
@@ -84,26 +81,12 @@ bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
 
   MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y)
   {
-    const Size idx = geometry_.getSpectrumIndex(x, y);
-    if (idx >= experiment_.getNrSpectra())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Pixel references missing spectrum",
-                                    StringUtils::toStr(idx));
-    }
-    return experiment_[idx];
+    return experiment_[checkedSpectrumIndex_(geometry_.getSpectrumIndex(x, y))];
   }
 
   const MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y) const
   {
-    const Size idx = geometry_.getSpectrumIndex(x, y);
-    if (idx >= experiment_.getNrSpectra())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Pixel references missing spectrum",
-                                    StringUtils::toStr(idx));
-    }
-    return experiment_[idx];
+    return experiment_[checkedSpectrumIndex_(geometry_.getSpectrumIndex(x, y))];
   }
 
   IonImage MSImagingExperiment::extractIonImage(double mz, double tolerance_ppm) const

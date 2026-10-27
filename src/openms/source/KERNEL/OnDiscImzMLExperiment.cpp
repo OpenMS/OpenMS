@@ -215,38 +215,46 @@ void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::strin
   // geometry_view()) stays valid across open()/close() on the same object (moving the object does not keep it).
   close();
 
-  ImzMLFile f;
-  f.setLogType(ProgressLogger::NONE);
-  if (skip_metadata)
-  { // parsed with the index, then released at the end of this scope
-    MSExperiment discarded;
-    f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, discarded, ibd_path_override);
-  }
-  else
+  try
   {
-    f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, pimpl_->spectra_, ibd_path_override);
+    ImzMLFile f;
+    f.setLogType(ProgressLogger::NONE);
+    if (skip_metadata)
+    { // parsed with the index, then released at the end of this scope
+      MSExperiment discarded;
+      f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, discarded, ibd_path_override);
+    }
+    else
+    {
+      f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, pimpl_->spectra_, ibd_path_override);
+    }
+
+    // Build the 2D imaging geometry up front (in-memory pass over the index, no .ibd
+    // reads). Coordinate-grid problems surface here; only peak decode stays lazy.
+    pimpl_->buildGeometry_();
+
+    pimpl_->ibd_path_ = ibd_path_override.empty() ? pimpl_->meta_.ibd_file_path : ibd_path_override;
+    if (pimpl_->ibd_path_.empty())
+    {
+      std::string lower = imzml_path;
+      StringUtils::toLower(lower);
+      pimpl_->ibd_path_ = StringUtils::hasSuffix(lower, ".imzml")
+                            ? imzml_path.substr(0, imzml_path.size() - 6) + ".ibd"
+                            : imzml_path + ".ibd";
+    }
+
+    pimpl_->ibd_ = fopen(pimpl_->ibd_path_.c_str(), "rb");
+    if (!pimpl_->ibd_)
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
+
+    pimpl_->skip_metadata_ = skip_metadata;
+    pimpl_->is_open_ = true;
   }
-
-  // Build the 2D imaging geometry up front (in-memory pass over the index, no .ibd
-  // reads). Coordinate-grid problems surface here; only peak decode stays lazy.
-  pimpl_->buildGeometry_();
-
-  pimpl_->ibd_path_ = ibd_path_override.empty() ? pimpl_->meta_.ibd_file_path : ibd_path_override;
-  if (pimpl_->ibd_path_.empty())
-  {
-    std::string lower = imzml_path;
-    StringUtils::toLower(lower);
-    pimpl_->ibd_path_ = StringUtils::hasSuffix(lower, ".imzml")
-                          ? imzml_path.substr(0, imzml_path.size() - 6) + ".ibd"
-                          : imzml_path + ".ibd";
+  catch (...)
+  { // a failed open leaves the object closed and empty, not half-loaded
+    close();
+    throw;
   }
-
-  pimpl_->ibd_ = fopen(pimpl_->ibd_path_.c_str(), "rb");
-  if (!pimpl_->ibd_)
-    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
-
-  pimpl_->skip_metadata_ = skip_metadata;
-  pimpl_->is_open_ = true;
 }
 
 void OnDiscImzMLExperiment::close() noexcept
@@ -259,7 +267,7 @@ void OnDiscImzMLExperiment::close() noexcept
   pimpl_->is_open_ = false;
   // Release everything open() built (fresh containers free the capacity, which clear() keeps), so no
   // getter describes a dataset that is no longer open.
-  pimpl_->geometry_.clear();
+  pimpl_->geometry_ = MSImagingGeometry(); // assigned in place: getGeometry() references stay valid
   pimpl_->spectra_ = MSExperiment();
   std::vector<ImzMLSpectrumIndex>().swap(pimpl_->index_);
   pimpl_->meta_ = ImzMLMeta();

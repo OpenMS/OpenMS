@@ -804,38 +804,61 @@ def test_imaging_experiment_stale_pixel_raises():
         list(mie)
 
 
-def test_ondisc_imzml_getitem_and_iteration():
-    import os
-    import sys
-    from pathlib import Path
+def test_ondisc_imzml_getitem_and_iteration(imzml_continuous_path: str):
     from pyopenms import OnDiscImzMLExperiment
 
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from test_data_paths import get_class_test_data_dir
-
-    try:
-        path = os.path.join(get_class_test_data_dir(), "ImzMLFile_1_Example_Continuous.imzML")
-    except RuntimeError as e:
-        pytest.skip(str(e))
-    if not os.path.isfile(path):
-        pytest.skip(f"imzML test data not found: {path}")
     od = OnDiscImzMLExperiment()
-    od.open(path)
+    od.open(imzml_continuous_path)
 
-    n = od.getNrSpectra()
+    # len / [i] / iteration follow the geometry's pixels (as on MSImagingExperiment)
+    n = len(od)
     assert n > 0
-    assert len(od) == n
-    assert od[0].size() == od.getSpectrum(0).size()
-    assert [spec.size() for spec in od] == [od.getSpectrum(i).size() for i in range(n)]
+    assert n == od.getGeometry().getNumberOfPixels()
+    spectrum_of_pixel = [int(k) for k in od.getGeometry().pixels_struct()["spectrum_index"]]
+    assert [spec.size() for spec in od] == [od.getSpectrum(k).size() for k in spectrum_of_pixel]
+    assert od[0].size() == od.getSpectrum(spectrum_of_pixel[0]).size()
     with pytest.raises(IndexError):
         od[n]
-    assert od[-1].size() == od.getSpectrum(n - 1).size()
-    assert od[-n].size() == od.getSpectrum(0).size()
+    assert od[-1].size() == od[n - 1].size()
+    assert od[-n].size() == od[0].size()
     with pytest.raises(IndexError):
         od[-n - 1]
 
     od[0].setRT(99.0)  # read from disk: never aliases
     assert od[0].getRT() != 99.0
+
+
+def test_ondisc_imzml_pixel_index_differs_from_spectrum_index(tmp_path):
+    """od[i] takes a pixel index, getSpectrum(i) a spectrum index: they differ once the geometry skips a spectrum."""
+    from pyopenms import ImzMLFile, MSExperiment, MSSpectrum, OnDiscImzMLExperiment, Peak1D
+
+    exp = MSExperiment()
+    for x, y, mz in [(1, 1, 100.0), (1, 1, 101.0), (2, 1, 200.0)]:  # spectrum 1 repeats pixel (1,1)
+        spec = MSSpectrum()
+        peak = Peak1D()
+        peak.setMZ(mz)
+        peak.setIntensity(1000.0)
+        spec.push_back(peak)
+        spec.setMetaValue("imzml:x", x)
+        spec.setMetaValue("imzml:y", y)
+        spec.setMetaValue("imzml:z", 1)
+        exp.addSpectrum(spec)
+    path = str(tmp_path / "duplicate.imzML")
+    ImzMLFile().store(path, exp)
+
+    od = OnDiscImzMLExperiment()
+    od.open(path)
+    try:
+        assert od.getNrSpectra() == 3
+        assert len(od) == 2                                     # the duplicate has no pixel
+        assert od[1][0].getMZ() == pytest.approx(200.0)         # pixel 1 -> spectrum 2
+        assert od.getSpectrum(1)[0].getMZ() == pytest.approx(101.0)  # spectrum 1, the duplicate
+        assert [spec[0].getMZ() for spec in od] == pytest.approx([100.0, 200.0])
+        spectrum_of_pixel = od.getGeometry().pixels_struct()["spectrum_index"]
+        for i in range(len(od)):
+            assert od[i][0].getMZ() == od.getSpectrum(int(spectrum_of_pixel[i]))[0].getMZ()
+    finally:
+        od.close()
 
 
 # ---------------------------------------------------------------------------

@@ -451,6 +451,22 @@ START_SECTION([EXTRA] OnDiscImzMLExperiment::open resets the geometry in place)
 END_SECTION
 
 
+START_SECTION([EXTRA] OnDiscImzMLExperiment::open leaves the object closed and empty when it fails)
+{
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+  const MSImagingGeometry& geom = od.getGeometry();
+  TEST_EQUAL(od.getNrSpectra() > 0, true)
+
+  TEST_EXCEPTION(Exception::FileNotFound, od.open(imzml_path, "/nonexistent/missing.ibd"))
+  TEST_EQUAL(od.isOpen(), false)
+  TEST_EQUAL(od.getNrSpectra(), 0)
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), 0)
+}
+END_SECTION
+
+
 START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm) const)
 {
   // The on-disc extraction must match the in-memory MSImagingExperiment path bit-for-bit:

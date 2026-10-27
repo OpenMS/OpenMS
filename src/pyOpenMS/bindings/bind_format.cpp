@@ -459,8 +459,11 @@ runtime.
         R"doc(
 Reader for Bruker timsTOF MALDI imaging .d directories (or '.d.zip' archives) via opentims.
 
-Loads every frame into an MSImagingExperiment and builds its 2D pixel geometry
+Loads the frames into an MSImagingExperiment and builds its 2D pixel geometry
 from the MaldiFrameInfo table. Datasets with more than one z section are rejected.
+Only the frames that Config.inner_config admits (e.g. a frame id or retention time
+range) are loaded; pixels whose frame was not loaded are skipped, so the image may
+be incomplete.
 
 This class is only available when OpenMS is built with ``WITH_OPENTIMS=ON``
 (the default). Use ``hasattr(pyopenms, "BrukerTimsImagingFile")`` to
@@ -483,7 +486,8 @@ feature-detect at runtime.
               self.load(path, exp, config);
             }
             return exp;
-        }, "path"_a, "config"_a, "Load a MALDI imaging .d directory into a new MSImagingExperiment with explicit configuration")
+        }, "path"_a, "config"_a, "Load a MALDI imaging .d directory into a new MSImagingExperiment with explicit configuration. "
+        "Only the frames config.inner_config admits are loaded; pixels of other frames are skipped, so the image may be incomplete")
         .def("load", [](OpenMS::BrukerTimsImagingFile& self, const std::string& path, OpenMS::MSImagingExperiment& exp) -> void {
             nb::gil_scoped_release release;
             self.load(path, exp);
@@ -492,7 +496,8 @@ feature-detect at runtime.
                         const OpenMS::BrukerTimsImagingFile::Config& config) -> void {
             nb::gil_scoped_release release;
             self.load(path, exp, config);
-        }, "path"_a, "exp"_a, "config"_a, "Load a MALDI imaging .d directory into exp (replaced, not appended) with explicit configuration")
+        }, "path"_a, "exp"_a, "config"_a, "Load a MALDI imaging .d directory into exp (replaced, not appended) with explicit configuration. "
+        "Only the frames config.inner_config admits are loaded; pixels of other frames are skipped, so the image may be incomplete")
         .def_static("isImagingDataset", &OpenMS::BrukerTimsImagingFile::isImagingDataset, "path"_a,
         "True iff GlobalMetadata.MaldiApplicationType is 'Imaging'. Never raises: an unreadable path gives False")
         .def_static("readMaldiFrameInfo", &OpenMS::BrukerTimsImagingFile::readMaldiFrameInfo, "d_folder"_a,

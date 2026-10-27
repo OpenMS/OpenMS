@@ -213,26 +213,9 @@ def _imaging_experiment(rts: tuple[float, ...] = (1.0, 2.0, 3.0)) -> pyopenms.MS
     return mie
 
 
-def _imzml_path() -> str:
-    import os
-    import sys
-    from pathlib import Path
-
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from test_data_paths import get_class_test_data_dir
-
-    try:
-        path = os.path.join(get_class_test_data_dir(), "ImzMLFile_1_Example_Continuous.imzML")
-    except RuntimeError as e:
-        pytest.skip(str(e))
-    if not os.path.isfile(path):
-        pytest.skip(f"imzML test data not found: {path}")
-    return path
-
-
-def _ondisc_imzml() -> pyopenms.OnDiscImzMLExperiment:
+def _ondisc_imzml(path: str) -> pyopenms.OnDiscImzMLExperiment:
     od = pyopenms.OnDiscImzMLExperiment()
-    od.open(_imzml_path())
+    od.open(path)
     return od
 
 
@@ -266,6 +249,9 @@ def test_imaging_spectrum_view_bounds_checked():
     mie = _imaging_experiment()
     with pytest.raises(IndexError):
         mie.spectrum_view(99)
+    assert mie.spectrum_view(-1) is mie.spectrum_view(2)   # negative i counts from the end, as mie[i]
+    with pytest.raises(IndexError):
+        mie.spectrum_view(-4)
     with pytest.raises(Exception):
         mie.spectrum_view(1, 1)                      # pixel not in the geometry
 
@@ -331,8 +317,8 @@ def test_imaging_views_do_not_change_the_copy_getters():
     assert mie.getGeometry().getNumberOfRegions() == 0
 
 
-def test_ondisc_imzml_geometry_view():
-    od = _ondisc_imzml()
+def test_ondisc_imzml_geometry_view(imzml_continuous_path: str):
+    od = _ondisc_imzml(imzml_continuous_path)
     geom = od.geometry_view()
     geom.addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 1, 1))
     assert od.getGeometry().getNumberOfRegions() == 1
@@ -346,15 +332,28 @@ def test_ondisc_imzml_geometry_view():
     assert geom.getNumberOfRegions() == 1
 
 
-def test_ondisc_imzml_geometry_view_survives_reopen():
-    od = _ondisc_imzml()
+def test_ondisc_imzml_geometry_view_survives_reopen(imzml_continuous_path: str):
+    od = _ondisc_imzml(imzml_continuous_path)
     geom = od.geometry_view()
     n_pixels = geom.getNumberOfPixels()
     geom.addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 0, 0))
 
-    od.open(_imzml_path())                           # re-open resets the geometry in place
+    od.open(imzml_continuous_path)                   # re-open resets the geometry in place
     assert geom.getNumberOfPixels() == n_pixels
     assert geom.getNumberOfRegions() == 0
 
     od.close()
     assert geom.getNumberOfPixels() == 0
+
+
+def test_ondisc_imzml_failed_open_leaves_it_empty(imzml_continuous_path: str):
+    od = _ondisc_imzml(imzml_continuous_path)
+    geom = od.geometry_view()
+    assert len(od) > 0
+
+    with pytest.raises(Exception):
+        od.open(imzml_continuous_path, ibd_path="/nonexistent/missing.ibd")
+    assert not od.isOpen()
+    assert od.getNrSpectra() == 0
+    assert len(od) == 0
+    assert geom.getNumberOfPixels() == 0             # the view still points at the (now empty) geometry
