@@ -1332,6 +1332,22 @@ namespace OpenMS
       return windows;
     }
 
+    // Synchro-PASEF (diagonal-PASEF) moves the quadrupole along with the ion mobility scan, so analysis.tdf lists an
+    // isolation window for every scan step (927 windows of one scan per frame in PXD037766). The DIA loaders make
+    // every window an MS2 spectrum of its own, which is right for diaPASEF, whose windows span dozens to hundreds of
+    // scans, but gives a flood of spectra with a few peaks each here.
+    void warnIfSynchroPASEF(const std::vector<DIAWindow>& windows)
+    {
+      constexpr uint32_t min_scans = 10;
+      const Size narrow = std::count_if(windows.begin(), windows.end(), [](const DIAWindow& w)
+        { return w.scan_end < w.scan_begin + min_scans; });
+      if (narrow * 2 <= windows.size()) return;
+      OPENMS_LOG_WARN << "Warning: " << narrow << " of the " << windows.size() << " DIA isolation windows span fewer than "
+                      << min_scans << " scans: the quadrupole moves along with the ion mobility scan, as in synchro-PASEF "
+                      << "(diagonal-PASEF). This acquisition type is not supported. Every window becomes an MS2 spectrum "
+                      << "of its own, so the MS2 data is split into very many spectra of a few peaks each." << std::endl;
+    }
+
     // Build frame_id -> WindowGroup mapping from SQL.
     // Returns map<window_group, vector<frame_id>> sorted by frame_id within each group.
     // Frames that DiaFrameMsMsInfo lists but the Frames table lacks (an incomplete or edited analysis.tdf) are left
@@ -2893,6 +2909,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
+    warnIfSynchroPASEF(windows);
 
     auto group_to_frames = readFrameToWindowGroupMapping(db, windows, *handle);
     for (auto& [group, frame_ids] : group_to_frames)
@@ -4027,6 +4044,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
+    warnIfSynchroPASEF(windows);
 
     // --- MS2 frames (split by SWATH window) ---
     // Use per-WindowGroup iteration for both paths: each diaPASEF frame belongs
