@@ -6457,44 +6457,104 @@ namespace OpenMS
     // 'stratum' and 'stratum_q_value'; the main score stays the pooled q-value.
     void annotateStratumQValues(PeptideIdentificationList& peptide_ids)
     {
-      struct Row { double score; bool decoy; PeptideHit* hit; };
-      std::vector<Row> rows[2];
-      for (PeptideIdentification& pid : peptide_ids)
+      // In parallel (serially ~1 s for a timsTOF run, by the meta value lookups by name): per spectrum, the stratum of
+      // its best hit (-1: no hit, 2: not rescored), its score and whether it is a decoy.
+      const SignedSize n = static_cast<SignedSize>(peptide_ids.size());
+      std::vector<int8_t> stratum_of(n, -1);
+      std::vector<double> score_of(n, 0.0);
+      std::vector<uint8_t> decoy_of(n, 0);
+      MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      const UInt score_index = registry.getIndex("percolator_score"); // (UInt(-1): no hit has it)
+      std::vector<std::exception_ptr> errors(n); // (the first one is rethrown, as by the serial loop)
+#pragma omp parallel for schedule(dynamic, 1024)
+      for (SignedSize i = 0; i < n; ++i)
       {
-        if (pid.getHits().empty()) continue;
-        PeptideHit& hit = pid.getHits()[0];
-        if (!hit.metaValueExists("percolator_score"))
+        if (peptide_ids[i].getHits().empty()) continue;
+        const PeptideHit& hit = peptide_ids[i].getHits()[0];
+        if (!hit.metaValueExists(score_index))
         {
-          hit.setMetaValue("stratum_q_value", 1.0); // not rescored (q = 1 in the pooled list as well)
+          stratum_of[i] = 2;
           continue;
         }
-        bool nterm = false, all_clipped = !hit.getPeptideEvidences().empty();
-        for (const PeptideEvidence& ev : hit.getPeptideEvidences())
+        try
         {
-          nterm = nterm || ev.getAABefore() == PeptideEvidence::N_TERMINAL_AA;
-          all_clipped = all_clipped && ev.getAABefore() == 'M' && ev.getStart() == 1;
+          bool nterm = false, all_clipped = !hit.getPeptideEvidences().empty();
+          for (const PeptideEvidence& ev : hit.getPeptideEvidences())
+          {
+            nterm = nterm || ev.getAABefore() == PeptideEvidence::N_TERMINAL_AA;
+            all_clipped = all_clipped && ev.getAABefore() == 'M' && ev.getStart() == 1;
+          }
+          score_of[i] = static_cast<double>(hit.getMetaValue(score_index));
+          decoy_of[i] = hit.isDecoy() ? 1 : 0;
+          stratum_of[i] = (nterm || all_clipped) ? 1 : 0;
         }
-        const int stratum = (nterm || all_clipped) ? 1 : 0;
-        rows[stratum].push_back({static_cast<double>(hit.getMetaValue("percolator_score")), hit.isDecoy(), &hit});
+        catch (...)
+        {
+          errors[i] = std::current_exception();
+        }
       }
+      for (SignedSize i = 0; i < n; ++i)
+      {
+        if (errors[i]) std::rethrow_exception(errors[i]);
+      }
+      // The rows of each stratum in spectrum order. The meta value names are registered in the order in which the
+      // serial annotation set them first (MetaInfo orders the values of a hit by registry index): 'stratum_q_value'
+      // first if a best hit is not rescored (its q-value was set in a first pass), else 'stratum'.
+      std::vector<SignedSize> rows[2];
+      bool not_rescored = false;
+      for (SignedSize i = 0; i < n; ++i)
+      {
+        if (stratum_of[i] == 2) not_rescored = true;
+        else if (stratum_of[i] >= 0) rows[stratum_of[i]].push_back(i);
+      }
+      UInt stratum_index = 0, q_index = 0;
+      if (not_rescored) q_index = registry.registerName("stratum_q_value");
+      if (!rows[0].empty() || !rows[1].empty())
+      {
+        stratum_index = registry.registerName("stratum");
+        q_index = registry.registerName("stratum_q_value");
+      }
+      if (not_rescored)
+      {
+        const DataValue one(1.0); // not rescored (q = 1 in the pooled list as well)
+#pragma omp parallel for schedule(static)
+        for (SignedSize i = 0; i < n; ++i)
+        {
+          if (stratum_of[i] == 2) peptide_ids[i].getHits()[0].setMetaValue(q_index, one);
+        }
+      }
+      // Within a stratum by percolator_score, ties decoys first, then in spectrum order (= the stable sort of the rows)
+      const auto before = [&score_of, &decoy_of](const SignedSize a, const SignedSize b)
+      {
+        if (score_of[a] > score_of[b]) return true;
+        if (!(score_of[a] == score_of[b])) return false;
+        if (decoy_of[a] != decoy_of[b]) return decoy_of[a] > decoy_of[b];
+        return a < b;
+      };
       static const char* names[2] = {"other", "protein_nterm"};
       for (int g = 0; g < 2; ++g)
       {
-        std::vector<Row>& r = rows[g];
-        std::stable_sort(r.begin(), r.end(), [](const Row& a, const Row& b)
-                         { return a.score > b.score || (a.score == b.score && a.decoy && !b.decoy); });
+        std::vector<SignedSize>& r = rows[g];
+#ifdef PROSE_GNU_PARALLEL
+        if (r.size() >= 65536 && omp_get_max_threads() > 1) { __gnu_parallel::sort(r.begin(), r.end(), before); }
+        else
+#endif
+        { std::sort(r.begin(), r.end(), before); }
         std::vector<double> q(r.size());
         Size targets = 0, decoys = 0;
         for (Size i = 0; i < r.size(); ++i)
         {
-          (r[i].decoy ? decoys : targets) += 1;
+          (decoy_of[r[i]] ? decoys : targets) += 1;
           q[i] = std::min(1.0, static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1)));
         }
         for (Size i = r.size(); i-- > 1;) q[i - 1] = std::min(q[i - 1], q[i]);
-        for (Size i = 0; i < r.size(); ++i)
+        const DataValue name(names[g]);
+#pragma omp parallel for schedule(static)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(r.size()); ++i)
         {
-          r[i].hit->setMetaValue("stratum", names[g]);
-          r[i].hit->setMetaValue("stratum_q_value", q[i]);
+          PeptideHit& hit = peptide_ids[r[i]].getHits()[0];
+          hit.setMetaValue(stratum_index, name);
+          hit.setMetaValue(q_index, q[i]);
         }
       }
     }
@@ -6637,18 +6697,28 @@ namespace OpenMS
     void annotateTerminalFeatures(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids)
     {
       static const std::string nterm_name = "protein_nterm", clip_name = "met_clipped";
-      for (PeptideIdentification& pid : peptide_ids)
+      // In parallel (serially ~0.8 s for a timsTOF run, by the meta value lookups by name), with the names registered
+      // as by the first hit of the serial loop (MetaInfo orders the values of a hit by registry index)
+      if (std::any_of(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
       {
-        for (PeptideHit& hit : pid.getHits())
+        MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+        const UInt nterm_index = registry.registerName(nterm_name);
+        const UInt clip_index = registry.registerName(clip_name);
+        const DataValue one(1.0), zero(0.0);
+#pragma omp parallel for schedule(dynamic, 1024)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
         {
-          bool nterm = false, all_clipped = !hit.getPeptideEvidences().empty();
-          for (const PeptideEvidence& ev : hit.getPeptideEvidences())
+          for (PeptideHit& hit : peptide_ids[i].getHits())
           {
-            nterm = nterm || ev.getAABefore() == PeptideEvidence::N_TERMINAL_AA;
-            all_clipped = all_clipped && ev.getAABefore() == 'M' && ev.getStart() == 1;
+            bool nterm = false, all_clipped = !hit.getPeptideEvidences().empty();
+            for (const PeptideEvidence& ev : hit.getPeptideEvidences())
+            {
+              nterm = nterm || ev.getAABefore() == PeptideEvidence::N_TERMINAL_AA;
+              all_clipped = all_clipped && ev.getAABefore() == 'M' && ev.getStart() == 1;
+            }
+            hit.setMetaValue(nterm_index, nterm ? one : zero);
+            hit.setMetaValue(clip_index, (!nterm && all_clipped) ? one : zero);
           }
-          hit.setMetaValue(nterm_name, nterm ? 1.0 : 0.0);
-          hit.setMetaValue(clip_name, (!nterm && all_clipped) ? 1.0 : 0.0);
         }
       }
       for (ProteinIdentification& prot : protein_ids)
