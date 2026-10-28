@@ -681,9 +681,10 @@ namespace OpenMS
       // as its SWATH maps have been constructed.
       auto group_exp = std::make_shared<PeakMap>(std::move(cv_experiment.second));
       std::shared_ptr<ExperimentalSettings> group_meta;
-      // a directory (trailing '/') gets a unique file name per call; a file name prefix must differ per CV, or the
-      // cached files of a group would overwrite those of the previous one (which its maps still read)
-      const std::string group_tmp = StringUtils::hasSuffix(tmp, '/') ? tmp : tmp + "_CV" + StringUtils::toStr(faims_cv);
+      // a directory (trailing '/') gets a unique file name per call; a file name prefix must differ per CV group, or
+      // the cached files of a group would overwrite those of the previous one (which its maps still read). By group
+      // index: CVs that differ only beyond their printed digits would give the same prefix.
+      const std::string group_tmp = StringUtils::hasSuffix(tmp, '/') ? tmp : tmp + "_group" + StringUtils::toStr(result.size());
       auto swath_maps = loadFromMSExperiment(group_exp, group_tmp, group_meta, readoptions);
 
       result.push_back(FAIMSSwathMapGroup{faims_cv, std::move(swath_maps)});
