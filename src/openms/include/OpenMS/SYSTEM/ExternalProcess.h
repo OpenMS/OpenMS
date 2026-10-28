@@ -102,10 +102,17 @@ namespace OpenMS
 
       This call blocks. Output and idle callbacks execute on the calling thread.
       Use a separate ExternalProcess instance per concurrent call and do not change
-      callbacks during execution. Cancellation terminates the owned process group
-      (including descendants that remain in that group) and waits for the direct child.
-      Failed or crashed direct children also cause their remaining group members
-      to be terminated. After the direct child exits, output pipes are drained for up to one second;
+      callbacks during execution.
+
+      If @p cancel is given, the child runs in a process group (POSIX) or job object
+      (Windows) owned by this call, with an empty stdin. Cancellation terminates that
+      group, including descendants, and waits for the direct child. Failed or crashed
+      direct children also cause their remaining group members to be terminated.
+      Without @p cancel, the child stays in the caller's process group, as with run():
+      terminal signals such as Ctrl+C still reach it, and an enclosing cancellable call
+      can still stop it together with its parent.
+
+      After the direct child exits, output pipes are drained for up to one second;
       descendants retaining inherited output handles cannot block completion indefinitely.
       Windows uses Unicode process APIs; strings are interpreted as UTF-8, with a
       native-code-page fallback for legacy callers passing non-UTF-8 strings.
@@ -117,7 +124,7 @@ namespace OpenMS
       @param[in] io_mode Whether to capture stdout and stderr
       @param[in] env Additional environment variables, overriding inherited values
       @param[in] idle_callback Optional callback invoked while waiting
-      @param[in] cancel Optional cancellation flag, which must outlive this call
+      @param[in] cancel Optional cancellation flag, which must outlive this call; enables the owned process group
       @return State, numeric child exit code, and diagnostic message
     */
     Result runWithResult(const std::string& exe,

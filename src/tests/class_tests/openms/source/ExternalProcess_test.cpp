@@ -17,6 +17,7 @@
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/config.h>
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
@@ -379,16 +380,59 @@ START_SECTION([EXTRA] failed or crashed direct children cannot leave descendants
 #ifndef OPENMS_WINDOWSPLATFORM
   TempDir tmp_dir;
   ExternalProcess process;
+  // Descendants are owned (and stopped) only by cancellable calls.
+  const std::atomic_bool never_cancelled {false};
   for (const auto& ending : {"exit 37", "kill -KILL $$"})
   {
     const auto marker = to_path(tmp_dir.getPath()) / "survived.txt";
-    const auto result
-      = process.runWithResult("/bin/sh", {"-c", std::string("(sleep 0.3; echo SURVIVED > survived.txt) & ") + ending}, tmp_dir.getPath(), false);
+    const auto result = process.runWithResult("/bin/sh", {"-c", std::string("(sleep 0.3; echo SURVIVED > survived.txt) & ") + ending},
+                                              tmp_dir.getPath(), false, ExternalProcess::IO_MODE::READ_WRITE, {}, nullptr, &never_cancelled);
     TEST_NOT_EQUAL(result.state, ExternalProcess::RETURNSTATE::SUCCESS)
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     TEST_FALSE(std::filesystem::exists(marker))
     std::filesystem::remove(marker);
   }
+#else
+  NOT_TESTABLE
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] only cancellable calls move the child into its own process group)
+{
+#ifndef OPENMS_WINDOWSPLATFORM
+  // Ordinary calls must leave the child in the caller's group: Ctrl+C in a terminal
+  // has to reach e.g. a search engine started by an adapter, and a workflow which
+  // cancels the adapter's group must also stop the adapter's own children.
+  const std::atomic_bool never_cancelled {false};
+  for (const bool cancellable : {false, true})
+  {
+    std::string output;
+    pid_t child = 0;
+    pid_t child_group = 0;
+    ExternalProcess process([&](const std::string& text) { output += text; }, [](const std::string&) {});
+    const auto result = process.runWithResult(
+      "/bin/sh", {"-c", "echo $$; sleep 1"}, "", false, ExternalProcess::IO_MODE::READ_WRITE, {},
+      [&]() {
+        if (child == 0 && output.find('\n') != std::string::npos)
+        {
+          child = static_cast<pid_t>(std::stol(output));
+          child_group = ::getpgid(child);
+        }
+      },
+      cancellable ? &never_cancelled : nullptr);
+    TEST_EQUAL(result.state, ExternalProcess::RETURNSTATE::SUCCESS)
+    TEST_NOT_EQUAL(child, 0)
+    if (cancellable) { TEST_EQUAL(child_group, child) }
+    else
+    {
+      TEST_EQUAL(child_group, ::getpgrp())
+    }
+  }
+  // A background group must not read the caller's terminal (SIGTTIN would stop it).
+  const auto read_stdin = ExternalProcess().runWithResult("/bin/sh", {"-c", "if read line; then exit 3; fi"}, "", false,
+                                                          ExternalProcess::IO_MODE::READ_WRITE, {}, nullptr, &never_cancelled);
+  TEST_EQUAL(read_stdin.state, ExternalProcess::RETURNSTATE::SUCCESS)
 #else
   NOT_TESTABLE
 #endif

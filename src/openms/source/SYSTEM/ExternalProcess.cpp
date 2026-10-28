@@ -58,6 +58,7 @@
 #include <cstdlib>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <system_error>
 #include <thread>
 #include <utility>
@@ -215,20 +216,30 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
       callbackStdOut_(command + "\n");
     }
 
-    // The group owns descendants as well as the direct child while the call is active.
-    bp::group group;
+    // Only cancellable calls own a process group (POSIX) or job object (Windows).
+    // Ordinary calls keep the child in the caller's group: terminal signals such
+    // as Ctrl+C still reach it, and an enclosing cancellable call (e.g. a workflow
+    // running an adapter which runs a search engine) can still stop the whole tree.
+    const bool own_group = cancel != nullptr;
+    std::optional<bp::group> group;
+    if (own_group) { group.emplace(); }
     bp::child child;
     auto stop_and_wait = [&]() {
       std::error_code ignored;
-      std::error_code termination_error;
-      if (group.valid()) { group.terminate(termination_error); }
+      bool group_terminated = false;
+      if (group && group->valid())
+      {
+        std::error_code termination_error;
+        group->terminate(termination_error);
+        group_terminated = ! termination_error;
+      }
       if (child.valid())
       {
-        // Fall back to the direct child if terminating the group failed.
-        if (termination_error && child.running(ignored)) { child.terminate(ignored); }
+        // Without a group, or if terminating it failed, stop the direct child.
+        if (! group_terminated && child.running(ignored)) { child.terminate(ignored); }
         child.wait(ignored);
       }
-      group.detach();
+      if (group) { group->detach(); }
     };
 
     try
@@ -334,31 +345,30 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
       const bool can_read = io_mode == IO_MODE::READ_ONLY || io_mode == IO_MODE::READ_WRITE;
       boost::asio::io_context io_context;
       std::unique_ptr<bp::async_pipe> stdout_pipe, stderr_pipe;
+      auto launch = [&](auto&&... properties) {
+        return bp::child(executable, bp::args(process_arguments), bp::start_dir(start_dir), process_environment,
+                         std::forward<decltype(properties)>(properties)...,
+#ifdef _WIN32
+                         launch_error, set_command_line, suspend, resume, cleanup_failed_launch
+#else
+                         restrict_descriptors
+#endif
+        );
+      };
+      // A child in its own POSIX process group is a background job of the
+      // caller's terminal: reading the terminal would stop it (SIGTTIN) and
+      // block this call. Give it an empty stdin, as QProcess-based runners did.
       if (can_read)
       {
         stdout_pipe = std::make_unique<bp::async_pipe>(io_context);
         stderr_pipe = std::make_unique<bp::async_pipe>(io_context);
-        child = bp::child(executable, bp::args(process_arguments), bp::start_dir(start_dir), process_environment, bp::std_out > *stdout_pipe,
-                          bp::std_err > *stderr_pipe, group
-#ifdef _WIN32
-                          ,
-                          launch_error, set_command_line, suspend, resume, cleanup_failed_launch
-#else
-                          , restrict_descriptors
-#endif
-        );
+        child = own_group ? launch(bp::std_out > *stdout_pipe, bp::std_err > *stderr_pipe, bp::std_in < bp::null, *group)
+                          : launch(bp::std_out > *stdout_pipe, bp::std_err > *stderr_pipe);
       }
       else
       {
-        child = bp::child(executable, bp::args(process_arguments), bp::start_dir(start_dir), process_environment, bp::std_out > bp::null,
-                          bp::std_err > bp::null, group
-#ifdef _WIN32
-                          ,
-                          launch_error, set_command_line, suspend, resume, cleanup_failed_launch
-#else
-                          , restrict_descriptors
-#endif
-        );
+        child = own_group ? launch(bp::std_out > bp::null, bp::std_err > bp::null, bp::std_in < bp::null, *group)
+                          : launch(bp::std_out > bp::null, bp::std_err > bp::null);
       }
 
 #ifdef _WIN32
@@ -420,9 +430,10 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
         int native_status = child.native_exit_code();
         const bool crashed = WIFSIGNALED(native_status);
 #endif
-        // A failed wrapper can leave its workers alive. Stop them before draining
-        // their pipes or returning failure to the workflow, which may remove their
-        // temporary directory or start a new run using the same output files.
+        // A failed wrapper can leave its workers alive. In a cancellable call, stop
+        // them before draining their pipes or returning failure to the workflow,
+        // which may remove their temporary directory or start a new run using the
+        // same output files. Without an owned group, this only reaps the child.
         if (! cancelled && (crashed || result.exit_code != 0)) { stop_and_wait(); }
 
         // A descendant may inherit a pipe and outlive the direct child. Never wait
@@ -445,7 +456,7 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
           io_context.restart();
           io_context.poll();
         }
-        group.detach();
+        if (group) { group->detach(); }
 
         if (cancelled)
         {
