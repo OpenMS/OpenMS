@@ -86,17 +86,15 @@ std::vector<Size> PipelineGraph::topologicalOrder() const
 void PipelineGraph::validate() const
 {
   topologicalOrder(); // Also checks unique IDs and all edge endpoints.
-  std::set<std::string> resource_keys;
   for (const auto& vertex : nodes)
   {
     switch (vertex.kind)
     {
       case Kind::INPUT:
-        if (! vertex.resource_key.empty())
-        {
-          if (vertex.resource_key.find(':') != std::string::npos) { invalidGraph("Input resource key must not contain ':': " + vertex.resource_key); }
-          if (! resource_keys.insert(vertex.resource_key).second) { invalidGraph("Duplicate input resource key: " + vertex.resource_key); }
-        }
+        // Duplicate keys are valid: a resource file then binds the same files to each
+        // such input (exporting one requires unique keys). A custom numeric key can also
+        // coincide with another input's default number after renumbering.
+        if (vertex.resource_key.find(':') != std::string::npos) { invalidGraph("Input resource key must not contain ':': " + vertex.resource_key); }
         break;
       case Kind::TOOL:
         if (vertex.tool_name.empty()) { invalidGraph("Pipeline tool node has no tool name."); }

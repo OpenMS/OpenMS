@@ -326,4 +326,20 @@ START_SECTION((PipelineFile replaces all resource bindings and rejects invalid U
 }
 END_SECTION
 
+START_SECTION([EXTRA] Inputs sharing a resource key are valid and bound to the same files)
+{
+  // TOPPAS allows renaming inputs freely; only exporting a resource file needs unique names.
+  auto graph = exampleGraph();
+  PipelineGraph::Node twin = graph.node(10);
+  twin.id = 11;
+  graph.nodes.push_back(twin);
+  graph.validate();
+  Param resources;
+  resources.setValue("samples:url_list", std::vector<std::string> {"file:shared.mzML"});
+  PipelineFile().loadResourceParam(resources, graph);
+  TEST_EQUAL(graph.node(10).files.at(0), "shared.mzML")
+  TEST_EQUAL(graph.node(11).files.at(0), "shared.mzML")
+}
+END_SECTION
+
 END_TEST

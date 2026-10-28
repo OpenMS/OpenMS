@@ -1863,10 +1863,12 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
           }
           else if (text == "Change name")
           {
-            TOPPASVertexNameDialog dlg(ifv->getKey());
-            if (dlg.exec())
+            // Resource files address inputs as '<name>:url_list', and names are saved with the workflow.
+            TOPPASVertexNameDialog dlg(ifv->getKey(), "[^:]+");
+            if (dlg.exec() && dlg.getName() != ifv->getKey())
             {
               ifv->setKey(dlg.getName());
+              setChanged(true);
             }
           }
           continue;
