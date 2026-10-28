@@ -821,6 +821,9 @@ OpenMS Library:
     (#10660).
   - FIX: FileInfo counts the occurrences of a peptide in a consensusXML per map id, not per column header index; map ids
     outside 0..n-1 wrote out of bounds and gave wrong counts (#10612).
+  - EntrapmentEvaluation counts, at q-value thresholds, the accepted PSMs and peptides that match only entrapment
+    proteins and estimates the false discovery proportion from them (lower bound, combined and paired estimates of
+    Wen et al., Nat. Methods 2025), also in pyOpenMS; the EntrapmentEvaluator tool runs it (#10629).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -858,6 +861,10 @@ TOPP tools:
       OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
+    - EntrapmentEvaluator: measures the false discovery proportion of identifications searched against a database
+      with entrapment proteins (e.g. from DecoyDatabase -entrapment_ratio): at each q-value threshold, how many PSMs
+      and peptides were accepted, how many of them match only entrapment proteins, and the lower-bound, combined and
+      paired FDP estimates; -class_meta_value breaks the result down by a peptide hit meta value (#10629).
   Removed tools:
     - BREAKING: ConsensusID removed. Its default mode grouped identifications of different spectra by
       retention time and m/z, -per_spectrum by spectrum; no OpenMS workflow used either. OpenMS has no
@@ -896,6 +903,10 @@ TOPP tools:
         _unit) (#10530).
       - PARAM: New bedrmod_out exports RNA modification sites as a bedRMod v2 track
         (bedrmod_chebi_mapping, bedrmod:* reference metadata) (#10529).
+    DecoyDatabase:
+      - PARAM: New -entrapment_ratio N writes N entrapment proteins per target protein, each with its own decoys: the
+        target with every peptide shuffled as in Wen et al. (cleavage sites in place, the mass unchanged), accessions
+        prefixed with -entrapment_string (default ENTRAP_). EntrapmentEvaluator evaluates searches against them (#10629).
     All tools:
       - FIX: CometAdapter, ProteomicsLFQ, IsobaricWorkflow and the OpenSWATH tools reject Bruker MALDI imaging .d
         input, as FileConverter and the tools reading through FileHandler do. PeakPickerIM, which reads raw frames
