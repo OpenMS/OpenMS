@@ -885,6 +885,7 @@ class ProSE :
         {
           OPENMS_LOG_ERROR << "Failed to write QPX parquet for " << in_file << " -> " << file << " (cannot rename " << file << ".part)" << endl;
           ok = false;
+          if (!File::remove(file + ".part")) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << ".part'." << endl; }
         }
       }
       return ok;
@@ -1811,6 +1812,7 @@ class ProSE :
       Size qpx_stream_next = 0;    // the input whose rows come next
       Size qpx_stream_tables = 0;  // the tables appended
       bool qpx_stream_gap = false; // the stream stopped: see above
+      bool qpx_stream_error = false; // a write of the stream failed (logged): the merged output fails, whatever is written after
       // Appends the psm table of input @p i (built: @p files; none: nothing) with @p threads if it is the next; a failure
       // is logged (the stream has failed then: merged_ok below)
       auto qpx_stream_append = [&](Size i, const QPXRunFiles_& files, int threads)
@@ -1828,12 +1830,13 @@ class ProSE :
             if (!psm_meta) { qpx_stream_gap = true; return; } // (logged; written after the loop, failing the same way)
             qpx_stream = std::make_unique<ArrowIOHelpers::ParquetTableStream>(qpx_stream_file + ".part", ParquetWriteConfig{}, psm_meta);
           }
-          if (qpx_stream->append(files.psm, threads)) { ++qpx_stream_tables; }
+          if (qpx_stream->append(files.psm, threads)) { ++qpx_stream_tables; } else { qpx_stream_error = true; }
         }
         catch (const std::exception& e)
         {
           OPENMS_LOG_ERROR << "Failed to write " << qpx_stream_file << " (Arrow/Parquet): " << e.what() << endl;
-          if (qpx_stream) { qpx_stream->abandon(); } else { qpx_stream_gap = true; }
+          qpx_stream_error = true;
+          if (qpx_stream) { qpx_stream->abandon(); }
         }
       };
       if (early_qpx_files)
@@ -2167,6 +2170,10 @@ class ProSE :
       // Per-run QPX scan_format tokens, reconciled for the merged file below. A built table
       // no longer carries the native IDs, so this has to be collected as we go.
       std::vector<std::string> qpx_psm_scan_formats;
+      // (reserved: a table and its scan_format are recorded together, and nothing can throw between the two)
+      qpx_psm_tables.reserve(in_list.size());
+      qpx_psm_scan_formats.reserve(in_list.size());
+      qpx_pg_tables.reserve(in_list.size());
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
       Size failed_count = 0;
@@ -2726,8 +2733,9 @@ class ProSE :
         // the stream has the rows of every run: every input seen, as many tables appended as the loop collected (a
         // table of the stream missing from the loop's bookkeeping, e.g. by an exception after the append, would give
         // the footer a scan_format of the other runs: then written again from the tables, as without the stream)
-        const bool qpx_streamed = early_qpx_files && !qpx_stream_gap && qpx_stream_next == in_list.size()
+        const bool qpx_streamed = early_qpx_files && !qpx_stream_gap && !qpx_stream_error && qpx_stream_next == in_list.size()
                                   && qpx_stream_tables == qpx_psm_tables.size() && (qpx_stream || qpx_psm_tables.empty());
+        if (qpx_stream_error) { merged_ok = false; } // (logged there; the file written below does not undo the failure)
         if (qpx_streamed)
         {
           // (none: no file, as the concatenation of no table): its footer completed, the staged file published (the
