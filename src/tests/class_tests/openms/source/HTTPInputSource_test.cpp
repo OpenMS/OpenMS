@@ -92,10 +92,12 @@ namespace
   }
 
   /**
-    A minimal HTTP/1.0 server on 127.0.0.1 for the tests: GET and HEAD of the given files, byte ranges (206), 404 for
-    other paths. Paths under /norange/ serve the same files but ignore range requests (200 with the whole file), as
-    some servers do. Paths under /encoded/ serve the gzip file of the path (path + ".gz") with gzip transfer
-    compression (Content-Encoding), if the client accepts it (otherwise 406).
+    A minimal HTTP/1.0 server on 127.0.0.1 for the tests: GET and HEAD of the given files, byte ranges (206; 416 beyond
+    the end), 404 for other paths. Paths under /norange/ serve the same files but ignore range requests (200 with the
+    whole file), as some servers do. Paths under /encoded/ serve the gzip file of the path (path + ".gz") with gzip
+    transfer compression (Content-Encoding), if the client accepts it (otherwise 406). Paths under /moved/ redirect to
+    the path without /moved/. Paths under /signed/ act like a URL presigned for GET: only a GET with a query (the
+    signature) is served, anything else is 403.
   */
   class TestServer
   {
@@ -175,9 +177,27 @@ private:
       std::istringstream lines(request);
       std::string method, path;
       lines >> method >> path;
+      const bool query = path.find('?') != std::string::npos;
       path = path.substr(0, path.find('?')); // the query does not select the file
       std::string lowered = request;
       std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+      if (path.rfind("/moved/", 0) == 0)
+      {
+        // with a body, which is not the resource
+        const std::string body = "moved";
+        send_(connection, "HTTP/1.0 302 Found\r\nLocation: " + path.substr(6) + "\r\nContent-Length: " + std::to_string(body.size()) + "\r\n\r\n"
+                          + (method == "HEAD" ? "" : body));
+        return;
+      }
+      if (path.rfind("/signed/", 0) == 0)
+      {
+        if (method != "GET" || !query)
+        {
+          send_(connection, "HTTP/1.0 403 Forbidden\r\nContent-Length: 0\r\n\r\n");
+          return;
+        }
+        path = path.substr(7);
+      }
       bool ranges = true;
       if (path.rfind("/norange/", 0) == 0)
       {
@@ -219,7 +239,7 @@ private:
       {
         if (first >= size)
         {
-          send_(connection, "HTTP/1.0 416 Range Not Satisfiable\r\nContent-Length: 0\r\n\r\n");
+          send_(connection, "HTTP/1.0 416 Range Not Satisfiable\r\nContent-Range: bytes */" + std::to_string(size) + "\r\nContent-Length: 0\r\n\r\n");
           return;
         }
         last = std::min(last, size - 1);
@@ -286,6 +306,7 @@ std::string corrupt = served["/run.mzML"];
 const std::string no_compression = "accession=\"MS:1000576\" name=\"no compression\"";
 corrupt.replace(corrupt.find(no_compression), no_compression.size(), "accession=\"MS:1000574\" name=\"zlib compression\"");
 served["/corrupt.mzML"] = corrupt;
+served["/empty.mzML"] = "";
 TestServer server(served);
 
 START_SECTION((static bool isURL(const std::string& url)))
@@ -390,6 +411,9 @@ START_SECTION(([EXTRA] makeStream from an HTTP server))
   auto encoded = HTTPInputSource(server.url("/encoded/run.mzML")).makeStream();
   TEST_TRUE(dynamic_cast<DecompressingInputStream*>(encoded.get()) != nullptr)
   TEST_TRUE(readAll(*encoded) == readAll(encoded_gzip))
+  // a redirect is followed (its body is not the content)
+  auto moved = HTTPInputSource(server.url("/moved/run.mzML")).makeStream();
+  TEST_TRUE(readAll(*moved) == served_plain)
   // HTTP 404
   TEST_EXCEPTION(Exception::FileNotFound, HTTPInputSource(server.url("/missing.mzML")).makeStream())
 }
@@ -415,9 +439,17 @@ END_SECTION
 
 START_SECTION((static Int64 objectSize(const std::string& url)))
 {
-  TEST_EQUAL(HTTPInputSource::objectSize(server.url("/run.mzML")), static_cast<Int64>(served_plain.size()))
-  TEST_EQUAL(HTTPInputSource::objectSize(fileURL(served_plain_path)), static_cast<Int64>(served_plain.size()))
+  const Int64 size = static_cast<Int64>(served_plain.size());
+  TEST_EQUAL(HTTPInputSource::objectSize(server.url("/run.mzML")), size)
+  // a GET of the first byte, not a HEAD request, which a URL presigned for GET refuses
+  TEST_EQUAL(HTTPInputSource::objectSize(server.url("/signed/run.mzML?X-Amz-Signature=abc")), size)
+  // a server that ignores the range (the whole resource is not read), a redirect, an empty resource (416)
+  TEST_EQUAL(HTTPInputSource::objectSize(server.url("/norange/run.mzML")), size)
+  TEST_EQUAL(HTTPInputSource::objectSize(server.url("/moved/run.mzML")), size)
+  TEST_EQUAL(HTTPInputSource::objectSize(server.url("/empty.mzML")), 0)
+  TEST_EQUAL(HTTPInputSource::objectSize(fileURL(served_plain_path)), size)
   TEST_EXCEPTION(Exception::FileNotFound, HTTPInputSource::objectSize(server.url("/missing.mzML")))
+  TEST_EXCEPTION(Exception::IOException, HTTPInputSource::objectSize(server.url("/signed/run.mzML"))) // HTTP 403
   TEST_EXCEPTION(Exception::IllegalArgument, HTTPInputSource::objectSize(served_plain_path))
 }
 END_SECTION
@@ -431,6 +463,7 @@ START_SECTION((static std::string readRange(const std::string& url, Int64 offset
   // fewer bytes at the end
   TEST_TRUE(HTTPInputSource::readRange(server.url("/run.mzML"), size - 5, 100) == served_plain.substr(served_plain.size() - 5))
   TEST_TRUE(HTTPInputSource::readRange(server.url("/run.mzML"), 100, 0).empty())
+  TEST_TRUE(HTTPInputSource::readRange(server.url("/signed/run.mzML?X-Amz-Signature=abc"), 100, 50) == served_plain.substr(100, 50))
   // a server that ignores the range
   TEST_TRUE(HTTPInputSource::readRange(server.url("/norange/run.mzML"), 100, 50) == served_plain.substr(100, 50))
   TEST_TRUE(HTTPInputSource::readRange(server.url("/norange/run.mzML"), size - 5, 100) == served_plain.substr(served_plain.size() - 5))

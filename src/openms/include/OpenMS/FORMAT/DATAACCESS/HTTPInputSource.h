@@ -54,6 +54,9 @@ public:
     /**
       @brief The size of the resource at @p url, in bytes, as reported by the server.
 
+      For HTTP and HTTPS, from the response to a request of the first byte, not a HEAD request: a presigned URL (e.g. of
+      S3) is signed for one request method, usually GET.
+
       @param[in] url An HTTP, HTTPS, FTP or file URL
 
       @throws Exception::IllegalArgument, Exception::FileNotFound, Exception::IOException as the constructor and

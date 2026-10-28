@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cctype>
+#include <cstdlib>
 #include <cstring>
 #include <initializer_list>
 #include <string_view>
@@ -350,6 +351,93 @@ private:
       CURL* easy_ = nullptr;
       char error_[CURL_ERROR_SIZE] = {};
     };
+
+    // Receives the response to a request of the first byte of a resource (objectSize()): its Content-Range, not its body
+    struct SizeProbe
+    {
+      std::string content_range; ///< of the last response (a redirect is a response too)
+
+      static size_t header(char* data, size_t size, size_t count, void* user)
+      {
+        auto& self = *static_cast<SizeProbe*>(user);
+        const std::string_view line(data, size * count);
+        constexpr std::string_view name = "content-range:";
+        if (line.substr(0, 5) == "HTTP/") { self.content_range.clear(); } // the status line of a response
+        else if (line.size() > name.size()
+                 && std::equal(name.begin(), name.end(), line.begin(), [](char a, char b) { return a == std::tolower(static_cast<unsigned char>(b)); }))
+        {
+          self.content_range = line.substr(name.size());
+        }
+        return size * count;
+      }
+
+      // The body is not needed: the transfer stops at its first byte (CURLE_WRITE_ERROR). libcurl does not hand out the
+      // body of a redirect it follows.
+      static size_t write(char*, size_t, size_t, void*)
+      {
+        return 0;
+      }
+
+      // The size of the resource in the Content-Range ("bytes 0-0/<size>"; "bytes */<size>" for a range beyond its end);
+      // -1 if there is none, or it is unknown ("*")
+      Int64 total() const
+      {
+        const auto slash = content_range.rfind('/');
+        if (slash == std::string::npos) { return -1; }
+        const char* begin = content_range.c_str() + slash + 1;
+        char* end = nullptr;
+        const long long size = std::strtoll(begin, &end, 10);
+        return end != begin && size >= 0 ? static_cast<Int64>(size) : -1;
+      }
+    };
+
+    // The size of the resource at @p url as reported for a request without body (FTP: SIZE; file: the file size); -1 if none
+    curl_off_t sizeWithoutBody(const std::string& url)
+    {
+      Request request(url);
+      curl_easy_setopt(request.easy(), CURLOPT_NOBODY, 1L);
+      request.perform([](CURLcode) { return false; });
+      curl_off_t size = -1;
+      curl_easy_getinfo(request.easy(), CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &size);
+      return size;
+    }
+
+    // The size of the HTTP(S) resource at @p url from the response to a request of its first byte; -1 if none. A GET, not
+    // a HEAD request: a presigned URL (e.g. S3, GCS) signs the request method, so a URL presigned for GET is refused with HEAD.
+    curl_off_t sizeFromFirstByte(const std::string& url)
+    {
+      Request request(url);
+      SizeProbe probe;
+      curl_easy_setopt(request.easy(), CURLOPT_RANGE, "0-0");
+      curl_easy_setopt(request.easy(), CURLOPT_FAILONERROR, 0L); // the status is checked below: a 416 has the size too
+      curl_easy_setopt(request.easy(), CURLOPT_HEADERFUNCTION, &SizeProbe::header);
+      curl_easy_setopt(request.easy(), CURLOPT_HEADERDATA, &probe);
+      curl_easy_setopt(request.easy(), CURLOPT_WRITEFUNCTION, &SizeProbe::write);
+      request.perform([](CURLcode result) { return result == CURLE_WRITE_ERROR; }); // stopped at the first byte
+      const char* effective_url = nullptr;
+      curl_easy_getinfo(request.easy(), CURLINFO_EFFECTIVE_URL, &effective_url);
+      if (effective_url == nullptr || !StringUtils::hasPrefix(std::string(effective_url), "http"))
+      {
+        return sizeWithoutBody(url); // redirected to FTP
+      }
+      long response = 0;
+      curl_easy_getinfo(request.easy(), CURLINFO_RESPONSE_CODE, &response);
+      if (response >= 400 && response != 416)
+      {
+        const std::string error = "The requested URL returned error: " + std::to_string(response);
+        throwTransferError(request.easy(), CURLE_HTTP_RETURNED_ERROR, error.c_str(), request.name());
+      }
+      curl_off_t size = -1;
+      if (response == 206 || response == 416) // 416: the resource is empty
+      {
+        size = probe.total();
+      }
+      else if (response == 200) // a server that ignores the range sends the whole resource
+      {
+        curl_easy_getinfo(request.easy(), CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &size);
+      }
+      return size;
+    }
   } // namespace
 
   HTTPInputSource::HTTPInputSource(const std::string& url) :
@@ -377,15 +465,12 @@ private:
   Int64 HTTPInputSource::objectSize(const std::string& url)
   {
     const HTTPInputSource source(url);
-    Request request(url);
-    curl_easy_setopt(request.easy(), CURLOPT_NOBODY, 1L);
-    request.perform([](CURLcode) { return false; });
-    curl_off_t size = -1;
-    curl_easy_getinfo(request.easy(), CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &size);
+    const curl_off_t size = StringUtils::hasPrefix(url, "http") ? sizeFromFirstByte(url) : sizeWithoutBody(url);
     if (size < 0)
     {
-      OPENMS_LOG_ERROR << "Error reading " << request.name() << ": the server does not report its size" << std::endl;
-      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, request.name());
+      const std::string name = redactURL(url);
+      OPENMS_LOG_ERROR << "Error reading " << name << ": the server does not report its size" << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     return static_cast<Int64>(size);
   }
