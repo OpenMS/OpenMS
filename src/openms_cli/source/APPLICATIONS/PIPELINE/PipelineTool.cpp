@@ -208,6 +208,19 @@ std::string PipelineTool::temporaryName(const std::string& prefix)
   return prefix + std::string(buffer, converted.ptr);
 }
 
+int PipelineTool::exitCode(const ExternalProcess::Result& result)
+{
+  switch (result.state)
+  {
+    case ExternalProcess::RETURNSTATE::NONZERO_EXIT:
+      return result.exit_code;
+    case ExternalProcess::RETURNSTATE::FAILED_TO_START:
+      return TOPPBase::EXTERNAL_PROGRAM_NOTFOUND;
+    default:
+      return TOPPBase::EXTERNAL_PROGRAM_ERROR;
+  }
+}
+
 PipelinePathClaims::PipelinePathClaims(const fs::path& root): root_(fs::weakly_canonical(fs::absolute(root)))
 {
   fs::create_directories(root_);
@@ -279,11 +292,7 @@ PipelineTool::Descriptor PipelineTool::discover(const PipelineGraph::Node& node,
     = process.runWithResult(descriptor.executable, arguments, "", false, ExternalProcess::IO_MODE::READ_ONLY, {}, nullptr, &cancelled);
   if (result.state != ExternalProcess::RETURNSTATE::SUCCESS)
   {
-    // A crash reports a signal number or NTSTATUS, not a TOPP exit code.
-    const int code = result.state == ExternalProcess::RETURNSTATE::FAILED_TO_START ? TOPPBase::EXTERNAL_PROGRAM_NOTFOUND
-                     : result.state == ExternalProcess::RETURNSTATE::NONZERO_EXIT  ? result.exit_code
-                                                                                  : TOPPBase::EXTERNAL_PROGRAM_ERROR;
-    throw Failure(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code,
+    throw Failure(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, exitCode(result),
                   "Parameter discovery failed for '" + node.tool_name + "': " + result.error_message);
   }
   if (! fs::is_regular_file(filename))
@@ -349,6 +358,7 @@ PipelineTool::Rounds PipelineTool::planOutputs(const PipelineGraph& graph,
   }
 
   std::vector<std::vector<std::string>> names;
+  std::vector<FileTypes::Type> input_types; // per round, for formats which outputs keep
   for (const auto& round : inputs)
   {
     const auto input = round.find(naming_port->name);
@@ -357,6 +367,7 @@ PipelineTool::Rounds PipelineTool::planOutputs(const PipelineGraph& graph,
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "An input round is missing files for '" + naming_port->name + "'.");
     }
+    input_types.push_back(FileNameUtils::getTypeByFileName(input->second.front()));
     names.emplace_back();
     for (const auto& filename : input->second)
     {
@@ -380,8 +391,7 @@ PipelineTool::Rounds PipelineTool::planOutputs(const PipelineGraph& graph,
     const auto path = directory / to_path(pathComponent(component.substr(0, 50)));
     for (Size round = 0; round < inputs.size(); ++round)
     {
-      const auto input_type = FileNameUtils::getTypeByFileName(inputs[round].at(naming_port->name).front());
-      const auto suffix = outputSuffix(node, descriptor, port, input_type);
+      const auto suffix = outputSuffix(node, descriptor, port, input_types[round]);
       const bool list_to_single = names[round].size() > 1 && port.kind == Port::Kind::FILE;
       for (const auto& input_file : names[round])
       {

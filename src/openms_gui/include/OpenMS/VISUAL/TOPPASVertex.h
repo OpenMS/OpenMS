@@ -98,7 +98,7 @@ public:
 		  const QStringList& get() const;
 		  const QString& operator[](int i) const;
 
-		  ///@name Setters; their all use check_() and can throw!
+		  ///@name Setters (the workflow engine creates and checks the files)
 		  //@{
 		  void set(const QStringList& filenames);
 		  void set(const QString& filename, int i);
@@ -109,13 +109,6 @@ public:
       QStringList getSuffixCounts() const;
 
 	    private:
-		  /*
-		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
-		
-		  @param[in] filename Full path to file (using relative paths will circumvent the effectiveness)
-		  @throw Exception::FileNotWritable() if too long (>=255 chars)
-		  */
-		  void check_(const QString& filename);
 		  QStringList filenames_;   ///< filenames passed from upstream node in this round
 	  };
 

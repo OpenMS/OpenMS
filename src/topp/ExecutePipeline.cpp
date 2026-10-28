@@ -148,28 +148,6 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    try
-    {
-      return execute_();
-    }
-    catch (const Exception::BaseException&)
-    {
-      throw; // reported by TOPPBase
-    }
-    catch (const std::filesystem::filesystem_error& error)
-    {
-      OPENMS_LOG_ERROR << "Error: " << error.what() << '\n';
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
-    catch (const std::exception& error)
-    {
-      OPENMS_LOG_ERROR << "Error: " << error.what() << '\n';
-      return UNKNOWN_ERROR;
-    }
-  }
-
-  ExitCodes execute_()
-  {
     namespace fs = std::filesystem;
     const auto filename = getStringOption_("in");
     PipelineGraph graph;
@@ -205,7 +183,8 @@ protected:
     const auto result = executor.run(graph, options, [](const PipelineExecutor::Event& event) {
       if (! event.text.empty())
       {
-        auto& stream = event.type == PipelineExecutor::Event::Type::NODE_FAILED ? std::cerr : std::cout;
+        const bool failure = event.type == PipelineExecutor::Event::Type::NODE_FAILED || event.type == PipelineExecutor::Event::Type::RUN_FAILED;
+        auto& stream = failure ? std::cerr : std::cout;
         stream << event.text;
         if (event.text.back() != '\n') stream << '\n';
       }

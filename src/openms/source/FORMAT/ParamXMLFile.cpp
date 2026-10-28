@@ -9,56 +9,46 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <sstream>
 
 namespace OpenMS
 {
+
   namespace
   {
-    /// Is @p text well-formed UTF-8 (no overlong forms, surrogates or values above U+10FFFF)?
-    bool isValidUTF8(const std::string& text)
+    /// OpenMS strings are UTF-8, but some legacy values are in a native code page (e.g.
+    /// Windows ANSI paths). Convert those, so the file is valid UTF-8 as declared.
+    std::string toUTF8(const std::string& text)
     {
-      const Size n = text.size();
-      for (Size i = 0; i < n;)
+      if (StringUtils::isValidUTF8(text)) { return text; }
+#ifdef _WIN32
+      const auto utf8 = to_path(text).u8string(); // to_path() falls back to the ANSI code page
+      return {utf8.begin(), utf8.end()};
+#else
+      // Latin-1, as the historical ISO-8859-1 declaration of these files implied
+      std::string result;
+      for (const unsigned char c : text)
       {
-        const unsigned char c = text[i];
-        if (c < 0x80)
+        if (c < 0x80) { result += static_cast<char>(c); }
+        else
         {
-          ++i;
-          continue;
+          result += static_cast<char>(0xC0 | (c >> 6));
+          result += static_cast<char>(0x80 | (c & 0x3F));
         }
-        Size length = 0;
-        unsigned int code = 0;
-        if ((c & 0xE0) == 0xC0) { length = 2; code = c & 0x1F; }
-        else if ((c & 0xF0) == 0xE0) { length = 3; code = c & 0x0F; }
-        else if ((c & 0xF8) == 0xF0) { length = 4; code = c & 0x07; }
-        else { return false; }
-        if (i + length > n) { return false; }
-        for (Size k = 1; k < length; ++k)
-        {
-          const unsigned char next = text[i + k];
-          if ((next & 0xC0) != 0x80) { return false; }
-          code = (code << 6) | (next & 0x3F);
-        }
-        if ((length == 2 && code < 0x80) || (length == 3 && code < 0x800) || (length == 4 && code < 0x10000) || code > 0x10FFFF
-            || (code >= 0xD800 && code <= 0xDFFF))
-        {
-          return false;
-        }
-        i += length;
       }
-      return true;
+      return result;
+#endif
     }
   } // namespace
 
   std::string writeXMLEscape(const std::string& to_escape)
   {
-    return Internal::XMLHandler::writeXMLEscape(to_escape);
+    return Internal::XMLHandler::writeXMLEscape(toUTF8(to_escape));
   }
 
   ParamXMLFile::ParamXMLFile() :
@@ -98,14 +88,12 @@ namespace OpenMS
     //       This never mattered here, as removeAll() was fixed to prune the tree.
     // TODO: Nowadays this should be fixed and removeAll() might not be necessary.
 
-    // Write the body first to choose the declaration. OpenMS strings contain UTF-8,
-    // including workflow paths bound through INI files, but some legacy values are in
-    // a native code page (e.g. Windows ANSI paths). A UTF-8 declaration would make
-    // such a file unreadable, so keep the historical ISO-8859-1 declaration for them.
-    std::ostringstream os;
+    std::ostream& os = *os_ptr;
 
     os.precision(writtenDigits<double>(0.0));
 
+    // OpenMS strings contain UTF-8, including workflow paths bound through INI files.
+    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     std::string indentation = "  ";
     Param::ParamIterator it = param.begin();
@@ -393,10 +381,7 @@ namespace OpenMS
       }
     }
 
-    os << "</PARAMETERS>\n";
-
-    const std::string body = os.str();
-    *os_ptr << "<?xml version=\"1.0\" encoding=\"" << (isValidUTF8(body) ? "UTF-8" : "ISO-8859-1") << "\"?>\n" << body << std::flush;
+    os << "</PARAMETERS>" << std::endl; // forces a flush
   }
 
   void ParamXMLFile::load(const std::string& filename, Param& param)

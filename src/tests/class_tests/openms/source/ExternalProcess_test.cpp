@@ -424,11 +424,7 @@ START_SECTION([EXTRA] only cancellable calls move the child into its own process
       cancellable ? &never_cancelled : nullptr);
     TEST_EQUAL(result.state, ExternalProcess::RETURNSTATE::SUCCESS)
     TEST_NOT_EQUAL(child, 0)
-    if (cancellable) { TEST_EQUAL(child_group, child) }
-    else
-    {
-      TEST_EQUAL(child_group, ::getpgrp())
-    }
+    TEST_EQUAL(child_group, cancellable ? child : ::getpgrp())
   }
   // A background group must not read the caller's terminal (SIGTTIN would stop it).
   const auto read_stdin = ExternalProcess().runWithResult("/bin/sh", {"-c", "if read line; then exit 3; fi"}, "", false,

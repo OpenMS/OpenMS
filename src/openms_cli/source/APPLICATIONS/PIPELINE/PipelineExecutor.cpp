@@ -506,7 +506,8 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       running.store(false);
     }
   } running_guard {running_, cancelled_};
-  Size current_node = 0;
+  // The node responsible for a failure; unset during workflow-level steps.
+  std::optional<Size> current_node;
   bool cancellation_outcome = false;
   try
   {
@@ -589,6 +590,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       else
         result.nodes[id].state = State::BLOCKED;
     }
+    current_node.reset();
 
     // Tool introspection is explicit and uses the same cancellable backend as jobs.
     Descriptors descriptors;
@@ -610,6 +612,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
         }
       }
     }
+    current_node.reset();
     resolveLegacyPorts(graph, descriptors);
     graph.validate(); // Legacy indices may have resolved to duplicate named bindings.
     validatePorts(graph, descriptors, reachable);
@@ -632,14 +635,13 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       {
         for (const auto& file : filesAt(retained.outputs, round, edge.source_port))
         {
-          if (! fs::exists(to_path(file)))
+          const auto status = fs::status(to_path(file));
+          if (! fs::exists(status))
           {
             throw Failure(TOPPBase::INPUT_FILE_NOT_FOUND, context(source) + ": retained output '" + file + "' does not exist; rerun its producer.");
           }
-          // Formats such as Bruker .d or idparquet are directories behind file ports.
-          const bool is_directory = fs::is_directory(to_path(file));
-          if ((directory && ! is_directory)
-              || (! directory && is_directory && ! FileTypes::isDirectoryType(FileNameUtils::getTypeByFileName(file))))
+          // Like a first run, accept any existing path behind a file port (e.g. Bruker .d or idparquet directories).
+          if (directory && ! fs::is_directory(status))
           {
             throw Failure(TOPPBase::INCOMPATIBLE_INPUT_DATA, context(source) + ": retained output '" + file + "' has the wrong file type.");
           }
@@ -669,6 +671,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       return input;
     };
 
+    current_node.reset();
     // Preflight transforms all reachable rounds without invoking processing jobs.
     Result planned = result;
     // Creating the output root also lets the OS validate its naming semantics.
@@ -708,6 +711,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       state.state = State::SUCCEEDED;
       state.completed_rounds = state.total_rounds = state.outputs.size();
     }
+    current_node.reset();
     for (const auto id : order)
     {
       if (affected.count(id) && planned.nodes[id].state == State::BLOCKED) result.nodes[id].state = State::BLOCKED;
@@ -873,11 +877,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
               throw Cancelled(context(graph.node(completion.node)) + ": " + completion.process.error_message);
             }
             state.state = State::FAILED;
-            const int code = completion.process.state == ExternalProcess::RETURNSTATE::NONZERO_EXIT
-                               ? completion.process.exit_code
-                               : (completion.process.state == ExternalProcess::RETURNSTATE::FAILED_TO_START ? TOPPBase::EXTERNAL_PROGRAM_NOTFOUND
-                                                                                                            : TOPPBase::EXTERNAL_PROGRAM_ERROR);
-            throw Failure(code, context(graph.node(completion.node)) + ": " + completion.process.error_message);
+            throw Failure(Tool::exitCode(completion.process), context(graph.node(completion.node)) + ": " + completion.process.error_message);
           }
           ++state.completed_rounds;
           snapshot(Event::Type::ROUND_COMPLETED, completion.node, completion.round);
@@ -887,6 +887,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
             complete(completion.node);
           }
         }
+        current_node.reset();
         if (active.empty() && jobs.empty())
         {
           if (scheduled.size() == graph.nodes.size()) break;
@@ -947,7 +948,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
     logfile << result.error_message << '\n';
     logfile.flush();
   }
-  auto failed = result.nodes.find(current_node);
+  auto failed = current_node ? result.nodes.find(*current_node) : result.nodes.end();
   if (! cancellation_outcome && failed != result.nodes.end() && failed->second.state != State::CANCELLED)
   {
     failed->second.state = State::FAILED;
@@ -967,7 +968,8 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
   }
   if (callback)
   {
-    Event event {Event::Type::NODE_FAILED, current_node, 0, 0, result.error_message, result.exit_code};
+    Event event {current_node ? Event::Type::NODE_FAILED : Event::Type::RUN_FAILED, current_node.value_or(0), 0, 0, result.error_message,
+                 result.exit_code};
     if (failed != result.nodes.end()) event.result = failed->second;
     // Preserve the already established outcome even if reporting it fails.
     try

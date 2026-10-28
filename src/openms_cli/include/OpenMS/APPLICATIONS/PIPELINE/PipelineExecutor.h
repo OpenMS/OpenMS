@@ -76,7 +76,8 @@ public:
       ROUND_COMPLETED,
       NODE_FINISHED,
       OUTPUT_WRITTEN,
-      NODE_FAILED
+      NODE_FAILED,
+      RUN_FAILED ///< the run failed without a responsible node (e.g. an unwritable output directory)
     };
     Type type {Type::LOG};
     Size node_id {0};

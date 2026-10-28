@@ -79,9 +79,9 @@ START_SECTION([EXTRA] Unicode parameter paths and values survive store and load)
 }
 END_SECTION
 
-START_SECTION([EXTRA] Values in a legacy code page keep the file readable)
+START_SECTION([EXTRA] Values in a legacy code page are stored as UTF-8)
 {
-  // E.g. a Windows ANSI temp path: such bytes are not UTF-8 and must not be declared as such.
+  // E.g. a Windows ANSI temp path: the file must stay valid UTF-8, as declared.
   std::string filename;
   NEW_TMP_FILE(filename)
   Param original;
@@ -91,11 +91,12 @@ START_SECTION([EXTRA] Values in a legacy code page keep the file readable)
   Param loaded;
   file.load(filename, loaded);
   TEST_EQUAL(loaded.getValue("path").toString(), "C:/Users/J\xC3\xB6rg/spectra.mzML")
-  // Valid UTF-8 is declared as UTF-8.
-  original.setValue("path", "C:/Users/J\xC3\xB6rg/spectra.mzML");
+  // UTF-8 values next to a converted one are not converted again.
+  original.setValue("description", "m/z\xE2\x80\x93ion mobility");
   file.store(filename, original);
-  TextFile written(filename);
-  TEST_EQUAL(*written.begin(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+  file.load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("description").toString(), "m/z\xE2\x80\x93ion mobility")
+  TEST_EQUAL(loaded.getValue("path").toString(), "C:/Users/J\xC3\xB6rg/spectra.mzML")
 }
 END_SECTION
 

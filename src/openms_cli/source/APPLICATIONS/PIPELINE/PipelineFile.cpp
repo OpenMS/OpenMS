@@ -203,9 +203,12 @@ void PipelineFile::loadParam(const Param& parameters, PipelineGraph& graph, cons
           // and current versions only save relative paths that resolve physically. Older
           // TOPPAS versions created and resolved them lexically, though; use that meaning
           // only if the physical one does not exist.
-          std::error_code physical_error, lexical_error;
-          const auto lexical = path.lexically_normal();
-          if (! std::filesystem::exists(path, physical_error) && std::filesystem::exists(lexical, lexical_error)) { path = lexical; }
+          std::error_code ignored;
+          if (const auto lexical = path.lexically_normal();
+              lexical != path && ! std::filesystem::exists(path, ignored) && std::filesystem::exists(lexical, ignored))
+          {
+            path = lexical;
+          }
         }
         file = pathString(path);
       }

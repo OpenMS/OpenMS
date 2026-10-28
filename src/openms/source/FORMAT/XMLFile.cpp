@@ -41,6 +41,34 @@
 
 using namespace std;
 
+namespace
+{
+  /**
+    @brief The UTF-16 file name for Xerces, which converts it back to bytes to open the file
+
+    CompressedInputSource and Xerces' Windows file manager convert back as UTF-8 (the
+    native-codepage transcoder would corrupt UTF-8 paths on Windows). Xerces' POSIX file
+    manager uses its local code page instead, which need not be UTF-8 (e.g. the iconv
+    transcoder in the C locale), so use that same transcoder there (@p utf8_names false).
+  */
+  std::basic_string<XMLCh> xercesFileName(const std::string& filename, bool utf8_names)
+  {
+    if (utf8_names)
+    {
+      try
+      {
+        const auto name = OpenMS::to_path(filename).u16string();
+        return {name.begin(), name.end()};
+      }
+      catch (const std::exception&) // POSIX byte names that are not valid UTF-8
+      {
+      }
+    }
+    const auto name = OpenMS::Internal::StringManager::convert(filename);
+    return {name.begin(), name.end()};
+  }
+} // namespace
+
 namespace OpenMS::Internal
 {
 
@@ -169,31 +197,6 @@ private:
           file.read(bz.data(), 2);
         }
 
-        // Xerces takes UTF-16 file names. CompressedInputSource converts them back as
-        // UTF-8, as does Xerces' Windows file manager (whose native-codepage transcoder
-        // would corrupt UTF-8 paths). Xerces' POSIX file manager converts back with its
-        // local code page instead, which need not be UTF-8 (e.g. the iconv transcoder in
-        // the C locale), so use that same transcoder there for exact byte round trips.
-        const auto local_codepage_filename = [&sm, &filename]() {
-          const auto name = sm.convert(filename);
-          return std::basic_string<XMLCh>(name.begin(), name.end());
-        };
-        std::basic_string<XMLCh> utf16_filename;
-        try
-        {
-          const auto name = to_path(filename).u16string();
-          utf16_filename.assign(name.begin(), name.end());
-        }
-        catch (const std::exception&) // POSIX byte names that are not valid UTF-8
-        {
-          utf16_filename = local_codepage_filename();
-        }
-#ifdef _WIN32
-        const std::basic_string<XMLCh>& local_filename = utf16_filename;
-#else
-        const std::basic_string<XMLCh> local_filename = local_codepage_filename();
-#endif
-
         char g1 = 0x1f;
         char g2 = 0;
         g2 |= 1 << 7;
@@ -203,11 +206,16 @@ private:
         //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
         if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2) || (bz[0] == 'P' && bz[1] == 'K'))
         {
-          source.reset(new CompressedInputSource(utf16_filename.c_str(), bz));
+          source.reset(new CompressedInputSource(xercesFileName(filename, true).c_str(), bz));
         }
         else
         {
-          source.reset(new xercesc::LocalFileInputSource(local_filename.c_str()));
+#ifdef _WIN32
+          const bool utf8_names = true;
+#else
+          const bool utf8_names = false; // Xerces' POSIX file manager uses its local code page
+#endif
+          source.reset(new xercesc::LocalFileInputSource(xercesFileName(filename, utf8_names).c_str()));
         }
       }
 

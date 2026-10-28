@@ -53,23 +53,17 @@ namespace OpenMS
 
   void TOPPASVertex::TOPPASFilenames::set(const QString& filename, int i)
   {
-    check_(filename);
     filenames_[i] = filename;
   }
 
   void TOPPASVertex::TOPPASFilenames::push_back(const QString& filename)
   {
-    check_(filename);
     filenames_.push_back(filename);
   }
 
   void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
   {
-    for (const QString& fn : filenames)
-    {
-      check_(fn);
-      push_back(fn);
-    }
+    filenames_.append(filenames);
   }
 
   QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
@@ -98,25 +92,6 @@ namespace OpenMS
     }
     return text_l;
   }
-
-  void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
-  {
-    const Size max_filename_length = 255;
-#ifdef OPENMS_WINDOWSPLATFORM
-    // on Windows, constraint applies to the whole path:
-    if (filename.count() > max_filename_length)
-    {
-      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename.toStdString(), max_filename_length);
-    }
-#else
-    // on Unix (Linux/Mac), constraint applies to the file name:
-    if (File::basename(fromQString(filename)).size() > max_filename_length)
-    {
-      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(fromQString(filename)), max_filename_length);
-    }
-#endif
-  }
-
 
   TOPPASVertex::TOPPASVertex()
   {

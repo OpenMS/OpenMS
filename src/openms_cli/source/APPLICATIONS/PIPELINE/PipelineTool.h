@@ -10,6 +10,7 @@
 
 #include <OpenMS/APPLICATIONS/PIPELINE/PipelineExecutor.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <filesystem>
 
 namespace OpenMS::Internal
@@ -81,6 +82,10 @@ struct PipelineTool
     }
     int exit_code;
   };
+
+  /// TOPP exit code for an unsuccessful process: its own code only for NONZERO_EXIT
+  /// (a crash reports a signal number or NTSTATUS).
+  static int exitCode(const ExternalProcess::Result& result);
 
   static Descriptor discover(const PipelineGraph::Node& node,
                              const std::string& temp_directory,

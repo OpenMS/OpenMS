@@ -54,6 +54,9 @@
 #endif
 
 #include <array>
+#include <cstdint>
+#include <cstddef>
+#include <charconv>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
@@ -226,7 +229,6 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
     // Ordinary calls keep the child in the caller's group: terminal signals such
     // as Ctrl+C still reach it, and an enclosing cancellable call (e.g. a workflow
     // running an adapter which runs a search engine) can still stop the whole tree.
-    const bool own_group = cancel != nullptr;
     std::optional<bp::group> group; // created in the try block: on Windows, creating a job can throw
     bp::child child;
     auto stop_and_wait = [&]() {
@@ -249,7 +251,7 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
 
     try
     {
-      if (own_group) { group.emplace(); }
+      if (cancel) { group.emplace(); }
       // Boost.Process does not search PATH when passed a plain executable name.
 #ifdef _WIN32
       std::wstring executable = wideString(exe);
@@ -348,41 +350,37 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
         const int listing = ::open("/proc/self/fd", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
         if (listing >= 0)
         {
-          alignas(8) char buffer[4096];
-          bool complete = true;
-          for (;;)
+          struct KernelDirent64 // struct linux_dirent64, as returned by getdents64
           {
-            const long count = ::syscall(SYS_getdents64, listing, buffer, sizeof(buffer));
-            if (count == 0) break;
+            std::uint64_t d_ino;
+            std::int64_t d_off;
+            unsigned short d_reclen;
+            unsigned char d_type;
+            char d_name[1];
+          };
+          alignas(8) char buffer[4096];
+          long count;
+          while ((count = ::syscall(SYS_getdents64, listing, buffer, sizeof(buffer))) != 0)
+          {
             if (count < 0)
             {
               if (errno == EINTR) continue;
-              complete = false;
               break;
             }
             for (long offset = 0; offset < count;)
             {
-              // struct linux_dirent64: d_ino (8), d_off (8), d_reclen (2), d_type (1), d_name
-              unsigned short length = 0;
-              std::memcpy(&length, buffer + offset + 16, sizeof(length));
-              const char* name = buffer + offset + 19;
-              int descriptor = 0;
-              bool numeric = *name != '\0';
-              for (const char* c = name; *c != '\0'; ++c)
-              {
-                if (*c < '0' || *c > '9' || descriptor > (std::numeric_limits<int>::max() - 9) / 10)
-                {
-                  numeric = false;
-                  break;
-                }
-                descriptor = descriptor * 10 + (*c - '0');
-              }
-              if (numeric && descriptor >= 3 && descriptor != listing) { mark(descriptor); }
+              unsigned short length;
+              std::memcpy(&length, buffer + offset + offsetof(KernelDirent64, d_reclen), sizeof(length));
+              const char* name = buffer + offset + offsetof(KernelDirent64, d_name);
+              const char* end = name + std::strlen(name);
+              int descriptor;
+              const auto [parsed, error] = std::from_chars(name, end, descriptor); // skips "." and ".."
+              if (error == std::errc() && parsed == end && descriptor >= 3 && descriptor != listing) { mark(descriptor); }
               offset += length;
             }
           }
           ::close(listing);
-          if (complete) return;
+          if (count == 0) return; // complete listing
         }
 #endif
         // Portable fallback: scan the configured fd limit.
@@ -413,13 +411,13 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
       {
         stdout_pipe = std::make_unique<bp::async_pipe>(io_context);
         stderr_pipe = std::make_unique<bp::async_pipe>(io_context);
-        child = own_group ? launch(bp::std_out > *stdout_pipe, bp::std_err > *stderr_pipe, bp::std_in < bp::null, *group)
-                          : launch(bp::std_out > *stdout_pipe, bp::std_err > *stderr_pipe);
+        child = group ? launch(bp::std_out > *stdout_pipe, bp::std_err > *stderr_pipe, bp::std_in < bp::null, *group)
+                      : launch(bp::std_out > *stdout_pipe, bp::std_err > *stderr_pipe);
       }
       else
       {
-        child = own_group ? launch(bp::std_out > bp::null, bp::std_err > bp::null, bp::std_in < bp::null, *group)
-                          : launch(bp::std_out > bp::null, bp::std_err > bp::null);
+        child = group ? launch(bp::std_out > bp::null, bp::std_err > bp::null, bp::std_in < bp::null, *group)
+                      : launch(bp::std_out > bp::null, bp::std_err > bp::null);
       }
 
 #ifdef _WIN32
