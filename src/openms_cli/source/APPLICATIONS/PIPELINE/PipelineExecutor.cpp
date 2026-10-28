@@ -1,7 +1,10 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
+// --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
 
 #include "PipelineTool.h"
 
@@ -680,6 +683,27 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
     if (fs::is_symlink(publication_root)) { throw Failure(TOPPBase::ILLEGAL_PARAMETERS, "TOPPAS_out must not be a symbolic link."); }
     Internal::PipelinePathClaims planned_publications(publication_root);
     Internal::PipelinePathClaims actual_publications(publication_root);
+    // A rerun must not overwrite what retained output nodes published in their run.
+    const auto canonical_root = fs::weakly_canonical(publication_root);
+    for (const auto& node : graph.nodes)
+    {
+      if (affected.count(node.id) || (node.kind != Kind::OUTPUT && node.kind != Kind::OUTPUT_DIRECTORY)) continue;
+      const auto& retained = result.nodes.at(node.id);
+      if (retained.state != State::SUCCEEDED) continue;
+      for (const auto& round : retained.outputs)
+      {
+        for (const auto& [port, files] : round)
+        {
+          for (const auto& file : files)
+          {
+            const auto relative = fs::weakly_canonical(to_path(file)).lexically_relative(canonical_root);
+            if (relative.empty() || *relative.begin() == "..") continue; // published to another output directory
+            planned_publications.claim(to_path(file));
+            actual_publications.claim(to_path(file));
+          }
+        }
+      }
+    }
     for (const auto id : order)
     {
       current_node = id;

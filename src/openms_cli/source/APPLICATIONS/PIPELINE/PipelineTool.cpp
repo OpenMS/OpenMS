@@ -150,7 +150,8 @@ namespace
     }
   }
 
-  std::string outputSuffix(const PipelineGraph::Node& node, const PipelineTool::Descriptor& descriptor, const Port& port, FileTypes::Type input_type)
+  std::string outputSuffix(const PipelineGraph::Node& node, const PipelineTool::Descriptor& descriptor, const Port& port,
+                           const std::vector<FileTypes::Type>& input_types)
   {
     if (port.kind == Port::Kind::DIRECTORY) { return "_dir"; }
     if (port.valid_types.size() == 1)
@@ -173,12 +174,15 @@ namespace
       // Many tools write their input's format and reject a contradicting
       // extension (e.g. FileFilter, IDMapper, MapAligner*, FileMerger without
       // in_type): FileHandler::store* only falls back to the expected type for
-      // an unrecognized name. Prefer the input format whenever the port allows it.
-      if (input_type != FileTypes::UNKNOWN
-          && std::any_of(port.valid_types.begin(), port.valid_types.end(),
-                         [input_type](const std::string& valid) { return FileTypes::nameToType(valid) == input_type; }))
+      // an unrecognized name. Prefer the first input format the port allows.
+      for (const auto input_type : input_types)
       {
-        return "." + FileTypes::typeToName(input_type);
+        if (input_type != FileTypes::UNKNOWN
+            && std::any_of(port.valid_types.begin(), port.valid_types.end(),
+                           [input_type](const std::string& valid) { return FileTypes::nameToType(valid) == input_type; }))
+        {
+          return "." + FileTypes::typeToName(input_type);
+        }
       }
       // A writer with several advertised formats may dispatch by extension and
       // reject .unknown before there is any content to inspect. Preserve the
@@ -357,8 +361,15 @@ PipelineTool::Rounds PipelineTool::planOutputs(const PipelineGraph& graph,
                                       "No non-recycled input can supply output filenames for '" + node.tool_name + "'.");
   }
 
+  // The input formats which outputs may keep, per round. The naming input can be an
+  // auxiliary one (e.g. MapRTTransformer's trafo_in), so consider all inputs, 'in' first.
+  std::vector<const Port*> format_ports;
+  for (const auto& port : descriptor.inputs)
+  {
+    format_ports.insert(port.name == "in" ? format_ports.begin() : format_ports.end(), &port);
+  }
+  std::vector<std::vector<FileTypes::Type>> input_types;
   std::vector<std::vector<std::string>> names;
-  std::vector<FileTypes::Type> input_types; // per round, for formats which outputs keep
   for (const auto& round : inputs)
   {
     const auto input = round.find(naming_port->name);
@@ -367,7 +378,14 @@ PipelineTool::Rounds PipelineTool::planOutputs(const PipelineGraph& graph,
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "An input round is missing files for '" + naming_port->name + "'.");
     }
-    input_types.push_back(FileNameUtils::getTypeByFileName(input->second.front()));
+    input_types.emplace_back();
+    for (const auto* port : format_ports)
+    {
+      if (const auto files = round.find(port->name); files != round.end() && ! files->second.empty())
+      {
+        input_types.back().push_back(FileNameUtils::getTypeByFileName(files->second.front()));
+      }
+    }
     names.emplace_back();
     for (const auto& filename : input->second)
     {

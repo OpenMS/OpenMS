@@ -254,6 +254,27 @@ START_SECTION([EXTRA] Multiformat writers keep their input format when the port 
 }
 END_SECTION
 
+START_SECTION([EXTRA] Output formats come from data inputs and not only from the naming input)
+{
+  // Like MapRTTransformer's trafo_in: the output is named after an auxiliary input
+  // whose format the port cannot write, while the data input's format is allowed.
+  Fixture fixture;
+  const auto bundle = fixture.directory / "sample.idparquet";
+  fs::create_directories(bundle);
+  auto graph = singleToolGraph({fixture.input("data")});
+  graph.nodes.insert(graph.nodes.begin() + 1, node(11, Kind::INPUT));
+  graph.node(11).files = {pathString(bundle)};
+  graph.edges = {{10, 20, "", "single_in"}, {11, 20, "", "bundle_in"}, {20, 30, "mirrored_out", ""}};
+  graph.assignTopologicalNumbers();
+  PipelineExecutor executor;
+  const auto result = executor.run(graph, fixture.options);
+  TEST_EQUAL(result.exit_code, 0)
+  TEST_EQUAL(result.error_message, "")
+  const auto& output = result.nodes.at(20).outputs.at(0).at("mirrored_out").at(0);
+  TEST_EQUAL(pathString(to_path(output).filename()), "sample.fasta")
+}
+END_SECTION
+
 START_SECTION([EXTRA] Unrecognized content keeps its advertised custom extension through publication)
 {
   Fixture fixture;
@@ -886,6 +907,32 @@ START_SECTION([EXTRA] Rerun accepts retained directory-backed formats and append
     ++starts;
   }
   TEST_EQUAL(starts, 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] A rerun cannot overwrite outputs published by a retained branch)
+{
+  Fixture fixture;
+  auto graph = singleToolGraph({fixture.input("sample")});
+  graph.nodes.push_back(node(21, Kind::TOOL));
+  graph.nodes.push_back(node(31, Kind::OUTPUT));
+  graph.node(30).output_folder = "first";
+  graph.node(31).output_folder = "second";
+  graph.edges = {{10, 20, "", "in"}, {20, 30, "out", ""}, {10, 21, "", "in"}, {21, 31, "out", ""}};
+  graph.assignTopologicalNumbers();
+  PipelineExecutor initial;
+  const auto previous = initial.run(graph, fixture.options);
+  TEST_EQUAL(previous.exit_code, 0)
+  TEST_EQUAL(previous.error_message, "")
+  const auto sibling = to_path(previous.nodes.at(31).outputs.at(0).at("").at(0));
+  std::ofstream(sibling, std::ios::binary) << "retained sibling";
+  // Retarget the first branch onto the retained second one, as a TOPPAS edit and Resume would.
+  graph.node(30).output_folder = "second";
+  PipelineExecutor rerun;
+  const auto result = rerun.run(graph, fixture.options, {}, &previous, 20);
+  TEST_NOT_EQUAL(result.exit_code, 0)
+  TEST_TRUE(result.error_message.find("collide") != std::string::npos)
+  TEST_EQUAL(readFile(sibling), "retained sibling")
 }
 END_SECTION
 
