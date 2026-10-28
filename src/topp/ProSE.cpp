@@ -444,7 +444,7 @@ namespace
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML or Bruker .d format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML, mzPeak or Bruker .d format)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
@@ -651,6 +651,9 @@ class ProSE :
     {
       registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
       setValidFormats_("in", { "mzML",
+#ifdef WITH_MZPEAK
+        "mzpeak",
+#endif
 #ifdef WITH_OPENTIMS
         "d",
 #endif

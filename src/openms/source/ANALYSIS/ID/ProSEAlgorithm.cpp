@@ -7885,7 +7885,7 @@ namespace OpenMS
       return true;
     }
 
-    // The MS2 spectra (with @p survey_scans also the MS1 spectra) of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
+    // The MS2 spectra (with @p survey_scans also the MS1 spectra) of a spectrum file (mzML, mzPeak, Bruker .d or Thermo .raw), sorted by RT, read with
     // @p threads OpenMP threads: an mzML file in chunks parsed in parallel (loadMzMLChunked) with two
     // or more (or @p chunk_threads of two or more, with a helper: @p help, see ChunkHelp), otherwise with FileHandler.
     // With @p keep only the spectra it accepts (see ProSEAlgorithm::loadSpectra()).
@@ -7909,19 +7909,21 @@ namespace OpenMS
         // stay with the process. Returning them cost 5-6 % wall time on 20 small files at 64 threads (int14: 0.744 vs
         // 0.700 of int12-c2, 3 rounds) for 0.20 GiB less max RSS.
       }
-      else if (keep && FileHandler::getTypeByFileName(filename) == FileTypes::MZML)
+      else if (keep && (FileHandler::getTypeByFileName(filename) == FileTypes::MZML || FileHandler::getTypeByFileName(filename) == FileTypes::MZPEAK))
       {
         // streamed, so that only the kept spectra are held
         spectra.clear(true);
         MSDataTransformingConsumer consumer;
         // (moved: the reader does not use a spectrum once its consumer has it)
         consumer.setSpectraProcessingFunc([&spectra, &keep](MSSpectrum& spectrum) { if (keep(spectrum)) { spectra.addSpectrum(std::move(spectrum)); } });
-        f.transformExperiment(filename, &consumer, {FileTypes::MZML});
+        f.transformExperiment(filename, &consumer, {FileTypes::MZML, FileTypes::MZPEAK});
       }
       else
       {
-        f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        removeUnkept(spectra.getSpectra(), keep); // (Bruker .d, Thermo .raw)
+        // An mzPeak file is read whole here (MzPeakFile decodes its spectra with the OpenMP threads of this thread,
+        // and skips the MS1 spectra before decoding them); not in the background like an mzML file (see search()).
+        f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW, FileTypes::MZPEAK});
+        removeUnkept(spectra.getSpectra(), keep); // (Bruker .d, Thermo .raw, mzPeak)
       }
       // by retention time, and the peaks of each spectrum by m/z: the chunks of loadMzMLChunked() sorted the peaks of
       // their spectra on their threads (11 ms on one thread for the 16 million peaks of an Astral run); spectra listed in

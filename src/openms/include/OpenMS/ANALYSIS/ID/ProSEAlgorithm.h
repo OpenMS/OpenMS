@@ -576,7 +576,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * FileHandler::loadExperiment(). For a second look at the spectra of a search, e.g. those of its
      * PSMs (ProSE's -qpx_extended).
      *
-     * @param[in] filename The spectrum file (mzML, Bruker .d or Thermo .raw)
+     * @param[in] filename The spectrum file (mzML, mzPeak, Bruker .d or Thermo .raw)
      * @param[in] keep If set, only the spectra it accepts are kept, so that the result holds only
      *                 those in memory. It is called on several threads at once.
      * @return The spectra

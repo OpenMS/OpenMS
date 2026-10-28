@@ -63,6 +63,13 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
+# Vendored mzPeak library (thirdparty/mzpeak/README.OpenMS.md): the same pattern, a static library with its own
+# flags, linked PRIVATE below; only MzPeakFile.cpp includes its headers.
+if (OPENMS_ENABLE_MZPEAK)
+  add_subdirectory(thirdparty/mzpeak)
+endif()
+
+#------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
 ## Note: XercesC::XercesC is PRIVATE — Xerces is fully encapsulated behind the
 ## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
@@ -276,6 +283,10 @@ if (WITH_OPENTIMS)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
 endif()
 
+if (OPENMS_ENABLE_MZPEAK)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMS_mzpeak)
+endif()
+
 if (WITH_ARROW_S3 AND OPENMS_ARROW_S3_TARGET)
   # S3 (S3InputSource): Arrow's S3 filesystem, a library of its own in newer Arrow releases
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_S3_TARGET})
@@ -482,6 +493,10 @@ target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
+endif()
+
+if (OPENMS_ENABLE_MZPEAK)
+    target_compile_definitions(OpenMS PUBLIC WITH_MZPEAK=1)
 endif()
 
 if (WITH_ARROW_S3)
