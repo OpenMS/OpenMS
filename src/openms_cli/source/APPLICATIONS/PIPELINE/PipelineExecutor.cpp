@@ -531,7 +531,8 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       if (fs::create_directory(candidate)) temporary.path = fs::absolute(candidate);
     }
     if (temporary.path.empty()) throw Failure(TOPPBase::CANNOT_WRITE_OUTPUT_FILE, "Could not create an exclusive temporary run directory.");
-    logfile.open(out / "TOPPAS.log", std::ios::trunc);
+    // A rerun continues the log of the run whose upstream results it reuses.
+    logfile.open(out / "TOPPAS.log", start_node ? std::ios::app : std::ios::trunc);
     if (! logfile) throw Failure(TOPPBase::CANNOT_WRITE_OUTPUT_FILE, "Cannot write TOPPAS.log in '" + pathString(out) + "'.");
     auto emit = [&](const Event& event) {
       if (! event.text.empty())
@@ -635,7 +636,10 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
           {
             throw Failure(TOPPBase::INPUT_FILE_NOT_FOUND, context(source) + ": retained output '" + file + "' does not exist; rerun its producer.");
           }
-          if (directory != fs::is_directory(to_path(file)))
+          // Formats such as Bruker .d or idparquet are directories behind file ports.
+          const bool is_directory = fs::is_directory(to_path(file));
+          if ((directory && ! is_directory)
+              || (! directory && is_directory && ! FileTypes::isDirectoryType(FileNameUtils::getTypeByFileName(file))))
           {
             throw Failure(TOPPBase::INCOMPATIBLE_INPUT_DATA, context(source) + ": retained output '" + file + "' has the wrong file type.");
           }

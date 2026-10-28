@@ -236,6 +236,24 @@ START_SECTION([EXTRA] Multiformat writers receive a valid default suffix and hon
 }
 END_SECTION
 
+START_SECTION([EXTRA] Multiformat writers keep their input format when the port allows it)
+{
+  // FileFilter, IDMapper or MapAligner* write their input's format and reject a
+  // contradicting extension, even if another format is advertised first.
+  Fixture fixture;
+  auto graph = singleToolGraph({fixture.input("sample")});
+  graph.edges.back().source_port = "mirrored_out";
+  PipelineExecutor executor;
+  const auto result = executor.run(graph, fixture.options);
+  TEST_EQUAL(result.exit_code, 0)
+  TEST_EQUAL(result.error_message, "")
+  TEST_EQUAL(to_path(result.nodes.at(20).outputs.at(0).at("mirrored_out").at(0)).extension().string(), ".fasta")
+  const auto files = fixture.writtenFiles();
+  TEST_EQUAL(files.size(), 1)
+  TEST_EQUAL(pathString(files.at(0).extension()), ".fasta")
+}
+END_SECTION
+
 START_SECTION([EXTRA] Unrecognized content keeps its advertised custom extension through publication)
 {
   Fixture fixture;
@@ -840,6 +858,34 @@ START_SECTION([EXTRA] Rerun reuses retained upstream outputs and rejects missing
   TEST_NOT_EQUAL(missing_result.exit_code, 0)
   TEST_FALSE(missing_result.error_message.empty())
   TEST_EQUAL(missing_cache_starts, 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Rerun accepts retained directory-backed formats and appends to the log)
+{
+  Fixture fixture;
+  const auto bundle = fixture.directory / "sample.idparquet";
+  fs::create_directories(bundle);
+  std::ofstream(bundle / "psms.parquet", std::ios::binary) << "payload";
+  auto graph = singleToolGraph({pathString(bundle)});
+  graph.edges = {{10, 20, "", "bundle_in"}, {20, 30, "out", ""}};
+  graph.assignTopologicalNumbers();
+  PipelineExecutor initial;
+  const auto previous = initial.run(graph, fixture.options);
+  TEST_EQUAL(previous.exit_code, 0)
+  TEST_EQUAL(previous.error_message, "")
+  PipelineExecutor rerun;
+  const auto result = rerun.run(graph, fixture.options, {}, &previous, 20);
+  TEST_EQUAL(result.exit_code, 0)
+  TEST_EQUAL(result.error_message, "")
+  // Both runs started the tool; a rerun must not discard the upstream run's log.
+  const auto log = readFile(to_path(fixture.options.output_directory) / "TOPPAS.log");
+  Size starts = 0;
+  for (std::size_t pos = 0; (pos = log.find("started.", pos)) != std::string::npos; pos += 8)
+  {
+    ++starts;
+  }
+  TEST_EQUAL(starts, 2)
 }
 END_SECTION
 

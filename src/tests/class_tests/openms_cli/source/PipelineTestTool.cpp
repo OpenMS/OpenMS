@@ -35,6 +35,8 @@ private:
   {
     registerInputFileList_("in", "<files>", {}, "List input.", false);
     registerInputFile_("single_in", "<file>", "", "Single file input.", false);
+    registerInputFile_("bundle_in", "<file>", "", "Directory-backed format input (e.g. idparquet).", false);
+    setValidFormats_("bundle_in", {"idparquet"});
     registerTOPPSubsection_("ETool", "Nested external tool parameters.");
     registerInputFileList_("ETool:in", "<files>", {}, "Nested input requiring INI binding.", false);
     registerOutputFile_("out", "<file>", "", "Single file output.", false);
@@ -45,6 +47,8 @@ private:
     setValidFormats_("identifications_out", {"idXML", "mzid"});
     registerStringOption_("identifications_out_type", "<type>", "", "Optional explicit identification output format.", false);
     setValidStrings_("identifications_out_type", {"idXML", "mzid"});
+    registerOutputFile_("mirrored_out", "<file>", "", "Output keeping the input format, like FileFilter.", false);
+    setValidFormats_("mirrored_out", {"idXML", "fasta"});
     registerOutputFileList_("out_list", "<files>", {}, "List output.", false);
     registerOutputDir_("out_dir", "<directory>", "", "Directory output.", false);
     setValidFormats_("in", {"fasta"});
@@ -90,6 +94,8 @@ private:
     if (getStringOption_("mode") == "fail") return static_cast<ExitCodes>(getIntOption_("exit_code"));
     if (getStringOption_("mode") == "skip_output") return EXECUTION_OK;
 
+    const auto bundle = getStringOption_("bundle_in");
+    if (! bundle.empty() && ! fs::is_directory(to_path(bundle))) return INPUT_FILE_NOT_READABLE;
     auto inputs = getStringList_("in");
     const auto single = getStringOption_("single_in");
     if (! single.empty()) inputs.push_back(single);
@@ -116,6 +122,15 @@ private:
       // Exercise the same extension-dispatched writer used by search adapters;
       // unlike the copy outputs above, it correctly refuses an .unknown suffix.
       FileHandler().storeIdentifications(identifications, {}, {}, {FileTypes::IDXML, FileTypes::MZIDENTML});
+    }
+    const auto mirrored = getStringOption_("mirrored_out");
+    if (! mirrored.empty())
+    {
+      // Like FileFilter and FileHandler::store*: an unrecognized name falls back to the
+      // input format, while a contradicting known extension is an error.
+      const auto type = FileHandler::getTypeByFileName(mirrored);
+      if (type != FileTypes::UNKNOWN && type != FileTypes::FASTA) return INCOMPATIBLE_INPUT_DATA;
+      if (! write_(to_path(mirrored), content)) return CANNOT_WRITE_OUTPUT_FILE;
     }
     for (const auto& name : getStringList_("out_list"))
     {

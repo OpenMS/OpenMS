@@ -150,7 +150,7 @@ namespace
     }
   }
 
-  std::string outputSuffix(const PipelineGraph::Node& node, const PipelineTool::Descriptor& descriptor, const Port& port)
+  std::string outputSuffix(const PipelineGraph::Node& node, const PipelineTool::Descriptor& descriptor, const Port& port, FileTypes::Type input_type)
   {
     if (port.kind == Port::Kind::DIRECTORY) { return "_dir"; }
     if (port.valid_types.size() == 1)
@@ -170,6 +170,16 @@ namespace
     }
     if (! port.valid_types.empty())
     {
+      // Many tools write their input's format and reject a contradicting
+      // extension (e.g. FileFilter, IDMapper, MapAligner*, FileMerger without
+      // in_type): FileHandler::store* only falls back to the expected type for
+      // an unrecognized name. Prefer the input format whenever the port allows it.
+      if (input_type != FileTypes::UNKNOWN
+          && std::any_of(port.valid_types.begin(), port.valid_types.end(),
+                         [input_type](const std::string& valid) { return FileTypes::nameToType(valid) == input_type; }))
+      {
+        return "." + FileTypes::typeToName(input_type);
+      }
       // A writer with several advertised formats may dispatch by extension and
       // reject .unknown before there is any content to inspect. Preserve the
       // schema's declared preference (e.g. idXML before idparquet in adapters).
@@ -269,9 +279,10 @@ PipelineTool::Descriptor PipelineTool::discover(const PipelineGraph::Node& node,
     = process.runWithResult(descriptor.executable, arguments, "", false, ExternalProcess::IO_MODE::READ_ONLY, {}, nullptr, &cancelled);
   if (result.state != ExternalProcess::RETURNSTATE::SUCCESS)
   {
-    const int code = result.state == ExternalProcess::RETURNSTATE::FAILED_TO_START
-                       ? TOPPBase::EXTERNAL_PROGRAM_NOTFOUND
-                       : (result.exit_code > 0 ? result.exit_code : TOPPBase::EXTERNAL_PROGRAM_ERROR);
+    // A crash reports a signal number or NTSTATUS, not a TOPP exit code.
+    const int code = result.state == ExternalProcess::RETURNSTATE::FAILED_TO_START ? TOPPBase::EXTERNAL_PROGRAM_NOTFOUND
+                     : result.state == ExternalProcess::RETURNSTATE::NONZERO_EXIT  ? result.exit_code
+                                                                                  : TOPPBase::EXTERNAL_PROGRAM_ERROR;
     throw Failure(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code,
                   "Parameter discovery failed for '" + node.tool_name + "': " + result.error_message);
   }
@@ -367,9 +378,10 @@ PipelineTool::Rounds PipelineTool::planOutputs(const PipelineGraph& graph,
     auto component = port.name;
     component.erase(std::remove(component.begin(), component.end(), ':'), component.end());
     const auto path = directory / to_path(pathComponent(component.substr(0, 50)));
-    const auto suffix = outputSuffix(node, descriptor, port);
     for (Size round = 0; round < inputs.size(); ++round)
     {
+      const auto input_type = FileNameUtils::getTypeByFileName(inputs[round].at(naming_port->name).front());
+      const auto suffix = outputSuffix(node, descriptor, port, input_type);
       const bool list_to_single = names[round].size() > 1 && port.kind == Port::Kind::FILE;
       for (const auto& input_file : names[round])
       {

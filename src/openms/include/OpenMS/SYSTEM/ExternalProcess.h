@@ -42,7 +42,9 @@ namespace OpenMS
       CANCELLED        ///< execution was cancelled before launch or while running
     };
 
-    /// Structured process outcome. The exit code is -1 if no process was started.
+    /// Structured process outcome. The exit code is -1 if no process was started. It is a
+    /// program exit code only for SUCCESS and NONZERO_EXIT; for CRASH it is platform specific
+    /// (POSIX signal number, Windows NTSTATUS).
     struct Result
     {
       RETURNSTATE state = RETURNSTATE::FAILED_TO_START;
