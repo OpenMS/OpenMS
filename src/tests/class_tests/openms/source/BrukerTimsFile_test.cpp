@@ -1501,9 +1501,10 @@ START_SECTION([EXTRA] PASEF windows without a precursor are read as one MS2 spec
   TEST_EQUAL(by_id.count("frame=1 scan=400"), 1)
   ABORT_IF(by_id.count("frame=1 scan=100") != 1 || by_id.count("frame=1 scan=400") != 1)
 
-  // the precursor is the target: its isolation window, charge 0, the 1/K0 of the middle scan of the window (150 and
-  // 450, where the second and the fourth peak are); the peaks are those of the scans of the window
-  const auto check = [&](const MSSpectrum& spec, double mz, double half_width, size_t middle_peak, const std::vector<size_t>& peaks)
+  // the precursor is the target: its isolation window, charge 0, its collision energy, the 1/K0 of the middle scan of
+  // the window (150 and 450, where the second and the fourth peak are); the peaks are those of the scans of the window
+  const auto check = [&](const MSSpectrum& spec, double mz, double half_width, double collision_energy, size_t middle_peak,
+                          const std::vector<size_t>& peaks)
   {
     TEST_EQUAL(spec.getMSLevel(), 2)
     TEST_EQUAL(spec.metaValueExists("bruker_precursor_id"), false)
@@ -1514,6 +1515,7 @@ START_SECTION([EXTRA] PASEF windows without a precursor are read as one MS2 spec
     TEST_REAL_SIMILAR(precursor.getIsolationWindowLowerOffset(), half_width)
     TEST_REAL_SIMILAR(precursor.getIsolationWindowUpperOffset(), half_width)
     TEST_EQUAL(precursor.getCharge(), 0)
+    TEST_REAL_SIMILAR(double(precursor.getMetaValue("collision energy")), collision_energy)
     TEST_REAL_SIMILAR(spec.getDriftTime(), frame_im[middle_peak])
     TEST_REAL_SIMILAR(precursor.getDriftTime(), frame_im[middle_peak])
     TEST_EQUAL(spec.size(), peaks.size())
@@ -1524,8 +1526,8 @@ START_SECTION([EXTRA] PASEF windows without a precursor are read as one MS2 spec
       TEST_REAL_SIMILAR(spec[i].getIntensity(), frame[peaks[i]].getIntensity())
     }
   };
-  check(*by_id["frame=1 scan=100"], 500.25, 1.0, 1, {0, 1, 2});
-  check(*by_id["frame=1 scan=400"], 600.5, 1.5, 3, {3});
+  check(*by_id["frame=1 scan=100"], 500.25, 1.0, 30.0, 1, {0, 1, 2});
+  check(*by_id["frame=1 scan=400"], 600.5, 1.5, 35.0, 3, {3});
 
   // written as it is read: the same spectra
   MSDataStoringConsumer streamed;
@@ -1547,6 +1549,71 @@ START_SECTION([EXTRA] PASEF windows without a precursor are read as one MS2 spec
   addTables(empty, "");
   TEST_EQUAL(hasText(warningsOf([&] { f.load(empty, exp); }), "no DDA-PASEF precursors or isolation windows"), true)
   TEST_EQUAL(exp.size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DDA-PASEF precursors have the collision energy and fragmentation mode of their frames)
+{
+  // two PASEF frames that both fragment precursor 1 at 30 eV and precursor 2 at 35 and 37 eV
+  TempDir tmp;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/activation.d", {{1, 8, '+', 0}, {2, 8, '+', 0}},
+    {{1, {{150, 20000, 100}, {450, 40000, 80}}}, {2, {{150, 20000, 100}, {450, 40000, 80}}}});
+  const auto execute = [&d](const std::vector<std::string>& statements)
+  {
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    for (const std::string& statement : statements) conn.executeStatement(statement);
+  };
+  execute({"CREATE TABLE Precursors (Id INTEGER PRIMARY KEY, LargestPeakMz REAL, AverageMz REAL, MonoisotopicMz REAL, "
+           "Charge INTEGER, ScanNumber REAL, Intensity REAL, Parent INTEGER);",
+           "INSERT INTO Precursors VALUES (1, 500.25, 500.3, 500.25, 2, 150.0, 1000.0, NULL), "
+           "(2, 600.5, 600.6, 600.5, 2, 450.0, 1000.0, NULL);",
+           "CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER NOT NULL, ScanNumBegin INTEGER NOT NULL, ScanNumEnd INTEGER NOT NULL, "
+           "IsolationMz REAL NOT NULL, IsolationWidth REAL NOT NULL, CollisionEnergy REAL NOT NULL, Precursor INTEGER, "
+           "PRIMARY KEY(Frame, ScanNumBegin)) WITHOUT ROWID;",
+           "INSERT INTO PasefFrameMsMsInfo VALUES (1, 100, 201, 500.25, 2.0, 30.0, 1), (2, 100, 201, 500.25, 2.0, 30.0, 1), "
+           "(1, 400, 501, 600.5, 3.0, 35.0, 2), (2, 400, 501, 600.5, 3.0, 37.0, 2);"});
+
+  BrukerTimsFile f;
+  // the precursor of the spectrum of each precursor id
+  const auto precursors = [&]
+  {
+    MSExperiment exp;
+    f.load(d, exp);
+    std::map<int, Precursor> result;
+    for (const MSSpectrum& spec : exp)
+    {
+      if (spec.metaValueExists("bruker_precursor_id") && spec.getPrecursors().size() == 1)
+        result[int(spec.getMetaValue("bruker_precursor_id"))] = spec.getPrecursors()[0];
+    }
+    return result;
+  };
+  std::map<int, Precursor> prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  ABORT_IF(prec.size() != 2)
+  // the collision energy is that of the rows of the precursor, and none if they differ
+  TEST_REAL_SIMILAR(double(prec[1].getMetaValue("collision energy")), 30.0)
+  TEST_EQUAL(prec[2].metaValueExists("collision energy"), false)
+  // no fragmentation mode without the property
+  TEST_EQUAL(prec[1].getActivationMethods().empty(), true)
+
+  // MSMSAuto_FragmentationMode (1: ETD) of the property group of the frames; group 2, which no frame has, does not count
+  execute({"ALTER TABLE Frames ADD COLUMN PropertyGroup INTEGER;", "UPDATE Frames SET PropertyGroup = 1;",
+           "CREATE TABLE PropertyDefinitions (Id INTEGER PRIMARY KEY, PermanentName TEXT);",
+           "INSERT INTO PropertyDefinitions VALUES (7, 'MSMSAuto_FragmentationMode');",
+           "CREATE TABLE GroupProperties (PropertyGroup INTEGER, Property INTEGER, Value);",
+           "INSERT INTO GroupProperties VALUES (1, 7, 1), (2, 7, 0);"});
+  prec = precursors();
+  TEST_EQUAL(prec[1].getActivationMethods() == std::set<Precursor::ActivationMethod>{Precursor::ActivationMethod::ETD}, true)
+  TEST_EQUAL(prec[2].getActivationMethods() == std::set<Precursor::ActivationMethod>{Precursor::ActivationMethod::ETD}, true)
+
+  // a value of the frame itself (0: CID) comes first; if the frames differ, there is none
+  execute({"CREATE TABLE FrameProperties (Frame INTEGER, Property INTEGER, Value);",
+           "INSERT INTO FrameProperties VALUES (1, 7, 0), (2, 7, 0);"});
+  prec = precursors();
+  TEST_EQUAL(prec[1].getActivationMethods() == std::set<Precursor::ActivationMethod>{Precursor::ActivationMethod::CID}, true)
+  execute({"DELETE FROM FrameProperties WHERE Frame = 2;"});
+  prec = precursors();
+  TEST_EQUAL(prec[1].getActivationMethods().empty(), true)
 }
 END_SECTION
 
